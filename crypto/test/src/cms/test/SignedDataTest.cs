@@ -71,6 +71,42 @@ namespace Org.BouncyCastle.Cms.Tests
         private static AsymmetricCipherKeyPair signMLDsa87KP;
         private static X509Certificate signMLDsa87Cert;
 
+        private static AsymmetricCipherKeyPair signSlhDsa_Sha2_128f_KP;
+        private static X509Certificate signSlhDsa_Sha2_128f_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Sha2_128s_KP;
+        private static X509Certificate signSlhDsa_Sha2_128s_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Sha2_192f_KP;
+        private static X509Certificate signSlhDsa_Sha2_192f_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Sha2_192s_KP;
+        private static X509Certificate signSlhDsa_Sha2_192s_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Sha2_256f_KP;
+        private static X509Certificate signSlhDsa_Sha2_256f_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Sha2_256s_KP;
+        private static X509Certificate signSlhDsa_Sha2_256s_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Shake_128f_KP;
+        private static X509Certificate signSlhDsa_Shake_128f_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Shake_128s_KP;
+        private static X509Certificate signSlhDsa_Shake_128s_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Shake_192f_KP;
+        private static X509Certificate signSlhDsa_Shake_192f_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Shake_192s_KP;
+        private static X509Certificate signSlhDsa_Shake_192s_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Shake_256f_KP;
+        private static X509Certificate signSlhDsa_Shake_256f_Cert;
+
+        private static AsymmetricCipherKeyPair signSlhDsa_Shake_256s_KP;
+        private static X509Certificate signSlhDsa_Shake_256s_Cert;
+
         private static AsymmetricCipherKeyPair OrigKP => CmsTestUtil.InitKP(ref origKP, CmsTestUtil.MakeKeyPair);
 
 		//private static AsymmetricCipherKeyPair ReciKP => CmsTestUtil.InitKP(ref reciKP, CmsTestUtil.MakeKeyPair);
@@ -103,6 +139,42 @@ namespace Org.BouncyCastle.Cms.Tests
 
         private static AsymmetricCipherKeyPair SignMLDsa87KP =>
             CmsTestUtil.InitKP(ref signMLDsa87KP, CmsTestUtil.MakeMLDsa87KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Sha2_128f_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Sha2_128f_KP, CmsTestUtil.MakeSlhDsa_Sha2_128f_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Sha2_128s_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Sha2_128s_KP, CmsTestUtil.MakeSlhDsa_Sha2_128s_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Sha2_192f_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Sha2_192f_KP, CmsTestUtil.MakeSlhDsa_Sha2_192f_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Sha2_192s_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Sha2_192s_KP, CmsTestUtil.MakeSlhDsa_Sha2_192s_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Sha2_256f_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Sha2_256f_KP, CmsTestUtil.MakeSlhDsa_Sha2_256f_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Sha2_256s_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Sha2_256s_KP, CmsTestUtil.MakeSlhDsa_Sha2_256s_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Shake_128f_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Shake_128f_KP, CmsTestUtil.MakeSlhDsa_Shake_128f_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Shake_128s_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Shake_128s_KP, CmsTestUtil.MakeSlhDsa_Shake_128s_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Shake_192f_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Shake_192f_KP, CmsTestUtil.MakeSlhDsa_Shake_192f_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Shake_192s_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Shake_192s_KP, CmsTestUtil.MakeSlhDsa_Shake_192s_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Shake_256f_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Shake_256f_KP, CmsTestUtil.MakeSlhDsa_Shake_256f_KeyPair);
+
+        private static AsymmetricCipherKeyPair SignSlhDsa_Shake_256s_KP =>
+            CmsTestUtil.InitKP(ref signSlhDsa_Shake_256s_KP, CmsTestUtil.MakeSlhDsa_Shake_256s_KeyPair);
 
         private static X509Certificate OrigCert => CmsTestUtil.InitCertificate(ref origCert,
             () => CmsTestUtil.MakeCertificate(OrigKP, OrigDN, OrigKP, OrigDN));
@@ -139,6 +211,42 @@ namespace Org.BouncyCastle.Cms.Tests
 
         private static X509Certificate SignMLDsa87Cert => CmsTestUtil.InitCertificate(ref signMLDsa87Cert,
             () => CmsTestUtil.MakeCertificate(SignMLDsa87KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Sha2_128f_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Sha2_128f_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Sha2_128f_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Sha2_128s_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Sha2_128s_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Sha2_128s_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Sha2_192f_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Sha2_192f_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Sha2_192f_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Sha2_192s_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Sha2_192s_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Sha2_192s_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Sha2_256f_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Sha2_256f_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Sha2_256f_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Sha2_256s_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Sha2_256s_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Sha2_256s_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Shake_128f_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Shake_128f_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Shake_128f_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Shake_128s_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Shake_128s_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Shake_128s_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Shake_192f_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Shake_192f_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Shake_192f_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Shake_192s_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Shake_192s_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Shake_192s_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Shake_256f_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Shake_256f_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Shake_256f_KP, SignDN, OrigKP, OrigDN));
+
+        private static X509Certificate SignSlhDsa_Shake_256s_Cert => CmsTestUtil.InitCertificate(ref signSlhDsa_Shake_256s_Cert,
+            () => CmsTestUtil.MakeCertificate(SignSlhDsa_Shake_256s_KP, SignDN, OrigKP, OrigDN));
 
         private static X509Crl SignCrl => CmsTestUtil.InitCrl(ref signCrl, () => CmsTestUtil.MakeCrl(SignKP));
 
@@ -408,6 +516,8 @@ namespace Org.BouncyCastle.Cms.Tests
 
 		static SignedDataTest()
 		{
+			// TODO Move functionality of NoParams to SignerUtilities?
+
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha224);
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
@@ -431,6 +541,18 @@ namespace Org.BouncyCastle.Cms.Tests
             NoParams.Add(NistObjectIdentifiers.id_ml_dsa_44);
             NoParams.Add(NistObjectIdentifiers.id_ml_dsa_65);
             NoParams.Add(NistObjectIdentifiers.id_ml_dsa_87);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_128f);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_128s);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_192f);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_192s);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_256f);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_256s);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_128f);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_128s);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_192f);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_192s);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_256f);
+            NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_256s);
         }
 
         [Test]
@@ -868,22 +990,10 @@ namespace Org.BouncyCastle.Cms.Tests
              */
             AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
+            DetachedTest(SignEd25519KP, SignEd25519Cert, "Ed25519", EdECObjectIdentifiers.id_Ed25519, expectedDigAlgID);
+
             EncapsulatedTestAlt(SignEd25519KP, SignEd25519Cert, "Ed25519", EdECObjectIdentifiers.id_Ed25519,
                 expectedDigAlgID);
-        }
-
-        [Test]
-        public void TestEd25519Detached()
-        {
-            /*
-             * RFC 8419 3.1. When signing with Ed25519, the digestAlgorithm MUST be id-sha512, and the algorithm
-             * parameters field MUST be absent.
-             * 
-             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
-             */
-            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
-
-            DetachedTest(SignEd25519KP, SignEd25519Cert, "Ed25519", EdECObjectIdentifiers.id_Ed25519, expectedDigAlgID);
         }
 
         //[Test]
@@ -899,23 +1009,9 @@ namespace Org.BouncyCastle.Cms.Tests
         //    AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len,
         //        new DerInteger(512));
 
-        //    EncapsulatedTestAlt(SignEd448KP, SignEd448Cert, "Ed448", EdECObjectIdentifiers.id_Ed448, expectedDigAlgID);
-        //}
-
-        //[Test]
-        //public void TestEd448Detached()
-        //{
-        //    /*
-        //     * RFC 8419 3.1. When signing with Ed448, the digestAlgorithm MUST be id-shake256-len, the algorithm
-        //     * parameters field MUST be present, and the parameter MUST contain 512, encoded as a positive integer
-        //     * value.
-        //     * 
-        //     * We confirm here that our implementation defaults to id-shake256-len/512 for the digest algorithm.
-        //     */
-        //    AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len,
-        //        new DerInteger(512));
-
         //    DetachedTest(SignEd448KP, SignEd448Cert, "Ed448", EdECObjectIdentifiers.id_Ed448, expectedDigAlgID);
+
+        //    EncapsulatedTestAlt(SignEd448KP, SignEd448Cert, "Ed448", EdECObjectIdentifiers.id_Ed448, expectedDigAlgID);
         //}
 
         [Test]
@@ -1172,24 +1268,10 @@ namespace Org.BouncyCastle.Cms.Tests
              */
 			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
-			EncapsulatedTestAlt(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
-				expectedDigAlgID);
-		}
+            DetachedTest(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
+                expectedDigAlgID);
 
-		[Test]
-		public void TestMLDsa44Detached()
-		{
-			/*
-             * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
-             * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
-             * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
-             * omitted.
-             *
-             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
-             */
-			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
-
-			DetachedTest(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
+            EncapsulatedTestAlt(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
 				expectedDigAlgID);
 		}
 
@@ -1206,26 +1288,12 @@ namespace Org.BouncyCastle.Cms.Tests
 		     */
 			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
-			EncapsulatedTestAlt(SignMLDsa65KP, SignMLDsa65Cert, "ML-DSA-65", NistObjectIdentifiers.id_ml_dsa_65,
-				expectedDigAlgID);
-		}
-
-        [Test]
-        public void TestMLDsa65Detached()
-        {
-            /*
-		     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
-		     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
-		     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
-		     * omitted.
-		     *
-		     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
-		     */
-            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
-
             DetachedTest(SignMLDsa65KP, SignMLDsa65Cert, "ML-DSA-65", NistObjectIdentifiers.id_ml_dsa_65,
                 expectedDigAlgID);
-        }
+
+            EncapsulatedTestAlt(SignMLDsa65KP, SignMLDsa65Cert, "ML-DSA-65", NistObjectIdentifiers.id_ml_dsa_65,
+				expectedDigAlgID);
+		}
 
         [Test]
 		public void TestMLDsa87()
@@ -1240,28 +1308,218 @@ namespace Org.BouncyCastle.Cms.Tests
 		     */
 			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
-			EncapsulatedTestAlt(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
+            DetachedTest(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
+                expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
 				expectedDigAlgID);
 		}
 
 		[Test]
-		public void TestMLDsa87Detached()
+		public void TestSlhDsa_Sha2_128f()
 		{
-			/*
-		     * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
-		     * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
-		     * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
-		     * omitted.
-		     *
-		     * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
-		     */
-			AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHA-256 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256);
 
-            DetachedTest(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
-				expectedDigAlgID);
+            DetachedTest(SignSlhDsa_Sha2_128f_KP, SignSlhDsa_Sha2_128f_Cert, "SLH-DSA-SHA2-128F",
+                NistObjectIdentifiers.id_slh_dsa_sha2_128f, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Sha2_128f_KP, SignSlhDsa_Sha2_128f_Cert, "SLH-DSA-SHA2-128F",
+				NistObjectIdentifiers.id_slh_dsa_sha2_128f, expectedDigAlgID);
 		}
 
-		private void RsaPssTest(string digestName, string digestOID)
+        [Test, Explicit]
+        public void TestSlhDsa_Sha2_128s()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHA-256 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256);
+
+            DetachedTest(SignSlhDsa_Sha2_128s_KP, SignSlhDsa_Sha2_128s_Cert, "SLH-DSA-SHA2-128S",
+                NistObjectIdentifiers.id_slh_dsa_sha2_128s, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Sha2_128s_KP, SignSlhDsa_Sha2_128s_Cert, "SLH-DSA-SHA2-128S",
+                NistObjectIdentifiers.id_slh_dsa_sha2_128s, expectedDigAlgID);
+        }
+
+        [Test]
+        public void TestSlhDsa_Sha2_192f()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+
+            DetachedTest(SignSlhDsa_Sha2_192f_KP, SignSlhDsa_Sha2_192f_Cert, "SLH-DSA-SHA2-192F",
+                NistObjectIdentifiers.id_slh_dsa_sha2_192f, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Sha2_192f_KP, SignSlhDsa_Sha2_192f_Cert, "SLH-DSA-SHA2-192F",
+                NistObjectIdentifiers.id_slh_dsa_sha2_192f, expectedDigAlgID);
+        }
+
+        [Test, Explicit]
+        public void TestSlhDsa_Sha2_192s()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+
+            DetachedTest(SignSlhDsa_Sha2_192s_KP, SignSlhDsa_Sha2_192s_Cert, "SLH-DSA-SHA2-192S",
+                NistObjectIdentifiers.id_slh_dsa_sha2_192s, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Sha2_192s_KP, SignSlhDsa_Sha2_192s_Cert, "SLH-DSA-SHA2-192S",
+                NistObjectIdentifiers.id_slh_dsa_sha2_192s, expectedDigAlgID);
+        }
+
+        [Test]
+        public void TestSlhDsa_Sha2_256f()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+
+            DetachedTest(SignSlhDsa_Sha2_256f_KP, SignSlhDsa_Sha2_256f_Cert, "SLH-DSA-SHA2-256F",
+                NistObjectIdentifiers.id_slh_dsa_sha2_256f, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Sha2_256f_KP, SignSlhDsa_Sha2_256f_Cert, "SLH-DSA-SHA2-256F",
+                NistObjectIdentifiers.id_slh_dsa_sha2_256f, expectedDigAlgID);
+        }
+
+        [Test, Explicit]
+        public void TestSlhDsa_Sha2_256s()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+
+            DetachedTest(SignSlhDsa_Sha2_256s_KP, SignSlhDsa_Sha2_256s_Cert, "SLH-DSA-SHA2-256S",
+                NistObjectIdentifiers.id_slh_dsa_sha2_256s, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Sha2_256s_KP, SignSlhDsa_Sha2_256s_Cert, "SLH-DSA-SHA2-256S",
+                NistObjectIdentifiers.id_slh_dsa_sha2_256s, expectedDigAlgID);
+        }
+
+        [Test]
+        public void TestSlhDsa_Shake_128f()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHAKE-128 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake128);
+
+            DetachedTest(SignSlhDsa_Shake_128f_KP, SignSlhDsa_Shake_128f_Cert, "SLH-DSA-SHAKE-128F",
+                NistObjectIdentifiers.id_slh_dsa_shake_128f, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Shake_128f_KP, SignSlhDsa_Shake_128f_Cert, "SLH-DSA-SHAKE-128F",
+                NistObjectIdentifiers.id_slh_dsa_shake_128f, expectedDigAlgID);
+        }
+
+        [Test, Explicit]
+        public void TestSlhDsa_Shake_128s()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHAKE-128 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake128);
+
+            DetachedTest(SignSlhDsa_Shake_128s_KP, SignSlhDsa_Shake_128s_Cert, "SLH-DSA-SHAKE-128S",
+                NistObjectIdentifiers.id_slh_dsa_shake_128s, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Shake_128s_KP, SignSlhDsa_Shake_128s_Cert, "SLH-DSA-SHAKE-128S",
+                NistObjectIdentifiers.id_slh_dsa_shake_128s, expectedDigAlgID);
+        }
+
+        [Test]
+        public void TestSlhDsa_Shake_192f()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHAKE-256 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
+
+            DetachedTest(SignSlhDsa_Shake_192f_KP, SignSlhDsa_Shake_192f_Cert, "SLH-DSA-SHAKE-192F",
+                NistObjectIdentifiers.id_slh_dsa_shake_192f, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Shake_192f_KP, SignSlhDsa_Shake_192f_Cert, "SLH-DSA-SHAKE-192F",
+                NistObjectIdentifiers.id_slh_dsa_shake_192f, expectedDigAlgID);
+        }
+
+        [Test, Explicit]
+        public void TestSlhDsa_Shake_192s()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHAKE-256 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
+
+            DetachedTest(SignSlhDsa_Shake_192s_KP, SignSlhDsa_Shake_192s_Cert, "SLH-DSA-SHAKE-192S",
+                NistObjectIdentifiers.id_slh_dsa_shake_192s, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Shake_192s_KP, SignSlhDsa_Shake_192s_Cert, "SLH-DSA-SHAKE-192S",
+                NistObjectIdentifiers.id_slh_dsa_shake_192s, expectedDigAlgID);
+        }
+
+        [Test]
+        public void TestSlhDsa_Shake_256f()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHAKE-256 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
+
+            DetachedTest(SignSlhDsa_Shake_256f_KP, SignSlhDsa_Shake_256f_Cert, "SLH-DSA-SHAKE-256F",
+                NistObjectIdentifiers.id_slh_dsa_shake_256f, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Shake_256f_KP, SignSlhDsa_Shake_256f_Cert, "SLH-DSA-SHAKE-256F",
+                NistObjectIdentifiers.id_slh_dsa_shake_256f, expectedDigAlgID);
+        }
+
+        [Test, Explicit]
+        public void TestSlhDsa_Shake_256s()
+        {
+            /*
+             * draft-ietf-lamps-cms-sphincs-plus-19 4. (we initially only support the MUST-support algorithm)
+             *
+             * We confirm here that our implementation defaults to SHAKE-256 for the digest algorithm.
+             */
+            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
+
+            DetachedTest(SignSlhDsa_Shake_256s_KP, SignSlhDsa_Shake_256s_Cert, "SLH-DSA-SHAKE-256S",
+                NistObjectIdentifiers.id_slh_dsa_shake_256s, expectedDigAlgID);
+
+            EncapsulatedTestAlt(SignSlhDsa_Shake_256s_KP, SignSlhDsa_Shake_256s_Cert, "SLH-DSA-SHAKE-256S",
+                NistObjectIdentifiers.id_slh_dsa_shake_256s, expectedDigAlgID);
+        }
+
+        private void RsaPssTest(string digestName, string digestOID)
 		{
 			byte[] msgBytes = Encoding.ASCII.GetBytes("Hello World!");
 			CmsProcessable msg = new CmsProcessableByteArray(msgBytes);

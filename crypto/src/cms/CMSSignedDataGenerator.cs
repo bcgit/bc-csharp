@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -95,10 +96,28 @@ namespace Org.BouncyCastle.Cms
                 //}
                 else if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
                 {
+                    if (mlDsaParameters.IsPreHash)
+                        throw new CmsException($"{mlDsaParameters} prehash signature is not supported");
+
                     // TODO Other digests may be acceptable; keep a list and check against it
 
                     if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid))
                         throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
+
+                    var sigAlgID = new AlgorithmIdentifier(sigAlgOid);
+
+                    signatureFactory = new Asn1SignatureFactory(sigAlgID, key, random);
+                }
+                else if (SlhDsaParameters.ByOid.TryGetValue(sigAlgOid, out SlhDsaParameters slhDsaParameters))
+                {
+                    if (slhDsaParameters.IsPreHash)
+                        throw new CmsException($"{slhDsaParameters} prehash signature is not supported");
+
+                    // TODO Other digests may be acceptable; keep a list and check against it
+
+                    var defaultDigAlgOid = CmsSignedHelper.GetSlhDsaDigestOid(sigAlgOid);
+                    if (!defaultDigAlgOid.Equals(digAlgOid))
+                        throw new CmsException($"{slhDsaParameters} signature used with unsupported digest algorithm");
 
                     var sigAlgID = new AlgorithmIdentifier(sigAlgOid);
 
@@ -159,11 +178,26 @@ namespace Org.BouncyCastle.Cms
                 //}
                 else if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
                 {
+                    if (mlDsaParameters.IsPreHash)
+                        throw new CmsException($"{mlDsaParameters} prehash signature is not supported");
+
                     if (sigAlgParams != null)
                         throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
 
                     // TODO Other digest might be supported; allow customization
                     digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, null);
+                }
+                else if (SlhDsaParameters.ByOid.TryGetValue(sigAlgOid, out SlhDsaParameters slhDsaParameters))
+                {
+                    if (slhDsaParameters.IsPreHash)
+                        throw new CmsException($"{slhDsaParameters} prehash signature is not supported");
+
+                    if (sigAlgParams != null)
+                        throw new CmsException($"{slhDsaParameters} signature cannot specify algorithm parameters");
+
+                    // TODO Other digest might be supported; allow customization
+                    var defaultDigAlgOid = CmsSignedHelper.GetSlhDsaDigestOid(sigAlgOid);
+                    digAlgID = new AlgorithmIdentifier(defaultDigAlgOid, null);
                 }
                 else
                 {
@@ -258,6 +292,12 @@ namespace Org.BouncyCastle.Cms
                 //}
                 else if (MLDsaParameters.ByOid.TryGetValue(m_sigAlgOid, out MLDsaParameters mlDsaParameters))
                 {
+                    Debug.Assert(!mlDsaParameters.IsPreHash);
+                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
+                }
+                else if (SlhDsaParameters.ByOid.TryGetValue(m_sigAlgOid, out SlhDsaParameters slhDsaParameters))
+                {
+                    Debug.Assert(!slhDsaParameters.IsPreHash);
                     sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
                 }
                 else

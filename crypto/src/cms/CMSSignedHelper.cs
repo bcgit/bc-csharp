@@ -32,6 +32,8 @@ namespace Org.BouncyCastle.Cms
         private static readonly Dictionary<string, DerObjectIdentifier> m_ecAlgorithms =
             new Dictionary<string, DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> m_noParams = new HashSet<DerObjectIdentifier>();
+        private static readonly Dictionary<DerObjectIdentifier, DerObjectIdentifier> m_slhDsaDigestAlgs =
+            new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
 
         private static void AddEntries(DerObjectIdentifier oid, string digest, string encryption)
         {
@@ -194,6 +196,19 @@ namespace Org.BouncyCastle.Cms
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_256);
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_384);
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_512);
+
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_sha2_128f, NistObjectIdentifiers.IdSha256);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_sha2_128s, NistObjectIdentifiers.IdSha256);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_sha2_192f, NistObjectIdentifiers.IdSha512);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_sha2_192s, NistObjectIdentifiers.IdSha512);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_sha2_256f, NistObjectIdentifiers.IdSha512);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_sha2_256s, NistObjectIdentifiers.IdSha512);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_shake_128f, NistObjectIdentifiers.IdShake128);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_shake_128s, NistObjectIdentifiers.IdShake128);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_shake_192f, NistObjectIdentifiers.IdShake256);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_shake_192s, NistObjectIdentifiers.IdShake256);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_shake_256f, NistObjectIdentifiers.IdShake256);
+            m_slhDsaDigestAlgs.Add(NistObjectIdentifiers.id_slh_dsa_shake_256s, NistObjectIdentifiers.IdShake256);
         }
 
         /**
@@ -403,5 +418,8 @@ namespace Org.BouncyCastle.Cms
             }
             return CollectionUtilities.CreateStore(contents);
         }
+
+        internal static DerObjectIdentifier GetSlhDsaDigestOid(DerObjectIdentifier slhDsaOid) =>
+            m_slhDsaDigestAlgs[slhDsaOid];
     }
 }

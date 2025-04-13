@@ -345,6 +345,9 @@ namespace Org.BouncyCastle.Cms
             //}
             else if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
             {
+                if (mlDsaParameters.IsPreHash)
+                    throw new CmsException($"{mlDsaParameters} prehash signature is not supported");
+
                 if (sigAlgParams != null)
                     throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
 
@@ -366,6 +369,51 @@ namespace Org.BouncyCastle.Cms
                      */
                     if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
                         throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
+
+                    digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+                }
+
+                sig = SignerUtilities.GetSigner(sigAlgOid);
+            }
+            else if (SlhDsaParameters.ByOid.TryGetValue(sigAlgOid, out SlhDsaParameters slhDsaParameters))
+            {
+                if (slhDsaParameters.IsPreHash)
+                    throw new CmsException($"{slhDsaParameters} prehash signature is not supported");
+
+                if (sigAlgParams != null)
+                    throw new CmsException($"{slhDsaParameters} signature cannot specify algorithm parameters");
+
+                /*
+                 * TODO[cms] Check this is being met (presumably by the signer checks on the public key parameter set)
+                 *
+				 * draft-ietf-lamps-cms-sphincs-plus-19 4. Signature verification MUST include checking that the
+				 * signatureAlgorithm field identifies SLH-DSA parameters that are consistent with public key used to
+				 * validate the signature.
+				 */
+
+                /*
+                 * TODO[cms] Note somewhat of a contradiction here for signed-attributes-present behaviour
+                 * 
+				 * draft-ietf-lamps-cms-sphincs-plus-19 4.
+				 *
+				 * When signed attributes are absent, the SLH-DSA (pure mode) signature is computed over the content.
+				 * When signed attributes are present, a hash MUST be computed over the content using the same hash
+				 * function that is used in the SLH-DSA tree.
+				 *
+				 * When signed attributes are absent, the digestAlgorithm identifier MUST match the hash function used
+				 * in the SLH-DSA tree (as shown in the list below). When signed attributes are present, to ensure
+				 * collision resistance, the identified hash function MUST produce a hash value that is at least twice
+				 * the size of the hash function used in the SLH-DSA tree.
+				 */
+                if (signedAttributeSet == null)
+                {
+                    digestName = null;
+                }
+                else
+                {
+                    var defaultDigAlgOid = CmsSignedHelper.GetSlhDsaDigestOid(sigAlgOid);
+                    if (!defaultDigAlgOid.Equals(digAlgOid) || digAlgParams != null)
+                        throw new CmsException($"{slhDsaParameters} signature used with unsupported digest algorithm");
 
                     digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
                 }

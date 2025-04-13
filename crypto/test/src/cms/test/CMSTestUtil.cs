@@ -38,6 +38,18 @@ namespace Org.BouncyCastle.Cms.Tests
         private static IAsymmetricCipherKeyPairGenerator mlKem512Kpg;
         private static IAsymmetricCipherKeyPairGenerator mlKem768Kpg;
         private static IAsymmetricCipherKeyPairGenerator mlKem1024Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_128f;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_128s;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_192f;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_192s;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_256f;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_256s;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_128f;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_128s;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_192f;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_192s;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_256f;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_256s;
 
         public static CipherKeyGenerator aes128KG;
         public static CipherKeyGenerator aes192KG;
@@ -188,6 +200,42 @@ namespace Org.BouncyCastle.Cms.Tests
         private static IAsymmetricCipherKeyPairGenerator MLKem1024Kpg => InitKpg(ref mlKem1024Kpg, "ML-KEM", () =>
             new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_1024));
 
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_128f => InitKpg(ref slhDsa_Sha2_128f, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_128f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_128s => InitKpg(ref slhDsa_Sha2_128s, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_128s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_192f => InitKpg(ref slhDsa_Sha2_192f, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_192f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_192s => InitKpg(ref slhDsa_Sha2_192s, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_192s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_256f => InitKpg(ref slhDsa_Sha2_256f, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_256f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_256s => InitKpg(ref slhDsa_Sha2_256s, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_256s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_128f => InitKpg(ref slhDsa_Shake_128f, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_128f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_128s => InitKpg(ref slhDsa_Shake_128s, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_128s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_192f => InitKpg(ref slhDsa_Shake_192f, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_192f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_192s => InitKpg(ref slhDsa_Shake_192s, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_192s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_256f => InitKpg(ref slhDsa_Shake_256f, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_256f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_256s => InitKpg(ref slhDsa_Shake_256s, "SLH-DSA", () =>
+            new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_256s));
+
         private static int NextSerialNumber() => Interlocked.Increment(ref serialNumber);
 
         static CmsTestUtil()
@@ -280,6 +328,30 @@ namespace Org.BouncyCastle.Cms.Tests
         public static AsymmetricCipherKeyPair MakeMLKem768KeyPair() => MLKem768Kpg.GenerateKeyPair();
 
         public static AsymmetricCipherKeyPair MakeMLKem1024KeyPair() => MLKem1024Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_128f_KeyPair() => SlhDsa_Sha2_128f.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_128s_KeyPair() => SlhDsa_Sha2_128s.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_192f_KeyPair() => SlhDsa_Sha2_192f.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_192s_KeyPair() => SlhDsa_Sha2_192s.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_256f_KeyPair() => SlhDsa_Sha2_256f.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_256s_KeyPair() => SlhDsa_Sha2_256s.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_128f_KeyPair() => SlhDsa_Shake_128f.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_128s_KeyPair() => SlhDsa_Shake_128s.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_192f_KeyPair() => SlhDsa_Shake_192f.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_192s_KeyPair() => SlhDsa_Shake_192s.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_256f_KeyPair() => SlhDsa_Shake_256f.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_256s_KeyPair() => SlhDsa_Shake_256s.GenerateKeyPair();
 
         public static KeyParameter MakeAes128Key() =>
             ParameterUtilities.CreateKeyParameter("AES", aes128KG.GenerateKey());
