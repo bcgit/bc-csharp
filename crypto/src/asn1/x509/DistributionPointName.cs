@@ -58,17 +58,21 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             m_type = obj.TagNo;
 
-			if (m_type == FullName)
+            if (obj.HasContextTag(FullName))
             {
                 m_name = GeneralNames.GetInstance(obj, false);
             }
-            else
+            else if (obj.HasContextTag(NameRelativeToCrlIssuer))
             {
                 m_name = Asn1Set.GetInstance(obj, false);
             }
+            else
+            {
+                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(obj), "obj");
+            }
         }
 
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
         {
             return new DerTaggedObject(false, m_type, m_name);
         }
