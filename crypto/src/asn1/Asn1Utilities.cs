@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Asn1
             if (taggedObject == null)
                 throw new ArgumentNullException(nameof(taggedObject));
 
-            return constructor(CheckContextTagClass(taggedObject).GetExplicitBaseObject());
+            return constructor(GetExplicitContextBaseObject(taggedObject));
         }
 
         public static TChoice GetTaggedChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
@@ -183,15 +183,17 @@ namespace Org.BouncyCastle.Asn1
          * Wrappers for Asn1TaggedObject.GetExplicitBaseObject
          */
 
-        public static Asn1Encodable GetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
-        {
-            return CheckTag(taggedObject, tagClass, tagNo).GetExplicitBaseObject();
-        }
+        public static Asn1Encodable GetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass) =>
+            CheckTagClass(taggedObject, tagClass).GetExplicitBaseObject();
 
-        public static Asn1Encodable GetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo)
-        {
-            return GetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, tagNo);
-        }
+        public static Asn1Encodable GetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo) =>
+            CheckTag(taggedObject, tagClass, tagNo).GetExplicitBaseObject();
+
+        public static Asn1Encodable GetExplicitContextBaseObject(Asn1TaggedObject taggedObject) =>
+            GetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific);
+
+        public static Asn1Encodable GetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo) =>
+            GetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, tagNo);
 
         [Obsolete("Will be removed")]
         public static Asn1Encodable TryGetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo)
@@ -200,6 +202,14 @@ namespace Org.BouncyCastle.Asn1
                 return null;
 
             return taggedObject.GetExplicitBaseObject();
+        }
+
+        public static bool TryGetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass,
+            out Asn1Encodable baseObject)
+        {
+            bool result = taggedObject.HasTagClass(tagClass);
+            baseObject = result ? taggedObject.GetExplicitBaseObject() : null;
+            return result;
         }
 
         public static bool TryGetExplicitBaseObject(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
@@ -214,6 +224,11 @@ namespace Org.BouncyCastle.Asn1
         public static Asn1Encodable TryGetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo)
         {
             return TryGetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, tagNo);
+        }
+
+        public static bool TryGetExplicitContextBaseObject(Asn1TaggedObject taggedObject, out Asn1Encodable baseObject)
+        {
+            return TryGetExplicitBaseObject(taggedObject, Asn1Tags.ContextSpecific, out baseObject);
         }
 
         public static bool TryGetExplicitContextBaseObject(Asn1TaggedObject taggedObject, int tagNo,
