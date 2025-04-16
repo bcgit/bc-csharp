@@ -79,9 +79,10 @@ namespace Org.BouncyCastle.X509
         {
         }
 
+        // TODO[api] Change parameter name to 'certificate'
         public X509Certificate(X509CertificateStructure c)
         {
-            this.c = c;
+            this.c = c ?? throw new ArgumentNullException(nameof(c));
 
             try
             {
@@ -352,9 +353,9 @@ namespace Org.BouncyCastle.X509
                 Asn1Sequence seq = Asn1Sequence.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
 
                 var result = new List<DerObjectIdentifier>();
-                foreach (DerObjectIdentifier oid in seq)
+                foreach (var element in seq)
                 {
-                    result.Add(oid);
+                    result.Add(DerObjectIdentifier.GetInstance(element));
                 }
                 return result;
             }

@@ -4,31 +4,43 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     internal class PolyVec
     {
-        internal readonly Poly[] Vec;
+        private readonly Poly[] m_vec;
 
         internal PolyVec(DilithiumEngine engine, int length)
         {
-            this.Vec = new Poly[length];
+            m_vec = new Poly[length];
             for (int i = 0; i < length; i++)
             {
-                Vec[i] = new Poly(engine);
+                m_vec[i] = new Poly(engine);
+            }
+        }
+
+        internal Poly this[int index]
+        {
+            get
+            {
+                return m_vec[index];
+            }
+            set 
+            {
+                m_vec[index] = value;
             }
         }
 
         internal void Add(PolyVec v)
         {
-            Debug.Assert(this.Vec.Length == v.Vec.Length);
-            for (int i = 0; i < Vec.Length; ++i)
+            Debug.Assert(m_vec.Length == v.m_vec.Length);
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].Add(v.Vec[i]);
+                m_vec[i].Add(v.m_vec[i]);
             }
         }
 
         internal bool CheckNorm(int bound)
         {
-            for (int i = 0; i < Vec.Length; ++i)
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                if (Vec[i].CheckNorm(bound))
+                if (m_vec[i].CheckNorm(bound))
                     return true;
             }
             return false;
@@ -36,135 +48,142 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         internal void CopyTo(PolyVec z)
         {
-            Debug.Assert(this.Vec.Length == z.Vec.Length);
-            for (int i = 0; i < Vec.Length; i++)
+            Debug.Assert(m_vec.Length == z.m_vec.Length);
+            for (int i = 0; i < m_vec.Length; i++)
             {
-                for (int j = 0; j < DilithiumEngine.N; j++)
-                {
-                    z.Vec[i].Coeffs[j] = Vec[i].Coeffs[j];
-                }
+                m_vec[i].CopyTo(z.m_vec[i]);
             }
         }
 
         internal void ConditionalAddQ()
         {
-            for (int i = 0; i < Vec.Length; ++i)
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].ConditionalAddQ();
+                m_vec[i].ConditionalAddQ();
             }
         }
 
         internal void Decompose(PolyVec v)
         {
-            Debug.Assert(this.Vec.Length == v.Vec.Length);
-            for (int i = 0; i < Vec.Length; ++i)
+            Debug.Assert(m_vec.Length == v.m_vec.Length);
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].Decompose(v.Vec[i]);
+                m_vec[i].Decompose(v.m_vec[i]);
             }
         }
 
         internal void InverseNttToMont()
         {
-            for (int i = 0; i < Vec.Length; ++i)
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].InverseNttToMont();
+                m_vec[i].InverseNttToMont();
             }
         }
 
+        internal int Length => m_vec.Length;
+
         internal int MakeHint(PolyVec v0, PolyVec v1)
         {
-            Debug.Assert(this.Vec.Length == v0.Vec.Length);
-            Debug.Assert(this.Vec.Length == v1.Vec.Length);
+            Debug.Assert(m_vec.Length == v0.m_vec.Length);
+            Debug.Assert(m_vec.Length == v1.m_vec.Length);
             int s = 0;
-            for (int i = 0; i < Vec.Length; ++i)
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                s += Vec[i].PolyMakeHint(v0.Vec[i], v1.Vec[i]);
+                s += m_vec[i].PolyMakeHint(v0.m_vec[i], v1.m_vec[i]);
             }
             return s;
         }
 
         internal void Ntt()
         {
-            for (int i = 0; i < Vec.Length; ++i)
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].PolyNtt();
+                m_vec[i].PolyNtt();
             }
         }
 
-        internal void PackW1(DilithiumEngine engine, byte[] r)
+        internal void PackW1(DilithiumEngine engine, byte[] r, int rOff)
         {
-            for (int i = 0; i < Vec.Length; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
-                Vec[i].PackW1(r, i * engine.PolyW1PackedBytes);
+                m_vec[i].PackW1(r, rOff + i * engine.PolyW1PackedBytes);
             }
         }
 
         internal void PointwisePolyMontgomery(Poly a, PolyVec v)
         {
-            Debug.Assert(this.Vec.Length == v.Vec.Length);
-            for (int i = 0; i < Vec.Length; ++i)
+            Debug.Assert(m_vec.Length == v.m_vec.Length);
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].PointwiseMontgomery(a, v.Vec[i]);
+                m_vec[i].PointwiseMontgomery(a, v.m_vec[i]);
             }
         }
 
         internal void Power2Round(PolyVec v)
         {
-            Debug.Assert(this.Vec.Length == v.Vec.Length);
-            for (int i = 0; i < Vec.Length; ++i)
+            Debug.Assert(m_vec.Length == v.m_vec.Length);
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].Power2Round(v.Vec[i]);
+                m_vec[i].Power2Round(v.m_vec[i]);
             }
         }
 
         internal void Reduce()
         {
-            for (int i = 0; i < Vec.Length; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
-                Vec[i].ReducePoly();
+                m_vec[i].ReducePoly();
             }
         }
 
         internal void ShiftLeft()
         {
-            for (int i = 0; i < Vec.Length; ++i)
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].ShiftLeft();
+                m_vec[i].ShiftLeft();
             }
         }
 
         internal void Subtract(PolyVec v)
         {
-            Debug.Assert(this.Vec.Length == v.Vec.Length);
-            for (int i = 0; i < Vec.Length; ++i)
+            Debug.Assert(m_vec.Length == v.m_vec.Length);
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].Subtract(v.Vec[i]);
+                m_vec[i].Subtract(v.m_vec[i]);
+            }
+        }
+
+        internal void UniformBlocks(byte[] rho, int t)
+        {
+            for (int i = 0; i < m_vec.Length; ++i)
+            {
+                m_vec[i].UniformBlocks(rho, (ushort)(t + i));
             }
         }
 
         internal void UniformEta(byte[] seed, ushort nonce)
         {
-            for (int i = 0; i < Vec.Length; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
-                Vec[i].UniformEta(seed, nonce++);
+                m_vec[i].UniformEta(seed, nonce++);
             }
         }
 
         internal void UniformGamma1(byte[] seed, ushort nonce)
         {
-            for (int i = 0; i < Vec.Length; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
-                Vec[i].UniformGamma1(seed, (ushort)(Vec.Length * nonce + i));
+                m_vec[i].UniformGamma1(seed, (ushort)(m_vec.Length * nonce + i));
             }
         }
 
         internal void UseHint(PolyVec a, PolyVec h)
         {
-            Debug.Assert(this.Vec.Length == a.Vec.Length);
-            Debug.Assert(this.Vec.Length == h.Vec.Length);
-            for (int i = 0; i < Vec.Length; ++i)
+            Debug.Assert(m_vec.Length == a.m_vec.Length);
+            Debug.Assert(m_vec.Length == h.m_vec.Length);
+            for (int i = 0; i < m_vec.Length; ++i)
             {
-                Vec[i].PolyUseHint(a.Vec[i], h.Vec[i]);
+                m_vec[i].PolyUseHint(a.m_vec[i], h.m_vec[i]);
             }
         }
     }

@@ -239,6 +239,56 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.AreEqual(Name + ": Okay", resultText);
         }
 
+        [Test, Explicit]
+        public void BenchDigest_Sha3_224()
+        {
+            ImplBenchDigest(new Sha3Digest(224));
+        }
+
+        [Test, Explicit]
+        public void BenchDigest_Sha3_256()
+        {
+            ImplBenchDigest(new Sha3Digest(256));
+        }
+
+        [Test, Explicit]
+        public void BenchDigest_Sha3_384()
+        {
+            ImplBenchDigest(new Sha3Digest(384));
+        }
+
+        [Test, Explicit]
+        public void BenchDigest_Sha3_512()
+        {
+            ImplBenchDigest(new Sha3Digest(512));
+        }
+
+        private static void ImplBenchDigest(IDigest digest)
+        {
+            byte[] data = new byte[1024];
+            for (int i = 0; i < 1024; ++i)
+            {
+                for (int j = 0; j < 1024; ++j)
+                {
+                    // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    digest.BlockUpdate(data);
+#else
+                    digest.BlockUpdate(data, 0, 1024);
+#endif
+                }
+
+                // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                digest.DoFinal(data);
+#else
+                digest.DoFinal(data, 0);
+#endif
+            }
+        }
+
         internal class TestVector
         {
             internal static string SAMPLE_OF = " sample of ";

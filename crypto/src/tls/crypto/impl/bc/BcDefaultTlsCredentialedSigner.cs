@@ -12,53 +12,56 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         private static TlsSigner MakeSigner(BcTlsCrypto crypto, AsymmetricKeyParameter privateKey,
             Certificate certificate, SignatureAndHashAlgorithm signatureAndHashAlgorithm)
         {
-            TlsSigner signer;
-            if (privateKey is RsaKeyParameters privKeyRsa)
+            if (privateKey is RsaKeyParameters rsaPrivateKey)
             {
                 if (signatureAndHashAlgorithm != null)
                 {
                     int signatureScheme = SignatureScheme.From(signatureAndHashAlgorithm);
                     if (SignatureScheme.IsRsaPss(signatureScheme))
-                    {
-                        return new BcTlsRsaPssSigner(crypto, privKeyRsa, signatureScheme);
-                    }
+                        return new BcTlsRsaPssSigner(crypto, rsaPrivateKey, signatureScheme);
                 }
 
-                signer = new BcTlsRsaSigner(crypto, privKeyRsa);
+                return new BcTlsRsaSigner(crypto, rsaPrivateKey);
             }
-            else if (privateKey is DsaPrivateKeyParameters)
+            else if (privateKey is DsaPrivateKeyParameters dsaPrivateKey)
             {
-                signer = new BcTlsDsaSigner(crypto, (DsaPrivateKeyParameters)privateKey);
+                return new BcTlsDsaSigner(crypto, dsaPrivateKey);
             }
-            else if (privateKey is ECPrivateKeyParameters)
+            else if (privateKey is ECPrivateKeyParameters ecPrivateKey)
             {
-                ECPrivateKeyParameters privKeyEC = (ECPrivateKeyParameters)privateKey;
-
                 if (signatureAndHashAlgorithm != null)
                 {
                     int signatureScheme = SignatureScheme.From(signatureAndHashAlgorithm);
                     if (SignatureScheme.IsECDsa(signatureScheme))
-                    {
-                        return new BcTlsECDsa13Signer(crypto, privKeyEC, signatureScheme);
-                    }
+                        return new BcTlsECDsa13Signer(crypto, ecPrivateKey, signatureScheme);
                 }
 
-                signer = new BcTlsECDsaSigner(crypto, privKeyEC);
+                return new BcTlsECDsaSigner(crypto, ecPrivateKey);
             }
-            else if (privateKey is Ed25519PrivateKeyParameters)
+            else if (privateKey is Ed25519PrivateKeyParameters ed25519PrivateKey)
             {
-                signer = new BcTlsEd25519Signer(crypto, (Ed25519PrivateKeyParameters)privateKey);
+                return new BcTlsEd25519Signer(crypto, ed25519PrivateKey);
             }
-            else if (privateKey is Ed448PrivateKeyParameters)
+            else if (privateKey is Ed448PrivateKeyParameters ed448PrivateKey)
             {
-                signer = new BcTlsEd448Signer(crypto, (Ed448PrivateKeyParameters)privateKey);
+                return new BcTlsEd448Signer(crypto, ed448PrivateKey);
+            }
+            else if (privateKey is MLDsaPrivateKeyParameters mlDsaPrivateKey)
+            {
+                if (signatureAndHashAlgorithm != null)
+                {
+                    int signatureScheme = SignatureScheme.From(signatureAndHashAlgorithm);
+                    TlsSigner signer = BcTlsMLDsaSigner.Create(crypto, mlDsaPrivateKey, signatureScheme);
+                    if (signer != null)
+                        return signer;
+                }
+
+                throw new ArgumentException("ML-DSA private key of wrong type for signature algorithm");
             }
             else
             {
                 throw new ArgumentException("'privateKey' type not supported: " + privateKey.GetType().FullName);
             }
-
-            return signer;
         }
 
         public BcDefaultTlsCredentialedSigner(TlsCryptoParameters cryptoParams, BcTlsCrypto crypto,

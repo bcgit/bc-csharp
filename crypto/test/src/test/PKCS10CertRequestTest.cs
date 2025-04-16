@@ -338,7 +338,7 @@ namespace Org.BouncyCastle.Tests
             oids.Add(X509Extensions.KeyUsage);
             values.Add(new X509Extension(true, new DerOctetString(
                 new KeyUsage(KeyUsage.KeyCertSign | KeyUsage.CrlSign))));
-            SubjectKeyIdentifier subjectKeyIdentifier = new SubjectKeyIdentifierStructure(pair.Public);
+            var subjectKeyIdentifier = X509ExtensionUtilities.CreateSubjectKeyIdentifier(pair.Public);
             X509Extension ski = new X509Extension(false, new DerOctetString(subjectKeyIdentifier));
             oids.Add(X509Extensions.SubjectKeyIdentifier);
             values.Add(ski);

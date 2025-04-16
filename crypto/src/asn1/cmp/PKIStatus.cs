@@ -54,6 +54,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			m_status = status;
 		}
 
+		public virtual DerInteger Status => m_status;
+
 		public virtual BigInteger Value => m_status.Value;
 
 		public override Asn1Object ToAsn1Object() => m_status;

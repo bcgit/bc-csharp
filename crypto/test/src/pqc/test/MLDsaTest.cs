@@ -58,7 +58,9 @@ namespace Org.BouncyCastle.Pqc.Tests
             Assert.True(Arrays.AreEqual(pubSeq.GetOctets(), pubK));
 
             PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            Assert.True(Arrays.AreEqual(privInfo.PrivateKey.GetOctets(), seed));
+            var seedAndEncodingSeq = Asn1Sequence.GetInstance(privInfo.PrivateKey.GetOctets());
+            var seedOctetString = Asn1OctetString.GetInstance(seedAndEncodingSeq[0]);
+            Assert.True(Arrays.AreEqual(seedOctetString.GetOctets(), seed));
 
             // TODO[pqc] Can't create deterministic signers via SignerUtilities yet
             ISigner sigDet = new HashMLDsaSigner(MLDsaParameters.ml_dsa_44_with_sha512, deterministic: true);
@@ -130,7 +132,9 @@ namespace Org.BouncyCastle.Pqc.Tests
             Assert.True(Arrays.AreEqual(pubSeq.GetOctets(), pubK));
 
             PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            Assert.True(Arrays.AreEqual(privInfo.PrivateKey.GetOctets(), seed));
+            var seedAndEncodingSeq = Asn1Sequence.GetInstance(privInfo.PrivateKey.GetOctets());
+            var seedOctetString = Asn1OctetString.GetInstance(seedAndEncodingSeq[0]);
+            Assert.True(Arrays.AreEqual(seedOctetString.GetOctets(), seed));
 
             // TODO[pqc] Can't create deterministic signers via SignerUtilities yet
             ISigner sigDet = new HashMLDsaSigner(MLDsaParameters.ml_dsa_44_with_sha512, deterministic: true);
@@ -203,7 +207,9 @@ namespace Org.BouncyCastle.Pqc.Tests
             Assert.True(Arrays.AreEqual(pubSeq.GetOctets(), pubK));
 
             PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            Assert.True(Arrays.AreEqual(privInfo.PrivateKey.GetOctets(), seed));
+            var seedAndEncodingSeq = Asn1Sequence.GetInstance(privInfo.PrivateKey.GetOctets());
+            var seedOctetString = Asn1OctetString.GetInstance(seedAndEncodingSeq[0]);
+            Assert.True(Arrays.AreEqual(seedOctetString.GetOctets(), seed));
 
             // TODO[pqc] Can't create deterministic signers via SignerUtilities yet
             ISigner sigDet = new MLDsaSigner(MLDsaParameters.ml_dsa_44, deterministic: true);
@@ -257,7 +263,9 @@ namespace Org.BouncyCastle.Pqc.Tests
             Assert.True(Arrays.AreEqual(pubSeq.GetOctets(), pubK));
 
             PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            Assert.True(Arrays.AreEqual(privInfo.PrivateKey.GetOctets(), seed));
+            var seedAndEncodingSeq = Asn1Sequence.GetInstance(privInfo.PrivateKey.GetOctets());
+            var seedOctetString = Asn1OctetString.GetInstance(seedAndEncodingSeq[0]);
+            Assert.True(Arrays.AreEqual(seedOctetString.GetOctets(), seed));
 
             // TODO[pqc] Can't create deterministic signers via SignerUtilities yet
             ISigner sigDet = new MLDsaSigner(MLDsaParameters.ml_dsa_44, deterministic: true);

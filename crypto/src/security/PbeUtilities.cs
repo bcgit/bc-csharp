@@ -428,8 +428,8 @@ namespace Org.BouncyCastle.Security
             if (IsPkcs12(mechanism))
             {
                 Pkcs12PbeParams pbeParams = Pkcs12PbeParams.GetInstance(pbeParameters);
-                salt = pbeParams.GetIV();
-                iterationCount = pbeParams.Iterations.IntValue;
+                salt = pbeParams.IV.GetOctets();
+                iterationCount = pbeParams.IterationsObject.IntValueExact;
                 keyBytes = PbeParametersGenerator.Pkcs12PasswordToBytes(password, wrongPkcs12Zero);
             }
             else if (IsPkcs5Scheme2(mechanism))
@@ -439,8 +439,8 @@ namespace Org.BouncyCastle.Security
             else
             {
                 PbeParameter pbeParams = PbeParameter.GetInstance(pbeParameters);
-                salt = pbeParams.GetSalt();
-                iterationCount = pbeParams.IterationCount.IntValue;
+                salt = pbeParams.Salt.GetOctets();
+                iterationCount = pbeParams.IterationCountObject.IntValueExact;
                 keyBytes = PbeParametersGenerator.Pkcs5PasswordToBytes(password);
             }
 
@@ -468,11 +468,12 @@ namespace Org.BouncyCastle.Security
                 }
 
                 salt = pbeParams.GetSalt();
-                iterationCount = pbeParams.IterationCount.IntValue;
+                iterationCount = pbeParams.IterationCountObject.IntValueExact;
                 keyBytes = PbeParametersGenerator.Pkcs5PasswordToBytes(password);
 
-                int keyLength = pbeParams.KeyLength != null
-                    ?	pbeParams.KeyLength.IntValue * 8
+                var keyLengthObject = pbeParams.KeyLengthObject;
+                int keyLength = keyLengthObject != null
+                    ?	keyLengthObject.IntValueExact * 8
                     :	GeneratorUtilities.GetDefaultKeySize(encOid);
 
                 PbeParametersGenerator gen = MakePbeGenerator(

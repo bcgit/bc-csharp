@@ -73,8 +73,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (++m_bufPos == Rate)
             {
                 S0 ^= Pack.LE_To_UInt64(m_buf, 0);
-                P12();
                 m_bufPos = 0;
+                P12();
             }
         }
 
@@ -103,8 +103,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (m_bufPos > 0)
             {
                 Array.Copy(input, inOff, m_buf, m_bufPos, available);
-                inPos += available;
                 S0 ^= Pack.LE_To_UInt64(m_buf, 0);
+                inPos = available;
+                //m_bufPos = Rate;
                 P12();
             }
 
@@ -112,8 +113,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             while ((remaining = inLen - inPos) >= Rate)
             {
                 S0 ^= Pack.LE_To_UInt64(input, inOff + inPos);
-                P12();
                 inPos += Rate;
+                P12();
             }
 
             Array.Copy(input, inOff + inPos, m_buf, 0, remaining);
@@ -139,15 +140,16 @@ namespace Org.BouncyCastle.Crypto.Digests
             {
                 input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
                 S0 ^= Pack.LE_To_UInt64(m_buf);
-                P12();
                 input = input[available..];
+                //m_bufPos = Rate;
+                P12();
             }
 
             while (input.Length >= Rate)
             {
                 S0 ^= Pack.LE_To_UInt64(input);
-                P12();
                 input = input[Rate..];
+                P12();
             }
 
             input.CopyTo(m_buf);
@@ -221,22 +223,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             if (!m_squeezing)
             {
-                FinishAbsorbing();
-
-                if (outLen >= 8)
-                {
-                    Pack.UInt64_To_LE(S0, output, outOff);
-                    outOff += 8;
-                    outLen -= 8;
-                }
-                else
-                {
-                    Pack.UInt64_To_LE(S0, m_buf);
-                    m_bufPos = 0;
-                }
+                PadAndAbsorb();
+                m_squeezing = true;
+                m_bufPos = 8;
             }
-
-            if (m_bufPos < 8)
+            else if (m_bufPos < 8)
             {
                 int available = 8 - m_bufPos;
                 if (outLen <= available)
@@ -249,7 +240,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 Array.Copy(m_buf, m_bufPos, output, outOff, available);
                 outOff += available;
                 outLen -= available;
-                //m_bufPos = 8;
+                m_bufPos = 8;
             }
 
             while (outLen >= 8)
@@ -265,9 +256,9 @@ namespace Org.BouncyCastle.Crypto.Digests
                 P12();
                 Pack.UInt64_To_LE(S0, m_buf);
                 Array.Copy(m_buf, 0, output, outOff, outLen);
+                m_bufPos = outLen;
             }
 
-            m_bufPos = outLen;
             return result;
 #endif
         }
@@ -279,21 +270,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             if (!m_squeezing)
             {
-                FinishAbsorbing();
-
-                if (output.Length >= 8)
-                {
-                    Pack.UInt64_To_LE(S0, output);
-                    output = output[8..];
-                }
-                else
-                {
-                    Pack.UInt64_To_LE(S0, m_buf);
-                    m_bufPos = 0;
-                }
+                PadAndAbsorb();
+                m_squeezing = true;
+                m_bufPos = 8;
             }
-
-            if (m_bufPos < 8)
+            else if (m_bufPos < 8)
             {
                 int available = 8 - m_bufPos;
                 if (output.Length <= available)
@@ -305,7 +286,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
                 output[..available].CopyFrom(m_buf.AsSpan(m_bufPos));
                 output = output[available..];
-                //m_bufPos = 8;
+                m_bufPos = 8;
             }
 
             while (output.Length >= 8)
@@ -320,20 +301,12 @@ namespace Org.BouncyCastle.Crypto.Digests
                 P12();
                 Pack.UInt64_To_LE(S0, m_buf);
                 output.CopyFrom(m_buf);
+                m_bufPos = output.Length;
             }
 
-            m_bufPos = output.Length;
             return result;
         }
 #endif
-
-        private void FinishAbsorbing()
-        {
-            PadAndAbsorb();
-
-            m_bufPos = m_buf.Length;
-            m_squeezing = true;
-        }
 
         private void InitState(byte[] z, int zOff, int zLen)
         {
@@ -344,17 +317,33 @@ namespace Org.BouncyCastle.Crypto.Digests
             //S4 = 0UL;
             //P12();
 
-            S0 = 0x675527c2a0e8de03UL;
-            S1 = 0x43d12d7dc0377bbcUL;
-            S2 = 0xe9901dec426e81b5UL;
-            S3 = 0x2ab14907720780b6UL;
-            S4 = 0x8f3f1d02d432bc46UL;
+            if (zLen == 0)
+            {
+                //P12();
+                //PadAndAbsorb();
+                //P12();
 
-            ulong bitLength = Convert.ToUInt64(zLen) << 3;
-            Pack.UInt64_To_LE(bitLength, m_buf);
-            P12();
-            BlockUpdate(z, zOff, zLen);
-            PadAndAbsorb();
+                S0 = 0x500cccc894e3c9e8UL;
+                S1 = 0x5bed06f28f71248dUL;
+                S2 = 0x3b03a0f930afd512UL;
+                S3 = 0x112ef093aa5c698bUL;
+                S4 = 0x00c8356340a347f0UL;
+            }
+            else
+            {
+                S0 = 0x675527c2a0e8de03UL;
+                S1 = 0x43d12d7dc0377bbcUL;
+                S2 = 0xe9901dec426e81b5UL;
+                S3 = 0x2ab14907720780b6UL;
+                S4 = 0x8f3f1d02d432bc46UL;
+
+                ulong bitLength = Convert.ToUInt64(zLen) << 3;
+                S0 ^= bitLength;
+                P12();
+                BlockUpdate(z, zOff, zLen);
+                PadAndAbsorb();
+                P12();
+            }
 
             m_bufPos = 0;
         }
@@ -364,8 +353,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             int finalBits = m_bufPos << 3;
             S0 ^= Pack.LE_To_UInt64(m_buf, 0) & (0x00FFFFFFFFFFFFFFUL >> (56 - finalBits));
             S0 ^= 0x01UL << finalBits;
-
-            P12();
         }
 
         private void P12()

@@ -39,7 +39,12 @@ namespace Org.BouncyCastle.Crypto.Signers
 				TrailerImplicit);
 		}
 
-		public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest,
+        public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest digest, int saltLen)
+        {
+            return new PssSigner(cipher, Prehash.ForDigest(digest), digest, digest, saltLen, null, TrailerImplicit);
+        }
+
+        public static PssSigner CreateRawSigner(IAsymmetricBlockCipher cipher, IDigest contentDigest, IDigest mgfDigest,
 			int saltLen, byte trailer)
 		{
 			return new PssSigner(cipher, Prehash.ForDigest(contentDigest), contentDigest, mgfDigest, saltLen, null,

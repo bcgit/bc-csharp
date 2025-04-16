@@ -4,10 +4,14 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.IO;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -287,20 +291,88 @@ namespace Org.BouncyCastle.Cms
 
 		private bool DoVerify(AsymmetricKeyParameter publicKey)
 		{
+			var digAlgID = this.digestAlgorithm;
+			var digAlgOid = digAlgID.Algorithm;
+			var digAlgParams = digAlgID.Parameters;
+
 			var sigAlgID = this.encryptionAlgorithm;
 			var sigAlgOid = sigAlgID.Algorithm;
 			var sigAlgParams = sigAlgID.Parameters;
 
-			string digestName = CmsSignedHelper.GetDigestAlgName(sigAlgOid);
-			if (digestName.Equals(sigAlgOid.GetID()))
-			{
-				digestName = CmsSignedHelper.GetDigestAlgName(digestAlgorithm.Algorithm);
-			}
+            string digestName;
+            ISigner sig;
 
-			IDigest digest = CmsSignedHelper.GetDigestInstance(digestName);
-			ISigner sig;
+            if (EdECObjectIdentifiers.id_Ed25519.Equals(sigAlgOid))
+            {
+                if (sigAlgParams != null)
+                    throw new CmsException("Ed25519 signature cannot specify algorithm parameters");
 
-			if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
+                if (signedAttributeSet == null)
+                {
+                    digestName = null;
+                }
+                else
+                {
+                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
+                        throw new CmsException("Ed25519 signature used with unsupported digest algorithm");
+
+                    digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+                }
+
+                sig = SignerUtilities.GetSigner(sigAlgOid);
+            }
+            //else if (EdECObjectIdentifiers.id_Ed448.Equals(sigAlgOid))
+            //{
+            //    if (sigAlgParams != null)
+            //        throw new CmsException("Ed448 signature cannot specify algorithm parameters");
+
+            //    if (signedAttributeSet == null)
+            //    {
+            //        digestName = null;
+            //    }
+            //    else
+            //    {
+            //        var expectedAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len, new DerInteger(512));
+
+            //        if (!expectedAlgID.Equals(digAlgID))
+            //            throw new CmsException("Ed448 signature used with unsupported digest algorithm");
+
+            //        //digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+            //        digestName = "SHAKE256-512";
+            //    }
+
+            //    sig = SignerUtilities.GetSigner(sigAlgOid);
+            //}
+            else if (MLDsaParameters.ByOid.TryGetValue(sigAlgOid, out MLDsaParameters mlDsaParameters))
+            {
+                if (sigAlgParams != null)
+                    throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
+
+                if (signedAttributeSet == null)
+                {
+                    /*
+                     * draft-ietf-lamps-cms-ml-dsa-02 3.3. When processing a SignerInfo signed using ML-DSA, if no signed
+                     * attributes are present, implementations MUST ignore the content of the digestAlgorithm field.
+                     */
+                    digestName = null;
+                }
+                else
+                {
+                    // TODO Other digests may be acceptable; keep a list and check against it
+
+                    /*
+                     * draft-ietf-lamps-cms-ml-dsa-02 3.3. When SHA-512 is used, the id-sha512 [..] digest algorithm
+                     * identifier is used and the parameters field MUST be omitted.
+                     */
+                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
+                        throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
+
+                    digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+                }
+
+                sig = SignerUtilities.GetSigner(sigAlgOid);
+            }
+            else if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsassaPss.Equals(sigAlgOid))
 			{
 				// RFC 4056 2.2
 				// When the id-RSASSA-PSS algorithm identifier is used for a signature,
@@ -315,12 +387,12 @@ namespace Org.BouncyCastle.Cms
 
 					Asn1.Pkcs.RsassaPssParameters pss = Asn1.Pkcs.RsassaPssParameters.GetInstance(sigAlgParams);
 
-                    if (!pss.HashAlgorithm.Algorithm.Equals(this.digestAlgorithm.Algorithm))
+                    if (!pss.HashAlgorithm.Algorithm.Equals(digAlgOid))
 						throw new CmsException("RSASSA-PSS signature parameters specified incorrect hash algorithm");
                     if (!pss.MaskGenAlgorithm.Algorithm.Equals(Asn1.Pkcs.PkcsObjectIdentifiers.IdMgf1))
 						throw new CmsException("RSASSA-PSS signature parameters specified unknown MGF");
 
-                    IDigest pssDigest = DigestUtilities.GetDigest(pss.HashAlgorithm.Algorithm);
+                    IDigest pssDigest = DigestUtilities.GetDigest(digAlgOid);
                     int saltLength = pss.SaltLength.IntValueExact;
 
                     // RFC 4055 3.1
@@ -328,11 +400,13 @@ namespace Org.BouncyCastle.Cms
                     if (!Asn1.Pkcs.RsassaPssParameters.DefaultTrailerField.Equals(pss.TrailerField))
 						throw new CmsException("RSASSA-PSS signature parameters must have trailerField of 1");
 
-					IAsymmetricBlockCipher rsa = new RsaBlindedEngine();
+                    digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
 
-					if (signedAttributeSet == null && calculatedDigest != null)
+                    IAsymmetricBlockCipher rsa = new RsaBlindedEngine();
+
+					if (signedAttributeSet == null)
 					{
-                        sig = PssSigner.CreateRawSigner(rsa, pssDigest, pssDigest, saltLength, PssSigner.TrailerImplicit);
+                        sig = PssSigner.CreateRawSigner(rsa, pssDigest, saltLength);
                     }
                     else
 					{
@@ -346,11 +420,18 @@ namespace Org.BouncyCastle.Cms
 			}
 			else
 			{
-				// TODO Probably too strong a check at the moment
-				//				if (sigParams != null)
-				//					throw new CmsException("unrecognised signature parameters provided");
+				if (!X509Utilities.IsAbsentParameters(sigAlgParams))
+					throw new CmsException("unrecognised signature parameters provided");
 
-				string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
+				digestName = CmsSignedHelper.GetDigestAlgName(sigAlgOid);
+				if (digestName.Equals(sigAlgOid.GetID()))
+				{
+					digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+				}
+
+                // TODO Create raw verifier in case signedAttributeSet == null? (as for id-RSASSA-PSS above)
+
+                string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
 
                 sig = CmsSignedHelper.GetSignatureInstance(signatureName);
 
@@ -359,34 +440,49 @@ namespace Org.BouncyCastle.Cms
             }
 
             try
-			{
-				if (calculatedDigest != null)
-				{
-					resultDigest = calculatedDigest;
-				}
-				else
-				{
-					if (content != null)
-					{
-						content.Write(new DigestSink(digest));
-					}
-					else if (signedAttributeSet == null)
-					{
-						// TODO Get rid of this exception and just treat content==null as empty not missing?
-						throw new CmsException("data not encapsulated in signature - use detached constructor.");
-					}
+            {
+                if (signedAttributeSet == null && digestName == null)
+                {
+                    if (content == null)
+                    {
+                        // TODO Get rid of this exception and just treat content==null as empty not missing?
+                        throw new CmsException("data not encapsulated in signature - use detached constructor.");
+                    }
 
-					resultDigest = DigestUtilities.DoFinal(digest);
-				}
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("can't process mime object to create signature.", e);
-			}
+                    resultDigest = null;
+                }
+                else if (calculatedDigest != null)
+                {
+                    resultDigest = calculatedDigest;
+                }
+                else
+                {
+                    var digest = CmsSignedHelper.GetDigestInstance(digestName);
 
-			// RFC 3852 11.1 Check the content-type attribute is correct
-			{
-				Asn1Object validContentType = GetSingleValuedSignedAttribute(
+                    if (content != null)
+                    {
+                        using (var stream = new DigestSink(digest))
+                        {
+                            content.Write(stream);
+                        }
+                    }
+                    else if (signedAttributeSet == null)
+                    {
+                        // TODO Get rid of this exception and just treat content==null as empty not missing?
+                        throw new CmsException("data not encapsulated in signature - use detached constructor.");
+                    }
+
+                    resultDigest = DigestUtilities.DoFinal(digest);
+                }
+            }
+            catch (IOException e)
+            {
+                throw new CmsException("can't process mime object to create signature.", e);
+            }
+
+            // RFC 3852 11.1 Check the content-type attribute is correct
+            {
+                Asn1Object validContentType = GetSingleValuedSignedAttribute(
 					CmsAttributes.ContentType, "content-type");
 				if (validContentType == null)
 				{
@@ -447,136 +543,80 @@ namespace Org.BouncyCastle.Cms
 	            }
 			}
 
-			try
-			{
-				sig.Init(false, publicKey);
+            try
+            {
+                if (signedAttributeSet != null)
+                    return VerifySignature(sig, publicKey, GetEncodedSignedAttributes(), signature);
 
-				if (signedAttributeSet == null)
-				{
-					if (calculatedDigest != null)
-					{
-						if (sig is PssSigner)
-						{
-							sig.BlockUpdate(resultDigest, 0, resultDigest.Length);
-						}
-						else
-						{
-							// need to decrypt signature and check message bytes
-							return VerifyDigest(resultDigest, publicKey, signature);
-						}
-					}
-					else if (content != null)
-					{
-                        try
-                        {
-                            // TODO Use raw signature of the hash value instead
-                            content.Write(new SignerSink(sig));
-                        }
-                        catch (SignatureException e)
-                        {
-                            throw new CmsStreamException("signature problem: " + e);
-                        }
-					}
-				}
-				else
-				{
-					byte[] tmp = this.GetEncodedSignedAttributes();
-					sig.BlockUpdate(tmp, 0, tmp.Length);
-				}
+                // sig was created as a raw id-RSASSA-PSS signer above
+                if (sig is PssSigner)
+                    return VerifySignature(sig, publicKey, resultDigest, signature);
 
-				return sig.VerifySignature(signature);
-			}
-			catch (InvalidKeyException e)
-			{
-				throw new CmsException("key not appropriate to signature in message.", e);
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("can't process mime object to create signature.", e);
-			}
-			catch (SignatureException e)
-			{
-				throw new CmsException("invalid signature format in message: " + e.Message, e);
-			}
-		}
+                if (resultDigest != null && TryGetRawVerifier(out var rawVerifier))
+                    return VerifySignature(rawVerifier, publicKey, resultDigest, signature);
 
-		private DigestInfo DerDecode(byte[] encoding)
-		{
-			if (encoding[0] != (int)(Asn1Tags.Constructed | Asn1Tags.Sequence))
-				throw new IOException("not a digest info object");
+                sig.Init(false, publicKey);
 
-			DigestInfo digInfo = DigestInfo.GetInstance(encoding);
+                // Currently would already have thrown if null, but leave test in case null will mean "empty"
+                if (content != null)
+                {
+                    using (var stream = new SignerSink(sig))
+                    {
+                        content.Write(stream);
+                    }
+                }
 
-			// length check to avoid Bleichenbacher vulnerability
+                return sig.VerifySignature(signature);
+            }
+            catch (InvalidKeyException e)
+            {
+                throw new CmsException("key not appropriate to signature in message.", e);
+            }
+            catch (IOException e)
+            {
+                throw new CmsException("can't process mime object to create signature.", e);
+            }
+            catch (SignatureException e)
+            {
+                throw new CmsException("invalid signature format in message: " + e.Message, e);
+            }
+        }
 
-			if (digInfo.GetEncoded().Length != encoding.Length)
-				throw new CmsException("malformed RSA signature");
+        private bool TryGetRawVerifier(out ISigner rawVerifier)
+        {
+            string algorithm = CmsSignedHelper.GetEncryptionAlgName(encryptionAlgorithm.Algorithm);
 
-			return digInfo;
-		}
+            // TODO GOST, ECGOST?
 
-		private bool VerifyDigest(byte[] digest, AsymmetricKeyParameter publicKey, byte[] signature)
-		{
-			string algorithm = CmsSignedHelper.GetEncryptionAlgName(encryptionAlgorithm.Algorithm);
+            if ("RSA".Equals(algorithm))
+            {
+                rawVerifier = new RsaDigestSigner(new NullDigest(), digestAlgorithm);
+            }
+            else if ("ECDSA".Equals(algorithm))
+            {
+                rawVerifier = CmsSignedHelper.GetSignatureInstance("NONEwithECDSA");
+            }
+            else if ("PLAIN-ECDSA".Equals(algorithm))
+            {
+                rawVerifier = CmsSignedHelper.GetSignatureInstance("NONEwithPLAIN-ECDSA");
+            }
+            else if ("DSA".Equals(algorithm))
+            {
+                rawVerifier = CmsSignedHelper.GetSignatureInstance("NONEwithDSA");
+            }
+            else
+            {
+                rawVerifier = default;
+                return false;
+            }
+            return true;
+        }
 
-			try
-			{
-				if (algorithm.Equals("RSA"))
-				{
-					IBufferedCipher c = CipherUtilities.GetCipher(Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption);
-
-					c.Init(false, publicKey);
-
-					byte[] decrypt = c.DoFinal(signature);
-
-					DigestInfo digInfo = DerDecode(decrypt);
-
-					var digAlgID = digInfo.DigestAlgorithm;
-
-                    if (!digAlgID.Algorithm.Equals(digestAlgorithm.Algorithm))
-						return false;
-
-					if (!X509Utilities.HasAbsentParameters(digAlgID))
-						return false;
-
-					byte[] sigHash = digInfo.GetDigest();
-
-					return Arrays.FixedTimeEquals(digest, sigHash);
-				}
-				else if (algorithm.Equals("DSA"))
-				{
-					ISigner sig = CmsSignedHelper.GetSignatureInstance("NONEwithDSA");
-
-					sig.Init(false, publicKey);
-
-					sig.BlockUpdate(digest, 0, digest.Length);
-
-					return sig.VerifySignature(signature);
-				}
-				else
-				{
-					throw new CmsException("algorithm: " + algorithm + " not supported in base signatures.");
-				}
-			}
-			catch (SecurityUtilityException)
-			{
-				throw;
-			}
-			catch (GeneralSecurityException e)
-			{
-				throw new CmsException("Exception processing signature: " + e, e);
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("Exception decoding signature: " + e, e);
-			}
-		}
-
-		/**
+        /**
 		* verify that the given public key successfully handles and confirms the
 		* signature associated with this signer.
 		*/
-		public bool Verify(AsymmetricKeyParameter pubKey)
+        public bool Verify(AsymmetricKeyParameter pubKey)
 		{
 			if (pubKey.IsPrivate)
 				throw new ArgumentException("Expected public key", nameof(pubKey));
@@ -746,5 +786,13 @@ namespace Org.BouncyCastle.Cms
 				signerInformation.content,
 				null);
 		}
-	}
+
+        private static bool VerifySignature(ISigner verifier, ICipherParameters parameters, byte[] message,
+            byte[] signature)
+        {
+            verifier.Init(false, parameters);
+            verifier.BlockUpdate(message, 0, message.Length);
+            return verifier.VerifySignature(signature);
+        }
+    }
 }

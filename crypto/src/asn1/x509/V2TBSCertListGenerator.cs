@@ -126,14 +126,9 @@ namespace Org.BouncyCastle.Asn1.X509
 				}
 			}
 
-			if (extOids.Count != 0)
-			{
-				AddCrlEntry(userCertificate, revocationDate, new X509Extensions(extOids, extValues));
-			}
-			else
-			{
-				AddCrlEntry(userCertificate, revocationDate, null);
-			}
+            var extensions = extOids.Count < 1 ? null : new X509Extensions(extOids, extValues);
+
+            AddCrlEntry(userCertificate, revocationDate, extensions);
 		}
 
 		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, X509Extensions extensions)

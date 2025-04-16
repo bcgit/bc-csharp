@@ -219,6 +219,9 @@ namespace Org.BouncyCastle.Security
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static byte[] CalculateDigest(DerObjectIdentifier oid, ReadOnlySpan<byte> buffer) =>
+            CalculateDigest(oid.GetID(), buffer);
+
         public static byte[] CalculateDigest(string algorithm, ReadOnlySpan<byte> buffer)
         {
             IDigest digest = GetDigest(algorithm);

@@ -50,6 +50,21 @@ namespace Org.BouncyCastle.Cms
             MqvAlgorithms.Add(SecObjectIdentifiers.mqvSinglePass_sha512kdf_scheme);
         }
 
+        internal static byte[] GetByteArray(CmsProcessable content)
+        {
+            if (content == null)
+                return Array.Empty<byte>();
+
+            if (content is CmsProcessableByteArray byteArray)
+                return byteArray.GetByteArray();
+
+            using (var buf = new MemoryStream())
+            {
+                content.Write(buf);
+                return buf.ToArray();
+            }
+        }
+
         internal static bool IsEC(DerObjectIdentifier oid) => ECAlgorithms.Contains(oid);
 
         internal static bool IsGost(DerObjectIdentifier oid) => GostAlgorithms.Contains(oid);

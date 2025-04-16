@@ -14,6 +14,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Pkcs
 {
@@ -38,9 +39,10 @@ namespace Org.BouncyCastle.Pkcs
         private readonly Dictionary<string, X509CertificateEntry> m_keyCerts =
             new Dictionary<string, X509CertificateEntry>(StringComparer.OrdinalIgnoreCase);
 
+        private readonly DerObjectIdentifier certAlgorithm;
+        private readonly DerObjectIdentifier certPrfAlgorithm;
         private readonly DerObjectIdentifier keyAlgorithm;
         private readonly DerObjectIdentifier keyPrfAlgorithm;
-        private readonly DerObjectIdentifier certAlgorithm;
         private readonly bool useDerEncoding;
         private readonly bool reverseCertificates;
         private readonly bool overwriteFriendlyName;
@@ -50,13 +52,7 @@ namespace Org.BouncyCastle.Pkcs
         private const int MinIterations = 1024;
         private const int SaltSize = 20;
 
-        private static SubjectKeyIdentifier CreateSubjectKeyID(AsymmetricKeyParameter pubKey)
-        {
-            return new SubjectKeyIdentifier(
-                SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
-        }
-
-        internal struct CertID
+        private struct CertID
             : IEquatable<CertID>
         {
             private readonly byte[] m_id;
@@ -67,7 +63,7 @@ namespace Org.BouncyCastle.Pkcs
             }
 
             internal CertID(X509Certificate cert)
-                : this(CreateSubjectKeyID(cert.GetPublicKey()).GetKeyIdentifier())
+                : this(CreateLocalKeyID(cert).GetOctets())
             {
             }
 
@@ -85,12 +81,14 @@ namespace Org.BouncyCastle.Pkcs
             public override int GetHashCode() => Arrays.GetHashCode(m_id);
         }
 
-        internal Pkcs12Store(DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm,
-            DerObjectIdentifier certAlgorithm, bool useDerEncoding, bool reverseCertificates, bool overwriteFriendlyName)
+        internal Pkcs12Store(DerObjectIdentifier certAlgorithm, DerObjectIdentifier certPrfAlgorithm,
+            DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm, bool useDerEncoding,
+            bool reverseCertificates, bool overwriteFriendlyName)
         {
+            this.certAlgorithm = certAlgorithm;
+            this.certPrfAlgorithm = certPrfAlgorithm;
             this.keyAlgorithm = keyAlgorithm;
             this.keyPrfAlgorithm = keyPrfAlgorithm;
-            this.certAlgorithm = certAlgorithm;
             this.useDerEncoding = useDerEncoding;
             this.reverseCertificates = reverseCertificates;
             this.overwriteFriendlyName = overwriteFriendlyName;
@@ -259,16 +257,16 @@ namespace Org.BouncyCastle.Pkcs
                         }
                         else if (PkcsObjectIdentifiers.KeyBag.Equals(safeBagID))
                         {
-                            LoadKeyBag(PrivateKeyInfo.GetInstance(safeBag.BagValue), safeBag.BagAttributes);
+                            LoadKeyBag(PrivateKeyInfo.GetInstance(safeBag.BagValueEncodable), safeBag.BagAttributes);
                         }
                         else if (PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag.Equals(safeBagID))
                         {
                             passwordNeeded = true;
 
-                            LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(safeBag.BagValue),
+                            LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(safeBag.BagValueEncodable),
                                 safeBag.BagAttributes, password, wrongPkcs12Zero);
                         }
-                       else
+                        else
                         {
                             // TODO Other bag types
                         }
@@ -282,13 +280,13 @@ namespace Org.BouncyCastle.Pkcs
 
             foreach (SafeBag b in certBags)
             {
-                CertBag certBag = CertBag.GetInstance(b.BagValue);
+                CertBag certBag = CertBag.GetInstance(b.BagValueEncodable);
 
                 if (!PkcsObjectIdentifiers.X509Certificate.Equals(certBag.CertID))
                     throw new Exception("Unsupported certificate type: " + certBag.CertID);
 
-                var certValue = Asn1OctetString.GetInstance(certBag.CertValue);
-                X509Certificate cert = new X509CertificateParser().ReadCertificate(certValue.GetOctets());
+                var certValue = Asn1OctetString.GetInstance(certBag.CertValueEncodable);
+                X509Certificate cert = new X509Certificate(certValue.GetOctets());
 
                 //
                 // set the attributes
@@ -495,10 +493,10 @@ namespace Org.BouncyCastle.Pkcs
                 {
                     AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.GetInstance(akiValue.GetOctets());
 
-                    byte[] keyID = aki.GetKeyIdentifier();
+                    var keyID = aki.KeyIdentifier;
                     if (keyID != null)
                     {
-                        nextC = CollectionUtilities.GetValueOrNull(m_chainCerts, new CertID(keyID));
+                        nextC = CollectionUtilities.GetValueOrNull(m_chainCerts, new CertID(keyID.GetOctets()));
                     }
                 }
 
@@ -719,7 +717,7 @@ namespace Org.BouncyCastle.Pkcs
                 DerObjectIdentifier bagOid;
                 Asn1Encodable bagData;
 
-                if (password == null)
+                if (password == null || keyAlgorithm == null)
                 {
                     bagOid = PkcsObjectIdentifiers.KeyBag;
                     bagData = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privKey.Key);
@@ -761,17 +759,10 @@ namespace Org.BouncyCastle.Pkcs
                 //
                 if (privKey[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] == null)
                 {
-                    X509CertificateEntry ct = GetCertificate(name);
-                    AsymmetricKeyParameter pubKey = ct.Certificate.GetPublicKey();
-                    SubjectKeyIdentifier subjectKeyID = CreateSubjectKeyID(pubKey);
-
-                    kName.Add(
-                        new DerSequence(
-                            PkcsObjectIdentifiers.Pkcs9AtLocalKeyID,
-                            new DerSet(subjectKeyID)));
+                    AddLocalKeyID(kName, GetCertificate(name));
                 }
 
-                keyBags.Add(new SafeBag(bagOid, bagData.ToAsn1Object(), DerSet.FromVector(kName)));
+                keyBags.Add(new SafeBag(bagOid, bagData, DerSet.FromVector(kName)));
             }
 
             byte[] keyBagsEncoding = new DerSequence(keyBags).GetDerEncoded();
@@ -780,11 +771,8 @@ namespace Org.BouncyCastle.Pkcs
             //
             // certificate processing
             //
-            byte[] cSalt = SecureRandom.GetNextBytes(random, SaltSize);
 
             Asn1EncodableVector certBags = new Asn1EncodableVector(m_keys.Count);
-            Pkcs12PbeParams     cParams = new Pkcs12PbeParams(cSalt, MinIterations);
-            AlgorithmIdentifier cAlgId = new AlgorithmIdentifier(certAlgorithm, cParams.ToAsn1Object());
             var doneCerts = new HashSet<X509Certificate>();
 
             for (uint i = reverseCertificates ? (uint)m_keysOrder.Count-1 : 0;
@@ -817,16 +805,10 @@ namespace Org.BouncyCastle.Pkcs
                 //
                 if (certEntry[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] == null)
                 {
-                    AsymmetricKeyParameter pubKey = certEntry.Certificate.GetPublicKey();
-                    SubjectKeyIdentifier subjectKeyID = CreateSubjectKeyID(pubKey);
-
-                    fName.Add(
-                        new DerSequence(
-                            PkcsObjectIdentifiers.Pkcs9AtLocalKeyID,
-                            new DerSet(subjectKeyID)));
+                    AddLocalKeyID(fName, certEntry);
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
 
                 doneCerts.Add(certEntry.Certificate);
             }
@@ -887,7 +869,7 @@ namespace Org.BouncyCastle.Pkcs
                     fName.Add(new DerSequence(MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage, attrValue));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
 
                 doneCerts.Add(cert.Certificate);
             }
@@ -919,7 +901,7 @@ namespace Org.BouncyCastle.Pkcs
                     fName.Add(new DerSequence(oid, new DerSet(certEntry[oid])));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag.ToAsn1Object(), DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
             }
 
             byte[] certBagsEncoding = new DerSequence(certBags).GetDerEncoded();
@@ -931,9 +913,31 @@ namespace Org.BouncyCastle.Pkcs
             }
             else
             {
-                byte[] certBytes = CryptPbeData(true, cAlgId, password, false, certBagsEncoding);
-                EncryptedData cInfo = new EncryptedData(PkcsObjectIdentifiers.Data, cAlgId, new BerOctetString(certBytes));
-                certsInfo = new ContentInfo(PkcsObjectIdentifiers.EncryptedData, cInfo.ToAsn1Object());
+                // TODO Configurable salt length?
+                byte[] cSalt = SecureRandom.GetNextBytes(random, SaltSize);
+                // TODO Configurable number of iterations?
+                int cIterations = MinIterations;
+
+                AlgorithmIdentifier encAlgID;
+
+                if (certPrfAlgorithm != null)
+                {
+                    var encParams = PbeUtilities.GenerateAlgorithmParameters(certAlgorithm, certPrfAlgorithm, cSalt,
+                        cIterations, random);
+
+                    encAlgID = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPbeS2, encParams);
+                }
+                else
+                {
+                    var encParams = new Pkcs12PbeParams(cSalt, cIterations);
+
+                    encAlgID = new AlgorithmIdentifier(certAlgorithm, encParams);
+                }
+
+                byte[] certBytes = CryptPbeData(true, encAlgID, password, false, certBagsEncoding);
+
+                certsInfo = new ContentInfo(PkcsObjectIdentifiers.EncryptedData,
+                    new EncryptedData(PkcsObjectIdentifiers.Data, encAlgID, new BerOctetString(certBytes)));
             }
 
             ContentInfo[] info = new ContentInfo[]{ keysInfo, certsInfo };
@@ -1012,8 +1016,17 @@ namespace Org.BouncyCastle.Pkcs
             return Arrays.FixedTimeEquals(macResult, mac.Digest.GetOctets());
         }
 
+        private static void AddLocalKeyID(Asn1EncodableVector v, X509CertificateEntry certEntry) =>
+            AddLocalKeyID(v, certEntry.Certificate);
+
+        private static void AddLocalKeyID(Asn1EncodableVector v, X509Certificate c) =>
+            v.Add(new DerSequence(PkcsObjectIdentifiers.Pkcs9AtLocalKeyID, new DerSet(CreateLocalKeyID(c))));
+
         private static CertBag CreateCertBag(X509Certificate c) =>
             new CertBag(PkcsObjectIdentifiers.X509Certificate, new DerOctetString(c.GetEncoded()));
+
+        private static Asn1OctetString CreateLocalKeyID(X509Certificate certificate) =>
+            X509ExtensionUtilities.CalculateKeyIdentifier(certificate);
 
         private static byte[] CryptPbeData(bool forEncryption, AlgorithmIdentifier algID, char[] password,
             bool wrongPkcs12Zero, byte[] data)

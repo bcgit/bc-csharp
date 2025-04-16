@@ -303,13 +303,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
                 w1.ConditionalAddQ();
                 w1.Decompose(w0);
 
-                w1.PackW1(this, sig);
+                w1.PackW1(this, sig, 0);
 
                 d.BlockUpdate(mu, 0, CrhBytes);
                 d.BlockUpdate(sig, 0, K * PolyW1PackedBytes);
                 d.OutputFinal(sig, 0, CTilde);
 
-                cp.Challenge(sig); // uses only the first CTilde bytes of sig
+                cp.Challenge(sig, 0, CTilde);
                 cp.PolyNtt();
 
                 // Compute z, reject if it reveals secret
@@ -361,20 +361,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             if (z.CheckNorm(Gamma1 - Beta))
                 return false;
 
-            byte[] mu = new byte[CrhBytes];
-            d.DoFinal(mu, 0);
+            byte[] buf = new byte[System.Math.Max(CrhBytes + K * PolyW1PackedBytes, CTilde)];
 
-            byte[] buf = new byte[K * PolyW1PackedBytes];
+            // Mu
+            d.DoFinal(buf, 0);
+
             Poly cp = new Poly(this);
             PolyVecMatrix matrix = new PolyVecMatrix(this);
             PolyVec t1 = new PolyVec(this, K), w1 = new PolyVec(this, K);
 
             Packing.UnpackPublicKey(t1, encT1, this);
 
-            byte[] c = Arrays.CopyOfRange(sig, 0, CTilde);
-            byte[] c2 = new byte[CTilde];
-
-            cp.Challenge(c);
+            cp.Challenge(sig, 0, CTilde);
 
             matrix.ExpandMatrix(rho);
 
@@ -394,44 +392,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             w1.ConditionalAddQ();
             w1.UseHint(w1, h);
 
-            w1.PackW1(this, buf);
+            w1.PackW1(this, buf, CrhBytes);
 
-            d.BlockUpdate(mu, 0, CrhBytes);
-            d.BlockUpdate(buf, 0, K * PolyW1PackedBytes);
-            d.OutputFinal(c2, 0, CTilde);
+            d.BlockUpdate(buf, 0, CrhBytes + K * PolyW1PackedBytes);
+            d.OutputFinal(buf, 0, CTilde);
 
-            for (int i = 0; i < CTilde; ++i)
-            {
-                if (c[i] != c2[i])
-                    return false;
-            }
-            return true;
+            return Arrays.FixedTimeEquals(CTilde, sig, 0, buf, 0);
+        }
+
+        internal ShakeDigest MsgRepPreHash(byte[] tr, byte[] msg, int msgOff, int msgLen)
+        {
+            var d = MsgRepCreateDigest();
+            MsgRepBegin(d, tr);
+            d.BlockUpdate(msg, msgOff, msgLen);
+            return d;
         }
 
         internal void Sign(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] k, byte[] tr,
             byte[] t0Enc, byte[] s1Enc, byte[] s2Enc, bool legacy)
         {
-            var d = MsgRepCreateDigest();
-            MsgRepBegin(d, tr);
-            d.BlockUpdate(msg, msgOff, msgLen);
+            var d = MsgRepPreHash(tr, msg, msgOff, msgLen);
             MsgRepEndSign(d, sig, siglen, rho, k, t0Enc, s1Enc, s2Enc, legacy);
         }
 
         internal void SignInternal(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] k,
             byte[] tr, byte[] t0Enc, byte[] s1Enc, byte[] s2Enc, byte[] rnd, bool legacy)
         {
-            var d = MsgRepCreateDigest();
-            MsgRepBegin(d, tr);
-            d.BlockUpdate(msg, msgOff, msgLen);
+            var d = MsgRepPreHash(tr, msg, msgOff, msgLen);
             MsgRepEndSignInternal(d, sig, siglen, rho, k, t0Enc, s1Enc, s2Enc, rnd, legacy);
         }
 
         internal bool VerifyInternal(byte[] sig, int siglen, byte[] msg, int msgOff, int msgLen, byte[] rho, byte[] encT1,
             byte[] tr)
         {
-            var d = MsgRepCreateDigest();
-            MsgRepBegin(d, tr);
-            d.BlockUpdate(msg, msgOff, msgLen);
+            var d = MsgRepPreHash(tr, msg, msgOff, msgLen);
             return MsgRepEndVerifyInternal(d, sig, siglen, rho, encT1);
         }
     }

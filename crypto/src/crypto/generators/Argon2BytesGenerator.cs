@@ -37,8 +37,6 @@ namespace Org.BouncyCastle.Crypto.Generators
         /* Minimum and maximum number of passes */
         private const int MinIterations = 1;
 
-        private const ulong M32L = 0xFFFFFFFFL;
-
         private readonly byte[] ZeroBytes = new byte[4];
 
         private readonly TaskFactory m_taskFactory;
@@ -488,69 +486,23 @@ namespace Org.BouncyCastle.Crypto.Generators
 #if NETCOREAPP3_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        private static void RoundFunction(Block block,
-                                          int v0, int v1, int v2, int v3,
-                                          int v4, int v5, int v6, int v7,
-                                          int v8, int v9, int v10, int v11,
-                                          int v12, int v13, int v14, int v15)
+        private static void GB(ref ulong a, ref ulong b, ref ulong c, ref ulong d)
         {
-            ulong[] v = block.v;
+            a += b + 2 * Mul32((uint)a, (uint)b);
+            d = Longs.RotateRight(d ^ a, 32);
+            c += d + 2 * Mul32((uint)c, (uint)d);
+            b = Longs.RotateRight(b ^ c, 24);
 
-            F(v, v0, v4, v8, v12);
-            F(v, v1, v5, v9, v13);
-            F(v, v2, v6, v10, v14);
-            F(v, v3, v7, v11, v15);
-
-            F(v, v0, v5, v10, v15);
-            F(v, v1, v6, v11, v12);
-            F(v, v2, v7, v8, v13);
-            F(v, v3, v4, v9, v14);
+            a += b + 2 * Mul32((uint)a, (uint)b);
+            d = Longs.RotateRight(d ^ a, 16);
+            c += d + 2 * Mul32((uint)c, (uint)d);
+            b = Longs.RotateRight(b ^ c, 63);
         }
 
 #if NETCOREAPP3_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        private static void F(ulong[] v, int a, int b, int c, int d)
-        {
-            QuarterRound(v, a, b, d, 32);
-            QuarterRound(v, c, d, b, 24);
-            QuarterRound(v, a, b, d, 16);
-            QuarterRound(v, c, d, b, 63);
-        }
-
-#if NETCOREAPP3_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-        private static void QuarterRound(ulong[] v, int x, int y, int z, int s)
-        {
-            //        fBlaMka(v, x, y);
-            //        rotr64(v, z, x, s);
-
-            ulong a = v[x], b = v[y], c = v[z];
-
-            a += b + 2 * (a & M32L) * (b & M32L);
-            c = Longs.RotateRight(c ^ a, s);
-
-            v[x] = a;
-            v[z] = c;
-        }
-
-        /*designed by the Lyra PHC team */
-        /* a <- a + b + 2*aL*bL
-         * + == addition modulo 2^64
-         * aL = least 32 bit */
-        //    private static void fBlaMka(long[] v, int x, int y)
-        //    {
-        //        final ulong a = v[x], b = v[y];
-        //        final ulong ab = (a & M32L) * (b & M32L);
-        //
-        //        v[x] = a + b + 2 * ab;
-        //    }
-        //
-        //    private static void rotr64(long[] v, int x, int y, int s)
-        //    {
-        //        v[x] = ulongs.rotateRight(v[x] ^ v[y], s);
-        //    }
+        private static ulong Mul32(uint a, uint b) => (ulong)a * b;
 
         private void Initialize(byte[] tmpBlockBytes, byte[] password, int outputLength)
         {
@@ -643,36 +595,52 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             internal void ApplyBlake()
             {
-                /* Apply Blake2 on columns of 64-bit words: (0,1,...,15) , then
-                (16,17,..31)... finally (112,113,...127) */
-                for (int i = 0; i < 8; i++)
-                {
+                // TODO Implement using intrinsics when supported (see e.g. Blake2b_X86)
 
-                    int i16 = 16 * i;
-                    RoundFunction(Z,
-                        i16, i16 + 1, i16 + 2,
-                        i16 + 3, i16 + 4, i16 + 5,
-                        i16 + 6, i16 + 7, i16 + 8,
-                        i16 + 9, i16 + 10, i16 + 11,
-                        i16 + 12, i16 + 13, i16 + 14,
-                        i16 + 15
-                    );
+                /*
+                 * RFC 9106 3.5. [The block] is viewed as an 8x8 matrix of 16-byte registers R_0, R_1, ... , R_63.
+                 * Then P is first applied to each row, and then to each column to get Z:
+                 *
+                 * ( Q_0,  Q_1,  Q_2, ... ,  Q_7) <- P( R_0,  R_1,  R_2, ... ,  R_7)
+                 * ( Q_8,  Q_9, Q_10, ... , Q_15) <- P( R_8,  R_9, R_10, ... , R_15)
+                 *                               ...
+                 * (Q_56, Q_57, Q_58, ... , Q_63) <- P(R_56, R_57, R_58, ... , R_63)
+                 * ( Z_0,  Z_8, Z_16, ... , Z_56) <- P( Q_0,  Q_8, Q_16, ... , Q_56)
+                 * ( Z_1,  Z_9, Z_17, ... , Z_57) <- P( Q_1,  Q_9, Q_17, ... , Q_57)
+                 *                               ...
+                 * ( Z_7, Z_15, Z 23, ... , Z_63) <- P( Q_7, Q_15, Q_23, ... , Q_63)
+                 */
+
+                ulong[] v = Z.v;
+
+                for (int i = 0; i < 128; i += 16)
+                {
+                    // Apply P to the row [i + 0 | i + 1], [i + 2 | i + 3], ..., [i + 14 | i + 15]
+
+                    GB(ref v[i +  0], ref v[i +  4], ref v[i +  8], ref v[i + 12]);
+                    GB(ref v[i +  1], ref v[i +  5], ref v[i +  9], ref v[i + 13]);
+                    GB(ref v[i +  2], ref v[i +  6], ref v[i + 10], ref v[i + 14]);
+                    GB(ref v[i +  3], ref v[i +  7], ref v[i + 11], ref v[i + 15]);
+
+                    GB(ref v[i +  0], ref v[i +  5], ref v[i + 10], ref v[i + 15]);
+                    GB(ref v[i +  1], ref v[i +  6], ref v[i + 11], ref v[i + 12]);
+                    GB(ref v[i +  2], ref v[i +  7], ref v[i +  8], ref v[i + 13]);
+                    GB(ref v[i +  3], ref v[i +  4], ref v[i +  9], ref v[i + 14]);
                 }
 
-                /* Apply Blake2 on rows of 64-bit words: (0,1,16,17,...112,113), then
-                (2,3,18,19,...,114,115).. finally (14,15,30,31,...,126,127) */
-                for (int i = 0; i < 8; i++)
+                for (int i = 0; i < 16; i += 2)
                 {
+                    // Apply P to the column [i + 0 | i + 1], [i + 16 | i + 17], ..., [i + 112 | i + 113]
 
-                    int i2 = 2 * i;
-                    RoundFunction(Z,
-                        i2, i2 + 1, i2 + 16,
-                        i2 + 17, i2 + 32, i2 + 33,
-                        i2 + 48, i2 + 49, i2 + 64,
-                        i2 + 65, i2 + 80, i2 + 81,
-                        i2 + 96, i2 + 97, i2 + 112,
-                        i2 + 113
-                    );
+                    GB(ref v[i +  0], ref v[i + 32], ref v[i + 64], ref v[i +  96]);
+                    GB(ref v[i +  1], ref v[i + 33], ref v[i + 65], ref v[i +  97]);
+                    GB(ref v[i + 16], ref v[i + 48], ref v[i + 80], ref v[i + 112]);
+                    GB(ref v[i + 17], ref v[i + 49], ref v[i + 81], ref v[i + 113]);
+
+                    GB(ref v[i +  0], ref v[i + 33], ref v[i + 80], ref v[i + 113]);
+                    GB(ref v[i +  1], ref v[i + 48], ref v[i + 81], ref v[i +  96]);
+                    GB(ref v[i + 16], ref v[i + 49], ref v[i + 64], ref v[i +  97]);
+                    GB(ref v[i + 17], ref v[i + 32], ref v[i + 65], ref v[i + 112]);
                 }
             }
 

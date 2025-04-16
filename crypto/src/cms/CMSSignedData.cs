@@ -110,27 +110,20 @@ namespace Org.BouncyCastle.Cms
 			this.contentInfo = sigData;
 			this.signedData = SignedData.GetInstance(contentInfo.Content);
 
-			//
-			// this can happen if the signed message is sent simply to send a
-			// certificate chain.
-			//
-			if (signedData.EncapContentInfo.Content != null)
+			var encapContentInfo = signedData.EncapContentInfo;
+			var encapContent = encapContentInfo.Content;
+
+			if (encapContent != null)
 			{
-				if (signedData.EncapContentInfo.Content is Asn1OctetString)
+				if (encapContent is Asn1OctetString octetString)
 				{
-					signedContent = new CmsProcessableByteArray(
-						((Asn1OctetString)(signedData.EncapContentInfo.Content)).GetOctets());
+					this.signedContent = new CmsProcessableByteArray(octetString.GetOctets());
 				}
 				else
 				{
-					signedContent = new Pkcs7ProcessableObject(signedData.EncapContentInfo.ContentType,
-						signedData.EncapContentInfo.Content);
+					this.signedContent = new Pkcs7ProcessableObject(encapContentInfo.ContentType, encapContent);
 				}
 			}
-//			else
-//			{
-//				this.signedContent = null;
-//			}
 		}
 
 		/// <summary>Return the version number for this object.</summary>

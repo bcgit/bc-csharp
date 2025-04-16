@@ -17,29 +17,19 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security
 {
     public static class PrivateKeyFactory
     {
-        public static AsymmetricKeyParameter CreateKey(
-            byte[] privateKeyInfoData)
-        {
-            return CreateKey(
-                PrivateKeyInfo.GetInstance(
-                    Asn1Object.FromByteArray(privateKeyInfoData)));
-        }
+        public static AsymmetricKeyParameter CreateKey(byte[] privateKeyInfoData) =>
+            CreateKey(PrivateKeyInfo.GetInstance(privateKeyInfoData));
 
-        public static AsymmetricKeyParameter CreateKey(
-            Stream inStr)
-        {
-            return CreateKey(
-                PrivateKeyInfo.GetInstance(
-                    Asn1Object.FromStream(inStr)));
-        }
+        public static AsymmetricKeyParameter CreateKey(Stream inStr) =>
+            CreateKey(PrivateKeyInfo.GetInstance(Asn1Object.FromStream(inStr)));
 
-        public static AsymmetricKeyParameter CreateKey(
-            PrivateKeyInfo keyInfo)
+        public static AsymmetricKeyParameter CreateKey(PrivateKeyInfo keyInfo)
         {
             AlgorithmIdentifier algID = keyInfo.PrivateKeyAlgorithm;
             DerObjectIdentifier algOid = algID.Algorithm;
@@ -345,62 +335,160 @@ namespace Org.BouncyCastle.Security
             }
             else if (MLDsaParameters.ByOid.TryGetValue(algOid, out MLDsaParameters mlDsaParameters))
             {
+                // NOTE: We ignore the publicKey field since the private key already includes the public key
+                // TODO[pqc] Validate the public key if it is included?
+
                 var privateKey = keyInfo.PrivateKey;
                 int length = privateKey.GetOctetsLength();
 
-                var parameterSet = mlDsaParameters.ParameterSet;
-
-                if (length == parameterSet.SeedLength)
+                // TODO[api] Eventually remove legacy support for raw octets
                 {
-                    // NOTE: We ignore the publicKey field since we will recover it from the seed anyway
-                    // TODO[pqc] Validate the public key if it is included?
-                    return MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed: privateKey.GetOctets());
+                    var parameterSet = mlDsaParameters.ParameterSet;
+
+                    if (length == parameterSet.SeedLength)
+                        return MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed: privateKey.GetOctets());
+
+                    if (length == parameterSet.PrivateKeyLength)
+                        return MLDsaPrivateKeyParameters.FromEncoding(mlDsaParameters, encoding: privateKey.GetOctets());
                 }
 
-                if (length == parameterSet.PrivateKeyLength)
+                try
                 {
-                    // NOTE: We ignore the publicKey field since we will derive it anyway
-                    // TODO[pqc] Validate the public key if it is included?
-                    return MLDsaPrivateKeyParameters.FromEncoding(mlDsaParameters, encoding: privateKey.GetOctets());
+                    var asn1Object = Asn1Object.FromByteArray(privateKey.GetOctets());
+
+                    if (asn1Object is Asn1TaggedObject taggedSeedOnly)
+                    {
+                        // SeedOnly is a [CONTEXT 0] IMPLICIT OCTET STRING
+                        if (taggedSeedOnly.HasContextTag(0))
+                        {
+                            var seed = Asn1OctetString.GetInstance(taggedSeedOnly, declaredExplicit: false).GetOctets();
+                            return MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed);
+                        }
+                    }
+                    else if (asn1Object is Asn1OctetString encodingOnly)
+                    {
+                        // EncodingOnly is an OCTET STRING
+                        var encoding = encodingOnly.GetOctets();
+                        return MLDsaPrivateKeyParameters.FromEncoding(mlDsaParameters, encoding);
+                    }
+                    else if (asn1Object is Asn1Sequence sequence)
+                    {
+                        // SeedAndEncoding is a SEQUENCE containing a seed OCTET STRING and an encoding OCTET STRING
+                        if (sequence.Count == 2)
+                        {
+                            var seed = Asn1OctetString.GetInstance(sequence[0]).GetOctets();
+                            var encoding = Asn1OctetString.GetInstance(sequence[1]).GetOctets();
+
+                            var fromSeed = MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed,
+                                preferredFormat: MLDsaPrivateKeyParameters.Format.SeedAndEncoding);
+
+                            if (!Arrays.FixedTimeEquals(fromSeed.GetEncoded(), encoding))
+                                throw new ArgumentException("inconsistent " + mlDsaParameters.Name + " private key");
+
+                            return fromSeed;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Ignore
                 }
 
                 throw new ArgumentException("invalid " + mlDsaParameters.Name + " private key");
             }
             else if (MLKemParameters.ByOid.TryGetValue(algOid, out MLKemParameters mlKemParameters))
             {
+                // NOTE: We ignore the publicKey field since the private key already includes the public key
+                // TODO[pqc] Validate the public key if it is included?
+
                 var privateKey = keyInfo.PrivateKey;
                 int length = privateKey.GetOctetsLength();
 
-                var parameterSet = mlKemParameters.ParameterSet;
-
-                if (length == parameterSet.SeedLength)
+                // TODO[api] Eventually remove legacy support for raw octets
                 {
-                    // NOTE: We ignore the publicKey field since we will recover it from the seed anyway
-                    // TODO[pqc] Validate the public key if it is included?
-                    return MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed: privateKey.GetOctets());
+                    var parameterSet = mlKemParameters.ParameterSet;
+
+                    if (length == parameterSet.SeedLength)
+                        return MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed: privateKey.GetOctets());
+
+                    if (length == parameterSet.PrivateKeyLength)
+                        return MLKemPrivateKeyParameters.FromEncoding(mlKemParameters, encoding: privateKey.GetOctets());
                 }
 
-                if (length == parameterSet.PrivateKeyLength)
+                try
                 {
-                    // NOTE: We ignore the publicKey field since we will derive it anyway
-                    // TODO[pqc] Validate the public key if it is included?
-                    return MLKemPrivateKeyParameters.FromEncoding(mlKemParameters, encoding: privateKey.GetOctets());
+                    var asn1Object = Asn1Object.FromByteArray(privateKey.GetOctets());
+
+                    if (asn1Object is Asn1TaggedObject taggedSeedOnly)
+                    {
+                        // SeedOnly is a [CONTEXT 0] IMPLICIT OCTET STRING
+                        if (taggedSeedOnly.HasContextTag(0))
+                        {
+                            var seed = Asn1OctetString.GetInstance(taggedSeedOnly, declaredExplicit: false).GetOctets();
+                            return MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed);
+                        }
+                    }
+                    else if (asn1Object is Asn1OctetString encodingOnly)
+                    {
+                        // EncodingOnly is an OCTET STRING
+                        var encoding = encodingOnly.GetOctets();
+                        return MLKemPrivateKeyParameters.FromEncoding(mlKemParameters, encoding);
+                    }
+                    else if (asn1Object is Asn1Sequence sequence)
+                    {
+                        // SeedAndEncoding is a SEQUENCE containing a seed OCTET STRING and an encoding OCTET STRING
+                        if (sequence.Count == 2)
+                        {
+                            var seed = Asn1OctetString.GetInstance(sequence[0]).GetOctets();
+                            var encoding = Asn1OctetString.GetInstance(sequence[1]).GetOctets();
+
+                            var fromSeed = MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed,
+                                preferredFormat: MLKemPrivateKeyParameters.Format.SeedAndEncoding);
+
+                            if (!Arrays.FixedTimeEquals(fromSeed.GetEncoded(), encoding))
+                                throw new ArgumentException("inconsistent " + mlKemParameters.Name + " private key");
+
+                            return fromSeed;
+                        }
+                    }
+                }
+                catch (Exception)
+                {
+                    // Ignore
                 }
 
                 throw new ArgumentException("invalid " + mlKemParameters.Name + " private key");
             }
             else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
+                // NOTE: We ignore the publicKey field since the private key already includes the public key
+                // TODO[pqc] Validate the public key if it is included?
+
+                int privateKeyLength = slhDsaParameters.ParameterSet.PrivateKeyLength;
+
                 var privateKey = keyInfo.PrivateKey;
-                int length = privateKey.GetOctetsLength();
+                int octetsLength = privateKey.GetOctetsLength();
 
-                var parameterSet = slhDsaParameters.ParameterSet;
-
-                if (length == parameterSet.PrivateKeyLength)
-                {
-                    // NOTE: We ignore the publicKey field since the private key includes it anyway
-                    // TODO[pqc] Validate the public key if it is included?
+                if (octetsLength == privateKeyLength)
                     return SlhDsaPrivateKeyParameters.FromEncoding(slhDsaParameters, encoding: privateKey.GetOctets());
+
+                // TODO[api] Eventually remove legacy support for OCTET STRING encoding
+                if (octetsLength > privateKeyLength)
+                {
+                    try
+                    {
+                        var asn1Object = Asn1Object.FromByteArray(privateKey.GetOctets());
+
+                        if (asn1Object is Asn1OctetString octetString)
+                        {
+                            var encoding = octetString.GetOctets();
+                            return MLKemPrivateKeyParameters.FromEncoding(mlKemParameters, encoding);
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore
+                    }
                 }
 
                 throw new ArgumentException("invalid " + slhDsaParameters.Name + " private key");
@@ -423,32 +511,16 @@ namespace Org.BouncyCastle.Security
         }
 #endif
 
-        public static AsymmetricKeyParameter DecryptKey(
-            char[] passPhrase,
-            EncryptedPrivateKeyInfo encInfo)
-        {
-            return CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(passPhrase, encInfo));
-        }
+        public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, EncryptedPrivateKeyInfo encInfo) =>
+            CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(passPhrase, encInfo));
 
-        public static AsymmetricKeyParameter DecryptKey(
-            char[] passPhrase,
-            byte[] encryptedPrivateKeyInfoData)
-        {
-            return DecryptKey(passPhrase, Asn1Object.FromByteArray(encryptedPrivateKeyInfoData));
-        }
+        public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, byte[] encryptedPrivateKeyInfoData) =>
+            DecryptKey(passPhrase, EncryptedPrivateKeyInfo.GetInstance(encryptedPrivateKeyInfoData));
 
-        public static AsymmetricKeyParameter DecryptKey(
-            char[] passPhrase,
-            Stream encryptedPrivateKeyInfoStream)
+        public static AsymmetricKeyParameter DecryptKey(char[] passPhrase, Stream encryptedPrivateKeyInfoStream)
         {
-            return DecryptKey(passPhrase, Asn1Object.FromStream(encryptedPrivateKeyInfoStream));
-        }
-
-        private static AsymmetricKeyParameter DecryptKey(
-            char[] passPhrase,
-            Asn1Object asn1Object)
-        {
-            return DecryptKey(passPhrase, EncryptedPrivateKeyInfo.GetInstance(asn1Object));
+            return DecryptKey(passPhrase,
+                EncryptedPrivateKeyInfo.GetInstance(Asn1Object.FromStream(encryptedPrivateKeyInfoStream)));
         }
 
         public static byte[] EncryptKey(

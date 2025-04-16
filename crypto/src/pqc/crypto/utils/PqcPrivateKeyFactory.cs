@@ -29,19 +29,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         /// <param name="privateKeyInfoData"> the PrivateKeyInfo encoding</param>
         /// <returns> a suitable private key parameter</returns>
         /// <exception cref="IOException"> on an error decoding the key</exception>
-        public static AsymmetricKeyParameter CreateKey(byte[] privateKeyInfoData)
-        {
-            return CreateKey(PrivateKeyInfo.GetInstance(Asn1Object.FromByteArray(privateKeyInfoData)));
-        }
+        public static AsymmetricKeyParameter CreateKey(byte[] privateKeyInfoData) =>
+            CreateKey(PrivateKeyInfo.GetInstance(privateKeyInfoData));
 
         /// <summary> Create a private key parameter from a PKCS8 PrivateKeyInfo encoding read from a stream</summary>
         /// <param name="inStr"> the stream to read the PrivateKeyInfo encoding from</param>
         /// <returns> a suitable private key parameter</returns>
         /// <exception cref="IOException"> on an error decoding the key</exception>
-        public static AsymmetricKeyParameter CreateKey(Stream inStr)
-        {
-            return CreateKey(PrivateKeyInfo.GetInstance(new Asn1InputStream(inStr).ReadObject()));
-        }
+        public static AsymmetricKeyParameter CreateKey(Stream inStr) =>
+            CreateKey(PrivateKeyInfo.GetInstance(Asn1Object.FromStream(inStr)));
 
         /// <summary> Create a private key parameter from the passed in PKCS8 PrivateKeyInfo object.</summary>
         /// <param name="keyInfo"> the PrivateKeyInfo object containing the key material</param>

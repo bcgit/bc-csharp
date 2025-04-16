@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             for (int i = 2; i <= delta; i++)
             {
                 int mask = i - deg < 1 ? 0xffff : 0;
-                output[i] = mask & sigma[i - 1];
+                output[i] ^= mask & syndromes[i - 1];
 
                 for (int j = 1; j < i; j++)
                 {

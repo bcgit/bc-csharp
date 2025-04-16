@@ -128,6 +128,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             AddAlgorithm("RIPEMD128WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
             AddAlgorithm("RIPEMD256WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256);
             AddAlgorithm("RIPEMD256WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256);
+
             AddAlgorithm("SHA1WITHDSA", X9ObjectIdentifiers.IdDsaWithSha1);
             AddAlgorithm("SHA-1WITHDSA", X9ObjectIdentifiers.IdDsaWithSha1);
             AddAlgorithm("DSAWITHSHA1", X9ObjectIdentifiers.IdDsaWithSha1);
@@ -135,14 +136,24 @@ namespace Org.BouncyCastle.Operators.Utilities
             AddAlgorithm("SHA256WITHDSA", NistObjectIdentifiers.DsaWithSha256);
             AddAlgorithm("SHA384WITHDSA", NistObjectIdentifiers.DsaWithSha384);
             AddAlgorithm("SHA512WITHDSA", NistObjectIdentifiers.DsaWithSha512);
+
             AddAlgorithm("SHA3-224WITHDSA", NistObjectIdentifiers.IdDsaWithSha3_224);
             AddAlgorithm("SHA3-256WITHDSA", NistObjectIdentifiers.IdDsaWithSha3_256);
             AddAlgorithm("SHA3-384WITHDSA", NistObjectIdentifiers.IdDsaWithSha3_384);
             AddAlgorithm("SHA3-512WITHDSA", NistObjectIdentifiers.IdDsaWithSha3_512);
+
+            AddAlgorithm("SHA1WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha1);
+            AddAlgorithm("ECDSAWITHSHA1", X9ObjectIdentifiers.ECDsaWithSha1);
+            AddAlgorithm("SHA224WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha224);
+            AddAlgorithm("SHA256WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha256);
+            AddAlgorithm("SHA384WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha384);
+            AddAlgorithm("SHA512WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha512);
+
             AddAlgorithm("SHA3-224WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_224);
             AddAlgorithm("SHA3-256WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_256);
             AddAlgorithm("SHA3-384WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_384);
             AddAlgorithm("SHA3-512WITHECDSA", NistObjectIdentifiers.IdEcdsaWithSha3_512);
+
             AddAlgorithm("SHA3-224WITHRSA", NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224);
             AddAlgorithm("SHA3-256WITHRSA", NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256);
             AddAlgorithm("SHA3-384WITHRSA", NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384);
@@ -151,12 +162,6 @@ namespace Org.BouncyCastle.Operators.Utilities
             AddAlgorithm("SHA3-256WITHRSAENCRYPTION", NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256);
             AddAlgorithm("SHA3-384WITHRSAENCRYPTION", NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384);
             AddAlgorithm("SHA3-512WITHRSAENCRYPTION", NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512);
-            AddAlgorithm("SHA1WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha1);
-            AddAlgorithm("ECDSAWITHSHA1", X9ObjectIdentifiers.ECDsaWithSha1);
-            AddAlgorithm("SHA224WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha224);
-            AddAlgorithm("SHA256WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha256);
-            AddAlgorithm("SHA384WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha384);
-            AddAlgorithm("SHA512WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha512);
             AddAlgorithm("GOST3411WITHGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
             AddAlgorithm("GOST3411WITHGOST3410-94", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
             AddAlgorithm("GOST3411WITHECGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
@@ -186,11 +191,12 @@ namespace Org.BouncyCastle.Operators.Utilities
 #pragma warning restore CS0618 // Type or member is obsolete
 
             AddAlgorithm("SHA1WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA1);
-            AddAlgorithm("RIPEMD160WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_RIPEMD160);
             AddAlgorithm("SHA224WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA224);
             AddAlgorithm("SHA256WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA256);
             AddAlgorithm("SHA384WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA384);
             AddAlgorithm("SHA512WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA512);
+            AddAlgorithm("RIPEMD160WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_RIPEMD160);
+
             AddAlgorithm("SHA3-224WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_224);
             AddAlgorithm("SHA3-256WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_256);
             AddAlgorithm("SHA3-384WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_384);
@@ -270,29 +276,36 @@ namespace Org.BouncyCastle.Operators.Utilities
             // According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
             // The parameters field SHALL be NULL for RSA based signature algorithms.
             //
-            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
-            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha224);
-            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
-            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
-            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha512);
+
             NoParams.Add(X9ObjectIdentifiers.IdDsaWithSha1);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha224);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha256);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha384);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha512);
+
             NoParams.Add(NistObjectIdentifiers.IdDsaWithSha3_224);
             NoParams.Add(NistObjectIdentifiers.IdDsaWithSha3_256);
             NoParams.Add(NistObjectIdentifiers.IdDsaWithSha3_384);
             NoParams.Add(NistObjectIdentifiers.IdDsaWithSha3_512);
+
+            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
+            NoParams.Add(OiwObjectIdentifiers.DsaWithSha1);
+            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha224);
+            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
+            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
+            NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha512);
+
             NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_224);
             NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_256);
             NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384);
             NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512);
 
+            //NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA224);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA256);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA384);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA512);
+
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_224);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_256);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_384);
@@ -467,18 +480,6 @@ namespace Org.BouncyCastle.Operators.Utilities
             AddDigestOid(PkcsObjectIdentifiers.Sha512WithRsaEncryption, NistObjectIdentifiers.IdSha512);
             AddDigestOid(PkcsObjectIdentifiers.Sha512_224WithRSAEncryption, NistObjectIdentifiers.IdSha512_224);
             AddDigestOid(PkcsObjectIdentifiers.Sha512_256WithRSAEncryption, NistObjectIdentifiers.IdSha512_256);
-            AddDigestOid(NistObjectIdentifiers.DsaWithSha224, NistObjectIdentifiers.IdSha224);
-            AddDigestOid(NistObjectIdentifiers.DsaWithSha256, NistObjectIdentifiers.IdSha256);
-            AddDigestOid(NistObjectIdentifiers.DsaWithSha384, NistObjectIdentifiers.IdSha384);
-            AddDigestOid(NistObjectIdentifiers.DsaWithSha512, NistObjectIdentifiers.IdSha512);
-            AddDigestOid(NistObjectIdentifiers.IdDsaWithSha3_224, NistObjectIdentifiers.IdSha3_224);
-            AddDigestOid(NistObjectIdentifiers.IdDsaWithSha3_256, NistObjectIdentifiers.IdSha3_256);
-            AddDigestOid(NistObjectIdentifiers.IdDsaWithSha3_384, NistObjectIdentifiers.IdSha3_384);
-            AddDigestOid(NistObjectIdentifiers.IdDsaWithSha3_512, NistObjectIdentifiers.IdSha3_512);
-            AddDigestOid(NistObjectIdentifiers.IdEcdsaWithSha3_224, NistObjectIdentifiers.IdSha3_224);
-            AddDigestOid(NistObjectIdentifiers.IdEcdsaWithSha3_256, NistObjectIdentifiers.IdSha3_256);
-            AddDigestOid(NistObjectIdentifiers.IdEcdsaWithSha3_384, NistObjectIdentifiers.IdSha3_384);
-            AddDigestOid(NistObjectIdentifiers.IdEcdsaWithSha3_512, NistObjectIdentifiers.IdSha3_512);
             AddDigestOid(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224, NistObjectIdentifiers.IdSha3_224);
             AddDigestOid(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256, NistObjectIdentifiers.IdSha3_256);
             AddDigestOid(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384, NistObjectIdentifiers.IdSha3_384);
@@ -495,6 +496,29 @@ namespace Org.BouncyCastle.Operators.Utilities
             AddDigestOid(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001, CryptoProObjectIdentifiers.GostR3411);
             AddDigestOid(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
             AddDigestOid(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
+
+            AddDigestOid(X9ObjectIdentifiers.IdDsaWithSha1, OiwObjectIdentifiers.IdSha1);
+            AddDigestOid(OiwObjectIdentifiers.DsaWithSha1, OiwObjectIdentifiers.IdSha1);
+            AddDigestOid(NistObjectIdentifiers.DsaWithSha224, NistObjectIdentifiers.IdSha224);
+            AddDigestOid(NistObjectIdentifiers.DsaWithSha256, NistObjectIdentifiers.IdSha256);
+            AddDigestOid(NistObjectIdentifiers.DsaWithSha384, NistObjectIdentifiers.IdSha384);
+            AddDigestOid(NistObjectIdentifiers.DsaWithSha512, NistObjectIdentifiers.IdSha512);
+
+            AddDigestOid(NistObjectIdentifiers.IdDsaWithSha3_224, NistObjectIdentifiers.IdSha3_224);
+            AddDigestOid(NistObjectIdentifiers.IdDsaWithSha3_256, NistObjectIdentifiers.IdSha3_256);
+            AddDigestOid(NistObjectIdentifiers.IdDsaWithSha3_384, NistObjectIdentifiers.IdSha3_384);
+            AddDigestOid(NistObjectIdentifiers.IdDsaWithSha3_512, NistObjectIdentifiers.IdSha3_512);
+
+            AddDigestOid(X9ObjectIdentifiers.ECDsaWithSha1, OiwObjectIdentifiers.IdSha1);
+            AddDigestOid(X9ObjectIdentifiers.ECDsaWithSha224, NistObjectIdentifiers.IdSha224);
+            AddDigestOid(X9ObjectIdentifiers.ECDsaWithSha256, NistObjectIdentifiers.IdSha256);
+            AddDigestOid(X9ObjectIdentifiers.ECDsaWithSha384, NistObjectIdentifiers.IdSha384);
+            AddDigestOid(X9ObjectIdentifiers.ECDsaWithSha512, NistObjectIdentifiers.IdSha512);
+
+            AddDigestOid(NistObjectIdentifiers.IdEcdsaWithSha3_224, NistObjectIdentifiers.IdSha3_224);
+            AddDigestOid(NistObjectIdentifiers.IdEcdsaWithSha3_256, NistObjectIdentifiers.IdSha3_256);
+            AddDigestOid(NistObjectIdentifiers.IdEcdsaWithSha3_384, NistObjectIdentifiers.IdSha3_384);
+            AddDigestOid(NistObjectIdentifiers.IdEcdsaWithSha3_512, NistObjectIdentifiers.IdSha3_512);
 
 #pragma warning disable CS0618 // Type or member is obsolete
             AddDigestOid(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, NistObjectIdentifiers.IdSha256);
@@ -541,7 +565,7 @@ namespace Org.BouncyCastle.Operators.Utilities
              * EdDSA
              */
             AddAlgorithm("Ed25519", EdECObjectIdentifiers.id_Ed25519, digestOid: null, isNoParams: true);
-            AddAlgorithm("Ed448", EdECObjectIdentifiers.id_Ed448, digestOid: null, isNoParams: true);
+            //AddAlgorithm("Ed448", EdECObjectIdentifiers.id_Ed448, digestOid: null, isNoParams: true);
 
             /*
              * ML-DSA

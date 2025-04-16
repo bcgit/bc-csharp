@@ -85,6 +85,8 @@ namespace Org.BouncyCastle.Asn1.X509
 
 		public Time NextUpdate => m_tbsCertList.NextUpdate;
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_tbsCertList, m_signatureAlgorithm, m_signatureValue);
+        public X509Extensions Extensions => m_tbsCertList.Extensions;
+
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_tbsCertList, m_signatureAlgorithm, m_signatureValue);
     }
 }

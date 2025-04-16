@@ -423,22 +423,24 @@ namespace Org.BouncyCastle.Asn1.X509
 			return true;
 		}
 
-		public DerObjectIdentifier[] GetExtensionOids()
-		{
-            return m_ordering.ToArray();
-		}
+		public DerObjectIdentifier[] GetExtensionOids() => m_ordering.ToArray();
 
-		public DerObjectIdentifier[] GetNonCriticalExtensionOids()
-		{
-			return GetExtensionOids(false);
-		}
+		public DerObjectIdentifier[] GetNonCriticalExtensionOids() => GetExtensionOids(false);
 
-		public DerObjectIdentifier[] GetCriticalExtensionOids()
-		{
-			return GetExtensionOids(true);
-		}
+		public DerObjectIdentifier[] GetCriticalExtensionOids() => GetExtensionOids(true);
 
-		private DerObjectIdentifier[] GetExtensionOids(bool isCritical)
+        public bool HasAnyCriticalExtensions()
+        {
+            foreach (DerObjectIdentifier oid in m_ordering)
+            {
+                if (m_extensions[oid].IsCritical)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private DerObjectIdentifier[] GetExtensionOids(bool isCritical)
 		{
 			var oids = new List<DerObjectIdentifier>();
 

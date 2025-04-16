@@ -6,6 +6,7 @@ using System.Threading;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
@@ -20,7 +21,7 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
-	public class CmsTestUtil
+    public class CmsTestUtil
 	{
 		public static readonly SecureRandom Random = new SecureRandom();
 
@@ -29,16 +30,29 @@ namespace Org.BouncyCastle.Cms.Tests
 		private static IAsymmetricCipherKeyPairGenerator dsaKpg;
 		private static IAsymmetricCipherKeyPairGenerator ecGostKpg;
 		private static IAsymmetricCipherKeyPairGenerator ecDsaKpg;
-		public static CipherKeyGenerator aes192kg;
-		public static CipherKeyGenerator desede128kg;
-		public static CipherKeyGenerator desede192kg;
-		public static CipherKeyGenerator rc240kg;
-		public static CipherKeyGenerator rc264kg;
-		public static CipherKeyGenerator rc2128kg;
-		public static CipherKeyGenerator aesKg;
-		public static CipherKeyGenerator seedKg;
-		public static CipherKeyGenerator camelliaKg;
-		public static BigInteger serialNumber;
+        private static IAsymmetricCipherKeyPairGenerator ed25519Kpg;
+        private static IAsymmetricCipherKeyPairGenerator ed448Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlDsa44Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlDsa65Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlDsa87Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlKem512Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlKem768Kpg;
+        private static IAsymmetricCipherKeyPairGenerator mlKem1024Kpg;
+
+        public static CipherKeyGenerator aes128KG;
+        public static CipherKeyGenerator aes192KG;
+        public static CipherKeyGenerator aes256KG;
+        public static CipherKeyGenerator camellia128KG;
+        public static CipherKeyGenerator camellia192KG;
+        public static CipherKeyGenerator camellia256KG;
+        public static CipherKeyGenerator desede128KG;
+		public static CipherKeyGenerator desede192KG;
+		public static CipherKeyGenerator rc2_40KG;
+		public static CipherKeyGenerator rc2_64KG;
+		public static CipherKeyGenerator rc2_128KG;
+		public static CipherKeyGenerator seedKG;
+
+		public static int serialNumber;
 
 		private static readonly byte[] attrCert = Base64.Decode(
 			  "MIIHQDCCBqkCAQEwgZChgY2kgYowgYcxHDAaBgkqhkiG9w0BCQEWDW1sb3JjaEB2"
@@ -81,7 +95,42 @@ namespace Org.BouncyCastle.Cms.Tests
 			+ "6asYwy151HshbPNYz+Cgeqs45KkVzh7bL/0e1r8sDVIaaGIkjHK3CqBABnfSayr3"
 			+ "Rd1yBoDdEv8Qb+3eEPH6ab9021AsLEnJ6LWTmybbOpMNZ3tv");
 
-        public static IAsymmetricCipherKeyPairGenerator InitKpg(ref IAsymmetricCipherKeyPairGenerator kpg,
+        internal static X509Certificate InitCertificate(ref X509Certificate certificate,
+			Func<X509Certificate> initialize)
+        {
+            var current = Volatile.Read(ref certificate);
+            if (null != current)
+                return current;
+
+            var candidate = initialize();
+
+            return Interlocked.CompareExchange(ref certificate, candidate, null) ?? candidate;
+        }
+
+        internal static X509Crl InitCrl(ref X509Crl crl, Func<X509Crl> initialize)
+        {
+            var current = Volatile.Read(ref crl);
+            if (null != current)
+                return current;
+
+            var candidate = initialize();
+
+            return Interlocked.CompareExchange(ref crl, candidate, null) ?? candidate;
+        }
+
+        internal static AsymmetricCipherKeyPair InitKP(ref AsymmetricCipherKeyPair kp,
+            Func<AsymmetricCipherKeyPair> initialize)
+        {
+            var current = Volatile.Read(ref kp);
+            if (null != current)
+                return current;
+
+            var candidate = initialize();
+
+            return Interlocked.CompareExchange(ref kp, candidate, null) ?? candidate;
+        }
+
+        private static IAsymmetricCipherKeyPairGenerator InitKpg(ref IAsymmetricCipherKeyPairGenerator kpg,
 			string algorithm, Func<KeyGenerationParameters> createParameters)
         {
             var current = Volatile.Read(ref kpg);
@@ -98,9 +147,9 @@ namespace Org.BouncyCastle.Cms.Tests
 			new RsaKeyGenerationParameters(BigInteger.ValueOf(17), Random, 1024, 25));
 
         private static IAsymmetricCipherKeyPairGenerator GostKpg => InitKpg(ref gostKpg, "GOST3410", () =>
-			new Gost3410KeyGenerationParameters(Random, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
+            new Gost3410KeyGenerationParameters(Random, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
 
-		private static IAsymmetricCipherKeyPairGenerator DsaKpg => InitKpg(ref dsaKpg, "DSA", () =>
+        private static IAsymmetricCipherKeyPairGenerator DsaKpg => InitKpg(ref dsaKpg, "DSA", () =>
 		{
             DsaParameters dsaSpec = new DsaParameters(
                 new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
@@ -115,44 +164,73 @@ namespace Org.BouncyCastle.Cms.Tests
         private static IAsymmetricCipherKeyPairGenerator ECDsaKpg => InitKpg(ref ecDsaKpg, "ECDSA", () =>
             new KeyGenerationParameters(Random, 239));
 
-		static CmsTestUtil()
+		private static IAsymmetricCipherKeyPairGenerator Ed25519Kpg => InitKpg(ref ed25519Kpg, "Ed25519", () =>
+			new Ed25519KeyGenerationParameters(Random));
+
+        private static IAsymmetricCipherKeyPairGenerator Ed448Kpg => InitKpg(ref ed448Kpg, "Ed448", () =>
+            new Ed448KeyGenerationParameters(Random));
+
+        private static IAsymmetricCipherKeyPairGenerator MLDsa44Kpg => InitKpg(ref mlDsa44Kpg, "ML-DSA", () =>
+			new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
+
+        private static IAsymmetricCipherKeyPairGenerator MLDsa65Kpg => InitKpg(ref mlDsa65Kpg, "ML-DSA", () =>
+            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_65));
+
+        private static IAsymmetricCipherKeyPairGenerator MLDsa87Kpg => InitKpg(ref mlDsa87Kpg, "ML-DSA", () =>
+            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_87));
+
+        private static IAsymmetricCipherKeyPairGenerator MLKem512Kpg => InitKpg(ref mlKem512Kpg, "ML-KEM", () =>
+            new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_512));
+
+        private static IAsymmetricCipherKeyPairGenerator MLKem768Kpg => InitKpg(ref mlKem768Kpg, "ML-KEM", () =>
+            new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_768));
+
+        private static IAsymmetricCipherKeyPairGenerator MLKem1024Kpg => InitKpg(ref mlKem1024Kpg, "ML-KEM", () =>
+            new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_1024));
+
+        private static int NextSerialNumber() => Interlocked.Increment(ref serialNumber);
+
+        static CmsTestUtil()
 		{
-		    try
-		    {
-				aes192kg = GeneratorUtilities.GetKeyGenerator("AES");
-				aes192kg.Init(new KeyGenerationParameters(Random, 192));
+            aes128KG = GeneratorUtilities.GetKeyGenerator("AES");
+            aes128KG.Init(new KeyGenerationParameters(Random, 128));
 
-		        desede128kg = GeneratorUtilities.GetKeyGenerator("DESEDE");
-				desede128kg.Init(new KeyGenerationParameters(Random, 112));
+            aes192KG = GeneratorUtilities.GetKeyGenerator("AES");
+			aes192KG.Init(new KeyGenerationParameters(Random, 192));
 
-				desede192kg = GeneratorUtilities.GetKeyGenerator("DESEDE");
-				desede192kg.Init(new KeyGenerationParameters(Random, 168));
+            aes256KG = GeneratorUtilities.GetKeyGenerator("AES");
+            aes256KG.Init(new KeyGenerationParameters(Random, 256));
 
-				rc240kg = GeneratorUtilities.GetKeyGenerator("RC2");
-				rc240kg.Init(new KeyGenerationParameters(Random, 40));
+            camellia128KG = GeneratorUtilities.GetKeyGenerator("Camellia");
+            camellia128KG.Init(new KeyGenerationParameters(Random, 128));
 
-				rc264kg = GeneratorUtilities.GetKeyGenerator("RC2");
-				rc264kg.Init(new KeyGenerationParameters(Random, 64));
+            camellia192KG = GeneratorUtilities.GetKeyGenerator("Camellia");
+            camellia192KG.Init(new KeyGenerationParameters(Random, 192));
 
-				rc2128kg = GeneratorUtilities.GetKeyGenerator("RC2");
-				rc2128kg.Init(new KeyGenerationParameters(Random, 128));
+            camellia256KG = GeneratorUtilities.GetKeyGenerator("Camellia");
+            camellia256KG.Init(new KeyGenerationParameters(Random, 256));
 
-				aesKg = GeneratorUtilities.GetKeyGenerator("AES");
+            desede128KG = GeneratorUtilities.GetKeyGenerator("DESEDE");
+			desede128KG.Init(new KeyGenerationParameters(Random, 112));
 
-				seedKg = GeneratorUtilities.GetKeyGenerator("SEED");
+			desede192KG = GeneratorUtilities.GetKeyGenerator("DESEDE");
+			desede192KG.Init(new KeyGenerationParameters(Random, 168));
 
-				camelliaKg = GeneratorUtilities.GetKeyGenerator("Camellia");
+			rc2_40KG = GeneratorUtilities.GetKeyGenerator("RC2");
+			rc2_40KG.Init(new KeyGenerationParameters(Random, 40));
 
-				serialNumber = BigInteger.One;
-		    }
-		    catch (Exception ex)
-		    {
-		        throw new Exception(ex.ToString());
-		    }
+			rc2_64KG = GeneratorUtilities.GetKeyGenerator("RC2");
+			rc2_64KG.Init(new KeyGenerationParameters(Random, 64));
+
+			rc2_128KG = GeneratorUtilities.GetKeyGenerator("RC2");
+			rc2_128KG.Init(new KeyGenerationParameters(Random, 128));
+
+			seedKG = GeneratorUtilities.GetKeyGenerator("SEED");
+
+			serialNumber = 0;
 		}
 
-		public static string DumpBase64(
-			byte[] data)
+		public static string DumpBase64(byte[] data)
 		{
 			StringBuilder buf = new StringBuilder();
 
@@ -174,101 +252,85 @@ namespace Org.BouncyCastle.Cms.Tests
 			return buf.ToString();
 		}
 
-		public static X509V2AttributeCertificate GetAttributeCertificate()
-		{
-			return new X509AttrCertParser().ReadAttrCert(attrCert);
-		}
+		public static X509V2AttributeCertificate GetAttributeCertificate() =>
+			new X509AttrCertParser().ReadAttrCert(attrCert);
 
-		public static AsymmetricCipherKeyPair MakeKeyPair()
-		{
-			return Kpg.GenerateKeyPair();
-		}
+        public static AsymmetricCipherKeyPair MakeKeyPair() => Kpg.GenerateKeyPair();
 
-		public static AsymmetricCipherKeyPair MakeGostKeyPair()
-		{
-			return GostKpg.GenerateKeyPair();
-		}
+        public static AsymmetricCipherKeyPair MakeGostKeyPair() => GostKpg.GenerateKeyPair();
 
-		public static AsymmetricCipherKeyPair MakeDsaKeyPair()
-		{
-			return DsaKpg.GenerateKeyPair();
-		}
+        public static AsymmetricCipherKeyPair MakeDsaKeyPair() => DsaKpg.GenerateKeyPair();
 
-		public static AsymmetricCipherKeyPair MakeECGostKeyPair()
-		{
-			return ECGostKpg.GenerateKeyPair();
-		}
+        public static AsymmetricCipherKeyPair MakeECGostKeyPair() => ECGostKpg.GenerateKeyPair();
 
-		public static AsymmetricCipherKeyPair MakeECDsaKeyPair()
-		{
-			return ECDsaKpg.GenerateKeyPair();
-		}
+        public static AsymmetricCipherKeyPair MakeECDsaKeyPair() => ECDsaKpg.GenerateKeyPair();
 
-		public static KeyParameter MakeDesEde128Key()
-		{
-			return ParameterUtilities.CreateKeyParameter("DESEDE", desede128kg.GenerateKey());
-		}
+        public static AsymmetricCipherKeyPair MakeEd25519KeyPair() => Ed25519Kpg.GenerateKeyPair();
 
-		public static KeyParameter MakeAes192Key()
-		{
-			return ParameterUtilities.CreateKeyParameter("AES", aes192kg.GenerateKey());
-		}
+        public static AsymmetricCipherKeyPair MakeEd448KeyPair() => Ed448Kpg.GenerateKeyPair();
 
-		public static KeyParameter MakeDesEde192Key()
-		{
-			return ParameterUtilities.CreateKeyParameter("DESEDE", desede192kg.GenerateKey());
-		}
+        public static AsymmetricCipherKeyPair MakeMLDsa44KeyPair() => MLDsa44Kpg.GenerateKeyPair();
 
-		public static KeyParameter MakeRC240Key()
-		{
-			return ParameterUtilities.CreateKeyParameter("RC2", rc240kg.GenerateKey());
-		}
+        public static AsymmetricCipherKeyPair MakeMLDsa65KeyPair() => MLDsa65Kpg.GenerateKeyPair();
 
-		public static KeyParameter MakeRC264Key()
-		{
-			return ParameterUtilities.CreateKeyParameter("RC2", rc264kg.GenerateKey());
-		}
+        public static AsymmetricCipherKeyPair MakeMLDsa87KeyPair() => MLDsa87Kpg.GenerateKeyPair();
 
-		public static KeyParameter MakeRC2128Key()
-		{
-			return ParameterUtilities.CreateKeyParameter("RC2", rc2128kg.GenerateKey());
-		}
+        public static AsymmetricCipherKeyPair MakeMLKem512KeyPair() => MLKem512Kpg.GenerateKeyPair();
 
-		public static KeyParameter MakeSeedKey()
-		{
-			return ParameterUtilities.CreateKeyParameter("SEED", seedKg.GenerateKey());
-		}
+        public static AsymmetricCipherKeyPair MakeMLKem768KeyPair() => MLKem768Kpg.GenerateKeyPair();
 
-		public static KeyParameter MakeAesKey(
-			int keySize)
-		{
-			aesKg.Init(new KeyGenerationParameters(Random, keySize));
+        public static AsymmetricCipherKeyPair MakeMLKem1024KeyPair() => MLKem1024Kpg.GenerateKeyPair();
 
-			return ParameterUtilities.CreateKeyParameter("AES", aesKg.GenerateKey());
-		}
+        public static KeyParameter MakeAes128Key() =>
+            ParameterUtilities.CreateKeyParameter("AES", aes128KG.GenerateKey());
 
-		public static KeyParameter MakeCamelliaKey(
-			int keySize)
-		{
-			camelliaKg.Init(new KeyGenerationParameters(Random, keySize));
+        public static KeyParameter MakeAes192Key() =>
+            ParameterUtilities.CreateKeyParameter("AES", aes192KG.GenerateKey());
 
-			return ParameterUtilities.CreateKeyParameter("CAMELLIA", camelliaKg.GenerateKey());
-		}
+        public static KeyParameter MakeAes256Key() =>
+            ParameterUtilities.CreateKeyParameter("AES", aes256KG.GenerateKey());
 
-		public static X509Certificate MakeCertificate(AsymmetricCipherKeyPair _subKP,
-			string _subDN, AsymmetricCipherKeyPair _issKP, string _issDN)
+        public static KeyParameter MakeCamellia128Key() =>
+            ParameterUtilities.CreateKeyParameter("CAMELLIA", camellia128KG.GenerateKey());
+
+        public static KeyParameter MakeCamellia192Key() =>
+            ParameterUtilities.CreateKeyParameter("CAMELLIA", camellia192KG.GenerateKey());
+
+        public static KeyParameter MakeCamellia256Key() =>
+            ParameterUtilities.CreateKeyParameter("CAMELLIA", camellia256KG.GenerateKey());
+
+        public static KeyParameter MakeDesEde128Key() =>
+            ParameterUtilities.CreateKeyParameter("DESEDE", desede128KG.GenerateKey());
+
+		public static KeyParameter MakeDesEde192Key() =>
+			ParameterUtilities.CreateKeyParameter("DESEDE", desede192KG.GenerateKey());
+
+		public static KeyParameter MakeRC2_40Key() =>
+			ParameterUtilities.CreateKeyParameter("RC2", rc2_40KG.GenerateKey());
+
+		public static KeyParameter MakeRC2_64Key() =>
+			ParameterUtilities.CreateKeyParameter("RC2", rc2_64KG.GenerateKey());
+
+		public static KeyParameter MakeRC2_128Key() =>
+			ParameterUtilities.CreateKeyParameter("RC2", rc2_128KG.GenerateKey());
+
+		public static KeyParameter MakeSeedKey() =>
+			ParameterUtilities.CreateKeyParameter("SEED", seedKG.GenerateKey());
+
+		public static X509Certificate MakeCertificate(AsymmetricCipherKeyPair _subKP, string _subDN,
+			AsymmetricCipherKeyPair _issKP, string _issDN)
 		{
 			return MakeCertificate(_subKP, _subDN, _issKP, _issDN, false);
 		}
 
-		public static X509Certificate MakeCACertificate(AsymmetricCipherKeyPair _subKP,
-			string _subDN, AsymmetricCipherKeyPair _issKP, string _issDN)
+		public static X509Certificate MakeCACertificate(AsymmetricCipherKeyPair _subKP, string _subDN,
+			AsymmetricCipherKeyPair _issKP, string _issDN)
 		{
 			return MakeCertificate(_subKP, _subDN, _issKP, _issDN, true);
 		}
 
-		public static X509Certificate MakeV1Certificate(AsymmetricCipherKeyPair subKP,
-			string _subDN, AsymmetricCipherKeyPair issKP, string _issDN)
+		public static X509Certificate MakeV1Certificate(AsymmetricCipherKeyPair subKP, string _subDN,
+			AsymmetricCipherKeyPair issKP, string _issDN)
 		{
 			AsymmetricKeyParameter subPub = subKP.Public;
 			AsymmetricKeyParameter issPriv = issKP.Private;
@@ -293,8 +355,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			return _cert;
 		}
 
-		public static X509Certificate MakeCertificate(
-			AsymmetricCipherKeyPair subKP, string _subDN,
+		public static X509Certificate MakeCertificate(AsymmetricCipherKeyPair subKP, string _subDN,
 			AsymmetricCipherKeyPair issKP, string _issDN, bool _ca)
 		{
 			AsymmetricKeyParameter subPub = subKP.Public;
@@ -316,12 +377,12 @@ namespace Org.BouncyCastle.Cms.Tests
 			v3CertGen.AddExtension(
 				X509Extensions.SubjectKeyIdentifier,
 				false,
-				CreateSubjectKeyId(subPub));
+				CreateSubjectKeyID(subPub));
 
 			v3CertGen.AddExtension(
 				X509Extensions.AuthorityKeyIdentifier,
 				false,
-				CreateAuthorityKeyId(issPub));
+				CreateAuthorityKeyID(issPub));
 
 			v3CertGen.AddExtension(
 				X509Extensions.BasicConstraints,
@@ -336,8 +397,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			return _cert;
 		}
 
-		public static X509Crl MakeCrl(
-			AsymmetricCipherKeyPair pair)
+		public static X509Crl MakeCrl(AsymmetricCipherKeyPair pair)
 		{
 			X509V2CrlGenerator crlGen = new X509V2CrlGenerator();
 			DateTime now = DateTime.UtcNow;
@@ -349,9 +409,10 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			crlGen.AddCrlEntry(BigInteger.One, now, CrlReason.PrivilegeWithdrawn);
 
-			crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(pair.Public));
+            crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
+                X509ExtensionUtilities.CreateAuthorityKeyIdentifier(pair.Public));
 
-			return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, Random));
+            return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, Random));
 		}
 
         /*
@@ -362,6 +423,10 @@ namespace Org.BouncyCastle.Cms.Tests
 
         internal static string GetSignatureAlgorithm(AsymmetricKeyParameter publicKey)
         {
+            /*
+             * NOTE: Current ALL test certificates are issued under a SHA1withRSA root, so these are mostly redundant.
+             */
+
             if (publicKey is RsaKeyParameters)
                 return "SHA1WithRSA";
 
@@ -369,11 +434,21 @@ namespace Org.BouncyCastle.Cms.Tests
                 return "SHA1withDSA";
 
             if (publicKey is ECPublicKeyParameters ecPub)
-            {
                 return ecPub.AlgorithmName == "ECGOST3410" ? "GOST3411withECGOST3410" : "SHA1withECDSA";
-            }
 
-            return "GOST3411WithGOST3410";
+            if (publicKey is Gost3410PublicKeyParameters)
+                return "GOST3411WithGOST3410";
+
+            if (publicKey is Ed25519PublicKeyParameters)
+                return "Ed25519";
+
+            if (publicKey is Ed448PublicKeyParameters)
+                return "Ed448";
+
+            if (publicKey is MLDsaPublicKeyParameters mlDsa)
+                return mlDsa.Parameters.Name;
+
+            throw new NotSupportedException("Algorithm handlers incomplete");
         }
 
         internal static IStore<X509V2AttributeCertificate> MakeAttrCertStore(
@@ -419,31 +494,14 @@ namespace Org.BouncyCastle.Cms.Tests
             return CollectionUtilities.CreateStore(otherRevocationInfoList);
         }
 
-        private static AuthorityKeyIdentifier CreateAuthorityKeyId(
-			AsymmetricKeyParameter _pubKey)
-		{
-			SubjectPublicKeyInfo _info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(_pubKey);
-			return new AuthorityKeyIdentifier(_info);
-		}
+        internal static AuthorityKeyIdentifier CreateAuthorityKeyID(AsymmetricKeyParameter pubKey) =>
+            new AuthorityKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
 
-		internal static SubjectKeyIdentifier CreateSubjectKeyId(
-			AsymmetricKeyParameter _pubKey)
-		{
-			SubjectPublicKeyInfo _info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(_pubKey);
-			return new SubjectKeyIdentifier(_info);
-		}
+        internal static SubjectKeyIdentifier CreateSubjectKeyID(AsymmetricKeyParameter pubKey) =>
+            new SubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
 
-		private static BigInteger AllocateSerialNumber()
-		{
-			BigInteger _tmp = serialNumber;
-			serialNumber = serialNumber.Add(BigInteger.One);
-			return _tmp;
-		}
+        private static BigInteger AllocateSerialNumber() => BigInteger.ValueOf(NextSerialNumber());
 
-		public static byte[] StreamToByteArray(
-			Stream inStream)
-		{
-			return Streams.ReadAll(inStream);
-		}
-	}
+        public static byte[] StreamToByteArray(Stream inStream) => Streams.ReadAll(inStream);
+    }
 }

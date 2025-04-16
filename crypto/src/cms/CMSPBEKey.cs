@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Cms
 
 			this.password = (char[])password.Clone();
 			this.salt = kdfParams.GetSalt();
-			this.iterationCount = kdfParams.IterationCount.IntValue;
+			this.iterationCount = kdfParams.IterationCountObject.IntValueExact;
 		}
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Cms
 
 			this.password = password.ToArray();
             this.salt = kdfParams.GetSalt();
-            this.iterationCount = kdfParams.IterationCount.IntValue;
+            this.iterationCount = kdfParams.IterationCountObject.IntValueExact;
         }
 #endif
 

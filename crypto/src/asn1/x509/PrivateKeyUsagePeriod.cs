@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.X509
             // TODO[api] Remove this case
             if (obj is X509Extension x509Extension)
                 return GetInstance(X509Extension.ConvertValueToObject(x509Extension));
-			return new PrivateKeyUsagePeriod((Asn1Sequence) obj);
+			return new PrivateKeyUsagePeriod(Asn1Sequence.GetInstance(obj));
 		}
 
         public static PrivateKeyUsagePeriod GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>

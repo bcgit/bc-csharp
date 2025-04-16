@@ -23,24 +23,13 @@ namespace Org.BouncyCastle.Security
 {
     public static class PublicKeyFactory
     {
-        public static AsymmetricKeyParameter CreateKey(
-            byte[] keyInfoData)
-        {
-            return CreateKey(
-                SubjectPublicKeyInfo.GetInstance(
-                    Asn1Object.FromByteArray(keyInfoData)));
-        }
+        public static AsymmetricKeyParameter CreateKey(byte[] keyInfoData) =>
+            CreateKey(SubjectPublicKeyInfo.GetInstance(keyInfoData));
 
-        public static AsymmetricKeyParameter CreateKey(
-            Stream inStr)
-        {
-            return CreateKey(
-                SubjectPublicKeyInfo.GetInstance(
-                    Asn1Object.FromStream(inStr)));
-        }
+        public static AsymmetricKeyParameter CreateKey(Stream inStr) =>
+            CreateKey(SubjectPublicKeyInfo.GetInstance(Asn1Object.FromStream(inStr)));
 
-        public static AsymmetricKeyParameter CreateKey(
-            SubjectPublicKeyInfo keyInfo)
+        public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo)
         {
             AlgorithmIdentifier algID = keyInfo.Algorithm;
             DerObjectIdentifier algOid = algID.Algorithm;
@@ -372,7 +361,7 @@ namespace Org.BouncyCastle.Security
                     // TODO[pqc] Avoid redundant copies?
                     return SlhDsaPublicKeyParameters.FromEncoding(slhDsaParameters, encoding: publicKey.GetOctets());
 
-                // TODO[pqc] Remove support for legacy/prototype formats?
+                // TODO[api] Eventually remove legacy support for OCTET STRING encoding
                 if (bytesLength > publicKeyLength)
                 {
                     try
@@ -390,6 +379,7 @@ namespace Org.BouncyCastle.Security
                     }
                     catch (Exception)
                     {
+                        // Ignore
                     }
                 }
             }

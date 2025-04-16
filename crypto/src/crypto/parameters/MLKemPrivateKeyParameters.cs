@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Kems.MLKem;
 using Org.BouncyCastle.Utilities;
@@ -8,6 +9,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public sealed class MLKemPrivateKeyParameters
         : MLKemKeyParameters
     {
+        public enum Format { SeedOnly, EncodingOnly, SeedAndEncoding };
+
         public static MLKemPrivateKeyParameters FromEncoding(MLKemParameters parameters, byte[] encoding)
         {
             if (parameters == null)
@@ -38,10 +41,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             byte[] seed = null;
 
-            return new MLKemPrivateKeyParameters(parameters, s, hpk, nonce, t, rho, seed);
+            return new MLKemPrivateKeyParameters(parameters, s, hpk, nonce, t, rho, seed, Format.EncodingOnly);
         }
 
-        public static MLKemPrivateKeyParameters FromSeed(MLKemParameters parameters, byte[] seed)
+        public static MLKemPrivateKeyParameters FromSeed(MLKemParameters parameters, byte[] seed) =>
+            FromSeed(parameters, seed, preferredFormat: Format.SeedOnly);
+
+        public static MLKemPrivateKeyParameters FromSeed(MLKemParameters parameters, byte[] seed,
+            Format preferredFormat)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
@@ -49,6 +56,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentNullException(nameof(seed));
             if (seed.Length != parameters.ParameterSet.SeedLength)
                 throw new ArgumentException("invalid seed", nameof(seed));
+
+            var format = CheckFormat(preferredFormat, seed);
 
             var engine = parameters.ParameterSet.GetEngine(random: null);
 
@@ -58,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             engine.GenerateKemKeyPairInternal(d, z, out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk,
                 out byte[] nonce, out byte[] seed2);
 
-            return new MLKemPrivateKeyParameters(parameters, s, hpk, nonce, t, rho, seed2);
+            return new MLKemPrivateKeyParameters(parameters, s, hpk, nonce, t, rho, seed2, format);
         }
 
         internal readonly byte[] m_s;
@@ -68,16 +77,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal readonly byte[] m_rho;
         internal readonly byte[] m_seed;
 
+        private readonly Format m_preferredFormat;
+
         internal MLKemPrivateKeyParameters(MLKemParameters parameters, byte[] s, byte[] hpk, byte[] nonce, byte[] t,
-            byte[] rho, byte[] seed)
+            byte[] rho, byte[] seed, Format preferredFormat)
             : base(true, parameters)
         {
+            Debug.Assert(null != seed || Format.EncodingOnly == preferredFormat);
+
             m_s = s;
             m_hpk = hpk;
             m_nonce = nonce;
             m_t = t;
             m_rho = rho;
             m_seed = seed;
+            m_preferredFormat = preferredFormat;
         }
 
         public byte[] GetEncoded() => Arrays.ConcatenateAll(m_s, m_t, m_rho, m_hpk, m_nonce);
@@ -88,6 +102,38 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public byte[] GetSeed() => Arrays.Clone(m_seed);
 
+        public Format PreferredFormat => m_preferredFormat;
+
         internal byte[] Seed => m_seed;
+
+        public MLKemPrivateKeyParameters WithPreferredFormat(Format preferredFormat)
+        {
+            if (m_preferredFormat == preferredFormat)
+                return this;
+
+            return new MLKemPrivateKeyParameters(Parameters, m_seed, m_hpk, m_nonce, m_t, m_rho, m_seed,
+                CheckFormat(preferredFormat, m_seed));
+        }
+
+        private static Format CheckFormat(Format preferredFormat, byte[] seed)
+        {
+            switch (preferredFormat)
+            {
+            case Format.EncodingOnly:
+                break;
+            case Format.SeedAndEncoding:
+            case Format.SeedOnly:
+            {
+                if (seed == null)
+                    throw new InvalidOperationException("no seed available");
+
+                break;
+            }
+            default:
+                throw new ArgumentException("invalid format", nameof(preferredFormat));
+            }
+
+            return preferredFormat;
+        }
     }
 }

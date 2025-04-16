@@ -37,7 +37,6 @@ namespace Org.BouncyCastle.Operators.Utilities
             //
             // digests
             //
-            DigestOids.Add(OiwObjectIdentifiers.DsaWithSha1, OiwObjectIdentifiers.IdSha1);
             DigestOids.Add(OiwObjectIdentifiers.MD4WithRsaEncryption, PkcsObjectIdentifiers.MD4);
             DigestOids.Add(OiwObjectIdentifiers.MD4WithRsa, PkcsObjectIdentifiers.MD4);
             DigestOids.Add(OiwObjectIdentifiers.MD5WithRsa, PkcsObjectIdentifiers.MD5);
@@ -54,23 +53,40 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids.Add(PkcsObjectIdentifiers.MD5WithRsaEncryption, PkcsObjectIdentifiers.MD5);
             DigestOids.Add(PkcsObjectIdentifiers.Sha1WithRsaEncryption, OiwObjectIdentifiers.IdSha1);
 
+            DigestOids.Add(X9ObjectIdentifiers.IdDsaWithSha1, OiwObjectIdentifiers.IdSha1);
+            DigestOids.Add(OiwObjectIdentifiers.DsaWithSha1, OiwObjectIdentifiers.IdSha1);
+            DigestOids.Add(NistObjectIdentifiers.DsaWithSha224, NistObjectIdentifiers.IdSha224);
+            DigestOids.Add(NistObjectIdentifiers.DsaWithSha256, NistObjectIdentifiers.IdSha256);
+            DigestOids.Add(NistObjectIdentifiers.DsaWithSha384, NistObjectIdentifiers.IdSha384);
+            DigestOids.Add(NistObjectIdentifiers.DsaWithSha512, NistObjectIdentifiers.IdSha512);
+
+            DigestOids.Add(NistObjectIdentifiers.IdDsaWithSha3_224, NistObjectIdentifiers.IdSha3_224);
+            DigestOids.Add(NistObjectIdentifiers.IdDsaWithSha3_256, NistObjectIdentifiers.IdSha3_256);
+            DigestOids.Add(NistObjectIdentifiers.IdDsaWithSha3_384, NistObjectIdentifiers.IdSha3_384);
+            DigestOids.Add(NistObjectIdentifiers.IdDsaWithSha3_512, NistObjectIdentifiers.IdSha3_512);
+
             DigestOids.Add(X9ObjectIdentifiers.ECDsaWithSha1, OiwObjectIdentifiers.IdSha1);
             DigestOids.Add(X9ObjectIdentifiers.ECDsaWithSha224, NistObjectIdentifiers.IdSha224);
             DigestOids.Add(X9ObjectIdentifiers.ECDsaWithSha256, NistObjectIdentifiers.IdSha256);
             DigestOids.Add(X9ObjectIdentifiers.ECDsaWithSha384, NistObjectIdentifiers.IdSha384);
             DigestOids.Add(X9ObjectIdentifiers.ECDsaWithSha512, NistObjectIdentifiers.IdSha512);
-            DigestOids.Add(X9ObjectIdentifiers.IdDsaWithSha1, OiwObjectIdentifiers.IdSha1);
+
+            DigestOids.Add(NistObjectIdentifiers.IdEcdsaWithSha3_224, NistObjectIdentifiers.IdSha3_224);
+            DigestOids.Add(NistObjectIdentifiers.IdEcdsaWithSha3_256, NistObjectIdentifiers.IdSha3_256);
+            DigestOids.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384, NistObjectIdentifiers.IdSha3_384);
+            DigestOids.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512, NistObjectIdentifiers.IdSha3_512);
 
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1, OiwObjectIdentifiers.IdSha1);
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA224, NistObjectIdentifiers.IdSha224);
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA256, NistObjectIdentifiers.IdSha256);
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA384, NistObjectIdentifiers.IdSha384);
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA512, NistObjectIdentifiers.IdSha512);
+            DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_RIPEMD160, TeleTrusTObjectIdentifiers.RipeMD160);
+
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_224, NistObjectIdentifiers.IdSha3_224);
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_256, NistObjectIdentifiers.IdSha3_256);
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_384, NistObjectIdentifiers.IdSha3_384);
             DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_512, NistObjectIdentifiers.IdSha3_512);
-            DigestOids.Add(BsiObjectIdentifiers.ecdsa_plain_RIPEMD160, TeleTrusTObjectIdentifiers.RipeMD160);
 
             DigestOids.Add(EacObjectIdentifiers.id_TA_ECDSA_SHA_1, OiwObjectIdentifiers.IdSha1);
             DigestOids.Add(EacObjectIdentifiers.id_TA_ECDSA_SHA_224, NistObjectIdentifiers.IdSha224);
@@ -78,23 +94,10 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids.Add(EacObjectIdentifiers.id_TA_ECDSA_SHA_384, NistObjectIdentifiers.IdSha384);
             DigestOids.Add(EacObjectIdentifiers.id_TA_ECDSA_SHA_512, NistObjectIdentifiers.IdSha512);
 
-            DigestOids.Add(NistObjectIdentifiers.DsaWithSha224, NistObjectIdentifiers.IdSha224);
-            DigestOids.Add(NistObjectIdentifiers.DsaWithSha256, NistObjectIdentifiers.IdSha256);
-            DigestOids.Add(NistObjectIdentifiers.DsaWithSha384, NistObjectIdentifiers.IdSha384);
-            DigestOids.Add(NistObjectIdentifiers.DsaWithSha512, NistObjectIdentifiers.IdSha512);
-
             DigestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224, NistObjectIdentifiers.IdSha3_224);
             DigestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256, NistObjectIdentifiers.IdSha3_256);
             DigestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384, NistObjectIdentifiers.IdSha3_384);
             DigestOids.Add(NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512, NistObjectIdentifiers.IdSha3_512);
-            DigestOids.Add(NistObjectIdentifiers.IdDsaWithSha3_224, NistObjectIdentifiers.IdSha3_224);
-            DigestOids.Add(NistObjectIdentifiers.IdDsaWithSha3_256, NistObjectIdentifiers.IdSha3_256);
-            DigestOids.Add(NistObjectIdentifiers.IdDsaWithSha3_384, NistObjectIdentifiers.IdSha3_384);
-            DigestOids.Add(NistObjectIdentifiers.IdDsaWithSha3_512, NistObjectIdentifiers.IdSha3_512);
-            DigestOids.Add(NistObjectIdentifiers.IdEcdsaWithSha3_224, NistObjectIdentifiers.IdSha3_224);
-            DigestOids.Add(NistObjectIdentifiers.IdEcdsaWithSha3_256, NistObjectIdentifiers.IdSha3_256);
-            DigestOids.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384, NistObjectIdentifiers.IdSha3_384);
-            DigestOids.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512, NistObjectIdentifiers.IdSha3_512);
 
             DigestOids.Add(TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128, TeleTrusTObjectIdentifiers.RipeMD128);
             DigestOids.Add(TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160, TeleTrusTObjectIdentifiers.RipeMD160);
@@ -159,6 +162,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             DigestOids.Add(X509ObjectIdentifiers.id_ecdsa_with_shake256, NistObjectIdentifiers.IdShake256);
 
             DigestOids.Add(EdECObjectIdentifiers.id_Ed25519, NistObjectIdentifiers.IdSha512);
+            //DigestOids.Add(EdECObjectIdentifiers.id_Ed448, NistObjectIdentifiers.IdShake256);
 
             DigestOids.Add(PkcsObjectIdentifiers.IdAlgHssLmsHashsig, NistObjectIdentifiers.IdSha256);
 

@@ -1,19 +1,17 @@
-using System;
 using System.IO;
 using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
-	[TestFixture]
-	public class CompressedDataStreamTest
+    [TestFixture]
+    [Parallelizable(ParallelScope.All)]
+    public class CompressedDataStreamTest
 	{
 		private static readonly byte[] compData = Base64.Decode(
 			  "MIAGCyqGSIb3DQEJEAEJoIAwgAIBADANBgsqhkiG9w0BCRADCDCABgkqhkiG9w0BBwGggCSABIIC"

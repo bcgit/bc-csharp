@@ -119,6 +119,8 @@ namespace Org.BouncyCastle.Cms
                 }
             }
 
+            internal int GeneratedVersion => m_signerID.IsTagged ? 3 : 1;
+
             internal SignerInfo Generate(DerObjectIdentifier contentType, byte[] calculatedDigest)
             {
                 AlgorithmIdentifier digAlgID = m_digAlgID;
@@ -652,7 +654,8 @@ namespace Org.BouncyCastle.Cms
 				return DerInteger.Four;
 			}
 
-            if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) || CheckForVersion3(_signers))
+            if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) ||
+                CheckForVersion3(_signers, m_signerInfoGens))
             {
                 return DerInteger.Three;
             }
@@ -660,20 +663,7 @@ namespace Org.BouncyCastle.Cms
             return DerInteger.One;
         }
 
-		private bool CheckForVersion3(IList<SignerInformation> signerInfos)
-		{
-			foreach (SignerInformation si in signerInfos)
-			{
-				SignerInfo s = SignerInfo.GetInstance(si.ToSignerInfo());
-
-				if (s.Version.IntValueExact == 3)
-					return true;
-			}
-
-			return false;
-		}
-
-		private static Stream AttachDigestsToOutputStream(IEnumerable<IDigest> digests, Stream s)
+        private static Stream AttachDigestsToOutputStream(IEnumerable<IDigest> digests, Stream s)
 		{
 			Stream result = s;
 			foreach (IDigest digest in digests)
@@ -682,6 +672,25 @@ namespace Org.BouncyCastle.Cms
 			}
 			return result;
 		}
+
+        private static bool CheckForVersion3(IList<SignerInformation> signerInfos,
+            IList<SignerInfoGeneratorImpl> signerInfoGens)
+        {
+            foreach (SignerInformation si in signerInfos)
+            {
+                SignerInfo s = si.ToSignerInfo();
+                if (s.Version.HasValue(3))
+                    return true;
+            }
+
+            foreach (SignerInfoGeneratorImpl signerInfoGen in signerInfoGens)
+            {
+                if (signerInfoGen.GeneratedVersion == 3)
+                    return true;
+            }
+
+            return false;
+        }
 
 		private static Stream GetSafeOutputStream(Stream s) => s ?? Stream.Null;
 
@@ -809,28 +818,28 @@ namespace Org.BouncyCastle.Cms
                 // add the precalculated SignerInfo objects.
                 //
                 {
-                    foreach (SignerInformation signer in outer._signers)
+                    foreach (SignerInformation _signer in outer._signers)
                     {
                         // TODO Verify the content type and calculated digest match the precalculated SignerInfo
-//						if (!signer.ContentType.Equals(_contentOID))
+//						if (!_signer.ContentType.Equals(_contentOID))
 //						{
 //							// TODO The precalculated content type did not match - error?
 //						}
 //
-//						byte[] calculatedDigest = (byte[])outer._digests[signer.DigestAlgOid];
+//						byte[] calculatedDigest = (byte[])outer._digests[_signer.DigestAlgOid];
 //						if (calculatedDigest == null)
 //						{
 //							// TODO We can't confirm this digest because we didn't calculate it - error?
 //						}
 //						else
 //						{
-//							if (!Arrays.AreEqual(signer.GetContentDigest(), calculatedDigest))
+//							if (!Arrays.AreEqual(_signer.GetContentDigest(), calculatedDigest))
 //							{
 //								// TODO The precalculated digest did not match - error?
 //							}
 //						}
 
-                        signerInfos.Add(signer.ToSignerInfo());
+                        signerInfos.Add(_signer.ToSignerInfo());
                     }
                 }
 

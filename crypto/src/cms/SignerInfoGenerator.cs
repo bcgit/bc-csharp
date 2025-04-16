@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Cms
         private readonly CmsAttributeTableGenerator m_unsignedGen;
         private readonly X509Certificate m_certificate;
 
-        internal SignerInfoGenerator(SignerIdentifier sigID, ISignatureFactory signatureFactory, bool isDirectSignature,
+        internal SignerInfoGenerator(SignerIdentifier sigID, ISignatureFactory signatureFactory,
             CmsAttributeTableGenerator signedGen, CmsAttributeTableGenerator unsignedGen, X509Certificate certificate)
         {
             m_sigID = sigID;
@@ -23,6 +23,8 @@ namespace Org.BouncyCastle.Cms
         }
 
         public X509Certificate Certificate => m_certificate;
+
+        public int GeneratedVersion => m_sigID.IsTagged ? 3 : 1;
 
         public SignerInfoGeneratorBuilder NewBuilder()
         {
@@ -136,8 +138,7 @@ namespace Org.BouncyCastle.Cms
                 signedGen = new DefaultSignedAttributeTableGenerator();
             }
 
-            return new SignerInfoGenerator(sigID, signatureFactory, m_directSignature, signedGen, unsignedGen,
-                certificate);
+            return new SignerInfoGenerator(sigID, signatureFactory, signedGen, unsignedGen, certificate);
         }
     }
 }

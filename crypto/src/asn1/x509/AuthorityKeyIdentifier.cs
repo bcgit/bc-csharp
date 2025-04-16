@@ -52,11 +52,8 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public static AuthorityKeyIdentifier FromExtensions(X509Extensions extensions)
-        {
-            return GetInstance(
-                X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AuthorityKeyIdentifier));
-        }
+        public static AuthorityKeyIdentifier FromExtensions(X509Extensions extensions) =>
+            GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AuthorityKeyIdentifier));
 
         private readonly Asn1OctetString m_keyIdentifier;
         private readonly GeneralNames m_authorityCertIssuer;
@@ -78,11 +75,12 @@ namespace Org.BouncyCastle.Asn1.X509
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            // TODO[asn1] "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent"
         }
 
         /**
-         *
-         * Calulates the keyidentifier using a SHA1 hash over the BIT STRING
+         * Calculates the keyIdentifier using a SHA1 hash over the BIT STRING
          * from SubjectPublicKeyInfo as defined in RFC2459.
          *
          * Example of making a AuthorityKeyIdentifier:
@@ -93,6 +91,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * </pre>
          *
          **/
+        [Obsolete("Use 'X509ExtensionUtilities' methods instead")]
         public AuthorityKeyIdentifier(SubjectPublicKeyInfo spki)
             : this(spki, null, null)
         {
@@ -102,6 +101,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * create an AuthorityKeyIdentifier with the GeneralNames tag and
          * the serial number provided as well.
          */
+        [Obsolete("Use 'X509ExtensionUtilities' methods instead")]
         public AuthorityKeyIdentifier(SubjectPublicKeyInfo spki, GeneralNames name, BigInteger serialNumber)
             : this(
                 // TODO[api] This ASN.1 class is the wrong place for this calculation
@@ -139,11 +139,26 @@ namespace Org.BouncyCastle.Asn1.X509
             m_authorityCertSerialNumber = serialNumber == null ? null : new DerInteger(serialNumber);
         }
 
+        public AuthorityKeyIdentifier(Asn1OctetString keyIdentifier)
+            : this(keyIdentifier, authorityCertIssuer: null, authorityCertSerialNumber: null)
+        {
+        }
+
+        public AuthorityKeyIdentifier(Asn1OctetString keyIdentifier, GeneralNames authorityCertIssuer,
+            DerInteger authorityCertSerialNumber)
+        {
+            m_keyIdentifier = keyIdentifier;
+            m_authorityCertIssuer = authorityCertIssuer;
+            m_authorityCertSerialNumber = authorityCertSerialNumber;
+        }
+
         public byte[] GetKeyIdentifier() => m_keyIdentifier?.GetOctets();
 
         public GeneralNames AuthorityCertIssuer => m_authorityCertIssuer;
 
         public BigInteger AuthorityCertSerialNumber => m_authorityCertSerialNumber?.Value;
+
+        public Asn1OctetString KeyIdentifier => m_keyIdentifier;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.

@@ -149,11 +149,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 				Fail("Failed comparison shroudedKeyBag test");
 			}
 
-			EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfo.GetInstance(b.BagValue);
+			EncryptedPrivateKeyInfo epki = EncryptedPrivateKeyInfo.GetInstance(b.BagValueEncodable);
 
-			encInfo = new EncryptedPrivateKeyInfo(encInfo.EncryptionAlgorithm, encInfo.GetEncryptedData());
+			epki = new EncryptedPrivateKeyInfo(epki.EncryptionAlgorithm, epki.GetEncryptedData());
 
-			b = new SafeBag(PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag, encInfo.ToAsn1Object(), b.BagAttributes);
+			b = new SafeBag(PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag, epki, b.BagAttributes);
 
 			byte[] contentOctets = new DerSequence(b).GetEncoded();
 

@@ -72,8 +72,8 @@ namespace Org.BouncyCastle.Asn1.Tests
 			int				exponent)
 		{
 			checkMandatoryField("currency", currency, limit.Currency);
-			checkMandatoryField("amount", amount, limit.Amount.IntValue);
-			checkMandatoryField("exponent", exponent, limit.Exponent.IntValue);
+			checkMandatoryField("amount", amount, limit.Amount.IntValueExact);
+			checkMandatoryField("exponent", exponent, limit.Exponent.IntValueExact);
 		}
 
 		[Test]

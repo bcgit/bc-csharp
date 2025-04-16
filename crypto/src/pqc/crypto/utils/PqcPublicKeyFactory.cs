@@ -161,29 +161,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         /// <param name="keyInfoData"> the SubjectPublicKeyInfo encoding</param>
         /// <returns> the appropriate key parameter</returns>
         /// <exception cref="IOException"> on an error decoding the key</exception>
-        public static AsymmetricKeyParameter CreateKey(byte[] keyInfoData)
-        {
-            return CreateKey(SubjectPublicKeyInfo.GetInstance(Asn1Object.FromByteArray(keyInfoData)));
-        }
+        public static AsymmetricKeyParameter CreateKey(byte[] keyInfoData) =>
+            CreateKey(SubjectPublicKeyInfo.GetInstance(keyInfoData));
 
         /// <summary> Create a public key from a SubjectPublicKeyInfo encoding read from a stream</summary>
         /// <param name="inStr"> the stream to read the SubjectPublicKeyInfo encoding from</param>
         /// <returns>the appropriate key parameter</returns>
         /// <exception cref="IOException"> on an error decoding the key</exception>
-        public static AsymmetricKeyParameter CreateKey(Stream inStr)
-        {
-            return CreateKey(SubjectPublicKeyInfo.GetInstance(new Asn1InputStream(inStr).ReadObject()));
-        }
-        
+        public static AsymmetricKeyParameter CreateKey(Stream inStr) =>
+            CreateKey(SubjectPublicKeyInfo.GetInstance(Asn1Object.FromStream(inStr)));
+
         /// <summary> Create a public key from the passed in SubjectPublicKeyInfo</summary>
         /// <param name="keyInfo"> the SubjectPublicKeyInfo containing the key data</param>
         /// <returns> the appropriate key parameter</returns>
         /// <exception cref="IOException"> on an error decoding the key</exception>
-        public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo)
-        {
-            return CreateKey(keyInfo, null);
-        }
-        
+        public static AsymmetricKeyParameter CreateKey(SubjectPublicKeyInfo keyInfo) =>
+            CreateKey(keyInfo, null);
+
         /// <summary> Create a public key from the passed in SubjectPublicKeyInfo</summary>
         /// <param name="keyInfo"> the SubjectPublicKeyInfo containing the key data</param>
         /// <param name="defaultParams"> default parameters that might be needed.</param>
