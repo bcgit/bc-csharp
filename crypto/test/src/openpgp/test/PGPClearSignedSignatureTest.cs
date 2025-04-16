@@ -164,23 +164,26 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 		private void messageTest(
 			string message,
-			string type)
+			string type,
+			bool ignoreHeaders = false)
 		{
 			ArmoredInputStream aIn = new ArmoredInputStream(
 				new MemoryStream(Encoding.ASCII.GetBytes(message)));
 
-			string[] headers = aIn.GetArmorHeaders();
-
-			if (headers == null || headers.Length != 1)
+			if (!ignoreHeaders)
 			{
-				Fail("wrong number of headers found");
-			}
+				string[] headers = aIn.GetArmorHeaders();
 
-			if (!"Hash: SHA256".Equals(headers[0]))
-			{
-				Fail("header value wrong: " + headers[0]);
-			}
+				if (headers == null || headers.Length != 1)
+				{
+					Fail("wrong number of headers found");
+				}
 
+				if (!"Hash: SHA256".Equals(headers[0]))
+				{
+					Fail("header value wrong: " + headers[0]);
+				}
+			}
 			//
 			// read the input, making sure we ingore the last newline.
 			//
@@ -254,7 +257,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
 		private void generateTest(
 			string message,
-			string type)
+			string type,
+            bool includeHashHeader = true)
 		{
 			PgpSecretKey                    pgpSecKey = ReadSecretKey(new MemoryStream(secretKey));
 			PgpPrivateKey                   pgpPrivKey = pgpSecKey.ExtractPrivateKey("".ToCharArray());
@@ -273,7 +277,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			ArmoredOutputStream aOut = new ArmoredOutputStream(bOut);
 			MemoryStream bIn = new MemoryStream(Encoding.ASCII.GetBytes(message), false);
 
-			aOut.BeginClearText(HashAlgorithmTag.Sha256);
+			if (includeHashHeader)
+			{
+				aOut.BeginClearText(HashAlgorithmTag.Sha256);
+			}
+			else
+			{
+                aOut.BeginClearText();
+            }
 
 			//
 			// note the last \n m_in the file is ignored
@@ -306,7 +317,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			aOut.Close();
 
 			byte[] bs = bOut.ToArray();
-			messageTest(Encoding.ASCII.GetString(bs, 0, bs.Length), type);
+			messageTest(Encoding.ASCII.GetString(bs, 0, bs.Length), type, !includeHashHeader);
 		}
 
 		private static int ReadInputLine(
@@ -424,7 +435,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			generateTest(nlOnlyMessage, "\\r");
 			generateTest(crOnlyMessage, "\\n");
 			generateTest(crNlMessage, "\\r\\n");
-		}
+
+            generateTest(nlOnlyMessage, "\\r", includeHashHeader: false);
+            generateTest(crOnlyMessage, "\\n", includeHashHeader: false);
+            generateTest(crNlMessage, "\\r\\n", includeHashHeader: false);
+        }
 
 		[Test]
 		public void TestFunction()

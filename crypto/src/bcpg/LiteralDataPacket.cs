@@ -10,8 +10,9 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_fileName;
         private readonly long m_modDate;
 
-		internal LiteralDataPacket(BcpgInputStream bcpgIn)
-			: base(bcpgIn)
+		internal LiteralDataPacket(
+            BcpgInputStream bcpgIn)
+			: base(bcpgIn, PacketTag.LiteralData)
         {
             m_format = bcpgIn.RequireByte();
 

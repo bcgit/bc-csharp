@@ -19,8 +19,12 @@ namespace Org.BouncyCastle.Bcpg
         UserId = 13,								// User ID Packet
         PublicSubkey = 14,							// Public Subkey Packet
         UserAttribute = 17,							// User attribute
-        SymmetricEncryptedIntegrityProtected = 18,	// Symmetric encrypted, integrity protected
-        ModificationDetectionCode = 19,				// Modification detection code
+        SymmetricEncryptedIntegrityProtected = 18,  // Symmetric encrypted, integrity protected
+
+        ModificationDetectionCode = 19,		        // Reserved (formerly Modification Detection Code Packet)
+        ReservedAeadEncryptedData = 20,             // Reserved (defined as AEAD Encrypted Data Packet in retired draft [draft-koch-openpgp-rfc4880bis])
+
+        Padding = 21,                               // Padding Packet (https://www.rfc-editor.org/rfc/rfc9580#padding-packet)
 
         Experimental1 = 60,							// Private or Experimental Values
         Experimental2 = 61,

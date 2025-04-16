@@ -7,11 +7,13 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_levelAndTrustAmount;
 
 		public TrustPacket(BcpgInputStream bcpgIn)
+            :base(PacketTag.Trust)
         {
             m_levelAndTrustAmount = bcpgIn.ReadAll();
         }
 
 		public TrustPacket(int trustCode)
+            : base(PacketTag.Trust)
         {
 			m_levelAndTrustAmount = new byte[]{ (byte)trustCode };
         }
