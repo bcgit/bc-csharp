@@ -90,6 +90,12 @@ namespace Org.BouncyCastle.Asn1.X509
                 switch (taggedObject.TagNo)
                 {
 				case EdiPartyName:
+                    // TODO[api] Actually return EdiPartyName instead of only using it for validation
+                    //return Asn1.X509.EdiPartyName.GetTagged(taggedObject, false);
+                    var seq = Asn1Sequence.GetTagged(taggedObject, false);
+                    Asn1.X509.EdiPartyName.GetInstance(seq);
+                    return seq;
+
 				case OtherName:
 				case X400Address:
 					return Asn1Sequence.GetInstance(taggedObject, false);
