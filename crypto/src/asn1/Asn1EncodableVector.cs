@@ -195,15 +195,7 @@ namespace Org.BouncyCastle.Asn1
             return e.GetEnumerator();
         }
 
-        internal Asn1Encodable[] CopyElements()
-        {
-            if (0 == elementCount)
-                return EmptyElements;
-
-            Asn1Encodable[] copy = new Asn1Encodable[elementCount];
-            Array.Copy(elements, 0, copy, 0, elementCount);
-            return copy;
-        }
+        internal Asn1Encodable[] CopyElements() => CopyElements(elements, elementCount);
 
         internal Asn1Encodable[] TakeElements()
         {
@@ -233,9 +225,17 @@ namespace Org.BouncyCastle.Asn1
             this.copyOnWrite = false;
         }
 
-        internal static Asn1Encodable[] CloneElements(Asn1Encodable[] elements)
+        internal static Asn1Encodable[] CloneElements(Asn1Encodable[] elements) =>
+            CopyElements(elements, elementCount: elements.Length);
+
+        private static Asn1Encodable[] CopyElements(Asn1Encodable[] elements, int elementCount)
         {
-            return elements.Length < 1 ? EmptyElements : (Asn1Encodable[])elements.Clone();
+            if (elementCount < 1)
+                return EmptyElements;
+
+            Asn1Encodable[] copy = new Asn1Encodable[elementCount];
+            Array.Copy(elements, 0, copy, 0, elementCount);
+            return copy;
         }
     }
 }
