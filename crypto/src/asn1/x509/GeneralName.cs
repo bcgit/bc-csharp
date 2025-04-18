@@ -44,20 +44,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public const int IPAddress					= 7;
         public const int RegisteredID				= 8;
 
-		public static GeneralName GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-
-            if (obj is Asn1Encodable element)
-            {
-                var result = GetOptional(element);
-                if (result != null)
-                    return result;
-            }
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
-        }
+        public static GeneralName GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
 		public static GeneralName GetInstance(Asn1TaggedObject tagObj, bool explicitly) =>
             Asn1Utilities.GetInstanceChoice(tagObj, explicitly, GetInstance);
@@ -70,7 +57,8 @@ namespace Org.BouncyCastle.Asn1.X509
             if (element is GeneralName generalName)
                 return generalName;
 
-            if (element is Asn1TaggedObject taggedObject)
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
             {
                 Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
                 if (baseObject != null)
@@ -89,31 +77,31 @@ namespace Org.BouncyCastle.Asn1.X509
             {
                 switch (taggedObject.TagNo)
                 {
-				case EdiPartyName:
+                case EdiPartyName:
                     // TODO[api] Actually return EdiPartyName instead of only using it for validation
                     //return Asn1.X509.EdiPartyName.GetTagged(taggedObject, false);
                     var seq = Asn1Sequence.GetTagged(taggedObject, false);
                     Asn1.X509.EdiPartyName.GetInstance(seq);
                     return seq;
 
-				case OtherName:
-				case X400Address:
-					return Asn1Sequence.GetInstance(taggedObject, false);
+                case OtherName:
+                case X400Address:
+                    return Asn1Sequence.GetTagged(taggedObject, false);
 
-				case DnsName:
-				case Rfc822Name:
-				case UniformResourceIdentifier:
-					return DerIA5String.GetInstance(taggedObject, false);
+                case DnsName:
+                case Rfc822Name:
+                case UniformResourceIdentifier:
+                    return DerIA5String.GetTagged(taggedObject, false);
 
-				case DirectoryName:
-					// CHOICE so explicit
-					return X509Name.GetInstance(taggedObject, true);
+                case DirectoryName:
+                    // CHOICE so explicit
+                    return X509Name.GetTagged(taggedObject, true);
 
-				case IPAddress:
-					return Asn1OctetString.GetInstance(taggedObject, false);
+                case IPAddress:
+                    return Asn1OctetString.GetTagged(taggedObject, false);
 
-				case RegisteredID:
-					return DerObjectIdentifier.GetInstance(taggedObject, false);
+                case RegisteredID:
+                    return DerObjectIdentifier.GetTagged(taggedObject, false);
                 }
             }
             return null;

@@ -1,23 +1,38 @@
-﻿using Org.BouncyCastle.Asn1.Cms;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.Cms;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class EncryptedKey
         : Asn1Encodable, IAsn1Choice
     {
-        public static EncryptedKey GetInstance(object obj)
-        {
-            if (obj is EncryptedKey encryptedKey)
-                return encryptedKey;
-
-            if (obj is Asn1TaggedObject taggedObject)
-                return new EncryptedKey(EnvelopedData.GetInstance(taggedObject, false));
-
-            return new EncryptedKey(EncryptedValue.GetInstance(obj));
-        }
+        public static EncryptedKey GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static EncryptedKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static EncryptedKey GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is EncryptedKey encryptedKey)
+                return encryptedKey;
+
+            EncryptedValue encryptedValue = EncryptedValue.GetOptional(element);
+            if (encryptedValue != null)
+                return new EncryptedKey(encryptedValue);
+
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
+            {
+                if (taggedObject.HasContextTag(0))
+                    return new EncryptedKey(EnvelopedData.GetTagged(taggedObject, false));
+            }
+
+            return null;
+        }
 
         public static EncryptedKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);

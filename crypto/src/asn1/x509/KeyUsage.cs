@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Asn1.X509
 		{
 			if (obj is KeyUsage keyUsage)
 				return keyUsage;
+            // TODO[api] Remove this case
             if (obj is X509Extension x509Extension)
 				return GetInstance(X509Extension.ConvertValueToObject(x509Extension));
             if (obj == null)

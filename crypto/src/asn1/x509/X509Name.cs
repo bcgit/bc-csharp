@@ -373,6 +373,21 @@ namespace Org.BouncyCastle.Asn1.X509
         public static X509Name GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new X509Name(Asn1Sequence.GetInstance(obj, explicitly));
 
+        public static X509Name GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is X509Name x509Name)
+                return x509Name;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new X509Name(asn1Sequence);
+
+            return null;
+        }
+
         public static X509Name GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new X509Name(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 

@@ -18,20 +18,48 @@ namespace Org.BouncyCastle.Asn1.X509
         public const int FullName = 0;
         public const int NameRelativeToCrlIssuer = 1;
 
-		public static DistributionPointName GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-            if (obj is DistributionPointName distributionPointName)
-                return distributionPointName;
-            return new DistributionPointName(Asn1TaggedObject.GetInstance(obj));
-		}
+        public static DistributionPointName GetInstance(object obj) =>
+            Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
-		public static DistributionPointName GetInstance(Asn1TaggedObject obj, bool explicitly) =>
+        public static DistributionPointName GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             Asn1Utilities.GetInstanceChoice(obj, explicitly, GetInstance);
+
+        public static DistributionPointName GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is DistributionPointName distributionPointName)
+                return distributionPointName;
+
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
+            {
+                Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
+                if (baseObject != null)
+                    return new DistributionPointName(taggedObject.TagNo, baseObject);
+            }
+
+            return null;
+        }
 
         public static DistributionPointName GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+        private static Asn1Encodable GetOptionalBaseObject(Asn1TaggedObject taggedObject)
+        {
+            if (taggedObject.HasContextTag())
+            {
+                switch (taggedObject.TagNo)
+                {
+                case FullName:
+                    return GeneralNames.GetInstance(taggedObject, false);
+                case NameRelativeToCrlIssuer:
+                    return Asn1Set.GetInstance(taggedObject, false);
+                }
+            }
+            return null;
+        }
 
         private readonly int m_type;
         private readonly Asn1Encodable m_name;
@@ -48,60 +76,39 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
         [Obsolete("Use 'Type' instead")]
-		public int PointType => m_type;
+        public int PointType => m_type;
 
-		public Asn1Encodable Name => m_name;
+        public Asn1Encodable Name => m_name;
 
         public int Type => m_type;
 
-        public DistributionPointName(Asn1TaggedObject obj)
-        {
-            m_type = obj.TagNo;
+        public override Asn1Object ToAsn1Object() => new DerTaggedObject(false, m_type, m_name);
 
-            if (obj.HasContextTag(FullName))
+        public override string ToString()
+        {
+            StringBuilder buf = new StringBuilder();
+            buf.AppendLine("DistributionPointName: [");
+            if (m_type == FullName)
             {
-                m_name = GeneralNames.GetInstance(obj, false);
-            }
-            else if (obj.HasContextTag(NameRelativeToCrlIssuer))
-            {
-                m_name = Asn1Set.GetInstance(obj, false);
+                AppendObject(buf, "fullName", m_name.ToString());
             }
             else
             {
-                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(obj), "obj");
+                AppendObject(buf, "nameRelativeToCRLIssuer", m_name.ToString());
             }
+            buf.AppendLine("]");
+            return buf.ToString();
         }
 
-        public override Asn1Object ToAsn1Object()
+        private void AppendObject(StringBuilder buf, string name, string val)
         {
-            return new DerTaggedObject(false, m_type, m_name);
-        }
-
-		public override string ToString()
-		{
-			StringBuilder buf = new StringBuilder();
-			buf.AppendLine("DistributionPointName: [");
-			if (m_type == FullName)
-			{
-				AppendObject(buf, "fullName", m_name.ToString());
-			}
-			else
-			{
-				AppendObject(buf, "nameRelativeToCRLIssuer", m_name.ToString());
-			}
-			buf.AppendLine("]");
-			return buf.ToString();
-		}
-
-		private void AppendObject(StringBuilder buf, string name, string val)
-		{
-			string indent = "    ";
-			buf.Append(indent);
-			buf.Append(name);
-			buf.AppendLine(":");
-			buf.Append(indent);
-			buf.Append(indent);
-			buf.Append(val);
+            string indent = "    ";
+            buf.Append(indent);
+            buf.Append(name);
+            buf.AppendLine(":");
+            buf.Append(indent);
+            buf.Append(indent);
+            buf.Append(val);
             buf.AppendLine();
         }
     }

@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_privateKeyAlgorithm = privateKeyAlgorithm ?? throw new ArgumentNullException(nameof(privateKeyAlgorithm));
             m_privateKey = new DerOctetString(privateKey);
             m_attributes = attributes;
-            m_publicKey = publicKey == null ? null : new DerBitString(publicKey);
+            m_publicKey = DerBitString.FromContentsOptional(publicKey);
         }
 
         private PrivateKeyInfo(DerInteger version, AlgorithmIdentifier privateKeyAlgorithm, Asn1OctetString privateKey,

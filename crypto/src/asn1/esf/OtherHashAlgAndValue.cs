@@ -32,6 +32,21 @@ namespace Org.BouncyCastle.Asn1.Esf
         public static OtherHashAlgAndValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OtherHashAlgAndValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static OtherHashAlgAndValue GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is OtherHashAlgAndValue otherHashAlgAndValue)
+                return otherHashAlgAndValue;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new OtherHashAlgAndValue(asn1Sequence);
+
+            return null;
+        }
+
         public static OtherHashAlgAndValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OtherHashAlgAndValue(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 

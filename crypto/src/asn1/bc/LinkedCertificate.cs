@@ -53,11 +53,9 @@ namespace Org.BouncyCastle.Asn1.BC
 
         private LinkedCertificate(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 2 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
-
-            int pos = 0;
 
             m_digest = DigestInfo.GetInstance(seq[pos++]);
             m_certLocation = GeneralName.GetInstance(seq[pos++]);

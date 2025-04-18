@@ -1,7 +1,5 @@
 ﻿using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class PkiArchiveOptions
@@ -11,20 +9,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public const int keyGenParameters = 1;
         public const int archiveRemGenPrivKey = 2;
 
-        public static PkiArchiveOptions GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-
-            if (obj is Asn1Encodable element)
-            {
-                var result = GetOptional(element);
-                if (result != null)
-                    return result;
-            }
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
-        }
+        public static PkiArchiveOptions GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static PkiArchiveOptions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
@@ -37,7 +22,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             if (element is PkiArchiveOptions pkiArchiveOptions)
                 return pkiArchiveOptions;
 
-            if (element is Asn1TaggedObject taggedObject)
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
             {
                 Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
                 if (baseObject != null)
@@ -58,11 +44,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 {
                 case encryptedPrivKey:
                     // CHOICE so explicit
-                    return EncryptedKey.GetInstance(taggedObject, true);
+                    return EncryptedKey.GetTagged(taggedObject, true);
                 case keyGenParameters:
-                    return Asn1OctetString.GetInstance(taggedObject, false);
+                    return Asn1OctetString.GetTagged(taggedObject, false);
                 case archiveRemGenPrivKey:
-                    return DerBoolean.GetInstance(taggedObject, false);
+                    return DerBoolean.GetTagged(taggedObject, false);
                 }
             }
             return null;

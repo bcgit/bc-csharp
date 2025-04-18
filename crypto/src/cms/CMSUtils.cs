@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Cms
             new SignerIdentifier(GetIssuerAndSerialNumber(c));
 
         internal static SignerIdentifier GetSignerIdentifier(byte[] subjectKeyIdentifier) =>
-            new SignerIdentifier(DerOctetString.FromContents(subjectKeyIdentifier));
+            new SignerIdentifier(new SubjectKeyIdentifier(subjectKeyIdentifier));
 
         internal static Asn1.Cms.AttributeTable ParseAttributeTable(Asn1SetParser parser)
         {

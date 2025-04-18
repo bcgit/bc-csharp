@@ -1,5 +1,3 @@
-using System;
-
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
@@ -16,7 +14,7 @@ namespace Org.BouncyCastle.Cms
         private readonly IKeyWrapper m_keyWrapper;
 
         private IssuerAndSerialNumber m_issuerAndSerialNumber;
-        private Asn1OctetString m_subjectKeyIdentifier;
+        private SubjectKeyIdentifier m_subjectKeyIdentifier;
 
         public KeyTransRecipientInfoGenerator(X509Certificate recipCert, IKeyWrapper keyWrapper)
             : this(new IssuerAndSerialNumber(recipCert.CertificateStructure), keyWrapper)
@@ -31,7 +29,7 @@ namespace Org.BouncyCastle.Cms
 
         public KeyTransRecipientInfoGenerator(byte[] subjectKeyID, IKeyWrapper keyWrapper)
         {
-            m_subjectKeyIdentifier = new DerOctetString(subjectKeyID);
+            m_subjectKeyIdentifier = new SubjectKeyIdentifier(subjectKeyID);
             m_keyWrapper = keyWrapper;
         }
 

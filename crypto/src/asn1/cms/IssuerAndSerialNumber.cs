@@ -20,6 +20,21 @@ namespace Org.BouncyCastle.Asn1.Cms
         public static IssuerAndSerialNumber GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new IssuerAndSerialNumber(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static IssuerAndSerialNumber GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is IssuerAndSerialNumber issuerAndSerialNumber)
+                return issuerAndSerialNumber;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new IssuerAndSerialNumber(asn1Sequence);
+
+            return null;
+        }
+
         public static IssuerAndSerialNumber GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new IssuerAndSerialNumber(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
