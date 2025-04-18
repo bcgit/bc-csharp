@@ -2,44 +2,42 @@ using System;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X9
 {
     /**
-     * ASN.1 def for Elliptic-Curve Curve structure. See
-     * X9.62, for further details.
+     * ASN.1 def for Elliptic-Curve Curve structure. See X9.62 for further details.
      */
     public class X9Curve
         : Asn1Encodable
     {
-        private readonly ECCurve curve;
-        private readonly byte[] seed;
-        private readonly DerObjectIdentifier fieldIdentifier;
+        private readonly ECCurve m_curve;
+        private readonly DerBitString m_seed;
+        private readonly DerObjectIdentifier m_fieldType;
 
-        public X9Curve(
-            ECCurve curve)
-            : this(curve, null)
+        public X9Curve(ECCurve curve)
+            : this(curve, (DerBitString)null)
         {
         }
 
-        public X9Curve(
-            ECCurve	curve,
-            byte[]	seed)
+        public X9Curve(ECCurve curve, byte[] seed)
+            : this(curve, DerBitString.FromContentsOptional(seed))
         {
-            if (curve == null)
-                throw new ArgumentNullException("curve");
+        }
 
-            this.curve = curve;
-            this.seed = Arrays.Clone(seed);
+        public X9Curve(ECCurve curve, DerBitString seed)
+        {
+            m_curve = curve ?? throw new ArgumentNullException(nameof(curve));
+            m_seed = seed;
 
-            if (ECAlgorithms.IsFpCurve(curve))
+            var field = curve.Field;
+            if (ECAlgorithms.IsFpField(field))
             {
-                this.fieldIdentifier = X9ObjectIdentifiers.PrimeField;
+                m_fieldType = X9ObjectIdentifiers.PrimeField;
             }
-            else if (ECAlgorithms.IsF2mCurve(curve))
+            else if (ECAlgorithms.IsF2mField(field))
             {
-                this.fieldIdentifier = X9ObjectIdentifiers.CharacteristicTwoField;
+                m_fieldType = X9ObjectIdentifiers.CharacteristicTwoField;
             }
             else
             {
@@ -47,52 +45,53 @@ namespace Org.BouncyCastle.Asn1.X9
             }
         }
 
-        public X9Curve(
-            X9FieldID		fieldID,
-            BigInteger      order,
-            BigInteger      cofactor,
-            Asn1Sequence	seq)
+        public X9Curve(X9FieldID fieldID, BigInteger order, BigInteger cofactor, Asn1Sequence seq)
         {
             if (fieldID == null)
-                throw new ArgumentNullException("fieldID");
+                throw new ArgumentNullException(nameof(fieldID));
             if (seq == null)
-                throw new ArgumentNullException("seq");
+                throw new ArgumentNullException(nameof(seq));
 
-            this.fieldIdentifier = fieldID.Identifier;
+            m_fieldType = fieldID.FieldType;
 
-            if (fieldIdentifier.Equals(X9ObjectIdentifiers.PrimeField))
+            if (X9ObjectIdentifiers.PrimeField.Equals(m_fieldType))
             {
-                BigInteger p = ((DerInteger)fieldID.Parameters).Value;
+                BigInteger p = DerInteger.GetInstance(fieldID.Parameters).Value;
                 BigInteger A = new BigInteger(1, Asn1OctetString.GetInstance(seq[0]).GetOctets());
                 BigInteger B = new BigInteger(1, Asn1OctetString.GetInstance(seq[1]).GetOctets());
-                curve = new FpCurve(p, A, B, order, cofactor);
+                m_curve = new FpCurve(p, A, B, order, cofactor);
             }
-            else if (fieldIdentifier.Equals(X9ObjectIdentifiers.CharacteristicTwoField)) 
+            else if (X9ObjectIdentifiers.CharacteristicTwoField.Equals(m_fieldType)) 
             {
                 // Characteristic two field
-                DerSequence parameters = (DerSequence)fieldID.Parameters;
-                int m = ((DerInteger)parameters[0]).IntValueExact;
-                DerObjectIdentifier representation = (DerObjectIdentifier)parameters[1];
+                Asn1Sequence parameters = Asn1Sequence.GetInstance(fieldID.Parameters);
+                int m = DerInteger.GetInstance(parameters[0]).IntValueExact;
+                DerObjectIdentifier representation = DerObjectIdentifier.GetInstance(parameters[1]);
 
-                int k1 = 0;
-                int k2 = 0;
-                int k3 = 0;
-                if (representation.Equals(X9ObjectIdentifiers.TPBasis)) 
+                int k1, k2, k3;
+                if (X9ObjectIdentifiers.TPBasis.Equals(representation)) 
                 {
                     // Trinomial basis representation
-                    k1 = ((DerInteger)parameters[2]).IntValueExact;
+                    k1 = DerInteger.GetInstance(parameters[2]).IntValueExact;
+                    k2 = 0;
+                    k3 = 0;
                 }
-                else 
+                else if (X9ObjectIdentifiers.PPBasis.Equals(representation))
                 {
                     // Pentanomial basis representation
-                    DerSequence pentanomial = (DerSequence) parameters[2];
-                    k1 = ((DerInteger)pentanomial[0]).IntValueExact;
-                    k2 = ((DerInteger)pentanomial[1]).IntValueExact;
-                    k3 = ((DerInteger)pentanomial[2]).IntValueExact;
+                    Asn1Sequence pentanomial = Asn1Sequence.GetInstance(parameters[2]);
+                    k1 = DerInteger.GetInstance(pentanomial[0]).IntValueExact;
+                    k2 = DerInteger.GetInstance(pentanomial[1]).IntValueExact;
+                    k3 = DerInteger.GetInstance(pentanomial[2]).IntValueExact;
                 }
+                else
+                {
+                    throw new ArgumentException("This CharacteristicTwoField representation is not implemented");
+                }
+
                 BigInteger A = new BigInteger(1, Asn1OctetString.GetInstance(seq[0]).GetOctets());
                 BigInteger B = new BigInteger(1, Asn1OctetString.GetInstance(seq[1]).GetOctets());
-                curve = new F2mCurve(m, k1, k2, k3, A, B, order, cofactor);
+                m_curve = new F2mCurve(m, k1, k2, k3, A, B, order, cofactor);
             }
             else
             {
@@ -101,19 +100,15 @@ namespace Org.BouncyCastle.Asn1.X9
 
             if (seq.Count == 3)
             {
-                seed = ((DerBitString)seq[2]).GetBytes();
+                m_seed = DerBitString.GetInstance(seq[2]);
             }
         }
 
-        public ECCurve Curve
-        {
-            get { return curve; }
-        }
+        public ECCurve Curve => m_curve;
 
-        public byte[] GetSeed()
-        {
-            return Arrays.Clone(seed);
-        }
+        public byte[] GetSeed() => m_seed?.GetBytes();
+
+        public DerBitString Seed => m_seed;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
@@ -127,21 +122,12 @@ namespace Org.BouncyCastle.Asn1.X9
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            var a = new X9FieldElement(m_curve.A);
+            var b = new X9FieldElement(m_curve.B);
 
-            if (fieldIdentifier.Equals(X9ObjectIdentifiers.PrimeField)
-                || fieldIdentifier.Equals(X9ObjectIdentifiers.CharacteristicTwoField)) 
-            { 
-                v.Add(new X9FieldElement(curve.A).ToAsn1Object());
-                v.Add(new X9FieldElement(curve.B).ToAsn1Object());
-            } 
-
-            if (seed != null)
-            {
-                v.Add(new DerBitString(seed));
-            }
-
-            return new DerSequence(v);
+            return m_seed == null
+                ?  new DerSequence(a, b)
+                :  new DerSequence(a, b, m_seed);
         }
     }
 }

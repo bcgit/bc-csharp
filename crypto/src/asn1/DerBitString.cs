@@ -8,7 +8,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Asn1
 {
     public class DerBitString
-		: DerStringBase, Asn1BitStringParser
+        : DerStringBase, Asn1BitStringParser
     {
         internal class Meta : Asn1UniversalType
         {
@@ -29,16 +29,26 @@ namespace Org.BouncyCastle.Asn1
 
         internal static readonly byte[] EmptyOctetsContents = new byte[]{ 0x00 };
 
-        private static readonly char[] table
-			= { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+        private static readonly char[] table =
+        {
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
+        };
 
-		public static DerBitString GetInstance(object obj)
-		{
+        public static DerBitString FromContentsOptional(byte[] contents)
+        {
+            if (contents == null)
+                return null;
+
+            return new DerBitString(contents);
+        }
+
+        public static DerBitString GetInstance(object obj)
+        {
             if (obj == null)
                 return null;
 
-			if (obj is DerBitString derBitString)
-				return derBitString;
+            if (obj is DerBitString derBitString)
+                return derBitString;
 
             if (obj is IAsn1Convertible asn1Convertible)
             {
@@ -58,7 +68,7 @@ namespace Org.BouncyCastle.Asn1
             }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
-		}
+        }
 
         public static DerBitString GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
@@ -97,11 +107,11 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-		 * @param data the octets making up the bit string.
-		 * @param padBits the number of extra bits at the end of the string.
-		 */
+         * @param data the octets making up the bit string.
+         * @param padBits the number of extra bits at the end of the string.
+         */
         public DerBitString(byte[] data, int padBits)
-		{
+        {
             if (data == null)
                 throw new ArgumentNullException(nameof(data));
             if (padBits < 0 || padBits > 7)
@@ -229,7 +239,7 @@ namespace Org.BouncyCastle.Asn1
 #endif
 
         public virtual byte[] GetBytes()
-		{
+        {
             if (m_contents.Length == 1)
                 return Asn1OctetString.EmptyOctets;
 
@@ -246,13 +256,13 @@ namespace Org.BouncyCastle.Asn1
 
         public virtual int PadBits => m_contents[0];
 
-		/**
-		 * @return the value of the bit string as an int (truncating if necessary)
-		 */
+        /**
+         * @return the value of the bit string as an int (truncating if necessary)
+         */
         public virtual int IntValue
-		{
-			get
-			{
+        {
+            get
+            {
                 int value = 0, end = System.Math.Min(5, m_contents.Length - 1);
                 for (int i = 1; i < end; ++i)
                 {
@@ -266,7 +276,7 @@ namespace Org.BouncyCastle.Asn1
                 }
                 return value;
             }
-		}
+        }
 
         internal override IAsn1Encoding GetEncoding(int encoding)
         {
@@ -333,7 +343,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         protected override int Asn1GetHashCode()
-		{
+        {
             if (m_contents.Length < 2)
                 return 1;
 
@@ -349,7 +359,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
-		{
+        {
             DerBitString that = asn1Object as DerBitString;
             if (null == that)
                 return false;
@@ -391,21 +401,21 @@ namespace Org.BouncyCastle.Asn1
         public Asn1BitStringParser Parser => this;
 
         public override string GetString()
-		{
-			byte[] str = GetDerEncoded();
+        {
+            byte[] str = GetDerEncoded();
 
             StringBuilder buffer = new StringBuilder(1 + str.Length * 2);
             buffer.Append('#');
 
             for (int i = 0; i != str.Length; i++)
-			{
-				uint u8 = str[i];
-				buffer.Append(table[u8 >> 4]);
-				buffer.Append(table[u8 & 0xF]);
-			}
+            {
+                uint u8 = str[i];
+                buffer.Append(table[u8 >> 4]);
+                buffer.Append(table[u8 & 0xF]);
+            }
 
-			return buffer.ToString();
-		}
+            return buffer.ToString();
+        }
 
         private void CheckOctetAligned()
         {
@@ -414,7 +424,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         internal static DerBitString CreatePrimitive(byte[] contents)
-		{
+        {
             int length = contents.Length;
             if (length < 1)
                 throw new ArgumentException("truncated BIT STRING detected", nameof(contents));
@@ -431,7 +441,7 @@ namespace Org.BouncyCastle.Asn1
             }
 
             return new DerBitString(contents, false);
-		}
+        }
 
         private static byte[] GetDerContents(Asn1Encodable obj)
         {
