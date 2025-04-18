@@ -73,6 +73,35 @@ namespace Org.BouncyCastle.Asn1
             return taggedObjectParser;
         }
 
+        public static TChoice GetInstanceChoice<TChoice>(object obj, Func<Asn1Encodable, TChoice> optionalConstructor)
+            where TChoice : Asn1Encodable, IAsn1Choice
+        {
+            if (obj == null)
+                return null;
+
+            if (obj is byte[] bytes)
+            {
+                try
+                {
+                    obj = Asn1Object.FromByteArray(bytes);
+                }
+                catch (IOException e)
+                {
+                    var choiceName = Platform.GetTypeName(typeof(TChoice));
+                    throw new ArgumentException($"failed to construct {choiceName} from byte[]: " + e.Message);
+                }
+            }
+
+            if (obj is Asn1Encodable element)
+            {
+                var result = optionalConstructor(element);
+                if (result != null)
+                    return result;
+            }
+
+            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
+        }
+
         public static TChoice GetInstanceChoice<TChoice>(Asn1TaggedObject taggedObject, bool declaredExplicit,
             Func<Asn1Encodable, TChoice> constructor)
             where TChoice : Asn1Encodable, IAsn1Choice
