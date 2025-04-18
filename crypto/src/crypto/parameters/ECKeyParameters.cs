@@ -23,92 +23,49 @@ namespace Org.BouncyCastle.Crypto.Parameters
             { "ECMQV", "ECMQV" },
         };
 
-        private readonly string algorithm;
-        private readonly ECDomainParameters parameters;
-        private readonly DerObjectIdentifier publicKeyParamSet;
+        private readonly string m_algorithm;
+        private readonly ECDomainParameters m_parameters;
 
-        protected ECKeyParameters(
-            string				algorithm,
-            bool				isPrivate,
-            ECDomainParameters	parameters)
+        protected ECKeyParameters(string algorithm, bool isPrivate, ECDomainParameters parameters)
             : base(isPrivate)
         {
             if (algorithm == null)
-                throw new ArgumentNullException("algorithm");
+                throw new ArgumentNullException(nameof(algorithm));
             if (parameters == null)
-                throw new ArgumentNullException("parameters");
+                throw new ArgumentNullException(nameof(parameters));
 
-            this.algorithm = VerifyAlgorithmName(algorithm);
-            this.parameters = parameters;
-            this.publicKeyParamSet = (parameters as ECNamedDomainParameters)?.Name;
+            m_algorithm = VerifyAlgorithmName(algorithm);
+            m_parameters = parameters;
         }
 
-        protected ECKeyParameters(
-            string				algorithm,
-            bool				isPrivate,
-            DerObjectIdentifier	publicKeyParamSet)
+        protected ECKeyParameters(string algorithm, bool isPrivate, DerObjectIdentifier publicKeyParamSet)
             : base(isPrivate)
         {
             if (algorithm == null)
-                throw new ArgumentNullException("algorithm");
+                throw new ArgumentNullException(nameof(algorithm));
             if (publicKeyParamSet == null)
-                throw new ArgumentNullException("publicKeyParamSet");
+                throw new ArgumentNullException(nameof(publicKeyParamSet));
 
-            this.algorithm = VerifyAlgorithmName(algorithm);
-            this.parameters = LookupParameters(publicKeyParamSet);
-            this.publicKeyParamSet = publicKeyParamSet;
+            m_algorithm = VerifyAlgorithmName(algorithm);
+            m_parameters = ECNamedDomainParameters.LookupOid(oid: publicKeyParamSet);
         }
 
-        public string AlgorithmName
-        {
-            get { return algorithm; }
-        }
+        public string AlgorithmName => m_algorithm;
 
-        public ECDomainParameters Parameters
-        {
-            get { return parameters; }
-        }
+        public ECDomainParameters Parameters => m_parameters;
 
-        public DerObjectIdentifier PublicKeyParamSet
-        {
-            get { return publicKeyParamSet; }
-        }
+        public DerObjectIdentifier PublicKeyParamSet => (m_parameters as ECNamedDomainParameters)?.Name;
 
-        public override bool Equals(
-            object obj)
-        {
-            if (obj == this)
-                return true;
+        public override bool Equals(object obj) => obj is ECKeyParameters other && Equals(other);
 
-            ECDomainParameters other = obj as ECDomainParameters;
+        // TODO[api] Should be virtual
+        protected bool Equals(ECKeyParameters other) =>
+            m_parameters.Equals(other.m_parameters) && base.Equals(other);
 
-            if (other == null)
-                return false;
+        public override int GetHashCode() => m_parameters.GetHashCode() ^ base.GetHashCode();
 
-            return Equals(other);
-        }
-
-        protected bool Equals(
-            ECKeyParameters other)
-        {
-            return parameters.Equals(other.parameters) && base.Equals(other);
-        }
-
-        public override int GetHashCode()
-        {
-            return parameters.GetHashCode() ^ base.GetHashCode();
-        }
-
-        internal ECKeyGenerationParameters CreateKeyGenerationParameters(
-            SecureRandom random)
-        {
-            if (publicKeyParamSet != null)
-            {
-                return new ECKeyGenerationParameters(publicKeyParamSet, random);
-            }
-
-            return new ECKeyGenerationParameters(parameters, random);
-        }
+        internal ECKeyGenerationParameters CreateKeyGenerationParameters(SecureRandom random) =>
+            new ECKeyGenerationParameters(m_parameters, random);
 
         internal static string VerifyAlgorithmName(string algorithm)
         {
@@ -116,20 +73,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentException("unrecognised algorithm: " + algorithm, nameof(algorithm));
 
             return upper;
-        }
-
-        internal static ECDomainParameters LookupParameters(
-            DerObjectIdentifier publicKeyParamSet)
-        {
-            if (publicKeyParamSet == null)
-                throw new ArgumentNullException("publicKeyParamSet");
-
-            X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(publicKeyParamSet);
-
-            if (x9 == null)
-                throw new ArgumentException("OID is not a valid public key parameter set", "publicKeyParamSet");
-
-            return new ECDomainParameters(x9);
         }
     }
 }

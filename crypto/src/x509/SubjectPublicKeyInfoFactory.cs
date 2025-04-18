@@ -27,154 +27,73 @@ namespace Org.BouncyCastle.X509
         /// <param name="publicKey">One of ElGammalPublicKeyParameters, DSAPublicKeyParameter, DHPublicKeyParameters, RsaKeyParameters or ECPublicKeyParameters</param>
         /// <returns>A subject public key info object.</returns>
         /// <exception cref="Exception">Throw exception if object provided is not one of the above.</exception>
-        public static SubjectPublicKeyInfo CreateSubjectPublicKeyInfo(
-            AsymmetricKeyParameter publicKey)
+        public static SubjectPublicKeyInfo CreateSubjectPublicKeyInfo(AsymmetricKeyParameter publicKey)
         {
             if (publicKey == null)
-                throw new ArgumentNullException("publicKey");
+                throw new ArgumentNullException(nameof(publicKey));
             if (publicKey.IsPrivate)
-                throw new ArgumentException("Private key passed - public key expected.", "publicKey");
+                throw new ArgumentException("Private key passed - public key expected.", nameof(publicKey));
 
-            if (publicKey is ElGamalPublicKeyParameters)
+            if (publicKey is ElGamalPublicKeyParameters elGamalKey)
             {
-                ElGamalPublicKeyParameters _key = (ElGamalPublicKeyParameters)publicKey;
-                ElGamalParameters kp = _key.Parameters;
-
-                SubjectPublicKeyInfo info = new SubjectPublicKeyInfo(
-                    new AlgorithmIdentifier(
-                        OiwObjectIdentifiers.ElGamalAlgorithm,
-                        new ElGamalParameter(kp.P, kp.G).ToAsn1Object()),
-                        new DerInteger(_key.Y));
-
-                return info;
+                ElGamalParameters kp = elGamalKey.Parameters;
+                var algParams = new ElGamalParameter(kp.P, kp.G);
+                var algID = new AlgorithmIdentifier(OiwObjectIdentifiers.ElGamalAlgorithm, algParams);
+                return new SubjectPublicKeyInfo(algID, new DerInteger(elGamalKey.Y));
             }
 
-            if (publicKey is DsaPublicKeyParameters)
+            if (publicKey is DsaPublicKeyParameters dsaKey)
             {
-                DsaPublicKeyParameters _key = (DsaPublicKeyParameters) publicKey;
-                DsaParameters kp = _key.Parameters;
-                Asn1Encodable ae = kp == null
-                    ?	null
-                    :	new DsaParameter(kp.P, kp.Q, kp.G).ToAsn1Object();
-
-                return new SubjectPublicKeyInfo(
-                    new AlgorithmIdentifier(X9ObjectIdentifiers.IdDsa, ae),
-                    new DerInteger(_key.Y));
+                DsaParameters kp = dsaKey.Parameters;
+                var algParams = new DsaParameter(kp.P, kp.Q, kp.G);
+                var algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdDsa, algParams);
+                return new SubjectPublicKeyInfo(algID, new DerInteger(dsaKey.Y));
             }
 
-            if (publicKey is DHPublicKeyParameters)
+            if (publicKey is DHPublicKeyParameters dhKey)
             {
-                DHPublicKeyParameters _key = (DHPublicKeyParameters) publicKey;
-                DHParameters kp = _key.Parameters;
+                DHParameters kp = dhKey.Parameters;
+                var algParams = new DHParameter(kp.P, kp.G, kp.L);
+                var algID = new AlgorithmIdentifier(dhKey.AlgorithmOid, algParams);
+                return new SubjectPublicKeyInfo(algID, new DerInteger(dhKey.Y));
+            }
 
-                SubjectPublicKeyInfo info = new SubjectPublicKeyInfo(
-                    new AlgorithmIdentifier(
-                        _key.AlgorithmOid,
-                        new DHParameter(kp.P, kp.G, kp.L).ToAsn1Object()),
-                        new DerInteger(_key.Y));
-
-                return info;
-            } // End of DH
-
-            if (publicKey is RsaKeyParameters)
+            if (publicKey is RsaKeyParameters rsaKey)
             {
-                RsaKeyParameters _key = (RsaKeyParameters) publicKey;
+                var algID = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
+                return new SubjectPublicKeyInfo(algID, new RsaPublicKeyStructure(rsaKey.Modulus, rsaKey.Exponent));
+            }
 
-                SubjectPublicKeyInfo info = new SubjectPublicKeyInfo(
-                    new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance),
-                    new RsaPublicKeyStructure(_key.Modulus, _key.Exponent).ToAsn1Object());
+            if (publicKey is ECPublicKeyParameters ecKey)
+            {
+                var q = ecKey.Q;
 
-                return info;
-            } // End of RSA.
-
-            if (publicKey is ECPublicKeyParameters)
-            {            
-               
-                ECPublicKeyParameters _key = (ECPublicKeyParameters) publicKey;
-
-
-                if (_key.Parameters is ECGost3410Parameters)
+                if (ecKey.Parameters is ECGost3410Parameters gostParams)
                 {
-                    ECGost3410Parameters gostParams = (ECGost3410Parameters)_key.Parameters;
+                    int fieldSize = ecKey.Parameters.Curve.FieldElementEncodingLength;
+                    var algOid = fieldSize > 32
+                        ? RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512
+                        : RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
+                    var algParams = new Gost3410PublicKeyAlgParameters(gostParams.PublicKeyParamSet,
+                        gostParams.DigestParamSet, gostParams.EncryptionParamSet);
+                    var algID = new AlgorithmIdentifier(algOid, algParams);
+                    return new SubjectPublicKeyInfo(algID, CreateECGost3410PublicKey(fieldSize, q));
+                }
 
-                    BigInteger bX = _key.Q.AffineXCoord.ToBigInteger();
-                    BigInteger bY = _key.Q.AffineYCoord.ToBigInteger();
-                    bool is512 = (bX.BitLength > 256);
-
-                    Gost3410PublicKeyAlgParameters parameters = new Gost3410PublicKeyAlgParameters(
-                        gostParams.PublicKeyParamSet,
-                        gostParams.DigestParamSet,
-                        gostParams.EncryptionParamSet);
-
-                    int encKeySize;
-                    int offset;
-                    DerObjectIdentifier algIdentifier;
-                    if (is512)
-                    {
-                        encKeySize = 128;
-                        offset = 64;
-                        algIdentifier = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512;
-                    }
-                    else
-                    {
-                        encKeySize = 64;
-                        offset = 32;
-                        algIdentifier = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
-                    }
-
-                    byte[] encKey = new byte[encKeySize];
-               
-                    ExtractBytes(encKey, encKeySize / 2, 0, bX);
-                    ExtractBytes(encKey, encKeySize / 2, offset, bY);
-                  
-                    return new SubjectPublicKeyInfo(new AlgorithmIdentifier(algIdentifier, parameters), new DerOctetString(encKey));
-                   
-
-                } // End of ECGOST3410_2012
-
-
-
-
-
-                if (_key.AlgorithmName == "ECGOST3410")
+                if (ecKey.AlgorithmName == "ECGOST3410")
                 {
-                    if (_key.PublicKeyParamSet == null)
+                    if (ecKey.PublicKeyParamSet == null)
                         throw new NotImplementedException("Not a CryptoPro parameter set");
 
-                    ECPoint q = _key.Q.Normalize();
-                    BigInteger bX = q.AffineXCoord.ToBigInteger();
-                    BigInteger bY = q.AffineYCoord.ToBigInteger();
-
-                    byte[] encKey = new byte[64];
-                    ExtractBytes(encKey, 0, bX);
-                    ExtractBytes(encKey, 32, bY);
-
-                    Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
-                        _key.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
-
-                    AlgorithmIdentifier algID = new AlgorithmIdentifier(
-                        CryptoProObjectIdentifiers.GostR3410x2001,
-                        gostParams.ToAsn1Object());
-
-                    return new SubjectPublicKeyInfo(algID, new DerOctetString(encKey));
+                    int fieldSize = ecKey.Parameters.Curve.FieldElementEncodingLength;
+                    var algParams = new Gost3410PublicKeyAlgParameters(ecKey.PublicKeyParamSet,
+                        CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
+                    var algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x2001, algParams);
+                    return new SubjectPublicKeyInfo(algID, CreateECGost3410PublicKey(fieldSize, q));
                 }
                 else
                 {
-                    X962Parameters x962;
-                    if (_key.PublicKeyParamSet == null)
-                    {
-                        ECDomainParameters kp = _key.Parameters;
-                        X9ECParameters ecP = new X9ECParameters(kp.Curve, new X9ECPoint(kp.G, false), kp.N, kp.H,
-                            kp.GetSeed());
-
-                        x962 = new X962Parameters(ecP);
-                    }
-                    else
-                    {
-                        x962 = new X962Parameters(_key.PublicKeyParamSet);
-                    }
-
-                    var q = _key.Q;
+                    var algParams = ECDomainParameters.ToX962Parameters(ecKey.Parameters);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     int encodedLength = q.GetEncodedLength(false);
@@ -186,67 +105,55 @@ namespace Org.BouncyCastle.X509
                     byte[] pubKey = q.GetEncoded(false);
 #endif
 
-                    AlgorithmIdentifier algID = new AlgorithmIdentifier(
-                        X9ObjectIdentifiers.IdECPublicKey, x962.ToAsn1Object());
-
+                    var algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, algParams);
                     return new SubjectPublicKeyInfo(algID, pubKey);
                 }
-            } // End of EC
+            }
 
-            if (publicKey is Gost3410PublicKeyParameters)
+            if (publicKey is Gost3410PublicKeyParameters gost3410Key)
             {
-                Gost3410PublicKeyParameters _key = (Gost3410PublicKeyParameters) publicKey;
-
-                if (_key.PublicKeyParamSet == null)
+                if (gost3410Key.PublicKeyParamSet == null)
                     throw new NotImplementedException("Not a CryptoPro parameter set");
 
                 // must be little endian
-                byte[] keyEnc = Arrays.ReverseInPlace(_key.Y.ToByteArrayUnsigned());
+                byte[] keyEnc = Arrays.ReverseInPlace(gost3410Key.Y.ToByteArrayUnsigned());
 
-                Gost3410PublicKeyAlgParameters algParams = new Gost3410PublicKeyAlgParameters(
-                    _key.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
-
-                AlgorithmIdentifier algID = new AlgorithmIdentifier(
-                    CryptoProObjectIdentifiers.GostR3410x94,
-                    algParams.ToAsn1Object());
-
+                var algParams = new Gost3410PublicKeyAlgParameters(gost3410Key.PublicKeyParamSet,
+                    CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
+                var algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x94, algParams);
                 return new SubjectPublicKeyInfo(algID, new DerOctetString(keyEnc));
             }
 
-            if (publicKey is X448PublicKeyParameters)
+            if (publicKey is X448PublicKeyParameters x448Key)
             {
-                X448PublicKeyParameters key = (X448PublicKeyParameters)publicKey;
-
+                var algID = new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448), key.DataSpan);
+                return new SubjectPublicKeyInfo(algID, x448Key.DataSpan);
 #else
-                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448), key.GetEncoded());
+                return new SubjectPublicKeyInfo(algID, x448Key.GetEncoded());
 #endif
             }
 
-            if (publicKey is X25519PublicKeyParameters)
+            if (publicKey is X25519PublicKeyParameters x25519Key)
             {
-                X25519PublicKeyParameters key = (X25519PublicKeyParameters)publicKey;
-
+                var algID = new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519), key.DataSpan);
+                return new SubjectPublicKeyInfo(algID, x25519Key.DataSpan);
 #else
-                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519), key.GetEncoded());
+                return new SubjectPublicKeyInfo(algID, x25519Key.GetEncoded());
 #endif
             }
 
-            if (publicKey is Ed448PublicKeyParameters)
+            if (publicKey is Ed448PublicKeyParameters ed448Key)
             {
-                Ed448PublicKeyParameters key = (Ed448PublicKeyParameters)publicKey;
-
-                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed448), key.GetEncoded());
+                var algID = new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed448);
+                return new SubjectPublicKeyInfo(algID, ed448Key.GetEncoded());
             }
 
-            if (publicKey is Ed25519PublicKeyParameters)
+            if (publicKey is Ed25519PublicKeyParameters ed25519Key)
             {
-                Ed25519PublicKeyParameters key = (Ed25519PublicKeyParameters)publicKey;
-
-                return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519), key.GetEncoded());
+                var algID = new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519);
+                return new SubjectPublicKeyInfo(algID, ed25519Key.GetEncoded());
             }
 
             if (publicKey is MLDsaPublicKeyParameters mlDsaKey)
@@ -276,35 +183,19 @@ namespace Org.BouncyCastle.X509
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
         }
 
-        private static void ExtractBytes(
-            byte[]		encKey,
-            int			offset,
-            BigInteger	bI)
+        private static Asn1OctetString CreateECGost3410PublicKey(int fieldSize, ECPoint q)
         {
-            byte[] val = bI.ToByteArray();
-            int n = (bI.BitLength + 7) / 8;
-
-            for (int i = 0; i < n; ++i)
-            {
-                encKey[offset + i] = val[val.Length - 1 - i];
-            }
+            byte[] encoding = new byte[fieldSize * 2];
+            EncodeECGost3410FieldElement(q.AffineXCoord.ToBigInteger(), encoding, 0, fieldSize);
+            EncodeECGost3410FieldElement(q.AffineYCoord.ToBigInteger(), encoding, fieldSize, fieldSize);
+            return DerOctetString.WithContents(encoding);
         }
 
-
-        private static void ExtractBytes(byte[] encKey, int size, int offSet, BigInteger bI)
+        private static void EncodeECGost3410FieldElement(BigInteger bi, byte[] buf, int off, int len)
         {
-            byte[] val = bI.ToByteArray();
-            if (val.Length < size)
-            {
-                byte[] tmp = new byte[size];
-                Array.Copy(val, 0, tmp, tmp.Length - val.Length, val.Length);
-                val = tmp;
-            }
-
-            for (int i = 0; i != size; i++)
-            {
-                encKey[offSet + i] = val[val.Length - 1 - i];
-            }
+            // TODO Add a little-endian option to do this in one go
+            BigIntegers.AsUnsignedByteArray(bi, buf, off, len);
+            Array.Reverse(buf, off, len);
         }
     }
 }

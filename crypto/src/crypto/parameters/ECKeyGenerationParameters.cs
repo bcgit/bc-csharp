@@ -1,41 +1,26 @@
-using System;
-
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ECKeyGenerationParameters
-		: KeyGenerationParameters
+        : KeyGenerationParameters
     {
-        private readonly ECDomainParameters domainParams;
-		private readonly DerObjectIdentifier publicKeyParamSet;
+        private readonly ECDomainParameters m_domainParameters;
 
-		public ECKeyGenerationParameters(
-			ECDomainParameters	domainParameters,
-			SecureRandom		random)
-			: base(random, domainParameters.N.BitLength)
+        public ECKeyGenerationParameters(ECDomainParameters domainParameters, SecureRandom random)
+            : base(random, domainParameters.N.BitLength)
         {
-            this.domainParams = domainParameters;
+            m_domainParameters = domainParameters;
         }
 
-		public ECKeyGenerationParameters(
-			DerObjectIdentifier	publicKeyParamSet,
-			SecureRandom		random)
-			: this(ECKeyParameters.LookupParameters(publicKeyParamSet), random)
-		{
-			this.publicKeyParamSet = publicKeyParamSet;
-		}
-
-		public ECDomainParameters DomainParameters
+        public ECKeyGenerationParameters(DerObjectIdentifier publicKeyParamSet, SecureRandom random)
+            : this(ECNamedDomainParameters.LookupOid(oid: publicKeyParamSet), random)
         {
-			get { return domainParams; }
         }
 
-		public DerObjectIdentifier PublicKeyParamSet
-		{
-			get { return publicKeyParamSet; }
-		}
+        public ECDomainParameters DomainParameters => m_domainParameters;
+
+        public DerObjectIdentifier PublicKeyParamSet => (m_domainParameters as ECNamedDomainParameters)?.Name;
     }
 }

@@ -1,53 +1,37 @@
-﻿using System;
-
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
+﻿using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ECGost3410Parameters
         : ECNamedDomainParameters
     {
-        private readonly DerObjectIdentifier _publicKeyParamSet;
-        private readonly DerObjectIdentifier _digestParamSet;
-        private readonly DerObjectIdentifier _encryptionParamSet;
+        private readonly DerObjectIdentifier m_publicKeyParamSet;
+        private readonly DerObjectIdentifier m_digestParamSet;
+        private readonly DerObjectIdentifier m_encryptionParamSet;
 
-        public DerObjectIdentifier PublicKeyParamSet
-        {
-            get { return _publicKeyParamSet; }
-        }
-
-        public DerObjectIdentifier DigestParamSet
-        {
-            get { return _digestParamSet; }
-        }
-
-        public DerObjectIdentifier EncryptionParamSet
-        {
-            get { return _encryptionParamSet; }
-        }
-
-        public ECGost3410Parameters(
-            ECNamedDomainParameters dp,
-            DerObjectIdentifier publicKeyParamSet,
-            DerObjectIdentifier digestParamSet,
-            DerObjectIdentifier encryptionParamSet)
+        public ECGost3410Parameters(ECNamedDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
+            DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
             : base(dp.Name, dp.Curve, dp.G, dp.N, dp.H, dp.GetSeed())
         {
-            this._publicKeyParamSet = publicKeyParamSet;
-            this._digestParamSet = digestParamSet;
-            this._encryptionParamSet = encryptionParamSet;
+            m_publicKeyParamSet = publicKeyParamSet;
+            m_digestParamSet = digestParamSet;
+            m_encryptionParamSet = encryptionParamSet;
         }
 
         public ECGost3410Parameters(ECDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
-            DerObjectIdentifier digestParamSet,
-            DerObjectIdentifier encryptionParamSet)
-            : base(publicKeyParamSet, dp.Curve, dp.G, dp.N, dp.H, dp.GetSeed())
+            DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
+            : base(dp is ECNamedDomainParameters ndp ? ndp.Name : publicKeyParamSet, dp.Curve, dp.G, dp.N, dp.H,
+                  dp.GetSeed())
         {
-            this._publicKeyParamSet = publicKeyParamSet;
-            this._digestParamSet = digestParamSet;
-            this._encryptionParamSet = encryptionParamSet;
+            m_publicKeyParamSet = publicKeyParamSet;
+            m_digestParamSet = digestParamSet;
+            m_encryptionParamSet = encryptionParamSet;
         }
+
+        public DerObjectIdentifier PublicKeyParamSet => m_publicKeyParamSet;
+
+        public DerObjectIdentifier DigestParamSet => m_digestParamSet;
+
+        public DerObjectIdentifier EncryptionParamSet => m_encryptionParamSet;
     }
 }

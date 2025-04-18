@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.Gnu;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -152,7 +153,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 else if (key is ECPublicBcpgKey ecK)
                 {
                     var curveOid = ecK.CurveOid;
-                    X9ECParametersHolder ecParameters = ECKeyPairGenerator.FindECCurveByOidLazy(curveOid);
+                    X9ECParametersHolder ecParameters = ECUtilities.FindECCurveByOidLazy(curveOid);
 
                     if (ecParameters != null)
                     {
@@ -657,7 +658,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private ECPublicKeyParameters GetECKey(string algorithm, ECPublicBcpgKey ecK)
         {
-            X9ECParameters x9 = ECKeyPairGenerator.FindECCurveByOid(ecK.CurveOid);
+            var parameters = ECNamedDomainParameters.LookupOid(ecK.CurveOid);
+
             BigInteger encodedPoint = ecK.EncodedPoint;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -666,12 +668,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 ? stackalloc byte[encodedLength]
                 : new byte[encodedLength];
             BigIntegers.AsUnsignedByteArray(encodedPoint, encoding);
-            ECPoint q = x9.Curve.DecodePoint(encoding);
+            ECPoint q = parameters.Curve.DecodePoint(encoding);
 #else
-            ECPoint q = x9.Curve.DecodePoint(BigIntegers.AsUnsignedByteArray(encodedPoint));
+            ECPoint q = parameters.Curve.DecodePoint(BigIntegers.AsUnsignedByteArray(encodedPoint));
 #endif
 
-            return new ECPublicKeyParameters(algorithm, q, ecK.CurveOid);
+            return new ECPublicKeyParameters(algorithm, q, parameters);
         }
 
         /// <summary>Allows enumeration of any user IDs associated with the key.</summary>

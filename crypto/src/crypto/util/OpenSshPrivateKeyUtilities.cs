@@ -162,24 +162,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
                     if (sequence[3] is Asn1TaggedObject && sequence[2] is Asn1TaggedObject)
                     {
                         ECPrivateKeyStructure ecPrivateKey = ECPrivateKeyStructure.GetInstance(sequence);
-
-                        X962Parameters parameters = X962Parameters.GetInstance(ecPrivateKey.Parameters.ToAsn1Object());
-                        if (parameters.IsNamedCurve)
-                        {
-                            result = new ECPrivateKeyParameters(
-                                algorithm: "EC",
-                                d: ecPrivateKey.GetKey(),
-                                publicKeyParamSet: DerObjectIdentifier.GetInstance(parameters.Parameters));
-                        }
-                        else
-                        {
-                            X9ECParameters x9 = X9ECParameters.GetInstance(parameters.Parameters);
-
-                            result = new ECPrivateKeyParameters(
-                                algorithm: "EC",
-                                d: ecPrivateKey.GetKey(),
-                                parameters: new ECDomainParameters(x9));
-                        }
+                        X962Parameters parameters = X962Parameters.GetInstance(ecPrivateKey.Parameters);
+                        ECDomainParameters domainParameters = ECDomainParameters.FromX962Parameters(parameters);
+                        result = new ECPrivateKeyParameters("EC", ecPrivateKey.GetKey(), domainParameters);
                     }
                 }
             }
@@ -284,7 +269,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         /**
-         * allIntegers returns true if the sequence holds only DerInteger types.
+         * AllIntegers returns true if the sequence holds only DerInteger types.
          **/
         private static bool AllIntegers(Asn1Sequence sequence)
         {

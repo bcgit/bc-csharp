@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -26,7 +27,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         private static X9ECParametersHolder FindByOidLazy(DerObjectIdentifier oid) =>
-            ECKeyPairGenerator.FindECCurveByOidLazy(oid);
+            ECUtilities.FindECCurveByOidLazy(oid);
 
         static SshNamedCurves()
         {

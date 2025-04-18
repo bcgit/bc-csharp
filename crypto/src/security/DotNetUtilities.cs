@@ -15,6 +15,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.Crypto.EC;
 
 namespace Org.BouncyCastle.Security
 {
@@ -124,8 +125,8 @@ namespace Org.BouncyCastle.Security
             if (oid != null)
             {
                 string oidValue = oid.Value;
-                if (oidValue != null)
-                    return ECKeyPairGenerator.FindECCurveByOid(new DerObjectIdentifier(oidValue));
+                if (oidValue != null && DerObjectIdentifier.TryFromID(oidValue, out var bcOid))
+                    return ECUtilities.FindECCurveByOid(bcOid);
             }
             return null;
         }

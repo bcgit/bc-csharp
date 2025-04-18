@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -116,29 +117,10 @@ namespace Org.BouncyCastle.Security
             }
             else if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey))
             {
-                X962Parameters para = X962Parameters.GetInstance(algID.Parameters.ToAsn1Object());
-
-                X9ECParameters x9;
-                if (para.IsNamedCurve)
-                {
-                    x9 = ECKeyPairGenerator.FindECCurveByOid((DerObjectIdentifier)para.Parameters);
-                }
-                else
-                {
-                    x9 = X9ECParameters.GetInstance(para.Parameters);
-                }
-
-                Asn1OctetString key = new DerOctetString(keyInfo.PublicKey.GetBytes());
-                X9ECPoint derQ = new X9ECPoint(x9.Curve, key);
-                ECPoint q = derQ.Point;
-
-                if (para.IsNamedCurve)
-                {
-                    return new ECPublicKeyParameters("EC", q, (DerObjectIdentifier)para.Parameters);
-                }
-
-                ECDomainParameters dParams = new ECDomainParameters(x9);
-                return new ECPublicKeyParameters(q, dParams);
+                X962Parameters parameters = X962Parameters.GetInstance(algID.Parameters);
+                ECDomainParameters domainParameters = ECDomainParameters.FromX962Parameters(parameters);
+                ECPoint q = domainParameters.Curve.DecodePoint(keyInfo.PublicKey.GetBytes());
+                return new ECPublicKeyParameters("EC", q, domainParameters);
             }
             else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x2001))
             {

@@ -20,11 +20,8 @@ namespace Org.BouncyCastle.Pkcs
 {
     public static class PrivateKeyInfoFactory
     {
-        public static PrivateKeyInfo CreatePrivateKeyInfo(
-            AsymmetricKeyParameter privateKey)
-        {
-            return CreatePrivateKeyInfo(privateKey, null);
-        }
+        public static PrivateKeyInfo CreatePrivateKeyInfo(AsymmetricKeyParameter privateKey) =>
+            CreatePrivateKeyInfo(privateKey, null);
 
         /**
          * Create a PrivateKeyInfo representation of a private key with attributes.
@@ -37,71 +34,57 @@ namespace Org.BouncyCastle.Pkcs
         public static PrivateKeyInfo CreatePrivateKeyInfo(AsymmetricKeyParameter privateKey, Asn1Set attributes)
         {
             if (privateKey == null)
-                throw new ArgumentNullException("privateKey");
+                throw new ArgumentNullException(nameof(privateKey));
             if (!privateKey.IsPrivate)
-                throw new ArgumentException("Public key passed - private key expected", "privateKey");
+                throw new ArgumentException("Public key passed - private key expected", nameof(privateKey));
 
-            if (privateKey is ElGamalPrivateKeyParameters)
+            if (privateKey is ElGamalPrivateKeyParameters elGamalKey)
             {
-                ElGamalPrivateKeyParameters _key = (ElGamalPrivateKeyParameters)privateKey;
-                ElGamalParameters egp = _key.Parameters;
-                return new PrivateKeyInfo(
-                    new AlgorithmIdentifier(OiwObjectIdentifiers.ElGamalAlgorithm, new ElGamalParameter(egp.P, egp.G).ToAsn1Object()),
-                    new DerInteger(_key.X),
-                    attributes);
+                ElGamalParameters egp = elGamalKey.Parameters;
+                var algParams = new ElGamalParameter(egp.P, egp.G);
+                var algID = new AlgorithmIdentifier(OiwObjectIdentifiers.ElGamalAlgorithm, algParams);
+                return new PrivateKeyInfo(algID, new DerInteger(elGamalKey.X), attributes);
             }
 
-            if (privateKey is DsaPrivateKeyParameters)
+            if (privateKey is DsaPrivateKeyParameters dsaKey)
             {
-                DsaPrivateKeyParameters _key = (DsaPrivateKeyParameters)privateKey;
-                DsaParameters dp = _key.Parameters;
-                return new PrivateKeyInfo(
-                    new AlgorithmIdentifier(X9ObjectIdentifiers.IdDsa, new DsaParameter(dp.P, dp.Q, dp.G).ToAsn1Object()),
-                    new DerInteger(_key.X),
-                    attributes);
+                DsaParameters dp = dsaKey.Parameters;
+                var algParams = new DsaParameter(dp.P, dp.Q, dp.G);
+                var algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdDsa, algParams);
+                return new PrivateKeyInfo(algID, new DerInteger(dsaKey.X), attributes);
             }
 
-            if (privateKey is DHPrivateKeyParameters)
+            if (privateKey is DHPrivateKeyParameters dhKey)
             {
-                DHPrivateKeyParameters _key = (DHPrivateKeyParameters)privateKey;
-
-                DHParameter p = new DHParameter(
-                    _key.Parameters.P, _key.Parameters.G, _key.Parameters.L);
-
-                return new PrivateKeyInfo(
-                    new AlgorithmIdentifier(_key.AlgorithmOid, p.ToAsn1Object()),
-                    new DerInteger(_key.X),
-                    attributes);
+                DHParameters dp = dhKey.Parameters;
+                var algParams = new DHParameter(dp.P, dp.G, dp.L);
+                var algID = new AlgorithmIdentifier(dhKey.AlgorithmOid, algParams);
+                return new PrivateKeyInfo(algID, new DerInteger(dhKey.X), attributes);
             }
 
-            if (privateKey is RsaKeyParameters)
+            if (privateKey is RsaKeyParameters rsaKey)
             {
-                AlgorithmIdentifier algID = new AlgorithmIdentifier(
-                    PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
+                var algID = new AlgorithmIdentifier(PkcsObjectIdentifiers.RsaEncryption, DerNull.Instance);
 
                 RsaPrivateKeyStructure keyStruct;
-                if (privateKey is RsaPrivateCrtKeyParameters)
+                if (privateKey is RsaPrivateCrtKeyParameters crtKey)
                 {
-                    RsaPrivateCrtKeyParameters _key = (RsaPrivateCrtKeyParameters)privateKey;
-
                     keyStruct = new RsaPrivateKeyStructure(
-                        _key.Modulus,
-                        _key.PublicExponent,
-                        _key.Exponent,
-                        _key.P,
-                        _key.Q,
-                        _key.DP,
-                        _key.DQ,
-                        _key.QInv);
+                        crtKey.Modulus,
+                        crtKey.PublicExponent,
+                        crtKey.Exponent,
+                        crtKey.P,
+                        crtKey.Q,
+                        crtKey.DP,
+                        crtKey.DQ,
+                        crtKey.QInv);
                 }
                 else
                 {
-                    RsaKeyParameters _key = (RsaKeyParameters) privateKey;
-
                     keyStruct = new RsaPrivateKeyStructure(
-                        _key.Modulus,
+                        rsaKey.Modulus,
                         BigInteger.Zero,
-                        _key.Exponent,
+                        rsaKey.Exponent,
                         BigInteger.Zero,
                         BigInteger.Zero,
                         BigInteger.Zero,
@@ -109,12 +92,12 @@ namespace Org.BouncyCastle.Pkcs
                         BigInteger.Zero);
                 }
 
-                return new PrivateKeyInfo(algID, keyStruct.ToAsn1Object(), attributes);
+                return new PrivateKeyInfo(algID, keyStruct, attributes);
             }
 
-            if (privateKey is ECPrivateKeyParameters priv)
+            if (privateKey is ECPrivateKeyParameters ecKey)
             {
-                var pub = ECKeyPairGenerator.GetCorrespondingPublicKey(priv);
+                var pub = ECKeyPairGenerator.GetCorrespondingPublicKey(ecKey);
                 var q = pub.Q;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -129,7 +112,7 @@ namespace Org.BouncyCastle.Pkcs
 
                 DerBitString publicKey = new DerBitString(pubEncoding);
 
-                ECDomainParameters dp = priv.Parameters;
+                ECDomainParameters dp = ecKey.Parameters;
 
                 // ECGOST3410
                 if (dp is ECGost3410Parameters domainParameters)
@@ -139,7 +122,7 @@ namespace Org.BouncyCastle.Pkcs
                         (domainParameters).DigestParamSet,
                         (domainParameters).EncryptionParamSet);
 
-                    bool is512 = priv.D.BitLength > 256;
+                    bool is512 = ecKey.D.BitLength > 256;
                     DerObjectIdentifier identifier = (is512) ?
                         RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512 :
                         RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
@@ -147,9 +130,10 @@ namespace Org.BouncyCastle.Pkcs
 
                     byte[] encKey = new byte[size];
 
-                    ExtractBytes(encKey, size, 0, priv.D);
+                    ExtractBytes(encKey, size, 0, ecKey.D);
 
-                    return new PrivateKeyInfo(new AlgorithmIdentifier(identifier, gostParams), new DerOctetString(encKey));
+                    return new PrivateKeyInfo(new AlgorithmIdentifier(identifier, gostParams),
+                        new DerOctetString(encKey));
                 } 
 
 
@@ -158,34 +142,24 @@ namespace Org.BouncyCastle.Pkcs
                 AlgorithmIdentifier algID;
                 ECPrivateKeyStructure ec;
 
-                if (priv.AlgorithmName == "ECGOST3410")
+                if (ecKey.AlgorithmName == "ECGOST3410")
                 {
-                    if (priv.PublicKeyParamSet == null)
+                    if (ecKey.PublicKeyParamSet == null)
                         throw new NotImplementedException("Not a CryptoPro parameter set");
 
                     Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
-                        priv.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
+                        ecKey.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
 
                     algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x2001, gostParams);
 
                     // TODO Do we need to pass any parameters here?
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, null);
+                    ec = new ECPrivateKeyStructure(orderBitLength, ecKey.D, publicKey, null);
                 }
                 else
                 {
-                    X962Parameters x962;
-                    if (priv.PublicKeyParamSet == null)
-                    {
-                        X9ECParameters ecP = new X9ECParameters(dp.Curve, new X9ECPoint(dp.G, false), dp.N, dp.H,
-                            dp.GetSeed());
-                        x962 = new X962Parameters(ecP);
-                    }
-                    else
-                    {
-                        x962 = new X962Parameters(priv.PublicKeyParamSet);
-                    }
+                    X962Parameters x962 = ECDomainParameters.ToX962Parameters(dp);
 
-                    ec = new ECPrivateKeyStructure(orderBitLength, priv.D, publicKey, x962);
+                    ec = new ECPrivateKeyStructure(orderBitLength, ecKey.D, publicKey, x962);
 
                     algID = new AlgorithmIdentifier(X9ObjectIdentifiers.IdECPublicKey, x962);
                 }
@@ -193,56 +167,48 @@ namespace Org.BouncyCastle.Pkcs
                 return new PrivateKeyInfo(algID, ec, attributes);
             }
 
-            if (privateKey is Gost3410PrivateKeyParameters)
+            if (privateKey is Gost3410PrivateKeyParameters gost3410Key)
             {
-                Gost3410PrivateKeyParameters _key = (Gost3410PrivateKeyParameters)privateKey;
-
-                if (_key.PublicKeyParamSet == null)
+                if (gost3410Key.PublicKeyParamSet == null)
                     throw new NotImplementedException("Not a CryptoPro parameter set");
 
                 // must be little endian
-                byte[] keyEnc = Arrays.ReverseInPlace(_key.X.ToByteArrayUnsigned());
+                byte[] keyEnc = Arrays.ReverseInPlace(gost3410Key.X.ToByteArrayUnsigned());
 
                 Gost3410PublicKeyAlgParameters algParams = new Gost3410PublicKeyAlgParameters(
-                    _key.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet, null);
+                    gost3410Key.PublicKeyParamSet, CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet, null);
 
-                AlgorithmIdentifier algID = new AlgorithmIdentifier(
-                    CryptoProObjectIdentifiers.GostR3410x94,
-                    algParams.ToAsn1Object());
+                var algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x94, algParams);
 
                 return new PrivateKeyInfo(algID, new DerOctetString(keyEnc), attributes);
             }
 
-            if (privateKey is X448PrivateKeyParameters)
+            if (privateKey is X448PrivateKeyParameters x448Key)
             {
-                X448PrivateKeyParameters key = (X448PrivateKeyParameters)privateKey;
-
-                return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448),
-                    new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
+                var algID = new AlgorithmIdentifier(EdECObjectIdentifiers.id_X448);
+                return new PrivateKeyInfo(algID, new DerOctetString(x448Key.GetEncoded()), attributes,
+                    x448Key.GeneratePublicKey().GetEncoded());
             }
 
-            if (privateKey is X25519PrivateKeyParameters)
+            if (privateKey is X25519PrivateKeyParameters x25519Key)
             {
-                X25519PrivateKeyParameters key = (X25519PrivateKeyParameters)privateKey;
-
-                return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519),
-                    new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
+                var algID = new AlgorithmIdentifier(EdECObjectIdentifiers.id_X25519);
+                return new PrivateKeyInfo(algID, new DerOctetString(x25519Key.GetEncoded()), attributes,
+                    x25519Key.GeneratePublicKey().GetEncoded());
             }
 
-            if (privateKey is Ed448PrivateKeyParameters)
+            if (privateKey is Ed448PrivateKeyParameters ed448Key)
             {
-                Ed448PrivateKeyParameters key = (Ed448PrivateKeyParameters)privateKey;
-
-                return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed448),
-                    new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
+                var algID = new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed448);
+                return new PrivateKeyInfo(algID, new DerOctetString(ed448Key.GetEncoded()), attributes,
+                    ed448Key.GeneratePublicKey().GetEncoded());
             }
 
-            if (privateKey is Ed25519PrivateKeyParameters)
+            if (privateKey is Ed25519PrivateKeyParameters ed25519Key)
             {
-                Ed25519PrivateKeyParameters key = (Ed25519PrivateKeyParameters)privateKey;
-
-                return new PrivateKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519),
-                    new DerOctetString(key.GetEncoded()), attributes, key.GeneratePublicKey().GetEncoded());
+                var algID = new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519);
+                return new PrivateKeyInfo(algID, new DerOctetString(ed25519Key.GetEncoded()), attributes,
+                    ed25519Key.GeneratePublicKey().GetEncoded());
             }
 
             if (privateKey is MLDsaPrivateKeyParameters mlDsaKey)
@@ -282,16 +248,10 @@ namespace Org.BouncyCastle.Pkcs
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));
         }
 
-        public static PrivateKeyInfo CreatePrivateKeyInfo(
-            char[]					passPhrase,
-            EncryptedPrivateKeyInfo	encInfo)
-        {
-            return CreatePrivateKeyInfo(passPhrase, false, encInfo);
-        }
+        public static PrivateKeyInfo CreatePrivateKeyInfo(char[] passPhrase, EncryptedPrivateKeyInfo encInfo) =>
+            CreatePrivateKeyInfo(passPhrase, false, encInfo);
 
-        public static PrivateKeyInfo CreatePrivateKeyInfo(
-            char[]					passPhrase,
-            bool					wrongPkcs12Zero,
+        public static PrivateKeyInfo CreatePrivateKeyInfo(char[] passPhrase, bool wrongPkcs12Zero,
             EncryptedPrivateKeyInfo	encInfo)
         {
             AlgorithmIdentifier algID = encInfo.EncryptionAlgorithm;
