@@ -120,24 +120,6 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
-        ///**
-        // * return true if the passed in string can be represented without
-        // * loss as a PrintableString, false otherwise.
-        // */
-        //private bool CanBePrintable(
-        //    string str)
-        //{
-        //    for (int i = str.Length - 1; i >= 0; i--)
-        //    {
-        //        if (str[i] > 0x007f)
-        //        {
-        //            return false;
-        //        }
-        //    }
-
-        //    return true;
-        //}
-
         /**
          * Creates a new <code>DisplayText</code> instance.
          *

@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Asn1.Cms
     /**
      * <a href="https://tools.ietf.org/html/rfc5544">RFC 5544</a>:
      * Binding Documents with Time-Stamps; Evidence object.
-     * <p>
+     * <p/>
      * <pre>
      * Evidence ::= CHOICE {
      *     tstEvidence    [0] TimeStampTokenEvidence,   -- see RFC 3161
