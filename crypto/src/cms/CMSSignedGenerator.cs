@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -57,6 +58,7 @@ namespace Org.BouncyCastle.Cms
         public static readonly string DigestSha512 = NistObjectIdentifiers.IdSha512.Id;
         public static readonly string DigestSha512_224 = NistObjectIdentifiers.IdSha512_224.Id;
         public static readonly string DigestSha512_256 = NistObjectIdentifiers.IdSha512_256.Id;
+        public static readonly string DigestSM3 = GMObjectIdentifiers.sm3.Id;
 
         public static readonly string DigestSha3_224 = NistObjectIdentifiers.IdSha3_224.Id;
         public static readonly string DigestSha3_256 = NistObjectIdentifiers.IdSha3_256.Id;
@@ -77,6 +79,7 @@ namespace Org.BouncyCastle.Cms
         public static readonly string EncryptionECGost3410 = CryptoProObjectIdentifiers.GostR3410x2001.Id;
         public static readonly string EncryptionECGost3410_2012_256 = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256.Id;
         public static readonly string EncryptionECGost3410_2012_512 = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512.Id;
+        public static readonly string EncryptionSM2 = GMObjectIdentifiers.sm2encrypt.Id;
 
         internal List<Asn1Encodable> _certs = new List<Asn1Encodable>();
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
