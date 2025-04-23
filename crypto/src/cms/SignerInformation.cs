@@ -5,6 +5,7 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -320,6 +321,25 @@ namespace Org.BouncyCastle.Cms
                 }
 
                 sig = SignerUtilities.GetSigner(sigAlgOid);
+            }
+			else if (GMObjectIdentifiers.sm2p256v1.Equals(sigAlgOid))
+            {
+                if (sigAlgParams != null && sigAlgParams != DerNull.Instance)
+                    throw new CmsException("SM2 signature cannot specify algorithm parameters");
+
+                if (signedAttributeSet == null)
+                {
+                    digestName = null;
+                }
+                else
+                {
+                    if (!GMObjectIdentifiers.sm3.Equals(digAlgOid) || (digAlgParams != null && digAlgParams != DerNull.Instance))
+                        throw new CmsException("SM2 signature used with unsupported digest algorithm");
+
+                    digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
+                }
+                string signatureName = digestName + "with" + CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
+                sig = SignerUtilities.GetSigner(signatureName);
             }
             //else if (EdECObjectIdentifiers.id_Ed448.Equals(sigAlgOid))
             //{

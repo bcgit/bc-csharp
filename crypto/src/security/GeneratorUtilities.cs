@@ -282,7 +282,7 @@ namespace Org.BouncyCastle.Security
             AddDefaultKeySizeEntries(80, "SKIPJACK");
             AddDefaultKeySizeEntries(128, "AES128", "ARIA128", "BLOWFISH", "CAMELLIA128", "CAST5", "CHACHA", "DESEDE",
                 "HC128", "HMACMD2", "HMACMD4", "HMACMD5", "HMACRIPEMD128", "IDEA", "NOEKEON",
-                "RC2", "RC4", "RC5", "SALSA20", "SEED", "SM4", "TEA", "XTEA", "VMPC", "VMPC-KSA3");
+                "RC2", "RC4", "RC5", "SALSA20", "SEED", "SM4", "TEA", "XTEA", "VMPC", "VMPC-KSA3", "ZUC128");
             AddDefaultKeySizeEntries(160, "HMACRIPEMD160", "HMACSHA1");
             AddDefaultKeySizeEntries(192, "AES", "AES192", "ARIA192", "CAMELLIA192", "DESEDE3", "HMACTIGER",
                 "RIJNDAEL", "SERPENT", "TNEPRES");
@@ -290,7 +290,7 @@ namespace Org.BouncyCastle.Security
                 "HMACSHA512-224");
             AddDefaultKeySizeEntries(256, "AES256", "ARIA", "ARIA256", "CAMELLIA", "CAMELLIA256", "CAST6",
                 "CHACHA7539", "GOST28147", "HC256", "HMACGOST3411-2012-256", "HMACSHA3-256", "HMACKECCAK256",
-                "HMACSHA256", "HMACSHA512/256", "HMACSHA512-256", "RC5-64", "RC6", "THREEFISH-256", "TWOFISH");
+                "HMACSHA256", "HMACSHA512/256", "HMACSHA512-256", "RC5-64", "RC6", "THREEFISH-256", "TWOFISH", "ZUC256");
             AddDefaultKeySizeEntries(288, "HMACKECCAK288");
             AddDefaultKeySizeEntries(384, "HMACSHA3-384", "HMACKECCAK384", "HMACSHA384");
             AddDefaultKeySizeEntries(512, "HMACGOST3411-2012-512", "HMACSHA3-512", "HMACKECCAK512", "HMACSHA512",

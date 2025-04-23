@@ -11,6 +11,7 @@ using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Asn1.GM;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
@@ -49,6 +50,8 @@ namespace Org.BouncyCastle.Crypto.Signers
             OidMap["MD2"] = PkcsObjectIdentifiers.MD2;
             OidMap["MD4"] = PkcsObjectIdentifiers.MD4;
             OidMap["MD5"] = PkcsObjectIdentifiers.MD5;
+
+            OidMap["SM3"] = GMObjectIdentifiers.sm3;
         }
 
         public RsaDigestSigner(IDigest digest)
