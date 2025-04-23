@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security.Certificates;
 
 namespace Org.BouncyCastle.X509
 {
@@ -134,7 +132,7 @@ namespace Org.BouncyCastle.X509
 		public void AddCrl(X509Crl other)
 		{
 			if (other == null)
-				throw new ArgumentNullException("other");
+				throw new ArgumentNullException(nameof(other));
 
 			var revocations = other.GetRevokedCertificates();
 
@@ -142,16 +140,7 @@ namespace Org.BouncyCastle.X509
 			{
 				foreach (X509CrlEntry entry in revocations)
 				{
-					try
-					{
-						tbsGen.AddCrlEntry(
-							Asn1Sequence.GetInstance(
-							Asn1Object.FromByteArray(entry.GetEncoded())));
-					}
-					catch (IOException e)
-					{
-						throw new CrlException("exception processing encoding of CRL", e);
-					}
+                    tbsGen.AddCrlEntry(Asn1Sequence.GetInstance(entry.CrlEntry));
 				}
 			}
 		}
@@ -254,6 +243,7 @@ namespace Org.BouncyCastle.X509
 		/// <summary>
 		/// Allows enumeration of the signature names supported by the generator.
 		/// </summary>
+        [Obsolete("Will be removed")]
 		public IEnumerable<string> SignatureAlgNames
 		{
 			get { return X509Utilities.GetAlgNames(); }

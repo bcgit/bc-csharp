@@ -1,9 +1,12 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
+    [Obsolete("Use ML-DSA instead")]
     public class DilithiumSigner 
         : IMessageSigner
     {
@@ -42,15 +45,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
         {
             DilithiumEngine engine = privKey.Parameters.GetEngine(random);
             byte[] sig = new byte[engine.CryptoBytes];
-            engine.Sign(sig, sig.Length, message, message.Length, privKey.m_rho, privKey.m_k, privKey.m_tr,
-                privKey.m_t0, privKey.m_s1, privKey.m_s2);
+            engine.Sign(sig, sig.Length, message, 0, message.Length, privKey.m_rho, privKey.m_k, privKey.m_tr,
+                privKey.m_t0, privKey.m_s1, privKey.m_s2, legacy: true);
             return sig;
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)
         {
-            DilithiumEngine engine = pubKey.Parameters.GetEngine(random);
-            return engine.SignOpen(message,signature, signature.Length, pubKey.m_rho, pubKey.m_t1);
+            var engine = pubKey.Parameters.GetEngine(random);
+            var tr = DilithiumEngine.CalculatePublicKeyHash(pubKey.m_rho, pubKey.m_t1);
+            return engine.VerifyInternal(signature, signature.Length, message, 0, message.Length, pubKey.m_rho,
+                pubKey.m_t1, tr);
         }
     }
 }

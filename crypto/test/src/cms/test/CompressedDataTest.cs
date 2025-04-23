@@ -1,18 +1,16 @@
-using System;
 using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Cms.Tests
 {
-	[TestFixture]
-	public class CompressedDataTest
+    [TestFixture]
+    [Parallelizable(ParallelScope.All)]
+    public class CompressedDataTest
 	{
 		private static readonly byte[] TEST_DATA = Encoding.ASCII.GetBytes("Hello world!");
 

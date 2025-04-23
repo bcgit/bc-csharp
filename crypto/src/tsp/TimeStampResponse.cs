@@ -72,10 +72,7 @@ namespace Org.BouncyCastle.Tsp
 			}
 		}
 
-		public int Status
-		{
-			get { return resp.Status.Status.IntValue; }
-		}
+		public int Status => resp.Status.StatusObject.IntValueExact;
 
 		public string GetStatusString()
 		{

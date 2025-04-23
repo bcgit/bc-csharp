@@ -127,37 +127,37 @@ namespace Org.BouncyCastle.Asn1.X509
 		/**
          * Authority Info Access
          */
-		public static readonly DerObjectIdentifier AuthorityInfoAccess = new DerObjectIdentifier("1.3.6.1.5.5.7.1.1");
+		public static readonly DerObjectIdentifier AuthorityInfoAccess = X509ObjectIdentifiers.IdPE.Branch("1");
 
-		/**
-		 * Subject Info Access
-		 */
-		public static readonly DerObjectIdentifier SubjectInfoAccess = new DerObjectIdentifier("1.3.6.1.5.5.7.1.11");
-
-		/**
-		 * Logo Type
-		 */
-		public static readonly DerObjectIdentifier LogoType = new DerObjectIdentifier("1.3.6.1.5.5.7.1.12");
-
-		/**
+        /**
 		 * BiometricInfo
 		 */
-		public static readonly DerObjectIdentifier BiometricInfo = new DerObjectIdentifier("1.3.6.1.5.5.7.1.2");
+        public static readonly DerObjectIdentifier BiometricInfo = X509ObjectIdentifiers.IdPE.Branch("2");
 
-		/**
+        /**
 		 * QCStatements
 		 */
-		public static readonly DerObjectIdentifier QCStatements = new DerObjectIdentifier("1.3.6.1.5.5.7.1.3");
+        public static readonly DerObjectIdentifier QCStatements = X509ObjectIdentifiers.IdPE.Branch("3");
 
-		/**
+        /**
 		 * Audit identity extension in attribute certificates.
 		 */
-		public static readonly DerObjectIdentifier AuditIdentity = new DerObjectIdentifier("1.3.6.1.5.5.7.1.4");
+        public static readonly DerObjectIdentifier AuditIdentity = X509ObjectIdentifiers.IdPE.Branch("4");
 
-		/**
+        /**
+		 * Subject Info Access
+		 */
+        public static readonly DerObjectIdentifier SubjectInfoAccess = X509ObjectIdentifiers.IdPE.Branch("11");
+
+        /**
+		 * Logo Type
+		 */
+        public static readonly DerObjectIdentifier LogoType = X509ObjectIdentifiers.IdPE.Branch("12");
+
+        /**
 		 * NoRevAvail extension in attribute certificates.
 		 */
-		public static readonly DerObjectIdentifier NoRevAvail = new DerObjectIdentifier("2.5.29.56");
+        public static readonly DerObjectIdentifier NoRevAvail = new DerObjectIdentifier("2.5.29.56");
 
 		/**
 		 * TargetInformation extension in attribute certificates.
@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly DerObjectIdentifier ExpiredCertsOnCrl = new DerObjectIdentifier("2.5.29.60");
 
         /**
-         * the subject’s alternative public key information
+         * the subjectï¿½s alternative public key information
          */
         public static readonly DerObjectIdentifier SubjectAltPublicKeyInfo = new DerObjectIdentifier("2.5.29.72");
 
@@ -183,6 +183,12 @@ namespace Org.BouncyCastle.Asn1.X509
          * alternative signature shall be created by the issuer using its alternative private key.
          */
         public static readonly DerObjectIdentifier AltSignatureValue = new DerObjectIdentifier("2.5.29.74");
+
+        /**
+         * delta certificate extension - prototype value will change!
+         */
+        public static readonly DerObjectIdentifier DRAFT_DeltaCertificateDescriptor =
+            new DerObjectIdentifier("2.16.840.1.114027.80.6.1");
 
         private readonly Dictionary<DerObjectIdentifier, X509Extension> m_extensions =
             new Dictionary<DerObjectIdentifier, X509Extension>();
@@ -320,6 +326,8 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        public int Count => m_ordering.Count;
+
 		/**
 		 * return an Enumeration of the extension field's object ids.
 		 */
@@ -377,6 +385,30 @@ namespace Org.BouncyCastle.Asn1.X509
 			return new DerSequence(v);
         }
 
+        internal Asn1Sequence ToAsn1ObjectTrimmed()
+        {
+            int count = m_ordering.Count - (m_extensions.ContainsKey(AltSignatureValue) ? 1 : 0);
+
+            Asn1EncodableVector v = new Asn1EncodableVector(count);
+
+            foreach (DerObjectIdentifier oid in m_ordering)
+            {
+                if (AltSignatureValue.Equals(oid))
+                    continue;
+
+                X509Extension ext = m_extensions[oid];
+                if (ext.IsCritical)
+                {
+                    v.Add(new DerSequence(oid, DerBoolean.True, ext.Value));
+                }
+                else
+                {
+                    v.Add(new DerSequence(oid, ext.Value));
+                }
+            }
+
+            return new DerSequence(v);
+        }
 		public bool Equivalent(X509Extensions other)
 		{
 			if (m_extensions.Count != other.m_extensions.Count)
@@ -391,22 +423,24 @@ namespace Org.BouncyCastle.Asn1.X509
 			return true;
 		}
 
-		public DerObjectIdentifier[] GetExtensionOids()
-		{
-            return m_ordering.ToArray();
-		}
+		public DerObjectIdentifier[] GetExtensionOids() => m_ordering.ToArray();
 
-		public DerObjectIdentifier[] GetNonCriticalExtensionOids()
-		{
-			return GetExtensionOids(false);
-		}
+		public DerObjectIdentifier[] GetNonCriticalExtensionOids() => GetExtensionOids(false);
 
-		public DerObjectIdentifier[] GetCriticalExtensionOids()
-		{
-			return GetExtensionOids(true);
-		}
+		public DerObjectIdentifier[] GetCriticalExtensionOids() => GetExtensionOids(true);
 
-		private DerObjectIdentifier[] GetExtensionOids(bool isCritical)
+        public bool HasAnyCriticalExtensions()
+        {
+            foreach (DerObjectIdentifier oid in m_ordering)
+            {
+                if (m_extensions[oid].IsCritical)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private DerObjectIdentifier[] GetExtensionOids(bool isCritical)
 		{
 			var oids = new List<DerObjectIdentifier>();
 

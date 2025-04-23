@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.Misc
 
         //
         // Entrust
-        //       iso(1) member-body(16) us(840) nortelnetworks(113533) entrust(7)
+        //       iso(1) member-body(2) us(840) nortelnetworks(113533) entrust(7)
         //
         public static readonly DerObjectIdentifier Entrust = new DerObjectIdentifier("1.2.840.113533.7");
         public static readonly DerObjectIdentifier EntrustVersionExtension = Entrust.Branch("65.0");

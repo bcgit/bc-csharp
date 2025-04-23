@@ -30,29 +30,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Owcpa
             byte[] publicKey;
             var privateKey = new byte[_parameterSet.OwcpaSecretKeyBytes()];
             var n = _parameterSet.N;
-            var q = _parameterSet.Q();
+
             int i;
-            PolynomialPair pair;
-            Polynomial x1, x2, x3, x4, x5;
-            x1 = _parameterSet.CreatePolynomial();
-            x2 = _parameterSet.CreatePolynomial();
-            x3 = _parameterSet.CreatePolynomial();
-            x4 = _parameterSet.CreatePolynomial();
-            x5 = _parameterSet.CreatePolynomial();
+            Polynomial x3 = _parameterSet.CreatePolynomial();
+            Polynomial x4 = _parameterSet.CreatePolynomial();
+            Polynomial x5 = _parameterSet.CreatePolynomial();
 
-            Polynomial f, g, invfMod3 = x3;
-            Polynomial gf = x3, invgf = x4, tmp = x5;
-            Polynomial invh = x3, h = x3;
+            PolynomialPair pair = _sampling.SampleFg(seed);
+            Polynomial f = pair.F();
+            Polynomial g = pair.G();
 
-            pair = _sampling.SampleFg(seed);
-            f = pair.F();
-            g = pair.G();
+            x3.S3Inv(f);
+            f.S3ToBytes(privateKey, 0);
+            x3.S3ToBytes(privateKey, _parameterSet.PackTrinaryBytes());
 
-            invfMod3.S3Inv(f);
-            var fs3ToBytes = f.S3ToBytes(_parameterSet.OwcpaMsgBytes());
-            Array.Copy(fs3ToBytes, 0, privateKey, 0, fs3ToBytes.Length);
-            var s3Res = invfMod3.S3ToBytes(privateKey.Length - _parameterSet.PackTrinaryBytes());
-            Array.Copy(s3Res, 0, privateKey, _parameterSet.PackTrinaryBytes(), s3Res.Length);
 
             f.Z3ToZq();
             g.Z3ToZq();
@@ -75,17 +66,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Owcpa
                 }
             }
 
-            gf.RqMul(g, f);
-            invgf.RqInv(gf);
+            x3.RqMul(g, f);
+            x4.RqInv(x3);
 
-            tmp.RqMul(invgf, f);
-            invh.SqMul(tmp, f);
-            var sqRes = invh.SqToBytes(privateKey.Length - 2 * _parameterSet.PackTrinaryBytes());
+            x5.RqMul(x4, f);
+            x3.SqMul(x5, f);
+            var sqRes = x3.SqToBytes(privateKey.Length - 2 * _parameterSet.PackTrinaryBytes());
             Array.Copy(sqRes, 0, privateKey, 2 * _parameterSet.PackTrinaryBytes(), sqRes.Length);
 
-            tmp.RqMul(invgf, g);
-            h.RqMul(tmp, g);
-            publicKey = h.RqSumZeroToBytes(_parameterSet.OwcpaPublicKeyBytes());
+            x5.RqMul(x4, g);
+            x3.RqMul(x5, g);
+            publicKey = x3.RqSumZeroToBytes(_parameterSet.OwcpaPublicKeyBytes());
 
             return new OwcpaKeyPair(publicKey, privateKey);
         }
@@ -100,22 +91,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Owcpa
         internal byte[] Encrypt(Polynomial r, Polynomial m, byte[] publicKey)
         {
             int i;
-            Polynomial x1 = _parameterSet.CreatePolynomial(), x2 = _parameterSet.CreatePolynomial();
-            Polynomial h = x1, liftm = x1;
-            Polynomial ct = x2;
+            Polynomial x1 = _parameterSet.CreatePolynomial(); // h, liftm
+            Polynomial x2 = _parameterSet.CreatePolynomial(); // ct
 
-            h.RqSumZeroFromBytes(publicKey);
+            x1.RqSumZeroFromBytes(publicKey);
 
-            ct.RqMul(r, h);
+            x2.RqMul(r, x1);
 
-            liftm.Lift(m);
+            x1.Lift(m);
 
             for (i = 0; i < _parameterSet.N; i++)
             {
-                ct.coeffs[i] += liftm.coeffs[i];
+                x2.coeffs[i] += x1.coeffs[i];
             }
 
-            return ct.RqSumZeroToBytes(_parameterSet.NtruCiphertextBytes());
+            return x2.RqSumZeroToBytes(_parameterSet.NtruCiphertextBytes());
         }
 
         /// <summary>
@@ -126,33 +116,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Owcpa
         /// <returns>an instance of <see cref="OwcpaDecryptResult"/> containing <c>packed_rm</c> an  fail flag</returns>
         internal OwcpaDecryptResult Decrypt(byte[] ciphertext, byte[] privateKey)
         {
-            byte[] sk = privateKey;
             byte[] rm = new byte[_parameterSet.OwcpaMsgBytes()];
             int i, fail;
-            Polynomial x1 = _parameterSet.CreatePolynomial();
-            Polynomial x2 = _parameterSet.CreatePolynomial();
-            Polynomial x3 = _parameterSet.CreatePolynomial();
-            Polynomial x4 = _parameterSet.CreatePolynomial();
+            Polynomial x1 = _parameterSet.CreatePolynomial(); // c, b
+            Polynomial x2 = _parameterSet.CreatePolynomial(); // f, mf, liftm
+            Polynomial x3 = _parameterSet.CreatePolynomial(); // cf, finv3, invh
+            Polynomial x4 = _parameterSet.CreatePolynomial(); // m, r
 
-            Polynomial c = x1, f = x2, cf = x3;
-            Polynomial mf = x2, finv3 = x3, m = x4;
-            Polynomial liftm = x2, invh = x3, r = x4;
-            Polynomial b = x1;
+            x1.RqSumZeroFromBytes(ciphertext);
+            x2.S3FromBytes(privateKey);
 
-            c.RqSumZeroFromBytes(ciphertext);
-            f.S3FromBytes(sk);
+            x2.Z3ToZq();
 
-            f.Z3ToZq();
+            x3.RqMul(x1, x2);
 
-            cf.RqMul(c, f);
+            x2.RqToS3(x3);
 
-            mf.RqToS3(cf);
+            x3.S3FromBytes(Arrays.CopyOfRange(privateKey, _parameterSet.PackTrinaryBytes(), privateKey.Length));
 
-            finv3.S3FromBytes(Arrays.CopyOfRange(sk, _parameterSet.PackTrinaryBytes(), sk.Length));
+            x4.S3Mul(x2, x3);
 
-            m.S3Mul(mf, finv3);
-
-            byte[] arr1 = m.S3ToBytes(rm.Length - _parameterSet.PackTrinaryBytes());
+            //m.S3ToBytes(rm, 0);
+            x4.S3ToBytes(rm, _parameterSet.PackTrinaryBytes());
 
             fail = 0;
 
@@ -167,27 +152,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru.Owcpa
 
             if (_parameterSet is NtruHpsParameterSet)
             {
-                fail |= CheckM((HpsPolynomial)m);
+                fail |= CheckM((HpsPolynomial)x4);
             }
 
             /* b = c - Lift(m) mod (q, x^n - 1) */
-            liftm.Lift(m);
+            x2.Lift(x4);
 
             for (i = 0; i < _parameterSet.N; i++)
             {
-                b.coeffs[i] = (ushort)(c.coeffs[i] - liftm.coeffs[i]);
+                x1.coeffs[i] = (ushort)(x1.coeffs[i] - x2.coeffs[i]);
             }
 
             /* r = b / h mod (q, Phi_n) */
-            invh.SqFromBytes(Arrays.CopyOfRange(sk, 2 * _parameterSet.PackTrinaryBytes(), sk.Length));
-            r.SqMul(b, invh);
+            x3.SqFromBytes(Arrays.CopyOfRange(privateKey, 2 * _parameterSet.PackTrinaryBytes(), privateKey.Length));
+            x4.SqMul(x1, x3);
 
-            fail |= CheckR(r);
+            fail |= CheckR(x4);
 
-            r.TrinaryZqToZ3();
-            byte[] arr2 = r.S3ToBytes(_parameterSet.OwcpaMsgBytes());
-            Array.Copy(arr2, 0, rm, 0, arr2.Length);
-            Array.Copy(arr1, 0, rm, _parameterSet.PackTrinaryBytes(), arr1.Length);
+            x4.TrinaryZqToZ3();
+            x4.S3ToBytes(rm, 0);
 
             return new OwcpaDecryptResult(rm, fail);
         }

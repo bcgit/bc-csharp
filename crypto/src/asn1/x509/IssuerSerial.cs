@@ -53,8 +53,13 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        public IssuerSerial(X509Name issuer, DerInteger serial)
+            : this(new GeneralNames(new GeneralName(issuer)), serial)
+        {
+        }
+
         public IssuerSerial(GeneralNames issuer, DerInteger serial)
-            : this(issuer, serial, null)
+            : this(issuer, serial, issuerUid: null)
         {
         }
 

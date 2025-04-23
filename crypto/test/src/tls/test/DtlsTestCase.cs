@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
             ServerTask serverTask = new ServerTask(this, serverProtocol, network.Server, serverImpl);
 
-            Thread serverThread = new Thread(new ThreadStart(serverTask.Run));
+            Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
             Exception caught = null;

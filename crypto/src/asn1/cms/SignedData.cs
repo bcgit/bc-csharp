@@ -29,8 +29,11 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1Set m_certificates;
         private readonly Asn1Set m_crls;
         private readonly Asn1Set m_signerInfos;
+
         private readonly bool m_certsBer;
         private readonly bool m_crlsBer;
+        private readonly bool m_digsBer;
+        private readonly bool m_sigsBer;
 
         public SignedData(Asn1Set digestAlgorithms, ContentInfo contentInfo, Asn1Set certificates, Asn1Set crls,
             Asn1Set signerInfos)
@@ -40,9 +43,12 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_certificates = certificates;
             m_crls = crls;
             m_signerInfos = signerInfos ?? throw new ArgumentNullException(nameof(signerInfos));
-            m_crlsBer = crls is BerSet;
-            m_certsBer = certificates is BerSet;
             m_version = CalculateVersionField(contentInfo.ContentType, certificates, crls, signerInfos);
+
+            m_certsBer = m_certificates is BerSet;
+            m_crlsBer = m_crls is BerSet;
+            m_digsBer = m_digestAlgorithms is BerSet;
+            m_sigsBer = m_signerInfos is BerSet;
         }
 
         private SignedData(Asn1Sequence seq)
@@ -60,6 +66,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            m_digsBer = m_digestAlgorithms is BerSet;
+            m_sigsBer = m_signerInfos is BerSet;
         }
 
         public DerInteger Version => m_version;
@@ -118,7 +127,10 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             v.Add(m_signerInfos);
 
-            return new BerSequence(v);
+            if (!m_contentInfo.IsDefiniteLength || m_certsBer || m_crlsBer || m_digsBer || m_sigsBer)
+                return new BerSequence(v);
+
+            return new DLSequence(v);
         }
 
         private static DerInteger CalculateVersionField(DerObjectIdentifier contentOid, Asn1Set certs, Asn1Set crls,

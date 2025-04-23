@@ -57,6 +57,12 @@ namespace Org.BouncyCastle.Cms
         public static readonly string DigestSha512 = NistObjectIdentifiers.IdSha512.Id;
         public static readonly string DigestSha512_224 = NistObjectIdentifiers.IdSha512_224.Id;
         public static readonly string DigestSha512_256 = NistObjectIdentifiers.IdSha512_256.Id;
+
+        public static readonly string DigestSha3_224 = NistObjectIdentifiers.IdSha3_224.Id;
+        public static readonly string DigestSha3_256 = NistObjectIdentifiers.IdSha3_256.Id;
+        public static readonly string DigestSha3_384 = NistObjectIdentifiers.IdSha3_384.Id;
+        public static readonly string DigestSha3_512 = NistObjectIdentifiers.IdSha3_512.Id;
+
         public static readonly string DigestMD5 = PkcsObjectIdentifiers.MD5.Id;
         public static readonly string DigestGost3411 = CryptoProObjectIdentifiers.GostR3411.Id;
         public static readonly string DigestRipeMD128 = TeleTrusTObjectIdentifiers.RipeMD128.Id;
@@ -74,8 +80,8 @@ namespace Org.BouncyCastle.Cms
 
         internal List<Asn1Encodable> _certs = new List<Asn1Encodable>();
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
-        internal IList<SignerInformation> _signers = new List<SignerInformation>();
-        internal IDictionary<DerObjectIdentifier, byte[]> m_digests = new Dictionary<DerObjectIdentifier, byte[]>();
+        internal List<SignerInformation> _signers = new List<SignerInformation>();
+        internal Dictionary<DerObjectIdentifier, byte[]> m_digests = new Dictionary<DerObjectIdentifier, byte[]>();
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
@@ -90,10 +96,7 @@ namespace Org.BouncyCastle.Cms
         /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
         protected CmsSignedGenerator(SecureRandom random)
         {
-            if (random == null)
-                throw new ArgumentNullException(nameof(random));
-
-            m_random = random;
+            m_random = random ?? throw new ArgumentNullException(nameof(random));
         }
 
         internal protected virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
@@ -120,51 +123,34 @@ namespace Org.BouncyCastle.Cms
                 : DerSet.FromVector(attr.ToAsn1EncodableVector());
         }
 
-        public void AddAttributeCertificate(X509V2AttributeCertificate attrCert)
-        {
-            _certs.Add(new DerTaggedObject(false, 2, attrCert.AttributeCertificate));
-        }
+        public void AddAttributeCertificate(X509V2AttributeCertificate attrCert) =>
+            CmsUtilities.CollectAttributeCertificate(_certs, attrCert);
 
-        public void AddAttributeCertificates(IStore<X509V2AttributeCertificate> attrCertStore)
-        {
-            _certs.AddRange(CmsUtilities.GetAttributeCertificatesFromStore(attrCertStore));
-        }
+        public void AddAttributeCertificates(IStore<X509V2AttributeCertificate> attrCertStore) =>
+            CmsUtilities.CollectAttributeCertificates(_certs, attrCertStore);
 
-        public void AddCertificate(X509Certificate cert)
-        {
-            _certs.Add(cert.CertificateStructure);
-        }
+        public void AddCertificate(X509Certificate cert) => CmsUtilities.CollectCertificate(_certs, cert);
 
-        public void AddCertificates(IStore<X509Certificate> certStore)
-        {
-            _certs.AddRange(CmsUtilities.GetCertificatesFromStore(certStore));
-        }
+        public void AddCertificates(IStore<X509Certificate> certStore) =>
+            CmsUtilities.CollectCertificates(_certs, certStore);
 
-        public void AddCrl(X509Crl crl)
-        {
-            _crls.Add(crl.CertificateList);
-        }
+        public void AddCrl(X509Crl crl) => CmsUtilities.CollectCrl(_crls, crl);
 
-        public void AddCrls(IStore<X509Crl> crlStore)
-        {
-            _crls.AddRange(CmsUtilities.GetCrlsFromStore(crlStore));
-        }
+        public void AddCrls(IStore<X509Crl> crlStore) => CmsUtilities.CollectCrls(_crls, crlStore);
 
-        public void AddOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
-        {
-            CmsUtilities.ValidateOtherRevocationInfo(otherRevocationInfo);
-            _crls.Add(new DerTaggedObject(false, 1, otherRevocationInfo));
-        }
+        public void AddOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo) =>
+            CmsUtilities.CollectOtherRevocationInfo(_crls, otherRevocationInfo);
 
-        public void AddOtherRevocationInfos(IStore<OtherRevocationInfoFormat> otherRevocationInfoStore)
-        {
-            _crls.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevocationInfoStore));
-        }
+        public void AddOtherRevocationInfo(DerObjectIdentifier otherRevInfoFormat, Asn1Encodable otherRevInfo) =>
+            CmsUtilities.CollectOtherRevocationInfo(_crls, otherRevInfoFormat, otherRevInfo);
+
+        public void AddOtherRevocationInfos(IStore<OtherRevocationInfoFormat> otherRevocationInfoStore) =>
+            CmsUtilities.CollectOtherRevocationInfos(_crls, otherRevocationInfoStore);
 
         public void AddOtherRevocationInfos(DerObjectIdentifier otherRevInfoFormat,
             IStore<Asn1Encodable> otherRevInfoStore)
         {
-            _crls.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevInfoStore, otherRevInfoFormat));
+            CmsUtilities.CollectOtherRevocationInfos(_crls, otherRevInfoFormat, otherRevInfoStore);
         }
 
         /**
@@ -197,31 +183,27 @@ namespace Org.BouncyCastle.Cms
             return result;
         }
 
+        [Obsolete("Will be removed. Replaced in CmsSignedDataGenerator by the similar 'UseDefiniteLength' property")]
         public bool UseDerForCerts
         {
             get { return _useDerForCerts; }
             set { this._useDerForCerts = value; }
         }
 
+        [Obsolete("Will be removed. Replaced in CmsSignedDataGenerator by the similar 'UseDefiniteLength' property")]
         public bool UseDerForCrls
         {
             get { return _useDerForCrls; }
             set { this._useDerForCrls = value; }
         }
 
-        internal virtual void AddSignerCallback(
-            SignerInformation si)
+        internal virtual void AddSignerCallback(SignerInformation signerInformation)
         {
         }
 
-        internal static SignerIdentifier GetSignerIdentifier(X509Certificate cert)
-        {
-            return new SignerIdentifier(CmsUtilities.GetIssuerAndSerialNumber(cert));
-        }
+        internal static SignerIdentifier GetSignerIdentifier(X509Certificate c) => CmsUtilities.GetSignerIdentifier(c);
 
-        internal static SignerIdentifier GetSignerIdentifier(byte[] subjectKeyIdentifier)
-        {
-            return new SignerIdentifier(new DerOctetString(subjectKeyIdentifier));
-        }
+        internal static SignerIdentifier GetSignerIdentifier(byte[] subjectKeyIdentifier) =>
+            CmsUtilities.GetSignerIdentifier(subjectKeyIdentifier);
     }
 }

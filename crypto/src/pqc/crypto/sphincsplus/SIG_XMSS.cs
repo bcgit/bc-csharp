@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
     internal class SIG_XMSS
@@ -9,6 +11,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
             this.sig = sig;
             this.auth = auth;
+        }
+
+        internal void CopyToSignature(byte[] signature, ref int pos)
+        {
+            Array.Copy(sig, 0, signature, pos, sig.Length);
+            pos += sig.Length;
+
+            for (int i = 0; i < auth.Length; ++i)
+            {
+                Array.Copy(auth[i], 0, signature, pos, auth[i].Length);
+                pos += auth[i].Length;
+            }
         }
 
         internal byte[] WotsSig => sig;

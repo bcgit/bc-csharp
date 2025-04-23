@@ -13,27 +13,23 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-    public class NistEccTest : SimpleTest
+    public class NistEccTest
     {
-        public override string Name
-        {
-            get { return "NistEcc"; }
-        }
-
-        public override void PerformTest()
+        [Test]
+        public void TestVectors()
         {
             foreach (object[] testVector in CollectTestVectors())
             {
-                TestMultiply(
-                    testVector[0] as string,
-                    testVector[1] as BigInteger,
-                    testVector[2] as BigInteger,
-                    testVector[3] as BigInteger
-                    );
+                var curve = testVector[0] as string;
+                var k = testVector[1] as BigInteger;
+                var expectedX = testVector[2] as BigInteger;
+                var expectedY = testVector[3] as BigInteger;
+
+                ImplTestMultiply(curve, k, expectedX, expectedY);
             }
         }
 
-        public IEnumerable<object[]> CollectTestVectors()
+        private static IEnumerable<object[]> CollectTestVectors()
         {
             var testVectors = new List<object[]>();
             string curve = null;
@@ -41,12 +37,13 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger x = null;
             BigInteger y = null;
 
+            Regex capture = new Regex(@"^ ?(\w+):? =? ?(\w+)", RegexOptions.Compiled);
+
             using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.nist_ecc.txt")))
             {
                 string line;
                 while (null != (line = r.ReadLine()))
                 {
-                    Regex capture = new Regex(@"^ ?(\w+):? =? ?(\w+)", RegexOptions.Compiled);
                     Match data = capture.Match(line);
                     if (!data.Success)
                         continue;
@@ -55,24 +52,24 @@ namespace Org.BouncyCastle.Crypto.Tests
                     string nistValue = data.Groups[2].Value;
                     switch (nistKey)
                     {
-                        case "Curve":
-                            // Change curve name from LNNN to L-NNN ie: P256 to P-256
-                            curve = nistValue.Insert(1, "-");
-                            break;
-                        case "k":
-                            k = new BigInteger(nistValue, 10);
-                            break;
-                        case "x":
-                            x = new BigInteger(nistValue, 16);
-                            break;
-                        case "y":
-                            y = new BigInteger(nistValue, 16);
-                            break;
+                    case "Curve":
+                        // Change curve name from LNNN to L-NNN ie: P256 to P-256
+                        curve = nistValue.Insert(1, "-");
+                        break;
+                    case "k":
+                        k = new BigInteger(nistValue, 10);
+                        break;
+                    case "x":
+                        x = new BigInteger(nistValue, 16);
+                        break;
+                    case "y":
+                        y = new BigInteger(nistValue, 16);
+                        break;
                     }
 
                     if (null != curve && null != k && null != x && null != y)
                     {
-                        testVectors.Add(new object[]{curve, k, x, y});
+                        testVectors.Add(new object[]{ curve, k, x, y });
                         k = null;
                         x = null;
                         y = null;
@@ -83,7 +80,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return testVectors;
         }
 
-        public void TestMultiply(string curve, BigInteger k, BigInteger expectedX, BigInteger expectedY)
+        private static void ImplTestMultiply(string curve, BigInteger k, BigInteger expectedX, BigInteger expectedY)
         {
             // Arrange
             X9ECParameters x9EcParameters = Asn1.Nist.NistNamedCurves.GetByName(curve);
@@ -92,16 +89,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             ECPoint ecPoint = x9EcParameters.G.Multiply(k).Normalize();
 
             // Assert
-            IsEquals("Unexpected X Coordinate", expectedX, ecPoint.AffineXCoord.ToBigInteger());
-            IsEquals("Unexpected Y Coordinate", expectedY, ecPoint.AffineYCoord.ToBigInteger());
-        }
-
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
+            Assert.AreEqual(expectedX, ecPoint.AffineXCoord.ToBigInteger(), "Unexpected X Coordinate");
+            Assert.AreEqual(expectedY, ecPoint.AffineYCoord.ToBigInteger(), "Unexpected Y Coordinate");
         }
     }
 }

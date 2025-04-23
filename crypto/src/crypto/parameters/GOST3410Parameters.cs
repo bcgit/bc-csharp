@@ -5,6 +5,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    // TODO[api] Don't implement ICipherParameters
 	public class Gost3410Parameters
 		: ICipherParameters
 	{

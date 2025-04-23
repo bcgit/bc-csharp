@@ -1,10 +1,9 @@
-using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Generic signature object</remarks>
-	public class OnePassSignaturePacket
+    /// <remarks>Generic signature object</remarks>
+    public class OnePassSignaturePacket
 		: ContainedPacket
 	{
 		private int version;
@@ -17,21 +16,12 @@ namespace Org.BouncyCastle.Bcpg
 		internal OnePassSignaturePacket(
 			BcpgInputStream	bcpgIn)
 		{
-			version = bcpgIn.ReadByte();
-			sigType = bcpgIn.ReadByte();
-			hashAlgorithm = (HashAlgorithmTag) bcpgIn.ReadByte();
-			keyAlgorithm = (PublicKeyAlgorithmTag) bcpgIn.ReadByte();
-
-			keyId |= (long)bcpgIn.ReadByte() << 56;
-			keyId |= (long)bcpgIn.ReadByte() << 48;
-			keyId |= (long)bcpgIn.ReadByte() << 40;
-			keyId |= (long)bcpgIn.ReadByte() << 32;
-			keyId |= (long)bcpgIn.ReadByte() << 24;
-			keyId |= (long)bcpgIn.ReadByte() << 16;
-			keyId |= (long)bcpgIn.ReadByte() << 8;
-			keyId |= (uint)bcpgIn.ReadByte();
-
-			nested = bcpgIn.ReadByte();
+			version = bcpgIn.RequireByte();
+			sigType = bcpgIn.RequireByte();
+			hashAlgorithm = (HashAlgorithmTag)bcpgIn.RequireByte();
+			keyAlgorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
+			keyId = (long)StreamUtilities.RequireUInt64BE(bcpgIn);
+			nested = bcpgIn.RequireByte();
 		}
 
 		public OnePassSignaturePacket(

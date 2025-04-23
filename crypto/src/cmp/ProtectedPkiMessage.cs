@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crmf;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
@@ -83,13 +84,19 @@ namespace Org.BouncyCastle.Cmp
             return Array.ConvertAll(certs, cmpCertificate => new X509Certificate(cmpCertificate.X509v3PKCert));
         }
 
+        public virtual bool Verify(AsymmetricKeyParameter publicKey) =>
+            Verify(new Asn1VerifierFactory(ProtectionAlgorithm, publicKey));
+
+        public virtual bool Verify(IVerifierFactoryProvider verifierProvider) =>
+            Verify(verifierProvider.CreateVerifierFactory(ProtectionAlgorithm));
+
         /// <summary>
         /// Verify a message with a public key based signature attached.
         /// </summary>
         /// <param name="verifierFactory">a factory of signature verifiers.</param>
         /// <returns>true if the provider is able to create a verifier that validates the signature, false otherwise.</returns>      
         public virtual bool Verify(IVerifierFactory verifierFactory) =>
-            X509Utilities.VerifySignature(verifierFactory, CreateProtected(), m_pkiMessage.Protection);
+            X509.X509Utilities.VerifySignature(verifierFactory, CreateProtected(), m_pkiMessage.Protection);
 
         /// <summary>
         /// Verify a message with password based MAC protection.
@@ -113,7 +120,7 @@ namespace Org.BouncyCastle.Cmp
 
             var macFactory = pkMacBuilder.Build(password);
 
-            return X509Utilities.VerifyMac(macFactory, CreateProtected(), m_pkiMessage.Protection);
+            return X509.X509Utilities.VerifyMac(macFactory, CreateProtected(), m_pkiMessage.Protection);
 #endif
         }
 
@@ -130,7 +137,7 @@ namespace Org.BouncyCastle.Cmp
 
             var macFactory = pkMacBuilder.Build(password);
 
-            return X509Utilities.VerifyMac(macFactory, CreateProtected(), m_pkiMessage.Protection);
+            return X509.X509Utilities.VerifyMac(macFactory, CreateProtected(), m_pkiMessage.Protection);
         }
 #endif
 

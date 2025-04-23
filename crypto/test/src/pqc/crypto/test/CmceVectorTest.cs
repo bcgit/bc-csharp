@@ -17,34 +17,34 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     {
         private static readonly Dictionary<string, CmceParameters> Parameters = new Dictionary<string, CmceParameters>()
         {
-            { "3488-64-cmce.txt", CmceParameters.mceliece348864r3 },
-            { "3488-64-f-cmce.txt", CmceParameters.mceliece348864fr3 },
-            { "4608-96-cmce.txt", CmceParameters.mceliece460896r3 },
-            { "4608-96-f-cmce.txt", CmceParameters.mceliece460896fr3 },
-            { "6688-128-cmce.txt", CmceParameters.mceliece6688128r3 },
-            { "6688-128-f-cmce.txt", CmceParameters.mceliece6688128fr3 },
-            { "6960-119-cmce.txt", CmceParameters.mceliece6960119r3 },
-            { "6960-119-f-cmce.txt", CmceParameters.mceliece6960119fr3 },
-            { "8192-128-cmce.txt", CmceParameters.mceliece8192128r3 },
-            { "8192-128-f-cmce.txt", CmceParameters.mceliece8192128fr3 },
+            { "3488-64-cmce.rsp", CmceParameters.mceliece348864r3 },
+            { "3488-64-f-cmce.rsp", CmceParameters.mceliece348864fr3 },
+            { "4608-96-cmce.rsp", CmceParameters.mceliece460896r3 },
+            { "4608-96-f-cmce.rsp", CmceParameters.mceliece460896fr3 },
+            { "6688-128-cmce.rsp", CmceParameters.mceliece6688128r3 },
+            { "6688-128-f-cmce.rsp", CmceParameters.mceliece6688128fr3 },
+            { "6960-119-cmce.rsp", CmceParameters.mceliece6960119r3 },
+            { "6960-119-f-cmce.rsp", CmceParameters.mceliece6960119fr3 },
+            { "8192-128-cmce.rsp", CmceParameters.mceliece8192128r3 },
+            { "8192-128-f-cmce.rsp", CmceParameters.mceliece8192128fr3 },
         };
 
         private static readonly string[] TestVectorFiles =
         {
-            "3488-64-cmce.txt",
-            "4608-96-cmce.txt",
-            "6688-128-cmce.txt",
-            "6960-119-cmce.txt",
-            "8192-128-cmce.txt",
+            "3488-64-cmce.rsp",
+            "4608-96-cmce.rsp",
+            "6688-128-cmce.rsp",
+            "6960-119-cmce.rsp",
+            "8192-128-cmce.rsp",
         };
 
         private static readonly string[] TestVectorFilesFast =
         {
-            "3488-64-f-cmce.txt",
-            "4608-96-f-cmce.txt",
-            "6688-128-f-cmce.txt",
-            "6960-119-f-cmce.txt",
-            "8192-128-f-cmce.txt",
+            "3488-64-f-cmce.rsp",
+            "4608-96-f-cmce.rsp",
+            "6688-128-f-cmce.rsp",
+            "6960-119-f-cmce.rsp",
+            "8192-128-f-cmce.rsp",
         };
 
         [Test]
@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         {
             var buf = new Dictionary<string, string>();
             TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.GetTestDataAsStream("pqc.cmce." + name)))
+            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/cmce", name)))
             {
                 string line;
                 while ((line = src.ReadLine()) != null)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1.X500.Style;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -14,8 +15,7 @@ namespace Org.BouncyCastle.Asn1.Tests
     public class X509NameTest
         : SimpleTest
     {
-        // TODO Fix commented cases
-        private static readonly string[] subjects =
+        private static readonly string[] Subjects =
         {
             "C=AU,ST=Victoria,L=South Melbourne,O=Connect 4 Pty Ltd,OU=Webserver Team,CN=www2.connect4.com.au,E=webmaster@connect4.com.au",
             "C=AU,ST=Victoria,L=South Melbourne,O=Connect 4 Pty Ltd,OU=Certificate Authority,CN=Connect 4 CA,E=webmaster@connect4.com.au",
@@ -24,23 +24,22 @@ namespace Org.BouncyCastle.Asn1.Tests
             "E=cooke@issl.atl.hp.com,C=US,OU=Hewlett Packard Company (ISSL),CN=Paul A. Cooke",
             "O=Sun Microsystems Inc,CN=store.sun.com",
             "unstructuredAddress=192.168.1.33,unstructuredName=pixfirewall.ciscopix.com,CN=pixfirewall.ciscopix.com",
-            //"CN=*.canal-plus.com,OU=Provided by TBS INTERNET https://www.tbs-certificats.com/,OU=\\ CANAL \\+,O=CANAL\\+DISTRIBUTION,L=issy les moulineaux,ST=Hauts de Seine,C=FR",
-            //"O=Bouncy Castle,CN=www.bouncycastle.org\\ ",
-            //"O=Bouncy Castle,CN=c:\\\\fred\\\\bob",
-            //"C=0,O=1,OU=2,T=3,CN=4,SERIALNUMBER=5,STREET=6,SERIALNUMBER=7,L=8,ST=9,SURNAME=10,GIVENNAME=11,INITIALS=12," +
-            //"GENERATION=13,UniqueIdentifier=14,BusinessCategory=15,PostalCode=16,DN=17,Pseudonym=18,PlaceOfBirth=19," +
-            //"Gender=20,CountryOfCitizenship=21,CountryOfResidence=22,NameAtBirth=23,PostalAddress=24,2.5.4.54=25," +
-            //"TelephoneNumber=26,Name=27,E=28,unstructuredName=29,unstructuredAddress=30,E=31,DC=32,UID=33",
+            "CN=*.canal-plus.com,OU=Provided by TBS INTERNET https://www.tbs-certificats.com/,OU=\\ CANAL \\+,O=CANAL\\+DISTRIBUTION,L=issy les moulineaux,ST=Hauts de Seine,C=FR",
+            "O=Bouncy Castle,CN=www.bouncycastle.org\\ ",
+            "O=Bouncy Castle,CN=c:\\\\fred\\\\bob",
+            "C=0,O=1,OU=2,T=3,CN=4,SERIALNUMBER=5,STREET=6,SERIALNUMBER=7,L=8,ST=9,SURNAME=10,GIVENNAME=11,INITIALS=12," +
+                "GENERATION=13,UniqueIdentifier=14,BusinessCategory=15,PostalCode=16,DN=17,Pseudonym=18,PlaceOfBirth=19," +
+                "Gender=20,CountryOfCitizenship=21,CountryOfResidence=22,NameAtBirth=23,PostalAddress=24,2.5.4.54=25," +
+                "TelephoneNumber=26,Name=27,E=28,unstructuredName=29,unstructuredAddress=30,E=31,DC=32,UID=33",
             "C=DE,L=Berlin,O=Wohnungsbaugenossenschaft \\\"Humboldt-Universität\\\" eG,CN=transfer.wbg-hub.de",
         };
 
-        // TODO Fix commented cases
-        private static readonly string[] hexSubjects =
+        private static readonly string[] HexSubjects =
         {
-            //"CN=\\20Test\\20X,O=\\20Test,C=GB",         // input
-            //"CN=\\ Test X,O=\\ Test,C=GB",              // expected
-            //"CN=\\20Test\\20X\\20,O=\\20Test,C=GB",     // input
-            //"CN=\\ Test X\\ ,O=\\ Test,C=GB",           // expected
+            "CN=\\20Test\\20X,O=\\20Test,C=GB",         // input
+            "CN=\\ Test X,O=\\ Test,C=GB",              // expected
+            "CN=\\20Test\\20X\\20,O=\\20Test,C=GB",     // input
+            "CN=\\ Test X\\ ,O=\\ Test,C=GB",           // expected
         };
 
         public override string Name => "X509Name";
@@ -124,6 +123,9 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         public override void PerformTest()
         {
+            IetfUtilitiesTest();
+            BogusEqualsTest();
+
             doTestEncodingPrintableString(X509Name.C, "AU");
             doTestEncodingPrintableString(X509Name.SerialNumber, "123456");
             doTestEncodingPrintableString(X509Name.DnQualifier, "123456");
@@ -297,9 +299,9 @@ namespace Org.BouncyCastle.Asn1.Tests
             //
             // general subjects test
             //
-            for (int i = 0; i != subjects.Length; i++)
+            for (int i = 0; i != Subjects.Length; i++)
             {
-                var subject = subjects[i];
+                var subject = Subjects[i];
                 var name = new X509Name(subject);
 
                 var decodedName = FromBytes(name.GetEncoded());
@@ -311,15 +313,15 @@ namespace Org.BouncyCastle.Asn1.Tests
                 }
             }
 
-            for (int i = 0; i < hexSubjects.Length; i += 2)
+            for (int i = 0; i < HexSubjects.Length; i += 2)
             {
-                var subject = hexSubjects[i];
-                var name = new X509Name(subject);
+                var subject = HexSubjects[i];
+                var expected = HexSubjects[i + 1];
 
+                var name = new X509Name(subject);
                 var decodedName = FromBytes(name.GetEncoded());
                 var decodedSubject = decodedName.ToString();
 
-                string expected = hexSubjects[i + 1];
                 if (!expected.Equals(decodedSubject))
                 {
                     Fail("Failed hex regeneration test " + i + " got: " + decodedSubject + " expected " + expected);
@@ -594,6 +596,24 @@ namespace Org.BouncyCastle.Asn1.Tests
             if (vls.Count != 1 || !vls[0].Equals("+61999999999"))
             {
                 Fail("telephonenumber escaped + not reduced properly");
+            }
+        }
+
+        private void IetfUtilitiesTest()
+        {
+            IetfUtilities.ValueToString(new DerUtf8String(" "));
+        }
+
+        private void BogusEqualsTest()
+        {
+            try
+            {
+                new X509Name("CN=foo=bar");
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                IsEquals("badly formatted directory string", e.Message);
             }
         }
 

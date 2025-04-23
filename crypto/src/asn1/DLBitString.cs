@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1
             if (Asn1OutputStream.EncodingDer == encoding)
                 return base.GetEncoding(encoding);
 
-            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.BitString, contents);
+            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.BitString, m_contents);
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Asn1
             if (Asn1OutputStream.EncodingDer == encoding)
                 return base.GetEncodingImplicit(encoding, tagClass, tagNo);
 
-            return new PrimitiveEncoding(tagClass, tagNo, contents);
+            return new PrimitiveEncoding(tagClass, tagNo, m_contents);
         }
     }
 }

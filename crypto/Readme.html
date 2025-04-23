@@ -32,6 +32,8 @@
                                 <a href="#mozTocId3413">Notes:</a>
                                 <ol>
                                     <li>
+                                        <a href="#mozTocId9020500">Release 2.5.0</a>
+                                    <li>
                                         <a href="#mozTocId9020400">Release 2.4.0</a>
                                     <li>
                                         <a href="#mozTocId85332">Release 2.3.1</a>
@@ -332,6 +334,37 @@
         <br />
         <hr style="WIDTH: 100%; HEIGHT: 2px">
         <h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
+
+        <h4><a class="mozTocH4" name="mozTocId9020500"></a>Release 2.5.0, Sunday December 1, 2024</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>Fixed tag for unprotectedAttrs field of Asn1.Cms.EncryptedData (regression in 2.4.0).</li>
+            <li>X509Name: Fixed whitespace escaping on output, and NameAtBirth lookup.</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>Added support for modified UTF-8 in JKS.</li>
+            <li>(D)TLS: Removed redundant verification of self-generated RSA signatures.</li>
+            <li>Added support for the PQC algorithms ML-DSA (including pre-hash), ML-KEM, and SLH-DSA (including pre-hash).</li>
+            <li>Added ParametersWithContext class to support signature contexts for ML-DSA and SLH-DSA.</li>
+            <li>Added support for Argon2.</li>
+            <li>TLS: Added draft ML-KEM support (draft-connolly-tls-mlkem-key-agreement-03).</li>
+            <li>
+                Ascon: Implemented latest algorithms: AsconHash256, AsconXof128, AsconCXof128, AsconAead128; deprecated
+                prototypes: AsconDigest, AsconXof, AsconEngine.
+            </li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                To avoid potential intellectual property issues, Kyber (precursor of ML-KEM) was completely removed.
+                Since that already created a backward compatibility break, we took the opportunity to also remove SIKE.
+            </li>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
 
         <h4><a class="mozTocH4" name="mozTocId9020400"></a>Release 2.4.0, Monday May 27, 2024</h4>
         <h5>Defects Fixed</h5>

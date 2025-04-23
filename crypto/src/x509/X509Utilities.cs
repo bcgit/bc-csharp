@@ -21,9 +21,6 @@ namespace Org.BouncyCastle.X509
 	{
         private static readonly Dictionary<string, DerObjectIdentifier> m_algorithms =
 			new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
-        private static readonly Dictionary<string, Asn1Encodable> m_exParams =
-			new Dictionary<string, Asn1Encodable>(StringComparer.OrdinalIgnoreCase);
-		private static readonly HashSet<DerObjectIdentifier> m_noParams = new HashSet<DerObjectIdentifier>();
 
 		static X509Utilities()
 		{
@@ -87,47 +84,21 @@ namespace Org.BouncyCastle.X509
 			m_algorithms.Add("GOST3411WITHECGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 			m_algorithms.Add("GOST3411WITHECGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
 			m_algorithms.Add("GOST3411WITHGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
-
-			//
-			// According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
-			// The parameters field SHALL be NULL for RSA based signature algorithms.
-			//
-			m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha1);
-			m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha224);
-			m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
-			m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
-			m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha512);
-			m_noParams.Add(X9ObjectIdentifiers.IdDsaWithSha1);
-            m_noParams.Add(OiwObjectIdentifiers.DsaWithSha1);
-            m_noParams.Add(NistObjectIdentifiers.DsaWithSha224);
-			m_noParams.Add(NistObjectIdentifiers.DsaWithSha256);
-			m_noParams.Add(NistObjectIdentifiers.DsaWithSha384);
-			m_noParams.Add(NistObjectIdentifiers.DsaWithSha512);
-
-			//
-			// RFC 4491
-			//
-			m_noParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
-			m_noParams.Add(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
-
-			//
-			// explicit params
-			//
-			AlgorithmIdentifier sha1AlgId = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
-			m_exParams.Add("SHA1WITHRSAANDMGF1", CreatePssParams(sha1AlgId, 20));
-
-			AlgorithmIdentifier sha224AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha224, DerNull.Instance);
-			m_exParams.Add("SHA224WITHRSAANDMGF1", CreatePssParams(sha224AlgId, 28));
-
-			AlgorithmIdentifier sha256AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256, DerNull.Instance);
-			m_exParams.Add("SHA256WITHRSAANDMGF1", CreatePssParams(sha256AlgId, 32));
-
-			AlgorithmIdentifier sha384AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha384, DerNull.Instance);
-			m_exParams.Add("SHA384WITHRSAANDMGF1", CreatePssParams(sha384AlgId, 48));
-
-			AlgorithmIdentifier sha512AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, DerNull.Instance);
-			m_exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
 		}
+
+        internal static bool AreEquivalentAlgorithms(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
+        {
+            if (!id1.Algorithm.Equals(id2.Algorithm))
+                return false;
+
+            // TODO Java has a property to control whether absent parameters can match NULL parameters
+            {
+                if (HasAbsentParameters(id1) && HasAbsentParameters(id2))
+                    return true;
+            }
+
+            return Objects.Equals(id1.Parameters, id2.Parameters);
+        }
 
 		internal static byte[] CalculateDigest(AlgorithmIdentifier digestAlgorithm, Asn1Encodable asn1Encodable)
 		{
@@ -136,6 +107,9 @@ namespace Org.BouncyCastle.X509
             var digestResult = CalculateResult(digestCalculator, asn1Encodable);
 			return digestResult.Collect();
         }
+
+        internal static byte[] CalculateDigest(IDigestFactory digestFactory, byte[] buf) =>
+            CalculateDigest(digestFactory, buf, 0, buf.Length);
 
         internal static byte[] CalculateDigest(IDigestFactory digestFactory, byte[] buf, int off, int len)
         {
@@ -153,8 +127,7 @@ namespace Org.BouncyCastle.X509
         }
 #endif
 
-        internal static byte[] CalculateDigest(IDigestFactory digestFactory,
-            Asn1Encodable asn1Encodable)
+        internal static byte[] CalculateDigest(IDigestFactory digestFactory, Asn1Encodable asn1Encodable)
         {
             var digestCalculator = digestFactory.CreateCalculator();
             var digestResult = CalculateResult(digestCalculator, asn1Encodable);
@@ -220,29 +193,8 @@ namespace Org.BouncyCastle.X509
             return new DerBitString(data);
         }
 
-        internal static DerObjectIdentifier GetAlgorithmOid(string algorithmName)
-		{
-			if (m_algorithms.TryGetValue(algorithmName, out var oid))
-				return oid;
-
-			return new DerObjectIdentifier(algorithmName);
-		}
-
-		internal static AlgorithmIdentifier GetSigAlgID(DerObjectIdentifier sigOid, string algorithmName)
-		{
-			if (m_noParams.Contains(sigOid))
-				return new AlgorithmIdentifier(sigOid);
-
-			if (m_exParams.TryGetValue(algorithmName, out var explicitParameters))
-				return new AlgorithmIdentifier(sigOid, explicitParameters);
-
-			return new AlgorithmIdentifier(sigOid, DerNull.Instance);
-		}
-
-		internal static IEnumerable<string> GetAlgNames()
-		{
-			return CollectionUtilities.Proxy(m_algorithms.Keys);
-		}
+        // TODO[api] Remove (along with m_algorithms) when callers are obsoleted
+        internal static IEnumerable<string> GetAlgNames() => CollectionUtilities.Proxy(m_algorithms.Keys);
 
         internal static DerBitString GenerateBitString(IStreamCalculator<IBlockResult> streamCalculator,
 			Asn1Encodable asn1Encodable)
@@ -266,11 +218,20 @@ namespace Org.BouncyCastle.X509
             return GenerateBitString(signatureFactory.CreateCalculator(), asn1Encodable);
         }
 
+        internal static bool HasAbsentParameters(AlgorithmIdentifier algID) => IsAbsentParameters(algID.Parameters);
+
+        internal static bool IsAbsentParameters(Asn1Encodable parameters) =>
+            parameters == null || DerNull.Instance.Equals(parameters);
+
         internal static bool VerifyMac(IMacFactory macFactory, Asn1Encodable asn1Encodable, DerBitString expected)
         {
-            var result = CalculateResult(macFactory.CreateCalculator(), asn1Encodable);
+            var result = CalculateResult(macFactory.CreateCalculator(), asn1Encodable).Collect();
 
-            return Arrays.FixedTimeEquals(result.Collect(), expected.GetOctets());
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Arrays.FixedTimeEquals(result, expected.GetOctetsSpan());
+#else
+            return Arrays.FixedTimeEquals(result, expected.GetOctets());
+#endif
         }
 
         internal static bool VerifySignature(IVerifierFactory verifierFactory, Asn1Encodable asn1Encodable,
@@ -280,23 +241,6 @@ namespace Org.BouncyCastle.X509
 
 			// TODO[api] Use GetOctetsSpan() once IsVerified(ReadOnlySpan<byte>) is available
 			return result.IsVerified(signature.GetOctets());
-        }
-
-        internal static Asn1TaggedObject TrimExtensions(int tagNo, X509Extensions exts)
-        {
-            Asn1Sequence extSeq = Asn1Sequence.GetInstance(exts.ToAsn1Object());
-            Asn1EncodableVector extV = new Asn1EncodableVector();
-			foreach (var extEntry in extSeq)
-			{
-				Asn1Sequence ext = Asn1Sequence.GetInstance(extEntry);
-
-                if (!X509Extensions.AltSignatureValue.Equals(ext[0]))
-                {
-                    extV.Add(ext);
-                }
-            }
-
-            return new DerTaggedObject(true, tagNo, new DerSequence(extV));
         }
     }
 }

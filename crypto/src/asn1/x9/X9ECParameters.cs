@@ -114,14 +114,15 @@ namespace Org.BouncyCastle.Asn1.X9
             this.h = h;
             this.seed = seed;
 
-            if (ECAlgorithms.IsFpCurve(curve))
+            IFiniteField field = curve.Field;
+            if (ECAlgorithms.IsFpField(field))
             {
-                this.fieldID = new X9FieldID(curve.Field.Characteristic);
+                this.fieldID = new X9FieldID(field.Characteristic);
             }
-            else if (ECAlgorithms.IsF2mCurve(curve))
+            else if (ECAlgorithms.IsF2mField(field))
             {
-                IPolynomialExtensionField field = (IPolynomialExtensionField)curve.Field;
-                int[] exponents = field.MinimalPolynomial.GetExponentsPresent();
+                IPolynomialExtensionField f2mField = (IPolynomialExtensionField)field;
+                int[] exponents = f2mField.MinimalPolynomial.GetExponentsPresent();
                 if (exponents.Length == 3)
                 {
                     this.fieldID = new X9FieldID(exponents[2], exponents[1]);

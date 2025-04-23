@@ -1,25 +1,25 @@
 ﻿using System;
 using System.IO;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pkcs
 {
     public class Pkcs8EncryptedPrivateKeyInfoBuilder
     {
-        private PrivateKeyInfo privateKeyInfo;
+        private readonly PrivateKeyInfo m_privateKeyInfo;
 
-        public Pkcs8EncryptedPrivateKeyInfoBuilder(byte[] privateKeyInfo):  this(PrivateKeyInfo.GetInstance(privateKeyInfo))
+        public Pkcs8EncryptedPrivateKeyInfoBuilder(byte[] privateKeyInfo)
+            : this(PrivateKeyInfo.GetInstance(privateKeyInfo))
         {
         }
 
         public Pkcs8EncryptedPrivateKeyInfoBuilder(PrivateKeyInfo privateKeyInfo)
         {
-            this.privateKeyInfo = privateKeyInfo;
+            m_privateKeyInfo = privateKeyInfo ?? throw new ArgumentNullException(nameof(privateKeyInfo));
         }
 
         /// <summary>
@@ -31,16 +31,19 @@ namespace Org.BouncyCastle.Pkcs
         {
             try
             {
+                var encryptionAlgorithm = (AlgorithmIdentifier)encryptor.AlgorithmDetails;
+
                 MemoryStream bOut = new MemoryStream();
                 ICipher cOut = encryptor.BuildCipher(bOut);
 
                 using (var stream = cOut.Stream)
                 {
-                    privateKeyInfo.EncodeTo(stream);
+                    m_privateKeyInfo.EncodeTo(stream);
                 }
 
+                var encryptedData = DerOctetString.WithContents(bOut.ToArray());
                 return new Pkcs8EncryptedPrivateKeyInfo(
-                    new EncryptedPrivateKeyInfo((AlgorithmIdentifier)encryptor.AlgorithmDetails, bOut.ToArray()));
+                    new EncryptedPrivateKeyInfo(encryptionAlgorithm, encryptedData));
             }
             catch (IOException)
             {

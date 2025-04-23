@@ -102,6 +102,13 @@ namespace Org.BouncyCastle.Tls
         public const int arbitrary_explicit_prime_curves = 0xFF01;
         public const int arbitrary_explicit_char2_curves = 0xFF02;
 
+        /*
+         * draft-connolly-tls-mlkem-key-agreement-05
+         */
+        public const int MLKEM512 = 0x0200;
+        public const int MLKEM768 = 0x0201;
+        public const int MLKEM1024 = 0x0202;
+
         /* Names of the actual underlying elliptic curves (not necessarily matching the NamedGroup names). */
         private static readonly string[] CurveNames = new string[]{ "sect163k1", "sect163r1", "sect163r2", "sect193r1",
             "sect193r2", "sect233k1", "sect233r1", "sect239k1", "sect283k1", "sect283r1", "sect409k1", "sect409r1",
@@ -117,26 +124,43 @@ namespace Org.BouncyCastle.Tls
 
         public static bool CanBeNegotiated(int namedGroup, ProtocolVersion version)
         {
-            if (TlsUtilities.IsTlsV13(version))
+            switch (namedGroup)
             {
-                if ((namedGroup >= sect163k1 && namedGroup <= secp256k1)
-                    || (namedGroup >= brainpoolP256r1 && namedGroup <= brainpoolP512r1)
-                    || (namedGroup >= GC256A && namedGroup <= GC512C)
-                    || (namedGroup >= arbitrary_explicit_prime_curves && namedGroup <= arbitrary_explicit_char2_curves))
-                {
-                    return false;
-                }
+            case secp256r1:
+            case secp384r1:
+            case secp521r1:
+            case x25519:
+            case x448:
+                return true;
             }
-            else
+
+            if (RefersToASpecificFiniteField(namedGroup))
+                return true;
+
+            bool isTlsV13 = TlsUtilities.IsTlsV13(version);
+
+            // NOTE: Version-independent curves checked above
+            if (RefersToASpecificCurve(namedGroup))
             {
-                if ((namedGroup >= brainpoolP256r1tls13 && namedGroup <= brainpoolP512r1tls13)
-                    || (namedGroup == curveSM2))
+                switch (namedGroup)
                 {
-                    return false;
+                case brainpoolP256r1tls13:
+                case brainpoolP384r1tls13:
+                case brainpoolP512r1tls13:
+                case curveSM2:
+                    return isTlsV13;
+                default:
+                    return !isTlsV13;
                 }
             }
 
-            return IsValid(namedGroup);
+            if (RefersToASpecificKem(namedGroup))
+                return isTlsV13;
+
+            if (namedGroup >= arbitrary_explicit_prime_curves && namedGroup <= arbitrary_explicit_char2_curves)
+                return !isTlsV13;
+
+            return IsPrivate(namedGroup);
         }
 
         public static int GetCurveBits(int namedGroup)
@@ -258,6 +282,21 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        public static string GetKemName(int namedGroup)
+        {
+            switch (namedGroup)
+            {
+            case MLKEM512:
+                return "ML-KEM-512";
+            case MLKEM768:
+                return "ML-KEM-768";
+            case MLKEM1024:
+                return "ML-KEM-1024";
+            default:
+                return null;
+            }
+        }
+
         public static int GetMaximumChar2CurveBits()
         {
             return 571;
@@ -313,6 +352,12 @@ namespace Org.BouncyCastle.Tls
                 return "GC512C";
             case curveSM2:
                 return "curveSM2";
+            case MLKEM512:
+                return "MLKEM512";
+            case MLKEM768:
+                return "MLKEM768";
+            case MLKEM1024:
+                return "MLKEM1024";
             case arbitrary_explicit_prime_curves:
                 return "arbitrary_explicit_prime_curves";
             case arbitrary_explicit_char2_curves:
@@ -332,15 +377,15 @@ namespace Org.BouncyCastle.Tls
         {
             string curveName = GetCurveName(namedGroup);
             if (null != curveName)
-            {
                 return curveName;
-            }
 
             string finiteFieldName = GetFiniteFieldName(namedGroup);
             if (null != finiteFieldName)
-            {
                 return finiteFieldName;
-            }
+
+            string kemName = GetKemName(namedGroup);
+            if (null != kemName)
+                return kemName;
 
             return null;
         }
@@ -410,7 +455,21 @@ namespace Org.BouncyCastle.Tls
         public static bool RefersToASpecificGroup(int namedGroup)
         {
             return RefersToASpecificCurve(namedGroup)
-                || RefersToASpecificFiniteField(namedGroup);
+                || RefersToASpecificFiniteField(namedGroup)
+                || RefersToASpecificKem(namedGroup);
+        }
+
+        public static bool RefersToASpecificKem(int namedGroup)
+        {
+            switch (namedGroup)
+            {
+            case MLKEM512:
+            case MLKEM768:
+            case MLKEM1024:
+                return true;
+            default:
+                return false;
+            }
         }
     }
 }

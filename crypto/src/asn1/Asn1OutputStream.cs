@@ -17,15 +17,10 @@ namespace Org.BouncyCastle.Asn1
         internal const int EncodingDL = 2;
         internal const int EncodingDer = 3;
 
-        public static Asn1OutputStream Create(Stream output)
-        {
-            return new Asn1OutputStream(output, false);
-        }
+        public static Asn1OutputStream Create(Stream output) => new Asn1OutputStream(output, leaveOpen: false);
 
-        public static Asn1OutputStream Create(Stream output, string encoding)
-        {
-            return Create(output, encoding, false);
-        }
+        public static Asn1OutputStream Create(Stream output, string encoding) =>
+            Create(output, encoding, leaveOpen: false);
 
         public static Asn1OutputStream Create(Stream output, string encoding, bool leaveOpen)
         {
@@ -35,6 +30,9 @@ namespace Org.BouncyCastle.Asn1
                 return new DLOutputStream(output, leaveOpen);
             return new Asn1OutputStream(output, leaveOpen);
         }
+
+        internal static Asn1OutputStream Create(byte[] buffer, int index, int count, string encoding, bool leaveOpen) =>
+            Create(new MemoryStream(buffer, index, count, writable: true), encoding, leaveOpen);
 
         internal static int GetEncodingType(string encoding)
         {

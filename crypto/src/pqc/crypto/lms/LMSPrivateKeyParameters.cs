@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.IO;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -18,14 +17,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         private byte[] I;
-        private LMSigParameters sigParameters;
+        private readonly LMSigParameters sigParameters;
         private LMOtsParameters otsParameters;
         private int maxQ;
         private byte[] masterSecret;
         // TODO Java uses a WeakHashMap
         private ConcurrentDictionary<int, byte[]> tCache;
         private int maxCacheR;
-        private IDigest tDigest;
 
         private int q;
         private readonly bool m_isPlaceholder;
@@ -54,7 +52,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = Arrays.Clone(masterSecret);
             this.maxCacheR = 1 << (sigParameters.H + 1);
             this.tCache = new ConcurrentDictionary<int, byte[]>();
-            this.tDigest = LmsUtilities.GetDigest(lmsParameter);
             this.m_isPlaceholder = isPlaceholder;
         }
 
@@ -69,16 +66,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = parent.masterSecret;
             this.maxCacheR = 1 << sigParameters.H;
             this.tCache = parent.tCache;
-            this.tDigest = LmsUtilities.GetDigest(sigParameters);
             this.m_publicKey = parent.m_publicKey;
         }
 
-        public static LmsPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc)
-        {
-            LmsPrivateKeyParameters pKey = GetInstance(privEnc);
-            pKey.m_publicKey = LmsPublicKeyParameters.GetInstance(pubEnc);
-            return pKey;
-        }
+        public static LmsPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc) =>
+            Parse(privEnc, 0, privEnc.Length, LmsPublicKeyParameters.Parse(pubEnc));
 
         public static LmsPrivateKeyParameters GetInstance(object src)
         {
@@ -89,10 +81,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return Parse(binaryReader);
 
             if (src is Stream stream)
-                return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+                return Parse(stream);
 
             if (src is byte[] bytes)
-                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+                return Parse(bytes);
 
             throw new ArgumentException($"cannot parse {src}");
         }
@@ -119,6 +111,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
 
             return new LmsPrivateKeyParameters(sigParameter, otsParameter, q, I, maxQ, masterSecret);
+        }
+
+        internal static LmsPrivateKeyParameters Parse(Stream stream) =>
+            BinaryReaders.Parse(Parse, stream, leaveOpen: true);
+
+        internal static LmsPrivateKeyParameters Parse(byte[] buf) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, false), leaveOpen: false);
+
+        internal static LmsPrivateKeyParameters Parse(byte[] buf, int off, int len) =>
+            BinaryReaders.Parse(Parse, new MemoryStream(buf, off, len, false), leaveOpen: false);
+
+        internal static LmsPrivateKeyParameters Parse(byte[] buf, int off, int len, LmsPublicKeyParameters publicKey)
+        {
+            LmsPrivateKeyParameters pKey = Parse(buf, off, len);
+            pKey.m_publicKey = publicKey;
+            return pKey;
         }
 
         internal LMOtsPrivateKey GetCurrentOtsKey()
@@ -215,13 +223,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
-                if (q + usageCount >= maxQ)
-                    throw new ArgumentException("usageCount exceeds usages remaining");
+                if (usageCount < 0)
+                    throw new ArgumentOutOfRangeException("cannot be negative", nameof(usageCount));
+                if (usageCount > maxQ - q)
+                    throw new ArgumentException("exceeds usages remaining", nameof(usageCount));
 
-                LmsPrivateKeyParameters keyParameters = new LmsPrivateKeyParameters(this, q, q + usageCount);
-                q += usageCount;
+                int shardIndex = q;
+                int shardIndexLimit = q + usageCount;
 
-                return keyParameters;
+                // Move this key's index along
+                q = shardIndexLimit;
+
+                return new LmsPrivateKeyParameters(this, shardIndex, shardIndexLimit);
             }
         }
 
@@ -239,7 +252,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetMasterSecret() => Arrays.Clone(masterSecret);
 
-        public long GetUsagesRemaining() => maxQ - GetIndex();
+        public int IndexLimit => maxQ;
+
+        // TODO[api] Only needs 'int'
+        public long GetUsagesRemaining() => IndexLimit - GetIndex();
 
         public LmsPublicKeyParameters GetPublicKey()
         {
@@ -260,6 +276,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private byte[] CalcT(int r)
         {
+            var tDigest = LmsUtilities.GetDigest(this.sigParameters);
+
             int h = sigParameters.H;
 
             int twoToh = 1 << h;

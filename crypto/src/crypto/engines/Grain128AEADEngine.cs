@@ -1,36 +1,55 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
     public sealed class Grain128AeadEngine
         : IAeadCipher
     {
-        /**
-         * Constants
-         */
-        private static readonly int STATE_SIZE = 4;
+        private enum State
+        {
+            Uninitialized  = 0,
+            EncInit        = 1,
+            EncAad         = 2,
+            EncData        = 3,
+            EncFinal       = 4,
+            DecInit        = 5,
+            DecAad         = 6,
+            DecData        = 7,
+            DecFinal       = 8,
+        }
+
+        private const int BufSize = 64;
+        private const int KeySize = 16;
+        private const int IVSize = 12;
+        private const int MacSize = 8;
 
         /**
          * Variables to hold the state of the engine during encryption and
          * decryption
          */
-        private byte[] workingKey;
-        private byte[] workingIV;
-        private uint[] lfsr;
-        private uint[] nfsr;
-        private uint[] authAcc;
-        private uint[] authSr;
+        private readonly byte[] workingKeyAndIV = new byte[KeySize + IVSize];
+        private readonly uint[] lfsr = new uint[4];
+        private readonly uint[] nfsr = new uint[4];
+        private readonly uint[] authAccSr = new uint[4];
 
-        private bool initialised = false;
-        private bool aadFinished = false;
-        private MemoryStream aadData = new MemoryStream();
+        private State m_state = State.Uninitialized;
 
-        private byte[] mac;
+        private readonly MemoryStream m_aadData = new MemoryStream();
+        private readonly byte[] m_mac = new byte[MacSize];
+        private readonly byte[] m_buf = new byte[BufSize + MacSize];
+        private int m_bufPos;
+
+        public Grain128AeadEngine()
+        {
+            m_aadData.Position = 5;
+        }
 
         public string AlgorithmName => "Grain-128AEAD";
 
@@ -43,81 +62,478 @@ namespace Org.BouncyCastle.Crypto.Engines
          */
         public void Init(bool forEncryption, ICipherParameters param)
         {
-            /*
-             * Grain encryption and decryption is completely symmetrical, so the
-             * 'forEncryption' is irrelevant.
-             */
-            if (!(param is ParametersWithIV ivParams))
+            // TODO Support AeadParameters
+
+            if (!(param is ParametersWithIV withIV))
                 throw new ArgumentException("Grain-128AEAD Init parameters must include an IV");
 
-            byte[] iv = ivParams.GetIV();
-
-            if (iv == null || iv.Length != 12)
+            if (withIV.IVLength != IVSize)
                 throw new ArgumentException("Grain-128AEAD requires exactly 12 bytes of IV");
 
-            if (!(ivParams.Parameters is KeyParameter key))
+            if (!(withIV.Parameters is KeyParameter key))
                 throw new ArgumentException("Grain-128AEAD Init parameters must include a key");
 
-            byte[] keyBytes = key.GetKey();
-            if (keyBytes.Length != 16)
+            if (key.KeyLength != KeySize)
                 throw new ArgumentException("Grain-128AEAD key must be 128 bits long");
 
-            /*
-             * Initialize variables.
-             */
-            workingIV = new byte[keyBytes.Length];
-            workingKey = keyBytes;
-            lfsr = new uint[STATE_SIZE];
-            nfsr = new uint[STATE_SIZE];
-            authAcc = new uint[2];
-            authSr = new uint[2];
+            // TODO Support key re-use (via null KeyParameters)
 
-            Array.Copy(iv, 0, workingIV, 0, iv.Length);
+            // TODO Check for encryption with reused nonce
+
+            key.CopyTo(workingKeyAndIV, 0, KeySize);
+            withIV.CopyIVTo(workingKeyAndIV, KeySize, IVSize);
+
+            m_state = forEncryption ? State.EncInit : State.DecInit;
 
             Reset();
         }
 
-        /**
-         * 320 clocks initialization phase.
-         */
-        private void InitGrain()
+        public int GetOutputSize(int len)
         {
-            for (int i = 0; i < 320; ++i)
+            int total = System.Math.Max(0, len);
+
+            switch (m_state)
             {
-                uint outputZ = GetOutput();
-                nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0] ^ outputZ) & 1);
-                lfsr = Shift(lfsr, (GetOutputLFSR() ^ outputZ) & 1);
+            case State.DecInit:
+            case State.DecAad:
+                return System.Math.Max(0, total - MacSize);
+            case State.DecData:
+            case State.DecFinal:
+                return System.Math.Max(0, total + m_bufPos - MacSize);
+            case State.EncData:
+            case State.EncFinal:
+                return total + m_bufPos + MacSize;
+            default:
+                return total + MacSize;
             }
-            for (int quotient = 0; quotient < 8; ++quotient)
+        }
+
+        public int GetUpdateOutputSize(int len)
+        {
+            int total = System.Math.Max(0, len);
+
+            switch (m_state)
             {
-                for (int remainder = 0; remainder < 8; ++remainder)
+            case State.DecInit:
+            case State.DecAad:
+                total = System.Math.Max(0, total - MacSize);
+                break;
+            case State.DecData:
+            case State.DecFinal:
+                total = System.Math.Max(0, total + m_bufPos - MacSize);
+                break;
+            case State.EncData:
+            case State.EncFinal:
+                total += m_bufPos;
+                break;
+            default:
+                break;
+            }
+
+            return total - total % BufSize;
+        }
+
+        public void ProcessAadByte(byte input)
+        {
+            CheckAad();
+
+            m_aadData.WriteByte(input);
+        }
+
+        public void ProcessAadBytes(byte[] input, int inOff, int len)
+        {
+            // TODO More argument checks?
+
+            Check.DataLength(input, inOff, len, "input buffer too short");
+
+            CheckAad();
+
+            m_aadData.Write(input, inOff, len);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void ProcessAadBytes(ReadOnlySpan<byte> input)
+        {
+            CheckAad();
+
+            m_aadData.Write(input);
+        }
+#endif
+
+        public int ProcessByte(byte input, byte[] output, int outOff) =>
+            ProcessBytes(new byte[1]{ input }, 0, 1, output, outOff);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessByte(byte input, Span<byte> output) => ProcessBytes(stackalloc byte[1]{ input }, output);
+#endif
+
+        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
+        {
+            // TODO More argument checks?
+
+            Check.DataLength(input, inOff, len, "input buffer too short");
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessBytes(input.AsSpan(inOff, len), output.AsSpan(outOff));
+#else
+            int updateOutputSize = GetUpdateOutputSize(len);
+            Check.OutputLength(output, outOff, updateOutputSize, "output buffer too short");
+
+            CheckData();
+
+            switch (m_state)
+            {
+            case State.DecData:
+            {
+                for (int i = 0; i < len; ++i)
                 {
-                    uint outputZ = GetOutput();
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0] ^ outputZ ^ (uint)((workingKey[quotient]) >> remainder)) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR() ^ outputZ ^ (uint)((workingKey[quotient + 8]) >> remainder)) & 1);
+                    m_buf[m_bufPos] = input[inOff + i];
+                    if (++m_bufPos == m_buf.Length)
+                    {
+                        ProcessBufferDecrypt(m_buf, 0, BufSize, output, outOff);
+                        outOff += BufSize;
+
+                        Debug.Assert(BufSize >= MacSize);
+                        Array.Copy(m_buf, BufSize, m_buf, 0, MacSize);
+                        m_bufPos = MacSize;
+                    }
+                }
+                break;
+            }
+            case State.EncData:
+            {
+                for (int i = 0; i < len; ++i)
+                {
+                    m_buf[m_bufPos] = input[inOff + i];
+                    if (++m_bufPos == BufSize)
+                    {
+                        ProcessBufferEncrypt(m_buf, 0, BufSize, output, outOff);
+                        outOff += BufSize;
+
+                        m_bufPos = 0;
+                    }
+                }
+                break;
+            }
+            default:
+                throw new InvalidOperationException();
+            }
+
+            return updateOutputSize;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            int updateOutputSize = GetUpdateOutputSize(input.Length);
+            Check.OutputLength(output, updateOutputSize, "output buffer too short");
+
+            CheckData();
+
+            switch (m_state)
+            {
+            case State.DecData:
+            {
+                for (int i = 0; i < input.Length; ++i)
+                {
+                    m_buf[m_bufPos] = input[i];
+                    if (++m_bufPos == m_buf.Length)
+                    {
+                        ProcessBufferDecrypt(m_buf.AsSpan(0, BufSize), output);
+                        output = output[BufSize..];
+
+                        Debug.Assert(BufSize >= MacSize);
+                        Array.Copy(m_buf, BufSize, m_buf, 0, MacSize);
+                        m_bufPos = MacSize;
+                    }
+                }
+                break;
+            }
+            case State.EncData:
+            {
+                for (int i = 0; i < input.Length; ++i)
+                {
+                    m_buf[m_bufPos] = input[i];
+                    if (++m_bufPos == BufSize)
+                    {
+                        ProcessBufferEncrypt(m_buf.AsSpan(0, BufSize), output);
+                        output = output[BufSize..];
+
+                        m_bufPos = 0;
+                    }
+                }
+                break;
+            }
+            default:
+                throw new InvalidOperationException();
+            }
+
+            return updateOutputSize;
+        }
+#endif
+
+        public int DoFinal(byte[] output, int outOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
+            int outputSize = GetOutputSize(0);
+            Check.OutputLength(output, outOff, outputSize, "output buffer too short");
+
+            CheckData();
+
+            switch (m_state)
+            {
+            case State.DecData:
+            {
+                if (m_bufPos < MacSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                if (outputSize > 0)
+                {
+                    ProcessBufferDecrypt(m_buf, 0, outputSize, output, outOff);
+                    //outOff += outputSize;
+                }
+
+                FinishData(State.DecFinal);
+
+                if (!Arrays.FixedTimeEquals(MacSize, m_mac, 0, m_buf, outputSize))
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
+
+                break;
+            }
+            case State.EncData:
+            {
+                if (m_bufPos > 0)
+                {
+                    ProcessBufferEncrypt(m_buf, 0, m_bufPos, output, outOff);
+                    outOff += m_bufPos;
+                }
+
+                FinishData(State.EncFinal);
+
+                Array.Copy(m_mac, 0, output, outOff, MacSize);
+                break;
+            }
+            }
+
+            Reset(false);
+            return outputSize;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public int DoFinal(Span<byte> output)
+        {
+            int outputSize = GetOutputSize(0);
+            Check.OutputLength(output, outputSize, "output buffer too short");
+
+            CheckData();
+
+            switch (m_state)
+            {
+            case State.DecData:
+            {
+                if (m_bufPos < MacSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                if (outputSize > 0)
+                {
+                    ProcessBufferDecrypt(m_buf.AsSpan(0, outputSize), output);
+                    //output = output[outputSize..];
+                }
+
+                FinishData(State.DecFinal);
+
+                if (!Arrays.FixedTimeEquals(MacSize, m_mac, 0, m_buf, outputSize))
+                    throw new InvalidCipherTextException("mac check in " + AlgorithmName + " failed");
+
+                break;
+            }
+            case State.EncData:
+            {
+                if (m_bufPos > 0)
+                {
+                    ProcessBufferEncrypt(m_buf.AsSpan(0, m_bufPos), output);
+                    output = output[m_bufPos..];
+                }
+
+                FinishData(State.EncFinal);
+
+                m_mac.CopyTo(output);
+                break;
+            }
+            }
+
+            Reset(false);
+            return outputSize;
+        }
+#endif
+
+        public byte[] GetMac() => (byte[])m_mac.Clone();
+
+        public void Reset() => Reset(true);
+
+        // TODO[api] Remove ASAP
+        [Obsolete("Incompatible with the AEAD API; throws NotImplementedException")]
+        public byte ReturnByte(byte input) => throw new NotImplementedException();
+
+        private void CheckAad()
+        {
+            switch (m_state)
+            {
+            case State.DecInit:
+                m_state = State.DecAad;
+                break;
+            case State.EncInit:
+                m_state = State.EncAad;
+                break;
+            case State.DecAad:
+            case State.EncAad:
+                break;
+            case State.DecData:
+            case State.EncData:
+                // TODO[api] Consider changing the error message (specialize for DecData vs EncData?)
+                throw new InvalidOperationException("associated data must be added before plaintext/ciphertext");
+            case State.EncFinal:
+                throw new InvalidOperationException(AlgorithmName + " cannot be reused for encryption");
+            default:
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
+            }
+        }
+
+        private void CheckData()
+        {
+            switch (m_state)
+            {
+            case State.DecInit:
+            case State.DecAad:
+                FinishAad(State.DecData);
+                break;
+            case State.EncInit:
+            case State.EncAad:
+                FinishAad(State.EncData);
+                break;
+            case State.DecData:
+            case State.EncData:
+                break;
+            case State.EncFinal:
+                throw new InvalidOperationException(AlgorithmName + " cannot be reused for encryption");
+            default:
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
+            }
+        }
+
+        private void FinishAad(State nextState)
+        {
+            // Encode(ad length) denotes the message length encoded in the DER format.
+
+            // The first 5 bytes of the buffer were preallocated to give us space for the DER length
+            byte[] buffer = m_aadData.GetBuffer();
+            int length = Convert.ToInt32(m_aadData.Length);
+            int aadLen = length - 5;
+
+            int pos;
+            if (aadLen < 128)
+            {
+                pos = 4;
+                buffer[pos] = (byte)aadLen;
+            }
+            else
+            {
+                pos = 5;
+
+                uint dl = (uint)aadLen;
+                do
+                {
+                    buffer[--pos] = (byte)dl;
+                    dl >>= 8;
+                }
+                while (dl > 0);
+
+                int count = 5 - pos;
+                buffer[--pos] = (byte)(0x80 | count);
+            }
+
+            for (int i = pos; i < length; ++i)
+            {
+                uint b = buffer[i];
+
+                for (int j = 0; j < 8; ++j)
+                {
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+
+                    uint ader_i_j = (b >> j) & 1U;
+
+                    uint mask = 0U - ader_i_j;
+                    authAccSr[0] ^= authAccSr[2] & mask;
+                    authAccSr[1] ^= authAccSr[3] & mask;
+
+                    ShiftAuth(GetOutput());
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
                 }
             }
-            for (int quotient = 0; quotient < 2; ++quotient)
-            {
-                for (int remainder = 0; remainder < 32; ++remainder)
-                {
-                    uint outputZ = GetOutput();
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-                    authAcc[quotient] |= outputZ << remainder;
-                }
-            }
-            for (int quotient = 0; quotient < 2; ++quotient)
-            {
-                for (int remainder = 0; remainder < 32; ++remainder)
-                {
-                    uint outputZ = GetOutput();
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-                    authSr[quotient] |= outputZ << remainder;
-                }
-            }
-            initialised = true;
+
+            m_state = nextState;
+        }
+
+        private void FinishData(State nextState)
+        {
+            authAccSr[0] ^= authAccSr[2];
+            authAccSr[1] ^= authAccSr[3];
+
+            Pack.UInt32_To_LE(authAccSr, 0, 2, m_mac, 0);
+
+            m_state = nextState;
+        }
+
+        /**
+         * Get output from output function h(x).
+         *
+         * @return y_t.
+         */
+        private uint GetOutput()
+        {
+            uint b2 = nfsr[0] >> 2;
+            uint b12 = nfsr[0] >> 12;
+            uint b15 = nfsr[0] >> 15;
+            uint b36 = nfsr[1] >> 4;
+            uint b45 = nfsr[1] >> 13;
+            uint b64 = nfsr[2];
+            uint b73 = nfsr[2] >> 9;
+            uint b89 = nfsr[2] >> 25;
+            uint b95 = nfsr[2] >> 31;
+            uint s8 = lfsr[0] >> 8;
+            uint s13 = lfsr[0] >> 13;
+            uint s20 = lfsr[0] >> 20;
+            uint s42 = lfsr[1] >> 10;
+            uint s60 = lfsr[1] >> 28;
+            uint s79 = lfsr[2] >> 15;
+            uint s93 = lfsr[2] >> 29;
+            uint s94 = lfsr[2] >> 30;
+
+            return ((b12 & s8) ^ (s13 & s20) ^ (b95 & s42) ^ (s60 & s79) ^ (b12 & b95 & s94) ^ s93
+                ^ b2 ^ b15 ^ b36 ^ b45 ^ b64 ^ b73 ^ b89) & 1;
+        }
+
+        /**
+         * Get output from linear function f(x).
+         *
+         * @return Output from LFSR.
+         */
+        private uint GetOutputLFSR()
+        {
+            uint s0 = lfsr[0];
+            uint s7 = lfsr[0] >> 7;
+            uint s38 = lfsr[1] >> 6;
+            uint s70 = lfsr[2] >> 6;
+            uint s81 = lfsr[2] >> 17;
+            uint s96 = lfsr[3];
+
+            return s0 ^ s7 ^ s38 ^ s70 ^ s81 ^ s96;
         }
 
         /**
@@ -157,54 +573,196 @@ namespace Org.BouncyCastle.Crypto.Engines
             uint b95 = nfsr[2] >> 31;
             uint b96 = nfsr[3];
 
-            return (b0 ^ b26 ^ b56 ^ b91 ^ b96 ^ b3 & b67 ^ b11 & b13 ^ b17 & b18
-                ^ b27 & b59 ^ b40 & b48 ^ b61 & b65 ^ b68 & b84 ^ b22 & b24 & b25 ^ b70 & b78 & b82 ^ b88 & b92 & b93 & b95) & 1;
+            return b0 ^ b26 ^ b56 ^ b91 ^ b96 ^ b3 & b67 ^ b11 & b13 ^ b17 & b18 ^ b27 & b59 ^ b40 & b48 ^ b61 & b65
+                ^ b68 & b84 ^ b22 & b24 & b25 ^ b70 & b78 & b82 ^ b88 & b92 & b93 & b95;
         }
 
-        /**
-         * Get output from linear function f(x).
-         *
-         * @return Output from LFSR.
-         */
-        private uint GetOutputLFSR()
+        private void InitGrain()
         {
-            uint s0 = lfsr[0];
-            uint s7 = lfsr[0] >> 7;
-            uint s38 = lfsr[1] >> 6;
-            uint s70 = lfsr[2] >> 6;
-            uint s81 = lfsr[2] >> 17;
-            uint s96 = lfsr[3];
+            Pack.LE_To_UInt32(workingKeyAndIV, 0, nfsr, 0, 4);
+            Pack.LE_To_UInt32(workingKeyAndIV, KeySize, lfsr, 0, 3);
+            lfsr[3] = 0x7FFFFFFFU;
 
-            return (s0 ^ s7 ^ s38 ^ s70 ^ s81 ^ s96) & 1;
+            for (int i = 0; i < 320; ++i)
+            {
+                uint outputZ = GetOutput();
+                ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0] ^ outputZ);
+                ShiftBit(lfsr, GetOutputLFSR() ^ outputZ);
+            }
+            for (int quotient = 0; quotient < 8; ++quotient)
+            {
+                uint wk0 = (uint)workingKeyAndIV[quotient];
+                uint wk8 = (uint)workingKeyAndIV[quotient + 8];
+
+                for (int remainder = 0; remainder < 8; ++remainder)
+                {
+                    uint outputZ = GetOutput();
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0] ^ outputZ ^ (wk0 >> remainder));
+                    ShiftBit(lfsr, GetOutputLFSR() ^ outputZ ^ (wk8 >> remainder));
+                }
+            }
+            for (int j = 0; j < 4; ++j)
+            {
+                uint t = 0;
+                for (int remainder = 0; remainder < 32; ++remainder)
+                {
+                    uint outputZ = GetOutput();
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+                    t |= outputZ << remainder;
+                }
+                authAccSr[j] = t;
+            }
         }
 
-        /**
-         * Get output from output function h(x).
-         *
-         * @return y_t.
-         */
-        private uint GetOutput()
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void ProcessBufferDecrypt(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            uint b2 = nfsr[0] >> 2;
-            uint b12 = nfsr[0] >> 12;
-            uint b15 = nfsr[0] >> 15;
-            uint b36 = nfsr[1] >> 4;
-            uint b45 = nfsr[1] >> 13;
-            uint b64 = nfsr[2];
-            uint b73 = nfsr[2] >> 9;
-            uint b89 = nfsr[2] >> 25;
-            uint b95 = nfsr[2] >> 31;
-            uint s8 = lfsr[0] >> 8;
-            uint s13 = lfsr[0] >> 13;
-            uint s20 = lfsr[0] >> 20;
-            uint s42 = lfsr[1] >> 10;
-            uint s60 = lfsr[1] >> 28;
-            uint s79 = lfsr[2] >> 15;
-            uint s93 = lfsr[2] >> 29;
-            uint s94 = lfsr[2] >> 30;
+            for (int i = 0, len = input.Length; i < len; ++i)
+            {
+                uint ct_i = input[i], pt_i = 0;
+                for (int j = 0; j < 8; ++j)
+                {
+                    uint ct_i_j = (ct_i >> j) & 1U;
 
-            return ((b12 & s8) ^ (s13 & s20) ^ (b95 & s42) ^ (s60 & s79) ^ (b12 & b95 & s94) ^ s93
-                ^ b2 ^ b15 ^ b36 ^ b45 ^ b64 ^ b73 ^ b89) & 1;
+                    uint pt_i_j = ct_i_j ^ GetOutput();
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+
+                    pt_i |= pt_i_j << j;
+
+                    uint mask = 0U - pt_i_j;
+                    authAccSr[0] ^= authAccSr[2] & mask;
+                    authAccSr[1] ^= authAccSr[3] & mask;
+
+                    ShiftAuth(GetOutput());
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+                }
+                output[i] = (byte)pt_i;
+            }
+        }
+
+        private void ProcessBufferEncrypt(ReadOnlySpan<byte> input, Span<byte> output)
+        {
+            for (int i = 0, len = input.Length; i < len; ++i)
+            {
+                uint ct_i = 0, pt_i = input[i];
+                for (int j = 0; j < 8; ++j)
+                {
+                    uint pt_i_j = (pt_i >> j) & 1U;
+
+                    uint ct_i_j = pt_i_j ^ GetOutput();
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+
+                    ct_i |= ct_i_j << j;
+
+                    uint mask = 0U - pt_i_j;
+                    authAccSr[0] ^= authAccSr[2] & mask;
+                    authAccSr[1] ^= authAccSr[3] & mask;
+
+                    ShiftAuth(GetOutput());
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+                }
+                output[i] = (byte)ct_i;
+            }
+        }
+#else
+        private void ProcessBufferDecrypt(byte[] input, int inOff, int len, byte[] output, int outOff)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                uint ct_i = input[inOff + i], pt_i = 0;
+                for (int j = 0; j < 8; ++j)
+                {
+                    uint ct_i_j = (ct_i >> j) & 1U;
+
+                    uint pt_i_j = ct_i_j ^ GetOutput();
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+
+                    pt_i |= pt_i_j << j;
+
+                    uint mask = 0U - pt_i_j;
+                    authAccSr[0] ^= authAccSr[2] & mask;
+                    authAccSr[1] ^= authAccSr[3] & mask;
+
+                    ShiftAuth(GetOutput());
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+                }
+                output[outOff + i] = (byte)pt_i;
+            }
+        }
+
+        private void ProcessBufferEncrypt(byte[] input, int inOff, int len, byte[] output, int outOff)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                uint ct_i = 0, pt_i = input[inOff + i];
+                for (int j = 0; j < 8; ++j)
+                {
+                    uint pt_i_j = (pt_i >> j) & 1U;
+
+                    uint ct_i_j = pt_i_j ^ GetOutput();
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+
+                    ct_i |= ct_i_j << j;
+
+                    uint mask = 0U - pt_i_j;
+                    authAccSr[0] ^= authAccSr[2] & mask;
+                    authAccSr[1] ^= authAccSr[3] & mask;
+
+                    ShiftAuth(GetOutput());
+                    ShiftBit(nfsr, GetOutputNFSR() ^ lfsr[0]);
+                    ShiftBit(lfsr, GetOutputLFSR());
+                }
+                output[outOff + i] = (byte)ct_i;
+            }
+        }
+#endif
+
+        private void Reset(bool clearMac)
+        {
+            m_aadData.SetLength(5);
+
+            if (clearMac)
+            {
+                Array.Clear(m_mac, 0, m_mac.Length);
+            }
+
+            Array.Clear(m_buf, 0, m_buf.Length);
+            m_bufPos = 0;
+
+            switch (m_state)
+            {
+            case State.DecInit:
+            case State.EncInit:
+                break;
+            case State.DecAad:
+            case State.DecData:
+            case State.DecFinal:
+                m_state = State.DecInit;
+                break;
+            case State.EncAad:
+            case State.EncData:
+            case State.EncFinal:
+                m_state = State.EncFinal;
+                return;
+            default:
+                throw new InvalidOperationException(AlgorithmName + " needs to be initialized");
+            }
+
+            InitGrain();
+        }
+
+        private void ShiftAuth(uint val)
+        {
+            authAccSr[2] = (authAccSr[2] >> 1) | (authAccSr[3] << 31);
+            authAccSr[3] = (authAccSr[3] >> 1) | (val << 31);
         }
 
         /**
@@ -214,351 +772,12 @@ namespace Org.BouncyCastle.Crypto.Engines
          * @param val   The value to shift in.
          * @return The shifted array with val added to index.Length - 1.
          */
-        private uint[] Shift(uint[] array, uint val)
+        private void ShiftBit(uint[] array, uint val)
         {
             array[0] = (array[0] >> 1) | (array[1] << 31);
             array[1] = (array[1] >> 1) | (array[2] << 31);
             array[2] = (array[2] >> 1) | (array[3] << 31);
             array[3] = (array[3] >> 1) | (val << 31);
-            return array;
-        }
-
-        /**
-         * Set keys, reset cipher.
-         *
-         * @param keyBytes The key.
-         * @param ivBytes  The IV.
-         */
-        private void SetKey(byte[] keyBytes, byte[] ivBytes)
-        {
-            ivBytes[12] = 0xFF;
-            ivBytes[13] = 0xFF;
-            ivBytes[14] = 0xFF;
-            ivBytes[15] = 0x7F;
-            workingKey = keyBytes;
-            workingIV = ivBytes;
-
-            /*
-             * Load NFSR and LFSR
-             */
-            Pack.LE_To_UInt32(workingKey, 0, nfsr);
-            Pack.LE_To_UInt32(workingIV, 0, lfsr);
-        }
-
-        public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
-        {
-            Check.DataLength(input, inOff, len, "input buffer too short");
-            Check.OutputLength(output, outOff, len, "output buffer too short");
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ProcessBytes(input.AsSpan(inOff, len), output.AsSpan(outOff));
-#else
-            if (!initialised)
-                throw new ArgumentException(AlgorithmName + " not initialised");
-
-            if (!aadFinished)
-            {
-                DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
-                aadFinished = true;
-            }
-
-            GetKeyStream(input, inOff, len, output, outOff);
-            return len;
-#endif
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
-        {
-            Check.OutputLength(output, input.Length, "output buffer too short");
-
-            if (!initialised)
-                throw new ArgumentException(AlgorithmName + " not initialised");
-
-            if (!aadFinished)
-            {
-                DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
-                aadFinished = true;
-            }
-
-            GetKeyStream(input, output);
-            return input.Length;
-        }
-#endif
-
-        public void Reset()
-        {
-            Reset(true);
-        }
-
-        private void Reset(bool clearMac)
-        {
-            if (clearMac)
-            {
-                this.mac = null;
-            }
-            this.aadData.SetLength(0);
-            this.aadFinished = false;
-
-            SetKey(workingKey, workingIV);
-            InitGrain();
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private void GetKeyStream(ReadOnlySpan<byte> input, Span<byte> output)
-        {
-            int len = input.Length;
-            for (int i = 0; i < len; ++i)
-            {
-                uint cc = 0, input_i = input[i];
-                for (int j = 0; j < 8; ++j)
-                {
-                    uint outputZ = GetOutput();
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-
-                    uint input_i_j = (input_i >> j) & 1U;
-                    cc |= (input_i_j ^ outputZ) << j;
-
-                    //if (input_i_j != 0)
-                    //{
-                    //    Accumulate();
-                    //}
-                    uint mask = 0U - input_i_j;
-                    authAcc[0] ^= authSr[0] & mask;
-                    authAcc[1] ^= authSr[1] & mask;
-
-                    AuthShift(GetOutput());
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-                }
-                output[i] = (byte)cc;
-            }
-        }
-#else
-        private void GetKeyStream(byte[] input, int inOff, int len, byte[] ciphertext, int outOff)
-        {
-            for (int i = 0; i < len; ++i)
-            {
-                uint cc = 0, input_i = input[inOff + i];
-                for (int j = 0; j < 8; ++j)
-                {
-                    uint outputZ = GetOutput();
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-
-                    uint input_i_j = (input_i >> j) & 1U;
-                    cc |= (input_i_j ^ outputZ) << j;
-
-                    //if (input_i_j != 0)
-                    //{
-                    //    Accumulate();
-                    //}
-                    uint mask = 0U - input_i_j;
-                    authAcc[0] ^= authSr[0] & mask;
-                    authAcc[1] ^= authSr[1] & mask;
-
-                    AuthShift(GetOutput());
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-                }
-                ciphertext[outOff + i] = (byte)cc;
-            }
-        }
-#endif
-
-        public byte ReturnByte(byte input)
-        {
-            if (!initialised)
-                throw new ArgumentException(AlgorithmName + " not initialised");
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> plaintext = stackalloc byte[1]{ input };
-            Span<byte> ciphertext = stackalloc byte[1];
-            GetKeyStream(plaintext, ciphertext);
-            return ciphertext[0];
-#else
-            byte[] plaintext = new byte[1]{ input };
-            byte[] ciphertext = new byte[1];
-            GetKeyStream(plaintext, 0, 1, ciphertext, 0);
-            return ciphertext[0];
-#endif
-        }
-
-        public void ProcessAadByte(byte input)
-        {
-            if (aadFinished)
-                throw new ArgumentException("associated data must be added before plaintext/ciphertext");
-
-            aadData.WriteByte(input);
-        }
-
-        public void ProcessAadBytes(byte[] input, int inOff, int len)
-        {
-            if (aadFinished)
-                throw new ArgumentException("associated data must be added before plaintext/ciphertext");
-
-            aadData.Write(input, inOff, len);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public void ProcessAadBytes(ReadOnlySpan<byte> input)
-        {
-            if (aadFinished)
-                throw new ArgumentException("associated data must be added before plaintext/ciphertext");
-
-            aadData.Write(input);
-        }
-#endif
-
-        private void Accumulate()
-        {
-            authAcc[0] ^= authSr[0];
-            authAcc[1] ^= authSr[1];
-        }
-
-        private void AuthShift(uint val)
-        {
-            authSr[0] = (authSr[0] >> 1) | (authSr[1] << 31);
-            authSr[1] = (authSr[1] >> 1) | (val << 31);
-        }
-
-        public int ProcessByte(byte input, byte[] output, int outOff)
-        {
-            return ProcessBytes(new byte[]{ input }, 0, 1, output, outOff);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int ProcessByte(byte input, Span<byte> output)
-        {
-            return ProcessBytes(stackalloc byte[1]{ input }, output);
-        }
-#endif
-
-        private void DoProcessAADBytes(byte[] input, int inOff, int len)
-        {
-            byte[] ader;
-            int aderlen;
-            //encodeDer
-            if (len < 128)
-            {
-                ader = new byte[1 + len];
-                ader[0] = (byte)len;
-                aderlen = 0;
-            }
-            else
-            {
-                // aderlen is the highest bit position divided by 8
-                aderlen = LenLength(len);
-                ader = new byte[aderlen + 1 + len];
-                ader[0] = (byte)(0x80 | (uint)aderlen);
-                uint tmp = (uint)len;
-                for (int i = 0; i < aderlen; ++i)
-                {
-                    ader[1 + i] = (byte)tmp;
-                    tmp >>= 8;
-                }
-            }
-            for (int i = 0; i < len; ++i)
-            {
-                ader[1 + aderlen + i] = input[inOff + i];
-            }
-
-            for (int i = 0; i < ader.Length; ++i)
-            {
-                uint ader_i = ader[i];
-                for (int j = 0; j < 8; ++j)
-                {
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-
-                    uint ader_i_j = (ader_i >> j) & 1U;
-                    //if (ader_i_j != 0)
-                    //{
-                    //    Accumulate();
-                    //}
-                    uint mask = 0U - ader_i_j;
-                    authAcc[0] ^= authSr[0] & mask;
-                    authAcc[1] ^= authSr[1] & mask;
-
-                    AuthShift(GetOutput());
-                    nfsr = Shift(nfsr, (GetOutputNFSR() ^ lfsr[0]) & 1);
-                    lfsr = Shift(lfsr, (GetOutputLFSR()) & 1);
-                }
-            }
-        }
-
-        public int DoFinal(byte[] output, int outOff)
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return DoFinal(output.AsSpan(outOff));
-#else
-            if (!aadFinished)
-            {
-                DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
-                aadFinished = true;
-            }
-
-            Accumulate();
-
-            this.mac = Pack.UInt32_To_LE(authAcc);
-
-            Array.Copy(mac, 0, output, outOff, mac.Length);
-
-            Reset(false);
-
-            return mac.Length;
-#endif
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public int DoFinal(Span<byte> output)
-        {
-            if (!aadFinished)
-            {
-                DoProcessAADBytes(aadData.GetBuffer(), 0, (int)aadData.Length);
-                aadFinished = true;
-            }
-
-            Accumulate();
-
-            this.mac = Pack.UInt32_To_LE(authAcc);
-
-            mac.CopyTo(output);
-
-            Reset(false);
-
-            return mac.Length;
-        }
-#endif
-
-        public byte[] GetMac()
-        {
-            return mac;
-        }
-
-        public int GetUpdateOutputSize(int len)
-        {
-            return len;
-        }
-
-        public int GetOutputSize(int len)
-        {
-            return len + 8;
-        }
-
-        private static int LenLength(int v)
-        {
-            if ((v & 0xff) == v)
-                return 1;
-
-            if ((v & 0xffff) == v)
-                return 2;
-
-            if ((v & 0xffffff) == v)
-                return 3;
-
-            return 4;
         }
     }
 }

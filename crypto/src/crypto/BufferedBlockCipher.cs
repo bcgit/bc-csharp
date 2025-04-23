@@ -1,12 +1,13 @@
 using System;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Modes;
-using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto
 {
-	/**
+    /**
 	* A wrapper class that allows block ciphers to be used to process data in
 	* a piecemeal fashion. The BufferedBlockCipher outputs a block only when the
 	* buffer is full and more data is being added, or on a doFinal.
@@ -15,23 +16,23 @@ namespace Org.BouncyCastle.Crypto
 	* OFB one the last block may not be a multiple of the block size.
 	* </p>
 	*/
-	public class BufferedBlockCipher
-		: BufferedCipherBase
-	{
+    public class BufferedBlockCipher
+        : BufferedCipherBase
+    {
         internal byte[] buf;
-		internal int bufOff;
-		internal bool forEncryption;
-		internal IBlockCipherMode m_cipherMode;
+        internal int bufOff;
+        internal bool forEncryption;
+        internal IBlockCipherMode m_cipherMode;
 
-		/**
+        /**
 		* constructor for subclasses
 		*/
-		protected BufferedBlockCipher()
-		{
-		}
+        protected BufferedBlockCipher()
+        {
+        }
 
         public BufferedBlockCipher(IBlockCipher cipher)
-			: this(EcbBlockCipher.GetBlockCipherMode(cipher))
+            : this(EcbBlockCipher.GetBlockCipherMode(cipher))
         {
         }
 
@@ -42,21 +43,22 @@ namespace Org.BouncyCastle.Crypto
 		* false otherwise.
 		*/
         public BufferedBlockCipher(IBlockCipherMode cipherMode)
-		{
-			if (cipherMode == null)
-				throw new ArgumentNullException(nameof(cipherMode));
+        {
+            if (cipherMode == null)
+                throw new ArgumentNullException(nameof(cipherMode));
+
+            int blockSize = cipherMode.GetBlockSize();
+            if (blockSize < 1)
+                throw new ArgumentException("must have a positive block size", nameof(cipherMode));
 
             m_cipherMode = cipherMode;
-			buf = new byte[cipherMode.GetBlockSize()];
-			bufOff = 0;
-		}
+            buf = new byte[blockSize];
+            bufOff = 0;
+        }
 
-		public override string AlgorithmName
-		{
-			get { return m_cipherMode.AlgorithmName; }
-		}
+        public override string AlgorithmName => m_cipherMode.AlgorithmName;
 
-		/**
+        /**
 		* initialise the cipher.
 		*
 		* @param forEncryption if true the cipher is initialised for
@@ -65,47 +67,27 @@ namespace Org.BouncyCastle.Crypto
 		* @exception ArgumentException if the parameters argument is
 		* inappropriate.
 		*/
-		// Note: This doubles as the Init in the event that this cipher is being used as an IWrapper
-		public override void Init(bool forEncryption, ICipherParameters parameters)
-		{
-			this.forEncryption = forEncryption;
+        // Note: This doubles as the Init in the event that this cipher is being used as an IWrapper
+        public override void Init(bool forEncryption, ICipherParameters parameters)
+        {
+            this.forEncryption = forEncryption;
 
-			if (parameters is ParametersWithRandom withRandom)
-			{
-				parameters = withRandom.Parameters;
-			}
+            parameters = ParameterUtilities.IgnoreRandom(parameters);
 
+            // TODO[api] Redundantly resets the cipher mode
             Reset();
 
-			m_cipherMode.Init(forEncryption, parameters);
-		}
+            m_cipherMode.Init(forEncryption, parameters);
+        }
 
-		/**
+        /**
 		* return the blocksize for the underlying cipher.
 		*
 		* @return the blocksize for the underlying cipher.
 		*/
-		public override int GetBlockSize()
-		{
-			return m_cipherMode.GetBlockSize();
-		}
+        public override int GetBlockSize() => m_cipherMode.GetBlockSize();
 
-		/**
-		* return the size of the output buffer required for an update
-		* an input of len bytes.
-		*
-		* @param len the length of the input.
-		* @return the space required to accommodate a call to update
-		* with len bytes of input.
-		*/
-		public override int GetUpdateOutputSize(int length)
-		{
-			int total = length + bufOff;
-			int leftOver = total % buf.Length;
-			return total - leftOver;
-		}
-
-		/**
+        /**
 		* return the size of the output buffer required for an update plus a
 		* doFinal with an input of len bytes.
 		*
@@ -113,13 +95,35 @@ namespace Org.BouncyCastle.Crypto
 		* @return the space required to accommodate a call to update and doFinal
 		* with len bytes of input.
 		*/
-		public override int GetOutputSize(int length)
-		{
-			// Note: Can assume IsPartialBlockOkay is true for purposes of this calculation
-			return length + bufOff;
-		}
+        // Note: Can assume IsPartialBlockOkay is true for purposes of this calculation
+        public override int GetOutputSize(int length) => bufOff + length;
 
-		/**
+        /**
+		* return the size of the output buffer required for an update
+		* an input of len bytes.
+		*
+		* @param len the length of the input.
+		* @return the space required to accommodate a call to update
+		* with len bytes of input.
+		*/
+        public override int GetUpdateOutputSize(int length) =>
+            GetFullBlocksSize(totalSize: bufOff + length, blockSize: buf.Length);
+
+        public override byte[] ProcessByte(byte input)
+        {
+            int updateOutputSize = GetUpdateOutputSize(1);
+
+            byte[] output = updateOutputSize > 0 ? new byte[updateOutputSize] : null;
+
+            int outLen = ProcessByte(input, output, 0);
+
+            if (updateOutputSize > 0 && outLen < updateOutputSize)
+                return Arrays.CopyOf(output, outLen);
+
+            return output;
+        }
+
+        /**
 		* process a single byte, producing an output block if necessary.
 		*
 		* @param in the input byte.
@@ -129,39 +133,24 @@ namespace Org.BouncyCastle.Crypto
 		* @exception DataLengthException if there isn't enough space in out.
 		* @exception InvalidOperationException if the cipher isn't initialised.
 		*/
-		public override int ProcessByte(byte input, byte[] output, int outOff)
-		{
+        public override int ProcessByte(byte input, byte[] output, int outOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ProcessByte(input, Spans.FromNullable(output, outOff));
+#else
 			buf[bufOff++] = input;
 
 			if (bufOff == buf.Length)
 			{
-				if ((outOff + buf.Length) > output.Length)
-					throw new DataLengthException("output buffer too short");
+				Check.OutputLength(output, outOff, buf.Length, "output buffer too short");
 
 				bufOff = 0;
 				return m_cipherMode.ProcessBlock(buf, 0, output, outOff);
 			}
 
 			return 0;
-		}
-
-		public override byte[] ProcessByte(byte input)
-		{
-			int outLength = GetUpdateOutputSize(1);
-
-			byte[] outBytes = outLength > 0 ? new byte[outLength] : null;
-
-			int pos = ProcessByte(input, outBytes, 0);
-
-			if (outLength > 0 && pos < outLength)
-			{
-				byte[] tmp = new byte[pos];
-				Array.Copy(outBytes, 0, tmp, 0, pos);
-				outBytes = tmp;
-			}
-
-			return outBytes;
-		}
+#endif
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override int ProcessByte(byte input, Span<byte> output)
@@ -170,7 +159,7 @@ namespace Org.BouncyCastle.Crypto
 
             if (bufOff == buf.Length)
             {
-				Check.OutputLength(output, buf.Length, "output buffer too short");
+                Check.OutputLength(output, buf.Length, "output buffer too short");
 
                 bufOff = 0;
                 return m_cipherMode.ProcessBlock(buf, output);
@@ -183,25 +172,21 @@ namespace Org.BouncyCastle.Crypto
         public override byte[] ProcessBytes(byte[] input, int inOff, int length)
         {
             if (input == null)
-				throw new ArgumentNullException(nameof(input));
-			if (length < 1)
-				return null;
+                throw new ArgumentNullException(nameof(input));
+            if (length < 1)
+                return null;
 
-			int outLength = GetUpdateOutputSize(length);
+            int updateOutputSize = GetUpdateOutputSize(length);
 
-			byte[] outBytes = outLength > 0 ? new byte[outLength] : null;
+            byte[] output = updateOutputSize > 0 ? new byte[updateOutputSize] : null;
 
-			int pos = ProcessBytes(input, inOff, length, outBytes, 0);
+            int outLen = ProcessBytes(input, inOff, length, output, 0);
 
-			if (outLength > 0 && pos < outLength)
-			{
-				byte[] tmp = new byte[pos];
-				Array.Copy(outBytes, 0, tmp, 0, pos);
-				outBytes = tmp;
-			}
+            if (updateOutputSize > 0 && outLen < updateOutputSize)
+                return Arrays.CopyOf(output, outLen);
 
-			return outBytes;
-		}
+            return output;
+        }
 
         /**
 		* process an array of bytes, producing output if necessary.
@@ -218,29 +203,36 @@ namespace Org.BouncyCastle.Crypto
         public override int ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             if (length < 1)
-			{
-				if (length < 0)
-					throw new ArgumentException("Can't have a negative input length!");
+            {
+                if (length < 0)
+                    throw new ArgumentException("Can't have a negative input length!");
 
-				return 0;
-			}
+                return 0;
+            }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-			return ProcessBytes(input.AsSpan(inOff, length), Spans.FromNullable(output, outOff));
+            return ProcessBytes(input.AsSpan(inOff, length), Spans.FromNullable(output, outOff));
 #else
 			int resultLen = 0;
             int blockSize = buf.Length;
             int available = blockSize - bufOff;
+
 			if (length >= available)
 			{
-				Array.Copy(input, inOff, buf, bufOff, available);
+                int updateOutputSize = GetUpdateOutputSize(length);
+				Debug.Assert(updateOutputSize >= blockSize);
+                Check.OutputLength(output, outOff, updateOutputSize, "output buffer too short");
+
+                Array.Copy(input, inOff, buf, bufOff, available);
                 inOff += available;
                 length -= available;
 
-                int total = blockSize + length;
-                if (outOff > (output.Length - total))
-                {
-                    Check.OutputLength(output, outOff, total - total % blockSize, "output buffer too short");
+                // Handle destructive overlap by copying the remaining input
+                if (output == input && SegmentsOverlap(outOff, blockSize, inOff, length))
+				{
+                    input = new byte[length];
+                    Array.Copy(output, inOff, input, 0, length);
+                    inOff = 0;
                 }
 
                 resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
@@ -253,6 +245,7 @@ namespace Org.BouncyCastle.Crypto
 					length -= blockSize;
 				}
 			}
+
 			Array.Copy(input, inOff, buf, bufOff, length);
 			bufOff += length;
 			return resultLen;
@@ -265,15 +258,22 @@ namespace Org.BouncyCastle.Crypto
             int resultLen = 0;
             int blockSize = buf.Length;
             int available = blockSize - bufOff;
+
             if (input.Length >= available)
             {
+                int updateOutputSize = GetUpdateOutputSize(input.Length);
+                Debug.Assert(updateOutputSize >= blockSize);
+                Check.OutputLength(output, updateOutputSize, "output buffer too short");
+
                 input[..available].CopyTo(buf.AsSpan(bufOff));
                 input = input[available..];
 
-                int total = blockSize + input.Length;
-				if (output.Length < total)
-				{
-                    Check.OutputLength(output, total - total % blockSize, "output buffer too short");
+                // Handle destructive overlap by copying the remaining input
+                if (output[..blockSize].Overlaps(input))
+                {
+                    byte[] tmp = new byte[input.Length];
+                    input.CopyTo(tmp);
+                    input = tmp;
                 }
 
                 resultLen = m_cipherMode.ProcessBlock(buf, output);
@@ -282,9 +282,10 @@ namespace Org.BouncyCastle.Crypto
                 while (input.Length >= blockSize)
                 {
                     resultLen += m_cipherMode.ProcessBlock(input, output[resultLen..]);
-					input = input[blockSize..];
+                    input = input[blockSize..];
                 }
             }
+
             input.CopyTo(buf.AsSpan(bufOff));
             bufOff += input.Length;
             return resultLen;
@@ -292,63 +293,45 @@ namespace Org.BouncyCastle.Crypto
 #endif
 
         public override byte[] DoFinal()
-		{
-			byte[] outBytes = EmptyBuffer;
+        {
+            int outputSize = GetOutputSize(0);
+            if (outputSize < 1)
+            {
+                Reset();
+                return EmptyBuffer;
+            }
 
-			int length = GetOutputSize(0);
-			if (length > 0)
-			{
-				outBytes = new byte[length];
+            byte[] output = new byte[outputSize];
 
-				int pos = DoFinal(outBytes, 0);
-				if (pos < outBytes.Length)
-				{
-					byte[] tmp = new byte[pos];
-					Array.Copy(outBytes, 0, tmp, 0, pos);
-					outBytes = tmp;
-				}
-			}
-			else
-			{
-				Reset();
-			}
+            int outLen = DoFinal(output, 0);
+            if (outLen < outputSize)
+                return Arrays.CopyOf(output, outLen);
 
-			return outBytes;
-		}
+            return output;
+        }
 
         public override byte[] DoFinal(byte[] input, int inOff, int inLen)
         {
             if (input == null)
-				throw new ArgumentNullException(nameof(input));
+                throw new ArgumentNullException(nameof(input));
 
-			int length = GetOutputSize(inLen);
+            int outputSize = GetOutputSize(inLen);
+            if (outputSize < 1)
+            {
+                Reset();
+                return EmptyBuffer;
+            }
 
-			byte[] outBytes = EmptyBuffer;
+            byte[] output = new byte[outputSize];
 
-			if (length > 0)
-			{
-				outBytes = new byte[length];
+            int outLen = inLen > 0 ? ProcessBytes(input, inOff, inLen, output, 0) : 0;
+            outLen += DoFinal(output, outLen);
 
-				int pos = (inLen > 0)
-					?	ProcessBytes(input, inOff, inLen, outBytes, 0)
-					:	0;
+            if (outLen < outputSize)
+                return Arrays.CopyOf(output, outLen);
 
-				pos += DoFinal(outBytes, pos);
-
-				if (pos < outBytes.Length)
-				{
-					byte[] tmp = new byte[pos];
-					Array.Copy(outBytes, 0, tmp, 0, pos);
-					outBytes = tmp;
-				}
-			}
-			else
-			{
-				Reset();
-			}
-
-			return outBytes;
-		}
+            return output;
+        }
 
         /**
 		* Process the last block in the buffer.
@@ -366,6 +349,9 @@ namespace Org.BouncyCastle.Crypto
 		*/
         public override int DoFinal(byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(Spans.FromNullable(output, outOff));
+#else
             try
 			{
 				if (bufOff != 0)
@@ -384,11 +370,12 @@ namespace Org.BouncyCastle.Crypto
 			{
 				Reset();
 			}
-		}
+#endif
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override int DoFinal(Span<byte> output)
-		{
+        {
             try
             {
                 if (bufOff != 0)
@@ -398,7 +385,7 @@ namespace Org.BouncyCastle.Crypto
 
                     // NB: Can't copy directly, or we may write too much output
                     m_cipherMode.ProcessBlock(buf, buf);
-					buf.AsSpan(0, bufOff).CopyTo(output);
+                    buf.AsSpan(0, bufOff).CopyTo(output);
                 }
 
                 return bufOff;
@@ -414,12 +401,12 @@ namespace Org.BouncyCastle.Crypto
 		* Reset the buffer and cipher. After resetting the object is in the same
 		* state as it was after the last init (if there was one).
 		*/
-		public override void Reset()
-		{
-			Array.Clear(buf, 0, buf.Length);
-			bufOff = 0;
+        public override void Reset()
+        {
+            Array.Clear(buf, 0, buf.Length);
+            bufOff = 0;
 
             m_cipherMode.Reset();
-		}
-	}
+        }
+    }
 }

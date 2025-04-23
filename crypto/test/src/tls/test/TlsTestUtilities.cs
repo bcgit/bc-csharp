@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -22,6 +23,9 @@ namespace Org.BouncyCastle.Tls.Tests
 {
     public class TlsTestUtilities
     {
+        private static readonly ConcurrentDictionary<string, PemObject> PemObjectCache =
+            new ConcurrentDictionary<string, PemObject>();
+
         internal static readonly byte[] RsaCertData = Base64.Decode(
             "MIICUzCCAf2gAwIBAgIBATANBgkqhkiG9w0BAQQFADCBjzELMAkGA1UEBhMCQVUxKDAmBgNVBAoMH1RoZSBMZWdpb2" +
             "4gb2YgdGhlIEJvdW5jeSBDYXN0bGUxEjAQBgNVBAcMCU1lbGJvdXJuZTERMA8GA1UECAwIVmljdG9yaWExLzAtBgkq" +
@@ -371,11 +375,13 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static PemObject LoadPemResource(string resource)
         {
-            Stream s = SimpleTest.GetTestDataAsStream("tls." + resource);
-            using (var p = new PemReader(new StreamReader(s)))
+            return PemObjectCache.GetOrAdd(resource, key =>
             {
-                return p.ReadPemObject();
-            }
+                using (var p = new PemReader(new StreamReader(SimpleTest.FindTestResource("tls", "credentials", key))))
+                {
+                    return p.ReadPemObject();
+                }
+            });
         }
 
         internal static bool AreSameCertificate(TlsCrypto crypto, TlsCertificate cert, string resource)

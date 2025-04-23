@@ -3874,6 +3874,7 @@ namespace Org.BouncyCastle.Tls
                     // TODO[tls13] We're conservatively adding both here, though maybe only one is needed
                     AddToSet(result, NamedGroupRole.dh);
                     AddToSet(result, NamedGroupRole.ecdh);
+                    AddToSet(result, NamedGroupRole.kem);
                     break;
                 }
                 }
@@ -4572,7 +4573,8 @@ namespace Org.BouncyCastle.Tls
                 for (int i = 0; i < tlsFeaturesSeq.Count; ++i)
                 {
                     if (!(tlsFeaturesSeq[i] is DerInteger))
-                        throw new TlsFatalAlert(AlertDescription.bad_certificate);
+                        throw new TlsFatalAlert(AlertDescription.bad_certificate,
+                            "Server certificate has invalid TLS Features extension");
                 }
 
                 RequireDerEncoding(tlsFeaturesSeq, tlsFeatures);
@@ -4585,7 +4587,8 @@ namespace Org.BouncyCastle.Tls
                         int extensionType = tlsExtension.IntValueExact;
 
                         if (clientExtensions.ContainsKey(extensionType) && !serverExtensions.ContainsKey(extensionType))
-                            throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                            throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                                "Server extensions missing TLS Feature " + extensionType);
                     }
                 }
             }
@@ -5065,6 +5068,13 @@ namespace Org.BouncyCastle.Tls
                         agreement = crypto.CreateDHDomain(new TlsDHConfig(supportedGroup, true)).CreateDH();
                     }
                 }
+                else if (NamedGroup.RefersToASpecificKem(supportedGroup))
+                {
+                    if (crypto.HasKemAgreement())
+                    {
+                        agreement = crypto.CreateKemDomain(new TlsKemConfig(supportedGroup, isServer: false)).CreateKem();
+                    }
+                }
 
                 if (null != agreement)
                 {
@@ -5111,13 +5121,12 @@ namespace Org.BouncyCastle.Tls
                     if (!crypto.HasNamedGroup(group))
                         continue;
 
-                    if ((NamedGroup.RefersToAnECDHCurve(group) && !crypto.HasECDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificFiniteField(group) && !crypto.HasDHAgreement())) 
+                    if ((NamedGroup.RefersToAnECDHCurve(group) && crypto.HasECDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificFiniteField(group) && crypto.HasDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificKem(group) && crypto.HasKemAgreement()))
                     {
-                        continue;
+                        return clientShare;
                     }
-
-                    return clientShare;
                 }
             }
             return null;
@@ -5139,13 +5148,12 @@ namespace Org.BouncyCastle.Tls
                     if (!crypto.HasNamedGroup(group))
                         continue;
 
-                    if ((NamedGroup.RefersToAnECDHCurve(group) && !crypto.HasECDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificFiniteField(group) && !crypto.HasDHAgreement())) 
+                    if ((NamedGroup.RefersToAnECDHCurve(group) && crypto.HasECDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificFiniteField(group) && crypto.HasDHAgreement()) ||
+                        (NamedGroup.RefersToASpecificKem(group) && crypto.HasKemAgreement()))
                     {
-                        continue;
+                        return group;
                     }
-
-                    return group;
                 }
             }
             return -1;

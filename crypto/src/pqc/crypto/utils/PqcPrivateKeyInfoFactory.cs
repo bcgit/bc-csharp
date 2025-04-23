@@ -8,14 +8,13 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -56,6 +55,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes, pubEncoding);
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (privateKey is SphincsPlusPrivateKeyParameters sphincsPlusPrivateKeyParameters)
             {
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
@@ -63,6 +63,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(sphincsPlusPrivateKeyParameters.GetEncoded()), attributes);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (privateKey is CmcePrivateKeyParameters cmcePrivateKeyParameters)
             {
                 byte[] encoding = cmcePrivateKeyParameters.GetEncoded();
@@ -101,16 +102,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     PqcUtilities.PicnicOidLookup(picnicPrivateKeyParameters.Parameters));
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (privateKey is SikePrivateKeyParameters sikePrivateKeyParameters)
-            {
-                byte[] encoding = sikePrivateKeyParameters.GetEncoded();
-
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.SikeOidLookup(sikePrivateKeyParameters.Parameters));
-                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
             if (privateKey is FalconPrivateKeyParameters falconPrivateKeyParameters)
             {
                 Asn1EncodableVector v = new Asn1EncodableVector(4);
@@ -125,13 +116,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return new PrivateKeyInfo(algorithmIdentifier, new DerSequence(v), attributes,
                     falconPrivateKeyParameters.GetPublicKey());
             }
-            if (privateKey is KyberPrivateKeyParameters kyberPrivateKeyParameters)
-            {
-                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
-                    PqcUtilities.KyberOidLookup(kyberPrivateKeyParameters.Parameters));
-                
-                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(kyberPrivateKeyParameters.GetEncoded()), attributes);
-            }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (privateKey is DilithiumPrivateKeyParameters dilithiumPrivateKeyParameters)
             {
                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
@@ -141,6 +126,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(dilithiumPrivateKeyParameters.GetEncoded()), attributes, pubParams.GetEncoded());
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (privateKey is BikePrivateKeyParameters bikePrivateKeyParameters)
             {
                 byte[] encoding = bikePrivateKeyParameters.GetEncoded();
@@ -154,6 +140,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.HqcOidLookup(hqcPrivateKeyParameters.Parameters));
                 byte[] encoding = hqcPrivateKeyParameters.PrivateKey;
+                return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
+            }
+            else if (privateKey is NtruPrivateKeyParameters ntruPrivateKeyParameters)
+            {
+                AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
+                    PqcUtilities.NtruOidLookup(ntruPrivateKeyParameters.Parameters));
+                byte[] encoding = ntruPrivateKeyParameters.GetEncoded();
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
 

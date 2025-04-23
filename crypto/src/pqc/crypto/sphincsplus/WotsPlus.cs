@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             for (uint i = 0; i < engine.WOTS_LEN; i++)
             {
                 Adrs adrs = new Adrs(paramAdrs);
-                adrs.SetAdrsType(Adrs.WOTS_PRF);
+                adrs.SetTypeAndClear(Adrs.WOTS_PRF);
                 adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetChainAddress(i);
                 adrs.SetHashAddress(0);
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 engine.PRF(pkSeed, skSeed, adrs, sk, 0);
 #endif
 
-                adrs.SetAdrsType(Adrs.WOTS_HASH);
+                adrs.SetTypeAndClear(Adrs.WOTS_HASH);
                 adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetChainAddress(i);
                 adrs.SetHashAddress(0);
@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 #endif
             }
 
-            wotspkAdrs.SetAdrsType(Adrs.WOTS_PK);
+            wotspkAdrs.SetTypeAndClear(Adrs.WOTS_PK);
             wotspkAdrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 #endif
             for (int i = 0; i < engine.WOTS_LEN; i++)
             {
-                adrs.SetAdrsType(Adrs.WOTS_PRF);
+                adrs.SetTypeAndClear(Adrs.WOTS_PRF);
                 adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetChainAddress((uint)i);
                 adrs.SetHashAddress(0);
@@ -166,7 +166,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 engine.PRF(pkSeed, skSeed, adrs, sk, 0);
 #endif
 
-                adrs.SetAdrsType(Adrs.WOTS_HASH);
+                adrs.SetTypeAndClear(Adrs.WOTS_HASH);
                 adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetChainAddress((uint)i);
                 adrs.SetHashAddress(0);
@@ -286,7 +286,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 #endif
             }
 
-            wotspkAdrs.SetAdrsType(Adrs.WOTS_PK);
+            wotspkAdrs.SetTypeAndClear(Adrs.WOTS_PK);
             wotspkAdrs.SetKeyPairAddress(adrs.GetKeyPairAddress());
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

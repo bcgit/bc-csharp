@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
      *   }
      * </pre>
      */
+    [Obsolete("Use SLH-DSA instead")]
     public sealed class SphincsPlusPublicKey
         : Asn1Encodable
     {

@@ -2,36 +2,33 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
-    public class HqcKemExtractor : IEncapsulatedSecretExtractor
+    public class HqcKemExtractor
+        : IEncapsulatedSecretExtractor
     {
-        private HqcEngine engine;
+        private readonly HqcPrivateKeyParameters m_privateKey;
 
-        private HqcKeyParameters key;
+        private HqcEngine m_engine;
 
         public HqcKemExtractor(HqcPrivateKeyParameters privParams)
         {
-            key = privParams;
-            InitCipher(key.Parameters);
+            m_privateKey = privParams;
+            InitCipher(m_privateKey.Parameters);
         }
 
         private void InitCipher(HqcParameters param)
         {
-            engine = param.Engine;
+            m_engine = param.Engine;
         }
 
-        
         public byte[] ExtractSecret(byte[] encapsulation)
         {
-            byte[] session_key = new byte[engine.GetSessionKeySize()];
-            HqcPrivateKeyParameters secretKey = (HqcPrivateKeyParameters)key;
-            byte[] sk = secretKey.PrivateKey;
-
-            engine.Decaps(session_key, encapsulation, sk);
-
+            byte[] session_key = new byte[m_engine.GetSessionKeySize()];
+            m_engine.Decaps(ss: session_key, ct: encapsulation, sk: m_privateKey.PrivateKey);
             return session_key;
         }
 
-        public int EncapsulationLength => key.Parameters.NBytes + key.Parameters.N1n2Bytes + 64 + 16; // SHA-512 + salt
- 
+        public int EncapsulationLength => Parameters.NBytes + Parameters.N1n2Bytes + 16;
+
+        private HqcParameters Parameters => m_privateKey.Parameters;
     }
 }

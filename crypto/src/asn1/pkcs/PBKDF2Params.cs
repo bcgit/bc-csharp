@@ -86,11 +86,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public BigInteger IterationCount => m_iterationCount.Value;
 
+        public DerInteger IterationCountObject => m_iterationCount;
+
         public BigInteger KeyLength => m_keyLength?.Value;
+
+        public DerInteger KeyLengthObject => m_keyLength;
 
         public bool IsDefaultPrf => DefaultPrf.Equals(m_prf);
 
         public AlgorithmIdentifier Prf => m_prf;
+
+        public Asn1OctetString Salt => m_octStr;
 
         public override Asn1Object ToAsn1Object()
         {

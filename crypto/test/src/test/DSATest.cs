@@ -4,6 +4,7 @@ using System.Text;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
@@ -23,12 +24,11 @@ namespace Org.BouncyCastle.Tests
 {
     [TestFixture]
     public class DsaTest
-        : SimpleTest
     {
         private static readonly byte[] k1 = Hex.Decode("d5014e4b60ef2ba8b6211b4062ba3224e0427dd3");
         private static readonly byte[] k2 = Hex.Decode("345e8d05c075c3a508df729a1685690e68fcfb8c8117847e89063bca1f85d968fd281540b6e13bd1af989a1fbf17e06462bf511f9d0b140fb48ac1b1baa5bded");
 
-        private static readonly SecureRandom random = FixedSecureRandom.From(k1, k2);
+        private static readonly SecureRandom Random = FixedSecureRandom.From(k1, k2);
 
         // TODO How shall we satisfy this compatibility test?
 //		[Test]
@@ -191,7 +191,7 @@ namespace Org.BouncyCastle.Tests
 //		}
 
         [Test]
-        public void TestNONEwithDSA()
+        public void TestNoneWithDSA()
         {
             byte[] dummySha1 = Hex.Decode("01020304050607080910111213141516");
 
@@ -220,7 +220,7 @@ namespace Org.BouncyCastle.Tests
 
             if (!sig.VerifySignature(sigBytes))
             {
-                Fail("NONEwithDSA failed to reset");
+                Assert.Fail("NONEwithDSA failed to reset");
             }
 
             // lightweight test
@@ -232,7 +232,7 @@ namespace Org.BouncyCastle.Tests
             if (!signer.VerifySignature(dummySha1,
                 DerInteger.GetInstance(derSig[0]).Value, DerInteger.GetInstance(derSig[1]).Value))
             {
-                Fail("NONEwithDSA not really NONE!");
+                Assert.Fail("NONEwithDSA not really NONE!");
             }
         }
 
@@ -288,21 +288,21 @@ namespace Org.BouncyCastle.Tests
 
             if (!sgr.VerifySignature(sigBytes))
             {
-                Fail("239 Bit EC verification failed");
+                Assert.Fail("239 Bit EC verification failed");
             }
 
             BigInteger[] sig = DerDecode(sigBytes);
 
             if (!r.Equals(sig[0]))
             {
-                Fail("r component wrong." + SimpleTest.NewLine
+                Assert.Fail("r component wrong." + SimpleTest.NewLine
                         + " expecting: " + r + SimpleTest.NewLine
                         + " got      : " + sig[0]);
             }
 
             if (!s.Equals(sig[1]))
             {
-                Fail("s component wrong." + SimpleTest.NewLine
+                Assert.Fail("s component wrong." + SimpleTest.NewLine
                         + " expecting: " + s + SimpleTest.NewLine
                         + " got      : " + sig[1]);
             }
@@ -353,21 +353,21 @@ namespace Org.BouncyCastle.Tests
 
             if (!sgr.VerifySignature(sigBytes))
             {
-                Fail("239 Bit EC verification failed");
+                Assert.Fail("239 Bit EC verification failed");
             }
 
             BigInteger[] sig = DerDecode(sigBytes);
 
             if (!r.Equals(sig[0]))
             {
-                Fail("r component wrong." + SimpleTest.NewLine
+                Assert.Fail("r component wrong." + SimpleTest.NewLine
                     + " expecting: " + r + SimpleTest.NewLine
                     + " got      : " + sig[0]);
             }
 
             if (!s.Equals(sig[1]))
             {
-                Fail("s component wrong." + SimpleTest.NewLine
+                Assert.Fail("s component wrong." + SimpleTest.NewLine
                     + " expecting: " + s + SimpleTest.NewLine
                     + " got      : " + sig[1]);
             }
@@ -450,12 +450,11 @@ namespace Org.BouncyCastle.Tests
 
             if (!sgr.VerifySignature(sigBytes))
             {
-                Fail("239 Bit EC RIPEMD160 verification failed");
+                Assert.Fail("239 Bit EC RIPEMD160 verification failed");
             }
         }
 
-        private void doTestBadStrength(
-            int strength)
+        private void DoTestBadStrength(int strength)
         {
 //			IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("DSA");
 
@@ -468,9 +467,9 @@ namespace Org.BouncyCastle.Tests
                 DsaParametersGenerator pGen = new DsaParametersGenerator();
                 pGen.Init(strength, 80, rand);
 
-//				g.Init(new DsaKeyGenerationParameters(rand, pGen.GenerateParameters()));
+                //				g.Init(new DsaKeyGenerationParameters(rand, pGen.GenerateParameters()));
 
-                Fail("illegal parameter " + strength + " check failed.");
+                Assert.Fail("illegal parameter " + strength + " check failed.");
             }
             catch (ArgumentException)
             {
@@ -491,9 +490,9 @@ namespace Org.BouncyCastle.Tests
             // test exception
             //
 
-            doTestBadStrength(513);
-            doTestBadStrength(510);
-            doTestBadStrength(1025);
+            DoTestBadStrength(513);
+            DoTestBadStrength(510);
+            DoTestBadStrength(1025);
 
             //g.initialize(512, rand);
             {
@@ -522,7 +521,7 @@ namespace Org.BouncyCastle.Tests
 
             if (!s.VerifySignature(sigBytes))
             {
-                Fail("DSA verification failed");
+                Assert.Fail("DSA verification failed");
             }
 
 
@@ -558,7 +557,7 @@ namespace Org.BouncyCastle.Tests
 
             if (!s.VerifySignature(sigBytes))
             {
-                Fail("ECDSA verification failed");
+                Assert.Fail("ECDSA verification failed");
             }
 
             //
@@ -592,7 +591,7 @@ namespace Org.BouncyCastle.Tests
 
             if (!s.VerifySignature(sigBytes))
             {
-                Fail("ECDSA verification failed");
+                Assert.Fail("ECDSA verification failed");
             }
         }
 
@@ -602,7 +601,7 @@ namespace Org.BouncyCastle.Tests
 //			AlgorithmParameterGenerator a = AlgorithmParameterGenerator.GetInstance("DSA");
 //			a.init(512, random);
             DsaParametersGenerator a = new DsaParametersGenerator();
-            a.Init(512, 20, random);
+            a.Init(512, 20, Random);
 
 //			AlgorithmParameters parameters = a.generateParameters();
             DsaParameters p = a.GenerateParameters();
@@ -619,9 +618,9 @@ namespace Org.BouncyCastle.Tests
 //			byte[] encodeParams_2 = a2.GetEncoded();
             byte[] encodeParams_2 = new DsaParameter(p2.P, p2.Q, p2.G).GetDerEncoded();
 
-            if (!AreEqual(encodeParams, encodeParams_2))
+            if (!Arrays.AreEqual(encodeParams, encodeParams_2))
             {
-                Fail("encode/Decode parameters failed");
+                Assert.Fail("encode/Decode parameters failed");
             }
 
 //			DSAParameterSpec dsaP = (DSAParameterSpec)parameters.getParameterSpec(typeof(DSAParameterSpec));
@@ -655,7 +654,7 @@ namespace Org.BouncyCastle.Tests
 
             if (!s.VerifySignature(sigBytes))
             {
-                Fail("DSA verification failed");
+                Assert.Fail("DSA verification failed");
             }
         }
 
@@ -676,7 +675,7 @@ namespace Org.BouncyCastle.Tests
 
             if (!dsaP.Q.Equals(new BigInteger("C24ED361870B61E0D367F008F99F8A1F75525889C89DB1B673C45AF5867CB467", 16)))
             {
-                Fail("Q incorrect");
+                Assert.Fail("Q incorrect");
             }
 
             if (!dsaP.P.Equals(new BigInteger(
@@ -692,7 +691,7 @@ namespace Org.BouncyCastle.Tests
                 "1CF1399A4D679D92FDE7D941C5C85C5D7BFF91BA69F9489D" +
                 "531D1EBFA727CFDA651390F8021719FA9F7216CEB177BD75", 16)))
             {
-                Fail("P incorrect");
+                Assert.Fail("P incorrect");
             }
 
             if (!dsaP.G.Equals(new BigInteger(
@@ -708,7 +707,7 @@ namespace Org.BouncyCastle.Tests
                 "428BB096C6D67A76EC0B8D4EF274B8A2CF556D279AD267CC" +
                 "EF5AF477AFED029F485B5597739F5D0240F67C2D948A6279", 16)))
             {
-                Fail("G incorrect");
+                Assert.Fail("G incorrect");
             }
 
             //KeyPairGenerator    g = KeyPairGenerator.getInstance("DSA", "BC");
@@ -736,13 +735,13 @@ namespace Org.BouncyCastle.Tests
                 "C97B63CE1355257627C8B0FD840DDB20ED35BE92F08C49AE" +
                 "A5613957D7E5C7A6D5A5834B4CB069E0831753ECF65BA02B", 16)))
             {
-                Fail("Y value incorrect");
+                Assert.Fail("Y value incorrect");
             }
 
             if (!sKey.X.Equals(
                 new BigInteger("0CAF2EF547EC49C4F3A6FE6DF4223A174D01F2C115D49A6F73437C29A2A8458C", 16)))
             {
-                Fail("X value incorrect");
+                Assert.Fail("X value incorrect");
             }
 
             //byte[] encodeParams = parameters.getEncoded();
@@ -757,9 +756,9 @@ namespace Org.BouncyCastle.Tests
             //byte[] encodeParams_2 = a2.GetEncoded();
             byte[] encodeParams_2 = new DsaParameter(p2.P, p2.Q, p2.G).GetDerEncoded();
 
-            if (!AreEqual(encodeParams, encodeParams_2))
+            if (!Arrays.AreEqual(encodeParams, encodeParams_2))
             {
-                Fail("encode/decode parameters failed");
+                Assert.Fail("encode/decode parameters failed");
             }
 
             ISigner s = SignerUtilities.GetSigner("DSA");
@@ -779,44 +778,145 @@ namespace Org.BouncyCastle.Tests
 
             if (!s.VerifySignature(sigBytes))
             {
-                Fail("DSA verification failed");
+                Assert.Fail("DSA verification failed");
             }
         }
 
-        public override void PerformTest()
+        [Test]
+        public void DsaSha3_224()
         {
-            // TODO
-//			TestCompat();
-            TestNONEwithDSA();
-            TestECDsa239BitPrime();
-            TestECDsa239BitBinary();
-            TestECDsa239BitBinaryRipeMD160();
-            TestECDsa239BitBinarySha1();
-            TestECDsa239BitBinarySha224();
-            TestECDsa239BitBinarySha256();
-            TestECDsa239BitBinarySha384();
-            TestECDsa239BitBinarySha512();
-
-            TestGeneration();
-            TestParameters();
-            TestDsa2Parameters();
+            ImplTestDsaSha3(NistObjectIdentifiers.IdDsaWithSha3_224, 224,
+                new BigInteger("613202af2a7f77e02b11b5c3a5311cf6b412192bc0032aac3ec127faebfc6bd0", 16));
         }
 
-        protected BigInteger[] DerDecode(
-            byte[] encoding)
+        [Test]
+        public void DsaSha3_256()
         {
-            Asn1Sequence s = (Asn1Sequence) Asn1Object.FromByteArray(encoding);
+            ImplTestDsaSha3(NistObjectIdentifiers.IdDsaWithSha3_256, 256,
+                new BigInteger("2450755c5e15a691b121bc833b97864e34a61ee025ecec89289c949c1858091e", 16));
+        }
+
+        [Test]
+        public void DsaSha3_384()
+        {
+            ImplTestDsaSha3(NistObjectIdentifiers.IdDsaWithSha3_384, 384,
+                new BigInteger("7aad97c0b71bb1e1a6483b6948a03bbe952e4780b0cee699a11731f90d84ddd1", 16));
+        }
+
+        [Test]
+        public void DsaSha3_512()
+        {
+            ImplTestDsaSha3(NistObjectIdentifiers.IdDsaWithSha3_512, 512,
+                new BigInteger("725ad64d923c668e64e7c3898b5efde484cab49ce7f98c2885d2a13a9e355ad4", 16));
+        }
+
+        private static void ImplTestDsaSha3(DerObjectIdentifier sigOid, int size, BigInteger s)
+        {
+            DsaParameters dsaParams = new DsaParameters(
+                new BigInteger(
+                    "F56C2A7D366E3EBDEAA1891FD2A0D099" +
+                    "436438A673FED4D75F594959CFFEBCA7BE0FC72E4FE67D91" +
+                    "D801CBA0693AC4ED9E411B41D19E2FD1699C4390AD27D94C" +
+                    "69C0B143F1DC88932CFE2310C886412047BD9B1C7A67F8A2" +
+                    "5909132627F51A0C866877E672E555342BDF9355347DBD43" +
+                    "B47156B2C20BAD9D2B071BC2FDCF9757F75C168C5D9FC431" +
+                    "31BE162A0756D1BDEC2CA0EB0E3B018A8B38D3EF2487782A" +
+                    "EB9FBF99D8B30499C55E4F61E5C7DCEE2A2BB55BD7F75FCD" +
+                    "F00E48F2E8356BDB59D86114028F67B8E07B127744778AFF" +
+                    "1CF1399A4D679D92FDE7D941C5C85C5D7BFF91BA69F9489D" +
+                    "531D1EBFA727CFDA651390F8021719FA9F7216CEB177BD75", 16),
+                new BigInteger("C24ED361870B61E0D367F008F99F8A1F75525889C89DB1B673C45AF5867CB467", 16),
+                new BigInteger(
+                    "8DC6CC814CAE4A1C05A3E186A6FE27EA" +
+                    "BA8CDB133FDCE14A963A92E809790CBA096EAA26140550C1" +
+                    "29FA2B98C16E84236AA33BF919CD6F587E048C52666576DB" +
+                    "6E925C6CBE9B9EC5C16020F9A44C9F1C8F7A8E611C1F6EC2" +
+                    "513EA6AA0B8D0F72FED73CA37DF240DB57BBB27431D61869" +
+                    "7B9E771B0B301D5DF05955425061A30DC6D33BB6D2A32BD0" +
+                    "A75A0A71D2184F506372ABF84A56AEEEA8EB693BF29A6403" +
+                    "45FA1298A16E85421B2208D00068A5A42915F82CF0B858C8" +
+                    "FA39D43D704B6927E0B2F916304E86FB6A1B487F07D8139E" +
+                    "428BB096C6D67A76EC0B8D4EF274B8A2CF556D279AD267CC" +
+                    "EF5AF477AFED029F485B5597739F5D0240F67C2D948A6279", 16)
+            );
+
+            BigInteger x = new BigInteger("0CAF2EF547EC49C4F3A6FE6DF4223A174D01F2C115D49A6F73437C29A2A8458C", 16);
+
+            BigInteger y = new BigInteger(
+                "2828003D7C747199143C370FDD07A286" +
+                "1524514ACC57F63F80C38C2087C6B795B62DE1C224BF8D1D" +
+                "1424E60CE3F5AE3F76C754A2464AF292286D873A7A30B7EA" +
+                "CBBC75AAFDE7191D9157598CDB0B60E0C5AA3F6EBE425500" +
+                "C611957DBF5ED35490714A42811FDCDEB19AF2AB30BEADFF" +
+                "2907931CEE7F3B55532CFFAEB371F84F01347630EB227A41" +
+                "9B1F3F558BC8A509D64A765D8987D493B007C4412C297CAF" +
+                "41566E26FAEE475137EC781A0DC088A26C8804A98C23140E" +
+                "7C936281864B99571EE95C416AA38CEEBB41FDBFF1EB1D1D" +
+                "C97B63CE1355257627C8B0FD840DDB20ED35BE92F08C49AE" +
+                "A5613957D7E5C7A6D5A5834B4CB069E0831753ECF65BA02B", 16);
+
+            var priKey = new DsaPrivateKeyParameters(x, dsaParams);
+            var pubKey = new DsaPublicKeyParameters(y, dsaParams);
+
+            DoDsaTest("SHA3-" + size + "withDSA", s, pubKey, priKey);
+            DoDsaTest(sigOid.GetID(), s, pubKey, priKey);
+        }
+
+        private static void DoDsaTest(string sigName, BigInteger s, DsaPublicKeyParameters pubKey,
+            DsaPrivateKeyParameters priKey)
+        {
+            SecureRandom k = new FixedSecureRandom(
+                new FixedSecureRandom.Source[] { new FixedSecureRandom.BigInteger(BigIntegers.AsUnsignedByteArray(new BigInteger("72546832179840998877302529996971396893172522460793442785601695562409154906335"))),
+                    new FixedSecureRandom.Data(Hex.Decode("01020304")) });
+
+            byte[] M = Hex.Decode("1BD4ED430B0F384B4E8D458EFF1A8A553286D7AC21CB2F6806172EF5F94A06AD");
+
+            ISigner dsa = SignerUtilities.GetSigner(sigName);
+
+            dsa.Init(forSigning: true, new ParametersWithRandom(priKey, k));
+            dsa.BlockUpdate(M, 0, M.Length);
+
+            byte[] encSig = dsa.GenerateSignature();
+
+            Asn1Sequence sig = Asn1Sequence.GetInstance(encSig);
+
+            BigInteger r = new BigInteger("4864074fe30e6601268ee663440e4d9b703f62673419864e91e9edb0338ce510", 16);
+
+            BigInteger sigR = DerInteger.GetInstance(sig[0]).Value;
+            if (!r.Equals(sigR))
+            {
+                Assert.Fail("r component wrong." + SimpleTest.NewLine
+                    + " expecting: " + r.ToString(16) + SimpleTest.NewLine
+                    + " got      : " + sigR.ToString(16));
+            }
+
+            BigInteger sigS = DerInteger.GetInstance(sig[1]).Value;
+            if (!s.Equals(sigS))
+            {
+                Assert.Fail("s component wrong." + SimpleTest.NewLine
+                    + " expecting: " + s.ToString(16) + SimpleTest.NewLine
+                    + " got      : " + sigS.ToString(16));
+            }
+
+            // Verify the signature
+            dsa.Init(forSigning: false, pubKey);
+            dsa.BlockUpdate(M, 0, M.Length);
+
+            if (!dsa.VerifySignature(encSig))
+            {
+                Assert.Fail("signature fails");
+            }
+        }
+
+        private static BigInteger[] DerDecode(byte[] encoding)
+        {
+            Asn1Sequence s = Asn1Sequence.GetInstance(encoding);
 
             return new BigInteger[]
             {
                 ((DerInteger)s[0]).Value,
                 ((DerInteger)s[1]).Value
             };
-        }
-
-        public override string Name
-        {
-            get { return "DSA/ECDSA"; }
         }
 
         private class DsaTestSecureRandom

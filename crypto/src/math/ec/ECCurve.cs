@@ -710,6 +710,9 @@ namespace Org.BouncyCastle.Math.EC
             return x != null && x.SignValue >= 0 && x.CompareTo(Field.Characteristic) < 0;
         }
 
+        // TODO[api] Add this property (and replace usages of Field.Characteristic)
+        //public virtual BigInteger Q => Field.Characteristic;
+
         public override ECFieldElement RandomFieldElement(SecureRandom r)
         {
             /*

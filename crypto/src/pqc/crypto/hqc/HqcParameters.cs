@@ -64,6 +64,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         public int N2 => n2;
         public int Sha512Bytes => 512 / 8;
         public int NBytes => (n + 7) / 8;
+        // TODO[api] Rename to N1N2Bytes
         public int N1n2Bytes => (n1 * n2 + 7) / 8;
         public int DefaultKeySize => defaultKeySize;
         public int SaltSizeBytes => 16;

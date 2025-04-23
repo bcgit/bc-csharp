@@ -1,40 +1,38 @@
-﻿namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
+﻿using System.Diagnostics;
+
+namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     internal class PolyVecMatrix
     {
-        private int K, L;
-        public PolyVecL[] Matrix;
+        private readonly PolyVec[] m_matrix;
 
-        public PolyVecMatrix(DilithiumEngine Engine)
+        public PolyVecMatrix(DilithiumEngine engine)
         {
-            K = Engine.K;
-            L = Engine.L;
-            Matrix = new PolyVecL[K];
+            int K = engine.K;
+            int L = engine.L;
 
+            m_matrix = new PolyVec[K];
             for (int i = 0; i < K; i++)
             {
-                Matrix[i] = new PolyVecL(Engine);
+                m_matrix[i] = new PolyVec(engine, L);
             }
         }
 
         public void ExpandMatrix(byte[] rho)
         {
-            int i, j;
-            for (i = 0; i < K; ++i)
+            for (int i = 0; i < m_matrix.Length; ++i)
             {
-                for (j = 0; j < L; ++j)
-                {
-                    Matrix[i].Vec[j].UniformBlocks(rho, (ushort)((ushort) (i << 8) + j));
-                }
+                m_matrix[i].UniformBlocks(rho, i << 8);
             }
         }
 
-        public void PointwiseMontgomery(PolyVecK t, PolyVecL v)
+        public void PointwiseMontgomery(PolyVec t, PolyVec v)
         {
-            int i;
-            for (i = 0; i < K; ++i)
+            Debug.Assert(t.Length == m_matrix.Length);
+
+            for (int i = 0; i < m_matrix.Length; ++i)
             {
-                t.Vec[i].PointwiseAccountMontgomery(Matrix[i], v);
+                t[i].PointwiseAccountMontgomery(m_matrix[i], v);
             }
         }
     }

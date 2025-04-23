@@ -6,6 +6,16 @@ namespace Org.BouncyCastle.Utilities
     /// <summary> General string utilities.</summary>
     public static class Strings
     {
+        internal static void AppendFromByteArray(StringBuilder sb, byte[] buf, int off, int len)
+        {
+            sb.EnsureCapacity(sb.Length + len);
+
+            for (int i = 0; i < len; ++i)
+            {
+                sb.Append(Convert.ToChar(buf[off + i]));
+            }
+        }
+
         internal static bool IsOneOf(string s, params string[] candidates)
         {
             foreach (string candidate in candidates)
@@ -18,8 +28,12 @@ namespace Org.BouncyCastle.Utilities
 
         public static string FromByteArray(byte[] bs)
         {
+            if (bs == null)
+                throw new ArgumentNullException(nameof(bs));
+
+            int len = bs.Length;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return string.Create(bs.Length, bs, (chars, bytes) =>
+            return string.Create(len, bs, (chars, bytes) =>
             {
                 for (int i = 0; i < chars.Length; ++i)
                 {
@@ -27,10 +41,33 @@ namespace Org.BouncyCastle.Utilities
                 }
             });
 #else
-            char[] cs = new char[bs.Length];
-            for (int i = 0; i < cs.Length; ++i)
+            char[] cs = new char[len];
+            for (int i = 0; i < len; ++i)
             {
                 cs[i] = Convert.ToChar(bs[i]);
+            }
+            return new string(cs);
+#endif
+        }
+
+        public static string FromByteArray(byte[] buf, int off, int len)
+        {
+            Arrays.ValidateSegment(buf, off, len);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return string.Create(len, buf.AsMemory(off, len), (chars, bytes) =>
+            {
+                var span = bytes.Span;
+                for (int i = 0; i < chars.Length; ++i)
+                {
+                    chars[i] = Convert.ToChar(span[i]);
+                }
+            });
+#else
+            char[] cs = new char[len];
+            for (int i = 0; i < len; ++i)
+            {
+                cs[i] = Convert.ToChar(buf[off + i]);
             }
             return new string(cs);
 #endif

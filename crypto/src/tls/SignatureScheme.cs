@@ -49,6 +49,17 @@ namespace Org.BouncyCastle.Tls
         public const int sm2sig_sm3 = 0x0708;
 
         /*
+         * draft-tls-westerbaan-mldsa-00
+         */
+        public static readonly int DRAFT_mldsa44 = 0x0904;
+        public static readonly int DRAFT_mldsa65 = 0x0905;
+        public static readonly int DRAFT_mldsa87 = 0x0906;
+
+        internal const int mldsa44 = 0x0904;
+        internal const int mldsa65 = 0x0905;
+        internal const int mldsa87 = 0x0906;
+
+        /*
          * RFC 8446 reserved for private use (0xFE00..0xFFFF)
          */
 
@@ -71,6 +82,9 @@ namespace Org.BouncyCastle.Tls
             {
             case ed25519:
             case ed448:
+            case mldsa44:
+            case mldsa65:
+            case mldsa87:
                 return -1;
             case ecdsa_brainpoolP256r1tls13_sha256:
             case rsa_pss_pss_sha256:
@@ -146,6 +160,12 @@ namespace Org.BouncyCastle.Tls
                 return "ecdsa_brainpoolP512r1tls13_sha512";
             case sm2sig_sm3:
                 return "sm2sig_sm3";
+            case mldsa44:
+                return "DRAFT_mldsa44";
+            case mldsa65:
+                return "DRAFT_mldsa65";
+            case mldsa87:
+                return "DRAFT_mldsa87";
             default:
                 return "UNKNOWN";
             }
@@ -218,6 +238,19 @@ namespace Org.BouncyCastle.Tls
                 return true;
             default:
                 return SignatureAlgorithm.ecdsa == GetSignatureAlgorithm(signatureScheme);
+            }
+        }
+
+        public static bool isMLDsa(int signatureScheme)
+        {
+            switch (signatureScheme)
+            {
+            case mldsa44:
+            case mldsa65:
+            case mldsa87:
+                return true;
+            default:
+                return false;
             }
         }
 

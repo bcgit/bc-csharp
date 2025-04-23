@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -88,19 +89,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-		private AuthorityKeyIdentifier CreateAuthorityKeyId(
-            SubjectPublicKeyInfo	info,
-            X509Name				name,
-            int						sNumber)
-        {
-            GeneralName genName = new GeneralName(name);
-
-			return new AuthorityKeyIdentifier(
-				info,
-				GeneralNames.GetInstance(new DerSequence(genName)),
-				BigInteger.ValueOf(sNumber));
-        }
-
 		private void TbsV3CertGenerate()
         {
 			V3TbsCertificateGenerator gen = new V3TbsCertificateGenerator();
@@ -135,7 +123,9 @@ namespace Org.BouncyCastle.Asn1.Tests
 			order.Add(X509Extensions.SubjectKeyIdentifier);
 			order.Add(X509Extensions.KeyUsage);
 
-			extensions.Add(X509Extensions.AuthorityKeyIdentifier, new X509Extension(true, new DerOctetString(CreateAuthorityKeyId(info, new X509Name("CN=AU,O=Bouncy Castle,OU=Test 2"), 2))));
+			var authorityKeyID = CreateAuthorityKeyID(info, new X509Name("CN=AU,O=Bouncy Castle,OU=Test 2"), 2);
+            extensions.Add(X509Extensions.AuthorityKeyIdentifier,
+				new X509Extension(true, new DerOctetString(authorityKeyID)));
 			extensions.Add(X509Extensions.SubjectKeyIdentifier, new X509Extension(true, new DerOctetString(new SubjectKeyIdentifier(info))));
 			extensions.Add(X509Extensions.KeyUsage, new X509Extension(false, new DerOctetString(new KeyUsage(KeyUsage.DataEncipherment))));
 
@@ -261,12 +251,14 @@ namespace Org.BouncyCastle.Asn1.Tests
 					new ElGamalParameter(BigInteger.One, BigInteger.Two)),
 				DerInteger.Three);
 
-			order.Add(X509Extensions.AuthorityKeyIdentifier);
+            order.Add(X509Extensions.AuthorityKeyIdentifier);
             order.Add(X509Extensions.IssuerAlternativeName);
             order.Add(X509Extensions.CrlNumber);
             order.Add(X509Extensions.IssuingDistributionPoint);
 
-            extensions.Add(X509Extensions.AuthorityKeyIdentifier, new X509Extension(true, new DerOctetString(CreateAuthorityKeyId(info, new X509Name("CN=AU,O=Bouncy Castle,OU=Test 2"), 2))));
+            var authorityKeyID = CreateAuthorityKeyID(info, new X509Name("CN=AU,O=Bouncy Castle,OU=Test 2"), 2);
+            extensions.Add(X509Extensions.AuthorityKeyIdentifier,
+				new X509Extension(true, new DerOctetString(authorityKeyID)));
             extensions.Add(X509Extensions.IssuerAlternativeName, new X509Extension(false, new DerOctetString(GeneralNames.GetInstance(new DerSequence(new GeneralName(new X509Name("CN=AU,O=Bouncy Castle,OU=Test 3")))))));
             extensions.Add(X509Extensions.CrlNumber, new X509Extension(false, new DerOctetString(DerInteger.One)));
             extensions.Add(X509Extensions.IssuingDistributionPoint, new X509Extension(true, new DerOctetString(IssuingDistributionPoint.GetInstance(DerSequence.Empty))));
@@ -314,5 +306,18 @@ namespace Org.BouncyCastle.Asn1.Tests
 
 			Assert.AreEqual(resultText, Name + ": Okay", resultText);
         }
+
+        private static AuthorityKeyIdentifier CreateAuthorityKeyID(SubjectPublicKeyInfo issuerSpki,
+			X509Name issuerName, int issuerSerialNumber)
+        {
+			var keyIdentifier = new DerOctetString(GetSha1Digest(issuerSpki.PublicKey.GetBytes()));
+			var authorityCertIssuer = new GeneralNames(new GeneralName(issuerName));
+			var authorityCertSerialNumber = new DerInteger(issuerSerialNumber);
+
+			return new AuthorityKeyIdentifier(keyIdentifier, authorityCertIssuer, authorityCertSerialNumber);
+        }
+
+		private static byte[] GetSha1Digest(byte[] data) =>
+			DigestUtilities.CalculateDigest(OiwObjectIdentifiers.IdSha1, data);
     }
 }

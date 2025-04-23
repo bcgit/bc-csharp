@@ -1,7 +1,10 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
+    [Obsolete("Use SLH-DSA instead")]
     public abstract class SphincsPlusKeyParameters
         : AsymmetricKeyParameter
     {

@@ -11,14 +11,13 @@ using Org.BouncyCastle.Pqc.Asn1;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Lms;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities;
 
@@ -30,19 +29,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         /// <param name="privateKeyInfoData"> the PrivateKeyInfo encoding</param>
         /// <returns> a suitable private key parameter</returns>
         /// <exception cref="IOException"> on an error decoding the key</exception>
-        public static AsymmetricKeyParameter CreateKey(byte[] privateKeyInfoData)
-        {
-            return CreateKey(PrivateKeyInfo.GetInstance(Asn1Object.FromByteArray(privateKeyInfoData)));
-        }
+        public static AsymmetricKeyParameter CreateKey(byte[] privateKeyInfoData) =>
+            CreateKey(PrivateKeyInfo.GetInstance(privateKeyInfoData));
 
         /// <summary> Create a private key parameter from a PKCS8 PrivateKeyInfo encoding read from a stream</summary>
         /// <param name="inStr"> the stream to read the PrivateKeyInfo encoding from</param>
         /// <returns> a suitable private key parameter</returns>
         /// <exception cref="IOException"> on an error decoding the key</exception>
-        public static AsymmetricKeyParameter CreateKey(Stream inStr)
-        {
-            return CreateKey(PrivateKeyInfo.GetInstance(new Asn1InputStream(inStr).ReadObject()));
-        }
+        public static AsymmetricKeyParameter CreateKey(Stream inStr) =>
+            CreateKey(PrivateKeyInfo.GetInstance(Asn1Object.FromStream(inStr)));
 
         /// <summary> Create a private key parameter from the passed in PKCS8 PrivateKeyInfo object.</summary>
         /// <param name="keyInfo"> the PrivateKeyInfo object containing the key material</param>
@@ -58,18 +53,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
                 DerBitString pubKey = keyInfo.PublicKey;
 
-                if (Pack.BE_To_UInt32(keyEnc, 0) == 1)
+                if (keyEnc.Length >= 4 && Pack.BE_To_UInt32(keyEnc, 0) == 1)
                 {
+                    LmsPublicKeyParameters publicKey = null;
                     if (pubKey != null)
                     {
                         byte[] pubEnc = pubKey.GetOctets();
 
-                        return LmsPrivateKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length),
-                            Arrays.CopyOfRange(pubEnc, 4, pubEnc.Length));
+                        publicKey = LmsPublicKeyParameters.Parse(pubEnc, 4, pubEnc.Length - 4);
                     }
 
-                    return LmsPrivateKeyParameters.GetInstance(Arrays.CopyOfRange(keyEnc, 4, keyEnc.Length));
+                    return LmsPrivateKeyParameters.Parse(keyEnc, 4, keyEnc.Length - 4, publicKey);
                 }
+
+                throw new ArgumentException("invalid LMS private key");
             }
             if (algOid.On(BCObjectIdentifiers.pqc_kem_mceliece))
             {
@@ -85,6 +82,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new FrodoPrivateKeyParameters(spParams, keyEnc);
             }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (algOid.On(BCObjectIdentifiers.sphincsPlus) || algOid.On(BCObjectIdentifiers.sphincsPlus_interop))
             {
                 Asn1Encodable obj = keyInfo.ParsePrivateKey();
@@ -106,6 +104,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     return new SphincsPlusPrivateKeyParameters(spParams, oct.GetOctets());
                 }
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (algOid.On(BCObjectIdentifiers.pqc_kem_saber))
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
@@ -120,15 +119,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new PicnicPrivateKeyParameters(picnicParams, keyEnc);
             }
-#pragma warning disable CS0618 // Type or member is obsolete
-            if (algOid.On(BCObjectIdentifiers.pqc_kem_sike))
-            {
-                byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
-                SikeParameters sikeParams = PqcUtilities.SikeParamsLookup(algOid);
-
-                return new SikePrivateKeyParameters(sikeParams, keyEnc);
-            }
-#pragma warning restore CS0618 // Type or member is obsolete
             if (algOid.On(BCObjectIdentifiers.pqc_kem_bike))
             {
                 byte[] keyEnc = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey()).GetOctets();
@@ -147,13 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new HqcPrivateKeyParameters(hqcParams, keyEnc);
             }
-            if (algOid.On(BCObjectIdentifiers.pqc_kem_kyber))
-            {
-                Asn1OctetString kyberKey = Asn1OctetString.GetInstance(keyInfo.ParsePrivateKey());
-                KyberParameters kyberParams = PqcUtilities.KyberParamsLookup(algOid);
-     
-                return new KyberPrivateKeyParameters(kyberParams, kyberKey.GetOctets());
-            }
+#pragma warning disable CS0618 // Type or member is obsolete
             if (algOid.Equals(BCObjectIdentifiers.dilithium2) ||
                 algOid.Equals(BCObjectIdentifiers.dilithium3) ||
                 algOid.Equals(BCObjectIdentifiers.dilithium5))
@@ -171,6 +155,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 
                 return new DilithiumPrivateKeyParameters(spParams, encoding: keyEnc.GetOctets(), pubKey);
             }
+#pragma warning restore CS0618 // Type or member is obsolete
             if (algOid.Equals(BCObjectIdentifiers.falcon_512) ||
                 algOid.Equals(BCObjectIdentifiers.falcon_1024))
             {
@@ -186,6 +171,36 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                     Asn1OctetString.GetInstance(keyEnc[2]).GetOctets(),
                     Asn1OctetString.GetInstance(keyEnc[3]).GetOctets(),
                     keyInfo.PublicKey?.GetOctets()); // encT1
+            }
+            if (algOid.On(BCObjectIdentifiers.pqc_kem_ntru))
+            {
+                var ntruParameters = PqcUtilities.NtruParamsLookup(algOid);
+                if (ntruParameters != null)
+                {
+                    int expectedLength = ntruParameters.PrivateKeyLength;
+
+                    var privateKey = keyInfo.PrivateKey;
+                    int length = privateKey.GetOctetsLength();
+
+                    // TODO[pqc] Future support for raw encoding
+                    //if (length == expectedLength)
+                    //    return NtruPrivateKeyParameters.FromEncoding(ntruParameters, encoding: privateKey.GetOctets());
+
+                    if (length > expectedLength)
+                    {
+                        try
+                        {
+                            Asn1Object obj = keyInfo.ParsePrivateKey();
+                            if (obj is Asn1OctetString oct && oct.GetOctetsLength() == expectedLength)
+                                return NtruPrivateKeyParameters.FromEncoding(ntruParameters, encoding: oct.GetOctets());
+                        }
+                        catch (Exception)
+                        {
+                        }
+                    }
+
+                    throw new ArgumentException($"invalid {ntruParameters.Name} private key");
+                }
             }
 
             throw new Exception("algorithm identifier in private key not recognised");

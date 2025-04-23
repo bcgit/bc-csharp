@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Examples
 	* The program is command line driven, with the input
 	* and output files specified on the command line.
 	* <pre>
-	* java org.bouncycastle.crypto.examples.DesExample infile outfile [keyfile]
+	* java Org.BouncyCastle.crypto.examples.DesExample infile outfile [keyfile]
 	* </pre>
 	* A new key is generated for each encryption, if key is not specified,
 	* then the example will assume encryption is required, and as output

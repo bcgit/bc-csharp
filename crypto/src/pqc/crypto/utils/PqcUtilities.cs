@@ -5,13 +5,12 @@ using Org.BouncyCastle.Asn1.BC;
 using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Cmce;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Kyber;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
+using Org.BouncyCastle.Pqc.Crypto.Ntru;
 using Org.BouncyCastle.Pqc.Crypto.Picnic;
 using Org.BouncyCastle.Pqc.Crypto.Saber;
-using Org.BouncyCastle.Pqc.Crypto.Sike;
 using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -32,15 +31,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<DerObjectIdentifier, PicnicParameters> picnicParams = new Dictionary<DerObjectIdentifier, PicnicParameters>();
 
 #pragma warning disable CS0618 // Type or member is obsolete
-        private readonly static Dictionary<SikeParameters, DerObjectIdentifier> sikeOids = new Dictionary<SikeParameters, DerObjectIdentifier>();
-        private readonly static Dictionary<DerObjectIdentifier, SikeParameters> sikeParams = new Dictionary<DerObjectIdentifier, SikeParameters>();
-#pragma warning restore CS0618 // Type or member is obsolete
-
-        private readonly static Dictionary<KyberParameters, DerObjectIdentifier> kyberOids = new Dictionary<KyberParameters, DerObjectIdentifier>();
-        private readonly static Dictionary<DerObjectIdentifier, KyberParameters> kyberParams = new Dictionary<DerObjectIdentifier, KyberParameters>();
-
         private readonly static Dictionary<DilithiumParameters, DerObjectIdentifier> dilithiumOids = new Dictionary<DilithiumParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, DilithiumParameters> dilithiumParams = new Dictionary<DerObjectIdentifier, DilithiumParameters>();
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private readonly static Dictionary<FalconParameters, DerObjectIdentifier> falconOids = new Dictionary<FalconParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, FalconParameters> falconParams = new Dictionary<DerObjectIdentifier, FalconParameters>();
@@ -51,8 +44,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private readonly static Dictionary<HqcParameters, DerObjectIdentifier> hqcOids = new Dictionary<HqcParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, HqcParameters> hqcParams = new Dictionary<DerObjectIdentifier, HqcParameters>();
 
+#pragma warning disable CS0618 // Type or member is obsolete
         private readonly static Dictionary<SphincsPlusParameters, DerObjectIdentifier> sphincsPlusOids = new Dictionary<SphincsPlusParameters, DerObjectIdentifier>();
         private readonly static Dictionary<DerObjectIdentifier, SphincsPlusParameters> sphincsPlusParams = new Dictionary<DerObjectIdentifier, SphincsPlusParameters>();
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        private readonly static Dictionary<NtruParameters, DerObjectIdentifier> ntruOids = new Dictionary<NtruParameters, DerObjectIdentifier>();
+        private readonly static Dictionary<DerObjectIdentifier, NtruParameters> ntruParams = new Dictionary<DerObjectIdentifier, NtruParameters>();
 
         static PqcUtilities()
         {
@@ -130,7 +128,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             saberParams[BCObjectIdentifiers.ulightsaberkem90sr3] = SaberParameters.ulightsaberkem90sr3;
             saberParams[BCObjectIdentifiers.usaberkem90sr3] = SaberParameters.usaberkem90sr3;
             saberParams[BCObjectIdentifiers.ufiresaberkem90sr3] = SaberParameters.ufiresaberkem90sr3;
-            
+
             picnicOids[PicnicParameters.picnicl1fs] = BCObjectIdentifiers.picnicl1fs;
             picnicOids[PicnicParameters.picnicl1ur] = BCObjectIdentifiers.picnicl1ur;
             picnicOids[PicnicParameters.picnicl3fs] = BCObjectIdentifiers.picnicl3fs;
@@ -143,7 +141,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicOids[PicnicParameters.picnicl1full] = BCObjectIdentifiers.picnicl1full;
             picnicOids[PicnicParameters.picnicl3full] = BCObjectIdentifiers.picnicl3full;
             picnicOids[PicnicParameters.picnicl5full] = BCObjectIdentifiers.picnicl5full;
-    
+
             picnicParams[BCObjectIdentifiers.picnicl1fs] = PicnicParameters.picnicl1fs;
             picnicParams[BCObjectIdentifiers.picnicl1ur] = PicnicParameters.picnicl1ur;
             picnicParams[BCObjectIdentifiers.picnicl3fs] = PicnicParameters.picnicl3fs;
@@ -157,47 +155,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             picnicParams[BCObjectIdentifiers.picnicl3full] = PicnicParameters.picnicl3full;
             picnicParams[BCObjectIdentifiers.picnicl5full] = PicnicParameters.picnicl5full;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            sikeParams[BCObjectIdentifiers.sikep434] = SikeParameters.sikep434;
-            sikeParams[BCObjectIdentifiers.sikep503] = SikeParameters.sikep503;
-            sikeParams[BCObjectIdentifiers.sikep610] = SikeParameters.sikep610;
-            sikeParams[BCObjectIdentifiers.sikep751] = SikeParameters.sikep751;
-            sikeParams[BCObjectIdentifiers.sikep434_compressed] = SikeParameters.sikep434_compressed;
-            sikeParams[BCObjectIdentifiers.sikep503_compressed] = SikeParameters.sikep503_compressed;
-            sikeParams[BCObjectIdentifiers.sikep610_compressed] = SikeParameters.sikep610_compressed;
-            sikeParams[BCObjectIdentifiers.sikep751_compressed] = SikeParameters.sikep751_compressed;
+            ntruOids[NtruParameters.NtruHps2048509] = BCObjectIdentifiers.ntruhps2048509;
+            ntruOids[NtruParameters.NtruHps2048677] = BCObjectIdentifiers.ntruhps2048677;
+            ntruOids[NtruParameters.NtruHps4096821] = BCObjectIdentifiers.ntruhps4096821;
+            ntruOids[NtruParameters.NtruHps40961229] = BCObjectIdentifiers.ntruhps40961229;
+            ntruOids[NtruParameters.NtruHrss701] = BCObjectIdentifiers.ntruhrss701;
+            ntruOids[NtruParameters.NtruHrss1373] = BCObjectIdentifiers.ntruhrss1373;
 
-            sikeOids[SikeParameters.sikep434] = BCObjectIdentifiers.sikep434;
-            sikeOids[SikeParameters.sikep503] = BCObjectIdentifiers.sikep503;
-            sikeOids[SikeParameters.sikep610] = BCObjectIdentifiers.sikep610;
-            sikeOids[SikeParameters.sikep751] = BCObjectIdentifiers.sikep751;
-            sikeOids[SikeParameters.sikep434_compressed] = BCObjectIdentifiers.sikep434_compressed;
-            sikeOids[SikeParameters.sikep503_compressed] = BCObjectIdentifiers.sikep503_compressed;
-            sikeOids[SikeParameters.sikep610_compressed] = BCObjectIdentifiers.sikep610_compressed;
-            sikeOids[SikeParameters.sikep751_compressed] = BCObjectIdentifiers.sikep751_compressed;
-#pragma warning restore CS0618 // Type or member is obsolete
+            ntruParams.Add(BCObjectIdentifiers.ntruhps2048509, NtruParameters.NtruHps2048509);
+            ntruParams.Add(BCObjectIdentifiers.ntruhps2048677, NtruParameters.NtruHps2048677);
+            ntruParams.Add(BCObjectIdentifiers.ntruhps4096821, NtruParameters.NtruHps4096821);
+            ntruParams.Add(BCObjectIdentifiers.ntruhps40961229, NtruParameters.NtruHps40961229);
+            ntruParams.Add(BCObjectIdentifiers.ntruhrss701, NtruParameters.NtruHrss701);
+            ntruParams.Add(BCObjectIdentifiers.ntruhrss1373, NtruParameters.NtruHrss1373);
 
-            kyberOids[KyberParameters.kyber512] = BCObjectIdentifiers.kyber512;
-            kyberOids[KyberParameters.kyber768] = BCObjectIdentifiers.kyber768;
-            kyberOids[KyberParameters.kyber1024] = BCObjectIdentifiers.kyber1024;
-            
-            kyberParams[BCObjectIdentifiers.kyber512] = KyberParameters.kyber512;
-            kyberParams[BCObjectIdentifiers.kyber768] = KyberParameters.kyber768;
-            kyberParams[BCObjectIdentifiers.kyber1024] = KyberParameters.kyber1024;
-            
             falconOids[FalconParameters.falcon_512] = BCObjectIdentifiers.falcon_512;
             falconOids[FalconParameters.falcon_1024] = BCObjectIdentifiers.falcon_1024;
-            
+
             falconParams[BCObjectIdentifiers.falcon_512] = FalconParameters.falcon_512;
             falconParams[BCObjectIdentifiers.falcon_1024] = FalconParameters.falcon_1024;
-            
+
+#pragma warning disable CS0618 // Type or member is obsolete
             dilithiumOids[DilithiumParameters.Dilithium2] = BCObjectIdentifiers.dilithium2;
             dilithiumOids[DilithiumParameters.Dilithium3] = BCObjectIdentifiers.dilithium3;
             dilithiumOids[DilithiumParameters.Dilithium5] = BCObjectIdentifiers.dilithium5;
-            
+
             dilithiumParams[BCObjectIdentifiers.dilithium2] = DilithiumParameters.Dilithium2;
             dilithiumParams[BCObjectIdentifiers.dilithium3] = DilithiumParameters.Dilithium3;
             dilithiumParams[BCObjectIdentifiers.dilithium5] = DilithiumParameters.Dilithium5;
+#pragma warning restore CS0618 // Type or member is obsolete
 
             bikeParams[BCObjectIdentifiers.bike128] = BikeParameters.bike128;
             bikeParams[BCObjectIdentifiers.bike192] = BikeParameters.bike192;
@@ -254,7 +240,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             sphincsPlusOids[SphincsPlusParameters.haraka_192s_simple] = BCObjectIdentifiers.sphincsPlus_haraka_192s_r3_simple;
             sphincsPlusOids[SphincsPlusParameters.haraka_256f_simple] = BCObjectIdentifiers.sphincsPlus_haraka_256f_r3_simple;
             sphincsPlusOids[SphincsPlusParameters.haraka_256s_simple] = BCObjectIdentifiers.sphincsPlus_haraka_256s_r3_simple;
-            
+
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_128f_r3_simple] = SphincsPlusParameters.haraka_128f_simple;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_128s_r3_simple] = SphincsPlusParameters.haraka_128s_simple;
             sphincsPlusParams[BCObjectIdentifiers.sphincsPlus_haraka_192f_r3_simple] = SphincsPlusParameters.haraka_192f_simple;
@@ -325,16 +311,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(saberParams, oid);
         }
 
-        internal static KyberParameters KyberParamsLookup(DerObjectIdentifier oid)
-        {
-            return CollectionUtilities.GetValueOrNull(kyberParams, oid);
-        }
-
-        internal static DerObjectIdentifier KyberOidLookup(KyberParameters parameters)
-        {
-            return CollectionUtilities.GetValueOrNull(kyberOids, parameters);
-        }
-
         internal static FalconParameters FalconParamsLookup(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(falconParams, oid);
@@ -345,6 +321,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(falconOids, parameters);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DilithiumParameters DilithiumParamsLookup(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(dilithiumParams, oid);
@@ -354,6 +331,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return CollectionUtilities.GetValueOrNull(dilithiumOids, parameters);
         }
+#pragma warning restore CS0618 // Type or member is obsolete
 
         internal static DerObjectIdentifier PicnicOidLookup(PicnicParameters parameters)
         {
@@ -364,18 +342,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         {
             return CollectionUtilities.GetValueOrNull(picnicParams, oid);
         }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-        internal static DerObjectIdentifier SikeOidLookup(SikeParameters parameters)
-        {
-            return CollectionUtilities.GetValueOrNull(sikeOids, parameters);
-        }
-
-        internal static SikeParameters SikeParamsLookup(DerObjectIdentifier oid)
-        {
-            return CollectionUtilities.GetValueOrNull(sikeParams, oid);
-        }
-#pragma warning restore CS0618 // Type or member is obsolete
 
         internal static DerObjectIdentifier BikeOidLookup(BikeParameters parameters)
         {
@@ -397,6 +363,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return CollectionUtilities.GetValueOrNull(hqcParams, oid);
         }
 
+#pragma warning disable CS0618 // Type or member is obsolete
         internal static DerObjectIdentifier SphincsPlusOidLookup(SphincsPlusParameters parameters)
         {
             return CollectionUtilities.GetValueOrNull(sphincsPlusOids, parameters);
@@ -405,6 +372,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         internal static SphincsPlusParameters SphincsPlusParamsLookup(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(sphincsPlusParams, oid);
+        }
+#pragma warning restore CS0618 // Type or member is obsolete
+
+        internal static DerObjectIdentifier NtruOidLookup(NtruParameters parameters)
+        {
+            return CollectionUtilities.GetValueOrNull(ntruOids, parameters);
+        }
+
+        internal static NtruParameters NtruParamsLookup(DerObjectIdentifier oid)
+        {
+            return CollectionUtilities.GetValueOrNull(ntruParams, oid);
         }
     }
 }

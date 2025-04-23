@@ -1,15 +1,35 @@
 ﻿using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ParametersWithID
         : ICipherParameters
     {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ParametersWithID Create<TState>(ICipherParameters parameters, int idLength, TState state,
+            SpanAction<byte, TState> action)
+        {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+            if (idLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(idLength));
+
+            ParametersWithID result = new ParametersWithID(parameters, idLength);
+            action(result.m_id, state);
+            return result;
+        }
+#endif
+
+        internal static ICipherParameters ApplyOptionalID(ICipherParameters parameters, byte[] id) =>
+            id == null ? parameters : new ParametersWithIV(parameters, id);
+
         private readonly ICipherParameters m_parameters;
         private readonly byte[] m_id;
 
         public ParametersWithID(ICipherParameters parameters, byte[] id)
-            : this(parameters, id, 0, id.Length)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             if (id == null)
@@ -39,11 +59,32 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
-        public byte[] GetID()
+        private ParametersWithID(ICipherParameters parameters, int idLength)
         {
-            return (byte[])m_id.Clone();
+            if (idLength < 0)
+                throw new ArgumentOutOfRangeException(nameof(idLength));
+
+            // NOTE: 'parameters' may be null to imply key re-use
+            m_parameters = parameters;
+            m_id = new byte[idLength];
         }
 
+        public void CopyIDTo(byte[] buf, int off, int len)
+        {
+            if (m_id.Length != len)
+                throw new ArgumentOutOfRangeException(nameof(len));
+
+            Array.Copy(m_id, 0, buf, off, len);
+        }
+
+        public byte[] GetID() => (byte[])m_id.Clone();
+
+        public int IDLength => m_id.Length;
+
         public ICipherParameters Parameters => m_parameters;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> ID => m_id;
+#endif
     }
 }

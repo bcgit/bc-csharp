@@ -121,6 +121,7 @@ namespace Org.BouncyCastle.X509
         /// <summary>
         /// Allows enumeration of the signature names supported by the generator.
         /// </summary>
+        [Obsolete("Will be removed")]
         public IEnumerable<string> SignatureAlgNames
 		{
 			get { return X509Utilities.GetAlgNames(); }

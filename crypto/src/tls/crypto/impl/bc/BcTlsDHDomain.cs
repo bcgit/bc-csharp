@@ -39,9 +39,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public static DHParameters GetDomainParameters(TlsDHConfig dhConfig)
         {
-            DHGroup dhGroup = TlsDHUtilities.GetDHGroup(dhConfig);
-            if (dhGroup == null)
-                throw new ArgumentException("No DH configuration provided");
+            DHGroup dhGroup = TlsDHUtilities.GetDHGroup(dhConfig) ??
+                throw new ArgumentException("No DH configuration provided", nameof(dhConfig));
 
             return new DHParameters(dhGroup.P, dhGroup.G, dhGroup.Q, dhGroup.L);
         }

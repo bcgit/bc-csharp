@@ -85,7 +85,7 @@ namespace Org.BouncyCastle.Pkix
 			this.pubKey = null;
 			this.caName = null;
 			this.caPrincipal = null;
-			setNameConstraints(nameConstraints);
+			SetNameConstraints(nameConstraints);
 		}
 
 		/// <summary>
@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Pkix
 			this.caPrincipal = caPrincipal;
 			this.caName = caPrincipal.ToString();
 			this.pubKey = pubKey;
-			setNameConstraints(nameConstraints);
+			SetNameConstraints(nameConstraints);
 		}
 
 		/// <summary>
@@ -169,7 +169,7 @@ namespace Org.BouncyCastle.Pkix
 			this.pubKey = pubKey;
 			this.caName = caName;
 			this.trustedCert = null;
-			setNameConstraints(nameConstraints);
+			SetNameConstraints(nameConstraints);
 		}
 
 		/// <summary>
@@ -204,30 +204,16 @@ namespace Org.BouncyCastle.Pkix
 			get { return this.pubKey; }
 		}
 
-		/// <summary>
-		/// Decode the name constraints and clone them if not null.
-		/// </summary>
-		private void setNameConstraints(
-			byte[] bytes) 
-		{
-			if (bytes == null) 
-			{
-				ncBytes = null;
-				nc = null;
-			} 
-			else 
-			{
-				ncBytes = (byte[]) bytes.Clone();
-				// validate DER encoding
-				//nc = new NameConstraintsExtension(Boolean.FALSE, bytes);
-				nc = NameConstraints.GetInstance(Asn1Object.FromByteArray(bytes));
-			}
-		}
+        /// <summary>
+        /// Decode the name constraints and clone them if not null.
+        /// </summary>
+        private void SetNameConstraints(byte[] bytes)
+        {
+            ncBytes = Arrays.Clone(bytes);
+            nc = NameConstraints.GetInstance(bytes);
+        }
 
-		public byte[] GetNameConstraints
-		{
-			get { return Arrays.Clone(ncBytes); }
-		}
+        public byte[] GetNameConstraints => Arrays.Clone(ncBytes);
 
 		/// <summary>
 		/// Returns a formatted string describing the <code>TrustAnchor</code>.

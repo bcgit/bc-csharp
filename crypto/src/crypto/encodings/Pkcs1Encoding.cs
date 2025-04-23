@@ -102,42 +102,40 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
-            AsymmetricKeyParameter kParam;
+            engine.Init(forEncryption, parameters);
+
+            SecureRandom providedRandom = null;
             if (parameters is ParametersWithRandom withRandom)
             {
-                kParam = (AsymmetricKeyParameter)withRandom.Parameters;
-                this.random = withRandom.Random;
-            }
-            else
-            {
-                kParam = (AsymmetricKeyParameter)parameters;
-                this.random = forEncryption && !kParam.IsPrivate ? CryptoServicesRegistrar.GetSecureRandom() : null;
+                providedRandom = withRandom.Random;
+                parameters = withRandom.Parameters;
             }
 
-            engine.Init(forEncryption, parameters);
+            AsymmetricKeyParameter kParam = (AsymmetricKeyParameter)parameters;
 
             this.forPrivateKey = kParam.IsPrivate;
             this.forEncryption = forEncryption;
             this.blockBuffer = new byte[engine.GetOutputBlockSize()];
+
+            bool needsRandom = forPrivateKey ? (pLen != -1 && fallback == null) : forEncryption;
+            this.random = needsRandom ? CryptoServicesRegistrar.GetSecureRandom(providedRandom) : null;
         }
 
         public int GetInputBlockSize()
         {
-            int baseBlockSize = engine.GetInputBlockSize();
+            int blockSize = engine.GetInputBlockSize();
 
-            return forEncryption
-                ?	baseBlockSize - HeaderLength
-                :	baseBlockSize;
+            return forEncryption ? GetReducedBlockSize(blockSize) : blockSize;
         }
 
         public int GetOutputBlockSize()
         {
-            int baseBlockSize = engine.GetOutputBlockSize();
+            int blockSize = engine.GetOutputBlockSize();
 
-            return forEncryption
-                ?	baseBlockSize
-                :	baseBlockSize - HeaderLength;
+            return forEncryption ? blockSize : GetReducedBlockSize(blockSize);
         }
+
+        private static int GetReducedBlockSize(int blockSize) => blockSize - HeaderLength;
 
         public byte[] ProcessBlock(byte[] input, int inOff, int length)
         {
@@ -148,10 +146,12 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
         private byte[] EncodeBlock(byte[] input, int inOff, int inLen)
         {
-            if (inLen > GetInputBlockSize())
-                throw new ArgumentException("input data too large", "inLen");
+            int blockSize = engine.GetInputBlockSize();
 
-            byte[] block = new byte[engine.GetInputBlockSize()];
+            if (inLen > GetReducedBlockSize(blockSize))
+                throw new ArgumentException("input data too large", nameof(inLen));
+
+            byte[] block = new byte[blockSize];
 
             int lastPadPos = block.Length - 1 - inLen;
             if (forPrivateKey)

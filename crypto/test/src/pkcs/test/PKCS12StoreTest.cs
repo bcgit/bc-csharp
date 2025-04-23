@@ -5,6 +5,7 @@ using System.IO;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -12,6 +13,8 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Tests;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
@@ -894,7 +897,8 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			AsymmetricKeyParameter	pubKey,
 			AsymmetricKeyParameter	privKey,
 			string					issuerEmail,
-			string					subjectEmail)
+			string					subjectEmail,
+			byte[]					localKeyId)
 		{
 			//
 			// distinguished name table.
@@ -938,7 +942,12 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
 			ISignatureFactory signatureFactory = new Asn1SignatureFactory("MD5WithRSAEncryption", privKey, Random);
 			X509Certificate cert = certGen.Generate(signatureFactory);
-			return new X509CertificateEntry(cert);
+
+            Dictionary<DerObjectIdentifier, Asn1Encodable> bagAttrs = new Dictionary<DerObjectIdentifier, Asn1Encodable>();
+			if (null != localKeyId)
+                bagAttrs.Add(PkcsObjectIdentifiers.Pkcs9AtLocalKeyID, new DerOctetString(localKeyId));
+
+            return new X509CertificateEntry(cert, bagAttrs);
 		}
 
         private void DoTestCertsOnly()
@@ -978,321 +987,333 @@ namespace Org.BouncyCastle.Pkcs.Tests
         }
 
 		private void DoTestPkcs12Store()
-		{
-			BigInteger mod = new BigInteger("bb1be8074e4787a8d77967f1575ef72dd7582f9b3347724413c021beafad8f32dba5168e280cbf284df722283dad2fd4abc750e3d6487c2942064e2d8d80641aa5866d1f6f1f83eec26b9b46fecb3b1c9856a303148a5cc899c642fb16f3d9d72f52526c751dc81622c420c82e2cfda70fe8d13f16cc7d6a613a5b2a2b5894d1", 16);
-
-			MemoryStream stream = new MemoryStream(pkcs12, false);
-			Pkcs12Store store = new Pkcs12StoreBuilder().Build();
-			store.Load(stream, passwd);
-
-			string pName = null;
-			foreach (string n in store.Aliases)
-			{
-				if (store.IsKeyEntry(n))
-				{
-					pName = n;
-					//break;
-				}
-			}
-
-			AsymmetricKeyEntry key = store.GetKey(pName);
-
-			if (!((RsaKeyParameters) key.Key).Modulus.Equals(mod))
-			{
-				Fail("Modulus doesn't match.");
-			}
-
-			X509CertificateEntry[] ch = store.GetCertificateChain(pName);
-
-			if (ch.Length != 3)
-			{
-				Fail("chain was wrong length");
-			}
-
-			if (!ch[0].Certificate.SerialNumber.Equals(new BigInteger("96153094170511488342715101755496684211")))
-			{
-				Fail("chain[0] wrong certificate.");
-			}
-
-			if (!ch[1].Certificate.SerialNumber.Equals(new BigInteger("279751514312356623147411505294772931957")))
-			{
-				Fail("chain[1] wrong certificate.");
-			}
-
-			if (!ch[2].Certificate.SerialNumber.Equals(new BigInteger("11341398017")))
-			{
-				Fail("chain[2] wrong certificate.");
-			}
-
-			//
-			// save test
-			//
-			MemoryStream bOut = new MemoryStream();
-			store.Save(bOut, passwd, Random);
-
-			stream = new MemoryStream(bOut.ToArray(), false);
-			store.Load(stream, passwd);
-
-			key = store.GetKey(pName);
-
-			if (!((RsaKeyParameters)key.Key).Modulus.Equals(mod))
-			{
-				Fail("Modulus doesn't match.");
-			}
-
-			store.DeleteEntry(pName);
-
-			if (store.GetKey(pName) != null)
-			{
-				Fail("Failed deletion test.");
-			}
-
-			//
-			// cert chain test
-			//
-			store.SetCertificateEntry("testCert", ch[2]);
-
-			if (store.GetCertificateChain("testCert") != null)
-			{
-				Fail("Failed null chain test.");
-			}
-
-			//
-			// UTF 8 single cert test
-			//
-			stream = new MemoryStream(certUTF, false);
-			store.Load(stream, "user".ToCharArray());
-
-			if (store.GetCertificate("37") == null)
-			{
-				Fail("Failed to find UTF cert.");
-			}
-
-			//
-			// try for a self generated certificate
-			//
-			RsaKeyParameters pubKey = new RsaKeyParameters(
-				false,
-				new BigInteger("b4a7e46170574f16a97082b22be58b6a2a629798419be12872a4bdba626cfae9900f76abfb12139dce5de56564fab2b6543165a040c606887420e33d91ed7ed7", 16),
-				new BigInteger("11", 16));
-
-			RsaPrivateCrtKeyParameters privKey = new RsaPrivateCrtKeyParameters(
-				new BigInteger("b4a7e46170574f16a97082b22be58b6a2a629798419be12872a4bdba626cfae9900f76abfb12139dce5de56564fab2b6543165a040c606887420e33d91ed7ed7", 16),
-				new BigInteger("11", 16),
-				new BigInteger("9f66f6b05410cd503b2709e88115d55daced94d1a34d4e32bf824d0dde6028ae79c5f07b580f5dce240d7111f7ddb130a7945cd7d957d1920994da389f490c89", 16),
-				new BigInteger("c0a0758cdf14256f78d4708c86becdead1b50ad4ad6c5c703e2168fbf37884cb", 16),
-				new BigInteger("f01734d7960ea60070f1b06f2bb81bfac48ff192ae18451d5e56c734a5aab8a5", 16),
-				new BigInteger("b54bb9edff22051d9ee60f9351a48591b6500a319429c069a3e335a1d6171391", 16),
-				new BigInteger("d3d83daf2a0cecd3367ae6f8ae1aeb82e9ac2f816c6fc483533d8297dd7884cd", 16),
-				new BigInteger("b8f52fc6f38593dabb661d3f50f8897f8106eee68b1bce78a95b132b4e5b5d19", 16));
-
-			X509CertificateEntry[] chain = new X509CertificateEntry[] {
-				CreateCert(pubKey, privKey, "issuer@bouncycastle.org", "subject@bouncycastle.org")
-			};
-
-			store = new Pkcs12StoreBuilder().Build();
-
-			store.SetKeyEntry("privateKey", new AsymmetricKeyEntry(privKey), chain);
-
-			if (!store.ContainsAlias("privateKey") || !store.ContainsAlias("PRIVATEKEY"))
-			{
-				Fail("couldn't find alias privateKey");
-			}
-
-			if (store.IsCertificateEntry("privateKey"))
-			{
-				Fail("key identified as certificate entry");
-			}
-
-			if (!store.IsKeyEntry("privateKey") || !store.IsKeyEntry("PRIVATEKEY"))
-			{
-				Fail("key not identified as key entry");
-			}
-
-			if (!"privateKey".Equals(store.GetCertificateAlias(chain[0].Certificate)))
-			{
-				Fail("Did not return alias for key certificate privateKey");
-			}
-
-			MemoryStream store1Stream = new MemoryStream();
-			store.Save(store1Stream, passwd, Random);
-			DoTestNoExtraLocalKeyID(store1Stream.ToArray());
-
-			//
-			// no friendly name test
-			//
-			stream = new MemoryStream(pkcs12noFriendly, false);
-			store.Load(stream, noFriendlyPassword);
-
-			pName = null;
-
-			foreach (string n in store.Aliases)
-			{
-				if (store.IsKeyEntry(n))
-				{
-					pName = n;
-					//break;
-				}
-			}
-
-			ch = store.GetCertificateChain(pName);
-
-			//for (int i = 0; i != ch.Length; i++)
-			//{
-			//	Console.WriteLine(ch[i]);
-			//}
-
-			if (ch.Length != 1)
-			{
-				Fail("no cert found in pkcs12noFriendly");
-			}
-
-			//
-			// failure tests
-			//
-			ch = store.GetCertificateChain("dummy");
-
-			store.GetCertificateChain("DUMMY");
-
-			store.GetCertificate("dummy");
-
-			store.GetCertificate("DUMMY");
-
-			//
-			// storage test
-			//
-			stream = new MemoryStream(pkcs12StorageIssue, false);
-			store.Load(stream, storagePassword);
-
-			pName = null;
-
-			foreach (string n in store.Aliases)
-			{
-				if (store.IsKeyEntry(n))
-				{
-					pName = n;
-					//break;
-				}
-			}
-
-			ch = store.GetCertificateChain(pName);
-			if (ch.Length != 2)
-			{
-				Fail("Certificate chain wrong length");
-			}
-
-			store.Save(new MemoryStream(), storagePassword, Random);
-
-			//
-			// basic certificate check
-			//
-			store.SetCertificateEntry("cert", ch[1]);
-
-			if (!store.ContainsAlias("cert") || !store.ContainsAlias("CERT"))
-			{
-				Fail("couldn't find alias cert");
-			}
-
-			if (!store.IsCertificateEntry("cert") || !store.IsCertificateEntry("CERT"))
-			{
-				Fail("cert not identified as certificate entry");
-			}
-
-			if (store.IsKeyEntry("cert") || store.IsKeyEntry("CERT"))
-			{
-				Fail("cert identified as key entry");
-			}
-
-			if (!store.IsEntryOfType("cert", typeof(X509CertificateEntry)))
-			{
-				Fail("cert not identified as X509CertificateEntry");
-			}
-
-			if (!store.IsEntryOfType("CERT", typeof(X509CertificateEntry)))
-			{
-				Fail("CERT not identified as X509CertificateEntry");
-			}
-
-			if (store.IsEntryOfType("cert", typeof(AsymmetricKeyEntry)))
-			{
-				Fail("cert identified as key entry via AsymmetricKeyEntry");
-			}
-
-			if (!"cert".Equals(store.GetCertificateAlias(ch[1].Certificate)))
-			{
-				Fail("Did not return alias for certificate entry");
-			}
-
-			//
-			// test restoring of a certificate with private key originally as a ca certificate
-			//
-			store = new Pkcs12StoreBuilder().Build();
-
-			store.SetCertificateEntry("cert", ch[0]);
-
-			if (!store.ContainsAlias("cert") || !store.ContainsAlias("CERT"))
-			{
-				Fail("restore: couldn't find alias cert");
-			}
-
-			if (!store.IsCertificateEntry("cert") || !store.IsCertificateEntry("CERT"))
-			{
-				Fail("restore: cert not identified as certificate entry");
-			}
-
-			if (store.IsKeyEntry("cert") || store.IsKeyEntry("CERT"))
-			{
-				Fail("restore: cert identified as key entry");
-			}
-
-			if (store.IsEntryOfType("cert", typeof(AsymmetricKeyEntry)))
-			{
-				Fail("restore: cert identified as key entry via AsymmetricKeyEntry");
-			}
-
-			if (store.IsEntryOfType("CERT", typeof(AsymmetricKeyEntry)))
-			{
-				Fail("restore: cert identified as key entry via AsymmetricKeyEntry");
-			}
-
-			if (!store.IsEntryOfType("cert", typeof(X509CertificateEntry)))
-			{
-				Fail("restore: cert not identified as X509CertificateEntry");
-			}
-
-			//
-			// test of reading incorrect zero-length encoding
-			//
-			stream = new MemoryStream(pkcs12nopass, false);
-			store.Load(stream, "".ToCharArray());
-
-			stream = new MemoryStream(sentrixHard, false);
-			store = new Pkcs12StoreBuilder().Build();
-			store.Load(stream, "0000".ToCharArray());
-			CheckPKCS12(store);
-
-			stream = new MemoryStream(sentrixSoft, false);
-			store = new Pkcs12StoreBuilder().Build();
-			store.Load(stream, "0000".ToCharArray());
-			CheckPKCS12(store);
-
-			stream = new MemoryStream(sentrix1, false);
-			store = new Pkcs12StoreBuilder().Build();
-			store.Load(stream, "0000".ToCharArray());
-			CheckPKCS12(store);
-
-			stream = new MemoryStream(sentrix2, false);
-			store = new Pkcs12StoreBuilder().Build();
-			store.Load(stream, "0000".ToCharArray());
-			CheckPKCS12(store);
-
-			stream = new MemoryStream(sentrix3, false);
-			store = new Pkcs12StoreBuilder().Build();
-			store.Load(stream, "0000".ToCharArray());
-			CheckPKCS12(store);
-		}
-
-		private void CheckPKCS12(Pkcs12Store store)
+        {
+            BigInteger mod = new BigInteger("bb1be8074e4787a8d77967f1575ef72dd7582f9b3347724413c021beafad8f32dba5168e280cbf284df722283dad2fd4abc750e3d6487c2942064e2d8d80641aa5866d1f6f1f83eec26b9b46fecb3b1c9856a303148a5cc899c642fb16f3d9d72f52526c751dc81622c420c82e2cfda70fe8d13f16cc7d6a613a5b2a2b5894d1", 16);
+
+            MemoryStream stream = new MemoryStream(pkcs12, false);
+            Pkcs12Store store = new Pkcs12StoreBuilder().Build();
+            store.Load(stream, passwd);
+
+            string pName = null;
+            foreach (string n in store.Aliases)
+            {
+                if (store.IsKeyEntry(n))
+                {
+                    pName = n;
+                    //break;
+                }
+            }
+
+            AsymmetricKeyEntry key = store.GetKey(pName);
+
+            if (!((RsaKeyParameters)key.Key).Modulus.Equals(mod))
+            {
+                Fail("Modulus doesn't match.");
+            }
+
+            X509CertificateEntry[] ch = store.GetCertificateChain(pName);
+
+            if (ch.Length != 3)
+            {
+                Fail("chain was wrong length");
+            }
+
+            if (!ch[0].Certificate.SerialNumber.Equals(new BigInteger("96153094170511488342715101755496684211")))
+            {
+                Fail("chain[0] wrong certificate.");
+            }
+
+            if (!ch[1].Certificate.SerialNumber.Equals(new BigInteger("279751514312356623147411505294772931957")))
+            {
+                Fail("chain[1] wrong certificate.");
+            }
+
+            if (!ch[2].Certificate.SerialNumber.Equals(new BigInteger("11341398017")))
+            {
+                Fail("chain[2] wrong certificate.");
+            }
+
+            //
+            // save test
+            //
+            MemoryStream bOut = new MemoryStream();
+            store.Save(bOut, passwd, Random);
+
+            stream = new MemoryStream(bOut.ToArray(), false);
+            store.Load(stream, passwd);
+
+            key = store.GetKey(pName);
+
+            if (!((RsaKeyParameters)key.Key).Modulus.Equals(mod))
+            {
+                Fail("Modulus doesn't match.");
+            }
+
+            store.DeleteEntry(pName);
+
+            if (store.GetKey(pName) != null)
+            {
+                Fail("Failed deletion test.");
+            }
+
+            //
+            // cert chain test
+            //
+            store.SetCertificateEntry("testCert", ch[2]);
+
+            if (store.GetCertificateChain("testCert") != null)
+            {
+                Fail("Failed null chain test.");
+            }
+
+            //
+            // UTF 8 single cert test
+            //
+            stream = new MemoryStream(certUTF, false);
+            store.Load(stream, "user".ToCharArray());
+
+            if (store.GetCertificate("37") == null)
+            {
+                Fail("Failed to find UTF cert.");
+            }
+
+            //
+            // try for a self generated certificate
+            //
+            CreateTestCertificateAndKey(out AsymmetricKeyEntry privKey, out X509CertificateEntry[] chain);
+
+            store = new Pkcs12StoreBuilder().Build();
+
+            store.SetKeyEntry("privateKey", privKey, chain);
+
+            if (!store.ContainsAlias("privateKey") || !store.ContainsAlias("PRIVATEKEY"))
+            {
+                Fail("couldn't find alias privateKey");
+            }
+
+            if (store.IsCertificateEntry("privateKey"))
+            {
+                Fail("key identified as certificate entry");
+            }
+
+            if (!store.IsKeyEntry("privateKey") || !store.IsKeyEntry("PRIVATEKEY"))
+            {
+                Fail("key not identified as key entry");
+            }
+
+            if (!"privateKey".Equals(store.GetCertificateAlias(chain[0].Certificate)))
+            {
+                Fail("Did not return alias for key certificate privateKey");
+            }
+
+            MemoryStream store1Stream = new MemoryStream();
+            store.Save(store1Stream, passwd, Random);
+            DoTestNoExtraLocalKeyID(store1Stream.ToArray());
+
+            //
+            // no friendly name test
+            //
+            stream = new MemoryStream(pkcs12noFriendly, false);
+            store.Load(stream, noFriendlyPassword);
+
+            pName = null;
+
+            foreach (string n in store.Aliases)
+            {
+                if (store.IsKeyEntry(n))
+                {
+                    pName = n;
+                    //break;
+                }
+            }
+
+            ch = store.GetCertificateChain(pName);
+
+            //for (int i = 0; i != ch.Length; i++)
+            //{
+            //	Console.WriteLine(ch[i]);
+            //}
+
+            if (ch.Length != 1)
+            {
+                Fail("no cert found in pkcs12noFriendly");
+            }
+
+            //
+            // failure tests
+            //
+            ch = store.GetCertificateChain("dummy");
+
+            store.GetCertificateChain("DUMMY");
+
+            store.GetCertificate("dummy");
+
+            store.GetCertificate("DUMMY");
+
+            //
+            // storage test
+            //
+            stream = new MemoryStream(pkcs12StorageIssue, false);
+            store.Load(stream, storagePassword);
+
+            pName = null;
+
+            foreach (string n in store.Aliases)
+            {
+                if (store.IsKeyEntry(n))
+                {
+                    pName = n;
+                    //break;
+                }
+            }
+
+            ch = store.GetCertificateChain(pName);
+            if (ch.Length != 2)
+            {
+                Fail("Certificate chain wrong length");
+            }
+
+            store.Save(new MemoryStream(), storagePassword, Random);
+
+            //
+            // basic certificate check
+            //
+            store.SetCertificateEntry("cert", ch[1]);
+
+            if (!store.ContainsAlias("cert") || !store.ContainsAlias("CERT"))
+            {
+                Fail("couldn't find alias cert");
+            }
+
+            if (!store.IsCertificateEntry("cert") || !store.IsCertificateEntry("CERT"))
+            {
+                Fail("cert not identified as certificate entry");
+            }
+
+            if (store.IsKeyEntry("cert") || store.IsKeyEntry("CERT"))
+            {
+                Fail("cert identified as key entry");
+            }
+
+            if (!store.IsEntryOfType("cert", typeof(X509CertificateEntry)))
+            {
+                Fail("cert not identified as X509CertificateEntry");
+            }
+
+            if (!store.IsEntryOfType("CERT", typeof(X509CertificateEntry)))
+            {
+                Fail("CERT not identified as X509CertificateEntry");
+            }
+
+            if (store.IsEntryOfType("cert", typeof(AsymmetricKeyEntry)))
+            {
+                Fail("cert identified as key entry via AsymmetricKeyEntry");
+            }
+
+            if (!"cert".Equals(store.GetCertificateAlias(ch[1].Certificate)))
+            {
+                Fail("Did not return alias for certificate entry");
+            }
+
+            //
+            // test restoring of a certificate with private key originally as a ca certificate
+            //
+            store = new Pkcs12StoreBuilder().Build();
+
+            store.SetCertificateEntry("cert", ch[0]);
+
+            if (!store.ContainsAlias("cert") || !store.ContainsAlias("CERT"))
+            {
+                Fail("restore: couldn't find alias cert");
+            }
+
+            if (!store.IsCertificateEntry("cert") || !store.IsCertificateEntry("CERT"))
+            {
+                Fail("restore: cert not identified as certificate entry");
+            }
+
+            if (store.IsKeyEntry("cert") || store.IsKeyEntry("CERT"))
+            {
+                Fail("restore: cert identified as key entry");
+            }
+
+            if (store.IsEntryOfType("cert", typeof(AsymmetricKeyEntry)))
+            {
+                Fail("restore: cert identified as key entry via AsymmetricKeyEntry");
+            }
+
+            if (store.IsEntryOfType("CERT", typeof(AsymmetricKeyEntry)))
+            {
+                Fail("restore: cert identified as key entry via AsymmetricKeyEntry");
+            }
+
+            if (!store.IsEntryOfType("cert", typeof(X509CertificateEntry)))
+            {
+                Fail("restore: cert not identified as X509CertificateEntry");
+            }
+
+            //
+            // test of reading incorrect zero-length encoding
+            //
+            stream = new MemoryStream(pkcs12nopass, false);
+            store.Load(stream, "".ToCharArray());
+
+            stream = new MemoryStream(sentrixHard, false);
+            store = new Pkcs12StoreBuilder().Build();
+            store.Load(stream, "0000".ToCharArray());
+            CheckPKCS12(store);
+
+            stream = new MemoryStream(sentrixSoft, false);
+            store = new Pkcs12StoreBuilder().Build();
+            store.Load(stream, "0000".ToCharArray());
+            CheckPKCS12(store);
+
+            stream = new MemoryStream(sentrix1, false);
+            store = new Pkcs12StoreBuilder().Build();
+            store.Load(stream, "0000".ToCharArray());
+            CheckPKCS12(store);
+
+            stream = new MemoryStream(sentrix2, false);
+            store = new Pkcs12StoreBuilder().Build();
+            store.Load(stream, "0000".ToCharArray());
+            CheckPKCS12(store);
+
+            stream = new MemoryStream(sentrix3, false);
+            store = new Pkcs12StoreBuilder().Build();
+            store.Load(stream, "0000".ToCharArray());
+            CheckPKCS12(store);
+        }
+
+        private void CreateTestCertificateAndKey(out AsymmetricKeyEntry privKey, out X509CertificateEntry[] chain)
+        {
+            RsaKeyParameters pubKey = new RsaKeyParameters(
+                false,
+                new BigInteger("b4a7e46170574f16a97082b22be58b6a2a629798419be12872a4bdba626cfae9900f76abfb12139dce5de56564fab2b6543165a040c606887420e33d91ed7ed7", 16),
+                new BigInteger("11", 16));
+
+            RsaPrivateCrtKeyParameters privKeyParams = new RsaPrivateCrtKeyParameters(
+                new BigInteger("b4a7e46170574f16a97082b22be58b6a2a629798419be12872a4bdba626cfae9900f76abfb12139dce5de56564fab2b6543165a040c606887420e33d91ed7ed7", 16),
+                new BigInteger("11", 16),
+                new BigInteger("9f66f6b05410cd503b2709e88115d55daced94d1a34d4e32bf824d0dde6028ae79c5f07b580f5dce240d7111f7ddb130a7945cd7d957d1920994da389f490c89", 16),
+                new BigInteger("c0a0758cdf14256f78d4708c86becdead1b50ad4ad6c5c703e2168fbf37884cb", 16),
+                new BigInteger("f01734d7960ea60070f1b06f2bb81bfac48ff192ae18451d5e56c734a5aab8a5", 16),
+                new BigInteger("b54bb9edff22051d9ee60f9351a48591b6500a319429c069a3e335a1d6171391", 16),
+                new BigInteger("d3d83daf2a0cecd3367ae6f8ae1aeb82e9ac2f816c6fc483533d8297dd7884cd", 16),
+                new BigInteger("b8f52fc6f38593dabb661d3f50f8897f8106eee68b1bce78a95b132b4e5b5d19", 16));
+
+			byte[] LOCAL_KEY_ID = new byte[] { 4, 2, 4, 6, 13 };
+
+			Dictionary<DerObjectIdentifier, Asn1Encodable> privKeyAttrs = new Dictionary<DerObjectIdentifier, Asn1Encodable>();
+			privKeyAttrs.Add(PkcsObjectIdentifiers.Pkcs9AtLocalKeyID, new DerOctetString(LOCAL_KEY_ID));
+
+            privKey = new AsymmetricKeyEntry(privKeyParams, privKeyAttrs);
+
+            chain = new X509CertificateEntry[] {
+                CreateCert(pubKey, privKeyParams, "issuer@bouncycastle.org", "subject@bouncycastle.org", LOCAL_KEY_ID)
+            };
+        }
+
+        private void CheckPKCS12(Pkcs12Store store)
 		{
 			foreach (string alias in store.Aliases)
 			{
@@ -1307,112 +1328,190 @@ namespace Org.BouncyCastle.Pkcs.Tests
 				}
 			}
 		}
-		private void DoTestSupportedTypes(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain)
-		{
-			basicStoreTest(privKey, chain,
-				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
-				PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc );
-			basicStoreTest(privKey, chain,
-				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc,
-				PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc );
-		}
 
-		private void basicStoreTest(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain,
-			DerObjectIdentifier keyAlgorithm, DerObjectIdentifier certAlgorithm)
-		{
-			Pkcs12Store store = new Pkcs12StoreBuilder()
-				.SetKeyAlgorithm(keyAlgorithm)
-				.SetCertAlgorithm(certAlgorithm)
-				.Build();
+        private void DoTestSupportedTypes()
+        {
+            CreateTestCertificateAndKey(out AsymmetricKeyEntry privKey, out X509CertificateEntry[] chain);
 
-			store.SetKeyEntry("key", privKey, chain);
+            BasicStoreTest(privKey, chain,
+                null, null,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null);
+            BasicStoreTest(privKey, chain,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null,
+                null, null);
+            BasicStoreTest(privKey, chain,
+                PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc, null,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null);
+            BasicStoreTest(privKey, chain,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null);
+            BasicStoreTest(privKey, chain,
+                null, null,
+                NistObjectIdentifiers.IdAes128Cbc, PkcsObjectIdentifiers.IdHmacWithSha256);
+            BasicStoreTest(privKey, chain,
+                NistObjectIdentifiers.IdAes128Cbc, PkcsObjectIdentifiers.IdHmacWithSha256,
+                null, null);
+            BasicStoreTest(privKey, chain,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null,
+                NistObjectIdentifiers.IdAes128Cbc, PkcsObjectIdentifiers.IdHmacWithSha256);
+            BasicStoreTest(privKey, chain,
+                NistObjectIdentifiers.IdAes128Cbc, PkcsObjectIdentifiers.IdHmacWithSha256,
+                PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc, null);
+            BasicStoreTest(privKey, chain,
+                NistObjectIdentifiers.IdAes256Cbc, PkcsObjectIdentifiers.IdHmacWithSha512,
+                NistObjectIdentifiers.IdAes256Cbc, PkcsObjectIdentifiers.IdHmacWithSha512);
+        }
 
-			MemoryStream bOut = new MemoryStream();
+        private void BasicStoreTest(AsymmetricKeyEntry privKey, X509CertificateEntry[] chain,
+            DerObjectIdentifier certAlgorithm, DerObjectIdentifier certPrfAlgorithm, DerObjectIdentifier keyAlgorithm,
+            DerObjectIdentifier keyPrfAlgorithm)
+        {
+            Pkcs12Store store = new Pkcs12StoreBuilder()
+                .SetCertAlgorithm(certAlgorithm, certPrfAlgorithm)
+                .SetKeyAlgorithm(keyAlgorithm, keyPrfAlgorithm)
+                .Build();
 
-			store.Save(bOut, passwd, Random);
+            store.SetKeyEntry("key", privKey, chain);
 
-			store.Load(new MemoryStream(bOut.ToArray(), false), passwd);
+            MemoryStream bOut = new MemoryStream();
 
-			AsymmetricKeyEntry k = store.GetKey("key");
+            store.Save(bOut, passwd, Random);
 
-			if (!k.Equals(privKey))
-			{
-				Fail("private key didn't match");
-			}
+            store.Load(new MemoryStream(bOut.ToArray(), false), passwd);
 
-			X509CertificateEntry[] c = store.GetCertificateChain("key");
+            AsymmetricKeyEntry k = store.GetKey("key");
 
-			if (c.Length != chain.Length || !c[0].Equals(chain[0]))
-			{
-				Fail("certificates didn't match");
-			}
+            if (!k.Equals(privKey))
+            {
+                Fail("private key didn't match");
+            }
 
-			// check attributes
-			Pkcs12Entry b1 = k;
-			Pkcs12Entry b2 = chain[0];
+            X509CertificateEntry[] c = store.GetCertificateChain("key");
 
-			if (b1[PkcsObjectIdentifiers.Pkcs9AtFriendlyName] != null)
-			{
-				DerBmpString name = (DerBmpString)b1[PkcsObjectIdentifiers.Pkcs9AtFriendlyName];
+            if (c.Length != chain.Length || !c[0].Equals(chain[0]))
+            {
+                Fail("certificates didn't match");
+            }
 
-				if (!name.Equals(new DerBmpString("key")))
-				{
-					Fail("friendly name wrong");
-				}
-			}
-			else
-			{
-				Fail("no friendly name found on key");
-			}
+            // check attributes
+            Pkcs12Entry b1 = k;
+            Pkcs12Entry b2 = chain[0];
 
-			if (b1[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] != null)
-			{
-				Asn1OctetString id = (Asn1OctetString)b1[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID];
+            if (b1[PkcsObjectIdentifiers.Pkcs9AtFriendlyName] != null)
+            {
+                DerBmpString name = (DerBmpString)b1[PkcsObjectIdentifiers.Pkcs9AtFriendlyName];
 
-				if (!id.Equals(b2[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID]))
-				{
-					Fail("local key id mismatch");
-				}
-			}
-			else
-			{
-				Fail("no local key id found");
-			}
+                if (!name.Equals(new DerBmpString("key")))
+                {
+                    Fail("friendly name wrong");
+                }
+            }
+            else
+            {
+                Fail("no friendly name found on key");
+            }
 
-			//
-			// check algorithm types.
-			//
-			Pfx pfx = Pfx.GetInstance(bOut.ToArray());
+            if (b1[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] != null)
+            {
+                Asn1OctetString id = (Asn1OctetString)b1[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID];
 
-			ContentInfo cInfo = pfx.AuthSafe;
+                if (!id.Equals(b2[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID]))
+                {
+                    Fail("local key id mismatch");
+                }
+            }
+            else
+            {
+                Fail("no local key id found");
+            }
 
-			Asn1OctetString auth = (Asn1OctetString)cInfo.Content;
+            //
+            // check algorithm types.
+            //
+            Pfx pfx = Pfx.GetInstance(bOut.ToArray());
+
+            ContentInfo cInfo = pfx.AuthSafe;
+
+            Asn1OctetString auth = (Asn1OctetString)cInfo.Content;
 
             Asn1Sequence s1 = Asn1Sequence.GetInstance(auth.GetOctets());
 
-			ContentInfo c1 = ContentInfo.GetInstance(s1[0]);
-			ContentInfo c2 = ContentInfo.GetInstance(s1[1]);
+            ContentInfo c1 = ContentInfo.GetInstance(s1[0]);
+            ContentInfo c2 = ContentInfo.GetInstance(s1[1]);
 
             SafeBag sb = SafeBag.GetInstance(Asn1Sequence.GetInstance(((Asn1OctetString)c1.Content).GetOctets())[0]);
 
-			EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfo.GetInstance(sb.BagValue);
+            if (keyAlgorithm == null)
+            {
+                IsEquals("Without key encryption, expected 'KeyBag'", PkcsObjectIdentifiers.KeyBag, sb.BagID);
+            }
+            else
+            {
+                IsEquals("With key encryption, expected 'Pkcs8ShroudedKeyBag'",
+                    PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag, sb.BagID);
 
-			// check the key encryption
-            if (!encInfo.EncryptionAlgorithm.Algorithm.Equals(keyAlgorithm))
-			{
-				Fail("key encryption algorithm wrong");
-			}
+                EncryptedPrivateKeyInfo epki = EncryptedPrivateKeyInfo.GetInstance(sb.BagValueEncodable);
 
-			// check the certificate encryption
-			EncryptedData cb = EncryptedData.GetInstance(c2.Content);
+                CheckEncryptionAlgorithm("key", epki.EncryptionAlgorithm, keyAlgorithm, keyPrfAlgorithm);
+            }
 
-            if (!cb.EncryptionAlgorithm.Algorithm.Equals(certAlgorithm))
-			{
-				Fail("cert encryption algorithm wrong");
-			}
-		}
+            if (certAlgorithm == null)
+            {
+                IsEquals("Without cert encryption, expected 'Data'", PkcsObjectIdentifiers.Data, c2.ContentType);
+            }
+            else
+            {
+                IsEquals("With cert encryption, expected 'EncryptedData'",
+                    PkcsObjectIdentifiers.EncryptedData, c2.ContentType);
 
-		private void DoTestNoExtraLocalKeyID(byte[] store1data)
+                EncryptedData encryptedData = EncryptedData.GetInstance(c2.Content);
+
+                CheckEncryptionAlgorithm("cert", encryptedData.EncryptionAlgorithm, certAlgorithm, certPrfAlgorithm);
+            }
+        }
+
+        private void CheckEncryptionAlgorithm(string type, AlgorithmIdentifier encAlgID,
+            DerObjectIdentifier expectedEncAlgorithm, DerObjectIdentifier expectedPrfAlgorithm)
+        {
+            // Legacy
+            if (expectedPrfAlgorithm == null)
+            {
+                if (!expectedEncAlgorithm.Equals(encAlgID.Algorithm))
+                {
+                    Fail($"{type} legacy encryption algorithm wrong");
+                }
+                return;
+            }
+
+            // PBES2 + PBKDF2
+            if (!PkcsObjectIdentifiers.IdPbeS2.Equals(encAlgID.Algorithm))
+            {
+                Fail($"{type} encryption PBES2 expected, but it is different");
+            }
+
+            var pbes2Parameters = PbeS2Parameters.GetInstance(encAlgID.Parameters);
+
+            if (!expectedEncAlgorithm.Equals(pbes2Parameters.EncryptionScheme.Algorithm))
+            {
+                Fail($"{type} encryption algorithm within PBES2 wrong");
+            }
+
+            var keyDerivationFunc = pbes2Parameters.KeyDerivationFunc;
+
+            if (!PkcsObjectIdentifiers.IdPbkdf2.Equals(keyDerivationFunc.Algorithm))
+            {
+                Fail($"{type} derivation algorithm within PBES2 should be Pbkdf2");
+            }
+
+            var pbkdf2Params = Pbkdf2Params.GetInstance(keyDerivationFunc.Parameters);
+
+            if (!expectedPrfAlgorithm.Equals(pbkdf2Params.Prf.Algorithm))
+            {
+                Fail($"{type} derivation PRF algorithm within PBES2 wrong");
+            }
+        }
+
+        private void DoTestNoExtraLocalKeyID(byte[] store1data)
 		{
 			IAsymmetricCipherKeyPairGenerator kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
 			kpg.Init(new RsaKeyGenerationParameters(
@@ -1432,7 +1531,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
 			Array.Copy(chain1, 0, chain2, 1, chain1.Length);
 
-			chain2[0] = CreateCert(newPair.Public, k1.Key, "subject@bouncycastle.org", "extra@bouncycaste.org");
+			chain2[0] = CreateCert(newPair.Public, k1.Key, "subject@bouncycastle.org", "extra@bouncycaste.org", null);
 
 			if (chain1[0][PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] == null)
 			{
@@ -1471,7 +1570,45 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			IsTrue(store.GetCertificateChain("test").Length == 1);
 		}
 
-		public override string Name
+		private void CheckNoDuplicateOracleTrustedCertAttribute()
+		{
+			var random = new SecureRandom();
+
+			string certificateAlias = "myAlias";
+			string keystorePassword = "myPassword";
+
+			var kp1 = TestUtilities.GenerateRsaKeyPair();
+            var kp2 = TestUtilities.GenerateRsaKeyPair();
+
+			// generate certificate
+			X509Certificate rootCertificate = TestUtilities.GenerateRootCert(kp1, new X509Name("CN=KP1 ROOT"));
+			X509Certificate originalCertificate = TestUtilities.GenerateEndEntityCert(kp2.Public,
+				new X509Name("CN=KP3 EE"), KeyPurposeID.id_kp_capwapAC, KeyPurposeID.id_kp_capwapWTP, kp1.Private,
+				rootCertificate);
+
+            // store original certificate to a truststore
+            var firstTrustStore = new Pkcs12StoreBuilder().Build();
+			firstTrustStore.SetCertificateEntry(certificateAlias, new X509CertificateEntry(originalCertificate));
+			var bOut = new MemoryStream();
+			firstTrustStore.Save(bOut, keystorePassword.ToCharArray(), random);
+
+			// read certificate from the truststore
+			var firstTrustStoreReadAgain = new Pkcs12StoreBuilder().Build();
+			firstTrustStoreReadAgain.Load(new MemoryStream(bOut.ToArray()), keystorePassword.ToCharArray());
+			var certificateReadFromFirstTrustStore = firstTrustStoreReadAgain.GetCertificate(certificateAlias);
+
+            var secondTrustStore = new Pkcs12StoreBuilder().Build();
+			secondTrustStore.SetCertificateEntry(certificateAlias,
+				new X509CertificateEntry(certificateReadFromFirstTrustStore.Certificate));
+			bOut = new MemoryStream();
+			secondTrustStore.Save(bOut, keystorePassword.ToCharArray(), random);
+
+            // TODO Some other way to check that 'id_oracle_pkcs12_trusted_key_usage' is not duplicated?
+            //KeyStore secondTrustStoreReadWithoutBc = KeyStore.getInstance("PKCS12", "SunJSSE");
+            //secondTrustStoreReadWithoutBc.load(new ByteArrayInputStream(bOut.toByteArray()), keystorePassword.toCharArray());
+        }
+
+        public override string Name
 		{
 			get { return "PKCS12Store"; }
 		}
@@ -1482,7 +1619,9 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			DoTestPkcs12Store();
 			DoTestLoadRepeatedLocalKeyID();
 			DoTestHmacSha384();
-		}
+			DoTestSupportedTypes();
+			CheckNoDuplicateOracleTrustedCertAttribute();
+        }
 
 		[Test]
 		public void TestFunction()
@@ -1491,5 +1630,85 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText, resultText);
 		}
-	}
+
+		[Test]
+		public void TestFriendlyName()
+		{
+			byte[] storeBytes = Base64.Decode("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");
+			char[] storePassword = "Axw9eE51lKEx0IuqHbzlJ+sx".ToCharArray();
+			MemoryStream stream = new MemoryStream(storeBytes, false);
+			Pkcs12Store store1 = new Pkcs12StoreBuilder().SetOverwriteFriendlyName(false).Build();
+			store1.Load(stream, storePassword);
+
+			Pkcs12Store store2 = new Pkcs12StoreBuilder().Build();
+        	// overwriteFriendlyName=FALSE AND friendlyName is null -> friendlyName should stay null
+			MemoryStream outStream = new MemoryStream();
+			store1.Save(outStream, storePassword, new SecureRandom());
+			store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
+
+            string alias1 = GetFirst(store1.Aliases);
+            string alias2 = GetFirst(store2.Aliases);
+
+            Pkcs12Entry cert2 = store2.GetKey(alias2);
+			if (cert2.HasFriendlyName)
+			{
+				Fail("with overwriteFriendlyName=false, default friendlyName should not be written to new store");
+			}
+
+			// overwriteFriendlyName=TRUE AND friendlyName is null -> friendlyName should be default value
+			outStream = new MemoryStream();
+			stream = new MemoryStream(storeBytes, false);
+			store1 = new Pkcs12StoreBuilder().SetOverwriteFriendlyName(true).Build();
+			store1.Load(stream, storePassword);
+
+			store1.Save(outStream, storePassword, new SecureRandom());
+			store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
+
+			alias1 = GetFirst(store1.Aliases);
+            alias2 = GetFirst(store2.Aliases);
+
+            cert2 = store2.GetKey(alias2);
+			if (!cert2.HasFriendlyName)
+			{
+				Fail("with overwriteFriendlyName=true, default friendlyName should be written to new store");
+			}
+
+        	// Add custom friendlyName to store1
+			store1.SetFriendlyName(alias1, "my_custom_friendly_name");
+
+			// overwriteFriendlyName=TRUE AND friendlyName is null then added -> friendlyName should be default value
+			outStream = new MemoryStream();
+
+			store1.Save(outStream, storePassword, new SecureRandom());
+			store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
+
+            alias1 = GetFirst(store1.Aliases);
+            alias2 = GetFirst(store2.Aliases);
+
+            if (alias2.Equals("my_custom_friendly_name"))
+			{
+				Fail("with overwriteFriendlyName=true, default friendlyName should be written to new store");
+			}
+
+			// overwriteFriendlyName=FALSE AND friendlyName is null then added -> friendlyName should be added value
+			store1 = new Pkcs12StoreBuilder().SetOverwriteFriendlyName(false).Build();
+			stream = new MemoryStream(storeBytes, false);
+
+			store1.Load(stream, storePassword);
+			store1.SetFriendlyName(alias1, "my_custom_friendly_name");
+			outStream = new MemoryStream();
+
+			store1.Save(outStream, storePassword, new SecureRandom());
+			store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
+
+			alias2 = GetFirst(store2.Aliases);
+
+			if (!alias2.Equals("my_custom_friendly_name"))
+			{
+				Fail("with overwriteFriendlyName=false, added friendlyName should be written to new store");
+			}
+		}
+
+		private static T GetFirst<T>(IEnumerable<T> e) => CollectionUtilities.RequireNext(e.GetEnumerator());
+    }
 }

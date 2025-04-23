@@ -12,6 +12,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Tls.Crypto.Tests
 {
     [TestFixture]
+    [Parallelizable(ParallelScope.All)]
     public class BcTlsCryptoTest
     {
         private static readonly byte[] ClientHello = Hex("01 00 00 c0 03 03 cb 34 ec b1 e7 81 63"
@@ -159,6 +160,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             case SignatureScheme.ecdsa_secp384r1_sha384:
             case SignatureScheme.ecdsa_secp521r1_sha512:
             case SignatureScheme.sm2sig_sm3:
+            //case SignatureScheme.mldsa44:
+            //case SignatureScheme.mldsa65:
+            //case SignatureScheme.mldsa87:
 
             default:
                 return null;
@@ -176,9 +180,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 if (!NamedGroup.RefersToASpecificFiniteField(namedGroup) || !m_crypto.HasNamedGroup(namedGroup))
                     continue;
 
-                ImplTestDHDomain(new TlsDHConfig(namedGroup, false));
-                ImplTestDHDomain(new TlsDHConfig(namedGroup, true));
+                ImplTestDHDomain(new TlsDHConfig(namedGroup, padded: false));
+                ImplTestDHDomain(new TlsDHConfig(namedGroup, padded: true));
             }
+        }
+
+        [Test]
+        public void TestDHExplicit()
+        {
+            if (!m_crypto.HasDHAgreement())
+                return;
 
             var groups = new TestTlsDHGroupVerifier().Groups;
             foreach (DHGroup dhGroup in groups)
@@ -193,7 +204,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
 
                 int namedGroup = TlsDHUtilities.GetNamedGroupForDHParameters(p, g);
 
-                // Already tested the named groups
+                // Named groups tested elsewhere
                 if (NamedGroup.RefersToASpecificFiniteField(namedGroup))
                     continue;
 
@@ -443,6 +454,21 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         }
 
         [Test]
+        public void TestKemDomain()
+        {
+            if (!m_crypto.HasKemAgreement())
+                return;
+
+            for (int namedGroup = 0; namedGroup < 0x10000; ++namedGroup)
+            {
+                if (!NamedGroup.RefersToASpecificKem(namedGroup) || !m_crypto.HasNamedGroup(namedGroup))
+                    continue;
+
+                ImplTestKemDomain(namedGroup);
+            }
+        }
+
+        [Test]
         public void TestSignaturesLegacy()
         {
             short[] signatureAlgorithms = new short[]{ SignatureAlgorithm.dsa, SignatureAlgorithm.ecdsa,
@@ -527,7 +553,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 SignatureScheme.ecdsa_secp521r1_sha512, SignatureScheme.ed25519, SignatureScheme.ed448,
                 SignatureScheme.rsa_pss_pss_sha256, SignatureScheme.rsa_pss_pss_sha384, SignatureScheme.rsa_pss_pss_sha512,
                 SignatureScheme.rsa_pss_rsae_sha256, SignatureScheme.rsa_pss_rsae_sha384,
-                SignatureScheme.rsa_pss_rsae_sha512, SignatureScheme.sm2sig_sm3,
+                SignatureScheme.rsa_pss_rsae_sha512, SignatureScheme.sm2sig_sm3, SignatureScheme.DRAFT_mldsa44,
+                SignatureScheme.DRAFT_mldsa65, SignatureScheme.DRAFT_mldsa87,
                 // These are only used for certs in 1.3 (cert verification is not done by TlsCrypto)
                 //SignatureScheme.ecdsa_sha1, SignatureScheme.rsa_pkcs1_sha1, SignatureScheme.rsa_pkcs1_sha256,
                 //SignatureScheme.rsa_pkcs1_sha384, SignatureScheme.rsa_pkcs1_sha512,
@@ -600,11 +627,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
 
         private void ImplTestAgreement(TlsAgreement aA, TlsAgreement aB)
         {
-            byte[] pA = aA.GenerateEphemeral();
-            byte[] pB = aB.GenerateEphemeral();
+            // NOTE: Order is important since some agreements are actually KEMs
 
-            aA.ReceivePeerValue(pB);
+            byte[] pA = aA.GenerateEphemeral();
             aB.ReceivePeerValue(pA);
+
+            byte[] pB = aB.GenerateEphemeral();
+            aA.ReceivePeerValue(pB);
 
             TlsSecret sA = aA.CalculateSecret();
             TlsSecret sB = aB.CalculateSecret();
@@ -645,6 +674,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
                 TlsAgreement aB = d.CreateECDH();
 
                 ImplTestAgreement(aA, aB);
+            }
+        }
+
+        private void ImplTestKemDomain(int namedGroup)
+        {
+            TlsKemDomain clientDomain = m_crypto.CreateKemDomain(new TlsKemConfig(namedGroup, isServer: false));
+            TlsKemDomain serverDomain = m_crypto.CreateKemDomain(new TlsKemConfig(namedGroup, isServer: true));
+
+            for (int i = 0; i < 2; ++i)
+            {
+                TlsAgreement clientKem = clientDomain.CreateKem();
+                TlsAgreement serverKem = serverDomain.CreateKem();
+
+                ImplTestAgreement(clientKem, serverKem);
             }
         }
 

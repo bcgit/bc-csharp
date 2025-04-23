@@ -761,39 +761,49 @@ namespace Org.BouncyCastle.Utilities
             return false;
         }
 
+        // TODO[api] Redundant with generic version
         public static void Fill(byte[] buf, byte b)
         {
-            int i = buf.Length;
-            while (i > 0)
-            {
-                buf[--i] = b;
-            }
+            Fill<byte>(buf, b);
         }
 
+        // TODO[api] Redundant with generic version
         [CLSCompliant(false)]
         public static void Fill(ulong[] buf, ulong b)
         {
-            int i = buf.Length;
-            while (i > 0)
-            {
-                buf[--i] = b;
-            }
+            Fill<ulong>(buf, b);
         }
 
+        // TODO[api] Redundant with generic version
         public static void Fill(byte[] buf, int from, int to, byte b)
         {
-            for (int i = from; i < to; ++i)
-            {
-                buf[i] = b;
-            }
+            Fill<byte>(buf, from, to, b);
         }
 
         public static void Fill<T>(T[] ts, T t)
         {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(ts, t);
+#else
+            ValidateBuffer(ts);
             for (int i = 0; i < ts.Length; ++i)
             {
                 ts[i] = t;
             }
+#endif
+        }
+
+        public static void Fill<T>(T[] ts, int from, int to, T t)
+        {
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Array.Fill(ts, t, startIndex: from, count: to - from);
+#else
+            ValidateRange(ts, from, to);
+            for (int i = from; i < to; ++i)
+            {
+                ts[i] = t;
+            }
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -1151,6 +1161,34 @@ namespace Org.BouncyCastle.Utilities
         public static bool IsNullOrEmpty(object[] array)
         {
             return null == array || array.Length < 1;
+        }
+
+        public static void ValidateBuffer<T>(T[] buf)
+        {
+            if (buf == null)
+                throw new ArgumentNullException(nameof(buf));
+        }
+
+        public static void ValidateRange<T>(T[] buf, int from, int to)
+        {
+            if (buf == null)
+                throw new ArgumentNullException(nameof(buf));
+            if ((from | (buf.Length - from)) < 0)
+                throw new ArgumentOutOfRangeException(nameof(from));
+            if (((to - from) | (buf.Length - to)) < 0)
+                throw new ArgumentOutOfRangeException(nameof(to));
+        }
+
+        public static void ValidateSegment<T>(T[] buf, int off, int len)
+        {
+            if (buf == null)
+                throw new ArgumentNullException(nameof(buf));
+            int available = buf.Length - off;
+            if ((off | available) < 0)
+                throw new ArgumentOutOfRangeException(nameof(off));
+            int remaining = available - len;
+            if ((len | remaining) < 0)
+                throw new ArgumentOutOfRangeException(nameof(len));
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

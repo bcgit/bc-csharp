@@ -110,27 +110,20 @@ namespace Org.BouncyCastle.Cms
 			this.contentInfo = sigData;
 			this.signedData = SignedData.GetInstance(contentInfo.Content);
 
-			//
-			// this can happen if the signed message is sent simply to send a
-			// certificate chain.
-			//
-			if (signedData.EncapContentInfo.Content != null)
+			var encapContentInfo = signedData.EncapContentInfo;
+			var encapContent = encapContentInfo.Content;
+
+			if (encapContent != null)
 			{
-				if (signedData.EncapContentInfo.Content is Asn1OctetString)
+				if (encapContent is Asn1OctetString octetString)
 				{
-					signedContent = new CmsProcessableByteArray(
-						((Asn1OctetString)(signedData.EncapContentInfo.Content)).GetOctets());
+					this.signedContent = new CmsProcessableByteArray(octetString.GetOctets());
 				}
 				else
 				{
-					signedContent = new Pkcs7ProcessableObject(signedData.EncapContentInfo.ContentType,
-						signedData.EncapContentInfo.Content);
+					this.signedContent = new Pkcs7ProcessableObject(encapContentInfo.ContentType, encapContent);
 				}
 			}
-//			else
-//			{
-//				this.signedContent = null;
-//			}
 		}
 
 		/// <summary>Return the version number for this object.</summary>
@@ -377,6 +370,11 @@ namespace Org.BouncyCastle.Cms
         public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
 			SignerInformationStore signerInformationStore, IDigestAlgorithmFinder digestAlgorithmFinder)
 		{
+			// keep ourselves compatible with what was there before - issue with
+			// NULL appearing and disappearing in AlgorithmIdentifier parameters.
+			digestAlgorithmFinder = new PreserveAbsentParameters(digestAlgorithmFinder,
+				signedData.EnumerateDigestAlgorithmIDs());
+
             //
             // copy
             //
@@ -472,11 +470,11 @@ namespace Org.BouncyCastle.Cms
 				var certificates = new List<Asn1Encodable>();
 				if (x509Certs != null)
 				{
-					certificates.AddRange(CmsUtilities.GetCertificatesFromStore(x509Certs));
+					CmsUtilities.CollectCertificates(certificates, x509Certs);
 				}
 				if (x509AttrCerts != null)
 				{
-					certificates.AddRange(CmsUtilities.GetAttributeCertificatesFromStore(x509AttrCerts));
+					CmsUtilities.CollectAttributeCertificates(certificates, x509AttrCerts);
 				}
 
 				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(certificates);
@@ -491,11 +489,11 @@ namespace Org.BouncyCastle.Cms
 				var revocations = new List<Asn1Encodable>();
 				if (x509Crls != null)
 				{
-					revocations.AddRange(CmsUtilities.GetCrlsFromStore(x509Crls));
+					CmsUtilities.CollectCrls(revocations, x509Crls);
 				}
 				if (otherRevocationInfos != null)
 				{
-                    revocations.AddRange(CmsUtilities.GetOtherRevocationInfosFromStore(otherRevocationInfos));
+                    CmsUtilities.CollectOtherRevocationInfos(revocations, otherRevocationInfos);
                 }
 
 				Asn1Set berSet = CmsUtilities.CreateBerSetFromList(revocations);
@@ -523,5 +521,57 @@ namespace Org.BouncyCastle.Cms
 
 			return cms;
 		}
+
+        internal IEnumerable<AlgorithmIdentifier> EnumerateDigestAlgorithmIDs()
+        {
+            foreach (var entry in signedData.DigestAlgorithms)
+            {
+                 yield return AlgorithmIdentifier.GetInstance(entry);
+            }
+        }
+
+        private class PreserveAbsentParameters
+            : IDigestAlgorithmFinder
+        {
+            private readonly IDigestAlgorithmFinder m_inner;
+            private readonly Dictionary<DerObjectIdentifier, AlgorithmIdentifier> m_existing;
+
+            internal PreserveAbsentParameters(IDigestAlgorithmFinder inner,
+                IEnumerable<AlgorithmIdentifier> existingAlgIDs)
+            {
+                m_inner = inner ?? throw new ArgumentNullException(nameof(inner));
+                m_existing = BuildExisting(existingAlgIDs ?? throw new ArgumentNullException(nameof(existingAlgIDs)));
+            }
+
+            public AlgorithmIdentifier Find(AlgorithmIdentifier signatureAlgorithm) =>
+                Preserve(m_inner.Find(signatureAlgorithm));
+
+            public AlgorithmIdentifier Find(DerObjectIdentifier digestOid) =>
+                m_existing.TryGetValue(digestOid, out var result) ? result : m_inner.Find(digestOid);
+
+            public AlgorithmIdentifier Find(string digestName) => Preserve(m_inner.Find(digestName));
+
+            private AlgorithmIdentifier Preserve(AlgorithmIdentifier algID)
+            {
+                if (X509Utilities.HasAbsentParameters(algID) &&
+                    m_existing.TryGetValue(algID.Algorithm, out var result))
+                {
+                    return result;
+                }
+
+                return algID;
+            }
+
+            private static Dictionary<DerObjectIdentifier, AlgorithmIdentifier> BuildExisting(
+                IEnumerable<AlgorithmIdentifier> existingAlgIDs)
+            {
+                var result = new Dictionary<DerObjectIdentifier, AlgorithmIdentifier>();
+                foreach (var existingAlgID in existingAlgIDs)
+                {
+                    CollectionUtilities.TryAdd(result, existingAlgID.Algorithm, existingAlgID);
+                }
+                return result;
+            }
+        }
 	}
 }

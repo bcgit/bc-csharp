@@ -1,147 +1,144 @@
-﻿using Org.BouncyCastle.Utilities;
-using System;
+﻿using System.Diagnostics;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
     internal class Packing
     {
-
-        public static byte[] PackPublicKey(PolyVecK t1, DilithiumEngine Engine)
+        internal static byte[] PackPublicKey(PolyVec t1, DilithiumEngine engine)
         {
-            byte[] output = new byte[Engine.CryptoPublicKeyBytes - DilithiumEngine.SeedBytes];
-
-            for (int i = 0; i < Engine.K; i++)
+            Debug.Assert(t1.Length == engine.K);
+            byte[] output = new byte[engine.CryptoPublicKeyBytes - DilithiumEngine.SeedBytes];
+            for (int i = 0; i < engine.K; i++)
             {
-                Array.Copy(t1.Vec[i].PolyT1Pack(), 0, output, i * DilithiumEngine.PolyT1PackedBytes, DilithiumEngine.PolyT1PackedBytes );
+                t1[i].PolyT1Pack(output, i * DilithiumEngine.PolyT1PackedBytes);
             }
             return output;
         }
 
-        public static PolyVecK UnpackPublicKey(PolyVecK t1, byte[] pk, DilithiumEngine Engine)
+        internal static void UnpackPublicKey(PolyVec t1, byte[] pk, DilithiumEngine engine)
         {
-            int i;
-            for (i = 0; i < Engine.K; ++i)
+            Debug.Assert(t1.Length == engine.K);
+            for (int i = 0; i < engine.K; ++i)
             {
-                t1.Vec[i].PolyT1Unpack(Arrays.CopyOfRange(pk, i * DilithiumEngine.PolyT1PackedBytes, DilithiumEngine.SeedBytes + (i + 1) * DilithiumEngine.PolyT1PackedBytes));
-            }
-
-            return t1;
-        }
-
-        public static void PackSecretKey(byte[] t0_, byte[] s1_, byte[] s2_, PolyVecK t0, PolyVecL s1, PolyVecK s2, DilithiumEngine Engine)
-        {
-            int i;
-            
-
-            for (i = 0; i < Engine.L; ++i)
-            {
-                s1.Vec[i].PolyEtaPack(s1_, i * Engine.PolyEtaPackedBytes);
-            }
-
-            for (i = 0; i < Engine.K; ++i)
-            {
-                s2.Vec[i].PolyEtaPack(s2_, i * Engine.PolyEtaPackedBytes);
-            }
-
-            for (i = 0; i < Engine.K; ++i)
-            {
-                t0.Vec[i].PolyT0Pack(t0_,i * DilithiumEngine.PolyT0PackedBytes);
+                t1[i].PolyT1Unpack(pk, i * DilithiumEngine.PolyT1PackedBytes);
             }
         }
 
-        public static void UnpackSecretKey(PolyVecK t0, PolyVecL s1, PolyVecK s2, byte[] t0Enc, byte[] s1Enc, byte[] s2Enc, DilithiumEngine Engine)
+        internal static void PackSecretKey(byte[] t0_, byte[] s1_, byte[] s2_, PolyVec t0, PolyVec s1, PolyVec s2,
+            DilithiumEngine engine)
         {
-            int i;
-            for (i = 0; i < Engine.L; ++i)
+            Debug.Assert(t0.Length == engine.K);
+            Debug.Assert(s1.Length == engine.L);
+            Debug.Assert(s2.Length == engine.K);
+
+            for (int i = 0; i < engine.L; ++i)
             {
-                s1.Vec[i].PolyEtaUnpack(s1Enc,i * Engine.PolyEtaPackedBytes);
+                s1[i].PolyEtaPack(s1_, i * engine.PolyEtaPackedBytes);
             }
-            for (i = 0; i < Engine.K; ++i)
+            for (int i = 0; i < engine.K; ++i)
             {
-                s2.Vec[i].PolyEtaUnpack(s2Enc,i * Engine.PolyEtaPackedBytes);
+                s2[i].PolyEtaPack(s2_, i * engine.PolyEtaPackedBytes);
             }
-            for (i = 0; i < Engine.K; ++i)
+            for (int i = 0; i < engine.K; ++i)
             {
-                t0.Vec[i].PolyT0Unpack(t0Enc,i * DilithiumEngine.PolyT0PackedBytes);
+                t0[i].PolyT0Pack(t0_, i * DilithiumEngine.PolyT0PackedBytes);
             }
         }
 
-        public static void PackSignature(byte[] sig, byte[] c, PolyVecL z, PolyVecK h, DilithiumEngine engine)
+        internal static void UnpackSecretKey(PolyVec t0, PolyVec s1, PolyVec s2, byte[] t0Enc, byte[] s1Enc,
+            byte[] s2Enc, DilithiumEngine engine)
         {
-            int i, j, k, end = 0;
+            Debug.Assert(t0.Length == engine.K);
+            Debug.Assert(s1.Length == engine.L);
+            Debug.Assert(s2.Length == engine.K);
 
-            Array.Copy(c, 0, sig, 0, engine.CTilde);
-            end += engine.CTilde;
-
-            for (i = 0; i < engine.L; ++i)
+            for (int i = 0; i < engine.L; ++i)
             {
-                z.Vec[i].PackZ(sig, end + i * engine.PolyZPackedBytes);
+                s1[i].PolyEtaUnpack(s1Enc,i * engine.PolyEtaPackedBytes);
             }
-            end += engine.L * engine.PolyZPackedBytes;
+            for (int i = 0; i < engine.K; ++i)
+            {
+                s2[i].PolyEtaUnpack(s2Enc,i * engine.PolyEtaPackedBytes);
+            }
+            for (int i = 0; i < engine.K; ++i)
+            {
+                t0[i].PolyT0Unpack(t0Enc,i * DilithiumEngine.PolyT0PackedBytes);
+            }
+        }
 
-            for (i = 0; i < engine.Omega + engine.K; ++i)
+        internal static void PackSignature(byte[] sig, PolyVec z, PolyVec h, DilithiumEngine engine)
+        {
+            Debug.Assert(z.Length == engine.L);
+            Debug.Assert(h.Length == engine.K);
+
+            int end = engine.CTilde;
+            for (int i = 0; i < engine.L; ++i)
+            {
+                z[i].PackZ(sig, end);
+                end += engine.PolyZPackedBytes;
+            }
+
+            for (int i = 0; i < engine.Omega + engine.K; ++i)
             {
                 sig[end + i] = 0;
             }
 
-
-            k = 0;
-            for (i = 0; i < engine.K; ++i)
+            int k = 0;
+            for (int i = 0; i < engine.K; ++i)
             {
-                for (j = 0; j < DilithiumEngine.N; ++j)
+                for (int j = 0; j < DilithiumEngine.N; ++j)
                 {
-                    if (h.Vec[i].Coeffs[j] != 0)
+                    if (h[i].Coeffs[j] != 0)
                     {
                         sig[end + k++] = (byte)j;
                     }
                 }
                 sig[end + engine.Omega + i] = (byte)k;
             }
-            //Console.WriteLine("sig = " + Convert.ToHexString(sig));
-
         }
 
-        public static bool UnpackSignature(PolyVecL z, PolyVecK h, byte[] sig, DilithiumEngine engine)
+        internal static bool UnpackSignature(PolyVec z, PolyVec h, byte[] sig, DilithiumEngine engine)
         {
-            int i, j, k;
-            
+            Debug.Assert(z.Length == engine.L);
+            Debug.Assert(h.Length == engine.K);
+
             int end = engine.CTilde;
-            for (i = 0; i < engine.L; ++i)
+            for (int i = 0; i < engine.L; ++i)
             {
-                z.Vec[i].UnpackZ(Arrays.CopyOfRange(sig, end + i * engine.PolyZPackedBytes, end + (i + 1) * engine.PolyZPackedBytes));
+                int pos = end;
+                end += engine.PolyZPackedBytes;
+
+                z[i].UnpackZ(Arrays.CopyOfRange(sig, pos, end));
             }
-            end += engine.L * engine.PolyZPackedBytes;
 
-            k = 0;
-            for (i = 0; i < engine.K; ++i)
+            int k = 0;
+            for (int i = 0; i < engine.K; ++i)
             {
-                for (j = 0; j < DilithiumEngine.N; ++j)
+                for (int j = 0; j < DilithiumEngine.N; ++j)
                 {
-                    h.Vec[i].Coeffs[j] = 0;
+                    h[i].Coeffs[j] = 0;
                 }
 
-                if ((sig[end + engine.Omega + i] & 0xFF) < k || (sig[end + engine.Omega + i] & 0xFF) > engine.Omega)
-                {
+                int sig_end_omega_i = sig[end + engine.Omega + i];
+                if (sig_end_omega_i < k || sig_end_omega_i > engine.Omega)
                     return false;
-                }
 
-                for (j = k; j < (sig[end + engine.Omega + i] & 0xFF); ++j)
+                for (int j = k; j < sig_end_omega_i; ++j)
                 {
-                    if (j > k && (sig[end + j] & 0xFF) <= (sig[end + j - 1] & 0xFF))
-                    {
+                    if (j > k && sig[end + j] <= sig[end + j - 1])
                         return false;
-                    }
-                    h.Vec[i].Coeffs[sig[end + j] & 0xFF] = 1;
+
+                    h[i].Coeffs[sig[end + j]] = 1;
                 }
 
-                k = (int)(sig[end + engine.Omega + i]);
+                k = sig_end_omega_i;
             }
-            for (j = k; j < engine.Omega; ++j)
+            for (int j = k; j < engine.Omega; ++j)
             {
-                if ((sig[end + j] & 0xFF) != 0)
-                {
+                if (sig[end + j] != 0)
                     return false;
-                }
             }
             return true;
         }

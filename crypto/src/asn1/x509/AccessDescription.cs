@@ -13,8 +13,8 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AccessDescription
 		: Asn1Encodable
 	{
-		public readonly static DerObjectIdentifier IdADCAIssuers = new DerObjectIdentifier("1.3.6.1.5.5.7.48.2");
-		public readonly static DerObjectIdentifier IdADOcsp = new DerObjectIdentifier("1.3.6.1.5.5.7.48.1");
+        public readonly static DerObjectIdentifier IdADCAIssuers = X509ObjectIdentifiers.IdADCAIssuers;
+        public readonly static DerObjectIdentifier IdADOcsp = X509ObjectIdentifiers.IdADOcsp;
 
         public static AccessDescription GetInstance(object obj)
         {

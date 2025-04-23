@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Security;
@@ -20,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         : ISigner
     {
         private readonly IAsymmetricBlockCipher rsaEngine;
-        private readonly AlgorithmIdentifier algId;
+        private readonly AlgorithmIdentifier m_digestAlgID;
         private readonly IDigest digest;
         private bool forSigning;
 
@@ -65,6 +64,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
         }
 
+        // TODO[api] Rename 'algId' to 'digestAlgID'
         public RsaDigestSigner(IDigest digest, AlgorithmIdentifier algId)
             :   this(new RsaCoreEngine(), digest, algId)
         {
@@ -75,22 +75,21 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
         }
 
+        // TODO[api] Rename 'algId' to 'digestAlgID'
         public RsaDigestSigner(IRsa rsa, IDigest digest, AlgorithmIdentifier algId)
             :   this(new RsaBlindedEngine(rsa), digest, algId)
         {
         }
 
+        // TODO[api] Rename 'algId' to 'digestAlgID'
         public RsaDigestSigner(IAsymmetricBlockCipher rsaEngine, IDigest digest, AlgorithmIdentifier algId)
         {
             this.rsaEngine = new Pkcs1Encoding(rsaEngine);
             this.digest = digest;
-            this.algId = algId;
+            m_digestAlgID = algId;
         }
 
-        public virtual string AlgorithmName
-        {
-            get { return digest.AlgorithmName + "withRSA"; }
-        }
+        public virtual string AlgorithmName => digest.AlgorithmName + "withRSA";
 
         /**
          * Initialise the signer for signing or verification.
@@ -98,26 +97,16 @@ namespace Org.BouncyCastle.Crypto.Signers
          * @param forSigning true if for signing, false otherwise
          * @param param necessary parameters.
          */
-        public virtual void Init(
-            bool				forSigning,
-            ICipherParameters	parameters)
+        public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             this.forSigning = forSigning;
 
-            AsymmetricKeyParameter k;
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                k = (AsymmetricKeyParameter)withRandom.Parameters;
-            }
-            else
-            {
-                k = (AsymmetricKeyParameter)parameters;
-            }
+            var key = (AsymmetricKeyParameter)ParameterUtilities.IgnoreRandom(parameters);
 
-            if (forSigning && !k.IsPrivate)
+            if (forSigning && !key.IsPrivate)
                 throw new InvalidKeyException("Signing requires private key.");
 
-            if (!forSigning && k.IsPrivate)
+            if (!forSigning && key.IsPrivate)
                 throw new InvalidKeyException("Verification requires public key.");
 
             Reset();
@@ -152,7 +141,16 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] hash = new byte[digest.GetDigestSize()];
             digest.DoFinal(hash, 0);
 
-            byte[] data = DerEncode(hash);
+            byte[] data;
+            if (m_digestAlgID == null)
+            {
+                data = CheckDerEncoded(hash);
+            }
+            else
+            {
+                data = DerEncode(m_digestAlgID, hash);
+            }
+
             return rsaEngine.ProcessBlock(data, 0, data.Length);
         }
 
@@ -161,70 +159,62 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (forSigning)
                 throw new InvalidOperationException("RsaDigestSigner not initialised for verification");
 
-            byte[] hash = new byte[digest.GetDigestSize()];
-            digest.DoFinal(hash, 0);
-
             byte[] sig;
-            byte[] expected;
-
             try
             {
                 sig = rsaEngine.ProcessBlock(signature, 0, signature.Length);
-                expected = DerEncode(hash);
             }
             catch (Exception)
             {
                 return false;
             }
 
-            if (sig.Length == expected.Length)
+            byte[] hash = new byte[digest.GetDigestSize()];
+            digest.DoFinal(hash, 0);
+
+            if (m_digestAlgID == null)
+                return Arrays.FixedTimeEquals(sig, CheckDerEncoded(hash));
+
+            if (Arrays.FixedTimeEquals(sig, DerEncode(m_digestAlgID, hash)))
+                return true;
+
+            if (TryGetAltAlgID(m_digestAlgID, out var altAlgID))
             {
-                return Arrays.FixedTimeEquals(sig, expected);
+                if (Arrays.FixedTimeEquals(sig, DerEncode(altAlgID, hash)))
+                    return true;
             }
-            else if (sig.Length == expected.Length - 2)  // NULL left out
+
+            return false;
+        }
+
+        public virtual void Reset() => digest.Reset();
+
+        private static byte[] CheckDerEncoded(byte[] hash)
+        {
+            DigestInfo.GetInstance(hash);
+            return hash;
+        }
+
+        private static byte[] DerEncode(AlgorithmIdentifier digestAlgID, byte[] hash) =>
+            new DigestInfo(digestAlgID, DerOctetString.WithContents(hash)).GetEncoded(Asn1Encodable.Der);
+
+        private static bool TryGetAltAlgID(AlgorithmIdentifier algID, out AlgorithmIdentifier altAlgID)
+        {
+            var parameters = algID.Parameters;
+            if (parameters == null)
             {
-                int sigOffset = sig.Length - hash.Length - 2;
-                int expectedOffset = expected.Length - hash.Length - 2;
-
-                expected[1] -= 2;      // adjust lengths
-                expected[3] -= 2;
-
-                int nonEqual = 0;
-
-                for (int i = 0; i < hash.Length; i++)
-                {
-                    nonEqual |= (sig[sigOffset + i] ^ expected[expectedOffset + i]);
-                }
-
-                for (int i = 0; i < sigOffset; i++)
-                {
-                    nonEqual |= (sig[i] ^ expected[i]);  // check header less NULL
-                }
-
-                return nonEqual == 0;
+                altAlgID = new AlgorithmIdentifier(algID.Algorithm, DerNull.Instance);
+            }
+            else if (DerNull.Instance.Equals(parameters))
+            {
+                altAlgID = new AlgorithmIdentifier(algID.Algorithm, null);
             }
             else
             {
+                altAlgID = default;
                 return false;
             }
-        }
-
-        public virtual void Reset()
-        {
-            digest.Reset();
-        }
-
-        private byte[] DerEncode(byte[] hash)
-        {
-            if (algId == null)
-            {
-                // For raw RSA, the DigestInfo must be prepared externally
-                return hash;
-            }
-
-            DigestInfo dInfo = new DigestInfo(algId, hash);
-
-            return dInfo.GetDerEncoded();
+            return true;
         }
     }
 }

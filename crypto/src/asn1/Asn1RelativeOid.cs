@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1
             {
                 try
                 {
-                    return (Asn1RelativeOid)FromByteArray(bytes);
+                    return (Asn1RelativeOid)Meta.Instance.FromByteArray(bytes);
                 }
                 catch (IOException e)
                 {

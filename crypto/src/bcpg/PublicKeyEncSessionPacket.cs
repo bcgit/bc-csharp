@@ -1,14 +1,12 @@
-using System;
 using System.IO;
 
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Basic packet for a PGP public key.</remarks>
-	public class PublicKeyEncSessionPacket
+    /// <remarks>Basic packet for a PGP public key.</remarks>
+    public class PublicKeyEncSessionPacket
 		: ContainedPacket //, PublicKeyAlgorithmTag
 	{
 		private int version;
@@ -19,39 +17,30 @@ namespace Org.BouncyCastle.Bcpg
 		internal PublicKeyEncSessionPacket(
 			BcpgInputStream bcpgIn)
 		{
-			version = bcpgIn.ReadByte();
-
-			keyId |= (long)bcpgIn.ReadByte() << 56;
-			keyId |= (long)bcpgIn.ReadByte() << 48;
-			keyId |= (long)bcpgIn.ReadByte() << 40;
-			keyId |= (long)bcpgIn.ReadByte() << 32;
-			keyId |= (long)bcpgIn.ReadByte() << 24;
-			keyId |= (long)bcpgIn.ReadByte() << 16;
-			keyId |= (long)bcpgIn.ReadByte() << 8;
-			keyId |= (uint)bcpgIn.ReadByte();
-
-			algorithm = (PublicKeyAlgorithmTag) bcpgIn.ReadByte();
+			version = bcpgIn.RequireByte();
+            keyId = (long)StreamUtilities.RequireUInt64BE(bcpgIn);
+			algorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
 
 			switch ((PublicKeyAlgorithmTag) algorithm)
 			{
-				case PublicKeyAlgorithmTag.RsaEncrypt:
-				case PublicKeyAlgorithmTag.RsaGeneral:
-					data = new byte[][]{ new MPInteger(bcpgIn).GetEncoded() };
-					break;
-				case PublicKeyAlgorithmTag.ElGamalEncrypt:
-				case PublicKeyAlgorithmTag.ElGamalGeneral:
-                    MPInteger p = new MPInteger(bcpgIn);
-                    MPInteger g = new MPInteger(bcpgIn);
-					data = new byte[][]{
-                        p.GetEncoded(),
-                        g.GetEncoded(),
-                    };
-					break;
-                case PublicKeyAlgorithmTag.ECDH:
-                    data = new byte[][]{ Streams.ReadAll(bcpgIn) };
-                    break;
-				default:
-					throw new IOException("unknown PGP public key algorithm encountered");
+			case PublicKeyAlgorithmTag.RsaEncrypt:
+			case PublicKeyAlgorithmTag.RsaGeneral:
+				data = new byte[][]{ new MPInteger(bcpgIn).GetEncoded() };
+				break;
+			case PublicKeyAlgorithmTag.ElGamalEncrypt:
+			case PublicKeyAlgorithmTag.ElGamalGeneral:
+                MPInteger p = new MPInteger(bcpgIn);
+                MPInteger g = new MPInteger(bcpgIn);
+				data = new byte[][]{
+                    p.GetEncoded(),
+                    g.GetEncoded(),
+                };
+				break;
+            case PublicKeyAlgorithmTag.ECDH:
+                data = new byte[][]{ Streams.ReadAll(bcpgIn) };
+                break;
+			default:
+				throw new IOException("unknown PGP public key algorithm encountered");
 			}
 		}
 

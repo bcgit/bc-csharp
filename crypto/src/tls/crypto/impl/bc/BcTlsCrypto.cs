@@ -157,6 +157,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        public override TlsKemDomain CreateKemDomain(TlsKemConfig kemConfig)
+        {
+            return new BcTlsMLKemDomain(this, kemConfig);
+        }
+
         public override TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial)
         {
             // TODO[api] Require non-null additionalSeedMaterial
@@ -338,6 +343,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        public override bool HasKemAgreement()
+        {
+            return true;
+        }
+
         public override bool HasMacAlgorithm(int macAlgorithm)
         {
             switch (macAlgorithm)
@@ -414,6 +424,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             switch (signatureScheme)
             {
             case SignatureScheme.sm2sig_sm3:
+            // TODO[tls] Test coverage before adding
+            case SignatureScheme.mldsa44:
+            case SignatureScheme.mldsa65:
+            case SignatureScheme.mldsa87:
                 return false;
             default:
             {

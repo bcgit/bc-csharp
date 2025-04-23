@@ -152,9 +152,6 @@ namespace Org.BouncyCastle.Asn1
 			return "#" + Hex.ToHexString(contents);
 		}
 
-        internal static Asn1OctetString CreatePrimitive(byte[] contents)
-        {
-            return new DerOctetString(contents);
-        }
+        internal static Asn1OctetString CreatePrimitive(byte[] contents) => DerOctetString.WithContents(contents);
     }
 }

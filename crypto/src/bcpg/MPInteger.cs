@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Bcpg
 			if (bcpgIn == null)
 				throw new ArgumentNullException(nameof(bcpgIn));
 
-			int lengthInBits = (bcpgIn.ReadByte() << 8) | bcpgIn.ReadByte();
+            int lengthInBits = StreamUtilities.RequireUInt16BE(bcpgIn);
             int lengthInBytes = (lengthInBits + 7) / 8;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

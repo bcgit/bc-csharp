@@ -21,8 +21,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         private int SEED_SIZE = 40;
         private byte G_FCT_DOMAIN = 3;
-        private byte H_FCT_DOMAIN = 4;
-        private byte K_FCT_DOMAIN = 5;
+        private byte K_FCT_DOMAIN = 4;
 
         private int N_BYTE;
         private int n1n2;
@@ -87,10 +86,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         {
             // Randomly generate seeds for secret keys and public keys
             byte[] secretKeySeed = new byte[SEED_SIZE];
+            byte[] sigma = new byte[K_BYTE];
 
             HqcKeccakRandomGenerator randomGenerator = new HqcKeccakRandomGenerator(256);
             randomGenerator.RandomGeneratorInit(seed, null, seed.Length, 0);
             randomGenerator.Squeeze(secretKeySeed, 40);
+            randomGenerator.Squeeze(sigma, K_BYTE);
 
             // 1. Randomly generate secret keys x, y
             HqcKeccakRandomGenerator secretKeySeedExpander = new HqcKeccakRandomGenerator(256);
@@ -99,8 +100,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             long[] xLongBytes = new long[N_BYTE_64];
             long[] yLongBytes = new long[N_BYTE_64];
 
-            GenerateRandomFixedWeight(xLongBytes, secretKeySeedExpander, w);
             GenerateRandomFixedWeight(yLongBytes, secretKeySeedExpander, w);
+            GenerateRandomFixedWeight(xLongBytes, secretKeySeedExpander, w);
 
             // 2. Randomly generate h
             byte[] publicKeySeed = new byte[SEED_SIZE];
@@ -120,7 +121,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Utils.FromLongArrayToByteArray(sBytes, s);
 
             byte[] tmpPk = Arrays.Concatenate(publicKeySeed, sBytes);
-            byte[] tmpSk = Arrays.Concatenate(secretKeySeed, tmpPk);
+            byte[] tmpSk = Arrays.ConcatenateAll(secretKeySeed, sigma, tmpPk);
 
             Array.Copy(tmpPk, 0, pk, 0, tmpPk.Length);
             Array.Copy(tmpSk, 0, sk, 0, tmpSk.Length);
@@ -138,7 +139,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
          * @param pk   public key
          * @param seed seed
          **/
-        public void Encaps(byte[] u, byte[] v, byte[] K, byte[] d, byte[] pk, byte[] seed, byte[] salt)
+        public void Encaps(byte[] u, byte[] v, byte[] K, byte[] pk, byte[] seed, byte[] salt)
         {
             // 1. Randomly generate m
             byte[] m = new byte[K_BYTE];
@@ -149,6 +150,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             randomGenerator.RandomGeneratorInit(seed, null, seed.Length, 0);
             randomGenerator.Squeeze(secretKeySeed, 40);
 
+            byte[] sigma = new byte[K_BYTE];
+            randomGenerator.Squeeze(sigma, K_BYTE);
+
             byte[] publicKeySeed = new byte[SEED_SIZE];
             randomGenerator.Squeeze(publicKeySeed, 40);
 
@@ -157,12 +161,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             // 2. Generate theta
             byte[] theta = new byte[SHA512_BYTES];
-            byte[] tmp = new byte[K_BYTE + SEED_SIZE + SALT_SIZE_BYTES];
+            byte[] tmp = new byte[K_BYTE + (SALT_SIZE_BYTES * 2) + SALT_SIZE_BYTES];
             randomGenerator.Squeeze(salt, SALT_SIZE_BYTES);
 
             Array.Copy(m, 0, tmp, 0, m.Length);
-            Array.Copy(pk, 0, tmp, K_BYTE, SEED_SIZE);
-            Array.Copy(salt, 0, tmp, K_BYTE + SEED_SIZE, SALT_SIZE_BYTES);
+            Array.Copy(pk, 0, tmp, K_BYTE, SALT_SIZE_BYTES * 2);
+            Array.Copy(salt, 0, tmp, K_BYTE + (SALT_SIZE_BYTES * 2), SALT_SIZE_BYTES);
             HqcKeccakRandomGenerator shakeDigest = new HqcKeccakRandomGenerator(256);
             shakeDigest.SHAKE256_512_ds(theta, tmp, tmp.Length, new[] { G_FCT_DOMAIN });
 
@@ -176,13 +180,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Encrypt(u, vTmp, h, s, m, theta);
             Utils.FromLongArrayToByteArray(v, vTmp);
 
-            // 4. Compute d
-            shakeDigest.SHAKE256_512_ds(d, m, m.Length, new[] { H_FCT_DOMAIN });
 
             // 5. Compute session key K
-            byte[] hashInputK = new byte[K_BYTE + N_BYTE + N1N2_BYTE];
-            hashInputK = Arrays.Concatenate(m, u);
-            hashInputK = Arrays.Concatenate(hashInputK, v);
+            byte[] hashInputK = Arrays.ConcatenateAll(m, u, v);
             shakeDigest.SHAKE256_512_ds(K, hashInputK, hashInputK.Length, new[] { K_FCT_DOMAIN });
         }
 
@@ -194,32 +194,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
          * @param ss session key
          * @param ct ciphertext
          * @param sk secret key
+         * @return 0 if decapsulation is successful, -1 otherwise
          **/
-        public void Decaps(byte[] ss, byte[] ct, byte[] sk)
+        public int Decaps(byte[] ss, byte[] ct, byte[] sk)
         {
             //Extract Y and Public Keys from sk
             long[] x = new long[N_BYTE_64];
             long[] y = new long[N_BYTE_64];
             byte[] pk = new byte[40 + N_BYTE];
-            ExtractKeysFromSecretKeys(x, y, pk, sk);
+            byte[] sigma = new byte[K_BYTE];
+            ExtractKeysFromSecretKeys(y, sigma, pk, sk);
 
             // Extract u, v, d from ciphertext
             byte[] u = new byte[N_BYTE];
             byte[] v = new byte[N1N2_BYTE];
-            byte[] d = new byte[SHA512_BYTES];
             byte[] salt = new byte[SALT_SIZE_BYTES];
-            ExtractCiphertexts(u, v, d, salt, ct);
+            ExtractCiphertexts(u, v, salt, ct);
 
             // 1. Decrypt -> m'
             byte[] mPrimeBytes = new byte[k];
-            Decrypt(mPrimeBytes, mPrimeBytes, u, v, y);
+            int result = Decrypt(mPrimeBytes, mPrimeBytes, sigma, u, v, y);
 
             // 2. Compute theta'
             byte[] theta = new byte[SHA512_BYTES];
-            byte[] tmp = new byte[K_BYTE + SALT_SIZE_BYTES + SEED_SIZE];
+            byte[] tmp = new byte[K_BYTE + (SALT_SIZE_BYTES * 2) + SALT_SIZE_BYTES];
             Array.Copy(mPrimeBytes, 0, tmp, 0, mPrimeBytes.Length);
-            Array.Copy(pk, 0, tmp, K_BYTE, SEED_SIZE);
-            Array.Copy(salt, 0, tmp, K_BYTE + SEED_SIZE, SALT_SIZE_BYTES);
+            Array.Copy(pk, 0, tmp, K_BYTE, SALT_SIZE_BYTES * 2);
+            Array.Copy(salt, 0, tmp, K_BYTE + (SALT_SIZE_BYTES * 2), SALT_SIZE_BYTES);
             HqcKeccakRandomGenerator shakeDigest = new HqcKeccakRandomGenerator(256);
             shakeDigest.SHAKE256_512_ds(theta, tmp, tmp.Length, new[] { G_FCT_DOMAIN });
 
@@ -235,40 +236,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Encrypt(u2Bytes, vTmp, h, s, mPrimeBytes, theta);
             Utils.FromLongArrayToByteArray(v2Bytes, vTmp);
 
-            // 4. Compute d' = H(m')
-            byte[] dPrime = new byte[SHA512_BYTES];
-            shakeDigest.SHAKE256_512_ds(dPrime, mPrimeBytes, mPrimeBytes.Length, new[] { H_FCT_DOMAIN });
 
             // 5. Compute session key KPrime
             byte[] hashInputK = new byte[K_BYTE + N_BYTE + N1N2_BYTE];
-            hashInputK = Arrays.Concatenate(mPrimeBytes, u);
-            hashInputK = Arrays.Concatenate(hashInputK, v);
-            shakeDigest.SHAKE256_512_ds(ss, hashInputK, hashInputK.Length, new[] { K_FCT_DOMAIN });
 
-            int result = 1;
             // Compare u, v, d
-            if (!Arrays.AreEqual(u, u2Bytes))
+            if (!Arrays.FixedTimeEquals(u, u2Bytes))
             {
-                result = 0;
+                result = 1;
             }
 
-            if (!Arrays.AreEqual(v, v2Bytes))
+            if (!Arrays.FixedTimeEquals(v, v2Bytes))
             {
-                result = 0;
+                result = 1;
             }
 
-            if (!Arrays.AreEqual(d, dPrime))
+            result -= 1;
+
+            for (int i = 0; i < K_BYTE; i++)
             {
-                result = 0;
+                hashInputK[i] = (byte)(((mPrimeBytes[i] & result) ^ (sigma[i] & ~result)) & 0xff);
             }
 
-            if (result == 0)
-            { //abort
-                for (int i = 0; i < GetSessionKeySize(); i++)
-                {
-                    ss[i] = 0;
-                }
-            }
+            Array.Copy(u, 0, hashInputK, K_BYTE, N_BYTE);
+            Array.Copy(v, 0, hashInputK, K_BYTE + N_BYTE, N1N2_BYTE);
+            shakeDigest.SHAKE256_512_ds(ss, hashInputK, hashInputK.Length, new[] { K_FCT_DOMAIN });
+            return -result;;
         }
 
         internal int GetSessionKeySize()
@@ -295,9 +288,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             long[] e = new long[N_BYTE_64];
             long[] r1 = new long[N_BYTE_64];
             long[] r2 = new long[N_BYTE_64];
-            GenerateRandomFixedWeight(r1, randomGenerator, wr);
             GenerateRandomFixedWeight(r2, randomGenerator, wr);
             GenerateRandomFixedWeight(e, randomGenerator, we);
+            GenerateRandomFixedWeight(r1, randomGenerator, wr);
 
             // Calculate u
             long[] uLong = new long[N_BYTE_64];
@@ -326,7 +319,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Utils.ResizeArray(v, n1n2, tmpLong, n, N1N2_BYTE_64, N1N2_BYTE_64);
         }
 
-        private void Decrypt(byte[] output, byte[] m, byte[] u, byte[] v, long[] y)
+        private int Decrypt(byte[] output, byte[] m, byte[] sigma, byte[] u, byte[] v, long[] y)
         {
             long[] uLongs = new long[N_BYTE_64];
             Utils.FromByteArrayToLongArray(uLongs, u);
@@ -347,6 +340,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             ReedSolomon.Decode(m, tmp, n1, fft, delta, k, g);
 
             Array.Copy(m, 0, output, 0, output.Length);
+            return 0;
         }
 
         private void GenerateRandomFixedWeight(long[] output, HqcKeccakRandomGenerator random, int weight)
@@ -426,27 +420,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Array.Copy(pk, 40, s, 0, s.Length);
         }
 
-        private void ExtractKeysFromSecretKeys(long[] x, long[] y, byte[] pk, byte[] sk)
+        private void ExtractKeysFromSecretKeys(long[] y, byte[] sigma, byte[] pk, byte[] sk)
         {
             byte[] secretKeySeed = new byte[SEED_SIZE];
             Array.Copy(sk, 0, secretKeySeed, 0, secretKeySeed.Length);
+            Array.Copy(sk, SEED_SIZE, sigma, 0, K_BYTE);
 
             // Randomly generate secret keys x, y
             HqcKeccakRandomGenerator secretKeySeedExpander = new HqcKeccakRandomGenerator(256);
             secretKeySeedExpander.SeedExpanderInit(secretKeySeed, secretKeySeed.Length);
             
-            GenerateRandomFixedWeight(x, secretKeySeedExpander, w);
             GenerateRandomFixedWeight(y, secretKeySeedExpander, w);
 
-            Array.Copy(sk, SEED_SIZE, pk, 0, pk.Length);
+            Array.Copy(sk, SEED_SIZE + K_BYTE, pk, 0, pk.Length);
         }
 
-        private static void ExtractCiphertexts(byte[] u, byte[] v, byte[] d, byte[] salt, byte[] ct)
+        private static void ExtractCiphertexts(byte[] u, byte[] v, byte[] salt, byte[] ct)
         {
             Array.Copy(ct, 0, u, 0, u.Length);
             Array.Copy(ct, u.Length, v, 0, v.Length);
-            Array.Copy(ct, u.Length + v.Length, d, 0, d.Length);
-            Array.Copy(ct, u.Length + v.Length + d.Length, salt, 0, salt.Length);
+            Array.Copy(ct, u.Length + v.Length, salt, 0, salt.Length);
         }
     }
 }

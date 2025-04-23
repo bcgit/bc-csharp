@@ -712,7 +712,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc, int F,
             uint logn, ushort[] tmpsrc, int tmp)
         {
-            int success = 1;
+            int success = -1;
             int u, n;
             int t1, t2;
 
@@ -732,26 +732,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
             mq_NTT(tmpsrc, t2, logn);
             for (u = 0; u < n; u ++) {
-                if (tmpsrc[t2+u] == 0) {
-                    success = 0;
-                }
-                tmpsrc[t1+u] = (ushort)mq_div_12289(tmpsrc[t1+u], tmpsrc[t2+u]);
+                uint tmp2 = tmpsrc[t2 + u];
+                success &= -(int)tmp2; // check tmp2 != 0
+                tmpsrc[t1+u] = (ushort)mq_div_12289(tmpsrc[t1+u], tmp2);
             }
             mq_iNTT(tmpsrc, t1, logn);
             for (u = 0; u < n; u ++) {
-                uint w;
-                int gi;
-
-                w = tmpsrc[t1+u];
-                w -= (uint)(Q & ~-((w - (Q >> 1)) >> 31));
-                //gi = *(int *)&w;
-                gi = (int)w;
-                if (gi < -127 || gi > +127) {
-                    success = 0;
-                }
+                int w = tmpsrc[t1 + u];
+                int gi = w - (Q & (((Q >> 1) - w) >> 31));
+                success &= +gi - 128; // check +gi < 128
+                success &= -gi - 128; // check -gi < 128
                 Gsrc[G+u] = (sbyte)gi;
             }
-            return success;
+            return (success >> 31) & 1;
         }
 
         internal int is_invertible(

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 using Org.BouncyCastle.Utilities.IO;
 
@@ -10,7 +11,11 @@ namespace Org.BouncyCastle.Utilities.Test
     public abstract class SimpleTest
         : ITest
     {
+        private static readonly string DataDirName = "bc-test-data";
+
         internal static readonly string NewLine = Environment.NewLine;
+
+        private static string m_testDataPath;
 
         public abstract string Name { get; }
 
@@ -133,5 +138,41 @@ namespace Org.BouncyCastle.Utilities.Test
             if (expectedValue != value)
                 throw new ArgumentException("bit value " + bitNo + " wrong");
         }
+
+        private static TValue EnsureSingletonInitialized<TValue>(ref TValue value, Func<TValue> initialize)
+            where TValue : class
+        {
+            TValue currentValue = Volatile.Read(ref value);
+            if (null != currentValue)
+                return currentValue;
+
+            TValue candidateValue = initialize();
+
+            return Interlocked.CompareExchange(ref value, candidateValue, null) ?? candidateValue;
+        }
+
+        private static string FindTestDataPath()
+        {
+            string wrkDirPath = Directory.GetCurrentDirectory();
+            string dataDirPath;
+            while (!Directory.Exists(dataDirPath = Path.Combine(wrkDirPath, DataDirName)))
+            {
+                wrkDirPath = Path.GetDirectoryName(wrkDirPath) ??
+                    throw new DirectoryNotFoundException("Test data directory " + DataDirName + " not found." + NewLine +
+                        "Test data available from: https://github.com/bcgit/bc-test-data.git");
+            }
+            return dataDirPath;
+        }
+
+        internal static Stream FindTestResource(string path) =>
+            File.OpenRead(Path.Combine(GetTestDataPath(), path));
+
+        internal static Stream FindTestResource(string path1, string path2) =>
+            File.OpenRead(Path.Combine(GetTestDataPath(), path1, path2));
+
+        internal static Stream FindTestResource(string path1, string path2, string path3) =>
+            File.OpenRead(Path.Combine(GetTestDataPath(), path1, path2, path3));
+
+        private static string GetTestDataPath() => EnsureSingletonInitialized(ref m_testDataPath, FindTestDataPath);
     }
 }

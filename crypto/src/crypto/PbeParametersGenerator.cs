@@ -6,13 +6,13 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto
 {
     /**
-     * super class for all Password Based Encyrption (Pbe) parameter generator classes.
+     * base class for all Password Based Encyrption (PBE) parameter generator classes.
      */
     public abstract class PbeParametersGenerator
     {
-        protected byte[]	mPassword;
-        protected byte[]	mSalt;
-        protected int		mIterationCount;
+        protected byte[] mPassword;
+        protected byte[] mSalt;
+        protected int mIterationCount;
 
         /**
          * base constructor.
@@ -22,22 +22,19 @@ namespace Org.BouncyCastle.Crypto
         }
 
         /**
-         * initialise the Pbe generator.
+         * initialise the PBE generator.
          *
          * @param password the password converted into bytes (see below).
          * @param salt the salt to be mixed with the password.
          * @param iterationCount the number of iterations the "mixing" function
          * is to be applied for.
          */
-        public virtual void Init(
-            byte[]  password,
-            byte[]  salt,
-            int     iterationCount)
+        public virtual void Init(byte[] password, byte[] salt, int iterationCount)
         {
             if (password == null)
-                throw new ArgumentNullException("password");
+                throw new ArgumentNullException(nameof(password));
             if (salt == null)
-                throw new ArgumentNullException("salt");
+                throw new ArgumentNullException(nameof(salt));
 
             this.mPassword = Arrays.Clone(password);
             this.mSalt = Arrays.Clone(salt);
@@ -53,25 +50,16 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
-        public virtual byte[] Password
-        {
-            get { return Arrays.Clone(mPassword); }
-        }
+        public virtual byte[] Password => Arrays.Clone(mPassword);
 
-        public virtual byte[] Salt
-        {
-            get { return Arrays.Clone(mSalt); }
-        }
+        public virtual byte[] Salt => Arrays.Clone(mSalt);
 
         /**
          * return the iteration count.
          *
          * @return the iteration count.
          */
-        public virtual int IterationCount
-        {
-            get { return mIterationCount; }
-        }
+        public virtual int IterationCount => mIterationCount;
 
         public abstract ICipherParameters GenerateDerivedParameters(string algorithm, int keySize);
         public abstract ICipherParameters GenerateDerivedParameters(string algorithm, int keySize, int ivSize);
@@ -92,11 +80,10 @@ namespace Org.BouncyCastle.Crypto
          * @param password a character array representing the password.
          * @return a byte array representing the password.
          */
-        public static byte[] Pkcs5PasswordToBytes(
-            char[] password)
+        public static byte[] Pkcs5PasswordToBytes(char[] password)
         {
-            if (password == null)
-                return new byte[0];
+            if (password == null || password.Length < 1)
+                return Array.Empty<byte>();
 
             return Strings.ToByteArray(password);
         }
@@ -108,25 +95,18 @@ namespace Org.BouncyCastle.Crypto
          * @param password a character array representing the password.
          * @return a byte array representing the password.
          */
-        public static byte[] Pkcs5PasswordToUtf8Bytes(
-            char[] password)
+        public static byte[] Pkcs5PasswordToUtf8Bytes(char[] password)
         {
-            if (password == null)
-                return new byte[0];
+            if (password == null || password.Length < 1)
+                return Array.Empty<byte>();
 
             return Strings.ToUtf8ByteArray(password);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static byte[] Pkcs5PasswordToBytes(ReadOnlySpan<char> password)
-        {
-            return Strings.ToByteArray(password);
-        }
+        public static byte[] Pkcs5PasswordToBytes(ReadOnlySpan<char> password) => Strings.ToByteArray(password);
 
-        public static byte[] Pkcs5PasswordToUtf8Bytes(ReadOnlySpan<char> password)
-        {
-            return Strings.ToUtf8ByteArray(password);
-        }
+        public static byte[] Pkcs5PasswordToUtf8Bytes(ReadOnlySpan<char> password) => Strings.ToUtf8ByteArray(password);
 #endif
 
         /**
@@ -136,45 +116,32 @@ namespace Org.BouncyCastle.Crypto
          * @param password a character array representing the password.
          * @return a byte array representing the password.
          */
-        public static byte[] Pkcs12PasswordToBytes(
-            char[] password)
-        {
-            return Pkcs12PasswordToBytes(password, false);
-        }
+        public static byte[] Pkcs12PasswordToBytes(char[] password) =>
+            Pkcs12PasswordToBytes(password, wrongPkcs12Zero: false);
 
-        public static byte[] Pkcs12PasswordToBytes(
-            char[]	password,
-            bool	wrongPkcs12Zero)
+        public static byte[] Pkcs12PasswordToBytes(char[] password, bool wrongPkcs12Zero)
         {
             if (password == null || password.Length < 1)
-            {
-                return new byte[wrongPkcs12Zero ? 2 : 0];
-            }
+                return wrongPkcs12Zero ? new byte[2] : Array.Empty<byte>();
 
-            // +1 for extra 2 pad bytes.
-            byte[] bytes = new byte[(password.Length + 1) * 2];
-
+            // 2 pad bytes.
+            byte[] bytes = new byte[Encoding.BigEndianUnicode.GetByteCount(password) + 2];
             Encoding.BigEndianUnicode.GetBytes(password, 0, password.Length, bytes, 0);
-
             return bytes;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password)
-        {
-            return Pkcs12PasswordToBytes(password, false);
-        }
+        public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password) =>
+            Pkcs12PasswordToBytes(password, wrongPkcs12Zero: false);
 
         public static byte[] Pkcs12PasswordToBytes(ReadOnlySpan<char> password, bool wrongPkcs12Zero)
         {
             if (password.IsEmpty)
-                return new byte[wrongPkcs12Zero ? 2 : 0];
+                return wrongPkcs12Zero ? new byte[2] : Array.Empty<byte>();
 
-            // +1 for extra 2 pad bytes.
-            byte[] bytes = new byte[(password.Length + 1) * 2];
-
+            // 2 pad bytes.
+            byte[] bytes = new byte[Encoding.BigEndianUnicode.GetByteCount(password) + 2];
             Encoding.BigEndianUnicode.GetBytes(password, bytes);
-
             return bytes;
         }
 #endif

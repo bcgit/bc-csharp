@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
@@ -12,8 +11,18 @@ namespace Org.BouncyCastle.Crypto.Digests
     public sealed class IsapDigest
         : IDigest
     {
-        private readonly MemoryStream buffer = new MemoryStream();
-        private ulong x0, x1, x2, x3, x4;
+        private readonly byte[] m_buf = new byte[8];
+        private int m_bufPos = 0;
+
+        private ulong x0 = 17191252062196199485UL;
+        private ulong x1 = 10066134719181819906UL;
+        private ulong x2 = 13009371945472744034UL;
+        private ulong x3 = 4834782570098516968UL;
+        private ulong x4 = 3787428097924915520UL;
+
+        public IsapDigest()
+        {
+        }
 
         public string AlgorithmName => "ISAP Hash";
 
@@ -23,20 +32,83 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public void Update(byte input)
         {
-            buffer.WriteByte(input);
+            m_buf[m_bufPos] = input;
+            if (++m_bufPos == 8)
+            {
+                x0 ^= Pack.BE_To_UInt64(m_buf, 0);
+                P12();
+                m_bufPos = 0;
+            }
         }
 
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
 
-            buffer.Write(input, inOff, inLen);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BlockUpdate(input.AsSpan(inOff, inLen));
+#else
+            if (inLen < 1)
+                return;
+
+            int available = 8 - m_bufPos;
+            if (inLen < available)
+            {
+                Array.Copy(input, inOff, m_buf, m_bufPos, inLen);
+                m_bufPos += inLen;
+                return;
+            }
+
+            int inPos = 0;
+            if (m_bufPos > 0)
+            {
+                Array.Copy(input, inOff, m_buf, m_bufPos, available);
+                inPos += available;
+                x0 ^= Pack.BE_To_UInt64(m_buf, 0);
+                P12();
+            }
+
+            int remaining;
+            while ((remaining = inLen - inPos) >= 8)
+            {
+                x0 ^= Pack.BE_To_UInt64(input, inOff + inPos);
+                P12();
+                inPos += 8;
+            }
+
+            Array.Copy(input, inOff + inPos, m_buf, 0, remaining);
+            m_bufPos = remaining;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
-            buffer.Write(input);
+            int available = 8 - m_bufPos;
+            if (input.Length < available)
+            {
+                input.CopyTo(m_buf.AsSpan(m_bufPos));
+                m_bufPos += input.Length;
+                return;
+            }
+
+            if (m_bufPos > 0)
+            {
+                input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
+                x0 ^= Pack.BE_To_UInt64(m_buf);
+                P12();
+                input = input[available..];
+            }
+
+            while (input.Length >= 8)
+            {
+                x0 ^= Pack.BE_To_UInt64(input);
+                P12();
+                input = input[8..];
+            }
+
+            input.CopyTo(m_buf);
+            m_bufPos = input.Length;
         }
 #endif
 
@@ -47,29 +119,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 #else
             Check.OutputLength(output, outOff, 32, "output buffer too short");
 
-            /* init state */
-            x0 = 17191252062196199485UL;
-            x1 = 10066134719181819906UL;
-            x2 = 13009371945472744034UL;
-            x3 = 4834782570098516968UL;
-            x4 = 3787428097924915520UL;
-
-            byte[] input = buffer.GetBuffer();
-            int len = Convert.ToInt32(buffer.Length);
-
-            int pos = 0;
-            while (len >= 8)
-            {
-                x0 ^= Pack.BE_To_UInt64(input, pos);
-                pos += 8;
-                len -= 8;
-                P12();
-            }
-            x0 ^= 0x80UL << ((7 - len) << 3);
-            if (len > 0)
-            {
-                x0 ^= Pack.BE_To_UInt64_High(input, pos, len);
-            }
+            FinishAbsorbing();
 
             for (int i = 0; i < 4; ++i)
             {
@@ -77,6 +127,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 Pack.UInt64_To_BE(x0, output, outOff + (i << 3));
             }
 
+            Reset();
             return 32;
 #endif
         }
@@ -86,28 +137,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             Check.OutputLength(output, 32, "output buffer too short");
 
-            /* init state */
-            x0 = 17191252062196199485UL;
-            x1 = 10066134719181819906UL;
-            x2 = 13009371945472744034UL;
-            x3 = 4834782570098516968UL;
-            x4 = 3787428097924915520UL;
-
-            if (!buffer.TryGetBuffer(out var bufferContents))
-                throw new UnauthorizedAccessException();
-
-            var input = bufferContents.AsSpan();
-            while (input.Length >= 8)
-            {
-                x0 ^= Pack.BE_To_UInt64(input);
-                input = input[8..];
-                P12();
-            }
-            x0 ^= 0x80UL << ((7 - input.Length) << 3);
-            if (!input.IsEmpty)
-            {
-                x0 ^= Pack.BE_To_UInt64_High(input);
-            }
+            FinishAbsorbing();
 
             for (int i = 0; i < 4; ++i)
             {
@@ -115,40 +145,54 @@ namespace Org.BouncyCastle.Crypto.Digests
                 Pack.UInt64_To_BE(x0, output[(i << 3)..]);
             }
 
+            Reset();
             return 32;
         }
 #endif
 
         public void Reset()
         {
-            buffer.SetLength(0);
+            Array.Clear(m_buf, 0, m_buf.Length);
+            m_bufPos = 0;
+
+            x0 = 17191252062196199485UL;
+            x1 = 10066134719181819906UL;
+            x2 = 13009371945472744034UL;
+            x3 = 4834782570098516968UL;
+            x4 = 3787428097924915520UL;
+        }
+
+        private void FinishAbsorbing()
+        {
+            m_buf[m_bufPos] = 0x80;
+            x0 ^= Pack.BE_To_UInt64(m_buf, 0) & (ulong.MaxValue << (56 - (m_bufPos << 3)));
         }
 
         private void P12()
         {
-            ROUND(0xf0);
-            ROUND(0xe1);
-            ROUND(0xd2);
-            ROUND(0xc3);
-            ROUND(0xb4);
-            ROUND(0xa5);
-            ROUND(0x96);
-            ROUND(0x87);
-            ROUND(0x78);
-            ROUND(0x69);
-            ROUND(0x5a);
-            ROUND(0x4b);
+            ROUND(0xf0UL);
+            ROUND(0xe1UL);
+            ROUND(0xd2UL);
+            ROUND(0xc3UL);
+            ROUND(0xb4UL);
+            ROUND(0xa5UL);
+            ROUND(0x96UL);
+            ROUND(0x87UL);
+            ROUND(0x78UL);
+            ROUND(0x69UL);
+            ROUND(0x5aUL);
+            ROUND(0x4bUL);
         }
 
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        private void ROUND(ulong C)
+        private void ROUND(ulong c)
         {
-            ulong t0 = x0 ^ x1 ^ x2 ^ x3 ^ C ^ (x1 & (x0 ^ x2 ^ x4 ^ C));
-            ulong t1 = x0 ^ x2 ^ x3 ^ x4 ^ C ^ ((x1 ^ x2 ^ C) & (x1 ^ x3));
-            ulong t2 = x1 ^ x2 ^ x4 ^ C ^ (x3 & x4);
-            ulong t3 = x0 ^ x1 ^ x2 ^ C ^ ((~x0) & (x3 ^ x4));
+            ulong t0 = x0 ^ x1 ^ x2 ^ x3 ^ c ^ (x1 & (x0 ^ x2 ^ x4 ^ c));
+            ulong t1 = x0 ^ x2 ^ x3 ^ x4 ^ c ^ ((x1 ^ x2 ^ c) & (x1 ^ x3));
+            ulong t2 = x1 ^ x2 ^ x4 ^ c ^ (x3 & x4);
+            ulong t3 = x0 ^ x1 ^ x2 ^ c ^ ((~x0) & (x3 ^ x4));
             ulong t4 = x1 ^ x3 ^ x4 ^ ((x0 ^ x4) & x1);
             x0 = t0 ^ Longs.RotateRight(t0, 19) ^ Longs.RotateRight(t0, 28);
             x1 = t1 ^ Longs.RotateRight(t1, 39) ^ Longs.RotateRight(t1, 61);

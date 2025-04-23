@@ -25,6 +25,11 @@ namespace Org.BouncyCastle.Asn1
             return contents.Length < 1 ? Empty : new DerOctetString(Arrays.Clone(contents));
         }
 
+        internal static DerOctetString WithContents(byte[] contents)
+        {
+            return contents.Length < 1 ? Empty : new DerOctetString(contents);
+        }
+
         /// <param name="contents">The octets making up the octet string.</param>
         public DerOctetString(byte[] contents)
 			: base(contents)

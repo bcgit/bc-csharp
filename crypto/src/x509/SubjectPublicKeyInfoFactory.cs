@@ -249,6 +249,30 @@ namespace Org.BouncyCastle.X509
                 return new SubjectPublicKeyInfo(new AlgorithmIdentifier(EdECObjectIdentifiers.id_Ed25519), key.GetEncoded());
             }
 
+            if (publicKey is MLDsaPublicKeyParameters mlDsaKey)
+            {
+                var algID = new AlgorithmIdentifier(mlDsaKey.Parameters.Oid);
+
+                // TODO[pqc] Avoid redundant copies?
+                return new SubjectPublicKeyInfo(algID, publicKey: mlDsaKey.GetEncoded());
+            }
+
+            if (publicKey is MLKemPublicKeyParameters mlKemKey)
+            {
+                var algID = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);
+
+                // TODO[pqc] Avoid redundant copies?
+                return new SubjectPublicKeyInfo(algID, publicKey: mlKemKey.GetEncoded());
+            }
+
+            if (publicKey is SlhDsaPublicKeyParameters slhDsaKey)
+            {
+                var algID = new AlgorithmIdentifier(slhDsaKey.Parameters.Oid);
+
+                // TODO[pqc] Avoid redundant copies?
+                return new SubjectPublicKeyInfo(algID, publicKey: slhDsaKey.GetEncoded());
+            }
+
             throw new ArgumentException("Class provided no convertible: " + Platform.GetTypeName(publicKey));
         }
 

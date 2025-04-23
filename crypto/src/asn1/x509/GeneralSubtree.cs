@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Asn1.X509
 	 *       }
 	 * </pre>
 	 *
-	 * @see org.bouncycastle.asn1.x509.NameConstraints
+	 * @see Org.Bouncycastle.Asn1.X509.NameConstraints
 	 *
 	 */
     public class GeneralSubtree

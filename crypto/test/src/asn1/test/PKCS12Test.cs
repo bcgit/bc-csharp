@@ -1,17 +1,13 @@
-using System;
-using System.IO;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
 {
-	[TestFixture]
+    [TestFixture]
 	public class Pkcs12Test
 		: SimpleTest
 	{
@@ -128,15 +124,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private byte[] ImplTest(byte[] pkcs12)
 		{
-			Pfx                 bag = Pfx.GetInstance(pkcs12);
-			ContentInfo         info = bag.AuthSafe;
-			MacData             mData = bag.MacData;
-			DigestInfo          dInfo = mData.Mac;
-			AlgorithmIdentifier algId = dInfo.DigestAlgorithm;
-			byte[]              salt = mData.GetSalt();
-			int                 itCount = mData.IterationCount.IntValue;
+			Pfx pfx = Pfx.GetInstance(pkcs12);
+			ContentInfo info = pfx.AuthSafe;
+			MacData macData = pfx.MacData;
 
-			Asn1OctetString content = Asn1OctetString.GetInstance(info.Content);
+            Asn1OctetString content = Asn1OctetString.GetInstance(info.Content);
 			AuthenticatedSafe authSafe = AuthenticatedSafe.GetInstance(content.GetOctets());
 			ContentInfo[] c = authSafe.GetContentInfo();
 
@@ -157,11 +149,11 @@ namespace Org.BouncyCastle.Asn1.Tests
 				Fail("Failed comparison shroudedKeyBag test");
 			}
 
-			EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfo.GetInstance(b.BagValue);
+			EncryptedPrivateKeyInfo epki = EncryptedPrivateKeyInfo.GetInstance(b.BagValueEncodable);
 
-			encInfo = new EncryptedPrivateKeyInfo(encInfo.EncryptionAlgorithm, encInfo.GetEncryptedData());
+			epki = new EncryptedPrivateKeyInfo(epki.EncryptionAlgorithm, epki.GetEncryptedData());
 
-			b = new SafeBag(PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag, encInfo.ToAsn1Object(), b.BagAttributes);
+			b = new SafeBag(PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag, epki, b.BagAttributes);
 
 			byte[] contentOctets = new DerSequence(b).GetEncoded();
 
@@ -188,17 +180,12 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             info = new ContentInfo(PkcsObjectIdentifiers.Data, new BerOctetString(contentOctets));
 
-            mData = new MacData(new DigestInfo(algId, dInfo.GetDigest()), salt, itCount);
+			pfx = new Pfx(info, macData);
 
-			bag = new Pfx(info, mData);
-
-            return bag.GetEncoded();
+			return pfx.GetEncoded();
 		}
 
-		public override string Name
-		{
-			get { return "Pkcs12"; }
-		}
+		public override string Name => "Pkcs12";
 
 		[Test]
 		public void TestFunction()

@@ -12,5 +12,6 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
         public static readonly DerObjectIdentifier IdEtsiQcsLimitValue = IdEtsiQcs.Branch("2");
         public static readonly DerObjectIdentifier IdEtsiQcsRetentionPeriod = IdEtsiQcs.Branch("3");
         public static readonly DerObjectIdentifier IdEtsiQcsQcSscd = IdEtsiQcs.Branch("4");
+        public static readonly DerObjectIdentifier IdEtsiQcsQcCClegislation = IdEtsiQcs.Branch("7");
     }
 }

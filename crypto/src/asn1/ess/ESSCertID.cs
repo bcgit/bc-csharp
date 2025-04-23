@@ -61,6 +61,14 @@ namespace Org.BouncyCastle.Asn1.Ess
             m_issuerSerial = issuerSerial;
         }
 
+        public EssCertID(Asn1OctetString certHash, IssuerSerial issuerSerial)
+        {
+            m_certHash = certHash ?? throw new ArgumentNullException(nameof(certHash));
+            m_issuerSerial = issuerSerial;
+        }
+
+        public Asn1OctetString CertHash => m_certHash;
+
         public byte[] GetCertHash() => Arrays.Clone(m_certHash.GetOctets());
 
         public IssuerSerial IssuerSerial => m_issuerSerial;

@@ -57,9 +57,7 @@ namespace Org.BouncyCastle.Ocsp
 			{
 				try
 				{
-					return new BasicOcspResp(
-						BasicOcspResponse.GetInstance(
-							Asn1Object.FromByteArray(rb.Response.GetOctets())));
+					return new BasicOcspResp(BasicOcspResponse.GetInstance(rb.Response.GetOctets()));
 				}
 				catch (Exception e)
 				{

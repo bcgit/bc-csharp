@@ -119,9 +119,8 @@ namespace Org.BouncyCastle.Tsp
                 try
                 {
                     TimeStampToken token = tokenGenerator.Generate(request, serialNumber, genTime.Value);
-                    byte[] encoded = token.ToCmsSignedData().GetEncoded();
 
-                    tstTokenContentInfo = ContentInfo.GetInstance(Asn1Object.FromByteArray(encoded));
+                    tstTokenContentInfo = token.ToCmsSignedData().ContentInfo;
                 }
                 catch (IOException e)
                 {
@@ -173,10 +172,10 @@ namespace Org.BouncyCastle.Tsp
                 ContentInfo tstTokenContentInfo;
                 try
                 {
-                    TimeStampToken token = tokenGenerator.Generate(request, serialNumber, genTime.Value,additionalExtensions);
-                    byte[] encoded = token.ToCmsSignedData().GetEncoded();
+                    TimeStampToken token = tokenGenerator.Generate(request, serialNumber, genTime.Value,
+                        additionalExtensions);
 
-                    tstTokenContentInfo = ContentInfo.GetInstance(Asn1Object.FromByteArray(encoded));
+                    tstTokenContentInfo = token.ToCmsSignedData().ContentInfo;
                 }
                 catch (IOException e)
                 {

@@ -43,19 +43,28 @@ namespace Org.BouncyCastle.Asn1.X509
             m_digest = Asn1OctetString.GetInstance(seq[1]);
         }
 
+        // TODO[api] 'algID' => 'digestAlgorithm'
         public DigestInfo(AlgorithmIdentifier algID, byte[] digest)
         {
             m_digestAlgorithm = algID ?? throw new ArgumentNullException(nameof(algID));
             m_digest = DerOctetString.FromContents(digest);
         }
 
+        public DigestInfo(AlgorithmIdentifier digestAlgorithm, Asn1OctetString digest)
+        {
+            m_digestAlgorithm = digestAlgorithm ?? throw new ArgumentNullException(nameof(digestAlgorithm));
+            m_digest = digest ?? throw new ArgumentNullException(nameof(digest));
+        }
+
+        [Obsolete("Use 'DigestAlgorithm' property instead")]
         public AlgorithmIdentifier AlgorithmID => m_digestAlgorithm;
 
         public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
         public Asn1OctetString Digest => m_digest;
 
-        public byte[] GetDigest() => m_digest.GetOctets();
+        [Obsolete("Use 'Digest' property instead")]
+        public byte[] GetDigest() => Arrays.Clone(m_digest.GetOctets());
 
 		public override Asn1Object ToAsn1Object() => new DerSequence(m_digestAlgorithm, m_digest);
     }

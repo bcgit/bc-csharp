@@ -18,23 +18,24 @@ namespace Org.BouncyCastle.Asn1
             {
             case 0:
                 // No bits
-                return new byte[]{ 0 };
+                return EmptyOctetsContents;
             case 1:
-                return bitStrings[0].contents;
+                return bitStrings[0].m_contents;
             default:
             {
                 int last = count - 1, totalLength = 0;
                 for (int i = 0; i < last; ++i)
                 {
-                    byte[] elementContents = bitStrings[i].contents;
+                    byte[] elementContents = bitStrings[i].m_contents;
                     if (elementContents[0] != 0)
-                        throw new ArgumentException("only the last nested bitstring can have padding", "bitStrings");
+                        throw new ArgumentException("only the last nested bitstring can have padding",
+                            nameof(bitStrings));
 
                     totalLength += elementContents.Length - 1;
                 }
 
                 // Last one can have padding
-                byte[] lastElementContents = bitStrings[last].contents;
+                byte[] lastElementContents = bitStrings[last].m_contents;
                 byte padBits = lastElementContents[0];
                 totalLength += lastElementContents.Length;
 
@@ -44,7 +45,7 @@ namespace Org.BouncyCastle.Asn1
                 int pos = 1;
                 for (int i = 0; i < count; ++i)
                 {
-                    byte[] elementContents = bitStrings[i].contents;
+                    byte[] elementContents = bitStrings[i].m_contents;
                     int length = elementContents.Length - 1;
                     Array.Copy(elementContents, 1, contents, pos, length);
                     pos += length;
@@ -129,7 +130,7 @@ namespace Org.BouncyCastle.Asn1
                 return base.GetEncoding(encoding);
 
             if (null == elements)
-                return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.BitString, contents);
+                return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.BitString, m_contents);
 
             return new ConstructedILEncoding(Asn1Tags.Universal, Asn1Tags.BitString,
                 Asn1OutputStream.GetContentsEncodings(encoding, elements));
@@ -141,7 +142,7 @@ namespace Org.BouncyCastle.Asn1
                 return base.GetEncodingImplicit(encoding, tagClass, tagNo);
 
             if (null == elements)
-                return new PrimitiveEncoding(tagClass, tagNo, contents);
+                return new PrimitiveEncoding(tagClass, tagNo, m_contents);
 
             return new ConstructedILEncoding(tagClass, tagNo,
                 Asn1OutputStream.GetContentsEncodings(encoding, elements));

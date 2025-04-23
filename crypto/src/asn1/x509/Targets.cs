@@ -20,8 +20,8 @@ namespace Org.BouncyCastle.Asn1.X509
 	 *            }
 	 * </pre>
 	 * 
-	 * @see org.bouncycastle.asn1.x509.Target
-	 * @see org.bouncycastle.asn1.x509.TargetInformation
+	 * @see Org.BouncyCastle.Asn1.X509.Target
+	 * @see Org.BouncyCastle.Asn1.X509.TargetInformation
 	 */
     public class Targets
 		: Asn1Encodable

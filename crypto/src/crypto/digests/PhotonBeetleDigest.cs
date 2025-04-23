@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 
 using Org.BouncyCastle.Utilities;
 
@@ -15,48 +14,58 @@ namespace Org.BouncyCastle.Crypto.Digests
     public sealed class PhotonBeetleDigest
         : IDigest
     {
-        private byte[] state;
-        private byte[][] state_2d;
-        private MemoryStream buffer = new MemoryStream();
         private const int INITIAL_RATE_INBYTES = 16;
-        private int RATE_INBYTES = 4;
-        private int SQUEEZE_RATE_INBYTES = 16;
-        private int STATE_INBYTES = 32;
-        private int TAG_INBYTES = 32;
-        private int LAST_THREE_BITS_OFFSET = 5;
-        private int ROUND = 12;
-        private int D = 8;
-        private int Dq = 3;
-        private int Dr = 7;
-        private int DSquare = 64;
-        private int S = 4;
-        private int S_1 = 3;
-        private byte[][] RC = {//[D][12]
-        new byte[]{1, 3, 7, 14, 13, 11, 6, 12, 9, 2, 5, 10},
-        new byte[]{0, 2, 6, 15, 12, 10, 7, 13, 8, 3, 4, 11},
-        new byte[]{2, 0, 4, 13, 14, 8, 5, 15, 10, 1, 6, 9},
-        new byte[]{6, 4, 0, 9, 10, 12, 1, 11, 14, 5, 2, 13},
-        new byte[]{14, 12, 8, 1, 2, 4, 9, 3, 6, 13, 10, 5},
-        new byte[]{15, 13, 9, 0, 3, 5, 8, 2, 7, 12, 11, 4},
-        new byte[]{13, 15, 11, 2, 1, 7, 10, 0, 5, 14, 9, 6},
-        new byte[]{9, 11, 15, 6, 5, 3, 14, 4, 1, 10, 13, 2}
-    };
-        private byte[][] MixColMatrix = { //[D][D]
-        new byte[]{2, 4, 2, 11, 2, 8, 5, 6},
-        new byte[]{12, 9, 8, 13, 7, 7, 5, 2},
-        new byte[]{4, 4, 13, 13, 9, 4, 13, 9},
-       new byte[] {1, 6, 5, 1, 12, 13, 15, 14},
-        new byte[]{15, 12, 9, 13, 14, 5, 14, 13},
-        new byte[]{9, 14, 5, 15, 4, 12, 9, 6},
-        new byte[]{12, 2, 2, 10, 3, 1, 1, 14},
-        new byte[]{15, 1, 13, 10, 5, 10, 2, 3}
-    };
+        private const int RATE_INBYTES = 4;
+        private const int SQUEEZE_RATE_INBYTES = 16;
+        private const int STATE_INBYTES = 32;
+        private const int TAG_INBYTES = 32;
+        private const int LAST_THREE_BITS_OFFSET = 5;
+        private const int ROUND = 12;
+        private const int D = 8;
+        private const int Dq = 3;
+        private const int Dr = 7;
+        private const int DSquare = 64;
+        private const int S = 4;
+        private const int S_1 = 3;
 
-        private byte[] sbox = { 12, 5, 6, 11, 9, 0, 10, 13, 3, 14, 15, 8, 4, 7, 1, 2 };
+        private static readonly byte[] RC = { //[ROUND][D] flattened
+             1,  0,  2,  6, 14, 15, 13,  9,
+             3,  2,  0,  4, 12, 13, 15, 11,
+             7,  6,  4,  0,  8,  9, 11, 15,
+            14, 15, 13,  9,  1,  0,  2,  6,
+            13, 12, 14, 10,  2,  3,  1,  5,
+            11, 10,  8, 12,  4,  5,  7,  3,
+             6,  7,  5,  1,  9,  8, 10, 14,
+            12, 13, 15, 11,  3,  2,  0,  4,
+             9,  8, 10, 14,  6,  7,  5,  1,
+             2,  3,  1,  5, 13, 12, 14, 10,
+             5,  4,  6,  2, 10, 11,  9, 13,
+            10, 11,  9, 13,  5,  4,  6,  2,
+        };
+
+        private static readonly byte[][] MixColMatrix = { //[D][D]
+            new byte[]{  2,  4,  2, 11,  2,  8,  5,  6 },
+            new byte[]{ 12,  9,  8, 13,  7,  7,  5,  2 },
+            new byte[]{  4,  4, 13, 13,  9,  4, 13,  9 },
+            new byte[]{  1,  6,  5,  1, 12, 13, 15, 14 },
+            new byte[]{ 15, 12,  9, 13, 14,  5, 14, 13 },
+            new byte[]{  9, 14,  5, 15,  4, 12,  9,  6 },
+            new byte[]{ 12,  2,  2, 10,  3,  1,  1, 14 },
+            new byte[]{ 15,  1, 13, 10,  5, 10,  2,  3 }
+        };
+
+        private static readonly byte[] sbox = { 12, 5, 6, 11, 9, 0, 10, 13, 3, 14, 15, 8, 4, 7, 1, 2 };
+
+        private readonly byte[] state;
+        private readonly byte[][] state_2d;
+        private readonly byte[] m_buf = new byte[16];
+        private int m_bufPos = 0;
+        private int m_phase = 0;
 
         public PhotonBeetleDigest()
         {
             state = new byte[STATE_INBYTES];
+
             state_2d = new byte[D][];
             for (int i = 0; i < D; ++i)
             {
@@ -64,7 +73,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        public String AlgorithmName => "Photon-Beetle Hash";
+        public string AlgorithmName => "Photon-Beetle Hash";
 
         public int GetDigestSize() => TAG_INBYTES;
 
@@ -76,100 +85,236 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public void Update(byte input)
         {
-            buffer.WriteByte(input);
+            m_buf[m_bufPos] = input;
+            if (++m_bufPos == 16)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ProcessBuffer(m_buf);
+#else
+                ProcessBuffer(m_buf, 0);
+#endif
+                m_bufPos = 0;
+            }
         }
 
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
 
-            buffer.Write(input, inOff, inLen);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            BlockUpdate(input.AsSpan(inOff, inLen));
+#else
+            if (inLen < 1)
+                return;
+
+            int available = 16 - m_bufPos;
+            if (inLen < available)
+            {
+                Array.Copy(input, inOff, m_buf, m_bufPos, inLen);
+                m_bufPos += inLen;
+                return;
+            }
+
+            int inPos = 0;
+            if (m_bufPos > 0)
+            {
+                Array.Copy(input, inOff, m_buf, m_bufPos, available);
+                inPos += available;
+                ProcessBuffer(m_buf, 0);
+            }
+
+            int remaining;
+            while ((remaining = inLen - inPos) >= 16)
+            {
+                ProcessBuffer(input, inOff + inPos);
+                inPos += 16;
+            }
+
+            Array.Copy(input, inOff + inPos, m_buf, 0, remaining);
+            m_bufPos = remaining;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
-            buffer.Write(input);
+            int available = 16 - m_bufPos;
+            if (input.Length < available)
+            {
+                input.CopyTo(m_buf.AsSpan(m_bufPos));
+                m_bufPos += input.Length;
+                return;
+            }
+
+            if (m_bufPos > 0)
+            {
+                input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
+                ProcessBuffer(m_buf);
+                input = input[available..];
+            }
+
+            while (input.Length >= 16)
+            {
+                ProcessBuffer(input);
+                input = input[16..];
+            }
+
+            input.CopyTo(m_buf);
+            m_bufPos = input.Length;
         }
 #endif
 
         public int DoFinal(byte[] output, int outOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return DoFinal(output.AsSpan(outOff));
+#else
             Check.OutputLength(output, outOff, 32, "output buffer too short");
 
-            byte[] input = buffer.GetBuffer();
-            int inlen = (int)buffer.Length;
-            if (inlen == 0)
-            {
-                state[STATE_INBYTES - 1] ^= (byte)(1 << LAST_THREE_BITS_OFFSET);
-            }
-            else if (inlen <= INITIAL_RATE_INBYTES)
-            {
-                Array.Copy(input, 0, state, 0, inlen);
-                if (inlen < INITIAL_RATE_INBYTES)
-                {
-                    state[inlen] ^= 0x01; // ozs
-                }
-                state[STATE_INBYTES - 1] ^= (byte)((inlen < INITIAL_RATE_INBYTES ? 1 : 2) << LAST_THREE_BITS_OFFSET);
-            }
-            else
-            {
-                Array.Copy(input, 0, state, 0, INITIAL_RATE_INBYTES);
-                inlen -= INITIAL_RATE_INBYTES;
-                int Dlen_inblocks = (inlen + RATE_INBYTES - 1) / RATE_INBYTES;
-                int i, LastDBlocklen;
-                for (i = 0; i < Dlen_inblocks - 1; i++)
-                {
-                    PHOTON_Permutation();
-                    Bytes.XorTo(RATE_INBYTES, input, INITIAL_RATE_INBYTES + i * RATE_INBYTES, state, 0);
-                }
-                PHOTON_Permutation();
-                LastDBlocklen = inlen - i * RATE_INBYTES;
-                Bytes.XorTo(LastDBlocklen, input, INITIAL_RATE_INBYTES + i * RATE_INBYTES, state, 0);
-                if (LastDBlocklen < RATE_INBYTES)
-                {
-                    state[LastDBlocklen] ^= 0x01; // ozs
-                }
-                state[STATE_INBYTES - 1] ^= (byte)((inlen % RATE_INBYTES == 0 ? 1 : 2) << LAST_THREE_BITS_OFFSET);
-            }
+            FinishAbsorbing();
+
             PHOTON_Permutation();
             Array.Copy(state, 0, output, outOff, SQUEEZE_RATE_INBYTES);
             PHOTON_Permutation();
             Array.Copy(state, 0, output, outOff + SQUEEZE_RATE_INBYTES, TAG_INBYTES - SQUEEZE_RATE_INBYTES);
+
+            Reset();
             return TAG_INBYTES;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int DoFinal(Span<byte> output)
         {
-            byte[] rv = new byte[32];
-            int rlt = DoFinal(rv, 0);
-            rv.AsSpan(0, 32).CopyTo(output);
-            return rlt;
+            Check.OutputLength(output, 32, "output buffer too short");
+
+            FinishAbsorbing();
+
+            PHOTON_Permutation();
+            state.AsSpan(0, SQUEEZE_RATE_INBYTES).CopyTo(output);
+            PHOTON_Permutation();
+            state.AsSpan(0, TAG_INBYTES - SQUEEZE_RATE_INBYTES).CopyTo(output[SQUEEZE_RATE_INBYTES..]);
+
+            Reset();
+            return TAG_INBYTES;
         }
 #endif
 
         public void Reset()
         {
-            buffer.SetLength(0);
-            Arrays.Fill(state, (byte)0);
+            Arrays.Fill(state, 0);
+            Arrays.Fill(m_buf, 0);
+            m_bufPos = 0;
+            m_phase = 0;
         }
+
+        private void FinishAbsorbing()
+        {
+            if (m_phase == 0)
+            {
+                if (m_bufPos != 0)
+                {
+                    Array.Copy(m_buf, 0, state, 0, m_bufPos);
+                    state[m_bufPos] ^= 0x01; // ozs
+                }
+
+                state[STATE_INBYTES - 1] ^= (byte)(1 << LAST_THREE_BITS_OFFSET);
+            }
+            else if (m_phase == 1 && m_bufPos == 0)
+            {
+                state[STATE_INBYTES - 1] ^= (byte)(2 << LAST_THREE_BITS_OFFSET);
+            }
+            else
+            {
+                int pos = 0, limit = m_bufPos - 4;
+                while (pos <= limit)
+                {
+                    PHOTON_Permutation();
+                    Bytes.XorTo(4, m_buf, pos, state, 0);
+                    pos += 4;
+                }
+
+                int remaining = m_bufPos - pos;
+                if (remaining != 0)
+                {
+                    PHOTON_Permutation();
+                    Bytes.XorTo(remaining, m_buf, pos, state, 0);
+                    state[remaining] ^= 0x01; // ozs
+                    state[STATE_INBYTES - 1] ^= (byte)(2 << LAST_THREE_BITS_OFFSET);
+                }
+                else
+                {
+                    state[STATE_INBYTES - 1] ^= (byte)(1 << LAST_THREE_BITS_OFFSET);
+                }
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private void ProcessBuffer(ReadOnlySpan<byte> buf)
+        {
+            if (m_phase == 0)
+            {
+                buf[..16].CopyTo(state);
+
+                m_phase = 1;
+            }
+            else
+            {
+                PHOTON_Permutation();
+                Bytes.XorTo(4, buf      , state);
+                PHOTON_Permutation();
+                Bytes.XorTo(4, buf[ 4..], state);
+                PHOTON_Permutation();
+                Bytes.XorTo(4, buf[ 8..], state);
+                PHOTON_Permutation();
+                Bytes.XorTo(4, buf[12..], state);
+
+                m_phase = 2;
+            }
+        }
+#else
+        private void ProcessBuffer(byte[] buf, int pos)
+        {
+            if (m_phase == 0)
+            {
+                Array.Copy(buf, pos, state, 0, 16);
+
+                m_phase = 1;
+            }
+            else
+            {
+                PHOTON_Permutation();
+                Bytes.XorTo(4, buf, pos +  0, state, 0);
+                PHOTON_Permutation();
+                Bytes.XorTo(4, buf, pos +  4, state, 0);
+                PHOTON_Permutation();
+                Bytes.XorTo(4, buf, pos +  8, state, 0);
+                PHOTON_Permutation();
+                Bytes.XorTo(4, buf, pos + 12, state, 0);
+
+                m_phase = 2;
+            }
+        }
+#endif
 
         private void PHOTON_Permutation()
         {
-            int i, j, k, l;
+            int i, j, k;
             for (i = 0; i < DSquare; i++)
             {
                 state_2d[i >> Dq][i & Dr] = (byte)(((state[i >> 1] & 0xFF) >> (4 * (i & 1))) & 0xf);
             }
             for (int round = 0; round < ROUND; round++)
             {
-                //AddKey
-                for (i = 0; i < D; i++)
+                //AddConstant
                 {
-                    state_2d[i][0] ^= RC[i][round];
+                    int rcOff = round * D;
+                    for (i = 0; i < D; i++)
+                    {
+                        state_2d[i][0] ^= RC[rcOff++];
+                    }
                 }
-                //SubCell
+                //SubCells
                 for (i = 0; i < D; i++)
                 {
                     for (j = 0; j < D; j++)
@@ -177,41 +322,37 @@ namespace Org.BouncyCastle.Crypto.Digests
                         state_2d[i][j] = sbox[state_2d[i][j]];
                     }
                 }
-                //ShiftRow
+                //ShiftRows
                 for (i = 1; i < D; i++)
                 {
                     Array.Copy(state_2d[i], 0, state, 0, D);
                     Array.Copy(state, i, state_2d[i], 0, D - i);
                     Array.Copy(state, 0, state_2d[i], D - i, i);
                 }
-                //MixColumn
+                //MixColumnSerial
                 for (j = 0; j < D; j++)
                 {
                     for (i = 0; i < D; i++)
                     {
-                        byte sum = 0;
+                        int sum = 0;
+
                         for (k = 0; k < D; k++)
                         {
-                            int x = MixColMatrix[i][k], ret = 0, b = state_2d[k][j];
-                            for (l = 0; l < S; l++)
-                            {
-                                if (((b >> l) & 1) != 0)
-                                {
-                                    ret ^= x;
-                                }
-                                if (((x >> S_1) & 1) != 0)
-                                {
-                                    x <<= 1;
-                                    x ^= 0x3;
-                                }
-                                else
-                                {
-                                    x <<= 1;
-                                }
-                            }
-                            sum ^= (byte)(ret & 15);
+                            int x = MixColMatrix[i][k], b = state_2d[k][j];
+
+                            sum ^= x * (b & 1);
+                            sum ^= x * (b & 2);
+                            sum ^= x * (b & 4);
+                            sum ^= x * (b & 8);
                         }
-                        state[i] = sum;
+
+                        int t0 = sum >> 4;
+                        sum = (sum & 15) ^ t0 ^ (t0 << 1);
+
+                        int t1 = sum >> 4;
+                        sum = (sum & 15) ^ t1 ^ (t1 << 1);
+
+                        state[i] = (byte)sum;
                     }
                     for (i = 0; i < D; i++)
                     {

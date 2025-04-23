@@ -260,7 +260,7 @@ namespace Org.BouncyCastle.Asn1
             }
 
             // Note: No DLOctetString available
-            return new DerOctetString(BerOctetString.FlattenOctetStrings(octetStrings));
+            return DerOctetString.WithContents(BerOctetString.FlattenOctetStrings(octetStrings));
         }
 
         internal static int ReadTagNumber(Stream s, int tagHdr)

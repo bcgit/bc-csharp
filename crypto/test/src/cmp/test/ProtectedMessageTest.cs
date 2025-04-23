@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             GeneralName user = new GeneralName(new X509Name("CN=Test"));
 
             CertificateRequestMessageBuilder crmBuiler = new CertificateRequestMessageBuilder(BigInteger.One)
-                .SetPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public))
+                .SetPublicKey(rsaKeyPair.Public)
                 .SetProofOfPossessionSubsequentMessage(SubsequentMessage.encrCert);
 
             ISignatureFactory sigFact = new Asn1SignatureFactory("SHA256WithRSA", rsaKeyPair.Private);
@@ -295,7 +295,7 @@ namespace Org.BouncyCastle.Cmp.Tests
         private void ImplNotBeforeNotAfterTest(AsymmetricCipherKeyPair kp, DateTime? notBefore, DateTime? notAfter)
         {
             CertificateRequestMessageBuilder builder = new CertificateRequestMessageBuilder(BigInteger.One)
-                .SetPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public))
+                .SetPublicKey(kp.Public)
                 .SetProofOfPossessionSubsequentMessage(SubsequentMessage.encrCert);
 
             builder.SetValidity(notBefore, notAfter);

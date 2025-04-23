@@ -79,9 +79,10 @@ namespace Org.BouncyCastle.X509
         {
         }
 
+        // TODO[api] Change parameter name to 'certificate'
         public X509Certificate(X509CertificateStructure c)
         {
-            this.c = c;
+            this.c = c ?? throw new ArgumentNullException(nameof(c));
 
             try
             {
@@ -320,7 +321,7 @@ namespace Org.BouncyCastle.X509
         /// <returns>A DerBitString.</returns>
         public virtual DerBitString IssuerUniqueID
         {
-            get { return c.TbsCertificate.IssuerUniqueID; }
+            get { return c.IssuerUniqueID; }
         }
 
         /// <summary>
@@ -329,7 +330,7 @@ namespace Org.BouncyCastle.X509
         /// <returns>A DerBitString.</returns>
         public virtual DerBitString SubjectUniqueID
         {
-            get { return c.TbsCertificate.SubjectUniqueID; }
+            get { return c.SubjectUniqueID; }
         }
 
         /// <summary>
@@ -352,9 +353,9 @@ namespace Org.BouncyCastle.X509
                 Asn1Sequence seq = Asn1Sequence.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
 
                 var result = new List<DerObjectIdentifier>();
-                foreach (DerObjectIdentifier oid in seq)
+                foreach (var element in seq)
                 {
-                    result.Add(oid);
+                    result.Add(DerObjectIdentifier.GetInstance(element));
                 }
                 return result;
             }
@@ -455,12 +456,7 @@ namespace Org.BouncyCastle.X509
             return result;
         }
 
-        protected override X509Extensions GetX509Extensions()
-        {
-            return c.Version >= 3
-                ? c.TbsCertificate.Extensions
-                : null;
-        }
+        protected override X509Extensions GetX509Extensions() => c.Version >= 3 ? c.Extensions : null;
 
         /// <summary>
         /// Return the plain SubjectPublicKeyInfo that holds the encoded public key.
@@ -570,7 +566,7 @@ namespace Org.BouncyCastle.X509
                 buf.Append("                       ").AppendLine(Hex.ToHexString(sig, i, len));
             }
 
-            X509Extensions extensions = c.TbsCertificate.Extensions;
+            X509Extensions extensions = c.Extensions;
 
             if (extensions != null)
             {
@@ -637,15 +633,14 @@ namespace Org.BouncyCastle.X509
         }
 
         // TODO[api] Rename 'key' to 'publicKey'
-        public virtual bool IsSignatureValid(AsymmetricKeyParameter key)
-        {
-            return CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
-        }
+        public virtual bool IsSignatureValid(AsymmetricKeyParameter key) =>
+            CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
 
-        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider)
-        {
-            return CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
-        }
+        public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider) =>
+            CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
+
+        public virtual bool IsAlternativeSignatureValid(AsymmetricKeyParameter publicKey) =>
+            IsAlternativeSignatureValid(new Asn1VerifierFactoryProvider(publicKey));
 
         public virtual bool IsAlternativeSignatureValid(IVerifierFactoryProvider verifierProvider)
         {
@@ -668,7 +663,7 @@ namespace Org.BouncyCastle.X509
                 }
             }
 
-            v.Add(X509Utilities.TrimExtensions(3, extensions));
+            v.Add(new DerTaggedObject(true, 3, extensions.ToAsn1ObjectTrimmed()));
 
             return X509Utilities.VerifySignature(verifier, new DerSequence(v), altSigValue.Signature);
         }
@@ -718,16 +713,16 @@ namespace Org.BouncyCastle.X509
         {
             var tbsCertificate = c.TbsCertificate;
 
-            if (!X509SignatureUtilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertificate.Signature))
+            if (!X509Utilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertificate.Signature))
                 throw new CertificateException("signature algorithm in TBS cert not same as outer cert");
 
             return X509Utilities.VerifySignature(verifier, tbsCertificate, c.Signature);
         }
 
-        private CachedEncoding GetCachedEncoding()
-        {
-            return Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
-        }
+        internal byte[] GetEncodedInternal() => GetCachedEncoding().GetEncoded();
+
+        private CachedEncoding GetCachedEncoding() =>
+            Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
 
         private static CachedEncoding CreateCachedEncoding(X509CertificateStructure c)
         {
@@ -745,9 +740,7 @@ namespace Org.BouncyCastle.X509
             return new CachedEncoding(encoding, exception);
         }
 
-        private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c)
-        {
-            return PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
-        }
+        private static AsymmetricKeyParameter CreatePublicKey(X509CertificateStructure c) =>
+            PublicKeyFactory.CreateKey(c.SubjectPublicKeyInfo);
     }
 }
