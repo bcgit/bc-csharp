@@ -22,14 +22,14 @@ using Org.BouncyCastle.X509.Extension;
 namespace Org.BouncyCastle.Cms.Tests
 {
     public class CmsTestUtil
-	{
-		public static readonly SecureRandom Random = new SecureRandom();
+    {
+        public static readonly SecureRandom Random = new SecureRandom();
 
-		private static IAsymmetricCipherKeyPairGenerator kpg;
-		private static IAsymmetricCipherKeyPairGenerator gostKpg;
-		private static IAsymmetricCipherKeyPairGenerator dsaKpg;
-		private static IAsymmetricCipherKeyPairGenerator ecGostKpg;
-		private static IAsymmetricCipherKeyPairGenerator ecDsaKpg;
+        private static IAsymmetricCipherKeyPairGenerator kpg;
+        private static IAsymmetricCipherKeyPairGenerator gostKpg;
+        private static IAsymmetricCipherKeyPairGenerator dsaKpg;
+        private static IAsymmetricCipherKeyPairGenerator ecGostKpg;
+        private static IAsymmetricCipherKeyPairGenerator ecDsaKpg;
         private static IAsymmetricCipherKeyPairGenerator ed25519Kpg;
         private static IAsymmetricCipherKeyPairGenerator ed448Kpg;
         private static IAsymmetricCipherKeyPairGenerator mlDsa44Kpg;
@@ -51,20 +51,20 @@ namespace Org.BouncyCastle.Cms.Tests
         private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_256f_Kpg;
         private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_256s_Kpg;
 
-        public static CipherKeyGenerator aes128KG;
-        public static CipherKeyGenerator aes192KG;
-        public static CipherKeyGenerator aes256KG;
-        public static CipherKeyGenerator camellia128KG;
-        public static CipherKeyGenerator camellia192KG;
-        public static CipherKeyGenerator camellia256KG;
-        public static CipherKeyGenerator desede128KG;
-		public static CipherKeyGenerator desede192KG;
-		public static CipherKeyGenerator rc2_40KG;
-		public static CipherKeyGenerator rc2_64KG;
-		public static CipherKeyGenerator rc2_128KG;
-		public static CipherKeyGenerator seedKG;
+        internal static CipherKeyGenerator aes128KG;
+        internal static CipherKeyGenerator aes192KG;
+        internal static CipherKeyGenerator aes256KG;
+        internal static CipherKeyGenerator camellia128KG;
+        internal static CipherKeyGenerator camellia192KG;
+        internal static CipherKeyGenerator camellia256KG;
+        internal static CipherKeyGenerator desede128KG;
+        internal static CipherKeyGenerator desede192KG;
+        internal static CipherKeyGenerator rc2_40KG;
+        internal static CipherKeyGenerator rc2_64KG;
+        internal static CipherKeyGenerator rc2_128KG;
+        internal static CipherKeyGenerator seedKG;
 
-		public static int serialNumber;
+        internal static int serialNumber;
 
 		private static readonly byte[] attrCert = Base64.Decode(
 			  "MIIHQDCCBqkCAQEwgZChgY2kgYowgYcxHDAaBgkqhkiG9w0BCQEWDW1sb3JjaEB2"
@@ -572,11 +572,11 @@ namespace Org.BouncyCastle.Cms.Tests
             return CollectionUtilities.CreateStore(otherRevocationInfoList);
         }
 
-        internal static AuthorityKeyIdentifier CreateAuthorityKeyID(AsymmetricKeyParameter pubKey) =>
-            new AuthorityKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
+        internal static AuthorityKeyIdentifier CreateAuthorityKeyID(AsymmetricKeyParameter publicKey) =>
+            X509ExtensionUtilities.CreateAuthorityKeyIdentifier(publicKey);
 
-        internal static SubjectKeyIdentifier CreateSubjectKeyID(AsymmetricKeyParameter pubKey) =>
-            new SubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
+        internal static SubjectKeyIdentifier CreateSubjectKeyID(AsymmetricKeyParameter publicKey) =>
+            X509ExtensionUtilities.CreateSubjectKeyIdentifier(publicKey);
 
         private static BigInteger AllocateSerialNumber() => BigInteger.ValueOf(NextSerialNumber());
 

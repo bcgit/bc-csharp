@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Tests
                     new GeneralNames(new GeneralName(caCertLw.Issuer)),
                     caCertLw.SerialNumber.Value));
             extGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false,
-                new SubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(intKey)));
+                X509ExtensionUtilities.CreateSubjectKeyIdentifier(intKey));
             extGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(0));
             extGen.AddExtension(X509Extensions.KeyUsage, true,
                 new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyCertSign | KeyUsage.CrlSign));
@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Tests
                     new GeneralNames(new GeneralName(caCertLw.Issuer)),
                     caCertLw.SerialNumber.Value));
             extGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false,
-                new SubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(entityKey)));
+                X509ExtensionUtilities.CreateSubjectKeyIdentifier(entityKey));
             extGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(0));
             extGen.AddExtension(X509Extensions.KeyUsage, true,
                 new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyCertSign | KeyUsage.CrlSign));
@@ -177,7 +177,7 @@ namespace Org.BouncyCastle.Tests
                     new GeneralNames(new GeneralName(caCertLw.Issuer)),
                     caCertLw.SerialNumber.Value));
             extGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false,
-                new SubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(entityKey)));
+                X509ExtensionUtilities.CreateSubjectKeyIdentifier(entityKey));
             extGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(0));
             extGen.AddExtension(X509Extensions.KeyUsage, true,
                 new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyCertSign | KeyUsage.CrlSign));
