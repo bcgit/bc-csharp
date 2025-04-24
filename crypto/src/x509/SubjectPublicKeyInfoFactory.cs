@@ -93,7 +93,7 @@ namespace Org.BouncyCastle.X509
                 }
                 else
                 {
-                    var algParams = ECDomainParameters.ToX962Parameters(ecKey.Parameters);
+                    var algParams = ecKey.Parameters.ToX962Parameters();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     int encodedLength = q.GetEncodedLength(false);

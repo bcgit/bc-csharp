@@ -56,5 +56,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         public DerObjectIdentifier Name => m_name;
+
+        public override X962Parameters ToX962Parameters() => new X962Parameters(Name);
     }
 }

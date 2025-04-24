@@ -10,18 +10,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ECDomainParameters
     {
-        public static ECDomainParameters FromX962Parameters(X962Parameters parameters)
+        public static ECDomainParameters FromX962Parameters(X962Parameters x962Parameters)
         {
-            if (parameters.IsImplicitlyCA)
+            if (x962Parameters.IsImplicitlyCA)
                 throw new NotImplementedException("implicitlyCA");
 
-            var namedCurve = parameters.NamedCurve;
+            var namedCurve = x962Parameters.NamedCurve;
             if (namedCurve != null)
                 return ECNamedDomainParameters.LookupOid(namedCurve);
 
-            var x9 = X9ECParameters.GetInstance(parameters.Parameters);
-            return new ECDomainParameters(x9);
+            var x9 = X9ECParameters.GetInstance(x962Parameters.Parameters);
+            return FromX9ECParameters(x9);
         }
+
+        public static ECDomainParameters FromX9ECParameters(X9ECParameters x9ECParameters) =>
+            new ECDomainParameters(x9ECParameters);
 
         public static ECDomainParameters LookupName(string name)
         {
@@ -35,19 +38,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             var x9 = ECUtilities.FindECCurveByName(name) ??
                 throw new ArgumentException("Name is not a valid public key parameter set", nameof(name));
 
-            return new ECDomainParameters(x9);
-        }
-
-        public static X962Parameters ToX962Parameters(ECDomainParameters parameters)
-        {
-            if (parameters is ECNamedDomainParameters named)
-                return new X962Parameters(named.Name);
-
-            var dp = parameters;
-            // TODO Support for choosing compressed==true?
-            var g = new X9ECPoint(dp.G, compressed: false);
-            var x9 = new X9ECParameters(dp.Curve, g, dp.N, dp.H, dp.Seed);
-            return new X962Parameters(x9);
+            return FromX9ECParameters(x9);
         }
 
         private readonly ECCurve m_curve;
@@ -144,6 +135,15 @@ namespace Org.BouncyCastle.Crypto.Parameters
             hc ^= m_n.GetHashCode();
             return hc;
 #endif
+        }
+
+        public virtual X962Parameters ToX962Parameters() => new X962Parameters(ToX9ECParameters());
+
+        public virtual X9ECParameters ToX9ECParameters()
+        {
+            // TODO Support for choosing compressed==true?
+            var g = new X9ECPoint(G, compressed: false);
+            return new X9ECParameters(Curve, g, N, H, Seed);
         }
 
         public BigInteger ValidatePrivateScalar(BigInteger d)

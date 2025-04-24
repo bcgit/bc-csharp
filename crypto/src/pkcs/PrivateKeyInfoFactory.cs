@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.Pkcs
                 }
                 else
                 {
-                    X962Parameters x962 = ECDomainParameters.ToX962Parameters(dp);
+                    X962Parameters x962 = dp.ToX962Parameters();
 
                     ec = new ECPrivateKeyStructure(orderBitLength, ecKey.D, publicKey, x962);
 

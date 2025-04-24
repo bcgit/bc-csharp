@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Security
             return new ECPublicKeyParameters(
                 algorithm,
                 GetECPoint(x9.Curve, ec.Q),
-                new ECDomainParameters(x9));
+                ECDomainParameters.FromX9ECParameters(x9));
         }
 
         private static Math.EC.ECPoint GetECPoint(Math.EC.ECCurve curve, ECPoint point)
