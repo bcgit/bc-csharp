@@ -95,61 +95,83 @@ namespace Org.BouncyCastle.Asn1
         internal readonly Asn1Encodable[] m_elements;
         internal DerEncoding[] m_sortedDerEncodings;
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Set()
         {
             m_elements = Asn1EncodableVector.EmptyElements;
             m_sortedDerEncodings = null;
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Set(Asn1Encodable element)
         {
-            if (null == element)
+            if (element == null)
                 throw new ArgumentNullException(nameof(element));
 
             m_elements = new Asn1Encodable[]{ element };
             m_sortedDerEncodings = null;
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Set(Asn1Encodable[] elements, bool doSort)
         {
             if (Arrays.IsNullOrContainsNull(elements))
                 throw new NullReferenceException("'elements' cannot be null, or contain null");
 
-            elements = Asn1EncodableVector.CloneElements(elements);
+            Asn1Encodable[] _elements = Asn1EncodableVector.CloneElements(elements);
             DerEncoding[] sortedDerEncodings = null;
 
-            if (doSort && elements.Length > 1)
+            if (doSort && _elements.Length > 1)
             {
-                sortedDerEncodings = SortElements(elements);
+                sortedDerEncodings = SortElements(_elements);
             }
 
-            m_elements = elements;
+            m_elements = _elements;
             m_sortedDerEncodings = sortedDerEncodings;
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Set(Asn1EncodableVector elementVector, bool doSort)
         {
-            if (null == elementVector)
+            if (elementVector == null)
                 throw new ArgumentNullException(nameof(elementVector));
 
-            Asn1Encodable[] elements;
+            Asn1Encodable[] _elements;
             DerEncoding[] sortedDerEncodings;
 
             if (doSort && elementVector.Count > 1)
             {
-                elements = elementVector.CopyElements();
-                sortedDerEncodings = SortElements(elements);
+                _elements = elementVector.CopyElements();
+                sortedDerEncodings = SortElements(_elements);
             }
             else
             {
-                elements = elementVector.TakeElements();
+                _elements = elementVector.TakeElements();
                 sortedDerEncodings = null;
             }
 
-            m_elements = elements;
+            m_elements = _elements;
             m_sortedDerEncodings = sortedDerEncodings;
         }
 
+        internal Asn1Set(IReadOnlyCollection<Asn1Encodable> elements, bool doSort)
+        {
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+
+            Asn1Encodable[] _elements = CollectionUtilities.ToArray(elements);
+            DerEncoding[] sortedDerEncodings = null;
+
+            if (doSort && _elements.Length > 1)
+            {
+                sortedDerEncodings = SortElements(_elements);
+            }
+
+            m_elements = _elements;
+            m_sortedDerEncodings = sortedDerEncodings;
+        }
+
+        // TODO[api] Remove 'protected'
         protected internal Asn1Set(bool isSorted, Asn1Encodable[] elements)
         {
             Debug.Assert(!isSorted);

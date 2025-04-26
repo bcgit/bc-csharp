@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -21,6 +22,11 @@ namespace Org.BouncyCastle.Asn1
             default:
                 return WithElements(ConcatenateElements(sequences));
             }
+        }
+
+        public static new DLSequence FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
+        {
+            return elements.Count < 1 ? Empty : new DLSequence(elements);
         }
 
         public static new DLSequence FromElements(Asn1Encodable[] elements)
@@ -62,25 +68,16 @@ namespace Org.BouncyCastle.Asn1
             return elements.Length < 1 ? Empty : new DLSequence(elements, clone: false);
         }
 
-        /**
-		 * create an empty sequence
-		 */
         public DLSequence()
             : base()
         {
         }
 
-        /**
-		 * create a sequence containing one object
-		 */
         public DLSequence(Asn1Encodable element)
             : base(element)
         {
         }
 
-        /**
-		 * create a sequence containing two objects
-		 */
         public DLSequence(Asn1Encodable element1, Asn1Encodable element2)
             : base(element1, element2)
         {
@@ -91,11 +88,13 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        /**
-		 * create a sequence containing a vector of objects.
-		 */
         public DLSequence(Asn1EncodableVector elementVector)
             : base(elementVector)
+        {
+        }
+
+        public DLSequence(IReadOnlyCollection<Asn1Encodable> elements)
+            : base(elements)
         {
         }
 
@@ -122,19 +121,11 @@ namespace Org.BouncyCastle.Asn1
                 Asn1OutputStream.GetContentsEncodings(Asn1OutputStream.EncodingDL, m_elements));
         }
 
-        internal override DerBitString ToAsn1BitString()
-        {
-            return new DLBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
-        }
+        internal override DerBitString ToAsn1BitString() =>
+            new DLBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
 
-        internal override DerExternal ToAsn1External()
-        {
-            return new DLExternal(this);
-        }
+        internal override DerExternal ToAsn1External() => new DLExternal(this);
 
-        internal override Asn1Set ToAsn1Set()
-        {
-            return new DLSet(false, m_elements);
-        }
+        internal override Asn1Set ToAsn1Set() => new DLSet(false, m_elements);
     }
 }

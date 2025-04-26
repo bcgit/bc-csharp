@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Asn1
                 }
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         /**
@@ -116,29 +116,33 @@ namespace Org.BouncyCastle.Asn1
 
         internal readonly Asn1Encodable[] m_elements;
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence()
         {
             m_elements = Asn1EncodableVector.EmptyElements;
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1Encodable element)
         {
-            if (null == element)
+            if (element == null)
                 throw new ArgumentNullException(nameof(element));
 
             m_elements = new Asn1Encodable[]{ element };
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1Encodable element1, Asn1Encodable element2)
         {
-            if (null == element1)
+            if (element1 == null)
                 throw new ArgumentNullException(nameof(element1));
-            if (null == element2)
+            if (element2 == null)
                 throw new ArgumentNullException(nameof(element2));
 
             m_elements = new Asn1Encodable[]{ element1, element2 };
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(params Asn1Encodable[] elements)
         {
             if (Arrays.IsNullOrContainsNull(elements))
@@ -152,12 +156,21 @@ namespace Org.BouncyCastle.Asn1
             m_elements = clone ? Asn1EncodableVector.CloneElements(elements) : elements;
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1EncodableVector elementVector)
         {
-            if (null == elementVector)
-                throw new ArgumentNullException("elementVector");
+            if (elementVector == null)
+                throw new ArgumentNullException(nameof(elementVector));
 
             m_elements = elementVector.TakeElements();
+        }
+
+        internal Asn1Sequence(IReadOnlyCollection<Asn1Encodable> elements)
+        {
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+
+            m_elements = CollectionUtilities.ToArray(elements);
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()

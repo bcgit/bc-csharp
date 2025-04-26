@@ -1,11 +1,12 @@
 using System;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1
 {
-	public class BerSequence
-		: DLSequence
-	{
-		public static new readonly BerSequence Empty = new BerSequence();
+    public class BerSequence
+        : DLSequence
+    {
+        public static new readonly BerSequence Empty = new BerSequence();
 
         public static new BerSequence Concatenate(params Asn1Sequence[] sequences)
         {
@@ -21,6 +22,11 @@ namespace Org.BouncyCastle.Asn1
             default:
                 return WithElements(ConcatenateElements(sequences));
             }
+        }
+
+        public static new BerSequence FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
+        {
+            return elements.Count < 1 ? Empty : new BerSequence(elements);
         }
 
         public static new BerSequence FromElements(Asn1Encodable[] elements)
@@ -47,10 +53,10 @@ namespace Org.BouncyCastle.Asn1
             return WithElements(sequence.m_elements);
         }
 
-		public static new BerSequence FromVector(Asn1EncodableVector elementVector)
-		{
+        public static new BerSequence FromVector(Asn1EncodableVector elementVector)
+        {
             return elementVector.Count < 1 ? Empty : new BerSequence(elementVector);
-		}
+        }
 
         public static new BerSequence Map(Asn1Sequence sequence, Func<Asn1Encodable, Asn1Encodable> func)
         {
@@ -62,25 +68,16 @@ namespace Org.BouncyCastle.Asn1
             return elements.Length < 1 ? Empty : new BerSequence(elements, clone: false);
         }
 
-        /**
-		 * create an empty sequence
-		 */
         public BerSequence()
             : base()
-		{
-		}
+        {
+        }
 
-		/**
-		 * create a sequence containing one object
-		 */
-		public BerSequence(Asn1Encodable element)
+        public BerSequence(Asn1Encodable element)
             : base(element)
-		{
-		}
+        {
+        }
 
-        /**
-		 * create a sequence containing two objects
-		 */
         public BerSequence(Asn1Encodable element1, Asn1Encodable element2)
             : base(element1, element2)
         {
@@ -88,16 +85,18 @@ namespace Org.BouncyCastle.Asn1
 
         public BerSequence(params Asn1Encodable[] elements)
             : base(elements)
-		{
-		}
+        {
+        }
 
-		/**
-		 * create a sequence containing a vector of objects.
-		 */
-		public BerSequence(Asn1EncodableVector elementVector)
+        public BerSequence(Asn1EncodableVector elementVector)
             : base(elementVector)
-		{
-		}
+        {
+        }
+
+        public BerSequence(IReadOnlyCollection<Asn1Encodable> elements)
+            : base(elements)
+        {
+        }
 
         internal BerSequence(Asn1Encodable[] elements, bool clone)
             : base(elements, clone)
@@ -122,25 +121,13 @@ namespace Org.BouncyCastle.Asn1
                 Asn1OutputStream.GetContentsEncodings(encoding, m_elements));
         }
 
-        internal override DerBitString ToAsn1BitString()
-        {
-            return new BerBitString(GetConstructedBitStrings());
-        }
+        internal override DerBitString ToAsn1BitString() => new BerBitString(GetConstructedBitStrings());
 
-        internal override DerExternal ToAsn1External()
-        {
-            // TODO[asn1] There is currently no BerExternal (or Asn1External)
-            return new DLExternal(this);
-        }
+        // TODO[asn1] There is currently no BerExternal (or Asn1External)
+        internal override DerExternal ToAsn1External() => new DLExternal(this);
 
-        internal override Asn1OctetString ToAsn1OctetString()
-        {
-            return new BerOctetString(GetConstructedOctetStrings());
-        }
+        internal override Asn1OctetString ToAsn1OctetString() => new BerOctetString(GetConstructedOctetStrings());
 
-        internal override Asn1Set ToAsn1Set()
-        {
-            return new BerSet(false, m_elements);
-        }
+        internal override Asn1Set ToAsn1Set() => new BerSet(false, m_elements);
     }
 }

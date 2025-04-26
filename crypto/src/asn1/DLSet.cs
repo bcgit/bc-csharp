@@ -1,4 +1,4 @@
-﻿using System;
+﻿using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -7,37 +7,38 @@ namespace Org.BouncyCastle.Asn1
     {
         public static new readonly DLSet Empty = new DLSet();
 
+        public static new DLSet FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
+        {
+            return elements.Count < 1 ? Empty : new DLSet(elements);
+        }
+
         public static new DLSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DLSet(elementVector);
         }
 
-        /**
-         * create an empty set
-         */
         public DLSet()
             : base()
         {
         }
 
-        /**
-         * create a set containing one object
-         */
         public DLSet(Asn1Encodable element)
             : base(element)
         {
         }
 
         public DLSet(params Asn1Encodable[] elements)
-            : base(elements, false)
+            : base(elements, doSort: false)
         {
         }
 
-        /**
-         * create a set containing a vector of objects.
-         */
         public DLSet(Asn1EncodableVector elementVector)
-            : base(elementVector, false)
+            : base(elementVector, doSort: false)
+        {
+        }
+
+        public DLSet(IReadOnlyCollection<Asn1Encodable> elements)
+            : base(elements, doSort: false)
         {
         }
 

@@ -1,30 +1,27 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1
 {
     public class BerSet
         : DLSet
     {
-		public static new readonly BerSet Empty = new BerSet();
+        public static new readonly BerSet Empty = new BerSet();
 
-		public static new BerSet FromVector(Asn1EncodableVector elementVector)
-		{
+        public static new BerSet FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
+        {
+            return elements.Count < 1 ? Empty : new BerSet(elements);
+        }
+
+        public static new BerSet FromVector(Asn1EncodableVector elementVector)
+        {
             return elementVector.Count < 1 ? Empty : new BerSet(elementVector);
-		}
+        }
 
-		/**
-         * create an empty set
-         */
         public BerSet()
             : base()
         {
         }
 
-        /**
-         * create a set containing one object
-         */
         public BerSet(Asn1Encodable element)
             : base(element)
         {
@@ -35,11 +32,13 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        /**
-         * create a set containing a vector of objects.
-         */
         public BerSet(Asn1EncodableVector elementVector)
             : base(elementVector)
+        {
+        }
+
+        public BerSet(IReadOnlyCollection<Asn1Encodable> elements)
+            : base(elements)
         {
         }
 

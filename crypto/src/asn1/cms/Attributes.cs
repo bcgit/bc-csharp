@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
@@ -45,6 +46,11 @@ namespace Org.BouncyCastle.Asn1.Cms
         public Attributes(Asn1EncodableVector v)
         {
             m_attributes = BerSet.FromVector(v);
+        }
+
+        public Attributes(IReadOnlyCollection<Attribute> attributes)
+        {
+            m_attributes = BerSet.FromCollection(attributes);
         }
 
         public virtual Attribute[] GetAttributes() => m_attributes.MapElements(Attribute.GetInstance);

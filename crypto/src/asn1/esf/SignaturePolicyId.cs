@@ -93,6 +93,18 @@ namespace Org.BouncyCastle.Asn1.Esf
             }
         }
 
+        public SignaturePolicyId(DerObjectIdentifier sigPolicyIdentifier, OtherHashAlgAndValue sigPolicyHash,
+            IReadOnlyCollection<SigPolicyQualifierInfo> sigPolicyQualifiers)
+        {
+            m_sigPolicyIdentifier = sigPolicyIdentifier ?? throw new ArgumentNullException(nameof(sigPolicyIdentifier));
+            m_sigPolicyHash = sigPolicyHash ?? throw new ArgumentNullException(nameof(sigPolicyHash));
+
+            if (sigPolicyQualifiers != null)
+            {
+                m_sigPolicyQualifiers = DerSequence.FromCollection(sigPolicyQualifiers);
+            }
+        }
+
         public DerObjectIdentifier SigPolicyIdentifier => m_sigPolicyIdentifier;
 
         public OtherHashAlgAndValue SigPolicyHash => m_sigPolicyHash;

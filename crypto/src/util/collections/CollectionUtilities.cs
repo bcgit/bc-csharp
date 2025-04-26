@@ -107,6 +107,19 @@ namespace Org.BouncyCastle.Utilities.Collections
             return e.Current;
         }
 
+        public static T[] ToArray<T>(IReadOnlyCollection<T> c)
+        {
+            int count = c.Count, pos = 0;
+            T[] a = new T[count];
+            foreach (var t in c)
+            {
+                a[pos++] = t;
+            }
+            if (pos != count)
+                throw new InvalidOperationException();
+            return a;
+        }
+
         public static string ToString<T>(IEnumerable<T> c)
         {
             IEnumerator<T> e = c.GetEnumerator();
