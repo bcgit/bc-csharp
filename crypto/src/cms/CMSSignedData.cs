@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.Cms
             //
             HashSet<AlgorithmIdentifier> digestAlgs = new HashSet<AlgorithmIdentifier>();
 
-            foreach (var entry in digestAlgs)
+            foreach (var entry in digestAlgorithms)
             {
                 digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(entry, digestAlgorithmFinder));
             }

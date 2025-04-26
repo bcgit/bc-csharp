@@ -1254,6 +1254,47 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         [Test]
+        public void TestAddDigestAlgorithm()
+        {
+            var ripeMD160 = new AlgorithmIdentifier(TeleTrusTObjectIdentifiers.RipeMD160, DerNull.Instance);
+            var sha1 = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+
+            CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
+
+            var x509Certs = CmsTestUtil.MakeCertStore(SignCert, OrigCert);
+            var x509Crls = CmsTestUtil.MakeCrlStore(SignCrl);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+
+            gen.AddSignerInfoGenerator(new SignerInfoGeneratorBuilder().Build(
+                new Asn1SignatureFactory("SHA1withRSA", SignKP.Private), SignCert));
+
+            gen.AddCertificates(x509Certs);
+            gen.AddCrls(x509Crls);
+
+            CmsSignedData s = gen.Generate(msg, true);
+
+            var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithmIDs());
+            Assert.AreEqual(1, digestAlgorithms.Count);
+            Assert.True(digestAlgorithms.Contains(sha1));
+
+            VerifySignatures(s);
+
+            CmsSignedData oldS = s;
+
+            s = CmsSignedData.AddDigestAlgorithm(s, sha1);
+            Assert.AreSame(oldS, s);
+
+            s = CmsSignedData.AddDigestAlgorithm(s, ripeMD160);
+            Assert.AreNotSame(oldS, s);
+
+            var newDigestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithmIDs());
+            Assert.AreEqual(2, newDigestAlgorithms.Count);
+            Assert.True(newDigestAlgorithms.Contains(sha1));
+            Assert.True(newDigestAlgorithms.Contains(ripeMD160));
+        }
+
+        [Test]
         public void TestMLDsa44()
         {
             /*
