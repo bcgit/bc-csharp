@@ -17,17 +17,17 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-	internal static class CmsUtilities
+    internal static class CmsUtilities
     {
-		// TODO Is there a .NET equivalent to this?
-//		private static readonly Runtime RUNTIME = Runtime.getRuntime();
+        // TODO Is there a .NET equivalent to this?
+        //		private static readonly Runtime RUNTIME = Runtime.getRuntime();
 
         private static readonly HashSet<DerObjectIdentifier> ECAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> GostAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> MqvAlgorithms = new HashSet<DerObjectIdentifier>();
 
-		static CmsUtilities()
-		{
+        static CmsUtilities()
+        {
             ECAlgorithms.Add(X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme);
             ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme);
             ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme);
@@ -72,62 +72,62 @@ namespace Org.BouncyCastle.Cms
         internal static bool IsMqv(DerObjectIdentifier oid) => MqvAlgorithms.Contains(oid);
 
         internal static int MaximumMemory
-		{
-			get
-			{
-				// TODO Is there a .NET equivalent to this?
-				long maxMem = int.MaxValue;//RUNTIME.maxMemory();
+        {
+            get
+            {
+                // TODO Is there a .NET equivalent to this?
+                long maxMem = int.MaxValue;//RUNTIME.maxMemory();
 
-				if (maxMem > int.MaxValue)
-				{
-					return int.MaxValue;
-				}
+                if (maxMem > int.MaxValue)
+                {
+                    return int.MaxValue;
+                }
 
-				return (int)maxMem;
-			}
-		}
+                return (int)maxMem;
+            }
+        }
 
-		internal static ContentInfo ReadContentInfo(byte[] input)
-		{
+        internal static ContentInfo ReadContentInfo(byte[] input)
+        {
             using (var asn1In = new Asn1InputStream(input))
-			{
+            {
                 return ReadContentInfo(asn1In);
             }
         }
 
-		internal static ContentInfo ReadContentInfo(Stream input)
-		{
+        internal static ContentInfo ReadContentInfo(Stream input)
+        {
             using (var asn1In = new Asn1InputStream(input, MaximumMemory, leaveOpen: true))
             {
                 return ReadContentInfo(asn1In);
             }
-		}
+        }
 
-		private static ContentInfo ReadContentInfo(Asn1InputStream asn1In)
-		{
-			try
-			{
-				return ContentInfo.GetInstance(asn1In.ReadObject());
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("IOException reading content.", e);
-			}
-			catch (InvalidCastException e)
-			{
-				throw new CmsException("Malformed content.", e);
-			}
-			catch (ArgumentException e)
-			{
-				throw new CmsException("Malformed content.", e);
-			}
-		}
+        private static ContentInfo ReadContentInfo(Asn1InputStream asn1In)
+        {
+            try
+            {
+                return ContentInfo.GetInstance(asn1In.ReadObject());
+            }
+            catch (IOException e)
+            {
+                throw new CmsException("IOException reading content.", e);
+            }
+            catch (InvalidCastException e)
+            {
+                throw new CmsException("Malformed content.", e);
+            }
+            catch (ArgumentException e)
+            {
+                throw new CmsException("Malformed content.", e);
+            }
+        }
 
-		internal static byte[] StreamToByteArray(Stream inStream) => Streams.ReadAll(inStream);
+        internal static byte[] StreamToByteArray(Stream inStream) => Streams.ReadAll(inStream);
 
-		internal static byte[] StreamToByteArray(Stream inStream, int limit) => Streams.ReadAllLimited(inStream, limit);
+        internal static byte[] StreamToByteArray(Stream inStream, int limit) => Streams.ReadAllLimited(inStream, limit);
 
-		// TODO Clean up this method (which is not present in bc-java)
+        // TODO Clean up this method (which is not present in bc-java)
         internal static void AddDigestAlgs(Asn1EncodableVector digestAlgs, SignerInformation signer,
             IDigestAlgorithmFinder digestAlgorithmFinder)
         {
@@ -144,8 +144,8 @@ namespace Org.BouncyCastle.Cms
         {
             digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
             SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
-			foreach (var counterSigner in counterSignaturesStore)
-			{
+            foreach (var counterSigner in counterSignaturesStore)
+            {
                 digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
             }
         }
@@ -311,8 +311,8 @@ namespace Org.BouncyCastle.Cms
         internal static void ValidateOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
         {
             if (CmsObjectIdentifiers.id_ri_ocsp_response.Equals(otherRevocationInfo.InfoFormat))
-			{
-				OcspResponse ocspResponse = OcspResponse.GetInstance(otherRevocationInfo.Info);
+            {
+                OcspResponse ocspResponse = OcspResponse.GetInstance(otherRevocationInfo.Info);
 
                 if (OcspResponseStatus.Successful != ocspResponse.ResponseStatus.IntValueExact)
                     throw new ArgumentException("cannot add unsuccessful OCSP response to CMS SignedData");
