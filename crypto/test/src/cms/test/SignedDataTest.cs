@@ -591,8 +591,8 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestMD5);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestMD5);
             gen.AddCertificates(x509Certs);
 
             CmsSignedData s = gen.Generate(msg, true);
@@ -619,18 +619,18 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 sid = signer.SignerID;
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
 
                 //
                 // check content digest
                 //
 
-                byte[] contentDigest = (byte[])gen.GetGeneratedDigests()[signer.DigestAlgOid];
+                Assert.True(gen.GetGeneratedDigests().TryGetValue(signer.DigestAlgOid, out var contentDigest));
 
                 Asn1.Cms.AttributeTable table = signer.SignedAttributes;
                 Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
 
-                Assert.IsTrue(Arrays.AreEqual(contentDigest, ((Asn1OctetString)hash.AttrValues[0]).GetOctets()));
+                Assert.True(Arrays.AreEqual(contentDigest, ((Asn1OctetString)hash.AttrValues[0]).GetOctets()));
             }
 
             c = signers.GetSigners(sid);
@@ -668,7 +668,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.AreEqual(true, signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
 
             CheckSignerStoreReplacement(s, signers);
@@ -713,18 +713,18 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 sid = signer.SignerID;
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
 
                 //
                 // check content digest
                 //
 
-                byte[] contentDigest = (byte[])gen.GetGeneratedDigests()[signer.DigestAlgOid];
+                Assert.True(gen.GetGeneratedDigests().TryGetValue(signer.DigestAlgOid, out var contentDigest));
 
                 Asn1.Cms.AttributeTable table = signer.SignedAttributes;
                 Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
 
-                Assert.IsTrue(Arrays.AreEqual(contentDigest, ((Asn1OctetString)hash.AttrValues[0]).GetOctets()));
+                Assert.True(Arrays.AreEqual(contentDigest, ((Asn1OctetString)hash.AttrValues[0]).GetOctets()));
             }
 
             c = signers.GetSigners(sid);
@@ -762,7 +762,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.AreEqual(true, signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
 
             CheckSignerStoreReplacement(s, signers);
@@ -811,10 +811,10 @@ namespace Org.BouncyCastle.Cms.Tests
         //    IX509Store x509Certs = MakeCertStore(OrigCert, SignCert);
 
         //    CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-        //    gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+        //    gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
         //    gen.AddCertificates(x509Certs);
 
-        //    CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false, false);
+        //    CmsSignedData s = gen.Generate(CmsSignedGenerator.Data, msg, false, false);
 
         //    byte[] testBytes = Encoding.ASCII.GetBytes("Hello world!");
 
@@ -840,11 +840,11 @@ namespace Org.BouncyCastle.Cms.Tests
             Asn1EncodableVector v = new Asn1EncodableVector(attr);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(SignKP.Private, SignCert, CmsSignedDataGenerator.DigestSha1,
+            gen.AddSigner(SignKP.Private, SignCert, CmsSignedGenerator.DigestSha1,
                 new Asn1.Cms.AttributeTable(v), null);
             gen.AddCertificates(x509Certs);
 
-            CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, null, false);
+            CmsSignedData s = gen.Generate(CmsSignedGenerator.Data, null, false);
 
             //
             // the signature is detached, so need to add msg before passing on
@@ -870,7 +870,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 var certCollection = certStore.EnumerateMatches(signerInformation.SignerID);
                 foreach (X509Certificate cert in certCollection)
                 {
-                    Assert.IsTrue(signerInformation.Verify(cert), "raw sig failed");
+                    Assert.True(signerInformation.Verify(cert), "raw sig failed");
                 }
             }
         }
@@ -878,31 +878,31 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestSha1WithRsaEncapsulated()
         {
-            EncapsulatedTest(SignKP, SignCert, CmsSignedDataGenerator.DigestSha1);
+            EncapsulatedTest(SignKP, SignCert, CmsSignedGenerator.DigestSha1);
         }
 
         [Test]
         public void TestSha1WithRsaEncapsulatedSubjectKeyID()
         {
-            SubjectKeyIDTest(SignKP, SignCert, CmsSignedDataGenerator.DigestSha1);
+            SubjectKeyIDTest(SignKP, SignCert, CmsSignedGenerator.DigestSha1);
         }
 
         [Test]
         public void TestSha1WithRsaPss()
         {
-            RsaPssTest("SHA1", CmsSignedDataGenerator.DigestSha1);
+            RsaPssTest("SHA1", CmsSignedGenerator.DigestSha1);
         }
 
         [Test]
         public void TestSha224WithRsaPss()
         {
-            RsaPssTest("SHA224", CmsSignedDataGenerator.DigestSha224);
+            RsaPssTest("SHA224", CmsSignedGenerator.DigestSha224);
         }
 
         [Test]
         public void TestSha256WithRsaPss()
         {
-            RsaPssTest("SHA256", CmsSignedDataGenerator.DigestSha256);
+            RsaPssTest("SHA256", CmsSignedGenerator.DigestSha256);
         }
 
         [Test]
@@ -914,7 +914,7 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestSha384WithRsaPss()
         {
-            RsaPssTest("SHA384", CmsSignedDataGenerator.DigestSha384);
+            RsaPssTest("SHA384", CmsSignedGenerator.DigestSha384);
         }
 
         [Test]
@@ -1021,91 +1021,91 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestSha224WithRsaEncapsulated()
         {
-            EncapsulatedTest(SignKP, SignCert, CmsSignedDataGenerator.DigestSha224);
+            EncapsulatedTest(SignKP, SignCert, CmsSignedGenerator.DigestSha224);
         }
 
         [Test]
         public void TestSha256WithRsaEncapsulated()
         {
-            EncapsulatedTest(SignKP, SignCert, CmsSignedDataGenerator.DigestSha256);
+            EncapsulatedTest(SignKP, SignCert, CmsSignedGenerator.DigestSha256);
         }
 
         [Test]
         public void TestRipeMD128WithRsaEncapsulated()
         {
-            EncapsulatedTest(SignKP, SignCert, CmsSignedDataGenerator.DigestRipeMD128);
+            EncapsulatedTest(SignKP, SignCert, CmsSignedGenerator.DigestRipeMD128);
         }
 
         [Test]
         public void TestRipeMD160WithRsaEncapsulated()
         {
-            EncapsulatedTest(SignKP, SignCert, CmsSignedDataGenerator.DigestRipeMD160);
+            EncapsulatedTest(SignKP, SignCert, CmsSignedGenerator.DigestRipeMD160);
         }
 
         [Test]
         public void TestRipeMD256WithRsaEncapsulated()
         {
-            EncapsulatedTest(SignKP, SignCert, CmsSignedDataGenerator.DigestRipeMD256);
+            EncapsulatedTest(SignKP, SignCert, CmsSignedGenerator.DigestRipeMD256);
         }
 
         [Test]
         public void TestSha224WithDsaEncapsulated()
         {
-            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha224);
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedGenerator.DigestSha224);
         }
 
         [Test]
         public void TestSha256WithDsaEncapsulated()
         {
-            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha256);
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedGenerator.DigestSha256);
         }
 
         [Test]
         public void TestSha384WithDsaEncapsulated()
         {
-            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha384);
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedGenerator.DigestSha384);
         }
 
         [Test]
         public void TestSha512WithDsaEncapsulated()
         {
-            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha512);
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedGenerator.DigestSha512);
         }
 
         [Test]
         public void TestECDsaEncapsulated()
         {
-            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedDataGenerator.DigestSha1);
+            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedGenerator.DigestSha1);
         }
 
         [Test]
         public void TestECDsaEncapsulatedSubjectKeyID()
         {
-            SubjectKeyIDTest(SignECDsaKP, SignECDsaCert, CmsSignedDataGenerator.DigestSha1);
+            SubjectKeyIDTest(SignECDsaKP, SignECDsaCert, CmsSignedGenerator.DigestSha1);
         }
 
         [Test]
         public void TestECDsaSha224Encapsulated()
         {
-            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedDataGenerator.DigestSha224);
+            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedGenerator.DigestSha224);
         }
 
         [Test]
         public void TestECDsaSha256Encapsulated()
         {
-            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedDataGenerator.DigestSha256);
+            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedGenerator.DigestSha256);
         }
 
         [Test]
         public void TestECDsaSha384Encapsulated()
         {
-            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedDataGenerator.DigestSha384);
+            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedGenerator.DigestSha384);
         }
 
         [Test]
         public void TestECDsaSha512Encapsulated()
         {
-            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedDataGenerator.DigestSha512);
+            EncapsulatedTest(SignECDsaKP, SignECDsaCert, CmsSignedGenerator.DigestSha512);
         }
 
         [Test]
@@ -1117,7 +1117,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 PublicKeyFactory.CreateKey(pubEnc),
                 PrivateKeyFactory.CreateKey(privEnc));
 
-            EncapsulatedTest(kp, SignECDsaCert, CmsSignedDataGenerator.DigestSha512);
+            EncapsulatedTest(kp, SignECDsaCert, CmsSignedGenerator.DigestSha512);
         }
 
         [Test]
@@ -1195,25 +1195,25 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestDsaEncapsulated()
         {
-            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha1);
+            EncapsulatedTest(SignDsaKP, SignDsaCert, CmsSignedGenerator.DigestSha1);
         }
 
         [Test]
         public void TestDsaEncapsulatedSubjectKeyID()
         {
-            SubjectKeyIDTest(SignDsaKP, SignDsaCert, CmsSignedDataGenerator.DigestSha1);
+            SubjectKeyIDTest(SignDsaKP, SignDsaCert, CmsSignedGenerator.DigestSha1);
         }
 
         [Test]
         public void TestGost3411WithGost3410Encapsulated()
         {
-            EncapsulatedTest(SignGostKP, SignGostCert, CmsSignedDataGenerator.DigestGost3411);
+            EncapsulatedTest(SignGostKP, SignGostCert, CmsSignedGenerator.DigestGost3411);
         }
 
         [Test]
         public void TestGost3411WithECGost3410Encapsulated()
         {
-            EncapsulatedTest(SignECGostKP, SignECGostCert, CmsSignedDataGenerator.DigestGost3411);
+            EncapsulatedTest(SignECGostKP, SignECGostCert, CmsSignedGenerator.DigestGost3411);
         }
 
         [Test]
@@ -1225,7 +1225,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Crls = CmsTestUtil.MakeCrlStore(SignCrl);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(SignKP.Private, SignCert, CmsSignedDataGenerator.DigestSha1);
+            gen.AddSigner(SignKP.Private, SignCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
             gen.AddCrls(x509Crls);
 
@@ -1250,8 +1250,8 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.IsNull(cSigner.SignedAttributes[Asn1.Pkcs.PkcsObjectIdentifiers.Pkcs9AtContentType]);
-                Assert.IsTrue(cSigner.Verify(cert));
+                Assert.Null(cSigner.SignedAttributes[Asn1.Pkcs.PkcsObjectIdentifiers.Pkcs9AtContentType]);
+                Assert.True(cSigner.Verify(cert));
             }
         }
 
@@ -1568,10 +1568,10 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.EncryptionRsaPss, digestOID);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.EncryptionRsaPss, digestOID);
             gen.AddCertificates(x509Certs);
 
-            CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false);
+            CmsSignedData s = gen.Generate(CmsSignedGenerator.Data, msg, false);
 
             // compute expected content digest
             byte[] expectedDigest = DigestUtilities.CalculateDigest(digestName, msgBytes);
@@ -1591,7 +1591,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 new Asn1SignatureFactory(digestName + "withRSAandMGF1", OrigKP.Private), OrigCert));
             gen.AddCertificates(x509Certs);
 
-            CmsSignedData s = gen.Generate(CmsSignedDataGenerator.Data, msg, false);
+            CmsSignedData s = gen.Generate(CmsSignedGenerator.Data, msg, false);
 
             // compute expected content digest
             byte[] expectedDigest = DigestUtilities.CalculateDigest(digestName, msgBytes);
@@ -1634,7 +1634,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
 
             //
@@ -1644,7 +1644,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             Assert.AreEqual(1, crls.Count);
 
-            Assert.IsTrue(crls.Contains(SignCrl));
+            Assert.True(crls.Contains(SignCrl));
 
             //
             // try using existing signer
@@ -1675,7 +1675,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
 
             CheckSignerStoreReplacement(s, signers);
@@ -1753,7 +1753,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 Assert.True(signer.Verify(cert));
             }
 
-            Assert.AreEqual(digestAlgorithms.Count, 0);
+            Assert.AreEqual(0, digestAlgorithms.Count);
 
             //
             // check signer information lookup
@@ -1775,7 +1775,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var collection = signers.GetSigners(signerID);
 
             Assert.AreEqual(1, collection.Count);
-            Assert.True(collection[0] != null);
+            Assert.NotNull(collection[0]);
 
             //
             // check for CRLs
@@ -1815,7 +1815,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
 
             CheckSignerStoreReplacement(s, signers);
@@ -1855,7 +1855,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 Assert.AreEqual(digestAlgorithm, signer.DigestAlgOid);
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
 
             //
@@ -1865,7 +1865,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             Assert.AreEqual(1, crls.Count);
 
-            Assert.IsTrue(crls.Contains(SignCrl));
+            Assert.True(crls.Contains(SignCrl));
 
             //
             // try using existing signer
@@ -1897,7 +1897,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
 
             CheckSignerStoreReplacement(s, signers);
@@ -1966,7 +1966,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 Assert.True(signer.Verify(cert));
             }
 
-            Assert.AreEqual(digestAlgorithms.Count, 0);
+            Assert.AreEqual(0, digestAlgorithms.Count);
 
             //
             // check signer information lookup
@@ -1988,7 +1988,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var collection = signers.GetSigners(signerID);
 
             Assert.AreEqual(1, collection.Count);
-            Assert.True(collection[0] != null);
+            Assert.NotNull(collection[0]);
 
             //
             // try using existing signer
@@ -2017,7 +2017,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
 
             CheckSignerStoreReplacement(s, signers);
@@ -2044,7 +2044,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
             }
         }
 
@@ -2068,8 +2068,8 @@ namespace Org.BouncyCastle.Cms.Tests
                 X509Certificate cert = certEnum.Current;
                 SignerInformation sAsIs = new AsIsSignerInformation(signer);
 
-                Assert.IsFalse(signer.Verify(cert));
-                Assert.IsTrue(sAsIs.Verify(cert));
+                Assert.False(signer.Verify(cert));
+                Assert.True(sAsIs.Verify(cert));
             }
         }
 
@@ -2079,7 +2079,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
             CmsSignedData s = gen.Generate(null, false);
@@ -2097,7 +2097,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(SignDsaCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
             var attrCert = CmsTestUtil.GetAttributeCertificate();
@@ -2116,7 +2116,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             Assert.AreEqual(1, coll.Count);
 
-            Assert.IsTrue(coll.Contains(attrCert));
+            Assert.True(coll.Contains(attrCert));
 
             //
             // create new certstore
@@ -2139,7 +2139,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(SignDsaCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
             CmsSignedData sd = gen.Generate(msg);
@@ -2165,7 +2165,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(SignDsaCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
             CmsSignedData sd = gen.Generate(msg, true);
@@ -2191,7 +2191,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert, SignDsaCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
             CmsSignedData sd = gen.Generate(msg, true);
@@ -2213,7 +2213,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(SignCert, SignDsaCert, OrigCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
             CmsSignedData sd = gen.Generate(msg, true);
@@ -2235,7 +2235,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
             CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha1);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
             CmsSignedData original = gen.Generate(msg, true);
@@ -2244,7 +2244,7 @@ namespace Org.BouncyCastle.Cms.Tests
             // create new Signer
             //
             gen = new CmsSignedDataGenerator();
-            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedDataGenerator.DigestSha224);
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha224);
             gen.AddCertificates(x509Certs);
 
             CmsSignedData newSD = gen.Generate(msg, true);
@@ -2258,7 +2258,7 @@ namespace Org.BouncyCastle.Cms.Tests
             signerEnum.MoveNext();
             SignerInformation signer = signerEnum.Current;
 
-            Assert.AreEqual(CmsSignedDataGenerator.DigestSha224, signer.DigestAlgOid);
+            Assert.AreEqual(CmsSignedGenerator.DigestSha224, signer.DigestAlgOid);
 
             // we use a parser here as it requires the digests to be correct in the digest set, if it
             // isn't we'll get a NullPointerException
@@ -2293,7 +2293,7 @@ namespace Org.BouncyCastle.Cms.Tests
             SignerInformationStore ss = sig.GetSignerInfos();
             var signers = ss.GetSigners();
 
-            SignerInformationStore cs = ((SignerInformation)signers[0]).GetCounterSignatures();
+            SignerInformationStore cs = signers[0].GetCounterSignatures();
             var csSigners = cs.GetSigners();
             Assert.AreEqual(1, csSigners.Count);
 
@@ -2304,8 +2304,8 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 X509Certificate cert = (X509Certificate)certCollection[0];
 
-                Assert.IsNull(cSigner.SignedAttributes[Asn1.Pkcs.PkcsObjectIdentifiers.Pkcs9AtContentType]);
-                Assert.IsTrue(cSigner.Verify(cert));
+                Assert.Null(cSigner.SignedAttributes[Asn1.Pkcs.PkcsObjectIdentifiers.Pkcs9AtContentType]);
+                Assert.True(cSigner.Verify(cert));
             }
 
             VerifySignatures(sig);
@@ -2416,8 +2416,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 byte[] certHash256 = DigestUtilities.CalculateDigest("SHA256", m_certificate.GetEncoded());
 
                 var c = m_certificate.CertificateStructure;
-                var essCertIDv2 = new EssCertIDv2(certHash256,
-                    new Asn1.X509.IssuerSerial(c.Issuer, c.SerialNumber));
+                var essCertIDv2 = new EssCertIDv2(certHash256, new IssuerSerial(c.Issuer, c.SerialNumber));
                 var signingCertificateV2 = new SigningCertificateV2(essCertIDv2);
 
                 return table.Add(Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificateV2, signingCertificateV2);
@@ -2490,7 +2489,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 foreach (var signer in signers)
                 {
                     // Verify using the certificate from the supplied credentials
-                    Assert.IsTrue(signer.Verify(credentials.Certificate));
+                    Assert.True(signer.Verify(credentials.Certificate));
                 }
             }
 
@@ -2529,12 +2528,12 @@ namespace Org.BouncyCastle.Cms.Tests
                 var matches = x509Certs.EnumerateMatches(signer.SignerID);
                 var cert = CollectionUtilities.GetFirstOrNull(matches);
 
-                Assert.IsTrue(signer.Verify(cert));
-                Assert.IsTrue(null == signer.GetEncodedSignedAttributes());
+                Assert.True(signer.Verify(cert));
+                Assert.Null(signer.GetEncodedSignedAttributes());
 
                 if (contentDigest != null)
                 {
-                    Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
+                    Assert.True(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
                 }
             }
         }
@@ -2551,11 +2550,11 @@ namespace Org.BouncyCastle.Cms.Tests
                 var matches = x509Certs.EnumerateMatches(signer.SignerID);
                 var cert = CollectionUtilities.GetFirstOrNull(matches);
 
-                Assert.IsTrue(signer.Verify(cert));
+                Assert.True(signer.Verify(cert));
 
                 if (contentDigest != null)
                 {
-                    Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
+                    Assert.True(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
                 }
             }
         }
@@ -2570,8 +2569,8 @@ namespace Org.BouncyCastle.Cms.Tests
                 var matches = x509Certs.EnumerateMatches(signer.SignerID);
                 var cert = CollectionUtilities.GetFirstOrNull(matches);
 
-                Assert.IsTrue(signer.Verify(cert));
-                Assert.IsTrue(new MySignerInformation(signer).Verify(cert)); // test simple copy works
+                Assert.True(signer.Verify(cert));
+                Assert.True(new MySignerInformation(signer).Verify(cert)); // test simple copy works
             }
         }
 
