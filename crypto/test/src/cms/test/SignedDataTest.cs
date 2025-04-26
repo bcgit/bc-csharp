@@ -10,6 +10,8 @@ using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Oiw;
+using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Cert.Tests;
