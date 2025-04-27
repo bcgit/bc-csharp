@@ -207,10 +207,10 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
 
             // FIXME Sort out X509Name hashcode problem
-//			if (name1.GetHashCode() != name2.GetHashCode())
-//			{
-//				Fail("Failed reverse name test GetHashCode");
-//			}
+            //if (name1.GetHashCode() != name2.GetHashCode())
+            //{
+            //    Fail("Failed reverse name test GetHashCode");
+            //}
 
             if (name1.Equivalent(name2, true))
             {
@@ -410,7 +410,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("inequality test with sequence");
             }
 
-            if (name1.Equals(new DerSequence(DerSet.Empty)))
+            if (name1.Equals(DerSequence.FromElement(DerSet.Empty)))
             {
                 Fail("inequality test with sequence and set");
             }
@@ -419,18 +419,18 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerObjectIdentifier("1.1"),
                 new DerObjectIdentifier("1.1"));
 
-            if (name1.Equals(new DerSequence(new DerSet(DerSet.FromVector(v)))))
+            if (name1.Equals(DerSequence.FromElement(DerSet.FromElement(DerSet.FromVector(v)))))
             {
                 Fail("inequality test with sequence and bad set");
             }
 
-//			if (name1.Equals(new DerSequence(new DerSet(new DerSet(v))), true))
-//			{
-//				Fail("inequality test with sequence and bad set");
-//			}
+            //if (name1.Equals(new DerSequence(new DerSet(new DerSet(v))), true))
+            //{
+            //    Fail("inequality test with sequence and bad set");
+            //}
             try
             {
-                X509Name.GetInstance(new DerSequence(new DerSet(DerSet.FromVector(v))));
+                X509Name.GetInstance(DerSequence.FromElement(DerSet.FromElement(DerSet.FromVector(v))));
                 Fail("GetInstance should reject bad sequence");
             }
             catch (ArgumentException)
@@ -438,18 +438,18 @@ namespace Org.BouncyCastle.Asn1.Tests
                 //expected
             }
 
-            if (name1.Equals(new DerSequence(new DerSet(DerSequence.Empty))))
+            if (name1.Equals(DerSequence.FromElement(DerSet.FromElement(DerSequence.Empty))))
             {
                 Fail("inequality test with sequence and short sequence");
             }
 
-//			if (name1.Equals(new DerSequence(new DerSet(DerSequence.Empty)), true))
-//			{
-//				Fail("inequality test with sequence and short sequence");
-//			}
+            //if (name1.Equals(new DerSequence(new DerSet(DerSequence.Empty)), true))
+            //{
+            //    Fail("inequality test with sequence and short sequence");
+            //}
             try
             {
-                X509Name.GetInstance(new DerSequence(new DerSet(DerSequence.Empty)));
+                X509Name.GetInstance(DerSequence.FromElement(DerSet.FromElement(DerSequence.Empty)));
                 Fail("GetInstance should reject short sequence");
             }
             catch (ArgumentException)
@@ -461,7 +461,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerObjectIdentifier("1.1"),
                 DerSequence.Empty);
 
-            if (name1.Equals(new DerSequence(new DerSet(new DerSequence(v)))))
+            if (name1.Equals(DerSequence.FromElement(DerSet.FromElement(new DerSequence(v)))))
             {
                 Fail("inequality test with sequence and bad sequence");
             }
@@ -669,10 +669,10 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
 
             // FIXME Sort out X509Name hashcode problem
-//			if (x509Name.GetHashCode() != x509Name1.GetHashCode())
-//			{
-//				Fail("GetHashCode test failed for " + x509Name + " : " + x509Name1);
-//			}
+            //if (x509Name.GetHashCode() != x509Name1.GetHashCode())
+            //{
+            //    Fail("GetHashCode test failed for " + x509Name + " : " + x509Name1);
+            //}
 
             if (!x509Name.Equivalent(x509Name1, true))
             {

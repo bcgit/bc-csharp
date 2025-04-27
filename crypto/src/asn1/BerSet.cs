@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Asn1
             return elements.Count < 1 ? Empty : new BerSet(elements);
         }
 
+        public static new BerSet FromElement(Asn1Encodable element) => new BerSet(element);
+
         public static new BerSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new BerSet(elementVector);

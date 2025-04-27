@@ -65,6 +65,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public CrlValidatedID[] GetCrls() => m_crls.MapElements(CrlValidatedID.GetInstance);
 
-        public override Asn1Object ToAsn1Object() => new DerSequence(m_crls);
+        public override Asn1Object ToAsn1Object() => DerSequence.FromElement(m_crls);
     }
 }

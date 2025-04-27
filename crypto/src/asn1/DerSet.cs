@@ -15,6 +15,8 @@ namespace Org.BouncyCastle.Asn1
             return elements.Count < 1 ? Empty : new DerSet(elements);
         }
 
+        public static DerSet FromElement(Asn1Encodable element) => new DerSet(element);
+
         public static DerSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DerSet(elementVector);

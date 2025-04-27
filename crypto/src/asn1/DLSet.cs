@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Asn1
             return elements.Count < 1 ? Empty : new DLSet(elements);
         }
 
+        public static new DLSet FromElement(Asn1Encodable element) => new DLSet(element);
+
         public static new DLSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DLSet(elementVector);

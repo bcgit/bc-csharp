@@ -29,6 +29,11 @@ namespace Org.BouncyCastle.Asn1
             return elements.Count < 1 ? Empty : new DLSequence(elements);
         }
 
+        public static new DLSequence FromElement(Asn1Encodable element) => new DLSequence(element);
+
+        public static new DLSequence FromElements(Asn1Encodable element1, Asn1Encodable element2) =>
+            new DLSequence(element1, element2);
+
         public static new DLSequence FromElements(Asn1Encodable[] elements)
         {
             if (elements == null)

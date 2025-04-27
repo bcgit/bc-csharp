@@ -64,6 +64,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public OcspResponsesID[] GetOcspResponses() => m_ocspResponses.MapElements(OcspResponsesID.GetInstance);
 
-        public override Asn1Object ToAsn1Object() => new DerSequence(m_ocspResponses);
+        public override Asn1Object ToAsn1Object() => DerSequence.FromElement(m_ocspResponses);
     }
 }

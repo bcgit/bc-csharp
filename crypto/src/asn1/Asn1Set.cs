@@ -9,7 +9,7 @@ using Org.BouncyCastle.Utilities.Collections;
 namespace Org.BouncyCastle.Asn1
 {
     public abstract class Asn1Set
-        : Asn1Object, IEnumerable<Asn1Encodable>
+        : Asn1Object, IReadOnlyCollection<Asn1Encodable>
     {
         internal class Meta : Asn1UniversalType
         {
@@ -179,10 +179,7 @@ namespace Org.BouncyCastle.Asn1
             m_sortedDerEncodings = null;
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
-        }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
         public virtual IEnumerator<Asn1Encodable> GetEnumerator()
         {
@@ -196,31 +193,13 @@ namespace Org.BouncyCastle.Asn1
          * @param index the set number (starting at zero) of the object
          * @return the object at the set position indicated by index.
          */
-        public virtual Asn1Encodable this[int index]
-        {
-            get { return m_elements[index]; }
-        }
+        public virtual Asn1Encodable this[int index] => m_elements[index];
 
-        public virtual int Count
-        {
-            get { return m_elements.Length; }
-        }
+        public virtual int Count => m_elements.Length;
 
-        public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
-        {
-            int count = Count;
-            T[] result = new T[count];
-            for (int i = 0; i < count; ++i)
-            {
-                result[i] = func(m_elements[i]);
-            }
-            return result;
-        }
+        public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func) => CollectionUtilities.Map(m_elements, func);
 
-        public virtual Asn1Encodable[] ToArray()
-        {
-            return Asn1EncodableVector.CloneElements(m_elements);
-        }
+        public virtual Asn1Encodable[] ToArray() => Asn1EncodableVector.CloneElements(m_elements);
 
         private class Asn1SetParserImpl
             : Asn1SetParser
@@ -256,10 +235,7 @@ namespace Org.BouncyCastle.Asn1
             public virtual Asn1Object ToAsn1Object() => m_outer;
         }
 
-        public Asn1SetParser Parser
-        {
-            get { return new Asn1SetParserImpl(this); }
-        }
+        public Asn1SetParser Parser => new Asn1SetParserImpl(this);
 
         protected override int Asn1GetHashCode()
         {
@@ -296,10 +272,7 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
-        public override string ToString()
-        {
-            return CollectionUtilities.ToString(m_elements);
-        }
+        public override string ToString() => CollectionUtilities.ToString(m_elements);
 
         private static DerEncoding[] SortElements(Asn1Encodable[] elements)
         {

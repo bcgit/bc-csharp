@@ -6,9 +6,8 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Crmf;
-using Org.BouncyCastle.Crmf;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Cms;
+using Org.BouncyCastle.Crmf;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
@@ -194,7 +193,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
 
             ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient)
-                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, CertRepMessage.GetInstance(new DerSequence(new DerSequence()))))
+                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, CertRepMessage.GetInstance(DerSequence.FromElement(new DerSequence()))))
                 .AddCmpCertificate(cert);
 
             ISignatureFactory sigFact = new Asn1SignatureFactory("MD5WithRSA", rsaKeyPair.Private);
@@ -230,7 +229,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
 
             ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient)
-                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, CertRepMessage.GetInstance(new DerSequence(new DerSequence()))))
+                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, CertRepMessage.GetInstance(DerSequence.FromElement(new DerSequence()))))
                 .AddCmpCertificate(cert);
 
             //

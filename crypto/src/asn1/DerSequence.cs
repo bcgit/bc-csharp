@@ -29,6 +29,11 @@ namespace Org.BouncyCastle.Asn1
             return elements.Count < 1 ? Empty : new DerSequence(elements);
         }
 
+        public static DerSequence FromElement(Asn1Encodable element) => new DerSequence(element);
+
+        public static DerSequence FromElements(Asn1Encodable element1, Asn1Encodable element2) =>
+            new DerSequence(element1, element2);
+
         public static DerSequence FromElements(Asn1Encodable[] elements)
         {
             if (elements == null)

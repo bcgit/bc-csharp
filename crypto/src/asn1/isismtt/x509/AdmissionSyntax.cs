@@ -241,8 +241,8 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         public override Asn1Object ToAsn1Object()
         {
             return m_admissionAuthority == null
-                ?  new DerSequence(m_contentsOfAdmissions)
-                :  new DerSequence(m_admissionAuthority, m_contentsOfAdmissions);
+                ?  DerSequence.FromElement(m_contentsOfAdmissions)
+                :  DerSequence.FromElements(m_admissionAuthority, m_contentsOfAdmissions);
         }
     }
 }

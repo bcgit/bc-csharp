@@ -29,6 +29,11 @@ namespace Org.BouncyCastle.Asn1
             return elements.Count < 1 ? Empty : new BerSequence(elements);
         }
 
+        public static new BerSequence FromElement(Asn1Encodable element) => new BerSequence(element);
+
+        public static new BerSequence FromElements(Asn1Encodable element1, Asn1Encodable element2) =>
+            new BerSequence(element1, element2);
+
         public static new BerSequence FromElements(Asn1Encodable[] elements)
         {
             if (elements == null)

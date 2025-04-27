@@ -61,6 +61,17 @@ namespace Org.BouncyCastle.Utilities.Collections
             return c == null || c.Count < 1;
         }
 
+        public static TResult[] Map<T, TResult>(T[] ts, Func<T, TResult> f)
+        {
+            int count = ts.Length;
+            var result = new TResult[count];
+            for (int i = 0; i < count; ++i)
+            {
+                result[i] = f(ts[i]);
+            }
+            return result;
+        }
+
         public static IEnumerable<T> Proxy<T>(IEnumerable<T> e)
         {
             return new EnumerableProxy<T>(e);
