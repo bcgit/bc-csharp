@@ -4,9 +4,9 @@ using Org.BouncyCastle.Asn1.Crmf;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class CertifiedKeyPair
-		: Asn1Encodable
-	{
+    public class CertifiedKeyPair
+        : Asn1Encodable
+    {
         public static CertifiedKeyPair GetInstance(object obj)
         {
             if (obj == null)
@@ -38,11 +38,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             new CertifiedKeyPair(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CertOrEncCert m_certOrEncCert;
-		private readonly EncryptedKey m_privateKey;
-		private readonly PkiPublicationInfo m_publicationInfo;
+        private readonly EncryptedKey m_privateKey;
+        private readonly PkiPublicationInfo m_publicationInfo;
 
         private CertifiedKeyPair(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 1 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -53,12 +53,12 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
-		public CertifiedKeyPair(CertOrEncCert certOrEncCert)
-			: this(certOrEncCert, (EncryptedKey)null, null)
-		{
-		}
+        public CertifiedKeyPair(CertOrEncCert certOrEncCert)
+            : this(certOrEncCert, (EncryptedKey)null, null)
+        {
+        }
 
         [Obsolete("Use constructor with EncryptedKey instead")]
         public CertifiedKeyPair(CertOrEncCert certOrEncCert, EncryptedValue privateKey,
@@ -68,38 +68,38 @@ namespace Org.BouncyCastle.Asn1.Cmp
         }
 
         public CertifiedKeyPair(CertOrEncCert certOrEncCert, EncryptedKey privateKey,
-			PkiPublicationInfo publicationInfo)
+            PkiPublicationInfo publicationInfo)
         {
             m_certOrEncCert = certOrEncCert ?? throw new ArgumentNullException(nameof(certOrEncCert));
             m_privateKey = privateKey;
             m_publicationInfo = publicationInfo;
         }
 
-		public virtual CertOrEncCert CertOrEncCert => m_certOrEncCert;
+        public virtual CertOrEncCert CertOrEncCert => m_certOrEncCert;
 
-		public virtual EncryptedKey PrivateKey => m_privateKey;
+        public virtual EncryptedKey PrivateKey => m_privateKey;
 
-		public virtual PkiPublicationInfo PublicationInfo => m_publicationInfo;
+        public virtual PkiPublicationInfo PublicationInfo => m_publicationInfo;
 
-		/**
-		 * RFC 9480
-		 * <pre>
-		 * CertifiedKeyPair ::= SEQUENCE {
+        /**
+         * RFC 9480
+         * <pre>
+         * CertifiedKeyPair ::= SEQUENCE {
          *     certOrEncCert       CertOrEncCert,
          *     privateKey      [0] EncryptedKey        OPTIONAL,
          *     -- See [RFC4211] for comments on encoding.
          *     publicationInfo [1] PKIPublicationInfo  OPTIONAL
          * }
-		 * </pre>
-		 * @return a basic ASN.1 object representation.
-		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(3);
-			v.Add(m_certOrEncCert);
+         * </pre>
+         * @return a basic ASN.1 object representation.
+         */
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            v.Add(m_certOrEncCert);
             v.AddOptionalTagged(true, 0, m_privateKey);
             v.AddOptionalTagged(true, 1, m_publicationInfo);
-			return new DerSequence(v);
-		}
-	}
+            return new DerSequence(v);
+        }
+    }
 }

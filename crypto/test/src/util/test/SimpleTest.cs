@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Utilities.Test
                 throw new ArgumentException("bit value " + bitNo + " wrong");
         }
 
-        private static TValue EnsureSingletonInitialized<TValue>(ref TValue value, Func<TValue> initialize)
+        internal static TValue EnsureSingletonInitialized<TValue>(ref TValue value, Func<TValue> initialize)
             where TValue : class
         {
             TValue currentValue = Volatile.Read(ref value);
