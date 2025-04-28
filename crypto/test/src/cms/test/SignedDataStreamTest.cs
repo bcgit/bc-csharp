@@ -625,11 +625,12 @@ namespace Org.BouncyCastle.Cms.Tests
 
             CmsSignedDataParser sp = new CmsSignedDataParser(bOut.ToArray());
 
-			sp.GetSignedContent().Drain();
+            sp.GetSignedContent().Drain();
 
-			VerifySignatures(sp);
+            VerifySignatures(sp);
 
-            byte[] contentDigest = (byte[])gen.GetGeneratedDigests()[CmsSignedGenerator.DigestSha1];
+            var generatedDigests = gen.GetGeneratedDigests();
+            Assert.True(generatedDigests.TryGetValue(CmsSignedGenerator.DigestSha1, out byte[] contentDigest));
 
             var signers = sp.GetSignerInfos().GetSigners();
 

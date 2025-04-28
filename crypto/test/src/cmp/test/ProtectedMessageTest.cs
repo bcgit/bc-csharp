@@ -209,7 +209,7 @@ namespace Org.BouncyCastle.Cmp.Tests
 
                 var envData = envGen.Generate(keyContent, contentEncryptor);
 
-                privateKey = new EncryptedKey(EnvelopedData.GetInstance(envData.ContentInfo.Content));
+                privateKey = new EncryptedKey(envData.EnvelopedData);
             }
 
             var certOrEncCert = new CertOrEncCert(CmpCertificate.GetInstance(cert.GetEncoded()));

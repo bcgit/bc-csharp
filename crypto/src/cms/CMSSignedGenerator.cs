@@ -46,8 +46,8 @@ namespace Org.BouncyCastle.Cms
     public abstract class CmsSignedGenerator
     {
         /**
-        * Default type for the signed data.
-        */
+         * Default type for the signed data.
+         */
         public static readonly string Data = CmsObjectIdentifiers.Data.Id;
 
         public static readonly string DigestSha1 = OiwObjectIdentifiers.IdSha1.Id;
@@ -115,12 +115,10 @@ namespace Org.BouncyCastle.Cms
             return param;
         }
 
-        internal protected virtual Asn1Set GetAttributeSet(
-            Asn1.Cms.AttributeTable attr)
+        // TODO[api] Make internal
+        internal protected virtual Asn1Set GetAttributeSet(Asn1.Cms.AttributeTable attr)
         {
-            return attr == null
-                ? null
-                : DerSet.FromVector(attr.ToAsn1EncodableVector());
+            return attr == null ? null : DerSet.FromCollection(attr);
         }
 
         public void AddAttributeCertificate(X509V2AttributeCertificate attrCert) =>
@@ -154,13 +152,13 @@ namespace Org.BouncyCastle.Cms
         }
 
         /**
-		 * Add a store of precalculated signers to the generator.
-		 *
-		 * @param signerStore store of signers
-		 */
+         * Add a store of precalculated signers to the generator.
+         *
+         * @param signerStore store of signers
+         */
         public void AddSigners(SignerInformationStore signerStore)
         {
-            foreach (SignerInformation o in signerStore.GetSigners())
+            foreach (SignerInformation o in signerStore.SignersInternal)
             {
                 _signers.Add(o);
                 AddSignerCallback(o);
@@ -168,11 +166,12 @@ namespace Org.BouncyCastle.Cms
         }
 
         /**
-		 * Return a map of oids and byte arrays representing the digests calculated on the content during
-		 * the last generate.
-		 *
-		 * @return a map of oids (as string objects) and byte[] representing digests.
-		 */
+         * Return a map of oids and byte arrays representing the digests calculated on the content during
+         * the last generate.
+         *
+         * @return a map of oids (as string objects) and byte[] representing digests.
+         */
+        // TODO[api] Prefer to return just a copy of m_digests (i.e. keyed by DerObjectIdentifier)?
         public IDictionary<string, byte[]> GetGeneratedDigests()
         {
             var result = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);

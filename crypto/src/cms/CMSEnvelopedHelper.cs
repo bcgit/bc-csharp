@@ -1,7 +1,4 @@
 using System;
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
-#endif
 using System.Collections.Generic;
 using System.IO;
 
@@ -17,15 +14,15 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Cms
 {
     internal class CmsEnvelopedHelper
-	{
-		private static readonly Dictionary<string, int> KeySizes = new Dictionary<string, int>();
-		private static readonly Dictionary<string, string> Rfc3211WrapperNames = new Dictionary<string, string>();
+    {
+        private static readonly Dictionary<string, int> KeySizes = new Dictionary<string, int>();
+        private static readonly Dictionary<string, string> Rfc3211WrapperNames = new Dictionary<string, string>();
 
-		static CmsEnvelopedHelper()
-		{
-			KeySizes.Add(CmsEnvelopedGenerator.Aes128Cbc, 128);
-			KeySizes.Add(CmsEnvelopedGenerator.Aes192Cbc, 192);
-			KeySizes.Add(CmsEnvelopedGenerator.Aes256Cbc, 256);
+        static CmsEnvelopedHelper()
+        {
+            KeySizes.Add(CmsEnvelopedGenerator.Aes128Cbc, 128);
+            KeySizes.Add(CmsEnvelopedGenerator.Aes192Cbc, 192);
+            KeySizes.Add(CmsEnvelopedGenerator.Aes256Cbc, 256);
             KeySizes.Add(CmsEnvelopedGenerator.Camellia128Cbc, 128);
             KeySizes.Add(CmsEnvelopedGenerator.Camellia192Cbc, 192);
             KeySizes.Add(CmsEnvelopedGenerator.Camellia256Cbc, 256);
@@ -42,18 +39,18 @@ namespace Org.BouncyCastle.Cms
             Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.DesEde3Cbc, "DESEDERFC3211WRAP");
         }
 
-        internal static RecipientInformationStore BuildRecipientInformationStore(
-			Asn1Set recipientInfos, CmsSecureReadable secureReadable)
-		{
-			var infos = new List<RecipientInformation>();
-			for (int i = 0; i != recipientInfos.Count; i++)
-			{
-				RecipientInfo info = RecipientInfo.GetInstance(recipientInfos[i]);
+        internal static RecipientInformationStore BuildRecipientInformationStore(Asn1Set recipientInfos,
+            CmsSecureReadable secureReadable)
+        {
+            var infos = new List<RecipientInformation>();
+            for (int i = 0; i != recipientInfos.Count; i++)
+            {
+                RecipientInfo info = RecipientInfo.GetInstance(recipientInfos[i]);
 
-				ReadRecipientInfo(infos, info, secureReadable);
-			}
-			return new RecipientInformationStore(infos);
-		}
+                ReadRecipientInfo(infos, info, secureReadable);
+            }
+            return new RecipientInformationStore(infos);
+        }
 
         internal static int GetKeySize(string oid)
         {
@@ -78,202 +75,190 @@ namespace Org.BouncyCastle.Cms
         }
 
         private static void ReadRecipientInfo(IList<RecipientInformation> infos, RecipientInfo info,
-			CmsSecureReadable secureReadable)
-		{
-			Asn1Encodable recipInfo = info.Info;
-			if (recipInfo is KeyTransRecipientInfo keyTransRecipientInfo)
-			{
-				infos.Add(new KeyTransRecipientInformation(keyTransRecipientInfo, secureReadable));
-			}
-			else if (recipInfo is KekRecipientInfo kekRecipientInfo)
-			{
-				infos.Add(new KekRecipientInformation(kekRecipientInfo, secureReadable));
-			}
-			else if (recipInfo is KeyAgreeRecipientInfo keyAgreeRecipientInfo)
-			{
-				KeyAgreeRecipientInformation.ReadRecipientInfo(infos, keyAgreeRecipientInfo, secureReadable);
-			}
-			else if (recipInfo is PasswordRecipientInfo passwordRecipientInfo)
-			{
-				infos.Add(new PasswordRecipientInformation(passwordRecipientInfo, secureReadable));
-			}
-		}
+            CmsSecureReadable secureReadable)
+        {
+            Asn1Encodable recipInfo = info.Info;
+            if (recipInfo is KeyTransRecipientInfo keyTransRecipientInfo)
+            {
+                infos.Add(new KeyTransRecipientInformation(keyTransRecipientInfo, secureReadable));
+            }
+            else if (recipInfo is KekRecipientInfo kekRecipientInfo)
+            {
+                infos.Add(new KekRecipientInformation(kekRecipientInfo, secureReadable));
+            }
+            else if (recipInfo is KeyAgreeRecipientInfo keyAgreeRecipientInfo)
+            {
+                KeyAgreeRecipientInformation.ReadRecipientInfo(infos, keyAgreeRecipientInfo, secureReadable);
+            }
+            else if (recipInfo is PasswordRecipientInfo passwordRecipientInfo)
+            {
+                infos.Add(new PasswordRecipientInformation(passwordRecipientInfo, secureReadable));
+            }
+        }
 
-		internal class CmsAuthenticatedSecureReadable : CmsSecureReadable
-		{
-			private AlgorithmIdentifier algorithm;
-			private IMac mac;
-			private CmsReadable readable;
+        internal class CmsAuthenticatedSecureReadable
+            : CmsSecureReadable
+        {
+            private AlgorithmIdentifier algorithm;
+            private IMac mac;
+            private CmsReadable readable;
 
-			internal CmsAuthenticatedSecureReadable(AlgorithmIdentifier algorithm, CmsReadable readable)
-			{
-				this.algorithm = algorithm;
-				this.readable = readable;
-			}
+            internal CmsAuthenticatedSecureReadable(AlgorithmIdentifier algorithm, CmsReadable readable)
+            {
+                this.algorithm = algorithm;
+                this.readable = readable;
+            }
 
-			public AlgorithmIdentifier Algorithm
-			{
-				get { return this.algorithm; }
-			}
+            public AlgorithmIdentifier Algorithm => this.algorithm;
 
-			public object CryptoObject
-			{
-				get { return this.mac; }
-			}
+            public object CryptoObject => this.mac;
 
-			public CmsReadable GetReadable(KeyParameter sKey)
-			{
+            public CmsReadable GetReadable(KeyParameter sKey)
+            {
                 string macAlg = this.algorithm.Algorithm.Id;
-//				Asn1Object sParams = this.algorithm.Parameters.ToAsn1Object();
+                //Asn1Object sParams = this.algorithm.Parameters.ToAsn1Object();
 
-				try
-				{
-					this.mac = MacUtilities.GetMac(macAlg);
+                try
+                {
+                    this.mac = MacUtilities.GetMac(macAlg);
 
-					// FIXME Support for MAC algorithm parameters similar to cipher parameters
-//						ASN1Object sParams = (ASN1Object)macAlg.getParameters();
-//
-//						if (sParams != null && !(sParams instanceof ASN1Null))
-//						{
-//							AlgorithmParameters params = CMSEnvelopedHelper.INSTANCE.createAlgorithmParameters(macAlg.getObjectId().getId(), provider);
-//
-//							params.init(sParams.getEncoded(), "ASN.1");
-//
-//							mac.init(sKey, params.getParameterSpec(IvParameterSpec.class));
-//						}
-//						else
-					{
-						mac.Init(sKey);
-					}
+                    // FIXME Support for MAC algorithm parameters similar to cipher parameters
+                    //ASN1Object sParams = (ASN1Object)macAlg.getParameters();
 
-//						Asn1Object asn1Params = asn1Enc == null ? null : asn1Enc.ToAsn1Object();
-//
-//						ICipherParameters cipherParameters = sKey;
-//
-//						if (asn1Params != null && !(asn1Params is Asn1Null))
-//						{
-//							cipherParameters = ParameterUtilities.GetCipherParameters(
-//							macAlg.Algorithm, cipherParameters, asn1Params);
-//						}
-//						else
-//						{
-//							string alg = macAlg.Algorithm.Id;
-//							if (alg.Equals(CmsEnvelopedGenerator.DesEde3Cbc)
-//								|| alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
-//								|| alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
-//							{
-//								cipherParameters = new ParametersWithIV(cipherParameters, new byte[8]);
-//							}
-//						}
-//
-//						mac.Init(cipherParameters);
-				}
-				catch (SecurityUtilityException e)
-				{
-					throw new CmsException("couldn't create cipher.", e);
-				}
-				catch (InvalidKeyException e)
-				{
-					throw new CmsException("key invalid in message.", e);
-				}
-				catch (IOException e)
-				{
-					throw new CmsException("error decoding algorithm parameters.", e);
-				}
+                    //if (sParams != null && !(sParams instanceof ASN1Null))
+                    //{
+                    //    AlgorithmParameters params = CMSEnvelopedHelper.INSTANCE.createAlgorithmParameters(macAlg.getObjectId().getId(), provider);
+                    //    params.init(sParams.getEncoded(), "ASN.1");
+                    //    mac.init(sKey, params.getParameterSpec(IvParameterSpec.class));
+                    //}
+                    //else
+                    {
+                        mac.Init(sKey);
+                    }
 
-				try
-				{
-					return new CmsProcessableInputStream(
-						new TeeInputStream(
-							readable.GetInputStream(),
-							new MacSink(this.mac)));
-				}
-				catch (IOException e)
-				{
-					throw new CmsException("error reading content.", e);
-				}
-			}
-		}
+                    //Asn1Object asn1Params = asn1Enc == null ? null : asn1Enc.ToAsn1Object();
 
-		internal class CmsEnvelopedSecureReadable : CmsSecureReadable
-		{
-			private AlgorithmIdentifier algorithm;
-			private IBufferedCipher cipher;
-			private CmsReadable readable;
+                    //ICipherParameters cipherParameters = sKey;
 
-			internal CmsEnvelopedSecureReadable(AlgorithmIdentifier algorithm, CmsReadable readable)
-			{
-				this.algorithm = algorithm;
-				this.readable = readable;
-			}
+                    //if (asn1Params != null && !(asn1Params is Asn1Null))
+                    //{
+                    //    cipherParameters = ParameterUtilities.GetCipherParameters(
+                    //    macAlg.Algorithm, cipherParameters, asn1Params);
+                    //}
+                    //else
+                    //{
+                    //    string alg = macAlg.Algorithm.GetID();
+                    //    if (alg.Equals(CmsEnvelopedGenerator.DesEde3Cbc)
+                    //        || alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
+                    //        || alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
+                    //    {
+                    //        cipherParameters = new ParametersWithIV(cipherParameters, new byte[8]);
+                    //    }
+                    //}
 
-			public AlgorithmIdentifier Algorithm
-			{
-				get { return this.algorithm; }
-			}
+                    //mac.Init(cipherParameters);
+                }
+                catch (SecurityUtilityException e)
+                {
+                    throw new CmsException("couldn't create cipher.", e);
+                }
+                catch (InvalidKeyException e)
+                {
+                    throw new CmsException("key invalid in message.", e);
+                }
+                catch (IOException e)
+                {
+                    throw new CmsException("error decoding algorithm parameters.", e);
+                }
 
-			public object CryptoObject
-			{
-				get { return this.cipher; }
-			}
+                try
+                {
+                    return new CmsProcessableInputStream(
+                        new TeeInputStream(
+                            readable.GetInputStream(),
+                            new MacSink(this.mac)));
+                }
+                catch (IOException e)
+                {
+                    throw new CmsException("error reading content.", e);
+                }
+            }
+        }
 
-			public CmsReadable GetReadable(KeyParameter sKey)
-			{
-				try
-				{
+        internal class CmsEnvelopedSecureReadable
+            : CmsSecureReadable
+        {
+            private AlgorithmIdentifier algorithm;
+            private IBufferedCipher cipher;
+            private CmsReadable readable;
+
+            internal CmsEnvelopedSecureReadable(AlgorithmIdentifier algorithm, CmsReadable readable)
+            {
+                this.algorithm = algorithm;
+                this.readable = readable;
+            }
+
+            public AlgorithmIdentifier Algorithm => this.algorithm;
+
+            public object CryptoObject => this.cipher;
+
+            public CmsReadable GetReadable(KeyParameter sKey)
+            {
+                try
+                {
                     this.cipher = CipherUtilities.GetCipher(this.algorithm.Algorithm);
 
-					Asn1Encodable asn1Enc = this.algorithm.Parameters;
-					Asn1Object asn1Params = asn1Enc == null ? null : asn1Enc.ToAsn1Object();
+                    Asn1Encodable asn1Enc = this.algorithm.Parameters;
+                    Asn1Object asn1Params = asn1Enc == null ? null : asn1Enc.ToAsn1Object();
 
-					ICipherParameters cipherParameters = sKey;
+                    ICipherParameters cipherParameters = sKey;
 
-					if (asn1Params != null && !(asn1Params is Asn1Null))
-					{
-						cipherParameters = ParameterUtilities.GetCipherParameters(
+                    if (asn1Params != null && !(asn1Params is Asn1Null))
+                    {
+                        cipherParameters = ParameterUtilities.GetCipherParameters(
                             this.algorithm.Algorithm, cipherParameters, asn1Params);
-					}
-					else
-					{
+                    }
+                    else
+                    {
                         string alg = this.algorithm.Algorithm.Id;
-						if (alg.Equals(CmsEnvelopedGenerator.DesEde3Cbc)
-							|| alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
-							|| alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
-						{
+                        if (alg.Equals(CmsEnvelopedGenerator.DesEde3Cbc)
+                            || alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
+                            || alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
+                        {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-							cipherParameters = ParametersWithIV.Create<byte>(cipherParameters, 8, 0,
-								(bytes, state) => bytes.Fill(state));
+                            cipherParameters = ParametersWithIV.Create<byte>(cipherParameters, 8, 0,
+                                (bytes, state) => bytes.Fill(state));
 #else
-							cipherParameters = new ParametersWithIV(cipherParameters, new byte[8]);
+                            cipherParameters = new ParametersWithIV(cipherParameters, new byte[8]);
 #endif
-						}
-					}
+                        }
+                    }
 
-					cipher.Init(false, cipherParameters);
-				}
-				catch (SecurityUtilityException e)
-				{
-					throw new CmsException("couldn't create cipher.", e);
-				}
-				catch (InvalidKeyException e)
-				{
-					throw new CmsException("key invalid in message.", e);
-				}
-				catch (IOException e)
-				{
-					throw new CmsException("error decoding algorithm parameters.", e);
-				}
+                    cipher.Init(false, cipherParameters);
+                }
+                catch (SecurityUtilityException e)
+                {
+                    throw new CmsException("couldn't create cipher.", e);
+                }
+                catch (InvalidKeyException e)
+                {
+                    throw new CmsException("key invalid in message.", e);
+                }
+                catch (IOException e)
+                {
+                    throw new CmsException("error decoding algorithm parameters.", e);
+                }
 
-				try
-				{
-					return new CmsProcessableInputStream(
-						new CipherStream(readable.GetInputStream(), cipher, null));
-				}
-				catch (IOException e)
-				{
-					throw new CmsException("error reading content.", e);
-				}
-			}
-		}
-	}
+                try
+                {
+                    return new CmsProcessableInputStream(
+                        new CipherStream(readable.GetInputStream(), cipher, null));
+                }
+                catch (IOException e)
+                {
+                    throw new CmsException("error reading content.", e);
+                }
+            }
+        }
+    }
 }

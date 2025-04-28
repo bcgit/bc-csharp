@@ -4,21 +4,20 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
     /**
-    * General class for generating a compressed CMS message.
-    * <p>
-    * A simple example of usage.</p>
-    * <p>
-    * <pre>
-    *      CMSCompressedDataGenerator fact = new CMSCompressedDataGenerator();
-    *      CMSCompressedData data = fact.Generate(content, algorithm);
-    * </pre>
-	* </p>
-    */
+     * General class for generating a compressed CMS message.
+     * <p>
+     * A simple example of usage.</p>
+     * <p>
+     * <pre>
+     *      CMSCompressedDataGenerator fact = new CMSCompressedDataGenerator();
+     *      CMSCompressedData data = fact.Generate(content, algorithm);
+     * </pre>
+     * </p>
+     */
     public class CmsCompressedDataGenerator
     {
         public static readonly string ZLib = CmsObjectIdentifiers.ZlibCompress.Id;
@@ -27,7 +26,7 @@ namespace Org.BouncyCastle.Cms
         {
         }
 
-		/**
+        /**
         * Generate an object that contains an CMS Compressed Data
         */
         public CmsCompressedData Generate(CmsProcessable content, string compressionOid)
@@ -49,7 +48,7 @@ namespace Org.BouncyCastle.Cms
                 }
 
                 comAlgId = new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress);
-				comOcts = new BerOctetString(bOut.ToArray());
+                comOcts = new BerOctetString(bOut.ToArray());
             }
             catch (IOException e)
             {
@@ -61,7 +60,7 @@ namespace Org.BouncyCastle.Cms
                 CmsObjectIdentifiers.CompressedData,
                 new CompressedData(comAlgId, comContent));
 
-			return new CmsCompressedData(contentInfo);
+            return new CmsCompressedData(contentInfo);
         }
     }
 }

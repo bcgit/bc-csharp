@@ -127,67 +127,15 @@ namespace Org.BouncyCastle.Cms
 
         internal static byte[] StreamToByteArray(Stream inStream, int limit) => Streams.ReadAllLimited(inStream, limit);
 
-        // TODO Clean up this method (which is not present in bc-java)
-        internal static void AddDigestAlgs(Asn1EncodableVector digestAlgs, SignerInformation signer,
+        internal static void AddDigestAlgs(ICollection<AlgorithmIdentifier> digestAlgs, SignerInformation signer,
             IDigestAlgorithmFinder digestAlgorithmFinder)
         {
             digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
-            SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
-            foreach (var counterSigner in counterSignaturesStore)
+
+            foreach (var counterSigner in signer.GetCounterSignatures())
             {
                 digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
             }
-        }
-
-        internal static void AddDigestAlgs(ISet<AlgorithmIdentifier> digestAlgs, SignerInformation signer,
-            IDigestAlgorithmFinder digestAlgorithmFinder)
-        {
-            digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
-            SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
-            foreach (var counterSigner in counterSignaturesStore)
-            {
-                digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
-            }
-        }
-
-        internal static Asn1Set ConvertToDLSet(ISet<AlgorithmIdentifier> digestAlgs)
-        {
-            Asn1EncodableVector v = new Asn1EncodableVector(digestAlgs.Count);
-            foreach (var digestAlg in digestAlgs)
-            {
-                v.Add(digestAlg);
-            }
-            return DLSet.FromVector(v);
-        }
-
-        internal static Asn1Set CreateBerSetFromList(List<Asn1Encodable> elements)
-        {
-            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
-            foreach (Asn1Encodable element in elements)
-            {
-                v.Add(element);
-            }
-            return BerSet.FromVector(v);
-        }
-
-        internal static Asn1Set CreateDerSetFromList(List<Asn1Encodable> elements)
-        {
-            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
-            foreach (Asn1Encodable element in elements)
-            {
-                v.Add(element);
-            }
-            return DerSet.FromVector(v);
-        }
-
-        internal static Asn1Set CreateDLSetFromList(List<Asn1Encodable> elements)
-        {
-            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
-            foreach (Asn1Encodable element in elements)
-            {
-                v.Add(element);
-            }
-            return DLSet.FromVector(v);
         }
 
         internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(TbsCertificateStructure c) =>
@@ -217,7 +165,7 @@ namespace Org.BouncyCastle.Cms
                 v.Add(seq.ToAsn1Object());
             }
 
-            return new Asn1.Cms.AttributeTable(DerSet.FromVector(v));
+            return new Asn1.Cms.AttributeTable(v);
         }
 
         internal static void CollectAttributeCertificate(List<Asn1Encodable> result,
@@ -308,13 +256,22 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        internal static Asn1Set ToBerSet(this IReadOnlyCollection<Asn1Encodable> elements) =>
+            BerSet.FromCollection(elements);
+
+        internal static Asn1Set ToDerSet(this IReadOnlyCollection<Asn1Encodable> elements) =>
+            DerSet.FromCollection(elements);
+
+        internal static Asn1Set ToDLSet(this IReadOnlyCollection<Asn1Encodable> elements) =>
+            DLSet.FromCollection(elements);
+
         internal static void ValidateOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
         {
             if (CmsObjectIdentifiers.id_ri_ocsp_response.Equals(otherRevocationInfo.InfoFormat))
             {
                 OcspResponse ocspResponse = OcspResponse.GetInstance(otherRevocationInfo.Info);
 
-                if (OcspResponseStatus.Successful != ocspResponse.ResponseStatus.IntValueExact)
+                if (!ocspResponse.ResponseStatus.HasValue(OcspResponseStatus.Successful))
                     throw new ArgumentException("cannot add unsuccessful OCSP response to CMS SignedData");
             }
         }

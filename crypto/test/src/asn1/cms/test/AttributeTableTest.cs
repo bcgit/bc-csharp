@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1.Cms.Tests
             }
 
             vec = table.ToAsn1EncodableVector();
-            if (vec.Count != 2)
+            if (vec.Count != 2 || table.Count != 2)
             {
                 Fail("wrong vector size for single.");
             }
@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Asn1.Cms.Tests
             }
 
             vec = table.ToAsn1EncodableVector();
-            if (vec.Count != 4)
+            if (vec.Count != 4 || table.Count != 4)
             {
                 Fail("wrong vector size for multiple.");
             }

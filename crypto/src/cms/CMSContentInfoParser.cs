@@ -8,57 +8,53 @@ namespace Org.BouncyCastle.Cms
 {
     // TODO[api] Make abstract
     public class CmsContentInfoParser
-		: IDisposable
-	{
-		protected ContentInfoParser	contentInfo;
-		protected Stream data;
+        : IDisposable
+    {
+        protected ContentInfoParser contentInfo;
+        protected Stream data;
 
-		protected CmsContentInfoParser(
-			Stream data)
-		{
-			if (data == null)
-				throw new ArgumentNullException("data");
+        protected CmsContentInfoParser(Stream data)
+        {
+            this.data = data ?? throw new ArgumentNullException(nameof(data));
 
-			this.data = data;
+            try
+            {
+                Asn1StreamParser inStream = new Asn1StreamParser(data);
 
-			try
-			{
-				Asn1StreamParser inStream = new Asn1StreamParser(data);
+                this.contentInfo = new ContentInfoParser((Asn1SequenceParser)inStream.ReadObject());
+            }
+            catch (IOException e)
+            {
+                throw new CmsException("IOException reading content.", e);
+            }
+            catch (InvalidCastException e)
+            {
+                throw new CmsException("Unexpected object reading content.", e);
+            }
+        }
 
-				this.contentInfo = new ContentInfoParser((Asn1SequenceParser)inStream.ReadObject());
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("IOException reading content.", e);
-			}
-			catch (InvalidCastException e)
-			{
-				throw new CmsException("Unexpected object reading content.", e);
-			}
-		}
-
-		[Obsolete("Dispose instead")]
-		public void Close()
-		{
+        [Obsolete("Dispose instead")]
+        public void Close()
+        {
             Dispose();
-		}
+        }
 
-		#region IDisposable
+        #region IDisposable
 
-		public void Dispose()
-		{
-			Dispose(disposing: true);
-			GC.SuppressFinalize(this);
-		}
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
 
-		protected virtual void Dispose(bool disposing)
-		{
-			if (disposing)
-			{
-				data.Dispose();
-			}
-		}
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                data.Dispose();
+            }
+        }
 
-		#endregion
-	}
+        #endregion
+    }
 }
