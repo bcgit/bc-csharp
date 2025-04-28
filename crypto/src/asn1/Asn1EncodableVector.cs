@@ -13,9 +13,7 @@ namespace Org.BouncyCastle.Asn1
 
         private const int DefaultCapacity = 10;
 
-        private Asn1Encodable[] elements;
-        private int elementCount;
-        private bool copyOnWrite;
+        public static Asn1EncodableVector FromElement(Asn1Encodable element) => new Asn1EncodableVector(1){ element };
 
         public static Asn1EncodableVector FromEnumerable(IEnumerable<Asn1Encodable> e)
         {
@@ -27,6 +25,10 @@ namespace Org.BouncyCastle.Asn1
             return v;
         }
 
+        private Asn1Encodable[] m_elements;
+        private int m_elementCount;
+        private bool m_copyOnWrite;
+
         public Asn1EncodableVector()
             : this(DefaultCapacity)
         {
@@ -37,9 +39,9 @@ namespace Org.BouncyCastle.Asn1
             if (initialCapacity < 0)
                 throw new ArgumentException("must not be negative", nameof(initialCapacity));
 
-            this.elements = (initialCapacity == 0) ? EmptyElements : new Asn1Encodable[initialCapacity];
-            this.elementCount = 0;
-            this.copyOnWrite = false;
+            m_elements = (initialCapacity == 0) ? EmptyElements : new Asn1Encodable[initialCapacity];
+            m_elementCount = 0;
+            m_copyOnWrite = false;
         }
 
         public Asn1EncodableVector(Asn1Encodable element)
@@ -66,15 +68,15 @@ namespace Org.BouncyCastle.Asn1
             if (null == element)
                 throw new ArgumentNullException(nameof(element));
 
-            int capacity = elements.Length;
-            int minCapacity = elementCount + 1;
-            if ((minCapacity > capacity) | copyOnWrite)
+            int capacity = m_elements.Length;
+            int minCapacity = m_elementCount + 1;
+            if ((minCapacity > capacity) | m_copyOnWrite)
             {
                 Reallocate(minCapacity);
             }
 
-            this.elements[elementCount] = element;
-            this.elementCount = minCapacity;
+            m_elements[m_elementCount] = element;
+            m_elementCount = minCapacity;
         }
 
         public void Add(Asn1Encodable element1, Asn1Encodable element2)
@@ -150,9 +152,9 @@ namespace Org.BouncyCastle.Asn1
             if (otherElementCount < 1)
                 return;
 
-            int capacity = elements.Length;
-            int minCapacity = elementCount + otherElementCount;
-            if ((minCapacity > capacity) | copyOnWrite)
+            int capacity = m_elements.Length;
+            int minCapacity = m_elementCount + otherElementCount;
+            if ((minCapacity > capacity) | m_copyOnWrite)
             {
                 Reallocate(minCapacity);
             }
@@ -164,25 +166,25 @@ namespace Org.BouncyCastle.Asn1
                 if (null == otherElement)
                     throw new NullReferenceException("'other' elements cannot be null");
 
-                this.elements[elementCount + i] = otherElement;
+                m_elements[m_elementCount + i] = otherElement;
             }
             while (++i < otherElementCount);
 
-            this.elementCount = minCapacity;
+            m_elementCount = minCapacity;
         }
 
         public Asn1Encodable this[int index]
         {
             get
             {
-                if (index >= elementCount)
-                    throw new IndexOutOfRangeException(index + " >= " + elementCount);
+                if (index >= m_elementCount)
+                    throw new IndexOutOfRangeException(index + " >= " + m_elementCount);
 
-                return elements[index];
+                return m_elements[index];
             }
         }
 
-        public int Count => elementCount;
+        public int Count => m_elementCount;
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
@@ -195,34 +197,34 @@ namespace Org.BouncyCastle.Asn1
             return e.GetEnumerator();
         }
 
-        internal Asn1Encodable[] CopyElements() => CopyElements(elements, elementCount);
+        internal Asn1Encodable[] CopyElements() => CopyElements(m_elements, m_elementCount);
 
         internal Asn1Encodable[] TakeElements()
         {
-            if (0 == elementCount)
+            if (0 == m_elementCount)
                 return EmptyElements;
 
-            if (elements.Length == elementCount)
+            if (m_elements.Length == m_elementCount)
             {
-                this.copyOnWrite = true;
-                return elements;
+                m_copyOnWrite = true;
+                return m_elements;
             }
 
-            Asn1Encodable[] copy = new Asn1Encodable[elementCount];
-            Array.Copy(elements, 0, copy, 0, elementCount);
+            Asn1Encodable[] copy = new Asn1Encodable[m_elementCount];
+            Array.Copy(m_elements, 0, copy, 0, m_elementCount);
             return copy;
         }
 
         private void Reallocate(int minCapacity)
         {
-            int oldCapacity = elements.Length;
+            int oldCapacity = m_elements.Length;
             int newCapacity = System.Math.Max(oldCapacity, minCapacity + (minCapacity >> 1));
 
             Asn1Encodable[] copy = new Asn1Encodable[newCapacity];
-            Array.Copy(elements, 0, copy, 0, elementCount);
+            Array.Copy(m_elements, 0, copy, 0, m_elementCount);
 
-            this.elements = copy;
-            this.copyOnWrite = false;
+            m_elements = copy;
+            m_copyOnWrite = false;
         }
 
         internal static Asn1Encodable[] CloneElements(Asn1Encodable[] elements) =>
