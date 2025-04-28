@@ -25,12 +25,12 @@ namespace Org.BouncyCastle.Asn1
 
         public static DerSet Map<T>(T[] ts, Func<T, Asn1Encodable> func)
         {
-            return ts.Length < 1 ? Empty : new DerSet(isSorted: false, CollectionUtilities.Map(ts, func));
+            return ts.Length < 1 ? Empty : new DerSet(CollectionUtilities.Map(ts, func));
         }
 
         public static DerSet Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
         {
-            return c.Count < 1 ? Empty : new DerSet(isSorted: false, CollectionUtilities.Map(c, func));
+            return c.Count < 1 ? Empty : new DerSet(CollectionUtilities.Map(c, func));
         }
 
         public DerSet()
