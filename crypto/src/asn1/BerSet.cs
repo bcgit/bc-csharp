@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -17,6 +20,16 @@ namespace Org.BouncyCastle.Asn1
         public static new BerSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new BerSet(elementVector);
+        }
+
+        public static new BerSet Map<T>(T[] ts, Func<T, Asn1Encodable> func)
+        {
+            return ts.Length < 1 ? Empty : new BerSet(isSorted: false, CollectionUtilities.Map(ts, func));
+        }
+
+        public static new BerSet Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
+        {
+            return c.Count < 1 ? Empty : new BerSet(isSorted: false, CollectionUtilities.Map(c, func));
         }
 
         public BerSet()

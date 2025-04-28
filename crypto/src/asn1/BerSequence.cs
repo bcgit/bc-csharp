@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using Org.BouncyCastle.Utilities.Collections;
+
 namespace Org.BouncyCastle.Asn1
 {
     public class BerSequence
@@ -66,6 +68,16 @@ namespace Org.BouncyCastle.Asn1
         public static new BerSequence Map(Asn1Sequence sequence, Func<Asn1Encodable, Asn1Encodable> func)
         {
             return sequence.Count < 1 ? Empty : new BerSequence(sequence.MapElements(func), clone: false);
+        }
+
+        public static new BerSequence Map<T>(T[] ts, Func<T, Asn1Encodable> func)
+        {
+            return ts.Length < 1 ? Empty : new BerSequence(CollectionUtilities.Map(ts, func), clone: false);
+        }
+
+        public static new BerSequence Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
+        {
+            return c.Count < 1 ? Empty : new BerSequence(CollectionUtilities.Map(c, func), clone: false);
         }
 
         internal static new BerSequence WithElements(Asn1Encodable[] elements)

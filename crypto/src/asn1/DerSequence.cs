@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using Org.BouncyCastle.Utilities.Collections;
+
 namespace Org.BouncyCastle.Asn1
 {
     public class DerSequence
@@ -66,6 +68,16 @@ namespace Org.BouncyCastle.Asn1
         public static DerSequence Map(Asn1Sequence sequence, Func<Asn1Encodable, Asn1Encodable> func)
         {
             return sequence.Count < 1 ? Empty : new DerSequence(sequence.MapElements(func), clone: false);
+        }
+
+        public static DerSequence Map<T>(T[] ts, Func<T, Asn1Encodable> func)
+        {
+            return ts.Length < 1 ? Empty : new DerSequence(CollectionUtilities.Map(ts, func), clone: false);
+        }
+
+        public static DerSequence Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
+        {
+            return c.Count < 1 ? Empty : new DerSequence(CollectionUtilities.Map(c, func), clone: false);
         }
 
         internal static DerSequence WithElements(Asn1Encodable[] elements)

@@ -72,6 +72,19 @@ namespace Org.BouncyCastle.Utilities.Collections
             return result;
         }
 
+        public static TResult[] Map<T, TResult>(IReadOnlyCollection<T> c, Func<T, TResult> f)
+        {
+            int count = c.Count, pos = 0;
+            var result = new TResult[count];
+            foreach (var t in c)
+            {
+                result[pos++] = f(t);
+            }
+            if (pos != count)
+                throw new InvalidOperationException();
+            return result;
+        }
+
         public static IEnumerable<T> Proxy<T>(IEnumerable<T> e)
         {
             return new EnumerableProxy<T>(e);
