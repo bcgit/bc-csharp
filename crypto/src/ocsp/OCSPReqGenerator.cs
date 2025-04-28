@@ -7,7 +7,6 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities;
@@ -97,21 +96,17 @@ namespace Org.BouncyCastle.Ocsp
 		private OcspReq GenerateRequest(DerObjectIdentifier signingAlgorithm, AsymmetricKeyParameter privateKey,
 			X509Certificate[] chain, SecureRandom random)
 		{
-			Asn1EncodableVector requests = new Asn1EncodableVector(list.Count);
-
-			foreach (RequestObject reqObj in list)
+			DerSequence requests;
+			try
 			{
-				try
-				{
-					requests.Add(reqObj.ToRequest());
-				}
-				catch (Exception e)
-				{
-					throw new OcspException("exception creating Request", e);
-				}
+				requests = DerSequence.Map(list, requestObject => requestObject.ToRequest());
+			}
+			catch (Exception e)
+			{
+				throw new OcspException("exception creating Request", e);
 			}
 
-			TbsRequest tbsReq = new TbsRequest(requestorName, new DerSequence(requests), requestExtensions);
+			TbsRequest tbsReq = new TbsRequest(requestorName, requests, requestExtensions);
 			Signature signature = null;
 
 			if (signingAlgorithm != null)

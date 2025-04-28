@@ -633,8 +633,8 @@ namespace Org.BouncyCastle.Cms.Tests
 
             var signers = sp.GetSignerInfos().GetSigners();
 
-			AttributeTable table = ((SignerInformation) signers[0]).SignedAttributes;
-			Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
+            AttributeTable table = signers[0].SignedAttributes;
+            Attribute hash = table[CmsAttributes.MessageDigest];
 
 			Assert.IsTrue(Arrays.AreEqual(contentDigest, ((Asn1OctetString)hash.AttrValues[0]).GetOctets()));
 
@@ -664,33 +664,33 @@ namespace Org.BouncyCastle.Cms.Tests
 		private static readonly DerObjectIdentifier dummyOid1 = new DerObjectIdentifier("1.2.3");
 		private static readonly DerObjectIdentifier dummyOid2 = new DerObjectIdentifier("1.2.3.4");
 
-		private class SignedGenAttributeTableGenerator
-			: DefaultSignedAttributeTableGenerator
-		{
-			public override AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
-			{
-				var table = CreateStandardAttributeTable(parameters);
+        private class SignedGenAttributeTableGenerator
+            : DefaultSignedAttributeTableGenerator
+        {
+            public override AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
+            {
+                var table = CreateStandardAttributeTable(parameters);
 
-				DerOctetString val = new DerOctetString((byte[])parameters[CmsAttributeTableParameter.Digest]);
-				Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(dummyOid1, new DerSet(val));
+                DerOctetString val = new DerOctetString((byte[])parameters[CmsAttributeTableParameter.Digest]);
+                Attribute attr = new Attribute(dummyOid1, new DerSet(val));
 
-				table[attr.AttrType] = attr;
+                table[attr.AttrType] = attr;
 
-				return new AttributeTable(table);
-			}
-		};
+                return new AttributeTable(table);
+            }
+        };
 
-		private class UnsignedGenAttributeTableGenerator
-			: CmsAttributeTableGenerator
-		{
-			public AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
-			{
-				DerOctetString val = new DerOctetString((byte[])parameters[CmsAttributeTableParameter.Signature]);
-				Asn1.Cms.Attribute attr = new Asn1.Cms.Attribute(dummyOid2, new DerSet(val));
+        private class UnsignedGenAttributeTableGenerator
+            : CmsAttributeTableGenerator
+        {
+            public AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
+            {
+                DerOctetString val = new DerOctetString((byte[])parameters[CmsAttributeTableParameter.Signature]);
+                Attribute attr = new Attribute(dummyOid2, new DerSet(val));
 
-				return new AttributeTable(new DerSet(attr));
-			}
-		};
+                return new AttributeTable(new DerSet(attr));
+            }
+        };
 
 		[Test]
 	    public void TestSha1WithRsaEncapsulatedSubjectKeyID()

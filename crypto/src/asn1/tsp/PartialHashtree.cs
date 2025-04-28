@@ -54,14 +54,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
         public PartialHashtree(params byte[][] values)
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(values.Length);
-
-            for (int i = 0; i != values.Length; i++)
-            {
-                v.Add(DerOctetString.FromContents(values[i]));
-            }
-
-            m_values = new DerSequence(v);
+            m_values = DerSequence.Map(values, DerOctetString.FromContents);
         }
 
         public virtual int ValueCount => m_values.Count;

@@ -74,12 +74,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
                 throw new ArgumentNullException(nameof(chain));
 
             Asn1EncodableVector v = new Asn1EncodableVector(m_archiveTimeStampChains.Count + 1);
-
-            foreach (var element in m_archiveTimeStampChains)
-            {
-                v.Add(element);
-            }
-
+            v.AddAll(m_archiveTimeStampChains);
             v.Add(chain);
 
             return new ArchiveTimeStampSequence(new DerSequence(v));

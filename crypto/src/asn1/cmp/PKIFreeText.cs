@@ -63,15 +63,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 			m_strings = new DerSequence(strs);
 		}
 
-		public PkiFreeText(string[] strs)
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(strs.Length);
-			for (int i = 0; i < strs.Length; i++)
-			{
-				v.Add(new DerUtf8String(strs[i]));
-			}
-			m_strings = new DerSequence(v);
-		}
+        public PkiFreeText(string[] strs)
+        {
+            m_strings = DerSequence.Map(strs, str => new DerUtf8String(str));
+        }
 
 		public virtual int Count => m_strings.Count;
 

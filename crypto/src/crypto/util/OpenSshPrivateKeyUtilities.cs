@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             {
                 DsaParameters dsaparameters = dsaPrivateKey.Parameters;
 
-                Asn1EncodableVector vec = new Asn1EncodableVector
+                Asn1EncodableVector vec = new Asn1EncodableVector(6)
                 {
                     DerInteger.Zero,
                     new DerInteger(dsaparameters.P),
