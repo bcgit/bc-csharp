@@ -10,7 +10,6 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
@@ -127,14 +126,13 @@ namespace Org.BouncyCastle.Cms
 
         internal static byte[] StreamToByteArray(Stream inStream, int limit) => Streams.ReadAllLimited(inStream, limit);
 
-        internal static void AddDigestAlgs(ICollection<AlgorithmIdentifier> digestAlgs, SignerInformation signer,
-            IDigestAlgorithmFinder digestAlgorithmFinder)
+        internal static void AddDigestAlgorithms(DigestAlgorithmsBuilder builder, SignerInformation signer)
         {
-            digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
+            builder.Add(signer.DigestAlgorithmID);
 
             foreach (var counterSigner in signer.GetCounterSignatures())
             {
-                digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
+                builder.Add(counterSigner.DigestAlgorithmID);
             }
         }
 

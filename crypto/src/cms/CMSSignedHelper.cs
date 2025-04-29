@@ -253,12 +253,6 @@ namespace Org.BouncyCastle.Cms
 
         internal static ISigner GetSignatureInstance(string algorithm) => SignerUtilities.GetSigner(algorithm);
 
-        internal static AlgorithmIdentifier FixDigestAlgID(AlgorithmIdentifier algID,
-            IDigestAlgorithmFinder digestAlgorithmFinder)
-        {
-            return X509Utilities.HasAbsentParameters(algID) ? digestAlgorithmFinder.Find(algID.Algorithm) : algID;
-        }
-
         internal static DerObjectIdentifier GetEncOid(AsymmetricKeyParameter key, string digestOID)
         {
             DerObjectIdentifier encOid = null;

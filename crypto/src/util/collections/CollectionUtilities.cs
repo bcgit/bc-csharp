@@ -131,6 +131,16 @@ namespace Org.BouncyCastle.Utilities.Collections
             return e.Current;
         }
 
+        // TODO[api] Make extension method
+        public static IEnumerable<TResult> Select<TSource, TResult>(IEnumerable<TSource> source,
+            Func<TSource, TResult> selector)
+        {
+            foreach (var element in source)
+            {
+                yield return selector(element);
+            }
+        }
+
         public static T[] ToArray<T>(IReadOnlyCollection<T> c)
         {
             int count = c.Count, pos = 0;

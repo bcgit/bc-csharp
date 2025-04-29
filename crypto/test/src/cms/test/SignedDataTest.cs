@@ -1259,7 +1259,8 @@ namespace Org.BouncyCastle.Cms.Tests
         public void TestAddDigestAlgorithm()
         {
             var ripeMD160 = new AlgorithmIdentifier(TeleTrusTObjectIdentifiers.RipeMD160, DerNull.Instance);
-            var sha1 = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+            var sha1Null = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+            var sha1Omit = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
 
             CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
 
@@ -1276,23 +1277,26 @@ namespace Org.BouncyCastle.Cms.Tests
 
             CmsSignedData s = gen.Generate(msg, true);
 
-            var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithmIDs());
+            var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithms());
             Assert.AreEqual(1, digestAlgorithms.Count);
-            Assert.True(digestAlgorithms.Contains(sha1));
+            Assert.True(digestAlgorithms.Contains(sha1Null));
 
             VerifySignatures(s);
 
             CmsSignedData oldS = s;
 
-            s = CmsSignedData.AddDigestAlgorithm(s, sha1);
+            s = CmsSignedData.AddDigestAlgorithm(s, sha1Null);
+            Assert.AreSame(oldS, s);
+
+            s = CmsSignedData.AddDigestAlgorithm(s, sha1Omit);
             Assert.AreSame(oldS, s);
 
             s = CmsSignedData.AddDigestAlgorithm(s, ripeMD160);
             Assert.AreNotSame(oldS, s);
 
-            var newDigestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithmIDs());
+            var newDigestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithms());
             Assert.AreEqual(2, newDigestAlgorithms.Count);
-            Assert.True(newDigestAlgorithms.Contains(sha1));
+            Assert.True(newDigestAlgorithms.Contains(sha1Null));
             Assert.True(newDigestAlgorithms.Contains(ripeMD160));
         }
 
@@ -1713,7 +1717,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             s = new CmsSignedData(s.GetEncoded());
 
-            var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithmIDs());
+            var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithms());
             Assert.Greater(digestAlgorithms.Count, 0);
 
             if (expectedDigAlgID != null)
@@ -1927,7 +1931,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             s = new CmsSignedData(msg, s.GetEncoded());
 
-            var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithmIDs());
+            var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithms());
             Assert.Greater(digestAlgorithms.Count, 0);
 
             if (expectedDigAlgID != null)

@@ -165,14 +165,10 @@ namespace Org.BouncyCastle.Cms
          */
         public IStore<X509Crl> GetCrls() => CmsSignedHelper.GetCrls(SignedData.CRLs);
 
-        /**
-         * Return the digest algorithm identifiers for the SignedData object
-         *
-         * @return the set of digest algorithm identifiers
-         */
+        /// <remarks>Does not preserve the original order in SignedData.DigestAlgorithms.</remarks>
+        [Obsolete("Use 'GetDigestAlgorithms' instead")]
         public ISet<AlgorithmIdentifier> GetDigestAlgorithmIDs()
         {
-            // TODO[cms] Preserve insertion order
             HashSet<AlgorithmIdentifier> result = new HashSet<AlgorithmIdentifier>();
 
             foreach (var entry in SignedData.DigestAlgorithms)
@@ -182,6 +178,9 @@ namespace Org.BouncyCastle.Cms
 
             return CollectionUtilities.ReadOnly(result);
         }
+
+        public IEnumerable<AlgorithmIdentifier> GetDigestAlgorithms() =>
+            CollectionUtilities.Select(SignedData.DigestAlgorithms, AlgorithmIdentifier.GetInstance);
 
         /**
          * return the ASN.1 encoded representation of this object.
@@ -269,22 +268,16 @@ namespace Org.BouncyCastle.Cms
         public static CmsSignedData AddDigestAlgorithm(CmsSignedData signedData, AlgorithmIdentifier digestAlgorithm,
             IDigestAlgorithmFinder digestAlgorithmFinder)
         {
-            ISet<AlgorithmIdentifier> digestAlgorithms = signedData.GetDigestAlgorithmIDs();
+            var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(digestAlgorithmFinder);
+            digestAlgorithmsBuilder.AddExisting(signedData.GetDigestAlgorithms());
 
             //
-            // if the algorithm is already present there is no need to add it.
+            // if the algorithm is already present there is nothing to do.
             //
-            if (PreserveExisting.IsExisting(digestAlgorithms, digestAlgorithm))
+            if (!digestAlgorithmsBuilder.Add(digestAlgorithm))
                 return signedData;
 
-            //
-            // build up the new set
-            //
-            // TODO[cms] Preserve insertion order
-            HashSet<AlgorithmIdentifier> digestAlgs = new HashSet<AlgorithmIdentifier>(digestAlgorithms);
-            digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(digestAlgorithm, digestAlgorithmFinder));
-
-            Asn1Set digests = CmsUtilities.ToDLSet(digestAlgs);
+            Asn1Set digests = digestAlgorithmsBuilder.Build();
             Asn1Sequence sD = Asn1Sequence.GetInstance(signedData.SignedData.ToAsn1Object());
 
             Asn1EncodableVector vec = new Asn1EncodableVector(sD.Count);
@@ -334,23 +327,23 @@ namespace Org.BouncyCastle.Cms
         public static CmsSignedData ReplaceSigners(CmsSignedData signedData,
             SignerInformationStore signerInformationStore, IDigestAlgorithmFinder digestAlgorithmFinder)
         {
-            // Preserve existing digest algorithm identifiers, particularly the format of absent parameters.
-            digestAlgorithmFinder = new PreserveExisting(digestAlgorithmFinder,
-                signedData.EnumerateDigestAlgorithmIDs());
+            // Preserve the absent parameter format for any existing digest algorithms that are used.
+            digestAlgorithmFinder = new PreserveAbsentParameters(digestAlgorithmFinder,
+                signedData.GetDigestAlgorithms());
 
-            // TODO[cms] Preserve insertion order
-            HashSet<AlgorithmIdentifier> digestAlgs = new HashSet<AlgorithmIdentifier>();
+            var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(digestAlgorithmFinder);
 
             var signers = signerInformationStore.SignersInternal;
             var signerInfos = new Asn1EncodableVector(signers.Count);
 
-            foreach (var signer in signers)
+            foreach (var signerInformation in signers)
             {
-                CmsUtilities.AddDigestAlgs(digestAlgs, signer, digestAlgorithmFinder);
-                signerInfos.Add(signer.ToSignerInfo());
+                // TODO[cms] Avoid inconsistency b/w digestAlgorithms and signer digest algorithms?
+                CmsUtilities.AddDigestAlgorithms(digestAlgorithmsBuilder, signerInformation);
+                signerInfos.Add(signerInformation.ToSignerInfo());
             }
 
-            Asn1Set digestSet = CmsUtilities.ToDLSet(digestAlgs);
+            Asn1Set digestSet = digestAlgorithmsBuilder.Build();
             Asn1Set signerSet = DLSet.FromVector(signerInfos);
 
             Asn1Sequence sD = Asn1Sequence.GetInstance(signedData.SignedData.ToAsn1Object());
@@ -467,52 +460,51 @@ namespace Org.BouncyCastle.Cms
             return cms;
         }
 
-        internal IEnumerable<AlgorithmIdentifier> EnumerateDigestAlgorithmIDs()
-        {
-            foreach (var entry in SignedData.DigestAlgorithms)
-                yield return AlgorithmIdentifier.GetInstance(entry);
-        }
-
-        private class PreserveExisting
+        private class PreserveAbsentParameters
             : IDigestAlgorithmFinder
         {
-            internal static bool IsExisting(IEnumerable<AlgorithmIdentifier> existingAlgIDs, AlgorithmIdentifier algID)
-            {
-                foreach (var existingAlgID in existingAlgIDs)
-                {
-                    if (X509Utilities.AreEquivalentAlgorithms(existingAlgID, algID))
-                        return true;
-                }
-                return false;
-            }
-
             private readonly IDigestAlgorithmFinder m_inner;
-            private readonly Dictionary<DerObjectIdentifier, AlgorithmIdentifier> m_existing;
+            private readonly Dictionary<DerObjectIdentifier, AlgorithmIdentifier> m_absent;
 
-            internal PreserveExisting(IDigestAlgorithmFinder inner, IEnumerable<AlgorithmIdentifier> existingAlgIDs)
+            internal PreserveAbsentParameters(IDigestAlgorithmFinder inner, IEnumerable<AlgorithmIdentifier> algIDs)
             {
                 m_inner = inner ?? throw new ArgumentNullException(nameof(inner));
-                m_existing = BuildExisting(existingAlgIDs ?? throw new ArgumentNullException(nameof(existingAlgIDs)));
+                m_absent = BuildAbsent(algIDs ?? throw new ArgumentNullException(nameof(algIDs)));
             }
 
             public AlgorithmIdentifier Find(AlgorithmIdentifier signatureAlgorithm) =>
                 Preserve(m_inner.Find(signatureAlgorithm));
 
-            public AlgorithmIdentifier Find(DerObjectIdentifier digestOid) =>
-                m_existing.TryGetValue(digestOid, out var result) ? result : m_inner.Find(digestOid);
+            public AlgorithmIdentifier Find(DerObjectIdentifier digestOid)
+            {
+                if (m_absent.TryGetValue(digestOid, out var result))
+                    return result;
+
+                return m_inner.Find(digestOid);
+            }
 
             public AlgorithmIdentifier Find(string digestName) => Preserve(m_inner.Find(digestName));
 
-            private AlgorithmIdentifier Preserve(AlgorithmIdentifier algID) =>
-                m_existing.TryGetValue(algID.Algorithm, out var result) ? result: algID;
+            private AlgorithmIdentifier Preserve(AlgorithmIdentifier algID)
+            {
+                if (X509Utilities.HasAbsentParameters(algID))
+                {
+                    if (m_absent.TryGetValue(algID.Algorithm, out var result))
+                        return result;
+                }
+                return algID;
+            }
 
-            private static Dictionary<DerObjectIdentifier, AlgorithmIdentifier> BuildExisting(
-                IEnumerable<AlgorithmIdentifier> existingAlgIDs)
+            private static Dictionary<DerObjectIdentifier, AlgorithmIdentifier> BuildAbsent(
+                IEnumerable<AlgorithmIdentifier> algIDs)
             {
                 var result = new Dictionary<DerObjectIdentifier, AlgorithmIdentifier>();
-                foreach (var existingAlgID in existingAlgIDs)
+                foreach (var algID in algIDs)
                 {
-                    CollectionUtilities.TryAdd(result, existingAlgID.Algorithm, existingAlgID);
+                    if (X509Utilities.HasAbsentParameters(algID))
+                    {
+                        CollectionUtilities.TryAdd(result, algID.Algorithm, algID);
+                    }
                 }
                 return result;
             }

@@ -521,8 +521,9 @@ namespace Org.BouncyCastle.Cms
             CmsProcessable content,
             bool encapsulate)
         {
-            // TODO[cms] Preserve insertion order
-            HashSet<AlgorithmIdentifier> digestAlgs = new HashSet<AlgorithmIdentifier>();
+            // TODO Configure an IDigestAlgorithmFinder
+            var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(DefaultDigestAlgorithmFinder.Instance);
+
             Asn1EncodableVector signerInfos = new Asn1EncodableVector(_signers.Count + signerInfs.Count);
 
             m_digests.Clear(); // clear the current preserved digest state
@@ -530,12 +531,13 @@ namespace Org.BouncyCastle.Cms
             //
             // add the precalculated SignerInfo objects.
             //
-            foreach (SignerInformation _signer in _signers)
+            foreach (var signerInformation in _signers)
             {
-                // TODO Configure an IDigestAlgorithmFinder
-                CmsUtilities.AddDigestAlgs(digestAlgs, _signer, DefaultDigestAlgorithmFinder.Instance);
+                // TODO[cms] Avoid inconsistency b/w digestAlgorithms and signer digest algorithms?
+                CmsUtilities.AddDigestAlgorithms(digestAlgorithmsBuilder, signerInformation);
+
                 // TODO Verify the content type and calculated digest match the precalculated SignerInfo
-                signerInfos.Add(_signer.ToSignerInfo());
+                signerInfos.Add(signerInformation.ToSignerInfo());
             }
 
             //
@@ -543,13 +545,15 @@ namespace Org.BouncyCastle.Cms
             //
             DerObjectIdentifier encapContentType = new DerObjectIdentifier(signedContentType);
 
-            foreach (SignerInf signerInf in signerInfs)
+            foreach (var signerInf in signerInfs)
             {
                 try
                 {
-                    // TODO Need to use something like CmsUilities.AddDigestAlgs (see above) here?
                     var signerInfo = signerInf.ToSignerInfo(encapContentType, content);
-                    digestAlgs.Add(signerInfo.DigestAlgorithm);
+
+                    // TODO[cms] Avoid inconsistency b/w digestAlgorithms and signer digest algorithms?
+                    digestAlgorithmsBuilder.Add(signerInfo.DigestAlgorithm);
+
                     signerInfos.Add(signerInfo);
                 }
                 catch (IOException e)
@@ -599,7 +603,7 @@ namespace Org.BouncyCastle.Cms
             ContentInfo encapContentInfo = new ContentInfo(encapContentType, encapContent);
 
             SignedData signedData = new SignedData(
-                CmsUtilities.ToDLSet(digestAlgs),
+                digestAlgorithmsBuilder.Build(),
                 encapContentInfo,
                 certificates,
                 crls,
