@@ -18,25 +18,25 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Cms
 {
     /**
-    * General class for generating a pkcs7-signature message stream.
-    * <p>
-    * A simple example of usage.
-    * </p>
-    * <pre>
-    *      IX509Store                   certs...
-    *      CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-    *
-    *      gen.AddSigner(privateKey, cert, CmsSignedDataStreamGenerator.DIGEST_SHA1);
-    *
-    *      gen.AddCertificates(certs);
-    *
-    *      Stream sigOut = gen.Open(bOut);
-    *
-    *      sigOut.Write(Encoding.UTF8.GetBytes("Hello World!"));
-    *
-    *      sigOut.Close();
-    * </pre>
-    */
+     * General class for generating a pkcs7-signature message stream.
+     * <p>
+     * A simple example of usage.
+     * </p>
+     * <pre>
+     *      IX509Store                   certs...
+     *      CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
+     *
+     *      gen.AddSigner(privateKey, cert, CmsSignedDataStreamGenerator.DIGEST_SHA1);
+     *
+     *      gen.AddCertificates(certs);
+     *
+     *      Stream sigOut = gen.Open(bOut);
+     *
+     *      sigOut.Write(Encoding.UTF8.GetBytes("Hello World!"));
+     *
+     *      sigOut.Close();
+     * </pre>
+     */
     public class CmsSignedDataStreamGenerator
         : CmsSignedGenerator
     {
@@ -68,49 +68,41 @@ namespace Org.BouncyCastle.Cms
                 CmsAttributeTableGenerator sAttrGen,
                 CmsAttributeTableGenerator unsAttrGen)
             {
-                m_outer = outer;
-
-                m_signerID = signerID;
-                // TODO Configure an IDigestAlgorithmFinder
-                m_digAlgID = DefaultDigestAlgorithmFinder.Instance.Find(digAlgOid);
-                m_sigAlgOid = sigAlgOid;
-                m_sAttrGen = sAttrGen;
-                m_unsAttrGen = unsAttrGen;
-                m_encName = CmsSignedHelper.GetEncryptionAlgName(m_sigAlgOid);
-
+                var encName = CmsSignedHelper.GetEncryptionAlgName(sigAlgOid);
                 string digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
-                string signatureName = digestName + "with" + m_encName;
+                string signatureName = digestName + "with" + encName;
 
-                if (m_sAttrGen != null)
+                ISigner signer;
+                if (sAttrGen != null)
                 {
-                    m_signer = SignerUtilities.InitSigner(signatureName, true, key, outer.m_random);
+                    signer = SignerUtilities.InitSigner(signatureName, true, key, outer.m_random);
                 }
                 else
                 {
                     // Note: Need to use raw signatures here since we have already calculated the digest
-                    if (m_encName.Equals("RSA"))
+                    if ("RSA" == encName)
                     {
-                        m_signer = SignerUtilities.InitSigner("RSA", true, key, outer.m_random);
+                        signer = SignerUtilities.InitSigner("RSA", true, key, outer.m_random);
                     }
-                    else if (m_encName.Equals("DSA"))
+                    else if ("DSA" == encName)
                     {
-                        m_signer = SignerUtilities.InitSigner("NONEwithDSA", true, key, outer.m_random);
+                        signer = SignerUtilities.InitSigner("NONEwithDSA", true, key, outer.m_random);
                     }
                     //TODO Add support for raw PSS
-                    //else if (m_encName.Equals("RSAandMGF1"))
+                    //else if ("RSAandMGF1" == encName)
                     //{
-                    //    _sig = SignerUtilities.GetSigner("NONEWITHRSAPSS");
+                    //    signer = SignerUtilities.GetSigner("NONEWITHRSAPSS");
                     //    try
                     //    {
                     //        // Init the params this way to avoid having a 'raw' version of each PSS algorithm
                     //        Signature sig2 = SignerUtilities.GetSigner(signatureName);
                     //        PSSParameterSpec spec = (PSSParameterSpec)sig2.getParameters().getParameterSpec(
-                    //            PSSParameterSpec.class);
-                    //        _sig.setParameter(spec);
+                    //            typeof(PSSParameterSpec));
+                    //        signer.setParameter(spec);
                     //    }
                     //    catch (Exception e)
                     //    {
-                    //        throw new SignatureException("algorithm: " + _encName + " could not be configured.");
+                    //        throw new SignatureException("algorithm: " + encName + " could not be configured.", e);
                     //    }
                     //}
                     else
@@ -118,6 +110,16 @@ namespace Org.BouncyCastle.Cms
                         throw new SignatureException("algorithm: " + m_encName + " not supported in base signatures.");
                     }
                 }
+
+                m_outer = outer;
+                m_signerID = signerID;
+                // TODO Configure an IDigestAlgorithmFinder
+                m_digAlgID = DefaultDigestAlgorithmFinder.Instance.Find(digAlgOid);
+                m_sigAlgOid = sigAlgOid;
+                m_sAttrGen = sAttrGen;
+                m_unsAttrGen = unsAttrGen;
+                m_encName = encName;
+                m_signer = signer;
             }
 
             internal int GeneratedVersion => m_signerID.IsTagged ? 3 : 1;
@@ -256,10 +258,8 @@ namespace Org.BouncyCastle.Cms
         * @throws NoSuchAlgorithmException
         * @throws InvalidKeyException
         */
-        public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string digestOid)
-        {
+        public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string digestOid) =>
             AddSigner(privateKey, cert, digestOid, new DefaultSignedAttributeTableGenerator(), null);
-        }
 
         /**
          * add a signer, specifying the digest encryption algorithm - no attributes other than the default ones will be
@@ -282,8 +282,7 @@ namespace Org.BouncyCastle.Cms
         public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string digestOid,
             Asn1.Cms.AttributeTable	signedAttr, Asn1.Cms.AttributeTable	unsignedAttr)
         {
-            AddSigner(privateKey, cert, digestOid,
-                new DefaultSignedAttributeTableGenerator(signedAttr),
+            AddSigner(privateKey, cert, digestOid, new DefaultSignedAttributeTableGenerator(signedAttr),
                 new SimpleAttributeTableGenerator(unsignedAttr));
         }
 
@@ -322,10 +321,8 @@ namespace Org.BouncyCastle.Cms
          * @throws NoSuchAlgorithmException
          * @throws InvalidKeyException
          */
-        public void AddSigner(AsymmetricKeyParameter privateKey, byte[] subjectKeyID, string digestOid)
-        {
+        public void AddSigner(AsymmetricKeyParameter privateKey, byte[] subjectKeyID, string digestOid) =>
             AddSigner(privateKey, subjectKeyID, digestOid, new DefaultSignedAttributeTableGenerator(), null);
-        }
 
         /**
          * add a signer - no attributes other than the default ones will be
@@ -349,8 +346,7 @@ namespace Org.BouncyCastle.Cms
         public void AddSigner(AsymmetricKeyParameter privateKey, byte[] subjectKeyID, string digestOid,
             Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
         {
-            AddSigner(privateKey, subjectKeyID, digestOid,
-                new DefaultSignedAttributeTableGenerator(signedAttr),
+            AddSigner(privateKey, subjectKeyID, digestOid, new DefaultSignedAttributeTableGenerator(signedAttr),
                 new SimpleAttributeTableGenerator(unsignedAttr));
         }
 
@@ -462,8 +458,7 @@ namespace Org.BouncyCastle.Cms
 
             sigGen.AddObject(CalculateVersion(contentTypeOid));
 
-            // TODO[cms] Configure an IDigestAlgorithmFinder
-            DerSet digestAlgs = DerSet.Map(m_messageDigestOids, DefaultDigestAlgorithmFinder.Instance.Find);
+            DerSet digestAlgs = DerSet.Map(m_messageDigestOids, DigestAlgorithmFinder.Find);
 
             digestAlgs.EncodeTo(sigGen.GetRawOutputStream());
 
