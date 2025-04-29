@@ -46,6 +46,7 @@ namespace Org.BouncyCastle.Pkcs
         private readonly bool useDerEncoding;
         private readonly bool reverseCertificates;
         private readonly bool overwriteFriendlyName;
+        private readonly bool enableOracleTrustedKeyUsage;
 
         private AsymmetricKeyEntry unmarkedKeyEntry = null;
 
@@ -83,7 +84,7 @@ namespace Org.BouncyCastle.Pkcs
 
         internal Pkcs12Store(DerObjectIdentifier certAlgorithm, DerObjectIdentifier certPrfAlgorithm,
             DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm, bool useDerEncoding,
-            bool reverseCertificates, bool overwriteFriendlyName)
+            bool reverseCertificates, bool overwriteFriendlyName, bool enableOracleTrustedKeyUsage)
         {
             this.certAlgorithm = certAlgorithm;
             this.certPrfAlgorithm = certPrfAlgorithm;
@@ -92,6 +93,7 @@ namespace Org.BouncyCastle.Pkcs
             this.useDerEncoding = useDerEncoding;
             this.reverseCertificates = reverseCertificates;
             this.overwriteFriendlyName = overwriteFriendlyName;
+            this.enableOracleTrustedKeyUsage = enableOracleTrustedKeyUsage;
         }
 
         protected virtual void LoadKeyBag(PrivateKeyInfo privKeyInfo, Asn1Set bagAttributes)
@@ -853,6 +855,7 @@ namespace Org.BouncyCastle.Pkcs
                 bagAttributes.Add(CreateEntryFriendlyName(alias, certEntry));
 
                 // the Oracle PKCS12 parser looks for a trusted key usage for named certificates as well
+                if (enableOracleTrustedKeyUsage)
                 {
                     Asn1Object eku = certEntry.Certificate.GetExtensionParsedValue(X509Extensions.ExtendedKeyUsage);
 
