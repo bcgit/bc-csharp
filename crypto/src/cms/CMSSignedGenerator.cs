@@ -12,6 +12,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -82,6 +83,7 @@ namespace Org.BouncyCastle.Cms
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
         internal List<SignerInformation> _signers = new List<SignerInformation>();
         internal Dictionary<DerObjectIdentifier, byte[]> m_digests = new Dictionary<DerObjectIdentifier, byte[]>();
+        internal IDigestAlgorithmFinder m_digestAlgorithmFinder = DefaultDigestAlgorithmFinder.Instance;
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
@@ -163,6 +165,12 @@ namespace Org.BouncyCastle.Cms
                 _signers.Add(o);
                 AddSignerCallback(o);
             }
+        }
+
+        public IDigestAlgorithmFinder DigestAlgorithmFinder
+        {
+            get { return m_digestAlgorithmFinder; }
+            set { m_digestAlgorithmFinder = value ?? throw new ArgumentNullException(nameof(value)); }
         }
 
         /**

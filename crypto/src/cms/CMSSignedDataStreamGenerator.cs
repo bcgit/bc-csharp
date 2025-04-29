@@ -113,8 +113,7 @@ namespace Org.BouncyCastle.Cms
 
                 m_outer = outer;
                 m_signerID = signerID;
-                // TODO Configure an IDigestAlgorithmFinder
-                m_digAlgID = DefaultDigestAlgorithmFinder.Instance.Find(digAlgOid);
+                m_digAlgID = outer.DigestAlgorithmFinder.Find(digAlgOid);
                 m_sigAlgOid = sigAlgOid;
                 m_sAttrGen = sAttrGen;
                 m_unsAttrGen = unsAttrGen;

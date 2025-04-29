@@ -134,8 +134,7 @@ namespace Org.BouncyCastle.Cms
                 m_outer = outer;
                 m_signatureFactory = signatureFactory;
                 m_signerID = signerID;
-                // TODO Configure an IDigestAlgorithmFinder
-                m_digAlgID = DefaultDigestAlgorithmFinder.Instance.Find(digAlgOid);
+                m_digAlgID = outer.DigestAlgorithmFinder.Find(digAlgOid);
                 m_sigAlgOid = sigAlgOid;
                 m_sAttrGen = sAttrGen;
                 m_unsAttrGen = unsAttrGen;
@@ -201,8 +200,7 @@ namespace Org.BouncyCastle.Cms
                 }
                 else
                 {
-                    // TODO Configure an IDigestAlgorithmFinder
-                    digAlgID = DefaultDigestAlgorithmFinder.Instance.Find(sigAlgID);
+                    digAlgID = outer.DigestAlgorithmFinder.Find(sigAlgID);
                 }
 
                 m_outer = outer;
@@ -521,8 +519,7 @@ namespace Org.BouncyCastle.Cms
             CmsProcessable content,
             bool encapsulate)
         {
-            // TODO Configure an IDigestAlgorithmFinder
-            var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(DefaultDigestAlgorithmFinder.Instance);
+            var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(DigestAlgorithmFinder);
 
             Asn1EncodableVector signerInfos = new Asn1EncodableVector(_signers.Count + signerInfs.Count);
 
