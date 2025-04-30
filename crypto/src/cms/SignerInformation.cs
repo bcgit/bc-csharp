@@ -356,7 +356,7 @@ namespace Org.BouncyCastle.Cms
                 if (signedAttributeSet == null)
                 {
                     /*
-                     * draft-ietf-lamps-cms-ml-dsa-02 3.3. When processing a SignerInfo signed using ML-DSA, if no signed
+                     * draft-ietf-lamps-cms-ml-dsa-03 3.3. When processing a SignerInfo signed using ML-DSA, if no signed
                      * attributes are present, implementations MUST ignore the content of the digestAlgorithm field.
                      */
                     digestName = null;
@@ -366,8 +366,11 @@ namespace Org.BouncyCastle.Cms
                     // TODO Other digests may be acceptable; keep a list and check against it
 
                     /*
-                     * draft-ietf-lamps-cms-ml-dsa-02 3.3. When SHA-512 is used, the id-sha512 [..] digest algorithm
+                     * draft-ietf-lamps-cms-ml-dsa-03 3.3. When SHA-512 is used, the id-sha512 [..] digest algorithm
                      * identifier is used and the parameters field MUST be omitted.
+                     *
+                     * TODO[cms] When SHAKE256 is used, the id-shake256 [..] digest algorithm identifier is used and
+                     * produces 512 bits of output, and the parameters field MUST be omitted.
                      */
                     if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
                         throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");

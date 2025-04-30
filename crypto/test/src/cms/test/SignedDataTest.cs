@@ -1304,60 +1304,78 @@ namespace Org.BouncyCastle.Cms.Tests
         public void TestMLDsa44()
         {
             /*
-             * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+             * draft-ietf-lamps-cms-ml-dsa-03 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
              * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
              * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
              * omitted.
              *
              * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
              */
-            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+            AlgorithmIdentifier sha512 = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
             DetachedTest(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
-                expectedDigAlgID);
+                expectedDigAlgID: sha512);
 
             EncapsulatedTestAlt(SignMLDsa44KP, SignMLDsa44Cert, "ML-DSA-44", NistObjectIdentifiers.id_ml_dsa_44,
-                expectedDigAlgID);
+                expectedDigAlgID: sha512);
+
+            /*
+             * TODO[cms] When SHAKE256 is used, the id-shake256[..] digest algorithm identifier is used and produces 512
+             * bits of output, and the parameters field MUST be omitted.
+             */
+            //AlgorithmIdentifier shake256 = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
         }
 
         [Test]
         public void TestMLDsa65()
         {
             /*
-             * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+             * draft-ietf-lamps-cms-ml-dsa-03 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
              * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
              * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
              * omitted.
              *
              * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
              */
-            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+            AlgorithmIdentifier sha512 = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
             DetachedTest(SignMLDsa65KP, SignMLDsa65Cert, "ML-DSA-65", NistObjectIdentifiers.id_ml_dsa_65,
-                expectedDigAlgID);
+                expectedDigAlgID: sha512);
 
             EncapsulatedTestAlt(SignMLDsa65KP, SignMLDsa65Cert, "ML-DSA-65", NistObjectIdentifiers.id_ml_dsa_65,
-                expectedDigAlgID);
+                expectedDigAlgID: sha512);
+
+            /*
+             * TODO[cms] When SHAKE256 is used, the id-shake256[..] digest algorithm identifier is used and produces 512
+             * bits of output, and the parameters field MUST be omitted.
+             */
+            //AlgorithmIdentifier shake256 = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
         }
 
         [Test]
         public void TestMLDsa87()
         {
             /*
-             * draft-ietf-lamps-cms-ml-dsa-02 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
+             * draft-ietf-lamps-cms-ml-dsa-03 3.3. SHA-512 [FIPS180] MUST be supported for use with the variants
              * of ML-DSA in this document; however, other hash functions MAY also be supported. When SHA-512 is
              * used, the id-sha512 [RFC5754] digest algorithm identifier is used and the parameters field MUST be
              * omitted.
              *
              * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
              */
-            AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
+            AlgorithmIdentifier sha512 = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
 
             DetachedTest(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
-                expectedDigAlgID);
+                expectedDigAlgID: sha512);
 
             EncapsulatedTestAlt(SignMLDsa87KP, SignMLDsa87Cert, "ML-DSA-87", NistObjectIdentifiers.id_ml_dsa_87,
-                expectedDigAlgID);
+                expectedDigAlgID: sha512);
+
+            /*
+             * TODO[cms] When SHAKE256 is used, the id-shake256[..] digest algorithm identifier is used and produces 512
+             * bits of output, and the parameters field MUST be omitted.
+             */
+            //AlgorithmIdentifier shake256 = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256);
         }
 
         [Test]
