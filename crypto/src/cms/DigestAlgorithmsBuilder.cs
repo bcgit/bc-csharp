@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        internal Asn1Set Build() => CmsUtilities.ToDLSet(m_ordered);
+        internal Asn1Set Build(bool useDL) => m_ordered.ToAsn1Set(useDer: false, useDL);
 
         internal bool Contains(AlgorithmIdentifier algID) => m_unique.Contains(new UniqueAlgID(algID));
 

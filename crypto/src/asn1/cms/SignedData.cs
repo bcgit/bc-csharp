@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private readonly DerInteger m_version;
         private readonly Asn1Set m_digestAlgorithms;
-        private readonly ContentInfo m_contentInfo;
+        private readonly ContentInfo m_encapContentInfo;
         private readonly Asn1Set m_certificates;
         private readonly Asn1Set m_crls;
         private readonly Asn1Set m_signerInfos;
@@ -35,11 +35,12 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly bool m_digsBer;
         private readonly bool m_sigsBer;
 
+        // TODO[api] Rename 'contentInfo' to 'encapContentInfo'
         public SignedData(Asn1Set digestAlgorithms, ContentInfo contentInfo, Asn1Set certificates, Asn1Set crls,
             Asn1Set signerInfos)
         {
             m_digestAlgorithms = digestAlgorithms ?? throw new ArgumentNullException(nameof(digestAlgorithms));
-            m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
+            m_encapContentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
             m_certificates = certificates;
             m_crls = crls;
             m_signerInfos = signerInfos ?? throw new ArgumentNullException(nameof(signerInfos));
@@ -59,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             m_version = DerInteger.GetInstance(seq[pos++]);
             m_digestAlgorithms = Asn1Set.GetInstance(seq[pos++]);
-            m_contentInfo = ContentInfo.GetInstance(seq[pos++]);
+            m_encapContentInfo = ContentInfo.GetInstance(seq[pos++]);
             m_certificates = ReadOptionalTaggedSet(seq, ref pos, 0, out m_certsBer);
             m_crls = ReadOptionalTaggedSet(seq, ref pos, 1, out m_crlsBer);
             m_signerInfos = Asn1Set.GetInstance(seq[pos++]);
@@ -75,10 +76,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1Set DigestAlgorithms => m_digestAlgorithms;
 
-        public ContentInfo EncapContentInfo => m_contentInfo;
+        public ContentInfo EncapContentInfo => m_encapContentInfo;
 
         public Asn1Set Certificates => m_certificates;
 
+        // TODO[api] Rename to Crls
         public Asn1Set CRLs => m_crls;
 
         public Asn1Set SignerInfos => m_signerInfos;
@@ -99,7 +101,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(6);
-            v.Add(m_version, m_digestAlgorithms, m_contentInfo);
+            v.Add(m_version, m_digestAlgorithms, m_encapContentInfo);
 
             if (m_certificates != null)
             {
@@ -127,7 +129,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             v.Add(m_signerInfos);
 
-            if (!m_contentInfo.IsDefiniteLength || m_certsBer || m_crlsBer || m_digsBer || m_sigsBer)
+            if (!m_encapContentInfo.IsDefiniteLength || m_certsBer || m_crlsBer || m_digsBer || m_sigsBer)
                 return new BerSequence(v);
 
             return new DLSequence(v);

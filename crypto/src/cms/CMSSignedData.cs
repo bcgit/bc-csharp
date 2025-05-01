@@ -36,11 +36,10 @@ namespace Org.BouncyCastle.Cms
      */
     public class CmsSignedData
     {
-        // TODO[cms] Make fields readonly
-        private ContentInfo m_contentInfo;
-        private SignedData m_signedData;
-        private CmsProcessable m_signedContent;
-        private IDictionary<string, byte[]> m_hashes;
+        private readonly ContentInfo m_contentInfo;
+        private readonly SignedData m_signedData;
+        private readonly CmsProcessable m_signedContent;
+        private readonly IDictionary<string, byte[]> m_hashes;
 
         // Lazily constructed
         private SignerInformationStore m_signerInfoStore;
@@ -52,6 +51,16 @@ namespace Org.BouncyCastle.Cms
             m_signedContent = c.m_signedContent;
             m_hashes = null; // TODO[cms] Check whether we should be (deep-)copying these
             m_signerInfoStore = c.m_signerInfoStore;
+        }
+
+        private CmsSignedData(DerObjectIdentifier contentType, SignedData signedData, CmsProcessable signedContent,
+            SignerInformationStore signerInfoStore)
+        {
+            m_contentInfo = new ContentInfo(contentType, signedData);
+            m_signedData = signedData;
+            m_signedContent = signedContent;
+            m_hashes = null;
+            m_signerInfoStore = signerInfoStore;
         }
 
         public CmsSignedData(byte[] sigBlock)
@@ -271,33 +280,20 @@ namespace Org.BouncyCastle.Cms
             var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(digestAlgorithmFinder);
             digestAlgorithmsBuilder.AddExisting(signedData.GetDigestAlgorithms());
 
-            //
-            // if the algorithm is already present there is nothing to do.
-            //
+            // If the algorithm is already present, there is nothing to do.
             if (!digestAlgorithmsBuilder.Add(digestAlgorithm))
                 return signedData;
 
-            Asn1Set digests = digestAlgorithmsBuilder.Build();
-            Asn1Sequence sD = Asn1Sequence.GetInstance(signedData.SignedData.ToAsn1Object());
+            var oldContent = signedData.SignedData;
 
-            Asn1EncodableVector vec = new Asn1EncodableVector(sD.Count);
-            vec.Add(sD[0]); // version
-            vec.Add(digests);
+            Asn1Set newDigestAlgorithms = digestAlgorithmsBuilder.Build(
+                useDL: !(oldContent.DigestAlgorithms is BerSet));
 
-            for (int i = 2; i != sD.Count; i++)
-            {
-                vec.Add(sD[i]);
-            }
+            var newContent = new SignedData(newDigestAlgorithms, oldContent.EncapContentInfo, oldContent.Certificates,
+                oldContent.CRLs, oldContent.SignerInfos);
 
-            CmsSignedData cms = new CmsSignedData(signedData);
-            cms.m_signedData = SignedData.GetInstance(new BerSequence(vec));
-
-            //
-            // replace the contentInfo with the new one
-            //
-            cms.m_contentInfo = new ContentInfo(cms.ContentInfo.ContentType, cms.SignedData);
-
-            return cms;
+            return new CmsSignedData(signedData.ContentInfo.ContentType, newContent, signedData.m_signedContent,
+                signedData.m_signerInfoStore);
         }
 
         /**
@@ -334,7 +330,7 @@ namespace Org.BouncyCastle.Cms
             var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(digestAlgorithmFinder);
 
             var signers = signerInformationStore.SignersInternal;
-            var signerInfos = new Asn1EncodableVector(signers.Count);
+            var signerInfos = new List<SignerInfo>(signers.Count);
 
             foreach (var signerInformation in signers)
             {
@@ -343,26 +339,19 @@ namespace Org.BouncyCastle.Cms
                 signerInfos.Add(signerInformation.ToSignerInfo());
             }
 
-            Asn1Set digestSet = digestAlgorithmsBuilder.Build();
-            Asn1Set signerSet = DLSet.FromVector(signerInfos);
+            var oldContent = signedData.SignedData;
 
-            Asn1Sequence sD = Asn1Sequence.GetInstance(signedData.SignedData.ToAsn1Object());
-            Asn1EncodableVector vec = new Asn1EncodableVector(sD.Count);
-            vec.Add(sD[0]); // version
-            vec.Add(digestSet);
+            Asn1Set newDigestAlgorithms = digestAlgorithmsBuilder.Build(
+                useDL: !(oldContent.DigestAlgorithms is BerSet));
 
-            for (int i = 2; i != sD.Count - 1; i++)
-            {
-                vec.Add(sD[i]);
-            }
+            Asn1Set newSignerInfos = signerInfos.ToAsn1Set(useDer: false,
+                useDL: !(oldContent.SignerInfos is BerSet));
 
-            vec.Add(signerSet);
+            var newContent = new SignedData(newDigestAlgorithms, oldContent.EncapContentInfo, oldContent.Certificates,
+                oldContent.CRLs, newSignerInfos);
 
-            CmsSignedData cms = new CmsSignedData(signedData);
-            cms.m_signerInfoStore = signerInformationStore;
-            cms.m_signedData = SignedData.GetInstance(new BerSequence(vec));
-            cms.m_contentInfo = new ContentInfo(cms.ContentInfo.ContentType, cms.SignedData);
-            return cms;
+            return new CmsSignedData(signedData.ContentInfo.ContentType, newContent, signedData.m_signedContent,
+                signerInformationStore);
         }
 
         /**
@@ -392,11 +381,6 @@ namespace Org.BouncyCastle.Cms
             IStore<X509Certificate> x509Certs, IStore<X509Crl> x509Crls,
             IStore<X509V2AttributeCertificate> x509AttrCerts, IStore<OtherRevocationInfoFormat> otherRevocationInfos)
         {
-            //
-            // copy
-            //
-            CmsSignedData cms = new CmsSignedData(signedData);
-
             //
             // replace the certs and crls in the SignedData object
             //
@@ -441,23 +425,13 @@ namespace Org.BouncyCastle.Cms
                 }
             }
 
-            //
-            // replace the CMS structure.
-            //
-            SignedData old = signedData.SignedData;
-            cms.m_signedData = new SignedData(
-                old.DigestAlgorithms,
-                old.EncapContentInfo,
-                certSet,
-                revocationSet,
-                old.SignerInfos);
+            var oldContent = signedData.SignedData;
 
-            //
-            // replace the contentInfo with the new one
-            //
-            cms.m_contentInfo = new ContentInfo(cms.ContentInfo.ContentType, cms.SignedData);
+            var content = new SignedData(oldContent.DigestAlgorithms, oldContent.EncapContentInfo, certSet,
+                revocationSet, oldContent.SignerInfos);
 
-            return cms;
+            return new CmsSignedData(signedData.ContentInfo.ContentType, content, signedData.m_signedContent,
+                signedData.m_signerInfoStore);
         }
 
         private class PreserveAbsentParameters

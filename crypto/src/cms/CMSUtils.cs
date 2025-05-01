@@ -254,6 +254,17 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        internal static Asn1Set ToAsn1Set(this IReadOnlyCollection<Asn1Encodable> elements, bool useDer, bool useDL)
+        {
+            return elements.Count < 1
+                ? null
+                : useDer
+                ? ToDerSet(elements)
+                : useDL
+                ? ToDLSet(elements)
+                : ToBerSet(elements);
+        }
+
         internal static Asn1Set ToBerSet(this IReadOnlyCollection<Asn1Encodable> elements) =>
             BerSet.FromCollection(elements);
 

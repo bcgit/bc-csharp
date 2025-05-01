@@ -11,7 +11,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities.Collections;
@@ -513,6 +512,7 @@ namespace Org.BouncyCastle.Cms
          * of the message will be included in the signature. The content type
          * is set according to the OID represented by the string signedContentType.
          */
+        // TODO[api] Rename parameters
         public CmsSignedData Generate(
             string signedContentType,
             // FIXME Avoid accessing more than once to support CmsProcessableInputStream
@@ -521,7 +521,7 @@ namespace Org.BouncyCastle.Cms
         {
             var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(DigestAlgorithmFinder);
 
-            Asn1EncodableVector signerInfos = new Asn1EncodableVector(_signers.Count + signerInfs.Count);
+            var signerInfos = new List<SignerInfo>(_signers.Count + signerInfs.Count);
 
             m_digests.Clear(); // clear the current preserved digest state
 
@@ -571,9 +571,9 @@ namespace Org.BouncyCastle.Cms
                 }
             }
 
-            Asn1Set certificates = CreateAsn1Set(_certs, _useDerForCerts, _useDefiniteLength);
+            Asn1Set certificates = _certs.ToAsn1Set(_useDerForCerts, _useDefiniteLength);
 
-            Asn1Set crls = CreateAsn1Set(_crls, _useDerForCrls, _useDefiniteLength);
+            Asn1Set crls = _crls.ToAsn1Set(_useDerForCrls, _useDefiniteLength);
 
             Asn1OctetString encapContent = null;
             if (encapsulate)
@@ -584,11 +584,11 @@ namespace Org.BouncyCastle.Cms
 
                     if (_useDefiniteLength)
                     {
-                        encapContent = new DerOctetString(encapContentOctets);
+                        encapContent = DerOctetString.WithContents(encapContentOctets);
                     }
                     else
                     {
-                        encapContent = new BerOctetString(encapContentOctets);
+                        encapContent = BerOctetString.WithContents(encapContentOctets);
                     }
                 }
                 catch (IOException e)
@@ -600,13 +600,13 @@ namespace Org.BouncyCastle.Cms
             ContentInfo encapContentInfo = new ContentInfo(encapContentType, encapContent);
 
             SignedData signedData = new SignedData(
-                digestAlgorithmsBuilder.Build(),
+                digestAlgorithmsBuilder.Build(useDL: UseDefiniteLength),
                 encapContentInfo,
                 certificates,
                 crls,
-                DerSet.FromVector(signerInfos));
+                signerInfos.ToAsn1Set(useDer: false, useDL: UseDefiniteLength));
 
-            ContentInfo contentInfo = new ContentInfo(CmsObjectIdentifiers.SignedData, signedData);
+            var contentInfo = new ContentInfo(CmsObjectIdentifiers.SignedData, signedData);
 
             return new CmsSignedData(content, contentInfo);
         }
@@ -665,17 +665,6 @@ namespace Org.BouncyCastle.Cms
         {
             get { return _useDefiniteLength; }
             set { this._useDefiniteLength = value; }
-        }
-
-        private static Asn1Set CreateAsn1Set(IReadOnlyCollection<Asn1Encodable> elements, bool useDer, bool useDL)
-        {
-            return elements.Count < 1
-                ?  null
-                :  useDer
-                ?  CmsUtilities.ToDerSet(elements)
-                :  useDL
-                ?  CmsUtilities.ToDLSet(elements)
-                :  CmsUtilities.ToBerSet(elements);
         }
     }
 }

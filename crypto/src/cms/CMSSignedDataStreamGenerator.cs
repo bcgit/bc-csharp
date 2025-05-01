@@ -9,7 +9,6 @@ using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
-using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
@@ -52,7 +51,7 @@ namespace Org.BouncyCastle.Cms
             private readonly CmsSignedDataStreamGenerator m_outer;
 
             private readonly SignerIdentifier m_signerID;
-            internal readonly AlgorithmIdentifier m_digAlgID;
+            private readonly AlgorithmIdentifier m_digAlgID;
             private readonly DerObjectIdentifier m_sigAlgOid;
             private readonly CmsAttributeTableGenerator m_sAttrGen;
             private readonly CmsAttributeTableGenerator m_unsAttrGen;
@@ -120,6 +119,8 @@ namespace Org.BouncyCastle.Cms
                 m_encName = encName;
                 m_signer = signer;
             }
+
+            internal AlgorithmIdentifier DigestAlgorithm => m_digAlgID;
 
             internal int GeneratedVersion => m_signerID.IsTagged ? 3 : 1;
 
@@ -749,7 +750,7 @@ namespace Org.BouncyCastle.Cms
                 //
                 foreach (SignerInfoGeneratorImpl signerInfoGen in outer.m_signerInfoGens)
                 {
-                    var digestOid = signerInfoGen.m_digAlgID.Algorithm;
+                    var digestOid = signerInfoGen.DigestAlgorithm.Algorithm;
 
                     byte[] calculatedDigest = outer.m_digests[digestOid];
 
