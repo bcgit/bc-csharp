@@ -1,14 +1,38 @@
 using System;
 using System.Diagnostics;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
     public class BerOctetString
         : DerOctetString
     {
+        public static readonly BerOctetString Empty = new BerOctetString(EmptyOctets);
+
+        public static new BerOctetString FromContents(byte[] contents)
+        {
+            if (contents == null)
+                throw new ArgumentNullException(nameof(contents));
+
+            return contents.Length < 1 ? Empty : new BerOctetString(Arrays.Clone(contents));
+        }
+
+        public static new BerOctetString FromContentsOptional(byte[] contents)
+        {
+            if (contents == null)
+                return null;
+
+            return contents.Length < 1 ? Empty : new BerOctetString(Arrays.Clone(contents));
+        }
+
         public static BerOctetString FromSequence(Asn1Sequence seq)
         {
             return new BerOctetString(seq.MapElements(GetInstance));
+        }
+
+        internal static new BerOctetString WithContents(byte[] contents)
+        {
+            return contents.Length < 1 ? Empty : new BerOctetString(contents);
         }
 
         internal static byte[] FlattenOctetStrings(Asn1OctetString[] octetStrings)
