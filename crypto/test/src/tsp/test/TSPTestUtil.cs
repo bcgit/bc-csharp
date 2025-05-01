@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
             EncryptionAlgs.Add(X9ObjectIdentifiers.IdDsa.Id, "DSA");
             EncryptionAlgs.Add(PkcsObjectIdentifiers.RsaEncryption.Id, "RSA");
-            EncryptionAlgs.Add(TeleTrusTObjectIdentifiers.TeleTrusTRsaSignatureAlgorithm.Id, "RSA");
+            EncryptionAlgs.Add(TeleTrusTObjectIdentifiers.rsaSignature.Id, "RSA");
             EncryptionAlgs.Add(X509ObjectIdentifiers.IdEARsa.Id, "RSA");
             EncryptionAlgs.Add(EncryptionRsaPss, "RSAandMGF1");
             EncryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x94.Id, "GOST3410");

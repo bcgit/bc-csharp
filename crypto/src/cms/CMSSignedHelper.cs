@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Cms
 
             m_encryptionAlgs.Add(X9ObjectIdentifiers.IdDsa, "DSA");
             m_encryptionAlgs.Add(PkcsObjectIdentifiers.RsaEncryption, "RSA");
-            m_encryptionAlgs.Add(TeleTrusTObjectIdentifiers.TeleTrusTRsaSignatureAlgorithm, "RSA");
+            m_encryptionAlgs.Add(TeleTrusTObjectIdentifiers.rsaSignature, "RSA");
             m_encryptionAlgs.Add(X509ObjectIdentifiers.IdEARsa, "RSA");
             m_encryptionAlgs.Add(PkcsObjectIdentifiers.IdRsassaPss, "RSAandMGF1");
             m_encryptionAlgs.Add(CryptoProObjectIdentifiers.GostR3410x94, "GOST3410");
