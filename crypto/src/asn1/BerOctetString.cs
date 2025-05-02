@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
@@ -7,7 +8,7 @@ namespace Org.BouncyCastle.Asn1
     public class BerOctetString
         : DerOctetString
     {
-        public static readonly BerOctetString Empty = new BerOctetString(EmptyOctets);
+        public static new readonly BerOctetString Empty = new BerOctetString(EmptyOctets);
 
         public static new BerOctetString FromContents(byte[] contents)
         {

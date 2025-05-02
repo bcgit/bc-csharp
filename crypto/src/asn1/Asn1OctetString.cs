@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal static readonly byte[] EmptyOctets = new byte[0];
+        internal static readonly byte[] EmptyOctets = Array.Empty<byte>();
 
         /**
          * return an Octet string from the given object.
@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1
                 }
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         /**

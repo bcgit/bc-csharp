@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Asn1
     public class Asn1EncodableVector
         : IReadOnlyCollection<Asn1Encodable>
     {
-        internal static readonly Asn1Encodable[] EmptyElements = new Asn1Encodable[0];
+        internal static readonly Asn1Encodable[] EmptyElements = Array.Empty<Asn1Encodable>();
 
         private const int DefaultCapacity = 10;
 
