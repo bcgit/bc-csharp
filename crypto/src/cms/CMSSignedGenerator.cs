@@ -64,6 +64,9 @@ namespace Org.BouncyCastle.Cms
         public static readonly string DigestSha3_384 = NistObjectIdentifiers.IdSha3_384.Id;
         public static readonly string DigestSha3_512 = NistObjectIdentifiers.IdSha3_512.Id;
 
+        public static readonly string DigestShake128 = NistObjectIdentifiers.IdShake128.Id;
+        public static readonly string DigestShake256 = NistObjectIdentifiers.IdShake256.Id;
+
         public static readonly string DigestMD5 = PkcsObjectIdentifiers.MD5.Id;
         public static readonly string DigestGost3411 = CryptoProObjectIdentifiers.GostR3411.Id;
         public static readonly string DigestRipeMD128 = TeleTrusTObjectIdentifiers.RipeMD128.Id;

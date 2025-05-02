@@ -363,16 +363,20 @@ namespace Org.BouncyCastle.Cms
                 }
                 else
                 {
-                    // TODO Other digests may be acceptable; keep a list and check against it
-
                     /*
                      * draft-ietf-lamps-cms-ml-dsa-03 3.3. When SHA-512 is used, the id-sha512 [..] digest algorithm
-                     * identifier is used and the parameters field MUST be omitted.
-                     *
-                     * TODO[cms] When SHAKE256 is used, the id-shake256 [..] digest algorithm identifier is used and
-                     * produces 512 bits of output, and the parameters field MUST be omitted.
+                     * identifier is used and the parameters field MUST be omitted. When SHAKE256 is used, the
+                     * id-shake256 [..] digest algorithm identifier is used and produces 512 bits of output, and the
+                     * parameters field MUST be omitted.
                      */
-                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) || digAlgParams != null)
+                    // TODO[cms] Add mechanism for checking whether dig. alg. is usable for given pure-mode sig. alg.
+                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) &&
+                        !NistObjectIdentifiers.IdShake256.Equals(digAlgOid))
+                    {
+                        throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
+                    }
+
+                    if (digAlgParams != null)
                         throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
 
                     digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);

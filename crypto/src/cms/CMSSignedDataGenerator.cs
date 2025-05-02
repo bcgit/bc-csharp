@@ -98,10 +98,12 @@ namespace Org.BouncyCastle.Cms
                     if (mlDsaParameters.IsPreHash)
                         throw new CmsException($"{mlDsaParameters} prehash signature is not supported");
 
-                    // TODO Other digests may be acceptable; keep a list and check against it
-
-                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid))
+                    // TODO[cms] Add mechanism for checking whether dig. alg. is usable for given pure-mode sig. alg.
+                    if (!NistObjectIdentifiers.IdSha512.Equals(digAlgOid) &&
+                        !NistObjectIdentifiers.IdShake256.Equals(digAlgOid))
+                    {
                         throw new CmsException($"{mlDsaParameters} signature used with unsupported digest algorithm");
+                    }
 
                     var sigAlgID = new AlgorithmIdentifier(sigAlgOid);
 
@@ -158,7 +160,7 @@ namespace Org.BouncyCastle.Cms
                     if (sigAlgParams != null)
                         throw new CmsException("Ed25519 signature cannot specify algorithm parameters");
 
-                    digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, null);
+                    digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
                 }
                 //else if (EdECObjectIdentifiers.id_Ed448.Equals(sigAlgOid))
                 //{
@@ -182,8 +184,8 @@ namespace Org.BouncyCastle.Cms
                     if (sigAlgParams != null)
                         throw new CmsException($"{mlDsaParameters} signature cannot specify algorithm parameters");
 
-                    // TODO Other digest might be supported; allow customization
-                    digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, null);
+                    // TODO[cms] Allow SignerInfoGenerator customization of dig. alg. to use with pure-mode sig. alg.
+                    digAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
                 }
                 else if (SlhDsaParameters.ByOid.TryGetValue(sigAlgOid, out SlhDsaParameters slhDsaParameters))
                 {
@@ -193,9 +195,9 @@ namespace Org.BouncyCastle.Cms
                     if (sigAlgParams != null)
                         throw new CmsException($"{slhDsaParameters} signature cannot specify algorithm parameters");
 
-                    // TODO Other digest might be supported; allow customization
+                    // TODO[cms] Allow SignerInfoGenerator customization of dig. alg. to use with pure-mode sig. alg.
                     var defaultDigAlgOid = CmsSignedHelper.GetSlhDsaDigestOid(sigAlgOid);
-                    digAlgID = new AlgorithmIdentifier(defaultDigAlgOid, null);
+                    digAlgID = new AlgorithmIdentifier(defaultDigAlgOid);
                 }
                 else
                 {
@@ -281,21 +283,21 @@ namespace Org.BouncyCastle.Cms
                 AlgorithmIdentifier sigAlgID;
                 if (EdECObjectIdentifiers.id_Ed25519.Equals(m_sigAlgOid))
                 {
-                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
+                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid);
                 }
                 //else if (EdECObjectIdentifiers.id_Ed448.Equals(m_sigAlgOid))
                 //{
-                //    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
+                //    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid);
                 //}
                 else if (MLDsaParameters.ByOid.TryGetValue(m_sigAlgOid, out MLDsaParameters mlDsaParameters))
                 {
                     Debug.Assert(!mlDsaParameters.IsPreHash);
-                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
+                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid);
                 }
                 else if (SlhDsaParameters.ByOid.TryGetValue(m_sigAlgOid, out SlhDsaParameters slhDsaParameters))
                 {
                     Debug.Assert(!slhDsaParameters.IsPreHash);
-                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid, null);
+                    sigAlgID = new AlgorithmIdentifier(m_sigAlgOid);
                 }
                 else
                 {

@@ -137,6 +137,8 @@ namespace Org.BouncyCastle.Cms
             m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_256, "SHA3-256");
             m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_384, "SHA3-384");
             m_digestAlgs.Add(NistObjectIdentifiers.IdSha3_512, "SHA3-512");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdShake128, "SHAKE128");
+            m_digestAlgs.Add(NistObjectIdentifiers.IdShake256, "SHAKE256");
             m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD128, "RIPEMD128");
             m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD160, "RIPEMD160");
             m_digestAlgs.Add(TeleTrusTObjectIdentifiers.RipeMD256, "RIPEMD256");
