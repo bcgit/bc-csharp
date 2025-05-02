@@ -53,6 +53,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_attributes = BerSet.FromCollection(attributes);
         }
 
+        public Asn1Set AttributeSet => m_attributes;
+
         public virtual Attribute[] GetAttributes() => m_attributes.MapElements(Attribute.GetInstance);
 
         /**

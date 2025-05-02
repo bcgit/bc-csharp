@@ -625,7 +625,8 @@ namespace Org.BouncyCastle.Cms.Tests
                 // check content digest
                 //
 
-                Assert.True(gen.GetGeneratedDigests().TryGetValue(signer.DigestAlgOid, out var contentDigest));
+                Assert.True(gen.GetGeneratedDigests().TryGetValue(signer.DigestAlgorithmID.Algorithm.GetID(),
+                    out var contentDigest));
 
                 Asn1.Cms.AttributeTable table = signer.SignedAttributes;
                 Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
@@ -719,7 +720,8 @@ namespace Org.BouncyCastle.Cms.Tests
                 // check content digest
                 //
 
-                Assert.True(gen.GetGeneratedDigests().TryGetValue(signer.DigestAlgOid, out var contentDigest));
+                Assert.True(gen.GetGeneratedDigests().TryGetValue(signer.DigestAlgorithmID.Algorithm.GetID(),
+                    out var contentDigest));
 
                 Asn1.Cms.AttributeTable table = signer.SignedAttributes;
                 Asn1.Cms.Attribute hash = table[CmsAttributes.MessageDigest];
@@ -1759,14 +1761,14 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 if (sigAlgOid != null)
                 {
-                    Assert.AreEqual(sigAlgOid.GetID(), signer.EncryptionAlgOid);
+                    Assert.AreEqual(sigAlgOid, signer.SignatureAlgorithm.Algorithm);
                     if (NoParams.Contains(sigAlgOid))
                     {
-                        Assert.Null(signer.EncryptionAlgParams);
+                        Assert.Null(signer.SignatureAlgorithm.Parameters);
                     }
                     else
                     {
-                        Assert.AreEqual(DerNull.Instance, signer.EncryptionAlgParams);
+                        Assert.AreEqual(DerNull.Instance, signer.SignatureAlgorithm.Parameters);
                     }
                 }
 
@@ -1875,7 +1877,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certEnum.MoveNext();
                 X509Certificate cert = certEnum.Current;
 
-                Assert.AreEqual(digestAlgorithm, signer.DigestAlgOid);
+                Assert.AreEqual(digestAlgorithm, signer.DigestAlgorithmID.Algorithm.GetID());
 
                 Assert.True(signer.Verify(cert));
             }
@@ -1972,14 +1974,14 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 if (sigAlgOid != null)
                 {
-                    Assert.AreEqual(sigAlgOid.GetID(), signer.EncryptionAlgOid);
+                    Assert.AreEqual(sigAlgOid, signer.SignatureAlgorithm.Algorithm);
                     if (NoParams.Contains(sigAlgOid))
                     {
-                        Assert.Null(signer.EncryptionAlgParams);
+                        Assert.Null(signer.SignatureAlgorithm.Parameters);
                     }
                     else
                     {
-                        Assert.AreEqual(DerNull.Instance, signer.EncryptionAlgParams);
+                        Assert.AreEqual(DerNull.Instance, signer.SignatureAlgorithm.Parameters);
                     }
                 }
 
@@ -2280,7 +2282,7 @@ namespace Org.BouncyCastle.Cms.Tests
             signerEnum.MoveNext();
             SignerInformation signer = signerEnum.Current;
 
-            Assert.AreEqual(CmsSignedGenerator.DigestSha224, signer.DigestAlgOid);
+            Assert.AreEqual(NistObjectIdentifiers.IdSha224, signer.DigestAlgorithmID.Algorithm);
 
             // we use a parser here as it requires the digests to be correct in the digest set, if it
             // isn't we'll get a NullPointerException

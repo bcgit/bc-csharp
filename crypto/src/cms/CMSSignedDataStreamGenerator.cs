@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Cms
                      * digest of the complete DER encoding of the SignedAttrs value
                      * contained in the signedAttrs field.
                      */
-                    Asn1Set signedAttr = null;
+                    Asn1Set signedAttrs = null;
                     if (m_sAttrGen != null)
                     {
                         var parameters = m_outer.GetBaseParameters(contentType, digAlgID, calculatedDigest);
@@ -158,10 +158,10 @@ namespace Org.BouncyCastle.Cms
                             signed = signed?.Remove(CmsAttributes.ContentType);
                         }
 
-                        signedAttr = m_outer.GetAttributeSet(signed);
+                        signedAttrs = m_outer.GetAttributeSet(signed);
 
                         // sig must be composed from the DER encoding.
-                        bytesToSign = signedAttr.GetEncoded(Asn1Encodable.Der);
+                        bytesToSign = signedAttrs.GetEncoded(Asn1Encodable.Der);
                     }
                     else
                     {
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Cms
                     m_signer.BlockUpdate(bytesToSign, 0, bytesToSign.Length);
                     byte[] sigBytes = m_signer.GenerateSignature();
 
-                    Asn1Set unsignedAttr = null;
+                    Asn1Set unsignedAttrs = null;
                     if (m_unsAttrGen != null)
                     {
                         var parameters = m_outer.GetBaseParameters(contentType, digAlgID, calculatedDigest);
@@ -185,7 +185,7 @@ namespace Org.BouncyCastle.Cms
                         Asn1.Cms.AttributeTable unsigned = m_unsAttrGen.GetAttributes(
                             CollectionUtilities.ReadOnly(parameters));
 
-                        unsignedAttr = m_outer.GetAttributeSet(unsigned);
+                        unsignedAttrs = m_outer.GetAttributeSet(unsigned);
                     }
 
                     // TODO[RSAPSS] Need the ability to specify non-default parameters
@@ -201,8 +201,9 @@ namespace Org.BouncyCastle.Cms
                         }
                     }
 
-                    return new SignerInfo(m_signerID, digAlgID, signedAttr, sigAlgID, new DerOctetString(sigBytes),
-                        unsignedAttr);
+                    var signature = new DerOctetString(sigBytes);
+
+                    return new SignerInfo(m_signerID, digAlgID, signedAttrs, sigAlgID, signature, unsignedAttrs);
                 }
                 catch (IOException e)
                 {
@@ -621,8 +622,7 @@ namespace Org.BouncyCastle.Cms
         {
             foreach (SignerInformation si in signerInfos)
             {
-                SignerInfo s = si.ToSignerInfo();
-                if (s.Version.HasValue(3))
+                if (si.SignerInfo.Version.HasValue(3))
                     return true;
             }
 
@@ -782,7 +782,7 @@ namespace Org.BouncyCastle.Cms
                         //    }
                         //}
 
-                        signerInfos.Add(_signer.ToSignerInfo());
+                        signerInfos.Add(_signer.SignerInfo);
                     }
                 }
 

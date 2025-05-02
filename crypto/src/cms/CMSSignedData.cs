@@ -336,7 +336,7 @@ namespace Org.BouncyCastle.Cms
             {
                 // TODO[cms] Avoid inconsistency b/w digestAlgorithms and signer digest algorithms?
                 CmsUtilities.AddDigestAlgorithms(digestAlgorithmsBuilder, signerInformation);
-                signerInfos.Add(signerInformation.ToSignerInfo());
+                signerInfos.Add(signerInformation.SignerInfo);
             }
 
             var oldContent = signedData.SignedData;

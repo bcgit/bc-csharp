@@ -233,7 +233,7 @@ namespace Org.BouncyCastle.Cms
                     m_outer.m_digests.Add(digAlgOid, hash);
                 }
 
-                Asn1Set signedAttr = null;
+                Asn1Set signedAttrs = null;
 
                 IStreamCalculator<IBlockResult> calculator = m_signatureFactory.CreateCalculator();
                 using (Stream sigStr = calculator.Stream)
@@ -252,10 +252,10 @@ namespace Org.BouncyCastle.Cms
 
                         // TODO Validate proposed signed attributes
 
-                        signedAttr = m_outer.GetAttributeSet(signed);
+                        signedAttrs = m_outer.GetAttributeSet(signed);
 
                         // sig must be composed from the DER encoding.
-                        signedAttr.EncodeTo(sigStr, Asn1Encodable.Der);
+                        signedAttrs.EncodeTo(sigStr, Asn1Encodable.Der);
                     }
                     else if (content != null)
                     {
@@ -266,7 +266,7 @@ namespace Org.BouncyCastle.Cms
 
                 byte[] sigBytes = calculator.GetResult().Collect();
 
-                Asn1Set unsignedAttr = null;
+                Asn1Set unsignedAttrs = null;
                 if (m_unsAttrGen != null)
                 {
                     var baseParameters = m_outer.GetBaseParameters(contentType, digAlgID, hash);
@@ -277,7 +277,7 @@ namespace Org.BouncyCastle.Cms
 
                     // TODO Validate proposed unsigned attributes
 
-                    unsignedAttr = m_outer.GetAttributeSet(unsigned);
+                    unsignedAttrs = m_outer.GetAttributeSet(unsigned);
                 }
 
                 AlgorithmIdentifier sigAlgID;
@@ -309,8 +309,9 @@ namespace Org.BouncyCastle.Cms
                     sigAlgID = CmsSignedHelper.GetSigAlgID(m_sigAlgOid, sigAlgParams);
                 }
 
-                return new SignerInfo(m_signerID, digAlgID, signedAttr, sigAlgID, new DerOctetString(sigBytes),
-                    unsignedAttr);
+                var signature = new DerOctetString(sigBytes);
+
+                return new SignerInfo(m_signerID, digAlgID, signedAttrs, sigAlgID, signature, unsignedAttrs);
             }
         }
 
@@ -536,7 +537,7 @@ namespace Org.BouncyCastle.Cms
                 CmsUtilities.AddDigestAlgorithms(digestAlgorithmsBuilder, signerInformation);
 
                 // TODO Verify the content type and calculated digest match the precalculated SignerInfo
-                signerInfos.Add(signerInformation.ToSignerInfo());
+                signerInfos.Add(signerInformation.SignerInfo);
             }
 
             //
@@ -631,8 +632,7 @@ namespace Org.BouncyCastle.Cms
 
             foreach (SignerInformation _signer in _signers)
             {
-                var signerInfo = _signer.ToSignerInfo();
-                signerInformations.Add(new SignerInformation(signerInfo, null, content, null));
+                signerInformations.Add(new SignerInformation(_signer.SignerInfo, null, content, null));
             }
 
             foreach (SignerInf signerInf in signerInfs)

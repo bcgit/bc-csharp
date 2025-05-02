@@ -15,6 +15,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
@@ -37,8 +38,10 @@ namespace Org.BouncyCastle.Cms
         private Asn1.Cms.AttributeTable unsignedAttributeTable;
         private readonly bool isCounterSignature;
 
+        // TODO[api] Avoid having protected fields (maybe seal the class too?)
         protected SignerInfo info;
         protected AlgorithmIdentifier digestAlgorithm;
+        // TODO[api] Rename to 'signatureAlgorithm'
         protected AlgorithmIdentifier encryptionAlgorithm;
         protected readonly Asn1Set signedAttributeSet;
         protected readonly Asn1Set unsignedAttributeSet;
@@ -75,10 +78,10 @@ namespace Org.BouncyCastle.Cms
             }
 
             this.digestAlgorithm = info.DigestAlgorithm;
-            this.signedAttributeSet = info.AuthenticatedAttributes;
-            this.unsignedAttributeSet = info.UnauthenticatedAttributes;
-            this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
-            this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
+            this.signedAttributeSet = info.SignedAttrs;
+            this.unsignedAttributeSet = info.UnsignedAttrs;
+            this.encryptionAlgorithm = info.SignatureAlgorithm;
+            this.signature = Arrays.Clone(info.Signature.GetOctets());
 
             this.content = content;
             this.calculatedDigest = calculatedDigest;
@@ -99,52 +102,40 @@ namespace Org.BouncyCastle.Cms
             this.isCounterSignature = baseInfo.IsCounterSignature;
             this.sid = baseInfo.sid;
             this.digestAlgorithm = info.DigestAlgorithm;
-            this.signedAttributeSet = info.AuthenticatedAttributes;
-            this.unsignedAttributeSet = info.UnauthenticatedAttributes;
-            this.encryptionAlgorithm = info.DigestEncryptionAlgorithm;
-            this.signature = (byte[])info.EncryptedDigest.GetOctets().Clone();
+            this.signedAttributeSet = info.SignedAttrs;
+            this.unsignedAttributeSet = info.UnsignedAttrs;
+            this.encryptionAlgorithm = info.SignatureAlgorithm;
+            this.signature = Arrays.Clone(info.Signature.GetOctets());
 
             this.calculatedDigest = baseInfo.calculatedDigest;
             this.signedAttributeTable = baseInfo.signedAttributeTable;
             this.unsignedAttributeTable = baseInfo.unsignedAttributeTable;
         }
 
-        public bool IsCounterSignature
-        {
-            get { return isCounterSignature; }
-        }
+        public bool IsCounterSignature => isCounterSignature;
 
-        public DerObjectIdentifier ContentType
-        {
-            get { return contentType; }
-        }
+        public DerObjectIdentifier ContentType => contentType;
 
-        public SignerID SignerID
-        {
-            get { return sid; }
-        }
+        public SignerID SignerID => sid;
 
         /**
          * return the version number for this objects underlying SignerInfo structure.
          */
-        public int Version
-        {
-            get { return info.Version.IntValueExact; }
-        }
+        public int Version => info.Version.IntValueExact;
 
-        public AlgorithmIdentifier DigestAlgorithmID
-        {
-            get { return digestAlgorithm; }
-        }
+        // TODO[api] Rename to DigestAlgorithm (after field made non-visible and/or renamed)
+        public AlgorithmIdentifier DigestAlgorithmID => digestAlgorithm;
 
         /**
          * return the object identifier for the signature.
          */
+        [Obsolete("Use 'DigestAlgorithmID' instead")]
         public string DigestAlgOid => digestAlgorithm.Algorithm.GetID();
 
         /**
          * return the signature parameters, or null if there aren't any.
          */
+        [Obsolete("Use 'DigestAlgorithmID' instead")]
         public Asn1Object DigestAlgParams => digestAlgorithm.Parameters?.ToAsn1Object();
 
         /**
@@ -158,24 +149,16 @@ namespace Org.BouncyCastle.Cms
             return (byte[])resultDigest.Clone();
         }
 
-        public AlgorithmIdentifier EncryptionAlgorithmID
-        {
-            get { return encryptionAlgorithm; }
-        }
+        [Obsolete("Use 'SignatureAlgorithm' property instead")]
+        public AlgorithmIdentifier EncryptionAlgorithmID => encryptionAlgorithm;
 
-        /**
-         * return the object identifier for the signature.
-         */
-        public string EncryptionAlgOid
-        {
-            get { return encryptionAlgorithm.Algorithm.Id; }
-        }
+        [Obsolete("Use 'SignatureAlgorithm' property instead")]
+        public string EncryptionAlgOid => encryptionAlgorithm.Algorithm.Id;
 
-        /**
-         * return the signature/encryption algorithm parameters, or null if
-         * there aren't any.
-         */
+        [Obsolete("Use 'SignatureAlgorithm' property instead")]
         public Asn1Object EncryptionAlgParams => encryptionAlgorithm.Parameters?.ToAsn1Object();
+
+        public AlgorithmIdentifier SignatureAlgorithm => encryptionAlgorithm;
 
         /**
          * return a table of the signed attributes - indexed by
@@ -194,6 +177,9 @@ namespace Org.BouncyCastle.Cms
         }
 
         public SignerInfo SignerInfo => info;
+
+        [Obsolete("Use 'SignerInfo' property instead")]
+        public SignerInfo ToSignerInfo() => info;
 
         /**
          * return a table of the unsigned attributes indexed by
@@ -214,7 +200,7 @@ namespace Org.BouncyCastle.Cms
         /**
          * return the encoded signature
          */
-        public byte[] GetSignature() => (byte[])signature.Clone();
+        public byte[] GetSignature() => Arrays.Clone(signature);
 
         /**
          * Return a SignerInformationStore containing the counter signatures attached to this
@@ -255,7 +241,7 @@ namespace Org.BouncyCastle.Cms
                     // TODO Throw an appropriate exception?
                 }
 
-                foreach (Asn1Encodable element in values)
+                foreach (var signerInfo in CollectionUtilities.Select(values, SignerInfo.GetInstance))
                 {
                     /*
                      * Countersignature values have the same meaning as SignerInfo values
@@ -271,8 +257,6 @@ namespace Org.BouncyCastle.Cms
                      *      octets of the DER encoding of the signatureValue field of the
                      *      SignerInfo value with which the attribute is associated.
                      */
-                    SignerInfo signerInfo = SignerInfo.GetInstance(element);
-
                     byte[] hash = DigestUtilities.CalculateDigest(signerInfo.DigestAlgorithm.Algorithm, signature);
 
                     counterSignatures.Add(new SignerInformation(signerInfo, null, null, hash));
@@ -286,18 +270,15 @@ namespace Org.BouncyCastle.Cms
          * return the DER encoding of the signed attributes.
          * @throws IOException if an encoding error occurs.
          */
-        public virtual byte[] GetEncodedSignedAttributes()
-        {
-            return signedAttributeSet?.GetEncoded(Asn1Encodable.Der);
-        }
+        public virtual byte[] GetEncodedSignedAttributes() => signedAttributeSet?.GetEncoded(Asn1Encodable.Der);
 
         private bool DoVerify(AsymmetricKeyParameter publicKey)
         {
-            var digAlgID = this.digestAlgorithm;
+            var digAlgID = DigestAlgorithmID;
             var digAlgOid = digAlgID.Algorithm;
             var digAlgParams = digAlgID.Parameters;
 
-            var sigAlgID = this.encryptionAlgorithm;
+            var sigAlgID = SignatureAlgorithm;
             var sigAlgOid = sigAlgID.Algorithm;
             var sigAlgParams = sigAlgID.Parameters;
 
@@ -641,7 +622,7 @@ namespace Org.BouncyCastle.Cms
 
         private bool TryGetRawVerifier(out ISigner rawVerifier)
         {
-            string algorithm = CmsSignedHelper.GetEncryptionAlgName(encryptionAlgorithm.Algorithm);
+            string algorithm = CmsSignedHelper.GetEncryptionAlgName(SignatureAlgorithm.Algorithm);
 
             // TODO GOST, ECGOST?
 
@@ -699,16 +680,6 @@ namespace Org.BouncyCastle.Cms
             }
 
             return DoVerify(cert.GetPublicKey());
-        }
-
-        /**
-         * Return the base ASN.1 CMS structure that this object contains.
-         *
-         * @return an object containing a CMS SignerInfo structure.
-         */
-        public SignerInfo ToSignerInfo()
-        {
-            return info;
         }
 
         private Asn1Object GetSingleValuedSignedAttribute(DerObjectIdentifier attrOid, string printableName)
@@ -775,25 +746,15 @@ namespace Org.BouncyCastle.Cms
         public static SignerInformation ReplaceUnsignedAttributes(SignerInformation signerInformation,
             Asn1.Cms.AttributeTable unsignedAttributes)
         {
-            SignerInfo sInfo = signerInformation.info;
-            Asn1Set unsignedAttr = null;
+            // TODO[cms] Any way to give control over ASN.1 encoding here?
+            var newUnsignedAttrs = unsignedAttributes?.ToDerSet();
 
-            if (unsignedAttributes != null)
-            {
-                unsignedAttr = DerSet.FromCollection(unsignedAttributes);
-            }
+            var oldInfo = signerInformation.SignerInfo;
 
-            return new SignerInformation(
-                new SignerInfo(
-                    sInfo.SignerID,
-                    sInfo.DigestAlgorithm,
-                    sInfo.AuthenticatedAttributes,
-                    sInfo.DigestEncryptionAlgorithm,
-                    sInfo.EncryptedDigest,
-                    unsignedAttr),
-                signerInformation.contentType,
-                signerInformation.content,
-                null);
+            var newInfo = new SignerInfo(oldInfo.SignerID, oldInfo.DigestAlgorithm, oldInfo.SignedAttrs,
+                oldInfo.SignatureAlgorithm, oldInfo.Signature, newUnsignedAttrs);
+
+            return new SignerInformation(newInfo, signerInformation.contentType, signerInformation.content, null);
         }
 
         /**
@@ -809,26 +770,19 @@ namespace Org.BouncyCastle.Cms
         {
             // TODO Perform checks from RFC 3852 11.4
 
-            var attrValues = DerSet.Map(counterSigners.SignersInternal, sigInf => sigInf.ToSignerInfo());
+            var attrValues = DerSet.Map(counterSigners.SignersInternal, sigInf => sigInf.SignerInfo);
 
             var attributeTable = (signerInformation.UnsignedAttributes ?? DerSet.Empty.ToAttributeTable())
                 .Add(new Asn1.Cms.Attribute(CmsAttributes.CounterSignature, attrValues));
 
-            var unauthenticatedAttributes = DerSet.FromCollection(attributeTable);
+            var newUnsignedAttrs = attributeTable.ToDerSet();
 
-            var signerInfo = signerInformation.SignerInfo;
-            signerInfo = new SignerInfo(
-                signerInfo.SignerID,
-                signerInfo.DigestAlgorithm,
-                signerInfo.AuthenticatedAttributes,
-                signerInfo.DigestEncryptionAlgorithm,
-                signerInfo.EncryptedDigest,
-                unauthenticatedAttributes);
+            var oldInfo = signerInformation.SignerInfo;
 
-            return new SignerInformation(
-                signerInfo,
-                signerInformation.contentType,
-                signerInformation.content,
+            var newInfo = new SignerInfo(oldInfo.SignerID, oldInfo.DigestAlgorithm, oldInfo.SignedAttrs,
+                oldInfo.SignatureAlgorithm, oldInfo.Signature, newUnsignedAttrs);
+
+            return new SignerInformation(newInfo, signerInformation.contentType, signerInformation.content,
                 calculatedDigest: null);
         }
 

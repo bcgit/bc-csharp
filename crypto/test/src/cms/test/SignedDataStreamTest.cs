@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -892,7 +893,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			signerEnum.MoveNext();
 			SignerInformation signer = signerEnum.Current;
 
-			Assert.AreEqual(signer.DigestAlgOid, CmsSignedDataStreamGenerator.DigestSha224);
+            Assert.AreEqual(NistObjectIdentifiers.IdSha224, signer.DigestAlgorithmID.Algorithm);
 
 			CmsSignedDataParser sp = new CmsSignedDataParser(new CmsTypedStream(
 				new MemoryStream(data, false)), newOut.ToArray());
@@ -951,7 +952,7 @@ namespace Org.BouncyCastle.Cms.Tests
 			signerEnum.MoveNext();
 			SignerInformation signer = signerEnum.Current;
 
-			Assert.AreEqual(signer.DigestAlgOid, CmsSignedDataStreamGenerator.DigestSha224);
+            Assert.AreEqual(NistObjectIdentifiers.IdSha224, signer.DigestAlgorithmID.Algorithm);
 
 			CmsSignedDataParser sp = new CmsSignedDataParser(newOut.ToArray());
 
