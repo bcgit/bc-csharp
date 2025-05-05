@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.Serialization;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Tls.Crypto
 {
     /// <summary>Basic exception class for crypto services to pass back a cause.</summary>
@@ -23,6 +25,9 @@ namespace Org.BouncyCastle.Tls.Crypto
         {
         }
 
+#if NET8_0_OR_GREATER
+        [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
+#endif
         protected TlsCryptoException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {

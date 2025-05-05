@@ -1,6 +1,8 @@
 using System;
 using System.Runtime.Serialization;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
     /// <summary>Thrown if the IV at the start of a data stream indicates the wrong key is being used.</summary>
@@ -23,6 +25,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
+#if NET8_0_OR_GREATER
+        [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
+#endif
         protected PgpDataValidationException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {

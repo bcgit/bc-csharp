@@ -2,6 +2,7 @@ using System;
 using System.Runtime.Serialization;
 
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkix
 {
@@ -65,19 +66,25 @@ namespace Org.BouncyCastle.Pkix
             m_index = index;
         }
 
+#if NET8_0_OR_GREATER
+        [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
+#endif
         protected PkixCertPathValidatorException(SerializationInfo info, StreamingContext context)
             : base(info, context)
         {
             m_index = info.GetInt32("index");
         }
 
+#if NET8_0_OR_GREATER
+        [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
+#endif
         public override void GetObjectData(SerializationInfo info, StreamingContext context)
         {
             base.GetObjectData(info, context);
             info.AddValue("index", m_index);
         }
 
-        /// <summary> eturns the index of the certificate in the certification path that caused the exception to be
+        /// <summary>Returns the index of the certificate in the certification path that caused the exception to be
         /// thrown.</summary>
         /// <remarks>
         /// Note that the list of certificates in a <see cref="PkixCertPath"/> is zero based. If no index has been set,
