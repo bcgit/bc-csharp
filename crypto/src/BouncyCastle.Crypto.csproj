@@ -1,8 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!--<TargetFrameworks>net6.0;netstandard2.0;net461</TargetFrameworks>-->
-		<!--<TargetFrameworks>net461;net462;net47;net471;net472;net48;net481;netstandard2.0;net6.0;net7.0;net8.0;net9.0;</TargetFrameworks>-->
 		<TargetFrameworks>net461;net462;net47;net471;net472;net48;net481;netstandard2.0;net6.0;net7.0;net8.0;net9.0;</TargetFrameworks>
 
 		<RootNamespace>Org.BouncyCastle</RootNamespace>
