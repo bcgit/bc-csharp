@@ -1105,13 +1105,18 @@ namespace Org.BouncyCastle.Crypto.Modes
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(output, in t1);
+                MemoryMarshal.Write(S.AsSpan(), in t2);
+#else
                 MemoryMarshal.Write(output, ref t1);
                 MemoryMarshal.Write(S.AsSpan(), ref t2);
+#endif
             }
             else
 #endif
-            {
-                for (int i = 0; i < BlockSize; i += 4)
+				{
+					for (int i = 0; i < BlockSize; i += 4)
                 {
                     byte c0 = input[i + 0];
                     byte c1 = input[i + 1];
@@ -1148,13 +1153,18 @@ namespace Org.BouncyCastle.Crypto.Modes
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(output, in t1);
+                MemoryMarshal.Write(S.AsSpan(), in t2);
+#else
                 MemoryMarshal.Write(output, ref t1);
                 MemoryMarshal.Write(S.AsSpan(), ref t2);
+#endif
             }
             else
 #endif
-            {
-                for (int i = 0; i < BlockSize; i += 4)
+				{
+					for (int i = 0; i < BlockSize; i += 4)
                 {
                     byte c0 = input[i + 0];
                     byte c1 = input[i + 1];
@@ -1189,13 +1199,18 @@ namespace Org.BouncyCastle.Crypto.Modes
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(output, in t1);
+                MemoryMarshal.Write(S.AsSpan(), in t2);
+#else
                 MemoryMarshal.Write(output, ref t1);
                 MemoryMarshal.Write(S.AsSpan(), ref t2);
+#endif
             }
             else
 #endif
-            {
-                for (int i = 0; i < BlockSize; i += 4)
+				{
+					for (int i = 0; i < BlockSize; i += 4)
                 {
                     byte c0 = input[i + 0];
                     byte c1 = input[i + 1];
@@ -1249,10 +1264,17 @@ namespace Org.BouncyCastle.Crypto.Modes
                 var p2 = Sse2.Xor(c2, counters[2]);
                 var p3 = Sse2.Xor(c3, counters[3]);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(output, in p0);
+                MemoryMarshal.Write(output[BlockSize..], in p1);
+                MemoryMarshal.Write(output[(BlockSize * 2)..], in p2);
+                MemoryMarshal.Write(output[(BlockSize * 3)..], in p3);
+#else
                 MemoryMarshal.Write(output, ref p0);
                 MemoryMarshal.Write(output[BlockSize..], ref p1);
                 MemoryMarshal.Write(output[(BlockSize * 2)..], ref p2);
                 MemoryMarshal.Write(output[(BlockSize * 3)..], ref p3);
+#endif
 
                 input = input[(BlockSize * 4)..];
                 output = output[(BlockSize * 4)..];
@@ -1285,11 +1307,15 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             S128 = Ssse3.Shuffle(S128, ReverseBytesMask);
+#if NET8_0_OR_GREATER
+            MemoryMarshal.Write(S.AsSpan(), in S128);
+#else
             MemoryMarshal.Write(S.AsSpan(), ref S128);
+#endif
         }
 #endif
 
-        private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
+		private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Span<byte> ctrBlock = stackalloc byte[BlockSize];
 
@@ -1305,10 +1331,14 @@ namespace Org.BouncyCastle.Crypto.Modes
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t1);
 
-                MemoryMarshal.Write(output, ref t1);
-                MemoryMarshal.Write(S.AsSpan(), ref t2);
-            }
-            else
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(output, in t1);
+                MemoryMarshal.Write(S.AsSpan(), in t2);
+#else
+				MemoryMarshal.Write( output, ref t1 );
+				MemoryMarshal.Write( S.AsSpan(), ref t2 );
+#endif
+			} else
 #endif
             {
                 for (int i = 0; i < BlockSize; i += 4)
@@ -1348,10 +1378,14 @@ namespace Org.BouncyCastle.Crypto.Modes
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(output, in t1);
+                MemoryMarshal.Write(S.AsSpan(), in t2);
+#else
                 MemoryMarshal.Write(output, ref t1);
                 MemoryMarshal.Write(S.AsSpan(), ref t2);
-            }
-            else
+#endif
+			} else
 #endif
             {
                 for (int i = 0; i < BlockSize; i += 4)
@@ -1389,13 +1423,18 @@ namespace Org.BouncyCastle.Crypto.Modes
                 t1 = Sse2.Xor(t1, t0);
                 t2 = Sse2.Xor(t2, t1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(output, in t1);
+                MemoryMarshal.Write(S.AsSpan(), in t2);
+#else
                 MemoryMarshal.Write(output, ref t1);
                 MemoryMarshal.Write(S.AsSpan(), ref t2);
+#endif
             }
             else
 #endif
-            {
-                for (int i = 0; i < BlockSize; i += 4)
+				{
+					for (int i = 0; i < BlockSize; i += 4)
                 {
                     byte c0 = (byte)(ctrBlocks[i + 0] ^ input[i + 0]);
                     byte c1 = (byte)(ctrBlocks[i + 1] ^ input[i + 1]);
@@ -1446,10 +1485,17 @@ namespace Org.BouncyCastle.Crypto.Modes
                 var c2 = Sse2.Xor(p2, counters[2]);
                 var c3 = Sse2.Xor(p3, counters[3]);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(output, in c0);
+                MemoryMarshal.Write(output[BlockSize..], in c1);
+                MemoryMarshal.Write(output[(BlockSize * 2)..], in c2);
+                MemoryMarshal.Write(output[(BlockSize * 3)..], in c3);
+#else
                 MemoryMarshal.Write(output, ref c0);
                 MemoryMarshal.Write(output[BlockSize..], ref c1);
                 MemoryMarshal.Write(output[(BlockSize * 2)..], ref c2);
                 MemoryMarshal.Write(output[(BlockSize * 3)..], ref c3);
+#endif
 
                 input = input[(BlockSize * 4)..];
                 output = output[(BlockSize * 4)..];
@@ -1482,11 +1528,15 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             S128 = Ssse3.Shuffle(S128, ReverseBytesMask);
+#if NET8_0_OR_GREATER
+            MemoryMarshal.Write(S.AsSpan(), in S128);
+#else
             MemoryMarshal.Write(S.AsSpan(), ref S128);
-        }
+#endif
+		}
 #endif
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+				[MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void GetNextCtrBlock(Span<byte> block)
         {
             Pack.UInt32_To_BE(++counter32, counter, 12);

@@ -1527,7 +1527,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                             ulong t0 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
                             ulong t1 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
                             t1 ^= t0 & mask64;
+#if NET8_0_OR_GREATER
+                            MemoryMarshal.Write(mat_row.AsSpan(c), in t1);
+#else
                             MemoryMarshal.Write(mat_row.AsSpan(c), ref t1);
+#endif
                             c += 8;
                         }
                     }
@@ -1545,8 +1549,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                         }
                     }
 #endif
-                    {
-                        byte maskByte = (byte)-mask;
+							{
+								byte maskByte = (byte)-mask;
                         while (c < SYS_N / 8)
                         {
                             mat_row[c] ^= (byte)(mat_k[c] & maskByte);
@@ -1594,7 +1598,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                                 ulong t0 = MemoryMarshal.Read<ulong>(mat_row.AsSpan(c));
                                 ulong t1 = MemoryMarshal.Read<ulong>(mat_k.AsSpan(c));
                                 t1 ^= t0 & mask64;
+#if NET8_0_OR_GREATER
+                                MemoryMarshal.Write(mat_k.AsSpan(c), in t1);
+#else
                                 MemoryMarshal.Write(mat_k.AsSpan(c), ref t1);
+#endif
                                 c += 8;
                             }
                         }
@@ -1612,8 +1620,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
                             }
                         }
 #endif
-                        {
-                            byte maskByte = (byte)-mask;
+								{
+									byte maskByte = (byte)-mask;
                             while (c < SYS_N / 8)
                             {
                                 mat_k[c] ^= (byte)(mat_row[c] & maskByte);

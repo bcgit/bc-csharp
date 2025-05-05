@@ -318,12 +318,19 @@ namespace Org.BouncyCastle.Crypto.Engines
                     var v3 = Sse41.Blend(u1, u3, 0x3C);
 
                     var X = MemoryMarshal.AsBytes(output[..16]);
+#if NET8_0_OR_GREATER
+                    MemoryMarshal.Write(X[0x00..0x10], in v0);
+                    MemoryMarshal.Write(X[0x10..0x20], in v1);
+                    MemoryMarshal.Write(X[0x20..0x30], in v2);
+                    MemoryMarshal.Write(X[0x30..0x40], in v3);
+#else
                     MemoryMarshal.Write(X[0x00..0x10], ref v0);
                     MemoryMarshal.Write(X[0x10..0x20], ref v1);
                     MemoryMarshal.Write(X[0x20..0x30], ref v2);
                     MemoryMarshal.Write(X[0x30..0x40], ref v3);
-                }
-                return;
+#endif
+				}
+				return;
 			}
 #endif
 

@@ -823,8 +823,12 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
+#if NET8_0_OR_GREATER
+				MemoryMarshal.Write( t, in s );
+#else
                 MemoryMarshal.Write(t, ref s);
-                return;
+#endif
+				return;
             }
 
             var u = s.AsUInt64();

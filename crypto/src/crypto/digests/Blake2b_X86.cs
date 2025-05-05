@@ -71,11 +71,16 @@ namespace Org.BouncyCastle.Crypto.Digests
             row1 = Avx2.Xor(row1, orig_1);
             row2 = Avx2.Xor(row2, orig_2);
 
-            MemoryMarshal.Write(hashBytes, ref row1);
-            MemoryMarshal.Write(hashBytes[32..], ref row2);
-        }
+#if NET8_0_OR_GREATER
+            MemoryMarshal.Write(hashBytes, in row1);
+            MemoryMarshal.Write(hashBytes[32..], in row2);
+#else
+			MemoryMarshal.Write( hashBytes, ref row1 );
+			MemoryMarshal.Write( hashBytes[ 32.. ], ref row2 );
+#endif
+		}
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Perform12Rounds(ReadOnlySpan<byte> m, ref Vector256<ulong> row1, ref Vector256<ulong> row2, ref Vector256<ulong> row3, ref Vector256<ulong> row4)
         {
 #region Rounds

@@ -360,18 +360,24 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 Z45 = Sse2.Xor(Z45, Sse2.ShiftRightLogical128BitLane(Z34, 8));
 
                 Span<byte> zzBytes = MemoryMarshal.AsBytes(zz);
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(zzBytes[0x00..0x10], in Z01);
+                MemoryMarshal.Write(zzBytes[0x10..0x20], in Z23);
+                MemoryMarshal.Write(zzBytes[0x20..0x30], in Z45);
+#else
                 MemoryMarshal.Write(zzBytes[0x00..0x10], ref Z01);
                 MemoryMarshal.Write(zzBytes[0x10..0x20], ref Z23);
                 MemoryMarshal.Write(zzBytes[0x20..0x30], ref Z45);
+#endif
                 return;
             }
 #endif
 
-            /*
-             * "Five-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
-             */
+				/*
+				 * "Five-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
+				 */
 
-            ulong f0 = x[0], f1 = x[1], f2 = x[2];
+				ulong f0 = x[0], f1 = x[1], f2 = x[2];
             f2  = ((f1 >> 46) ^ (f2 << 18));
             f1  = ((f0 >> 55) ^ (f1 <<  9)) & M55;
             f0 &= M55;

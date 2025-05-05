@@ -57,8 +57,12 @@ namespace Org.BouncyCastle.Utilities
                     ulong x64 = MemoryMarshal.Read<ulong>(x[i..]);
                     ulong y64 = MemoryMarshal.Read<ulong>(y[i..]);
                     ulong z64 = x64 ^ y64;
+#if NET8_0_OR_GREATER
+                    MemoryMarshal.Write(z[i..], in z64);
+#else
                     MemoryMarshal.Write(z[i..], ref z64);
-                    i += 8;
+#endif
+					i += 8;
                 }
             }
             {
@@ -117,7 +121,11 @@ namespace Org.BouncyCastle.Utilities
                     ulong x64 = MemoryMarshal.Read<ulong>(x[i..]);
                     ulong z64 = MemoryMarshal.Read<ulong>(z[i..]);
                     z64 ^= x64;
+#if NET8_0_OR_GREATER
+                    MemoryMarshal.Write(z[i..], in z64);
+#else
                     MemoryMarshal.Write(z[i..], ref z64);
+#endif
                     i += 8;
                 }
             }
@@ -130,5 +138,5 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 #endif
-    }
-}
+				}
+			}

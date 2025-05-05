@@ -302,17 +302,22 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
 
                 Span<byte> zzBytes = MemoryMarshal.AsBytes(zz);
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(zzBytes[0x00..0x10], in Z01);
+                MemoryMarshal.Write(zzBytes[0x10..0x20], in Z23);
+#else
                 MemoryMarshal.Write(zzBytes[0x00..0x10], ref Z01);
                 MemoryMarshal.Write(zzBytes[0x10..0x20], ref Z23);
+#endif
                 return;
             }
 #endif
 
-            /*
-             * "Three-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
-             */
+				/*
+				 * "Three-way recursion" as described in "Batch binary Edwards", Daniel J. Bernstein.
+				 */
 
-            ulong f0 = x[0], f1 = x[1];
+				ulong f0 = x[0], f1 = x[1];
             f1  = ((f0 >> 57) ^ (f1 << 7)) & M57;
             f0 &= M57;
 

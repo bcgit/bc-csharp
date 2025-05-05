@@ -98,8 +98,14 @@ namespace Org.BouncyCastle.Math.Raw
                 var Z0 = Avx2.Xor(X0, Y0);
                 var Z1 = Avx2.Xor(X1, Y1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
                 MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
+#endif
+
                 return;
             }
 
@@ -125,15 +131,22 @@ namespace Org.BouncyCastle.Math.Raw
                 var Z2 = Sse2.Xor(X2, Y2);
                 var Z3 = Sse2.Xor(X3, Y3);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x10], in Z0);
+                MemoryMarshal.Write(Z[0x10..0x20], in Z1);
+                MemoryMarshal.Write(Z[0x20..0x30], in Z2);
+                MemoryMarshal.Write(Z[0x30..0x40], in Z3);
+#else
                 MemoryMarshal.Write(Z[0x00..0x10], ref Z0);
                 MemoryMarshal.Write(Z[0x10..0x20], ref Z1);
                 MemoryMarshal.Write(Z[0x20..0x30], ref Z2);
                 MemoryMarshal.Write(Z[0x30..0x40], ref Z3);
-                return;
+#endif
+				return;
             }
 #endif
 
-            for (int i = 0; i < 16; i += 4)
+				for ( int i = 0; i < 16; i += 4)
             {
                 z[i + 0] = x[i + 0] ^ y[i + 0];
                 z[i + 1] = x[i + 1] ^ y[i + 1];
@@ -193,9 +206,14 @@ namespace Org.BouncyCastle.Math.Raw
                 var Z0 = Avx2.Xor(X0, Y0);
                 var Z1 = Avx2.Xor(X1, Y1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
                 MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
-                return;
+#endif
+				return;
             }
 
             if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled &&
@@ -220,15 +238,22 @@ namespace Org.BouncyCastle.Math.Raw
                 var Z2 = Sse2.Xor(X2, Y2);
                 var Z3 = Sse2.Xor(X3, Y3);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x10], in Z0);
+                MemoryMarshal.Write(Z[0x10..0x20], in Z1);
+                MemoryMarshal.Write(Z[0x20..0x30], in Z2);
+                MemoryMarshal.Write(Z[0x30..0x40], in Z3);
+#else
                 MemoryMarshal.Write(Z[0x00..0x10], ref Z0);
                 MemoryMarshal.Write(Z[0x10..0x20], ref Z1);
                 MemoryMarshal.Write(Z[0x20..0x30], ref Z2);
                 MemoryMarshal.Write(Z[0x30..0x40], ref Z3);
+#endif
                 return;
             }
 #endif
 
-            for (int i = 0; i < 8; i += 4)
+				for ( int i = 0; i < 8; i += 4)
             {
                 z[i + 0] = x[i + 0] ^ y[i + 0];
                 z[i + 1] = x[i + 1] ^ y[i + 1];
@@ -291,9 +316,14 @@ namespace Org.BouncyCastle.Math.Raw
                 Z0 = Avx2.Xor(Z0, Avx2.Xor(X0, Y0));
                 Z1 = Avx2.Xor(Z1, Avx2.Xor(X1, Y1));
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
                 MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
-                return;
+#endif
+				return;
             }
 
             if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled &&
@@ -323,15 +353,22 @@ namespace Org.BouncyCastle.Math.Raw
                 Z2 = Sse2.Xor(Z2, Sse2.Xor(X2, Y2));
                 Z3 = Sse2.Xor(Z3, Sse2.Xor(X3, Y3));
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x10], in Z0);
+                MemoryMarshal.Write(Z[0x10..0x20], in Z1);
+                MemoryMarshal.Write(Z[0x20..0x30], in Z2);
+                MemoryMarshal.Write(Z[0x30..0x40], in Z3);
+#else
                 MemoryMarshal.Write(Z[0x00..0x10], ref Z0);
                 MemoryMarshal.Write(Z[0x10..0x20], ref Z1);
                 MemoryMarshal.Write(Z[0x20..0x30], ref Z2);
                 MemoryMarshal.Write(Z[0x30..0x40], ref Z3);
+#endif
                 return;
             }
 #endif
 
-            for (int i = 0; i < 16; i += 4)
+				for ( int i = 0; i < 16; i += 4)
             {
                 z[i + 0] ^= x[i + 0] ^ y[i + 0];
                 z[i + 1] ^= x[i + 1] ^ y[i + 1];
@@ -394,9 +431,14 @@ namespace Org.BouncyCastle.Math.Raw
                 Z0 = Avx2.Xor(Z0, Avx2.Xor(X0, Y0));
                 Z1 = Avx2.Xor(Z1, Avx2.Xor(X1, Y1));
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
                 MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
-                return;
+#endif
+				return;
             }
 
             if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled &&
@@ -426,11 +468,18 @@ namespace Org.BouncyCastle.Math.Raw
                 Z2 = Sse2.Xor(Z2, Sse2.Xor(X2, Y2));
                 Z3 = Sse2.Xor(Z3, Sse2.Xor(X3, Y3));
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x10], in Z0);
+                MemoryMarshal.Write(Z[0x10..0x20], in Z1);
+                MemoryMarshal.Write(Z[0x20..0x30], in Z2);
+                MemoryMarshal.Write(Z[0x30..0x40], in Z3);
+#else
                 MemoryMarshal.Write(Z[0x00..0x10], ref Z0);
                 MemoryMarshal.Write(Z[0x10..0x20], ref Z1);
                 MemoryMarshal.Write(Z[0x20..0x30], ref Z2);
                 MemoryMarshal.Write(Z[0x30..0x40], ref Z3);
-                return;
+#endif
+				return;
             }
 #endif
 
@@ -493,8 +542,13 @@ namespace Org.BouncyCastle.Math.Raw
                 Z0 = Avx2.Xor(Z0, X0);
                 Z1 = Avx2.Xor(Z1, X1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
                 MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
+#endif
                 return;
             }
 
@@ -519,15 +573,23 @@ namespace Org.BouncyCastle.Math.Raw
                 Z2 = Sse2.Xor(Z2, X2);
                 Z3 = Sse2.Xor(Z3, X3);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x10], in Z0);
+                MemoryMarshal.Write(Z[0x10..0x20], in Z1);
+                MemoryMarshal.Write(Z[0x20..0x30], in Z2);
+                MemoryMarshal.Write(Z[0x30..0x40], in Z3);
+#else
                 MemoryMarshal.Write(Z[0x00..0x10], ref Z0);
                 MemoryMarshal.Write(Z[0x10..0x20], ref Z1);
                 MemoryMarshal.Write(Z[0x20..0x30], ref Z2);
                 MemoryMarshal.Write(Z[0x30..0x40], ref Z3);
+#endif
+
                 return;
             }
 #endif
 
-            for (int i = 0; i < 16; i += 4)
+				for ( int i = 0; i < 16; i += 4)
             {
                 z[i + 0] ^= x[i + 0];
                 z[i + 1] ^= x[i + 1];
@@ -586,8 +648,13 @@ namespace Org.BouncyCastle.Math.Raw
                 var Z0 = Avx2.Xor(X0, Y0);
                 var Z1 = Avx2.Xor(X1, Y1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
                 MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
+#endif
                 return;
             }
 
@@ -612,15 +679,23 @@ namespace Org.BouncyCastle.Math.Raw
                 var Z2 = Sse2.Xor(X2, Y2);
                 var Z3 = Sse2.Xor(X3, Y3);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x10], in Z0);
+                MemoryMarshal.Write(Z[0x10..0x20], in Z1);
+                MemoryMarshal.Write(Z[0x20..0x30], in Z2);
+                MemoryMarshal.Write(Z[0x30..0x40], in Z3);
+#else
                 MemoryMarshal.Write(Z[0x00..0x10], ref Z0);
                 MemoryMarshal.Write(Z[0x10..0x20], ref Z1);
                 MemoryMarshal.Write(Z[0x20..0x30], ref Z2);
                 MemoryMarshal.Write(Z[0x30..0x40], ref Z3);
+#endif
+
                 return;
             }
 #endif
 
-            for (int i = 0; i < 8; i += 4)
+				for ( int i = 0; i < 8; i += 4)
             {
                 z[i + 0] ^= x[i + 0];
                 z[i + 1] ^= x[i + 1];

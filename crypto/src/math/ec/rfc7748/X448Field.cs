@@ -1513,14 +1513,19 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                     Z1 = Avx2.Add(Z1, Avx2.And(C0, MaskScalar));
                 }
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
                 MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
+#endif
 
                 return;
             }
 #endif
 
-            uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3], x4 = x[4], x5 = x[5], x6 = x[6], x7 = x[7];
+				uint x0 = x[0], x1 = x[1], x2 = x[2], x3 = x[3], x4 = x[4], x5 = x[5], x6 = x[6], x7 = x[7];
             uint x8 = x[8], x9 = x[9], x10 = x[10], x11 = x[11], x12 = x[12], x13 = x[13], x14 = x[14], x15 = x[15];
             uint y0 = y[0], y1 = y[1], y2 = y[2], y3 = y[3], y4 = y[4], y5 = y[5], y6 = y[6], y7 = y[7];
             uint y8 = y[8], y9 = y[9], y10 = y[10], y11 = y[11], y12 = y[12], y13 = y[13], y14 = y[14], y15 = y[15];

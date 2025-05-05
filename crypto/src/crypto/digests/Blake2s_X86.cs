@@ -71,8 +71,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             row1 = Sse2.Xor(row1, orig_1);
             row2 = Sse2.Xor(row2, orig_2);
 
+#if NET8_0_OR_GREATER
+            MemoryMarshal.Write(hashBytes, in row1);
+            MemoryMarshal.Write(hashBytes[16..], in row2);
+#else
             MemoryMarshal.Write(hashBytes, ref row1);
             MemoryMarshal.Write(hashBytes[16..], ref row2);
+#endif
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

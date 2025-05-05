@@ -1877,7 +1877,11 @@ namespace Org.BouncyCastle.Math.Raw
 
                 var Z0 = Avx2.Xor(X0, Y0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
+#endif
                 return;
             }
 
@@ -1897,13 +1901,18 @@ namespace Org.BouncyCastle.Math.Raw
                 var Z0 = Sse2.Xor(X0, Y0);
                 var Z1 = Sse2.Xor(X1, Y1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x10], in Z0);
+                MemoryMarshal.Write(Z[0x10..0x20], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x10], ref Z0);
                 MemoryMarshal.Write(Z[0x10..0x20], ref Z1);
+#endif
                 return;
             }
 #endif
 
-            for (int i = 0; i < 8; i += 4)
+				for ( int i = 0; i < 8; i += 4)
             {
                 z[i + 0] = x[i + 0] ^ y[i + 0];
                 z[i + 1] = x[i + 1] ^ y[i + 1];
