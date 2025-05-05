@@ -1360,7 +1360,11 @@ namespace Org.BouncyCastle.Crypto.Engines
             var b = MemoryMarshal.AsBytes(t);
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(b, in s);
+#else
                 MemoryMarshal.Write(b, ref s);
+#endif
                 return;
             }
 

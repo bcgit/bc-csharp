@@ -485,37 +485,45 @@ namespace Org.BouncyCastle.Crypto.Engines
                 BinaryPrimitives.ReadUInt64LittleEndian(t[16..24]),
                 BinaryPrimitives.ReadUInt64LittleEndian(t[24..32])
             ).AsByte();
-		}
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void Store128_Byte(Vector128<byte> s, Span<byte> t)
-		{
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Store128_Byte(Vector128<byte> s, Span<byte> t)
+        {
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(t, in s);
+#else
                 MemoryMarshal.Write(t, ref s);
+#endif
                 return;
             }
 
             var u = s.AsUInt64();
             BinaryPrimitives.WriteUInt64LittleEndian(t[..8], u.GetElement(0));
             BinaryPrimitives.WriteUInt64LittleEndian(t[8..], u.GetElement(1));
-		}
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void Store256_Byte(Vector256<byte> s, Span<byte> t)
-		{
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Store256_Byte(Vector256<byte> s, Span<byte> t)
+        {
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(t, in s);
+#else
                 MemoryMarshal.Write(t, ref s);
-				return;
-			}
+#endif
+                return;
+            }
 
-			var u = s.AsUInt64();
-            BinaryPrimitives.WriteUInt64LittleEndian(t[ 0.. 8], u.GetElement(0));
-            BinaryPrimitives.WriteUInt64LittleEndian(t[ 8..16], u.GetElement(1));
+            var u = s.AsUInt64();
+            BinaryPrimitives.WriteUInt64LittleEndian(t[0..8], u.GetElement(0));
+            BinaryPrimitives.WriteUInt64LittleEndian(t[8..16], u.GetElement(1));
             BinaryPrimitives.WriteUInt64LittleEndian(t[16..24], u.GetElement(2));
             BinaryPrimitives.WriteUInt64LittleEndian(t[24..32], u.GetElement(3));
-		}
+        }
 #endif
-	}
+    }
 }

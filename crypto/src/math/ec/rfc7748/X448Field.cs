@@ -1513,8 +1513,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                     Z1 = Avx2.Add(Z1, Avx2.And(C0, MaskScalar));
                 }
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x00..0x20], in Z0);
+                MemoryMarshal.Write(Z[0x20..0x40], in Z1);
+#else
                 MemoryMarshal.Write(Z[0x00..0x20], ref Z0);
                 MemoryMarshal.Write(Z[0x20..0x40], ref Z1);
+#endif
 
                 return;
             }

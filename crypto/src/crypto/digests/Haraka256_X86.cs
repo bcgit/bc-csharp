@@ -131,7 +131,11 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(t, in s);
+#else
                 MemoryMarshal.Write(t, ref s);
+#endif
                 return;
             }
 

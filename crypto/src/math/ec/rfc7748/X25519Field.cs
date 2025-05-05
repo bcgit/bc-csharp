@@ -47,7 +47,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
                 var R0 = Avx2.Add(X0, Y0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z, in R0);
+#else
                 MemoryMarshal.Write(Z, ref R0);
+#endif
 
                 z[8] = x[8] + y[8];
                 z[9] = x[9] + y[9];
@@ -67,14 +71,22 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
                 var R0 = Sse2.Add(X0, Y0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z, in R0);
+#else
                 MemoryMarshal.Write(Z, ref R0);
+#endif
 
                 var X1 = MemoryMarshal.Read<Vector128<int>>(X[0x10..]);
                 var Y1 = MemoryMarshal.Read<Vector128<int>>(Y[0x10..]);
 
                 var R1 = Sse2.Add(X1, Y1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x10..], in R1);
+#else
                 MemoryMarshal.Write(Z[0x10..], ref R1);
+#endif
 
                 z[8] = x[8] + y[8];
                 z[9] = x[9] + y[9];
@@ -121,8 +133,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 var RP0 = Avx2.Add(X0, Y0);
                 var RM0 = Avx2.Subtract(X0, Y0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(ZP, in RP0);
+                MemoryMarshal.Write(ZM, in RM0);
+#else
                 MemoryMarshal.Write(ZP, ref RP0);
                 MemoryMarshal.Write(ZM, ref RM0);
+#endif
 
                 int x8 = x[8], y8 = y[8];
                 zp[8] = x8 + y8;
@@ -149,8 +166,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 var RP0 = Sse2.Add(X0, Y0);
                 var RM0 = Sse2.Subtract(X0, Y0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(ZP, in RP0);
+                MemoryMarshal.Write(ZM, in RM0);
+#else
                 MemoryMarshal.Write(ZP, ref RP0);
                 MemoryMarshal.Write(ZM, ref RM0);
+#endif
 
                 var X1 = MemoryMarshal.Read<Vector128<int>>(X[0x10..]);
                 var Y1 = MemoryMarshal.Read<Vector128<int>>(Y[0x10..]);
@@ -158,8 +180,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                 var RP1 = Sse2.Add(X1, Y1);
                 var RM1 = Sse2.Subtract(X1, Y1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(ZP[0x10..], in RP1);
+                MemoryMarshal.Write(ZM[0x10..], in RM1);
+#else
                 MemoryMarshal.Write(ZP[0x10..], ref RP1);
                 MemoryMarshal.Write(ZM[0x10..], ref RM1);
+#endif
 
                 int x8 = x[8], y8 = y[8];
                 zp[8] = x8 + y8;
@@ -1117,7 +1144,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
                 var R0 = Avx2.Subtract(X0, Y0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z, in R0);
+#else
                 MemoryMarshal.Write(Z, ref R0);
+#endif
 
                 z[8] = x[8] - y[8];
                 z[9] = x[9] - y[9];
@@ -1137,14 +1168,22 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
                 var R0 = Sse2.Subtract(X0, Y0);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z, in R0);
+#else
                 MemoryMarshal.Write(Z, ref R0);
+#endif
 
                 var X1 = MemoryMarshal.Read<Vector128<int>>(X[0x10..]);
                 var Y1 = MemoryMarshal.Read<Vector128<int>>(Y[0x10..]);
 
                 var R1 = Sse2.Subtract(X1, Y1);
 
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(Z[0x10..], in R1);
+#else
                 MemoryMarshal.Write(Z[0x10..], ref R1);
+#endif
 
                 z[8] = x[8] - y[8];
                 z[9] = x[9] - y[9];
