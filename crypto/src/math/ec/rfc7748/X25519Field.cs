@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #if NET8_0_OR_GREATER
                 MemoryMarshal.Write(Z, in R0);
 #else
-            `   MemoryMarshal.Write(Z, ref R0);
+                MemoryMarshal.Write(Z, ref R0);
 #endif
 
                 var X1 = MemoryMarshal.Read<Vector128<int>>(X[0x10..]);
