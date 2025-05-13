@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Generators;
@@ -15,6 +14,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     /**
      * EC domain class for generating key pairs and performing key agreement.
      */
+    // TODO[api] Make sealed
     public class BcTlsECDomain
         : TlsECDomain
     {
@@ -53,14 +53,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         protected readonly BcTlsCrypto m_crypto;
+        // TODO[api] Remove
         protected readonly TlsECConfig m_config;
         protected readonly ECDomainParameters m_domainParameters;
 
         public BcTlsECDomain(BcTlsCrypto crypto, TlsECConfig ecConfig)
         {
-            this.m_crypto = crypto;
-            this.m_config = ecConfig;
-            this.m_domainParameters = GetDomainParameters(ecConfig);
+            m_crypto = crypto;
+            m_config = ecConfig;
+            m_domainParameters = GetDomainParameters(ecConfig);
         }
 
         public virtual BcTlsSecret CalculateECDHAgreement(ECPrivateKeyParameters privateKey,

@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
+﻿namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    // TODO[api] Make sealed
     public class BcX448Domain
         : TlsECDomain
     {
@@ -9,7 +8,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public BcX448Domain(BcTlsCrypto crypto)
         {
-            this.m_crypto = crypto;
+            m_crypto = crypto;
         }
 
         public virtual TlsAgreement CreateECDH()

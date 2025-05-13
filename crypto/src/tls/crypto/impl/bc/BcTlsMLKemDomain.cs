@@ -7,6 +7,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    // TODO[api] Make sealed
     public class BcTlsMLKemDomain
         : TlsKemDomain
     {
@@ -26,6 +27,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         protected readonly BcTlsCrypto m_crypto;
+        // TODO[api] Remove
         protected readonly TlsKemConfig m_config;
         protected readonly MLKemParameters m_domainParameters;
         protected readonly bool m_isServer;
