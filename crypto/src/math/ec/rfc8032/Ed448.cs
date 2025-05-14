@@ -3,6 +3,9 @@ using System.Diagnostics;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
+#if NET9_0_OR_GREATER
+using System.Threading;
+#endif
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
@@ -90,7 +93,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int PrecompPoints = 1 << (PrecompTeeth - 1);
         private const int PrecompMask = PrecompPoints - 1;
 
+#if NET9_0_OR_GREATER
+        private static readonly Lock PrecompLock = new();
+#else
         private static readonly object PrecompLock = new object();
+#endif
         private static PointAffine[] PrecompBaseWnaf = null;
         private static PointAffine[] PrecompBase225Wnaf = null;
         private static uint[] PrecompBaseComb = null;
