@@ -808,7 +808,7 @@ namespace Org.BouncyCastle.Tls
 
             var extensions = helloRetryRequest.Extensions;
             if (null == extensions)
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, "no extensions found");
 
             TlsUtilities.CheckExtensionData13(extensions, HandshakeType.hello_retry_request,
                 AlertDescription.illegal_parameter);
@@ -820,25 +820,37 @@ namespace Org.BouncyCastle.Tls
                  * "cookie" extension in the HelloRetryRequest. Upon receiving such an extension, an
                  * endpoint MUST abort the handshake with an "unsupported_extension" alert.
                  */
-                foreach (int extType in extensions.Keys)
+                foreach (int extensionType in extensions.Keys)
                 {
-                    if (ExtensionType.cookie == extType)
+                    if (ExtensionType.cookie == extensionType)
                         continue;
 
-                    if (null == TlsUtilities.GetExtensionData(m_clientExtensions, extType))
-                        throw new TlsFatalAlert(AlertDescription.unsupported_extension);
+                    if (null == TlsUtilities.GetExtensionData(m_clientExtensions, extensionType))
+                    {
+                        throw new TlsFatalAlert(AlertDescription.unsupported_extension,
+                            "received unrequested extension response: " + ExtensionType.GetText(extensionType));
+                    }
                 }
             }
 
             ProtocolVersion server_version = TlsExtensionsUtilities.GetSupportedVersionsExtensionServer(extensions);
             if (null == server_version)
-                throw new TlsFatalAlert(AlertDescription.missing_extension);
+            {
+                throw new TlsFatalAlert(AlertDescription.missing_extension,
+                    "missing extension response: " + ExtensionType.GetText(ExtensionType.supported_versions));
+            }
 
             if (!ProtocolVersion.TLSv13.IsEqualOrEarlierVersionOf(server_version) ||
-                !ProtocolVersion.Contains(m_tlsClientContext.ClientSupportedVersions, server_version) ||
-                !TlsUtilities.IsValidVersionForCipherSuite(cipherSuite, server_version))
+                !ProtocolVersion.Contains(m_tlsClientContext.ClientSupportedVersions, server_version))
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter,
+                    "invalid version selected: " + server_version);
+            }
+
+            if (!TlsUtilities.IsValidVersionForCipherSuite(cipherSuite, server_version))
+            {
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter,
+                    "invalid cipher suite for selected version");
             }
 
             if (null != m_clientBinders)
@@ -851,6 +863,20 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
+            int selected_group = TlsExtensionsUtilities.GetKeyShareHelloRetryRequest(extensions);
+
+            /*
+             * TODO[tls:psk_ke]
+             *
+             * RFC 8446 4.2.8. Servers [..] MUST NOT send a KeyShareEntry when using the "psk_ke"
+             * PskKeyExchangeMode.
+             */
+            if (selected_group < 0)
+            {
+                throw new TlsFatalAlert(AlertDescription.missing_extension,
+                    "missing extension response: " + ExtensionType.GetText(ExtensionType.key_share));
+            }
+
             /*
              * RFC 8446 4.2.8. Upon receipt of this [Key Share] extension in a HelloRetryRequest, the
              * client MUST verify that (1) the selected_group field corresponds to a group which was
@@ -859,12 +885,10 @@ namespace Org.BouncyCastle.Tls
              * extension in the original ClientHello. If either of these checks fails, then the client
              * MUST abort the handshake with an "illegal_parameter" alert.
              */
-            int selected_group = TlsExtensionsUtilities.GetKeyShareHelloRetryRequest(extensions);
-
             if (!TlsUtilities.IsValidKeyShareSelection(server_version, securityParameters.ClientSupportedGroups,
                 m_clientAgreements, selected_group))
             {
-                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter, "invalid key_share selected");
             }
 
             byte[] cookie = TlsExtensionsUtilities.GetCookieExtension(extensions);
