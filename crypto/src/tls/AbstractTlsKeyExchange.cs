@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
 
@@ -15,27 +14,22 @@ namespace Org.BouncyCastle.Tls
 
         protected AbstractTlsKeyExchange(int keyExchange)
         {
-            this.m_keyExchange = keyExchange;
+            m_keyExchange = keyExchange;
         }
 
         public virtual void Init(TlsContext context)
         {
-            this.m_context = context;
+            m_context = context;
         }
 
         public abstract void SkipServerCredentials();
 
         public abstract void ProcessServerCredentials(TlsCredentials serverCredentials);
 
-        public virtual void ProcessServerCertificate(Certificate serverCertificate)
-        {
+        public virtual void ProcessServerCertificate(Certificate serverCertificate) =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
 
-        public virtual bool RequiresServerKeyExchange
-        {
-            get { return false; }
-        }
+        public virtual bool RequiresServerKeyExchange => false;
 
         public virtual byte[] GenerateServerKeyExchange()
         {
@@ -57,33 +51,21 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public virtual short[] GetClientCertificateTypes()
-        {
-            return null;
-        }
+        public virtual short[] GetClientCertificateTypes() => null;
 
-        public virtual void SkipClientCredentials()
-        {
-        }
+        public virtual void SkipClientCredentials() {}
 
         public abstract void ProcessClientCredentials(TlsCredentials clientCredentials);
 
-        public virtual void ProcessClientCertificate(Certificate clientCertificate)
-        {
-        }
+        public virtual void ProcessClientCertificate(Certificate clientCertificate) {}
 
         public abstract void GenerateClientKeyExchange(Stream output);
 
-        public virtual void ProcessClientKeyExchange(Stream input)
-        {
-            // Key exchange implementation MUST support client key exchange
+        // Key exchange implementation MUST support client key exchange
+        public virtual void ProcessClientKeyExchange(Stream input) =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
 
-        public virtual bool RequiresCertificateVerify
-        {
-            get { return true; }
-        }
+        public virtual bool RequiresCertificateVerify => true;
 
         public abstract TlsSecret GeneratePreMasterSecret();
     }
