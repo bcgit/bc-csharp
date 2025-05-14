@@ -20,10 +20,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public virtual byte[] GenerateEphemeral()
         {
-            m_crypto.SecureRandom.NextBytes(m_privateKey);
+            X448.GeneratePrivateKey(m_crypto.SecureRandom, m_privateKey);
 
             byte[] publicKey = new byte[X448.PointSize];
-            X448.ScalarMultBase(m_privateKey, 0, publicKey, 0);
+            X448.GeneratePublicKey(m_privateKey, 0, publicKey, 0);
             return publicKey;
         }
 
