@@ -767,6 +767,9 @@ namespace Org.BouncyCastle.Asn1.X509
             if (orderingSize != other.m_ordering.Count)
                 return false;
 
+            if (orderingSize == 0)
+                return true;
+
             bool[] indexes = new bool[orderingSize];
             int start, end, delta;
 
