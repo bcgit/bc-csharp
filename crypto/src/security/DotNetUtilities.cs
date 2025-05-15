@@ -25,15 +25,34 @@ namespace Org.BouncyCastle.Security
     public static class DotNetUtilities
     {
         /// <summary>
-        /// Create an System.Security.Cryptography.X509Certificate from an X509Certificate Structure.
+        /// Create an System.Security.Cryptography.X509Certificate from an X509CertificateStructure.
         /// </summary>
         /// <param name="x509Struct"></param>
         /// <returns>A System.Security.Cryptography.X509Certificate.</returns>
-        public static SystemX509.X509Certificate ToX509Certificate(X509CertificateStructure x509Struct) =>
-            new SystemX509.X509Certificate(x509Struct.GetEncoded(Asn1Encodable.Der));
+        // TODO[api] Change return type to X509Certificate2
+#if NET5_0_OR_GREATER
+        [UnsupportedOSPlatform("browser")]
+#endif
+        public static SystemX509.X509Certificate ToX509Certificate(X509CertificateStructure x509Struct)
+        {
+#if NET9_0_OR_GREATER
+            return SystemX509.X509CertificateLoader.LoadCertificate(x509Struct.GetEncoded(Asn1Encodable.Der));
+#else
+            return new SystemX509.X509Certificate2(x509Struct.GetEncoded(Asn1Encodable.Der));
+#endif
+        }
 
+        /// <summary>
+        /// Create an System.Security.Cryptography.X509Certificate from an X509Certificate.
+        /// </summary>
+        /// <param name="x509Cert"></param>
+        /// <returns>A System.Security.Cryptography.X509Certificate.</returns>
+        // TODO[api] Change return type to X509Certificate2
+#if NET5_0_OR_GREATER
+        [UnsupportedOSPlatform("browser")]
+#endif
         public static SystemX509.X509Certificate ToX509Certificate(X509Certificate x509Cert) =>
-            new SystemX509.X509Certificate(x509Cert.GetEncoded());
+            ToX509Certificate(x509Cert.CertificateStructure);
 
         public static X509Certificate FromX509Certificate(SystemX509.X509Certificate x509Cert) =>
             new X509Certificate(x509Cert.GetRawCertData());

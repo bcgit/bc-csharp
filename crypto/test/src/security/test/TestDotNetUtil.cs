@@ -1,14 +1,8 @@
 using System;
 using System.Collections.Generic;
-
-#if NET5_0_OR_GREATER
-using System.Runtime.Versioning;
-#endif
-
-#if NET6_0_OR_GREATER
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
-
 using System.Security.Cryptography;
 using SystemX509 = System.Security.Cryptography.X509Certificates;
 
@@ -61,11 +55,9 @@ namespace Org.BouncyCastle.Security.Tests
         [Test]
 		public void TestRsaInterop()
 		{
-#if NET6_0_OR_GREATER
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 				return;
-			}
 #endif
 
 			for (int i = 0; i < 10; ++i)
@@ -84,6 +76,11 @@ namespace Org.BouncyCastle.Security.Tests
 		[Test]
 		public void TestX509CertificateConversion()
 		{
+#if NET5_0_OR_GREATER
+			if (OperatingSystem.IsBrowser())
+				return;
+#endif
+
 			BigInteger DSAParaG = new BigInteger(Base64.Decode("AL0fxOTq10OHFbCf8YldyGembqEu08EDVzxyLL29Zn/t4It661YNol1rnhPIs+cirw+yf9zeCe+KL1IbZ/qIMZM="));
 			BigInteger DSAParaP = new BigInteger(Base64.Decode("AM2b/UeQA+ovv3dL05wlDHEKJ+qhnJBsRT5OB9WuyRC830G79y0R8wuq8jyIYWCYcTn1TeqVPWqiTv6oAoiEeOs="));
 			BigInteger DSAParaQ = new BigInteger(Base64.Decode("AIlJT7mcKL6SUBMmvm24zX1EvjNx"));

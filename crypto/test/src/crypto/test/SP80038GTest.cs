@@ -1,6 +1,5 @@
 using System;
-
-#if NET6_0_OR_GREATER
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
 
@@ -541,12 +540,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             ImplTestFF3_1w();
             ImplTestFF3_1_255();
             ImplTestFF3_1Bounds();
-#if NET6_0_OR_GREATER
+
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
                 ImplTestDisable();
             }
 #endif
+
             ImplTestUtility();
         }
 
