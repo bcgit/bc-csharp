@@ -565,7 +565,7 @@ namespace Org.BouncyCastle.Operators.Utilities
              * EdDSA
              */
             AddAlgorithm("Ed25519", EdECObjectIdentifiers.id_Ed25519, digestOid: null, isNoParams: true);
-            //AddAlgorithm("Ed448", EdECObjectIdentifiers.id_Ed448, digestOid: null, isNoParams: true);
+            AddAlgorithm("Ed448", EdECObjectIdentifiers.id_Ed448, digestOid: null, isNoParams: true);
 
             /*
              * ML-DSA

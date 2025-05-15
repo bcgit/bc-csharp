@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -72,6 +73,7 @@ namespace Org.BouncyCastle.Cms
         public static readonly string DigestRipeMD128 = TeleTrusTObjectIdentifiers.RipeMD128.Id;
         public static readonly string DigestRipeMD160 = TeleTrusTObjectIdentifiers.RipeMD160.Id;
         public static readonly string DigestRipeMD256 = TeleTrusTObjectIdentifiers.RipeMD256.Id;
+        public static readonly string DigestSM3 = GMObjectIdentifiers.sm3.Id;
 
         public static readonly string EncryptionRsa = PkcsObjectIdentifiers.RsaEncryption.Id;
         public static readonly string EncryptionDsa = X9ObjectIdentifiers.IdDsaWithSha1.Id;

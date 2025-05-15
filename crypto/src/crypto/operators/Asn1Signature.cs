@@ -110,8 +110,12 @@ namespace Org.BouncyCastle.Crypto.Operators
             Algorithms.Add("GOST3411-2012-512WITHECGOST3410", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
             Algorithms.Add("GOST3411-2012-512WITHECGOST3410-2012-512", RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
 
-            Algorithms.Add("SHA256WITHSM2", GMObjectIdentifiers.sm2sign_with_sha256);
-            Algorithms.Add("SM3WITHSM2", GMObjectIdentifiers.sm2sign_with_sm3);
+            Algorithms.Add("SHAKE128WITHRSAPSS", X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128);
+            Algorithms.Add("SHAKE256WITHRSAPSS", X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256);
+            Algorithms.Add("SHAKE128WITHRSASSA-PSS", X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128);
+            Algorithms.Add("SHAKE256WITHRSASSA-PSS", X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256);
+            Algorithms.Add("SHAKE128WITHECDSA", X509ObjectIdentifiers.id_ecdsa_with_shake128);
+            Algorithms.Add("SHAKE256WITHECDSA", X509ObjectIdentifiers.id_ecdsa_with_shake256);
 
             //
             // According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.
@@ -142,6 +146,13 @@ namespace Org.BouncyCastle.Crypto.Operators
             //
             AddNoParams(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
             AddNoParams(CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+            AddNoParams(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256);
+            AddNoParams(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512);
+
+            AddNoParams(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128);
+            AddNoParams(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256);
+            AddNoParams(X509ObjectIdentifiers.id_ecdsa_with_shake128);
+            AddNoParams(X509ObjectIdentifiers.id_ecdsa_with_shake256);
 
             //
             // explicit params
@@ -181,6 +192,12 @@ namespace Org.BouncyCastle.Crypto.Operators
             AddAlgorithm("SHA3-256WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_256, isNoParams: true);
             AddAlgorithm("SHA3-384WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_384, isNoParams: true);
             AddAlgorithm("SHA3-512WITHPLAIN-ECDSA", BsiObjectIdentifiers.ecdsa_plain_SHA3_512, isNoParams: true);
+
+            /*
+             * SM2
+             */
+            AddAlgorithm("SHA256WITHSM2", GMObjectIdentifiers.sm2sign_with_sha256, isNoParams: true);
+            AddAlgorithm("SM3WITHSM2", GMObjectIdentifiers.sm2sign_with_sm3, isNoParams: true);
 
             /*
              * EdDSA
