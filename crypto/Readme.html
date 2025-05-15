@@ -32,6 +32,10 @@
                                 <a href="#mozTocId3413">Notes:</a>
                                 <ol>
                                     <li>
+                                        <a href="#mozTocId9020600">Release 2.6.0</a>
+                                    <li>
+                                        <a href="#mozTocId9020501">Release 2.5.1</a>
+                                    <li>
                                         <a href="#mozTocId9020500">Release 2.5.0</a>
                                     <li>
                                         <a href="#mozTocId9020400">Release 2.4.0</a>
@@ -334,6 +338,56 @@
         <br />
         <hr style="WIDTH: 100%; HEIGHT: 2px">
         <h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
+
+        <h4><a class="mozTocH4" name="mozTocId9020600"></a>Release 2.6.0, Thursday May 15, 2025</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>Ascon XOFs: Fix failure when output 'split' on 8-byte boundary.</li>
+            <li>AsconCXof128: Fix initialization from context.</li>
+            <li>CMS: Fixed CmsSignedData.AddDigestAlgorithm (was failing to retain existing algorithms).</li>
+            <li>HQC: Fixed a bug in the ReedSolomon implementation.</li>
+            <li>X.509: Fix exception when comparing two empty X509Name instances.</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>Blake2: X86 intrinsics implementation.</li>
+            <li>CMS: Preserve digest alg. IDs when modifying existing signed-data.</li>
+            <li>CMS: Support for Plain-ECDSA in signed-data.</li>
+            <li>CMS: Draft support for Ed25519 in signed-data per RFC 8419 (except streaming classes).</li>
+            <li>CMS: Draft support for ML-DSA in signed-data per draft-ietf-lamps-cms-ml-dsa-03 (except streaming classes).</li>
+            <li>CMS: Draft support for SLH-DSA in signed-data per draft-ietf-lamps-cms-sphincs-plus-19 (except streaming classes).</li>
+            <li>HQC: Updated to 2024-10-30 reference implementation.</li>
+            <li>Pkcs12Store: Support for no certificate encryption.</li>
+            <li>Pkcs12Store: Support PBES2 + PBKDF2 for certificate encryption.</li>
+            <li>Pkcs12Store: Add builder option to disable use of Oracle's TrustedKeyUsage attribute.</li>
+            <li>PQC: Updated private key format(s) for ML-DSA, ML-KEM.</li>
+            <li>X.509: Support SubjectAlternativeNames filter in X509CertStoreSelector.</li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
+
+        <h4><a class="mozTocH4" name="mozTocId9020501"></a>Release 2.5.1, Friday Feb 7, 2025</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>OpenPGP: Fixed RemoveCert loops in PgpPublicKey so that removals don't affect remaining iteration.</li>
+            <li>Fix infinite recursion in SubjectAltPublicKeyInfo.Algorithm.</li>
+            <li>ML-DSA: fix PrivateKeyInfoFactory NPE when no seed present.</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
 
         <h4><a class="mozTocH4" name="mozTocId9020500"></a>Release 2.5.0, Sunday December 1, 2024</h4>
         <h5>Defects Fixed</h5>
