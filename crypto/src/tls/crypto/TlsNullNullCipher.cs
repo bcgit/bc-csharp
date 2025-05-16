@@ -33,11 +33,13 @@ namespace Org.BouncyCastle.Tls.Crypto
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
-            int headerAllocation, ReadOnlySpan<byte> plaintext)
+            int headerAllocation, ReadOnlySpan<byte> plaintext,
+            System.Buffers.ArrayPool<byte> pool = null)
         {
-            byte[] result = new byte[headerAllocation + plaintext.Length];
+            int bufferSize = headerAllocation + plaintext.Length;
+            byte[] result = pool?.Rent(bufferSize) ?? new byte[bufferSize];
             plaintext.CopyTo(result.AsSpan(headerAllocation));
-            return new TlsEncodeResult(result, 0, result.Length, contentType);
+            return new TlsEncodeResult(result, 0, bufferSize, contentType, pool);
         }
 #endif
 
