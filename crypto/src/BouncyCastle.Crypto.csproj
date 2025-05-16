@@ -5,7 +5,7 @@
     <RootNamespace>Org.BouncyCastle</RootNamespace>
     <AssemblyOriginatorKeyFile>..\..\BouncyCastle.NET.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-	<NoWarn>1591</NoWarn>
+    <NoWarn>1591</NoWarn>
 
     <AssemblyName>BouncyCastle.Cryptography</AssemblyName>
     <AssemblyTitle>BouncyCastle.NET Cryptography ($(TargetFramework))</AssemblyTitle>
@@ -13,6 +13,7 @@
     <Company>Legion of the Bouncy Castle Inc.</Company>
     <Copyright>Copyright © Legion of the Bouncy Castle Inc. 2000-2025</Copyright>
     <Description>BouncyCastle.NET is a popular cryptography library for .NET</Description>
+    <IsAotCompatible Condition="$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', 'net7.0'))">True</IsAotCompatible>
     <PackageIcon>packageIcon.png</PackageIcon>
     <PackageIconUrl>https://www.bouncycastle.org/stable/nuget/csharp/packageIcon.png</PackageIconUrl>
     <PackageId>BouncyCastle.Cryptography</PackageId>
@@ -21,8 +22,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageReleaseNotes>https://www.bouncycastle.org/stable/nuget/csharp/release_notes</PackageReleaseNotes>
     <PackageTags>bouncycastle cryptography dtls encryption open-source openpgp post-quantum security tls</PackageTags>
-	<Product>BouncyCastle.NET</Product>
-	<PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <Product>BouncyCastle.NET</Product>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <Title>BouncyCastle.NET Cryptography</Title>
     <Configurations>Debug;Release;Publish</Configurations>
   </PropertyGroup>
@@ -35,7 +36,7 @@
 
   <!--Source-Level Debugging-->
   <PropertyGroup>
-	<!-- Any custom target adding things to the Compile item group needs BeforeTargets="BeforeCompile".	-->
+    <!-- Any custom target adding things to the Compile item group needs BeforeTargets="BeforeCompile".	-->
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
 
     <!-- Tell SourceLink to use this remote to derive the published git repository URL and source links. -->
@@ -50,15 +51,15 @@
     <EnablePackageValidation>false</EnablePackageValidation>
     <PackageValidationBaselineVersion>2.0.0</PackageValidationBaselineVersion>
 
-	<!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
+    <!-- In case we disable signing for local builds, ignore identity mismatch with baseline version. -->
     <NoWarn Condition="'$(SignAssembly)' != 'true'">$(NoWarn);CP0003</NoWarn>
 
-	<!--
-	  We added Span-based variant methods to several APIs. Code that uses those methods or implements the
-	  affected interfaces (or abstract classes) will not be backward compatible. There are also several
-	  methods in DotNetUtilities dealing with ECDsa which is only available from net47.
-
-	  TODO: Use suppressions for each individual case of version-dependent methods.
+    <!--
+      We added Span-based variant methods to several APIs. Code that uses those methods or implements the
+      affected interfaces (or abstract classes) will not be backward compatible. There are also several
+      methods in DotNetUtilities dealing with ECDsa which is only available from net47.
+    
+      TODO: Use suppressions for each individual case of version-dependent methods.
     -->
     <NoWarn>$(NoWarn);CP0002;CP0005;CP0006</NoWarn>
     <RunAnalyzersDuringBuild>False</RunAnalyzersDuringBuild>
@@ -105,7 +106,7 @@
 
   <Target Name="FixAssemblyAttributes" AfterTargets="GetBuildVersion">
     <PropertyGroup>
-		<!-- Here we can override/use any MSBuild properties set by Nerdbank.GitVersioning -->
+      <!-- Here we can override/use any MSBuild properties set by Nerdbank.GitVersioning -->
     </PropertyGroup>
   </Target>
   <Target Name="SignAssemblies" AfterTargets="PostBuildEvent" Condition="'$(Configuration)'=='Publish'">
