@@ -75,23 +75,19 @@ namespace Org.BouncyCastle.Crypto.Engines
 			this.rounds = rounds;
 		}
 
-        public virtual void Init(
-			bool				forEncryption, 
-			ICipherParameters	parameters)
-		{
-			/* 
-			 * Salsa20 encryption and decryption is completely
-			 * symmetrical, so the 'forEncryption' is 
-			 * irrelevant. (Like 90% of stream ciphers)
-			 */
+        public virtual void Init(bool forEncryption, ICipherParameters parameters)
+        {
+            /* 
+             * Salsa20 encryption and decryption is completely symmetrical, so the 'forEncryption' is 
+             * irrelevant. (Like 90% of stream ciphers)
+             */
 
-			ParametersWithIV ivParams = parameters as ParametersWithIV;
-			if (ivParams == null)
-				throw new ArgumentException(AlgorithmName + " Init requires an IV", "parameters");
+            if (!(parameters is ParametersWithIV ivParams))
+                throw new ArgumentException(AlgorithmName + " Init requires an IV", nameof(parameters));
 
-			byte[] iv = ivParams.GetIV();
-			if (iv == null || iv.Length != NonceSize)
-				throw new ArgumentException(AlgorithmName + " requires exactly " + NonceSize + " bytes of IV");
+            byte[] iv = ivParams.GetIV();
+            if (iv == null || iv.Length != NonceSize)
+                throw new ArgumentException(AlgorithmName + " requires exactly " + NonceSize + " bytes of IV");
 
             ICipherParameters keyParam = ivParams.Parameters;
             if (keyParam == null)
@@ -101,9 +97,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 SetKey(null, iv);
             }
-            else if (keyParam is KeyParameter)
+            else if (keyParam is KeyParameter keyParameter)
             {
-                SetKey(((KeyParameter)keyParam).GetKey(), iv);
+                SetKey(keyParameter.GetKey(), iv);
             }
             else
             {
@@ -111,8 +107,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
 
             Reset();
-			initialised = true;
-		}
+            initialised = true;
+        }
 
 		protected virtual int NonceSize
 		{
@@ -254,13 +250,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static void SalsaCore(int rounds, ReadOnlySpan<uint> input, Span<uint> output)
-		{
-			if (input.Length < 16)
-				throw new ArgumentException();
-			if (output.Length < 16)
-				throw new ArgumentException();
-			if (rounds % 2 != 0)
-				throw new ArgumentException("Number of rounds must be even");
+        {
+            if (input.Length < 16)
+                throw new ArgumentException("Must be at least 16 bytes", nameof(input));
+            if (output.Length < 16)
+                throw new ArgumentException("Must be at least 16 bytes", nameof(output));
+            if (rounds % 2 != 0)
+                throw new ArgumentException("Number of rounds must be even", nameof(rounds));
 
 #if NETCOREAPP3_0_OR_GREATER
             if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse41.IsEnabled &&
@@ -382,14 +378,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 			output[15] = x15 + input[15];
 		}
 #else
-		internal static void SalsaCore(int rounds, uint[] input, uint[] output)
-		{
-			if (input.Length < 16)
-				throw new ArgumentException();
-			if (output.Length < 16)
-				throw new ArgumentException();
-			if (rounds % 2 != 0)
-				throw new ArgumentException("Number of rounds must be even");
+        internal static void SalsaCore(int rounds, uint[] input, uint[] output)
+        {
+            if (input.Length < 16)
+                throw new ArgumentException("Must be at least 16 bytes", nameof(input));
+            if (output.Length < 16)
+                throw new ArgumentException("Must be at least 16 bytes", nameof(output));
+            if (rounds % 2 != 0)
+                throw new ArgumentException("Number of rounds must be even", nameof(rounds));
 
 			uint x00 = input[ 0];
 			uint x01 = input[ 1];
@@ -440,7 +436,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 		}
 #endif
 
-		internal void ResetLimitCounter()
+        internal void ResetLimitCounter()
 		{
 			cW0 = 0;
 			cW1 = 0;

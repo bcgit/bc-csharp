@@ -12,24 +12,18 @@ namespace Org.BouncyCastle.Crypto.Tests
     {
         internal static readonly SecureRandom Random = new SecureRandom();
 
-        private IDigest digest;
-        private string[] input;
-        private string[] results;
+        private readonly IDigest digest;
+        private readonly string[] input;
+        private readonly string[] results;
 
-        protected DigestTest(
-            IDigest digest,
-            string[] input,
-            string[] results)
+        protected DigestTest(IDigest digest, string[] input, string[] results)
         {
             this.digest = digest;
             this.input = input;
             this.results = results;
         }
 
-        public override string Name
-        {
-            get { return digest.AlgorithmName; }
-        }
+        public override string Name => digest.AlgorithmName;
 
         public override void PerformTest()
         {
@@ -37,15 +31,15 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             for (int i = 0; i < input.Length - 1; i++)
             {
-                byte[] msg = toByteArray(input[i]);
+                byte[] msg = ToByteArray(input[i]);
 
-                vectorTest(digest, i, resBuf, msg, Hex.Decode(results[i]));
+                VectorTest(digest, i, resBuf, msg, Hex.Decode(results[i]));
             }
 
-            byte[] lastV = toByteArray(input[input.Length - 1]);
+            byte[] lastV = ToByteArray(input[input.Length - 1]);
             byte[] lastDigest = Hex.Decode(results[input.Length - 1]);
 
-            vectorTest(digest, input.Length - 1, resBuf, lastV, Hex.Decode(results[input.Length - 1]));
+            VectorTest(digest, input.Length - 1, resBuf, lastV, Hex.Decode(results[input.Length - 1]));
 
             //
             // clone test
@@ -113,8 +107,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             SpanConsistencyTests(this, digest);
         }
 
-        private byte[] toByteArray(
-            string input)
+        private static byte[] ToByteArray(string input)
         {
             byte[] bytes = new byte[input.Length];
 
@@ -126,12 +119,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return bytes;
         }
 
-        private void vectorTest(
-            IDigest digest,
-            int count,
-            byte[] resBuf,
-            byte[] input,
-            byte[] expected)
+        private void VectorTest(IDigest digest, int count, byte[] resBuf, byte[] input, byte[] expected)
         {
             digest.BlockUpdate(input, 0, input.Length);
             digest.DoFinal(resBuf, 0);
@@ -147,8 +135,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         //
         // optional tests
         //
-        protected void millionATest(
-            string expected)
+        protected void MillionATest(string expected)
         {
             byte[] resBuf = new byte[digest.GetDigestSize()];
 
@@ -165,14 +152,13 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        protected void sixtyFourKTest(
-            string expected)
+        protected void SixtyFourKTest(string expected)
         {
             byte[] resBuf = new byte[digest.GetDigestSize()];
 
             for (int i = 0; i < 65536; i++)
             {
-                digest.Update((byte)(i & 0xff));
+                digest.Update((byte)i);
             }
 
             digest.DoFinal(resBuf, 0);
@@ -212,7 +198,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] arrayResult = DigestUtilities.DoFinal(digest, buf, off, len);
             byte[] spanResult1 = DigestUtilities.DoFinal(digest, buf.AsSpan(off, len));
 
-            if (!test.AreEqual(arrayResult, spanResult1))
+            if (!Arrays.AreEqual(arrayResult, spanResult1))
             {
                 test.Fail("failing span consistency test 1", Hex.ToHexString(arrayResult), Hex.ToHexString(spanResult1));
             }
@@ -228,7 +214,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] spanResult2 = new byte[digest.GetDigestSize()];
             digest.DoFinal(spanResult2.AsSpan());
 
-            if (!test.AreEqual(arrayResult, spanResult2))
+            if (!Arrays.AreEqual(arrayResult, spanResult2))
             {
                 test.Fail("failing span consistency test 2", Hex.ToHexString(arrayResult), Hex.ToHexString(spanResult2));
             }

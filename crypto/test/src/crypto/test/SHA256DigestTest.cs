@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             base.PerformTest();
 
-            millionATest(million_a_digest);
+            MillionATest(million_a_digest);
         }
 
         protected override IDigest CloneDigest(IDigest digest)

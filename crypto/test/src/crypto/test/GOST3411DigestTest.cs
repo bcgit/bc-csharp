@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             base.PerformTest();
 
-            millionATest(million_a_digest);
+            MillionATest(million_a_digest);
 
             byte[] data = Strings.ToUtf8ByteArray("fred");
 
