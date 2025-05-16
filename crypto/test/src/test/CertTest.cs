@@ -2139,7 +2139,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetPublicKey(pubKey);
 
             certGen.CopyAndAddExtension(new DerObjectIdentifier("2.5.29.15"), true, baseCert);
-            certGen.CopyAndAddExtension("2.5.29.37", false, baseCert);
+            certGen.CopyAndAddExtension(new DerObjectIdentifier("2.5.29.37"), false, baseCert);
 
             X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("MD5WithRSAEncryption", privKey, null));
 
@@ -2164,7 +2164,7 @@ namespace Org.BouncyCastle.Tests
             //
             try
             {
-                certGen.CopyAndAddExtension("2.5.99.99", true, baseCert);
+                certGen.CopyAndAddExtension(new DerObjectIdentifier("2.5.99.99"), true, baseCert);
 
                 Fail("exception not thrown on dud extension copy");
             }

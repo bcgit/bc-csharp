@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509
 {
@@ -234,39 +231,28 @@ namespace Org.BouncyCastle.X509
         /// Add a given extension field for the standard extensions tag (tag 3),
         /// copying the extension value from another certificate.
         /// </summary>
-        public void CopyAndAddExtension(
-			string			oid,
-			bool			critical,
-			X509Certificate	cert)
-		{
-			CopyAndAddExtension(new DerObjectIdentifier(oid), critical, cert);
-		}
+        [Obsolete("Use version taking a DerObjectIdentifier")]
+        public void CopyAndAddExtension(string oid, bool critical, X509Certificate cert) =>
+            CopyAndAddExtension(new DerObjectIdentifier(oid), critical, cert);
 
-		/**
-		 * add a given extension field for the standard extensions tag (tag 3)
-		 * copying the extension value from another certificate.
-		 * @throws CertificateParsingException if the extension cannot be extracted.
-		 */
-		public void CopyAndAddExtension(
-			DerObjectIdentifier	oid,
-			bool				critical,
-			X509Certificate		cert)
-		{
-			Asn1OctetString extValue = cert.GetExtensionValue(oid);
-			if (extValue == null)
-				throw new CertificateParsingException("extension " + oid + " not present");
+        /// <summary>
+        /// Add a given extension field for the standard extensions tag (tag 3),
+        /// copying the extension value from another certificate.
+        /// </summary>
+        public void CopyAndAddExtension(DerObjectIdentifier oid, bool critical, X509Certificate cert)
+        {
+            X509Extension ext = cert.GetExtension(oid) ??
+                throw new CertificateParsingException("extension " + oid + " not present");
 
-			try
-			{
-				Asn1Encodable value = X509ExtensionUtilities.FromExtensionValue(extValue);
-
-				this.AddExtension(oid, critical, value);
-			}
-			catch (Exception e)
-			{
-				throw new CertificateParsingException(e.Message, e);
-			}
-		}
+            try
+            {
+                extGenerator.AddExtension(oid, ext);
+            }
+            catch (Exception e)
+            {
+                throw new CertificateParsingException(e.Message, e);
+            }
+        }
 
 		/// <summary>
 		/// Generate a new <see cref="X509Certificate"/> using the provided <see cref="ISignatureFactory"/>.

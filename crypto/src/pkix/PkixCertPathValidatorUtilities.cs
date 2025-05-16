@@ -402,12 +402,11 @@ namespace Org.BouncyCastle.Pkix
 
             if (crl_entry.HasExtensions)
             {
-				CheckCrlEntryCriticalExtensions(crl_entry, "CRL entry has unsupported critical extensions.");
+                CheckCrlEntryCriticalExtensions(crl_entry, "CRL entry has unsupported critical extensions.");
 
                 try
                 {
-                    DerEnumerated reasonCode = DerEnumerated.GetInstance(
-						GetExtensionValue(crl_entry, X509Extensions.ReasonCode));
+                    var reasonCode = crl_entry.GetExtension(X509Extensions.ReasonCode, CrlReason.GetInstance);
                     if (null != reasonCode)
                     {
                         reasonCodeValue = reasonCode.IntValueExact;
@@ -515,16 +514,12 @@ namespace Org.BouncyCastle.Pkix
 			if (index - 1 == 0)
 			{
 				// use time when cert was issued, if available
-                Asn1GeneralizedTime dateOfCertgen = null;
+				Asn1GeneralizedTime dateOfCertgen;
 				try
 				{
-					byte[] extBytes = issuedCert.GetExtensionValue(IsisMttObjectIdentifiers.IdIsisMttATDateOfCertGen)
-						?.GetOctets();
-					if (extBytes != null)
-					{
-                        dateOfCertgen = Asn1GeneralizedTime.GetInstance(extBytes);
-                    }
-                }
+					dateOfCertgen = issuedCert.GetExtension(IsisMttObjectIdentifiers.IdIsisMttATDateOfCertGen,
+						Asn1GeneralizedTime.GetInstance);
+				}
 				catch (ArgumentException e)
 				{
 					throw new Exception("Date of cert gen extension could not be read.", e);
@@ -716,7 +711,7 @@ namespace Org.BouncyCastle.Pkix
 		 *             CRLs.
 		 */
 		internal static HashSet<X509Crl> GetDeltaCrls(DateTime currentDate, PkixParameters pkixParameters,
-			X509Crl completeCRL)
+			X509Crl completeCrl)
 		{
 			X509CrlStoreSelector deltaSelect = new X509CrlStoreSelector();
 
@@ -724,7 +719,7 @@ namespace Org.BouncyCastle.Pkix
 			try
 			{
 				var deltaSelectIssuer = new List<X509Name>();
-				deltaSelectIssuer.Add(completeCRL.IssuerDN);
+				deltaSelectIssuer.Add(completeCrl.IssuerDN);
 				deltaSelect.Issuers = deltaSelectIssuer;
 			}
 			catch (IOException e)
@@ -732,50 +727,38 @@ namespace Org.BouncyCastle.Pkix
 				throw new Exception("Cannot extract issuer from CRL.", e);
 			}
 
-			BigInteger completeCRLNumber = null;
+			BigInteger completeCrlNumber;
 			try
 			{
-				Asn1Object asn1Object = GetExtensionValue(completeCRL, X509Extensions.CrlNumber);
-				if (asn1Object != null)
-				{
-					completeCRLNumber = CrlNumber.GetInstance(asn1Object).PositiveValue;
-				}
+				completeCrlNumber = completeCrl.GetExtension(X509Extensions.CrlNumber, CrlNumber.GetInstance)
+					?.PositiveValue;
 			}
 			catch (Exception e)
 			{
-				throw new Exception(
-					"CRL number extension could not be extracted from CRL.", e);
+				throw new Exception("CRL number extension could not be extracted from CRL.", e);
 			}
 
 			// 5.2.4 (b)
-			byte[] idp = null;
-
+			byte[] idp;
 			try
 			{
-				Asn1Object obj = GetExtensionValue(completeCRL, X509Extensions.IssuingDistributionPoint);
-				if (obj != null)
-				{
-					idp = obj.GetEncoded(Asn1Encodable.Der);
-				}
+				idp = completeCrl.GetExtension(X509Extensions.IssuingDistributionPoint,
+					IssuingDistributionPoint.GetInstance)?.GetEncoded(Asn1Encodable.Der);
 			}
 			catch (Exception e)
 			{
-				throw new Exception(
-					"Issuing distribution point extension value could not be read.",
-					e);
+				throw new Exception("Issuing distribution point extension value could not be read.", e);
 			}
 
 			// 5.2.4 (d)
 
-			deltaSelect.MinCrlNumber = (completeCRLNumber == null)
-				?	null
-				:	completeCRLNumber.Add(BigInteger.One);
+			deltaSelect.MinCrlNumber = completeCrlNumber?.Add(BigInteger.One);
 
 			deltaSelect.IssuingDistributionPoint = idp;
 			deltaSelect.IssuingDistributionPointEnabled = true;
 
 			// 5.2.4 (c)
-			deltaSelect.MaxBaseCrlNumber = completeCRLNumber;
+			deltaSelect.MaxBaseCrlNumber = completeCrlNumber;
 
 			// NOTE: Does not restrict to critical DCI extension, so we filter non-critical ones later
 			deltaSelect.DeltaCrlIndicatorEnabled = true;
@@ -951,9 +934,6 @@ namespace Org.BouncyCastle.Pkix
 
 			return certs;
 		}
-
-		internal static Asn1Object GetExtensionValue(IX509Extension extensions, DerObjectIdentifier oid) =>
-			X509ExtensionUtilities.FromExtensionValue(extensions, oid);
 
 		internal static void CheckCrlCriticalExtensions(X509Crl crl, string exceptionMessage)
 		{

@@ -6,7 +6,6 @@ using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509
@@ -28,11 +27,10 @@ namespace Org.BouncyCastle.X509
         private volatile bool hashValueSet;
         private volatile int hashValue;
 
-		public X509CrlEntry(
-			CrlEntry c)
+		public X509CrlEntry(CrlEntry c)
 		{
 			this.c = c;
-			this.certificateIssuer = loadCertificateIssuer();
+			this.certificateIssuer = LoadCertificateIssuer();
 		}
 
 		/**
@@ -52,43 +50,31 @@ namespace Org.BouncyCastle.X509
 		* @param previousCertificateIssuer
 		*            Certificate issuer of the previous CrlEntry.
 		*/
-		public X509CrlEntry(
-			CrlEntry		c,
-			bool			isIndirect,
-			X509Name		previousCertificateIssuer)
+		public X509CrlEntry(CrlEntry c, bool isIndirect, X509Name previousCertificateIssuer)
 		{
 			this.c = c;
 			this.isIndirect = isIndirect;
 			this.previousCertificateIssuer = previousCertificateIssuer;
-			this.certificateIssuer = loadCertificateIssuer();
+			this.certificateIssuer = LoadCertificateIssuer();
 		}
 
-        public virtual CrlEntry CrlEntry => c;
+		public virtual CrlEntry CrlEntry => c;
 
-		private X509Name loadCertificateIssuer()
+		private X509Name LoadCertificateIssuer()
 		{
 			if (!isIndirect)
-			{
 				return null;
-			}
 
-			Asn1OctetString ext = GetExtensionValue(X509Extensions.CertificateIssuer);
-			if (ext == null)
-			{
+			var certificateIssuer = this.GetExtension(X509Extensions.CertificateIssuer, GeneralNames.GetInstance);
+			if (certificateIssuer == null)
 				return previousCertificateIssuer;
-			}
 
 			try
 			{
-				GeneralName[] names = GeneralNames.GetInstance(
-					X509ExtensionUtilities.FromExtensionValue(ext)).GetNames();
-
-				for (int i = 0; i < names.Length; i++)
+				foreach (var name in certificateIssuer.GetNames())
 				{
-					if (names[i].TagNo == GeneralName.DirectoryName)
-					{
-						return X509Name.GetInstance(names[i].Name);
-					}
+					if (name.TagNo == GeneralName.DirectoryName)
+						return X509Name.GetInstance(name.Name);
 				}
 			}
 			catch (Exception)
@@ -98,15 +84,9 @@ namespace Org.BouncyCastle.X509
 			return null;
 		}
 
-		public X509Name GetCertificateIssuer()
-		{
-			return certificateIssuer;
-		}
+		public X509Name GetCertificateIssuer() => certificateIssuer;
 
-		protected override X509Extensions GetX509Extensions()
-		{
-			return c.Extensions;
-		}
+		protected override X509Extensions GetX509Extensions() => c.Extensions;
 
 		public byte[] GetEncoded()
 		{
@@ -120,28 +100,18 @@ namespace Org.BouncyCastle.X509
 			}
 		}
 
-		public BigInteger SerialNumber
-		{
-			get { return c.UserCertificate.Value; }
-		}
+		public BigInteger SerialNumber => c.UserCertificate.Value;
 
-		public DateTime RevocationDate
-		{
-			get { return c.RevocationDate.ToDateTime(); }
-		}
+		public DateTime RevocationDate => c.RevocationDate.ToDateTime();
 
-		public bool HasExtensions
-		{
-			get { return c.Extensions != null; }
-		}
+		public bool HasExtensions => c.Extensions != null;
 
         public override bool Equals(object other)
         {
             if (this == other)
                 return true;
 
-            X509CrlEntry that = other as X509CrlEntry;
-            if (null == that)
+            if (!(other is X509CrlEntry that))
                 return false;
 
             if (this.hashValueSet && that.hashValueSet)

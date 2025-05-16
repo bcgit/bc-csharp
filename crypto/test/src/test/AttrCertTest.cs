@@ -579,8 +579,7 @@ namespace Org.BouncyCastle.Tests
 				Fail("non-critical extension test failed");
 			}
 
-			Asn1OctetString extString = aCert.GetExtensionValue(new DerObjectIdentifier("1.1"));
-			Asn1Encodable extValue = X509ExtensionUtilities.FromExtensionValue(extString);
+			Asn1Object extValue = X509ExtensionUtilities.FromExtensionValue(aCert, new DerObjectIdentifier("1.1"));
 
 			if (!extValue.Equals(new DerOctetString(new byte[10])))
 			{

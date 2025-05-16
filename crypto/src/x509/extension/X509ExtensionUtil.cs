@@ -98,31 +98,34 @@ namespace Org.BouncyCastle.X509.Extension
         }
 
         public static Asn1Object FromExtensionValue(Asn1OctetString extensionValue) =>
-			Asn1Object.FromByteArray(extensionValue.GetOctets());
+            Asn1Object.FromByteArray(extensionValue.GetOctets());
 
-		/// <summary>
-		/// Extract the value of the given extension, if it exists.
-		/// </summary>
-		/// <param name="extensions">The extensions object.</param>
-		/// <param name="oid">The object identifier to obtain.</param>
-		/// <returns>Asn1Object</returns>
-		/// <exception cref="Exception">if the extension cannot be read.</exception>
-		public static Asn1Object FromExtensionValue(IX509Extension extensions, DerObjectIdentifier oid)
-		{
-			Asn1OctetString extensionValue = extensions.GetExtensionValue(oid);
-			return extensionValue == null ? null : FromExtensionValue(extensionValue);	
-		}
+        /// <summary>
+        /// Extract the value of the given extension, if it exists.
+        /// </summary>
+        /// <param name="extensions">The extensions object.</param>
+        /// <param name="oid">The object identifier to obtain.</param>
+        /// <returns>Asn1Object</returns>
+        /// <exception cref="Exception">if the extension cannot be read.</exception>
+        public static Asn1Object FromExtensionValue(IX509Extension extensions, DerObjectIdentifier oid) =>
+            extensions.GetExtension(oid, Asn1Object.FromByteArray);
 
-        public static AuthorityKeyIdentifier GetAuthorityKeyIdentifier(IX509Extension extension)
+        public static AuthorityKeyIdentifier GetAuthorityKeyIdentifier(IX509Extension extension) =>
+            extension.GetExtension(X509Extensions.AuthorityKeyIdentifier, AuthorityKeyIdentifier.GetInstance);
+
+        public static SubjectKeyIdentifier GetSubjectKeyIdentifier(IX509Extension extension) =>
+            extension.GetExtension(X509Extensions.SubjectKeyIdentifier, SubjectKeyIdentifier.GetInstance);
+    }
+
+    // TODO[api] Merge into X509ExtensionUtilities once it's static
+    internal static class X509ExtensionUtilitiesExt
+    {
+        internal static TExtension GetExtension<TExtension>(this IX509Extension extension, DerObjectIdentifier oid,
+            Func<byte[], TExtension> constructor)
+            where TExtension : class
         {
-            Asn1OctetString akiExt = extension.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
-            return akiExt == null ? null : AuthorityKeyIdentifier.GetInstance(akiExt.GetOctets());
-        }
-
-        public static SubjectKeyIdentifier GetSubjectKeyIdentifier(IX509Extension extension)
-        {
-            Asn1OctetString skiExt = extension.GetExtensionValue(X509Extensions.SubjectKeyIdentifier);
-            return skiExt == null ? null : SubjectKeyIdentifier.GetInstance(skiExt.GetOctets());
+            Asn1OctetString extensionValue = extension.GetExtensionValue(oid);
+            return extensionValue == null ? null : constructor(extensionValue.GetOctets());
         }
     }
 }

@@ -361,9 +361,7 @@ namespace Org.BouncyCastle.Ocsp.Tests
 				Fail("wrong number of non-critical extensions in OCSP request.");
 			}
 
-			Asn1OctetString extValue = req.GetExtensionValue(OcspObjectIdentifiers.PkixOcspNonce);
-
-			Asn1Encodable extObj = X509ExtensionUtilities.FromExtensionValue(extValue);
+			Asn1Object extObj = X509ExtensionUtilities.FromExtensionValue(req, OcspObjectIdentifiers.PkixOcspNonce);
 
 			if (!(extObj is Asn1OctetString))
 			{
@@ -550,9 +548,7 @@ namespace Org.BouncyCastle.Ocsp.Tests
 				Fail("wrong number of non-critical extensions in OCSP request.");
 			}
 
-			Asn1OctetString extValue = req.GetExtensionValue(OcspObjectIdentifiers.PkixOcspNonce);
-
-			Asn1Object extObj = X509ExtensionUtilities.FromExtensionValue(extValue);
+			Asn1Object extObj = X509ExtensionUtilities.FromExtensionValue(req, OcspObjectIdentifiers.PkixOcspNonce);
 
 			if (!(extObj is Asn1OctetString))
 			{
@@ -752,8 +748,7 @@ namespace Org.BouncyCastle.Ocsp.Tests
 				Fail("wrong number of non-critical extensions in OCSP request.");
 			}
 
-			Asn1OctetString extValue = req.GetExtensionValue(OcspObjectIdentifiers.PkixOcspNonce);
-			Asn1Object extObj = X509ExtensionUtilities.FromExtensionValue(extValue);
+			Asn1Object extObj = X509ExtensionUtilities.FromExtensionValue(req, OcspObjectIdentifiers.PkixOcspNonce);
 
 			if (!(extObj is Asn1OctetString))
 			{

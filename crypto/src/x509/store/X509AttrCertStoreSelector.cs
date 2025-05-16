@@ -72,70 +72,25 @@ namespace Org.BouncyCastle.X509.Store
 
 			if (targetNames.Count > 0 || targetGroups.Count > 0)
 			{
-				Asn1OctetString targetInfoExt = attrCert.GetExtensionValue(X509Extensions.TargetInformation);
-
-				if (targetInfoExt != null)
+				TargetInformation targetInfo;
+				try
 				{
-					TargetInformation targetinfo;
-					try
-					{
-						targetinfo = TargetInformation.GetInstance(
-							X509ExtensionUtilities.FromExtensionValue(targetInfoExt));
-					}
-					catch (Exception)
-					{
+                    targetInfo = attrCert.GetExtension(X509Extensions.TargetInformation, TargetInformation.GetInstance);
+				}
+				catch (Exception)
+				{
+					return false;
+				}
+
+				if (targetInfo != null)
+				{
+					Targets[] targetss = targetInfo.GetTargetsObjects();
+
+					if (targetNames.Count > 0 && !MatchTargetNames(targetss, targetNames))
 						return false;
-					}
 
-					Targets[] targetss = targetinfo.GetTargetsObjects();
-
-					if (targetNames.Count > 0)
-					{
-						bool found = false;
-
-						for (int i = 0; i < targetss.Length && !found; i++)
-						{
-							Target[] targets = targetss[i].GetTargets();
-
-							for (int j = 0; j < targets.Length; j++)
-							{
-								GeneralName targetName = targets[j].TargetName;
-
-								if (targetName != null && targetNames.Contains(targetName))
-								{
-									found = true;
-									break;
-								}
-							}
-						}
-
-						if (!found)
-							return false;
-					}
-
-					if (targetGroups.Count > 0)
-					{
-						bool found = false;
-
-						for (int i = 0; i < targetss.Length && !found; i++)
-						{
-							Target[] targets = targetss[i].GetTargets();
-
-							for (int j = 0; j < targets.Length; j++)
-							{
-								GeneralName targetGroup = targets[j].TargetGroup;
-
-								if (targetGroup != null && targetGroups.Contains(targetGroup))
-								{
-									found = true;
-									break;
-								}
-							}
-						}
-
-						if (!found)
-							return false;
-					}
+					if (targetGroups.Count > 0 && !MatchTargetGroups(targetss, targetGroups))
+						return false;
 				}
 			}
 
@@ -339,5 +294,35 @@ namespace Org.BouncyCastle.X509.Store
 
 			return result;
 		}
-	}
+
+        private static bool MatchTargetGroups(Targets[] targetss, ISet<GeneralName> targetGroups)
+        {
+            foreach (Targets targets in targetss)
+            {
+                foreach (Target target in targets.GetTargets())
+                {
+                    GeneralName targetGroup = target.TargetGroup;
+
+                    if (targetGroup != null && targetGroups.Contains(targetGroup))
+                        return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool MatchTargetNames(Targets[] targetss, ISet<GeneralName> targetNames)
+        {
+            foreach (Targets targets in targetss)
+            {
+                foreach (Target target in targets.GetTargets())
+                {
+                    GeneralName targetName = target.TargetName;
+
+                    if (targetName != null && targetNames.Contains(targetName))
+                        return true;
+                }
+            }
+            return false;
+        }
+    }
 }

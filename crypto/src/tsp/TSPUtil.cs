@@ -15,6 +15,7 @@ using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Tsp
 {
@@ -105,30 +106,29 @@ namespace Org.BouncyCastle.Tsp
 		 * @param cert the certificate of interest.
 		 * @throws TspValidationException if the certicate fails on one of the check points.
 		 */
-        public static void ValidateCertificate(
-            X509Certificate cert)
+        public static void ValidateCertificate(X509Certificate cert)
         {
             if (cert.Version != 3)
                 throw new ArgumentException("Certificate must have an ExtendedKeyUsage extension.");
 
-            Asn1OctetString ext = cert.GetExtensionValue(X509Extensions.ExtendedKeyUsage);
-            if (ext == null)
-                throw new TspValidationException("Certificate must have an ExtendedKeyUsage extension.");
-
-            if (!cert.GetCriticalExtensionOids().Contains(X509Extensions.ExtendedKeyUsage.Id))
-                throw new TspValidationException("Certificate must have an ExtendedKeyUsage extension marked as critical.");
-
+            ExtendedKeyUsage eku;
             try
             {
-                ExtendedKeyUsage extKey = ExtendedKeyUsage.GetInstance(ext.GetOctets());
-
-                if (!extKey.HasKeyPurposeId(KeyPurposeID.id_kp_timeStamping) || extKey.Count != 1)
-                    throw new TspValidationException("ExtendedKeyUsage not solely time stamping.");
+                eku = cert.GetExtension(X509Extensions.ExtendedKeyUsage, ExtendedKeyUsage.GetInstance);
             }
             catch (IOException)
             {
                 throw new TspValidationException("cannot process ExtendedKeyUsage extension");
             }
+
+            if (eku == null)
+                throw new TspValidationException("Certificate must have an ExtendedKeyUsage extension.");
+
+            if (!cert.GetCriticalExtensionOids().Contains(X509Extensions.ExtendedKeyUsage.Id))
+                throw new TspValidationException("Certificate must have an ExtendedKeyUsage extension marked as critical.");
+
+            if (!eku.HasKeyPurposeId(KeyPurposeID.id_kp_timeStamping) || eku.Count != 1)
+                throw new TspValidationException("ExtendedKeyUsage not solely time stamping.");
         }
 
         internal static int GetDigestLength(DerObjectIdentifier digestAlgOid)

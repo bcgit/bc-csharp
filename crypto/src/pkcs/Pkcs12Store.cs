@@ -490,11 +490,9 @@ namespace Org.BouncyCastle.Pkcs
                 X509Certificate x509c = c.Certificate;
                 X509CertificateEntry nextC = null;
 
-                Asn1OctetString akiValue = x509c.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
-                if (akiValue != null)
+                AuthorityKeyIdentifier aki = X509ExtensionUtilities.GetAuthorityKeyIdentifier(x509c);
+                if (aki != null)
                 {
-                    AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.GetInstance(akiValue.GetOctets());
-
                     var keyID = aki.KeyIdentifier;
                     if (keyID != null)
                     {

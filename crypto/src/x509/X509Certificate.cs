@@ -96,11 +96,7 @@ namespace Org.BouncyCastle.X509
 
             try
             {
-                Asn1OctetString str = GetExtensionValue(X509Extensions.BasicConstraints);
-                if (str != null)
-                {
-                    basicConstraints = BasicConstraints.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
-                }
+                basicConstraints = this.GetExtension(X509Extensions.BasicConstraints, BasicConstraints.GetInstance);
             }
             catch (Exception e)
             {
@@ -109,11 +105,9 @@ namespace Org.BouncyCastle.X509
 
             try
             {
-                Asn1OctetString str = GetExtensionValue(X509Extensions.KeyUsage);
-                if (str != null)
+                DerBitString bits = this.GetExtension(X509Extensions.KeyUsage, DerBitString.GetInstance);
+                if (bits != null)
                 {
-                    DerBitString bits = DerBitString.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
-
                     byte[] bytes = bits.GetBytes();
                     int length = (bytes.Length * 8) - bits.PadBits;
 
@@ -343,14 +337,12 @@ namespace Org.BouncyCastle.X509
 
         public virtual IList<DerObjectIdentifier> GetExtendedKeyUsage()
         {
-            Asn1OctetString str = GetExtensionValue(X509Extensions.ExtendedKeyUsage);
-
-            if (str == null)
-                return null;
-
             try
             {
-                Asn1Sequence seq = Asn1Sequence.GetInstance(X509ExtensionUtilities.FromExtensionValue(str));
+                // TODO Use ExtendedKeyUsage type?
+                Asn1Sequence seq = this.GetExtension(X509Extensions.ExtendedKeyUsage, Asn1Sequence.GetInstance);
+                if (seq == null)
+                    return null;
 
                 var result = new List<DerObjectIdentifier>();
                 foreach (var element in seq)
@@ -377,37 +369,23 @@ namespace Org.BouncyCastle.X509
             return pathLenConstraint.IntPositiveValueExact;
         }
 
-        public virtual GeneralNames GetIssuerAlternativeNameExtension()
-        {
-            return GetAlternativeNameExtension(X509Extensions.IssuerAlternativeName);
-        }
+        public virtual GeneralNames GetIssuerAlternativeNameExtension() =>
+            GetAlternativeNameExtension(X509Extensions.IssuerAlternativeName);
 
-        public virtual GeneralNames GetSubjectAlternativeNameExtension()
-        {
-            return GetAlternativeNameExtension(X509Extensions.SubjectAlternativeName);
-        }
+        public virtual GeneralNames GetSubjectAlternativeNameExtension() =>
+            GetAlternativeNameExtension(X509Extensions.SubjectAlternativeName);
 
-        public virtual IList<IList<object>> GetIssuerAlternativeNames()
-        {
-            return GetAlternativeNames(X509Extensions.IssuerAlternativeName);
-        }
+        public virtual IList<IList<object>> GetIssuerAlternativeNames() =>
+            GetAlternativeNames(X509Extensions.IssuerAlternativeName);
 
-        public virtual IList<IList<object>> GetSubjectAlternativeNames()
-        {
-            return GetAlternativeNames(X509Extensions.SubjectAlternativeName);
-        }
+        public virtual IList<IList<object>> GetSubjectAlternativeNames() =>
+            GetAlternativeNames(X509Extensions.SubjectAlternativeName);
 
-        protected virtual GeneralNames GetAlternativeNameExtension(DerObjectIdentifier oid)
-        {
-            Asn1OctetString altNames = GetExtensionValue(oid);
-            if (altNames == null)
-                return null;
+        // TODO[api] Remove protected access
+        protected virtual GeneralNames GetAlternativeNameExtension(DerObjectIdentifier oid) =>
+            this.GetExtension(oid, GeneralNames.GetInstance);
 
-            Asn1Object asn1Object = X509ExtensionUtilities.FromExtensionValue(altNames);
-
-            return GeneralNames.GetInstance(asn1Object);
-        }
-
+        // TODO[api] Remove protected access
         protected virtual IList<IList<object>> GetAlternativeNames(DerObjectIdentifier oid)
         {
             var generalNames = GetAlternativeNameExtension(oid);

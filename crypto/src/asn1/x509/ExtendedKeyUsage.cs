@@ -72,6 +72,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_seq = new DerSequence(v);
         }
 
+        // TODO[api] Rename 'HasKeyPurposeID(KeyPurposeID keyPurposeID)'
         public bool HasKeyPurposeId(KeyPurposeID keyPurposeId) => m_usageTable.Contains(keyPurposeId);
 
         /**
