@@ -115,6 +115,16 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public DerSequence(Asn1Sequence sequence)
+            : base(element: sequence)
+        {
+        }
+
+        public DerSequence(Asn1Set asn1Set)
+            : base(element: asn1Set)
+        {
+        }
+
         internal DerSequence(Asn1Encodable[] elements, bool clone)
             : base(elements, clone)
         {

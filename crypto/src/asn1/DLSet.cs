@@ -57,6 +57,16 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public DLSet(Asn1Sequence sequence)
+            : base(sequence)
+        {
+        }
+
+        public DLSet(Asn1Set asn1Set)
+            : base(asn1Set)
+        {
+        }
+
         internal DLSet(bool isSorted, Asn1Encodable[] elements)
             : base(isSorted, elements)
         {

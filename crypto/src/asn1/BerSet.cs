@@ -57,6 +57,16 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public BerSet(Asn1Sequence sequence)
+            : base(sequence)
+        {
+        }
+
+        public BerSet(Asn1Set asn1Set)
+            : base(asn1Set)
+        {
+        }
+
         internal BerSet(bool isSorted, Asn1Encodable[] elements)
             : base(isSorted, elements)
         {

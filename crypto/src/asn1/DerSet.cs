@@ -68,6 +68,16 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public DerSet(Asn1Sequence sequence)
+            : base(element: sequence)
+        {
+        }
+
+        public DerSet(Asn1Set asn1Set)
+            : base(element: asn1Set)
+        {
+        }
+
         internal DerSet(IReadOnlyCollection<Asn1Encodable> elements, bool doSort)
             : base(elements, doSort)
         {

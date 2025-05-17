@@ -115,6 +115,16 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public DLSequence(Asn1Sequence sequence)
+            : base(sequence)
+        {
+        }
+
+        public DLSequence(Asn1Set asn1Set)
+            : base(asn1Set)
+        {
+        }
+
         internal DLSequence(Asn1Encodable[] elements, bool clone)
             : base(elements, clone)
         {

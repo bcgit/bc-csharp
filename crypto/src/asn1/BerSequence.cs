@@ -115,6 +115,16 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public BerSequence(Asn1Sequence sequence)
+            : base(sequence)
+        {
+        }
+
+        public BerSequence(Asn1Set asn1Set)
+            : base(asn1Set)
+        {
+        }
+
         internal BerSequence(Asn1Encodable[] elements, bool clone)
             : base(elements, clone)
         {
