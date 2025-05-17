@@ -43,14 +43,12 @@ namespace Org.BouncyCastle.X509.Extension
 #endif
 
         public static AuthorityKeyIdentifier CreateAuthorityKeyIdentifier(AsymmetricKeyParameter publicKey) =>
-            CreateAuthorityKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
+            new AuthorityKeyIdentifier(CalculateKeyIdentifier(publicKey));
 
         public static AuthorityKeyIdentifier CreateAuthorityKeyIdentifier(AsymmetricKeyParameter publicKey,
             GeneralNames issuer, BigInteger serialNumber)
         {
-            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
-
-            return CreateAuthorityKeyIdentifier(spki, issuer, new DerInteger(serialNumber));
+            return new AuthorityKeyIdentifier(CalculateKeyIdentifier(publicKey), issuer, new DerInteger(serialNumber));
         }
 
         public static AuthorityKeyIdentifier CreateAuthorityKeyIdentifier(SubjectPublicKeyInfo spki) =>
@@ -72,7 +70,7 @@ namespace Org.BouncyCastle.X509.Extension
         }
 
         public static SubjectKeyIdentifier CreateSubjectKeyIdentifier(AsymmetricKeyParameter publicKey) =>
-            CreateSubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
+            new SubjectKeyIdentifier(CalculateKeyIdentifier(publicKey));
 
         public static SubjectKeyIdentifier CreateSubjectKeyIdentifier(SubjectPublicKeyInfo spki) =>
             new SubjectKeyIdentifier(CalculateKeyIdentifier(spki));

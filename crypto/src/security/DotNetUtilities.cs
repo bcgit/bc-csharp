@@ -57,6 +57,9 @@ namespace Org.BouncyCastle.Security
         public static X509Certificate FromX509Certificate(SystemX509.X509Certificate x509Cert) =>
             new X509Certificate(x509Cert.GetRawCertData());
 
+        public static X509Certificate FromX509Certificate(SystemX509.X509Certificate2 x509Cert) =>
+            new X509Certificate(x509Cert.RawData);
+
         public static AsymmetricCipherKeyPair GetDsaKeyPair(DSA dsa)
         {
             return GetDsaKeyPair(dsa.ExportParameters(true));
