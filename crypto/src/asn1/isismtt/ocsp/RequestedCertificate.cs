@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Asn1.X509;
@@ -87,13 +88,15 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
 
         private RequestedCertificate(Asn1TaggedObject tagged)
         {
+            Debug.Assert(tagged.HasContextTag());
+
             switch (tagged.TagNo)
             {
             case (int)Choice.AttributeCertificate:
-                m_attributeCert = Asn1OctetString.GetInstance(tagged, true);
+                m_attributeCert = Asn1OctetString.GetTagged(tagged, true);
                 break;
             case (int)Choice.PublicKeyCertificate:
-                m_publicKeyCert = Asn1OctetString.GetInstance(tagged, true);
+                m_publicKeyCert = Asn1OctetString.GetTagged(tagged, true);
                 break;
             default:
                 throw new ArgumentException("unknown tag number: " + tagged.TagNo);

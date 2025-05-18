@@ -63,21 +63,21 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public DerObjectIdentifier ContentType => DerObjectIdentifier.GetInstance(m_data[0]);
 
-		public AlgorithmIdentifier EncryptionAlgorithm => AlgorithmIdentifier.GetInstance(m_data[1]);
+        public AlgorithmIdentifier EncryptionAlgorithm => AlgorithmIdentifier.GetInstance(m_data[1]);
 
-		public Asn1OctetString Content
+        public Asn1OctetString Content
         {
-			get
-			{
+            get
+            {
                 if (m_data.Count != 3)
                     return null;
 
                 Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(m_data[2], Asn1Tags.ContextSpecific, 0);
 
-				return Asn1OctetString.GetInstance(tagged, declaredExplicit: false);
-			}
+                return Asn1OctetString.GetTagged(tagged, declaredExplicit: false);
+            }
         }
 
-		public override Asn1Object ToAsn1Object() => new BerSequence(DerInteger.Zero, m_data);
+        public override Asn1Object ToAsn1Object() => new BerSequence(DerInteger.Zero, m_data);
     }
 }

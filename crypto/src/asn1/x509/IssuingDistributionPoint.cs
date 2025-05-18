@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_onlyContainsCACerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, DerBoolean.GetTagged)
                 ?? DerBoolean.False;
             m_onlySomeReasons = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, false,
-				(t, e) => new ReasonFlags(ReasonFlags.GetInstance(t, e)));
+				(t, e) => new ReasonFlags(DerBitString.GetTagged(t, e)));
             m_indirectCRL = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, false, DerBoolean.GetTagged)
                 ?? DerBoolean.False;
             m_onlyContainsAttributeCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, false, DerBoolean.GetTagged)

@@ -84,10 +84,10 @@ namespace Org.BouncyCastle.Asn1.X509
             switch (tagObj.TagNo)
             {
             case (int)Choice.Name:
-                m_targetName = GeneralName.GetInstance(tagObj, true);
+                m_targetName = GeneralName.GetTagged(tagObj, true);
                 break;
             case (int)Choice.Group:
-                m_targetGroup = GeneralName.GetInstance(tagObj, true);
+                m_targetGroup = GeneralName.GetTagged(tagObj, true);
                 break;
             default:
                 throw new ArgumentException("unknown tag: " + tagObj.TagNo);

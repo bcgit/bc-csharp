@@ -107,9 +107,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 				nextObject = seq.ReadObject();
 			}
 
-			if (nextObject is Asn1TaggedObjectParser)
+			if (nextObject is Asn1TaggedObjectParser parser && parser.HasContextTag(1))
 			{
-				AlgorithmIdentifier obj = AlgorithmIdentifier.GetInstance(
+				AlgorithmIdentifier obj = AlgorithmIdentifier.GetTagged(
 					(Asn1TaggedObject)nextObject.ToAsn1Object(), false);
 				nextObject = null;
 				return obj;

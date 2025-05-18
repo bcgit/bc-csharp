@@ -92,11 +92,11 @@ namespace Org.BouncyCastle.Asn1.Cms
                     switch (tagged.TagNo)
                     {
                     case 1:
-                        return KeyAgreeRecipientInfo.GetInstance(tagged, false).Version;
+                        return KeyAgreeRecipientInfo.GetTagged(tagged, false).Version;
                     case 2:
                         return GetKekInfo(tagged).Version;
                     case 3:
-                        return PasswordRecipientInfo.GetInstance(tagged, false).Version;
+                        return PasswordRecipientInfo.GetTagged(tagged, false).Version;
                     case 4:
                         return DerInteger.Zero;    // no syntax version for OtherRecipientInfo
                     }
@@ -119,13 +119,13 @@ namespace Org.BouncyCastle.Asn1.Cms
                     switch (tagged.TagNo)
                     {
                     case 1:
-                        return KeyAgreeRecipientInfo.GetInstance(tagged, false);
+                        return KeyAgreeRecipientInfo.GetTagged(tagged, false);
                     case 2:
                         return GetKekInfo(tagged);
                     case 3:
-                        return PasswordRecipientInfo.GetInstance(tagged, false);
+                        return PasswordRecipientInfo.GetTagged(tagged, false);
                     case 4:
-                        return OtherRecipientInfo.GetInstance(tagged, false);
+                        return OtherRecipientInfo.GetTagged(tagged, false);
                     }
                 }
                 throw new InvalidOperationException("unknown tag");

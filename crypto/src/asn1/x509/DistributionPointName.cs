@@ -53,9 +53,9 @@ namespace Org.BouncyCastle.Asn1.X509
                 switch (taggedObject.TagNo)
                 {
                 case FullName:
-                    return GeneralNames.GetInstance(taggedObject, false);
+                    return GeneralNames.GetTagged(taggedObject, false);
                 case NameRelativeToCrlIssuer:
-                    return Asn1Set.GetInstance(taggedObject, false);
+                    return Asn1Set.GetTagged(taggedObject, false);
                 }
             }
             return null;

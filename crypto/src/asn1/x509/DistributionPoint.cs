@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_distributionPoint = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true,
                 DistributionPointName.GetTagged); // CHOICE
             m_reasons = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false,
-                (t, e) => new ReasonFlags(DerBitString.GetInstance(t, e)));
+                (t, e) => new ReasonFlags(DerBitString.GetTagged(t, e)));
             m_crlIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, GeneralNames.GetTagged);
 
             if (pos != count)

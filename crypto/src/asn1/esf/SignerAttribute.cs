@@ -30,11 +30,11 @@ namespace Org.BouncyCastle.Asn1.Esf
 			Asn1TaggedObject taggedObject = Asn1TaggedObject.GetInstance(seq[0], Asn1Tags.ContextSpecific);
 			if (taggedObject.TagNo == 0)
 			{
-				m_claimedAttributes = Asn1Sequence.GetInstance(taggedObject, true);
+				m_claimedAttributes = Asn1Sequence.GetTagged(taggedObject, true);
 			}
 			else if (taggedObject.TagNo == 1)
 			{
-				m_certifiedAttributes = AttributeCertificate.GetInstance(taggedObject, true);
+				m_certifiedAttributes = AttributeCertificate.GetTagged(taggedObject, true);
 			}
 			else
 			{

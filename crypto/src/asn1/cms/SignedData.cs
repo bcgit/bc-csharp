@@ -224,7 +224,7 @@ namespace Org.BouncyCastle.Asn1.Cms
                 sequence[sequencePosition] is Asn1TaggedObject taggedObject &&
                 taggedObject.HasContextTag(tagNo))
             {
-                var result = Asn1Set.GetInstance(taggedObject, false);
+                var result = Asn1Set.GetTagged(taggedObject, false);
                 sequencePosition++;
                 isBer = taggedObject is BerTaggedObject;
                 return result;

@@ -487,16 +487,16 @@ namespace Org.BouncyCastle.Asn1.Tests
             // tagging test - only works if CHOICE implemented
             //
             /*
-            ASN1TaggedObject tag = new DERTaggedObject(false, 1, new X509Name("CN=AA"));
+            Asn1TaggedObject tag = new DerTaggedObject(false, 1, new X509Name("CN=AA"));
 
-            if (!tag.isExplicit())
+            if (!tag.IsExplicit())
             {
                 Fail("failed to explicitly tag CHOICE object");
             }
 
-            X509Name name = X509Name.getInstance(tag, false);
+            X509Name name = X509Name.GetTagged(tag, false);
 
-            if (!name.equals(new X509Name("CN=AA")))
+            if (!name.Equals(new X509Name("CN=AA")))
             {
                 Fail("failed to recover tagged name");
             }

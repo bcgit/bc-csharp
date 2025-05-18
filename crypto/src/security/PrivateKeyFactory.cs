@@ -316,7 +316,7 @@ namespace Org.BouncyCastle.Security
                         // SeedOnly is a [CONTEXT 0] IMPLICIT OCTET STRING
                         if (taggedSeedOnly.HasContextTag(0))
                         {
-                            var seed = Asn1OctetString.GetInstance(taggedSeedOnly, declaredExplicit: false).GetOctets();
+                            var seed = Asn1OctetString.GetTagged(taggedSeedOnly, declaredExplicit: false).GetOctets();
                             return MLDsaPrivateKeyParameters.FromSeed(mlDsaParameters, seed);
                         }
                     }
@@ -379,7 +379,7 @@ namespace Org.BouncyCastle.Security
                         // SeedOnly is a [CONTEXT 0] IMPLICIT OCTET STRING
                         if (taggedSeedOnly.HasContextTag(0))
                         {
-                            var seed = Asn1OctetString.GetInstance(taggedSeedOnly, declaredExplicit: false).GetOctets();
+                            var seed = Asn1OctetString.GetTagged(taggedSeedOnly, declaredExplicit: false).GetOctets();
                             return MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed);
                         }
                     }
