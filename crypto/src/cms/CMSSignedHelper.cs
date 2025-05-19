@@ -383,12 +383,11 @@ namespace Org.BouncyCastle.Cms
             var contents = new List<X509V2AttributeCertificate>();
             if (attrCertSet != null)
             {
-                foreach (Asn1Encodable ae in attrCertSet)
+                foreach (var element in attrCertSet)
                 {
-                    if (ae.ToAsn1Object() is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(2))
+                    if (Asn1Utilities.TryGetOptionalContextTagged(element, 2, false, out var attributeCertificate,
+                        AttributeCertificate.GetTagged))
                     {
-                        var attributeCertificate = AttributeCertificate.GetInstance(taggedObject, false);
-
                         contents.Add(new X509V2AttributeCertificate(attributeCertificate));
                     }
                 }
@@ -401,15 +400,12 @@ namespace Org.BouncyCastle.Cms
             var contents = new List<X509Certificate>();
             if (certSet != null)
             {
-                foreach (Asn1Encodable ae in certSet)
+                foreach (var element in certSet)
                 {
-                    if (ae is X509CertificateStructure c)
+                    var certificate = X509CertificateStructure.GetOptional(element);
+                    if (certificate != null)
                     {
-                        contents.Add(new X509Certificate(c));
-                    }
-                    else if (ae.ToAsn1Object() is Asn1Sequence s)
-                    {
-                        contents.Add(new X509Certificate(X509CertificateStructure.GetInstance(s)));
+                        contents.Add(new X509Certificate(certificate));
                     }
                 }
             }
@@ -421,15 +417,12 @@ namespace Org.BouncyCastle.Cms
             var contents = new List<X509Crl>();
             if (crlSet != null)
             {
-                foreach (Asn1Encodable ae in crlSet)
+                foreach (var element in crlSet)
                 {
-                    if (ae is CertificateList c)
+                    var certificateList = CertificateList.GetOptional(element);
+                    if (certificateList != null)
                     {
-                        contents.Add(new X509Crl(c));
-                    }
-                    else if (ae.ToAsn1Object() is Asn1Sequence s)
-                    {
-                        contents.Add(new X509Crl(CertificateList.GetInstance(s)));
+                        contents.Add(new X509Crl(certificateList));
                     }
                 }
             }
@@ -441,12 +434,11 @@ namespace Org.BouncyCastle.Cms
             var contents = new List<Asn1Encodable>();
             if (crlSet != null && infoFormat != null)
             {
-                foreach (Asn1Encodable ae in crlSet)
+                foreach (Asn1Encodable element in crlSet)
                 {
-                    if (ae.ToAsn1Object() is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(1))
+                    if (Asn1Utilities.TryGetOptionalContextTagged(element, 1, false, out var otherRevocationInfoFormat,
+                        OtherRevocationInfoFormat.GetTagged))
                     {
-                        var otherRevocationInfoFormat = OtherRevocationInfoFormat.GetInstance(taggedObject, false);
-
                         if (infoFormat.Equals(otherRevocationInfoFormat.InfoFormat))
                         {
                             contents.Add(otherRevocationInfoFormat.Info);

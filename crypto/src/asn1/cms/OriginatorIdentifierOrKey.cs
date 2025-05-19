@@ -61,31 +61,15 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1Encodable ID => m_id;
 
-        public IssuerAndSerialNumber IssuerAndSerialNumber => m_id as IssuerAndSerialNumber;
+        public IssuerAndSerialNumber IssuerAndSerialNumber => IssuerAndSerialNumber.GetInstance(m_id);
 
-		public SubjectKeyIdentifier SubjectKeyIdentifier
-		{
-			get
-			{
-                if (m_id is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(0))
-                    return SubjectKeyIdentifier.GetInstance(taggedObject, false);
+        public SubjectKeyIdentifier SubjectKeyIdentifier =>
+            Asn1Utilities.GetOptionalContextTagged(m_id, 0, false, SubjectKeyIdentifier.GetTagged);
 
-				return null;
-			}
-		}
+        public OriginatorPublicKey OriginatorPublicKey =>
+            Asn1Utilities.GetOptionalContextTagged(m_id, 1, false, OriginatorPublicKey.GetTagged);
 
-		public OriginatorPublicKey OriginatorPublicKey
-		{
-			get
-			{
-                if (m_id is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(1))
-					return OriginatorPublicKey.GetInstance(taggedObject, false);
-
-				return null;
-			}
-		}
-
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * OriginatorIdentifierOrKey ::= CHOICE {

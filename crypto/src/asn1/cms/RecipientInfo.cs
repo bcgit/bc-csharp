@@ -84,7 +84,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             get
             {
-                if (!(m_info is Asn1TaggedObject tagged))
+                Asn1TaggedObject tagged = Asn1TaggedObject.GetOptional(m_info);
+                if (tagged == null)
                     return KeyTransRecipientInfo.GetInstance(m_info).Version;
 
                 if (tagged.HasContextTag())
@@ -111,7 +112,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             get
             {
-                if (!(m_info is Asn1TaggedObject tagged))
+                Asn1TaggedObject tagged = Asn1TaggedObject.GetOptional(m_info);
+                if (tagged == null)
                     return KeyTransRecipientInfo.GetInstance(m_info);
 
                 if (tagged.HasContextTag())

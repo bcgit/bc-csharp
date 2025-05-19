@@ -73,14 +73,18 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public bool IsTagged => m_id is Asn1TaggedObject;
 
-		public Asn1Encodable ID
+        public Asn1Encodable ID
         {
             get
             {
-                if (m_id is Asn1TaggedObject taggedObject)
-                    return Asn1OctetString.GetInstance(taggedObject, false);
+                // TODO[api] Return this as a SubjectKeyIdentifier
+                if (Asn1Utilities.TryGetOptionalContextTagged(m_id, 0, false, out var subjectKeyIdentifier,
+                    Asn1OctetString.GetTagged))
+                {
+                    return subjectKeyIdentifier;
+                }
 
-				return IssuerAndSerialNumber.GetInstance(m_id);
+                return IssuerAndSerialNumber.GetInstance(m_id);
             }
         }
 

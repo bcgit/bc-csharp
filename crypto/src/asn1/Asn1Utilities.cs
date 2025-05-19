@@ -268,6 +268,47 @@ namespace Org.BouncyCastle.Asn1
 
 
         /*
+         * Wrappers for Asn1TaggedObject.GetOptional
+         */
+
+        public static TResult GetOptionalContextTagged<TState, TResult>(Asn1Encodable element, int tagNo, TState state,
+            Func<Asn1TaggedObject, TState, TResult> constructor)
+            where TResult : class
+        {
+            return GetOptionalTagged(element, Asn1Tags.ContextSpecific, tagNo, state, constructor);
+        }
+
+        public static TResult GetOptionalTagged<TState, TResult>(Asn1Encodable element, int tagClass, int tagNo,
+            TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
+            where TResult : class
+        {
+            var taggedObject = Asn1TaggedObject.GetOptional(element, tagClass, tagNo);
+
+            return taggedObject == null ? null : constructor(taggedObject, state);
+        }
+
+        public static bool TryGetOptionalContextTagged<TState, TResult>(Asn1Encodable element, int tagNo, TState state,
+            out TResult result, Func<Asn1TaggedObject, TState, TResult> constructor)
+        {
+            return TryGetOptionalTagged(element, Asn1Tags.ContextSpecific, tagNo, state, out result, constructor);
+        }
+
+        public static bool TryGetOptionalTagged<TState, TResult>(Asn1Encodable element, int tagClass, int tagNo,
+            TState state, out TResult result, Func<Asn1TaggedObject, TState, TResult> constructor)
+        {
+            var taggedObject = Asn1TaggedObject.GetOptional(element, tagClass, tagNo);
+            if (taggedObject != null)
+            {
+                result = constructor(taggedObject, state);
+                return true;
+            }
+
+            result = default;
+            return false;
+        }
+
+
+        /*
          * Wrappers for Asn1TaggedObject.GetExplicitBaseTagged
          */
 
@@ -754,23 +795,21 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
-        public static TResult ReadOptionalContextTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
-            int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
+        public static TResult ReadOptionalContextTagged<TState, TResult>(Asn1Sequence sequence,
+            ref int sequencePosition, int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
             where TResult : class
         {
             return ReadOptionalTagged(sequence, ref sequencePosition, Asn1Tags.ContextSpecific, tagNo, state,
                 constructor);
         }
 
-        public static TResult ReadOptionalTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition, int tagClass,
-            int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
+        public static TResult ReadOptionalTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
+            int tagClass, int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
             where TResult : class
         {
             if (sequencePosition < sequence.Count &&
-                sequence[sequencePosition] is Asn1TaggedObject taggedObject &&
-                taggedObject.HasTag(tagClass, tagNo))
+                TryGetOptionalTagged(sequence[sequencePosition], tagClass, tagNo, state, out var result, constructor))
             {
-                var result = constructor(taggedObject, state);
                 sequencePosition++;
                 return result;
             }
@@ -791,10 +830,8 @@ namespace Org.BouncyCastle.Asn1
             Func<Asn1TaggedObject, TState, TResult> constructor)
         {
             if (sequencePosition < sequence.Count &&
-                sequence[sequencePosition] is Asn1TaggedObject taggedObject &&
-                taggedObject.HasTag(tagClass, tagNo))
+                TryGetOptionalTagged(sequence[sequencePosition], tagClass, tagNo, state, out result, constructor))
             {
-                result = constructor(taggedObject, state);
                 sequencePosition++;
                 return true;
             }

@@ -29,14 +29,16 @@ namespace Org.BouncyCastle.X509
         {
             Asn1Sequence seq = (Asn1Sequence)dIn.ReadObject();
 
-            if (seq.Count > 1 && seq[0] is DerObjectIdentifier)
+            if (seq.Count > 1 && seq[0] is DerObjectIdentifier contentType)
             {
-                if (seq[0].Equals(PkcsObjectIdentifiers.SignedData))
+                if (PkcsObjectIdentifiers.SignedData.Equals(contentType))
                 {
-                    sData = SignedData.GetInstance(
-                        Asn1Sequence.GetInstance((Asn1TaggedObject)seq[1], true)).Certificates;
-
-                    return GetCertificate();
+                    if (Asn1Utilities.TryGetOptionalContextTagged(seq[1], 0, true, out var signedData,
+                        SignedData.GetTagged))
+                    {
+                        sData = signedData.Certificates;
+                        return GetCertificate();
+                    }
                 }
             }
 
@@ -56,10 +58,9 @@ namespace Org.BouncyCastle.X509
             {
                 while (sDataObjectCount < sData.Count)
                 {
-                    object obj = sData[sDataObjectCount++];
-
-                    if (obj is Asn1Sequence)
-                        return new X509Certificate(X509CertificateStructure.GetInstance(obj));
+                    var certificate = X509CertificateStructure.GetOptional(sData[sDataObjectCount++]);
+                    if (certificate != null)
+                        return new X509Certificate(certificate);
                 }
             }
 
@@ -97,9 +98,9 @@ namespace Org.BouncyCastle.X509
         public X509Certificate ReadCertificate(Stream inStream)
         {
             if (inStream == null)
-                throw new ArgumentNullException("inStream");
+                throw new ArgumentNullException(nameof(inStream));
             if (!inStream.CanRead)
-                throw new ArgumentException("inStream must be read-able", "inStream");
+                throw new ArgumentException("Stream must be read-able", nameof(inStream));
 
             if (currentStream == null)
             {
@@ -123,6 +124,7 @@ namespace Org.BouncyCastle.X509
 
                     sData = null;
                     sDataObjectCount = 0;
+                    // TODO[api] Consider removing this and continuing directly
                     return null;
                 }
 

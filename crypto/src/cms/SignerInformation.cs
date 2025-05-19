@@ -60,13 +60,13 @@ namespace Org.BouncyCastle.Cms
 
                 if (s.IsTagged)
                 {
-                    var subjectKeyIdentifier = (Asn1OctetString)s.ID;
+                    var subjectKeyIdentifier = SubjectKeyIdentifier.GetInstance(s.ID);
 
                     sid.SubjectKeyIdentifier = subjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
                 }
                 else
                 {
-                    var issuerAndSerialNumber = Asn1.Cms.IssuerAndSerialNumber.GetInstance(s.ID);
+                    var issuerAndSerialNumber = IssuerAndSerialNumber.GetInstance(s.ID);
 
                     sid.Issuer = issuerAndSerialNumber.Issuer;
                     sid.SerialNumber = issuerAndSerialNumber.SerialNumber.Value;
