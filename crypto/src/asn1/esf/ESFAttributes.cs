@@ -18,6 +18,6 @@ namespace Org.BouncyCastle.Asn1.Esf
 		public static readonly DerObjectIdentifier EscTimeStamp = PkcsObjectIdentifiers.IdAAEtsEscTimeStamp;
 		public static readonly DerObjectIdentifier CertCrlTimestamp = PkcsObjectIdentifiers.IdAAEtsCertCrlTimestamp;
 		public static readonly DerObjectIdentifier ArchiveTimestamp = PkcsObjectIdentifiers.IdAAEtsArchiveTimestamp;
-		public static readonly DerObjectIdentifier ArchiveTimestampV2 = new DerObjectIdentifier(PkcsObjectIdentifiers.IdAA + ".48");
+		public static readonly DerObjectIdentifier ArchiveTimestampV2 = PkcsObjectIdentifiers.IdAAEtsArchiveTimestampV2;
 	}
 }

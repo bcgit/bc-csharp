@@ -24,6 +24,7 @@ namespace Org.BouncyCastle.Asn1.X509
     * </pre>
     */
     // TODO[api] sealed (and adjust protected constructors)
+    // TODO[api] Implement IAsn1Choice (or just switch over to X500Name)?
     public class X509Name
         : Asn1Encodable
     {
