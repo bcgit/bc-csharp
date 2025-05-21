@@ -574,9 +574,9 @@ namespace Org.BouncyCastle.Cms
                 }
             }
 
-            Asn1Set certificates = _certs.ToAsn1Set(_useDerForCerts, _useDefiniteLength);
+            Asn1Set certificates = _certs.ToAsn1SetOptional(_useDerForCerts, _useDefiniteLength);
 
-            Asn1Set crls = _crls.ToAsn1Set(_useDerForCrls, _useDefiniteLength);
+            Asn1Set crls = _crls.ToAsn1SetOptional(_useDerForCrls, _useDefiniteLength);
 
             Asn1OctetString encapContent = null;
             if (encapsulate)
