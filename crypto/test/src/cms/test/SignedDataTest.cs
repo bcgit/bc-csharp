@@ -2336,6 +2336,25 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         [Test]
+        public void TestCertificateManagement()
+        {
+            var x509Certs = CmsTestUtil.MakeCertStore(SignCert, OrigCert);
+
+            CmsSignedDataGenerator sGen = new CmsSignedDataGenerator();
+            sGen.AddCertificates(x509Certs);
+
+            // TODO[cms] Note that in bc-java you can force absent encapContent, even with encapsulate=true
+            //CmsSignedData sData = sGen.Generate(new CmsAbsentContent(), true);
+            CmsSignedData sData = sGen.Generate(null, encapsulate: false);
+
+            CmsSignedData rsData = new CmsSignedData(sData.GetEncoded());
+
+            var certs = new List<X509Certificate>(rsData.GetCertificates().EnumerateMatches(null));
+
+            Assert.AreEqual(2, certs.Count);
+        }
+
+        [Test]
         public void TestEncryptionAlgECPublicKey()
         {
             byte[] sigBlock = Base64.Decode(
