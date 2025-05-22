@@ -10,6 +10,7 @@ using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Ess;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
@@ -17,6 +18,7 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Cert.Tests;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Ocsp;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -504,6 +506,40 @@ namespace Org.BouncyCastle.Cms.Tests
             + "g5+CWIP1dz4F4yB0rNCEGEFigVESryFAzSdJuoM0dgBDI0czNQD9lBQ7l2UW"
             + "4fwPDeINgCE2190+uVyEom2E");
 
+        private static readonly byte[] successResp = Base64.Decode(
+              "MIIFnAoBAKCCBZUwggWRBgkrBgEFBQcwAQEEggWCMIIFfjCCARehgZ8wgZwx"
+            + "CzAJBgNVBAYTAklOMRcwFQYDVQQIEw5BbmRocmEgcHJhZGVzaDESMBAGA1UE"
+            + "BxMJSHlkZXJhYmFkMQwwCgYDVQQKEwNUQ1MxDDAKBgNVBAsTA0FUQzEeMBwG"
+            + "A1UEAxMVVENTLUNBIE9DU1AgUmVzcG9uZGVyMSQwIgYJKoZIhvcNAQkBFhVv"
+            + "Y3NwQHRjcy1jYS50Y3MuY28uaW4YDzIwMDMwNDAyMTIzNDU4WjBiMGAwOjAJ"
+            + "BgUrDgMCGgUABBRs07IuoCWNmcEl1oHwIak1BPnX8QQUtGyl/iL9WJ1VxjxF"
+            + "j0hAwJ/s1AcCAQKhERgPMjAwMjA4MjkwNzA5MjZaGA8yMDAzMDQwMjEyMzQ1"
+            + "OFowDQYJKoZIhvcNAQEFBQADgYEAfbN0TCRFKdhsmvOdUoiJ+qvygGBzDxD/"
+            + "VWhXYA+16AphHLIWNABR3CgHB3zWtdy2j7DJmQ/R7qKj7dUhWLSqclAiPgFt"
+            + "QQ1YvSJAYfEIdyHkxv4NP0LSogxrumANcDyC9yt/W9yHjD2ICPBIqCsZLuLk"
+            + "OHYi5DlwWe9Zm9VFwCGgggPMMIIDyDCCA8QwggKsoAMCAQICAQYwDQYJKoZI"
+            + "hvcNAQEFBQAwgZQxFDASBgNVBAMTC1RDUy1DQSBPQ1NQMSYwJAYJKoZIhvcN"
+            + "AQkBFhd0Y3MtY2FAdGNzLWNhLnRjcy5jby5pbjEMMAoGA1UEChMDVENTMQww"
+            + "CgYDVQQLEwNBVEMxEjAQBgNVBAcTCUh5ZGVyYWJhZDEXMBUGA1UECBMOQW5k"
+            + "aHJhIHByYWRlc2gxCzAJBgNVBAYTAklOMB4XDTAyMDgyOTA3MTE0M1oXDTAz"
+            + "MDgyOTA3MTE0M1owgZwxCzAJBgNVBAYTAklOMRcwFQYDVQQIEw5BbmRocmEg"
+            + "cHJhZGVzaDESMBAGA1UEBxMJSHlkZXJhYmFkMQwwCgYDVQQKEwNUQ1MxDDAK"
+            + "BgNVBAsTA0FUQzEeMBwGA1UEAxMVVENTLUNBIE9DU1AgUmVzcG9uZGVyMSQw"
+            + "IgYJKoZIhvcNAQkBFhVvY3NwQHRjcy1jYS50Y3MuY28uaW4wgZ8wDQYJKoZI"
+            + "hvcNAQEBBQADgY0AMIGJAoGBAM+XWW4caMRv46D7L6Bv8iwtKgmQu0SAybmF"
+            + "RJiz12qXzdvTLt8C75OdgmUomxp0+gW/4XlTPUqOMQWv463aZRv9Ust4f8MH"
+            + "EJh4ekP/NS9+d8vEO3P40ntQkmSMcFmtA9E1koUtQ3MSJlcs441JjbgUaVnm"
+            + "jDmmniQnZY4bU3tVAgMBAAGjgZowgZcwDAYDVR0TAQH/BAIwADALBgNVHQ8E"
+            + "BAMCB4AwEwYDVR0lBAwwCgYIKwYBBQUHAwkwNgYIKwYBBQUHAQEEKjAoMCYG"
+            + "CCsGAQUFBzABhhpodHRwOi8vMTcyLjE5LjQwLjExMDo3NzAwLzAtBgNVHR8E"
+            + "JjAkMCKgIKAehhxodHRwOi8vMTcyLjE5LjQwLjExMC9jcmwuY3JsMA0GCSqG"
+            + "SIb3DQEBBQUAA4IBAQB6FovM3B4VDDZ15o12gnADZsIk9fTAczLlcrmXLNN4"
+            + "PgmqgnwF0Ymj3bD5SavDOXxbA65AZJ7rBNAguLUo+xVkgxmoBH7R2sBxjTCc"
+            + "r07NEadxM3HQkt0aX5XYEl8eRoifwqYAI9h0ziZfTNes8elNfb3DoPPjqq6V"
+            + "mMg0f0iMS4W8LjNPorjRB+kIosa1deAGPhq0eJ8yr0/s2QR2/WFD5P4aXc8I"
+            + "KWleklnIImS3zqiPrq6tl2Bm8DZj7vXlTOwmraSQxUwzCKwYob1yGvNOUQTq"
+            + "pG6jxn7jgDawHU1+WjWQe4Q34/pWeGLysxTraMa+Ug9kPe+jy/qRX2xwvKBZ");
+
         private static readonly byte[] signedData_mldsa44 = LoadPemContents("pkix/cms/mldsa", "SignedData_ML-DSA-44.pem");
         private static readonly byte[] signedData_mldsa65 = LoadPemContents("pkix/cms/mldsa", "SignedData_ML-DSA-65.pem");
         private static readonly byte[] signedData_mldsa87 = LoadPemContents("pkix/cms/mldsa", "SignedData_ML-DSA-87.pem");
@@ -804,27 +840,72 @@ namespace Org.BouncyCastle.Cms.Tests
             VerifySignatures(s, expectedContentDigest);
         }
 
-        // NB: C# build doesn't support "no attributes" version of CmsSignedDataGenerator.Generate
-        //[Test]
-        //public void TestSha1WithRsaNoAttributes()
-        //{
-        //    CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello world!"));
+        [Test]
+        public void TestSha1WithRsaNoAttributes()
+        {
+            var testBytes = Encoding.ASCII.GetBytes("Hello world!");
+            CmsProcessable msg = new CmsProcessableByteArray(testBytes);
 
-        //    IX509Store x509Certs = MakeCertStore(OrigCert, SignCert);
+            var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
-        //    CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
-        //    gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
-        //    gen.AddCertificates(x509Certs);
+            var signatureFactory = new Asn1SignatureFactory("SHA1withRSA", OrigKP.Private);
+            var signerInfoGenerator = new SignerInfoGeneratorBuilder()
+                .SetDirectSignature(true)
+                .Build(signatureFactory, OrigCert);
 
-        //    CmsSignedData s = gen.Generate(CmsSignedGenerator.Data, msg, false, false);
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+            gen.AddSignerInfoGenerator(signerInfoGenerator);
+            gen.AddCertificates(x509Certs);
 
-        //    byte[] testBytes = Encoding.ASCII.GetBytes("Hello world!");
+            CmsSignedData s = gen.Generate(msg, false);
 
-        //    // compute expected content digest
-        //    byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
+            // compute expected content digest
+            byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
 
-        //    VerifySignatures(s, hash);
-        //}
+            VerifySignatures(s, hash);
+        }
+
+        [Test]
+        public void TestSha1WithRsaAndOtherRevocation()
+        {
+            var testBytes = Encoding.ASCII.GetBytes("Hello world!");
+            CmsProcessable msg = new CmsProcessableByteArray(testBytes);
+
+            var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+            var signatureFactory = new Asn1SignatureFactory("SHA1withRSA", OrigKP.Private);
+            var signerInfoGenerator = new SignerInfoGeneratorBuilder()
+                .Build(signatureFactory, OrigCert);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+            gen.AddSignerInfoGenerator(signerInfoGenerator);
+            gen.AddCertificates(x509Certs);
+
+            OcspResp response = new OcspResp(successResp);
+
+            gen.AddOtherRevocationInfo(CmsObjectIdentifiers.id_ri_ocsp_response, response.ToAsn1Structure());
+
+            CmsSignedData s = gen.Generate(msg, false);
+
+            //
+            // check version
+            //
+            Assert.AreEqual(5, s.Version);
+
+            // compute expected content digest
+            byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
+
+            VerifySignatures(s, hash);
+
+            IStore<Asn1Encodable> dataOtherInfo = s.GetOtherRevInfos(CmsObjectIdentifiers.id_ri_ocsp_response);
+
+            var otherInfos = new List<Asn1Encodable>(dataOtherInfo.EnumerateMatches(null));
+            Assert.AreEqual(1, otherInfos.Count);
+
+            OcspResp dataResponse = new OcspResp(OcspResponse.GetInstance(otherInfos[0]));
+
+            Assert.AreEqual(response, dataResponse);
+        }
 
         [Test]
         public void TestSha1WithRsaAndAttributeTable()
