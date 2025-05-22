@@ -1691,9 +1691,10 @@ namespace Org.BouncyCastle.Tls
 
             TlsSession sessionToResume = offeringTlsV12Minus ? m_tlsClient.GetSessionToResume() : null;
 
-            bool fallback = m_tlsClient.IsFallback();
-
+            // NOTE: Client is free to modify the cipher suites up until GetSessionToResume 
             int[] offeredCipherSuites = m_tlsClient.GetCipherSuites();
+
+            bool fallback = m_tlsClient.IsFallback();
 
             this.m_clientExtensions = TlsExtensionsUtilities.EnsureExtensionsInitialised(m_tlsClient.GetClientExtensions());
 
