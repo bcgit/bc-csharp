@@ -12,15 +12,13 @@ namespace Org.BouncyCastle.Asn1.Tests
     public class LinkedCertificateTest
         : Asn1UnitTest
     {
-        public override string Name
-        {
-            get { return "LinkedCertificate"; }
-        }
+        public override string Name => "LinkedCertificate";
 
         public override void PerformTest()
         {
             DigestInfo digInfo = new DigestInfo(new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256), new byte[32]);
-            GeneralName certLocation = new GeneralName(GeneralName.UniformResourceIdentifier, "https://www.bouncycastle.org/certs");
+            GeneralName certLocation = new GeneralName(GeneralName.UniformResourceIdentifier,
+                "https://www.bouncycastle.org/certs");
             X509Name certIssuer = null;
             GeneralNames cACerts = null;
 
@@ -39,14 +37,14 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             if (linked != null)
             {
-                Fail("null getInstance() failed.");
+                Fail("null GetInstance() failed.");
             }
 
             try
             {
                 LinkedCertificate.GetInstance(new object());
 
-                Fail("getInstance() failed to detect bad object.");
+                Fail("GetInstance() failed to detect bad object.");
             }
             catch (ArgumentException)
             {
@@ -63,11 +61,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             CheckValues(linked, digestInfo, certLocation, certIssuer, caCerts);
 
-            Asn1InputStream aIn = new Asn1InputStream(linked.ToAsn1Object().GetEncoded());
-
-            Asn1Sequence seq = (Asn1Sequence)aIn.ReadObject();
-
-            linked = LinkedCertificate.GetInstance(seq);
+            linked = LinkedCertificate.GetInstance(linked.GetEncoded());
 
             CheckValues(linked, digestInfo, certLocation, certIssuer, caCerts);
         }

@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1.BC
 
             m_digest = DigestInfo.GetInstance(seq[pos++]);
             m_certLocation = GeneralName.GetInstance(seq[pos++]);
-            m_certIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, X509Name.GetTagged);
+            m_certIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, X509Name.GetTagged); // CHOICE
             m_cACerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, GeneralNames.GetTagged);
 
             if (pos != count)
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.BC
         {
             Asn1EncodableVector v = new Asn1EncodableVector(4);
             v.Add(m_digest, m_certLocation);
-            v.AddOptionalTagged(false, 0, m_certIssuer);
+            v.AddOptionalTagged(true, 0, m_certIssuer); // CHOICE
             v.AddOptionalTagged(false, 1, m_cACerts);
             return new DerSequence(v);
         }

@@ -32,6 +32,8 @@
                                 <a href="#mozTocId3413">Notes:</a>
                                 <ol>
                                     <li>
+                                        <a href="#mozTocId9020602">Release 2.6.2</a>
+                                    <li>
                                         <a href="#mozTocId9020601">Release 2.6.1</a>
                                     <li>
                                         <a href="#mozTocId9020600">Release 2.6.0</a>
@@ -340,6 +342,15 @@
         <br />
         <hr style="WIDTH: 100%; HEIGHT: 2px">
         <h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
+
+        <h4><a class="mozTocH4" name="mozTocId9020602"></a>Release 2.6.2, Thursday July 31, 2025</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>ASN.1: Fixed tagging of LinkedCertificate.certIssuer field (CHOICE type).</li>
+            <li>JKS: Handle `keytool` ASN.1 format change for key entries as of `v20`.</li>
+            <li>OpenPGP: Fix the issue that bodyLen may exceed int.MaxValue.</li>
+            <li>Restore old raw RSA behaviour (RSA, NONEwithRSA, etc.) in SignerUtilities (regression in 2.6.0).</li>
+        </ul>
 
         <h4><a class="mozTocH4" name="mozTocId9020601"></a>Release 2.6.1, Thursday May 22, 2025</h4>
         <h5>Defects Fixed</h5>
