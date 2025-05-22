@@ -241,6 +241,12 @@ namespace Org.BouncyCastle.Cms
             return m_signerInfoStore;
         }
 
+        public bool IsCertificateManagementMessage =>
+            m_signedData.EncapContentInfo.Content == null && m_signedData.SignerInfos.Count == 0;
+
+        public bool IsDetachedSignature =>
+            m_signedData.EncapContentInfo.Content == null && m_signedData.SignerInfos.Count > 0;
+
         public CmsProcessable SignedContent => m_signedContent;
 
         /// <summary>

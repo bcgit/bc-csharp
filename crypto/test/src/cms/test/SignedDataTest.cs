@@ -853,6 +853,9 @@ namespace Org.BouncyCastle.Cms.Tests
             //
             s = new CmsSignedData(msg, s.GetEncoded());
 
+            Assert.False(s.IsCertificateManagementMessage);
+            Assert.True(s.IsDetachedSignature);
+
             //
             // compute expected content digest
             //
@@ -2347,7 +2350,13 @@ namespace Org.BouncyCastle.Cms.Tests
             //CmsSignedData sData = sGen.Generate(new CmsAbsentContent(), true);
             CmsSignedData sData = sGen.Generate(null, encapsulate: false);
 
+            Assert.True(sData.IsCertificateManagementMessage);
+            Assert.False(sData.IsDetachedSignature);
+
             CmsSignedData rsData = new CmsSignedData(sData.GetEncoded());
+
+            Assert.True(rsData.IsCertificateManagementMessage);
+            Assert.False(rsData.IsDetachedSignature);
 
             var certs = new List<X509Certificate>(rsData.GetCertificates().EnumerateMatches(null));
 
