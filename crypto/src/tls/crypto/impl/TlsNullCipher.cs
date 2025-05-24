@@ -137,28 +137,38 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
-            int headerAllocation, ReadOnlySpan<byte> plaintext)
+            int headerAllocation, ReadOnlySpan<byte> plaintext,
+            System.Buffers.ArrayPool<byte> pool = null)
         {
             int macSize = m_writeMac.Size;
 
             // TODO[cid] If we support adding padding to DTLSInnerPlaintext, this will need review
             int innerPlaintextLength = plaintext.Length + (m_encryptUseInnerPlaintext ? 1 : 0);
 
-            byte[] ciphertext = new byte[headerAllocation + innerPlaintextLength + macSize];
-            plaintext.CopyTo(ciphertext.AsSpan(headerAllocation));
+            int bufferSize = headerAllocation + innerPlaintextLength + macSize;
+            byte[] ciphertext = pool?.Rent(bufferSize) ?? new byte[bufferSize];
+            short recordType;
+            try {
+                plaintext.CopyTo(ciphertext.AsSpan(headerAllocation));
 
-            short recordType = contentType;
-            if (m_encryptUseInnerPlaintext)
+                recordType = contentType;
+                if (m_encryptUseInnerPlaintext)
+                {
+                    ciphertext[headerAllocation + plaintext.Length] = (byte)contentType;
+                    recordType = ContentType.tls12_cid;
+                }
+
+                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID,
+                    ciphertext.AsSpan(headerAllocation, innerPlaintextLength));
+                mac.CopyTo(ciphertext.AsSpan(headerAllocation + innerPlaintextLength));
+            }
+            catch
             {
-                ciphertext[headerAllocation + plaintext.Length] = (byte)contentType;
-                recordType = ContentType.tls12_cid;
+                pool?.Return(ciphertext);
+                throw;
             }
 
-            byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID,
-                ciphertext.AsSpan(headerAllocation, innerPlaintextLength));
-            mac.CopyTo(ciphertext.AsSpan(headerAllocation + innerPlaintextLength));
-
-            return new TlsEncodeResult(ciphertext, 0, ciphertext.Length, recordType);
+            return new TlsEncodeResult(ciphertext, 0, bufferSize, recordType, pool);
         }
 #endif
 
