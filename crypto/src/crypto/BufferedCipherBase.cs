@@ -144,13 +144,5 @@ namespace Org.BouncyCastle.Crypto
 
             return totalSize - totalSize % blockSize;
         }
-
-        internal static bool SegmentsOverlap(int aOff, int aLen, int bOff, int bLen)
-        {
-            return aLen > 0
-                && bLen > 0
-                && aOff < bOff + bLen
-                && bOff < aOff + aLen;
-        }
     }
 }

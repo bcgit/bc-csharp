@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 length -= available;
 
                 // Handle destructive overlap by copying the remaining input
-                if (output == input && SegmentsOverlap(outOff, m_blockSize, inOff, length))
+                if (output == input && Arrays.SegmentsOverlap(outOff, m_blockSize, inOff, length))
                 {
                     input = new byte[length];
                     Array.Copy(output, inOff, input, 0, length);
