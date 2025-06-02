@@ -26,8 +26,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
             try
             {
-                Asn1Object asn1 = TlsUtilities.ReadAsn1Object(encoding);
-                return X509CertificateStructure.GetInstance(asn1);
+                return TlsUtilities.ReadBerEncoding(encoding, X509CertificateStructure.GetOptional);
             }
             catch (Exception e)
             {

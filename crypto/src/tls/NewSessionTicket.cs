@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -10,19 +9,13 @@ namespace Org.BouncyCastle.Tls
 
         public NewSessionTicket(long ticketLifetimeHint, byte[] ticket)
         {
-            this.m_ticketLifetimeHint = ticketLifetimeHint;
-            this.m_ticket = ticket;
+            m_ticketLifetimeHint = ticketLifetimeHint;
+            m_ticket = ticket;
         }
 
-        public long TicketLifetimeHint
-        {
-            get { return m_ticketLifetimeHint; }
-        }
+        public long TicketLifetimeHint => m_ticketLifetimeHint;
 
-        public byte[] Ticket
-        {
-            get { return m_ticket; }
-        }
+        public byte[] Ticket => m_ticket;
 
         /// <summary>Encode this <see cref="NewSessionTicket"/> to a <see cref="Stream"/>.</summary>
         /// <param name="output">the <see cref="Stream"/> to encode to.</param>

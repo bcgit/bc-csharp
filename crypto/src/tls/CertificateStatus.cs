@@ -17,19 +17,13 @@ namespace Org.BouncyCastle.Tls
             if (!IsCorrectType(statusType, response))
                 throw new ArgumentException("not an instance of the correct type", "response");
 
-            this.m_statusType = statusType;
-            this.m_response = response;
+            m_statusType = statusType;
+            m_response = response;
         }
 
-        public short StatusType
-        {
-            get { return m_statusType; }
-        }
+        public short StatusType => m_statusType;
 
-        public object Response
-        {
-            get { return m_response; }
-        }
+        public object Response => m_response;
 
         public OcspResponse OcspResponse
         {
@@ -187,19 +181,12 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        private static bool IsOcspResponseList(object response)
-        {
-            return response is IList<OcspResponse> v && v.Count > 0;
-        }
+        private static bool IsOcspResponseList(object response) =>
+            response is IList<OcspResponse> v && v.Count > 0;
 
         /// <exception cref="IOException"/>
-        private static OcspResponse ParseOcspResponse(byte[] derEncoding)
-        {
-            Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
-            OcspResponse ocspResponse = OcspResponse.GetInstance(asn1);
-            TlsUtilities.RequireDerEncoding(ocspResponse, derEncoding);
-            return ocspResponse;
-        }
+        private static OcspResponse ParseOcspResponse(byte[] derEncoding) =>
+            TlsUtilities.ReadDerEncoding(derEncoding, OcspResponse.GetOptional);
 
         /// <exception cref="IOException"/>
         private static void RequireStatusRequestVersion(int minVersion, int statusRequestVersion)

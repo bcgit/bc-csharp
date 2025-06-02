@@ -5,7 +5,6 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -22,21 +21,15 @@ namespace Org.BouncyCastle.Tls
         /// </param>
         public OcspStatusRequest(IList<ResponderID> responderIDList, X509Extensions requestExtensions)
         {
-            this.m_responderIDList = responderIDList;
-            this.m_requestExtensions = requestExtensions;
+            m_responderIDList = responderIDList;
+            m_requestExtensions = requestExtensions;
         }
 
         /// <returns>an <see cref="IList{T}"/> of <see cref="ResponderID"/>.</returns>
-        public IList<ResponderID> ResponderIDList
-        {
-            get { return m_responderIDList; }
-        }
+        public IList<ResponderID> ResponderIDList => m_responderIDList;
 
         /// <returns>OCSP request extensions.</returns>
-        public X509Extensions RequestExtensions
-        {
-            get { return m_requestExtensions; }
-        }
+        public X509Extensions RequestExtensions => m_requestExtensions;
 
         /// <summary>Encode this <see cref="OcspStatusRequest"/> to a <see cref="Stream"/>.</summary>
         /// <param name="output">the <see cref="Stream"/> to encode to.</param>
@@ -88,9 +81,7 @@ namespace Org.BouncyCastle.Tls
                     do
                     {
                         byte[] derEncoding = TlsUtilities.ReadOpaque16(buf, 1);
-                        Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
-                        ResponderID responderID = ResponderID.GetInstance(asn1);
-                        TlsUtilities.RequireDerEncoding(responderID, derEncoding);
+                        ResponderID responderID = TlsUtilities.ReadDerEncoding(derEncoding, ResponderID.GetOptional);
                         responderIDList.Add(responderID);
                     }
                     while (buf.Position < buf.Length);
@@ -102,10 +93,7 @@ namespace Org.BouncyCastle.Tls
                 byte[] derEncoding = TlsUtilities.ReadOpaque16(input);
                 if (derEncoding.Length > 0)
                 {
-                    Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
-                    X509Extensions extensions = X509Extensions.GetInstance(asn1);
-                    TlsUtilities.RequireDerEncoding(extensions, derEncoding);
-                    requestExtensions = extensions;
+                    requestExtensions = TlsUtilities.ReadDerEncoding(derEncoding, X509Extensions.GetOptional);
                 }
             }
 

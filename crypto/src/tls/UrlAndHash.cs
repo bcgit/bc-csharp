@@ -18,19 +18,13 @@ namespace Org.BouncyCastle.Tls
             if (sha1Hash != null && sha1Hash.Length != 20)
                 throw new ArgumentException("must have length == 20, if present", "sha1Hash");
 
-            this.m_url = url;
-            this.m_sha1Hash = sha1Hash;
+            m_url = url;
+            m_sha1Hash = sha1Hash;
         }
 
-        public string Url
-        {
-            get { return m_url; }
-        }
+        public string Url => m_url;
 
-        public byte[] Sha1Hash
-        {
-            get { return m_sha1Hash; }
-        }
+        public byte[] Sha1Hash => m_sha1Hash;
 
         /// <summary>Encode this <see cref="UrlAndHash"/> to a <see cref="Stream"/>.</summary>
         /// <param name="output">the <see cref="Stream"/> to encode to.</param>

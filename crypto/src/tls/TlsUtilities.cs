@@ -13,7 +13,6 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -533,10 +532,7 @@ namespace Org.BouncyCastle.Tls
             WriteUint16Array(u16s, buf, offset + 2);
         }
 
-        public static byte[] DecodeOpaque8(byte[] buf)
-        {
-            return DecodeOpaque8(buf, 0);
-        }
+        public static byte[] DecodeOpaque8(byte[] buf) => DecodeOpaque8(buf, 0);
 
         public static byte[] DecodeOpaque8(byte[] buf, int minLength)
         {
@@ -552,10 +548,7 @@ namespace Org.BouncyCastle.Tls
             return CopyOfRangeExact(buf, 1, buf.Length);
         }
 
-        public static byte[] DecodeOpaque16(byte[] buf)
-        {
-            return DecodeOpaque16(buf, 0);
-        }
+        public static byte[] DecodeOpaque16(byte[] buf) => DecodeOpaque16(buf, 0);
 
         public static byte[] DecodeOpaque16(byte[] buf, int minLength)
         {
@@ -960,10 +953,8 @@ namespace Org.BouncyCastle.Tls
             return uints;
         }
 
-        public static ProtocolVersion ReadVersion(byte[] buf, int offset)
-        {
-            return ProtocolVersion.Get(buf[offset], buf[offset + 1]);
-        }
+        public static ProtocolVersion ReadVersion(byte[] buf, int offset) =>
+            ProtocolVersion.Get(buf[offset], buf[offset + 1]);
 
         public static ProtocolVersion ReadVersion(Stream input)
         {
@@ -986,6 +977,24 @@ namespace Org.BouncyCastle.Tls
                     throw new TlsFatalAlert(AlertDescription.decode_error);
                 return result;
             }
+        }
+
+        public static T ReadBerEncoding<T>(byte[] berEncoding, Func<Asn1Encodable, T> optionalConstructor)
+            where T : Asn1Encodable
+        {
+            var asn1Object = ReadAsn1Object(berEncoding);
+            T t = optionalConstructor(asn1Object);
+            if (t == null)
+                throw new TlsFatalAlert(AlertDescription.decode_error);
+            return t;
+        }
+
+        public static T ReadDerEncoding<T>(byte[] derEncoding, Func<Asn1Encodable, T> optionalConstructor)
+            where T : Asn1Encodable
+        {
+            T t = ReadBerEncoding(derEncoding, optionalConstructor);
+            RequireDerEncoding(t, derEncoding);
+            return t;
         }
 
         /// <exception cref="IOException"/>
@@ -1056,20 +1065,14 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
-        public static IList<SignatureAndHashAlgorithm> GetDefaultDssSignatureAlgorithms()
-        {
-            return GetDefaultSignatureAlgorithms(SignatureAlgorithm.dsa);
-        }
+        public static IList<SignatureAndHashAlgorithm> GetDefaultDssSignatureAlgorithms() =>
+            GetDefaultSignatureAlgorithms(SignatureAlgorithm.dsa);
 
-        public static IList<SignatureAndHashAlgorithm> GetDefaultECDsaSignatureAlgorithms()
-        {
-            return GetDefaultSignatureAlgorithms(SignatureAlgorithm.ecdsa);
-        }
+        public static IList<SignatureAndHashAlgorithm> GetDefaultECDsaSignatureAlgorithms() =>
+            GetDefaultSignatureAlgorithms(SignatureAlgorithm.ecdsa);
 
-        public static IList<SignatureAndHashAlgorithm> GetDefaultRsaSignatureAlgorithms()
-        {
-            return GetDefaultSignatureAlgorithms(SignatureAlgorithm.rsa);
-        }
+        public static IList<SignatureAndHashAlgorithm> GetDefaultRsaSignatureAlgorithms() =>
+            GetDefaultSignatureAlgorithms(SignatureAlgorithm.rsa);
 
         public static SignatureAndHashAlgorithm GetDefaultSignatureAlgorithm(short signatureAlgorithm)
         {
@@ -1105,10 +1108,8 @@ namespace Org.BouncyCastle.Tls
             return null == sigAndHashAlg ? new List<SignatureAndHashAlgorithm>() : VectorOfOne(sigAndHashAlg);
         }
 
-        public static IList<SignatureAndHashAlgorithm> GetDefaultSupportedSignatureAlgorithms(TlsContext context)
-        {
-            return GetSupportedSignatureAlgorithms(context, DefaultSupportedSigAlgs);
-        }
+        public static IList<SignatureAndHashAlgorithm> GetDefaultSupportedSignatureAlgorithms(TlsContext context) =>
+            GetSupportedSignatureAlgorithms(context, DefaultSupportedSigAlgs);
 
         public static IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms(TlsContext context,
             IList<SignatureAndHashAlgorithm> candidates)
@@ -1162,10 +1163,8 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
-        public static TlsSession ImportSession(byte[] sessionID, SessionParameters sessionParameters)
-        {
-            return new TlsSessionImpl(sessionID, sessionParameters);
-        }
+        public static TlsSession ImportSession(byte[] sessionID, SessionParameters sessionParameters) =>
+            new TlsSessionImpl(sessionID, sessionParameters);
 
         internal static bool IsExtendedMasterSecretOptional(ProtocolVersion protocolVersion)
         {
@@ -1203,20 +1202,11 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
-        public static bool IsNullOrEmpty<T>(T[] array)
-        {
-            return null == array || array.Length < 1;
-        }
+        public static bool IsNullOrEmpty<T>(T[] array) => null == array || array.Length < 1;
 
-        public static bool IsNullOrEmpty(string s)
-        {
-            return null == s || s.Length < 1;
-        }
+        public static bool IsNullOrEmpty(string s) => null == s || s.Length < 1;
 
-        public static bool IsNullOrEmpty<T>(IList<T> v)
-        {
-            return null == v || v.Count < 1;
-        }
+        public static bool IsNullOrEmpty<T>(IList<T> v) => null == v || v.Count < 1;
 
         public static bool IsSignatureAlgorithmsExtensionAllowed(ProtocolVersion version)
         {
@@ -1451,15 +1441,11 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
-        public static byte[] Clone(byte[] data)
-        {
-            return null == data ? null : data.Length == 0 ? EmptyBytes : (byte[])data.Clone();
-        }
+        public static byte[] Clone(byte[] data) =>
+            null == data ? null : data.Length == 0 ? EmptyBytes : (byte[])data.Clone();
 
-        public static string[] Clone(string[] s)
-        {
-            return null == s ? null : s.Length < 1 ? EmptyStrings : (string[])s.Clone();
-        }
+        public static string[] Clone(string[] s) =>
+            null == s ? null : s.Length < 1 ? EmptyStrings : (string[])s.Clone();
 
         public static bool ConstantTimeAreEqual(int len, byte[] a, int aOff, byte[] b, int bOff)
         {
@@ -1488,10 +1474,8 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        internal static byte[] CalculateEndPointHash(TlsContext context, TlsCertificate certificate, byte[] enc)
-        {
-            return CalculateEndPointHash(context, certificate, enc, 0, enc.Length);
-        }
+        internal static byte[] CalculateEndPointHash(TlsContext context, TlsCertificate certificate, byte[] enc) =>
+            CalculateEndPointHash(context, certificate, enc, 0, enc.Length);
 
         /// <exception cref="IOException"/>
         internal static byte[] CalculateEndPointHash(TlsContext context, TlsCertificate certificate, byte[] enc,
@@ -1652,9 +1636,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             if (negotiatedVersion.IsSsl)
-            {
                 return Ssl3Utilities.CalculateVerifyData(handshakeHash, isServer);
-            }
 
             string asciiLabel = isServer ? ExporterLabel.server_finished : ExporterLabel.client_finished;
             byte[] prfHash = GetCurrentPrfHash(handshakeHash);
@@ -1767,15 +1749,11 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_baseKeyServer = securityParameters.TrafficSecretServer;
         }
 
-        internal static void Update13TrafficSecretLocal(TlsContext context)
-        {
+        internal static void Update13TrafficSecretLocal(TlsContext context) =>
             Update13TrafficSecret(context, context.IsServer);
-        }
 
-        internal static void Update13TrafficSecretPeer(TlsContext context)
-        {
+        internal static void Update13TrafficSecretPeer(TlsContext context) =>
             Update13TrafficSecret(context, !context.IsServer);
-        }
 
         private static void Update13TrafficSecret(TlsContext context, bool forServer)
         {
@@ -2328,9 +2306,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             if (!verified)
-            {
                 throw new TlsFatalAlert(AlertDescription.decrypt_error);
-            }
         }
 
         /// <exception cref="IOException"/>
@@ -2393,9 +2369,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             if (!verified)
-            {
                 throw new TlsFatalAlert(AlertDescription.decrypt_error);
-            }
         }
 
         private static byte[] GetCertificateVerifyHeader(string contextString)
@@ -2490,9 +2464,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             if (!verified)
-            {
                 throw new TlsFatalAlert(AlertDescription.decrypt_error);
-            }
         }
 
         internal static void TrackHashAlgorithmClient(TlsHandshakeHash handshakeHash,
@@ -2535,12 +2507,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        public static IList<T> VectorOfOne<T>(T obj)
-        {
-            var v = new List<T>(1);
-            v.Add(obj);
-            return v;
-        }
+        public static IList<T> VectorOfOne<T>(T obj) => new List<T>{ obj };
 
         public static int GetCipherType(int cipherSuite)
         {
@@ -3829,10 +3796,8 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        public static IList<int> GetNamedGroupRoles(int[] cipherSuites)
-        {
-            return GetNamedGroupRoles(GetKeyExchangeAlgorithms(cipherSuites));
-        }
+        public static IList<int> GetNamedGroupRoles(int[] cipherSuites) =>
+            GetNamedGroupRoles(GetKeyExchangeAlgorithms(cipherSuites));
 
         public static IList<int> GetNamedGroupRoles(IList<int> keyExchangeAlgorithms)
         {
@@ -3883,22 +3848,13 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        public static bool IsAeadCipherSuite(int cipherSuite)
-        {
-            return CipherType.aead == GetCipherType(cipherSuite);
-        }
+        public static bool IsAeadCipherSuite(int cipherSuite) => CipherType.aead == GetCipherType(cipherSuite);
 
         /// <exception cref="IOException"/>
-        public static bool IsBlockCipherSuite(int cipherSuite)
-        {
-            return CipherType.block == GetCipherType(cipherSuite);
-        }
+        public static bool IsBlockCipherSuite(int cipherSuite) => CipherType.block == GetCipherType(cipherSuite);
 
         /// <exception cref="IOException"/>
-        public static bool IsStreamCipherSuite(int cipherSuite)
-        {
-            return CipherType.stream == GetCipherType(cipherSuite);
-        }
+        public static bool IsStreamCipherSuite(int cipherSuite) => CipherType.stream == GetCipherType(cipherSuite);
 
         /// <returns>Whether a server can select the specified cipher suite given the available signature algorithms
         /// for ServerKeyExchange.</returns>
@@ -4150,10 +4106,8 @@ namespace Org.BouncyCastle.Tls
             return candidates;
         }
 
-        public static int[] GetSupportedCipherSuites(TlsCrypto crypto, int[] suites)
-        {
-            return GetSupportedCipherSuites(crypto, suites, 0, suites.Length);
-        }
+        public static int[] GetSupportedCipherSuites(TlsCrypto crypto, int[] suites) =>
+            GetSupportedCipherSuites(crypto, suites, 0, suites.Length);
 
         public static int[] GetSupportedCipherSuites(TlsCrypto crypto, int[] suites, int suitesOff, int suitesCount)
         {
@@ -4269,20 +4223,14 @@ namespace Org.BouncyCastle.Tls
                 || crypto.HasSignatureAlgorithm(SignatureAlgorithm.rsa_pss_pss_sha512);
         }
 
-        internal static byte[] GetCurrentPrfHash(TlsHandshakeHash handshakeHash)
-        {
-            return handshakeHash.ForkPrfHash().CalculateHash();
-        }
+        internal static byte[] GetCurrentPrfHash(TlsHandshakeHash handshakeHash) =>
+            handshakeHash.ForkPrfHash().CalculateHash();
 
-        private static TlsHash CreateHash(TlsCrypto crypto, short hashAlgorithm)
-        {
-            return crypto.CreateHash(TlsCryptoUtilities.GetHash(hashAlgorithm));
-        }
+        private static TlsHash CreateHash(TlsCrypto crypto, short hashAlgorithm) =>
+            crypto.CreateHash(TlsCryptoUtilities.GetHash(hashAlgorithm));
 
-        private static TlsHash CreateHash(TlsCrypto crypto, SignatureAndHashAlgorithm signatureAndHashAlgorithm)
-        {
-            return crypto.CreateHash(SignatureScheme.GetCryptoHashAlgorithm(signatureAndHashAlgorithm));
-        }
+        private static TlsHash CreateHash(TlsCrypto crypto, SignatureAndHashAlgorithm signatureAndHashAlgorithm) =>
+            crypto.CreateHash(SignatureScheme.GetCryptoHashAlgorithm(signatureAndHashAlgorithm));
 
         /// <exception cref="IOException"/>
         private static TlsKeyExchange CreateKeyExchangeClient(TlsClient client, int keyExchange)
@@ -4569,7 +4517,8 @@ namespace Org.BouncyCastle.Tls
             if (tlsFeatures != null)
             {
                 // TODO[tls] Proper ASN.1 type class for this extension?
-                Asn1Sequence tlsFeaturesSeq = (Asn1Sequence)ReadAsn1Object(tlsFeatures);
+                Asn1Sequence tlsFeaturesSeq = ReadDerEncoding(derEncoding: tlsFeatures, Asn1Sequence.GetOptional);
+
                 for (int i = 0; i < tlsFeaturesSeq.Count; ++i)
                 {
                     if (!(tlsFeaturesSeq[i] is DerInteger))
@@ -4577,15 +4526,10 @@ namespace Org.BouncyCastle.Tls
                             "Server certificate has invalid TLS Features extension");
                 }
 
-                RequireDerEncoding(tlsFeaturesSeq, tlsFeatures);
-
-                foreach (DerInteger tlsExtensionElement in tlsFeaturesSeq)
+                foreach (DerInteger tlsFeature in tlsFeaturesSeq)
                 {
-                    BigInteger tlsExtension = tlsExtensionElement.PositiveValue;
-                    if (tlsExtension.BitLength <= 16)
+                    if (tlsFeature.TryGetIntValueExact(out int extensionType) && IsValidUint16(extensionType))
                     {
-                        int extensionType = tlsExtension.IntValueExact;
-
                         if (clientExtensions.ContainsKey(extensionType) && !serverExtensions.ContainsKey(extensionType))
                             throw new TlsFatalAlert(AlertDescription.certificate_unknown,
                                 "Server extensions missing TLS Feature " + extensionType);
@@ -5231,15 +5175,11 @@ namespace Org.BouncyCastle.Tls
                 clientExtensions);
         }
 
-        internal static TlsCredentials EstablishServerCredentials(TlsServer server)
-        {
-            return ValidateCredentials(server.GetCredentials());
-        }
+        internal static TlsCredentials EstablishServerCredentials(TlsServer server) =>
+            ValidateCredentials(server.GetCredentials());
 
-        internal static TlsCredentialedSigner Establish13ServerCredentials(TlsServer server)
-        {
-            return Validate13Credentials(server.GetCredentials());
-        }
+        internal static TlsCredentialedSigner Establish13ServerCredentials(TlsServer server) =>
+            Validate13Credentials(server.GetCredentials());
 
         internal static void EstablishServerSigAlgs(SecurityParameters securityParameters,
             CertificateRequest certificateRequest)
@@ -5273,10 +5213,10 @@ namespace Org.BouncyCastle.Tls
             if (null == credentials)
                 return null;
 
-            if (!(credentials is TlsCredentialedSigner))
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            if (credentials is TlsCredentialedSigner credentialedSigner)
+                return credentialedSigner;
 
-            return (TlsCredentialedSigner)credentials;
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
         internal static void NegotiatedCipherSuite(SecurityParameters securityParameters, int cipherSuite)
@@ -5594,10 +5534,7 @@ namespace Org.BouncyCastle.Tls
             return preMasterSecret;
         }
 
-        public static bool IsTimeout(SocketException e)
-        {
-            return SocketError.TimedOut == e.SocketErrorCode;
-        }
+        public static bool IsTimeout(SocketException e) => SocketError.TimedOut == e.SocketErrorCode;
 
         /// <exception cref="IOException"/>
         internal static void AddPreSharedKeyToClientExtensions(TlsPsk[] psks, IDictionary<int, byte[]> clientExtensions)
