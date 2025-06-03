@@ -9,6 +9,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Pqc.Crypto.Falcon;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -34,53 +35,41 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         }
 
         [Test]
-        public void TestKeyEncoding512()
+        public void TestRandom()
         {
-            byte[] altEncKey = Base64.Decode("vsUwFR+onoGQjgYmVpVBEacknmQpGTqsW+kNYw4VntPxVoRVLdsl2U24SzIAgrCZgwBAOnVK57arZT+5nF1afZZB5DzjapIKfPBhLlGmnQ6RX2j/WBaEoMAX7l46ZSb1GgycmZMgUFWvsYLEZr5D4zxOhfSkkzJ38NCzuOUNiFgYQ4TRtwxGwDM8WVV0vpL0nkLVnQJ7B0ZRBz++dXetoI651kjWW91GB3mj+x6U9SYx/KTF4zyejiEF2wVxKzgum13RiivF6cbBHLBeQLGBqRbgk5VasoRaswUc8NBywckHUBgmhilYUv0scpREs3m+IgjcYB2JmryzGNU1p6aM6b/sOrzJffLLm38mca6ZQpoNih03a+8QeIlAn8ns4XJOZOzg0J0ZsUhQ2Zdmj4BASFREAnma1LYH2k/rOf5qpfZUpYzuDhPJ43y5zLeUrt6kKErgGo4KYJBl4/JvWdlnFA8ROEbTY3qXEAHnkRzxsBOFX8midNdRVIDnRSJTZy1RNGFkcCOrpAad0HRVbCAvK6pT1gygOIltO6ap164lQu35kSJKP/a0xYFJgk25+WSK5DZThjVbA12Cb0WI5QRgfaM2+QZko8dDwsbbq05MMPLcy25HGHbqSGWIJLWFyGb0MisvSUnHGnKWL4x5JFP2VbSAtLzbdRCTg+mqcAkC5n1uxJcdZA6ReZ3biuV0RnLwEQhaPmpm2tbJl4w+UAni4mejObiRo8VGNUikK1L4Sig6DjMLON2nsvIEa8iDAaEJUbTLqy0iPWfl45v9HjY26FSpHVgl0GAfBAO0eagBOORzVX7iev0uqA2EGCrZCAdA5QvUTWK1RSA3O3hSXFm4+2A4jqainmxhfOtnuOCJxhZfbpkQ7BWHLLpl4B4LddyeXz2ug4KTzGeyugrDneZCqZ9TMp9URTyqBxmQmkYx3LsGQL4wMYMA6Q92iIQ+2jTBBQmkTNDlZKwjcOoi1eLSOwa3M/jhqiNA1HKsDWmKYoFg5qbPTYEJoDZqIDN6PJP4j++jQWlYW4MLhMXVFAlkWpQyHWcMRc9kpEvRd+hHSYl5G8Da3VSKsWgozoMb7aQbtwQxh0zhZgLJGBvYIyRkLaww0W5wLMJNg438+XOVAg0Olxk+4oVX6Xjpi1dIisTMumukfzOFCwIGgVsmWMVBit4woD7fVBNE5g38O2sdAfM=");
-            byte[] altSubPubEnc = Base64.Decode("MIIDljAHBgUrzg8DAQOCA4kAMIIDhASCA4C+xTAVH6iegZCOBiZWlUERpySeZCkZOqxb6Q1jDhWe0/FWhFUt2yXZTbhLMgCCsJmDAEA6dUrntqtlP7mcXVp9lkHkPONqkgp88GEuUaadDpFfaP9YFoSgwBfuXjplJvUaDJyZkyBQVa+xgsRmvkPjPE6F9KSTMnfw0LO45Q2IWBhDhNG3DEbAMzxZVXS+kvSeQtWdAnsHRlEHP751d62gjrnWSNZb3UYHeaP7HpT1JjH8pMXjPJ6OIQXbBXErOC6bXdGKK8XpxsEcsF5AsYGpFuCTlVqyhFqzBRzw0HLByQdQGCaGKVhS/SxylESzeb4iCNxgHYmavLMY1TWnpozpv+w6vMl98subfyZxrplCmg2KHTdr7xB4iUCfyezhck5k7ODQnRmxSFDZl2aPgEBIVEQCeZrUtgfaT+s5/mql9lSljO4OE8njfLnMt5Su3qQoSuAajgpgkGXj8m9Z2WcUDxE4RtNjepcQAeeRHPGwE4VfyaJ011FUgOdFIlNnLVE0YWRwI6ukBp3QdFVsIC8rqlPWDKA4iW07pqnXriVC7fmRIko/9rTFgUmCTbn5ZIrkNlOGNVsDXYJvRYjlBGB9ozb5BmSjx0PCxturTkww8tzLbkcYdupIZYgktYXIZvQyKy9JSccacpYvjHkkU/ZVtIC0vNt1EJOD6apwCQLmfW7Elx1kDpF5nduK5XRGcvARCFo+amba1smXjD5QCeLiZ6M5uJGjxUY1SKQrUvhKKDoOMws43aey8gRryIMBoQlRtMurLSI9Z+Xjm/0eNjboVKkdWCXQYB8EA7R5qAE45HNVfuJ6/S6oDYQYKtkIB0DlC9RNYrVFIDc7eFJcWbj7YDiOpqKebGF862e44InGFl9umRDsFYcsumXgHgt13J5fPa6DgpPMZ7K6CsOd5kKpn1Myn1RFPKoHGZCaRjHcuwZAvjAxgwDpD3aIhD7aNMEFCaRM0OVkrCNw6iLV4tI7Brcz+OGqI0DUcqwNaYpigWDmps9NgQmgNmogM3o8k/iP76NBaVhbgwuExdUUCWRalDIdZwxFz2SkS9F36EdJiXkbwNrdVIqxaCjOgxvtpBu3BDGHTOFmAskYG9gjJGQtrDDRbnAswk2Djfz5c5UCDQ6XGT7ihVfpeOmLV0iKxMy6a6R/M4ULAgaBWyZYxUGK3jCgPt9UE0TmDfw7ax0B8w==");
+            SecureRandom random = new SecureRandom();
+            byte[] msg = Strings.ToByteArray("Hello World!");
 
-            AsymmetricKeyParameter altPubDec = PqcPublicKeyFactory.CreateKey(SubjectPublicKeyInfo.GetInstance(altSubPubEnc));
-            Assert.AreEqual(altEncKey, ((FalconPublicKeyParameters)altPubDec).GetEncoded());
+            FalconKeyPairGenerator keyGen = new FalconKeyPairGenerator();
+            keyGen.Init(new FalconKeyGenerationParameters(random, FalconParameters.falcon_512));
 
-            Security.SecureRandom random = new Security.SecureRandom();
-            FalconKeyGenerationParameters kparam = new FalconKeyGenerationParameters(random, FalconParameters.falcon_512);
-            FalconKeyPairGenerator kpg = new FalconKeyPairGenerator();
-            kpg.Init(kparam);
-            AsymmetricCipherKeyPair ackp = kpg.GenerateKeyPair();
+            for (int i = 0; i < 10; ++i)
+            {
+                AsymmetricCipherKeyPair keyPair = keyGen.GenerateKeyPair();
 
-            AsymmetricKeyParameter pub = ackp.Public;
-            AsymmetricKeyParameter priv = ackp.Private;
+                var privParams = (FalconPrivateKeyParameters)keyPair.Private;
+                var pubParams = (FalconPublicKeyParameters)keyPair.Public;
 
-            AsymmetricKeyParameter pubDec = PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub));
-            AsymmetricKeyParameter privDec = PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(priv));
+                privParams = (FalconPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                    PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams));
+                pubParams = (FalconPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                    PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams));
 
-            Assert.AreEqual(((FalconPublicKeyParameters)pub).GetEncoded(), ((FalconPublicKeyParameters)pubDec).GetEncoded());
-            Assert.AreEqual(((FalconPrivateKeyParameters)priv).GetEncoded(), ((FalconPrivateKeyParameters)privDec).GetEncoded());
-        }
+                for (int j = 0; j < 10; ++j)
+                {
+                    // sign
+                    FalconSigner signer = new FalconSigner();
+                    signer.Init(true, new ParametersWithRandom(privParams, random));
+                    byte[] signature = signer.GenerateSignature(msg);
 
-        [Test]
-        public void TestKeyEncoding1024()
-        {
-            byte[] altEncKey = Base64.Decode(" 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");
-            byte[] altSubPubEnc = Base64.Decode("MIIHFjAHBgUrzg8DBAOCBwkAMIIHBASCBwB3MRaZLVABIP5EIVyjM7RlrFfqpJgACJI7cB9ZNAwctfoZvBHtSLhdl+5LWTnBaGDegfWGgGjevT01fVOe3dhq5YNVbV/LavDnxdbRDkj2auLGbeqkMmDCuSeXvW3k0yhfshEe0uIYzQ8e4fy6pSKzKIx3OOgKjGi9P3CQj+WahhhoP4Z3KJjmko+CyhiNj2r1laOWhSJFOGnvECEli9/Uw7nwbDNMXGkiOTPVSqxqfA5r93EmNES+YaO/3FWHhLUUPopLisKHV+1h2Xe5yaCYK5kmYGRXKxp5kYx8llNri7TFGEtphL5Q/PaoVlPHDXYbSgKsaoPCTbD7aZQfQYO5mefDVsCsl6HRWxw2DucIEPUrPMc6H+EOdLruJH1P40WSPlYuTGJElpnQEg+bWIG+Gt7a+UugcfnCihwZst1JPUf3Q2HxutpRuki1V7rjDtKUtt3nchtzJFpV9HYWk2a1EPYziTBxuI0QNqG5dI4ECMknIHykqln/HKWT8HMGG+naC8yT5uir7ykpZQIr6DMxmK92YQijlSQMxa4d9SiaAhUOJxBxcvHagMTVtzGJhJRrfSUArhmPm/yl9Mchrt8ARgAvKg2RQS+uw1KBGiIP3duTia0mDTjucagDOL4E5DMhhGhn0ncAf2ZCFsUWqR0Eq4lIHEsfz7FhpDPT7MohBTJSuvBK+gUtcqeGo7AoKME4QRkKnmpAihoMbl5Z0LFgahMs3aAQiQAOK2XBxwbSXimmHrBPL4xiwrWVSaDzV2g+EY2an5igyuUjV+9wfddIR2GDnDHfq+4dA4eKCWSG792zuoIWJqszFnbYIalTC5pdMZt1x0ZB2LB1AAqDWKU10TGMGH3Uc+FzqJajEZTD7cnlhzpJGcaaNLDdzzfRhm1FQbrFcKQGGy4fmLHmQ2/CFqESA4ObNiLTHUkvRLzwhWZdyK/p3MSIQ2GNqBYmjkmcDnoFMcUkDVcdvlIyTIEMYNRhgwlxGOGKV+SYMQfgxuQT0JZr0gumBkquJwFd9cRTVB+O1MHnCMN/4OuEJGkrjY4MB/SBYgsesZXzRjAetjmgulyLccz7qBdARV3C/2mvCXdm6Z44LFkCRNCnYQ1Qk4j5x/JHWdugTTl2BGzsW0LymliT7XwwS/XQlZJ5/EimQ2bLE8pqGHGgY3h5sJlHADFJyU34OOQGXD5D1ONH0geWqXhOB0MucmnrwgT3d1hX9p0JCCFkV9NcqKhxZYOx/9T7pzFXUb/j9Gf6y7R8xG9bZD/Q9SDrDtgtt9cEu7iKB0s3zdinUQ9j/5rserFPFH/ICwaxvYMr0J6k3jlA1qWiWtR52TrHShMIhfDurq+LzLHR4oGaWcSl4uJadI/ga/hnVeMnUKLQKKR3dbgOIgRVIhm9ldvyAs4MAD0yWOSLYd3z27zNOEDMB5NmX6+rWr3kT9xgmHk2JyHuQrltRUnGkqcMJibAvWN4Qh5ASv+Sunvh4xmbHmVlPjN1ahE5JL7GCSTaBLfMzQYFKls08CTapyXOBwaEhflIzD98CnYF6bA0OcQHjFmxnibCKpoO1j0cU8Y5EvyjPJUQYiGOr/ZBwkVpsby8Wnhs1vN0rQc68ZiWhNq4kaVmukQooAU/SDF96JfLI1ZknGAVVR+VQWNoxrDUY+eMqSoVpd3Vj0reW41k6GKNBCXFWAk71dLZ1WS8iDnuGosnOWFJ6aq0yYazsNwTzGLTKoj4EsMfhB/ghMW/SPuyqtkCxd2gM0b3024KqnYAfSHJVQ69ysqWDp9xp7hzV3SiDk0wwTW/KUFfhQgnKeoPrWYpRnFBGRCqJ6FZJqBkXdP1GBapGAG/ZTuI+rEQm+QAAOltfNdZat/3LRJmdaWEA0ta4sn461qcaTrjrBFNAZm0iUzlPiItFtiOXogD9f3FShPTk5aoy/gI8Q+UipgBqNWqzcKQC6kLfkmlWntG+Jctf4X7WoeCtDAhB2QZhAJyt4oELx4QhSeVCV8gMOh3Ct2SDd3XQVNL0KgwY/EA3oJWBq7EctG7cIXYsZQsNVeQCZWp2P5sZtpT7I7REwL6k3NIZmO2QoX3Ld9EUuBI4UakeNqeuBgDY25agNGniAdedi3KPYX/rYgA6xOisFf237u5ihgNWASmiyL8Qs2T0X1sBYP+nLJGWRCjvN8Tz6yOo9HYgbpLLLdBZ9X0F6SV/Ednx6sNIgwp+GtjhAqCfjjTa5C/xN3quYSwo15q1TZXgyLAfyieKSwYpaKE+1+LaWwvpOchrjt0CFLwnZA06tMDKAINk1GuMh5jwRM6NBcCmvkdzScFipyRJ8ADksbgIx0wiNajYj222oL1HNO1mC1J0rfQdr94g5pOhTkWLD8Ivp7PKXWhCOwX5bAaoed2XaUzgL6bcITN");
+                    // verify
+                    FalconSigner verifier = new FalconSigner();
+                    verifier.Init(false, pubParams);
+                    bool verified = verifier.VerifySignature(msg, signature);
 
-            AsymmetricKeyParameter altPubDec = PqcPublicKeyFactory.CreateKey(SubjectPublicKeyInfo.GetInstance(altSubPubEnc));
-            Assert.AreEqual(altEncKey, ((FalconPublicKeyParameters)altPubDec).GetEncoded());
-
-            Security.SecureRandom random = new Security.SecureRandom();
-            FalconKeyGenerationParameters kparam = new FalconKeyGenerationParameters(random, FalconParameters.falcon_1024);
-            FalconKeyPairGenerator kpg = new FalconKeyPairGenerator();
-            kpg.Init(kparam);
-            AsymmetricCipherKeyPair ackp = kpg.GenerateKeyPair();
-
-            AsymmetricKeyParameter pub = ackp.Public;
-            AsymmetricKeyParameter priv = ackp.Private;
-
-            AsymmetricKeyParameter pubDec = PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pub));
-            AsymmetricKeyParameter privDec = PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(priv));
-  
-            Assert.AreEqual(((FalconPublicKeyParameters)pub).GetEncoded(), ((FalconPublicKeyParameters)pubDec).GetEncoded());
-            Assert.AreEqual(((FalconPrivateKeyParameters)priv).GetEncoded(), ((FalconPrivateKeyParameters)privDec).GetEncoded());
+                    Assert.True(verified, "count = " + i);
+                }
+            }
         }
 
         [TestCaseSource(nameof(TestVectorFiles))]
