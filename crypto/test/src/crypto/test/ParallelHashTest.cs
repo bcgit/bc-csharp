@@ -18,13 +18,12 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class ParallelHashTest
         : SimpleTest
     {
-        public override string Name
-        {
-            get { return "ParallelHash"; }
-        }
+        public override string Name => "ParallelHash";
 
         public override void PerformTest()
         {
+            ImplTestException();
+
             ParallelHash  pHash = new ParallelHash(128, new byte[0], 8);
 
             byte[] data = Hex.Decode("00 01 02 03 04 05 06 07 10 11 12 13 14 15 16 17 20 21 22 23 24 25 26 27");
@@ -118,13 +117,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             IsTrue("oops!", !Arrays.AreEqual(Hex.Decode("69 D0 FC B7 64 EA 05 5D D0 93 34 BC 60 21 CB 7E 4B 61 34 8D FF 37 5D A2 62 67 1C DE C3 EF FA 8D 1B 45 68 A6 CC E1 6B 1C AD 94 6D DD E2 7F 6C E2 B8 DE E4 CD 1B 24 85 1E BF 00 EB 90 D4 38 13 E9"), res));
             IsTrue("oops!", Arrays.AreEqual(Hex.Decode("6b3e790b330c889a204c2fbc728d809f19367328d852f4002dc829f73afd6bcefb7fe5b607b13a801c0be5c1170bdb794e339458fdb0e62a6af3d42558970249"), res));
 
-            testEmpty();
+            ImplTestEmpty();
+            ImplTestClone();
 
             DigestTest.SpanConsistencyTests(this, new ParallelHash(128, new byte[0], 8));
             DigestTest.SpanConsistencyTests(this, new ParallelHash(256, new byte[0], 8));
         }
 
-        private void testEmpty()
+        private void ImplTestEmpty()
         {
             //{"tcId":90,"msg":"","len":0,"blockSize":62,"customization":"Ny0LL2tUmt\u003C\u002BkuN5:Z7pZ_7]R; l/i:%pWbo4}","outLen":16},
             //{"tcId":90,"md":"13C4","outLen":16}
@@ -137,6 +137,52 @@ namespace Org.BouncyCastle.Crypto.Tests
             pHash.Output(res, 0, res.Length);
 
             IsTrue(Arrays.AreEqual(Hex.Decode("13C4"), res));
+        }
+
+        private void ImplTestClone()
+        {
+            IDigest digest = new ParallelHash(256, Strings.ToByteArray("Parallel Data"), 12);
+            byte[] input = Hex.Decode("00 01 02 03 04 05 06 07 08 09 0A 0B 10 11 12 13 14 15 16 17 18 19 1A 1B 20 21 22 23 24 25 26 27 28 29 2A 2B 30 31 32 33 34 35 36 37 38 39 3A 3B 40 41 42 43 44 45 46 47 48 49 4A 4B 50 51 52 53 54 55 56 57 58 59 5A 5B");
+            byte[] expected = Hex.Decode("69 D0 FC B7 64 EA 05 5D D0 93 34 BC 60 21 CB 7E 4B 61 34 8D FF 37 5D A2 62 67 1C DE C3 EF FA 8D 1B 45 68 A6 CC E1 6B 1C AD 94 6D DD E2 7F 6C E2 B8 DE E4 CD 1B 24 85 1E BF 00 EB 90 D4 38 13 E9");
+            byte[] resBuf = new byte[expected.Length];
+
+            digest.BlockUpdate(input, 0, input.Length / 2);
+
+            // clone the Digest
+            IDigest d = new ParallelHash((ParallelHash)digest);
+
+            digest.BlockUpdate(input, input.Length / 2, input.Length - input.Length / 2);
+            digest.DoFinal(resBuf, 0);
+
+            if (!AreEqual(expected, resBuf))
+            {
+                Fail("failing clone vector test", Hex.ToHexString(expected), Hex.ToHexString(resBuf));
+            }
+
+            d.BlockUpdate(input, input.Length / 2, input.Length - input.Length / 2);
+            d.DoFinal(resBuf, 0);
+
+            if (!AreEqual(expected, resBuf))
+            {
+                Fail("failing second clone vector test", Hex.ToHexString(expected), Hex.ToHexString(resBuf));
+            }
+        }
+
+        private void ImplTestException()
+        {
+            try
+            {
+                IDigest digest = new ParallelHash(128, null, 0);
+                Fail("block size should be greater than 0");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue(e.Message, e.Message.IndexOf("block size should be greater than 0") >= 0);
+            }
+            catch (Exception e)
+            {
+                Fail(e.Message);
+            }
         }
 
         [Test]

@@ -43,6 +43,9 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public ParallelHash(int bitLength, byte[] S, int B, int outputSize)
         {
+            if (B <= 0)
+                throw new ArgumentException("block size should be greater than 0", nameof(B));
+
             this.cshake = new CShakeDigest(bitLength, N_PARALLEL_HASH, S);
             this.compressor = new CShakeDigest(bitLength, new byte[0], new byte[0]);
             this.bitLength = bitLength;
