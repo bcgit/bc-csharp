@@ -1,5 +1,6 @@
 using System;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
 using System.Runtime.CompilerServices;
 #endif
 #if NETCOREAPP3_0_OR_GREATER
@@ -988,7 +989,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 long c = (long)(((totalLength * 8) + 127) >> 7);
 
                 // Calculate the adjustment factor
-                byte[] H_c = new byte[16];
+                Span<byte> H_c = stackalloc byte[16];
                 if (exp == null)
                 {
                     exp = new BasicGcmExponentiator();
@@ -1047,18 +1048,31 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(true);
         }
 
+        static void Reset<T>(ref T[] array, int size)
+        {
+            if (array is null || array.Length != size)
+            {
+                array = new T[size];
+            }
+            else
+            {
+                Arrays.Fill(array, default);
+            }
+        }
+
         private void Reset(bool clearMac)
         {
             // note: we do not reset the nonce.
 
-            S = new byte[BlockSize];
-            S_at = new byte[BlockSize];
-            S_atPre = new byte[BlockSize];
-            atBlock = new byte[BlockSize];
+            Reset(ref S, BlockSize);
+            Reset(ref S_at, BlockSize);
+            Reset(ref S_atPre, BlockSize);
+            Reset(ref atBlock, BlockSize);
             atBlockPos = 0;
             atLength = 0;
             atLengthPre = 0;
-            counter = Arrays.Clone(J0);
+            Reset(ref counter, BlockSize);
+            J0.CopyTo(counter, 0);
             counter32 = Pack.BE_To_UInt32(counter, 12);
             blocksRemaining = uint.MaxValue - 1;
             bufOff = 0;
