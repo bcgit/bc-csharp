@@ -53,10 +53,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             this.digest = digest;
         }
 
-        public virtual string AlgorithmName
-        {
-            get { return "SM2Sign"; }
-        }
+        public virtual string AlgorithmName => "SM2Sign";
 
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
@@ -69,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 userID = withID.GetID();
 
                 if (userID.Length >= 8192)
-                    throw new ArgumentException("SM2 user ID must be less than 2^16 bits long");
+                    throw new ArgumentException("SM2 user ID must be less than 2^13 bits long");
             }
             else
             {
@@ -80,30 +77,27 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
-                SecureRandom random = null;
-                if (baseParam is ParametersWithRandom rParam)
-                {
-                    ecKey = (ECKeyParameters)rParam.Parameters;
-                    ecParams = ecKey.Parameters;
-                    random = rParam.Random;
-                }
-                else
-                {
-                    ecKey = (ECKeyParameters)baseParam;
-                    ecParams = ecKey.Parameters;
-                }
-                if (!kCalculator.IsDeterministic)
-                {
-                    random = CryptoServicesRegistrar.GetSecureRandom(random);
-                }
-                kCalculator.Init(ecParams.N, random);
-                pubPoint = CreateBasePointMultiplier().Multiply(ecParams.G, ((ECPrivateKeyParameters)ecKey).D).Normalize();
+                var ecPrivateKey = (ECPrivateKeyParameters)ParameterUtilities.GetRandom(baseParam, out var random);
+
+                ecKey = ecPrivateKey;
+                ecParams = ecPrivateKey.Parameters;
+
+                BigInteger d = ecPrivateKey.D;
+                BigInteger n = ecParams.N;
+
+                if (d.CompareTo(BigInteger.One) < 0 || d.CompareTo(n.Subtract(BigInteger.One)) >= 0)
+                    throw new ArgumentException("SM2 private key out of range");
+
+                kCalculator.Init(n, CryptoServicesRegistrar.GetSecureRandom(random));
+                pubPoint = CreateBasePointMultiplier().Multiply(ecParams.G, d).Normalize();
             }
             else
             {
-                ecKey = (ECKeyParameters)baseParam;
-                ecParams = ecKey.Parameters;
-                pubPoint = ((ECPublicKeyParameters)ecKey).Q;
+                var ecPublicKey = (ECPublicKeyParameters)baseParam;
+
+                ecKey = ecPublicKey;
+                ecParams = ecPublicKey.Parameters;
+                pubPoint = ecPublicKey.Q;
             }
 
             digest.Reset();
