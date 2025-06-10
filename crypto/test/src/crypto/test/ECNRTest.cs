@@ -1,13 +1,9 @@
-using System;
-
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -18,26 +14,21 @@ namespace Org.BouncyCastle.Crypto.Tests
      * ECNR tests.
      */
     [TestFixture]
-    public class EcNrTest
-        : SimpleTest
+    public class ECNRTest
     {
         /**
-            * a basic regression test with 239 bit prime
-            */
-        BigInteger r = new BigInteger("308636143175167811492623515537541734843573549327605293463169625072911693");
-        BigInteger s = new BigInteger("852401710738814635664888632022555967400445256405412579597015412971797143");
+         * a basic regression test with 239 bit prime
+         */
+        private static readonly BigInteger r = new BigInteger("308636143175167811492623515537541734843573549327605293463169625072911693");
+        private static readonly BigInteger s = new BigInteger("852401710738814635664888632022555967400445256405412579597015412971797143");
 
-        byte[] kData = BigIntegers.AsUnsignedByteArray(new BigInteger("700000017569056646655505781757157107570501575775705779575555657156756655"));
+        private static readonly byte[] kData = BigIntegers.AsUnsignedByteArray(new BigInteger("700000017569056646655505781757157107570501575775705779575555657156756655"));
 
-        private readonly SecureRandom k;
-
-        public EcNrTest()
+        [Test]
+        public void TestECNR239bitPrime()
         {
-            k = FixedSecureRandom.From(kData);
-        }
+            var k = FixedSecureRandom.From(kData);
 
-        private void ecNR239bitPrime()
-        {
             BigInteger n = new BigInteger("883423532389192164791648750360308884807550341691627752275345424702807307");
 
             FpCurve curve = new FpCurve(
@@ -56,22 +47,13 @@ namespace Org.BouncyCastle.Crypto.Tests
                 parameters);
 
             ECNRSigner ecnr = new ECNRSigner();
-            ParametersWithRandom param = new ParametersWithRandom(priKey, k);
-
-            ecnr.Init(true, param);
+            ecnr.Init(true, new ParametersWithRandom(priKey, k));
 
             byte[] message = new BigInteger("968236873715988614170569073515315707566766479517").ToByteArray();
             BigInteger[] sig = ecnr.GenerateSignature(message);
 
-            if (!r.Equals(sig[0]))
-            {
-                Fail("r component wrong.", r, sig[0]);
-            }
-
-            if (!s.Equals(sig[1]))
-            {
-                Fail("s component wrong.", s, sig[1]);
-            }
+            Assert.AreEqual(r, sig[0], "r component wrong.", r, sig[0]);
+            Assert.AreEqual(s, sig[1], "s component wrong.", s, sig[1]);
 
             // Verify the signature
             ECPublicKeyParameters pubKey = new ECPublicKeyParameters(
@@ -79,28 +61,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 parameters);
 
             ecnr.Init(false, pubKey);
-            if (!ecnr.VerifySignature(message, sig[0], sig[1]))
-            {
-                Fail("signature fails");
-            }
-        }
-
-        public override string Name
-        {
-            get { return "ECNR"; }
-        }
-
-        public override void PerformTest()
-        {
-            ecNR239bitPrime();
-        }
-
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
+            bool verified = ecnr.VerifySignature(message, sig[0], sig[1]);
+            Assert.True(verified, "signature fails");
         }
     }
 }
