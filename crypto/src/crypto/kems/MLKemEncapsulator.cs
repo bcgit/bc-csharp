@@ -22,12 +22,7 @@ namespace Org.BouncyCastle.Crypto.Kems
 
         public void Init(ICipherParameters parameters)
         {
-            SecureRandom providedRandom = null;
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                providedRandom = withRandom.Random;
-                parameters = withRandom.Parameters;
-            }
+            parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
             if (!(parameters is MLKemPublicKeyParameters publicKey))
                 throw new ArgumentException($"{nameof(MLKemDecapsulator)} expects {nameof(MLKemPublicKeyParameters)}");

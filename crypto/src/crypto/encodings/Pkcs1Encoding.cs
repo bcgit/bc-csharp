@@ -104,12 +104,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         {
             engine.Init(forEncryption, parameters);
 
-            SecureRandom providedRandom = null;
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                providedRandom = withRandom.Random;
-                parameters = withRandom.Parameters;
-            }
+            parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
             AsymmetricKeyParameter kParam = (AsymmetricKeyParameter)parameters;
 

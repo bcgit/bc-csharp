@@ -47,20 +47,15 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
-            SecureRandom providedRandom = null;
-
             if (forSigning)
             {
-                if (parameters is ParametersWithRandom rParam)
-                {
-                    providedRandom = rParam.Random;
-                    parameters = rParam.Parameters;
-                }
+                parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
                 if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
                     throw new InvalidKeyException("EC private key required for signing");
 
                 this.key = ecPrivateKeyParameters;
+                this.random = InitSecureRandom(!kCalculator.IsDeterministic, providedRandom);
             }
             else
             {
@@ -68,9 +63,8 @@ namespace Org.BouncyCastle.Crypto.Signers
                     throw new InvalidKeyException("EC public key required for verification");
 
                 this.key = ecPublicKeyParameters;
+                this.random = null;
             }
-
-            this.random = InitSecureRandom(forSigning && !kCalculator.IsDeterministic, providedRandom);
         }
 
         public virtual BigInteger Order

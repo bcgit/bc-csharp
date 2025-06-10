@@ -369,6 +369,18 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Algorithm " + algorithm + " not recognised.");
         }
 
+        public static ICipherParameters GetRandom(ICipherParameters cipherParameters, out SecureRandom random)
+        {
+            if (cipherParameters is ParametersWithRandom withRandom)
+            {
+                random = withRandom.Random;
+                return withRandom.Parameters;
+            }
+
+            random = null;
+            return cipherParameters;
+        }
+
         public static ICipherParameters IgnoreRandom(ICipherParameters cipherParameters)
         {
             if (cipherParameters is ParametersWithRandom withRandom)

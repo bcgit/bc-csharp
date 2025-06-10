@@ -30,20 +30,13 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
-                if (parameters is ParametersWithRandom rParam)
-                {
-                    this.random = rParam.Random;
-                    parameters = rParam.Parameters;
-                }
-                else
-                {
-                    this.random = CryptoServicesRegistrar.GetSecureRandom();
-                }
+                parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
                 if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
                     throw new InvalidKeyException("EC private key required for signing");
 
                 this.key = ecPrivateKeyParameters;
+                this.random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
             }
             else
             {
@@ -51,6 +44,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     throw new InvalidKeyException("EC public key required for verification");
 
                 this.key = ecPublicKeyParameters;
+                this.random = null;
             }
         }
 

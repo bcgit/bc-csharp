@@ -56,24 +56,17 @@ namespace Org.BouncyCastle.Crypto.Engines
 			this.forWrapping = forWrapping;
 			this.engine = new CbcBlockCipher(new RC2Engine());
 
-			if (parameters is ParametersWithRandom withRandom)
-			{
-				sr = withRandom.Random;
-				parameters = withRandom.Parameters;
-			}
-			else
-			{
-                sr = forWrapping ? CryptoServicesRegistrar.GetSecureRandom() : null;
-			}
+			parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
+			sr = forWrapping ? CryptoServicesRegistrar.GetSecureRandom(providedRandom) : null;
 
-			if (parameters is ParametersWithIV)
+			if (parameters is ParametersWithIV withIV)
 			{
 				if (!forWrapping)
 					throw new ArgumentException("You should not supply an IV for unwrapping");
 
-				this.paramPlusIV = (ParametersWithIV)parameters;
-				this.iv = this.paramPlusIV.GetIV();
-				this.parameters = this.paramPlusIV.Parameters;
+				this.paramPlusIV = withIV;
+				this.iv = withIV.GetIV();
+				this.parameters = withIV.Parameters;
 
 				if (this.iv.Length != 8)
 					throw new ArgumentException("IV is not 8 octets");

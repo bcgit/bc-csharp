@@ -57,12 +57,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.forWrapping = forWrapping;
             this.engine = new CbcBlockCipher(new DesEdeEngine());
 
-			SecureRandom random = null;
-			if (parameters is ParametersWithRandom pr)
-			{
-				parameters = pr.Parameters;
-                random = pr.Random;
-			}
+            parameters = ParameterUtilities.GetRandom(parameters, out var random);
 
 			if (parameters is KeyParameter keyParameter)
             {

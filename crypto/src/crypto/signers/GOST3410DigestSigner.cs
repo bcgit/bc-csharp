@@ -34,15 +34,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             this.forSigning = forSigning;
 
-            AsymmetricKeyParameter k;
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                k = (AsymmetricKeyParameter)withRandom.Parameters;
-            }
-            else
-            {
-                k = (AsymmetricKeyParameter)parameters;
-            }
+            AsymmetricKeyParameter k = (AsymmetricKeyParameter)ParameterUtilities.IgnoreRandom(parameters);
 
             if (forSigning && !k.IsPrivate)
                 throw new InvalidKeyException("Signing requires private key.");

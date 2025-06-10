@@ -2,6 +2,7 @@
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
@@ -71,14 +72,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                kParam = (RsaKeyParameters)withRandom.Parameters;
-            }
-            else
-            {
-                kParam = (RsaKeyParameters)parameters;
-            }
+            kParam = (RsaKeyParameters)ParameterUtilities.IgnoreRandom(parameters);
 
             cipher.Init(forSigning, parameters);
 

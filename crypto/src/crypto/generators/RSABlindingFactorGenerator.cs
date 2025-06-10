@@ -24,16 +24,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 		*/
 		public void Init(ICipherParameters param)
 		{
-			if (param is ParametersWithRandom rParam)
-			{
-				key = (RsaKeyParameters)rParam.Parameters;
-				random = rParam.Random;
-			}
-			else
-			{
-				key = (RsaKeyParameters)param;
-				random = CryptoServicesRegistrar.GetSecureRandom();
-			}
+			key = (RsaKeyParameters)ParameterUtilities.GetRandom(param, out var providedRandom);
+			random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
 
 			if (key.IsPrivate)
 				throw new ArgumentException("generator requires RSA public key");

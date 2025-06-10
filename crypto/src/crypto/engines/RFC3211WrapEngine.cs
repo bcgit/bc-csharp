@@ -25,22 +25,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 		}
 
         public virtual void Init(bool forWrapping, ICipherParameters param)
-		{
-			this.forWrapping = forWrapping;
+        {
+            this.forWrapping = forWrapping;
 
-			if (param is ParametersWithRandom withRandom)
-			{
-                this.param = withRandom.Parameters as ParametersWithIV;
-                this.rand = withRandom.Random;
-            }
-            else
-			{
-                this.param = param as ParametersWithIV;
-				this.rand = forWrapping ? CryptoServicesRegistrar.GetSecureRandom() : null;
-            }
+            this.param = ParameterUtilities.GetRandom(param, out var providedRandom) as ParametersWithIV ??
+                throw new ArgumentException("RFC3211Wrap requires an IV", nameof(param));
 
-            if (null == this.param)
-                throw new ArgumentException("RFC3211Wrap requires an IV", "param");
+            this.rand = forWrapping ? CryptoServicesRegistrar.GetSecureRandom(providedRandom) : null;
         }
 
         public virtual string AlgorithmName

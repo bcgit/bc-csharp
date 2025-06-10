@@ -23,10 +23,7 @@ namespace Org.BouncyCastle.Crypto.Engines
          */
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                parameters = withRandom.Parameters;
-            }
+            parameters = ParameterUtilities.IgnoreRandom(parameters);
 
             m_key = parameters as RsaKeyParameters ?? throw new InvalidKeyException("Not an RSA key");
             m_forEncryption = forEncryption;

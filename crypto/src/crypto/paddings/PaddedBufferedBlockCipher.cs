@@ -60,12 +60,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         {
             this.forEncryption = forEncryption;
 
-            SecureRandom initRandom = null;
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                initRandom = withRandom.Random;
-                parameters = withRandom.Parameters;
-            }
+            parameters = ParameterUtilities.GetRandom(parameters, out var initRandom);
 
             // TODO[api] Redundantly resets the cipher mode
             Reset();

@@ -49,12 +49,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             if (forSigning)
             {
-                SecureRandom providedRandom = null;
-                if (parameters is ParametersWithRandom withRandom)
-                {
-                    providedRandom = withRandom.Random;
-                    parameters = withRandom.Parameters;
-                }
+                parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
                 m_privateKey = (MLDsaPrivateKeyParameters)parameters;
                 m_publicKey = null;

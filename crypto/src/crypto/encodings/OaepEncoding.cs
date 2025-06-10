@@ -68,11 +68,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
-            SecureRandom initRandom = null;
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                initRandom = withRandom.Random;
-            }
+            ParameterUtilities.GetRandom(parameters, out var initRandom);
 
             this.random = forEncryption ? CryptoServicesRegistrar.GetSecureRandom(initRandom) : null;
             this.forEncryption = forEncryption;

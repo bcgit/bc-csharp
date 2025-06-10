@@ -28,23 +28,14 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
 		public void Init(ICipherParameters parameters)
 		{
-			AsymmetricKeyParameter kParam;
-			if (parameters is ParametersWithRandom rParam)
-			{
-				this.random = rParam.Random;
-				kParam = (AsymmetricKeyParameter)rParam.Parameters;
-			}
-			else
-			{
-				this.random = CryptoServicesRegistrar.GetSecureRandom();
-				kParam = (AsymmetricKeyParameter)parameters;
-			}
+			var kParam = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
 			if (!(kParam is DHPrivateKeyParameters dhPrivateKeyParameters))
 				throw new ArgumentException($"{nameof(DHAgreement)} expects {nameof(DHPrivateKeyParameters)}");
 
 			this.key = dhPrivateKeyParameters;
 			this.dhParams = dhPrivateKeyParameters.Parameters;
+			this.random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
 		}
 
 		/**

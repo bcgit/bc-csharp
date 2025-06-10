@@ -55,19 +55,14 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             this.mForEncryption = forEncryption;
 
-            SecureRandom random = null;
-            if (param is ParametersWithRandom withRandom)
-            {
-                param = withRandom.Parameters;
-                random = withRandom.Random;
-            }
+            param = ParameterUtilities.GetRandom(param, out var providedRandom);
 
             mECKey = (ECKeyParameters)param;
             mECParams = mECKey.Parameters;
 
             if (forEncryption)
             {
-                mRandom = CryptoServicesRegistrar.GetSecureRandom(random);
+                mRandom = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
 
                 ECPoint s = ((ECPublicKeyParameters)mECKey).Q.Multiply(mECParams.H);
                 if (s.IsInfinity)

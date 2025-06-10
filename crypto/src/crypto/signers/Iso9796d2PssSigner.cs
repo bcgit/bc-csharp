@@ -99,6 +99,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 kParam = (RsaKeyParameters)withRandom.Parameters;
                 random = forSigning ? withRandom.Random : null;
+                standardSalt = null;
             }
             else if (parameters is ParametersWithSalt withSalt)
             {
@@ -106,6 +107,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     throw new ArgumentException("ParametersWithSalt only valid for signing", nameof(parameters));
 
                 kParam = (RsaKeyParameters)withSalt.Parameters;
+                random = null;
                 standardSalt = withSalt.GetSalt();
 
                 if (standardSalt.Length != saltLength)
@@ -115,6 +117,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 kParam = (RsaKeyParameters)parameters;
                 random = forSigning ? CryptoServicesRegistrar.GetSecureRandom() : null;
+                standardSalt = null;
             }
 
             cipher.Init(forSigning, kParam);

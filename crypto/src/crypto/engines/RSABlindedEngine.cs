@@ -41,12 +41,7 @@ namespace Org.BouncyCastle.Crypto.Engines
          */
         public virtual void Init(bool forEncryption, ICipherParameters param)
         {
-            SecureRandom providedRandom = null;
-            if (param is ParametersWithRandom withRandom)
-            {
-                providedRandom = withRandom.Random;
-                param = withRandom.Parameters;
-            }
+            param = ParameterUtilities.GetRandom(param, out var providedRandom);
 
             core.Init(forEncryption, param);
 

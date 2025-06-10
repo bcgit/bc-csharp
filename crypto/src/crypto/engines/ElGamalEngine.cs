@@ -30,17 +30,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @param param the necessary ElGamal key parameters.
 		*/
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
-		{
-			if (parameters is ParametersWithRandom withRandom)
-			{
-				this.key = (ElGamalKeyParameters)withRandom.Parameters;
-				this.random = withRandom.Random;
-			}
-			else
-			{
-				this.key = (ElGamalKeyParameters)parameters;
-				this.random = forEncryption ? CryptoServicesRegistrar.GetSecureRandom() : null;
-            }
+        {
+            this.key = (ElGamalKeyParameters)ParameterUtilities.GetRandom(parameters, out var providedRandom);
+            this.random = forEncryption ? CryptoServicesRegistrar.GetSecureRandom(providedRandom) : null;
 
 			this.forEncryption = forEncryption;
 			this.bitSize = key.Parameters.P.BitLength;

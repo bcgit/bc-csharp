@@ -22,32 +22,26 @@ namespace Org.BouncyCastle.Crypto.Signers
 		}
 
         public virtual void Init(bool forSigning, ICipherParameters parameters)
-		{
-			if (forSigning)
-			{
-				if (parameters is ParametersWithRandom rParam)
-				{
-					this.random = rParam.Random;
-					parameters = rParam.Parameters;
-				}
-				else
-				{
-					this.random = CryptoServicesRegistrar.GetSecureRandom();
-				}
+        {
+            if (forSigning)
+            {
+                parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
-				if (!(parameters is Gost3410PrivateKeyParameters))
-					throw new InvalidKeyException("GOST3410 private key required for signing");
+                if (!(parameters is Gost3410PrivateKeyParameters privateKey))
+                    throw new InvalidKeyException("GOST3410 private key required for signing");
 
-				this.key = (Gost3410PrivateKeyParameters) parameters;
-			}
-			else
-			{
-				if (!(parameters is Gost3410PublicKeyParameters))
-					throw new InvalidKeyException("GOST3410 public key required for signing");
+                this.key = privateKey;
+                this.random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
+            }
+            else
+            {
+                if (!(parameters is Gost3410PublicKeyParameters publicKey))
+                    throw new InvalidKeyException("GOST3410 public key required for signing");
 
-				this.key = (Gost3410PublicKeyParameters) parameters;
-			}
-		}
+                this.key = publicKey;
+                this.random = null;
+            }
+        }
 
         public virtual BigInteger Order
         {

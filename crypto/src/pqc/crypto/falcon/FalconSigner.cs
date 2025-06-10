@@ -19,17 +19,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
             if (forSigning)
             {
-                FalconPrivateKeyParameters skparam;
-                if (param is ParametersWithRandom withRandom)
-                {
-                    skparam = (FalconPrivateKeyParameters)withRandom.Parameters;
-                    random = withRandom.Random;
-                }
-                else
-                {
-                    skparam = (FalconPrivateKeyParameters)param;
-                    random = CryptoServicesRegistrar.GetSecureRandom();
-                }
+                param = ParameterUtilities.GetRandom(param, out var providedRandom);
+                FalconPrivateKeyParameters skparam = (FalconPrivateKeyParameters)param;
+                random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
                 encodedkey = skparam.GetEncoded();
                 parameters = skparam.Parameters;
             }
