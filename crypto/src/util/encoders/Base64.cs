@@ -1,49 +1,33 @@
 using System;
 using System.IO;
-using System.Text;
 
 namespace Org.BouncyCastle.Utilities.Encoders
 {
+    // TODO[api] Make static
     public sealed class Base64
     {
         private Base64()
         {
         }
 
-        public static string ToBase64String(
-            byte[] data)
-        {
-            return Convert.ToBase64String(data, 0, data.Length);
-        }
+        public static string ToBase64String(byte[] data) => Convert.ToBase64String(data, 0, data.Length);
 
-        public static string ToBase64String(
-            byte[] data,
-            int off,
-            int length)
-        {
-            return Convert.ToBase64String(data, off, length);
-        }
+        public static string ToBase64String(byte[] data, int off, int length) =>
+            Convert.ToBase64String(data, off, length);
 
         /**
          * encode the input data producing a base 64 encoded byte array.
          *
          * @return a byte array containing the base 64 encoded data.
          */
-        public static byte[] Encode(
-            byte[] data)
-        {
-            return Encode(data, 0, data.Length);
-        }
+        public static byte[] Encode(byte[] data) => Encode(data, 0, data.Length);
 
         /**
          * encode the input data producing a base 64 encoded byte array.
          *
          * @return a byte array containing the base 64 encoded data.
          */
-        public static byte[] Encode(
-            byte[] data,
-            int off,
-            int length)
+        public static byte[] Encode(byte[] data, int off, int length)
         {
             string s = Convert.ToBase64String(data, off, length);
             return Strings.ToAsciiByteArray(s);
@@ -54,9 +38,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
          *
          * @return the number of bytes produced.
          */
-        public static int Encode(
-            byte[]	data,
-            Stream	outStream)
+        public static int Encode(byte[] data, Stream outStream)
         {
             byte[] encoded = Encode(data);
             outStream.Write(encoded, 0, encoded.Length);
@@ -68,11 +50,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
          *
          * @return the number of bytes produced.
          */
-        public static int Encode(
-            byte[]	data,
-            int		off,
-            int		length,
-            Stream	outStream)
+        public static int Encode(byte[] data, int off, int length, Stream outStream)
         {
             byte[] encoded = Encode(data, off, length);
             outStream.Write(encoded, 0, encoded.Length);
@@ -84,10 +62,11 @@ namespace Org.BouncyCastle.Utilities.Encoders
          *
          * @return a byte array representing the decoded data.
          */
-        public static byte[] Decode(
-            byte[] data)
+        public static byte[] Decode(byte[] data) => Decode(data, 0, data.Length);
+
+        public static byte[] Decode(byte[] data, int off, int length)
         {
-            string s = Strings.FromAsciiByteArray(data);
+            string s = Strings.FromAsciiByteArray(data, off, length);
             return Convert.FromBase64String(s);
         }
 
@@ -96,11 +75,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
          *
          * @return a byte array representing the decoded data.
          */
-        public static byte[] Decode(
-            string data)
-        {
-            return Convert.FromBase64String(data);
-        }
+        public static byte[] Decode(string data) => Convert.FromBase64String(data);
 
         /**
          * decode the base 64 encoded string data writing it to the given output stream,
@@ -108,9 +83,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
          *
          * @return the number of bytes produced.
          */
-        public static int Decode(
-            string	data,
-            Stream	outStream)
+        public static int Decode(string data, Stream outStream)
         {
             byte[] decoded = Decode(data);
             outStream.Write(decoded, 0, decoded.Length);
