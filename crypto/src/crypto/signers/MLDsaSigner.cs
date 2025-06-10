@@ -68,21 +68,12 @@ namespace Org.BouncyCastle.Crypto.Signers
             Reset();
         }
 
-        public void Update(byte input)
-        {
-            m_msgRepDigest.Update(input);
-        }
+        public void Update(byte input) => m_msgRepDigest.Update(input);
 
-        public void BlockUpdate(byte[] input, int inOff, int inLen)
-        {
-            m_msgRepDigest.BlockUpdate(input, inOff, inLen);
-        }
+        public void BlockUpdate(byte[] input, int inOff, int inLen) => m_msgRepDigest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            m_msgRepDigest.BlockUpdate(input);
-        }
+        public void BlockUpdate(ReadOnlySpan<byte> input) => m_msgRepDigest.BlockUpdate(input);
 #endif
 
         public int GetMaxSignatureSize() => m_engine.CryptoBytes;
@@ -128,7 +119,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
-            if (keyParameters.ParameterSet != m_parameters.ParameterSet)
+            if (keyParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
             return keyParameterSet.GetEngine(random);

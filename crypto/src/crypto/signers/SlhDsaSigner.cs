@@ -66,21 +66,12 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_buffer.Init(context: providedContext ?? Array.Empty<byte>());
         }
 
-        public void Update(byte input)
-        {
-            m_buffer.WriteByte(input);
-        }
+        public void Update(byte input) => m_buffer.WriteByte(input);
 
-        public void BlockUpdate(byte[] input, int inOff, int inLen)
-        {
-            m_buffer.Write(input, inOff, inLen);
-        }
+        public void BlockUpdate(byte[] input, int inOff, int inLen) => m_buffer.Write(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            m_buffer.Write(input);
-        }
+        public void BlockUpdate(ReadOnlySpan<byte> input) => m_buffer.Write(input);
 #endif
 
         public int GetMaxSignatureSize() => m_engine.SignatureLength;
@@ -101,16 +92,13 @@ namespace Org.BouncyCastle.Crypto.Signers
             return m_buffer.VerifySignature(m_publicKey, m_engine, signature);
         }
 
-        public void Reset()
-        {
-            m_buffer.Reset();
-        }
+        public void Reset() => m_buffer.Reset();
 
         private SphincsPlusEngine GetEngine(SlhDsaParameters keyParameters)
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
-            if (keyParameters.ParameterSet != m_parameters.ParameterSet)
+            if (keyParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
             return keyParameterSet.GetEngine();

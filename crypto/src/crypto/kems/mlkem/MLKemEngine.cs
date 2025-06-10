@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 
-using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -87,6 +86,8 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             m_indCpa = new IndCpa(this);
             m_random = random;
         }
+
+        internal SecureRandom Random => m_random;
 
         internal void GenerateKemKeyPair(out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk, out byte[] nonce,
             out byte[] seed)
@@ -267,10 +268,5 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             }
         }
 #endif
-
-        internal void RandomBytes(byte[] buf, int len)
-        {
-            m_random.NextBytes(buf, 0, len);
-        }
     }
 }

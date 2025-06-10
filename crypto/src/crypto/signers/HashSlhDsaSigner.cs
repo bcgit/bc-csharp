@@ -71,21 +71,12 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_buffer.Init(context: providedContext ?? Array.Empty<byte>(), m_preHashOidEncoding);
         }
 
-        public void Update(byte input)
-        {
-            m_preHashDigest.Update(input);
-        }
+        public void Update(byte input) => m_preHashDigest.Update(input);
 
-        public void BlockUpdate(byte[] input, int inOff, int inLen)
-        {
-            m_preHashDigest.BlockUpdate(input, inOff, inLen);
-        }
+        public void BlockUpdate(byte[] input, int inOff, int inLen) => m_preHashDigest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            m_preHashDigest.BlockUpdate(input);
-        }
+        public void BlockUpdate(ReadOnlySpan<byte> input) => m_preHashDigest.BlockUpdate(input);
 #endif
 
         public int GetMaxSignatureSize() => m_engine.SignatureLength;
@@ -93,7 +84,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         public byte[] GenerateSignature()
         {
             if (m_privateKey == null)
-                throw new InvalidOperationException("SlhDsaSigner not initialised for signature generation.");
+                throw new InvalidOperationException("HashSlhDsaSigner not initialised for signature generation.");
 
             FinishPreHash();
 
@@ -103,17 +94,14 @@ namespace Org.BouncyCastle.Crypto.Signers
         public bool VerifySignature(byte[] signature)
         {
             if (m_publicKey == null)
-                throw new InvalidOperationException("SlhDsaSigner not initialised for verification");
+                throw new InvalidOperationException("HashSlhDsaSigner not initialised for verification");
 
             FinishPreHash();
 
             return m_buffer.VerifySignature(m_publicKey, m_engine, signature);
         }
 
-        public void Reset()
-        {
-            m_preHashDigest.Reset();
-        }
+        public void Reset() => m_preHashDigest.Reset();
 
         private void FinishPreHash()
         {
@@ -131,7 +119,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
-            if (keyParameters.ParameterSet != m_parameters.ParameterSet)
+            if (keyParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
             return keyParameterSet.GetEngine();
