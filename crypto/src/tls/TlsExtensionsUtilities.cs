@@ -239,6 +239,12 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        public static void AddSupportedGroupsExtension(IDictionary<int, byte[]> extensions, int[] namedGroups)
+        {
+            extensions[ExtensionType.supported_groups] = CreateSupportedGroupsExtension(namedGroups);
+        }
+
+        /// <exception cref="IOException"/>
         public static void AddSupportedPointFormatsExtension(IDictionary<int, byte[]> extensions,
             short[] ecPointFormats)
         {
@@ -885,6 +891,15 @@ namespace Org.BouncyCastle.Tls
             }
 
             return TlsUtilities.EncodeUint16ArrayWithUint16Length(values);
+        }
+
+        /// <exception cref="IOException"/>
+        public static byte[] CreateSupportedGroupsExtension(int[] namedGroups)
+        {
+            if (TlsUtilities.IsNullOrEmpty(namedGroups))
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            return TlsUtilities.EncodeUint16ArrayWithUint16Length(namedGroups);
         }
 
         /// <exception cref="IOException"/>
