@@ -43,6 +43,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
         public abstract bool HasSrpAuthentication();
 
+        public abstract TlsSecret CreateHybridSecret(TlsSecret s1, TlsSecret s2);
+
         public abstract TlsSecret CreateSecret(byte[] data);
 
         public abstract TlsSecret GenerateRsaPreMasterSecret(ProtocolVersion clientVersion);

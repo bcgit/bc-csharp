@@ -3,6 +3,7 @@
 namespace Org.BouncyCastle.Tls
 {
     /// <summary>RFC 7919</summary>
+    // TODO[api] Make static
     public abstract class NamedGroup
     {
         /*
@@ -109,6 +110,13 @@ namespace Org.BouncyCastle.Tls
         public const int MLKEM768 = 0x0201;
         public const int MLKEM1024 = 0x0202;
 
+        /*
+         * draft-ietf-tls-ecdhe-mlkem-00
+         */
+        public const int SecP256r1MLKEM768 = 0x11EB;
+        public const int X25519MLKEM768 = 0x11EC;
+        public const int SecP384r1MLKEM1024 = 0x11ED;
+
         /* Names of the actual underlying elliptic curves (not necessarily matching the NamedGroup names). */
         private static readonly string[] CurveNames = new string[]{ "sect163k1", "sect163r1", "sect163r2", "sect193r1",
             "sect193r2", "sect233k1", "sect233r1", "sect239k1", "sect283k1", "sect283r1", "sect409k1", "sect409r1",
@@ -154,7 +162,7 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            if (RefersToASpecificKem(namedGroup))
+            if (RefersToASpecificHybrid(namedGroup) || RefersToASpecificKem(namedGroup))
                 return isTlsV13;
 
             if (namedGroup >= arbitrary_explicit_prime_curves && namedGroup <= arbitrary_explicit_char2_curves)
@@ -282,6 +290,66 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        public static int GetHybridFirst(int namedGroup)
+        {
+            switch (namedGroup)
+            {
+            case SecP256r1MLKEM768:
+                return secp256r1;
+            case X25519MLKEM768:
+                return MLKEM768;
+            case SecP384r1MLKEM1024:
+                return secp384r1;
+            default:
+                return -1;
+            }
+        }
+
+        public static int GetHybridSecond(int namedGroup)
+        {
+            switch (namedGroup)
+            {
+            case SecP256r1MLKEM768:
+                return MLKEM768;
+            case X25519MLKEM768:
+                return x25519;
+            case SecP384r1MLKEM1024:
+                return MLKEM1024;
+            default:
+                return -1;
+            }
+        }
+
+        // TODO Temporary until crypto implementations become more self-documenting around lengths
+        internal static int GetHybridSplitClientShare(int namedGroup)
+        {
+            switch (namedGroup)
+            {
+            case secp256r1:
+                return 65;
+            case secp384r1:
+                return 97;
+            case MLKEM768:
+                return 1184;
+            }
+            return -1;
+        }
+
+        // TODO Temporary until crypto implementations become more self-documenting around lengths
+        internal static int GetHybridSplitServerShare(int namedGroup)
+        {
+            switch (namedGroup)
+            {
+            case secp256r1:
+                return 65;
+            case secp384r1:
+                return 97;
+            case MLKEM768:
+                return 1088;
+            }
+            return -1;
+        }
+
         public static string GetKemName(int namedGroup)
         {
             switch (namedGroup)
@@ -358,6 +426,12 @@ namespace Org.BouncyCastle.Tls
                 return "MLKEM768";
             case MLKEM1024:
                 return "MLKEM1024";
+            case SecP256r1MLKEM768:
+                return "SecP256r1MLKEM768";
+            case X25519MLKEM768:
+                return "X25519MLKEM768";
+            case SecP384r1MLKEM1024:
+                return "SecP384r1MLKEM1024";
             case arbitrary_explicit_prime_curves:
                 return "arbitrary_explicit_prime_curves";
             case arbitrary_explicit_char2_curves:
@@ -456,7 +530,21 @@ namespace Org.BouncyCastle.Tls
         {
             return RefersToASpecificCurve(namedGroup)
                 || RefersToASpecificFiniteField(namedGroup)
+                || RefersToASpecificHybrid(namedGroup)
                 || RefersToASpecificKem(namedGroup);
+        }
+
+        public static bool RefersToASpecificHybrid(int namedGroup)
+        {
+            switch (namedGroup)
+            {
+            case SecP256r1MLKEM768:
+            case X25519MLKEM768:
+            case SecP384r1MLKEM1024:
+                return true;
+            default:
+                return false;
+            }
         }
 
         public static bool RefersToASpecificKem(int namedGroup)

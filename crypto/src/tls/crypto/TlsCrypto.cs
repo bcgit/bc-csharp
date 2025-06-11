@@ -96,6 +96,8 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>true if this instance can support SRP authentication, false otherwise.</returns>
         bool HasSrpAuthentication();
 
+        TlsSecret CreateHybridSecret(TlsSecret s1, TlsSecret s2);
+
         /// <summary>Create a TlsSecret object based on provided data.</summary>
         /// <param name="data">the data to base the TlsSecret on.</param>
         /// <returns>a TlsSecret based on the provided data.</returns>

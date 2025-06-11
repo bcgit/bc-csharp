@@ -10,9 +10,9 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Tls.Tests
 {
     [TestFixture]
-    public class TlsProtocolKemTest
+    public class TlsProtocolHybridTest
     {
-        // mismatched ML-KEM groups w/o classical crypto
+        // mismatched hybrid groups w/o non-hybrids
         [Test]
         public void TestMismatchedGroups()
         {
@@ -22,11 +22,11 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsClientProtocol clientProtocol = new TlsClientProtocol(clientPipe);
             TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
 
-            MockTlsKemClient client = new MockTlsKemClient(null);
-            MockTlsKemServer server = new MockTlsKemServer();
+            MockTlsHybridClient client = new MockTlsHybridClient(null);
+            MockTlsHybridServer server = new MockTlsHybridServer();
 
-            client.SetNamedGroups(new int[]{ NamedGroup.MLKEM512 });
-            server.SetNamedGroups(new int[]{ NamedGroup.MLKEM768 });
+            client.SetNamedGroups(new int[]{ NamedGroup.SecP256r1MLKEM768 });
+            server.SetNamedGroups(new int[]{ NamedGroup.X25519MLKEM768 });
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, shouldFail: true);
             Thread serverThread = new Thread(serverTask.Run);
@@ -51,24 +51,24 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         [Test]
-        public void TestMLKem512()
+        public void TestSecP256r1MLKEM768()
         {
-            ImplTestClientServer(NamedGroup.MLKEM512);
+            ImplTestClientServer(NamedGroup.SecP256r1MLKEM768);
         }
 
         [Test]
-        public void TestMLKem768()
+        public void TestSecP384r1MLKEM1024()
         {
-            ImplTestClientServer(NamedGroup.MLKEM768);
+            ImplTestClientServer(NamedGroup.SecP384r1MLKEM1024);
         }
 
         [Test]
-        public void TestMLKem1024()
+        public void TestX25519MLKEM768()
         {
-            ImplTestClientServer(NamedGroup.MLKEM1024);
+            ImplTestClientServer(NamedGroup.X25519MLKEM768);
         }
 
-        private void ImplTestClientServer(int kemGroup)
+        private void ImplTestClientServer(int hybridGroup)
         {
             PipedStream clientPipe = new PipedStream();
             PipedStream serverPipe = new PipedStream(clientPipe);
@@ -76,11 +76,11 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsClientProtocol clientProtocol = new TlsClientProtocol(clientPipe);
             TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
 
-            MockTlsKemClient client = new MockTlsKemClient(null);
-            MockTlsKemServer server = new MockTlsKemServer();
+            MockTlsHybridClient client = new MockTlsHybridClient(null);
+            MockTlsHybridServer server = new MockTlsHybridServer();
 
-            client.SetNamedGroups(new int[]{ kemGroup });
-            server.SetNamedGroups(new int[]{ kemGroup });
+            client.SetNamedGroups(new int[]{ hybridGroup });
+            server.SetNamedGroups(new int[]{ hybridGroup });
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, shouldFail: false);
             Thread serverThread = new Thread(serverTask.Run);

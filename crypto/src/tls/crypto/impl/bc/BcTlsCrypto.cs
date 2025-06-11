@@ -366,7 +366,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override bool HasNamedGroup(int namedGroup)
         {
-            return NamedGroup.RefersToASpecificGroup(namedGroup);
+            return NamedGroup.RefersToASpecificCurve(namedGroup)
+                || NamedGroup.RefersToASpecificFiniteField(namedGroup)
+                || NamedGroup.RefersToASpecificKem(namedGroup);
         }
 
         public override bool HasRsaEncryption()
@@ -447,6 +449,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         public override bool HasSrpAuthentication()
         {
             return true;
+        }
+
+        public override TlsSecret CreateHybridSecret(TlsSecret s1, TlsSecret s2)
+        {
+            return AdoptLocalSecret(Arrays.Concatenate(s1.Extract(), s2.Extract()));
         }
 
         public override TlsSecret CreateSecret(byte[] data)

@@ -1041,7 +1041,7 @@ namespace Org.BouncyCastle.Tls
 
         public static void AddIfSupported(IList<int> supportedGroups, TlsCrypto crypto, int namedGroup)
         {
-            if (crypto.HasNamedGroup(namedGroup))
+            if (IsSupportedNamedGroup(crypto, namedGroup))
             {
                 supportedGroups.Add(namedGroup);
             }
@@ -4212,6 +4212,15 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        public static bool IsSupportedNamedGroup(TlsCrypto crypto, int namedGroup)
+        {
+            if (!NamedGroup.RefersToASpecificHybrid(namedGroup))
+                return crypto.HasNamedGroup(namedGroup);
+
+            return crypto.HasNamedGroup(NamedGroup.GetHybridFirst(namedGroup))
+                && crypto.HasNamedGroup(NamedGroup.GetHybridSecond(namedGroup));
+        }
+
         internal static bool HasAnyRsaSigAlgs(TlsCrypto crypto)
         {
             return crypto.HasSignatureAlgorithm(SignatureAlgorithm.rsa)
@@ -4986,49 +4995,69 @@ namespace Org.BouncyCastle.Tls
             if (null == keyShareGroups || keyShareGroups.Count < 1)
                 return;
 
-            for (int i = 0; i < supportedGroups.Length; ++i)
+            foreach (int supportedGroup in supportedGroups)
             {
-                int supportedGroup = supportedGroups[i];
-
-                if (!keyShareGroups.Contains(supportedGroup)
-                    || clientAgreements.ContainsKey(supportedGroup)
-                    || !crypto.HasNamedGroup(supportedGroup))
+                if (!keyShareGroups.Contains(supportedGroup) ||
+                    clientAgreements.ContainsKey(supportedGroup))
                 {
                     continue;
                 }
 
-                TlsAgreement agreement = null;
-                if (NamedGroup.RefersToAnECDHCurve(supportedGroup))
-                {
-                    if (crypto.HasECDHAgreement())
-                    {
-                        agreement = crypto.CreateECDomain(new TlsECConfig(supportedGroup)).CreateECDH();
-                    }
-                }
-                else if (NamedGroup.RefersToASpecificFiniteField(supportedGroup))
-                {
-                    if (crypto.HasDHAgreement())
-                    {
-                        agreement = crypto.CreateDHDomain(new TlsDHConfig(supportedGroup, true)).CreateDH();
-                    }
-                }
-                else if (NamedGroup.RefersToASpecificKem(supportedGroup))
-                {
-                    if (crypto.HasKemAgreement())
-                    {
-                        agreement = crypto.CreateKemDomain(new TlsKemConfig(supportedGroup, isServer: false)).CreateKem();
-                    }
-                }
-
-                if (null != agreement)
+                TlsAgreement agreement = CreateKeyShare(crypto, supportedGroup, isServer: false);
+                if (agreement != null)
                 {
                     byte[] key_exchange = agreement.GenerateEphemeral();
                     KeyShareEntry clientShare = new KeyShareEntry(supportedGroup, key_exchange);
 
                     clientShares.Add(clientShare);
-                    clientAgreements[supportedGroup] = agreement;
+                    clientAgreements.Add(supportedGroup, agreement);
                 }
             }
+        }
+
+        internal static TlsAgreement CreateKeyShare(TlsCrypto crypto, int keyShareGroup, bool isServer)
+        {
+            if (!NamedGroup.RefersToASpecificHybrid(keyShareGroup))
+                return CreateKeyShareSimple(crypto, keyShareGroup, isServer);
+
+            int hybridFirst = NamedGroup.GetHybridFirst(keyShareGroup);
+            TlsAgreement firstAgreement = CreateKeyShareSimple(crypto, hybridFirst, isServer);
+            if (firstAgreement == null)
+                return null;
+
+            int hybridSecond = NamedGroup.GetHybridSecond(keyShareGroup);
+            TlsAgreement secondAgreement = CreateKeyShareSimple(crypto, hybridSecond, isServer);
+            if (secondAgreement == null)
+                return null;
+
+            int peerValueSplit = isServer
+                ? NamedGroup.GetHybridSplitClientShare(hybridFirst)
+                : NamedGroup.GetHybridSplitServerShare(hybridFirst);
+
+            return new TlsHybridAgreement(crypto, firstAgreement, secondAgreement, peerValueSplit);
+        }
+
+        private static TlsAgreement CreateKeyShareSimple(TlsCrypto crypto, int keyShareGroup, bool isServer)
+        {
+            if (crypto.HasNamedGroup(keyShareGroup))
+            {
+                if (NamedGroup.RefersToAnECDHCurve(keyShareGroup))
+                {
+                    if (crypto.HasECDHAgreement())
+                        return crypto.CreateECDomain(new TlsECConfig(keyShareGroup)).CreateECDH();
+                }
+                else if (NamedGroup.RefersToASpecificFiniteField(keyShareGroup))
+                {
+                    if (crypto.HasDHAgreement())
+                        return crypto.CreateDHDomain(new TlsDHConfig(keyShareGroup, padded: true)).CreateDH();
+                }
+                else if (NamedGroup.RefersToASpecificKem(keyShareGroup))
+                {
+                    if (crypto.HasKemAgreement())
+                        return crypto.CreateKemDomain(new TlsKemConfig(keyShareGroup, isServer)).CreateKem();
+                }
+            }
+            return null;
         }
 
         internal static KeyShareEntry SelectKeyShare(IList<KeyShareEntry> clientShares, int keyShareGroup)
@@ -5053,21 +5082,10 @@ namespace Org.BouncyCastle.Tls
                 {
                     int group = clientShare.NamedGroup;
 
-                    if (!NamedGroup.CanBeNegotiated(group, negotiatedVersion))
-                        continue;
-
-                    if (!Arrays.Contains(serverSupportedGroups, group) ||
-                        !Arrays.Contains(clientSupportedGroups, group))
-                    {
-                        continue;
-                    }
-
-                    if (!crypto.HasNamedGroup(group))
-                        continue;
-
-                    if ((NamedGroup.RefersToAnECDHCurve(group) && crypto.HasECDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificFiniteField(group) && crypto.HasDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificKem(group) && crypto.HasKemAgreement()))
+                    if (NamedGroup.CanBeNegotiated(group, negotiatedVersion) &&
+                        Arrays.Contains(serverSupportedGroups, group) &&
+                        Arrays.Contains(clientSupportedGroups, group) &&
+                        SupportsKeyShareGroup(crypto, group))
                     {
                         return clientShare;
                     }
@@ -5081,26 +5099,42 @@ namespace Org.BouncyCastle.Tls
         {
             if (!IsNullOrEmpty(clientSupportedGroups) && !IsNullOrEmpty(serverSupportedGroups))
             {
-                foreach (int group in clientSupportedGroups)
+                foreach (int candidate in clientSupportedGroups)
                 {
-                    if (!NamedGroup.CanBeNegotiated(group, negotiatedVersion))
-                        continue;
-
-                    if (!Arrays.Contains(serverSupportedGroups, group))
-                        continue;
-
-                    if (!crypto.HasNamedGroup(group))
-                        continue;
-
-                    if ((NamedGroup.RefersToAnECDHCurve(group) && crypto.HasECDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificFiniteField(group) && crypto.HasDHAgreement()) ||
-                        (NamedGroup.RefersToASpecificKem(group) && crypto.HasKemAgreement()))
+                    if (Arrays.Contains(serverSupportedGroups, candidate) &&
+                        NamedGroup.CanBeNegotiated(candidate, negotiatedVersion) &&
+                        SupportsKeyShareGroup(crypto, candidate))
                     {
-                        return group;
+                        return candidate;
                     }
                 }
             }
             return -1;
+        }
+
+        private static bool SupportsKeyShareGroup(TlsCrypto crypto, int keyShareGroup)
+        {
+            if (!NamedGroup.RefersToASpecificHybrid(keyShareGroup))
+                return SupportsKeyShareGroupSimple(crypto, keyShareGroup);
+
+            return SupportsKeyShareGroupSimple(crypto, NamedGroup.GetHybridFirst(keyShareGroup))
+                && SupportsKeyShareGroupSimple(crypto, NamedGroup.GetHybridSecond(keyShareGroup));
+        }
+
+        private static bool SupportsKeyShareGroupSimple(TlsCrypto crypto, int keyShareGroup)
+        {
+            if (crypto.HasNamedGroup(keyShareGroup))
+            {
+                if (NamedGroup.RefersToAnECDHCurve(keyShareGroup))
+                    return crypto.HasECDHAgreement();
+
+                if (NamedGroup.RefersToASpecificFiniteField(keyShareGroup))
+                    return crypto.HasDHAgreement();
+
+                if (NamedGroup.RefersToASpecificKem(keyShareGroup))
+                    return crypto.HasKemAgreement();
+            }
+            return false;
         }
 
         internal static byte[] ReadEncryptedPms(TlsContext context, Stream input)

@@ -10,19 +10,19 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
-    internal class MockTlsKemClient
+    internal class MockTlsHybridClient
         : DefaultTlsClient
     {
         internal TlsSession m_session;
 
         internal int[] m_namedGroups = new int[]
         {
-            NamedGroup.MLKEM512,
-            NamedGroup.MLKEM768,
-            NamedGroup.MLKEM1024,
+            NamedGroup.SecP256r1MLKEM768,
+            NamedGroup.X25519MLKEM768,
+            NamedGroup.SecP384r1MLKEM1024,
         };
 
-        internal MockTlsKemClient(TlsSession session)
+        internal MockTlsHybridClient(TlsSession session)
             : base(new BcTlsCrypto())
         {
             m_session = session;
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Tls.Tests
             Exception cause)
         {
             TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS KEM client raised alert: " + AlertLevel.GetText(alertLevel)
+            output.WriteLine("TLS hybrid client raised alert: " + AlertLevel.GetText(alertLevel)
                 + ", " + AlertDescription.GetText(alertDescription));
             if (message != null)
             {
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Tls.Tests
         public override void NotifyAlertReceived(short alertLevel, short alertDescription)
         {
             TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS KEM client received alert: " + AlertLevel.GetText(alertLevel)
+            output.WriteLine("TLS hybrid client received alert: " + AlertLevel.GetText(alertLevel)
                 + ", " + AlertDescription.GetText(alertDescription));
         }
 
@@ -99,7 +99,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyServerVersion(serverVersion);
 
-            Console.WriteLine("TLS KEM client negotiated " + serverVersion);
+            Console.WriteLine("TLS hybrid client negotiated " + serverVersion);
         }
 
         public override TlsAuthentication GetAuthentication()
@@ -178,7 +178,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 TlsCertificate[] chain = serverCertificate.Certificate.GetCertificateList();
 
-                Console.WriteLine("TLS KEM client received server certificate chain of length " + chain.Length);
+                Console.WriteLine("TLS hybrid client received server certificate chain of length " + chain.Length);
                 for (int i = 0; i != chain.Length; i++)
                 {
                     X509CertificateStructure entry = X509CertificateStructure.GetInstance(chain[i].GetEncoded());
