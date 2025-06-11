@@ -254,9 +254,10 @@ namespace Org.BouncyCastle.Tls
 
                 int[] clientSupportedGroups = securityParameters.ClientSupportedGroups;
                 int[] serverSupportedGroups = securityParameters.ServerSupportedGroups;
+                bool useServerOrder = TlsUtilities.PreferLocalSupportedGroups(m_tlsServer);
 
                 int selectedGroup = TlsUtilities.SelectKeyShareGroup(crypto, serverVersion, clientSupportedGroups,
-                    serverSupportedGroups);
+                    serverSupportedGroups, useServerOrder);
 
                 if (selectedGroup < 0)
                     throw new TlsFatalAlert(AlertDescription.handshake_failure);

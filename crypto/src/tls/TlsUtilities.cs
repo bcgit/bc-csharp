@@ -5085,13 +5085,16 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static int SelectKeyShareGroup(TlsCrypto crypto, ProtocolVersion negotiatedVersion,
-            int[] clientSupportedGroups, int[] serverSupportedGroups)
+            int[] clientSupportedGroups, int[] serverSupportedGroups, bool useServerOrder)
         {
             if (!IsNullOrEmpty(clientSupportedGroups) && !IsNullOrEmpty(serverSupportedGroups))
             {
-                foreach (int candidate in clientSupportedGroups)
+                int[] ordered = useServerOrder ? serverSupportedGroups : clientSupportedGroups;
+                int[] unordered = useServerOrder ? clientSupportedGroups : serverSupportedGroups;
+
+                foreach (int candidate in ordered)
                 {
-                    if (Arrays.Contains(serverSupportedGroups, candidate) &&
+                    if (Arrays.Contains(unordered, candidate) &&
                         NamedGroup.CanBeNegotiated(candidate, negotiatedVersion) &&
                         SupportsKeyShareGroup(crypto, candidate))
                     {
@@ -5881,6 +5884,15 @@ namespace Org.BouncyCastle.Tls
                 return abstractTlsClient.ShouldUseCompatibilityMode();
 
             return true;
+        }
+
+        // TODO[api] Not needed once PreferLocalSupportedGroups() has been added to TlsServer
+        internal static bool PreferLocalSupportedGroups(TlsServer tlsServer)
+        {
+            if (tlsServer is AbstractTlsServer abstractTlsServer)
+                return abstractTlsServer.PreferLocalSupportedGroups();
+
+            return false;
         }
     }
 }

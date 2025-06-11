@@ -145,6 +145,11 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        public virtual bool PreferLocalSupportedGroups()
+        {
+            return false;
+        }
+
         /// <exception cref="IOException"/>
         protected virtual bool SelectCipherSuite(int cipherSuite)
         {

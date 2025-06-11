@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Tls
     public interface TlsServer
         : TlsPeer
     {
+        // TODO[api]
+        //bool PreferLocalSupportedGroups();
+
         void Init(TlsServerContext context);
 
         /// <summary>Return the specified session, if available.</summary>
