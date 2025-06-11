@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Tls.Tests
     [TestFixture]
     public class TlsProtocolKemTest
     {
-        // mismatched ML-KEM strengths w/o classical crypto
+        // mismatched ML-KEM groups w/o classical crypto
         [Test]
         public void TestMismatchStrength()
         {
@@ -23,9 +23,9 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
 
             MockTlsKemClient client = new MockTlsKemClient(null);
-            client.SetNamedGroups(new int[]{ NamedGroup.MLKEM512 });
-
             MockTlsKemServer server = new MockTlsKemServer();
+
+            client.SetNamedGroups(new int[]{ NamedGroup.MLKEM512 });
             server.SetNamedGroups(new int[]{ NamedGroup.MLKEM768 });
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, shouldFail: true);
@@ -51,7 +51,24 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         [Test]
-        public void TestClientServer()
+        public void TestMLKem512()
+        {
+            ImplTestClientServer(NamedGroup.MLKEM512);
+        }
+
+        [Test]
+        public void TestMLKem768()
+        {
+            ImplTestClientServer(NamedGroup.MLKEM768);
+        }
+
+        [Test]
+        public void TestMLKem1024()
+        {
+            ImplTestClientServer(NamedGroup.MLKEM1024);
+        }
+
+        private void ImplTestClientServer(int kemGroup)
         {
             PipedStream clientPipe = new PipedStream();
             PipedStream serverPipe = new PipedStream(clientPipe);
@@ -61,6 +78,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
             MockTlsKemClient client = new MockTlsKemClient(null);
             MockTlsKemServer server = new MockTlsKemServer();
+
+            client.SetNamedGroups(new int[]{ kemGroup });
+            server.SetNamedGroups(new int[]{ kemGroup });
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, shouldFail: false);
             Thread serverThread = new Thread(serverTask.Run);
