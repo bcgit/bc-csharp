@@ -181,7 +181,7 @@ namespace Org.BouncyCastle.Tls
 
                 this.m_retryCookie = null;
 
-                clientShare = TlsUtilities.SelectKeyShare(clientShares, m_retryGroup);
+                clientShare = TlsUtilities.GetRetryKeyShare(clientShares, m_retryGroup);
                 if (null == clientShare)
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
@@ -255,15 +255,17 @@ namespace Org.BouncyCastle.Tls
                 int[] clientSupportedGroups = securityParameters.ClientSupportedGroups;
                 int[] serverSupportedGroups = securityParameters.ServerSupportedGroups;
 
-                clientShare = TlsUtilities.SelectKeyShare(crypto, serverVersion, clientShares, clientSupportedGroups,
+                int selectedGroup = TlsUtilities.SelectKeyShareGroup(crypto, serverVersion, clientSupportedGroups,
                     serverSupportedGroups);
+
+                if (selectedGroup < 0)
+                    throw new TlsFatalAlert(AlertDescription.handshake_failure);
+
+                clientShare = TlsUtilities.FindEarlyKeyShare(clientShares, selectedGroup);
 
                 if (null == clientShare)
                 {
-                    this.m_retryGroup = TlsUtilities.SelectKeyShareGroup(crypto, serverVersion, clientSupportedGroups,
-                        serverSupportedGroups);
-                    if (m_retryGroup < 0)
-                        throw new TlsFatalAlert(AlertDescription.handshake_failure);
+                    this.m_retryGroup = selectedGroup;
 
                     this.m_retryCookie = m_tlsServerContext.NonceGenerator.GenerateNonce(16);
 

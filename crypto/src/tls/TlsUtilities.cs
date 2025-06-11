@@ -5060,36 +5060,26 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
-        internal static KeyShareEntry SelectKeyShare(IList<KeyShareEntry> clientShares, int keyShareGroup)
+        internal static KeyShareEntry FindEarlyKeyShare(IList<KeyShareEntry> clientShares, int keyShareGroup)
         {
-            if (null != clientShares && 1 == clientShares.Count)
+            if (null != clientShares)
             {
-                KeyShareEntry clientShare = clientShares[0];
-                if (null != clientShare && clientShare.NamedGroup == keyShareGroup)
+                foreach (KeyShareEntry clientShare in clientShares)
                 {
-                    return clientShare;
+                    if (null != clientShare && clientShare.NamedGroup == keyShareGroup)
+                        return clientShare;
                 }
             }
             return null;
         }
 
-        internal static KeyShareEntry SelectKeyShare(TlsCrypto crypto, ProtocolVersion negotiatedVersion,
-            IList<KeyShareEntry> clientShares, int[] clientSupportedGroups, int[] serverSupportedGroups)
+        internal static KeyShareEntry GetRetryKeyShare(IList<KeyShareEntry> clientShares, int keyShareGroup)
         {
-            if (null != clientShares && !IsNullOrEmpty(clientSupportedGroups) && !IsNullOrEmpty(serverSupportedGroups))
+            if (null != clientShares && 1 == clientShares.Count)
             {
-                foreach (KeyShareEntry clientShare in clientShares)
-                {
-                    int group = clientShare.NamedGroup;
-
-                    if (NamedGroup.CanBeNegotiated(group, negotiatedVersion) &&
-                        Arrays.Contains(serverSupportedGroups, group) &&
-                        Arrays.Contains(clientSupportedGroups, group) &&
-                        SupportsKeyShareGroup(crypto, group))
-                    {
-                        return clientShare;
-                    }
-                }
+                KeyShareEntry clientShare = clientShares[0];
+                if (null != clientShare && clientShare.NamedGroup == keyShareGroup)
+                    return clientShare;
             }
             return null;
         }
