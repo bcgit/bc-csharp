@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Math;
+﻿using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Agreement.JPake
@@ -45,28 +43,15 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
 
             this.participantId = participantId;
             this.a = a;
-            this.knowledgeProofForX2s = new BigInteger[knowledgeProofForX2s.Length];
-            knowledgeProofForX2s.CopyTo(this.knowledgeProofForX2s, 0);
+            this.knowledgeProofForX2s = Copy(knowledgeProofForX2s);
         }
 
-        public virtual string ParticipantId
-        {
-            get { return participantId; }
-        }
+        public virtual string ParticipantId => participantId;
 
-        public virtual BigInteger A
-        {
-            get { return a; }
-        }
+        public virtual BigInteger A => a;
 
-        public virtual BigInteger[] KnowledgeProofForX2s
-        {
-            get
-            {
-                BigInteger[] kp = new BigInteger[knowledgeProofForX2s.Length];
-                Array.Copy(knowledgeProofForX2s, kp, knowledgeProofForX2s.Length);
-                return kp;
-            }
-        }
+        public virtual BigInteger[] KnowledgeProofForX2s => Copy(knowledgeProofForX2s);
+
+        private static BigInteger[] Copy(BigInteger[] bis) => Arrays.CopyOf(bis, bis.Length);
     }
 }

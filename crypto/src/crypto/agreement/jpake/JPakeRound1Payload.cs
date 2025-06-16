@@ -1,6 +1,5 @@
-﻿using System;
-
-using Org.BouncyCastle.Math;
+﻿using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Agreement.JPake
 {
@@ -46,7 +45,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// </summary>
         private readonly BigInteger[] knowledgeProofForX2;
 
-        public JPakeRound1Payload(string participantId, BigInteger gx1, BigInteger gx2, BigInteger[] knowledgeProofForX1, BigInteger[] knowledgeProofForX2)
+        public JPakeRound1Payload(string participantId, BigInteger gx1, BigInteger gx2,
+            BigInteger[] knowledgeProofForX1, BigInteger[] knowledgeProofForX2)
         {
             JPakeUtilities.ValidateNotNull(participantId, "participantId");
             JPakeUtilities.ValidateNotNull(gx1, "gx1");
@@ -57,45 +57,20 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             this.participantId = participantId;
             this.gx1 = gx1;
             this.gx2 = gx2;
-            this.knowledgeProofForX1 = new BigInteger[knowledgeProofForX1.Length];
-            Array.Copy(knowledgeProofForX1, this.knowledgeProofForX1, knowledgeProofForX1.Length);
-            this.knowledgeProofForX2 = new BigInteger[knowledgeProofForX2.Length];
-            Array.Copy(knowledgeProofForX2, this.knowledgeProofForX2, knowledgeProofForX2.Length);
+            this.knowledgeProofForX1 = Copy(knowledgeProofForX1);
+            this.knowledgeProofForX2 = Copy(knowledgeProofForX2);
         }
 
-        public virtual string ParticipantId
-        {
-            get { return participantId; }
-        }
+        public virtual string ParticipantId => participantId;
 
-        public virtual BigInteger Gx1
-        {
-            get { return gx1; }
-        }
+        public virtual BigInteger Gx1 => gx1;
 
-        public virtual BigInteger Gx2
-        {
-            get { return gx2; }
-        }
+        public virtual BigInteger Gx2 => gx2;
 
-        public virtual BigInteger[] KnowledgeProofForX1
-        {
-            get
-            {
-                BigInteger[] kp = new BigInteger[knowledgeProofForX1.Length];
-                Array.Copy(knowledgeProofForX1, kp, knowledgeProofForX1.Length);
-                return kp;
-            }
-        }
+        public virtual BigInteger[] KnowledgeProofForX1 => Copy(knowledgeProofForX1);
 
-        public virtual BigInteger[] KnowledgeProofForX2
-        {
-            get
-            {
-                BigInteger[] kp = new BigInteger[knowledgeProofForX2.Length];
-                Array.Copy(knowledgeProofForX2, kp, knowledgeProofForX2.Length);
-                return kp;
-            }
-        }
+        public virtual BigInteger[] KnowledgeProofForX2 => Copy(knowledgeProofForX2);
+
+        private static BigInteger[] Copy(BigInteger[] bis) => Arrays.CopyOf(bis, bis.Length);
     }
 }

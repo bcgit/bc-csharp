@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         public static BigInteger CalculateGA(BigInteger p, BigInteger gx1, BigInteger gx3, BigInteger gx4)
         {
             // ga = g^(x1+x3+x4) = g^x1 * g^x3 * g^x4 
-            return gx1.Multiply(gx3).Multiply(gx4).Mod(p);
+            return gx1.ModMultiply(gx3, p).ModMultiply(gx4, p);
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// </summary>
         public static BigInteger CalculateX2s(BigInteger q, BigInteger x2, BigInteger s)
         {
-            return x2.Multiply(s).Mod(q);
+            return x2.ModMultiply(s, q);
         }
 
         /// <summary>
@@ -217,7 +217,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         public static BigInteger CalculateKeyingMaterial(BigInteger p, BigInteger q, 
             BigInteger gx4, BigInteger x2, BigInteger s, BigInteger B)
         {
-            return gx4.ModPow(x2.Multiply(s).Negate().Mod(q), p).Multiply(B).ModPow(x2, p);
+            return gx4.ModPow(x2.Multiply(s).Negate().Mod(q), p).ModMultiply(B, p).ModPow(x2, p);
         }
 
         /// <summary>
@@ -373,19 +373,18 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
 
         private static void UpdateDigestIncludingSize(IDigest digest, BigInteger bigInteger)
         {
-            UpdateDigestIncludingSize(digest, BigIntegers.AsUnsignedByteArray(bigInteger));
+            int byteLength = BigIntegers.GetUnsignedByteLength(bigInteger);
+            byte[] bytes = new byte[4 + byteLength];
+            Pack.UInt32_To_BE((uint)byteLength, bytes);
+            BigIntegers.AsUnsignedByteArray(bigInteger, bytes, 4, byteLength);
+            UpdateDigest(digest, bytes);
         }
 
         private static void UpdateDigestIncludingSize(IDigest digest, string str)
         {
-            UpdateDigestIncludingSize(digest, Strings.ToUtf8ByteArray(str));
-        }
-
-        private static void UpdateDigestIncludingSize(IDigest digest, byte[] bytes)
-        {
-            digest.BlockUpdate(IntToByteArray(bytes.Length), 0, 4);
-            digest.BlockUpdate(bytes, 0, bytes.Length);
-            Arrays.Fill(bytes, (byte)0);
+            byte[] bytes = Strings.ToUtf8ByteArray(str, preAlloc: 4, postAlloc: 0);
+            Pack.UInt32_To_BE((uint)(bytes.Length - 4), bytes);
+            UpdateDigest(digest, bytes);
         }
 
         private static void UpdateMac(IMac mac, BigInteger bigInteger)
@@ -402,11 +401,6 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         {
             mac.BlockUpdate(bytes, 0, bytes.Length);
             Arrays.Fill(bytes, (byte)0);
-        }
-
-        private static byte[] IntToByteArray(int value)
-        {
-            return Pack.UInt32_To_BE((uint)value);
         }
     }
 }
