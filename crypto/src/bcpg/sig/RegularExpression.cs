@@ -23,18 +23,16 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public string Regex
-        {
-            // last byte is null terminator
-            get { return Strings.FromUtf8ByteArray(data, 0, data.Length - 1); }
-        }
+        // last byte is null terminator
+        public string Regex => Strings.FromUtf8ByteArray(data, 0, data.Length - 1);
 
         public byte[] GetRawRegex() => Arrays.Clone(data);
 
         private static byte[] ToNullTerminatedUtf8ByteArray(string str)
         {
-            byte[] utf8 = Strings.ToUtf8ByteArray(str);
-            return Arrays.Append(utf8, 0x00);
+            byte[] utf8 = Strings.ToUtf8ByteArray(str, preAlloc: 0, postAlloc: 1);
+            utf8[utf8.Length - 1] = 0x00;
+            return utf8;
         }
     }
 }
