@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Text;
 
 namespace Org.BouncyCastle.Utilities
@@ -138,5 +139,14 @@ namespace Org.BouncyCastle.Utilities
             return bytes;
         }
 #endif
+
+        public static byte[] ToUtf8ByteArray(string s, int preAlloc, int postAlloc)
+        {
+            int byteCount = Encoding.UTF8.GetByteCount(s);
+            byte[] array = new byte[preAlloc + byteCount + postAlloc];
+            int bytes = Encoding.UTF8.GetBytes(s, 0, s.Length, array, preAlloc);
+            Debug.Assert(bytes == byteCount);
+            return array;
+        }
     }
 }
