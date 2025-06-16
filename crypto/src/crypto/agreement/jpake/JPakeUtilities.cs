@@ -193,15 +193,15 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             BigInteger r = zeroKnowledgeProof[1];
 
             BigInteger h = CalculateHashForZeroKnowledgeProof(g, gv, gx, participantId, digest);
-            if (!(gx.CompareTo(Zero) == 1 && // g^x > 0
-                gx.CompareTo(p) == -1 && // g^x < p
-                gx.ModPow(q, p).CompareTo(One) == 0 && // g^x^q mod q = 1
+            if (!(gx.SignValue > 0 && // g^x > 0
+                gx.CompareTo(p) < 0 && // g^x < p
+                gx.ModPow(q, p).Equals(One) && // g^x^q mod q = 1
                 /*
                  * Below, I took a straightforward way to compute g^r * g^x^h,
                  * which needs 2 exp. Using a simultaneous computation technique
                  * would only need 1 exp.
                  */
-                g.ModPow(r, p).Multiply(gx.ModPow(h, p)).Mod(p).CompareTo(gv) == 0)) // g^v=g^r * g^x^h
+                g.ModPow(r, p).ModMultiply(gx.ModPow(h, p), p).Equals(gv))) // g^v=g^r * g^x^h
             {
                 throw new CryptoException("Zero-knowledge proof validation failed");
             }

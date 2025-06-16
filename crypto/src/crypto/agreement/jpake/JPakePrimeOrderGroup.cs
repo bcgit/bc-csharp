@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
             {
                 if (!p.Subtract(JPakeUtilities.One).Mod(q).Equals(JPakeUtilities.Zero))
                     throw new ArgumentException("p-1 must be evenly divisible by q");
-                if (g.CompareTo(BigInteger.Two) == -1 || g.CompareTo(p.Subtract(JPakeUtilities.One)) == 1)
+                if (g.CompareTo(BigInteger.Two) < 0 || g.CompareTo(p) >= 0)
                     throw new ArgumentException("g must be in [2, p-1]");
                 if (!g.ModPow(q, p).Equals(JPakeUtilities.One))
                     throw new ArgumentException("g^q mod p must equal 1");
