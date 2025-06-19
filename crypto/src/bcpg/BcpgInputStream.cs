@@ -120,8 +120,8 @@ namespace Org.BouncyCastle.Bcpg
 
             bool newPacket = (hdr & 0x40) != 0;
             PacketTag tag = 0;
-            // TODO[pgp] Is the length field supposed to support full uint range?
-            int bodyLen;
+
+            uint bodyLen;
             bool partial = false;
 
             if (newPacket)
@@ -145,10 +145,10 @@ namespace Org.BouncyCastle.Bcpg
                     bodyLen = StreamUtilities.RequireUInt16BE(this);
                     break;
                 case 2:
-                    bodyLen = (int)StreamUtilities.RequireUInt32BE(this);
+                    bodyLen = StreamUtilities.RequireUInt32BE(this);
                     break;
                 case 3:
-                    bodyLen = 0;
+                    bodyLen = 0U;
                     partial = true;
                     break;
                 default:
@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.Bcpg
             }
 
             BcpgInputStream objStream;
-            if (bodyLen == 0 && partial)
+            if (bodyLen == 0U && partial)
             {
                 objStream = this;
             }
@@ -238,19 +238,18 @@ namespace Org.BouncyCastle.Bcpg
 
 		/// <summary>
 		/// A stream that overlays our input stream, allowing the user to only read a segment of it.
-		/// NB: dataLength will be negative if the segment length is in the upper range above 2**31.
 		/// </summary>
 		private class PartialInputStream
             : BaseInputStream
         {
             private BcpgInputStream m_in;
             private bool partial;
-            private int dataLength;
+            private uint dataLength;
 
             internal PartialInputStream(
                 BcpgInputStream	bcpgIn,
                 bool			partial,
-                int				dataLength)
+                uint			dataLength)
             {
                 this.m_in = bcpgIn;
                 this.partial = partial;
@@ -261,7 +260,7 @@ namespace Org.BouncyCastle.Bcpg
 			{
 				do
 				{
-					if (dataLength != 0)
+					if (dataLength > 0U)
 					{
 						int ch = m_in.ReadByte();
 						if (ch < 0)
@@ -282,14 +281,14 @@ namespace Org.BouncyCastle.Bcpg
 
 				do
 				{
-					if (dataLength != 0)
+					if (dataLength > 0U)
 					{
-						int readLen = (dataLength > count || dataLength < 0) ? count : dataLength;
+                        int readLen = (uint)count < dataLength ? count : (int)dataLength;
 						int len = m_in.Read(buffer, offset, readLen);
 						if (len < 1)
 							throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
-						dataLength -= len;
+						dataLength -= (uint)len;
 						return len;
 					}
 				}
@@ -303,15 +302,15 @@ namespace Org.BouncyCastle.Bcpg
             {
 				do
 				{
-					if (dataLength != 0)
+					if (dataLength > 0U)
 					{
                         int count = buffer.Length;
-						int readLen = (dataLength > count || dataLength < 0) ? count : dataLength;
+                        int readLen = (uint)count < dataLength ? count : (int)dataLength;
 						int len = m_in.Read(buffer[..readLen]);
 						if (len < 1)
 							throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
-						dataLength -= len;
+						dataLength -= (uint)len;
 						return len;
 					}
 				}
@@ -323,11 +322,11 @@ namespace Org.BouncyCastle.Bcpg
 
             private bool ReadPartialDataLength()
             {
-                int bodyLen = StreamUtilities.ReadBodyLen(m_in, out var streamFlags);
-                if (bodyLen < 0)
+                uint bodyLen = StreamUtilities.ReadBodyLen(m_in, out var streamFlags);
+                if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Eof))
                 {
                     partial = false;
-                    dataLength = 0;
+                    dataLength = 0U;
                     return false;
                 }
 

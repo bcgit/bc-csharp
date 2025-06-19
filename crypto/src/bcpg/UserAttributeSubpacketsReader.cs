@@ -1,7 +1,6 @@
 using System.IO;
 
 using Org.BouncyCastle.Bcpg.Attr;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -19,8 +18,8 @@ namespace Org.BouncyCastle.Bcpg
 
         public virtual UserAttributeSubpacket ReadPacket()
         {
-            int bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
-            if (bodyLen < 0)
+            uint bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
+            if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Eof))
                 return null;
 
             if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial))
