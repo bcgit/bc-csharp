@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             DerInteger sha384Size = new DerInteger(TlsCryptoUtilities.GetHashOutputSize(CryptoHashAlgorithm.sha384));
             DerInteger sha512Size = new DerInteger(TlsCryptoUtilities.GetHashOutputSize(CryptoHashAlgorithm.sha512));
 
-            DerInteger trailerField = DerInteger.One;
+            DerInteger trailerField = RsassaPssParameters.DefaultTrailerField;
 
             try
             {

@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Operators.Utilities
                 hashAlgID,
                 new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgID),
                 new DerInteger(saltSize),
-                DerInteger.One);
+                RsassaPssParameters.DefaultTrailerField);
         }
 
         static DefaultSignatureAlgorithmFinder()

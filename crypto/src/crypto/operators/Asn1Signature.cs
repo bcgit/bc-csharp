@@ -247,7 +247,7 @@ namespace Org.BouncyCastle.Crypto.Operators
                 digAlgID,
                 new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, digAlgID),
                 new DerInteger(saltSize),
-                DerInteger.One);
+                RsassaPssParameters.DefaultTrailerField);
         }
 
         internal static DerObjectIdentifier GetSigOid(string sigName)
