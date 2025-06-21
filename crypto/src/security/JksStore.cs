@@ -421,8 +421,18 @@ namespace Org.BouncyCastle.Security
 
         private void SaveStream(Stream stream, IDigest checksumDigest)
         {
-            BinaryWriter bw = new BinaryWriter(new DigestStream(stream, null, checksumDigest));
+            var ds = new DigestStream(stream, null, checksumDigest);
+            using (var bw = new BinaryWriter(ds, Encoding.UTF8, leaveOpen: true))
+            {
+                SaveStreamContents(bw);
+            }
 
+            byte[] checksum = DigestUtilities.DoFinal(checksumDigest);
+            stream.Write(checksum, 0, checksum.Length);
+        }
+
+        private void SaveStreamContents(BinaryWriter bw)
+        {
             BinaryWriters.WriteInt32BigEndian(bw, Magic);
             BinaryWriters.WriteInt32BigEndian(bw, 2);
 
@@ -457,10 +467,6 @@ namespace Org.BouncyCastle.Security
                 WriteDateTime(bw, certEntry.date);
                 WriteTypedCertificate(bw, certEntry.cert);
             }
-
-            byte[] checksum = DigestUtilities.DoFinal(checksumDigest);
-            bw.Write(checksum);
-            bw.Flush();
         }
 
         /// <remarks>WARNING: If <paramref name="password"/> is <c>null</c>, no integrity check is performed.</remarks>
