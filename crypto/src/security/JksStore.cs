@@ -21,13 +21,11 @@ namespace Org.BouncyCastle.Security
     {
         private static readonly int Magic = unchecked((int)0xFEEDFEED);
 
+        /// <remarks>keytool >= v20 removed the NULL parameters from the AlgorithmIdentifier.</remarks>
+        // TODO[api] Follow keytool v20 and remove the NULL parameters as of next major version
         private static readonly AlgorithmIdentifier JksObfuscationAlg = new AlgorithmIdentifier(
             new DerObjectIdentifier("1.3.6.1.4.1.42.2.17.1.1"), DerNull.Instance);
 
-        // keytool >=v20 removed the null parameter from the AlgorithmIdentifier
-        private static readonly AlgorithmIdentifier JksObfuscationAlgV20 = new AlgorithmIdentifier(
-            new DerObjectIdentifier("1.3.6.1.4.1.42.2.17.1.1")); 
-        
         private readonly Dictionary<string, JksTrustedCertEntry> m_certificateEntries =
             new Dictionary<string, JksTrustedCertEntry>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, JksKeyEntry> m_keyEntries =
@@ -67,7 +65,7 @@ namespace Org.BouncyCastle.Security
                 return null;
 
             var epki = keyEntry.keyInfo;
-            if (!JksObfuscationAlg.Equals(epki.EncryptionAlgorithm) && !JksObfuscationAlgV20.Equals(epki.EncryptionAlgorithm))
+            if (!X509Utilities.AreEquivalentAlgorithms(JksObfuscationAlg, epki.EncryptionAlgorithm))
                 throw new IOException("unknown encryption algorithm");
 
             byte[] encryptedData = epki.GetEncryptedData();
@@ -109,7 +107,7 @@ namespace Org.BouncyCastle.Security
                 return null;
 
             var epki = keyEntry.keyInfo;
-            if (!JksObfuscationAlg.Equals(epki.EncryptionAlgorithm) && !JksObfuscationAlgV20.Equals(epki.EncryptionAlgorithm))
+            if (!X509Utilities.AreEquivalentAlgorithms(JksObfuscationAlg, epki.EncryptionAlgorithm))
                 throw new IOException("unknown encryption algorithm");
 
             byte[] encryptedData = epki.GetEncryptedData();
