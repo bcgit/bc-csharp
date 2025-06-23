@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Utilities;
+﻿using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
@@ -8,7 +6,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
         : SignatureSubpacket
     {
         public PolicyUrl(bool critical, string url)
-            : this(critical, false, Strings.ToUtf8ByteArray(url))
+            : this(critical, isLongLength: false, Strings.ToUtf8ByteArray(url))
         {
         }
 

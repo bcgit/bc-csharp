@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Sig
@@ -8,23 +10,16 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class IssuerKeyId
         : SignatureSubpacket
     {
-        protected static byte[] KeyIdToBytes(long keyId)
-        {
-            return Pack.UInt64_To_BE((ulong)keyId);
-        }
+        [Obsolete("Will be removed")]
+        protected static byte[] KeyIdToBytes(long keyId) => Pack.UInt64_To_BE((ulong)keyId);
 
-        public IssuerKeyId(
-            bool    critical,
-            bool    isLongLength,
-            byte[]  data)
+        public IssuerKeyId(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.IssuerKeyId, critical, isLongLength, data)
         {
         }
 
-        public IssuerKeyId(
-            bool    critical,
-            long    keyId)
-            : base(SignatureSubpacketTag.IssuerKeyId, critical, false, KeyIdToBytes(keyId))
+        public IssuerKeyId(bool critical, long keyId)
+            : base(SignatureSubpacketTag.IssuerKeyId, critical, isLongLength: false, Pack.UInt64_To_BE((ulong)keyId))
         {
         }
 

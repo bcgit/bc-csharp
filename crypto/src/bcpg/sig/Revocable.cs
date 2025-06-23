@@ -1,8 +1,8 @@
 namespace Org.BouncyCastle.Bcpg.Sig
 {
     /**
-    * packet giving whether or not is revocable.
-    */
+     * packet giving whether or not is revocable.
+     */
     public class Revocable
         : SignatureSubpacket
     {
@@ -12,7 +12,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         }
 
         public Revocable(bool critical, bool isRevocable)
-            : base(SignatureSubpacketTag.Revocable, critical, false, Utilities.BooleanToBytes(isRevocable))
+            : base(SignatureSubpacketTag.Revocable, critical, isLongLength: false,
+                Utilities.BooleanToBytes(isRevocable))
         {
         }
 

@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Utilities;
+﻿using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
@@ -16,7 +14,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
         }
 
         public IssuerFingerprint(bool critical, int keyVersion, byte[] fingerprint)
-            : base(SignatureSubpacketTag.IssuerFingerprint, critical, false,
+            : base(SignatureSubpacketTag.IssuerFingerprint, critical, isLongLength: false,
                 Arrays.Prepend(fingerprint, (byte)keyVersion))
         {
         }

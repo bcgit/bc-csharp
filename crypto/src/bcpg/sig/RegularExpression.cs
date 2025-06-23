@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text.RegularExpressions;
 
 using Org.BouncyCastle.Utilities;
 
@@ -19,7 +18,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
         }
 
         public RegularExpression(bool critical, string regex)
-            : base(SignatureSubpacketTag.RegExp, critical, false, ToNullTerminatedUtf8ByteArray(regex))
+            : base(SignatureSubpacketTag.RegExp, critical, isLongLength: false, ToNullTerminatedUtf8ByteArray(regex))
         {
         }
 

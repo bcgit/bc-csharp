@@ -1,5 +1,3 @@
-using System.Text;
-
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
@@ -16,7 +14,8 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         public RevocationReason(bool isCritical, RevocationReasonTag reason, string description)
-            : base(SignatureSubpacketTag.RevocationReason, isCritical, false, CreateData(reason, description))
+            : base(SignatureSubpacketTag.RevocationReason, isCritical, isLongLength: false,
+                CreateData(reason, description))
         {
         }
 

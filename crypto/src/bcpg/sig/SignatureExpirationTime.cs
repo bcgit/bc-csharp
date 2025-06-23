@@ -3,8 +3,8 @@ using System;
 namespace Org.BouncyCastle.Bcpg.Sig
 {
     /**
-    * packet giving signature expiration time.
-    */
+     * packet giving signature expiration time.
+     */
     public class SignatureExpirationTime
         : SignatureSubpacket
     {
@@ -17,13 +17,14 @@ namespace Org.BouncyCastle.Bcpg.Sig
         }
 
         public SignatureExpirationTime(bool critical, long seconds)
-            : base(SignatureSubpacketTag.ExpireTime, critical, false, Utilities.TimeToBytes((uint)seconds))
+            : base(SignatureSubpacketTag.ExpireTime, critical, isLongLength: false,
+                Utilities.TimeToBytes((uint)seconds))
         {
         }
 
         /**
-        * return time in seconds before signature expires after creation time.
-        */
-        public long Time => (long)Utilities.TimeFromBytes(data);
+         * return time in seconds before signature expires after creation time.
+         */
+        public long Time => Utilities.TimeFromBytes(data);
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Utilities;
+﻿using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
@@ -16,7 +14,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
         }
 
         public SignatureTarget(bool critical, int publicKeyAlgorithm, int hashAlgorithm, byte[] hashData)
-            : base(SignatureSubpacketTag.SignatureTarget, critical, false,
+            : base(SignatureSubpacketTag.SignatureTarget, critical, isLongLength: false,
                   Arrays.Concatenate(new byte[]{ (byte)publicKeyAlgorithm, (byte)hashAlgorithm }, hashData))
         {
         }

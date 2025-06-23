@@ -17,15 +17,16 @@ namespace Org.BouncyCastle.Bcpg.Sig
         }
 
         public KeyExpirationTime(bool critical, long seconds)
-            : base(SignatureSubpacketTag.KeyExpireTime, critical, false, Utilities.TimeToBytes((uint)seconds))
+            : base(SignatureSubpacketTag.KeyExpireTime, critical, isLongLength: false,
+                Utilities.TimeToBytes((uint)seconds))
         {
         }
 
         /**
-        * Return the number of seconds after creation time a key is valid for.
-        *
-        * @return second count for key validity.
-        */
-        public long Time => (long)Utilities.TimeFromBytes(data);
+         * Return the number of seconds after creation time a key is valid for.
+         *
+         * @return second count for key validity.
+         */
+        public long Time => Utilities.TimeFromBytes(data);
     }
 }

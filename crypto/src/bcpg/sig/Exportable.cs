@@ -1,8 +1,8 @@
 namespace Org.BouncyCastle.Bcpg.Sig
 {
     /**
-    * packet giving signature creation time.
-    */
+     * packet giving signature creation time.
+     */
     public class Exportable
         : SignatureSubpacket
     {
@@ -12,7 +12,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         }
 
         public Exportable(bool critical, bool isExportable)
-            : base(SignatureSubpacketTag.Exportable, critical, false, Utilities.BooleanToBytes(isExportable))
+            : base(SignatureSubpacketTag.Exportable, critical, isLongLength: false,
+                Utilities.BooleanToBytes(isExportable))
         {
         }
 

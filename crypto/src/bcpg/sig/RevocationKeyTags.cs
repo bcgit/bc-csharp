@@ -1,9 +1,9 @@
 namespace Org.BouncyCastle.Bcpg
 {
     public enum RevocationKeyTag
-		: byte
+        : byte
     {
-		ClassDefault = 0x80,
-		ClassSensitive = 0x40
-	}
+        ClassDefault = 0x80,
+        ClassSensitive = 0x40
+    }
 }
