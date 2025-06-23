@@ -380,8 +380,7 @@ namespace Org.BouncyCastle.Tls
                      * NOTE: Certificate processing (including authentication) is delayed to allow for a
                      * possible CertificateStatus message.
                      */
-                    m_authentication = TlsUtilities.ReceiveServerCertificate(m_tlsClientContext, m_tlsClient, buf,
-                        m_serverExtensions);
+                    m_authentication = TlsUtilities.ReceiveServerCertificate(m_tlsClientContext, m_tlsClient, buf);
                     break;
                 }
                 default:
@@ -546,9 +545,9 @@ namespace Org.BouncyCastle.Tls
                         {
                             clientAuthCertificate = clientAuthCredentials.Certificate;
 
-                            if (clientAuthCredentials is TlsCredentialedSigner)
+                            if (clientAuthCredentials is TlsCredentialedSigner credentialedSigner)
                             {
-                                clientAuthSigner = (TlsCredentialedSigner)clientAuthCredentials;
+                                clientAuthSigner = credentialedSigner;
                                 clientAuthAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
                                     securityParameters.NegotiatedVersion, clientAuthSigner);
                                 clientAuthStreamSigner = clientAuthSigner.GetStreamSigner();
@@ -1427,7 +1426,6 @@ namespace Org.BouncyCastle.Tls
 
 
             SecurityParameters securityParameters = m_tlsClientContext.SecurityParameters;
-            ProtocolVersion negotiatedVersion = securityParameters.NegotiatedVersion;
 
             securityParameters.m_applicationProtocol = TlsExtensionsUtilities.GetAlpnExtensionServer(
                 m_serverExtensions);
@@ -1504,8 +1502,7 @@ namespace Org.BouncyCastle.Tls
             if (m_selectedPsk13)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-            m_authentication = TlsUtilities.Receive13ServerCertificate(m_tlsClientContext, m_tlsClient, buf,
-                m_serverExtensions);
+            m_authentication = TlsUtilities.Receive13ServerCertificate(m_tlsClientContext, m_tlsClient, buf);
 
             // NOTE: In TLS 1.3 we don't have to wait for a possible CertificateStatus message.
             HandleServerCertificate();

@@ -247,9 +247,9 @@ namespace Org.BouncyCastle.Tls
                 {
                     clientAuthCertificate = clientAuthCredentials.Certificate;
 
-                    if (clientAuthCredentials is TlsCredentialedSigner)
+                    if (clientAuthCredentials is TlsCredentialedSigner credentialedSigner)
                     {
-                        clientAuthSigner = (TlsCredentialedSigner)clientAuthCredentials;
+                        clientAuthSigner = credentialedSigner;
                         clientAuthAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
                             securityParameters.NegotiatedVersion, clientAuthSigner);
                         clientAuthStreamSigner = clientAuthSigner.GetStreamSigner();
@@ -714,7 +714,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual void ProcessServerCertificate(ClientHandshakeState state, byte[] body)
         {
             state.authentication = TlsUtilities.ReceiveServerCertificate(state.clientContext, state.client,
-                new MemoryStream(body, false), state.serverExtensions);
+                new MemoryStream(body, false));
         }
 
         /// <exception cref="IOException"/>

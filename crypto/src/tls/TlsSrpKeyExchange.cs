@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Tls
 
             if (m_serverCredentials != null)
             {
-                TlsUtilities.GenerateServerKeyExchangeSignature(m_context, m_serverCredentials, null, digestBuffer);
+                TlsUtilities.GenerateServerKeyExchangeSignature(m_context, m_serverCredentials, digestBuffer);
             }
 
             return digestBuffer.ToArray();
@@ -113,8 +113,7 @@ namespace Org.BouncyCastle.Tls
 
             if (digestBuffer != null)
             {
-                TlsUtilities.VerifyServerKeyExchangeSignature(m_context, input, m_serverCertificate, null,
-                    digestBuffer);
+                TlsUtilities.VerifyServerKeyExchangeSignature(m_context, input, m_serverCertificate, digestBuffer);
             }
 
             TlsSrpConfig config = new TlsSrpConfig();

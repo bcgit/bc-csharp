@@ -28,5 +28,17 @@ namespace Org.BouncyCastle.Tls
         {
             return GetName(pskKeyExchangeMode) + "(" + pskKeyExchangeMode + ")";
         }
+
+        public static bool IsRecognized(short pskKeyExchangeMode)
+        {
+            switch (pskKeyExchangeMode)
+            {
+            case psk_ke:
+            case psk_dhe_ke:
+                return true;
+            default:
+                return false;
+            }
+        }
     }
 }

@@ -142,8 +142,8 @@ namespace Org.BouncyCastle.Tls
                 clientHelloExtensions, clientHelloMessage, m_handshakeHash, afterHelloRetryRequest);
 
             var clientShares = TlsExtensionsUtilities.GetKeyShareClientHello(clientHelloExtensions);
-            KeyShareEntry clientShare = null;
 
+            KeyShareEntry clientShare;
             if (afterHelloRetryRequest)
             {
                 if (m_retryGroup < 0)
@@ -361,8 +361,7 @@ namespace Org.BouncyCastle.Tls
             {
                 int namedGroup = clientShare.NamedGroup;
 
-                TlsAgreement agreement = TlsUtilities.CreateKeyShare(crypto, namedGroup, isServer: true);
-                if (agreement == null)
+                TlsAgreement agreement = TlsUtilities.CreateKeyShare(crypto, namedGroup, isServer: true) ??
                     throw new TlsFatalAlert(AlertDescription.internal_error);
 
                 agreement.ReceivePeerValue(clientShare.KeyExchange);

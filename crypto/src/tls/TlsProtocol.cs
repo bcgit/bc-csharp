@@ -497,7 +497,7 @@ namespace Org.BouncyCastle.Tls
                     throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
                 m_applicationDataQueue.AddData(buf, off, len);
-                ProcessApplicationDataQueue();
+                //ProcessApplicationDataQueue();
                 break;
             }
             case ContentType.change_cipher_spec:
@@ -638,15 +638,6 @@ namespace Org.BouncyCastle.Tls
 
                 HandleHandshakeMessage(type, buf);
             }
-        }
-
-        private void ProcessApplicationDataQueue()
-        {
-            /*
-             * There is nothing we need to do here.
-             * 
-             * This function could be used for callbacks when application data arrives in the future.
-             */
         }
 
         /// <exception cref="IOException"/>
@@ -1864,8 +1855,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         internal static void EstablishMasterSecret(TlsContext context, TlsKeyExchange keyExchange)
         {
-            TlsSecret preMasterSecret = keyExchange.GeneratePreMasterSecret();
-            if (preMasterSecret == null)
+            TlsSecret preMasterSecret = keyExchange.GeneratePreMasterSecret() ??
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
             try

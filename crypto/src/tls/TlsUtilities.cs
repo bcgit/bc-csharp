@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.Tls
         private static readonly byte[] DowngradeTlsV11 = Hex.DecodeStrict("444F574E47524400");
         private static readonly byte[] DowngradeTlsV12 = Hex.DecodeStrict("444F574E47524401");
 
-        private static readonly IDictionary<string, SignatureAndHashAlgorithm> CertSigAlgOids = CreateCertSigAlgOids();
-        private static readonly IList<SignatureAndHashAlgorithm> DefaultSupportedSigAlgs = CreateDefaultSupportedSigAlgs();
+        private static readonly Dictionary<string, SignatureAndHashAlgorithm> CertSigAlgOids = CreateCertSigAlgOids();
+        private static readonly List<SignatureAndHashAlgorithm> DefaultSupportedSigAlgs = CreateDefaultSupportedSigAlgs();
 
         private static void AddCertSigAlgOid(IDictionary<string, SignatureAndHashAlgorithm> d, DerObjectIdentifier oid,
             SignatureAndHashAlgorithm sigAndHash)
@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Tls
             AddCertSigAlgOid(d, oid, SignatureAndHashAlgorithm.GetInstance(hashAlgorithm, signatureAlgorithm));
         }
 
-        private static IDictionary<string, SignatureAndHashAlgorithm> CreateCertSigAlgOids()
+        private static Dictionary<string, SignatureAndHashAlgorithm> CreateCertSigAlgOids()
         {
             var d = new Dictionary<string, SignatureAndHashAlgorithm>();
 
@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Tls
             return d;
         }
 
-        private static IList<SignatureAndHashAlgorithm> CreateDefaultSupportedSigAlgs()
+        private static List<SignatureAndHashAlgorithm> CreateDefaultSupportedSigAlgs()
         {
             var result = new List<SignatureAndHashAlgorithm>();
             result.Add(SignatureAndHashAlgorithm.ed25519);
@@ -124,11 +124,11 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
-        public static readonly byte[] EmptyBytes = new byte[0];
-        public static readonly short[] EmptyShorts = new short[0];
-        public static readonly int[] EmptyInts = new int[0];
-        public static readonly long[] EmptyLongs = new long[0];
-        public static readonly string[] EmptyStrings = new string[0];
+        public static readonly byte[] EmptyBytes = Array.Empty<byte>();
+        public static readonly short[] EmptyShorts = Array.Empty<short>();
+        public static readonly int[] EmptyInts = Array.Empty<int>();
+        public static readonly long[] EmptyLongs = Array.Empty<long>();
+        public static readonly string[] EmptyStrings = Array.Empty<string>();
 
         internal static short MinimumHashStrict = HashAlgorithm.sha1;
         internal static short MinimumHashPreferred = HashAlgorithm.sha256;
@@ -983,10 +983,7 @@ namespace Org.BouncyCastle.Tls
             where T : Asn1Encodable
         {
             var asn1Object = ReadAsn1Object(berEncoding);
-            T t = optionalConstructor(asn1Object);
-            if (t == null)
-                throw new TlsFatalAlert(AlertDescription.decode_error);
-            return t;
+            return optionalConstructor(asn1Object) ?? throw new TlsFatalAlert(AlertDescription.decode_error);
         }
 
         public static T ReadDerEncoding<T>(byte[] derEncoding, Func<Asn1Encodable, T> optionalConstructor)
@@ -2129,7 +2126,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static byte[] CalculateSignatureHash(TlsContext context, SignatureAndHashAlgorithm algorithm,
-            byte[] extraSignatureInput, DigestInputBuffer buf)
+            DigestInputBuffer buf)
         {
             TlsCrypto crypto = context.Crypto;
 
@@ -2142,28 +2139,18 @@ namespace Org.BouncyCastle.Tls
             byte[] randoms = Arrays.Concatenate(sp.ClientRandom, sp.ServerRandom);
             h.Update(randoms, 0, randoms.Length);
 
-            if (null != extraSignatureInput)
-            {
-                h.Update(extraSignatureInput, 0, extraSignatureInput.Length);
-            }
-
             buf.UpdateDigest(h);
 
             return h.CalculateHash();
         }
 
-        internal static void SendSignatureInput(TlsContext context, byte[] extraSignatureInput, DigestInputBuffer buf,
+        internal static void SendSignatureInput(TlsContext context, DigestInputBuffer buf,
             Stream output)
         {
             SecurityParameters sp = context.SecurityParameters;
             // NOTE: The implicit copy here is intended (and important)
             byte[] randoms = Arrays.Concatenate(sp.ClientRandom, sp.ServerRandom);
             output.Write(randoms, 0, randoms.Length);
-
-            if (null != extraSignatureInput)
-            {
-                output.Write(extraSignatureInput, 0, extraSignatureInput.Length);
-            }
 
             buf.CopyInputTo(output);
         }
@@ -2391,7 +2378,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <exception cref="IOException"/>
         internal static void GenerateServerKeyExchangeSignature(TlsContext context, TlsCredentialedSigner credentials,
-            byte[] extraSignatureInput, DigestInputBuffer digestBuffer)
+            DigestInputBuffer digestBuffer)
         {
             /*
              * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
@@ -2404,13 +2391,13 @@ namespace Org.BouncyCastle.Tls
             {
                 using (var output = streamSigner.Stream)
                 {
-                    SendSignatureInput(context, extraSignatureInput, digestBuffer, output);
+                    SendSignatureInput(context, digestBuffer, output);
                 }
                 signature = streamSigner.GetSignature();
             }
             else
             {
-                byte[] hash = CalculateSignatureHash(context, algorithm, extraSignatureInput, digestBuffer);
+                byte[] hash = CalculateSignatureHash(context, algorithm, digestBuffer);
                 signature = credentials.GenerateRawSignature(hash);
             }
 
@@ -2421,7 +2408,7 @@ namespace Org.BouncyCastle.Tls
 
         /// <exception cref="IOException"/>
         internal static void VerifyServerKeyExchangeSignature(TlsContext context, Stream signatureInput,
-            TlsCertificate serverCertificate, byte[] extraSignatureInput, DigestInputBuffer digestBuffer)
+            TlsCertificate serverCertificate, DigestInputBuffer digestBuffer)
         {
             DigitallySigned digitallySigned = DigitallySigned.Parse(context, signatureInput);
 
@@ -2453,13 +2440,13 @@ namespace Org.BouncyCastle.Tls
             {
                 using (var output = streamVerifier.Stream)
                 {
-                    SendSignatureInput(context, null, digestBuffer, output);
+                    SendSignatureInput(context, digestBuffer, output);
                 }
                 verified = streamVerifier.IsVerified();
             }
             else
             {
-                byte[] hash = CalculateSignatureHash(context, sigAndHashAlg, null, digestBuffer);
+                byte[] hash = CalculateSignatureHash(context, sigAndHashAlg, digestBuffer);
                 verified = verifier.VerifyRawSignature(digitallySigned, hash);
             }
 
@@ -4759,28 +4746,28 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         internal static TlsCredentialedAgreement RequireAgreementCredentials(TlsCredentials credentials)
         {
-            if (!(credentials is TlsCredentialedAgreement))
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            if (credentials is TlsCredentialedAgreement credentialedAgreement)
+                return credentialedAgreement;
 
-            return (TlsCredentialedAgreement)credentials;
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
         /// <exception cref="IOException"/>
         internal static TlsCredentialedDecryptor RequireDecryptorCredentials(TlsCredentials credentials)
         {
-            if (!(credentials is TlsCredentialedDecryptor))
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            if (credentials is TlsCredentialedDecryptor credentialedDecryptor)
+                return credentialedDecryptor;
 
-            return (TlsCredentialedDecryptor)credentials;
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
         /// <exception cref="IOException"/>
         internal static TlsCredentialedSigner RequireSignerCredentials(TlsCredentials credentials)
         {
-            if (!(credentials is TlsCredentialedSigner))
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            if (credentials is TlsCredentialedSigner credentialedSigner)
+                return credentialedSigner;
 
-            return (TlsCredentialedSigner)credentials;
+            throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
         /// <exception cref="IOException"/>
@@ -4837,7 +4824,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static TlsAuthentication ReceiveServerCertificate(TlsClientContext clientContext, TlsClient client,
-            MemoryStream buf, IDictionary<int, byte[]> serverExtensions)
+            MemoryStream buf)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
             if (KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm)
@@ -4872,7 +4859,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static TlsAuthentication Receive13ServerCertificate(TlsClientContext clientContext, TlsClient client,
-            MemoryStream buf, IDictionary<int, byte[]> serverExtensions)
+            MemoryStream buf)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
             if (null != securityParameters.PeerCertificate)
@@ -4987,7 +4974,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         private static void CollectKeyShares(TlsCrypto crypto, int[] supportedGroups, IList<int> keyShareGroups,
-            IDictionary<int, TlsAgreement> clientAgreements, IList<KeyShareEntry> clientShares)
+            Dictionary<int, TlsAgreement> clientAgreements, List<KeyShareEntry> clientShares)
         {
             if (IsNullOrEmpty(supportedGroups))
                 return;
@@ -5658,8 +5645,14 @@ namespace Org.BouncyCastle.Tls
                 if (IsNullOrEmpty(pskKeyExchangeModes))
                     throw new TlsFatalAlert(AlertDescription.missing_extension);
 
+                // TODO[tls13] Fetch these from 'server'
+                short[] serverSupportedModes = { PskKeyExchangeMode.psk_dhe_ke };
+                bool useServerOrder = false;
+
+                short selectedMode = SelectPreSharedKeyMode(pskKeyExchangeModes, serverSupportedModes, useServerOrder);
+
                 // TODO[tls13] Add support for psk_ke?
-                if (Arrays.Contains(pskKeyExchangeModes, PskKeyExchangeMode.psk_dhe_ke))
+                if (PskKeyExchangeMode.psk_dhe_ke == selectedMode)
                 {
                     // TODO[tls13] Prefer to get the exact index from the server?
                     TlsPskExternal psk = server.GetExternalPsk(offeredPsks.Identities);
@@ -5715,6 +5708,26 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        private static short SelectPreSharedKeyMode(short[] clientSupportedModes, short[] serverSupportedModes,
+            bool useServerOrder)
+        {
+            if (!IsNullOrEmpty(clientSupportedModes) && !IsNullOrEmpty(serverSupportedModes))
+            {
+                short[] ordered = useServerOrder ? serverSupportedModes : clientSupportedModes;
+                short[] unordered = useServerOrder ? clientSupportedModes : serverSupportedModes;
+
+                foreach (short candidate in ordered)
+                {
+                    if (Arrays.Contains(unordered, candidate) &&
+                        PskKeyExchangeMode.IsRecognized(candidate))
+                    {
+                        return candidate;
+                    }
+                }
+            }
+            return -1;
+        }
+
         internal static TlsSecret GetPskEarlySecret(TlsCrypto crypto, TlsPsk psk)
         {
             int cryptoHashAlgorithm = TlsCryptoUtilities.GetHashForPrf(psk.PrfAlgorithm);
@@ -5749,8 +5762,7 @@ namespace Org.BouncyCastle.Tls
 
             for (int i = 0; i < count; ++i)
             {
-                TlsPskExternal pskExternal = externalPsks[i] as TlsPskExternal;
-                if (null == pskExternal)
+                if (!(externalPsks[i] is TlsPskExternal pskExternal))
                     throw new TlsFatalAlert(AlertDescription.internal_error,
                         "External PSKs element is not a TlsPSKExternal");
 
