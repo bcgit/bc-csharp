@@ -505,14 +505,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 switch (publicPk.Algorithm)
                 {
-                    case PublicKeyAlgorithmTag.ECDH:
-                    case PublicKeyAlgorithmTag.ElGamalEncrypt:
-                    case PublicKeyAlgorithmTag.ElGamalGeneral:
-                    case PublicKeyAlgorithmTag.RsaEncrypt:
-                    case PublicKeyAlgorithmTag.RsaGeneral:
-                        return true;
-                    default:
-                        return false;
+                case PublicKeyAlgorithmTag.DiffieHellman:
+                case PublicKeyAlgorithmTag.ECDH:
+                case PublicKeyAlgorithmTag.ElGamalEncrypt:
+                case PublicKeyAlgorithmTag.ElGamalGeneral:
+                case PublicKeyAlgorithmTag.RsaEncrypt:
+                case PublicKeyAlgorithmTag.RsaGeneral:
+                case PublicKeyAlgorithmTag.X25519:
+                case PublicKeyAlgorithmTag.X448:
+                    return true;
+                default:
+                    return false;
                 }
             }
         }

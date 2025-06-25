@@ -6,19 +6,27 @@ namespace Org.BouncyCastle.Bcpg
     public enum PublicKeyAlgorithmTag
     {
         RsaGeneral = 1,			// RSA (Encrypt or Sign)
+        /// <remarks>Use RsaGeneral instead</remarks>
         RsaEncrypt = 2,			// RSA Encrypt-Only
+        /// <remarks>Use RsaGeneral instead</remarks>
         RsaSign = 3,			// RSA Sign-Only
         ElGamalEncrypt = 16,	// Elgamal (Encrypt-Only), see [ELGAMAL]
         Dsa = 17,				// DSA (Digital Signature Standard)
         ECDH = 18,              // Reserved for Elliptic Curve (actual algorithm name)
         ECDsa = 19,				// Reserved for ECDSA
+        /// <remarks>Use ElGamalEncrypt instead</remarks>
         ElGamalGeneral = 20,	// Elgamal (Encrypt or Sign)
         DiffieHellman = 21,		// Reserved for Diffie-Hellman (X9.42, as defined for IETF-S/MIME)
 
-        // TODO Mark obsolete once Ed25519, Ed448 available
-        //[Obsolete("Use Ed25519 or Ed448 instead")]
+        [Obsolete("Use 'EdDsa_Legacy' instead")]
         EdDsa = 22,             // EdDSA - (internet draft, but appearing in use)
         EdDsa_Legacy = 22,      // new name for old EdDSA tag.
+
+        X25519 = 25,            // X25519 encryption algorithm
+        X448 = 26,              // X448 encryption algorithm
+
+        Ed25519 = 27,           // new style Ed25519 signing algorithm
+        Ed448 = 28,             // new style Ed448 signing algorithm
 
         Experimental_1 = 100,
         Experimental_2 = 101,
