@@ -472,11 +472,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return expiryTime;
         }
 
-        /// <summary>The key ID associated with the public key.</summary>
-        public long KeyId
-        {
-            get { return keyId; }
-        }
+        /// <summary>The Key ID associated with the public key.</summary>
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
+        public long KeyId => keyId;
 
         /// <summary>The fingerprint of the public key</summary>
         public byte[] GetFingerprint()

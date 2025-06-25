@@ -220,10 +220,10 @@ namespace Org.BouncyCastle.Bcpg
 
 		public int SignatureType => signatureType;
 
-        /**
-        * return the keyId
-        * @return the keyId that created the signature.
-        */
+        /// <summary>Returns the key ID that created the signature.</summary>
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
         public long KeyId => keyId;
 
         /**

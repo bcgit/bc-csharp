@@ -315,11 +315,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			get { return sigPck.SignatureType; }
         }
 
-		/// <summary>The ID of the key that created the signature.</summary>
-        public long KeyId
-        {
-            get { return sigPck.KeyId; }
-        }
+        /// <summary>The Key ID of the key that created the signature.</summary>
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
+        public long KeyId => sigPck.KeyId;
 
 		/// <summary>The creation time of this signature.</summary>
         public DateTime CreationTime

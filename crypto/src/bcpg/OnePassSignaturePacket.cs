@@ -56,10 +56,10 @@ namespace Org.BouncyCastle.Bcpg
 			get { return hashAlgorithm; }
 		}
 
-		public long KeyId
-		{
-			get { return keyId; }
-		}
+		/// <remarks>
+		/// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+		/// </remarks>
+		public long KeyId => keyId;
 
 		public override void Encode(BcpgOutputStream bcpgOut)
 		{

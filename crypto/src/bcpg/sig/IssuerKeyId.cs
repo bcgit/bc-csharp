@@ -23,6 +23,9 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
         public long KeyId => (long)Pack.BE_To_UInt64(data);
     }
 }

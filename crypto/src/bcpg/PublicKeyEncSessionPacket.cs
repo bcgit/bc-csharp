@@ -58,6 +58,9 @@ namespace Org.BouncyCastle.Bcpg
 
         public int Version => m_version;
 
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
         public long KeyId => m_keyID;
 
         public PublicKeyAlgorithmTag Algorithm => m_algorithm;

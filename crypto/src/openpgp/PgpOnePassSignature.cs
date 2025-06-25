@@ -154,10 +154,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return sig.VerifySignature(pgpSig.GetSignature());
         }
 
-        public long KeyId
-        {
-			get { return sigPack.KeyId; }
-        }
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
+        public long KeyId => sigPack.KeyId;
 
 		public int SignatureType
         {

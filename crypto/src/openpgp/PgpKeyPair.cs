@@ -48,11 +48,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.priv = priv;
         }
 
-		/// <summary>The keyId associated with this key pair.</summary>
-        public long KeyId
-        {
-            get { return pub.KeyId; }
-        }
+        /// <summary>The Key ID associated with this key pair.</summary>
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
+        public long KeyId => pub.KeyId;
 
 		public PgpPublicKey PublicKey
         {

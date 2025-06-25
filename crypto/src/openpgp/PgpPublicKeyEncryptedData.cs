@@ -53,7 +53,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
-        /// <summary>The key ID for the key used to encrypt the data.</summary>
+        /// <summary>The Key ID for the key used to encrypt the data.</summary>
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
         public long KeyId => m_keyData.KeyId;
 
         /// <summary>

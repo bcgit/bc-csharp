@@ -485,11 +485,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return secret.EncAlgorithm; }
         }
 
-        /// <summary>The key ID of the public key associated with this key.</summary>
-        public long KeyId
-        {
-            get { return pub.KeyId; }
-        }
+        /// <summary>The Key ID of the public key associated with this key.</summary>
+        /// <remarks>
+        /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
+        /// </remarks>
+        public long KeyId => pub.KeyId;
 
         /// <summary>The fingerprint of the public key associated with this key.</summary>
         public byte[] GetFingerprint()
