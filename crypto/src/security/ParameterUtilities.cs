@@ -369,6 +369,26 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Algorithm " + algorithm + " not recognised.");
         }
 
+        public static ICipherParameters GetContext(ICipherParameters cipherParameters, int minLen, int maxLen,
+            out byte[] context)
+        {
+            if (cipherParameters is ParametersWithContext withContext)
+            {
+                int len = withContext.ContextLength;
+                if (len < minLen || len > maxLen)
+                {
+                    var message = $"Context length must be in range [{minLen}, {maxLen}]";
+                    throw new ArgumentOutOfRangeException(nameof(cipherParameters), len, message);
+                }
+
+                context = withContext.GetContext();
+                return withContext.Parameters;
+            }
+
+            context = null;
+            return cipherParameters;
+        }
+
         public static ICipherParameters GetRandom(ICipherParameters cipherParameters, out SecureRandom random)
         {
             if (cipherParameters is ParametersWithRandom withRandom)

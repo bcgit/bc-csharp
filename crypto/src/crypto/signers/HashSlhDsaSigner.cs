@@ -39,15 +39,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public void Init(bool forSigning, ICipherParameters parameters)
         {
-            byte[] providedContext = null;
-            if (parameters is ParametersWithContext withContext)
-            {
-                if (withContext.ContextLength > 255)
-                    throw new ArgumentOutOfRangeException("context too long", nameof(parameters));
-
-                providedContext = withContext.GetContext();
-                parameters = withContext.Parameters;
-            }
+            parameters = ParameterUtilities.GetContext(parameters, minLen: 0, maxLen: 255, out var providedContext);
 
             if (forSigning)
             {
