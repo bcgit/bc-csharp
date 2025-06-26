@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         public virtual bool VerifySignature(byte[] signature)
         {
             if (forSigning)
-                throw new InvalidOperationException("DSADigestSigner not initialised for verification");
+                throw new InvalidOperationException("GOST3410DigestSigner not initialised for verification");
 
             byte[] hash = new byte[digest.GetDigestSize()];
             digest.DoFinal(hash, 0);
