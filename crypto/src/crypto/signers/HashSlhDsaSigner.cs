@@ -69,6 +69,8 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
 
             m_buffer.Init(context: providedContext ?? Array.Empty<byte>(), m_preHashOidEncoding);
+
+            Reset();
         }
 
         public void Update(byte input) => m_preHashDigest.Update(input);
