@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public int ReadU32()
         {
             if (pos > buffer.Length - 4)
-                throw new ArgumentOutOfRangeException("4 bytes for U32 exceeds buffer.");
+                throw new InvalidOperationException("4 bytes for U32 exceeds buffer.");
 
             int i = (int)Pack.BE_To_UInt32(buffer, pos);
             pos += 4;

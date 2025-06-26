@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             Arrays.ValidateSegment(z, zOff, zLen);
 
             if (zLen > 256)
-                throw new ArgumentOutOfRangeException("customization string too long");
+                throw new ArgumentOutOfRangeException(nameof(zLen), "customization string too long");
 
             InitState(z, zOff, zLen);
 

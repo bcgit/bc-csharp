@@ -183,7 +183,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             lock (this)
             {
                 if (usageCount < 0)
-                    throw new ArgumentOutOfRangeException("cannot be negative", nameof(usageCount));
+                    throw new ArgumentOutOfRangeException(nameof(usageCount), "cannot be negative");
                 if (usageCount > m_indexLimit - m_index)
                     throw new ArgumentException("exceeds usages remaining in current leaf", nameof(usageCount));
 

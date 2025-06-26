@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Security
             if (maxValue < 2)
             {
                 if (maxValue < 0)
-                    throw new ArgumentOutOfRangeException("maxValue", "cannot be negative");
+                    throw new ArgumentOutOfRangeException(nameof(maxValue), "cannot be negative");
 
                 return 0;
             }
