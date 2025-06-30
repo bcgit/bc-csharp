@@ -81,30 +81,43 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return new MPInteger[]{ new MPInteger(new BigInteger(1, encoding)) };
 		}
 
-		public static string GetDigestName(
-            HashAlgorithmTag hashAlgorithm)
+        public static string GetDigestName(HashAlgorithmTag hashAlgorithm)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             switch (hashAlgorithm)
             {
-			case HashAlgorithmTag.Sha1:
-				return "SHA1";
-			case HashAlgorithmTag.MD2:
-				return "MD2";
-			case HashAlgorithmTag.MD5:
-				return "MD5";
-			case HashAlgorithmTag.RipeMD160:
-				return "RIPEMD160";
-			case HashAlgorithmTag.Sha224:
-				return "SHA224";
-			case HashAlgorithmTag.Sha256:
-				return "SHA256";
-			case HashAlgorithmTag.Sha384:
-				return "SHA384";
-			case HashAlgorithmTag.Sha512:
-				return "SHA512";
-			default:
-				throw new PgpException("unknown hash algorithm tag in GetDigestName: " + hashAlgorithm);
-			}
+            case HashAlgorithmTag.Sha1:
+                return "SHA1";
+            case HashAlgorithmTag.MD2:
+                return "MD2";
+            case HashAlgorithmTag.MD5:
+                return "MD5";
+            case HashAlgorithmTag.RipeMD160:
+                return "RIPEMD160";
+            case HashAlgorithmTag.Sha224:
+                return "SHA224";
+            case HashAlgorithmTag.Sha256:
+                return "SHA256";
+            case HashAlgorithmTag.Sha384:
+                return "SHA384";
+            case HashAlgorithmTag.Sha512:
+                return "SHA512";
+            case HashAlgorithmTag.Sha3_256:
+            case HashAlgorithmTag.Sha3_256_Old:
+                return "SHA3-256";
+            case HashAlgorithmTag.Sha3_384:
+                return "SHA3-384";
+            case HashAlgorithmTag.Sha3_512:
+            case HashAlgorithmTag.Sha3_512_Old:
+                return "SHA3-512";
+            case HashAlgorithmTag.Sha3_224:
+                return "SHA3-224";
+            case HashAlgorithmTag.Tiger192:
+                return "TIGER";
+            default:
+                throw new PgpException("unknown hash algorithm tag in GetDigestName: " + hashAlgorithm);
+            }
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static int GetDigestIDForName(string name)
