@@ -4,8 +4,8 @@ namespace Org.BouncyCastle.Math.Field
 {
     public abstract class FiniteFields
     {
-        internal static readonly IFiniteField GF_2 = new PrimeField(BigInteger.ValueOf(2));
-        internal static readonly IFiniteField GF_3 = new PrimeField(BigInteger.ValueOf(3));
+        internal static readonly IFiniteField GF_2 = new PrimeField(BigInteger.Two);
+        internal static readonly IFiniteField GF_3 = new PrimeField(BigInteger.Three);
 
         public static IPolynomialExtensionField GetBinaryExtensionField(int[] exponents)
         {

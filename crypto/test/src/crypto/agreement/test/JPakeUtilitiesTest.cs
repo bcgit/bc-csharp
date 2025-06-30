@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
     public class JPakeUtilitiesTest
         : SimpleTest
     {
-        private static readonly BigInteger Ten = BigInteger.ValueOf(10);
+        private static readonly BigInteger Ten = BigInteger.Ten;
 
         public override void PerformTest()
         {

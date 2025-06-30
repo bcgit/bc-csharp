@@ -281,7 +281,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 curve,
                 curve.DecodePoint(Hex.Decode("0457927098FA932E7C0A96D3FD5B706EF7E5F5C156E16B7E7C86038552E91D61D8EE5077C33FECF6F1A16B268DE469C3C7744EA9A971649FC7A9616305")), // G
                 new BigInteger("220855883097298041197912187592864814557886993776713230936715041207411783"), // n
-                BigInteger.ValueOf(4)); // h
+                BigInteger.Four); // h
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECDSA",
@@ -586,7 +586,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 curve.DecodePoint(
                     Hex.Decode("0457927098FA932E7C0A96D3FD5B706EF7E5F5C156E16B7E7C86038552E91D61D8EE5077C33FECF6F1A16B268DE469C3C7744EA9A971649FC7A9616305")), // G
                 new BigInteger("220855883097298041197912187592864814557886993776713230936715041207411783"), // n
-                BigInteger.ValueOf(4)); // h
+                BigInteger.Four); // h
 
             ECPrivateKeyParameters priKey = new ECPrivateKeyParameters(
                 "ECDSA",
@@ -750,7 +750,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger a = new BigInteger(1, Hex.DecodeStrict("2AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA984914A144"));
             BigInteger b = new BigInteger(1, Hex.DecodeStrict("7B425ED097B425ED097B425ED097B425ED097B425ED097B4260B5E9C7710C864"));
             BigInteger n = new BigInteger(1, Hex.DecodeStrict("1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED"));
-            BigInteger h = BigInteger.ValueOf(8);
+            BigInteger h = BigInteger.Eight;
 
             ECCurve curve = new FpCurve(q, a, b, n, h);
             X9ECPoint G = new X9ECPoint(curve,

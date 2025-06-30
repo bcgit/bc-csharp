@@ -186,7 +186,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 		[Test]
 		public void TestDsa()
 		{
-			BigInteger a = BigInteger.ValueOf(1), b = BigInteger.ValueOf(2), c = BigInteger.ValueOf(3);
+			BigInteger a = BigInteger.One, b = BigInteger.Two, c = BigInteger.Three;
 
 			DsaParameters dsaP1 = new DsaParameters(a, b, c);
 			DsaParameters dsaP2 = new DsaParameters(a, b, c);
@@ -216,7 +216,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 		[Test]
 		public void TestGost3410()
 		{
-			BigInteger a = BigInteger.ValueOf(1), b = BigInteger.ValueOf(2), c = BigInteger.ValueOf(3);
+			BigInteger a = BigInteger.One, b = BigInteger.Two, c = BigInteger.Three;
 
 			Gost3410Parameters g1 = new Gost3410Parameters(a, b, c);
 			Gost3410Parameters g2 = new Gost3410Parameters(a, b, c);

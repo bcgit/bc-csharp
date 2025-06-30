@@ -324,7 +324,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 //			fact.initialize(768, new SecureRandom());
 			RsaKeyGenerationParameters factParams = new RsaKeyGenerationParameters(
 //				BigInteger.ValueOf(0x11), new SecureRandom(), 768, 25);
-				BigInteger.ValueOf(3), new SecureRandom(), 768, 25);
+				BigInteger.Three, new SecureRandom(), 768, 25);
 			fact.Init(factParams);
 
 //			keyPair = fact.generateKeyPair();

@@ -35,9 +35,9 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 		// Values from NaccacheStern paper
 		static readonly BigInteger a = BigInteger.ValueOf(101);
-		static readonly BigInteger u1 = BigInteger.ValueOf(3);
-		static readonly BigInteger u2 = BigInteger.ValueOf(5);
-		static readonly BigInteger u3 = BigInteger.ValueOf(7);
+		static readonly BigInteger u1 = BigInteger.Three;
+		static readonly BigInteger u2 = BigInteger.Five;
+		static readonly BigInteger u3 = BigInteger.Seven;
 		static readonly BigInteger b = BigInteger.ValueOf(191);
 		static readonly BigInteger v1 = BigInteger.ValueOf(11);
 		static readonly BigInteger v2 = BigInteger.ValueOf(13);

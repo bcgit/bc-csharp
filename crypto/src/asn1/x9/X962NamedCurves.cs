@@ -416,7 +416,7 @@ namespace Org.BouncyCastle.Asn1.X9
             protected override ECCurve CreateCurve()
             {
                 BigInteger n = FromHex("20000000000000000000000050508CB89F652824E06B8173");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new F2mCurve(
                     191,
@@ -448,7 +448,7 @@ namespace Org.BouncyCastle.Asn1.X9
             protected override ECCurve CreateCurve()
             {
                 BigInteger n = FromHex("155555555555555555555555610C0B196812BFB6288A3EA3");
-                BigInteger h = BigInteger.ValueOf(6);
+                BigInteger h = BigInteger.Six;
 
                 return ConfigureCurve(new F2mCurve(
                     191,
@@ -512,7 +512,7 @@ namespace Org.BouncyCastle.Asn1.X9
             protected override ECCurve CreateCurve()
             {
                 BigInteger n = FromHex("2000000000000000000000000000000F4D42FFE1492A4993F1CAD666E447");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new F2mCurve(
                     239,
@@ -544,7 +544,7 @@ namespace Org.BouncyCastle.Asn1.X9
             protected override ECCurve CreateCurve()
             {
                 BigInteger n = FromHex("1555555555555555555555555555553C6F2885259C31E3FCDF154624522D");
-                BigInteger h = BigInteger.ValueOf(6);
+                BigInteger h = BigInteger.Six;
 
                 return ConfigureCurve(new F2mCurve(
                     239,
@@ -576,7 +576,7 @@ namespace Org.BouncyCastle.Asn1.X9
             protected override ECCurve CreateCurve()
             {
                 BigInteger n = FromHex("0CCCCCCCCCCCCCCCCCCCCCCCCCCCCCAC4912D2D9DF903EF9888B8A0E4CFF");
-                BigInteger h = BigInteger.ValueOf(10);
+                BigInteger h = BigInteger.Ten;
 
                 return ConfigureCurve(new F2mCurve(
                     239,

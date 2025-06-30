@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
 			using (var seqGen = new DerSequenceGenerator(bOut))
 			{
-                seqGen.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen.AddObject(DerInteger.Zero);
                 seqGen.AddObject(new DerObjectIdentifier("1.1"));
             }
 
@@ -43,12 +43,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
 			using (var seqGen1 = new DerSequenceGenerator(bOut))
 			{
-                seqGen1.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen1.AddObject(DerInteger.Zero);
                 seqGen1.AddObject(new DerObjectIdentifier("1.1"));
 
                 using (var seqGen2 = new DerSequenceGenerator(seqGen1.GetRawOutputStream()))
                 {
-                    seqGen2.AddObject(new DerInteger(BigInteger.One));
+                    seqGen2.AddObject(DerInteger.One);
                 }
             }
 
@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
             using (var seqGen = new DerSequenceGenerator(bOut, 1, true))
             {
-                seqGen.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen.AddObject(DerInteger.Zero);
                 seqGen.AddObject(new DerObjectIdentifier("1.1"));
             }
 
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
             using (var seqGen = new DerSequenceGenerator(bOut, 1, false))
             {
-                seqGen.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen.AddObject(DerInteger.Zero);
                 seqGen.AddObject(new DerObjectIdentifier("1.1"));
             }
 
@@ -87,12 +87,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
             using (var seqGen1 = new DerSequenceGenerator(bOut))
             {
-                seqGen1.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen1.AddObject(DerInteger.Zero);
                 seqGen1.AddObject(new DerObjectIdentifier("1.1"));
 
                 using (var seqGen2 = new DerSequenceGenerator(seqGen1.GetRawOutputStream(), 1, true))
                 {
-                    seqGen2.AddObject(new DerInteger(BigInteger.ValueOf(1)));
+                    seqGen2.AddObject(DerInteger.One);
                 }
             }
 
@@ -105,12 +105,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
             using (var seqGen1 = new DerSequenceGenerator(bOut))
             {
-                seqGen1.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen1.AddObject(DerInteger.Zero);
                 seqGen1.AddObject(new DerObjectIdentifier("1.1"));
 
                 using (var seqGen2 = new DerSequenceGenerator(seqGen1.GetRawOutputStream(), 1, false))
                 {
-                    seqGen2.AddObject(new DerInteger(BigInteger.ValueOf(1)));
+                    seqGen2.AddObject(DerInteger.One);
                 }
             }
 
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
             using (var seqGen = new BerSequenceGenerator(bOut))
             {
-                seqGen.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen.AddObject(DerInteger.Zero);
                 seqGen.AddObject(new DerObjectIdentifier("1.1"));
             }
 
@@ -136,12 +136,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
             using (var seqGen1 = new BerSequenceGenerator(bOut))
             {
-                seqGen1.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen1.AddObject(DerInteger.Zero);
                 seqGen1.AddObject(new DerObjectIdentifier("1.1"));
 
                 using (var seqGen2 = new DerSequenceGenerator(seqGen1.GetRawOutputStream()))
                 {
-                    seqGen2.AddObject(new DerInteger(BigInteger.ValueOf(1)));
+                    seqGen2.AddObject(DerInteger.One);
                 }
             }
 
@@ -154,12 +154,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
             using (var seqGen1 = new BerSequenceGenerator(bOut))
             {
-                seqGen1.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen1.AddObject(DerInteger.Zero);
                 seqGen1.AddObject(new DerObjectIdentifier("1.1"));
 
                 using (var seqGen2 = new BerSequenceGenerator(seqGen1.GetRawOutputStream()))
                 {
-                    seqGen2.AddObject(new DerInteger(BigInteger.ValueOf(1)));
+                    seqGen2.AddObject(DerInteger.One);
                 }
             }
 
@@ -283,7 +283,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             MemoryStream bOut = new MemoryStream();
             using (var seqGen = new BerSequenceGenerator(bOut, 1, true))
             {
-                seqGen.AddObject(new DerInteger(BigInteger.Zero));
+                seqGen.AddObject(DerInteger.Zero);
                 seqGen.AddObject(new DerObjectIdentifier("1.1"));
             }
 

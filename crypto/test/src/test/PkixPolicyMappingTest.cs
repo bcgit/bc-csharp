@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Tests
 		{
 			string issuer = "C=JP, O=policyMappingAdditionalTest, OU=trustAnchor";
 			string subject = "C=JP, O=policyMappingAdditionalTest, OU=trustAnchor";
-			v3CertGen.SetSerialNumber(BigInteger.ValueOf(10));
+			v3CertGen.SetSerialNumber(BigInteger.Ten);
 			v3CertGen.SetIssuerDN(new X509Name(issuer));
 			v3CertGen.SetNotBefore(DateTime.UtcNow.AddDays(-30));
 			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(30));

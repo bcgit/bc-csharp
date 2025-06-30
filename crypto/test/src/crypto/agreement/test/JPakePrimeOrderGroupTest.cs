@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             // p-1 not evenly divisible by q
             try
             {
-                new JPakePrimeOrderGroup(BigInteger.ValueOf(7), BigInteger.ValueOf(5), BigInteger.ValueOf(6));
+                new JPakePrimeOrderGroup(BigInteger.Seven, BigInteger.Five, BigInteger.Six);
 
                 Fail("failed to throw exception on p-1 not evenly divisible by q");
             }
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             // g < 2
             try
             {
-                new JPakePrimeOrderGroup(BigInteger.ValueOf(11), BigInteger.ValueOf(5), BigInteger.ValueOf(1));
+                new JPakePrimeOrderGroup(BigInteger.ValueOf(11), BigInteger.Five, BigInteger.One);
 
                 Fail("failed to throw exception on g < 2");
             }
@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             // g > p - 1
             try
             {
-                new JPakePrimeOrderGroup(BigInteger.ValueOf(11), BigInteger.ValueOf(5), BigInteger.ValueOf(11));
+                new JPakePrimeOrderGroup(BigInteger.ValueOf(11), BigInteger.Five, BigInteger.ValueOf(11));
 
                 Fail("failed to throw exception on g > p - 1");
             }
@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             //g^q mod p not equal 1
             try
             {
-                new JPakePrimeOrderGroup(BigInteger.ValueOf(11), BigInteger.ValueOf(5), BigInteger.ValueOf(6));
+                new JPakePrimeOrderGroup(BigInteger.ValueOf(11), BigInteger.Five, BigInteger.Six);
 
                 Fail("failed to throw exception on g^q mod p not equal 1");
             }
@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             // p not prime
             try
             {
-                new JPakePrimeOrderGroup(BigInteger.ValueOf(15), BigInteger.ValueOf(2), BigInteger.ValueOf(4));
+                new JPakePrimeOrderGroup(BigInteger.ValueOf(15), BigInteger.Two, BigInteger.Four);
 
                 Fail("failed to throw exception on p not prime");
             }
@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             // q not prime
             try
             {
-                new JPakePrimeOrderGroup(BigInteger.ValueOf(7), BigInteger.ValueOf(6), BigInteger.ValueOf(3));
+                new JPakePrimeOrderGroup(BigInteger.Seven, BigInteger.Six, BigInteger.Three);
 
                 Fail("failed to throw exception on q not prime");
             }
@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Tests
             }
 
             // should succeed
-            new JPakePrimeOrderGroup(BigInteger.ValueOf(7), BigInteger.ValueOf(3), BigInteger.ValueOf(4));
+            new JPakePrimeOrderGroup(BigInteger.Seven, BigInteger.Three, BigInteger.Four);
         }
     }
 }

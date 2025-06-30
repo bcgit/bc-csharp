@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             {
                 while (bits < b)
                 {
-                    total = total.ShiftLeft(8).Add(BigInteger.ValueOf((int)msg[i]));
+                    total = total.ShiftLeft(8).Add(BigInteger.ValueOf(msg[i]));
                     i += 1;
                     bits += 8;
                 }

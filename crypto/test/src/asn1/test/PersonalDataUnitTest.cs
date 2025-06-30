@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 		public override void PerformTest()
 		{
 			NameOrPseudonym nameOrPseudonym = new NameOrPseudonym("pseudonym");
-			BigInteger nameDistinguisher = BigInteger.ValueOf(10);
+			BigInteger nameDistinguisher = BigInteger.Ten;
             Asn1GeneralizedTime dateOfBirth = new Asn1GeneralizedTime("20070315173729Z");
 			DirectoryString placeOfBirth = new DirectoryString("placeOfBirth");
 			string gender = "M";

@@ -1027,7 +1027,7 @@ namespace Org.BouncyCastle.Math.EC
                     ECFieldElement a4Neg = a4.Negate();
 
                     ECFieldElement M, S;
-                    if (a4Neg.ToBigInteger().Equals(BigInteger.ValueOf(3)))
+                    if (a4Neg.ToBigInteger().Equals(BigInteger.Three))
                     {
                         ECFieldElement Z1Squared = Z1IsOne ? Z1 : Z1.Square();
                         M = Three(X1.Add(Z1Squared).Multiply(X1.Subtract(Z1Squared)));
@@ -1488,7 +1488,7 @@ namespace Org.BouncyCastle.Math.EC
                 ECFieldElement X = N.AffineXCoord;
                 return 0 != ((AbstractF2mFieldElement)X).Trace();
             }
-            if (BigInteger.ValueOf(4).Equals(cofactor))
+            if (BigInteger.Four.Equals(cofactor))
             {
                 /*
                  * Solve L^2 + L = X + A to find the half of this point, if it exists (fail if not).

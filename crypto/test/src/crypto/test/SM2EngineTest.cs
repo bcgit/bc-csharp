@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger SM2_ECC_A = new BigInteger("00", 16);
             BigInteger SM2_ECC_B = new BigInteger("E78BCD09746C202378A7E72B12BCE00266B9627ECB0B5A25367AD1AD4CC6242B", 16);
             BigInteger SM2_ECC_N = new BigInteger("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFBC972CF7E6B6F900945B3C6A0CF6161D", 16);
-            BigInteger SM2_ECC_H = BigInteger.ValueOf(4);
+            BigInteger SM2_ECC_H = BigInteger.Four;
             BigInteger SM2_ECC_GX = new BigInteger("00CDB9CA7F1E6B0441F658343F4B10297C0EF9B6491082400A62E7A7485735FADD", 16);
             BigInteger SM2_ECC_GY = new BigInteger("013DE74DA65951C4D76DC89220D5F7777A611B1C38BAE260B175951DC8060C2B3E", 16);
 

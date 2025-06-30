@@ -15,8 +15,8 @@ namespace Org.BouncyCastle.Asn1.Cmp.Tests
 
         public override void PerformTest()
         {
-            BigInteger one = BigInteger.ValueOf(1), two = BigInteger.ValueOf(2);
-            BigInteger[] ids = new BigInteger[]{ one, two };
+            BigInteger one = BigInteger.One, two = BigInteger.Two;
+            BigInteger[] ids = { one, two };
 
             PollReqContent c = new PollReqContent(ids);
 

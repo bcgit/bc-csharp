@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("6127C24C05F38A0AAAF65C0EF02C");
                 BigInteger b = FromHex("51DEF1815DB5ED74FCC34C85D709");
                 BigInteger n = FromHex("36DF0AAFD8B8D7597CA10520D04B");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new FpCurve(p, a, b, n, h, isInternal: true));
             }
@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("D6031998D1B3BBFEBF59CC9BBFF9AEE1");
                 BigInteger b = FromHex("5EEEFCA380D02919DC2C6558BB6D8A5D");
                 BigInteger n = FromHex("3FFFFFFF7FFFFFFFBE0024720613B5A3");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new FpCurve(p, a, b, n, h, isInternal: true));
             }
@@ -172,7 +172,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 // p = 2^160 - 2^32 - 2^14 - 2^12 - 2^9 - 2^8 - 2^7 - 2^3 - 2^2 - 1
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFAC73");
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(7);
+                BigInteger b = BigInteger.Seven;
                 BigInteger n = FromHex("0100000000000000000001B8FA16DFAB9ACA16B6B3");
                 BigInteger h = BigInteger.One;
 
@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 // p = 2^192 - 2^32 - 2^12 - 2^8 - 2^7 - 2^6 - 2^3 - 1
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFEE37");
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(3);
+                BigInteger b = BigInteger.Three;
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFE26F2FC170F69466A74DEFD8D");
                 BigInteger h = BigInteger.One;
 
@@ -355,7 +355,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 // p = 2^224 - 2^32 - 2^12 - 2^11 - 2^9 - 2^7 - 2^4 - 2 - 1
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFE56D");
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(5);
+                BigInteger b = BigInteger.Five;
                 BigInteger n = FromHex("010000000000000000000000000001DCE8D2EC6184CAF0A971769FB1F7");
                 BigInteger h = BigInteger.One;
 
@@ -431,7 +431,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 // p = 2^256 - 2^32 - 2^9 - 2^8 - 2^7 - 2^6 - 2^4 - 1
                 BigInteger p = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
                 BigInteger a = BigInteger.Zero;
-                BigInteger b = BigInteger.ValueOf(7);
+                BigInteger b = BigInteger.Seven;
                 BigInteger n = FromHex("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141");
                 BigInteger h = BigInteger.One;
 
@@ -574,7 +574,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("003088250CA6E7C7FE649CE85820F7");
                 BigInteger b = FromHex("00E8BEE4D3E2260744188BE0E9C723");
                 BigInteger n = FromHex("0100000000000000D9CCEC8A39E56F");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -606,7 +606,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("00689918DBEC7E5A0DD6DFC0AA55C7");
                 BigInteger b = FromHex("0095E9A9EC9B297BD4BF36E059184F");
                 BigInteger n = FromHex("010000000000000108789B2496AF93");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -640,7 +640,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("07A11B09A76B562144418FF3FF8C2570B8");
                 BigInteger b = FromHex("0217C05610884B63B9C6C7291678F9D341");
                 BigInteger n = FromHex("0400000000000000023123953A9464B54D");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }
@@ -674,7 +674,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("03E5A88919D7CAFCBF415F07C2176573B2");
                 BigInteger b = FromHex("04B8266A46C55657AC734CE38F018F2192");
                 BigInteger n = FromHex("0400000000000000016954A233049BA98F");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }
@@ -708,7 +708,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.One;
                 BigInteger b = BigInteger.One;
                 BigInteger n = FromHex("04000000000000000000020108A2E0CC0D99F8A5EF");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }
@@ -742,7 +742,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("07B6882CAAEFA84F9554FF8428BD88E246D2782AE2");
                 BigInteger b = FromHex("0713612DCDDCB40AAB946BDA29CA91F73AF958AFD9");
                 BigInteger n = FromHex("03FFFFFFFFFFFFFFFFFFFF48AAB689C29CA710279B");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }
@@ -776,7 +776,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("020A601907B8C953CA1481EB10512F78744A3205FD");
                 BigInteger n = FromHex("040000000000000000000292FE77E70C12A4234C33");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }
@@ -808,7 +808,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("0017858FEB7A98975169E171F77B4087DE098AC8A911DF7B01");
                 BigInteger b = FromHex("00FDFB49BFE6C3A89FACADAA7A1E5BBC7CC1C2E5D831478814");
                 BigInteger n = FromHex("01000000000000000000000000C7F34A778F443ACC920EBA49");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -840,7 +840,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = FromHex("0163F35A5137C2CE3EA6ED8667190B0BC43ECD69977702709B");
                 BigInteger b = FromHex("00C9BB9E8927D4D64C377E2AB2856A5B16E3EFB7F61D4316AE");
                 BigInteger n = FromHex("010000000000000000000000015AAB561B005413CCD4EE99D5");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -872,7 +872,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.Zero;
                 BigInteger b = BigInteger.One;
                 BigInteger n = FromHex("8000000000000000000000000000069D5BB915BCD46EFB1AD5F173ABDF");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -904,7 +904,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("0066647EDE6C332C7F8C0923BB58213B333B20E9CE4281FE115F7D8F90AD");
                 BigInteger n = FromHex("01000000000000000000000000000013E974E72F8A6922031D2603CFE0D7");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -936,7 +936,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.Zero;
                 BigInteger b = BigInteger.One;
                 BigInteger n = FromHex("2000000000000000000000000000005A79FEC67CB6E91F1C1DA800E478A5");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -970,7 +970,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.Zero;
                 BigInteger b = BigInteger.One;
                 BigInteger n = FromHex("01FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE9AE2ED07577265DFF7F94451E061E163C61");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }
@@ -1005,7 +1005,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("027B680AC8B8596DA5A4AF8A19A0303FCA97FD7645309FA2A581485AF6263E313B79A2F5");
                 BigInteger n = FromHex("03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEF90399660FC938A90165B042A7CEFADB307");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }
@@ -1038,7 +1038,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.Zero;
                 BigInteger b = BigInteger.One;
                 BigInteger n = FromHex("7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE5F83B2D4EA20400EC4557D5ED3E3E7CA5B4B5C83B8E01E5FCF");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -1071,7 +1071,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("0021A5C2C8EE9FEB5C4B9A753B7B476B7FD6422EF1F3DD674761FA99D6AC27C8A9A197B272822F6CD57A55AA4F50AE317B13545F");
                 BigInteger n = FromHex("010000000000000000000000000000000000000000000000000001E2AAD6A612F33307BE5FA47C3C9E052F838164CD37D9A21173");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k, a, b, n, h));
             }
@@ -1106,7 +1106,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.Zero;
                 BigInteger b = BigInteger.One;
                 BigInteger n = FromHex("020000000000000000000000000000000000000000000000000000000000000000000000131850E1F19A63E4B391A8DB917F4138B630D84BE5D639381E91DEB45CFE778F637C1001");
-                BigInteger h = BigInteger.ValueOf(4);
+                BigInteger h = BigInteger.Four;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }
@@ -1141,7 +1141,7 @@ namespace Org.BouncyCastle.Asn1.Sec
                 BigInteger a = BigInteger.One;
                 BigInteger b = FromHex("02F40E7E2221F295DE297117B7F3D62F5C6A97FFCB8CEFF1CD6BA8CE4A9A18AD84FFABBD8EFA59332BE7AD6756A66E294AFD185A78FF12AA520E4DE739BACA0C7FFEFF7F2955727A");
                 BigInteger n = FromHex("03FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFE661CE18FF55987308059B186823851EC7DD9CA1161DE93D5174D66E8382E9BB2FE84E47");
-                BigInteger h = BigInteger.ValueOf(2);
+                BigInteger h = BigInteger.Two;
 
                 return ConfigureCurve(new F2mCurve(m, k1, k2, k3, a, b, n, h));
             }

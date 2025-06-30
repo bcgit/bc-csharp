@@ -612,11 +612,11 @@ namespace Org.BouncyCastle.Math.EC.Tests
                 + "B6AFF4A831852A82A7CF3C521C3C09AA"
                 + "9F94D6AF56971F1FFCE3E82389857DB0"
                 + "80C5DF10AC7ACE87666D807AFEA85FEB");
-            BigInteger a = p.Subtract(BigInteger.ValueOf(3));
+            BigInteger a = p.Subtract(BigInteger.Three);
             BigInteger b = BigInteger.Zero;
             byte[] S = null;
             BigInteger n = p.Add(BigInteger.One).ShiftRight(2);
-            BigInteger h = BigInteger.ValueOf(4);
+            BigInteger h = BigInteger.Four;
 
             ECCurve curve = ConfigureCurve(new FpCurve(p, a, b, n, h));
 

@@ -22,11 +22,17 @@ namespace Org.BouncyCastle.Math.Tests
             BigInteger mod = new BigInteger("48112959837082048697");
             BigInteger expected = new BigInteger("4970597831480284165");
 
+            BigInteger byModMultiply = b.ModMultiply(b, mod);
+            Assert.AreEqual(expected, byModMultiply, "b * b % mod (ModMultiply)");
+
+            BigInteger byModSquare = b.ModSquare(mod);
+            Assert.AreEqual(expected, byModSquare, "b^2 % mod (ModSquare)");
+
             BigInteger byMultiply = b.Multiply(b).Mod(mod);
-            Assert.AreEqual(expected, byMultiply, "b * b % mod");
+            Assert.AreEqual(expected, byMultiply, "b * b % mod (Multiply/Mod)");
 
             BigInteger bySquare = b.Square().Mod(mod);
-            Assert.AreEqual(expected, bySquare, "b^2 % mod");
+            Assert.AreEqual(expected, bySquare, "b^2 % mod (Square/Mod)");
 
             BigInteger byModPow = b.ModPow(BigInteger.Two, mod);
             Assert.AreEqual(expected, byModPow, "b.ModPow(2, mod)");
@@ -47,9 +53,9 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestAdd()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
-                for (int j = -10; j <= 10; ++j)
+                for (int j = -16; j <= 16; ++j)
                 {
                     Assert.AreEqual(
                         Val(i + j),
@@ -62,9 +68,9 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestAnd()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
-                for (int j = -10; j <= 10; ++j)
+                for (int j = -16; j <= 16; ++j)
                 {
                     Assert.AreEqual(
                         Val(i & j),
@@ -77,9 +83,9 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestAndNot()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
-                for (int j = -10; j <= 10; ++j)
+                for (int j = -16; j <= 16; ++j)
                 {
                     Assert.AreEqual(
                         Val(i & ~j),
@@ -182,7 +188,7 @@ namespace Org.BouncyCastle.Math.Tests
                 Assert.AreEqual(Zero, pow2.ClearBit(i));
                 Assert.AreEqual(minusPow2.ShiftLeft(1), minusPow2.ClearBit(i));
 
-                BigInteger bigI = BigInteger.ValueOf(i);
+                BigInteger bigI = Val(i);
                 BigInteger negI = bigI.Negate();
 
                 for (int j = 0; j < 10; ++j)
@@ -245,7 +251,7 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestDivide()
         {
-            for (int i = -5; i <= 5; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
                 try
                 {
@@ -404,7 +410,7 @@ namespace Org.BouncyCastle.Math.Tests
                 Assert.AreEqual(Zero, pow2.FlipBit(i));
                 Assert.AreEqual(minusPow2.ShiftLeft(1), minusPow2.FlipBit(i));
 
-                BigInteger bigI = BigInteger.ValueOf(i);
+                BigInteger bigI = Val(i);
                 BigInteger negI = bigI.Negate();
 
                 for (int j = 0; j < 10; ++j)
@@ -453,7 +459,9 @@ namespace Org.BouncyCastle.Math.Tests
 
             foreach (int test in tests)
             {
-                Assert.AreEqual(test, Val(test).IntValue);
+                var val = Val(test);
+                Assert.AreEqual(test, val.IntValue);
+                Assert.AreEqual(test, val.IntValueExact);
             }
 
             // TODO Tests for large numbers
@@ -502,11 +510,13 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestLongValue()
         {
-            long[] tests = new long[]{ long.MinValue, -1234, -10, -1, 0L, ~0L, 1, 10, 5678, long.MaxValue };
+            long[] tests = { long.MinValue, -1234, -10, -1, 0L, ~0L, 1, 10, 5678, long.MaxValue };
 
             foreach (long test in tests)
             {
-                Assert.AreEqual(test, Val(test).LongValue);
+                var val = Val(test);
+                Assert.AreEqual(test, val.LongValue);
+                Assert.AreEqual(test, val.LongValueExact);
             }
 
             // TODO Tests for large numbers
@@ -515,9 +525,9 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestMax()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
-                for (int j = -10; j <= 10; ++j)
+                for (int j = -16; j <= 16; ++j)
                 {
                     Assert.AreEqual(Val(System.Math.Max(i, j)), Val(i).Max(Val(j)));
                 }
@@ -527,9 +537,9 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestMin()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
-                for (int j = -10; j <= 10; ++j)
+                for (int j = -16; j <= 16; ++j)
                 {
                     Assert.AreEqual(Val(System.Math.Min(i, j)), Val(i).Min(Val(j)));
                 }
@@ -674,7 +684,7 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestNegate()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
                 Assert.AreEqual(Val(-i), Val(i).Negate());
             }
@@ -701,7 +711,7 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestNot()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
                 Assert.AreEqual(
                     Val(~i),
@@ -713,9 +723,9 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestOr()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
-                for (int j = -10; j <= 10; ++j)
+                for (int j = -16; j <= 16; ++j)
                 {
                     Assert.AreEqual(
                         Val(i | j),
@@ -831,7 +841,7 @@ namespace Org.BouncyCastle.Math.Tests
                 Assert.AreEqual(pow2, pow2.SetBit(i));
                 Assert.AreEqual(minusPow2, minusPow2.SetBit(i));
 
-                BigInteger bigI = BigInteger.ValueOf(i);
+                BigInteger bigI = Val(i);
                 BigInteger negI = bigI.Negate();
 
                 for (int j = 0; j < 10; ++j)
@@ -900,7 +910,7 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestSignValue()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
                 Assert.AreEqual(i < 0 ? -1 : i > 0 ? 1 : 0, Val(i).SignValue);
             }
@@ -909,9 +919,9 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestSubtract()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
-                for (int j = -10; j <= 10; ++j)
+                for (int j = -16; j <= 16; ++j)
                 {
                     Assert.AreEqual(
                         Val(i - j),
@@ -1029,22 +1039,45 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestValueOf()
         {
-            Assert.AreEqual(-1, BigInteger.ValueOf(-1).SignValue);
-            Assert.AreEqual(0, BigInteger.ValueOf(0).SignValue);
-            Assert.AreEqual(1, BigInteger.ValueOf(1).SignValue);
+            Assert.AreEqual(-1, Val(-1).SignValue);
+            Assert.AreEqual(0, Val(0).SignValue);
+            Assert.AreEqual(1, Val(1).SignValue);
 
-            for (long i = -5; i < 5; ++i)
+            // ValueOf(int)
             {
-                Assert.AreEqual(i, BigInteger.ValueOf(i).IntValue);
+                for (int i = -16; i <= 16; ++i)
+                {
+                    Assert.AreEqual(i, Val(i).IntValueExact);
+                }
+
+                for (int j = 0; j < 16; ++j)
+                {
+                    int n = RandomInt32();
+                    Assert.AreEqual(n, Val(n).IntValueExact);
+                }
+            }
+
+            // ValueOf(long)
+            {
+                for (long i = -16L; i <= 16L; ++i)
+                {
+                    Assert.AreEqual(i, Val(i).LongValueExact);
+                }
+
+                for (int j = 0; j < 16; ++j)
+                {
+                    long n = RandomInt64();
+                    Assert.AreEqual(n, Val(n).LongValueExact);
+                }
             }
         }
 
         [Test]
         public void TestXor()
         {
-            for (int i = -10; i <= 10; ++i)
+            for (int i = -16; i <= 16; ++i)
             {
-                for (int j = -10; j <= 10; ++j)
+                for (int j = -16; j <= 16; ++j)
                 {
                     Assert.AreEqual(
                         Val(i ^ j),
@@ -1053,6 +1086,12 @@ namespace Org.BouncyCastle.Math.Tests
                 }
             }
         }
+
+        private static int RandomInt32() => random.Next(int.MinValue, int.MaxValue);
+
+        private static long RandomInt64() => ((long)RandomInt32() << 32) ^ RandomInt32();
+
+        private static BigInteger Val(int n) => BigInteger.ValueOf(n);
 
         private static BigInteger Val(long n) => BigInteger.ValueOf(n);
 

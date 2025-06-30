@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Math.EC.Abc
         private static readonly BigInteger MinusOne = BigInteger.One.Negate();
         private static readonly BigInteger MinusTwo = BigInteger.Two.Negate();
         private static readonly BigInteger MinusThree = BigInteger.Three.Negate();
-        private static readonly BigInteger Four = BigInteger.ValueOf(4);
+        private static readonly BigInteger Four = BigInteger.Four;
 
         private static readonly string PRECOMP_NAME = "bc_tnaf_partmod";
 

@@ -15,8 +15,6 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class ECDsaSigner
         : IDsa
     {
-        private static readonly BigInteger Eight = BigInteger.ValueOf(8);
-
         protected readonly IDsaKCalculator kCalculator;
 
         protected ECKeyParameters key = null;
@@ -170,7 +168,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             if (curve != null)
             {
                 BigInteger cofactor = curve.Cofactor;
-                if (cofactor != null && cofactor.CompareTo(Eight) <= 0)
+                if (cofactor != null && cofactor.CompareTo(BigInteger.Eight) <= 0)
                 {
                     ECFieldElement D = GetDenominator(curve.CoordinateSystem, point);
                     if (D != null && !D.IsZero)
