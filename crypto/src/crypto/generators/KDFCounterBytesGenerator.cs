@@ -2,7 +2,7 @@
 
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
@@ -47,8 +47,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             int r = kdfParams.R;
             this.ios = new byte[r / 8];
 
-            BigInteger maxSize = BigInteger.One.ShiftLeft(r).Multiply(BigInteger.ValueOf(h));
-            this.maxSizeExcl = maxSize.BitLength > 31 ? int.MaxValue : maxSize.IntValueExact;
+            this.maxSizeExcl = r >= Integers.NumberOfLeadingZeros(h) ? int.MaxValue : h << r;
 
             // --- set operational state ---
 
