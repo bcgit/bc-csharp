@@ -1107,17 +1107,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return keyData;
         }
 
-        private static byte[] EncryptKeyDataV4(
-            byte[]						rawKeyData,
-            SymmetricKeyAlgorithmTag	encAlgorithm,
-            HashAlgorithmTag            hashAlgorithm,
-            byte[]						rawPassPhrase,
-            bool                        clearPassPhrase,
-            SecureRandom				random,
-            out S2k						s2k,
-            out byte[]					iv)
+        private static byte[] EncryptKeyDataV4(byte[] rawKeyData, SymmetricKeyAlgorithmTag encAlgorithm,
+            HashAlgorithmTag hashAlgorithm, byte[] rawPassPhrase, bool clearPassPhrase, SecureRandom random,
+            out S2k s2k, out byte[] iv)
         {
-            s2k = PgpUtilities.GenerateS2k(hashAlgorithm, 0x60, random);
+            s2k = S2k.GenerateSaltedAndIterated(random, hashAlgorithm, 0x60);
 
             KeyParameter key = PgpUtilities.DoMakeKeyFromPassPhrase(encAlgorithm, s2k, rawPassPhrase, clearPassPhrase);
 
@@ -1125,14 +1119,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return EncryptData(encAlgorithm, key, rawKeyData, 0, rawKeyData.Length, random, ref iv);
         }
 
-        private static byte[] EncryptData(
-            SymmetricKeyAlgorithmTag	encAlgorithm,
-            KeyParameter                key,
-            byte[]						data,
-            int                         dataOff,
-            int                         dataLen,
-            SecureRandom				random,
-            ref byte[]                  iv)
+        private static byte[] EncryptData(SymmetricKeyAlgorithmTag encAlgorithm, KeyParameter key, byte[] data,
+            int dataOff, int dataLen, SecureRandom random, ref byte[] iv)
         {
             IBufferedCipher c;
             try
@@ -1147,7 +1135,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             if (iv == null)
             {
-                iv = PgpUtilities.GenerateIV(c.GetBlockSize(), random);
+                iv = SecureRandom.GetNextBytes(random, c.GetBlockSize());
             }
 
             c.Init(true, new ParametersWithRandom(new ParametersWithIV(key, iv), random));

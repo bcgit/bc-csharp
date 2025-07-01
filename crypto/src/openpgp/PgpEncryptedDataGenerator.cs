@@ -390,29 +390,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         internal void DoAddMethod(byte[] rawPassPhrase, bool clearPassPhrase, HashAlgorithmTag s2kDigest)
         {
-            S2k s2k = PgpUtilities.GenerateS2k(s2kDigest, 0x60, rand);
-
-            methods.Add(new PbeMethod(defAlgorithm, s2k, PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase)));
+            var s2k = S2k.GenerateSaltedAndIterated(rand, s2kDigest, 0x60);
+            var key = PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase);
+            var encMethod = new PbeMethod(defAlgorithm, s2k, key);
+            methods.Add(encMethod);
         }
 
         /// <summary>Add a public key encrypted session key to the encrypted object.</summary>
-        public void AddMethod(PgpPublicKey key)
-        {
-            AddMethod(key, true);
-        }
+        public void AddMethod(PgpPublicKey key) => AddMethod(key, true);
 
         public void AddMethod(PgpPublicKey key, bool sessionKeyObfuscation)
         {
             if (!key.IsEncryptionKey)
-            {
-                throw new ArgumentException("passed in key not an encryption key!");
-            }
+                throw new ArgumentException("passed in key not an encryption key!", nameof(key));
 
             methods.Add(new PubMethod(key, sessionKeyObfuscation));
         }
 
-        private void AddCheckSum(
-            byte[] sessionInfo)
+        private void AddCheckSum(byte[] sessionInfo)
         {
 			Debug.Assert(sessionInfo != null);
 			Debug.Assert(sessionInfo.Length >= 3);

@@ -58,10 +58,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /// <summary>Construct a version 4 public key packet.</summary>
-        public PublicKeyPacket(
-            PublicKeyAlgorithmTag	algorithm,
-            DateTime				time,
-            IBcpgKey				key)
+        public PublicKeyPacket(PublicKeyAlgorithmTag algorithm, DateTime time, IBcpgKey key)
         {
             this.version = 4;
             this.time = DateTimeUtilities.DateTimeToUnixMs(time) / 1000L;
@@ -69,30 +66,15 @@ namespace Org.BouncyCastle.Bcpg
             this.key = key;
         }
 
-        public virtual int Version
-        {
-            get { return version; }
-        }
+        public virtual int Version => version;
 
-        public virtual PublicKeyAlgorithmTag Algorithm
-        {
-            get { return algorithm; }
-        }
+        public virtual PublicKeyAlgorithmTag Algorithm => algorithm;
 
-        public virtual int ValidDays
-        {
-            get { return validDays; }
-        }
+        public virtual int ValidDays => validDays;
 
-        public virtual DateTime GetTime()
-        {
-            return DateTimeUtilities.UnixMsToDateTime(time * 1000L);
-        }
+        public virtual DateTime GetTime() => DateTimeUtilities.UnixMsToDateTime(time * 1000L);
 
-        public virtual IBcpgKey Key
-        {
-            get { return key; }
-        }
+        public virtual IBcpgKey Key => key;
 
         public virtual byte[] GetEncodedContents()
         {
@@ -113,9 +95,7 @@ namespace Org.BouncyCastle.Bcpg
             return bOut.ToArray();
         }
 
-        public override void Encode(BcpgOutputStream bcpgOut)
-        {
+        public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(PacketTag.PublicKey, GetEncodedContents());
-        }
     }
 }

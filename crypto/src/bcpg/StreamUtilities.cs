@@ -63,6 +63,13 @@ namespace Org.BouncyCastle.Bcpg
             return (byte)b;
         }
 
+        internal static byte[] RequireBytes(Stream s, int count)
+        {
+            byte[] bytes = new byte[count];
+            RequireBytes(s, bytes);
+            return bytes;
+        }
+
         internal static void RequireBytes(Stream s, byte[] buffer) =>
             RequireBytes(s, buffer, 0, buffer.Length);
 

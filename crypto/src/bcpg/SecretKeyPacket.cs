@@ -8,131 +8,137 @@ namespace Org.BouncyCastle.Bcpg
     public class SecretKeyPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
-		public const int UsageNone = 0x00;
-		public const int UsageChecksum = 0xff;
-		public const int UsageSha1 = 0xfe;
+        public const int UsageNone = 0x00;
+        public const int UsageChecksum = 0xff;
+        public const int UsageSha1 = 0xfe;
+        public const int UsageAead = 0xfd;
 
-		private PublicKeyPacket pubKeyPacket;
+        private PublicKeyPacket pubKeyPacket;
         private readonly byte[] secKeyData;
-		private int s2kUsage;
-		private SymmetricKeyAlgorithmTag encAlgorithm;
+        private int s2kUsage;
+        private SymmetricKeyAlgorithmTag encAlgorithm;
+        private AeadAlgorithmTag aeadAlgorithm;
         private S2k s2k;
         private byte[] iv;
 
-		internal SecretKeyPacket(
-            BcpgInputStream bcpgIn)
+        internal SecretKeyPacket(BcpgInputStream bcpgIn)
         {
-			if (this is SecretSubkeyPacket)
-			{
-				pubKeyPacket = new PublicSubkeyPacket(bcpgIn);
-			}
-			else
-			{
-				pubKeyPacket = new PublicKeyPacket(bcpgIn);
-			}
+            if (this is SecretSubkeyPacket)
+            {
+                pubKeyPacket = new PublicSubkeyPacket(bcpgIn);
+            }
+            else
+            {
+                pubKeyPacket = new PublicKeyPacket(bcpgIn);
+            }
 
-			s2kUsage = bcpgIn.RequireByte();
+            s2kUsage = bcpgIn.RequireByte();
 
-			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
+            // TODO See bc-java for version-specific handling
+            //if (version == PublicKeyPacket.LIBREPGP_5 || 
+            //   (version == PublicKeyPacket.VERSION_6 && s2kUsage != UsageNone))
+
+            if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead)
             {
                 encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
-                s2k = new S2k(bcpgIn);
             }
             else
             {
                 encAlgorithm = (SymmetricKeyAlgorithmTag)s2kUsage;
-			}
+            }
 
-			if (!(s2k != null && s2k.Type == S2k.GnuDummyS2K && s2k.ProtectionMode == 0x01))
+            if (s2kUsage == UsageAead)
             {
-				if (s2kUsage != 0)
-				{
-                    if (((int) encAlgorithm) < 7)
+                aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
+            }
+
+            // TODO See bc-java for version-specific handling
+            //if (version == PublicKeyPacket.VERSION_6 && (s2kUsage == UsageSha1 || s2kUsage == UsageAead))
+
+            if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead)
+            {
+                s2k = new S2k(bcpgIn);
+            }
+
+            if (s2kUsage == UsageAead)
+            {
+                iv = new byte[AeadUtilities.GetIVLength(aeadAlgorithm)];
+                bcpgIn.ReadFully(iv);
+            }
+            else
+            {
+                bool isGnuDummyNoPrivateKey =
+                    s2k != null &&
+                    s2k.Type == S2k.GnuDummyS2K &&
+                    s2k.ProtectionMode == S2k.GnuProtectionModeNoPrivateKey;
+
+                if (!isGnuDummyNoPrivateKey)
+                {
+                    if (s2kUsage != UsageNone)
                     {
-                        iv = new byte[8];
+                        if (((int)encAlgorithm) < 7)
+                        {
+                            iv = new byte[8];
+                        }
+                        else
+                        {
+                            iv = new byte[16];
+                        }
+                        bcpgIn.ReadFully(iv);
                     }
-                    else
-                    {
-                        iv = new byte[16];
-                    }
-                    bcpgIn.ReadFully(iv);
                 }
             }
 
-			secKeyData = bcpgIn.ReadAll();
+            // TODO See bc-java for version-specific handling
+            //if (version == PublicKeyPacket.LIBREPGP_5)
+
+            secKeyData = bcpgIn.ReadAll();
         }
 
-		public SecretKeyPacket(
-            PublicKeyPacket				pubKeyPacket,
-            SymmetricKeyAlgorithmTag	encAlgorithm,
-            S2k							s2k,
-            byte[]						iv,
-            byte[]						secKeyData)
+        public SecretKeyPacket(PublicKeyPacket pubKeyPacket, SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k, byte[] iv,
+            byte[] secKeyData)
         {
             this.pubKeyPacket = pubKeyPacket;
             this.encAlgorithm = encAlgorithm;
 
-			if (encAlgorithm != SymmetricKeyAlgorithmTag.Null)
-			{
-				this.s2kUsage = UsageChecksum;
-			}
-			else
-			{
-				this.s2kUsage = UsageNone;
-			}
+            if (encAlgorithm != SymmetricKeyAlgorithmTag.Null)
+            {
+                this.s2kUsage = UsageChecksum;
+            }
+            else
+            {
+                this.s2kUsage = UsageNone;
+            }
 
-			this.s2k = s2k;
-			this.iv = Arrays.Clone(iv);
-			this.secKeyData = secKeyData;
+            this.s2k = s2k;
+            this.iv = Arrays.Clone(iv);
+            this.secKeyData = secKeyData;
         }
 
-		public SecretKeyPacket(
-			PublicKeyPacket				pubKeyPacket,
-			SymmetricKeyAlgorithmTag	encAlgorithm,
-			int							s2kUsage,
-			S2k							s2k,
-			byte[]						iv,
-			byte[]						secKeyData)
-		{
-			this.pubKeyPacket = pubKeyPacket;
-			this.encAlgorithm = encAlgorithm;
-			this.s2kUsage = s2kUsage;
-			this.s2k = s2k;
-			this.iv = Arrays.Clone(iv);
-			this.secKeyData = secKeyData;
-		}
-
-		public SymmetricKeyAlgorithmTag EncAlgorithm
+        public SecretKeyPacket(PublicKeyPacket pubKeyPacket, SymmetricKeyAlgorithmTag encAlgorithm, int s2kUsage,
+            S2k s2k, byte[] iv, byte[] secKeyData)
         {
-			get { return encAlgorithm; }
+            this.pubKeyPacket = pubKeyPacket;
+            this.encAlgorithm = encAlgorithm;
+            this.s2kUsage = s2kUsage;
+            this.s2k = s2k;
+            this.iv = Arrays.Clone(iv);
+            this.secKeyData = secKeyData;
         }
 
-		public int S2kUsage
-		{
-			get { return s2kUsage; }
-		}
+        public SymmetricKeyAlgorithmTag EncAlgorithm => encAlgorithm;
 
-		public byte[] GetIV()
-        {
-            return Arrays.Clone(iv);
-        }
+        public int S2kUsage => s2kUsage;
 
-		public S2k S2k
-        {
-			get { return s2k; }
-        }
+        public byte[] GetIV() => Arrays.Clone(iv);
 
-		public PublicKeyPacket PublicKeyPacket
-        {
-			get { return pubKeyPacket; }
-        }
+        public S2k S2k => s2k;
 
-		public byte[] GetSecretKeyData()
-        {
-            return secKeyData;
-        }
+        public PublicKeyPacket PublicKeyPacket => pubKeyPacket;
 
-		public byte[] GetEncodedContents()
+        public byte[] GetSecretKeyData() => secKeyData;
+
+        public byte[] GetEncodedContents()
         {
             MemoryStream bOut = new MemoryStream();
             using (var pOut = new BcpgOutputStream(bOut))
@@ -159,9 +165,7 @@ namespace Org.BouncyCastle.Bcpg
             return bOut.ToArray();
         }
 
-        public override void Encode(BcpgOutputStream bcpgOut)
-        {
+        public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(PacketTag.SecretKey, GetEncodedContents());
-        }
     }
 }
