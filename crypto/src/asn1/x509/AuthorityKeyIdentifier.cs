@@ -152,6 +152,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_authorityCertSerialNumber = authorityCertSerialNumber;
         }
 
+        [Obsolete("Use 'KeyIdentifier' instead")]
         public byte[] GetKeyIdentifier() => m_keyIdentifier?.GetOctets();
 
         public GeneralNames AuthorityCertIssuer => m_authorityCertIssuer;
