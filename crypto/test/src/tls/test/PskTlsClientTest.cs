@@ -34,12 +34,10 @@ namespace Org.BouncyCastle.Tls.Tests
              */
             //string psk_identity = "Client_identity";
             //byte[] psk = new byte[] { 0x61, 0x61, 0x61, 0x61, 0x61 };
+            //TlsPskIdentity pskIdentity = new BasicTlsPskIdentity(psk_identity, psk);
 
-            // These correspond to the configuration of MockPskTlsServer
-            string psk_identity = "client";
-            byte[] psk = Strings.ToUtf8ByteArray("TLS_TEST_PSK");
-
-            BasicTlsPskIdentity pskIdentity = new BasicTlsPskIdentity(psk_identity, psk);
+            // This corresponds to the configuration of MockPskTlsServer
+            TlsPskIdentity pskIdentity = TlsTestUtilities.CreateDefaultPskIdentity(false);
 
             MockPskTlsClient client = new MockPskTlsClient(null, pskIdentity);
             TlsClientProtocol protocol = OpenTlsClientConnection(host, port, client);

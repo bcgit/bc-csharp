@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Text;
 
@@ -47,6 +46,9 @@ namespace Org.BouncyCastle.Tls.Tests
             "pL26Ymz66ZAPdqv7EhOdzl3lZWT6srZUMWWgQMYGiHQg4z2R7X7XAgERo0QwQjAOBgNVHQ8BAf8EBAMCAAEwEgYDVR" +
             "0lAQH/BAgwBgYEVR0lADAcBgNVHREBAf8EEjAQgQ50ZXN0QHRlc3QudGVzdDANBgkqhkiG9w0BAQQFAANBAJg55PBS" +
             "weg6obRUKF4FF6fCrWFi6oCYSQ99LWcAeupc5BofW5MstFMhCOaEucuGVqunwT5G7/DweazzCIrSzB0=");
+
+        internal static TlsPskIdentity CreateDefaultPskIdentity(bool badKey) =>
+            new BasicTlsPskIdentity("client", GetPskPasswordUtf8(badKey));
 
         internal static bool EqualsIgnoreCase(string a, string b)
         {
@@ -139,6 +141,10 @@ namespace Org.BouncyCastle.Tls.Tests
 
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
+
+        internal static string GetPskPassword(bool badKey) => badKey ? "TLS_TEST_PSK_BAD" : "TLS_TEST_PSK";
+
+        internal static byte[] GetPskPasswordUtf8(bool badKey) => Strings.ToUtf8ByteArray(GetPskPassword(badKey));
 
         internal static string GetResourceName(short signatureAlgorithm)
         {

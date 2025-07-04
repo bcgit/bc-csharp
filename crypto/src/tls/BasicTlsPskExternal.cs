@@ -1,6 +1,4 @@
-﻿using System;
-
-using Org.BouncyCastle.Tls.Crypto;
+﻿using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
@@ -19,24 +17,15 @@ namespace Org.BouncyCastle.Tls
 
         public BasicTlsPskExternal(byte[] identity, TlsSecret key, int prfAlgorithm)
         {
-            this.m_identity = Arrays.Clone(identity);
-            this.m_key = key;
-            this.m_prfAlgorithm = prfAlgorithm;
+            m_identity = Arrays.Clone(identity);
+            m_key = key;
+            m_prfAlgorithm = prfAlgorithm;
         }
 
-        public virtual byte[] Identity
-        {
-            get { return m_identity; }
-        }
+        public virtual byte[] Identity => m_identity;
 
-        public virtual TlsSecret Key
-        {
-            get { return m_key; }
-        }
+        public virtual TlsSecret Key => m_key;
 
-        public virtual int PrfAlgorithm
-        {
-            get { return m_prfAlgorithm; }
-        }
+        public virtual int PrfAlgorithm => m_prfAlgorithm;
     }
 }

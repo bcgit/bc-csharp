@@ -11,10 +11,14 @@ namespace Org.BouncyCastle.Tls.Tests
     internal class MockPskDtlsServer
         : PskTlsServer
     {
-        internal MockPskDtlsServer()
-            : base(new BcTlsCrypto(), new MyIdentityManager())
+        internal MockPskDtlsServer(bool badKey = false)
+            : base(new BcTlsCrypto(), new MyIdentityManager(badKey))
         {
         }
+
+        public override int GetHandshakeTimeoutMillis() => 1000;
+
+        public override int GetHandshakeResendTimeMillis() => 100; // Fast resend only for tests!
 
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
             Exception cause)
@@ -115,10 +119,14 @@ namespace Org.BouncyCastle.Tls.Tests
         internal class MyIdentityManager
             : TlsPskIdentityManager
         {
-            public byte[] GetHint()
+            private readonly bool m_badKey;
+
+            internal MyIdentityManager(bool badKey)
             {
-                return Strings.ToUtf8ByteArray("hint");
+                m_badKey = badKey;
             }
+
+            public byte[] GetHint() => Strings.ToUtf8ByteArray("hint");
 
             public byte[] GetPsk(byte[] identity)
             {
@@ -126,9 +134,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 {
                     string name = Strings.FromUtf8ByteArray(identity);
                     if (name.Equals("client"))
-                    {
-                        return Strings.ToUtf8ByteArray("TLS_TEST_PSK");
-                    }
+                        return TlsTestUtilities.GetPskPasswordUtf8(m_badKey);
                 }
                 return null;
             }

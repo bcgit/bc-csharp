@@ -11,8 +11,8 @@ namespace Org.BouncyCastle.Tls.Tests
     internal class MockPskTlsServer
         : PskTlsServer
     {
-        internal MockPskTlsServer()
-            : base(new BcTlsCrypto(), new MyIdentityManager())
+        internal MockPskTlsServer(bool badKey = false)
+            : base(new BcTlsCrypto(), new MyIdentityManager(badKey))
         {
         }
 
@@ -123,10 +123,14 @@ namespace Org.BouncyCastle.Tls.Tests
         internal class MyIdentityManager
             : TlsPskIdentityManager
         {
-            public byte[] GetHint()
+            private readonly bool m_badKey;
+
+            internal MyIdentityManager(bool badKey)
             {
-                return Strings.ToUtf8ByteArray("hint");
+                m_badKey = badKey;
             }
+
+            public byte[] GetHint() => Strings.ToUtf8ByteArray("hint");
 
             public byte[] GetPsk(byte[] identity)
             {
@@ -134,9 +138,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 {
                     string name = Strings.FromUtf8ByteArray(identity);
                     if (name.Equals("client"))
-                    {
-                        return Strings.ToUtf8ByteArray("TLS_TEST_PSK");
-                    }
+                        return TlsTestUtilities.GetPskPasswordUtf8(m_badKey);
                 }
                 return null;
             }

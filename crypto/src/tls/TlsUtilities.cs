@@ -5635,8 +5635,6 @@ namespace Org.BouncyCastle.Tls
             IDictionary<int, byte[]> clientHelloExtensions, HandshakeMessageInput clientHelloMessage,
             TlsHandshakeHash handshakeHash, bool afterHelloRetryRequest)
         {
-            bool handshakeHashUpdated = false;
-
             OfferedPsks offeredPsks = TlsExtensionsUtilities.GetPreSharedKeyClientHello(clientHelloExtensions);
             if (null != offeredPsks)
             {
@@ -5661,6 +5659,14 @@ namespace Org.BouncyCastle.Tls
                         int index = offeredPsks.GetIndexOfIdentity(new PskIdentity(psk.Identity, 0L));
                         if (index >= 0)
                         {
+                            /*
+                             * RFC 8446 4.2.11. Prior to accepting PSK key establishment, the server MUST validate the
+                             * corresponding binder value [..]. If this value is not present or does not validate, the
+                             * server MUST abort the handshake.  Servers SHOULD NOT attempt to validate multiple
+                             * binders; rather, they SHOULD select a single PSK and validate solely the binder that
+                             * corresponds to that PSK.
+                             */
+
                             byte[] binder = offeredPsks.Binders[index];
 
                             TlsCrypto crypto = serverContext.Crypto;
@@ -5672,7 +5678,6 @@ namespace Org.BouncyCastle.Tls
 
                             byte[] transcriptHash;
                             {
-                                handshakeHashUpdated = true;
                                 int bindersSize = offeredPsks.BindersSize;
                                 clientHelloMessage.UpdateHashPrefix(handshakeHash, bindersSize);
 
@@ -5693,18 +5698,16 @@ namespace Org.BouncyCastle.Tls
                             byte[] calculatedBinder = CalculatePskBinder(crypto, isExternalPsk, pskCryptoHashAlgorithm,
                                 earlySecret, transcriptHash);
 
-                            if (Arrays.FixedTimeEquals(calculatedBinder, binder))
-                                return new OfferedPsks.SelectedConfig(index, psk, pskKeyExchangeModes, earlySecret);
+                            if (!Arrays.FixedTimeEquals(calculatedBinder, binder))
+                                throw new TlsFatalAlert(AlertDescription.decrypt_error, "Invalid PSK binder");
+
+                            return new OfferedPsks.SelectedConfig(index, psk, pskKeyExchangeModes, earlySecret);
                         }
                     }
                 }
             }
 
-            if (!handshakeHashUpdated)
-            {
-                clientHelloMessage.UpdateHash(handshakeHash);
-            }
-
+            clientHelloMessage.UpdateHash(handshakeHash);
             return null;
         }
 

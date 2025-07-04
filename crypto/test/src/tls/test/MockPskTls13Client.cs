@@ -11,9 +11,12 @@ namespace Org.BouncyCastle.Tls.Tests
     internal class MockPskTls13Client
         : AbstractTlsClient
     {
-        internal MockPskTls13Client()
+        private readonly bool m_badKey;
+
+        internal MockPskTls13Client(bool badKey = false)
             : base(new BcTlsCrypto())
         {
+            m_badKey = badKey;
         }
 
         //public override IList GetEarlyKeyShareGroups()
@@ -48,7 +51,7 @@ namespace Org.BouncyCastle.Tls.Tests
         public override IList<TlsPskExternal> GetExternalPsks()
         {
             byte[] identity = Strings.ToUtf8ByteArray("client");
-            TlsSecret key = Crypto.CreateSecret(Strings.ToUtf8ByteArray("TLS_TEST_PSK"));
+            TlsSecret key = Crypto.CreateSecret(TlsTestUtilities.GetPskPasswordUtf8(m_badKey));
             int prfAlgorithm = PrfAlgorithm.tls13_hkdf_sha256;
 
             return TlsUtilities.VectorOfOne<TlsPskExternal>(new BasicTlsPskExternal(identity, key, prfAlgorithm));

@@ -53,11 +53,11 @@ namespace Org.BouncyCastle.Tls
         private OfferedPsks(IList<PskIdentity> identities, IList<byte[]> binders, int bindersSize)
         {
             if (null == identities || identities.Count < 1)
-                throw new ArgumentException("cannot be null or empty", "identities");
+                throw new ArgumentException("cannot be null or empty", nameof(identities));
             if (null != binders && identities.Count != binders.Count)
-                throw new ArgumentException("must be the same length as 'identities' (or null)", "binders");
+                throw new ArgumentException("must be the same length as 'identities' (or null)", nameof(binders));
             if ((null != binders) != (bindersSize >= 0))
-                throw new ArgumentException("must be >= 0 iff 'binders' are present", "bindersSize");
+                throw new ArgumentException("must be >= 0 iff 'binders' are present", nameof(bindersSize));
 
             m_identities = identities;
             m_binders = binders;

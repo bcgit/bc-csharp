@@ -13,16 +13,34 @@ namespace Org.BouncyCastle.Tls.Tests
     public class Tls13PskProtocolTest
     {
         [Test]
+        public void BadClientKey()
+        {
+            MockPskTls13Client client = new MockPskTls13Client(badKey: true);
+            MockPskTls13Server server = new MockPskTls13Server();
+
+            ImplTestKeyMismatch(client, server);
+        }
+
+        [Test]
+        public void BadServerKey()
+        {
+            MockPskTls13Client client = new MockPskTls13Client();
+            MockPskTls13Server server = new MockPskTls13Server(badKey: true);
+
+            ImplTestKeyMismatch(client, server);
+        }
+
+        [Test]
         public void TestClientServer()
         {
+            MockPskTls13Client client = new MockPskTls13Client();
+            MockPskTls13Server server = new MockPskTls13Server();
+
             PipedStream clientPipe = new PipedStream();
             PipedStream serverPipe = new PipedStream(clientPipe);
 
             TlsClientProtocol clientProtocol = new TlsClientProtocol(clientPipe);
             TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
-
-            MockPskTls13Client client = new MockPskTls13Client();
-            MockPskTls13Server server = new MockPskTls13Server();
 
             ServerTask serverTask = new ServerTask(serverProtocol, server);
             Thread serverThread = new Thread(serverTask.Run);
@@ -45,6 +63,44 @@ namespace Org.BouncyCastle.Tls.Tests
             output.Close();
 
             serverThread.Join();
+        }
+
+        private void ImplTestKeyMismatch(MockPskTls13Client client, MockPskTls13Server server)
+        {
+            PipedStream clientPipe = new PipedStream();
+            PipedStream serverPipe = new PipedStream(clientPipe);
+
+            TlsClientProtocol clientProtocol = new TlsClientProtocol(clientPipe);
+            TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
+
+            ServerTask serverTask = new ServerTask(serverProtocol, server);
+            Thread serverThread = new Thread(serverTask.Run);
+            serverThread.Start();
+
+            bool correctException = false;
+            short alertDescription = -1;
+
+            try
+            {
+                clientProtocol.Connect(client);
+            }
+            catch (TlsFatalAlertReceived e)
+            {
+                correctException = true;
+                alertDescription = e.AlertDescription;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                clientProtocol.Close();
+            }
+
+            serverThread.Join();
+
+            Assert.True(correctException);
+            Assert.AreEqual(AlertDescription.decrypt_error, alertDescription);
         }
 
         internal class ServerTask

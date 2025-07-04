@@ -3,7 +3,6 @@ using System.Threading;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Tests
@@ -12,27 +11,44 @@ namespace Org.BouncyCastle.Tls.Tests
     public class DtlsPskProtocolTest
     {
         [Test]
+        public void BadClientKeyTimeout()
+        {
+            MockPskDtlsClient client = new MockPskDtlsClient(null, badKey: true);
+            MockPskDtlsServer server = new MockPskDtlsServer();
+
+            ImplTestKeyMismatch(client, server);
+        }
+
+        [Test]
+        public void BadServerKeyTimeout()
+        {
+            MockPskDtlsClient client = new MockPskDtlsClient(null);
+            MockPskDtlsServer server = new MockPskDtlsServer(badKey: true);
+
+            ImplTestKeyMismatch(client, server);
+        }
+
+        [Test]
         public void TestClientServer()
         {
-            SecureRandom secureRandom = new SecureRandom();
+            MockPskDtlsClient client = new MockPskDtlsClient(null);
+            MockPskDtlsServer server = new MockPskDtlsServer();
 
             DtlsClientProtocol clientProtocol = new DtlsClientProtocol();
             DtlsServerProtocol serverProtocol = new DtlsServerProtocol();
 
             MockDatagramAssociation network = new MockDatagramAssociation(1500);
 
-            ServerTask serverTask = new ServerTask(serverProtocol, network.Server);
+            ServerTask serverTask = new ServerTask(serverProtocol, server, network.Server);
 
             Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
             DatagramTransport clientTransport = network.Client;
 
-            clientTransport = new UnreliableDatagramTransport(clientTransport, secureRandom, 0, 0);
+            clientTransport = new UnreliableDatagramTransport(clientTransport, client.Crypto.SecureRandom, 0, 0);
 
             clientTransport = new LoggingDatagramTransport(clientTransport, Console.Out);
-
-            MockPskDtlsClient client = new MockPskDtlsClient(null);
 
             DtlsTransport dtlsClient = clientProtocol.Connect(client, clientTransport);
 
@@ -53,15 +69,60 @@ namespace Org.BouncyCastle.Tls.Tests
             serverTask.Shutdown(serverThread);
         }
 
+        private void ImplTestKeyMismatch(MockPskDtlsClient client, MockPskDtlsServer server)
+        {
+            DtlsClientProtocol clientProtocol = new DtlsClientProtocol();
+            DtlsServerProtocol serverProtocol = new DtlsServerProtocol();
+
+            MockDatagramAssociation network = new MockDatagramAssociation(1500);
+
+            ServerTask serverTask = new ServerTask(serverProtocol, server, network.Server);
+
+            Thread serverThread = new Thread(serverTask.Run);
+            serverThread.Start();
+
+            DatagramTransport clientTransport = network.Client;
+
+            // Don't use unreliable transport because we are focused on timeout due to bad PSK
+            //clientTransport = new UnreliableDatagramTransport(clientTransport, client.Crypto.SecureRandom, 0, 0);
+
+            clientTransport = new LoggingDatagramTransport(clientTransport, Console.Out);
+
+            bool correctException = false;
+
+            try
+            {
+                DtlsTransport dtlsClient = clientProtocol.Connect(client, clientTransport);
+                dtlsClient.Close();
+            }
+            catch (TlsTimeoutException)
+            {
+                correctException = true;
+            }
+            catch (Exception)
+            {
+            }
+            finally
+            {
+                clientTransport.Close();
+            }
+
+            serverTask.Shutdown(serverThread);
+
+            Assert.True(correctException);
+        }
+
         internal class ServerTask
         {
             private readonly DtlsServerProtocol m_serverProtocol;
+            private readonly TlsServer m_server;
             private readonly DatagramTransport m_serverTransport;
             private volatile bool m_isShutdown = false;
 
-            internal ServerTask(DtlsServerProtocol serverProtocol, DatagramTransport serverTransport)
+            internal ServerTask(DtlsServerProtocol serverProtocol, TlsServer server, DatagramTransport serverTransport)
             {
                 this.m_serverProtocol = serverProtocol;
+                this.m_server = server;
                 this.m_serverTransport = serverTransport;
             }
 
@@ -69,8 +130,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 try
                 {
-                    MockPskDtlsServer server = new MockPskDtlsServer();
-                    DtlsTransport dtlsServer = m_serverProtocol.Accept(server, m_serverTransport);
+                    DtlsTransport dtlsServer = m_serverProtocol.Accept(m_server, m_serverTransport);
                     byte[] buf = new byte[dtlsServer.GetReceiveLimit()];
                     while (!m_isShutdown)
                     {

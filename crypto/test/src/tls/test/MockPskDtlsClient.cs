@@ -15,8 +15,8 @@ namespace Org.BouncyCastle.Tls.Tests
     {
         internal TlsSession m_session;
 
-        internal MockPskDtlsClient(TlsSession session)
-            : this(session, new BasicTlsPskIdentity("client", Strings.ToUtf8ByteArray("TLS_TEST_PSK")))
+        internal MockPskDtlsClient(TlsSession session, bool badKey = false)
+            : this(session, TlsTestUtilities.CreateDefaultPskIdentity(badKey))
         {
         }
 
@@ -25,6 +25,10 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             this.m_session = session;
         }
+
+        public override int GetHandshakeTimeoutMillis() => 1000;
+
+        public override int GetHandshakeResendTimeMillis() => 100; // Fast resend only for tests!
 
         public override TlsSession GetSessionToResume()
         {
