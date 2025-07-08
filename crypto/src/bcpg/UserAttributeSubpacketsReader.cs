@@ -19,8 +19,8 @@ namespace Org.BouncyCastle.Bcpg
 
         public virtual UserAttributeSubpacket ReadPacket()
         {
-            int bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
-            if (bodyLen < 0)
+            uint? bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
+            if (!bodyLen.HasValue)
                 return null;
 
             if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial))
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Bcpg
             bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
 
             int tag = StreamUtilities.RequireByte(m_input);
-            byte[] data = new byte[bodyLen - 1];
+            byte[] data = new byte[bodyLen.Value - 1];
             StreamUtilities.RequireBytes(m_input, data);
 
             UserAttributeSubpacketTag type = (UserAttributeSubpacketTag)tag;

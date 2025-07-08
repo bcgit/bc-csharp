@@ -20,8 +20,8 @@ namespace Org.BouncyCastle.Bcpg
 
 		public SignatureSubpacket ReadPacket()
 		{
-            int bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
-            if (bodyLen < 0)
+            uint? bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
+            if (!bodyLen.HasValue)
                 return null;
 
             if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial))
@@ -29,12 +29,12 @@ namespace Org.BouncyCastle.Bcpg
 
             bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
 
-            if (bodyLen < 1)
+            if (bodyLen.Value < 1)
                 throw new EndOfStreamException("out of range data found in signature sub packet");
 
             int tag = StreamUtilities.RequireByte(m_input);
 
-            byte[] data = new byte[bodyLen - 1];
+            byte[] data = new byte[bodyLen.Value - 1];
 
             //
             // this may seem a bit strange but it turns out some applications miscode the length

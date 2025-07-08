@@ -16,39 +16,45 @@ namespace Org.BouncyCastle.Bcpg
             Partial = 2,
         }
 
-        internal static int ReadBodyLen(Stream s, out StreamFlags flags)
+        internal static uint? ReadBodyLen(Stream s, out StreamFlags flags)
         {
             flags = StreamFlags.None;
 
             int b0 = s.ReadByte();
             if (b0 < 0)
-                return -1;
+                return null;
 
             if (b0 < 192)
-                return b0;
+                return (uint)b0;
 
             if (b0 < 224)
             {
                 int b1 = RequireByte(s);
-                return ((b0 - 192) << 8) + b1 + 192;
+                return (uint)(((b0 - 192) << 8) + b1 + 192);
             }
 
             if (b0 == 255)
             {
                 flags |= StreamFlags.LongLength;
-                return (int)RequireUInt32BE(s);
+                return RequireUInt32BE(s);
             }
 
-            flags |= StreamFlags.Partial;
-            return 1 << (b0 & 0x1F);
+            if (b0 >= 224 && b0 < 255)
+            {
+                flags |= StreamFlags.Partial;
+                return (uint)1 << (b0 & 0x1F);    
+            }
+
+            // Invalid value
+            return null;
         }
 
-        internal static int RequireBodyLen(Stream s, out StreamFlags flags)
+        internal static uint RequireBodyLen(Stream s, out StreamFlags flags)
         {
-            int bodyLen = ReadBodyLen(s, out flags);
-            if (bodyLen < 0)
+            uint? bodyLen = ReadBodyLen(s, out flags);
+            if (!bodyLen.HasValue)
                 throw new EndOfStreamException();
-            return bodyLen;
+            return bodyLen.Value;
         }
 
         internal static byte RequireByte(Stream s)
