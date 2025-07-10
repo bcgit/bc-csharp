@@ -7,15 +7,17 @@ namespace Org.BouncyCastle.Crypto.Digests
     public sealed class Prehash
         : IDigest
     {
-        public static Prehash ForDigest(IDigest digest) => new Prehash(digest);
+        public static Prehash ForDigest(IDigest digest) => ForParameters(digest.AlgorithmName, digest.GetDigestSize());
+
+        public static Prehash ForParameters(string digestName, int digestSize) => new Prehash(digestName, digestSize);
 
         private readonly string m_algorithmName;
         private readonly LimitedBuffer m_buf;
 
-        private Prehash(IDigest digest)
+        private Prehash(string algorithmName, int digestSize)
         {
-            m_algorithmName = digest.AlgorithmName;
-            m_buf = new LimitedBuffer(digest.GetDigestSize());
+            m_algorithmName = algorithmName;
+            m_buf = new LimitedBuffer(digestSize);
         }
 
         public string AlgorithmName => m_algorithmName;
