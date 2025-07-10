@@ -887,7 +887,6 @@ namespace Org.BouncyCastle.Security
                 if (preHashOid == null)
                     return new MLDsaSigner(mlDsaParameters, deterministic: false);
 
-                var preHashDigest = DigestUtilities.GetDigest(preHashOid);
                 return new HashMLDsaSigner(mlDsaParameters, deterministic: false);
             }
 
@@ -897,7 +896,6 @@ namespace Org.BouncyCastle.Security
                 if (preHashOid == null)
                     return new SlhDsaSigner(slhDsaParameters, deterministic: false);
 
-                var preHashDigest = DigestUtilities.GetDigest(preHashOid);
                 return new HashSlhDsaSigner(slhDsaParameters, deterministic: false);
             }
 
