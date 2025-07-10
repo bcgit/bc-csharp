@@ -138,17 +138,24 @@ namespace Org.BouncyCastle.Crypto.Signers
             byte[] hash = new byte[digest.GetDigestSize()];
             digest.DoFinal(hash, 0);
 
-            byte[] data;
-            if (m_digestAlgID == null)
+            try
             {
-                data = CheckDerEncoded(hash);
-            }
-            else
-            {
-                data = DerEncode(m_digestAlgID, hash);
-            }
+                byte[] data;
+                if (m_digestAlgID == null)
+                {
+                    data = CheckDerEncoded(hash);
+                }
+                else
+                {
+                    data = DerEncode(m_digestAlgID, hash);
+                }
 
-            return rsaEngine.ProcessBlock(data, 0, data.Length);
+                return rsaEngine.ProcessBlock(data, 0, data.Length);
+            }
+            catch (Exception e) when (!(e is CryptoException))
+            {
+                throw new CryptoException("unable to encode signature: " + e.Message, e);
+            }
         }
 
         public virtual bool VerifySignature(byte[] signature)
