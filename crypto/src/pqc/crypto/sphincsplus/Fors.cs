@@ -70,7 +70,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             uint[] indices = legacy ? null : Base2B(md, engine.A, engine.K);
 
             // compute signature elements
-            uint t = engine.T;
             for (uint i = 0; i < engine.K; i++)
             {
                 // get next index
@@ -80,7 +79,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 adrs.SetTypeAndClear(Adrs.FORS_PRF);
                 adrs.SetKeyPairAddress(paramAdrs.GetKeyPairAddress());
                 adrs.SetTreeHeight(0);
-                adrs.SetTreeIndex((uint) (i * t + idx));
+                adrs.SetTreeIndex((i << engine.A) + idx);
 
                 byte[] sk = new byte[engine.N];
                 engine.PRF(pkSeed, skSeed, adrs, sk, 0);
@@ -92,7 +91,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 for (int j = 0; j < engine.A; j++)
                 {
                     uint s = (idx >> j) ^ 1U;
-                    authPath[j] = TreeHash(skSeed, (uint) (i * t + (s << j)), j, pkSeed, adrs);
+                    authPath[j] = TreeHash(skSeed, (i << engine.A) + (s << j), j, pkSeed, adrs);
                 }
 
                 sig_fors[i] = new SIG_FORS(sk, authPath);
@@ -104,8 +103,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         internal byte[] PKFromSig(SIG_FORS[] sig_fors, byte[] message, byte[] pkSeed, Adrs adrs, bool legacy)
         {
             byte[][] root = new byte[engine.K][];
-            uint t = engine.T;
-
             uint[] indices = legacy ? null : Base2B(message, engine.A, engine.K);
 
             // compute roots
@@ -117,16 +114,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 // compute leaf
                 byte[] sk = sig_fors[i].SK;
                 adrs.SetTreeHeight(0);
-                adrs.SetTreeIndex(i * t + idx);
+                adrs.SetTreeIndex((i << engine.A) + idx);
                 byte[] node = engine.F(pkSeed, adrs, sk);
 
                 // compute root from leaf and AUTH
                 byte[][] authPath = sig_fors[i].AuthPath;
-                uint adrsTreeIndex = i * t + idx;
+                uint adrsTreeIndex = (i << engine.A) + idx;
                 for (int j = 0; j < engine.A; j++)
                 {
                     adrs.SetTreeHeight((uint)j + 1);
-                    if (((idx >> j) % 2) == 0U)
+                    if ((idx & (1U << j)) == 0U)
                     {
                         adrsTreeIndex = adrsTreeIndex / 2;
                         adrs.SetTreeIndex(adrsTreeIndex);

@@ -28,8 +28,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         internal readonly uint FH; // FULL_HEIGHT
         internal readonly uint H_PRIME; // H / D
 
-        internal readonly uint T; // T = 1 << A
-
         internal readonly int SignatureLength;
 
         internal SphincsPlusEngine(bool robust, int n, uint w, uint d, int a, int k, uint h)
@@ -89,7 +87,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             this.K = k;
             this.FH = h;
             this.H_PRIME = (h / d);
-            this.T = 1U << a;
 
             this.SignatureLength = (1 + K * (1 + A) + (int)FH + (int)D * WOTS_LEN) * N;
         }

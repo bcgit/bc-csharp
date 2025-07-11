@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             for (uint k = 0; k < engine.H_PRIME; k++)
             {
                 adrs.SetTreeHeight(k + 1);
-                if (((idx / (1 << (int)k)) % 2) == 0)
+                if ((idx & (1U << (int)k)) == 0U)
                 {
                     adrs.SetTreeIndex(adrs.GetTreeIndex() / 2);
                     engine.H(pkSeed, adrs, node, AUTH[k], node);
