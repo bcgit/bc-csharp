@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] hash = DigestUtilities.DoFinal(digest, msg);
 
             DigestInfo digInfo = new DigestInfo(new AlgorithmIdentifier(digOid, DerNull.Instance), hash);
-            byte[] infoEnc = digInfo.GetEncoded();
+            byte[] infoEnc = digInfo.GetEncoded(Asn1Encodable.Der);
 
             var signer = CreatePrehashSigner();
             signer.Init(forSigning: true, rsaPrivate);

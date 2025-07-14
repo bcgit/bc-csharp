@@ -17,10 +17,10 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class RsaDigestSigner
         : ISigner
     {
-        private readonly IAsymmetricBlockCipher rsaEngine;
+        private readonly IAsymmetricBlockCipher m_engine;
         private readonly AlgorithmIdentifier m_digestAlgID;
-        private readonly IDigest digest;
-        private bool forSigning;
+        private readonly IDigest m_digest;
+        private bool m_forSigning;
 
         private static readonly IDictionary<string, DerObjectIdentifier> OidMap =
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
@@ -81,12 +81,12 @@ namespace Org.BouncyCastle.Crypto.Signers
         // TODO[api] Rename 'algId' to 'digestAlgID'
         public RsaDigestSigner(IAsymmetricBlockCipher rsaEngine, IDigest digest, AlgorithmIdentifier algId)
         {
-            this.rsaEngine = new Pkcs1Encoding(rsaEngine);
-            this.digest = digest;
+            m_engine = new Pkcs1Encoding(rsaEngine);
+            m_digest = digest;
             m_digestAlgID = algId;
         }
 
-        public virtual string AlgorithmName => digest.AlgorithmName + "withRSA";
+        public virtual string AlgorithmName => m_digest.AlgorithmName + "withRSA";
 
         /**
          * Initialise the signer for signing or verification.
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Crypto.Signers
          */
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
-            this.forSigning = forSigning;
+            m_forSigning = forSigning;
 
             var key = (AsymmetricKeyParameter)ParameterUtilities.IgnoreRandom(parameters);
 
@@ -108,35 +108,26 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             Reset();
 
-            rsaEngine.Init(forSigning, parameters);
+            m_engine.Init(forSigning, parameters);
         }
 
-        public virtual void Update(byte input)
-        {
-            digest.Update(input);
-        }
+        public virtual void Update(byte input) => m_digest.Update(input);
 
-        public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
-        {
-            digest.BlockUpdate(input, inOff, inLen);
-        }
+        public virtual void BlockUpdate(byte[] input, int inOff, int inLen) =>
+            m_digest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            digest.BlockUpdate(input);
-        }
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input) => m_digest.BlockUpdate(input);
 #endif
 
-        public virtual int GetMaxSignatureSize() => rsaEngine.GetOutputBlockSize();
+        public virtual int GetMaxSignatureSize() => m_engine.GetOutputBlockSize();
 
         public virtual byte[] GenerateSignature()
         {
-            if (!forSigning)
+            if (!m_forSigning)
                 throw new InvalidOperationException("RsaDigestSigner not initialised for signature generation.");
 
-            byte[] hash = new byte[digest.GetDigestSize()];
-            digest.DoFinal(hash, 0);
+            byte[] hash = DigestUtilities.DoFinal(m_digest);
 
             try
             {
@@ -150,7 +141,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                     data = DerEncode(m_digestAlgID, hash);
                 }
 
-                return rsaEngine.ProcessBlock(data, 0, data.Length);
+                return m_engine.ProcessBlock(data, 0, data.Length);
             }
             catch (Exception e) when (!(e is CryptoException))
             {
@@ -160,21 +151,20 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public virtual bool VerifySignature(byte[] signature)
         {
-            if (forSigning)
+            if (m_forSigning)
                 throw new InvalidOperationException("RsaDigestSigner not initialised for verification");
 
             byte[] sig;
             try
             {
-                sig = rsaEngine.ProcessBlock(signature, 0, signature.Length);
+                sig = m_engine.ProcessBlock(signature, 0, signature.Length);
             }
             catch (Exception)
             {
                 return false;
             }
 
-            byte[] hash = new byte[digest.GetDigestSize()];
-            digest.DoFinal(hash, 0);
+            byte[] hash = DigestUtilities.DoFinal(m_digest);
 
             if (m_digestAlgID == null)
                 return Arrays.FixedTimeEquals(sig, CheckDerEncoded(hash));
@@ -191,7 +181,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return false;
         }
 
-        public virtual void Reset() => digest.Reset();
+        public virtual void Reset() => m_digest.Reset();
 
         private static byte[] CheckDerEncoded(byte[] hash)
         {
