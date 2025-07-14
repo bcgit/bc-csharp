@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -723,8 +722,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
             if (null != tlsStreamVerifier)
             {
-                Stream output = tlsStreamVerifier.Stream;
-                output.Write(message, 0, message.Length);
+                using (var output = tlsStreamVerifier.Stream)
+                {
+                    output.Write(message, 0, message.Length);
+                }
+
                 verified = tlsStreamVerifier.IsVerified();
             }
             else
@@ -769,8 +771,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamVerifier tlsStreamVerifier = tlsVerifier.GetStreamVerifier(digitallySigned);
             if (null != tlsStreamVerifier)
             {
-                Stream output = tlsStreamVerifier.Stream;
-                output.Write(message, 0, message.Length);
+                using (var output = tlsStreamVerifier.Stream)
+                {
+                    output.Write(message, 0, message.Length);
+                }
+
                 verified = tlsStreamVerifier.IsVerified();
             }
             else
@@ -806,8 +811,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsCertificate tlsCertificate = credentialedSigner.Certificate.GetCertificateAt(0);
             Tls13Verifier tls13Verifier = tlsCertificate.CreateVerifier(signatureScheme);
 
-            Stream output13 = tls13Verifier.Stream;
-            output13.Write(message, 0, message.Length);
+            using (var output = tls13Verifier.Stream)
+            {
+                output.Write(message, 0, message.Length);
+            }
+
             bool verified = tls13Verifier.VerifySignature(signature);
 
             Assert.IsTrue(verified);

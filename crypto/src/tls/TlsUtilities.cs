@@ -2272,7 +2272,11 @@ namespace Org.BouncyCastle.Tls
 
                 if (streamVerifier != null)
                 {
-                    handshakeHash.CopyBufferTo(streamVerifier.Stream);
+                    using (var output = streamVerifier.Stream)
+                    {
+                        handshakeHash.CopyBufferTo(output);
+                    }
+
                     verified = streamVerifier.IsVerified();
                 }
                 else
@@ -2348,9 +2352,12 @@ namespace Org.BouncyCastle.Tls
                 byte[] header = GetCertificateVerifyHeader(contextString);
                 byte[] prfHash = GetCurrentPrfHash(handshakeHash);
 
-                Stream output = verifier.Stream;
-                output.Write(header, 0, header.Length);
-                output.Write(prfHash, 0, prfHash.Length);
+                using (var output = verifier.Stream)
+                {
+                    output.Write(header, 0, header.Length);
+                    output.Write(prfHash, 0, prfHash.Length);
+                }
+
                 verified = verifier.VerifySignature(certificateVerify.Signature);
             }
             catch (TlsFatalAlert)
