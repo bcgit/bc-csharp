@@ -632,24 +632,42 @@ namespace Org.BouncyCastle.Tests
             byte[] normalResult = normalSig.GenerateSignature();
 
             byte[] hash = DigestUtilities.CalculateDigest(digestOID.Id, sampleMessage);
-            byte[] digInfo = DerEncode(digestOID, hash);
 
-            ISigner rawSig = SignerUtilities.GetSigner("RSA");
-            rawSig.Init(true, privKey);
-            rawSig.BlockUpdate(digInfo, 0, digInfo.Length);
-            byte[] rawResult = rawSig.GenerateSignature();
-
-            if (!Arrays.AreEqual(normalResult, rawResult))
             {
-                Fail("raw mode signature differs from normal one");
+                var rawSig = SignerUtilities.GetSigner("RSA");
+                rawSig.Init(true, privKey);
+                rawSig.BlockUpdate(hash, 0, hash.Length);
+                byte[] rawResult = rawSig.GenerateSignature();
+
+                rawSig.Init(false, pubKey);
+                rawSig.BlockUpdate(hash, 0, hash.Length);
+
+                if (!rawSig.VerifySignature(rawResult))
+                {
+                    Fail("raw mode (no DigestInfo) signature verification failed");
+                }
             }
 
-            rawSig.Init(false, pubKey);
-            rawSig.BlockUpdate(digInfo, 0, digInfo.Length);
-
-            if (!rawSig.VerifySignature(rawResult))
             {
-                Fail("raw mode signature verification failed");
+                byte[] digInfo = DerEncode(digestOID, hash);
+
+                var rawSig = SignerUtilities.GetSigner("RSA");
+                rawSig.Init(true, privKey);
+                rawSig.BlockUpdate(digInfo, 0, digInfo.Length);
+                byte[] rawResult = rawSig.GenerateSignature();
+
+                if (!Arrays.AreEqual(normalResult, rawResult))
+                {
+                    Fail("raw mode signature differs from normal one");
+                }
+
+                rawSig.Init(false, pubKey);
+                rawSig.BlockUpdate(digInfo, 0, digInfo.Length);
+
+                if (!rawSig.VerifySignature(rawResult))
+                {
+                    Fail("raw mode signature verification failed");
+                }
             }
         }
 

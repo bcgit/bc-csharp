@@ -16,6 +16,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
@@ -761,7 +762,7 @@ namespace Org.BouncyCastle.Security
 
             if (mechanism.Equals("RSA"))
             {
-                return (new RsaDigestSigner(new NullDigest(), (AlgorithmIdentifier)null));
+                return new GenericSigner(new Pkcs1Encoding(new RsaBlindedEngine()), new NullDigest());
             }
             if (mechanism.Equals("RAWRSASSA-PSS"))
             {
