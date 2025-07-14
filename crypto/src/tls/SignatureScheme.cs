@@ -241,7 +241,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        public static bool isMLDsa(int signatureScheme)
+        [Obsolete("Use 'IsMLDsaScheme' instead")]
+        public static bool isMLDsa(int signatureScheme) => IsMLDsaScheme(signatureScheme);
+
+        public static bool IsMLDsaScheme(int signatureScheme)
         {
             switch (signatureScheme)
             {
