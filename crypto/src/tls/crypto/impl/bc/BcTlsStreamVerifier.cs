@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
@@ -14,18 +13,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         internal BcTlsStreamVerifier(ISigner verifier, byte[] signature)
         {
-            this.m_output = new SignerSink(verifier);
-            this.m_signature = signature;
+            m_output = new SignerSink(verifier);
+            m_signature = signature;
         }
 
-        public Stream Stream
-        {
-            get { return m_output; }
-        }
+        public Stream Stream => m_output;
 
-        public bool IsVerified()
-        {
-            return m_output.Signer.VerifySignature(m_signature);
-        }
+        public bool IsVerified() => m_output.Signer.VerifySignature(m_signature);
     }
 }

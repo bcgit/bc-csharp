@@ -13,24 +13,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected BcTlsVerifier(BcTlsCrypto crypto, AsymmetricKeyParameter publicKey)
         {
             if (crypto == null)
-                throw new ArgumentNullException("crypto");
+                throw new ArgumentNullException(nameof(crypto));
             if (publicKey == null)
-                throw new ArgumentNullException("publicKey");
+                throw new ArgumentNullException(nameof(publicKey));
             if (publicKey.IsPrivate)
-                throw new ArgumentException("must be public", "publicKey");
+                throw new ArgumentException("must be public", nameof(publicKey));
 
-            this.m_crypto = crypto;
-            this.m_publicKey = publicKey;
+            m_crypto = crypto;
+            m_publicKey = publicKey;
         }
 
-        public virtual TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned)
-        {
-            return null;
-        }
+        public virtual TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned) => null;
 
-        public virtual bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
-        {
+        public virtual bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash) =>
             throw new NotSupportedException();
-        }
     }
 }

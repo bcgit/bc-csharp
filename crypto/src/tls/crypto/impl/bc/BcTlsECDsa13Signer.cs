@@ -7,7 +7,8 @@ using Org.BouncyCastle.Crypto.Signers;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
-    /// <summary>Implementation class for generation of ECDSA signatures in TLS 1.3+ using the BC light-weight API.
+    /// <summary>
+    /// Implementation class for generation of ECDSA signatures in TLS 1.3+ using the BC light-weight API.
     /// </summary>
     public class BcTlsECDsa13Signer
         : BcTlsSigner
@@ -18,9 +19,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             : base(crypto, privateKey)
         {
             if (!SignatureScheme.IsECDsa(signatureScheme))
-                throw new ArgumentException("signatureScheme");
+                throw new ArgumentException(nameof(signatureScheme));
 
-            this.m_signatureScheme = signatureScheme;
+            m_signatureScheme = signatureScheme;
         }
 
         public override byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash)
@@ -32,7 +33,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             IDsa dsa = new ECDsaSigner(new HMacDsaKCalculator(m_crypto.CreateDigest(cryptoHashAlgorithm)));
 
             ISigner signer = new DsaDigestSigner(dsa, new NullDigest());
-            signer.Init(true, new ParametersWithRandom(m_privateKey, m_crypto.SecureRandom));
+            signer.Init(forSigning: true, new ParametersWithRandom(m_privateKey, m_crypto.SecureRandom));
             signer.BlockUpdate(hash, 0, hash.Length);
             try
             {

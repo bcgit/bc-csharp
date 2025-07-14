@@ -13,20 +13,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         internal BcTls13Verifier(ISigner verifier)
         {
-            if (verifier == null)
-                throw new ArgumentNullException("verifier");
-
-            this.m_output = new SignerSink(verifier);
+            m_output = new SignerSink(verifier ?? throw new ArgumentNullException(nameof(verifier)));
         }
 
-        public Stream Stream
-        {
-            get { return m_output; }
-        }
+        public Stream Stream => m_output;
 
-        public bool VerifySignature(byte[] signature)
-        {
-            return m_output.Signer.VerifySignature(signature);
-        }
+        public bool VerifySignature(byte[] signature) => m_output.Signer.VerifySignature(signature);
     }
 }

@@ -13,24 +13,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected BcTlsSigner(BcTlsCrypto crypto, AsymmetricKeyParameter privateKey)
         {
             if (crypto == null)
-                throw new ArgumentNullException("crypto");
+                throw new ArgumentNullException(nameof(crypto));
             if (privateKey == null)
-                throw new ArgumentNullException("privateKey");
+                throw new ArgumentNullException(nameof(privateKey));
             if (!privateKey.IsPrivate)
-                throw new ArgumentException("must be private", "privateKey");
+                throw new ArgumentException("must be private", nameof(privateKey));
 
-            this.m_crypto = crypto;
-            this.m_privateKey = privateKey;
+            m_crypto = crypto;
+            m_privateKey = privateKey;
         }
 
-        public virtual byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash)
-        {
+        public virtual byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash) =>
             throw new NotSupportedException();
-        }
 
-        public virtual TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)
-        {
-            return null;
-        }
+        public virtual TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm) => null;
     }
 }

@@ -12,12 +12,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public LegacyTls13Verifier(int signatureScheme, Tls13Verifier tls13Verifier)
         {
             if (!TlsUtilities.IsValidUint16(signatureScheme))
-                throw new ArgumentException("signatureScheme");
-            if (tls13Verifier == null)
-                throw new ArgumentNullException("tls13Verifier");
+                throw new ArgumentException(nameof(signatureScheme));
 
-            this.m_signatureScheme = signatureScheme;
-            this.m_tls13Verifier = tls13Verifier;
+            m_signatureScheme = signatureScheme;
+            m_tls13Verifier = tls13Verifier ?? throw new ArgumentNullException(nameof(tls13Verifier));
         }
 
         public TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned)
@@ -29,10 +27,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsStreamVerifierImpl(m_tls13Verifier, digitallySigned.Signature);
         }
 
-        public bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)
-        {
+        public bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash) =>
             throw new NotSupportedException();
-        }
 
         private class TlsStreamVerifierImpl
             : TlsStreamVerifier
@@ -42,19 +38,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
             internal TlsStreamVerifierImpl(Tls13Verifier tls13Verifier, byte[] signature)
             {
-                this.m_tls13Verifier = tls13Verifier;
-                this.m_signature = signature;
+                m_tls13Verifier = tls13Verifier;
+                m_signature = signature;
             }
 
-            public Stream Stream
-            {
-                get { return m_tls13Verifier.Stream; }
-            }
+            public Stream Stream => m_tls13Verifier.Stream;
 
-            public bool IsVerified()
-            {
-                return m_tls13Verifier.VerifySignature(m_signature);
-            }
+            public bool IsVerified() => m_tls13Verifier.VerifySignature(m_signature);
         }
     }
 }
