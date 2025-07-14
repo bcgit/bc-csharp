@@ -133,6 +133,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             SignatureAndHashAlgorithm signatureAndHashAlgorithm = SignatureScheme.GetSignatureAndHashAlgorithm(
                 signatureScheme);
 
+            // TODO[tls] Move into switch statement once constants available
+            if (SignatureScheme.DRAFT_mldsa44 == signatureScheme)
+                return LoadCredentialedSigner(cryptoParams, "ml_dsa_44", signatureAndHashAlgorithm);
+            if (SignatureScheme.DRAFT_mldsa65 == signatureScheme)
+                return LoadCredentialedSigner(cryptoParams, "ml_dsa_65", signatureAndHashAlgorithm);
+            if (SignatureScheme.DRAFT_mldsa87 == signatureScheme)
+                return LoadCredentialedSigner(cryptoParams, "ml_dsa_87", signatureAndHashAlgorithm);
+
             switch (signatureScheme)
             {
             case SignatureScheme.ecdsa_secp256r1_sha256:
@@ -159,9 +167,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             case SignatureScheme.ecdsa_secp384r1_sha384:
             case SignatureScheme.ecdsa_secp521r1_sha512:
             case SignatureScheme.sm2sig_sm3:
-            //case SignatureScheme.mldsa44:
-            //case SignatureScheme.mldsa65:
-            //case SignatureScheme.mldsa87:
 
             default:
                 return null;
