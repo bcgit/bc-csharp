@@ -699,8 +699,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.Stream;
-                output.Write(message, 0, message.Length);
+                using (var output = tlsStreamSigner.Stream)
+                {
+                    output.Write(message, 0, message.Length);
+                }
+
                 signature = tlsStreamSigner.GetSignature();
             }
             else
@@ -744,8 +747,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.Stream;
-                output.Write(message, 0, message.Length);
+                using (var output = tlsStreamSigner.Stream)
+                {
+                    output.Write(message, 0, message.Length);
+                }
+
                 signature = tlsStreamSigner.GetSignature();
             }
             else
@@ -784,8 +790,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             TlsStreamSigner tlsStreamSigner = credentialedSigner.GetStreamSigner();
             if (null != tlsStreamSigner)
             {
-                Stream output = tlsStreamSigner.Stream;
-                output.Write(message, 0, message.Length);
+                using (var output = tlsStreamSigner.Stream)
+                {
+                    output.Write(message, 0, message.Length);
+                }
+
                 signature = tlsStreamSigner.GetSignature();
             }
             else

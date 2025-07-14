@@ -2169,7 +2169,11 @@ namespace Org.BouncyCastle.Tls
             byte[] signature;
             if (clientAuthStreamSigner != null)
             {
-                handshakeHash.CopyBufferTo(clientAuthStreamSigner.Stream);
+                using (var output = clientAuthStreamSigner.Stream)
+                {
+                    handshakeHash.CopyBufferTo(output);
+                }
+
                 signature = clientAuthStreamSigner.GetSignature();
             }
             else
@@ -2217,9 +2221,12 @@ namespace Org.BouncyCastle.Tls
 
             if (null != streamSigner)
             {
-                Stream output = streamSigner.Stream;
-                output.Write(header, 0, header.Length);
-                output.Write(prfHash, 0, prfHash.Length);
+                using (var output = streamSigner.Stream)
+                {
+                    output.Write(header, 0, header.Length);
+                    output.Write(prfHash, 0, prfHash.Length);
+                }
+
                 return streamSigner.GetSignature();
             }
 
