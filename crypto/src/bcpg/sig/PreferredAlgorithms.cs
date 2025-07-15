@@ -36,6 +36,6 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public int[] GetPreferences() => DataToPrefs(data);
+        public int[] GetPreferences() => DataToPrefs(Data);
     }
 }

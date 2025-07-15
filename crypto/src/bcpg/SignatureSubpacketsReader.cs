@@ -6,20 +6,18 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /**
-	* reader for signature sub-packets
-	*/
+    /// <summary>Parser for signature sub-packets</summary>
     public class SignatureSubpacketsParser
-	{
-		private readonly Stream m_input;
+    {
+        private readonly Stream m_input;
 
-		public SignatureSubpacketsParser(Stream input)
-		{
-			m_input = input;
-		}
+        public SignatureSubpacketsParser(Stream input)
+        {
+            m_input = input;
+        }
 
-		public SignatureSubpacket ReadPacket()
-		{
+        public SignatureSubpacket ReadPacket()
+        {
             uint bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
             if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Eof))
                 return null;
@@ -68,41 +66,41 @@ namespace Org.BouncyCastle.Bcpg
             }
 
             switch (type)
-			{
-			case SignatureSubpacketTag.CreationTime:
-				return new SignatureCreationTime(isCritical, isLongLength, data);
+            {
+            case SignatureSubpacketTag.CreationTime:
+                return new SignatureCreationTime(isCritical, isLongLength, data);
             case SignatureSubpacketTag.EmbeddedSignature:
                 return new EmbeddedSignature(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.KeyExpireTime:
+            case SignatureSubpacketTag.KeyExpireTime:
                 return new KeyExpirationTime(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.ExpireTime:
+            case SignatureSubpacketTag.ExpireTime:
                 return new SignatureExpirationTime(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.Revocable:
+            case SignatureSubpacketTag.Revocable:
                 return new Revocable(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.Exportable:
+            case SignatureSubpacketTag.Exportable:
                 return new Exportable(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.Features:
+            case SignatureSubpacketTag.Features:
                 return new Features(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.IssuerKeyId:
+            case SignatureSubpacketTag.IssuerKeyId:
                 return new IssuerKeyId(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.TrustSig:
+            case SignatureSubpacketTag.TrustSig:
                 return new TrustSignature(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.PreferredCompressionAlgorithms:
-			case SignatureSubpacketTag.PreferredHashAlgorithms:
-			case SignatureSubpacketTag.PreferredSymmetricAlgorithms:
-			case SignatureSubpacketTag.PreferredAeadAlgorithms:
+            case SignatureSubpacketTag.PreferredCompressionAlgorithms:
+            case SignatureSubpacketTag.PreferredHashAlgorithms:
+            case SignatureSubpacketTag.PreferredSymmetricAlgorithms:
+            case SignatureSubpacketTag.PreferredAeadAlgorithms:
                 return new PreferredAlgorithms(type, isCritical, isLongLength, data);
-			case SignatureSubpacketTag.KeyFlags:
+            case SignatureSubpacketTag.KeyFlags:
                 return new KeyFlags(isCritical, isLongLength, data);
             case SignatureSubpacketTag.PolicyUrl:
                 return new PolicyUrl(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.PrimaryUserId:
+            case SignatureSubpacketTag.PrimaryUserId:
                 return new PrimaryUserId(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.SignerUserId:
+            case SignatureSubpacketTag.SignerUserId:
                 return new SignerUserId(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.NotationData:
+            case SignatureSubpacketTag.NotationData:
                 return new NotationData(isCritical, isLongLength, data);
-			case SignatureSubpacketTag.RegExp:
+            case SignatureSubpacketTag.RegExp:
                 return new RegularExpression(isCritical, isLongLength, data);
             case SignatureSubpacketTag.RevocationReason:
                 return new RevocationReason(isCritical, isLongLength, data);
@@ -116,14 +114,14 @@ namespace Org.BouncyCastle.Bcpg
                 return new IntendedRecipientFingerprint(isCritical, isLongLength, data);
             }
             return new SignatureSubpacket(type, isCritical, isLongLength, data);
-		}
+        }
 
-        private byte[] CheckData(byte[] data, int expected, int bytesRead, string name)
+        private static byte[] CheckData(byte[] data, int expected, int bytesRead, string name)
         {
             if (bytesRead != expected)
                 throw new EndOfStreamException("truncated " + name + " subpacket data.");
 
             return Arrays.CopyOfRange(data, 0, expected);
         }
-	}
+    }
 }

@@ -17,6 +17,6 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public bool IsPrimaryUserId() => Utilities.BooleanFromBytes(data);
+        public bool IsPrimaryUserId() => Utilities.BooleanFromBytes(Data);
     }
 }

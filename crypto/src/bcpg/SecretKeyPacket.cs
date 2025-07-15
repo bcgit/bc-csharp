@@ -149,7 +149,7 @@ namespace Org.BouncyCastle.Bcpg
                 if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
                 {
                     pOut.WriteByte((byte)encAlgorithm);
-                    pOut.WriteObject(s2k);
+                    s2k.Encode(pOut);
                 }
 
                 if (iv != null)

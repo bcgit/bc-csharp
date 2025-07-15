@@ -1,5 +1,7 @@
 using System;
-using System.IO;
+
+using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Attr
 {
@@ -12,61 +14,58 @@ namespace Org.BouncyCastle.Bcpg.Attr
             Jpeg = 1
         }
 
-        private static readonly byte[] Zeroes = new byte[12];
-
-        private int     hdrLength;
-        private int     _version;
-        private int     _encoding;
-        private byte[]  imageData;
+        private readonly int m_hdrLength;
+        private readonly int m_version;
+        private readonly int m_encoding;
+        private readonly byte[] m_imageData;
 
         public ImageAttrib(byte[] data)
-            : this(false, data)
+            : this(forceLongLength: false, data)
         {
         }
 
         public ImageAttrib(bool forceLongLength, byte[] data)
             : base(UserAttributeSubpacketTag.ImageAttribute, forceLongLength, data)
         {
-            hdrLength = ((data[1] & 0xff) << 8) | (data[0] & 0xff);
-            _version = data[2] & 0xff;
-            _encoding = data[3] & 0xff;
+            if (data == null)
+                throw new ArgumentNullException(nameof(data));
+            if (data.Length < 4)
+                throw new ArgumentException("Image header truncated", nameof(data));
 
-            imageData = new byte[data.Length - hdrLength];
-            Array.Copy(data, hdrLength, imageData, 0, imageData.Length);
+            // NB: due to a historical accident, encoded as a little-endian number.
+            m_hdrLength = Pack.LE_To_UInt16(data, 0);
+            m_version = data[2];
+            m_encoding = data[3];
+
+            // TODO Check header length is appropriate for version?
+
+            if (data.Length < m_hdrLength)
+                throw new ArgumentException($"Data length {data.Length} less than declared header length {m_hdrLength}");
+
+            m_imageData = Arrays.CopyOfRange(data, m_hdrLength, data.Length);
         }
 
-        public ImageAttrib(
-            Format	imageType,
-            byte[]	imageData)
+        public ImageAttrib(Format imageType, byte[] imageData)
             : this(ToByteArray(imageType, imageData))
         {
         }
 
-        private static byte[] ToByteArray(
-            Format	imageType,
-            byte[]	imageData)
+        private static byte[] ToByteArray(Format imageType, byte[] imageData)
         {
-            MemoryStream bOut = new MemoryStream();
-            bOut.WriteByte(0x10); bOut.WriteByte(0x00); bOut.WriteByte(0x01);
-            bOut.WriteByte((byte) imageType);
-            bOut.Write(Zeroes, 0, Zeroes.Length);
-            bOut.Write(imageData, 0, imageData.Length);
-            return bOut.ToArray();
+            int hdrLength = 16;
+            byte[] data = new byte[hdrLength + imageData.Length];
+            Pack.UInt16_To_LE((ushort)hdrLength, data, 0);
+            data[2] = 0x01;
+            data[3] = (byte)imageType;
+            //Arrays.Fill<byte>(data, 4, 16, 0x00); // 12 reserved octets, all of which MUST be set to 0
+            imageData.CopyTo(data, hdrLength);
+            return data;
         }
 
-        public virtual int Version
-        {
-            get { return _version; }
-        }
+        public virtual int Version => m_version;
 
-        public virtual int Encoding
-        {
-            get { return _encoding; }
-        }
+        public virtual int Encoding => m_encoding;
 
-        public virtual byte[] GetImageData()
-        {
-            return imageData;
-        }
+        public virtual byte[] GetImageData() => m_imageData;
     }
 }

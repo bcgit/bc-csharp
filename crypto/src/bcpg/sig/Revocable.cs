@@ -17,6 +17,6 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public bool IsRevocable() => Utilities.BooleanFromBytes(data);
+        public bool IsRevocable() => Utilities.BooleanFromBytes(Data);
     }
 }

@@ -25,6 +25,6 @@ namespace Org.BouncyCastle.Bcpg.Sig
         /**
          * return time in seconds before signature expires after creation time.
          */
-        public long Time => Utilities.TimeFromBytes(data);
+        public long Time => Utilities.TimeFromBytes(Data);
     }
 }

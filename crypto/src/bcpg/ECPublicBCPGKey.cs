@@ -6,78 +6,51 @@ using Org.BouncyCastle.Math.EC;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /// <remarks>Base class for an EC Public Key.</remarks>
+    /// <summary>Base class for an EC Public Key.</summary>
     public abstract class ECPublicBcpgKey
         : BcpgObject, IBcpgKey
     {
-        internal DerObjectIdentifier oid;
-        internal BigInteger point;
+        private readonly DerObjectIdentifier m_oid;
+        private readonly BigInteger m_point;
 
         /// <param name="bcpgIn">The stream to read the packet from.</param>
-        protected ECPublicBcpgKey(
-            BcpgInputStream bcpgIn)
+        protected ECPublicBcpgKey(BcpgInputStream bcpgIn)
         {
-            this.oid = DerObjectIdentifier.GetInstance(ReadBytesOfEncodedLength(bcpgIn));
-            this.point = new MPInteger(bcpgIn).Value;
+            m_oid = DerObjectIdentifier.GetInstance(ReadBytesOfEncodedLength(bcpgIn));
+            m_point = new MPInteger(bcpgIn).Value;
         }
 
-        protected ECPublicBcpgKey(
-            DerObjectIdentifier oid,
-            ECPoint point)
+        protected ECPublicBcpgKey(DerObjectIdentifier oid, ECPoint point)
         {
-            this.point = MPInteger.ToMpiBigInteger(point);
-            this.oid = oid;
+            m_point = MPInteger.ToMpiBigInteger(point);
+            m_oid = oid;
         }
 
-        protected ECPublicBcpgKey(
-            DerObjectIdentifier oid,
-            BigInteger encodedPoint)
+        protected ECPublicBcpgKey(DerObjectIdentifier oid, BigInteger encodedPoint)
         {
-            this.point = encodedPoint;
-            this.oid = oid;
+            m_point = encodedPoint;
+            m_oid = oid;
         }
+
+        public virtual BigInteger EncodedPoint => m_point;
+
+        public virtual DerObjectIdentifier CurveOid => m_oid;
 
         /// <summary>The format, as a string, always "PGP".</summary>
-        public string Format
-        {
-            get { return "PGP"; }
-        }
+        public string Format => "PGP";
 
         /// <summary>Return the standard PGP encoding of the key.</summary>
-        public override byte[] GetEncoded()
-        {
-            try
-            {
-                return base.GetEncoded();
-            }
-            catch (IOException)
-            {
-                return null;
-            }
-        }
+        public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(this);
 
-        public override void Encode(
-            BcpgOutputStream bcpgOut)
+        public override void Encode(BcpgOutputStream bcpgOut)
         {
-            byte[] oid = this.oid.GetEncoded();
+            byte[] oid = m_oid.GetEncoded();
             bcpgOut.Write(oid, 1, oid.Length - 1);
 
-            MPInteger point = new MPInteger(this.point);
-            bcpgOut.WriteObject(point);
+            MPInteger.Encode(bcpgOut, m_point);
         }
 
-        public virtual BigInteger EncodedPoint
-        {
-            get { return point; }
-        }
-
-        public virtual DerObjectIdentifier CurveOid
-        {
-            get { return oid; }
-        }
-
-        protected static byte[] ReadBytesOfEncodedLength(
-            BcpgInputStream bcpgIn)
+        protected static byte[] ReadBytesOfEncodedLength(BcpgInputStream bcpgIn)
         {
             int length = bcpgIn.RequireByte();
             if (length == 0 || length == 0xFF)
@@ -85,9 +58,9 @@ namespace Org.BouncyCastle.Bcpg
             if (length > 127)
                 throw new IOException("unsupported OID");
 
-            byte[] buffer = new byte[length + 2];
+            byte[] buffer = new byte[2 + length];
             bcpgIn.ReadFully(buffer, 2, buffer.Length - 2);
-            buffer[0] = (byte)0x06;
+            buffer[0] = 0x06;
             buffer[1] = (byte)length;
 
             return buffer;

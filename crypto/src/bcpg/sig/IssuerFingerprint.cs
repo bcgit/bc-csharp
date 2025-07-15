@@ -19,8 +19,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public int KeyVersion => data[0];
+        public int KeyVersion => Data[0];
 
-        public byte[] GetFingerprint() => Arrays.CopyOfRange(data, 1, data.Length);
+        public byte[] GetFingerprint() => Arrays.CopyOfRange(Data, 1, Data.Length);
     }
 }

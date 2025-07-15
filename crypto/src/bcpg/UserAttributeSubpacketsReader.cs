@@ -34,8 +34,8 @@ namespace Org.BouncyCastle.Bcpg
             UserAttributeSubpacketTag type = (UserAttributeSubpacketTag)tag;
             switch (type)
             {
-                case UserAttributeSubpacketTag.ImageAttribute:
-                    return new ImageAttrib(isLongLength, data);
+            case UserAttributeSubpacketTag.ImageAttribute:
+                return new ImageAttrib(isLongLength, data);
             }
             return new UserAttributeSubpacket(type, isLongLength, data);
         }

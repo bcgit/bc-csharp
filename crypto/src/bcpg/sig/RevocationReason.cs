@@ -26,10 +26,12 @@ namespace Org.BouncyCastle.Bcpg
             return data;
         }
 
-        public virtual RevocationReasonTag GetRevocationReason() => (RevocationReasonTag)data[0];
+        public virtual RevocationReasonTag GetRevocationReason() => (RevocationReasonTag)Data[0];
 
         public virtual string GetRevocationDescription()
         {
+            var data = Data;
+
             if (data.Length == 1)
                 return string.Empty;
 

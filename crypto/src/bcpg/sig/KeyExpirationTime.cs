@@ -27,6 +27,6 @@ namespace Org.BouncyCastle.Bcpg.Sig
          *
          * @return second count for key validity.
          */
-        public long Time => Utilities.TimeFromBytes(data);
+        public long Time => Utilities.TimeFromBytes(Data);
     }
 }

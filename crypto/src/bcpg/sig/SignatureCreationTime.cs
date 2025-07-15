@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
 
         public DateTime GetTime()
         {
-            long time = Utilities.TimeFromBytes(data);
+            long time = Utilities.TimeFromBytes(Data);
             return DateTimeUtilities.UnixMsToDateTime(time * 1000L);
         }
     }

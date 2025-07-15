@@ -7,24 +7,24 @@ namespace Org.BouncyCastle.Bcpg
     public class UnsupportedPacketVersionException
         : Exception
     {
-		public UnsupportedPacketVersionException()
-			: base()
-		{
-		}
+        public UnsupportedPacketVersionException()
+            : base()
+        {
+        }
 
-		public UnsupportedPacketVersionException(string message)
-			: base(message)
-		{
-		}
+        public UnsupportedPacketVersionException(string message)
+            : base(message)
+        {
+        }
 
-		public UnsupportedPacketVersionException(string message, Exception innerException)
-			: base(message, innerException)
-		{
-		}
+        public UnsupportedPacketVersionException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
 
-		protected UnsupportedPacketVersionException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
+        protected UnsupportedPacketVersionException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 }

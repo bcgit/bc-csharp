@@ -53,6 +53,6 @@ namespace Org.BouncyCastle.Bcpg.Sig
         /// Return the flag values contained in the first 4 octets (note: at the moment
         /// the standard only uses the first one).
         /// </summary>
-        public int Flags => DataToFlags(data);
+        public int Flags => DataToFlags(Data);
     }
 }

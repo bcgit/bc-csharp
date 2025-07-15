@@ -24,12 +24,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     /// <remarks>Basic utility class.</remarks>
     public sealed class PgpUtilities
     {
-        private static S2k LegacyS2k = new S2k(HashAlgorithmTag.MD5);
+        private static readonly S2k LegacyS2k = new S2k(HashAlgorithmTag.MD5);
 
-        private static readonly IDictionary<string, HashAlgorithmTag> NameToHashID = CreateNameToHashID();
-        private static readonly IDictionary<DerObjectIdentifier, string> OidToName = CreateOidToName();
+        private static readonly Dictionary<string, HashAlgorithmTag> NameToHashID = CreateNameToHashID();
+        private static readonly Dictionary<DerObjectIdentifier, string> OidToName = CreateOidToName();
 
-        private static IDictionary<string, HashAlgorithmTag> CreateNameToHashID()
+        private static Dictionary<string, HashAlgorithmTag> CreateNameToHashID()
         {
             var d = new Dictionary<string, HashAlgorithmTag>(StringComparer.OrdinalIgnoreCase);
             d.Add("sha1", HashAlgorithmTag.Sha1);
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return d;
         }
 
-        private static IDictionary<DerObjectIdentifier, string> CreateOidToName()
+        private static Dictionary<DerObjectIdentifier, string> CreateOidToName()
         {
             var d = new Dictionary<DerObjectIdentifier, string>();
             d.Add(EdECObjectIdentifiers.id_X25519, "Curve25519");
@@ -59,27 +59,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public static MPInteger[] DsaSigToMpi(byte[] encoding)
         {
-            DerInteger i1, i2;
             try
             {
                 Asn1Sequence s = Asn1Sequence.GetInstance(encoding);
 
-                i1 = DerInteger.GetInstance(s[0]);
-                i2 = DerInteger.GetInstance(s[1]);
+                var i1 = DerInteger.GetInstance(s[0]);
+                var i2 = DerInteger.GetInstance(s[1]);
+
+                return new MPInteger[]{ new MPInteger(i1.Value), new MPInteger(i2.Value) };
             }
             catch (Exception e)
             {
                 throw new PgpException("exception encoding signature", e);
             }
-
-            return new MPInteger[]{
-                new MPInteger(i1.Value),
-                new MPInteger(i2.Value)
-            };
         }
 
         public static MPInteger[] RsaSigToMpi(byte[] encoding) =>
-            new MPInteger[] { new MPInteger(new BigInteger(1, encoding)) };
+            new MPInteger[]{ new MPInteger(new BigInteger(1, encoding)) };
 
         public static string GetDigestName(HashAlgorithmTag hashAlgorithm)
         {
@@ -175,8 +171,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return GetDigestName(hashAlgorithm) + "with" + encAlg;
         }
 
-        public static string GetSymmetricCipherName(
-            SymmetricKeyAlgorithmTag algorithm)
+        public static string GetSymmetricCipherName(SymmetricKeyAlgorithmTag algorithm)
         {
             switch (algorithm)
             {
@@ -445,9 +440,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private static bool IsPossiblyBase64(int ch)
         {
-            return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')
-                    || (ch >= '0' && ch <= '9') || (ch == '+') || (ch == '/')
-                    || (ch == '\r') || (ch == '\n');
+            return (ch >= 'A' && ch <= 'Z')
+                || (ch >= 'a' && ch <= 'z')
+                || (ch >= '0' && ch <= '9')
+                || (ch == '+')
+                || (ch == '/')
+                || (ch == '\r')
+                || (ch == '\n');
         }
 
         /// <summary>

@@ -67,10 +67,11 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return os.ToArray();
         }
 
-        public bool IsHumanReadable => (data[0] & 0x80) != 0;
+        public bool IsHumanReadable => (Data[0] & 0x80) != 0;
 
         public string GetNotationName()
         {
+            var data = Data;
             int nameLength = ((data[HeaderFlagLength] << 8) + (data[HeaderFlagLength + 1] << 0));
             int namePos = HeaderFlagLength + HeaderNameLength + HeaderValueLength;
 
@@ -79,6 +80,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
 
         public string GetNotationValue()
         {
+            var data = Data;
             int nameLength = ((data[HeaderFlagLength] << 8) + (data[HeaderFlagLength + 1] << 0));
             int valueLength = ((data[HeaderFlagLength + HeaderNameLength] << 8) + (data[HeaderFlagLength + HeaderNameLength + 1] << 0));
             int valuePos = HeaderFlagLength + HeaderNameLength + HeaderValueLength + nameLength;
@@ -88,6 +90,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
 
         public byte[] GetNotationValueBytes()
         {
+            var data = Data;
             int nameLength = ((data[HeaderFlagLength] << 8) + (data[HeaderFlagLength + 1] << 0));
             int valueLength = ((data[HeaderFlagLength + HeaderNameLength] << 8) + (data[HeaderFlagLength + HeaderNameLength + 1] << 0));
             int valuePos = HeaderFlagLength + HeaderNameLength + HeaderValueLength + nameLength;

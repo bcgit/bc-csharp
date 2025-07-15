@@ -9,7 +9,6 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.EC;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
@@ -886,10 +885,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             BcpgOutputStream bcpgOut = BcpgOutputStream.Wrap(outStr);
 
-            bcpgOut.WritePacket(publicPk);
-            if (!forTransfer && trustPk != null)
+            publicPk.Encode(bcpgOut);
+
+            if (!forTransfer)
             {
-                bcpgOut.WritePacket(trustPk);
+                trustPk?.Encode(bcpgOut);
             }
 
             if (subSigs == null)    // not a sub-key
@@ -903,17 +903,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     if (ids[i] is UserIdPacket id)
                     {
-                        bcpgOut.WritePacket(id);
+                        id.Encode(bcpgOut);
                     }
                     else
                     {
                         PgpUserAttributeSubpacketVector v = (PgpUserAttributeSubpacketVector)ids[i];
-                        bcpgOut.WritePacket(new UserAttributePacket(v.ToSubpacketArray()));
+                        new UserAttributePacket(v.ToSubpacketArray()).Encode(bcpgOut);
                     }
 
-                    if (!forTransfer && idTrusts[i] != null)
+                    if (!forTransfer)
                     {
-                        bcpgOut.WritePacket((TrustPacket)idTrusts[i]);
+                        idTrusts[i]?.Encode(bcpgOut);
                     }
 
                     foreach (PgpSignature sig in idSigs[i])

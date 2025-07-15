@@ -35,10 +35,10 @@ namespace Org.BouncyCastle.Bcpg
             return data;
         }
 
-        public virtual RevocationKeyTag SignatureClass => (RevocationKeyTag)data[0];
+        public virtual RevocationKeyTag SignatureClass => (RevocationKeyTag)Data[0];
 
-        public virtual PublicKeyAlgorithmTag Algorithm => (PublicKeyAlgorithmTag)data[1];
+        public virtual PublicKeyAlgorithmTag Algorithm => (PublicKeyAlgorithmTag)Data[1];
 
-        public virtual byte[] GetFingerprint() => Arrays.CopyOfRange(data, 2, data.Length);
+        public virtual byte[] GetFingerprint() => Arrays.CopyOfRange(Data, 2, Data.Length);
     }
 }

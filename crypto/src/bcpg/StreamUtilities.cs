@@ -119,5 +119,80 @@ namespace Org.BouncyCastle.Bcpg
             RequireBytes(s, buf);
             return Pack.BE_To_UInt64(buf);
         }
+
+        internal static void WriteNewPacketLength(Stream s, long bodyLen, bool longLength = false)
+        {
+            if (longLength || bodyLen > 8383)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<byte> buf = stackalloc byte[5];
+                buf[0] = 0xFF;
+                Pack.UInt32_To_BE((uint)bodyLen, buf, 1);
+                s.Write(buf);
+#else
+                s.WriteByte(0xFF);
+                s.WriteByte((byte)(bodyLen >> 24));
+                s.WriteByte((byte)(bodyLen >> 16));
+                s.WriteByte((byte)(bodyLen >> 8));
+                s.WriteByte((byte)bodyLen);
+#endif
+            }
+            else if (bodyLen < 192)
+            {
+                s.WriteByte((byte)bodyLen);
+            }
+            else
+            {
+                bodyLen -= 192;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<byte> buf = stackalloc byte[2];
+                buf[0] = (byte)(((bodyLen >> 8) & 0xFF) + 192);
+                buf[1] = (byte)bodyLen;
+                s.Write(buf);
+#else
+                s.WriteByte((byte)(((bodyLen >> 8) & 0xFF) + 192));
+                s.WriteByte((byte)bodyLen);
+#endif
+            }
+        }
+
+        internal static void WriteUInt16BE(Stream s, ushort n)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> buf = stackalloc byte[2];
+            Pack.UInt16_To_BE(n, buf);
+            s.Write(buf);
+#else
+            s.WriteByte((byte)(n >> 8));
+            s.WriteByte((byte)n);
+#endif
+        }
+
+        internal static void WriteUInt32BE(Stream s, uint n)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> buf = stackalloc byte[4];
+            Pack.UInt32_To_BE(n, buf);
+            s.Write(buf);
+#else
+            byte[] buf = new byte[4];
+            Pack.UInt32_To_BE(n, buf, 0);
+            s.Write(buf, 0, buf.Length);
+#endif
+        }
+
+        internal static void WriteUInt64BE(Stream s, ulong n)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> buf = stackalloc byte[8];
+            Pack.UInt64_To_BE(n, buf);
+            s.Write(buf);
+#else
+            byte[] buf = new byte[8];
+            Pack.UInt64_To_BE(n, buf, 0);
+            s.Write(buf, 0, buf.Length);
+#endif
+        }
     }
 }

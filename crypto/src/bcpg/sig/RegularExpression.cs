@@ -23,9 +23,9 @@ namespace Org.BouncyCastle.Bcpg.Sig
         }
 
         // last byte is null terminator
-        public string Regex => Strings.FromUtf8ByteArray(data, 0, data.Length - 1);
+        public string Regex => Strings.FromUtf8ByteArray(Data, 0, Data.Length - 1);
 
-        public byte[] GetRawRegex() => Arrays.Clone(data);
+        public byte[] GetRawRegex() => GetData();
 
         private static byte[] ToNullTerminatedUtf8ByteArray(string str)
         {

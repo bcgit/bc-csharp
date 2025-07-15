@@ -1,56 +1,42 @@
-using System;
 using System.Text;
 
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /**
-    * Basic type for a user ID packet.
-    */
+    /// <summary>Basic type for a user ID packet.</summary>
     public class UserIdPacket
         : ContainedPacket, IUserDataPacket
     {
-        private readonly byte[] idData;
+        private readonly byte[] m_idData;
 
         public UserIdPacket(BcpgInputStream bcpgIn)
         {
-            this.idData = bcpgIn.ReadAll();
+            m_idData = bcpgIn.ReadAll();
         }
 
-		public UserIdPacket(string id)
+        public UserIdPacket(string id)
         {
-            this.idData = Encoding.UTF8.GetBytes(id);
+            m_idData = Encoding.UTF8.GetBytes(id);
         }
 
         public UserIdPacket(byte[] rawId)
         {
-            this.idData = Arrays.Clone(rawId);
+            m_idData = Arrays.Clone(rawId);
         }
 
-        public string GetId()
-        {
-			return Encoding.UTF8.GetString(idData, 0, idData.Length);
-        }
+        public string GetId() => Encoding.UTF8.GetString(m_idData, 0, m_idData.Length);
 
-        public byte[] GetRawId() => Arrays.Clone(idData);
+        public byte[] GetRawId() => Arrays.Clone(m_idData);
 
         public override bool Equals(object obj)
         {
-            if (!(obj is UserIdPacket other))
-                return false;
-
-            return Arrays.AreEqual(this.idData, other.idData);
+            return obj is UserIdPacket that
+                && Arrays.AreEqual(this.m_idData, that.m_idData);
         }
 
-        public override int GetHashCode()
-        {
-            return Arrays.GetHashCode(this.idData);
-        }
+        public override int GetHashCode() => Arrays.GetHashCode(m_idData);
 
-        public override void Encode(BcpgOutputStream bcpgOut)
-        {
-            bcpgOut.WritePacket(PacketTag.UserId, idData);
-        }
+        public override void Encode(BcpgOutputStream bcpgOut) => bcpgOut.WritePacket(PacketTag.UserId, m_idData);
     }
 }

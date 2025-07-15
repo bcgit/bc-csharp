@@ -17,6 +17,6 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public bool IsExportable() => Utilities.BooleanFromBytes(data);
+        public bool IsExportable() => Utilities.BooleanFromBytes(Data);
     }
 }

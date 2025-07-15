@@ -5,7 +5,7 @@ using Org.BouncyCastle.Math.EC;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>A multiple precision integer</remarks>
+    /// <remarks>A multiple precision integer</remarks>
     public sealed class MPInteger
         : BcpgObject
     {
@@ -13,8 +13,8 @@ namespace Org.BouncyCastle.Bcpg
 
         public MPInteger(BcpgInputStream bcpgIn)
         {
-			if (bcpgIn == null)
-				throw new ArgumentNullException(nameof(bcpgIn));
+            if (bcpgIn == null)
+                throw new ArgumentNullException(nameof(bcpgIn));
 
             int lengthInBits = StreamUtilities.RequireUInt16BE(bcpgIn);
             int lengthInBytes = (lengthInBits + 7) / 8;
@@ -31,22 +31,24 @@ namespace Org.BouncyCastle.Bcpg
             m_val = new BigInteger(1, bytes);
         }
 
-		public MPInteger(BigInteger val)
+        public MPInteger(BigInteger val)
         {
-			if (val == null)
-				throw new ArgumentNullException(nameof(val));
-			if (val.SignValue < 0)
-				throw new ArgumentException("Values must be positive", nameof(val));
+            if (val == null)
+                throw new ArgumentNullException(nameof(val));
+            if (val.SignValue < 0)
+                throw new ArgumentException("Values must be positive", nameof(val));
 
-			m_val = val;
+            m_val = val;
         }
 
         public BigInteger Value => m_val;
 
-        public override void Encode(BcpgOutputStream bcpgOut)
+        public override void Encode(BcpgOutputStream bcpgOut) => Encode(bcpgOut, m_val);
+
+        internal static void Encode(BcpgOutputStream bcpgOut, BigInteger n)
         {
-            bcpgOut.WriteShort((short)m_val.BitLength);
-            bcpgOut.Write(m_val.ToByteArrayUnsigned());
+            StreamUtilities.WriteUInt16BE(bcpgOut, (ushort)n.BitLength);
+            bcpgOut.Write(n.ToByteArrayUnsigned());
         }
 
         internal static BigInteger ToMpiBigInteger(ECPoint point)

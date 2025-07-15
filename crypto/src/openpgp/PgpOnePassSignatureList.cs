@@ -1,38 +1,25 @@
-using System;
-
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>Holder for a list of PgpOnePassSignature objects.</remarks>
+    /// <summary>Holder for a list of PgpOnePassSignature objects.</summary>
     public class PgpOnePassSignatureList
-		: PgpObject
+        : PgpObject
     {
-        private readonly PgpOnePassSignature[] sigs;
+        private readonly PgpOnePassSignature[] m_sigs;
 
-		public PgpOnePassSignatureList(
-            PgpOnePassSignature[] sigs)
+        public PgpOnePassSignatureList(PgpOnePassSignature sig)
         {
-			this.sigs = (PgpOnePassSignature[]) sigs.Clone();
+            m_sigs = new PgpOnePassSignature[] { sig };
         }
 
-		public PgpOnePassSignatureList(
-            PgpOnePassSignature sig)
+        public PgpOnePassSignatureList(PgpOnePassSignature[] sigs)
         {
-			this.sigs = new PgpOnePassSignature[]{ sig };
+            m_sigs = (PgpOnePassSignature[])sigs.Clone();
         }
 
-		public PgpOnePassSignature this[int index]
-		{
-			get { return sigs[index]; }
-		}
+        public PgpOnePassSignature this[int index] => m_sigs[index];
 
-		public int Count
-		{
-			get { return sigs.Length; }
-		}
+        public int Count => m_sigs.Length;
 
-		public bool IsEmpty
-        {
-			get { return (sigs.Length == 0); }
-        }
+        public bool IsEmpty => m_sigs.Length == 0;
     }
 }

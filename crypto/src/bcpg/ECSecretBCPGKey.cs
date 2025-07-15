@@ -1,55 +1,31 @@
-﻿using System;
-
-using Org.BouncyCastle.Math;
+﻿using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Base class for an EC Secret Key.</remarks>
+    /// <summary>Base class for an EC Secret Key.</summary>
     public class ECSecretBcpgKey
         : BcpgObject, IBcpgKey
     {
-        internal readonly MPInteger m_x;
+        private readonly MPInteger m_x;
 
-        public ECSecretBcpgKey(
-            BcpgInputStream bcpgIn)
+        public ECSecretBcpgKey(BcpgInputStream bcpgIn)
         {
             m_x = new MPInteger(bcpgIn);
         }
 
-        public ECSecretBcpgKey(
-            BigInteger x)
+        public ECSecretBcpgKey(BigInteger x)
         {
             m_x = new MPInteger(x);
         }
 
-		/// <summary>The format, as a string, always "PGP".</summary>
-		public string Format
-		{
-			get { return "PGP"; }
-		}
+        public virtual BigInteger X => m_x.Value;
 
-		/// <summary>Return the standard PGP encoding of the key.</summary>
-		public override byte[] GetEncoded()
-		{
-			try
-			{
-				return base.GetEncoded();
-			}
-			catch (Exception)
-			{
-				return null;
-			}
-		}
+        /// <summary>The format, as a string, always "PGP".</summary>
+        public string Format => "PGP";
 
-        public override void Encode(
-            BcpgOutputStream bcpgOut)
-        {
-            bcpgOut.WriteObject(m_x);
-        }
+        /// <summary>Return the standard PGP encoding of the key.</summary>
+        public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(m_x);
 
-        public virtual BigInteger X
-        {
-            get { return m_x.Value; }
-        }
+        public override void Encode(BcpgOutputStream bcpgOut) => m_x.Encode(bcpgOut);
     }
 }

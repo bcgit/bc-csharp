@@ -1,66 +1,38 @@
-using System;
-
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Base class for an RSA public key.</remarks>
-	public class RsaPublicBcpgKey
-		: BcpgObject, IBcpgKey
-	{
-		private readonly MPInteger n, e;
+    /// <summary>Base class for an RSA public key.</summary>
+    public class RsaPublicBcpgKey
+        : BcpgObject, IBcpgKey
+    {
+        private readonly MPInteger m_n, m_e;
 
-		/// <summary>Construct an RSA public key from the passed in stream.</summary>
-		public RsaPublicBcpgKey(
-			BcpgInputStream bcpgIn)
-		{
-			this.n = new MPInteger(bcpgIn);
-			this.e = new MPInteger(bcpgIn);
-		}
+        /// <summary>Construct an RSA public key from the passed in stream.</summary>
+        public RsaPublicBcpgKey(BcpgInputStream bcpgIn)
+        {
+            m_n = new MPInteger(bcpgIn);
+            m_e = new MPInteger(bcpgIn);
+        }
 
-		/// <param name="n">The modulus.</param>
-		/// <param name="e">The public exponent.</param>
-		public RsaPublicBcpgKey(
-			BigInteger	n,
-			BigInteger	e)
-		{
-			this.n = new MPInteger(n);
-			this.e = new MPInteger(e);
-		}
+        /// <param name="n">The modulus.</param>
+        /// <param name="e">The public exponent.</param>
+        public RsaPublicBcpgKey(BigInteger n, BigInteger e)
+        {
+            m_n = new MPInteger(n);
+            m_e = new MPInteger(e);
+        }
 
-		public BigInteger PublicExponent
-		{
-			get { return e.Value; }
-		}
+        public BigInteger Modulus => m_n.Value;
 
-		public BigInteger Modulus
-		{
-			get { return n.Value; }
-		}
+        public BigInteger PublicExponent => m_e.Value;
 
-		/// <summary>The format, as a string, always "PGP".</summary>
-		public string Format
-		{
-			get { return "PGP"; }
-		}
+        /// <summary>The format, as a string, always "PGP".</summary>
+        public string Format => "PGP";
 
-		/// <summary>Return the standard PGP encoding of the key.</summary>
-		public override byte[] GetEncoded()
-		{
-			try
-			{
-				return base.GetEncoded();
-			}
-			catch (Exception)
-			{
-				return null;
-			}
-		}
+        /// <summary>Return the standard PGP encoding of the key.</summary>
+        public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(this);
 
-		public override void Encode(
-			BcpgOutputStream bcpgOut)
-		{
-			bcpgOut.WriteObjects(n, e);
-		}
-	}
+        public override void Encode(BcpgOutputStream bcpgOut) => bcpgOut.WriteObjects(m_n, m_e);
+    }
 }

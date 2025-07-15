@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg
     public class BcpgInputStream
         : BaseInputStream
     {
-        private Stream m_in;
+        private readonly Stream m_in;
         private bool next = false;
         private int nextB;
 
@@ -21,10 +21,9 @@ namespace Org.BouncyCastle.Bcpg
             return new BcpgInputStream(inStr);
         }
 
-        private BcpgInputStream(
-			Stream inputStream)
+        private BcpgInputStream(Stream inputStream)
         {
-            this.m_in = inputStream;
+            m_in = inputStream;
         }
 
         public override int ReadByte()
@@ -40,13 +39,13 @@ namespace Org.BouncyCastle.Bcpg
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-			if (!next)
-				return m_in.Read(buffer, offset, count);
+            if (!next)
+                return m_in.Read(buffer, offset, count);
 
             Streams.ValidateBufferArguments(buffer, offset, count);
 
-			if (nextB < 0)
-				return 0;
+            if (nextB < 0)
+                return 0;
 
             buffer[offset] = (byte)nextB;
             next = false;
@@ -56,11 +55,11 @@ namespace Org.BouncyCastle.Bcpg
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public override int Read(Span<byte> buffer)
         {
-			if (!next)
-				return m_in.Read(buffer);
+            if (!next)
+                return m_in.Read(buffer);
 
-			if (nextB < 0)
-				return 0;
+            if (nextB < 0)
+                return 0;
 
             buffer[0] = (byte)nextB;
             next = false;
@@ -70,10 +69,10 @@ namespace Org.BouncyCastle.Bcpg
 
         public byte[] ReadAll() => Streams.ReadAll(this);
 
-		public void ReadFully(byte[] buffer, int offset, int count) =>
+        public void ReadFully(byte[] buffer, int offset, int count) =>
             StreamUtilities.RequireBytes(this, buffer, offset, count);
 
-		public void ReadFully(byte[] buffer) => StreamUtilities.RequireBytes(this, buffer);
+        public void ReadFully(byte[] buffer) => StreamUtilities.RequireBytes(this, buffer);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void ReadFully(Span<byte> buffer) => StreamUtilities.RequireBytes(this, buffer);
@@ -164,7 +163,7 @@ namespace Org.BouncyCastle.Bcpg
             else
             {
                 PartialInputStream pis = new PartialInputStream(this, partial, bodyLen);
-				Stream buf = new BufferedStream(pis);
+                Stream buf = new BufferedStream(pis);
                 objStream = new BcpgInputStream(buf);
             }
 
@@ -236,10 +235,10 @@ namespace Org.BouncyCastle.Bcpg
             base.Dispose(disposing);
         }
 
-		/// <summary>
-		/// A stream that overlays our input stream, allowing the user to only read a segment of it.
-		/// </summary>
-		private class PartialInputStream
+        /// <summary>
+        /// A stream that overlays our input stream, allowing the user to only read a segment of it.
+        /// </summary>
+        private class PartialInputStream
             : BaseInputStream
         {
             private BcpgInputStream m_in;
@@ -247,76 +246,76 @@ namespace Org.BouncyCastle.Bcpg
             private uint dataLength;
 
             internal PartialInputStream(
-                BcpgInputStream	bcpgIn,
-                bool			partial,
-                uint			dataLength)
+                BcpgInputStream bcpgIn,
+                bool partial,
+                uint dataLength)
             {
                 this.m_in = bcpgIn;
                 this.partial = partial;
                 this.dataLength = dataLength;
             }
 
-			public override int ReadByte()
-			{
-				do
-				{
-					if (dataLength > 0U)
-					{
-						int ch = m_in.ReadByte();
-						if (ch < 0)
-							throw new EndOfStreamException("Premature end of stream in PartialInputStream");
+            public override int ReadByte()
+            {
+                do
+                {
+                    if (dataLength > 0U)
+                    {
+                        int ch = m_in.ReadByte();
+                        if (ch < 0)
+                            throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
-						dataLength--;
-						return ch;
-					}
-				}
-				while (partial && ReadPartialDataLength());
+                        dataLength--;
+                        return ch;
+                    }
+                }
+                while (partial && ReadPartialDataLength());
 
-				return -1;
-			}
+                return -1;
+            }
 
-			public override int Read(byte[] buffer, int offset, int count)
-			{
+            public override int Read(byte[] buffer, int offset, int count)
+            {
                 Streams.ValidateBufferArguments(buffer, offset, count);
 
-				do
-				{
-					if (dataLength > 0U)
-					{
+                do
+                {
+                    if (dataLength > 0U)
+                    {
                         int readLen = (uint)count < dataLength ? count : (int)dataLength;
-						int len = m_in.Read(buffer, offset, readLen);
-						if (len < 1)
-							throw new EndOfStreamException("Premature end of stream in PartialInputStream");
+                        int len = m_in.Read(buffer, offset, readLen);
+                        if (len < 1)
+                            throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
-						dataLength -= (uint)len;
-						return len;
-					}
-				}
-				while (partial && ReadPartialDataLength());
+                        dataLength -= (uint)len;
+                        return len;
+                    }
+                }
+                while (partial && ReadPartialDataLength());
 
-				return 0;
-			}
+                return 0;
+            }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public override int Read(Span<byte> buffer)
             {
-				do
-				{
-					if (dataLength > 0U)
-					{
+                do
+                {
+                    if (dataLength > 0U)
+                    {
                         int count = buffer.Length;
                         int readLen = (uint)count < dataLength ? count : (int)dataLength;
-						int len = m_in.Read(buffer[..readLen]);
-						if (len < 1)
-							throw new EndOfStreamException("Premature end of stream in PartialInputStream");
+                        int len = m_in.Read(buffer[..readLen]);
+                        if (len < 1)
+                            throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
-						dataLength -= (uint)len;
-						return len;
-					}
-				}
-				while (partial && ReadPartialDataLength());
+                        dataLength -= (uint)len;
+                        return len;
+                    }
+                }
+                while (partial && ReadPartialDataLength());
 
-				return 0;
+                return 0;
             }
 #endif
 

@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Bcpg
@@ -12,7 +11,7 @@ namespace Org.BouncyCastle.Bcpg
             MemoryStream bOut = new MemoryStream();
             using (var pOut = new BcpgOutputStream(bOut))
             {
-                pOut.WritePacket(this);
+                Encode(pOut);
             }
             return bOut.ToArray();
         }

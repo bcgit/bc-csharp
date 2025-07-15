@@ -18,8 +18,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public int Depth => data[0];
+        public int Depth => Data[0];
 
-        public int TrustAmount => data[1];
+        public int TrustAmount => Data[1];
     }
 }

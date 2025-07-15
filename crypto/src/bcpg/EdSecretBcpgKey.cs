@@ -1,13 +1,12 @@
-﻿using System;
-
-using Org.BouncyCastle.Math;
+﻿using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>Base class for an EdDSA secret key.</summary>
     public sealed class EdSecretBcpgKey
         : BcpgObject, IBcpgKey
     {
-        internal readonly MPInteger m_x;
+        private readonly MPInteger m_x;
 
         public EdSecretBcpgKey(BcpgInputStream bcpgIn)
         {
@@ -19,25 +18,12 @@ namespace Org.BouncyCastle.Bcpg
             m_x = new MPInteger(x);
         }
 
+        public BigInteger X => m_x.Value;
+
         public string Format => "PGP";
 
-        public override byte[] GetEncoded()
-        {
-            try
-            {
-                return base.GetEncoded();
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
+        public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(m_x);
 
-        public override void Encode(BcpgOutputStream bcpgOut)
-        {
-            bcpgOut.WriteObject(m_x);
-        }
-
-        public BigInteger X => m_x.Value;
+        public override void Encode(BcpgOutputStream bcpgOut) => m_x.Encode(bcpgOut);
     }
 }

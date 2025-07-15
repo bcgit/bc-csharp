@@ -1,81 +1,64 @@
+using System;
+
 using Org.BouncyCastle.Bcpg.Attr;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>Container for a list of user attribute subpackets.</remarks>
+    /// <summary>Container for a list of user attribute subpackets.</summary>
     public class PgpUserAttributeSubpacketVector
         : IUserDataPacket
     {
-        public static PgpUserAttributeSubpacketVector FromSubpackets(UserAttributeSubpacket[] packets)
+        public static PgpUserAttributeSubpacketVector FromSubpackets(UserAttributeSubpacket[] packets) =>
+            new PgpUserAttributeSubpacketVector(packets ?? Array.Empty<UserAttributeSubpacket>());
+
+        private readonly UserAttributeSubpacket[] m_packets;
+
+        internal PgpUserAttributeSubpacketVector(UserAttributeSubpacket[] packets)
         {
-            if (packets == null)
-            {
-                packets = new UserAttributeSubpacket[0];
-            }
-            return new PgpUserAttributeSubpacketVector(packets);
+            m_packets = packets;
         }
 
-        private readonly UserAttributeSubpacket[] packets;
-
-		internal PgpUserAttributeSubpacketVector(
-            UserAttributeSubpacket[] packets)
+        public UserAttributeSubpacket GetSubpacket(UserAttributeSubpacketTag type)
         {
-            this.packets = packets;
-        }
-
-		public UserAttributeSubpacket GetSubpacket(UserAttributeSubpacketTag type)
-        {
-            for (int i = 0; i != packets.Length; i++)
+            for (int i = 0; i != m_packets.Length; i++)
             {
-                if (packets[i].SubpacketType == type)
-                    return packets[i];
+                if (m_packets[i].SubpacketType == type)
+                    return m_packets[i];
             }
 
-			return null;
+            return null;
         }
 
-		public ImageAttrib GetImageAttribute()
+        public ImageAttrib GetImageAttribute()
         {
             UserAttributeSubpacket p = GetSubpacket(UserAttributeSubpacketTag.ImageAttribute);
 
-            return p == null ? null : (ImageAttrib) p;
+            return p == null ? null : (ImageAttrib)p;
         }
 
-		internal UserAttributeSubpacket[] ToSubpacketArray()
-        {
-            return packets;
-        }
+        internal UserAttributeSubpacket[] ToSubpacketArray() => m_packets;
 
-		public override bool Equals(object obj)
+        public override bool Equals(object obj)
         {
             if (obj == this)
                 return true;
 
-            if (!(obj is PgpUserAttributeSubpacketVector other))
-				return false;
-
-			if (other.packets.Length != packets.Length)
+            if (!(obj is PgpUserAttributeSubpacketVector that))
                 return false;
 
-			for (int i = 0; i != packets.Length; i++)
+            if (this.m_packets.Length != that.m_packets.Length)
+                return false;
+
+            for (int i = 0; i != m_packets.Length; i++)
             {
-                if (!other.packets[i].Equals(packets[i]))
+                if (!this.m_packets[i].Equals(that.m_packets[i]))
                     return false;
             }
 
-			return true;
+            return true;
         }
 
-		public override int GetHashCode()
-        {
-            int code = 0;
-
-			foreach (object o in packets)
-			{
-				code ^= o.GetHashCode();
-			}
-
-			return code;
-        }
+        public override int GetHashCode() => Arrays.GetHashCode(m_packets);
     }
 }

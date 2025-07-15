@@ -5,111 +5,69 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Base class for an RSA secret (or priate) key.</remarks>
-	public class RsaSecretBcpgKey
-		: BcpgObject, IBcpgKey
-	{
-		private readonly MPInteger d, p, q, u;
-		private readonly BigInteger expP, expQ, crt;
+    /// <summary>Base class for an RSA secret (or private) key.</summary>
+    public class RsaSecretBcpgKey
+        : BcpgObject, IBcpgKey
+    {
+        private readonly MPInteger m_d, m_p, m_q, m_u;
+        private readonly BigInteger m_expP, m_expQ, m_crt;
 
-		public RsaSecretBcpgKey(
-			BcpgInputStream bcpgIn)
-		{
-			this.d = new MPInteger(bcpgIn);
-			this.p = new MPInteger(bcpgIn);
-			this.q = new MPInteger(bcpgIn);
-			this.u = new MPInteger(bcpgIn);
+        public RsaSecretBcpgKey(BcpgInputStream bcpgIn)
+        {
+            m_d = new MPInteger(bcpgIn);
+            m_p = new MPInteger(bcpgIn);
+            m_q = new MPInteger(bcpgIn);
+            m_u = new MPInteger(bcpgIn);
 
-			this.expP = d.Value.Remainder(p.Value.Subtract(BigInteger.One));
-			this.expQ = d.Value.Remainder(q.Value.Subtract(BigInteger.One));
-			this.crt = BigIntegers.ModOddInverse(p.Value, q.Value);
-		}
+            m_expP = m_d.Value.Remainder(m_p.Value.Subtract(BigInteger.One));
+            m_expQ = m_d.Value.Remainder(m_q.Value.Subtract(BigInteger.One));
+            m_crt = BigIntegers.ModOddInverse(m_p.Value, m_q.Value);
+        }
 
-		public RsaSecretBcpgKey(
-			BigInteger d,
-			BigInteger p,
-			BigInteger q)
-		{
-			// PGP requires (p < q)
-			int cmp = p.CompareTo(q);
-			if (cmp >= 0)
-			{
-				if (cmp == 0)
-					throw new ArgumentException("p and q cannot be equal");
+        public RsaSecretBcpgKey(BigInteger d, BigInteger p, BigInteger q)
+        {
+            // PGP requires (p < q)
+            int cmp = p.CompareTo(q);
+            if (cmp >= 0)
+            {
+                if (cmp == 0)
+                    throw new ArgumentException("p and q cannot be equal");
 
-				BigInteger tmp = p;
-				p = q;
-				q = tmp;
-			}
+                BigInteger tmp = p;
+                p = q;
+                q = tmp;
+            }
 
-			this.d = new MPInteger(d);
-			this.p = new MPInteger(p);
-			this.q = new MPInteger(q);
-			this.u = new MPInteger(BigIntegers.ModOddInverse(q, p));
+            m_d = new MPInteger(d);
+            m_p = new MPInteger(p);
+            m_q = new MPInteger(q);
+            m_u = new MPInteger(BigIntegers.ModOddInverse(q, p));
 
-			this.expP = d.Remainder(p.Subtract(BigInteger.One));
-			this.expQ = d.Remainder(q.Subtract(BigInteger.One));
-			this.crt = BigIntegers.ModOddInverse(p, q);
-		}
+            m_expP = d.Remainder(p.Subtract(BigInteger.One));
+            m_expQ = d.Remainder(q.Subtract(BigInteger.One));
+            m_crt = BigIntegers.ModOddInverse(p, q);
+        }
 
-		public BigInteger Modulus
-		{
-			get { return p.Value.Multiply(q.Value); }
-		}
+        public BigInteger Modulus => m_p.Value.Multiply(m_q.Value);
 
-		public BigInteger PrivateExponent
-		{
-			get { return d.Value; }
-		}
+        public BigInteger PrivateExponent => m_d.Value;
 
-		public BigInteger PrimeP
-		{
-			get { return p.Value; }
-		}
+        public BigInteger PrimeP => m_p.Value;
 
-		public BigInteger PrimeQ
-		{
-			get { return q.Value; }
-		}
+        public BigInteger PrimeQ => m_q.Value;
 
-		public BigInteger PrimeExponentP
-		{
-			get { return expP; }
-		}
+        public BigInteger PrimeExponentP => m_expP;
 
-		public BigInteger PrimeExponentQ
-		{
-			get { return expQ; }
-		}
+        public BigInteger PrimeExponentQ => m_expQ;
 
-		public BigInteger CrtCoefficient
-		{
-			get { return crt; }
-		}
+        public BigInteger CrtCoefficient => m_crt;
 
-		/// <summary>The format, as a string, always "PGP".</summary>
-		public string Format
-		{
-			get { return "PGP"; }
-		}
+        /// <summary>The format, as a string, always "PGP".</summary>
+        public string Format => "PGP";
 
-		/// <summary>Return the standard PGP encoding of the key.</summary>
-		public override byte[] GetEncoded()
-		{
-			try
-			{
-				return base.GetEncoded();
-			}
-			catch (Exception)
-			{
-				return null;
-			}
-		}
+        /// <summary>Return the standard PGP encoding of the key.</summary>
+        public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(this);
 
-		public override void Encode(
-			BcpgOutputStream bcpgOut)
-		{
-			bcpgOut.WriteObjects(d, p, q, u);
-		}
-	}
+        public override void Encode(BcpgOutputStream bcpgOut) => bcpgOut.WriteObjects(m_d, m_p, m_q, m_u);
+    }
 }

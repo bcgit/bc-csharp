@@ -1,41 +1,35 @@
 using System;
-using System.IO;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
-	/// <remarks>Basic packet for a modification detection code packet.</remarks>
+    /// <summary>Basic packet for a modification detection code packet.</summary>
     public class ModDetectionCodePacket
         : ContainedPacket
     {
-        private readonly byte[] digest;
+        private readonly byte[] m_digest;
 
-		internal ModDetectionCodePacket(
-            BcpgInputStream bcpgIn)
+        internal ModDetectionCodePacket(BcpgInputStream bcpgIn)
         {
-			if (bcpgIn == null)
-				throw new ArgumentNullException("bcpgIn");
+            if (bcpgIn == null)
+                throw new ArgumentNullException(nameof(bcpgIn));
 
-			this.digest = new byte[20];
-            bcpgIn.ReadFully(this.digest);
+            m_digest = new byte[20];
+            bcpgIn.ReadFully(m_digest);
         }
 
-		public ModDetectionCodePacket(
-            byte[] digest)
+        public ModDetectionCodePacket(byte[] digest)
         {
-			if (digest == null)
-				throw new ArgumentNullException("digest");
+            if (digest == null)
+                throw new ArgumentNullException(nameof(digest));
 
-			this.digest = (byte[]) digest.Clone();
+            m_digest = Arrays.Clone(digest);
         }
 
-		public byte[] GetDigest()
-        {
-			return (byte[]) digest.Clone();
-        }
+        public byte[] GetDigest() => Arrays.Clone(m_digest);
 
-		public override void Encode(BcpgOutputStream bcpgOut)
-        {
-            bcpgOut.WritePacket(PacketTag.ModificationDetectionCode, digest);
-        }
+        public override void Encode(BcpgOutputStream bcpgOut) =>
+            bcpgOut.WritePacket(PacketTag.ModificationDetectionCode, m_digest);
     }
 }

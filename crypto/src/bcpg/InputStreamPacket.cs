@@ -3,17 +3,14 @@ namespace Org.BouncyCastle.Bcpg
     public class InputStreamPacket
         : Packet
     {
-        private readonly BcpgInputStream bcpgIn;
+        private readonly BcpgInputStream m_bcpgIn;
 
-		public InputStreamPacket(BcpgInputStream bcpgIn)
+        public InputStreamPacket(BcpgInputStream bcpgIn)
         {
-            this.bcpgIn = bcpgIn;
+            m_bcpgIn = bcpgIn;
         }
 
-		/// <summary>Note: you can only read from this once...</summary>
-		public BcpgInputStream GetInputStream()
-        {
-            return bcpgIn;
-        }
+        /// <summary>Note: you can only read from this once...</summary>
+        public BcpgInputStream GetInputStream() => m_bcpgIn;
     }
 }

@@ -40,6 +40,6 @@
         /**
          * Returns if a particular feature is supported.
          */
-        public bool SupportsFeature(byte feature) => (data[0] & feature) != 0;
+        public bool SupportsFeature(byte feature) => (Data[0] & feature) != 0;
     }
 }

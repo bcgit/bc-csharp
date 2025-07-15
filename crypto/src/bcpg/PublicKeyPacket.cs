@@ -15,8 +15,7 @@ namespace Org.BouncyCastle.Bcpg
         private PublicKeyAlgorithmTag algorithm;
         private IBcpgKey key;
 
-        internal PublicKeyPacket(
-            BcpgInputStream bcpgIn)
+        internal PublicKeyPacket(BcpgInputStream bcpgIn)
         {
             version = bcpgIn.RequireByte();
 
@@ -82,15 +81,15 @@ namespace Org.BouncyCastle.Bcpg
             using (var pOut = new BcpgOutputStream(bOut))
             {
                 pOut.WriteByte((byte)version);
-                pOut.WriteInt((int)time);
+                StreamUtilities.WriteUInt32BE(pOut, (uint)time);
 
                 if (version <= 3)
                 {
-                    pOut.WriteShort((short)validDays);
+                    StreamUtilities.WriteUInt16BE(pOut, (ushort)validDays);
                 }
 
                 pOut.WriteByte((byte)algorithm);
-                pOut.WriteObject((BcpgObject)key);
+                ((BcpgObject)key).Encode(pOut);
             }
             return bOut.ToArray();
         }

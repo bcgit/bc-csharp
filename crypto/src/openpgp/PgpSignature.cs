@@ -451,10 +451,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             var bcpgOut = BcpgOutputStream.Wrap(outStream);
 
-            bcpgOut.WritePacket(sigPck);
-            if (!forTransfer && trustPck != null)
+            sigPck.Encode(bcpgOut);
+
+            if (!forTransfer)
             {
-                bcpgOut.WritePacket(trustPck);
+                trustPck?.Encode(bcpgOut);
             }
         }
 

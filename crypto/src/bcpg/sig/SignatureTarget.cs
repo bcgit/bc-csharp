@@ -19,10 +19,10 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public int PublicKeyAlgorithm => data[0];
+        public int PublicKeyAlgorithm => Data[0];
 
-        public int HashAlgorithm => data[1];
+        public int HashAlgorithm => Data[1];
 
-        public byte[] GetHashData() => Arrays.CopyOfRange(data, 2, data.Length);
+        public byte[] GetHashData() => Arrays.CopyOfRange(Data, 2, Data.Length);
     }
 }

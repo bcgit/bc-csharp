@@ -15,8 +15,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public string Url => Strings.FromUtf8ByteArray(data);
+        public string Url => Strings.FromUtf8ByteArray(Data);
 
-        public byte[] GetRawUrl() => Arrays.Clone(data);
+        public byte[] GetRawUrl() => GetData();
     }
 }

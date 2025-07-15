@@ -18,8 +18,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        public string GetId() => Strings.FromUtf8ByteArray(data);
+        public string GetId() => Strings.FromUtf8ByteArray(Data);
 
-        public byte[] GetRawId() => Arrays.Clone(data);
+        public byte[] GetRawId() => GetData();
     }
 }

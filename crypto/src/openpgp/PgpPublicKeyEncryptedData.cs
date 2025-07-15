@@ -144,9 +144,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 //// Note: some versions of PGP appear to produce 0 for the extra
                 //// bytes rather than repeating the two previous bytes
-                //bool zeroesCheckPassed = v1 == 0 && v2 == 0;
+                //bool zerosCheckPassed = v1 == 0 && v2 == 0;
 
-                //if (!repeatCheckPassed && !zeroesCheckPassed)
+                //if (!repeatCheckPassed && !zerosCheckPassed)
                 //    throw new PgpDataValidationException("quick check failed.");
 
                 return encStream;

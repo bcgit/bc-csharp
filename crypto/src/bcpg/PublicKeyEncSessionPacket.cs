@@ -1,4 +1,3 @@
-using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -6,19 +5,19 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /// <remarks>Basic packet for a PGP public key.</remarks>
+    /// <summary>Basic packet for a PGP public key.</summary>
     public class PublicKeyEncSessionPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
         private readonly int m_version;
-        private readonly long m_keyID;
+        private readonly ulong m_keyID;
         private readonly PublicKeyAlgorithmTag m_algorithm;
         private readonly byte[][] m_data;
 
         internal PublicKeyEncSessionPacket(BcpgInputStream bcpgIn)
         {
             m_version = bcpgIn.RequireByte();
-            m_keyID = (long)StreamUtilities.RequireUInt64BE(bcpgIn);
+            m_keyID = StreamUtilities.RequireUInt64BE(bcpgIn);
             m_algorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
 
             switch (m_algorithm)
@@ -47,7 +46,7 @@ namespace Org.BouncyCastle.Bcpg
         public PublicKeyEncSessionPacket(long keyId, PublicKeyAlgorithmTag algorithm, byte[][] data)
         {
             m_version = 3;
-            m_keyID = keyId;
+            m_keyID = (ulong)keyId;
             m_algorithm = algorithm;
             m_data = new byte[data.Length][];
             for (int i = 0; i < data.Length; ++i)
@@ -61,7 +60,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <remarks>
         /// A Key ID is an 8-octet scalar. We convert it (big-endian) to an Int64 (UInt64 is not CLS compliant).
         /// </remarks>
-        public long KeyId => m_keyID;
+        public long KeyId => (long)m_keyID;
 
         public PublicKeyAlgorithmTag Algorithm => m_algorithm;
 
@@ -70,16 +69,14 @@ namespace Org.BouncyCastle.Bcpg
         public override void Encode(BcpgOutputStream bcpgOut)
         {
             MemoryStream bOut = new MemoryStream();
-            using (var pOut = new BcpgOutputStream(bOut))
-            {
-                pOut.WriteByte((byte)m_version);
-                pOut.WriteLong(m_keyID);
-                pOut.WriteByte((byte)m_algorithm);
 
-                for (int i = 0; i < m_data.Length; ++i)
-                {
-                    pOut.Write(m_data[i]);
-                }
+            bOut.WriteByte((byte)m_version);
+            StreamUtilities.WriteUInt64BE(bOut, m_keyID);
+            bOut.WriteByte((byte)m_algorithm);
+
+            foreach (var data in m_data)
+            {
+                bOut.Write(data, 0, data.Length);
             }
 
             bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession, bOut.ToArray());
