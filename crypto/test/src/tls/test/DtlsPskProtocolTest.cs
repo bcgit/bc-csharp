@@ -7,7 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
-    [TestFixture]
+    [TestFixture, NonParallelizable, Parallelizable(ParallelScope.Children)]
     public class DtlsPskProtocolTest
     {
         [Test]
