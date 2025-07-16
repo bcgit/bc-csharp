@@ -3,7 +3,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Bcpg
 {
     /// <summary>
-    /// Represents revocation reason OpenPGP signature sub packet.
+    /// Represents revocation reason OpenPGP signature subpacket.
     /// </summary>
     public class RevocationReason
         : SignatureSubpacket

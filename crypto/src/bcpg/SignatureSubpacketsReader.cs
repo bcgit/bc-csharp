@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /// <summary>Parser for signature sub-packets</summary>
+    /// <summary>Parser for signature subpackets</summary>
     public class SignatureSubpacketsParser
     {
         private readonly Stream m_input;
@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Bcpg
             m_input = input;
         }
 
+        // TODO[api] Make virtual?
         public SignatureSubpacket ReadPacket()
         {
             uint bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);
@@ -23,7 +24,7 @@ namespace Org.BouncyCastle.Bcpg
                 return null;
 
             if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial))
-                throw new IOException("unexpected length header");
+                throw new IOException("unrecognised length reading signature subpacket");
 
             bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
 
@@ -42,8 +43,8 @@ namespace Org.BouncyCastle.Bcpg
             //
             int bytesRead = Streams.ReadFully(m_input, data);
 
-            bool isCritical = ((tag & 0x80) != 0);
-            SignatureSubpacketTag type = (SignatureSubpacketTag)(tag & 0x7f);
+            bool isCritical = (tag & 0x80) != 0;
+            SignatureSubpacketTag type = (SignatureSubpacketTag)(tag & 0x7F);
 
             if (bytesRead != data.Length)
             {

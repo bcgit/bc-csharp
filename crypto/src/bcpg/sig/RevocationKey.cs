@@ -5,7 +5,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Bcpg
 {
     /// <summary>
-    /// Represents revocation key OpenPGP signature sub packet.
+    /// Represents revocation key OpenPGP signature subpacket.
     /// </summary>
     public class RevocationKey
         : SignatureSubpacket

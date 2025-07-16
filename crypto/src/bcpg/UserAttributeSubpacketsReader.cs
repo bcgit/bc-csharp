@@ -4,9 +4,7 @@ using Org.BouncyCastle.Bcpg.Attr;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /**
-    * reader for user attribute sub-packets
-    */
+    /// <summary>Parser for user attribute subpackets</summary>
     public class UserAttributeSubpacketsParser
     {
         private readonly Stream m_input;
@@ -23,7 +21,7 @@ namespace Org.BouncyCastle.Bcpg
                 return null;
 
             if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial))
-                throw new IOException("unrecognised length reading user attribute sub packet");
+                throw new IOException("unrecognised length reading user attribute subpacket");
 
             bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
 

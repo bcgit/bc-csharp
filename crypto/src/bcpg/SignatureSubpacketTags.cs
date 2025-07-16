@@ -1,8 +1,6 @@
 namespace Org.BouncyCastle.Bcpg
 {
-    /**
-    * Basic PGP signature sub-packet tag types.
-    */
+    /// <summary>Basic PGP signature subpacket tag types.</summary>
     public enum SignatureSubpacketTag
     {
         CreationTime = 2,						// signature creation time

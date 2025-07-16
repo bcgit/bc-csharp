@@ -782,12 +782,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             {
                 if (sig.GetHashedSubPackets() != null)
                 {
-                    Fail("hashed sub packets found when none expected");
+                    Fail("hashed subpackets found when none expected");
                 }
 
                 if (sig.GetUnhashedSubPackets() != null)
                 {
-                    Fail("unhashed sub packets found when none expected");
+                    Fail("unhashed subpackets found when none expected");
                 }
 
                 if (sig.HasSubpackets)

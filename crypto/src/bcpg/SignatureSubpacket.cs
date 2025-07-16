@@ -4,8 +4,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /// <remarks>Basic type for a PGP Signature sub-packet.</remarks>
-    // TODO Make abstract
+    /// <summary>Basic type for a PGP Signature subpacket.</summary>
+    // TODO[api] Make abstract
     public class SignatureSubpacket
     {
         private readonly SignatureSubpacketTag m_type;

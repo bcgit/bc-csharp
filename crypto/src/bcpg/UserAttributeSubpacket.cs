@@ -4,12 +4,12 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /// <summary>Basic type for a user attribute sub-packet.</summary>
+    /// <summary>Basic type for a user attribute subpacket.</summary>
     public class UserAttributeSubpacket
     {
         private readonly UserAttributeSubpacketTag m_type;
         private readonly bool m_longLength; // we preserve this as not everyone encodes length properly.
-        // TODO Make private
+        // TODO[api] Make private
         protected readonly byte[] data;
 
         protected internal UserAttributeSubpacket(UserAttributeSubpacketTag type, byte[] data)

@@ -348,7 +348,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 //
                 sGen.InitSign(PgpSignature.SubkeyBinding, masterKey.PrivateKey);
 
-                // add primary key binding sub packet
+                // add primary key binding subpacket
                 PgpSignatureGenerator pGen = new PgpSignatureGenerator(keyPair.PublicKey.Algorithm, primaryKeyBindingHashAlgorithm);
 
                 pGen.InitSign(PgpSignature.PrimaryKeyBinding, keyPair.PrivateKey);

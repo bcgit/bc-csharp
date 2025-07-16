@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>
-        /// Sets revocation reason sub packet
+        /// Sets revocation reason subpacket
         /// </summary>	    
         public void SetRevocationReason(bool isCritical, RevocationReasonTag reason, string description)
 		{
@@ -208,13 +208,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             list.Add(new RevocationKey(isCritical, RevocationKeyTag.ClassDefault, keyAlgorithm, fingerprint));
         }
 
-        /// <summary>
-        /// Sets issuer key sub packet
-        /// </summary>	
+        /// <summary>Sets issuer key subpacket.</summary>
         public void SetIssuerKeyID(bool isCritical, long keyID)
-		{
-			list.Add(new IssuerKeyId(isCritical, keyID));
-		}
+        {
+            list.Add(new IssuerKeyId(isCritical, keyID));
+        }
 
         public void SetSignatureTarget(bool isCritical, int publicKeyAlgorithm, int hashAlgorithm, byte[] hashData)
         {

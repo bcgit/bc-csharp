@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Bcpg
                 bcpgIn.ReadFully(hashed);
 
                 //
-                // read the signature sub packet data.
+                // read the signature subpacket data.
                 //
                 SignatureSubpacketsParser sIn = new SignatureSubpacketsParser(new MemoryStream(hashed, false));
 
@@ -303,8 +303,10 @@ namespace Org.BouncyCastle.Bcpg
             return bOut.ToArray();
         }
 
+        // TODO[api] Ideally '..Subpackets'
         public SignatureSubpacket[] GetHashedSubPackets() => hashedData;
 
+        // TODO[api] Ideally '..Subpackets'
         public SignatureSubpacket[] GetUnhashedSubPackets() => unhashedData;
 
         /// <summary>Return the creation time in milliseconds since 1 Jan., 1970 UTC.</summary>
