@@ -169,8 +169,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 			VectorTest(dig, 16, resBuf, Hex.Decode(hexMessages[6]), Hex.Decode(digests[messages.Length + 6]));
 			VectorTest(dig, 17, resBuf, Hex.Decode(hexMessages[7]), Hex.Decode(digests[messages.Length + 7]));
 
-			sixtyFourKTest(sixtyFourKdigest);
-	        millionATest(million_a_digest);
+			SixtyFourKTest(sixtyFourKdigest);
+	        MillionATest(million_a_digest);
 	    }
 
         protected virtual void VectorTest(IDigest digest, int count,

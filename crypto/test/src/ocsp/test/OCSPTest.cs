@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -8,10 +7,10 @@ using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Ocsp.Tests
 {
@@ -19,6 +18,8 @@ namespace Org.BouncyCastle.Ocsp.Tests
 	public class OcspTest
 		: SimpleTest
 	{
+		private static readonly SecureRandom Random = new SecureRandom();
+
 		private static readonly byte[] testResp1 = Base64.Decode(
 			  "MIIFnAoBAKCCBZUwggWRBgkrBgEFBQcwAQEEggWCMIIFfjCCARehgZ8wgZwx"
 			+ "CzAJBgNVBAYTAklOMRcwFQYDVQQIEw5BbmRocmEgcHJhZGVzaDESMBAGA1UE"
@@ -204,12 +205,9 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			+ "pddz+QXXFIrIz5Y9D/x1RrwoLibPw0kMrSwI2G4aCvoBySfbD6cpnJf6YHRctdSb"
 			+ "755zhdBW7XWTl6ReUVuEt0hTFms4F60kFAi5hIbDRSN1Slv5yP2b0EA=");
 
-		public override string Name
-		{
-			get { return "OCSP"; }
-		}
+		public override string Name => "OCSP";
 
-		private void doTestECDsa()
+		private void DoTestECDsa()
 		{
 			string signDN = "O=Bouncy Castle, C=AU";
 			AsymmetricCipherKeyPair signKP = OcspTestUtil.MakeECKeyPair();
@@ -254,15 +252,13 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			//
 			// request generation with signing
 			//
-			X509Certificate[] chain = new X509Certificate[1];
-
 			gen = new OcspReqGenerator();
 
 			gen.SetRequestorName(new GeneralName(GeneralName.DirectoryName, new X509Name("CN=fred")));
 
-			gen.AddRequest(new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One));
+			gen.AddRequest(id);
 
-			chain[0] = testCert;
+			X509Certificate[] chain = new X509Certificate[1]{ testCert };
 
 			req = gen.Generate("SHA1withECDSA", signKP.Private, chain);
 
@@ -310,27 +306,20 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			//
 			// request generation with signing and nonce
 			//
-			chain = new X509Certificate[1];
-
 			gen = new OcspReqGenerator();
 
-			var oids = new List<DerObjectIdentifier>();
-			var values = new List<X509Extension>();
-			byte[] sampleNonce = new byte[16];
-			Random rand = new Random();
-
-			rand.NextBytes(sampleNonce);
+			byte[] sampleNonce = SecureRandom.GetNextBytes(Random, 16);
 
 			gen.SetRequestorName(new GeneralName(GeneralName.DirectoryName, new X509Name("CN=fred")));
 
-			oids.Add(OcspObjectIdentifiers.PkixOcspNonce);
-			values.Add(new X509Extension(false, new DerOctetString(new DerOctetString(sampleNonce))));
+			var extGen = new X509ExtensionsGenerator();
+			extGen.AddExtension(OcspObjectIdentifiers.PkixOcspNonce, false, new DerOctetString(sampleNonce));
 
-			gen.SetRequestExtensions(new X509Extensions(oids, values));
+			gen.SetRequestExtensions(extGen.Generate());
 
-			gen.AddRequest(new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One));
+			gen.AddRequest(id);
 
-			chain[0] = testCert;
+			chain = new X509Certificate[1]{ testCert };
 
 			req = gen.Generate("SHA1withECDSA", signKP.Private, chain);
 
@@ -361,18 +350,15 @@ namespace Org.BouncyCastle.Ocsp.Tests
 				Fail("wrong number of non-critical extensions in OCSP request.");
 			}
 
-			Asn1OctetString extValue = req.GetExtensionValue(OcspObjectIdentifiers.PkixOcspNonce);
-
-			Asn1Encodable extObj = X509ExtensionUtilities.FromExtensionValue(extValue);
-
-			if (!(extObj is Asn1OctetString))
+			var nonce = OcspUtilities.GetNonce(req);
+			if (nonce == null)
 			{
-				Fail("wrong extension type found.");
+				Fail("nonce extension not found.");
 			}
 
-			if (!AreEqual(((Asn1OctetString)extObj).GetOctets(), sampleNonce))
+			if (!AreEqual(nonce.GetOctets(), sampleNonce))
 			{
-				Fail("wrong extension value found.");
+				Fail("wrong nonce value found.");
 			}
 
 			//
@@ -395,7 +381,7 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			respGen.Generate("SHA1withECDSA", signKP.Private, chain, DateTime.UtcNow);
 		}
 
-		private void doTestRsa()
+		private void DoTestRsa()
 		{
 			string signDN = "O=Bouncy Castle, C=AU";
 			AsymmetricCipherKeyPair signKP = OcspTestUtil.MakeKeyPair();
@@ -414,8 +400,7 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			//
 			OcspReqGenerator gen = new OcspReqGenerator();
 
-			gen.AddRequest(
-				new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One));
+			gen.AddRequest(id);
 
 			OcspReq req = gen.Generate();
 
@@ -441,16 +426,13 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			//
 			// request generation with signing
 			//
-			X509Certificate[] chain = new X509Certificate[1];
-
 			gen = new OcspReqGenerator();
 
 			gen.SetRequestorName(new GeneralName(GeneralName.DirectoryName, new X509Name("CN=fred")));
 
-			gen.AddRequest(
-				new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One));
+			gen.AddRequest(id);
 
-			chain[0] = testCert;
+			X509Certificate[] chain = new X509Certificate[1]{ testCert };
 
 			req = gen.Generate("SHA1withRSA", signKP.Private, chain);
 
@@ -498,28 +480,20 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			//
 			// request generation with signing and nonce
 			//
-			chain = new X509Certificate[1];
-
 			gen = new OcspReqGenerator();
 
-			var oids = new List<DerObjectIdentifier>();
-			var values = new List<X509Extension>();
-			byte[] sampleNonce = new byte[16];
-			Random rand = new Random();
-
-			rand.NextBytes(sampleNonce);
+			byte[] sampleNonce = SecureRandom.GetNextBytes(Random, 16);
 
 			gen.SetRequestorName(new GeneralName(GeneralName.DirectoryName, new X509Name("CN=fred")));
 
-			oids.Add(OcspObjectIdentifiers.PkixOcspNonce);
-			values.Add(new X509Extension(false, new DerOctetString(new DerOctetString(sampleNonce))));
+			var extGen = new X509ExtensionsGenerator();
+			extGen.AddExtension(OcspObjectIdentifiers.PkixOcspNonce, false, new DerOctetString(sampleNonce));
 
-			gen.SetRequestExtensions(new X509Extensions(oids, values));
+			gen.SetRequestExtensions(extGen.Generate());
 
-			gen.AddRequest(
-				new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One));
+			gen.AddRequest(id);
 
-			chain[0] = testCert;
+			chain = new X509Certificate[1]{ testCert };
 
 			req = gen.Generate("SHA1withRSA", signKP.Private, chain);
 
@@ -550,18 +524,15 @@ namespace Org.BouncyCastle.Ocsp.Tests
 				Fail("wrong number of non-critical extensions in OCSP request.");
 			}
 
-			Asn1OctetString extValue = req.GetExtensionValue(OcspObjectIdentifiers.PkixOcspNonce);
-
-			Asn1Object extObj = X509ExtensionUtilities.FromExtensionValue(extValue);
-
-			if (!(extObj is Asn1OctetString))
+			var nonce = OcspUtilities.GetNonce(req);
+			if (nonce == null)
 			{
-				Fail("wrong extension type found.");
+				Fail("nonce extension not found.");
 			}
 
-			if (!AreEqual(((Asn1OctetString)extObj).GetOctets(), sampleNonce))
+			if (!AreEqual(nonce.GetOctets(), sampleNonce))
 			{
-				Fail("wrong extension value found.");
+				Fail("wrong nonce value found.");
 			}
 
 			//
@@ -587,7 +558,7 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			byte[] enc = rGen.Generate(OCSPRespGenerator.Successful, resp).GetEncoded();
 		}
 
-		private void doTestIrregularVersionReq()
+		private void DoTestIrregularVersionReq()
 		{
 			OcspReq ocspRequest = new OcspReq(irregReq);
 			X509Certificate cert = ocspRequest.GetCerts()[0];
@@ -609,15 +580,14 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			//
 			// general id value for our test issuer cert and a serial number.
 			//
-			CertificateID   id = new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One);
+			CertificateID id = new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One);
 
 			//
 			// basic request generation
 			//
 			OcspReqGenerator gen = new OcspReqGenerator();
 
-			gen.AddRequest(
-				new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One));
+			gen.AddRequest(id);
 
 			OcspReq req = gen.Generate();
 
@@ -643,16 +613,13 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			//
 			// request generation with signing
 			//
-			X509Certificate[] chain = new X509Certificate[1];
-
 			gen = new OcspReqGenerator();
 
 			gen.SetRequestorName(new GeneralName(GeneralName.DirectoryName, new X509Name("CN=fred")));
 
-			gen.AddRequest(
-				new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One));
+			gen.AddRequest(id);
 
-			chain[0] = testCert;
+			X509Certificate[] chain = new X509Certificate[1]{ testCert };
 
 			req = gen.Generate("SHA1withRSA", signKP.Private, chain);
 
@@ -700,28 +667,20 @@ namespace Org.BouncyCastle.Ocsp.Tests
 			//
 			// request generation with signing and nonce
 			//
-			chain = new X509Certificate[1];
-
 			gen = new OcspReqGenerator();
 
-			var oids = new List<DerObjectIdentifier>();
-			var values = new List<X509Extension>();
-			byte[] sampleNonce = new byte[16];
-			Random rand = new Random();
-
-			rand.NextBytes(sampleNonce);
+			byte[] sampleNonce = SecureRandom.GetNextBytes(Random, 16);
 
 			gen.SetRequestorName(new GeneralName(GeneralName.DirectoryName, new X509Name("CN=fred")));
 
-			oids.Add(OcspObjectIdentifiers.PkixOcspNonce);
-			values.Add(new X509Extension(false, new DerOctetString(new DerOctetString(sampleNonce))));
+			var extGen = new X509ExtensionsGenerator();
+			extGen.AddExtension(OcspObjectIdentifiers.PkixOcspNonce, false, new DerOctetString(sampleNonce));
 
-			gen.SetRequestExtensions(new X509Extensions(oids, values));
+			gen.SetRequestExtensions(extGen.Generate());
 
-			gen.AddRequest(
-				new CertificateID(CertificateID.DigestSha1, testCert, BigInteger.One));
+			gen.AddRequest(id);
 
-			chain[0] = testCert;
+			chain = new X509Certificate[1]{ testCert };
 
 			req = gen.Generate("SHA1withRSA", signKP.Private, chain);
 
@@ -752,19 +711,15 @@ namespace Org.BouncyCastle.Ocsp.Tests
 				Fail("wrong number of non-critical extensions in OCSP request.");
 			}
 
-			Asn1OctetString extValue = req.GetExtensionValue(OcspObjectIdentifiers.PkixOcspNonce);
-			Asn1Object extObj = X509ExtensionUtilities.FromExtensionValue(extValue);
-
-			if (!(extObj is Asn1OctetString))
+			var nonce = OcspUtilities.GetNonce(req);
+			if (nonce == null)
 			{
-				Fail("wrong extension type found.");
+				Fail("nonce extension not found.");
 			}
 
-			byte[] compareNonce = ((Asn1OctetString) extObj).GetOctets();
-
-			if (!AreEqual(compareNonce, sampleNonce))
+			if (!AreEqual(nonce.GetOctets(), sampleNonce))
 			{
-				Fail("wrong extension value found.");
+				Fail("wrong nonce value found.");
 			}
 
 			//
@@ -828,9 +783,9 @@ namespace Org.BouncyCastle.Ocsp.Tests
 				Fail("response fails to match");
 			}
 
-			doTestECDsa();
-			doTestRsa();
-			doTestIrregularVersionReq();
+			DoTestECDsa();
+			DoTestRsa();
+			DoTestIrregularVersionReq();
 		}
 
 		[Test]

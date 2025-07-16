@@ -22,14 +22,14 @@ using Org.BouncyCastle.X509.Extension;
 namespace Org.BouncyCastle.Cms.Tests
 {
     public class CmsTestUtil
-	{
-		public static readonly SecureRandom Random = new SecureRandom();
+    {
+        public static readonly SecureRandom Random = new SecureRandom();
 
-		private static IAsymmetricCipherKeyPairGenerator kpg;
-		private static IAsymmetricCipherKeyPairGenerator gostKpg;
-		private static IAsymmetricCipherKeyPairGenerator dsaKpg;
-		private static IAsymmetricCipherKeyPairGenerator ecGostKpg;
-		private static IAsymmetricCipherKeyPairGenerator ecDsaKpg;
+        private static IAsymmetricCipherKeyPairGenerator kpg;
+        private static IAsymmetricCipherKeyPairGenerator gostKpg;
+        private static IAsymmetricCipherKeyPairGenerator dsaKpg;
+        private static IAsymmetricCipherKeyPairGenerator ecGostKpg;
+        private static IAsymmetricCipherKeyPairGenerator ecDsaKpg;
         private static IAsymmetricCipherKeyPairGenerator ed25519Kpg;
         private static IAsymmetricCipherKeyPairGenerator ed448Kpg;
         private static IAsymmetricCipherKeyPairGenerator mlDsa44Kpg;
@@ -38,21 +38,33 @@ namespace Org.BouncyCastle.Cms.Tests
         private static IAsymmetricCipherKeyPairGenerator mlKem512Kpg;
         private static IAsymmetricCipherKeyPairGenerator mlKem768Kpg;
         private static IAsymmetricCipherKeyPairGenerator mlKem1024Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_128f_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_128s_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_192f_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_192s_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_256f_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Sha2_256s_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_128f_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_128s_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_192f_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_192s_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_256f_Kpg;
+        private static IAsymmetricCipherKeyPairGenerator slhDsa_Shake_256s_Kpg;
 
-        public static CipherKeyGenerator aes128KG;
-        public static CipherKeyGenerator aes192KG;
-        public static CipherKeyGenerator aes256KG;
-        public static CipherKeyGenerator camellia128KG;
-        public static CipherKeyGenerator camellia192KG;
-        public static CipherKeyGenerator camellia256KG;
-        public static CipherKeyGenerator desede128KG;
-		public static CipherKeyGenerator desede192KG;
-		public static CipherKeyGenerator rc2_40KG;
-		public static CipherKeyGenerator rc2_64KG;
-		public static CipherKeyGenerator rc2_128KG;
-		public static CipherKeyGenerator seedKG;
+        internal static CipherKeyGenerator aes128KG;
+        internal static CipherKeyGenerator aes192KG;
+        internal static CipherKeyGenerator aes256KG;
+        internal static CipherKeyGenerator camellia128KG;
+        internal static CipherKeyGenerator camellia192KG;
+        internal static CipherKeyGenerator camellia256KG;
+        internal static CipherKeyGenerator desede128KG;
+        internal static CipherKeyGenerator desede192KG;
+        internal static CipherKeyGenerator rc2_40KG;
+        internal static CipherKeyGenerator rc2_64KG;
+        internal static CipherKeyGenerator rc2_128KG;
+        internal static CipherKeyGenerator seedKG;
 
-		public static int serialNumber;
+        internal static int serialNumber;
 
 		private static readonly byte[] attrCert = Base64.Decode(
 			  "MIIHQDCCBqkCAQEwgZChgY2kgYowgYcxHDAaBgkqhkiG9w0BCQEWDW1sb3JjaEB2"
@@ -188,6 +200,42 @@ namespace Org.BouncyCastle.Cms.Tests
         private static IAsymmetricCipherKeyPairGenerator MLKem1024Kpg => InitKpg(ref mlKem1024Kpg, "ML-KEM", () =>
             new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_1024));
 
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_128f_Kpg => InitKpg(ref slhDsa_Sha2_128f_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_128f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_128s_Kpg => InitKpg(ref slhDsa_Sha2_128s_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_128s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_192f_Kpg => InitKpg(ref slhDsa_Sha2_192f_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_192f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_192s_Kpg => InitKpg(ref slhDsa_Sha2_192s_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_192s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_256f_Kpg => InitKpg(ref slhDsa_Sha2_256f_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_256f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Sha2_256s_Kpg => InitKpg(ref slhDsa_Sha2_256s_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_256s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_128f_Kpg => InitKpg(ref slhDsa_Shake_128f_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_128f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_128s_Kpg => InitKpg(ref slhDsa_Shake_128s_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_128s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_192f_Kpg => InitKpg(ref slhDsa_Shake_192f_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_192f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_192s_Kpg => InitKpg(ref slhDsa_Shake_192s_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_192s));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_256f_Kpg => InitKpg(ref slhDsa_Shake_256f_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_256f));
+
+        private static IAsymmetricCipherKeyPairGenerator SlhDsa_Shake_256s_Kpg => InitKpg(ref slhDsa_Shake_256s_Kpg,
+            "SLH-DSA", () => new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_256s));
+
         private static int NextSerialNumber() => Interlocked.Increment(ref serialNumber);
 
         static CmsTestUtil()
@@ -280,6 +328,36 @@ namespace Org.BouncyCastle.Cms.Tests
         public static AsymmetricCipherKeyPair MakeMLKem768KeyPair() => MLKem768Kpg.GenerateKeyPair();
 
         public static AsymmetricCipherKeyPair MakeMLKem1024KeyPair() => MLKem1024Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_128f_KeyPair() => SlhDsa_Sha2_128f_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_128s_KeyPair() => SlhDsa_Sha2_128s_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_192f_KeyPair() => SlhDsa_Sha2_192f_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_192s_KeyPair() => SlhDsa_Sha2_192s_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_256f_KeyPair() => SlhDsa_Sha2_256f_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Sha2_256s_KeyPair() => SlhDsa_Sha2_256s_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_128f_KeyPair() =>
+            SlhDsa_Shake_128f_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_128s_KeyPair() =>
+            SlhDsa_Shake_128s_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_192f_KeyPair() =>
+            SlhDsa_Shake_192f_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_192s_KeyPair() =>
+            SlhDsa_Shake_192s_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_256f_KeyPair() =>
+            SlhDsa_Shake_256f_Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeSlhDsa_Shake_256s_KeyPair() =>
+            SlhDsa_Shake_256s_Kpg.GenerateKeyPair();
 
         public static KeyParameter MakeAes128Key() =>
             ParameterUtilities.CreateKeyParameter("AES", aes128KG.GenerateKey());
@@ -494,11 +572,11 @@ namespace Org.BouncyCastle.Cms.Tests
             return CollectionUtilities.CreateStore(otherRevocationInfoList);
         }
 
-        internal static AuthorityKeyIdentifier CreateAuthorityKeyID(AsymmetricKeyParameter pubKey) =>
-            new AuthorityKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
+        internal static AuthorityKeyIdentifier CreateAuthorityKeyID(AsymmetricKeyParameter publicKey) =>
+            X509ExtensionUtilities.CreateAuthorityKeyIdentifier(publicKey);
 
-        internal static SubjectKeyIdentifier CreateSubjectKeyID(AsymmetricKeyParameter pubKey) =>
-            new SubjectKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey));
+        internal static SubjectKeyIdentifier CreateSubjectKeyID(AsymmetricKeyParameter publicKey) =>
+            X509ExtensionUtilities.CreateSubjectKeyIdentifier(publicKey);
 
         private static BigInteger AllocateSerialNumber() => BigInteger.ValueOf(NextSerialNumber());
 

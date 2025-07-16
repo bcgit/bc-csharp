@@ -1,48 +1,45 @@
 ﻿using System.IO;
+
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Cms;
 
 namespace Org.BouncyCastle.Cms
 {
-  public class Pkcs7ProcessableObject : CmsProcessable
-  {
-    public DerObjectIdentifier ContentType { get; }
-    public Asn1Encodable Content { get; }
-
-    public Pkcs7ProcessableObject(DerObjectIdentifier contentType, Asn1Encodable content)
+    public class Pkcs7ProcessableObject
+        : CmsProcessable
     {
-      ContentType = contentType;
-      Content = content;
-    }
+        public DerObjectIdentifier ContentType { get; }
+        public Asn1Encodable Content { get; }
 
-    public void Write(Stream outStream)
-    {
-      using (var sw = new BinaryWriter(outStream))
-      {
-        if (Content is Asn1Sequence)
+        public Pkcs7ProcessableObject(DerObjectIdentifier contentType, Asn1Encodable content)
         {
-          Asn1Sequence seq = Asn1Sequence.GetInstance(Content);
-
-          foreach (Asn1Encodable enc in seq)
-          {
-            sw.Write(enc.ToAsn1Object().GetEncoded(Asn1Encodable.Der));
-          }
+            ContentType = contentType;
+            Content = content;
         }
-        else
+
+        public void Write(Stream outStream)
         {
-          byte[] encoded = Content.ToAsn1Object().GetEncoded(Asn1Encodable.Der);
-          int index = 1;
-          while ((encoded[index] & 0xff) > 127)
-          {
-            index++;
-          }
+            Asn1Sequence seq = Asn1Sequence.GetOptional(Content);
+            if (seq != null)
+            {
+                foreach (var element in seq)
+                {
+                    element.EncodeTo(outStream, Asn1Encodable.Der);
+                }
+            }
+            else
+            {
+                byte[] encoded = Content.GetEncoded(Asn1Encodable.Der);
+                int index = 1;
+                while ((encoded[index] & 0x80) != 0)
+                {
+                    index++;
+                }
 
-          index++;
-          sw.Write(encoded, index, encoded.Length - index);
+                index++;
+                outStream.Write(encoded, index, encoded.Length - index);
+            }
         }
-      }
-    }
 
-    public object GetContent() => Content;
-  }
+        public object GetContent() => Content;
+    }
 }

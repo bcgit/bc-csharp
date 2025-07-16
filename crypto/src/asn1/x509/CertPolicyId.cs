@@ -8,13 +8,13 @@ namespace Org.BouncyCastle.Asn1.X509
      *     CertPolicyId ::= OBJECT IDENTIFIER
      * </pre>
      */
-     public class CertPolicyID
-		 : DerObjectIdentifier
+    // TODO[api] Remove and just use DerObjectIdentifier
+    public class CertPolicyID
+        : DerObjectIdentifier
     {
-       public CertPolicyID(
-		   string id)
-		   : base(id)
-       {
-       }
+        public CertPolicyID(string id)
+            : base(id)
+        {
+        }
     }
 }

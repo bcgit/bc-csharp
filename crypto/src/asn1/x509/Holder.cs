@@ -63,17 +63,18 @@ namespace Org.BouncyCastle.Asn1.X509
 		 * 
 		 * @param tagObj The ASN.1 tagged holder object.
 		 */
-        public Holder(Asn1TaggedObject tagObj)
+		public Holder(Asn1TaggedObject tagObj)
 		{
-			switch (tagObj.TagNo)
+			if (tagObj.HasContextTag(0))
 			{
-			case 0:
-				m_baseCertificateID = IssuerSerial.GetInstance(tagObj, true);
-				break;
-			case 1:
-				m_entityName = GeneralNames.GetInstance(tagObj, true);
-				break;
-			default:
+				m_baseCertificateID = IssuerSerial.GetTagged(tagObj, true);
+			}
+			else if (tagObj.HasContextTag(1))
+			{
+				m_entityName = GeneralNames.GetTagged(tagObj, true);
+			}
+			else
+			{
 				throw new ArgumentException("unknown tag in Holder");
 			}
 

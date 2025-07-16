@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
@@ -18,16 +17,16 @@ using Org.BouncyCastle.Utilities.Collections;
 namespace Org.BouncyCastle.X509
 {
     internal static class X509Utilities
-	{
+    {
         private static readonly Dictionary<string, DerObjectIdentifier> m_algorithms =
-			new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
+            new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
 
-		static X509Utilities()
-		{
-			m_algorithms.Add("MD2WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD2WithRsaEncryption);
-			m_algorithms.Add("MD2WITHRSA", PkcsObjectIdentifiers.MD2WithRsaEncryption);
-			m_algorithms.Add("MD5WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD5WithRsaEncryption);
-			m_algorithms.Add("MD5WITHRSA", PkcsObjectIdentifiers.MD5WithRsaEncryption);
+        static X509Utilities()
+        {
+            m_algorithms.Add("MD2WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD2WithRsaEncryption);
+            m_algorithms.Add("MD2WITHRSA", PkcsObjectIdentifiers.MD2WithRsaEncryption);
+            m_algorithms.Add("MD5WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD5WithRsaEncryption);
+            m_algorithms.Add("MD5WITHRSA", PkcsObjectIdentifiers.MD5WithRsaEncryption);
             m_algorithms.Add("SHA1WITHRSAENCRYPTION", PkcsObjectIdentifiers.Sha1WithRsaEncryption);
             m_algorithms.Add("SHA-1WITHRSAENCRYPTION", PkcsObjectIdentifiers.Sha1WithRsaEncryption);
             m_algorithms.Add("SHA1WITHRSA", PkcsObjectIdentifiers.Sha1WithRsaEncryption);
@@ -57,34 +56,34 @@ namespace Org.BouncyCastle.X509
             m_algorithms.Add("SHA512(256)WITHRSA", PkcsObjectIdentifiers.Sha512_256WithRSAEncryption);
             m_algorithms.Add("SHA-512(256)WITHRSA", PkcsObjectIdentifiers.Sha512_256WithRSAEncryption);
             m_algorithms.Add("SHA1WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
-			m_algorithms.Add("SHA224WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
-			m_algorithms.Add("SHA256WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
-			m_algorithms.Add("SHA384WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
-			m_algorithms.Add("SHA512WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
-			m_algorithms.Add("RIPEMD160WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160);
-			m_algorithms.Add("RIPEMD160WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160);
-			m_algorithms.Add("RIPEMD128WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
-			m_algorithms.Add("RIPEMD128WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
-			m_algorithms.Add("RIPEMD256WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256);
-			m_algorithms.Add("RIPEMD256WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256);
-			m_algorithms.Add("SHA1WITHDSA", X9ObjectIdentifiers.IdDsaWithSha1);
-			m_algorithms.Add("DSAWITHSHA1", X9ObjectIdentifiers.IdDsaWithSha1);
-			m_algorithms.Add("SHA224WITHDSA", NistObjectIdentifiers.DsaWithSha224);
-			m_algorithms.Add("SHA256WITHDSA", NistObjectIdentifiers.DsaWithSha256);
-			m_algorithms.Add("SHA384WITHDSA", NistObjectIdentifiers.DsaWithSha384);
-			m_algorithms.Add("SHA512WITHDSA", NistObjectIdentifiers.DsaWithSha512);
-			m_algorithms.Add("SHA1WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha1);
-			m_algorithms.Add("ECDSAWITHSHA1", X9ObjectIdentifiers.ECDsaWithSha1);
-			m_algorithms.Add("SHA224WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha224);
-			m_algorithms.Add("SHA256WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha256);
-			m_algorithms.Add("SHA384WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha384);
-			m_algorithms.Add("SHA512WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha512);
-			m_algorithms.Add("GOST3411WITHGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
-			m_algorithms.Add("GOST3411WITHGOST3410-94", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
-			m_algorithms.Add("GOST3411WITHECGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
-			m_algorithms.Add("GOST3411WITHECGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
-			m_algorithms.Add("GOST3411WITHGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
-		}
+            m_algorithms.Add("SHA224WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("SHA256WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("SHA384WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("SHA512WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("RIPEMD160WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160);
+            m_algorithms.Add("RIPEMD160WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160);
+            m_algorithms.Add("RIPEMD128WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
+            m_algorithms.Add("RIPEMD128WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
+            m_algorithms.Add("RIPEMD256WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256);
+            m_algorithms.Add("RIPEMD256WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256);
+            m_algorithms.Add("SHA1WITHDSA", X9ObjectIdentifiers.IdDsaWithSha1);
+            m_algorithms.Add("DSAWITHSHA1", X9ObjectIdentifiers.IdDsaWithSha1);
+            m_algorithms.Add("SHA224WITHDSA", NistObjectIdentifiers.DsaWithSha224);
+            m_algorithms.Add("SHA256WITHDSA", NistObjectIdentifiers.DsaWithSha256);
+            m_algorithms.Add("SHA384WITHDSA", NistObjectIdentifiers.DsaWithSha384);
+            m_algorithms.Add("SHA512WITHDSA", NistObjectIdentifiers.DsaWithSha512);
+            m_algorithms.Add("SHA1WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha1);
+            m_algorithms.Add("ECDSAWITHSHA1", X9ObjectIdentifiers.ECDsaWithSha1);
+            m_algorithms.Add("SHA224WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha224);
+            m_algorithms.Add("SHA256WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha256);
+            m_algorithms.Add("SHA384WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha384);
+            m_algorithms.Add("SHA512WITHECDSA", X9ObjectIdentifiers.ECDsaWithSha512);
+            m_algorithms.Add("GOST3411WITHGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
+            m_algorithms.Add("GOST3411WITHGOST3410-94", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x94);
+            m_algorithms.Add("GOST3411WITHECGOST3410", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+            m_algorithms.Add("GOST3411WITHECGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+            m_algorithms.Add("GOST3411WITHGOST3410-2001", CryptoProObjectIdentifiers.GostR3411x94WithGostR3410x2001);
+        }
 
         internal static bool AreEquivalentAlgorithms(AlgorithmIdentifier id1, AlgorithmIdentifier id2)
         {
@@ -97,15 +96,15 @@ namespace Org.BouncyCastle.X509
                     return true;
             }
 
-            return Objects.Equals(id1.Parameters, id2.Parameters);
+            return Equals(id1.Parameters, id2.Parameters);
         }
 
-		internal static byte[] CalculateDigest(AlgorithmIdentifier digestAlgorithm, Asn1Encodable asn1Encodable)
-		{
+        internal static byte[] CalculateDigest(AlgorithmIdentifier digestAlgorithm, Asn1Encodable asn1Encodable)
+        {
             var digest = DigestUtilities.GetDigest(digestAlgorithm.Algorithm);
             var digestCalculator = new DefaultDigestCalculator(digest);
             var digestResult = CalculateResult(digestCalculator, asn1Encodable);
-			return digestResult.Collect();
+            return digestResult.Collect();
         }
 
         internal static byte[] CalculateDigest(IDigestFactory digestFactory, byte[] buf) =>
@@ -166,17 +165,6 @@ namespace Org.BouncyCastle.X509
             return streamCalculator.GetResult();
         }
 
-        private static RsassaPssParameters CreatePssParams(
-			AlgorithmIdentifier	hashAlgId,
-			int					saltSize)
-		{
-			return new RsassaPssParameters(
-				hashAlgId,
-				new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgId),
-				new DerInteger(saltSize),
-				DerInteger.One);
-		}
-
         internal static DerBitString CollectDerBitString(IBlockResult result)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -193,11 +181,14 @@ namespace Org.BouncyCastle.X509
             return new DerBitString(data);
         }
 
-        // TODO[api] Remove (along with m_algorithms) when callers are obsoleted
-        internal static IEnumerable<string> GetAlgNames() => CollectionUtilities.Proxy(m_algorithms.Keys);
+        internal static IssuerSerial CreateIssuerSerial(X509Certificate certificate) =>
+            CreateIssuerSerial(certificate.CertificateStructure);
+
+        internal static IssuerSerial CreateIssuerSerial(X509CertificateStructure certificate) =>
+            new IssuerSerial(certificate.Issuer, certificate.SerialNumber);
 
         internal static DerBitString GenerateBitString(IStreamCalculator<IBlockResult> streamCalculator,
-			Asn1Encodable asn1Encodable)
+            Asn1Encodable asn1Encodable)
         {
             var result = CalculateResult(streamCalculator, asn1Encodable);
             return CollectDerBitString(result);
@@ -210,13 +201,16 @@ namespace Org.BouncyCastle.X509
 
         internal static DerBitString GenerateMac(IMacFactory macFactory, Asn1Encodable asn1Encodable)
         {
-			return GenerateBitString(macFactory.CreateCalculator(), asn1Encodable);
+            return GenerateBitString(macFactory.CreateCalculator(), asn1Encodable);
         }
 
         internal static DerBitString GenerateSignature(ISignatureFactory signatureFactory, Asn1Encodable asn1Encodable)
         {
             return GenerateBitString(signatureFactory.CreateCalculator(), asn1Encodable);
         }
+
+        // TODO[api] Remove (along with m_algorithms) when callers are obsoleted
+        internal static IEnumerable<string> GetAlgNames() => CollectionUtilities.Proxy(m_algorithms.Keys);
 
         internal static bool HasAbsentParameters(AlgorithmIdentifier algID) => IsAbsentParameters(algID.Parameters);
 
@@ -235,12 +229,12 @@ namespace Org.BouncyCastle.X509
         }
 
         internal static bool VerifySignature(IVerifierFactory verifierFactory, Asn1Encodable asn1Encodable,
-			DerBitString signature)
+            DerBitString signature)
         {
             var result = CalculateResult(verifierFactory.CreateCalculator(), asn1Encodable);
 
-			// TODO[api] Use GetOctetsSpan() once IsVerified(ReadOnlySpan<byte>) is available
-			return result.IsVerified(signature.GetOctets());
+            // TODO[api] Use GetOctetsSpan() once IsVerified(ReadOnlySpan<byte>) is available
+            return result.IsVerified(signature.GetOctets());
         }
     }
 }

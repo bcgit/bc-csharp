@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ess;
@@ -105,7 +104,7 @@ namespace Org.BouncyCastle.Tsp
 				// TODO Compare digest calculation to bc-java
 				byte[] hash = DigestUtilities.CalculateDigest(m_certID.HashAlgorithm.Algorithm, cert.GetEncoded());
 
-				if (!Arrays.FixedTimeEquals(m_certID.GetCertHash(), hash))
+				if (!Arrays.FixedTimeEquals(m_certID.CertHash.GetOctets(), hash))
 					throw new TspValidationException("certificate hash does not match certID hash.");
 
 				var issuerSerial = m_certID.IssuerSerial;
@@ -116,21 +115,8 @@ namespace Org.BouncyCastle.Tsp
 					if (!issuerSerial.Serial.Equals(c.SerialNumber))
 						throw new TspValidationException("certificate serial number does not match certID for signature.");
 
-					GeneralName[] names = issuerSerial.Issuer.GetNames();
-					bool found = false;
-
-					for (int i = 0; i != names.Length; i++)
-					{
-						if (names[i].TagNo == GeneralName.DirectoryName &&
-							X509Name.GetInstance(names[i].Name).Equivalent(c.Issuer))
-						{
-							found = true;
-							break;
-						}
-					}
-
-					if (!found)
-						throw new TspValidationException("certificate name does not match certID for signature. ");
+					if (!ValidateIssuer(issuerSerial.Issuer, c.Issuer))
+                        throw new TspValidationException("certificate name does not match certID for signature. ");
 				}
 
 				TspUtil.ValidateCertificate(cert);
@@ -178,5 +164,18 @@ namespace Org.BouncyCastle.Tsp
          * @param encoding the ASN.1 encoding format to use ("BER" or "DER").
          */
         public byte[] GetEncoded(string encoding) => m_tsToken.GetEncoded(encoding);
-	}
+
+		private static bool ValidateIssuer(GeneralNames issuerNames, X509Name issuer)
+		{
+			foreach (GeneralName issuerName in issuerNames.GetNames())
+			{
+				if (GeneralName.DirectoryName == issuerName.TagNo &&
+					X509Name.GetInstance(issuerName.Name).Equivalent(issuer))
+				{
+					return true;
+				}
+            }
+			return false;
+        }
+    }
 }

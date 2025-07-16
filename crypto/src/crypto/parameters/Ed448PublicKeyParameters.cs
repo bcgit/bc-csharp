@@ -111,6 +111,37 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public bool Verify(Ed448.Algorithm algorithm, byte[] ctx, ReadOnlySpan<byte> msg, ReadOnlySpan<byte> sig)
+        {
+            switch (algorithm)
+            {
+            case Ed448.Algorithm.Ed448:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                return Ed448.Verify(sig, m_publicPoint, ctx, msg);
+            }
+            case Ed448.Algorithm.Ed448ph:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                return Ed448.VerifyPrehash(sig, m_publicPoint, ctx, ph: msg);
+            }
+            default:
+            {
+                throw new ArgumentOutOfRangeException(nameof(algorithm));
+            }
+            }
+        }
+#endif
+
         private static Ed448.PublicPoint Parse(byte[] buf, int off)
         {
             return Ed448.ValidatePublicKeyPartialExport(buf, off)

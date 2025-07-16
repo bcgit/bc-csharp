@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
@@ -8,39 +9,25 @@ namespace Org.BouncyCastle.Pkcs
     public class AsymmetricKeyEntry
         : Pkcs12Entry
     {
-        private readonly AsymmetricKeyParameter key;
+        private readonly AsymmetricKeyParameter m_key;
 
-		public AsymmetricKeyEntry(AsymmetricKeyParameter key)
-			: base(new Dictionary<DerObjectIdentifier, Asn1Encodable>())
+        public AsymmetricKeyEntry(AsymmetricKeyParameter key)
+            : base(new Dictionary<DerObjectIdentifier, Asn1Encodable>())
         {
-            this.key = key;
+            m_key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
         public AsymmetricKeyEntry(AsymmetricKeyParameter key,
-			IDictionary<DerObjectIdentifier, Asn1Encodable> attributes)
-			: base(attributes)
+            IDictionary<DerObjectIdentifier, Asn1Encodable> attributes)
+            : base(attributes)
         {
-            this.key = key;
+            m_key = key ?? throw new ArgumentNullException(nameof(key));
         }
 
-		public AsymmetricKeyParameter Key
-        {
-            get { return this.key; }
-        }
+        public AsymmetricKeyParameter Key => m_key;
 
-		public override bool Equals(object obj)
-		{
-			AsymmetricKeyEntry other = obj as AsymmetricKeyEntry;
+        public override bool Equals(object obj) => obj is AsymmetricKeyEntry that && m_key.Equals(that.m_key);
 
-			if (other == null)
-				return false;
-
-			return key.Equals(other.key);
-		}
-
-		public override int GetHashCode()
-		{
-			return ~key.GetHashCode();
-		}
-	}
+        public override int GetHashCode() => ~m_key.GetHashCode();
+    }
 }

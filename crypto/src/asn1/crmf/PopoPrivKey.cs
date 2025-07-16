@@ -1,7 +1,6 @@
 ﻿using System;
 
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
@@ -14,20 +13,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public const int agreeMAC = 3;
         public const int encryptedKey = 4;
 
-        public static PopoPrivKey GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-
-            if (obj is Asn1Encodable element)
-            {
-                var result = GetOptional(element);
-                if (result != null)
-                    return result;
-            }
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
-        }
+        public static PopoPrivKey GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static PopoPrivKey GetInstance(Asn1TaggedObject tagged, bool isExplicit) =>
             Asn1Utilities.GetInstanceChoice(tagged, isExplicit, GetInstance);
@@ -40,7 +26,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             if (element is PopoPrivKey popoPrivKey)
                 return popoPrivKey;
 
-            if (element is Asn1TaggedObject taggedObject)
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
             {
                 Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
                 if (baseObject != null)
@@ -61,13 +48,13 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 {
                 case thisMessage:
                 case dhMAC:
-                    return DerBitString.GetInstance(taggedObject, false);
+                    return DerBitString.GetTagged(taggedObject, false);
                 case subsequentMessage:
-                    return SubsequentMessage.ValueOf(DerInteger.GetInstance(taggedObject, false).IntValueExact);
+                    return SubsequentMessage.ValueOf(DerInteger.GetTagged(taggedObject, false).IntValueExact);
                 case agreeMAC:
-                    return PKMacValue.GetInstance(taggedObject, false);
+                    return PKMacValue.GetTagged(taggedObject, false);
                 case encryptedKey:
-                    return EnvelopedData.GetInstance(taggedObject, false);
+                    return EnvelopedData.GetTagged(taggedObject, false);
 
                 }
             }

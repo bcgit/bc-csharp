@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
+
+using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1
 {
@@ -7,37 +10,60 @@ namespace Org.BouncyCastle.Asn1
     {
         public static new readonly DLSet Empty = new DLSet();
 
+        public static new DLSet FromCollection(IReadOnlyCollection<Asn1Encodable> elements)
+        {
+            return elements.Count < 1 ? Empty : new DLSet(elements);
+        }
+
+        public static new DLSet FromElement(Asn1Encodable element) => new DLSet(element);
+
         public static new DLSet FromVector(Asn1EncodableVector elementVector)
         {
             return elementVector.Count < 1 ? Empty : new DLSet(elementVector);
         }
 
-        /**
-         * create an empty set
-         */
+        public static new DLSet Map<T>(T[] ts, Func<T, Asn1Encodable> func)
+        {
+            return ts.Length < 1 ? Empty : new DLSet(isSorted: false, CollectionUtilities.Map(ts, func));
+        }
+
+        public static new DLSet Map<T>(IReadOnlyCollection<T> c, Func<T, Asn1Encodable> func)
+        {
+            return c.Count < 1 ? Empty : new DLSet(isSorted: false, CollectionUtilities.Map(c, func));
+        }
+
         public DLSet()
             : base()
         {
         }
 
-        /**
-         * create a set containing one object
-         */
         public DLSet(Asn1Encodable element)
             : base(element)
         {
         }
 
         public DLSet(params Asn1Encodable[] elements)
-            : base(elements, false)
+            : base(elements, doSort: false)
         {
         }
 
-        /**
-         * create a set containing a vector of objects.
-         */
         public DLSet(Asn1EncodableVector elementVector)
-            : base(elementVector, false)
+            : base(elementVector, doSort: false)
+        {
+        }
+
+        public DLSet(IReadOnlyCollection<Asn1Encodable> elements)
+            : base(elements, doSort: false)
+        {
+        }
+
+        public DLSet(Asn1Sequence sequence)
+            : base(sequence)
+        {
+        }
+
+        public DLSet(Asn1Set asn1Set)
+            : base(asn1Set)
         {
         }
 

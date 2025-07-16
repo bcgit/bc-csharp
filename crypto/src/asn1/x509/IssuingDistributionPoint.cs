@@ -42,65 +42,67 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly Asn1Sequence m_seq;
 
         /**
-		 * Constructor from given details.
-		 * 
-		 * @param distributionPoint
-		 *            May contain an URI as pointer to most current CRL.
-		 * @param onlyContainsUserCerts Covers revocation information for end certificates.
-		 * @param onlyContainsCACerts Covers revocation information for CA certificates.
-		 * 
-		 * @param onlySomeReasons
-		 *            Which revocation reasons does this point cover.
-		 * @param indirectCRL
-		 *            If <code>true</code> then the CRL contains revocation
-		 *            information about certificates ssued by other CAs.
-		 * @param onlyContainsAttributeCerts Covers revocation information for attribute certificates.
-		 */
-        public IssuingDistributionPoint(
-			DistributionPointName	distributionPoint,
-			bool					onlyContainsUserCerts,
-			bool					onlyContainsCACerts,
-			ReasonFlags				onlySomeReasons,
-			bool					indirectCRL,
-			bool					onlyContainsAttributeCerts)
-		{
-			m_distributionPoint = distributionPoint;
+         * Constructor from given details.
+         * 
+         * @param distributionPoint
+         *            May contain an URI as pointer to most current CRL.
+         * @param onlyContainsUserCerts Covers revocation information for end certificates.
+         * @param onlyContainsCACerts Covers revocation information for CA certificates.
+         * 
+         * @param onlySomeReasons
+         *            Which revocation reasons does this point cover.
+         * @param indirectCRL
+         *            If <code>true</code> then the CRL contains revocation
+         *            information about certificates ssued by other CAs.
+         * @param onlyContainsAttributeCerts Covers revocation information for attribute certificates.
+         */
+        public IssuingDistributionPoint(DistributionPointName distributionPoint, bool onlyContainsUserCerts,
+            bool onlyContainsCACerts, ReasonFlags onlySomeReasons, bool indirectCRL, bool onlyContainsAttributeCerts)
+        {
+            int count = Convert.ToInt32(onlyContainsUserCerts) + Convert.ToInt32(onlyContainsCACerts) +
+                Convert.ToInt32(onlyContainsAttributeCerts);
+            if (count > 1)
+            {
+                throw new ArgumentException("only one of onlyContainsCACerts, onlyContainsUserCerts, or onlyContainsAttributeCerts can be true");
+            }
+
+            m_distributionPoint = distributionPoint;
             m_onlyContainsUserCerts = DerBoolean.GetInstance(onlyContainsUserCerts);
             m_onlyContainsCACerts = DerBoolean.GetInstance(onlyContainsCACerts);
             m_onlySomeReasons = onlySomeReasons;
             m_indirectCRL = DerBoolean.GetInstance(indirectCRL);
-			m_onlyContainsAttributeCerts = DerBoolean.GetInstance(onlyContainsAttributeCerts);
+            m_onlyContainsAttributeCerts = DerBoolean.GetInstance(onlyContainsAttributeCerts);
 
-			Asn1EncodableVector vec = new Asn1EncodableVector(6);
-			if (distributionPoint != null)
-			{	// CHOICE item so explicitly tagged
-				vec.Add(new DerTaggedObject(true, 0, distributionPoint));
-			}
-			if (onlyContainsUserCerts)
-			{
-				vec.Add(new DerTaggedObject(false, 1, DerBoolean.True));
-			}
-			if (onlyContainsCACerts)
-			{
-				vec.Add(new DerTaggedObject(false, 2, DerBoolean.True));
-			}
-			if (onlySomeReasons != null)
-			{
-				vec.Add(new DerTaggedObject(false, 3, onlySomeReasons));
-			}
-			if (indirectCRL)
-			{
-				vec.Add(new DerTaggedObject(false, 4, DerBoolean.True));
-			}
-			if (onlyContainsAttributeCerts)
-			{
-				vec.Add(new DerTaggedObject(false, 5, DerBoolean.True));
-			}
+            Asn1EncodableVector vec = new Asn1EncodableVector(6);
+            if (distributionPoint != null)
+            {   // CHOICE item so explicitly tagged
+                vec.Add(new DerTaggedObject(true, 0, distributionPoint));
+            }
+            if (onlyContainsUserCerts)
+            {
+                vec.Add(new DerTaggedObject(false, 1, DerBoolean.True));
+            }
+            if (onlyContainsCACerts)
+            {
+                vec.Add(new DerTaggedObject(false, 2, DerBoolean.True));
+            }
+            if (onlySomeReasons != null)
+            {
+                vec.Add(new DerTaggedObject(false, 3, onlySomeReasons));
+            }
+            if (indirectCRL)
+            {
+                vec.Add(new DerTaggedObject(false, 4, DerBoolean.True));
+            }
+            if (onlyContainsAttributeCerts)
+            {
+                vec.Add(new DerTaggedObject(false, 5, DerBoolean.True));
+            }
 
-			m_seq = new DerSequence(vec);
-		}
+            m_seq = new DerSequence(vec);
+        }
 
-		/**
+        /**
          * Constructor from Asn1Sequence
          */
         private IssuingDistributionPoint(Asn1Sequence seq)
@@ -116,7 +118,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_onlyContainsCACerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, DerBoolean.GetTagged)
                 ?? DerBoolean.False;
             m_onlySomeReasons = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, false,
-				(t, e) => new ReasonFlags(ReasonFlags.GetInstance(t, e)));
+				(t, e) => new ReasonFlags(DerBitString.GetTagged(t, e)));
             m_indirectCRL = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, false, DerBoolean.GetTagged)
                 ?? DerBoolean.False;
             m_onlyContainsAttributeCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 5, false, DerBoolean.GetTagged)

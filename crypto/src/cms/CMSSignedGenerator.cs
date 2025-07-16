@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -12,6 +13,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -46,8 +48,8 @@ namespace Org.BouncyCastle.Cms
     public abstract class CmsSignedGenerator
     {
         /**
-        * Default type for the signed data.
-        */
+         * Default type for the signed data.
+         */
         public static readonly string Data = CmsObjectIdentifiers.Data.Id;
 
         public static readonly string DigestSha1 = OiwObjectIdentifiers.IdSha1.Id;
@@ -63,11 +65,15 @@ namespace Org.BouncyCastle.Cms
         public static readonly string DigestSha3_384 = NistObjectIdentifiers.IdSha3_384.Id;
         public static readonly string DigestSha3_512 = NistObjectIdentifiers.IdSha3_512.Id;
 
+        public static readonly string DigestShake128 = NistObjectIdentifiers.IdShake128.Id;
+        public static readonly string DigestShake256 = NistObjectIdentifiers.IdShake256.Id;
+
         public static readonly string DigestMD5 = PkcsObjectIdentifiers.MD5.Id;
         public static readonly string DigestGost3411 = CryptoProObjectIdentifiers.GostR3411.Id;
         public static readonly string DigestRipeMD128 = TeleTrusTObjectIdentifiers.RipeMD128.Id;
         public static readonly string DigestRipeMD160 = TeleTrusTObjectIdentifiers.RipeMD160.Id;
         public static readonly string DigestRipeMD256 = TeleTrusTObjectIdentifiers.RipeMD256.Id;
+        public static readonly string DigestSM3 = GMObjectIdentifiers.sm3.Id;
 
         public static readonly string EncryptionRsa = PkcsObjectIdentifiers.RsaEncryption.Id;
         public static readonly string EncryptionDsa = X9ObjectIdentifiers.IdDsaWithSha1.Id;
@@ -82,6 +88,7 @@ namespace Org.BouncyCastle.Cms
         internal List<Asn1Encodable> _crls = new List<Asn1Encodable>();
         internal List<SignerInformation> _signers = new List<SignerInformation>();
         internal Dictionary<DerObjectIdentifier, byte[]> m_digests = new Dictionary<DerObjectIdentifier, byte[]>();
+        internal IDigestAlgorithmFinder m_digestAlgorithmFinder = DefaultDigestAlgorithmFinder.Instance;
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
@@ -115,12 +122,10 @@ namespace Org.BouncyCastle.Cms
             return param;
         }
 
-        internal protected virtual Asn1Set GetAttributeSet(
-            Asn1.Cms.AttributeTable attr)
+        // TODO[api] Make internal
+        internal protected virtual Asn1Set GetAttributeSet(Asn1.Cms.AttributeTable attr)
         {
-            return attr == null
-                ? null
-                : DerSet.FromVector(attr.ToAsn1EncodableVector());
+            return attr == null ? null : DerSet.FromCollection(attr);
         }
 
         public void AddAttributeCertificate(X509V2AttributeCertificate attrCert) =>
@@ -154,25 +159,32 @@ namespace Org.BouncyCastle.Cms
         }
 
         /**
-		 * Add a store of precalculated signers to the generator.
-		 *
-		 * @param signerStore store of signers
-		 */
+         * Add a store of precalculated signers to the generator.
+         *
+         * @param signerStore store of signers
+         */
         public void AddSigners(SignerInformationStore signerStore)
         {
-            foreach (SignerInformation o in signerStore.GetSigners())
+            foreach (SignerInformation o in signerStore.SignersInternal)
             {
                 _signers.Add(o);
                 AddSignerCallback(o);
             }
         }
 
+        public IDigestAlgorithmFinder DigestAlgorithmFinder
+        {
+            get { return m_digestAlgorithmFinder; }
+            set { m_digestAlgorithmFinder = value ?? throw new ArgumentNullException(nameof(value)); }
+        }
+
         /**
-		 * Return a map of oids and byte arrays representing the digests calculated on the content during
-		 * the last generate.
-		 *
-		 * @return a map of oids (as string objects) and byte[] representing digests.
-		 */
+         * Return a map of oids and byte arrays representing the digests calculated on the content during
+         * the last generate.
+         *
+         * @return a map of oids (as string objects) and byte[] representing digests.
+         */
+        // TODO[api] Prefer to return just a copy of m_digests (i.e. keyed by DerObjectIdentifier)?
         public IDictionary<string, byte[]> GetGeneratedDigests()
         {
             var result = new Dictionary<string, byte[]>(StringComparer.OrdinalIgnoreCase);

@@ -478,16 +478,11 @@ namespace Org.BouncyCastle.X509
 		{
 			get
 			{
-				Asn1OctetString idp = GetExtensionValue(X509Extensions.IssuingDistributionPoint);
-				bool isIndirect = false;
-
+				IssuingDistributionPoint idp;
 				try
 				{
-					if (idp != null)
-					{
-						isIndirect = IssuingDistributionPoint.GetInstance(
-							X509ExtensionUtilities.FromExtensionValue(idp)).IsIndirectCrl;
-					}
+					idp = this.GetExtension(X509Extensions.IssuingDistributionPoint,
+						IssuingDistributionPoint.GetInstance);
 				}
 				catch (Exception e)
 				{
@@ -496,7 +491,7 @@ namespace Org.BouncyCastle.X509
 					throw new CrlException("Exception reading IssuingDistributionPoint" + e);
 				}
 
-				return isIndirect;
+				return idp != null && idp.IsIndirectCrl;
 			}
 		}
 

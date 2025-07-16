@@ -17,42 +17,37 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class CrlSource
         : Asn1Encodable, IAsn1Choice
     {
-        public static CrlSource GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-            if (obj is CrlSource crlSource)
-                return crlSource;
-            return new CrlSource(Asn1TaggedObject.GetInstance(obj));
-        }
+        public static CrlSource GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static CrlSource GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+        public static CrlSource GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is CrlSource crlSource)
+                return crlSource;
+
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
+            {
+                if (taggedObject.HasContextTag(0))
+                    return new CrlSource(dpn: DistributionPointName.GetTagged(taggedObject, true), issuer: null);
+
+                if (taggedObject.HasContextTag(1))
+                    return new CrlSource(dpn: null, issuer: GeneralNames.GetTagged(taggedObject, true));
+            }
+
+            return null;
+        }
 
         public static CrlSource GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly DistributionPointName m_dpn;
         private readonly GeneralNames m_issuer;
-
-        private CrlSource(Asn1TaggedObject taggedObject)
-        {
-            if (taggedObject.HasContextTag(0))
-            {
-                m_dpn = DistributionPointName.GetInstance(taggedObject, true);
-                m_issuer = null;
-            }
-            else if (taggedObject.HasContextTag(1))
-            {
-                m_dpn = null;
-                m_issuer = GeneralNames.GetInstance(taggedObject, true);
-            }
-            else
-            {
-                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(taggedObject),
-                    nameof(taggedObject));
-            }
-        }
 
         public CrlSource(DistributionPointName dpn, GeneralNames issuer)
         {

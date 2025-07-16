@@ -274,8 +274,7 @@ namespace Org.BouncyCastle.X509.Store
 
         private bool MatchPolicy(X509Certificate c)
         {
-            Asn1Sequence certificatePolicies = Asn1Sequence.GetInstance(
-                X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.CertificatePolicies));
+            var certificatePolicies = c.GetExtension(X509Extensions.CertificatePolicies, Asn1Sequence.GetInstance);
 
             if (certificatePolicies == null || certificatePolicies.Count < 1)
                 return false;
@@ -285,8 +284,8 @@ namespace Org.BouncyCastle.X509.Store
 
         private bool MatchPrivateKeyValid(X509Certificate c)
         {
-            var privateKeyUsagePeriod = PrivateKeyUsagePeriod.GetInstance(
-                X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.PrivateKeyUsagePeriod));
+            var privateKeyUsagePeriod = c.GetExtension(X509Extensions.PrivateKeyUsagePeriod,
+                PrivateKeyUsagePeriod.GetInstance);
 
             if (privateKeyUsagePeriod != null)
             {
@@ -318,9 +317,7 @@ namespace Org.BouncyCastle.X509.Store
 
         private bool MatchSubjectAlternativeNames(X509Certificate c)
         {
-            GeneralNames generalNames = GeneralNames.GetInstance(
-                X509ExtensionUtilities.FromExtensionValue(c, X509Extensions.SubjectAlternativeName));
-
+            var generalNames = c.GetSubjectAlternativeNameExtension();
             if (generalNames == null)
                 return false;
 

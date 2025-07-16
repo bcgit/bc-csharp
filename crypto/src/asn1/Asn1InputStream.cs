@@ -32,10 +32,12 @@ namespace Org.BouncyCastle.Asn1
                 return asn1.limit;
 
             if (input is MemoryStream memory)
-                return Convert.ToInt32(memory.Length - memory.Position);
+                return GetMemoryStreamLimit(memory);
 
             return int.MaxValue;
         }
+
+        internal static int GetMemoryStreamLimit(MemoryStream input) => Convert.ToInt32(input.Length - input.Position);
 
         /**
          * Create an ASN1InputStream based on the input byte array. The length of DER objects in
@@ -50,6 +52,11 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1InputStream(Stream input)
             : this(input, FindLimit(input))
+        {
+        }
+
+        internal Asn1InputStream(MemoryStream input)
+            : this(input, GetMemoryStreamLimit(input))
         {
         }
 

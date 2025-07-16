@@ -5,8 +5,8 @@ namespace Org.BouncyCastle.Cms
 {
     [Serializable]
     public class CmsAttributeTableGenerationException
-		: CmsException
-	{
+        : CmsException
+    {
         public CmsAttributeTableGenerationException()
             : base()
         {
@@ -26,5 +26,5 @@ namespace Org.BouncyCastle.Cms
             : base(info, context)
         {
         }
-	}
+    }
 }

@@ -18,6 +18,9 @@ namespace Org.BouncyCastle.Cert.Tests
         public static readonly SampleCredentials ML_DSA_65 = Load("ML-DSA-65", "pkix/cert/mldsa", "ML-DSA-65.pem");
         public static readonly SampleCredentials ML_DSA_87 = Load("ML-DSA-87", "pkix/cert/mldsa", "ML-DSA-87.pem");
 
+        public static readonly SampleCredentials SLH_DSA_SHA2_128S = Load("SLH-DSA-SHA2-128S", "pkix/cert/slhdsa",
+            "SLH-DSA-SHA2-128S.pem");
+
         private static PemObject ExpectPemObject(PemReader pemReader, string type)
         {
             PemObject result = pemReader.ReadPemObject();

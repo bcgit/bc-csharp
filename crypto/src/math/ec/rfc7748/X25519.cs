@@ -34,6 +34,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
+        public static void ClampPrivateKey(byte[] k)
+        {
+            if (k.Length != ScalarSize)
+                throw new ArgumentException(nameof(k));
+
+            k[0] &= 0xF8;
+            k[ScalarSize - 1] &= 0x7F;
+            k[ScalarSize - 1] |= 0x40;
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static uint Decode32(ReadOnlySpan<byte> bs)
         {
@@ -85,9 +95,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             random.NextBytes(k);
 
-            k[0] &= 0xF8;
-            k[ScalarSize - 1] &= 0x7F;
-            k[ScalarSize - 1] |= 0x40;
+            ClampPrivateKey(k);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

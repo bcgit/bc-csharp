@@ -19,6 +19,21 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public static EncryptedValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptedValue(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static EncryptedValue GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is EncryptedValue encryptedValue)
+                return encryptedValue;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new EncryptedValue(asn1Sequence);
+
+            return null;
+        }
+
         public static EncryptedValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncryptedValue(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -31,45 +46,30 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private EncryptedValue(Asn1Sequence seq)
         {
-            int index = 0;
-            while (seq[index] is Asn1TaggedObject tObj)
-            {
-                switch (tObj.TagNo)
-                {
-                case 0:
-                    m_intendedAlg = AlgorithmIdentifier.GetInstance(tObj, false);
-                    break;
-                case 1:
-                    m_symmAlg = AlgorithmIdentifier.GetInstance(tObj, false);
-                    break;
-                case 2:
-                    m_encSymmKey = DerBitString.GetInstance(tObj, false);
-                    break;
-                case 3:
-                    m_keyAlg = AlgorithmIdentifier.GetInstance(tObj, false);
-                    break;
-                case 4:
-                    m_valueHint = Asn1OctetString.GetInstance(tObj, false);
-                    break;
-                }
-                ++index;
-            }
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 6)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_encValue = DerBitString.GetInstance(seq[index]);
+            m_intendedAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, AlgorithmIdentifier.GetTagged);
+            m_symmAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, AlgorithmIdentifier.GetTagged);
+            m_encSymmKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, DerBitString.GetTagged);
+            m_keyAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, false, AlgorithmIdentifier.GetTagged);
+            m_valueHint = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, false, Asn1OctetString.GetTagged);
+            m_encValue = DerBitString.GetInstance(seq[pos++]);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public EncryptedValue(AlgorithmIdentifier intendedAlg, AlgorithmIdentifier symmAlg, DerBitString encSymmKey,
             AlgorithmIdentifier keyAlg, Asn1OctetString valueHint, DerBitString encValue)
         {
-            if (encValue == null)
-                throw new ArgumentNullException(nameof(encValue));
-
             m_intendedAlg = intendedAlg;
             m_symmAlg = symmAlg;
             m_encSymmKey = encSymmKey;
             m_keyAlg = keyAlg;
             m_valueHint = valueHint;
-            m_encValue = encValue;
+            m_encValue = encValue ?? throw new ArgumentNullException(nameof(encValue));
         }
 
         public virtual AlgorithmIdentifier IntendedAlg => m_intendedAlg;

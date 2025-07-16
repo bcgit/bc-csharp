@@ -1,5 +1,6 @@
-using Org.BouncyCastle.Math.EC;
+using System;
 
+using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X9
@@ -10,52 +11,42 @@ namespace Org.BouncyCastle.Asn1.X9
     public class X9ECPoint
         : Asn1Encodable
     {
-        private readonly Asn1OctetString encoding;
+        private readonly Asn1OctetString m_encoding;
 
-        private ECCurve c;
-        private ECPoint p;
+        private readonly ECCurve m_c;
+        private ECPoint m_p;
 
         public X9ECPoint(ECPoint p, bool compressed)
         {
-            this.p = p.Normalize();
-            this.encoding = new DerOctetString(p.GetEncoded(compressed));
+            m_c = p.Curve;
+            m_p = p.Normalize();
+            m_encoding = new DerOctetString(p.GetEncoded(compressed));
         }
 
         public X9ECPoint(ECCurve c, byte[] encoding)
+            : this(c, DerOctetString.FromContents(encoding))
         {
-            this.c = c;
-            this.encoding = DerOctetString.FromContents(encoding);
         }
 
         public X9ECPoint(ECCurve c, Asn1OctetString s)
-            : this(c, s.GetOctets())
         {
+            m_c = c ?? throw new ArgumentNullException(nameof(c));
+            m_p = null;
+            m_encoding = s ?? throw new ArgumentNullException(nameof(s));
         }
 
-        public byte[] GetPointEncoding()
-        {
-            return Arrays.Clone(encoding.GetOctets());
-        }
+        public byte[] GetPointEncoding() => Arrays.Clone(m_encoding.GetOctets());
 
-        public ECPoint Point
-        {
-            get
-            {
-                if (p == null)
-                {
-                    p = c.DecodePoint(encoding.GetOctets()).Normalize();
-                }
+        public Asn1OctetString PointEncoding => m_encoding;
 
-                return p;
-            }
-        }
+        public ECPoint Point => Objects.EnsureSingletonInitialized(ref m_p, this, self => self.CreatePoint());
 
         public bool IsPointCompressed
         {
             get
             {
-                byte[] octets = encoding.GetOctets();
-                return octets != null && octets.Length > 0 && (octets[0] == 2 || octets[0] == 3);
+                byte[] octets = m_encoding.GetOctets();
+                return octets.Length > 0 && (octets[0] == 2 || octets[0] == 3);
             }
         }
 
@@ -67,9 +58,8 @@ namespace Org.BouncyCastle.Asn1.X9
          * <p>
          * Octet string produced using ECPoint.GetEncoded().</p>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-            return encoding;
-        }
+        public override Asn1Object ToAsn1Object() => m_encoding;
+
+        private ECPoint CreatePoint() => m_c.DecodePoint(m_encoding.GetOctets());
     }
 }

@@ -10,116 +10,118 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.X509
 {
-	public class X509AttrCertParser
-	{
-		private static readonly PemParser PemAttrCertParser = new PemParser("ATTRIBUTE CERTIFICATE");
+    public class X509AttrCertParser
+    {
+        private static readonly PemParser PemAttrCertParser = new PemParser("ATTRIBUTE CERTIFICATE");
 
-		private Asn1Set	sData;
-		private int		sDataObjectCount;
-		private Stream	currentStream;
+        private Asn1Set sData;
+        private int sDataObjectCount;
+        private Stream currentStream;
 
-		private X509V2AttributeCertificate ReadDerCertificate(
-			Asn1InputStream dIn)
-		{
-			Asn1Sequence seq = (Asn1Sequence)dIn.ReadObject();
+        private X509V2AttributeCertificate ReadDerCertificate(Asn1InputStream dIn)
+        {
+            Asn1Sequence seq = (Asn1Sequence)dIn.ReadObject();
 
-			if (seq.Count > 1 && seq[0] is DerObjectIdentifier)
-			{
-				if (seq[0].Equals(PkcsObjectIdentifiers.SignedData))
-				{
-					sData = SignedData.GetInstance(
-						Asn1Sequence.GetInstance((Asn1TaggedObject) seq[1], true)).Certificates;
+            if (seq.Count > 1 && seq[0] is DerObjectIdentifier contentType)
+            {
+                if (PkcsObjectIdentifiers.SignedData.Equals(contentType))
+                {
+                    if (Asn1Utilities.TryGetOptionalContextTagged(seq[1], 0, true, out var signedData,
+                        SignedData.GetTagged))
+                    {
+                        sData = signedData.Certificates;
+                        return GetCertificate();
+                    }
+                }
+            }
 
-					return GetCertificate();
-				}
-			}
+            return new X509V2AttributeCertificate(AttributeCertificate.GetInstance(seq));
+        }
 
-			return new X509V2AttributeCertificate(AttributeCertificate.GetInstance(seq));
-		}
+        private X509V2AttributeCertificate ReadPemCertificate(Stream inStream)
+        {
+            Asn1Sequence seq = PemAttrCertParser.ReadPemObject(inStream);
 
-		private X509V2AttributeCertificate GetCertificate()
-		{
-			if (sData != null)
-			{
-				while (sDataObjectCount < sData.Count)
-				{
-					Asn1Encodable ae = sData[sDataObjectCount++];
+            return seq == null ? null : new X509V2AttributeCertificate(AttributeCertificate.GetInstance(seq));
+        }
 
-					if (ae.ToAsn1Object() is Asn1TaggedObject t && t.TagNo == 2)
-					{
-						return new X509V2AttributeCertificate(
-							AttributeCertificate.GetInstance(Asn1Sequence.GetInstance(t, false)));
-					}
-				}
-			}
+        private X509V2AttributeCertificate GetCertificate()
+        {
+            if (sData != null)
+            {
+                while (sDataObjectCount < sData.Count)
+                {
+                    if (Asn1Utilities.TryGetOptionalContextTagged(sData[sDataObjectCount++], 2, false,
+                        out var attributeCertificate, AttributeCertificate.GetTagged))
+                    {
+                        return new X509V2AttributeCertificate(attributeCertificate);
+                    }
+                }
+            }
 
-			return null;
-		}
+            return null;
+        }
 
-		private X509V2AttributeCertificate ReadPemCertificate(
-			Stream inStream)
-		{
-			Asn1Sequence seq = PemAttrCertParser.ReadPemObject(inStream);
+        /// <summary>
+        /// Create loading data from byte array.
+        /// </summary>
+        /// <param name="input"></param>
+        public X509V2AttributeCertificate ReadAttrCert(byte[] input)
+        {
+            using (var inStream = new MemoryStream(input, false))
+            {
+                return ReadAttrCert(inStream);
+            }
+        }
 
-			return seq == null
-				?	null
-				:	new X509V2AttributeCertificate(AttributeCertificate.GetInstance(seq));
-		}
+        /// <summary>
+        /// Create loading data from byte array.
+        /// </summary>
+        /// <param name="input"></param>
+        public IList<X509V2AttributeCertificate> ReadAttrCerts(byte[] input)
+        {
+            using (var inStream = new MemoryStream(input, false))
+            {
+                return ReadAttrCerts(inStream);
+            }
+        }
 
-		/// <summary>
-		/// Create loading data from byte array.
-		/// </summary>
-		/// <param name="input"></param>
-		public X509V2AttributeCertificate ReadAttrCert(byte[] input)
-		{
-			return ReadAttrCert(new MemoryStream(input, false));
-		}
+        /**
+         * Generates a certificate object and initializes it with the data
+         * read from the input stream inStream.
+         */
+        public X509V2AttributeCertificate ReadAttrCert(Stream inStream)
+        {
+            if (inStream == null)
+                throw new ArgumentNullException(nameof(inStream));
+            if (!inStream.CanRead)
+                throw new ArgumentException("Stream must be read-able", nameof(inStream));
 
-		/// <summary>
-		/// Create loading data from byte array.
-		/// </summary>
-		/// <param name="input"></param>
-		public IList<X509V2AttributeCertificate> ReadAttrCerts(byte[] input)
-		{
-			return ReadAttrCerts(new MemoryStream(input, false));
-		}
+            if (currentStream == null)
+            {
+                currentStream = inStream;
+                sData = null;
+                sDataObjectCount = 0;
+            }
+            else if (currentStream != inStream) // reset if input stream has changed
+            {
+                currentStream = inStream;
+                sData = null;
+                sDataObjectCount = 0;
+            }
 
-		/**
-		 * Generates a certificate object and initializes it with the data
-		 * read from the input stream inStream.
-		 */
-		public X509V2AttributeCertificate ReadAttrCert(
-			Stream inStream)
-		{
-			if (inStream == null)
-				throw new ArgumentNullException("inStream");
-			if (!inStream.CanRead)
-				throw new ArgumentException("inStream must be read-able", "inStream");
+            try
+            {
+                if (sData != null)
+                {
+                    if (sDataObjectCount != sData.Count)
+                        return GetCertificate();
 
-			if (currentStream == null)
-			{
-				currentStream = inStream;
-				sData = null;
-				sDataObjectCount = 0;
-			}
-			else if (currentStream != inStream) // reset if input stream has changed
-			{
-				currentStream = inStream;
-				sData = null;
-				sDataObjectCount = 0;
-			}
-
-			try
-			{
-				if (sData != null)
-				{
-					if (sDataObjectCount != sData.Count)
-						return GetCertificate();
-
-					sData = null;
-					sDataObjectCount = 0;
-					return null;
-				}
+                    sData = null;
+                    sDataObjectCount = 0;
+                    // TODO[api] Consider removing this and continuing directly
+                    return null;
+                }
 
                 int tag = inStream.ReadByte();
                 if (tag < 0)
@@ -137,35 +139,37 @@ namespace Org.BouncyCastle.X509
                 }
 
                 if (tag != 0x30)  // assume ascii PEM encoded.
-					return ReadPemCertificate(inStream);
+                    return ReadPemCertificate(inStream);
 
-				return ReadDerCertificate(new Asn1InputStream(inStream));
-			}
-			catch (CertificateException)
-			{
-				throw;
-			}
-			catch (Exception e)
-			{
-				throw new CertificateException(e.ToString());
-			}
-		}
+                using (var asn1In = new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true))
+                {
+                    return ReadDerCertificate(asn1In);
+                }
+            }
+            catch (CertificateException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CertificateException("Failed to read attribute certificate", e);
+            }
+        }
 
-		/**
-		 * Returns a (possibly empty) collection view of the certificates
-		 * read from the given input stream inStream.
-		 */
-		public IList<X509V2AttributeCertificate> ReadAttrCerts(Stream inStream)
-		{
-			var attrCerts = new List<X509V2AttributeCertificate>();
+        /**
+         * Returns a (possibly empty) collection view of the certificates
+         * read from the given input stream inStream.
+         */
+        public IList<X509V2AttributeCertificate> ReadAttrCerts(Stream inStream) =>
+            new List<X509V2AttributeCertificate>(ParseAttrCerts(inStream));
 
-			X509V2AttributeCertificate attrCert;
-			while ((attrCert = ReadAttrCert(inStream)) != null)
-			{
-				attrCerts.Add(attrCert);
-			}
-
-			return attrCerts;
-		}
-	}
+        public IEnumerable<X509V2AttributeCertificate> ParseAttrCerts(Stream inStream)
+        {
+            X509V2AttributeCertificate attrCert;
+            while ((attrCert = ReadAttrCert(inStream)) != null)
+            {
+                yield return attrCert;
+            }
+        }
+    }
 }

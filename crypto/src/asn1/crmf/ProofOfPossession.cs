@@ -1,8 +1,5 @@
 ﻿using System;
 
-using Org.BouncyCastle.Tls;
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.Crmf
 {
     public class ProofOfPossession
@@ -13,20 +10,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public const int TYPE_KEY_ENCIPHERMENT = 2;
         public const int TYPE_KEY_AGREEMENT = 3;
 
-        public static ProofOfPossession GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-
-            if (obj is Asn1Encodable element)
-            {
-                var result = GetOptional(element);
-                if (result != null)
-                    return result;
-            }
-
-            throw new ArgumentException("Invalid object: " + Platform.GetTypeName(obj), nameof(obj));
-        }
+        public static ProofOfPossession GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static ProofOfPossession GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
@@ -39,7 +23,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             if (element is ProofOfPossession proofOfPossession)
                 return proofOfPossession;
 
-            if (element is Asn1TaggedObject taggedObject)
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
             {
                 Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
                 if (baseObject != null)
@@ -59,13 +44,13 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 switch (taggedObject.TagNo)
                 {
                 case 0:
-                    return DerNull.GetInstance(taggedObject, false);
+                    return DerNull.GetTagged(taggedObject, false);
                 case 1:
-                    return PopoSigningKey.GetInstance(taggedObject, false);
+                    return PopoSigningKey.GetTagged(taggedObject, false);
                 case 2:
                 case 3:
                     // CHOICE so explicit
-                    return PopoPrivKey.GetInstance(taggedObject, true);
+                    return PopoPrivKey.GetTagged(taggedObject, true);
                 }
             }
             return null;

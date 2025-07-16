@@ -84,6 +84,22 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        public static Asn1TaggedObject GetOptional(Asn1Encodable element, int tagClass)
+        {
+            var taggedObject = GetOptional(element);
+            if (taggedObject != null && taggedObject.HasTagClass(tagClass))
+                return taggedObject;
+            return null;
+        }
+
+        public static Asn1TaggedObject GetOptional(Asn1Encodable element, int tagClass, int tagNo)
+        {
+            var taggedObject = GetOptional(element);
+            if (taggedObject != null && taggedObject.HasTag(tagClass, tagNo))
+                return taggedObject;
+            return null;
+        }
+
         public static Asn1TaggedObject GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             CheckInstance(taggedObject, declaredExplicit).GetExplicitBaseTagged();
 

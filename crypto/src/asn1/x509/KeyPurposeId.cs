@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Asn1.X509
      *     KeyPurposeID ::= OBJECT IDENTIFIER
      * </pre>
      */
+    // TODO[api] This class isn't needed, only the OID registry
     public sealed class KeyPurposeID
         : DerObjectIdentifier
     {

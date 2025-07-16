@@ -24,20 +24,14 @@ namespace Org.BouncyCastle.Tls
                 throw new ArgumentException("cannot be longer than 255 bytes", "mki");
             }
 
-            this.m_protectionProfiles = protectionProfiles;
-            this.m_mki = mki;
+            m_protectionProfiles = protectionProfiles;
+            m_mki = mki;
         }
 
         /// <returns>see <see cref="SrtpProtectionProfile"/> for valid constants.</returns>
-        public int[] ProtectionProfiles
-        {
-            get { return m_protectionProfiles; }
-        }
+        public int[] ProtectionProfiles => m_protectionProfiles;
 
         /// <returns>valid lengths from 0 to 255.</returns>
-        public byte[] Mki
-        {
-            get { return m_mki; }
-        }
+        public byte[] Mki => m_mki;
     }
 }

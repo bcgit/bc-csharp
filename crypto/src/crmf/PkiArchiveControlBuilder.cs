@@ -37,23 +37,23 @@ namespace Org.BouncyCastle.Crmf
             m_envGen = new CmsEnvelopedDataGenerator();
         }
 
-        ///<summary>Add a recipient generator to this control.</summary>       
+        ///<summary>Add a recipient generator to this control.</summary>
         ///<param name="recipientGen"> recipient generator created for a specific recipient.</param>
-        ///<returns>this builder object.</returns>       
+        ///<returns>this builder object.</returns>
         public PkiArchiveControlBuilder AddRecipientGenerator(RecipientInfoGenerator recipientGen)
         {
             m_envGen.AddRecipientInfoGenerator(recipientGen);
             return this;
         }
-       
+
         /// <summary>Build the PKIArchiveControl using the passed in encryptor to encrypt its contents.</summary>
         /// <param name="contentEncryptor">a suitable content encryptor.</param>
         /// <returns>a PKIArchiveControl object.</returns>
         public PkiArchiveControl Build(ICipherBuilderWithKey contentEncryptor)
-        {                                            
-            CmsEnvelopedData envContent = m_envGen.Generate(m_keyContent, contentEncryptor);
-            EnvelopedData envD = EnvelopedData.GetInstance(envContent.ContentInfo.Content);        
-            return new PkiArchiveControl(new PkiArchiveOptions(new EncryptedKey(envD)));
+        {
+            CmsEnvelopedData envData = m_envGen.Generate(m_keyContent, contentEncryptor);
+            var encryptedKey = new EncryptedKey(envData.EnvelopedData);
+            return new PkiArchiveControl(new PkiArchiveOptions(encryptedKey));
         }
 
         // TODO[crmf]

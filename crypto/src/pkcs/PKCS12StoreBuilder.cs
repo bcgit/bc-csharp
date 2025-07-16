@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Pkcs
         private bool useDerEncoding = false;
         private bool reverseCertificates = false;
         private bool overwriteFriendlyName = true;
+        private bool enableOracleTrustedKeyUsage = true;
 
         public Pkcs12StoreBuilder()
         {
@@ -25,19 +26,7 @@ namespace Org.BouncyCastle.Pkcs
         public Pkcs12Store Build()
         {
             return new Pkcs12Store(certAlgorithm, certPrfAlgorithm, keyAlgorithm, keyPrfAlgorithm, useDerEncoding,
-                reverseCertificates, overwriteFriendlyName);
-        }
-
-        public Pkcs12StoreBuilder SetReverseCertificates(bool reverseCertificates)
-        {
-            this.reverseCertificates = reverseCertificates;
-            return this;
-        }
-
-        public Pkcs12StoreBuilder SetOverwriteFriendlyName(bool overwriteFriendlyName)
-        {
-            this.overwriteFriendlyName = overwriteFriendlyName;
-            return this;
+                reverseCertificates, overwriteFriendlyName, enableOracleTrustedKeyUsage);
         }
 
         public Pkcs12StoreBuilder SetCertAlgorithm(DerObjectIdentifier certAlgorithm)
@@ -55,6 +44,18 @@ namespace Org.BouncyCastle.Pkcs
             return this;
         }
 
+        /// <summary>
+        /// Whether to include Oracle's TrustedKeyUsage attribute in CertBag attributes. Defaults to <c>true</c>.
+        /// </summary>
+        /// <remarks>The OID 2.16.840.1.113894.746875.1.1 is used for this attribute.</remarks>
+        /// <param name="enableOracleTrustedKeyUsage"></param>
+        /// <returns></returns>
+        public Pkcs12StoreBuilder SetEnableOracleTrustedKeyUsage(bool enableOracleTrustedKeyUsage)
+        {
+            this.enableOracleTrustedKeyUsage = enableOracleTrustedKeyUsage;
+            return this;
+        }
+
         public Pkcs12StoreBuilder SetKeyAlgorithm(DerObjectIdentifier keyAlgorithm)
         {
             this.keyAlgorithm = keyAlgorithm;
@@ -67,6 +68,18 @@ namespace Org.BouncyCastle.Pkcs
         {
             this.keyAlgorithm = keyAlgorithm;
             this.keyPrfAlgorithm = keyPrfAlgorithm;
+            return this;
+        }
+
+        public Pkcs12StoreBuilder SetOverwriteFriendlyName(bool overwriteFriendlyName)
+        {
+            this.overwriteFriendlyName = overwriteFriendlyName;
+            return this;
+        }
+
+        public Pkcs12StoreBuilder SetReverseCertificates(bool reverseCertificates)
+        {
+            this.reverseCertificates = reverseCertificates;
             return this;
         }
 

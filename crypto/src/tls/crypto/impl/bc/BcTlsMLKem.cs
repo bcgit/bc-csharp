@@ -3,6 +3,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    // TODO[api] Make sealed
     public class BcTlsMLKem
         : TlsAgreement
     {

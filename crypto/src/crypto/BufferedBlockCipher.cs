@@ -228,8 +228,8 @@ namespace Org.BouncyCastle.Crypto
                 length -= available;
 
                 // Handle destructive overlap by copying the remaining input
-                if (output == input && SegmentsOverlap(outOff, blockSize, inOff, length))
-				{
+                if (output == input && Arrays.SegmentsOverlap(outOff, blockSize, inOff, length))
+                {
                     input = new byte[length];
                     Array.Copy(output, inOff, input, 0, length);
                     inOff = 0;

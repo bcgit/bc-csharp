@@ -1,32 +1,15 @@
 using System;
 using System.Globalization;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509
 {
     public class Time
         : Asn1Encodable, IAsn1Choice
     {
-        public static Time GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-            if (obj is Time time)
-                return time;
-            if (obj is Asn1UtcTime utcTime)
-                return new Time(utcTime);
-            if (obj is Asn1GeneralizedTime generalizedTime)
-                return new Time(generalizedTime);
-
-            throw new ArgumentException("unknown object in factory: " + Platform.GetTypeName(obj), nameof(obj));
-        }
+        public static Time GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static Time GetInstance(Asn1TaggedObject	taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
-
-        public static Time GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
-            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         public static Time GetOptional(Asn1Encodable element)
         {
@@ -46,6 +29,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
             return null;
         }
+
+        public static Time GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly Asn1Object m_timeObject;
 

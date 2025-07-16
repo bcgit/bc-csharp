@@ -42,16 +42,11 @@ namespace Org.BouncyCastle.Tsp
 
         public static readonly string SM3 = GMObjectIdentifiers.sm3.Id;
 
-		// TODO[api] Prefer an enumeration method?
-		public static readonly IList<string> Allowed;
-
-		static TspAlgorithms()
-		{
-			Allowed = CollectionUtilities.ReadOnly(new List<string>()
-			{
-				Gost3411, Gost3411_2012_256, Gost3411_2012_512, MD5, RipeMD128, RipeMD160, RipeMD256, Sha1, Sha224,
-				Sha256, Sha384, Sha512, SM3
-			});
-		}
+        // TODO[api] Prefer an enumeration method?
+        public static readonly IList<string> Allowed = CollectionUtilities.ReadOnly(new List<string>()
+        {
+			Gost3411, Gost3411_2012_256, Gost3411_2012_512, MD5, RipeMD128, RipeMD160, RipeMD256, Sha1, Sha224, Sha256,
+			Sha384, Sha512, Sha3_224, Sha3_256, Sha3_384, Sha3_512, SM3
+        });
 	}
 }

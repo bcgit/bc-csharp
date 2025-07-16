@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Tls
 {
     /// <summary>(D)TLS ECDHE key exchange (see RFC 4492).</summary>
+    // TODO[api] Make sealed
     public class TlsECDheKeyExchange
         : AbstractTlsKeyExchange
     {
@@ -36,28 +37,22 @@ namespace Org.BouncyCastle.Tls
         public TlsECDheKeyExchange(int keyExchange, TlsECConfig ecConfig)
             : base(CheckKeyExchange(keyExchange))
         {
-            this.m_ecConfig = ecConfig;
+            m_ecConfig = ecConfig;
         }
 
-        public override void SkipServerCredentials()
-        {
-            throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
+        public override void SkipServerCredentials() => throw new TlsFatalAlert(AlertDescription.internal_error);
 
         public override void ProcessServerCredentials(TlsCredentials serverCredentials)
         {
-            this.m_serverCredentials = TlsUtilities.RequireSignerCredentials(serverCredentials);
+            m_serverCredentials = TlsUtilities.RequireSignerCredentials(serverCredentials);
         }
 
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
-            this.m_serverCertificate = serverCertificate.GetCertificateAt(0);
+            m_serverCertificate = serverCertificate.GetCertificateAt(0);
         }
 
-        public override bool RequiresServerKeyExchange
-        {
-            get { return true; }
-        }
+        public override bool RequiresServerKeyExchange => true;
 
         public override byte[] GenerateServerKeyExchange()
         {
@@ -65,7 +60,7 @@ namespace Org.BouncyCastle.Tls
 
             TlsEccUtilities.WriteECConfig(m_ecConfig, digestBuffer);
 
-            this.m_agreement = m_context.Crypto.CreateECDomain(m_ecConfig).CreateECDH();
+            m_agreement = m_context.Crypto.CreateECDomain(m_ecConfig).CreateECDH();
 
             GenerateEphemeral(digestBuffer);
 
@@ -79,13 +74,13 @@ namespace Org.BouncyCastle.Tls
             DigestInputBuffer digestBuffer = new DigestInputBuffer();
             Stream teeIn = new TeeInputStream(input, digestBuffer);
 
-            this.m_ecConfig = TlsEccUtilities.ReceiveECDHConfig(m_context, teeIn);
+            m_ecConfig = TlsEccUtilities.ReceiveECDHConfig(m_context, teeIn);
 
             byte[] point = TlsUtilities.ReadOpaque8(teeIn, 1);
 
             TlsUtilities.VerifyServerKeyExchangeSignature(m_context, input, m_serverCertificate, null, digestBuffer);
 
-            this.m_agreement = m_context.Crypto.CreateECDomain(m_ecConfig).CreateECDH();
+            m_agreement = m_context.Crypto.CreateECDomain(m_ecConfig).CreateECDH();
 
             ProcessEphemeral(point);
         }
@@ -102,40 +97,24 @@ namespace Org.BouncyCastle.Tls
                 ClientCertificateType.rsa_sign };
         }
 
-        public override void ProcessClientCredentials(TlsCredentials clientCredentials)
-        {
+        public override void ProcessClientCredentials(TlsCredentials clientCredentials) =>
             TlsUtilities.RequireSignerCredentials(clientCredentials);
-        }
 
-        public override void GenerateClientKeyExchange(Stream output)
-        {
-            GenerateEphemeral(output);
-        }
+        public override void GenerateClientKeyExchange(Stream output) => GenerateEphemeral(output);
 
-        public override void ProcessClientKeyExchange(Stream input)
-        {
-            byte[] point = TlsUtilities.ReadOpaque8(input, 1);
+        public override void ProcessClientKeyExchange(Stream input) =>
+            ProcessEphemeral(TlsUtilities.ReadOpaque8(input, 1));
 
-            ProcessEphemeral(point);
-        }
+        public override TlsSecret GeneratePreMasterSecret() => m_agreement.CalculateSecret();
 
-        public override TlsSecret GeneratePreMasterSecret()
-        {
-            return m_agreement.CalculateSecret();
-        }
-
-        protected virtual void GenerateEphemeral(Stream output)
-        {
-            byte[] point = m_agreement.GenerateEphemeral();
-
-            TlsUtilities.WriteOpaque8(point, output);
-        }
+        protected virtual void GenerateEphemeral(Stream output) =>
+            TlsUtilities.WriteOpaque8(m_agreement.GenerateEphemeral(), output);
 
         protected virtual void ProcessEphemeral(byte[] point)
         {
             TlsEccUtilities.CheckPointEncoding(m_ecConfig.NamedGroup, point);
 
-            this.m_agreement.ReceivePeerValue(point);
+            m_agreement.ReceivePeerValue(point);
         }
     }
 }

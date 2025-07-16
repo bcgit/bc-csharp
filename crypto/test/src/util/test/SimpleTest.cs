@@ -19,14 +19,14 @@ namespace Org.BouncyCastle.Utilities.Test
 
         public abstract string Name { get; }
 
-		private ITestResult Success() => SimpleTestResult.Successful(this, "Okay");
+        private ITestResult Success() => SimpleTestResult.Successful(this, "Okay");
 
         internal void Fail(string message) => throw new TestFailedException(SimpleTestResult.Failed(this, message));
 
         internal void Fail(string message, Exception throwable) =>
             throw new TestFailedException(SimpleTestResult.Failed(this, message, throwable));
 
-		internal void Fail(string message, object expected, object found) =>
+        internal void Fail(string message, object expected, object found) =>
             throw new TestFailedException(SimpleTestResult.Failed(this, message, expected, found));
 
         internal void FailIf(string message, bool condition)
@@ -57,18 +57,13 @@ namespace Org.BouncyCastle.Utilities.Test
 
         internal void IsEquals(string message, object a, object b) => FailIf(message, !Objects.Equals(a, b));
 
-        internal bool AreEqual(byte[] a, byte[] b) => Arrays.AreEqual(a, b);
-
-        internal bool AreEqual(byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex) =>
-            Arrays.AreEqual(a, aFromIndex, aToIndex, b, bFromIndex, bToIndex);
-
-		public virtual ITestResult Perform()
+        public virtual ITestResult Perform()
         {
             try
             {
                 PerformTest();
 
-				return Success();
+                return Success();
             }
             catch (TestFailedException e)
             {
@@ -80,13 +75,18 @@ namespace Org.BouncyCastle.Utilities.Test
             }
         }
 
-		internal static void RunTest(ITest test) => RunTest(test, Console.Out);
+        internal static bool AreEqual(byte[] a, byte[] b) => Arrays.AreEqual(a, b);
 
-		internal static void RunTest(ITest test, TextWriter outStream)
+        internal static bool AreEqual(byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex) =>
+            Arrays.AreEqual(a, aFromIndex, aToIndex, b, bFromIndex, bToIndex);
+
+        internal static void RunTest(ITest test) => RunTest(test, Console.Out);
+
+        internal static void RunTest(ITest test, TextWriter outStream)
         {
             ITestResult result = test.Perform();
 
-			outStream.WriteLine(result.ToString());
+            outStream.WriteLine(result.ToString());
             if (result.GetException() != null)
             {
                 outStream.WriteLine(result.GetException().StackTrace);
@@ -98,22 +98,22 @@ namespace Org.BouncyCastle.Utilities.Test
         internal static Stream GetTestDataAsStream(string name) =>
             GetAssembly().GetManifestResourceStream(GetFullName(name));
 
-		internal static string[] GetTestDataEntries(string prefix)
-		{
-			string fullPrefix = GetFullName(prefix);
+        internal static string[] GetTestDataEntries(string prefix)
+        {
+            string fullPrefix = GetFullName(prefix);
 
-			var result = new List<string>();
-			string[] fullNames = GetAssembly().GetManifestResourceNames();
-			foreach (string fullName in fullNames)
-			{
-				if (fullName.StartsWith(fullPrefix))
-				{
-					string name = GetShortName(fullName);
-					result.Add(name);
-				}
-			}
+            var result = new List<string>();
+            string[] fullNames = GetAssembly().GetManifestResourceNames();
+            foreach (string fullName in fullNames)
+            {
+                if (fullName.StartsWith(fullPrefix))
+                {
+                    string name = GetShortName(fullName);
+                    result.Add(name);
+                }
+            }
             return result.ToArray();
-		}
+        }
 
         private static Assembly GetAssembly() => typeof(SimpleTest).Assembly;
 
@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.Utilities.Test
 
         private static string GetShortName(string fullName) => fullName.Substring("Org.BouncyCastle.data.".Length);
 
-		public abstract void PerformTest();
+        public abstract void PerformTest();
 
         public static DateTime MakeUtcDateTime(int year, int month, int day, int hour, int minute, int second) =>
             new DateTime(year, month, day, hour, minute, second, DateTimeKind.Utc);
@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Utilities.Test
                 throw new ArgumentException("bit value " + bitNo + " wrong");
         }
 
-        private static TValue EnsureSingletonInitialized<TValue>(ref TValue value, Func<TValue> initialize)
+        internal static TValue EnsureSingletonInitialized<TValue>(ref TValue value, Func<TValue> initialize)
             where TValue : class
         {
             TValue currentValue = Volatile.Read(ref value);

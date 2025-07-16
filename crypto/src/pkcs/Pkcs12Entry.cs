@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Pkcs
 {
     public abstract class Pkcs12Entry
     {
-		private readonly IDictionary<DerObjectIdentifier, Asn1Encodable> m_attributes;
+        private readonly IDictionary<DerObjectIdentifier, Asn1Encodable> m_attributes;
 
         // TODO[api] Remove 'protected'
         protected internal Pkcs12Entry(IDictionary<DerObjectIdentifier, Asn1Encodable> attributes)
@@ -17,14 +17,14 @@ namespace Org.BouncyCastle.Pkcs
             m_attributes = attributes;
         }
 
-		public Asn1Encodable this[DerObjectIdentifier oid] => CollectionUtilities.GetValueOrNull(m_attributes, oid);
+        public Asn1Encodable this[DerObjectIdentifier oid] => CollectionUtilities.GetValueOrNull(m_attributes, oid);
 
-		public IEnumerable<DerObjectIdentifier> BagAttributeKeys => CollectionUtilities.Proxy(m_attributes.Keys);
+        public IEnumerable<DerObjectIdentifier> BagAttributeKeys => CollectionUtilities.Proxy(m_attributes.Keys);
 
-		public bool HasFriendlyName => m_attributes.ContainsKey(PkcsObjectIdentifiers.Pkcs9AtFriendlyName);
+        public bool HasFriendlyName => m_attributes.ContainsKey(PkcsObjectIdentifiers.Pkcs9AtFriendlyName);
 
-		public void SetFriendlyName(string friendlyName)
-		{
+        public void SetFriendlyName(string friendlyName)
+        {
             m_attributes[PkcsObjectIdentifiers.Pkcs9AtFriendlyName] = new DerBmpString(friendlyName);
         }
 

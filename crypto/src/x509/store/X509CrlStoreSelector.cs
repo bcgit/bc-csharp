@@ -216,12 +216,9 @@ namespace Org.BouncyCastle.X509.Store
 
 			if (maxCrlNumber != null || minCrlNumber != null)
 			{
-				Asn1OctetString extVal = c.GetExtensionValue(X509Extensions.CrlNumber);
-				if (extVal == null)
+				BigInteger cn = c.GetExtension(X509Extensions.CrlNumber, CrlNumber.GetInstance)?.PositiveValue;
+				if (cn == null)
 					return false;
-
-				BigInteger cn = CrlNumber.GetInstance(
-					X509ExtensionUtilities.FromExtensionValue(extVal)).PositiveValue;
 
 				if (maxCrlNumber != null && cn.CompareTo(maxCrlNumber) > 0)
 					return false;
@@ -232,14 +229,10 @@ namespace Org.BouncyCastle.X509.Store
 
 			// TODO[pkix] Do we always need to parse the Delta CRL Indicator extension?
 			{
-				DerInteger baseCrlNumber = null;
+				DerInteger baseCrlNumber;
 				try
 				{
-					Asn1OctetString dci = c.GetExtensionValue(X509Extensions.DeltaCrlIndicator);
-					if (dci != null)
-					{
-						baseCrlNumber = DerInteger.GetInstance(X509ExtensionUtilities.FromExtensionValue(dci));
-					}
+					baseCrlNumber = c.GetExtension(X509Extensions.DeltaCrlIndicator, DerInteger.GetInstance);
 				}
 				catch (Exception)
 				{

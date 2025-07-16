@@ -317,11 +317,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /** PKCS#9: 1.2.840.113549.1.9.16.2.40   <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
         public static readonly DerObjectIdentifier IdAACommunityIdentifiers = id_aa.Branch("40");
 
-		//
-		// id-spq OBJECT IDENTIFIER ::= {iso(1) member-body(2) usa(840)
-		// rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) id-spq(5)}
-		//
-		public const string IdSpq = "1.2.840.113549.1.9.16.5";
+        // RFC 5126
+        public static readonly DerObjectIdentifier IdAAEtsArchiveTimestampV2 = id_aa.Branch("48");
+
+        //
+        // id-spq OBJECT IDENTIFIER ::= {iso(1) member-body(2) usa(840)
+        // rsadsi(113549) pkcs(1) pkcs-9(9) smime(16) id-spq(5)}
+        //
+        public const string IdSpq = "1.2.840.113549.1.9.16.5";
         public static readonly DerObjectIdentifier id_spq = IdSmime.Branch("5");
 
 		public static readonly DerObjectIdentifier IdSpqEtsUri = id_spq.Branch("1");

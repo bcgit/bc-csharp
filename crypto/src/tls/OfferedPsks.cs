@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
@@ -19,10 +18,10 @@ namespace Org.BouncyCastle.Tls
             internal BindersConfig(TlsPsk[] psks, short[] pskKeyExchangeModes, TlsSecret[] earlySecrets,
                 int bindersSize)
             {
-                this.m_psks = psks;
-                this.m_pskKeyExchangeModes = pskKeyExchangeModes;
-                this.m_earlySecrets = earlySecrets;
-                this.m_bindersSize = bindersSize;
+                m_psks = psks;
+                m_pskKeyExchangeModes = pskKeyExchangeModes;
+                m_earlySecrets = earlySecrets;
+                m_bindersSize = bindersSize;
             }
         }
 
@@ -35,10 +34,10 @@ namespace Org.BouncyCastle.Tls
 
             internal SelectedConfig(int index, TlsPsk psk, short[] pskKeyExchangeModes, TlsSecret earlySecret)
             {
-                this.m_index = index;
-                this.m_psk = psk;
-                this.m_pskKeyExchangeModes = pskKeyExchangeModes;
-                this.m_earlySecret = earlySecret;
+                m_index = index;
+                m_psk = psk;
+                m_pskKeyExchangeModes = pskKeyExchangeModes;
+                m_earlySecret = earlySecret;
             }
         }
 
@@ -60,25 +59,16 @@ namespace Org.BouncyCastle.Tls
             if ((null != binders) != (bindersSize >= 0))
                 throw new ArgumentException("must be >= 0 iff 'binders' are present", "bindersSize");
 
-            this.m_identities = identities;
-            this.m_binders = binders;
-            this.m_bindersSize = bindersSize;
+            m_identities = identities;
+            m_binders = binders;
+            m_bindersSize = bindersSize;
         }
 
-        public IList<byte[]> Binders
-        {
-            get { return m_binders; }
-        }
+        public IList<byte[]> Binders => m_binders;
 
-        public int BindersSize
-        {
-            get { return m_bindersSize; }
-        }
+        public int BindersSize => m_bindersSize;
 
-        public IList<PskIdentity> Identities
-        {
-            get { return m_identities; }
-        }
+        public IList<PskIdentity> Identities => m_identities;
 
         public int GetIndexOfIdentity(PskIdentity pskIdentity)
         {

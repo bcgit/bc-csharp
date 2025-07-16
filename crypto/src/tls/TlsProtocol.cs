@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+#if NET9_0_OR_GREATER
+using System.Threading;
+#endif
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
@@ -122,7 +125,11 @@ namespace Org.BouncyCastle.Tls
         //private readonly ByteQueue m_heartbeatQueue = new ByteQueue(0);
 
         internal readonly RecordStream m_recordStream;
+#if NET9_0_OR_GREATER
+        internal readonly Lock m_recordWriteLock = new();
+#else
         internal readonly object m_recordWriteLock = new object();
+#endif
 
         private int m_maxHandshakeMessageSize = -1;
 

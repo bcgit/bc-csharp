@@ -1,5 +1,3 @@
-using Org.BouncyCastle.Asn1;
-
 namespace Org.BouncyCastle.Asn1.Smime
 {
     /**
@@ -7,31 +5,17 @@ namespace Org.BouncyCastle.Asn1.Smime
      */
     public class SmimeCapabilityVector
     {
-        private readonly Asn1EncodableVector capabilities = new Asn1EncodableVector();
+        private readonly Asn1EncodableVector m_capabilities = new Asn1EncodableVector();
 
-		public void AddCapability(
-            DerObjectIdentifier capability)
-        {
-            capabilities.Add(new DerSequence(capability));
-        }
+        public void AddCapability(DerObjectIdentifier capability) =>
+            m_capabilities.Add(DerSequence.FromElement(capability));
 
-		public void AddCapability(
-            DerObjectIdentifier capability,
-            int                 value)
-        {
-			capabilities.Add(new DerSequence(capability, new DerInteger(value)));
-        }
+        public void AddCapability(DerObjectIdentifier capability, int value) =>
+            AddCapability(capability, new DerInteger(value));
 
-		public void AddCapability(
-            DerObjectIdentifier capability,
-            Asn1Encodable		parameters)
-        {
-			capabilities.Add(new DerSequence(capability, parameters));
-        }
+        public void AddCapability(DerObjectIdentifier capability, Asn1Encodable parameters) =>
+            m_capabilities.Add(DerSequence.FromElements(capability, parameters));
 
-		public Asn1EncodableVector ToAsn1EncodableVector()
-        {
-            return capabilities;
-        }
+        public Asn1EncodableVector ToAsn1EncodableVector() => m_capabilities;
     }
 }

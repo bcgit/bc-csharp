@@ -8,15 +8,9 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 7301 Represents a protocol name for use with ALPN.</summary>
     public sealed class ProtocolName
     {
-        public static ProtocolName AsRawBytes(byte[] bytes)
-        {
-            return new ProtocolName(Arrays.Clone(bytes));
-        }
+        public static ProtocolName AsRawBytes(byte[] bytes) => new ProtocolName(Arrays.Clone(bytes));
 
-        public static ProtocolName AsUtf8Encoding(string name)
-        {
-            return new ProtocolName(Strings.ToUtf8ByteArray(name));
-        }
+        public static ProtocolName AsUtf8Encoding(string name) => new ProtocolName(Strings.ToUtf8ByteArray(name));
 
         public static readonly ProtocolName Http_1_1 = AsUtf8Encoding("http/1.1");
         public static readonly ProtocolName Spdy_1 = AsUtf8Encoding("spdy/1");
@@ -52,48 +46,31 @@ namespace Org.BouncyCastle.Tls
         private ProtocolName(byte[] bytes)
         {
             if (bytes == null)
-                throw new ArgumentNullException("bytes");
+                throw new ArgumentNullException(nameof(bytes));
             if (bytes.Length < 1 || bytes.Length > 255)
-                throw new ArgumentException("must have length from 1 to 255", "bytes");
+                throw new ArgumentException("must have length from 1 to 255", nameof(bytes));
 
-            this.m_bytes = bytes;
+            m_bytes = bytes;
         }
 
-        public byte[] GetBytes()
-        {
-            return Arrays.Clone(m_bytes);
-        }
+        public byte[] GetBytes() => Arrays.Clone(m_bytes);
 
-        public string GetUtf8Decoding()
-        {
-            return Strings.FromUtf8ByteArray(m_bytes);
-        }
+        public string GetUtf8Decoding() => Strings.FromUtf8ByteArray(m_bytes);
 
         /// <summary>Encode this <see cref="ProtocolName"/> to a <see cref="Stream"/>.</summary>
         /// <param name="output">the <see cref="Stream"/> to encode to.</param>
         /// <exception cref="IOException"/>
-        public void Encode(Stream output)
-        {
-            TlsUtilities.WriteOpaque8(m_bytes, output);
-        }
+        public void Encode(Stream output) => TlsUtilities.WriteOpaque8(m_bytes, output);
 
         /// <summary>Parse a <see cref="ProtocolName"/> from a <see cref="Stream"/>.</summary>
         /// <param name="input">the <see cref="Stream"/> to parse from.</param>
         /// <returns>a <see cref="ProtocolName"/> object.</returns>
         /// <exception cref="IOException"/>
-        public static ProtocolName Parse(Stream input)
-        {
-            return new ProtocolName(TlsUtilities.ReadOpaque8(input, 1));
-        }
+        public static ProtocolName Parse(Stream input) => new ProtocolName(TlsUtilities.ReadOpaque8(input, 1));
 
-        public override bool Equals(object obj)
-        {
-            return obj is ProtocolName && Arrays.AreEqual(m_bytes, ((ProtocolName)obj).m_bytes);
-        }
+        public override bool Equals(object obj) =>
+            obj is ProtocolName that && Arrays.AreEqual(m_bytes, that.m_bytes);
 
-        public override int GetHashCode()
-        {
-            return Arrays.GetHashCode(m_bytes);
-        }
+        public override int GetHashCode() => Arrays.GetHashCode(m_bytes);
     }
 }

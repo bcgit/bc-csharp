@@ -1,41 +1,43 @@
 using System;
 
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class OriginatorIdentifierOrKey
         : Asn1Encodable, IAsn1Choice
     {
-        public static OriginatorIdentifierOrKey GetInstance(object o)
-        {
-            if (o == null)
-                return null;
-
-            if (o is OriginatorIdentifierOrKey originatorIdentifierOrKey)
-                return originatorIdentifierOrKey;
-
-            if (o is IssuerAndSerialNumber issuerAndSerialNumber)
-                return new OriginatorIdentifierOrKey(issuerAndSerialNumber);
-
-            if (o is Asn1Sequence sequence)
-                return new OriginatorIdentifierOrKey(IssuerAndSerialNumber.GetInstance(sequence));
-
-            if (o is Asn1TaggedObject taggedObject)
-            {
-                if (taggedObject.HasContextTag(0))
-                    return new OriginatorIdentifierOrKey(SubjectKeyIdentifier.GetInstance(taggedObject, false));
-
-                if (taggedObject.HasContextTag(1))
-                    return new OriginatorIdentifierOrKey(OriginatorPublicKey.GetInstance(taggedObject, false));
-            }
-
-            throw new ArgumentException("Invalid OriginatorIdentifierOrKey: " + Platform.GetTypeName(o), nameof(o));
-        }
+        // TODO[api] Rename 'o' to 'obj'
+        public static OriginatorIdentifierOrKey GetInstance(object o) =>
+            Asn1Utilities.GetInstanceChoice(o, GetOptional);
 
         public static OriginatorIdentifierOrKey GetInstance(Asn1TaggedObject o, bool explicitly) =>
             Asn1Utilities.GetInstanceChoice(o, explicitly, GetInstance);
+
+        public static OriginatorIdentifierOrKey GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is OriginatorIdentifierOrKey originatorIdentifierOrKey)
+                return originatorIdentifierOrKey;
+
+            IssuerAndSerialNumber issuerAndSerialNumber = IssuerAndSerialNumber.GetOptional(element);
+            if (issuerAndSerialNumber != null)
+                return new OriginatorIdentifierOrKey(issuerAndSerialNumber);
+
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
+            {
+                if (taggedObject.HasContextTag(0))
+                    return new OriginatorIdentifierOrKey(SubjectKeyIdentifier.GetTagged(taggedObject, false));
+
+                if (taggedObject.HasContextTag(1))
+                    return new OriginatorIdentifierOrKey(OriginatorPublicKey.GetTagged(taggedObject, false));
+            }
+
+            return null;
+        }
 
         public static OriginatorIdentifierOrKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
@@ -59,31 +61,15 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1Encodable ID => m_id;
 
-        public IssuerAndSerialNumber IssuerAndSerialNumber => m_id as IssuerAndSerialNumber;
+        public IssuerAndSerialNumber IssuerAndSerialNumber => IssuerAndSerialNumber.GetInstance(m_id);
 
-		public SubjectKeyIdentifier SubjectKeyIdentifier
-		{
-			get
-			{
-                if (m_id is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(0))
-                    return SubjectKeyIdentifier.GetInstance(taggedObject, false);
+        public SubjectKeyIdentifier SubjectKeyIdentifier =>
+            Asn1Utilities.GetOptionalContextTagged(m_id, 0, false, SubjectKeyIdentifier.GetTagged);
 
-				return null;
-			}
-		}
+        public OriginatorPublicKey OriginatorPublicKey =>
+            Asn1Utilities.GetOptionalContextTagged(m_id, 1, false, OriginatorPublicKey.GetTagged);
 
-		public OriginatorPublicKey OriginatorPublicKey
-		{
-			get
-			{
-                if (m_id is Asn1TaggedObject taggedObject && taggedObject.HasContextTag(1))
-					return OriginatorPublicKey.GetInstance(taggedObject, false);
-
-				return null;
-			}
-		}
-
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * OriginatorIdentifierOrKey ::= CHOICE {

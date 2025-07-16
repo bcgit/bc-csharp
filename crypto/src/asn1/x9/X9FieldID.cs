@@ -5,8 +5,7 @@ using Org.BouncyCastle.Math;
 namespace Org.BouncyCastle.Asn1.X9
 {
     /**
-     * ASN.1 def for Elliptic-Curve Field ID structure. See
-     * X9.62, for further details.
+     * ASN.1 def for Elliptic-Curve Field ID structure. See X9.62 for further details.
      */
     public class X9FieldID
         : Asn1Encodable
@@ -23,10 +22,25 @@ namespace Org.BouncyCastle.Asn1.X9
         public static X9FieldID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new X9FieldID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static X9FieldID GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is X9FieldID x9FieldID)
+                return x9FieldID;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new X9FieldID(asn1Sequence);
+
+            return null;
+        }
+
         public static X9FieldID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new X9FieldID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-        private readonly DerObjectIdentifier m_id;
+        private readonly DerObjectIdentifier m_fieldType;
         private readonly Asn1Object m_parameters;
 
         private X9FieldID(Asn1Sequence seq)
@@ -35,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.X9
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_id = DerObjectIdentifier.GetInstance(seq[0]);
+            m_fieldType = DerObjectIdentifier.GetInstance(seq[0]);
             m_parameters = seq[1].ToAsn1Object();
         }
 
@@ -46,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.X9
          */
         public X9FieldID(BigInteger primeP)
         {
-            m_id = X9ObjectIdentifiers.PrimeField;
+            m_fieldType = X9ObjectIdentifiers.PrimeField;
             m_parameters = new DerInteger(primeP);
         }
 
@@ -81,7 +95,7 @@ namespace Org.BouncyCastle.Asn1.X9
          */
         public X9FieldID(int m, int k1, int k2, int k3)
         {
-            m_id = X9ObjectIdentifiers.CharacteristicTwoField;
+            m_fieldType = X9ObjectIdentifiers.CharacteristicTwoField;
 
             Asn1EncodableVector fieldIdParams = new Asn1EncodableVector(3);
             fieldIdParams.Add(new DerInteger(m));
@@ -111,8 +125,10 @@ namespace Org.BouncyCastle.Asn1.X9
             m_parameters = new DerSequence(fieldIdParams);
         }
 
-        // TODO[api] Rename to 'FieldType'
-        public DerObjectIdentifier Identifier => m_id;
+        public DerObjectIdentifier FieldType => m_fieldType;
+
+        [Obsolete("Use 'FieldType' instead")]
+        public DerObjectIdentifier Identifier => m_fieldType;
 
         // TODO[api] Return 'Asn1Encodable'
         public Asn1Object Parameters => m_parameters;
@@ -126,6 +142,6 @@ namespace Org.BouncyCastle.Asn1.X9
          *  }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object() => new DerSequence(m_id, m_parameters);
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_fieldType, m_parameters);
     }
 }

@@ -1,66 +1,59 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Asn1.X509.Qualified
 {
     /**
-    * The TypeOfBiometricData object.
-    * <pre>
-    * TypeOfBiometricData ::= CHOICE {
-    *   predefinedBiometricType   PredefinedBiometricType,
-    *   biometricDataOid          OBJECT IDENTIFIER }
-    *
-    * PredefinedBiometricType ::= INTEGER {
-    *   picture(0),handwritten-signature(1)}
-    *   (picture|handwritten-signature)
-    * </pre>
-    */
+     * The TypeOfBiometricData object.
+     * <pre>
+     * TypeOfBiometricData ::= CHOICE {
+     *   predefinedBiometricType   PredefinedBiometricType,
+     *   biometricDataOid          OBJECT IDENTIFIER }
+     *
+     * PredefinedBiometricType ::= INTEGER {
+     *   picture(0),handwritten-signature(1)}
+     *   (picture|handwritten-signature)
+     * </pre>
+     */
     public class TypeOfBiometricData
         : Asn1Encodable, IAsn1Choice
     {
-        public const int Picture				= 0;
-        public const int HandwrittenSignature	= 1;
+        public const int Picture = 0;
+        public const int HandwrittenSignature = 1;
 
-		internal Asn1Encodable obj;
-
-		public static TypeOfBiometricData GetInstance(
-			object obj)
-        {
-            if (obj == null || obj is TypeOfBiometricData)
-            {
-                return (TypeOfBiometricData) obj;
-            }
-
-			if (obj is DerInteger)
-            {
-                DerInteger predefinedBiometricTypeObj = DerInteger.GetInstance(obj);
-                int predefinedBiometricType = predefinedBiometricTypeObj.IntValueExact;
-
-				return new TypeOfBiometricData(predefinedBiometricType);
-            }
-
-			if (obj is DerObjectIdentifier)
-            {
-                DerObjectIdentifier BiometricDataOid = DerObjectIdentifier.GetInstance(obj);
-                return new TypeOfBiometricData(BiometricDataOid);
-            }
-
-			throw new ArgumentException("unknown object in GetInstance: " + Platform.GetTypeName(obj), "obj");
-		}
+        public static TypeOfBiometricData GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static TypeOfBiometricData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        public static TypeOfBiometricData GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is TypeOfBiometricData typeOfBiometricData)
+                return typeOfBiometricData;
+
+            DerInteger predefinedBiometricType = DerInteger.GetOptional(element);
+            if (predefinedBiometricType != null)
+                return new TypeOfBiometricData(predefinedBiometricType.IntValueExact);
+
+            DerObjectIdentifier biometricDataOid = DerObjectIdentifier.GetOptional(element);
+            if (biometricDataOid != null)
+                return new TypeOfBiometricData(biometricDataOid);
+
+            return null;
+        }
+
         public static TypeOfBiometricData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
-        public TypeOfBiometricData(
-			int predefinedBiometricType)
+        private readonly Asn1Encodable m_obj;
+
+        public TypeOfBiometricData(int predefinedBiometricType)
         {
             if (predefinedBiometricType == Picture || predefinedBiometricType == HandwrittenSignature)
             {
-                obj = new DerInteger(predefinedBiometricType);
+                m_obj = new DerInteger(predefinedBiometricType);
             }
             else
             {
@@ -68,30 +61,17 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             }
         }
 
-		public TypeOfBiometricData(
-			DerObjectIdentifier biometricDataOid)
+        public TypeOfBiometricData(DerObjectIdentifier biometricDataOid)
         {
-            obj = biometricDataOid;
+            m_obj = biometricDataOid;
         }
 
-		public bool IsPredefined
-		{
-			get { return obj is DerInteger; }
-		}
+        public bool IsPredefined => m_obj is DerInteger;
 
-		public int PredefinedBiometricType
-		{
-            get { return ((DerInteger)obj).IntValueExact; }
-		}
+        public int PredefinedBiometricType => ((DerInteger)m_obj).IntValueExact;
 
-		public DerObjectIdentifier BiometricDataOid
-		{
-			get { return (DerObjectIdentifier) obj; }
-		}
+        public DerObjectIdentifier BiometricDataOid => (DerObjectIdentifier)m_obj;
 
-		public override Asn1Object ToAsn1Object()
-        {
-            return obj.ToAsn1Object();
-        }
+        public override Asn1Object ToAsn1Object() => m_obj.ToAsn1Object();
     }
 }

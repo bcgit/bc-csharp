@@ -9,7 +9,7 @@ using Org.BouncyCastle.Utilities.Collections;
 namespace Org.BouncyCastle.Asn1
 {
     public abstract class Asn1Sequence
-        : Asn1Object, IEnumerable<Asn1Encodable>
+        : Asn1Object, IReadOnlyCollection<Asn1Encodable>
     {
         internal class Meta : Asn1UniversalType
         {
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Asn1
                 }
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         /**
@@ -116,29 +116,33 @@ namespace Org.BouncyCastle.Asn1
 
         internal readonly Asn1Encodable[] m_elements;
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence()
         {
             m_elements = Asn1EncodableVector.EmptyElements;
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1Encodable element)
         {
-            if (null == element)
+            if (element == null)
                 throw new ArgumentNullException(nameof(element));
 
             m_elements = new Asn1Encodable[]{ element };
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1Encodable element1, Asn1Encodable element2)
         {
-            if (null == element1)
+            if (element1 == null)
                 throw new ArgumentNullException(nameof(element1));
-            if (null == element2)
+            if (element2 == null)
                 throw new ArgumentNullException(nameof(element2));
 
             m_elements = new Asn1Encodable[]{ element1, element2 };
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(params Asn1Encodable[] elements)
         {
             if (Arrays.IsNullOrContainsNull(elements))
@@ -152,18 +156,24 @@ namespace Org.BouncyCastle.Asn1
             m_elements = clone ? Asn1EncodableVector.CloneElements(elements) : elements;
         }
 
+        // TODO[api] Remove 'protected'
         protected internal Asn1Sequence(Asn1EncodableVector elementVector)
         {
-            if (null == elementVector)
-                throw new ArgumentNullException("elementVector");
+            if (elementVector == null)
+                throw new ArgumentNullException(nameof(elementVector));
 
             m_elements = elementVector.TakeElements();
         }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+        internal Asn1Sequence(IReadOnlyCollection<Asn1Encodable> elements)
         {
-            return GetEnumerator();
+            if (elements == null)
+                throw new ArgumentNullException(nameof(elements));
+
+            m_elements = CollectionUtilities.ToArray(elements);
         }
+
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
         public virtual IEnumerator<Asn1Encodable> GetEnumerator()
         {
@@ -205,10 +215,7 @@ namespace Org.BouncyCastle.Asn1
             public Asn1Object ToAsn1Object() => m_outer;
         }
 
-        public virtual Asn1SequenceParser Parser
-        {
-            get { return new Asn1SequenceParserImpl(this); }
-        }
+        public virtual Asn1SequenceParser Parser => new Asn1SequenceParserImpl(this);
 
         /**
          * return the object at the sequence position indicated by index.
@@ -216,31 +223,13 @@ namespace Org.BouncyCastle.Asn1
          * @param index the sequence number (starting at zero) of the object
          * @return the object at the sequence position indicated by index.
          */
-        public virtual Asn1Encodable this[int index]
-        {
-            get { return m_elements[index]; }
-        }
+        public virtual Asn1Encodable this[int index] => m_elements[index];
 
-        public virtual int Count
-        {
-            get { return m_elements.Length; }
-        }
+        public virtual int Count => m_elements.Length;
 
-        public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func)
-        {
-            int count = Count;
-            T[] result = new T[count];
-            for (int i = 0; i < count; ++i)
-            {
-                result[i] = func(m_elements[i]);
-            }
-            return result;
-        }
+        public virtual T[] MapElements<T>(Func<Asn1Encodable, T> func) => CollectionUtilities.Map(m_elements, func);
 
-        public virtual Asn1Encodable[] ToArray()
-        {
-            return Asn1EncodableVector.CloneElements(m_elements);
-        }
+        public virtual Asn1Encodable[] ToArray() => Asn1EncodableVector.CloneElements(m_elements);
 
         protected override int Asn1GetHashCode()
         {
@@ -277,21 +266,12 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
-        public override string ToString()
-        {
-            return CollectionUtilities.ToString(m_elements);
-        }
+        public override string ToString() => CollectionUtilities.ToString(m_elements);
 
         // TODO[asn1] Preferably return an Asn1BitString[] (doesn't exist yet)
-        internal DerBitString[] GetConstructedBitStrings()
-        {
-            return MapElements(DerBitString.GetInstance);
-        }
+        internal DerBitString[] GetConstructedBitStrings() => MapElements(DerBitString.GetInstance);
 
-        internal Asn1OctetString[] GetConstructedOctetStrings()
-        {
-            return MapElements(Asn1OctetString.GetInstance);
-        }
+        internal Asn1OctetString[] GetConstructedOctetStrings() => MapElements(Asn1OctetString.GetInstance);
 
         // TODO[asn1] Preferably return an Asn1BitString (doesn't exist yet)
         internal abstract DerBitString ToAsn1BitString();

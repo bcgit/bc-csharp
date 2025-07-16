@@ -8,7 +8,6 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
-using Org.BouncyCastle.X509.Extension;
 using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tests.Nist
@@ -24,12 +23,17 @@ namespace Org.BouncyCastle.Tests.Nist
 
 		private static readonly string TRUST_ANCHOR_ROOT_CERTIFICATE = "TrustAnchorRootCertificate";
 
-		private static readonly char[] PKCS12_PASSWORD = "password".ToCharArray();
+		//private static readonly char[] PKCS12_PASSWORD = "password".ToCharArray();
 
 		private static readonly string ANY_POLICY = "2.5.29.32.0";
 		private static readonly string NIST_TEST_POLICY_1 = "2.16.840.1.101.3.2.1.48.1";
 		private static readonly string NIST_TEST_POLICY_2 = "2.16.840.1.101.3.2.1.48.2";
 		private static readonly string NIST_TEST_POLICY_3 = "2.16.840.1.101.3.2.1.48.3";
+
+        internal static readonly DerObjectIdentifier AnyPolicyOid = new DerObjectIdentifier(ANY_POLICY);
+        internal static readonly DerObjectIdentifier NistTestPolicyOid1 = new DerObjectIdentifier(NIST_TEST_POLICY_1);
+        internal static readonly DerObjectIdentifier NistTestPolicyOid2 = new DerObjectIdentifier(NIST_TEST_POLICY_2);
+        internal static readonly DerObjectIdentifier NistTestPolicyOid3 = new DerObjectIdentifier(NIST_TEST_POLICY_3);
 
         private static readonly HashSet<string> noPolicies = new HashSet<string>();
         private static readonly HashSet<string> anyPolicy = new HashSet<string>();
@@ -561,12 +565,7 @@ namespace Org.BouncyCastle.Tests.Nist
 		// section 4.14: tests 17, 24, 25, 30, 31, 32, 33, 35
 
 		// section 4.15: tests 5, 7
-		private void DoExceptionTest(
-			string		trustAnchor,
-			string[]	certs,
-			string[]	crls,
-			int			index,
-			string		message)
+		private void DoExceptionTest(string trustAnchor, string[] certs, string[] crls, int index, string message)
 		{
 			try
 			{
@@ -581,13 +580,8 @@ namespace Org.BouncyCastle.Tests.Nist
 			}
 		}
 
-		private void DoExceptionTest(
-			string		trustAnchor,
-			string[]	certs,
-			string[]	crls,
-			ISet<string> policies,
-			int			index,
-			string		message)
+		private void DoExceptionTest(string trustAnchor, string[] certs, string[] crls, ISet<string> policies,
+			int index, string message)
 		{
 			try
 			{
@@ -602,13 +596,8 @@ namespace Org.BouncyCastle.Tests.Nist
 			}
 		}
 
-		private void DoExceptionTest(
-			string		trustAnchor,
-			string[]	certs,
-			string[]	crls,
-			int			index,
-			string		mesStart,
-			string		mesEnd)
+		private void DoExceptionTest(string trustAnchor, string[] certs, string[] crls, int index, string mesStart,
+			string mesEnd)
 		{
 			try
 			{
@@ -624,18 +613,10 @@ namespace Org.BouncyCastle.Tests.Nist
 			}
 		}
 
-		private PkixCertPathValidatorResult DoTest(
-			string trustAnchor,
-			string[] certs,
-			string[] crls)
-		{
-			return DoTest(trustAnchor, certs, crls, null);
-		}
+		private PkixCertPathValidatorResult DoTest(string trustAnchor, string[] certs, string[] crls) =>
+			DoTest(trustAnchor, certs, crls, null);
 
-		private PkixCertPathValidatorResult DoTest(
-			string trustAnchor,
-			string[] certs,
-			string[] crls,
+		private PkixCertPathValidatorResult DoTest(string trustAnchor, string[] certs, string[] crls,
 			ISet<string> policies)
 		{
 			var trustedSet = new HashSet<TrustAnchor>();
@@ -681,13 +662,8 @@ namespace Org.BouncyCastle.Tests.Nist
 			return validator.Validate(certPath, parameters);
 		}
 
-		private PkixCertPathBuilderResult DoBuilderTest(
-			string		trustAnchor,
-			string[]	certs,
-			string[]	crls,
-			ISet<string> initialPolicies,
-			bool		policyMappingInhibited,
-			bool		anyPolicyInhibited)
+		private PkixCertPathBuilderResult DoBuilderTest(string trustAnchor, string[] certs, string[] crls,
+			ISet<string> initialPolicies, bool policyMappingInhibited, bool anyPolicyInhibited)
 		{
 			var trustedSet = new HashSet<TrustAnchor>();
 			trustedSet.Add(GetTrustAnchor(trustAnchor));
@@ -741,7 +717,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
 			try
 			{
-				return (PkixCertPathBuilderResult) builder.Build(builderParams);
+				return builder.Build(builderParams);
 			}
 			catch (PkixCertPathBuilderException e)
 			{               
@@ -752,13 +728,13 @@ namespace Org.BouncyCastle.Tests.Nist
 		private TrustAnchor GetTrustAnchor(string trustAnchorName)
 		{
 			X509Certificate cert = PkitsTestData.GetCertificate(trustAnchorName);
-			Asn1OctetString extBytes = cert.GetExtensionValue(X509Extensions.NameConstraints);
+			Asn1OctetString extensionValue = cert.GetExtensionValue(X509Extensions.NameConstraints);
 
-			if (extBytes != null)
+			if (extensionValue != null)
 			{
-				Asn1Encodable extValue = X509ExtensionUtilities.FromExtensionValue(extBytes);
+				var nameConstraints = NameConstraints.GetInstance(extensionValue.GetOctets());
 
-				return new TrustAnchor(cert, extValue.GetDerEncoded());
+				return new TrustAnchor(cert, nameConstraints.GetDerEncoded());
 			}
 
 			return new TrustAnchor(cert, null);

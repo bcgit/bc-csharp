@@ -46,6 +46,7 @@ namespace Org.BouncyCastle.Pkcs
         private readonly bool useDerEncoding;
         private readonly bool reverseCertificates;
         private readonly bool overwriteFriendlyName;
+        private readonly bool enableOracleTrustedKeyUsage;
 
         private AsymmetricKeyEntry unmarkedKeyEntry = null;
 
@@ -63,13 +64,13 @@ namespace Org.BouncyCastle.Pkcs
             }
 
             internal CertID(X509Certificate cert)
-                : this(CreateLocalKeyID(cert).GetOctets())
+                : this(CreateLocalKeyID(cert))
             {
             }
 
-            internal CertID(byte[] id)
+            internal CertID(Asn1OctetString id)
             {
-                m_id = id;
+                m_id = id.GetOctets();
             }
 
             internal byte[] ID => m_id;
@@ -83,7 +84,7 @@ namespace Org.BouncyCastle.Pkcs
 
         internal Pkcs12Store(DerObjectIdentifier certAlgorithm, DerObjectIdentifier certPrfAlgorithm,
             DerObjectIdentifier keyAlgorithm, DerObjectIdentifier keyPrfAlgorithm, bool useDerEncoding,
-            bool reverseCertificates, bool overwriteFriendlyName)
+            bool reverseCertificates, bool overwriteFriendlyName, bool enableOracleTrustedKeyUsage)
         {
             this.certAlgorithm = certAlgorithm;
             this.certPrfAlgorithm = certPrfAlgorithm;
@@ -92,6 +93,7 @@ namespace Org.BouncyCastle.Pkcs
             this.useDerEncoding = useDerEncoding;
             this.reverseCertificates = reverseCertificates;
             this.overwriteFriendlyName = overwriteFriendlyName;
+            this.enableOracleTrustedKeyUsage = enableOracleTrustedKeyUsage;
         }
 
         protected virtual void LoadKeyBag(PrivateKeyInfo privKeyInfo, Asn1Set bagAttributes)
@@ -488,15 +490,13 @@ namespace Org.BouncyCastle.Pkcs
                 X509Certificate x509c = c.Certificate;
                 X509CertificateEntry nextC = null;
 
-                Asn1OctetString akiValue = x509c.GetExtensionValue(X509Extensions.AuthorityKeyIdentifier);
-                if (akiValue != null)
+                AuthorityKeyIdentifier aki = X509ExtensionUtilities.GetAuthorityKeyIdentifier(x509c);
+                if (aki != null)
                 {
-                    AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.GetInstance(akiValue.GetOctets());
-
                     var keyID = aki.KeyIdentifier;
                     if (keyID != null)
                     {
-                        nextC = CollectionUtilities.GetValueOrNull(m_chainCerts, new CertID(keyID.GetOctets()));
+                        nextC = CollectionUtilities.GetValueOrNull(m_chainCerts, new CertID(keyID));
                     }
                 }
 
@@ -781,9 +781,9 @@ namespace Org.BouncyCastle.Pkcs
             {
                 string name = m_keysOrder[(int)i];
                 X509CertificateEntry certEntry = GetCertificate(name);
-                CertBag cBag = CreateCertBag(certEntry.Certificate);
+                CertBag certBag = CreateCertBag(certEntry.Certificate);
 
-                Asn1EncodableVector fName = new Asn1EncodableVector();
+                Asn1EncodableVector bagAttributes = new Asn1EncodableVector();
 
                 foreach (var oid in certEntry.BagAttributeKeys)
                 {
@@ -791,24 +791,24 @@ namespace Org.BouncyCastle.Pkcs
                     if (PkcsObjectIdentifiers.Pkcs9AtFriendlyName.Equals(oid))
                         continue;
 
-                    fName.Add(new DerSequence(oid, new DerSet(certEntry[oid])));
+                    bagAttributes.Add(new DerSequence(oid, new DerSet(certEntry[oid])));
                 }
 
                 //
                 // make sure we are using the local alias on store
                 //
                 // NB: We always set the FriendlyName based on 'name'
-                fName.Add(CreateEntryFriendlyName(name, certEntry));
+                bagAttributes.Add(CreateEntryFriendlyName(name, certEntry));
 
                 //
                 // make sure we have a local key-id
                 //
                 if (certEntry[PkcsObjectIdentifiers.Pkcs9AtLocalKeyID] == null)
                 {
-                    AddLocalKeyID(fName, certEntry);
+                    AddLocalKeyID(bagAttributes, certEntry);
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, certBag, DerSet.FromVector(bagAttributes)));
 
                 doneCerts.Add(certEntry.Certificate);
             }
@@ -818,16 +818,16 @@ namespace Org.BouncyCastle.Pkcs
                  j = reverseCertificates ? j-1 : j+1)
             {
                 var alias = m_certsOrder[(int)j];
-                var cert = m_certs[alias];
+                var certEntry = m_certs[alias];
 
                 if (m_keys.ContainsKey(alias))
                     continue;
 
-                CertBag cBag = CreateCertBag(cert.Certificate);
+                CertBag certBag = CreateCertBag(certEntry.Certificate);
 
-                Asn1EncodableVector fName = new Asn1EncodableVector();
+                Asn1EncodableVector bagAttributes = new Asn1EncodableVector();
 
-                foreach (var oid in cert.BagAttributeKeys)
+                foreach (var oid in certEntry.BagAttributeKeys)
                 {
                     // a certificate not immediately linked to a key doesn't require
                     // a localKeyID and will confuse some PKCS12 implementations.
@@ -843,35 +843,37 @@ namespace Org.BouncyCastle.Pkcs
                     if (MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage.Equals(oid))
                         continue;
 
-                    fName.Add(new DerSequence(oid, new DerSet(cert[oid])));
+                    bagAttributes.Add(new DerSequence(oid, new DerSet(certEntry[oid])));
                 }
 
                 //
                 // make sure we are using the local alias on store
                 //
                 // NB: We always set the FriendlyName based on 'certId'
-                fName.Add(CreateEntryFriendlyName(alias, cert));
+                bagAttributes.Add(CreateEntryFriendlyName(alias, certEntry));
 
                 // the Oracle PKCS12 parser looks for a trusted key usage for named certificates as well
+                if (enableOracleTrustedKeyUsage)
                 {
-                    Asn1OctetString eku = cert.Certificate.GetExtensionValue(X509Extensions.ExtendedKeyUsage);
+                    Asn1Object eku = certEntry.Certificate.GetExtensionParsedValue(X509Extensions.ExtendedKeyUsage);
 
                     DerSet attrValue;
                     if (eku != null)
                     {
-                        attrValue = new DerSet(ExtendedKeyUsage.GetInstance(eku.GetOctets()).GetAllUsagesArray());
+                        attrValue = new DerSet(ExtendedKeyUsage.GetInstance(eku).GetAllUsagesArray());
                     }
                     else
                     {
                         attrValue = new DerSet(KeyPurposeID.AnyExtendedKeyUsage);
                     }
 
-                    fName.Add(new DerSequence(MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage, attrValue));
+                    bagAttributes.Add(
+                        new DerSequence(MiscObjectIdentifiers.id_oracle_pkcs12_trusted_key_usage, attrValue));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, certBag, DerSet.FromVector(bagAttributes)));
 
-                doneCerts.Add(cert.Certificate);
+                doneCerts.Add(certEntry.Certificate);
             }
 
             for (uint i = reverseCertificates ? (uint)m_chainCertsOrder.Count-1 : 0;
@@ -885,7 +887,7 @@ namespace Org.BouncyCastle.Pkcs
                 if (doneCerts.Contains(cert))
                     continue;
 
-                CertBag cBag = CreateCertBag(cert);
+                CertBag certBag = CreateCertBag(cert);
 
                 Asn1EncodableVector fName = new Asn1EncodableVector();
 
@@ -901,7 +903,7 @@ namespace Org.BouncyCastle.Pkcs
                     fName.Add(new DerSequence(oid, new DerSet(certEntry[oid])));
                 }
 
-                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, cBag, DerSet.FromVector(fName)));
+                certBags.Add(new SafeBag(PkcsObjectIdentifiers.CertBag, certBag, DerSet.FromVector(fName)));
             }
 
             byte[] certBagsEncoding = new DerSequence(certBags).GetDerEncoded();

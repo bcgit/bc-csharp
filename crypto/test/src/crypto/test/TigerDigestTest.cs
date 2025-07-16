@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             base.PerformTest();
 
-            sixtyFourKTest(hash64k);
+            SixtyFourKTest(hash64k);
         }
 
         protected override IDigest CloneDigest(IDigest digest)

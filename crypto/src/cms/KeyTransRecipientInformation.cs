@@ -3,14 +3,11 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
-using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
-
-using Asn1Pkcs = Org.BouncyCastle.Asn1.Pkcs;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -37,13 +34,13 @@ namespace Org.BouncyCastle.Cms
             {
                 if (r.IsTagged)
                 {
-                    var subjectKeyIdentifier = (Asn1OctetString)r.ID;
+                    var subjectKeyIdentifier = SubjectKeyIdentifier.GetInstance(r.ID);
 
                     rid.SubjectKeyIdentifier = subjectKeyIdentifier.GetEncoded(Asn1Encodable.Der);
                 }
                 else
                 {
-                    var issuerAndSerialNumber = (Asn1.Cms.IssuerAndSerialNumber)r.ID;
+                    var issuerAndSerialNumber = IssuerAndSerialNumber.GetInstance(r.ID);
 
                     rid.Issuer = issuerAndSerialNumber.Issuer;
                     rid.SerialNumber = issuerAndSerialNumber.SerialNumber.Value;
@@ -55,22 +52,23 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-		private string GetExchangeEncryptionAlgorithmName(
-			AlgorithmIdentifier algo)
-		{
-		    DerObjectIdentifier oid = algo.Algorithm;
+        private string GetExchangeEncryptionAlgorithmName(AlgorithmIdentifier algID)
+        {
+            var algOid = algID.Algorithm;
 
-            if (Asn1Pkcs.PkcsObjectIdentifiers.RsaEncryption.Equals(oid))
-			{
-				return "RSA//PKCS1Padding";
-			} else if (Asn1Pkcs.PkcsObjectIdentifiers.IdRsaesOaep.Equals(oid))
+            if (Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption.Equals(algOid))
             {
-                 Asn1Pkcs.RsaesOaepParameters rsaParams = Asn1Pkcs.RsaesOaepParameters.GetInstance(algo.Parameters);                       
-                return "RSA//OAEPWITH"+DigestUtilities.GetAlgorithmName(rsaParams.HashAlgorithm.Algorithm)+"ANDMGF1Padding";
+                return "RSA//PKCS1Padding";
+            }
+            else if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsaesOaep.Equals(algOid))
+            {
+                var rsaesOaepParameters = Asn1.Pkcs.RsaesOaepParameters.GetInstance(algID.Parameters);
+                var digestName = DigestUtilities.GetAlgorithmName(rsaesOaepParameters.HashAlgorithm.Algorithm);
+                return "RSA//OAEPWITH" + digestName + "ANDMGF1Padding";
             }
 
-			return oid.Id;
-		}
+            return algOid.GetID();
+        }
 
 		internal KeyParameter UnwrapKey(ICipherParameters key)
 		{
@@ -78,12 +76,12 @@ namespace Org.BouncyCastle.Cms
 
 			try
 			{
-				if (keyEncAlg.Algorithm.Equals(PkcsObjectIdentifiers.IdRsaesOaep))
+				if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsaesOaep.Equals(keyEncAlg.Algorithm))
 				{
 					IKeyUnwrapper keyWrapper = new Asn1KeyUnwrapper(keyEncAlg.Algorithm, keyEncAlg.Parameters, key);
 
 					return ParameterUtilities.CreateKeyParameter(
-							GetContentAlgorithmName(), keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length).Collect());
+						GetContentAlgorithmName(), keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length).Collect());
 				}
 				else
 				{

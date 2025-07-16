@@ -141,6 +141,6 @@ namespace Org.BouncyCastle.Cmp
         }
 #endif
 
-        private DerSequence CreateProtected() => new DerSequence(m_pkiMessage.Header, m_pkiMessage.Body);
+        private DerSequence CreateProtected() => DerSequence.FromElements(m_pkiMessage.Header, m_pkiMessage.Body);
     }
 }

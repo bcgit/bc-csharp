@@ -25,6 +25,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_content = seq;
         }
 
+        public CertReqMessages(CertReqMsg msg)
+        {
+            m_content = DerSequence.FromElement(msg);
+        }
+
         public CertReqMessages(params CertReqMsg[] msgs)
         {
             m_content = new DerSequence(msgs);

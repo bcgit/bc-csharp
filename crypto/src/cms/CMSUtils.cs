@@ -10,24 +10,23 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-	internal static class CmsUtilities
+    internal static class CmsUtilities
     {
-		// TODO Is there a .NET equivalent to this?
-//		private static readonly Runtime RUNTIME = Runtime.getRuntime();
+        // TODO Is there a .NET equivalent to this?
+        //		private static readonly Runtime RUNTIME = Runtime.getRuntime();
 
         private static readonly HashSet<DerObjectIdentifier> ECAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> GostAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> MqvAlgorithms = new HashSet<DerObjectIdentifier>();
 
-		static CmsUtilities()
-		{
+        static CmsUtilities()
+        {
             ECAlgorithms.Add(X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme);
             ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme);
             ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme);
@@ -72,122 +71,69 @@ namespace Org.BouncyCastle.Cms
         internal static bool IsMqv(DerObjectIdentifier oid) => MqvAlgorithms.Contains(oid);
 
         internal static int MaximumMemory
-		{
-			get
-			{
-				// TODO Is there a .NET equivalent to this?
-				long maxMem = int.MaxValue;//RUNTIME.maxMemory();
+        {
+            get
+            {
+                // TODO Is there a .NET equivalent to this?
+                long maxMem = int.MaxValue;//RUNTIME.maxMemory();
 
-				if (maxMem > int.MaxValue)
-				{
-					return int.MaxValue;
-				}
+                if (maxMem > int.MaxValue)
+                {
+                    return int.MaxValue;
+                }
 
-				return (int)maxMem;
-			}
-		}
+                return (int)maxMem;
+            }
+        }
 
-		internal static ContentInfo ReadContentInfo(byte[] input)
-		{
+        internal static ContentInfo ReadContentInfo(byte[] input)
+        {
             using (var asn1In = new Asn1InputStream(input))
-			{
+            {
                 return ReadContentInfo(asn1In);
             }
         }
 
-		internal static ContentInfo ReadContentInfo(Stream input)
-		{
+        internal static ContentInfo ReadContentInfo(Stream input)
+        {
             using (var asn1In = new Asn1InputStream(input, MaximumMemory, leaveOpen: true))
             {
                 return ReadContentInfo(asn1In);
             }
-		}
+        }
 
-		private static ContentInfo ReadContentInfo(Asn1InputStream asn1In)
-		{
-			try
-			{
-				return ContentInfo.GetInstance(asn1In.ReadObject());
-			}
-			catch (IOException e)
-			{
-				throw new CmsException("IOException reading content.", e);
-			}
-			catch (InvalidCastException e)
-			{
-				throw new CmsException("Malformed content.", e);
-			}
-			catch (ArgumentException e)
-			{
-				throw new CmsException("Malformed content.", e);
-			}
-		}
-
-		internal static byte[] StreamToByteArray(Stream inStream) => Streams.ReadAll(inStream);
-
-		internal static byte[] StreamToByteArray(Stream inStream, int limit) => Streams.ReadAllLimited(inStream, limit);
-
-		// TODO Clean up this method (which is not present in bc-java)
-        internal static void AddDigestAlgs(Asn1EncodableVector digestAlgs, SignerInformation signer,
-            IDigestAlgorithmFinder digestAlgorithmFinder)
+        private static ContentInfo ReadContentInfo(Asn1InputStream asn1In)
         {
-            digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
-            SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
-            foreach (var counterSigner in counterSignaturesStore)
+            try
             {
-                digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
+                return ContentInfo.GetInstance(asn1In.ReadObject());
+            }
+            catch (IOException e)
+            {
+                throw new CmsException("IOException reading content.", e);
+            }
+            catch (InvalidCastException e)
+            {
+                throw new CmsException("Malformed content.", e);
+            }
+            catch (ArgumentException e)
+            {
+                throw new CmsException("Malformed content.", e);
             }
         }
 
-        internal static void AddDigestAlgs(ISet<AlgorithmIdentifier> digestAlgs, SignerInformation signer,
-            IDigestAlgorithmFinder digestAlgorithmFinder)
-        {
-            digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(signer.DigestAlgorithmID, digestAlgorithmFinder));
-            SignerInformationStore counterSignaturesStore = signer.GetCounterSignatures();
-			foreach (var counterSigner in counterSignaturesStore)
-			{
-                digestAlgs.Add(CmsSignedHelper.FixDigestAlgID(counterSigner.DigestAlgorithmID, digestAlgorithmFinder));
-            }
-        }
+        internal static byte[] StreamToByteArray(Stream inStream) => Streams.ReadAll(inStream);
 
-        internal static Asn1Set ConvertToDLSet(ISet<AlgorithmIdentifier> digestAlgs)
-        {
-            Asn1EncodableVector v = new Asn1EncodableVector(digestAlgs.Count);
-            foreach (var digestAlg in digestAlgs)
-            {
-                v.Add(digestAlg);
-            }
-            return DLSet.FromVector(v);
-        }
+        internal static byte[] StreamToByteArray(Stream inStream, int limit) => Streams.ReadAllLimited(inStream, limit);
 
-        internal static Asn1Set CreateBerSetFromList(List<Asn1Encodable> elements)
+        internal static void AddDigestAlgorithms(DigestAlgorithmsBuilder builder, SignerInformation signer)
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
-            foreach (Asn1Encodable element in elements)
-            {
-                v.Add(element);
-            }
-            return BerSet.FromVector(v);
-        }
+            builder.Add(signer.DigestAlgorithmID);
 
-        internal static Asn1Set CreateDerSetFromList(List<Asn1Encodable> elements)
-        {
-            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
-            foreach (Asn1Encodable element in elements)
+            foreach (var counterSigner in signer.GetCounterSignatures())
             {
-                v.Add(element);
+                builder.Add(counterSigner.DigestAlgorithmID);
             }
-            return DerSet.FromVector(v);
-        }
-
-        internal static Asn1Set CreateDLSetFromList(List<Asn1Encodable> elements)
-        {
-            Asn1EncodableVector v = new Asn1EncodableVector(elements.Count);
-            foreach (Asn1Encodable element in elements)
-            {
-                v.Add(element);
-            }
-            return DLSet.FromVector(v);
         }
 
         internal static IssuerAndSerialNumber GetIssuerAndSerialNumber(TbsCertificateStructure c) =>
@@ -203,7 +149,7 @@ namespace Org.BouncyCastle.Cms
             new SignerIdentifier(GetIssuerAndSerialNumber(c));
 
         internal static SignerIdentifier GetSignerIdentifier(byte[] subjectKeyIdentifier) =>
-            new SignerIdentifier(DerOctetString.FromContents(subjectKeyIdentifier));
+            new SignerIdentifier(new SubjectKeyIdentifier(subjectKeyIdentifier));
 
         internal static Asn1.Cms.AttributeTable ParseAttributeTable(Asn1SetParser parser)
         {
@@ -217,7 +163,7 @@ namespace Org.BouncyCastle.Cms
                 v.Add(seq.ToAsn1Object());
             }
 
-            return new Asn1.Cms.AttributeTable(DerSet.FromVector(v));
+            return new Asn1.Cms.AttributeTable(v);
         }
 
         internal static void CollectAttributeCertificate(List<Asn1Encodable> result,
@@ -308,13 +254,37 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        internal static Asn1Set ToAsn1Set(this IReadOnlyCollection<Asn1Encodable> elements, bool useDer, bool useDL)
+        {
+            return useDer
+                ? ToDerSet(elements)
+                : useDL
+                ? ToDLSet(elements)
+                : ToBerSet(elements);
+        }
+
+        internal static Asn1Set ToAsn1SetOptional(this IReadOnlyCollection<Asn1Encodable> elements, bool useDer,
+            bool useDL)
+        {
+            return elements.Count < 1 ? null : ToAsn1Set(elements, useDer, useDL);
+        }
+
+        internal static Asn1Set ToBerSet(this IReadOnlyCollection<Asn1Encodable> elements) =>
+            BerSet.FromCollection(elements);
+
+        internal static Asn1Set ToDerSet(this IReadOnlyCollection<Asn1Encodable> elements) =>
+            DerSet.FromCollection(elements);
+
+        internal static Asn1Set ToDLSet(this IReadOnlyCollection<Asn1Encodable> elements) =>
+            DLSet.FromCollection(elements);
+
         internal static void ValidateOtherRevocationInfo(OtherRevocationInfoFormat otherRevocationInfo)
         {
             if (CmsObjectIdentifiers.id_ri_ocsp_response.Equals(otherRevocationInfo.InfoFormat))
-			{
-				OcspResponse ocspResponse = OcspResponse.GetInstance(otherRevocationInfo.Info);
+            {
+                OcspResponse ocspResponse = OcspResponse.GetInstance(otherRevocationInfo.Info);
 
-                if (OcspResponseStatus.Successful != ocspResponse.ResponseStatus.IntValueExact)
+                if (!ocspResponse.ResponseStatus.HasValue(OcspResponseStatus.Successful))
                     throw new ArgumentException("cannot add unsuccessful OCSP response to CMS SignedData");
             }
         }

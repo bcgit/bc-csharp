@@ -2,6 +2,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
+#if NET9_0_OR_GREATER
+using System.Threading;
+#endif
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
@@ -92,7 +95,11 @@ namespace Org.BouncyCastle.Tls
         private readonly DatagramTransport m_transport;
 
         private readonly ByteQueue m_recordQueue = new ByteQueue();
+#if NET9_0_OR_GREATER
+        private readonly Lock m_writeLock = new();
+#else
         private readonly object m_writeLock = new object();
+#endif
 
         private volatile bool m_closed = false;
         private volatile bool m_failed = false;

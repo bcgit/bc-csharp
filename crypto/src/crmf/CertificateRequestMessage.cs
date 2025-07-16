@@ -3,7 +3,6 @@
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Operators;
 
 namespace Org.BouncyCastle.Crmf
 {

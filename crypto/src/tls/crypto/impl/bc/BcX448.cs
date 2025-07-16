@@ -5,6 +5,7 @@ using Org.BouncyCastle.Math.EC.Rfc7748;
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
     /// <summary>Support class for X448 using the BC light-weight library.</summary>
+    // TODO[api] Make sealed
     public class BcX448
         : TlsAgreement
     {
@@ -14,15 +15,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public BcX448(BcTlsCrypto crypto)
         {
-            this.m_crypto = crypto;
+            m_crypto = crypto;
         }
 
         public virtual byte[] GenerateEphemeral()
         {
-            m_crypto.SecureRandom.NextBytes(m_privateKey);
+            X448.GeneratePrivateKey(m_crypto.SecureRandom, m_privateKey);
 
             byte[] publicKey = new byte[X448.PointSize];
-            X448.ScalarMultBase(m_privateKey, 0, publicKey, 0);
+            X448.GeneratePublicKey(m_privateKey, 0, publicKey, 0);
             return publicKey;
         }
 

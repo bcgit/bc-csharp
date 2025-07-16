@@ -67,39 +67,116 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public const int TYPE_POLL_REQ = 25;
         public const int TYPE_POLL_REP = 26;
 
-        public static PkiBody GetInstance(object obj)
-        {
-            if (obj == null)
-                return null;
-            if (obj is PkiBody crlSource)
-                return crlSource;
-            return new PkiBody(Asn1TaggedObject.GetInstance(obj));
-        }
+        public static PkiBody GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static PkiBody GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        public static PkiBody GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is PkiBody pkiBody)
+                return pkiBody;
+
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetOptional(element);
+            if (taggedObject != null)
+            {
+                Asn1Encodable baseObject = GetOptionalBaseObject(taggedObject);
+                if (baseObject != null)
+                    return new PkiBody(taggedObject.TagNo, baseObject);
+            }
+
+            return null;
+        }
+
         public static PkiBody GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
-        private readonly int m_tagNo;
-        private readonly Asn1Encodable m_body;
-
-        private PkiBody(Asn1TaggedObject taggedObject)
+        private static Asn1Encodable GetOptionalBaseObject(Asn1TaggedObject taggedObject)
         {
-            m_tagNo = taggedObject.TagNo;
-            m_body = GetBodyForType(m_tagNo, taggedObject.GetExplicitBaseObject());
+            if (taggedObject.HasContextTag())
+            {
+                switch (taggedObject.TagNo)
+                {
+                case TYPE_INIT_REQ:
+                    return CertReqMessages.GetTagged(taggedObject, true);
+                case TYPE_INIT_REP:
+                    return CertRepMessage.GetTagged(taggedObject, true);
+                case TYPE_CERT_REQ:
+                    return CertReqMessages.GetTagged(taggedObject, true);
+                case TYPE_CERT_REP:
+                    return CertRepMessage.GetTagged(taggedObject, true);
+                case TYPE_P10_CERT_REQ:
+                    return CertificationRequest.GetTagged(taggedObject, true);
+                case TYPE_POPO_CHALL:
+                    return PopoDecKeyChallContent.GetTagged(taggedObject, true);
+                case TYPE_POPO_REP:
+                    return PopoDecKeyRespContent.GetTagged(taggedObject, true);
+                case TYPE_KEY_UPDATE_REQ:
+                    return CertReqMessages.GetTagged(taggedObject, true);
+                case TYPE_KEY_UPDATE_REP:
+                    return CertRepMessage.GetTagged(taggedObject, true);
+                case TYPE_KEY_RECOVERY_REQ:
+                    return CertReqMessages.GetTagged(taggedObject, true);
+                case TYPE_KEY_RECOVERY_REP:
+                    return KeyRecRepContent.GetTagged(taggedObject, true);
+                case TYPE_REVOCATION_REQ:
+                    return RevReqContent.GetTagged(taggedObject, true);
+                case TYPE_REVOCATION_REP:
+                    return RevRepContent.GetTagged(taggedObject, true);
+                case TYPE_CROSS_CERT_REQ:
+                    return CertReqMessages.GetTagged(taggedObject, true);
+                case TYPE_CROSS_CERT_REP:
+                    return CertRepMessage.GetTagged(taggedObject, true);
+                case TYPE_CA_KEY_UPDATE_ANN:
+                    return CAKeyUpdAnnContent.GetTagged(taggedObject, true);
+                case TYPE_CERT_ANN:
+                    return CmpCertificate.GetTagged(taggedObject, true);
+                case TYPE_REVOCATION_ANN:
+                    return RevAnnContent.GetTagged(taggedObject, true);
+                case TYPE_CRL_ANN:
+                    return CrlAnnContent.GetTagged(taggedObject, true);
+                case TYPE_CONFIRM:
+                    return PkiConfirmContent.GetTagged(taggedObject, true);
+                case TYPE_NESTED:
+                    return PkiMessages.GetTagged(taggedObject, true);
+                case TYPE_GEN_MSG:
+                    return GenMsgContent.GetTagged(taggedObject, true);
+                case TYPE_GEN_REP:
+                    return GenRepContent.GetTagged(taggedObject, true);
+                case TYPE_ERROR:
+                    return ErrorMsgContent.GetTagged(taggedObject, true);
+                case TYPE_CERT_CONFIRM:
+                    return CertConfirmContent.GetTagged(taggedObject, true);
+                case TYPE_POLL_REQ:
+                    return PollReqContent.GetTagged(taggedObject, true);
+                case TYPE_POLL_REP:
+                    return PollRepContent.GetTagged(taggedObject, true);
+                }
+            }
+            return null;
         }
+
+        private readonly int m_tagNo;
+        private readonly Asn1Encodable m_baseObject;
 
         /**
          * Creates a new PkiBody.
          * @param type one of the TYPE_* constants
          * @param content message content
          */
+        // TODO[api] Consider marking [Obsolete("Use 'GetInstance' from tagged object instead")]
         public PkiBody(int type, Asn1Encodable content)
+            : this(GetBodyForType(type, content), type)
         {
-            m_tagNo = type;
-            m_body = GetBodyForType(type, content);
+        }
+
+        private PkiBody(Asn1Encodable baseObject, int tagNo)
+        {
+            m_tagNo = tagNo;
+            m_baseObject = baseObject ?? throw new ArgumentNullException(nameof(baseObject));
         }
 
         private static Asn1Encodable GetBodyForType(int type, Asn1Encodable o)
@@ -165,7 +242,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             }
         }
 
-        public virtual Asn1Encodable Content => m_body;
+        public virtual Asn1Encodable Content => m_baseObject;
 
         public virtual int Type => m_tagNo;
 
@@ -203,6 +280,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
          * </pre>
          * @return a basic ASN.1 object representation.
          */
-        public override Asn1Object ToAsn1Object() => new DerTaggedObject(true, m_tagNo, m_body);
+        public override Asn1Object ToAsn1Object() => new DerTaggedObject(true, m_tagNo, m_baseObject);
     }
 }

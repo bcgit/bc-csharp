@@ -131,19 +131,14 @@ namespace Org.BouncyCastle.Asn1.X509
             AddCrlEntry(userCertificate, revocationDate, extensions);
 		}
 
-		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, X509Extensions extensions)
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(userCertificate, revocationDate);
+        public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, X509Extensions extensions)
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(userCertificate, revocationDate);
+            v.AddOptional(extensions);
+            AddCrlEntry(new DerSequence(v));
+        }
 
-			if (extensions != null)
-			{
-				v.Add(extensions);
-			}
-
-			AddCrlEntry(new DerSequence(v));
-		}
-
-		public void SetExtensions(X509Extensions extensions)
+        public void SetExtensions(X509Extensions extensions)
         {
             this.extensions = extensions;
         }

@@ -6,6 +6,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security.Certificates;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509.Extension;
 using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
@@ -32,8 +33,7 @@ namespace Org.BouncyCastle.Pkix
 			{
 				try
 				{
-					TargetInformation.GetInstance(PkixCertPathValidatorUtilities
-						.GetExtensionValue(attrCert, X509Extensions.TargetInformation));
+					attrCert.GetExtension(X509Extensions.TargetInformation, TargetInformation.GetInstance);
 				}
 				catch (Exception e)
 				{
@@ -91,11 +91,10 @@ namespace Org.BouncyCastle.Pkix
                 return;
             }
 
-            CrlDistPoint crldp;
+			CrlDistPoint crlDP;
 			try
 			{
-				crldp = CrlDistPoint.GetInstance(
-					PkixCertPathValidatorUtilities.GetExtensionValue(attrCert, X509Extensions.CrlDistributionPoints));
+				crlDP = attrCert.GetExtension(X509Extensions.CrlDistributionPoints, CrlDistPoint.GetInstance);
 			}
 			catch (Exception e)
 			{
@@ -104,7 +103,7 @@ namespace Org.BouncyCastle.Pkix
 
 			try
 			{
-				PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crldp, paramsPKIX);
+				PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, paramsPKIX);
 			}
 			catch (Exception e)
 			{
@@ -118,12 +117,12 @@ namespace Org.BouncyCastle.Pkix
 			Exception lastException = null;
 			bool validCrlFound = false;
 			// for each distribution point
-			if (crldp != null)
+			if (crlDP != null)
 			{
 				DistributionPoint[] dps;
 				try
 				{
-					dps = crldp.GetDistributionPoints();
+					dps = crlDP.GetDistributionPoints();
 				}
 				catch (Exception e)
 				{

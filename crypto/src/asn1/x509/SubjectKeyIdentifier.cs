@@ -57,11 +57,11 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
         /**
-		 * Calculates the keyIdentifier using a SHA1 hash over the BIT STRING
-		 * from SubjectPublicKeyInfo as defined in RFC3280.
-		 *
-		 * @param spki the subject public key info.
-		 */
+         * Calculates the keyIdentifier using a SHA1 hash over the BIT STRING
+         * from SubjectPublicKeyInfo as defined in RFC3280.
+         *
+         * @param spki the subject public key info.
+         */
         [Obsolete("Use 'X509ExtensionUtilities' methods instead")]
         public SubjectKeyIdentifier(SubjectPublicKeyInfo spki)
         {
@@ -76,29 +76,29 @@ namespace Org.BouncyCastle.Asn1.X509
         public override Asn1Object ToAsn1Object() => DerOctetString.FromContents(m_keyIdentifier);
 
         /**
-		 * Return a RFC 3280 type 1 key identifier. As in:
-		 * <pre>
-		 * (1) The keyIdentifier is composed of the 160-bit SHA-1 hash of the
-		 * value of the BIT STRING subjectPublicKey (excluding the tag,
-		 * length, and number of unused bits).
-		 * </pre>
-		 * @param keyInfo the key info object containing the subjectPublicKey field.
-		 * @return the key identifier.
-		 */
+         * Return a RFC 3280 type 1 key identifier. As in:
+         * <pre>
+         * (1) The keyIdentifier is composed of the 160-bit SHA-1 hash of the
+         * value of the BIT STRING subjectPublicKey (excluding the tag,
+         * length, and number of unused bits).
+         * </pre>
+         * @param keyInfo the key info object containing the subjectPublicKey field.
+         * @return the key identifier.
+         */
         [Obsolete("Use 'X509ExtensionUtilities' methods instead")]
         public static SubjectKeyIdentifier CreateSha1KeyIdentifier(SubjectPublicKeyInfo keyInfo) =>
             new SubjectKeyIdentifier(keyInfo);
 
         /**
-		 * Return a RFC 3280 type 2 key identifier. As in:
-		 * <pre>
-		 * (2) The keyIdentifier is composed of a four bit type field with
-		 * the value 0100 followed by the least significant 60 bits of the
-		 * SHA-1 hash of the value of the BIT STRING subjectPublicKey.
-		 * </pre>
-		 * @param keyInfo the key info object containing the subjectPublicKey field.
-		 * @return the key identifier.
-		 */
+         * Return a RFC 3280 type 2 key identifier. As in:
+         * <pre>
+         * (2) The keyIdentifier is composed of a four bit type field with
+         * the value 0100 followed by the least significant 60 bits of the
+         * SHA-1 hash of the value of the BIT STRING subjectPublicKey.
+         * </pre>
+         * @param keyInfo the key info object containing the subjectPublicKey field.
+         * @return the key identifier.
+         */
         [Obsolete("Use 'X509ExtensionUtilities' methods instead")]
         public static SubjectKeyIdentifier CreateTruncatedSha1KeyIdentifier(SubjectPublicKeyInfo keyInfo)
         {

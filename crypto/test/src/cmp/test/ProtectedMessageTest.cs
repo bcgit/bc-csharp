@@ -1,21 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Crmf;
-using Org.BouncyCastle.Crmf;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
+using Org.BouncyCastle.Crmf;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Operators;
+using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
@@ -23,251 +30,255 @@ namespace Org.BouncyCastle.Cmp.Tests
 {
     [TestFixture]
     public class ProtectedMessageTest
-        : SimpleTest
     {
-        public override string Name
-        {
-            get { return "ProtectedMessage"; }
-        }
+        private static AsymmetricCipherKeyPair _rsaKeyPair;
 
-        public override void PerformTest()
-        {
-            TestVerifyBCJavaGeneratedMessage();
-            TestSubsequentMessage();
-            TestMacProtectedMessage();
-            TestProtectedMessage();
-            TestConfirmationMessage();
-            TestSampleCr();
-        }
-
-        //[Test]
-        //public void TestServerSideKey()
-        //{
-        //    RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-        //    rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
-        //    AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
-
-        //    TestCertBuilder builder = new TestCertBuilder()
-        //    {
-        //        Issuer = new X509Name("CN=Test"),
-        //        Subject = new X509Name("CN=Test"),
-        //        NotBefore = DateTime.UtcNow.AddDays(-1),
-        //        NotAfter = DateTime.UtcNow.AddDays(1),
-        //        PublicKey = rsaKeyPair.Public,
-        //        SignatureAlgorithm = "MD5WithRSAEncryption",
-        //    };
-        //    builder.AddAttribute(X509Name.C, "Foo");
-        //    X509Certificate cert = builder.Build(rsaKeyPair.Private);
-
-        //    GeneralName sender = new GeneralName(new X509Name("CN=Sender"));
-        //    GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
-        //}
-
-        [Test]
-        public void TestNotBeforeNotAfter()
-        {
-            RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
-            AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
-
-            ImplNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), MakeUtcDateTime(1, 1, 1, 0, 0, 10));
-            ImplNotBeforeNotAfterTest(rsaKeyPair, null, MakeUtcDateTime(1, 1, 1, 0, 0, 10));
-            ImplNotBeforeNotAfterTest(rsaKeyPair, MakeUtcDateTime(1, 1, 1, 0, 0, 1), null);
-        }
-
-        [Test]
-        public void TestSubsequentMessage()
-        {
-            RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
-            AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
-
-            TestCertBuilder builder = new TestCertBuilder()
-            {
-                NotBefore = DateTime.UtcNow.AddDays(-1),
-                NotAfter = DateTime.UtcNow.AddDays(1),
-                PublicKey = rsaKeyPair.Public,
-                SignatureAlgorithm = "Sha1WithRSAEncryption",
-            };
-            X509Certificate cert = builder.Build(rsaKeyPair.Private);
-
-            GeneralName user = new GeneralName(new X509Name("CN=Test"));
-
-            CertificateRequestMessageBuilder crmBuiler = new CertificateRequestMessageBuilder(BigInteger.One)
-                .SetPublicKey(rsaKeyPair.Public)
-                .SetProofOfPossessionSubsequentMessage(SubsequentMessage.encrCert);
-
-            ISignatureFactory sigFact = new Asn1SignatureFactory("SHA256WithRSA", rsaKeyPair.Private);
-
-            ProtectedPkiMessage certRequestMsg = new ProtectedPkiMessageBuilder(user, user)
-                .SetTransactionId(new byte[] { 1, 2, 3, 4, 5 })
-                .SetBody(new PkiBody(PkiBody.TYPE_KEY_RECOVERY_REQ, new CertReqMessages(new CertReqMsg[] { crmBuiler.Build().ToAsn1Structure() })))
-                .AddCmpCertificate(cert)
-                .Build(sigFact);
-
-            ProtectedPkiMessage msg = new ProtectedPkiMessage(new GeneralPkiMessage(certRequestMsg.ToAsn1Message().GetDerEncoded()));
-            CertReqMessages reqMsgs = CertReqMessages.GetInstance(msg.Body.Content);
-            CertReqMsg reqMsg = reqMsgs.ToCertReqMsgArray()[0];
-            IsEquals(ProofOfPossession.TYPE_KEY_ENCIPHERMENT, reqMsg.Pop.Type);
-        }
-
-        [Test]
-        public void TestSampleCr()
-        {
-            byte[] raw = Base64.Decode(
-                "MIIB5TCB3AIBAqQdMBsxDDAKBgNVBAMMA0FSUDELMAkGA1UEBhMCQ0ikOTA3MREwDwYDVQQDDAhBZG1pbkNBM" +
-                "TEVMBMGA1UECgwMRUpCQ0EgU2FtcGxlMQswCQYDVQQGEwJTRaFGMEQGCSqGSIb2fQdCDTA3BBxzYWx0Tm9NYX" +
-                "R0ZXJXaGF0VGhpc1N0cmluZ0lzMAcGBSsOAwIaAgIEADAKBggrBgEFBQgBAqIQBA5TZW5kZXJLSUQtMjAwOKQ" +
-                "PBA0xMjAzNjA3MDE1OTQ0pRIEEOPfE1DMncRUdrBj8KelgsCigeowgecwgeQwgd0CAQAwgcGlHTAbMQwwCgYD" +
-                "VQQDDANBUlAxCzAJBgNVBAYTAkNIpoGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCrrv4e42olM2YJqSbCN" +
-                "d19EtW7d6T8HYvcSU5wsm5icKFkxyD5jrO/2xYh3zqUFYwZap0pA7qbhxk5sEne2ywVpt2lGSmpAU8M7hC9oh" +
-                "Ep9wvv+3+td5MEO+qMuWWxF8OZBlYIFBZ/k+pGlU+4XlBP5Ai6pu/EI/0A+1/bcGs0sQIDAQABMBQwEgYJKwY" +
-                "BBQUHBQEBDAVEVU1NWaACBQCgFwMVAO73HUPF//mY5+E714Cv5oprt0kO\r\n");
-
-            ProtectedPkiMessage msg = new ProtectedPkiMessage(new GeneralPkiMessage(raw));
-
-            IsTrue(msg.Verify(new PKMacBuilder(), "TopSecret1234".ToCharArray()));
-        }
-
-        [Test]
-        public void TestConfirmationMessage()
-        {
-            RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
-            AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
-
-            TestCertBuilder builder = new TestCertBuilder()
-            {
-                NotBefore = DateTime.UtcNow.AddDays(-1),
-                NotAfter = DateTime.UtcNow.AddDays(1),
-                PublicKey = rsaKeyPair.Public,
-                SignatureAlgorithm = "Sha1WithRSAEncryption",
-            };
-            builder.AddAttribute(X509Name.C, "Foo");
-            X509Certificate cert = builder.Build(rsaKeyPair.Private);
-
-            GeneralName sender = new GeneralName(new X509Name("CN=Sender"));
-            GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
-
-            CertificateConfirmationContent content = new CertificateConfirmationContentBuilder()
-                .AddAcceptedCertificate(cert, BigInteger.One)
-                .Build();
-
-            ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient);
-            msgBuilder.SetBody(new PkiBody(PkiBody.TYPE_CERT_CONFIRM, content.ToAsn1Structure()));
-            msgBuilder.AddCmpCertificate(cert);
-
-            ISignatureFactory sigFact = new Asn1SignatureFactory("MD5WithRSA", rsaKeyPair.Private);
-            ProtectedPkiMessage msg = msgBuilder.Build(sigFact);
-
-            IVerifierFactory verifierFactory = new Asn1VerifierFactory("MD5WithRSA", rsaKeyPair.Public);
-
-            IsTrue("PkiMessage must verify (MD5withRSA)", msg.Verify(verifierFactory));
-
-            IsEquals(sender, msg.Header.Sender);
-            IsEquals(recipient, msg.Header.Recipient);
-
-            content = new CertificateConfirmationContent(CertConfirmContent.GetInstance(msg.Body.Content));
-            CertificateStatus[] statusList = content.GetStatusMessages();
-            IsEquals(1, statusList.Length);
-            IsTrue(statusList[0].IsVerified(cert));
-        }
+        private static AsymmetricCipherKeyPair RsaKeyPair =>
+            SimpleTest.EnsureSingletonInitialized(ref _rsaKeyPair, CreateRsaKeyPair);
 
         [Test]
         public void TestProtectedMessage()
         {
-            RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
-            AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
+            var kp = RsaKeyPair;
+            var cert = MakeV3Certificate(kp, "CN=Test", kp, "CN=Test");
 
-            TestCertBuilder builder = new TestCertBuilder()
-            {
-                NotBefore = DateTime.UtcNow.AddDays(-1),
-                NotAfter = DateTime.UtcNow.AddDays(1),
-                PublicKey = rsaKeyPair.Public,
-                SignatureAlgorithm = "Sha1WithRSAEncryption",
-            };
-            builder.AddAttribute(X509Name.C, "Foo");
-            X509Certificate cert = builder.Build(rsaKeyPair.Private);
+            var sender = new GeneralName(new X509Name("CN=Sender"));
+            var recipient = new GeneralName(new X509Name("CN=Recip"));
 
-            GeneralName sender = new GeneralName(new X509Name("CN=Sender"));
-            GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
+            var certRepMessage = CertRepMessage.GetInstance(DerSequence.FromElement(new DerSequence()));
 
-            ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient)
-                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, CertRepMessage.GetInstance(new DerSequence(new DerSequence()))))
-                .AddCmpCertificate(cert);
+            var signatureFactory = new Asn1SignatureFactory("MD5withRSA", kp.Private);
 
-            ISignatureFactory sigFact = new Asn1SignatureFactory("MD5WithRSA", rsaKeyPair.Private);
+            ProtectedPkiMessage message = new ProtectedPkiMessageBuilder(sender, recipient)
+                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, certRepMessage))
+                .AddCmpCertificate(cert)
+                .Build(signatureFactory);
 
-            ProtectedPkiMessage msg = msgBuilder.Build(sigFact);
+            Assert.True(message.Verify(kp.Public), "PkiMessage must verify (MD5withRSA)");
 
-            X509Certificate certificate = msg.GetCertificates()[0];
-
-            IVerifierFactory verifierFactory = new Asn1VerifierFactory("MD5WithRSA", rsaKeyPair.Public);
-
-            IsTrue("PkiMessage must verify (MD5withRSA)", msg.Verify(verifierFactory));
+            Assert.AreEqual(sender, message.Header.Sender);
+            Assert.AreEqual(recipient, message.Header.Recipient);
         }
 
         [Test]
         public void TestMacProtectedMessage()
         {
-            RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512,
-                100));
-            AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
+            var kp = RsaKeyPair;
+            var cert = MakeV3Certificate(kp, "CN=Test", kp, "CN=Test");
 
-            TestCertBuilder builder = new TestCertBuilder()
+            var sender = new GeneralName(new X509Name("CN=Sender"));
+            var recipient = new GeneralName(new X509Name("CN=Recip"));
+
+            var certRepMessage = CertRepMessage.GetInstance(DerSequence.FromElement(new DerSequence()));
+
+            var macFactory = new PKMacBuilder().Build("testpass".ToCharArray());
+
+            ProtectedPkiMessage message = new ProtectedPkiMessageBuilder(sender, recipient)
+                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, certRepMessage))
+                .AddCmpCertificate(cert)
+                .Build(macFactory);
+
+            Assert.True(message.Verify(new PKMacBuilder(), "testpass".ToCharArray()));
+
+            Assert.AreEqual(sender, message.Header.Sender);
+            Assert.AreEqual(recipient, message.Header.Recipient);
+        }
+
+        // TODO[cmp]
+        //[Test]
+        //public void TestPBMac1ProtectedMessage()
+        //{
+        //    var kp = RsaKeyPair;
+        //    var cert = MakeV3Certificate(kp, "CN=Test", kp, "CN=Test");
+
+        //    var sender = new GeneralName(new X509Name("CN=Sender"));
+        //    var recipient = new GeneralName(new X509Name("CN=Recip"));
+
+        //    IMacFactory pbCalculator = new JcePBMac1CalculatorBuilder("HmacSHA256", 256).setProvider("BC").build("secret".toCharArray());
+
+        //    var certRepMessage = CertRepMessage.GetInstance(DerSequence.FromElement(new DerSequence()));
+
+        //    ProtectedPkiMessage message = new ProtectedPkiMessageBuilder(sender, recipient)
+        //        .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, certRepMessage))
+        //        .AddCmpCertificate(cert)
+        //        .Build(pbCalculator);
+
+        //    PBEMacCalculatorProvider macProvider = new JcePBMac1CalculatorProviderBuilder().setProvider("BC").build();
+
+        //    Assert.True(message.Verify(macProvider, "secret".ToCharArray()));
+
+        //    Assert.AreEqual(sender, message.Header.Sender);
+        //    Assert.AreEqual(recipient, message.Header.Recipient);
+        //}
+
+        [Test]
+        public void TestConfirmationMessage()
+        {
+            var kp = RsaKeyPair;
+            var cert = MakeV3Certificate(kp, "CN=Test", kp, "CN=Test");
+
+            var sender = new GeneralName(new X509Name("CN=Sender"));
+            var recipient = new GeneralName(new X509Name("CN=Recip"));
+
+            CertificateConfirmationContent content = new CertificateConfirmationContentBuilder()
+                .AddAcceptedCertificate(cert, BigInteger.One)
+                .Build();
+
+            var signatureFactory = new Asn1SignatureFactory("MD5withRSA", kp.Private);
+
+            ProtectedPkiMessage message = new ProtectedPkiMessageBuilder(sender, recipient)
+                .SetBody(new PkiBody(PkiBody.TYPE_CERT_CONFIRM, content.ToAsn1Structure()))
+                .AddCmpCertificate(cert)
+                .Build(signatureFactory);
+
+            Assert.True(message.Verify(kp.Public), "PkiMessage must verify (MD5withRSA)");
+
+            Assert.AreEqual(sender, message.Header.Sender);
+            Assert.AreEqual(recipient, message.Header.Recipient);
+
+            content = new CertificateConfirmationContent(CertConfirmContent.GetInstance(message.Body.Content));
+
+            CertificateStatus[] statusList = content.GetStatusMessages();
+
+            Assert.AreEqual(1, statusList.Length);
+            Assert.True(statusList[0].IsVerified(cert));
+        }
+
+        [Test]
+        public void TestSampleCr()
+        {
+            var pkiMessage = LoadPkiMessage("sample_cr.der");
+            var protectedPkiMessage = new ProtectedPkiMessage(new GeneralPkiMessage(pkiMessage));
+
+            Assert.True(protectedPkiMessage.Verify(new PKMacBuilder(), "TopSecret1234".ToCharArray()));
+        }
+
+        [Test]
+        public void TestSubsequentMessage()
+        {
+            var kp = RsaKeyPair;
+            var cert = MakeV3Certificate(kp, "CN=Test", kp, "CN=Test");
+
+            var user = new GeneralName(new X509Name("CN=Test"));
+
+            var certificateRequestMessage = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetPublicKey(kp.Public)
+                .SetProofOfPossessionSubsequentMessage(SubsequentMessage.encrCert)
+                .Build();
+
+            var signatureFactory = new Asn1SignatureFactory("SHA256withRSA", kp.Private);
+
+            var certReqMessages = new CertReqMessages(certificateRequestMessage.ToAsn1Structure());
+
+            ProtectedPkiMessage certRequestMsg = new ProtectedPkiMessageBuilder(user, user)
+                .SetTransactionId(new byte[]{ 1, 2, 3, 4, 5 })
+                .SetBody(new PkiBody(PkiBody.TYPE_KEY_RECOVERY_REQ, certReqMessages))
+                .AddCmpCertificate(cert)
+                .Build(signatureFactory);
+
+            byte[] encoded = certRequestMsg.ToAsn1Message().GetDerEncoded();
+
+            ProtectedPkiMessage msg = new ProtectedPkiMessage(new GeneralPkiMessage(encoded));
+            certReqMessages = CertReqMessages.GetInstance(msg.Body.Content);
+            CertReqMsg certReqMsg = certReqMessages.ToCertReqMsgArray()[0];
+
+            Assert.AreEqual(ProofOfPossession.TYPE_KEY_ENCIPHERMENT, certReqMsg.Pop.Type);
+        }
+
+        [Test]
+        public void TestServerSideKey()
+        {
+            // TODO[cmp] The original bc-java version used the EncrypedKey.encryptedValue CHOICE option
+
+            var kp = RsaKeyPair;
+            var cert = MakeV3Certificate(kp, "CN=Test", kp, "CN=Test");
+
+            var sender = new GeneralName(new X509Name("CN=Sender"));
+            var recipient = new GeneralName(new X509Name("CN=Recip"));
+
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
+
+            EncryptedKey privateKey;
             {
-                NotBefore = DateTime.UtcNow.AddDays(-1),
-                NotAfter = DateTime.UtcNow.AddDays(1),
-                PublicKey = rsaKeyPair.Public,
-                SignatureAlgorithm = "Sha1WithRSAEncryption",
-            };
-            builder.AddAttribute(X509Name.C, "Foo");
-            X509Certificate cert = builder.Build(rsaKeyPair.Private);
+                var keyContent = new CmsProcessableByteArray(privateKeyInfo.GetEncoded(Asn1Encodable.Der));
 
-            GeneralName sender = new GeneralName(new X509Name("CN=Sender"));
-            GeneralName recipient = new GeneralName(new X509Name("CN=Recip"));
+                var contentEncryptor = new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build();
 
-            ProtectedPkiMessageBuilder msgBuilder = new ProtectedPkiMessageBuilder(sender, recipient)
-                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, CertRepMessage.GetInstance(new DerSequence(new DerSequence()))))
-                .AddCmpCertificate(cert);
+                var envGen = new CmsEnvelopedDataGenerator();
+                envGen.AddKeyTransRecipient(cert);
 
-            //
-            // Default instance.
-            //
+                var envData = envGen.Generate(keyContent, contentEncryptor);
 
-            PKMacBuilder macFactory = new PKMacBuilder();
-            ProtectedPkiMessage msg = msgBuilder.Build(macFactory.Build("testpass".ToCharArray()));
+                privateKey = new EncryptedKey(envData.EnvelopedData);
+            }
 
-            IsTrue(msg.Verify(macFactory, "testpass".ToCharArray()));
+            var certOrEncCert = new CertOrEncCert(CmpCertificate.GetInstance(cert.GetEncoded()));
+            var certifiedKeyPair = new CertifiedKeyPair(certOrEncCert, privateKey, publicationInfo: null);
+            var certResponse = new CertResponse(DerInteger.Two, new PkiStatusInfo((int)PkiStatus.Granted),
+                certifiedKeyPair, rspInfo: null);
+
+            var certRepMessage = new CertRepMessage(caPubs: null, response: new CertResponse[]{ certResponse });
+
+            var signatureFactory = new Asn1SignatureFactory("MD5withRSA", kp.Private);
+
+            ProtectedPkiMessage message = new ProtectedPkiMessageBuilder(sender, recipient)
+                .SetBody(new PkiBody(PkiBody.TYPE_INIT_REP, certRepMessage))
+                .AddCmpCertificate(cert)
+                .Build(signatureFactory);
+
+            Assert.True(message.Verify(kp.Public));
+
+            Assert.AreEqual(sender, message.Header.Sender);
+            Assert.AreEqual(recipient, message.Header.Recipient);
+
+            CertRepMessage content = CertRepMessage.GetInstance(message.Body.Content);
+
+            CertResponse[] responseList = content.GetResponse();
+            Assert.AreEqual(1, responseList.Length);
+
+            CertResponse response = responseList[0];
+            Assert.True(response.Status.StatusObject.HasValue((int)PkiStatus.Granted));
+
+            CertifiedKeyPair certKp = response.CertifiedKeyPair;
+
+            // steps to unwrap private key
+            EncryptedKey encKey = certKp.PrivateKey;
+            Assert.False(encKey.IsEncryptedValue);
+
+            {
+                var envData = EnvelopedData.GetInstance(encKey.Value);
+                var contentInfo = new Asn1.Cms.ContentInfo(PkcsObjectIdentifiers.EnvelopedData, envData);
+                var cmsEnvelopedData = new CmsEnvelopedData(contentInfo);
+
+                RecipientInformationStore recipients = cmsEnvelopedData.GetRecipientInfos();
+                foreach (RecipientInformation recipientInfo in cmsEnvelopedData.GetRecipientInfos())
+                {
+                    Assert.True(recipientInfo.RecipientID.Match(cert));
+
+                    var keyEncAlgOid = recipientInfo.KeyEncryptionAlgorithmID.Algorithm;
+                    Assert.AreEqual(PkcsObjectIdentifiers.RsaEncryption, keyEncAlgOid);
+
+                    byte[] recData = recipientInfo.GetContent(kp.Private);
+                    Assert.AreEqual(privateKeyInfo, PrivateKeyInfo.GetInstance(recData));
+                }
+            }
+        }
+
+        [Test]
+        public void TestNotBeforeNotAfter()
+        {
+            var rsaKeyPair = RsaKeyPair;
+
+            ImplNotBeforeNotAfterTest(rsaKeyPair, SimpleTest.MakeUtcDateTime(1, 1, 1, 0, 0, 1),
+                SimpleTest.MakeUtcDateTime(1, 1, 1, 0, 0, 10));
+            ImplNotBeforeNotAfterTest(rsaKeyPair, null, SimpleTest.MakeUtcDateTime(1, 1, 1, 0, 0, 10));
+            ImplNotBeforeNotAfterTest(rsaKeyPair, SimpleTest.MakeUtcDateTime(1, 1, 1, 0, 0, 1), null);
         }
 
         [Test]
         public void TestVerifyBCJavaGeneratedMessage()
         {
-            //
-            // Test with content generated by BC-JAVA version.
-            //
-
-            //ICipherParameters publicKey = PublicKeyFactory.CreateKey(Hex.Decode(
-            //    "305c300d06092a864886f70d0101010500034b003048024100ac1e59ba5f96" +
-            //    "ba86c86e6d8bbfd43ece04265fa29e6ebdb320388b58af365d05b26970cbd2" +
-            //    "6e5b0fa7df2074b90b42a1d16ab270cdb851b53e464b87f683774502030100" +
-            //    "01"));
-            //ICipherParameters privateKey = PrivateKeyFactory.CreateKey(Hex.Decode(
-            //    "30820155020100300d06092a864886f70d01010105000482013f3082013b02" +
-            //    "0100024100ac1e59ba5f96ba86c86e6d8bbfd43ece04265fa29e6ebdb32038" +
-            //    "8b58af365d05b26970cbd26e5b0fa7df2074b90b42a1d16ab270cdb851b53e" +
-            //    "464b87f68377450203010001024046f3f208570c735349bfe00fdaa1fbcc00" +
-            //    "c0f2eebe42279876a168ac43fa74a8cdf9a1bb49066c07cfcfa7196f69f2b9" +
-            //    "419d378109db967891428c50273dcc37022100d488dc3fb86f404d726a8166" +
-            //    "b2a9aba9bee12fdbf38470a62403a2a20bad0977022100cf51874e479b141f" +
-            //    "9915533bf54d68f1940f84d7fe6130538ff01a23e3493423022100986f94f1" +
-            //    "0afa9837341219bfabf32fd16ebb9a94fa630a5ccf45e036b383275f02201b" +
-            //    "6dff07f563684b31f6e757548254733a12bf91d05f4d8490d3c4b1a0ddcb9f" +
-            //    "02210087c3b2049e9a3edfc4cb40a3a275dabf7ffff80b467157e384603042" +
-            //    "3fe91d68"));
+            // Test with content generated by bc-java.
 
             byte[] ind = Hex.Decode(
                 "308201ac306e020102a4133011310f300d06035504030c0653656e646572a4" +
@@ -289,7 +300,7 @@ namespace Org.BouncyCastle.Cmp.Tests
 
             PbmParameter pbmParameters = PbmParameter.GetInstance(pkiMsg.Header.ProtectionAlg.Parameters);
 
-            IsTrue(pkiMsg.Verify(new PKMacBuilder().SetParameters(pbmParameters), "secret".ToCharArray()));
+            Assert.True(pkiMsg.Verify(new PKMacBuilder().SetParameters(pbmParameters), "secret".ToCharArray()));
         }
 
         private void ImplNotBeforeNotAfterTest(AsymmetricCipherKeyPair kp, DateTime? notBefore, DateTime? notAfter)
@@ -303,21 +314,57 @@ namespace Org.BouncyCastle.Cmp.Tests
 
             if (notBefore != null)
             {
-                IsTrue("NotBefore did not match", notBefore.Equals(msg.GetCertTemplate().Validity.NotBefore.ToDateTime()));
+                Assert.AreEqual(notBefore.Value, msg.GetCertTemplate().Validity.NotBefore.ToDateTime(),
+                    "NotBefore did not match");
             }
             else
             {
-                Assert.IsNull(msg.GetCertTemplate().Validity.NotBefore);
+                Assert.Null(msg.GetCertTemplate().Validity.NotBefore);
             }
 
             if (notAfter != null)
             {
-                IsTrue("NotAfter did not match", notAfter.Equals(msg.GetCertTemplate().Validity.NotAfter.ToDateTime()));
+                Assert.AreEqual(notAfter.Value, msg.GetCertTemplate().Validity.NotAfter.ToDateTime(),
+                    "NotAfter did not match");
             }
             else
             {
-                Assert.IsNull(msg.GetCertTemplate().Validity.NotAfter);
+                Assert.Null(msg.GetCertTemplate().Validity.NotAfter);
             }
+        }
+
+        private static AsymmetricCipherKeyPair CreateRsaKeyPair()
+        {
+            var kpg = new RsaKeyPairGenerator();
+            kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 512, 100));
+            return kpg.GenerateKeyPair();
+        }
+
+        private static PkiMessage LoadPkiMessage(string name)
+        {
+            using (var stream = SimpleTest.FindTestResource("cmp", name))
+            {
+                return PkiMessage.GetInstance(Streams.ReadAll(stream));
+            }
+        }
+
+        private static X509Certificate MakeV3Certificate(AsymmetricCipherKeyPair subjectKP, string subjectDN,
+            AsymmetricCipherKeyPair issuerKP, string issuerDN)
+        {
+            TestCertBuilder builder = new TestCertBuilder()
+            {
+                Issuer = new X509Name(issuerDN),
+                Subject = new X509Name(subjectDN),
+                NotBefore = DateTime.UtcNow.AddHours(-1),
+                NotAfter = DateTime.UtcNow.AddDays(1),
+                PublicKey = subjectKP.Public,
+                SignatureAlgorithm = "SHA1withRSA",
+            };
+            //builder.AddAttribute(X509Name.C, "Foo");
+            var cert = builder.Build(issuerKP.Private);
+
+            Assert.True(cert.IsSignatureValid(issuerKP.Public));
+            return cert;
         }
     }
 
@@ -326,6 +373,12 @@ namespace Org.BouncyCastle.Cmp.Tests
         private readonly Dictionary<DerObjectIdentifier, string> attrs = new Dictionary<DerObjectIdentifier, string>();
         private readonly List<DerObjectIdentifier> ord = new List<DerObjectIdentifier>();
         private readonly List<string> values = new List<string>();
+
+        private static int serialNumber = 0;
+
+        private static int NextSerialNumber() => Interlocked.Increment(ref serialNumber);
+
+        private static BigInteger AllocateSerialNumber() => BigInteger.ValueOf(NextSerialNumber());
 
         public DateTime NotBefore { get; set; }
 
@@ -351,7 +404,7 @@ namespace Org.BouncyCastle.Cmp.Tests
         {
             X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
 
-            certGen.SetSerialNumber(BigInteger.One);
+            certGen.SetSerialNumber(AllocateSerialNumber());
 
             if (Issuer != null)
             {

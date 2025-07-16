@@ -12,6 +12,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
     /// <summary>BC light-weight support class for Diffie-Hellman key pair generation and key agreement over a
     /// specified Diffie-Hellman configuration.</summary>
+    // TODO[api] Make sealed
     public class BcTlsDHDomain
         : TlsDHDomain
     {
@@ -46,14 +47,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         protected readonly BcTlsCrypto m_crypto;
+        // TODO[api] Store IsPadded instead
         protected readonly TlsDHConfig m_config;
         protected readonly DHParameters m_domainParameters;
 
         public BcTlsDHDomain(BcTlsCrypto crypto, TlsDHConfig dhConfig)
         {
-            this.m_crypto = crypto;
-            this.m_config = dhConfig;
-            this.m_domainParameters = GetDomainParameters(dhConfig);
+            m_crypto = crypto;
+            m_config = dhConfig;
+            m_domainParameters = GetDomainParameters(dhConfig);
         }
 
         public virtual BcTlsSecret CalculateDHAgreement(DHPrivateKeyParameters privateKey,

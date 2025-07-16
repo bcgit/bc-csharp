@@ -53,15 +53,13 @@ namespace Org.BouncyCastle.Asn1.BC
 
         private LinkedCertificate(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 2 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            int pos = 0;
-
             m_digest = DigestInfo.GetInstance(seq[pos++]);
             m_certLocation = GeneralName.GetInstance(seq[pos++]);
-            m_certIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, X509Name.GetTagged);
+            m_certIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, X509Name.GetTagged); // CHOICE
             m_cACerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, GeneralNames.GetTagged);
 
             if (pos != count)
@@ -80,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.BC
         {
             Asn1EncodableVector v = new Asn1EncodableVector(4);
             v.Add(m_digest, m_certLocation);
-            v.AddOptionalTagged(false, 0, m_certIssuer);
+            v.AddOptionalTagged(true, 0, m_certIssuer); // CHOICE
             v.AddOptionalTagged(false, 1, m_cACerts);
             return new DerSequence(v);
         }

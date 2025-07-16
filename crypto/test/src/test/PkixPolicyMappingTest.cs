@@ -20,19 +20,14 @@ namespace Org.BouncyCastle.Tests
 	[TestFixture]
 	public class PkixPolicyMappingTest : SimpleTest
 	{
-		static X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
+		private static readonly X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
 
-		public override string Name
-		{
-			get { return "PkixPolicyMapping"; }
-		}
+		public override string Name => "PkixPolicyMapping";
 
 		/**
 		 * TrustAnchor's Cert
 		 */
-		private X509Certificate CreateTrustCert(
-			AsymmetricKeyParameter pubKey,
-			AsymmetricKeyParameter privKey)
+		private X509Certificate CreateTrustCert(AsymmetricKeyParameter pubKey, AsymmetricKeyParameter privKey)
 		{
 			string issuer = "C=JP, O=policyMappingAdditionalTest, OU=trustAnchor";
 			string subject = "C=JP, O=policyMappingAdditionalTest, OU=trustAnchor";
@@ -48,12 +43,9 @@ namespace Org.BouncyCastle.Tests
 		/**
 		 * intermediate cert
 		 */
-		private X509Certificate CreateIntmedCert(
-			AsymmetricKeyParameter pubKey,
-			AsymmetricKeyParameter caPrivKey,
-			AsymmetricKeyParameter caPubKey,
-			Asn1EncodableVector policies,
-			IDictionary<string, string> policyMap)
+		private X509Certificate CreateIntmedCert(AsymmetricKeyParameter pubKey, AsymmetricKeyParameter caPrivKey,
+			AsymmetricKeyParameter caPubKey, Asn1EncodableVector policies,
+			IDictionary<DerObjectIdentifier, DerObjectIdentifier> policyMap)
 		{
 			string issuer = "C=JP, O=policyMappingAdditionalTest, OU=trustAnchor";
 			string subject = "C=JP, O=policyMappingAdditionalTest, OU=intmedCA";
@@ -73,11 +65,8 @@ namespace Org.BouncyCastle.Tests
 		/**
 		 * endEntity cert
 		 */
-		private X509Certificate CreateEndEntityCert(
-			AsymmetricKeyParameter pubKey,
-			AsymmetricKeyParameter caPrivKey,
-			AsymmetricKeyParameter caPubKey,
-			Asn1EncodableVector policies)
+		private X509Certificate CreateEndEntityCert(AsymmetricKeyParameter pubKey, AsymmetricKeyParameter caPrivKey,
+			AsymmetricKeyParameter caPubKey, Asn1EncodableVector policies)
 		{
 			string issuer = "C=JP, O=policyMappingAdditionalTest, OU=intMedCA";
 			string subject = "C=JP, O=policyMappingAdditionalTest, OU=endEntity";
@@ -92,13 +81,8 @@ namespace Org.BouncyCastle.Tests
 			return v3CertGen.Generate(new Asn1SignatureFactory("SHA1WithRSAEncryption", caPrivKey, null));
 		}
 
-		private string TestPolicies(
-			int index,
-			X509Certificate trustCert,
-			X509Certificate intCert,
-			X509Certificate endCert,
-			ISet<string> requirePolicies,
-			bool okay)
+		private string TestPolicies(int index, X509Certificate trustCert, X509Certificate intCert,
+			X509Certificate endCert, ISet<string> requirePolicies, bool okay)
 		{
 			var trust = new HashSet<TrustAnchor>();
 			trust.Add(new TrustAnchor(trustCert, null));
@@ -231,7 +215,7 @@ namespace Org.BouncyCastle.Tests
 
 			X509Certificate trustCert = CreateTrustCert(caPubKey, caPrivKeySpec);
 			Asn1EncodableVector intPolicies = null;
-			IDictionary<string, string> map = null;
+			IDictionary<DerObjectIdentifier, DerObjectIdentifier> map = null;
 			Asn1EncodableVector policies = null;
 			ISet<string> requirePolicies = null;
 			X509Certificate intCert = null;
@@ -239,13 +223,13 @@ namespace Org.BouncyCastle.Tests
 
 			// valid test_00
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid2));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = null;
@@ -254,29 +238,29 @@ namespace Org.BouncyCastle.Tests
 
 			// test_01
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid2));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = new HashSet<string>();
-			requirePolicies.Add("2.16.840.1.101.3.2.1.48.1");
+			requirePolicies.Add(Nist.NistCertPathTest.NistTestPolicyOid1.GetID());
 			msg = TestPolicies(1, trustCert, intCert, endCert, requirePolicies, true);
 			CheckMessage(1, msg, "");
 
 			// test_02
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid2));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = new HashSet<string>();
@@ -286,14 +270,14 @@ namespace Org.BouncyCastle.Tests
 
 			// test_03
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid3));
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid2));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = new HashSet<string>();
@@ -303,14 +287,14 @@ namespace Org.BouncyCastle.Tests
 
 			// test_04
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid3));
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid3));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = new HashSet<string>();
@@ -320,13 +304,13 @@ namespace Org.BouncyCastle.Tests
 
 			// test_05
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid2));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = new HashSet<string>();
@@ -336,13 +320,13 @@ namespace Org.BouncyCastle.Tests
 
 			// test_06
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.1")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid1));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = new HashSet<string>();
@@ -352,13 +336,13 @@ namespace Org.BouncyCastle.Tests
 
 			// test_07
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.2")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid2));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = new HashSet<string>();
@@ -368,13 +352,13 @@ namespace Org.BouncyCastle.Tests
 
 			// test_08
 			intPolicies = new Asn1EncodableVector();
-			intPolicies.Add(new PolicyInformation(new DerObjectIdentifier("2.5.29.32.0")));
-			map = new Dictionary<string, string>();
-			map["2.16.840.1.101.3.2.1.48.1"] = "2.16.840.1.101.3.2.1.48.2";
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
 			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
 
 			policies = new Asn1EncodableVector();
-			policies.Add(new PolicyInformation(new DerObjectIdentifier("2.16.840.1.101.3.2.1.48.3")));
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid3));
 			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
 
 			requirePolicies = new HashSet<string>();
@@ -383,10 +367,7 @@ namespace Org.BouncyCastle.Tests
 			CheckMessage(8, msg, "Path processing failed on policy.");
 		}
 
-		private void CheckMessage(
-			int		index,
-			string	msg,
-			string	expected)
+		private void CheckMessage(int index, string msg, string expected)
 		{
 			if (!msg.Equals(expected))
 			{

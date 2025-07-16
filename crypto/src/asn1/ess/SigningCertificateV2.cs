@@ -73,8 +73,8 @@ namespace Org.BouncyCastle.Asn1.Ess
         public override Asn1Object ToAsn1Object()
         {
             return m_policies == null
-                ?  new DerSequence(m_certs)
-                :  new DerSequence(m_certs, m_policies);
+                ?  DerSequence.FromElement(m_certs)
+                :  DerSequence.FromElements(m_certs, m_policies);
         }
     }
 }

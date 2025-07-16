@@ -1,6 +1,5 @@
 using System;
 
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -9,97 +8,74 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class GenericSigner
         : ISigner
     {
-        private readonly IAsymmetricBlockCipher engine;
-        private readonly IDigest digest;
-        private bool forSigning;
+        private readonly IAsymmetricBlockCipher m_engine;
+        private readonly IDigest m_digest;
+        private bool m_forSigning;
 
-        public GenericSigner(
-            IAsymmetricBlockCipher	engine,
-            IDigest					digest)
+        public GenericSigner(IAsymmetricBlockCipher engine, IDigest digest)
         {
-            this.engine = engine;
-            this.digest = digest;
+            m_engine = engine;
+            m_digest = digest;
         }
 
-        public virtual string AlgorithmName
-        {
-            get { return "Generic(" + engine.AlgorithmName + "/" + digest.AlgorithmName + ")"; }
-        }
+        public virtual string AlgorithmName => $"Generic({m_engine.AlgorithmName}/{m_digest.AlgorithmName})";
 
         /**
-        * initialise the signer for signing or verification.
-        *
-        * @param forSigning
-        *            true if for signing, false otherwise
-        * @param parameters
-        *            necessary parameters.
-        */
+         * initialise the signer for signing or verification.
+         *
+         * @param forSigning
+         *            true if for signing, false otherwise
+         * @param parameters
+         *            necessary parameters.
+         */
         public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
-            this.forSigning = forSigning;
+            m_forSigning = forSigning;
 
-            AsymmetricKeyParameter k;
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                k = (AsymmetricKeyParameter)withRandom.Parameters;
-            }
-            else
-            {
-                k = (AsymmetricKeyParameter)parameters;
-            }
+            AsymmetricKeyParameter key = (AsymmetricKeyParameter)ParameterUtilities.IgnoreRandom(parameters);
 
-            if (forSigning && !k.IsPrivate)
+            if (forSigning && !key.IsPrivate)
                 throw new InvalidKeyException("Signing requires private key.");
 
-            if (!forSigning && k.IsPrivate)
+            if (!forSigning && key.IsPrivate)
                 throw new InvalidKeyException("Verification requires public key.");
 
             Reset();
 
-            engine.Init(forSigning, parameters);
+            m_engine.Init(forSigning, parameters);
         }
 
-        public virtual void Update(byte input)
-        {
-            digest.Update(input);
-        }
+        public virtual void Update(byte input) => m_digest.Update(input);
 
-        public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
-        {
-            digest.BlockUpdate(input, inOff, inLen);
-        }
+        public virtual void BlockUpdate(byte[] input, int inOff, int inLen) =>
+            m_digest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public virtual void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            digest.BlockUpdate(input);
-        }
+        public virtual void BlockUpdate(ReadOnlySpan<byte> input) => m_digest.BlockUpdate(input);
 #endif
 
-        public virtual int GetMaxSignatureSize() => engine.GetOutputBlockSize();
+        public virtual int GetMaxSignatureSize() => m_engine.GetOutputBlockSize();
 
         public virtual byte[] GenerateSignature()
         {
-            if (!forSigning)
+            if (!m_forSigning)
                 throw new InvalidOperationException("GenericSigner not initialised for signature generation.");
 
-            byte[] hash = new byte[digest.GetDigestSize()];
-            digest.DoFinal(hash, 0);
+            byte[] hash = DigestUtilities.DoFinal(m_digest);
 
-            return engine.ProcessBlock(hash, 0, hash.Length);
+            return m_engine.ProcessBlock(hash, 0, hash.Length);
         }
 
         public virtual bool VerifySignature(byte[] signature)
         {
-            if (forSigning)
+            if (m_forSigning)
                 throw new InvalidOperationException("GenericSigner not initialised for verification");
 
-            byte[] hash = new byte[digest.GetDigestSize()];
-            digest.DoFinal(hash, 0);
+            byte[] hash = DigestUtilities.DoFinal(m_digest);
 
             try
             {
-                byte[] sig = engine.ProcessBlock(signature, 0, signature.Length);
+                byte[] sig = m_engine.ProcessBlock(signature, 0, signature.Length);
 
                 // Extend with leading zeroes to match the digest size, if necessary.
                 if (sig.Length < hash.Length)
@@ -111,15 +87,12 @@ namespace Org.BouncyCastle.Crypto.Signers
 
                 return Arrays.FixedTimeEquals(sig, hash);
             }
-            catch (Exception)
+            catch
             {
                 return false;
             }
         }
 
-        public virtual void Reset()
-        {
-            digest.Reset();
-        }
+        public virtual void Reset() => m_digest.Reset();
     }
 }

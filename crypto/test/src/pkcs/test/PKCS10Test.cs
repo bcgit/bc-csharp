@@ -103,7 +103,8 @@ namespace Org.BouncyCastle.Pkcs.Tests
             v.Add(new DerSequence(e1));
             v.Add(new DerSequence(e2));
 
-            AttributePkcs attribute = new AttributePkcs(PkcsObjectIdentifiers.Pkcs9AtExtensionRequest, new DerSet(new DerSequence(v)));
+            AttributePkcs attribute = new AttributePkcs(PkcsObjectIdentifiers.Pkcs9AtExtensionRequest,
+                DerSet.FromElement(new DerSequence(v)));
 
             Pkcs10CertificationRequest req1 = new Pkcs10CertificationRequest(
                 sigName,

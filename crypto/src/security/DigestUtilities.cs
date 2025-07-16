@@ -115,8 +115,10 @@ namespace Org.BouncyCastle.Security
             AlgorithmOidMap[NistObjectIdentifiers.IdSha3_512] = "SHA3-512";
             AlgorithmOidMap[NistObjectIdentifiers.IdHMacWithSha3_512] = "SHA3-512";
             AlgorithmMap["SHAKE128"] = "SHAKE128-256";
+            AlgorithmMap["SHAKE-128"] = "SHAKE128-256";
             AlgorithmOidMap[NistObjectIdentifiers.IdShake128] = "SHAKE128-256";
             AlgorithmMap["SHAKE256"] = "SHAKE256-512";
+            AlgorithmMap["SHAKE-256"] = "SHAKE256-512";
             AlgorithmOidMap[NistObjectIdentifiers.IdShake256] = "SHAKE256-512";
 
             AlgorithmOidMap[GMObjectIdentifiers.sm3] = "SM3";

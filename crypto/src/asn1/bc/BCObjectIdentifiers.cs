@@ -85,12 +85,14 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier xmss = bc_sig.Branch("2");
         public static readonly DerObjectIdentifier xmss_SHA256ph = xmss.Branch("1");
         public static readonly DerObjectIdentifier xmss_SHA512ph = xmss.Branch("2");
-        public static readonly DerObjectIdentifier xmss_SHAKE128ph = xmss.Branch("3");
-        public static readonly DerObjectIdentifier xmss_SHAKE256ph = xmss.Branch("4");
+        public static readonly DerObjectIdentifier xmss_SHAKE128_512ph = xmss.Branch("3");
+        public static readonly DerObjectIdentifier xmss_SHAKE256_1024ph = xmss.Branch("4");
         public static readonly DerObjectIdentifier xmss_SHA256 = xmss.Branch("5");
         public static readonly DerObjectIdentifier xmss_SHA512 = xmss.Branch("6");
         public static readonly DerObjectIdentifier xmss_SHAKE128 = xmss.Branch("7");
         public static readonly DerObjectIdentifier xmss_SHAKE256 = xmss.Branch("8");
+        public static readonly DerObjectIdentifier xmss_SHAKE128ph = xmss.Branch("9");
+        public static readonly DerObjectIdentifier xmss_SHAKE256ph = xmss.Branch("10");
 
         /**
          * XMSS^MT
@@ -98,12 +100,14 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier xmss_mt = bc_sig.Branch("3");
         public static readonly DerObjectIdentifier xmss_mt_SHA256ph = xmss_mt.Branch("1");
         public static readonly DerObjectIdentifier xmss_mt_SHA512ph = xmss_mt.Branch("2");
-        public static readonly DerObjectIdentifier xmss_mt_SHAKE128ph = xmss_mt.Branch("3");
-        public static readonly DerObjectIdentifier xmss_mt_SHAKE256ph = xmss_mt.Branch("4");
+        public static readonly DerObjectIdentifier xmss_mt_SHAKE128_512ph = xmss_mt.Branch("3");
+        public static readonly DerObjectIdentifier xmss_mt_SHAKE256_1024ph = xmss_mt.Branch("4");
         public static readonly DerObjectIdentifier xmss_mt_SHA256 = xmss_mt.Branch("5");
         public static readonly DerObjectIdentifier xmss_mt_SHA512 = xmss_mt.Branch("6");
         public static readonly DerObjectIdentifier xmss_mt_SHAKE128 = xmss_mt.Branch("7");
         public static readonly DerObjectIdentifier xmss_mt_SHAKE256 = xmss_mt.Branch("8");
+        public static readonly DerObjectIdentifier xmss_mt_SHAKE128ph = xmss_mt.Branch("9");
+        public static readonly DerObjectIdentifier xmss_mt_SHAKE256ph = xmss_mt.Branch("10");
 
         [Obsolete("Use 'xmss_SHA256ph' instead")]
         public static readonly DerObjectIdentifier xmss_with_SHA256 = xmss_SHA256ph;
@@ -261,20 +265,24 @@ namespace Org.BouncyCastle.Asn1.BC
          * Picnic
          */
         public static readonly DerObjectIdentifier picnic = bc_sig.Branch("6");
-        public static readonly DerObjectIdentifier picnicl1fs = picnic.Branch("1");
-        public static readonly DerObjectIdentifier picnicl1ur = picnic.Branch("2");
-        public static readonly DerObjectIdentifier picnicl3fs = picnic.Branch("3");
-        public static readonly DerObjectIdentifier picnicl3ur = picnic.Branch("4");
-        public static readonly DerObjectIdentifier picnicl5fs = picnic.Branch("5");
-        public static readonly DerObjectIdentifier picnicl5ur = picnic.Branch("6");
-        public static readonly DerObjectIdentifier picnic3l1 = picnic.Branch("7");
-        public static readonly DerObjectIdentifier picnic3l3 = picnic.Branch("8");
-        public static readonly DerObjectIdentifier picnic3l5 = picnic.Branch("9");
-        public static readonly DerObjectIdentifier picnicl1full = picnic.Branch("10");
-        public static readonly DerObjectIdentifier picnicl3full = picnic.Branch("11");
-        public static readonly DerObjectIdentifier picnicl5full = picnic.Branch("12");
+
+        public static readonly DerObjectIdentifier picnic_key = picnic.Branch("1");
+
+        public static readonly DerObjectIdentifier picnicl1fs = picnic_key.Branch("1");
+        public static readonly DerObjectIdentifier picnicl1ur = picnic_key.Branch("2");
+        public static readonly DerObjectIdentifier picnicl3fs = picnic_key.Branch("3");
+        public static readonly DerObjectIdentifier picnicl3ur = picnic_key.Branch("4");
+        public static readonly DerObjectIdentifier picnicl5fs = picnic_key.Branch("5");
+        public static readonly DerObjectIdentifier picnicl5ur = picnic_key.Branch("6");
+        public static readonly DerObjectIdentifier picnic3l1 = picnic_key.Branch("7");
+        public static readonly DerObjectIdentifier picnic3l3 = picnic_key.Branch("8");
+        public static readonly DerObjectIdentifier picnic3l5 = picnic_key.Branch("9");
+        public static readonly DerObjectIdentifier picnicl1full = picnic_key.Branch("10");
+        public static readonly DerObjectIdentifier picnicl3full = picnic_key.Branch("11");
+        public static readonly DerObjectIdentifier picnicl5full = picnic_key.Branch("12");
 
         public static readonly DerObjectIdentifier picnic_signature = picnic.Branch("2");
+    
         public static readonly DerObjectIdentifier picnic_with_sha512 = picnic_signature.Branch("1");
         public static readonly DerObjectIdentifier picnic_with_shake256 = picnic_signature.Branch("2");
         public static readonly DerObjectIdentifier picnic_with_sha3_512 = picnic_signature.Branch("3");
@@ -283,9 +291,26 @@ namespace Org.BouncyCastle.Asn1.BC
          * Falcon
          */
         public static readonly DerObjectIdentifier falcon = bc_sig.Branch("7");
-
-        public static readonly DerObjectIdentifier falcon_512 = new DerObjectIdentifier("1.3.9999.3.1");  // falcon.branch("1");
-        public static readonly DerObjectIdentifier falcon_1024 =  new DerObjectIdentifier("1.3.9999.3.4"); // falcon.branch("2");
+        /** 1.3.9999.3.11 OQS_OID_FALCON512 */
+        public static readonly DerObjectIdentifier falcon_512 = new DerObjectIdentifier("1.3.9999.3.11");
+        /** 1.3.9999.3.12 OQS_OID_P256_FALCON512 */
+        public static readonly DerObjectIdentifier p256_falcon_512 = new DerObjectIdentifier("1.3.9999.3.12");
+        /** 1.3.9999.3.13 OQS_OID_RSA3072_FALCON512 */
+        public static readonly DerObjectIdentifier rsa_3072_falcon_512 = new DerObjectIdentifier("1.3.9999.3.13");
+        /** 1.3.9999.3.14 OQS_OID_FALCON1024 */
+        public static readonly DerObjectIdentifier falcon_1024 = new DerObjectIdentifier("1.3.9999.3.14");
+        /** 1.3.9999.3.15 OQS_OID_P521_FALCON1024 */
+        public static readonly DerObjectIdentifier p521_falcon1024 = new DerObjectIdentifier("1.3.9999.3.15");
+        /** 1.3.9999.3.16 OQS_OID_FALCONPADDED512 */
+        public static readonly DerObjectIdentifier falcon_padded_512 = new DerObjectIdentifier("1.3.9999.3.16");
+        /** 1.3.9999.3.17 OQS_OID_P256_FALCONPADDED512 */
+        public static readonly DerObjectIdentifier p256_falcon_padded512 = new DerObjectIdentifier("1.3.9999.3.17");
+        /** 1.3.9999.3.18 OQS_OID_RSA3072_FALCONPADDED512 */
+        public static readonly DerObjectIdentifier rsa_3072_falconpadded512 = new DerObjectIdentifier("1.3.9999.3.18");
+        /** 1.3.9999.3.19 OQS_OID_FALCONPADDED1024 */
+        public static readonly DerObjectIdentifier falcon_padded_1024 = new DerObjectIdentifier("1.3.9999.3.19");
+        /** 1.3.9999.3.20 OQS_OID_P521_FALCONPADDED1024 */
+        public static readonly DerObjectIdentifier p521_falcon_padded_1024 = new DerObjectIdentifier("1.3.9999.3.20");
 
         /*
          * Dilithium
@@ -306,6 +331,47 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier dilithium3_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.6.5"); // dilithium.branch("5");
         [Obsolete("Will be removed")]
         public static readonly DerObjectIdentifier dilithium5_aes = new DerObjectIdentifier("1.3.6.1.4.1.2.267.11.8.7"); // dilithium.branch("6");
+
+        /*
+         * ML-DSA
+         */
+        ///** 2.16.840.1.101.3.4.3.17 OQS_OID_MLDSA44 */
+        /** 1.3.9999.7.5 OQS_OID_P256_MLDSA44 */
+        public static readonly DerObjectIdentifier p256_mldsa44 = new DerObjectIdentifier("1.3.9999.7.5");
+        /** 1.3.9999.7.6 OQS_OID_RSA3072_MLDSA44 */
+        public static readonly DerObjectIdentifier rsa3072_mldsa44 = new DerObjectIdentifier("1.3.9999.7.6");
+        /** 2.16.840.1.114027.80.8.1.1 OQS_OID_MLDSA44_pss2048 */
+        public static readonly DerObjectIdentifier mldsa44_pss2048 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.1");
+        /** 2.16.840.1.114027.80.8.1.2 OQS_OID_MLDSA44_rsa2048 */
+        public static readonly DerObjectIdentifier mldsa44_rsa2048 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.2");
+        /** 2.16.840.1.114027.80.8.1.3 OQS_OID_MLDSA44_ed25519 */
+        public static readonly DerObjectIdentifier mldsa44_ed25519 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.3");
+        /** 2.16.840.1.114027.80.8.1.4 OQS_OID_MLDSA44_p256 */
+        public static readonly DerObjectIdentifier mldsa44_p256 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.4");
+        /** 2.16.840.1.114027.80.8.1.5 OQS_OID_MLDSA44_bp256 */
+        public static readonly DerObjectIdentifier mldsa44_bp256 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.5");
+        ///** 2.16.840.1.101.3.4.3.18 OQS_OID_MLDSA65 */
+        /** 1.3.9999.7.7 OQS_OID_P384_MLDSA65 */
+        public static readonly DerObjectIdentifier p384_mldsa65 = new DerObjectIdentifier("1.3.9999.7.7");
+        /** 2.16.840.1.114027.80.8.1.6 OQS_OID_MLDSA65_pss3072 */
+        public static readonly DerObjectIdentifier mldsa65_pss3072 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.6");
+        /** 2.16.840.1.114027.80.8.1.7 OQS_OID_MLDSA65_rsa3072 */
+        public static readonly DerObjectIdentifier mldsa65_rsa3072 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.7");
+        /** 2.16.840.1.114027.80.8.1.8 OQS_OID_MLDSA65_p256 */
+        public static readonly DerObjectIdentifier mldsa65_p256 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.8");
+        /** 2.16.840.1.114027.80.8.1.9 OQS_OID_MLDSA65_bp256 */
+        public static readonly DerObjectIdentifier mldsa65_bp256 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.9");
+        /** 2.16.840.1.114027.80.8.1.10 OQS_OID_MLDSA65_ed25519 */
+        public static readonly DerObjectIdentifier mldsa65_ed25519 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.10");
+        ///** 2.16.840.1.101.3.4.3.19 OQS_OID_MLDSA87 */
+        /** 1.3.9999.7.8 OQS_OID_P521_MLDSA87 */
+        public static readonly DerObjectIdentifier p521_mldsa87 = new DerObjectIdentifier("1.3.9999.7.8");
+        /** 2.16.840.1.114027.80.8.1.11 OQS_OID_MLDSA87_p384 */
+        public static readonly DerObjectIdentifier mldsa87_p384 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.11");
+        /** 2.16.840.1.114027.80.8.1.12 OQS_OID_MLDSA87_bp384 */
+        public static readonly DerObjectIdentifier mldsa87_bp384 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.12");
+        /** 2.16.840.1.114027.80.8.1.13 OQS_OID_MLDSA87_ed448 */
+        public static readonly DerObjectIdentifier mldsa87_ed448 = new DerObjectIdentifier("2.16.840.1.114027.80.8.1.13");
 
         /*
          * Rainbow
@@ -330,7 +396,7 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier newHope = bc_exch.Branch("1");
 
         /**
-         * X.509 extension(4) values
+         * X.509 extension/certificate types
          * <p/>
          * 1.3.6.1.4.1.22554.4
          */
@@ -340,7 +406,7 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier external_value = bc_ext.Branch("2");
 
         /**
-         * KEM(4) algorithms
+         * KEM(5) algorithms
          */
         public static readonly DerObjectIdentifier bc_kem = bc.Branch("5");
 
@@ -446,5 +512,79 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier hqc128 = pqc_kem_hqc.Branch("1");
         public static readonly DerObjectIdentifier hqc192 = pqc_kem_hqc.Branch("2");
         public static readonly DerObjectIdentifier hqc256 = pqc_kem_hqc.Branch("3");
+
+        /**
+         * Mayo
+         */
+        public static readonly DerObjectIdentifier mayo = bc_sig.Branch("10");
+        public static readonly DerObjectIdentifier mayo1 = mayo.Branch("1");
+        public static readonly DerObjectIdentifier mayo2 = mayo.Branch("2");
+        public static readonly DerObjectIdentifier mayo3 = mayo.Branch("3");
+        public static readonly DerObjectIdentifier mayo5 = mayo.Branch("4");
+        /** 1.3.9999.8.1.3 OQS_OID_MAYO1 */
+        public static readonly DerObjectIdentifier mayo_1 = new DerObjectIdentifier("1.3.9999.8.1.3");
+        /** 1.3.9999.8.1.4 OQS_OID_P256_MAYO1 */
+        public static readonly DerObjectIdentifier p256_mayo1 = new DerObjectIdentifier("1.3.9999.8.1.4");
+        /** 1.3.9999.8.2.3 OQS_OID_MAYO2 */
+        public static readonly DerObjectIdentifier mayo_2 = new DerObjectIdentifier("1.3.9999.8.2.3");
+        /** 1.3.9999.8.2.4 OQS_OID_P256_MAYO2 */
+        public static readonly DerObjectIdentifier p256_mayo2 = new DerObjectIdentifier("1.3.9999.8.2.4");
+        /** 1.3.9999.8.3.3 OQS_OID_MAYO3 */
+        public static readonly DerObjectIdentifier mayo_3 = new DerObjectIdentifier("1.3.9999.8.3.3");
+        /** 1.3.9999.8.3.4 OQS_OID_P384_MAYO3 */
+        public static readonly DerObjectIdentifier p384_mayo3 = new DerObjectIdentifier("1.3.9999.8.3.4");
+        /** 1.3.9999.8.5.3 OQS_OID_MAYO5 */
+        public static readonly DerObjectIdentifier mayo_5 = new DerObjectIdentifier("1.3.9999.8.5.3");
+        /** 1.3.9999.8.5.4 OQS_OID_P521_MAYO5 */
+        public static readonly DerObjectIdentifier p521_mayo5 = new DerObjectIdentifier("1.3.9999.8.5.4");
+
+        /**
+         * Snova
+         */
+        public static readonly DerObjectIdentifier snova = bc_sig.Branch("11");
+        public static readonly DerObjectIdentifier snova_24_5_4_ssk = snova.Branch("1");
+        public static readonly DerObjectIdentifier snova_24_5_4_esk = snova.Branch("2");
+        public static readonly DerObjectIdentifier snova_24_5_4_shake_ssk = snova.Branch("3");
+        public static readonly DerObjectIdentifier snova_24_5_4_shake_esk = snova.Branch("4");
+        public static readonly DerObjectIdentifier snova_24_5_5_ssk = snova.Branch("5");
+        public static readonly DerObjectIdentifier snova_24_5_5_esk = snova.Branch("6");
+        public static readonly DerObjectIdentifier snova_24_5_5_shake_ssk = snova.Branch("7");
+        public static readonly DerObjectIdentifier snova_24_5_5_shake_esk = snova.Branch("8");
+        public static readonly DerObjectIdentifier snova_25_8_3_ssk = snova.Branch("9");
+        public static readonly DerObjectIdentifier snova_25_8_3_esk = snova.Branch("10");
+        public static readonly DerObjectIdentifier snova_25_8_3_shake_ssk = snova.Branch("11");
+        public static readonly DerObjectIdentifier snova_25_8_3_shake_esk = snova.Branch("12");
+        public static readonly DerObjectIdentifier snova_29_6_5_ssk = snova.Branch("13");
+        public static readonly DerObjectIdentifier snova_29_6_5_esk = snova.Branch("14");
+        public static readonly DerObjectIdentifier snova_29_6_5_shake_ssk = snova.Branch("15");
+        public static readonly DerObjectIdentifier snova_29_6_5_shake_esk = snova.Branch("16");
+        public static readonly DerObjectIdentifier snova_37_8_4_ssk = snova.Branch("17");
+        public static readonly DerObjectIdentifier snova_37_8_4_esk = snova.Branch("18");
+        public static readonly DerObjectIdentifier snova_37_8_4_shake_ssk = snova.Branch("19");
+        public static readonly DerObjectIdentifier snova_37_8_4_shake_esk = snova.Branch("20");
+        public static readonly DerObjectIdentifier snova_37_17_2_ssk = snova.Branch("21");
+        public static readonly DerObjectIdentifier snova_37_17_2_esk = snova.Branch("22");
+        public static readonly DerObjectIdentifier snova_37_17_2_shake_ssk = snova.Branch("23");
+        public static readonly DerObjectIdentifier snova_37_17_2_shake_esk = snova.Branch("24");
+        public static readonly DerObjectIdentifier snova_49_11_3_ssk = snova.Branch("25");
+        public static readonly DerObjectIdentifier snova_49_11_3_esk = snova.Branch("26");
+        public static readonly DerObjectIdentifier snova_49_11_3_shake_ssk = snova.Branch("27");
+        public static readonly DerObjectIdentifier snova_49_11_3_shake_esk = snova.Branch("28");
+        public static readonly DerObjectIdentifier snova_56_25_2_ssk = snova.Branch("29");
+        public static readonly DerObjectIdentifier snova_56_25_2_esk = snova.Branch("30");
+        public static readonly DerObjectIdentifier snova_56_25_2_shake_ssk = snova.Branch("31");
+        public static readonly DerObjectIdentifier snova_56_25_2_shake_esk = snova.Branch("32");
+        public static readonly DerObjectIdentifier snova_60_10_4_ssk = snova.Branch("33");
+        public static readonly DerObjectIdentifier snova_60_10_4_esk = snova.Branch("34");
+        public static readonly DerObjectIdentifier snova_60_10_4_shake_ssk = snova.Branch("35");
+        public static readonly DerObjectIdentifier snova_60_10_4_shake_esk = snova.Branch("36");
+        public static readonly DerObjectIdentifier snova_66_15_3_ssk = snova.Branch("37");
+        public static readonly DerObjectIdentifier snova_66_15_3_esk = snova.Branch("38");
+        public static readonly DerObjectIdentifier snova_66_15_3_shake_ssk = snova.Branch("39");
+        public static readonly DerObjectIdentifier snova_66_15_3_shake_esk = snova.Branch("40");
+        public static readonly DerObjectIdentifier snova_75_33_2_ssk = snova.Branch("41");
+        public static readonly DerObjectIdentifier snova_75_33_2_esk = snova.Branch("42");
+        public static readonly DerObjectIdentifier snova_75_33_2_shake_ssk = snova.Branch("43");
+        public static readonly DerObjectIdentifier snova_75_33_2_shake_esk = snova.Branch("44");
     }
 }

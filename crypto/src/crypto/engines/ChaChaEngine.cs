@@ -221,21 +221,25 @@ namespace Org.BouncyCastle.Crypto.Engines
                 return MemoryMarshal.Read<Vector128<uint>>(MemoryMarshal.AsBytes(t));
 
             return Vector128.Create(t[0], t[1], t[2], t[3]);
-		}
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static void Store128_UInt32(Vector128<uint> s, Span<byte> t)
-		{
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Store128_UInt32(Vector128<uint> s, Span<byte> t)
+        {
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
             {
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(t, in s);
+#else
                 MemoryMarshal.Write(t, ref s);
-				return;
-			}
+#endif
+                return;
+            }
 
-			var u = s.AsUInt64();
+            var u = s.AsUInt64();
             BinaryPrimitives.WriteUInt64LittleEndian(t[..8], u.GetElement(0));
             BinaryPrimitives.WriteUInt64LittleEndian(t[8..], u.GetElement(1));
-		}
+        }
 #endif
-	}
+    }
 }

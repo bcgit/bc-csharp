@@ -133,8 +133,8 @@ namespace Org.BouncyCastle.Math
         private const long IMASK = 0xFFFFFFFFL;
         private const ulong UIMASK = 0xFFFFFFFFUL;
 
-        private static readonly uint[] ZeroMagnitude = new uint[0];
-        private static readonly byte[] ZeroEncoding = new byte[0];
+        private static readonly uint[] ZeroMagnitude = Array.Empty<uint>();
+        private static readonly byte[] ZeroEncoding = Array.Empty<byte>();
 
         private static readonly BigInteger[] SMALL_CONSTANTS = new BigInteger[17];
         public static readonly BigInteger Zero;
@@ -235,7 +235,7 @@ namespace Org.BouncyCastle.Math
 
         private readonly uint[] magnitude; // array of uints with [0] being the most significant
         private readonly int sign; // -1 means -ve; +1 means +ve; 0 means 0;
-
+ 
         [NonSerialized]
         private int nBits = -1; // cache BitCount() value
         [NonSerialized]
@@ -1230,7 +1230,7 @@ namespace Org.BouncyCastle.Math
          * return z = x / y - done in place (z value preserved, x contains the
          * remainder)
          */
-        private uint[] Divide(uint[] x, uint[] y)
+        private static uint[] Divide(uint[] x, uint[] y)
         {
             int xStart = 0;
             while (xStart < x.Length && x[xStart] == 0U)
@@ -1781,8 +1781,7 @@ namespace Org.BouncyCastle.Math
             }
 
             BigInteger d = this.Remainder(m);
-            BigInteger x;
-            BigInteger gcd = ExtEuclid(d, m, out x);
+            BigInteger gcd = ExtEuclid(d, m, out BigInteger x);
 
             if (!gcd.Equals(One))
                 throw new ArithmeticException("Numbers not relatively prime.");

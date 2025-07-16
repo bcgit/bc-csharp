@@ -349,8 +349,13 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 Z4_ = Sse2.Xor(Z4_, Sse2.ShiftRightLogical128BitLane(Z34, 8));
 
                 Span<byte> zzBytes = MemoryMarshal.AsBytes(zz);
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(zzBytes[0x00..0x10], in Z01);
+                MemoryMarshal.Write(zzBytes[0x10..0x20], in Z23);
+#else
                 MemoryMarshal.Write(zzBytes[0x00..0x10], ref Z01);
                 MemoryMarshal.Write(zzBytes[0x10..0x20], ref Z23);
+#endif
                 zz[4] = Z4_.ToScalar();
                 return;
             }

@@ -17,6 +17,21 @@ namespace Org.BouncyCastle.Asn1.X509
         public static V2Form GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new V2Form(Asn1Sequence.GetInstance(obj, explicitly));
 
+        public static V2Form GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is V2Form v2Form)
+                return v2Form;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new V2Form(asn1Sequence);
+
+            return null;
+        }
+
         public static V2Form GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new V2Form(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 

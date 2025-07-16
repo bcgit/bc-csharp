@@ -429,10 +429,17 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
                 Z45 = Sse2.Xor(Z45, K23);
 
                 Span<byte> zzBytes = MemoryMarshal.AsBytes(zz);
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(zzBytes[0x00..0x10], in Z01);
+                MemoryMarshal.Write(zzBytes[0x10..0x20], in Z23);
+                MemoryMarshal.Write(zzBytes[0x20..0x30], in Z45);
+                MemoryMarshal.Write(zzBytes[0x30..0x40], in Z67);
+#else
                 MemoryMarshal.Write(zzBytes[0x00..0x10], ref Z01);
                 MemoryMarshal.Write(zzBytes[0x10..0x20], ref Z23);
                 MemoryMarshal.Write(zzBytes[0x20..0x30], ref Z45);
                 MemoryMarshal.Write(zzBytes[0x30..0x40], ref Z67);
+#endif
                 return;
             }
 #endif

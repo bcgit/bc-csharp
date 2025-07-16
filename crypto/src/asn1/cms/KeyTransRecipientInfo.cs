@@ -25,6 +25,25 @@ namespace Org.BouncyCastle.Asn1.Cms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        public static KeyTransRecipientInfo GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is KeyTransRecipientInfo keyTransRecipientInfo)
+                return keyTransRecipientInfo;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+            {
+#pragma warning disable CS0618 // Type or member is obsolete
+                return new KeyTransRecipientInfo(asn1Sequence);
+#pragma warning restore CS0618 // Type or member is obsolete
+            }
+
+            return null;
+        }
+
         public static KeyTransRecipientInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete

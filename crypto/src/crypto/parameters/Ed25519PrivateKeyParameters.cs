@@ -126,6 +126,52 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public void Sign(Ed25519.Algorithm algorithm, byte[] ctx, ReadOnlySpan<byte> msg, Span<byte> sig)
+        {
+            Ed25519PublicKeyParameters publicKey = GeneratePublicKey();
+
+            Span<byte> pk = stackalloc byte[Ed25519.PublicKeySize];
+            publicKey.Encode(pk);
+
+            switch (algorithm)
+            {
+            case Ed25519.Algorithm.Ed25519:
+            {
+                if (null != ctx)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                Ed25519.Sign(data, pk, msg, sig);
+                break;
+            }
+            case Ed25519.Algorithm.Ed25519ctx:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                Ed25519.Sign(data, pk, ctx, msg, sig);
+                break;
+            }
+            case Ed25519.Algorithm.Ed25519ph:
+            {
+                if (null == ctx)
+                    throw new ArgumentNullException(nameof(ctx));
+                if (ctx.Length > 255)
+                    throw new ArgumentOutOfRangeException(nameof(ctx));
+
+                Ed25519.SignPrehash(data, pk, ctx, ph: msg, sig);
+                break;
+            }
+            default:
+            {
+                throw new ArgumentOutOfRangeException(nameof(algorithm));
+            }
+            }
+        }
+#endif
+
         private static Ed25519PublicKeyParameters CreatePublicKey(byte[] data) =>
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             new Ed25519PublicKeyParameters(Ed25519.GeneratePublicKey(data));

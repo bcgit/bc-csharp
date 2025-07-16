@@ -3,31 +3,23 @@ using Org.BouncyCastle.Asn1.Tsp;
 
 namespace Org.BouncyCastle.Tsp
 {
-	public class GenTimeAccuracy
-	{
-		private Accuracy accuracy;
+    public class GenTimeAccuracy
+    {
+        private readonly Accuracy m_accuracy;
 
-		public GenTimeAccuracy(
-			Accuracy accuracy)
-		{
-			this.accuracy = accuracy;
-		}
+        public GenTimeAccuracy(Accuracy accuracy)
+        {
+            m_accuracy = accuracy;
+        }
 
-		public int Seconds { get { return GetTimeComponent(accuracy.Seconds); } }
+        public int Seconds => GetTimeComponent(m_accuracy.Seconds);
 
-		public int Millis { get { return GetTimeComponent(accuracy.Millis); } }
+        public int Millis => GetTimeComponent(m_accuracy.Millis);
 
-		public int Micros { get { return GetTimeComponent(accuracy.Micros); } }
+        public int Micros => GetTimeComponent(m_accuracy.Micros);
 
-		private int GetTimeComponent(
-			DerInteger time)
-		{
-            return time == null ? 0 : time.IntValueExact;
-		}
+        public override string ToString() => Seconds + "." + Millis.ToString("000") + Micros.ToString("000");
 
-		public override string ToString()
-		{
-			return Seconds + "." + Millis.ToString("000") + Micros.ToString("000");
-		}
-	}
+        private static int GetTimeComponent(DerInteger time) => time == null ? 0 : time.IntValueExact;
+    }
 }

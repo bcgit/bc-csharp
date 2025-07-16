@@ -1,5 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
+#if NET9_0_OR_GREATER
+using System.Threading;
+#endif
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
@@ -87,7 +93,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int PrecompPoints = 1 << (PrecompTeeth - 1);
         private const int PrecompMask = PrecompPoints - 1;
 
+#if NET9_0_OR_GREATER
+        private static readonly Lock PrecompLock = new();
+#else
         private static readonly object PrecompLock = new object();
+#endif
         private static PointAffine[] PrecompBaseWnaf = null;
         private static PointAffine[] PrecompBase225Wnaf = null;
         private static uint[] PrecompBaseComb = null;
@@ -110,6 +120,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         private static byte[] CalculateS(byte[] r, byte[] k, byte[] s)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            byte[] S = new byte[ScalarBytes];
+            CalculateS(r, k, s, S);
+            return S;
+#else
             uint[] t = new uint[ScalarUints * 2];   Scalar448.Decode(r, t);
             uint[] u = new uint[ScalarUints];       Scalar448.Decode(k, u);
             uint[] v = new uint[ScalarUints];       Scalar448.Decode(s, v);
@@ -119,7 +134,31 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             byte[] result = new byte[ScalarBytes * 2];
             Codec.Encode32(t, 0, t.Length, result, 0);
             return Scalar448.Reduce912(result);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void CalculateS(ReadOnlySpan<byte> r, ReadOnlySpan<byte> k, ReadOnlySpan<byte> s, Span<byte> S)
+        {
+            // NOTE: Overallocate 't' to support LittleEndian optimization below
+            Span<uint> t = stackalloc uint[ScalarUints * 2 + 1];    Scalar448.Decode(r, t);
+            Span<uint> u = stackalloc uint[ScalarUints];            Scalar448.Decode(k, u);
+            Span<uint> v = stackalloc uint[ScalarUints];            Scalar448.Decode(s, v);
+
+            Nat.MulAddTo(ScalarUints, u, v, t);
+
+            if (BitConverter.IsLittleEndian)
+            {
+                Scalar448.Reduce912(MemoryMarshal.AsBytes(t), S);
+            }
+            else
+            {
+                Span<byte> result = stackalloc byte[ScalarBytes * 2];
+                Codec.Encode32(t, result);
+                Scalar448.Reduce912(result, S);
+            }
+        }
+#endif
 
         private static bool CheckContextVar(byte[] ctx)
         {
@@ -382,6 +421,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void EncodePublicPoint(PublicPoint publicPoint, Span<byte> pk)
         {
+            // TODO[api] Restrict to exact length
+            //if (pk.Length != PublicKeySize)
+            //    throw new ArgumentException(nameof(pk));
+
             F.Encode(publicPoint.m_data.AsSpan(F.Size), pk);
             pk[PointBytes - 1] = (byte)((publicPoint.m_data[0] & 1) << 7);
         }
@@ -426,6 +469,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return new PublicPoint(data);
         }
 
+        // TODO[api] Rename k to sk
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
         {
             if (k.Length != SecretKeySize)
@@ -435,6 +479,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // TODO[api] Rename k to sk
         public static void GeneratePrivateKey(SecureRandom random, Span<byte> k)
         {
             if (k.Length != SecretKeySize)
@@ -540,6 +585,34 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return (x[w] >> b) & 15U;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void ImplSign(IXof d, Span<byte> h, ReadOnlySpan<byte> s, ReadOnlySpan<byte> pk, byte[] ctx,
+            byte phflag, ReadOnlySpan<byte> m, Span<byte> sig)
+        {
+            Dom4(d, phflag, ctx);
+            d.BlockUpdate(h.Slice(ScalarBytes, ScalarBytes));
+            d.BlockUpdate(m);
+            d.OutputFinal(h);
+
+            Span<byte> r = stackalloc byte[ScalarBytes];
+            Scalar448.Reduce912(h, r);
+
+            Span<byte> R = sig[..PointBytes];
+            ScalarMultBaseEncoded(r, R);
+
+            Dom4(d, phflag, ctx);
+            d.BlockUpdate(R);
+            d.BlockUpdate(pk);
+            d.BlockUpdate(m);
+            d.OutputFinal(h);
+
+            Span<byte> k = stackalloc byte[ScalarBytes];
+            Scalar448.Reduce912(h, k);
+
+            Span<byte> S = sig[PointBytes..];
+            CalculateS(r, k, s, S);
+        }
+#else
         private static void ImplSign(IXof d, byte[] h, byte[] s, byte[] pk, int pkOff, byte[] ctx, byte phflag,
             byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
         {
@@ -564,12 +637,17 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Array.Copy(R, 0, sig, sigOff, PointBytes);
             Array.Copy(S, 0, sig, sigOff + PointBytes, ScalarBytes);
         }
+#endif
 
         private static void ImplSign(byte[] sk, int skOff, byte[] ctx, byte phflag, byte[] m, int mOff, int mLen,
             byte[] sig, int sigOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ImplSign(sk.AsSpan(skOff, SecretKeySize), ctx, phflag, m.AsSpan(mOff, mLen),
+                sig.AsSpan(sigOff, SignatureSize));
+#else
             if (!CheckContextVar(ctx))
-                throw new ArgumentException("ctx");
+                throw new ArgumentException(nameof(ctx));
 
             IXof d = CreateXof();
             byte[] h = new byte[ScalarBytes * 2];
@@ -584,13 +662,41 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ScalarMultBaseEncoded(s, pk, 0);
 
             ImplSign(d, h, s, pk, 0, ctx, phflag, m, mOff, mLen, sig, sigOff);
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void ImplSign(ReadOnlySpan<byte> sk, byte[] ctx, byte phflag, ReadOnlySpan<byte> m,
+            Span<byte> sig)
+        {
+            if (!CheckContextVar(ctx))
+                throw new ArgumentException(nameof(ctx));
+
+            IXof d = CreateXof();
+            Span<byte> h = stackalloc byte[ScalarBytes * 2];
+
+            d.BlockUpdate(sk);
+            d.OutputFinal(h);
+
+            Span<byte> s = stackalloc byte[ScalarBytes];
+            PruneScalar(h, s);
+
+            Span<byte> pk = stackalloc byte[PointBytes];
+            ScalarMultBaseEncoded(s, pk);
+
+            ImplSign(d, h, s, pk, ctx, phflag, m, sig);
+        }
+#endif
 
         private static void ImplSign(byte[] sk, int skOff, byte[] pk, int pkOff, byte[] ctx, byte phflag, byte[] m,
             int mOff, int mLen, byte[] sig, int sigOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ImplSign(sk.AsSpan(skOff, SecretKeySize), pk.AsSpan(pkOff, PublicKeySize), ctx, phflag,
+                m.AsSpan(mOff, mLen), sig.AsSpan(sigOff, SignatureSize));
+#else
             if (!CheckContextVar(ctx))
-                throw new ArgumentException("ctx");
+                throw new ArgumentException(nameof(ctx));
 
             IXof d = CreateXof();
             byte[] h = new byte[ScalarBytes * 2];
@@ -602,59 +708,39 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             PruneScalar(h, 0, s);
 
             ImplSign(d, h, s, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
+#endif
         }
 
-        private static bool ImplVerify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte phflag, byte[] m,
-            int mOff, int mLen)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void ImplSign(ReadOnlySpan<byte> sk, ReadOnlySpan<byte> pk, byte[] ctx, byte phflag,
+            ReadOnlySpan<byte> m, Span<byte> sig)
         {
             if (!CheckContextVar(ctx))
-                throw new ArgumentException("ctx");
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> signature = stackalloc byte[SignatureSize];
-            signature.CopyFrom(sig.AsSpan(sigOff, SignatureSize));
-            var R = signature[..PointBytes];
-            var S = signature[PointBytes..];
-
-            Span<byte> A = stackalloc byte[PublicKeySize];
-            A.CopyFrom(pk.AsSpan(pkOff));
-
-            if (!CheckPointVar(R))
-                return false;
-
-            Span<uint> nS = stackalloc uint[ScalarUints];
-            if (!Scalar448.CheckVar(S, nS))
-                return false;
-
-            if (!CheckPointFullVar(A))
-                return false;
-
-            Init(out PointAffine pR);
-            if (!DecodePointVar(R, true, ref pR))
-                return false;
-
-            Init(out PointAffine pA);
-            if (!DecodePointVar(A, true, ref pA))
-                return false;
+                throw new ArgumentException(nameof(ctx));
 
             IXof d = CreateXof();
             Span<byte> h = stackalloc byte[ScalarBytes * 2];
 
-            Dom4(d, phflag, ctx);
-            d.BlockUpdate(R);
-            d.BlockUpdate(A);
-            d.BlockUpdate(m.AsSpan(mOff, mLen));
+            d.BlockUpdate(sk);
             d.OutputFinal(h);
 
-            Span<byte> k = stackalloc byte[ScalarBytes];
-            Scalar448.Reduce912(h, k);
+            Span<byte> s = stackalloc byte[ScalarBytes];
+            PruneScalar(h, s);
 
-            Span<uint> nA = stackalloc uint[ScalarUints];
-            Scalar448.Decode(k, nA);
+            ImplSign(d, h, s, pk, ctx, phflag, m, sig);
+        }
+#endif
 
-            Span<uint> v0 = stackalloc uint[8];
-            Span<uint> v1 = stackalloc uint[8];
+        private static bool ImplVerify(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte phflag, byte[] m,
+            int mOff, int mLen)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ImplVerify(sig.AsSpan(sigOff, SignatureSize), pk.AsSpan(pkOff, PublicKeySize), ctx, phflag,
+                m.AsSpan(mOff, mLen));
 #else
+            if (!CheckContextVar(ctx))
+                throw new ArgumentException(nameof(ctx));
+
             byte[] R = Copy(sig, sigOff, PointBytes);
             byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
             byte[] A = Copy(pk, pkOff, PublicKeySize);
@@ -693,7 +779,6 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             uint[] v0 = new uint[8];
             uint[] v1 = new uint[8];
-#endif
 
             if (!Scalar448.ReduceBasisVar(nA, v0, v1))
                 throw new InvalidOperationException();
@@ -703,19 +788,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Init(out PointProjective pZ);
             ScalarMultStraus225Var(nS, v0, ref pA, v1, ref pR, ref pZ);
             return NormalizeToNeutralElementVar(ref pZ);
+#endif
         }
 
-        private static bool ImplVerify(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte phflag,
-            byte[] m, int mOff, int mLen)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool ImplVerify(ReadOnlySpan<byte> sig, ReadOnlySpan<byte> pk, byte[] ctx, byte phflag,
+            ReadOnlySpan<byte> m)
         {
             if (!CheckContextVar(ctx))
-                throw new ArgumentException("ctx");
+                throw new ArgumentException(nameof(ctx));
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> signature = stackalloc byte[SignatureSize];
-            signature.CopyFrom(sig.AsSpan(sigOff, SignatureSize));
-            var R = signature[..PointBytes];
-            var S = signature[PointBytes..];
+            var R = sig[..PointBytes];
+            var S = sig[PointBytes..];
+
+            ReadOnlySpan<byte> A = pk;
 
             if (!CheckPointVar(R))
                 return false;
@@ -724,16 +810,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             if (!Scalar448.CheckVar(S, nS))
                 return false;
 
+            if (!CheckPointFullVar(A))
+                return false;
+
             Init(out PointAffine pR);
             if (!DecodePointVar(R, true, ref pR))
                 return false;
 
             Init(out PointAffine pA);
-            F.Negate(publicPoint.m_data, pA.x);
-            F.Copy(publicPoint.m_data.AsSpan(F.Size), pA.y);
-
-            Span<byte> A = stackalloc byte[PublicKeySize];
-            EncodePublicPoint(publicPoint, A);
+            if (!DecodePointVar(A, true, ref pA))
+                return false;
 
             IXof d = CreateXof();
             Span<byte> h = stackalloc byte[ScalarBytes * 2];
@@ -741,7 +827,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             Dom4(d, phflag, ctx);
             d.BlockUpdate(R);
             d.BlockUpdate(A);
-            d.BlockUpdate(m.AsSpan(mOff, mLen));
+            d.BlockUpdate(m);
             d.OutputFinal(h);
 
             Span<byte> k = stackalloc byte[ScalarBytes];
@@ -752,7 +838,27 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Span<uint> v0 = stackalloc uint[8];
             Span<uint> v1 = stackalloc uint[8];
+
+            if (!Scalar448.ReduceBasisVar(nA, v0, v1))
+                throw new InvalidOperationException();
+
+            Scalar448.Multiply225Var(nS, v1, nS);
+
+            Init(out PointProjective pZ);
+            ScalarMultStraus225Var(nS, v0, ref pA, v1, ref pR, ref pZ);
+            return NormalizeToNeutralElementVar(ref pZ);
+        }
+#endif
+
+        private static bool ImplVerify(byte[] sig, int sigOff, PublicPoint publicPoint, byte[] ctx, byte phflag,
+            byte[] m, int mOff, int mLen)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ImplVerify(sig.AsSpan(sigOff, SignatureSize), publicPoint, ctx, phflag, m.AsSpan(mOff, mLen));
 #else
+            if (!CheckContextVar(ctx))
+                throw new ArgumentException(nameof(ctx));
+
             byte[] R = Copy(sig, sigOff, PointBytes);
             byte[] S = Copy(sig, sigOff + PointBytes, ScalarBytes);
 
@@ -790,7 +896,63 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             uint[] v0 = new uint[8];
             uint[] v1 = new uint[8];
+
+            if (!Scalar448.ReduceBasisVar(nA, v0, v1))
+                throw new InvalidOperationException();
+
+            Scalar448.Multiply225Var(nS, v1, nS);
+
+            Init(out PointProjective pZ);
+            ScalarMultStraus225Var(nS, v0, ref pA, v1, ref pR, ref pZ);
+            return NormalizeToNeutralElementVar(ref pZ);
 #endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static bool ImplVerify(ReadOnlySpan<byte> sig, PublicPoint publicPoint, byte[] ctx, byte phflag,
+            ReadOnlySpan<byte> m)
+        {
+            if (!CheckContextVar(ctx))
+                throw new ArgumentException(nameof(ctx));
+
+            var R = sig[..PointBytes];
+            var S = sig[PointBytes..];
+
+            if (!CheckPointVar(R))
+                return false;
+
+            Span<uint> nS = stackalloc uint[ScalarUints];
+            if (!Scalar448.CheckVar(S, nS))
+                return false;
+
+            Init(out PointAffine pR);
+            if (!DecodePointVar(R, true, ref pR))
+                return false;
+
+            Init(out PointAffine pA);
+            F.Negate(publicPoint.m_data, pA.x);
+            F.Copy(publicPoint.m_data.AsSpan(F.Size), pA.y);
+
+            Span<byte> A = stackalloc byte[PublicKeySize];
+            EncodePublicPoint(publicPoint, A);
+
+            IXof d = CreateXof();
+            Span<byte> h = stackalloc byte[ScalarBytes * 2];
+
+            Dom4(d, phflag, ctx);
+            d.BlockUpdate(R);
+            d.BlockUpdate(A);
+            d.BlockUpdate(m);
+            d.OutputFinal(h);
+
+            Span<byte> k = stackalloc byte[ScalarBytes];
+            Scalar448.Reduce912(h, k);
+
+            Span<uint> nA = stackalloc uint[ScalarUints];
+            Scalar448.Decode(k, nA);
+
+            Span<uint> v0 = stackalloc uint[8];
+            Span<uint> v1 = stackalloc uint[8];
 
             if (!Scalar448.ReduceBasisVar(nA, v0, v1))
                 throw new InvalidOperationException();
@@ -801,6 +963,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ScalarMultStraus225Var(nS, v0, ref pA, v1, ref pR, ref pZ);
             return NormalizeToNeutralElementVar(ref pZ);
         }
+#endif
 
         private static void Init(out PointAffine r)
         {
@@ -1644,6 +1807,31 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, mOff, mLen, sig, sigOff);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Sign(ReadOnlySpan<byte> sk, byte[] ctx, ReadOnlySpan<byte> m, Span<byte> sig)
+        {
+            if (sk.Length != SecretKeySize)
+                throw new ArgumentException(nameof(sk));
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+
+            ImplSign(sk, ctx, phflag: 0x00, m, sig);
+        }
+
+        public static void Sign(ReadOnlySpan<byte> sk, ReadOnlySpan<byte> pk, byte[] ctx, ReadOnlySpan<byte> m,
+            Span<byte> sig)
+        {
+            if (sk.Length != SecretKeySize)
+                throw new ArgumentException(nameof(sk));
+            if (pk.Length != PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+
+            ImplSign(sk, pk, ctx, phflag: 0x00, m, sig);
+        }
+#endif
+
         public static void SignPrehash(byte[] sk, int skOff, byte[] ctx, byte[] ph, int phOff, byte[] sig, int sigOff)
         {
             byte phflag = 0x01;
@@ -1663,7 +1851,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             byte[] m = new byte[PrehashSize];
             if (PrehashSize != ph.OutputFinal(m, 0, PrehashSize))
-                throw new ArgumentException("ph");
+                throw new ArgumentException(nameof(ph));
 
             byte phflag = 0x01;
 
@@ -1675,12 +1863,72 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             byte[] m = new byte[PrehashSize];
             if (PrehashSize != ph.OutputFinal(m, 0, PrehashSize))
-                throw new ArgumentException("ph");
+                throw new ArgumentException(nameof(ph));
 
             byte phflag = 0x01;
 
             ImplSign(sk, skOff, pk, pkOff, ctx, phflag, m, 0, m.Length, sig, sigOff);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void SignPrehash(ReadOnlySpan<byte> sk, byte[] ctx, ReadOnlySpan<byte> ph, Span<byte> sig)
+        {
+            if (sk.Length != SecretKeySize)
+                throw new ArgumentException(nameof(sk));
+            if (ph.Length != PrehashSize)
+                throw new ArgumentException(nameof(ph));
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+
+            ImplSign(sk, ctx, phflag: 0x01, m: ph, sig);
+        }
+
+        public static void SignPrehash(ReadOnlySpan<byte> sk, ReadOnlySpan<byte> pk, byte[] ctx, ReadOnlySpan<byte> ph,
+            Span<byte> sig)
+        {
+            if (sk.Length != SecretKeySize)
+                throw new ArgumentException(nameof(sk));
+            if (pk.Length != PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+            if (ph.Length != PrehashSize)
+                throw new ArgumentException(nameof(ph));
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+
+            ImplSign(sk, pk, ctx, phflag: 0x01, m: ph, sig);
+        }
+
+        public static void SignPrehash(ReadOnlySpan<byte> sk, byte[] ctx, IDigest ph, Span<byte> sig)
+        {
+            if (sk.Length != SecretKeySize)
+                throw new ArgumentException(nameof(sk));
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+
+            Span<byte> m = stackalloc byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m))
+                throw new ArgumentException(nameof(ph));
+
+            ImplSign(sk, ctx, phflag: 0x01, m, sig);
+        }
+
+        public static void SignPrehash(ReadOnlySpan<byte> sk, ReadOnlySpan<byte> pk, byte[] ctx, IDigest ph,
+            Span<byte> sig)
+        {
+            if (sk.Length != SecretKeySize)
+                throw new ArgumentException(nameof(sk));
+            if (pk.Length != PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+
+            Span<byte> m = stackalloc byte[PrehashSize];
+            if (PrehashSize != ph.DoFinal(m))
+                throw new ArgumentException(nameof(ph));
+
+            ImplSign(sk, pk, ctx, phflag: 0x01, m, sig);
+        }
+#endif
 
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
@@ -1838,6 +2086,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, sigOff, publicPoint, ctx, phflag, m, mOff, mLen);
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool Verify(ReadOnlySpan<byte> sig, ReadOnlySpan<byte> pk, byte[] ctx, ReadOnlySpan<byte> m)
+        {
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+            if (pk.Length != PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+
+            return ImplVerify(sig, pk, ctx, phflag: 0x00, m);
+        }
+
+        public static bool Verify(ReadOnlySpan<byte> sig, PublicPoint publicPoint, byte[] ctx, ReadOnlySpan<byte> m)
+        {
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+
+            return ImplVerify(sig, publicPoint, ctx, phflag: 0x00, m);
+        }
+#endif
+
         public static bool VerifyPrehash(byte[] sig, int sigOff, byte[] pk, int pkOff, byte[] ctx, byte[] ph, int phOff)
         {
             byte phflag = 0x01;
@@ -1857,7 +2125,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             byte[] m = new byte[PrehashSize];
             if (PrehashSize != ph.OutputFinal(m, 0, PrehashSize))
-                throw new ArgumentException("ph");
+                throw new ArgumentException(nameof(ph));
 
             byte phflag = 0x01;
 
@@ -1868,11 +2136,63 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             byte[] m = new byte[PrehashSize];
             if (PrehashSize != ph.OutputFinal(m, 0, PrehashSize))
-                throw new ArgumentException("ph");
+                throw new ArgumentException(nameof(ph));
 
             byte phflag = 0x01;
 
             return ImplVerify(sig, sigOff, publicPoint, ctx, phflag, m, 0, m.Length);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static bool VerifyPrehash(ReadOnlySpan<byte> sig, ReadOnlySpan<byte> pk, byte[] ctx,
+            ReadOnlySpan<byte> ph)
+        {
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+            if (pk.Length != PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+            if (ph.Length != PrehashSize)
+                throw new ArgumentException(nameof(ph));
+
+            return ImplVerify(sig, pk, ctx, phflag: 0x01, m: ph);
+        }
+
+        public static bool VerifyPrehash(ReadOnlySpan<byte> sig, PublicPoint publicPoint, byte[] ctx,
+            ReadOnlySpan<byte> ph)
+        {
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+            if (ph.Length != PrehashSize)
+                throw new ArgumentException(nameof(ph));
+
+            return ImplVerify(sig, publicPoint, ctx, phflag: 0x01, m: ph);
+        }
+
+        public static bool VerifyPrehash(ReadOnlySpan<byte> sig, ReadOnlySpan<byte> pk, byte[] ctx, IXof ph)
+        {
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+            if (pk.Length != PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+
+            Span<byte> m = stackalloc byte[PrehashSize];
+            if (PrehashSize != ph.OutputFinal(m))
+                throw new ArgumentException(nameof(ph));
+
+            return ImplVerify(sig, pk, ctx, phflag: 0x01, m);
+        }
+
+        public static bool VerifyPrehash(ReadOnlySpan<byte> sig, PublicPoint publicPoint, byte[] ctx, IXof ph)
+        {
+            if (sig.Length != SignatureSize)
+                throw new ArgumentException(nameof(sig));
+
+            Span<byte> m = stackalloc byte[PrehashSize];
+            if (PrehashSize != ph.OutputFinal(m))
+                throw new ArgumentException(nameof(ph));
+
+            return ImplVerify(sig, publicPoint, ctx, phflag: 0x01, m);
+        }
+#endif
     }
 }

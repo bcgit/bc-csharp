@@ -6,93 +6,89 @@ using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace Org.BouncyCastle.Ocsp
 {
-	public class OcspResp
-	{
-		private OcspResponse resp;
+    public class OcspResp
+    {
+        private static OcspResponse ParseOcspResponse(byte[] encoding)
+        {
+            try
+            {
+                return OcspResponse.GetInstance(encoding);
+            }
+            catch (Exception e)
+            {
+                throw new IOException("malformed response: " + e.Message, e);
+            }
+        }
 
-		public OcspResp(
-			OcspResponse resp)
-		{
-			this.resp = resp;
-		}
+        private static OcspResponse ParseOcspResponse(Stream input)
+        {
+            try
+            {
+                return OcspResponse.GetInstance(Asn1Object.FromStream(input));
+            }
+            catch (Exception e)
+            {
+                throw new IOException("malformed response: " + e.Message, e);
+            }
+        }
 
-		public OcspResp(
-			byte[] resp)
-			: this(new Asn1InputStream(resp))
-		{
-		}
+        private readonly OcspResponse m_ocspResponse;
 
-		public OcspResp(
-			Stream inStr)
-			: this(new Asn1InputStream(inStr))
-		{
-		}
+        public OcspResp(OcspResponse resp)
+        {
+            m_ocspResponse = resp;
+        }
 
-		private OcspResp(
-			Asn1InputStream aIn)
-		{
-			try
-			{
-				this.resp = OcspResponse.GetInstance(aIn.ReadObject());
-			}
-			catch (Exception e)
-			{
-				throw new IOException("malformed response: " + e.Message, e);
-			}
-		}
+        public OcspResp(byte[] resp)
+            : this(ParseOcspResponse(resp))
+        {
+        }
 
-		public int Status
-		{
-            get { return this.resp.ResponseStatus.IntValueExact; }
-		}
+        public OcspResp(Stream inStr)
+            : this(ParseOcspResponse(inStr))
+        {
+        }
 
-		public object GetResponseObject()
-		{
-			ResponseBytes rb = this.resp.ResponseBytes;
+        public int Status => m_ocspResponse.ResponseStatus.IntValueExact;
 
-			if (rb == null)
-				return null;
+        public object GetResponseObject()
+        {
+            ResponseBytes rb = m_ocspResponse.ResponseBytes;
 
-			if (rb.ResponseType.Equals(OcspObjectIdentifiers.PkixOcspBasic))
-			{
-				try
-				{
-					return new BasicOcspResp(BasicOcspResponse.GetInstance(rb.Response.GetOctets()));
-				}
-				catch (Exception e)
-				{
-					throw new OcspException("problem decoding object: " + e, e);
-				}
-			}
+            if (rb == null)
+                return null;
 
-			return rb.Response;
-		}
+            if (OcspObjectIdentifiers.PkixOcspBasic.Equals(rb.ResponseType))
+            {
+                try
+                {
+                    return new BasicOcspResp(BasicOcspResponse.GetInstance(rb.Response.GetOctets()));
+                }
+                catch (Exception e)
+                {
+                    throw new OcspException("problem decoding object: " + e, e);
+                }
+            }
 
-		/**
-		* return the ASN.1 encoded representation of this object.
-		*/
-		public byte[] GetEncoded()
-		{
-			return resp.GetEncoded();
-		}
+            return rb.Response;
+        }
 
-		public override bool Equals(
-			object obj)
-		{
-			if (obj == this)
-				return true;
+        /**
+         * return the ASN.1 encoded representation of this object.
+         */
+        public byte[] GetEncoded() => m_ocspResponse.GetEncoded();
 
-			OcspResp other = obj as OcspResp;
+        public override bool Equals(object obj)
+        {
+            if (obj == this)
+                return true;
 
-			if (other == null)
-				return false;
+            return obj is OcspResp that
+                && m_ocspResponse.Equals(that.m_ocspResponse);
+        }
 
-			return resp.Equals(other.resp);
-		}
+        public override int GetHashCode() => m_ocspResponse.GetHashCode();
 
-		public override int GetHashCode()
-		{
-			return resp.GetHashCode();
-		}
-	}
+        public OcspResponse ToAsn1Structure() => m_ocspResponse;
+    }
 }

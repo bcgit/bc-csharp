@@ -8,129 +8,90 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-	/**
-	* containing class for an CMS Authenticated Data object
-	*/
-	public class CmsAuthenticatedData
-	{
-		internal RecipientInformationStore recipientInfoStore;
-		internal ContentInfo contentInfo;
+    /**
+     * containing class for an CMS Authenticated Data object
+     */
+    public class CmsAuthenticatedData
+    {
+        private readonly ContentInfo m_contentInfo;
+        private readonly AuthenticatedData m_authenticatedData;
+        private readonly RecipientInformationStore m_recipientInfoStore;
 
-		private AlgorithmIdentifier macAlg;
-		private Asn1Set authAttrs;
-		private Asn1Set unauthAttrs;
-		private byte[] mac;
+        // TODO[api] Rename parameter to contentInfo?
+        public CmsAuthenticatedData(byte[] authData)
+            : this(CmsUtilities.ReadContentInfo(authData))
+        {
+        }
 
-		public CmsAuthenticatedData(
-			byte[] authData)
-			: this(CmsUtilities.ReadContentInfo(authData))
-		{
-		}
+        // TODO[api] Rename parameter to contentInfo?
+        public CmsAuthenticatedData(Stream authData)
+            : this(CmsUtilities.ReadContentInfo(authData))
+        {
+        }
 
-		public CmsAuthenticatedData(
-			Stream authData)
-			: this(CmsUtilities.ReadContentInfo(authData))
-		{
-		}
+        public CmsAuthenticatedData(ContentInfo contentInfo)
+        {
+            m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
+            m_authenticatedData = AuthenticatedData.GetInstance(contentInfo.Content);
 
-		public CmsAuthenticatedData(
-			ContentInfo contentInfo)
-		{
-			this.contentInfo = contentInfo;
+            //
+            // read the recipients
+            //
+            Asn1Set recipientInfos = m_authenticatedData.RecipientInfos;
 
-			AuthenticatedData authData = AuthenticatedData.GetInstance(contentInfo.Content);
+            //
+            // read the authenticated content info
+            //
+            ContentInfo encapContentInfo = m_authenticatedData.EncapsulatedContentInfo;
+            Asn1OctetString encapContent = Asn1OctetString.GetInstance(encapContentInfo.Content);
 
-			//
-			// read the recipients
-			//
-			Asn1Set recipientInfos = authData.RecipientInfos;
+            CmsReadable readable = new CmsProcessableByteArray(encapContent.GetOctets());
+            CmsSecureReadable secureReadable = new CmsEnvelopedHelper.CmsAuthenticatedSecureReadable(
+                m_authenticatedData.MacAlgorithm, readable);
 
-			this.macAlg = authData.MacAlgorithm;
+            //
+            // build the RecipientInformationStore
+            //
+            m_recipientInfoStore = CmsEnvelopedHelper.BuildRecipientInformationStore(recipientInfos, secureReadable);
+        }
 
-			//
-			// read the authenticated content info
-			//
-			ContentInfo encInfo = authData.EncapsulatedContentInfo;
-			CmsReadable readable = new CmsProcessableByteArray(
-				Asn1OctetString.GetInstance(encInfo.Content).GetOctets());
-			CmsSecureReadable secureReadable = new CmsEnvelopedHelper.CmsAuthenticatedSecureReadable(
-				this.macAlg, readable);
+        public AuthenticatedData AuthenticatedData => m_authenticatedData;
 
-			//
-			// build the RecipientInformationStore
-			//
-			this.recipientInfoStore = CmsEnvelopedHelper.BuildRecipientInformationStore(
-				recipientInfos, secureReadable);
+        public byte[] GetMac() => Arrays.Clone(m_authenticatedData.Mac.GetOctets());
 
-			this.authAttrs = authData.AuthAttrs;
-			this.mac = authData.Mac.GetOctets();
-			this.unauthAttrs = authData.UnauthAttrs;
-		}
+        public AlgorithmIdentifier MacAlgorithmID => m_authenticatedData.MacAlgorithm;
 
-		public byte[] GetMac()
-		{
-			return Arrays.Clone(mac);
-		}
+        /**
+         * return the object identifier for the content MAC algorithm.
+         */
+        // TODO[api] Return the OID itself
+        public string MacAlgOid => MacAlgorithmID.Algorithm.GetID();
 
-		public AlgorithmIdentifier MacAlgorithmID
-		{
-			get { return macAlg; }
-		}
+        /**
+         * return a store of the intended recipients for this message
+         */
+        public RecipientInformationStore GetRecipientInfos() => m_recipientInfoStore;
 
-		/**
-		* return the object identifier for the content MAC algorithm.
-		*/
-		public string MacAlgOid
-		{
-            get { return macAlg.Algorithm.Id; }
-		}
+        /**
+         * return the ContentInfo 
+         */
+        public ContentInfo ContentInfo => m_contentInfo;
 
-		/**
-		* return a store of the intended recipients for this message
-		*/
-		public RecipientInformationStore GetRecipientInfos()
-		{
-			return recipientInfoStore;
-		}
+        /**
+         * return a table of the digested attributes indexed by
+         * the OID of the attribute.
+         */
+        public Asn1.Cms.AttributeTable GetAuthAttrs() => m_authenticatedData.AuthAttrs?.ToAttributeTable();
 
-		/**
-		 * return the ContentInfo 
-		 */
-		public ContentInfo ContentInfo
-		{
-			get { return contentInfo; }
-		}
+        /**
+         * return a table of the undigested attributes indexed by
+         * the OID of the attribute.
+         */
+        public Asn1.Cms.AttributeTable GetUnauthAttrs() => m_authenticatedData.UnauthAttrs?.ToAttributeTable();
 
-		/**
-		* return a table of the digested attributes indexed by
-		* the OID of the attribute.
-		*/
-		public Asn1.Cms.AttributeTable GetAuthAttrs()
-		{
-			if (authAttrs == null)
-				return null;
-
-			return new Asn1.Cms.AttributeTable(authAttrs);
-		}
-
-		/**
-		* return a table of the undigested attributes indexed by
-		* the OID of the attribute.
-		*/
-		public Asn1.Cms.AttributeTable GetUnauthAttrs()
-		{
-			if (unauthAttrs == null)
-				return null;
-
-			return new Asn1.Cms.AttributeTable(unauthAttrs);
-		}
-
-		/**
-		* return the ASN.1 encoded representation of this object.
-		*/
-		public byte[] GetEncoded()
-		{
-			return contentInfo.GetEncoded();
-		}
-	}
+        /**
+         * return the ASN.1 encoded representation of this object.
+         */
+        public byte[] GetEncoded() => m_contentInfo.GetEncoded();
+    }
 }

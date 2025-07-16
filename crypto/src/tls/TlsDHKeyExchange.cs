@@ -6,6 +6,7 @@ using Org.BouncyCastle.Tls.Crypto;
 namespace Org.BouncyCastle.Tls
 {
     /// <summary>(D)TLS DH key exchange.</summary>
+    // TODO[api] Make sealed
     public class TlsDHKeyExchange
         : AbstractTlsKeyExchange
     {
@@ -29,19 +30,16 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
-        public override void SkipServerCredentials()
-        {
-            throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
+        public override void SkipServerCredentials() => throw new TlsFatalAlert(AlertDescription.internal_error);
 
         public override void ProcessServerCredentials(TlsCredentials serverCredentials)
         {
-            this.m_agreementCredentials = TlsUtilities.RequireAgreementCredentials(serverCredentials);
+            m_agreementCredentials = TlsUtilities.RequireAgreementCredentials(serverCredentials);
         }
 
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
-            this.m_dhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
+            m_dhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
         }
 
         public override short[] GetClientCertificateTypes()
@@ -49,14 +47,11 @@ namespace Org.BouncyCastle.Tls
             return new short[]{ ClientCertificateType.dss_fixed_dh, ClientCertificateType.rsa_fixed_dh };
         }
 
-        public override void SkipClientCredentials()
-        {
-            throw new TlsFatalAlert(AlertDescription.unexpected_message);
-        }
+        public override void SkipClientCredentials() => new TlsFatalAlert(AlertDescription.unexpected_message);
 
         public override void ProcessClientCredentials(TlsCredentials clientCredentials)
         {
-            this.m_agreementCredentials = TlsUtilities.RequireAgreementCredentials(clientCredentials);
+            m_agreementCredentials = TlsUtilities.RequireAgreementCredentials(clientCredentials);
         }
 
         public override void GenerateClientKeyExchange(Stream output)
@@ -70,7 +65,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void ProcessClientCertificate(Certificate clientCertificate)
         {
-            this.m_dhPeerCertificate = clientCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
+            m_dhPeerCertificate = clientCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
         }
 
         public override void ProcessClientKeyExchange(Stream input)
@@ -78,14 +73,9 @@ namespace Org.BouncyCastle.Tls
             // For dss_fixed_dh and rsa_fixed_dh, the key arrived in the client certificate
         }
 
-        public override bool RequiresCertificateVerify
-        {
-            get { return false; }
-        }
+        public override bool RequiresCertificateVerify => false;
 
-        public override TlsSecret GeneratePreMasterSecret()
-        {
-            return m_agreementCredentials.GenerateAgreement(m_dhPeerCertificate);
-        }
+        public override TlsSecret GeneratePreMasterSecret() =>
+            m_agreementCredentials.GenerateAgreement(m_dhPeerCertificate);
     }
 }

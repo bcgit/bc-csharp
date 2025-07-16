@@ -357,22 +357,8 @@ namespace Org.BouncyCastle.OpenSsl
             }
             catch (Exception e)
             {
-                throw new PemException(
-                    "problem creating " + type + " private key: " + e.ToString());
+                throw new PemException("problem creating " + type + " private key: " + e.ToString());
             }
         }
-
-        //private X9ECParameters ReadECParameters(PemObject pemObject)
-        //{
-        //    DerObjectIdentifier oid = (DerObjectIdentifier)Asn1Object.FromByteArray(pemObject.Content);
-
-        //    //return ECNamedCurveTable.getParameterSpec(oid.Id);
-        //    return GetCurveParameters(oid.Id);
-        //}
-
-        //private static X9ECParameters GetCurveParameters(string name)
-        //{
-        //    return ECKeyPairGenerator.FindECCurveByName(name) ?? throw new Exception("unknown curve name: " + name);
-        //}
     }
 }

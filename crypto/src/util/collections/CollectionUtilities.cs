@@ -61,6 +61,30 @@ namespace Org.BouncyCastle.Utilities.Collections
             return c == null || c.Count < 1;
         }
 
+        public static TResult[] Map<T, TResult>(T[] ts, Func<T, TResult> f)
+        {
+            int count = ts.Length;
+            var result = new TResult[count];
+            for (int i = 0; i < count; ++i)
+            {
+                result[i] = f(ts[i]);
+            }
+            return result;
+        }
+
+        public static TResult[] Map<T, TResult>(IReadOnlyCollection<T> c, Func<T, TResult> f)
+        {
+            int count = c.Count, pos = 0;
+            var result = new TResult[count];
+            foreach (var t in c)
+            {
+                result[pos++] = f(t);
+            }
+            if (pos != count)
+                throw new InvalidOperationException();
+            return result;
+        }
+
         public static IEnumerable<T> Proxy<T>(IEnumerable<T> e)
         {
             return new EnumerableProxy<T>(e);
@@ -105,6 +129,29 @@ namespace Org.BouncyCastle.Utilities.Collections
                 throw new InvalidOperationException();
 
             return e.Current;
+        }
+
+        // TODO[api] Make extension method
+        public static IEnumerable<TResult> Select<TSource, TResult>(IEnumerable<TSource> source,
+            Func<TSource, TResult> selector)
+        {
+            foreach (var element in source)
+            {
+                yield return selector(element);
+            }
+        }
+
+        public static T[] ToArray<T>(IReadOnlyCollection<T> c)
+        {
+            int count = c.Count, pos = 0;
+            T[] a = new T[count];
+            foreach (var t in c)
+            {
+                a[pos++] = t;
+            }
+            if (pos != count)
+                throw new InvalidOperationException();
+            return a;
         }
 
         public static string ToString<T>(IEnumerable<T> c)

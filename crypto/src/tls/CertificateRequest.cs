@@ -89,49 +89,32 @@ namespace Org.BouncyCastle.Tls
                 throw new ArgumentException("should have length from 1 to 255", "certificateTypes");
             }
 
-            this.m_certificateRequestContext = TlsUtilities.Clone(certificateRequestContext);
-            this.m_certificateTypes = certificateTypes;
-            this.m_supportedSignatureAlgorithms = supportedSignatureAlgorithms;
-            this.m_supportedSignatureAlgorithmsCert = supportedSignatureAlgorithmsCert;
-            this.m_certificateAuthorities = certificateAuthorities;
+            m_certificateRequestContext = TlsUtilities.Clone(certificateRequestContext);
+            m_certificateTypes = certificateTypes;
+            m_supportedSignatureAlgorithms = supportedSignatureAlgorithms;
+            m_supportedSignatureAlgorithmsCert = supportedSignatureAlgorithmsCert;
+            m_certificateAuthorities = certificateAuthorities;
         }
 
-        public byte[] GetCertificateRequestContext()
-        {
-            return TlsUtilities.Clone(m_certificateRequestContext);
-        }
+        public byte[] GetCertificateRequestContext() => TlsUtilities.Clone(m_certificateRequestContext);
 
         /// <returns>an array of certificate types</returns>
         /// <seealso cref="ClientCertificateType"/>
-        public short[] CertificateTypes
-        {
-            get { return m_certificateTypes; }
-        }
+        public short[] CertificateTypes => m_certificateTypes;
 
         /// <returns>an <see cref="IList{T}"/> of <see cref="SignatureAndHashAlgorithm"/> (or null before TLS 1.2).
         /// </returns>
-        public IList<SignatureAndHashAlgorithm> SupportedSignatureAlgorithms
-        {
-            get { return m_supportedSignatureAlgorithms; }
-        }
+        public IList<SignatureAndHashAlgorithm> SupportedSignatureAlgorithms => m_supportedSignatureAlgorithms;
 
         /// <returns>an optional <see cref="IList{T}"/> of <see cref="SignatureAndHashAlgorithm"/>. May be non-null from
         /// TLS 1.3 onwards.</returns>
-        public IList<SignatureAndHashAlgorithm> SupportedSignatureAlgorithmsCert
-        {
-            get { return m_supportedSignatureAlgorithmsCert; }
-        }
+        public IList<SignatureAndHashAlgorithm> SupportedSignatureAlgorithmsCert => m_supportedSignatureAlgorithmsCert;
 
         /// <returns>an <see cref="IList{T}"/> of <see cref="X509Name"/>.</returns>
-        public IList<X509Name> CertificateAuthorities
-        {
-            get { return m_certificateAuthorities; }
-        }
+        public IList<X509Name> CertificateAuthorities => m_certificateAuthorities;
 
-        public bool HasCertificateRequestContext(byte[] certificateRequestContext)
-        {
-            return Arrays.AreEqual(m_certificateRequestContext, certificateRequestContext);
-        }
+        public bool HasCertificateRequestContext(byte[] certificateRequestContext) =>
+            Arrays.AreEqual(m_certificateRequestContext, certificateRequestContext);
 
         /// <summary>Encode this <see cref="CertificateRequest"/> to a <see cref="Stream"/>.</summary>
         /// <param name="context">the <see cref="TlsContext"/> of the current connection.</param>
@@ -264,9 +247,7 @@ namespace Org.BouncyCastle.Tls
                     do
                     {
                         byte[] derEncoding = TlsUtilities.ReadOpaque16(bis, 1);
-                        Asn1Object asn1 = TlsUtilities.ReadAsn1Object(derEncoding);
-                        X509Name ca = X509Name.GetInstance(asn1);
-                        TlsUtilities.RequireDerEncoding(ca, derEncoding);
+                        X509Name ca = TlsUtilities.ReadDerEncoding(derEncoding, X509Name.GetOptional);
                         certificateAuthorities.Add(ca);
                     }
                     while (bis.Position < bis.Length);

@@ -4,25 +4,28 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Ocsp
 {
-	internal class OcspUtilities
-	{
-		private static readonly Dictionary<string, DerObjectIdentifier> Algorithms =
+    public static class OcspUtilities
+    {
+        private static readonly Dictionary<string, DerObjectIdentifier> Algorithms =
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
         private static readonly Dictionary<DerObjectIdentifier, string> Oids =
             new Dictionary<DerObjectIdentifier, string>();
-		private static readonly HashSet<DerObjectIdentifier> NoParams = new HashSet<DerObjectIdentifier>();
+        private static readonly HashSet<DerObjectIdentifier> NoParams = new HashSet<DerObjectIdentifier>();
 
-		static OcspUtilities()
-		{
+        static OcspUtilities()
+        {
             Algorithms.Add("MD2WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD2WithRsaEncryption);
             Algorithms.Add("MD2WITHRSA", PkcsObjectIdentifiers.MD2WithRsaEncryption);
             Algorithms.Add("MD5WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD5WithRsaEncryption);
@@ -112,35 +115,35 @@ namespace Org.BouncyCastle.Ocsp
             NoParams.Add(OiwObjectIdentifiers.DsaWithSha1);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha224);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha256);
-		}
+        }
 
-		internal static DerObjectIdentifier GetAlgorithmOid(string algorithmName)
-		{
+        internal static DerObjectIdentifier GetAlgorithmOid(string algorithmName)
+        {
             if (Algorithms.TryGetValue(algorithmName, out var oid))
                 return oid;
 
-			return new DerObjectIdentifier(algorithmName);
-		}
+            return new DerObjectIdentifier(algorithmName);
+        }
 
-		internal static string GetAlgorithmName(DerObjectIdentifier oid)
-		{
+        internal static string GetAlgorithmName(DerObjectIdentifier oid)
+        {
             if (Oids.TryGetValue(oid, out var algorithmName))
                 return algorithmName;
 
-			return oid.Id;
-		}
+            return oid.Id;
+        }
 
-		internal static AlgorithmIdentifier GetSigAlgID(DerObjectIdentifier sigOid)
-		{
+        public static Asn1OctetString GetNonce(IX509Extension extension) =>
+            extension.GetExtension(OcspObjectIdentifiers.PkixOcspNonce, Asn1OctetString.GetInstance);
+
+        internal static AlgorithmIdentifier GetSigAlgID(DerObjectIdentifier sigOid)
+        {
             if (NoParams.Contains(sigOid))
                 return new AlgorithmIdentifier(sigOid);
 
-			return new AlgorithmIdentifier(sigOid, DerNull.Instance);
-		}
+            return new AlgorithmIdentifier(sigOid, DerNull.Instance);
+        }
 
-		internal static IEnumerable<string> AlgNames
-		{
-            get { return CollectionUtilities.Proxy(Algorithms.Keys); }
-		}
-	}
+        internal static IEnumerable<string> AlgNames => CollectionUtilities.Proxy(Algorithms.Keys);
+    }
 }

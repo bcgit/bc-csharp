@@ -1,6 +1,7 @@
 using System;
-using System.IO;
+#if !NET8_0_OR_GREATER
 using System.Runtime.Serialization.Formatters.Binary;
+#endif
 
 using NUnit.Framework;
 
@@ -12,30 +13,35 @@ namespace Org.BouncyCastle.Math.Tests
     [TestFixture]
     public class BigIntegerTest
     {
-        private static Random random = new Random();
+        private static readonly Random random = new Random();
 
         [Test]
         public void MonoBug81857()
         {
             BigInteger b = new BigInteger("18446744073709551616");
-            BigInteger exp = BigInteger.Two;
             BigInteger mod = new BigInteger("48112959837082048697");
             BigInteger expected = new BigInteger("4970597831480284165");
 
-            BigInteger manual = b.Multiply(b).Mod(mod);
-            Assert.AreEqual(expected, manual, "b * b % mod");
+            BigInteger byMultiply = b.Multiply(b).Mod(mod);
+            Assert.AreEqual(expected, byMultiply, "b * b % mod");
+
+            BigInteger bySquare = b.Square().Mod(mod);
+            Assert.AreEqual(expected, bySquare, "b^2 % mod");
+
+            BigInteger byModPow = b.ModPow(BigInteger.Two, mod);
+            Assert.AreEqual(expected, byModPow, "b.ModPow(2, mod)");
         }
 
         [Test]
         public void TestAbs()
         {
-            Assert.AreEqual(zero, zero.Abs());
+            Assert.AreEqual(Zero, Zero.Abs());
 
-            Assert.AreEqual(one, one.Abs());
-            Assert.AreEqual(one, minusOne.Abs());
+            Assert.AreEqual(One, One.Abs());
+            Assert.AreEqual(One, MinusOne.Abs());
 
-            Assert.AreEqual(two, two.Abs());
-            Assert.AreEqual(two, minusTwo.Abs());
+            Assert.AreEqual(Two, Two.Abs());
+            Assert.AreEqual(Two, MinusTwo.Abs());
         }
 
         [Test]
@@ -46,8 +52,8 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = -10; j <= 10; ++j)
                 {
                     Assert.AreEqual(
-                        val(i + j),
-                        val(i).Add(val(j)),
+                        Val(i + j),
+                        Val(i).Add(Val(j)),
                         "Problem: " + i + ".Add(" + j + ") should be " + (i + j));
                 }
             }
@@ -61,8 +67,8 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = -10; j <= 10; ++j)
                 {
                     Assert.AreEqual(
-                        val(i & j),
-                        val(i).And(val(j)),
+                        Val(i & j),
+                        Val(i).And(Val(j)),
                         "Problem: " + i + " AND " + j + " should be " + (i & j));
                 }
             }
@@ -76,8 +82,8 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = -10; j <= 10; ++j)
                 {
                     Assert.AreEqual(
-                        val(i & ~j),
-                        val(i).AndNot(val(j)),
+                        Val(i & ~j),
+                        Val(i).AndNot(Val(j)),
                         "Problem: " + i + " AND NOT " + j + " should be " + (i & ~j));
                 }
             }
@@ -86,15 +92,15 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestBitCount()
         {
-            Assert.AreEqual(0, zero.BitCount);
-            Assert.AreEqual(1, one.BitCount);
-            Assert.AreEqual(0, minusOne.BitCount);
-            Assert.AreEqual(1, two.BitCount);
-            Assert.AreEqual(1, minusTwo.BitCount);
+            Assert.AreEqual(0, Zero.BitCount);
+            Assert.AreEqual(1, One.BitCount);
+            Assert.AreEqual(0, MinusOne.BitCount);
+            Assert.AreEqual(1, Two.BitCount);
+            Assert.AreEqual(1, MinusTwo.BitCount);
 
             for (int i = 0; i < 100; ++i)
             {
-                BigInteger pow2 = one.ShiftLeft(i);
+                BigInteger pow2 = One.ShiftLeft(i);
 
                 Assert.AreEqual(1, pow2.BitCount);
                 Assert.AreEqual(i, pow2.Negate().BitCount);
@@ -120,17 +126,17 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestBitLength()
         {
-            Assert.AreEqual(0, zero.BitLength);
-            Assert.AreEqual(1, one.BitLength);
-            Assert.AreEqual(0, minusOne.BitLength);
-            Assert.AreEqual(2, two.BitLength);
-            Assert.AreEqual(1, minusTwo.BitLength);
+            Assert.AreEqual(0, Zero.BitLength);
+            Assert.AreEqual(1, One.BitLength);
+            Assert.AreEqual(0, MinusOne.BitLength);
+            Assert.AreEqual(2, Two.BitLength);
+            Assert.AreEqual(1, MinusTwo.BitLength);
 
             for (int i = 0; i < 100; ++i)
             {
                 int bit = i + random.Next(64);
                 BigInteger odd = new BigInteger(bit, random).SetBit(bit + 1).SetBit(0);
-                BigInteger pow2 = one.ShiftLeft(bit);
+                BigInteger pow2 = One.ShiftLeft(bit);
 
                 Assert.AreEqual(bit + 2, odd.BitLength);
                 Assert.AreEqual(bit + 2, odd.Negate().BitLength);
@@ -142,13 +148,13 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestClearBit()
         {
-            Assert.AreEqual(zero, zero.ClearBit(0));
-            Assert.AreEqual(zero, one.ClearBit(0));
-            Assert.AreEqual(two, two.ClearBit(0));
+            Assert.AreEqual(Zero, Zero.ClearBit(0));
+            Assert.AreEqual(Zero, One.ClearBit(0));
+            Assert.AreEqual(Two, Two.ClearBit(0));
 
-            Assert.AreEqual(zero, zero.ClearBit(1));
-            Assert.AreEqual(one, one.ClearBit(1));
-            Assert.AreEqual(zero, two.ClearBit(1));
+            Assert.AreEqual(Zero, Zero.ClearBit(1));
+            Assert.AreEqual(One, One.ClearBit(1));
+            Assert.AreEqual(Zero, Two.ClearBit(1));
 
             // TODO Tests for clearing bits in negative numbers
 
@@ -162,7 +168,7 @@ namespace Org.BouncyCastle.Math.Tests
                 {
                     int pos = random.Next(128);
                     BigInteger m = n.ClearBit(pos);
-                    bool test = m.ShiftRight(pos).Remainder(two).Equals(one);
+                    bool test = m.ShiftRight(pos).Remainder(Two).Equals(One);
 
                     Assert.IsFalse(test);
                 }
@@ -170,10 +176,10 @@ namespace Org.BouncyCastle.Math.Tests
 
             for (int i = 0; i < 100; ++i)
             {
-                BigInteger pow2 = one.ShiftLeft(i);
+                BigInteger pow2 = One.ShiftLeft(i);
                 BigInteger minusPow2 = pow2.Negate();
 
-                Assert.AreEqual(zero, pow2.ClearBit(i));
+                Assert.AreEqual(Zero, pow2.ClearBit(i));
                 Assert.AreEqual(minusPow2.ShiftLeft(1), minusPow2.ClearBit(i));
 
                 BigInteger bigI = BigInteger.ValueOf(i);
@@ -182,8 +188,8 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = 0; j < 10; ++j)
                 {
                     string data = "i=" + i + ", j=" + j;
-                    Assert.AreEqual(bigI.AndNot(one.ShiftLeft(j)), bigI.ClearBit(j), data);
-                    Assert.AreEqual(negI.AndNot(one.ShiftLeft(j)), negI.ClearBit(j), data);
+                    Assert.AreEqual(bigI.AndNot(One.ShiftLeft(j)), bigI.ClearBit(j), data);
+                    Assert.AreEqual(negI.AndNot(One.ShiftLeft(j)), negI.ClearBit(j), data);
                 }
             }
         }
@@ -191,35 +197,35 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestCompareTo()
         {
-            Assert.AreEqual(0, minusTwo.CompareTo(minusTwo));
-            Assert.AreEqual(-1, minusTwo.CompareTo(minusOne));
-            Assert.AreEqual(-1, minusTwo.CompareTo(zero));
-            Assert.AreEqual(-1, minusTwo.CompareTo(one));
-            Assert.AreEqual(-1, minusTwo.CompareTo(two));
+            Assert.AreEqual(0, MinusTwo.CompareTo(MinusTwo));
+            Assert.AreEqual(-1, MinusTwo.CompareTo(MinusOne));
+            Assert.AreEqual(-1, MinusTwo.CompareTo(Zero));
+            Assert.AreEqual(-1, MinusTwo.CompareTo(One));
+            Assert.AreEqual(-1, MinusTwo.CompareTo(Two));
 
-            Assert.AreEqual(1, minusOne.CompareTo(minusTwo));
-            Assert.AreEqual(0, minusOne.CompareTo(minusOne));
-            Assert.AreEqual(-1, minusOne.CompareTo(zero));
-            Assert.AreEqual(-1, minusOne.CompareTo(one));
-            Assert.AreEqual(-1, minusOne.CompareTo(two));
+            Assert.AreEqual(1, MinusOne.CompareTo(MinusTwo));
+            Assert.AreEqual(0, MinusOne.CompareTo(MinusOne));
+            Assert.AreEqual(-1, MinusOne.CompareTo(Zero));
+            Assert.AreEqual(-1, MinusOne.CompareTo(One));
+            Assert.AreEqual(-1, MinusOne.CompareTo(Two));
 
-            Assert.AreEqual(1, zero.CompareTo(minusTwo));
-            Assert.AreEqual(1, zero.CompareTo(minusOne));
-            Assert.AreEqual(0, zero.CompareTo(zero));
-            Assert.AreEqual(-1, zero.CompareTo(one));
-            Assert.AreEqual(-1, zero.CompareTo(two));
+            Assert.AreEqual(1, Zero.CompareTo(MinusTwo));
+            Assert.AreEqual(1, Zero.CompareTo(MinusOne));
+            Assert.AreEqual(0, Zero.CompareTo(Zero));
+            Assert.AreEqual(-1, Zero.CompareTo(One));
+            Assert.AreEqual(-1, Zero.CompareTo(Two));
 
-            Assert.AreEqual(1, one.CompareTo(minusTwo));
-            Assert.AreEqual(1, one.CompareTo(minusOne));
-            Assert.AreEqual(1, one.CompareTo(zero));
-            Assert.AreEqual(0, one.CompareTo(one));
-            Assert.AreEqual(-1, one.CompareTo(two));
+            Assert.AreEqual(1, One.CompareTo(MinusTwo));
+            Assert.AreEqual(1, One.CompareTo(MinusOne));
+            Assert.AreEqual(1, One.CompareTo(Zero));
+            Assert.AreEqual(0, One.CompareTo(One));
+            Assert.AreEqual(-1, One.CompareTo(Two));
 
-            Assert.AreEqual(1, two.CompareTo(minusTwo));
-            Assert.AreEqual(1, two.CompareTo(minusOne));
-            Assert.AreEqual(1, two.CompareTo(zero));
-            Assert.AreEqual(1, two.CompareTo(one));
-            Assert.AreEqual(0, two.CompareTo(two));
+            Assert.AreEqual(1, Two.CompareTo(MinusTwo));
+            Assert.AreEqual(1, Two.CompareTo(MinusOne));
+            Assert.AreEqual(1, Two.CompareTo(Zero));
+            Assert.AreEqual(1, Two.CompareTo(One));
+            Assert.AreEqual(0, Two.CompareTo(Two));
         }
 
         [Test]
@@ -243,7 +249,7 @@ namespace Org.BouncyCastle.Math.Tests
             {
                 try
                 {
-                    val(i).Divide(zero);
+                    Val(i).Divide(Zero);
                     Assert.Fail("expected ArithmeticException");
                 }
                 catch (ArithmeticException) {}
@@ -252,25 +258,25 @@ namespace Org.BouncyCastle.Math.Tests
             int product = 1 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
             int productPlus = product + 1;
 
-            BigInteger bigProduct = val(product);
-            BigInteger bigProductPlus = val(productPlus);
+            BigInteger bigProduct = Val(product);
+            BigInteger bigProductPlus = Val(productPlus);
 
             for (int divisor = 1; divisor < 10; ++divisor)
             {
                 // Exact division
-                BigInteger expected = val(product / divisor);
+                BigInteger expected = Val(product / divisor);
 
-                Assert.AreEqual(expected, bigProduct.Divide(val(divisor)));
-                Assert.AreEqual(expected.Negate(), bigProduct.Negate().Divide(val(divisor)));
-                Assert.AreEqual(expected.Negate(), bigProduct.Divide(val(divisor).Negate()));
-                Assert.AreEqual(expected, bigProduct.Negate().Divide(val(divisor).Negate()));
+                Assert.AreEqual(expected, bigProduct.Divide(Val(divisor)));
+                Assert.AreEqual(expected.Negate(), bigProduct.Negate().Divide(Val(divisor)));
+                Assert.AreEqual(expected.Negate(), bigProduct.Divide(Val(divisor).Negate()));
+                Assert.AreEqual(expected, bigProduct.Negate().Divide(Val(divisor).Negate()));
 
-                expected = val((product + 1)/divisor);
+                expected = Val((product + 1)/divisor);
 
-                Assert.AreEqual(expected, bigProductPlus.Divide(val(divisor)));
-                Assert.AreEqual(expected.Negate(), bigProductPlus.Negate().Divide(val(divisor)));
-                Assert.AreEqual(expected.Negate(), bigProductPlus.Divide(val(divisor).Negate()));
-                Assert.AreEqual(expected, bigProductPlus.Negate().Divide(val(divisor).Negate()));
+                Assert.AreEqual(expected, bigProductPlus.Divide(Val(divisor)));
+                Assert.AreEqual(expected.Negate(), bigProductPlus.Negate().Divide(Val(divisor)));
+                Assert.AreEqual(expected.Negate(), bigProductPlus.Divide(Val(divisor).Negate()));
+                Assert.AreEqual(expected, bigProductPlus.Negate().Divide(Val(divisor).Negate()));
             }
 
             for (int rep = 0; rep < 10; ++rep)
@@ -288,7 +294,7 @@ namespace Org.BouncyCastle.Math.Tests
             for (int i = 0; i < 100; ++i)
             {
                 int shift = random.Next(64);
-                BigInteger a = one.ShiftLeft(shift);
+                BigInteger a = One.ShiftLeft(shift);
                 BigInteger b = new BigInteger(64 + random.Next(64), random);
                 BigInteger bShift = b.ShiftRight(shift);
 
@@ -303,7 +309,7 @@ namespace Org.BouncyCastle.Math.Tests
             // Regression
             {
                 int shift = 63;
-                BigInteger a = one.ShiftLeft(shift);
+                BigInteger a = One.ShiftLeft(shift);
                 BigInteger b = new BigInteger(1, Hex.Decode("2504b470dc188499"));
                 BigInteger bShift = b.ShiftRight(shift);
 
@@ -323,11 +329,11 @@ namespace Org.BouncyCastle.Math.Tests
 
             BigInteger n = new BigInteger(48, random);
             BigInteger[] qr = n.DivideAndRemainder(n);
-            Assert.AreEqual(one, qr[0]);
-            Assert.AreEqual(zero, qr[1]);
-            qr = n.DivideAndRemainder(one);
+            Assert.AreEqual(One, qr[0]);
+            Assert.AreEqual(Zero, qr[1]);
+            qr = n.DivideAndRemainder(One);
             Assert.AreEqual(n, qr[0]);
-            Assert.AreEqual(zero, qr[1]);
+            Assert.AreEqual(Zero, qr[1]);
 
             for (int rep = 0; rep < 10; ++rep)
             {
@@ -345,10 +351,10 @@ namespace Org.BouncyCastle.Math.Tests
             for (int i = 0; i < 100; ++i)
             {
                 int shift = random.Next(64);
-                BigInteger a = one.ShiftLeft(shift);
+                BigInteger a = One.ShiftLeft(shift);
                 BigInteger b = new BigInteger(64 + random.Next(64), random);
                 BigInteger bShift = b.ShiftRight(shift);
-                BigInteger bMod = b.And(a.Subtract(one));
+                BigInteger bMod = b.And(a.Subtract(One));
 
                 string data = "shift=" + shift +", b=" + b.ToString(16);
 
@@ -392,10 +398,10 @@ namespace Org.BouncyCastle.Math.Tests
 
             for (int i = 0; i < 100; ++i)
             {
-                BigInteger pow2 = one.ShiftLeft(i);
+                BigInteger pow2 = One.ShiftLeft(i);
                 BigInteger minusPow2 = pow2.Negate();
 
-                Assert.AreEqual(zero, pow2.FlipBit(i));
+                Assert.AreEqual(Zero, pow2.FlipBit(i));
                 Assert.AreEqual(minusPow2.ShiftLeft(1), minusPow2.FlipBit(i));
 
                 BigInteger bigI = BigInteger.ValueOf(i);
@@ -404,8 +410,8 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = 0; j < 10; ++j)
                 {
                     string data = "i=" + i + ", j=" + j;
-                    Assert.AreEqual(bigI.Xor(one.ShiftLeft(j)), bigI.FlipBit(j), data);
-                    Assert.AreEqual(negI.Xor(one.ShiftLeft(j)), negI.FlipBit(j), data);
+                    Assert.AreEqual(bigI.Xor(One.ShiftLeft(j)), bigI.FlipBit(j), data);
+                    Assert.AreEqual(negI.Xor(One.ShiftLeft(j)), negI.FlipBit(j), data);
                 }
             }
         }
@@ -415,7 +421,7 @@ namespace Org.BouncyCastle.Math.Tests
         {
             for (int i = 0; i < 10; ++i)
             {
-                BigInteger fac = new BigInteger(32, random).Add(two);
+                BigInteger fac = new BigInteger(32, random).Add(Two);
                 BigInteger p1 = BigInteger.ProbablePrime(63, random);
                 BigInteger p2 = BigInteger.ProbablePrime(64, random);
 
@@ -430,7 +436,7 @@ namespace Org.BouncyCastle.Math.Tests
         {
             for (int i = 1; i <= 100; ++i)
             {
-                BigInteger test = new BigInteger(i + 1, 0, random).Add(one);
+                BigInteger test = new BigInteger(i + 1, 0, random).Add(One);
                 int bit1 = test.GetLowestSetBit();
                 Assert.AreEqual(test, test.ShiftRight(bit1).ShiftLeft(bit1));
                 int bit2 = test.ShiftLeft(i + 1).GetLowestSetBit();
@@ -447,7 +453,7 @@ namespace Org.BouncyCastle.Math.Tests
 
             foreach (int test in tests)
             {
-                Assert.AreEqual(test, val(test).IntValue);
+                Assert.AreEqual(test, Val(test).IntValue);
             }
 
             // TODO Tests for large numbers
@@ -456,38 +462,38 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestIsProbablePrime()
         {
-            Assert.IsFalse(zero.IsProbablePrime(100));
-            Assert.IsFalse(zero.IsProbablePrime(100));
-            Assert.IsTrue(zero.IsProbablePrime(0));
-            Assert.IsTrue(zero.IsProbablePrime(-10));
-            Assert.IsFalse(minusOne.IsProbablePrime(100));
-            Assert.IsTrue(minusTwo.IsProbablePrime(100));
-            Assert.IsTrue(val(-17).IsProbablePrime(100));
-            Assert.IsTrue(val(67).IsProbablePrime(100));
-            Assert.IsTrue(val(773).IsProbablePrime(100));
+            Assert.IsFalse(Zero.IsProbablePrime(100));
+            Assert.IsFalse(Zero.IsProbablePrime(100));
+            Assert.IsTrue(Zero.IsProbablePrime(0));
+            Assert.IsTrue(Zero.IsProbablePrime(-10));
+            Assert.IsFalse(MinusOne.IsProbablePrime(100));
+            Assert.IsTrue(MinusTwo.IsProbablePrime(100));
+            Assert.IsTrue(Val(-17).IsProbablePrime(100));
+            Assert.IsTrue(Val(67).IsProbablePrime(100));
+            Assert.IsTrue(Val(773).IsProbablePrime(100));
 
-            foreach (int p in firstPrimes)
+            foreach (int p in FirstPrimes)
             {
-                Assert.IsTrue(val(p).IsProbablePrime(100));
-                Assert.IsTrue(val(-p).IsProbablePrime(100));
+                Assert.IsTrue(Val(p).IsProbablePrime(100));
+                Assert.IsTrue(Val(-p).IsProbablePrime(100));
             }
 
-            foreach (int c in nonPrimes)
+            foreach (int c in NonPrimes)
             {
-                Assert.IsFalse(val(c).IsProbablePrime(100));
-                Assert.IsFalse(val(-c).IsProbablePrime(100));
+                Assert.IsFalse(Val(c).IsProbablePrime(100));
+                Assert.IsFalse(Val(-c).IsProbablePrime(100));
             }
 
-            foreach (int e in mersennePrimeExponents)
+            foreach (int e in MersennePrimeExponents)
             {
-                Assert.IsTrue(mersenne(e).IsProbablePrime(100));
-                Assert.IsTrue(mersenne(e).Negate().IsProbablePrime(100));
+                Assert.IsTrue(Mersenne(e).IsProbablePrime(100));
+                Assert.IsTrue(Mersenne(e).Negate().IsProbablePrime(100));
             }
 
-            foreach (int e in nonPrimeExponents)
+            foreach (int e in NonPrimeExponents)
             {
-                Assert.IsFalse(mersenne(e).IsProbablePrime(100));
-                Assert.IsFalse(mersenne(e).Negate().IsProbablePrime(100));
+                Assert.IsFalse(Mersenne(e).IsProbablePrime(100));
+                Assert.IsFalse(Mersenne(e).Negate().IsProbablePrime(100));
             }
 
             // TODO Other examples of 'tricky' values?
@@ -500,7 +506,7 @@ namespace Org.BouncyCastle.Math.Tests
 
             foreach (long test in tests)
             {
-                Assert.AreEqual(test, val(test).LongValue);
+                Assert.AreEqual(test, Val(test).LongValue);
             }
 
             // TODO Tests for large numbers
@@ -513,7 +519,7 @@ namespace Org.BouncyCastle.Math.Tests
             {
                 for (int j = -10; j <= 10; ++j)
                 {
-                    Assert.AreEqual(val(System.Math.Max(i, j)), val(i).Max(val(j)));
+                    Assert.AreEqual(Val(System.Math.Max(i, j)), Val(i).Max(Val(j)));
                 }
             }
         }
@@ -525,7 +531,7 @@ namespace Org.BouncyCastle.Math.Tests
             {
                 for (int j = -10; j <= 10; ++j)
                 {
-                    Assert.AreEqual(val(System.Math.Min(i, j)), val(i).Min(val(j)));
+                    Assert.AreEqual(Val(System.Math.Min(i, j)), Val(i).Min(Val(j)));
                 }
             }
         }
@@ -546,8 +552,8 @@ namespace Org.BouncyCastle.Math.Tests
                 BigInteger e = d.Mod(a);
                 Assert.AreEqual(c, e);
 
-                BigInteger pow2 = one.ShiftLeft(random.Next(128));
-                Assert.AreEqual(b.And(pow2.Subtract(one)), b.Mod(pow2));
+                BigInteger pow2 = One.ShiftLeft(random.Next(128));
+                Assert.AreEqual(b.And(pow2.Subtract(One)), b.Mod(pow2));
             }
         }
 
@@ -557,23 +563,23 @@ namespace Org.BouncyCastle.Math.Tests
             for (int i = 0; i < 10; ++i)
             {
                 BigInteger p = BigInteger.ProbablePrime(64, random);
-                BigInteger q = new BigInteger(63, random).Add(one);
+                BigInteger q = new BigInteger(63, random).Add(One);
                 BigInteger inv = q.ModInverse(p);
                 BigInteger inv2 = inv.ModInverse(p);
 
                 Assert.AreEqual(q, inv2);
-                Assert.AreEqual(one, q.Multiply(inv).Mod(p));
+                Assert.AreEqual(One, q.Multiply(inv).Mod(p));
             }
 
             // ModInverse a power of 2 for a range of powers
             for (int i = 1; i <= 128; ++i)
             {
-                BigInteger m = one.ShiftLeft(i);
+                BigInteger m = One.ShiftLeft(i);
                 BigInteger d = new BigInteger(i, random).SetBit(0);
                 BigInteger x = d.ModInverse(m);
                 BigInteger check = x.Multiply(d).Mod(m);
 
-                Assert.AreEqual(one, check);
+                Assert.AreEqual(One, check);
             }
         }
 
@@ -582,15 +588,15 @@ namespace Org.BouncyCastle.Math.Tests
         {
             try
             {
-                two.ModPow(one, zero);
+                Two.ModPow(One, Zero);
                 Assert.Fail("expected ArithmeticException");
             }
             catch (ArithmeticException) {}
 
-            Assert.AreEqual(zero, zero.ModPow(zero, one));
-            Assert.AreEqual(one, zero.ModPow(zero, two));
-            Assert.AreEqual(zero, two.ModPow(one, one));
-            Assert.AreEqual(one, two.ModPow(zero, two));
+            Assert.AreEqual(Zero, Zero.ModPow(Zero, One));
+            Assert.AreEqual(One, Zero.ModPow(Zero, Two));
+            Assert.AreEqual(Zero, Two.ModPow(One, One));
+            Assert.AreEqual(One, Two.ModPow(Zero, Two));
 
             for (int i = 0; i < 100; ++i)
             {
@@ -600,23 +606,23 @@ namespace Org.BouncyCastle.Math.Tests
                 Assert.AreEqual(x, x.ModPow(m, m));
                 if (x.SignValue != 0)
                 {
-                    Assert.AreEqual(zero, zero.ModPow(x, m));
-                    Assert.AreEqual(one, x.ModPow(m.Subtract(one), m));
+                    Assert.AreEqual(Zero, Zero.ModPow(x, m));
+                    Assert.AreEqual(One, x.ModPow(m.Subtract(One), m));
                 }
 
                 BigInteger y = new BigInteger(m.BitLength - 1, random);
                 BigInteger n = new BigInteger(m.BitLength - 1, random);
-                BigInteger n3 = n.ModPow(three, m);
+                BigInteger n3 = n.ModPow(Three, m);
 
                 BigInteger resX = n.ModPow(x, m);
                 BigInteger resY = n.ModPow(y, m);
                 BigInteger res = resX.Multiply(resY).Mod(m);
-                BigInteger res3 = res.ModPow(three, m);
+                BigInteger res3 = res.ModPow(Three, m);
 
                 Assert.AreEqual(res3, n3.ModPow(x.Add(y), m));
 
-                BigInteger a = x.Add(one); // Make sure it's not zero
-                BigInteger b = y.Add(one); // Make sure it's not zero
+                BigInteger a = x.Add(One); // Make sure it's not zero
+                BigInteger b = y.Add(One); // Make sure it's not zero
 
                 Assert.AreEqual(a.ModPow(b, m).ModInverse(m), a.ModPow(b.Negate(), m));
             }
@@ -670,7 +676,7 @@ namespace Org.BouncyCastle.Math.Tests
         {
             for (int i = -10; i <= 10; ++i)
             {
-                Assert.AreEqual(val(-i), val(i).Negate());
+                Assert.AreEqual(Val(-i), Val(i).Negate());
             }
         }
 
@@ -683,12 +689,12 @@ namespace Org.BouncyCastle.Math.Tests
             Assert.IsTrue(firstPrime.IsProbablePrime(10));
             Assert.IsTrue(nextPrime.IsProbablePrime(10));
 
-            BigInteger check = firstPrime.Add(one);
+            BigInteger check = firstPrime.Add(One);
 
             while (check.CompareTo(nextPrime) < 0)
             {
                 Assert.IsFalse(check.IsProbablePrime(10));
-                check = check.Add(one);
+                check = check.Add(One);
             }
         }
 
@@ -698,8 +704,8 @@ namespace Org.BouncyCastle.Math.Tests
             for (int i = -10; i <= 10; ++i)
             {
                 Assert.AreEqual(
-                    val(~i),
-                    val(i).Not(),
+                    Val(~i),
+                    Val(i).Not(),
                     "Problem: ~" + i + " should be " + ~i);
             }
         }
@@ -712,8 +718,8 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = -10; j <= 10; ++j)
                 {
                     Assert.AreEqual(
-                        val(i | j),
-                        val(i).Or(val(j)),
+                        Val(i | j),
+                        Val(i).Or(Val(j)),
                         "Problem: " + i + " OR " + j + " should be " + (i | j));
                 }
             }
@@ -722,22 +728,22 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestPow()
         {
-            Assert.AreEqual(one, zero.Pow(0));
-            Assert.AreEqual(zero, zero.Pow(123));
-            Assert.AreEqual(one, one.Pow(0));
-            Assert.AreEqual(one, one.Pow(123));
+            Assert.AreEqual(One, Zero.Pow(0));
+            Assert.AreEqual(Zero, Zero.Pow(123));
+            Assert.AreEqual(One, One.Pow(0));
+            Assert.AreEqual(One, One.Pow(123));
 
-            Assert.AreEqual(two.Pow(147), one.ShiftLeft(147));
-            Assert.AreEqual(one.ShiftLeft(7).Pow(11), one.ShiftLeft(77));
+            Assert.AreEqual(Two.Pow(147), One.ShiftLeft(147));
+            Assert.AreEqual(One.ShiftLeft(7).Pow(11), One.ShiftLeft(77));
 
             BigInteger n = new BigInteger("1234567890987654321");
-            BigInteger result = one;
+            BigInteger result = One;
 
             for (int i = 0; i < 10; ++i)
             {
                 try
                 {
-                    val(i).Pow(-1);
+                    Val(i).Pow(-1);
                     Assert.Fail("expected ArithmeticException");
                 }
                 catch (ArithmeticException) {}
@@ -765,11 +771,11 @@ namespace Org.BouncyCastle.Math.Tests
             }
         }
 
-#if !NET8_0_OR_GREATER
+#if !NET8_0_OR_GREATER // BinaryFormatter no longer supported
         [Test]
         public void TestSerialization()
         {
-            using (var buf = new MemoryStream())
+            using (var buf = new System.IO.MemoryStream())
             {
                 BigInteger x = new BigInteger(128, random);
                 object y;
@@ -791,13 +797,13 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestSetBit()
         {
-            Assert.AreEqual(one, zero.SetBit(0));
-            Assert.AreEqual(one, one.SetBit(0));
-            Assert.AreEqual(three, two.SetBit(0));
+            Assert.AreEqual(One, Zero.SetBit(0));
+            Assert.AreEqual(One, One.SetBit(0));
+            Assert.AreEqual(Three, Two.SetBit(0));
 
-            Assert.AreEqual(two, zero.SetBit(1));
-            Assert.AreEqual(three, one.SetBit(1));
-            Assert.AreEqual(two, two.SetBit(1));
+            Assert.AreEqual(Two, Zero.SetBit(1));
+            Assert.AreEqual(Three, One.SetBit(1));
+            Assert.AreEqual(Two, Two.SetBit(1));
 
             // TODO Tests for setting bits in negative numbers
 
@@ -811,7 +817,7 @@ namespace Org.BouncyCastle.Math.Tests
                 {
                     int pos = random.Next(128);
                     BigInteger m = n.SetBit(pos);
-                    bool test = m.ShiftRight(pos).Remainder(two).Equals(one);
+                    bool test = m.ShiftRight(pos).Remainder(Two).Equals(One);
 
                     Assert.IsTrue(test);
                 }
@@ -819,7 +825,7 @@ namespace Org.BouncyCastle.Math.Tests
 
             for (int i = 0; i < 100; ++i)
             {
-                BigInteger pow2 = one.ShiftLeft(i);
+                BigInteger pow2 = One.ShiftLeft(i);
                 BigInteger minusPow2 = pow2.Negate();
 
                 Assert.AreEqual(pow2, pow2.SetBit(i));
@@ -831,8 +837,8 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = 0; j < 10; ++j)
                 {
                     string data = "i=" + i + ", j=" + j;
-                    Assert.AreEqual(bigI.Or(one.ShiftLeft(j)), bigI.SetBit(j), data);
-                    Assert.AreEqual(negI.Or(one.ShiftLeft(j)), negI.SetBit(j), data);
+                    Assert.AreEqual(bigI.Or(One.ShiftLeft(j)), bigI.SetBit(j), data);
+                    Assert.AreEqual(negI.Or(One.ShiftLeft(j)), negI.SetBit(j), data);
                 }
             }
         }
@@ -844,11 +850,13 @@ namespace Org.BouncyCastle.Math.Tests
             {
                 int shift = random.Next(128);
 
-                BigInteger a = new BigInteger(128 + i, random).Add(one);
-                int bits = a.BitCount; // Make sure nBits is set
+                BigInteger a = new BigInteger(128 + i, random).Add(One);
+                int aBits = a.BitCount; // Make sure nBits is set
+                Assert.LessOrEqual(aBits, 128 + i + 1);
 
                 BigInteger negA = a.Negate();
-                bits = negA.BitCount; // Make sure nBits is set
+                int negABits = negA.BitCount; // Make sure nBits is set
+                Assert.LessOrEqual(negABits, 128 + i + 1);
 
                 BigInteger b = a.ShiftLeft(shift);
                 BigInteger c = negA.ShiftLeft(shift);
@@ -894,7 +902,7 @@ namespace Org.BouncyCastle.Math.Tests
         {
             for (int i = -10; i <= 10; ++i)
             {
-                Assert.AreEqual(i < 0 ? -1 : i > 0 ? 1 : 0, val(i).SignValue);
+                Assert.AreEqual(i < 0 ? -1 : i > 0 ? 1 : 0, Val(i).SignValue);
             }
         }
 
@@ -906,8 +914,8 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = -10; j <= 10; ++j)
                 {
                     Assert.AreEqual(
-                        val(i - j),
-                        val(i).Subtract(val(j)),
+                        Val(i - j),
+                        Val(i).Subtract(Val(j)),
                         "Problem: " + i + ".Subtract(" + j + ") should be " + (i - j));
                 }
             }
@@ -926,7 +934,7 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = 0; j < 10; ++j)
                 {
                     int pos = random.Next(128);
-                    bool test = n.ShiftRight(pos).Remainder(two).Equals(one);
+                    bool test = n.ShiftRight(pos).Remainder(Two).Equals(One);
 
                     Assert.AreEqual(test, n.TestBit(pos));
                 }
@@ -959,7 +967,7 @@ namespace Org.BouncyCastle.Math.Tests
         public void TestToByteArrayUnsigned()
         {
             byte[] z = BigInteger.Zero.ToByteArrayUnsigned();
-            Assert.IsTrue(Arrays.AreEqual(new byte[0], z));
+            Assert.AreEqual(0, z.Length);
 
             for (int i = 16; i <= 48; ++i)
             {
@@ -1039,34 +1047,29 @@ namespace Org.BouncyCastle.Math.Tests
                 for (int j = -10; j <= 10; ++j)
                 {
                     Assert.AreEqual(
-                        val(i ^ j),
-                        val(i).Xor(val(j)),
+                        Val(i ^ j),
+                        Val(i).Xor(Val(j)),
                         "Problem: " + i + " XOR " + j + " should be " + (i ^ j));
                 }
             }
         }
 
-        private static BigInteger val(long n)
-        {
-            return BigInteger.ValueOf(n);
-        }
+        private static BigInteger Val(long n) => BigInteger.ValueOf(n);
 
-        private static BigInteger mersenne(int e)
-        {
-            return two.Pow(e).Subtract(one);
-        }
+        private static BigInteger Mersenne(int e) => Two.Pow(e).Subtract(One);
 
-        private static readonly BigInteger minusTwo = BigInteger.Two.Negate();
-        private static readonly BigInteger minusOne = BigInteger.One.Negate();
-        private static readonly BigInteger zero = BigInteger.Zero;
-        private static readonly BigInteger one = BigInteger.One;
-        private static readonly BigInteger two = BigInteger.Two;
-        private static readonly BigInteger three = BigInteger.Three;
+        private static readonly BigInteger Zero = BigInteger.Zero;
+        private static readonly BigInteger One = BigInteger.One;
+        private static readonly BigInteger Two = BigInteger.Two;
+        private static readonly BigInteger Three = BigInteger.Three;
 
-        private static int[] firstPrimes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29 };
-        private static int[] nonPrimes = { 0, 1, 4, 10, 20, 21, 22, 25, 26, 27 };
+        private static readonly BigInteger MinusOne = One.Negate();
+        private static readonly BigInteger MinusTwo = Two.Negate();
 
-        private static int[] mersennePrimeExponents = { 2, 3, 5, 7, 13, 17, 19, 31, 61, 89 };
-        private static int[] nonPrimeExponents = { 1, 4, 6, 9, 11, 15, 23, 29, 37, 41 };
+        private static readonly int[] FirstPrimes = { 2, 3, 5, 7, 11, 13, 17, 19, 23, 29 };
+        private static readonly int[] NonPrimes = { 0, 1, 4, 10, 20, 21, 22, 25, 26, 27 };
+
+        private static readonly int[] MersennePrimeExponents = { 2, 3, 5, 7, 13, 17, 19, 31, 61, 89 };
+        private static readonly int[] NonPrimeExponents = { 1, 4, 6, 9, 11, 15, 23, 29, 37, 41 };
     }
 }

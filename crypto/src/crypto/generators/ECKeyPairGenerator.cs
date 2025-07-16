@@ -3,7 +3,6 @@ using System;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -15,35 +14,29 @@ namespace Org.BouncyCastle.Crypto.Generators
     public class ECKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private readonly string algorithm;
+        private readonly string m_algorithm;
 
-        private ECDomainParameters parameters;
-        private DerObjectIdentifier publicKeyParamSet;
-        private SecureRandom random;
+        private ECDomainParameters m_parameters;
+        private SecureRandom m_random;
 
         public ECKeyPairGenerator()
             : this("EC")
         {
         }
 
-        public ECKeyPairGenerator(
-            string algorithm)
+        public ECKeyPairGenerator(string algorithm)
         {
             if (algorithm == null)
-                throw new ArgumentNullException("algorithm");
+                throw new ArgumentNullException(nameof(algorithm));
 
-            this.algorithm = ECKeyParameters.VerifyAlgorithmName(algorithm);
+            m_algorithm = ECKeyParameters.VerifyAlgorithmName(algorithm);
         }
 
-        public void Init(
-            KeyGenerationParameters parameters)
+        public void Init(KeyGenerationParameters parameters)
         {
-            if (parameters is ECKeyGenerationParameters)
+            if (parameters is ECKeyGenerationParameters ecP)
             {
-                ECKeyGenerationParameters ecP = (ECKeyGenerationParameters) parameters;
-
-                this.publicKeyParamSet = ecP.PublicKeyParamSet;
-                this.parameters = ecP.DomainParameters;
+                m_parameters = ecP.DomainParameters;
             }
             else
             {
@@ -72,19 +65,10 @@ namespace Org.BouncyCastle.Crypto.Generators
                     throw new InvalidParameterException("unknown key size.");
                 }
 
-                X9ECParameters ecps = FindECCurveByOid(oid);
-
-                this.publicKeyParamSet = oid;
-                this.parameters = new ECDomainParameters(
-                    ecps.Curve, ecps.G, ecps.N, ecps.H, ecps.GetSeed());
+                m_parameters = ECNamedDomainParameters.LookupOid(oid);
             }
 
-            this.random = parameters.Random;
-
-            if (this.random == null)
-            {
-                this.random = CryptoServicesRegistrar.GetSecureRandom();
-            }
+            m_random = CryptoServicesRegistrar.GetSecureRandom(parameters.Random);
         }
 
         /**
@@ -93,13 +77,21 @@ namespace Org.BouncyCastle.Crypto.Generators
          */
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            BigInteger n = parameters.N;
-            BigInteger d;
+            BigInteger d = GeneratePrivateScalar(m_parameters.N, m_random);
+            var privateKey = new ECPrivateKeyParameters(m_algorithm, d, m_parameters);
+            var publicKey = GetCorrespondingPublicKey(privateKey, CreateBasePointMultiplier());
+            return new AsymmetricCipherKeyPair(publicKey, privateKey);
+        }
+
+        protected virtual ECMultiplier CreateBasePointMultiplier() => new FixedPointCombMultiplier();
+
+        private static BigInteger GeneratePrivateScalar(BigInteger n, SecureRandom random)
+        {
             int minWeight = n.BitLength >> 2;
 
             for (;;)
             {
-                d = new BigInteger(n.BitLength, random);
+                var d = new BigInteger(n.BitLength, random);
 
                 if (d.CompareTo(BigInteger.One) < 0 || d.CompareTo(n) >= 0)
                     continue;
@@ -107,60 +99,19 @@ namespace Org.BouncyCastle.Crypto.Generators
                 if (WNafUtilities.GetNafWeight(d) < minWeight)
                     continue;
 
-                break;
+                return d;
             }
-
-            ECPoint q = CreateBasePointMultiplier().Multiply(parameters.G, d);
-
-            if (publicKeyParamSet != null)
-            {
-                return new AsymmetricCipherKeyPair(
-                    new ECPublicKeyParameters(algorithm, q, publicKeyParamSet),
-                    new ECPrivateKeyParameters(algorithm, d, publicKeyParamSet));
-            }
-
-            return new AsymmetricCipherKeyPair(
-                new ECPublicKeyParameters(algorithm, q, parameters),
-                new ECPrivateKeyParameters(algorithm, d, parameters));
         }
 
-        protected virtual ECMultiplier CreateBasePointMultiplier()
+        internal static ECPublicKeyParameters GetCorrespondingPublicKey(ECPrivateKeyParameters privateKey) =>
+            GetCorrespondingPublicKey(privateKey, new FixedPointCombMultiplier());
+
+        private static ECPublicKeyParameters GetCorrespondingPublicKey(ECPrivateKeyParameters privateKey,
+            ECMultiplier multiplier)
         {
-            return new FixedPointCombMultiplier();
-        }
-
-        internal static X9ECParameters FindECCurveByName(string name)
-        {
-            return CustomNamedCurves.GetByName(name) ?? ECNamedCurveTable.GetByName(name);
-        }
-
-        internal static X9ECParametersHolder FindECCurveByNameLazy(string name)
-        {
-            return CustomNamedCurves.GetByNameLazy(name) ?? ECNamedCurveTable.GetByNameLazy(name);
-        }
-
-        internal static X9ECParameters FindECCurveByOid(DerObjectIdentifier oid)
-        {
-            return CustomNamedCurves.GetByOid(oid) ?? ECNamedCurveTable.GetByOid(oid);
-        }
-
-        internal static X9ECParametersHolder FindECCurveByOidLazy(DerObjectIdentifier oid)
-        {
-            return CustomNamedCurves.GetByOidLazy(oid) ?? ECNamedCurveTable.GetByOidLazy(oid);
-        }
-
-        internal static ECPublicKeyParameters GetCorrespondingPublicKey(
-            ECPrivateKeyParameters privKey)
-        {
-            ECDomainParameters ec = privKey.Parameters;
-            ECPoint q = new FixedPointCombMultiplier().Multiply(ec.G, privKey.D);
-
-            if (privKey.PublicKeyParamSet != null)
-            {
-                return new ECPublicKeyParameters(privKey.AlgorithmName, q, privKey.PublicKeyParamSet);
-            }
-
-            return new ECPublicKeyParameters(privKey.AlgorithmName, q, ec);
+            ECDomainParameters dp = privateKey.Parameters;
+            ECPoint q = multiplier.Multiply(dp.G, privateKey.D);
+            return new ECPublicKeyParameters(privateKey.AlgorithmName, q, dp);
         }
     }
 }

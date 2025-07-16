@@ -63,11 +63,6 @@ namespace Org.BouncyCastle.Cms
             this.origCrls = revocations;
         }
 
-        public virtual OriginatorInfo Generate()
-        {
-            Asn1Set certSet = origCerts == null ? null : CmsUtilities.CreateDerSetFromList(origCerts);
-            Asn1Set crlSet = origCrls == null ? null : CmsUtilities.CreateDerSetFromList(origCrls);
-            return new OriginatorInfo(certSet, crlSet);
-        }
+        public virtual OriginatorInfo Generate() => new OriginatorInfo(origCerts?.ToDerSet(), origCrls?.ToDerSet());
     }
 }
