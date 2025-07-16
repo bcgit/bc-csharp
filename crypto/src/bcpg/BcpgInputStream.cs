@@ -163,8 +163,7 @@ namespace Org.BouncyCastle.Bcpg
             else
             {
                 PartialInputStream pis = new PartialInputStream(this, partial, bodyLen);
-                Stream buf = new BufferedStream(pis);
-                objStream = new BcpgInputStream(buf);
+                objStream = new BcpgInputStream(new BufferedStream(pis));
             }
 
             switch (tag)
@@ -238,38 +237,39 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>
         /// A stream that overlays our input stream, allowing the user to only read a segment of it.
         /// </summary>
+        /// <remarks>
+        /// If <c>partial</c> is <c>true</c>, <c>dataLength</c> should only be up to 2^30 bytes. Otherwise it's a
+        /// non-partial packet and can be larger.
+        /// </remarks>
         private class PartialInputStream
             : BaseInputStream
         {
             private BcpgInputStream m_in;
-            private bool partial;
-            private uint dataLength;
+            private bool m_partial;
+            private uint m_dataLength;
 
-            internal PartialInputStream(
-                BcpgInputStream bcpgIn,
-                bool partial,
-                uint dataLength)
+            internal PartialInputStream(BcpgInputStream bcpgIn, bool partial, uint dataLength)
             {
-                this.m_in = bcpgIn;
-                this.partial = partial;
-                this.dataLength = dataLength;
+                m_in = bcpgIn;
+                m_partial = partial;
+                m_dataLength = dataLength;
             }
 
             public override int ReadByte()
             {
                 do
                 {
-                    if (dataLength > 0U)
+                    if (m_dataLength > 0U)
                     {
                         int ch = m_in.ReadByte();
                         if (ch < 0)
                             throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
-                        dataLength--;
+                        --m_dataLength;
                         return ch;
                     }
                 }
-                while (partial && ReadPartialDataLength());
+                while (m_partial && ReadPartialDataLength());
 
                 return -1;
             }
@@ -280,18 +280,18 @@ namespace Org.BouncyCastle.Bcpg
 
                 do
                 {
-                    if (dataLength > 0U)
+                    if (m_dataLength > 0U)
                     {
-                        int readLen = (uint)count < dataLength ? count : (int)dataLength;
+                        int readLen = (uint)count < m_dataLength ? count : (int)m_dataLength;
                         int len = m_in.Read(buffer, offset, readLen);
                         if (len < 1)
                             throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
-                        dataLength -= (uint)len;
+                        m_dataLength -= (uint)len;
                         return len;
                     }
                 }
-                while (partial && ReadPartialDataLength());
+                while (m_partial && ReadPartialDataLength());
 
                 return 0;
             }
@@ -301,19 +301,19 @@ namespace Org.BouncyCastle.Bcpg
             {
                 do
                 {
-                    if (dataLength > 0U)
+                    if (m_dataLength > 0U)
                     {
                         int count = buffer.Length;
-                        int readLen = (uint)count < dataLength ? count : (int)dataLength;
+                        int readLen = (uint)count < m_dataLength ? count : (int)m_dataLength;
                         int len = m_in.Read(buffer[..readLen]);
                         if (len < 1)
                             throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
-                        dataLength -= (uint)len;
+                        m_dataLength -= (uint)len;
                         return len;
                     }
                 }
-                while (partial && ReadPartialDataLength());
+                while (m_partial && ReadPartialDataLength());
 
                 return 0;
             }
@@ -324,13 +324,13 @@ namespace Org.BouncyCastle.Bcpg
                 uint bodyLen = StreamUtilities.ReadBodyLen(m_in, out var streamFlags);
                 if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Eof))
                 {
-                    partial = false;
-                    dataLength = 0U;
+                    m_partial = false;
+                    m_dataLength = 0U;
                     return false;
                 }
 
-                partial = streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial);
-                dataLength = bodyLen;
+                m_partial = streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial);
+                m_dataLength = bodyLen;
                 return true;
             }
         }
