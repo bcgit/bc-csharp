@@ -27,8 +27,13 @@ namespace Org.BouncyCastle.Bcpg
 
             bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
 
+            // TODO Configurable upper limit
+            if (bodyLen < 1U || bodyLen > int.MaxValue)
+                throw new EndOfStreamException("out of range data found in user attribute subpacket");
+
             int tag = StreamUtilities.RequireByte(m_input);
             byte[] data = new byte[bodyLen - 1];
+
             StreamUtilities.RequireBytes(m_input, data);
 
             UserAttributeSubpacketTag type = (UserAttributeSubpacketTag)tag;

@@ -27,9 +27,10 @@ namespace Org.BouncyCastle.Bcpg
 
             bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
 
-            // see below about miscoding... see bc-java for configurable upper limit
-            if (bodyLen < 1U)
-                throw new EndOfStreamException("out of range data found in signature sub packet");
+            // see below about miscoding...
+            // TODO Configurable upper limit
+            if (bodyLen < 1U || bodyLen > int.MaxValue)
+                throw new EndOfStreamException("out of range data found in signature subpacket");
 
             int tag = StreamUtilities.RequireByte(m_input);
             byte[] data = new byte[bodyLen - 1];
