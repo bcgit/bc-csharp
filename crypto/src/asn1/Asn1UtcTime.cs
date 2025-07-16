@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1UtcTime GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (Asn1UtcTime)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (Asn1UtcTime)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static Asn1UtcTime GetOptional(Asn1Encodable element)

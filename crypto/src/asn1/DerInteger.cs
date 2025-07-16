@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerInteger GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (DerInteger)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (DerInteger)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static DerInteger GetOptional(Asn1Encodable element)

@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1
 
         public static DerBitString GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
-            return (DerBitString)Meta.Instance.GetContextInstance(obj, isExplicit);
+            return (DerBitString)Meta.Instance.GetContextTagged(obj, isExplicit);
         }
 
         public static DerBitString GetOptional(Asn1Encodable element)

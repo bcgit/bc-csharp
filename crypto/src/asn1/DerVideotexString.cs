@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerVideotexString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (DerVideotexString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (DerVideotexString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static DerVideotexString GetOptional(Asn1Encodable element)

@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1Null GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (Asn1Null)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (Asn1Null)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static Asn1Null GetOptional(Asn1Encodable element)

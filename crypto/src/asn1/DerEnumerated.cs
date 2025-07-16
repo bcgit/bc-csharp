@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerEnumerated GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (DerEnumerated)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (DerEnumerated)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static DerEnumerated GetOptional(Asn1Encodable element)

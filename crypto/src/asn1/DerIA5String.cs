@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerIA5String GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (DerIA5String)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (DerIA5String)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static DerIA5String GetOptional(Asn1Encodable element)

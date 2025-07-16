@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1
 
         public static Asn1GeneralizedTime GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (Asn1GeneralizedTime)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (Asn1GeneralizedTime)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static Asn1GeneralizedTime GetOptional(Asn1Encodable element)

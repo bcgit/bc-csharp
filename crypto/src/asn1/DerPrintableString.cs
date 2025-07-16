@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerPrintableString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (DerPrintableString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (DerPrintableString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static DerPrintableString GetOptional(Asn1Encodable element)

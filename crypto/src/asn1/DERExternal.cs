@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1
 
         public static DerExternal GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (DerExternal)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (DerExternal)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static DerExternal GetOptional(Asn1Encodable element)

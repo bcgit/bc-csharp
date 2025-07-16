@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Asn1
                     return FromContents(Asn1OctetString.GetInstance(baseObject).GetOctets());
             }
 
-            return (DerObjectIdentifier)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (DerObjectIdentifier)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static DerObjectIdentifier GetOptional(Asn1Encodable element)

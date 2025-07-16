@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public static Asn1Sequence GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (Asn1Sequence)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (Asn1Sequence)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static Asn1Sequence GetOptional(Asn1Encodable element)

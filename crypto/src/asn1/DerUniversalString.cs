@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1
          */
         public static DerUniversalString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
-            return (DerUniversalString)Meta.Instance.GetContextInstance(taggedObject, declaredExplicit);
+            return (DerUniversalString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
         }
 
         public static DerUniversalString GetOptional(Asn1Encodable element)
