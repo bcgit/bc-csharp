@@ -124,6 +124,52 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			}
 		}
 
+		private void VersionIsOptionalTest()
+		{
+			using (MemoryStream bOut = new MemoryStream())
+			{
+				using (ArmoredOutputStream aOut = new ArmoredOutputStream(bOut, addVersionHeader: false))
+				{
+					aOut.Write(sample, 0, sample.Length);
+				}
+
+				bOut.Position = 0;
+				using (var reader = new StreamReader(bOut))
+				{
+					string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+						FailIf("Unexpected version armor header", line.StartsWith("Version:"));
+                    }
+                }
+			}
+
+            using (MemoryStream bOut = new MemoryStream())
+            {
+                using (ArmoredOutputStream aOut = new ArmoredOutputStream(bOut, addVersionHeader: true))
+                {
+                    aOut.Write(sample, 0, sample.Length);
+                }
+
+                bOut.Position = 0;
+                using (var reader = new StreamReader(bOut))
+                {
+					bool versionIsPresent = false;
+                    string line;
+                    while ((line = reader.ReadLine()) != null)
+                    {
+						if (line.StartsWith("Version:"))
+						{ 
+							versionIsPresent = true;
+							break;
+						}
+                    }
+
+                    IsTrue("Version armored header expected", versionIsPresent);
+                }
+            }
+        }
+
         private void repeatHeaderTest()
         {
             MemoryStream bOut = new MemoryStream();
@@ -288,6 +334,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 			blankLineTest();
             pgpUtilTest();
             repeatHeaderTest();
+			VersionIsOptionalTest();
         }
 
 		public override string Name

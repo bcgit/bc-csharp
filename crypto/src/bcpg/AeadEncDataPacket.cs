@@ -19,11 +19,13 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte m_chunkSize;
         private readonly byte[] m_iv;
 
+        public const int Version1 = 1;
+
         public AeadEncDataPacket(BcpgInputStream bcpgIn)
-            : base(bcpgIn)
+            : base(bcpgIn, PacketTag.ReservedAeadEncryptedData)
         {
             m_version = bcpgIn.RequireByte();
-            if (m_version != 1)
+            if (m_version != Version1)
                 throw new ArgumentException("wrong AEAD packet version: " + m_version);
 
             m_algorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
@@ -36,9 +38,9 @@ namespace Org.BouncyCastle.Bcpg
 
         public AeadEncDataPacket(SymmetricKeyAlgorithmTag algorithm, AeadAlgorithmTag aeadAlgorithm, int chunkSize,
             byte[] iv)
-            : base(null)
+            : base(null, PacketTag.ReservedAeadEncryptedData)
         {
-            m_version = 1;
+            m_version = Version1;
             m_algorithm = algorithm;
             m_aeadAlgorithm = aeadAlgorithm;
             m_chunkSize = (byte)chunkSize;
@@ -68,6 +70,25 @@ namespace Org.BouncyCastle.Bcpg
             default:
                 throw new ArgumentException("unknown mode: " + aeadAlgorithm);
             }
+        }
+
+        public byte[] GetAAData()
+        {
+            return CreateAAData(Version, Algorithm, AeadAlgorithm, ChunkSize);
+        }
+
+        public static byte[] CreateAAData(int version, SymmetricKeyAlgorithmTag symAlgorithm, AeadAlgorithmTag aeadAlgorithm, int chunkSize)
+        {
+            byte[] aaData = new byte[]
+            {
+                0xC0 | (byte)PacketTag.ReservedAeadEncryptedData,
+                (byte)version,
+                (byte)symAlgorithm,
+                (byte)aeadAlgorithm,
+                (byte)chunkSize
+            };
+
+            return aaData;
         }
     }
 }

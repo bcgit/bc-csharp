@@ -109,6 +109,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             try
             {
                 sig.Init(false, key);
+
+                if (Version == SignaturePacket.Version6)
+                {
+                    byte[] salt = GetSignatureSalt();
+                    sig.BlockUpdate(salt, 0, salt.Length);
+                }
             }
             catch (InvalidKeyException e)
             {
@@ -207,7 +213,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return sig.VerifySignature(GetSignature());
         }
 
-		private void UpdateWithIdData(int header, byte[] idBytes)
+        public bool Verify(byte[] additionalMetadata)
+        {
+            // Additional metadata for v5 signatures
+            byte[] trailer = sigPck.GetSignatureTrailer(additionalMetadata);
+
+            sig.BlockUpdate(trailer, 0, trailer.Length);
+
+            return sig.VerifySignature(GetSignature());
+        }
+
+        private void UpdateWithIdData(int header, byte[] idBytes)
 		{
 			this.Update(
 				(byte) header,
@@ -222,10 +238,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 		{
 			byte[] keyBytes = GetEncodedPublicKey(key);
 
-			this.Update(
-				(byte) 0x99,
-				(byte)(keyBytes.Length >> 8),
-				(byte)(keyBytes.Length));
+            this.Update(PgpPublicKey.FingerprintPreamble(Version));
+
+            switch (Version)
+            {
+                case SignaturePacket.Version4:
+                    this.Update(
+                        (byte)(keyBytes.Length >> 8),
+                        (byte)(keyBytes.Length));
+                    break;
+                case SignaturePacket.Version5:
+                case SignaturePacket.Version6:
+                    this.Update(
+                        (byte)(keyBytes.Length >> 24),
+                        (byte)(keyBytes.Length >> 16),
+                        (byte)(keyBytes.Length >> 8),
+                        (byte)(keyBytes.Length));
+                    break;
+            }
+
 			this.Update(keyBytes);
 		}
 
@@ -300,7 +331,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             PgpPublicKey pubKey)
         {
             if (SignatureType != KeyRevocation
-                && SignatureType != SubkeyRevocation)
+                && SignatureType != SubkeyRevocation
+                && SignatureType != DirectKey)
             {
                 throw new InvalidOperationException("signature is not a key signature");
             }
@@ -321,7 +353,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             get { return sigPck.KeyId; }
         }
 
-		/// <summary>The creation time of this signature.</summary>
+        public byte[] GetIssuerFingerprint()
+        {
+            return sigPck.GetIssuerFingerprint();
+        }
+
+        /// <summary>The creation time of this signature.</summary>
         public DateTime CreationTime
         {
 			get { return DateTimeUtilities.UnixMsToDateTime(sigPck.CreationTime); }
@@ -332,10 +369,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return sigPck.GetSignatureTrailer();
         }
 
-		/// <summary>
-		/// Return true if the signature has either hashed or unhashed subpackets.
-		/// </summary>
-		public bool HasSubpackets
+        public byte[] GetSignatureTrailer(byte[] additionalMetadata)
+        {
+            // Additional metadata for v5 signatures
+            return sigPck.GetSignatureTrailer(additionalMetadata);
+        }
+
+        public byte[] GetSignatureSalt()
+        {
+            return sigPck.GetSignatureSalt();
+        }
+
+        /// <summary>
+        /// Return true if the signature has either hashed or unhashed subpackets.
+        /// </summary>
+        public bool HasSubpackets
 		{
 			get
 			{
@@ -514,8 +562,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
 
             SignatureSubpacket[] unhashed = merged.ToArray();
-            return new PgpSignature(
-                new SignaturePacket(
+
+            SignaturePacket sigpkt;
+
+            if (sig1.KeyAlgorithm == PublicKeyAlgorithmTag.Ed25519 || sig1.KeyAlgorithm == PublicKeyAlgorithmTag.Ed448)
+            {
+                sigpkt = new SignaturePacket(
+                    sig1.Version,
                     sig1.SignatureType,
                     sig1.KeyId,
                     sig1.KeyAlgorithm,
@@ -523,9 +576,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     sig1.GetHashedSubPackets().ToSubpacketArray(),
                     unhashed,
                     sig1.GetDigestPrefix(),
-                    sig1.sigPck.GetSignature()
-                )
-            );
+                    sig1.GetSignatureSalt(),
+                    sig1.GetIssuerFingerprint(),
+                    sig1.sigPck.GetSignatureBytes());
+            }
+            else
+            {
+                sigpkt = new SignaturePacket(
+                    sig1.Version,
+                    sig1.SignatureType,
+                    sig1.KeyId,
+                    sig1.KeyAlgorithm,
+                    sig1.HashAlgorithm,
+                    sig1.GetHashedSubPackets().ToSubpacketArray(),
+                    unhashed,
+                    sig1.GetDigestPrefix(),
+                    sig1.GetSignatureSalt(),
+                    sig1.GetIssuerFingerprint(),
+                    sig1.sigPck.GetSignature());
+            }
+
+
+            return new PgpSignature(sigpkt);
         }
     }
 }

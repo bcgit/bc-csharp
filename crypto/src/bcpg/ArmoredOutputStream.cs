@@ -239,21 +239,42 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-        /**
-         * Start a clear text signed message.
-         * @param hashAlgorithm
-         */
+        /// <summary>
+        /// Start a clear text signed message.
+        /// </summary>
+        public void BeginClearText() 
+        {
+            DoWrite("-----BEGIN PGP SIGNED MESSAGE-----" + NewLine + NewLine);
+
+            clearText = true;
+            newLine = true;
+            lastb = 0;
+
+        }
+
+        /// <summary>
+        /// Start a clear text signed message with a "Hash" Armor Header.
+        /// This header is deprecated and SHOULD NOT be emitted unless:
+        ///    * The cleartext signed message contains a v4 signature made using a SHA2-based digest(SHA224, SHA256, SHA384, or SHA512), and
+        ///    * The cleartext signed message might be verified by a legacy OpenPGP implementation that requires this header.
+        ///    <seealso href="https://www.rfc-editor.org/rfc/rfc9580#name-hash-armor-header"/>
+        /// </summary>
+        /// <param name="hashAlgorithm"></param>
+        /// <exception cref="IOException"></exception>
         public void BeginClearText(
             HashAlgorithmTag    hashAlgorithm)
         {
-            string    hash;
+            string hash;
 
             switch (hashAlgorithm)
             {
             case HashAlgorithmTag.Sha1:
                 hash = "SHA1";
                 break;
-            case HashAlgorithmTag.Sha256:
+            case HashAlgorithmTag.Sha224:
+                hash = "SHA224";
+                break;
+             case HashAlgorithmTag.Sha256:
                 hash = "SHA256";
                 break;
             case HashAlgorithmTag.Sha384:

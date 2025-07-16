@@ -1,6 +1,6 @@
-using System.IO;
-
 using Org.BouncyCastle.Utilities;
+using System;
+using System.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -8,19 +8,74 @@ namespace Org.BouncyCastle.Bcpg
     public class SecretKeyPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
-		public const int UsageNone = 0x00;
-		public const int UsageChecksum = 0xff;
-		public const int UsageSha1 = 0xfe;
 
-		private PublicKeyPacket pubKeyPacket;
+        /// <summary>
+        /// Unprotected secret key
+        /// </summary>
+        public const int UsageNone = 0x00;
+
+        /// <summary>
+        /// Malleable CFB.
+        /// Malleable-CFB-encrypted keys are vulnerable to corruption attacks
+        /// that can cause leakage of secret data when the secret key is used.
+        /// 
+        /// <see href="https://eprint.iacr.org/2002/076">
+        /// Klíma, V.and T. Rosa,
+        /// "Attack on Private Signature Keys of the OpenPGP Format,
+        /// PGP(TM) Programs and Other Applications Compatible with OpenPGP"</see>
+        /// <see href="https://www.kopenpgp.com/">
+        /// Bruseghini, L., Paterson, K.G., and D. Huigens,
+        /// "Victory by KO: Attacking OpenPGP Using Key Overwriting"</see>
+        /// </summary>
+        public const int UsageChecksum = 0xff;
+
+
+        /// <summary>
+        /// CFB.
+        /// CFB-encrypted keys are vulnerable to corruption attacks that can
+        /// cause leakage of secret data when the secret key is use.
+        /// 
+        /// <see href = "https://eprint.iacr.org/2002/076" >
+        /// Klíma, V. and T.Rosa,
+        /// "Attack on Private Signature Keys of the OpenPGP Format,
+        /// PGP(TM) Programs and Other Applications Compatible with OpenPGP"</see>
+        /// <see href = "https://www.kopenpgp.com/" >
+        /// Bruseghini, L., Paterson, K.G., and D. Huigens,
+        /// "Victory by KO: Attacking OpenPGP Using Key Overwriting"</see>
+        /// </summary>
+        public const int UsageSha1 = 0xfe;
+
+        /// <summary>
+        /// AEAD.
+        /// This usage protects against corruption attacks.
+        /// Passphrase-protected secret key material in a v6 Secret Key or
+        /// v6 Secret Subkey packet SHOULD be protected with AEAD encryption
+        /// unless it will be transferred to an implementation that is known
+        /// to not support AEAD.
+        /// Users should migrate to AEAD with all due speed.
+        /// </summary>
+        public const int UsageAead = 0xfd;
+
+
+        private readonly PublicKeyPacket pubKeyPacket;
         private readonly byte[] secKeyData;
-		private int s2kUsage;
-		private SymmetricKeyAlgorithmTag encAlgorithm;
-        private S2k s2k;
-        private byte[] iv;
+		private readonly int s2kUsage;
+		private readonly SymmetricKeyAlgorithmTag encAlgorithm;
+        private readonly S2k s2k;
+        private readonly byte[] iv;
+        private readonly AeadAlgorithmTag aeadAlgorithm;
 
-		internal SecretKeyPacket(
-            BcpgInputStream bcpgIn)
+        private bool HasS2KSpecifier
+            => (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead);
+
+        internal SecretKeyPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, PacketTag.SecretKey)
+        {
+        }
+
+        protected SecretKeyPacket(
+            BcpgInputStream bcpgIn, PacketTag tag)
+            :base(tag)
         {
 			if (this is SecretSubkeyPacket)
 			{
@@ -31,23 +86,53 @@ namespace Org.BouncyCastle.Bcpg
 				pubKeyPacket = new PublicKeyPacket(bcpgIn);
 			}
 
-			s2kUsage = bcpgIn.RequireByte();
+            int version = pubKeyPacket.Version;
+            s2kUsage = bcpgIn.RequireByte();
 
-			if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
+            if (version == PublicKeyPacket.Version6 && s2kUsage != UsageNone)
+            {
+                // TODO: Use length to parse unknown parameters
+                int conditionalParameterLength = bcpgIn.RequireByte();
+            }
+
+            if (HasS2KSpecifier)
             {
                 encAlgorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
-                s2k = new S2k(bcpgIn);
             }
             else
             {
                 encAlgorithm = (SymmetricKeyAlgorithmTag)s2kUsage;
-			}
+            }
 
-			if (!(s2k != null && s2k.Type == S2k.GnuDummyS2K && s2k.ProtectionMode == 0x01))
+            if (s2kUsage == UsageAead)
             {
-				if (s2kUsage != 0)
-				{
-                    if (((int) encAlgorithm) < 7)
+                aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
+            }
+
+            if (HasS2KSpecifier)
+            {
+                if (version == PublicKeyPacket.Version6)
+                {
+                    // TODO: Use length to parse unknown S2Ks
+                    int s2kLen = bcpgIn.RequireByte();
+                }
+                s2k = new S2k(bcpgIn);
+            }
+            if (s2kUsage == UsageAead)
+            {
+                iv = new byte[AeadUtils.GetIVLength(aeadAlgorithm)];
+                bcpgIn.ReadFully(iv);
+            }
+
+            bool isGNUDummyNoPrivateKey = s2k != null
+                    && s2k.Type == S2k.GnuDummyS2K
+                    && s2k.ProtectionMode == S2k.GnuProtectionModeNoPrivateKey;
+
+            if (!(isGNUDummyNoPrivateKey))
+            {
+                if (s2kUsage != 0 && iv == null)
+                {
+                    if ((int)encAlgorithm < 7)
                     {
                         iv = new byte[8];
                     }
@@ -59,15 +144,28 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-			secKeyData = bcpgIn.ReadAll();
+            secKeyData = bcpgIn.ReadAll();
         }
 
-		public SecretKeyPacket(
+
+        public SecretKeyPacket(
+            PublicKeyPacket pubKeyPacket,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            S2k s2k,
+            byte[] iv,
+            byte[] secKeyData)
+            : this(pubKeyPacket, encAlgorithm, s2k, iv, secKeyData, PacketTag.SecretKey)
+        {
+        }
+
+        protected SecretKeyPacket(
             PublicKeyPacket				pubKeyPacket,
             SymmetricKeyAlgorithmTag	encAlgorithm,
             S2k							s2k,
             byte[]						iv,
-            byte[]						secKeyData)
+            byte[]						secKeyData,
+            PacketTag                   tag)
+            :base(tag)
         {
             this.pubKeyPacket = pubKeyPacket;
             this.encAlgorithm = encAlgorithm;
@@ -86,13 +184,26 @@ namespace Org.BouncyCastle.Bcpg
 			this.secKeyData = secKeyData;
         }
 
-		public SecretKeyPacket(
+        public SecretKeyPacket(
+            PublicKeyPacket pubKeyPacket,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            int s2kUsage,
+            S2k s2k,
+            byte[] iv,
+            byte[] secKeyData)
+            : this(pubKeyPacket, encAlgorithm, s2kUsage, s2k, iv, secKeyData, PacketTag.SecretKey)
+        {
+        }
+
+        protected SecretKeyPacket(
 			PublicKeyPacket				pubKeyPacket,
 			SymmetricKeyAlgorithmTag	encAlgorithm,
 			int							s2kUsage,
 			S2k							s2k,
 			byte[]						iv,
-			byte[]						secKeyData)
+			byte[]						secKeyData,
+            PacketTag                   tag)
+            :base(tag)
 		{
 			this.pubKeyPacket = pubKeyPacket;
 			this.encAlgorithm = encAlgorithm;
@@ -102,12 +213,62 @@ namespace Org.BouncyCastle.Bcpg
 			this.secKeyData = secKeyData;
 		}
 
-		public SymmetricKeyAlgorithmTag EncAlgorithm
+        public SecretKeyPacket(
+            PublicKeyPacket pubKeyPacket,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            int s2kUsage,
+            S2k s2k,
+            byte[] iv,
+            byte[] secKeyData)
+            : this(pubKeyPacket, encAlgorithm, aeadAlgorithm, s2kUsage, s2k, iv, secKeyData, PacketTag.SecretKey)
+        {
+        }
+
+        protected SecretKeyPacket(
+            PublicKeyPacket pubKeyPacket,
+            SymmetricKeyAlgorithmTag encAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm,
+            int s2kUsage,
+            S2k s2k,
+            byte[] iv,
+            byte[] secKeyData,
+            PacketTag tag)
+            :base(tag)
+        {
+            this.pubKeyPacket = pubKeyPacket;
+            this.encAlgorithm = encAlgorithm;
+            this.aeadAlgorithm = aeadAlgorithm;
+            this.s2kUsage = s2kUsage;
+            this.s2k = s2k;
+            this.iv = Arrays.Clone(iv);
+            this.secKeyData = secKeyData;
+
+            if (s2k != null && s2k.Type == S2k.Argon2 && s2kUsage != UsageAead)
+            {
+                throw new ArgumentException("Argon2 is only used with AEAD (S2K usage octet 253)");
+            }
+
+            if (pubKeyPacket.Version == PublicKeyPacket.Version6)
+            {
+                if (s2kUsage == UsageChecksum)
+                {
+                    throw new ArgumentException("Version 6 keys MUST NOT use S2K usage UsageChecksum");
+                }
+            }
+        }
+
+        public SymmetricKeyAlgorithmTag EncAlgorithm
         {
 			get { return encAlgorithm; }
         }
 
-		public int S2kUsage
+        public AeadAlgorithmTag AeadAlgorithm
+        {
+            get { return aeadAlgorithm; }
+        }
+
+        public int S2kUsage
 		{
 			get { return s2kUsage; }
 		}
@@ -132,31 +293,73 @@ namespace Org.BouncyCastle.Bcpg
             return secKeyData;
         }
 
-		public byte[] GetEncodedContents()
+        internal byte[] GetAAData()
         {
-            MemoryStream bOut = new MemoryStream();
-            using (var pOut = new BcpgOutputStream(bOut))
+            // HKDF Info used for key derivation in UsageAead
+            return new byte[]
             {
-                pOut.Write(pubKeyPacket.GetEncodedContents());
-                pOut.WriteByte((byte)s2kUsage);
+                (byte)(0xC0 | (byte)Tag),
+                (byte)pubKeyPacket.Version,
+                (byte)encAlgorithm,
+                (byte)aeadAlgorithm
+            };
+        }
 
-                if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1)
+        private byte[] EncodeConditionalParameters()
+        {
+            using (MemoryStream conditionalParameters = new MemoryStream())
+            {
+                if (HasS2KSpecifier)
                 {
-                    pOut.WriteByte((byte)encAlgorithm);
-                    pOut.WriteObject(s2k);
+                    conditionalParameters.WriteByte((byte)encAlgorithm);
+                    if (s2kUsage == UsageAead)
+                    {
+                        conditionalParameters.WriteByte((byte)aeadAlgorithm);
+                    }
+                    byte[] encodedS2K = s2k.GetEncoded();
+                    if (pubKeyPacket.Version == PublicKeyPacket.Version6)
+                    {
+                        conditionalParameters.WriteByte((byte)encodedS2K.Length);
+                    }
+                    conditionalParameters.Write(encodedS2K, 0, encodedS2K.Length);
                 }
-
                 if (iv != null)
                 {
-                    pOut.Write(iv);
+                    // since USAGE_AEAD and other types that use an IV are mutually exclusive,
+                    // we use the IV field for both v4 IVs and v6 AEAD nonces
+                    conditionalParameters.Write(iv, 0, iv.Length);
                 }
 
-                if (secKeyData != null && secKeyData.Length > 0)
-                {
-                    pOut.Write(secKeyData);
-                }
+                return conditionalParameters.ToArray();
             }
-            return bOut.ToArray();
+        }
+
+		public byte[] GetEncodedContents()
+        {
+            using (MemoryStream bOut = new MemoryStream())
+            {
+                using (var pOut = new BcpgOutputStream(bOut))
+                {
+                    pOut.Write(pubKeyPacket.GetEncodedContents());
+                    pOut.WriteByte((byte)s2kUsage);
+
+                    // conditional parameters
+                    byte[] conditionalParameters = EncodeConditionalParameters();
+                    if (pubKeyPacket.Version == PublicKeyPacket.Version6 && s2kUsage != UsageNone)
+                    {
+                        pOut.WriteByte((byte)conditionalParameters.Length);
+                    }
+                    pOut.Write(conditionalParameters);
+
+                    // encrypted secret key
+                    if (secKeyData != null && secKeyData.Length > 0)
+                    {
+                        pOut.Write(secKeyData);
+                    }
+                    pOut.Close();
+                }
+                return bOut.ToArray();
+            }
         }
 
         public override void Encode(BcpgOutputStream bcpgOut)

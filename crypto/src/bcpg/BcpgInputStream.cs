@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Bcpg
     public class BcpgInputStream
         : BaseInputStream
     {
-        private Stream m_in;
+        private readonly Stream m_in;
         private bool next = false;
         private int nextB;
 
@@ -119,9 +119,9 @@ namespace Org.BouncyCastle.Bcpg
                 throw new IOException("invalid header encountered");
 
             bool newPacket = (hdr & 0x40) != 0;
-            PacketTag tag = 0;
+            PacketTag tag = PacketTag.Reserved;
             // TODO[pgp] Is the length field supposed to support full uint range?
-            int bodyLen;
+            int bodyLen = 0;
             bool partial = false;
 
             if (newPacket)
@@ -170,56 +170,65 @@ namespace Org.BouncyCastle.Bcpg
 
             switch (tag)
             {
-            case PacketTag.Reserved:
-                return new InputStreamPacket(objStream);
-            case PacketTag.PublicKeyEncryptedSession:
-                return new PublicKeyEncSessionPacket(objStream);
-            case PacketTag.Signature:
-                return new SignaturePacket(objStream);
-            case PacketTag.SymmetricKeyEncryptedSessionKey:
-                return new SymmetricKeyEncSessionPacket(objStream);
-            case PacketTag.OnePassSignature:
-                return new OnePassSignaturePacket(objStream);
-            case PacketTag.SecretKey:
-                return new SecretKeyPacket(objStream);
-            case PacketTag.PublicKey:
-                return new PublicKeyPacket(objStream);
-            case PacketTag.SecretSubkey:
-                return new SecretSubkeyPacket(objStream);
-            case PacketTag.CompressedData:
-                return new CompressedDataPacket(objStream);
-            case PacketTag.SymmetricKeyEncrypted:
-                return new SymmetricEncDataPacket(objStream);
-            case PacketTag.Marker:
-                return new MarkerPacket(objStream);
-            case PacketTag.LiteralData:
-                return new LiteralDataPacket(objStream);
-            case PacketTag.Trust:
-                return new TrustPacket(objStream);
-            case PacketTag.UserId:
-                return new UserIdPacket(objStream);
-            case PacketTag.UserAttribute:
-                return new UserAttributePacket(objStream);
-            case PacketTag.PublicSubkey:
-                return new PublicSubkeyPacket(objStream);
-            case PacketTag.SymmetricEncryptedIntegrityProtected:
-                return new SymmetricEncIntegrityPacket(objStream);
-            case PacketTag.ModificationDetectionCode:
-                return new ModDetectionCodePacket(objStream);
-            case PacketTag.Experimental1:
-            case PacketTag.Experimental2:
-            case PacketTag.Experimental3:
-            case PacketTag.Experimental4:
-                return new ExperimentalPacket(tag, objStream);
-            default:
-                throw new IOException("unknown packet type encountered: " + tag);
+                case PacketTag.Reserved:
+                    return new InputStreamPacket(objStream, PacketTag.Reserved);
+                case PacketTag.PublicKeyEncryptedSession:
+                    return new PublicKeyEncSessionPacket(objStream);
+                case PacketTag.Signature:
+                    return new SignaturePacket(objStream);
+                case PacketTag.SymmetricKeyEncryptedSessionKey:
+                    return new SymmetricKeyEncSessionPacket(objStream);
+                case PacketTag.OnePassSignature:
+                    return new OnePassSignaturePacket(objStream);
+                case PacketTag.SecretKey:
+                    return new SecretKeyPacket(objStream);
+                case PacketTag.PublicKey:
+                    return new PublicKeyPacket(objStream);
+                case PacketTag.SecretSubkey:
+                    return new SecretSubkeyPacket(objStream);
+                case PacketTag.CompressedData:
+                    return new CompressedDataPacket(objStream);
+                case PacketTag.SymmetricKeyEncrypted:
+                    return new SymmetricEncDataPacket(objStream);
+                case PacketTag.Marker:
+                    return new MarkerPacket(objStream);
+                case PacketTag.LiteralData:
+                    return new LiteralDataPacket(objStream);
+                case PacketTag.Trust:
+                    return new TrustPacket(objStream);
+                case PacketTag.UserId:
+                    return new UserIdPacket(objStream);
+                case PacketTag.UserAttribute:
+                    return new UserAttributePacket(objStream);
+                case PacketTag.PublicSubkey:
+                    return new PublicSubkeyPacket(objStream);
+                case PacketTag.SymmetricEncryptedIntegrityProtected:
+                    return new SymmetricEncIntegrityPacket(objStream);
+                case PacketTag.ModificationDetectionCode:
+                    return new ModDetectionCodePacket(objStream);
+                case PacketTag.ReservedAeadEncryptedData:
+                    return new AeadEncDataPacket(objStream);
+                case PacketTag.Padding:
+                    return new PaddingPacket(objStream);
+                case PacketTag.Experimental1:
+                case PacketTag.Experimental2:
+                case PacketTag.Experimental3:
+                case PacketTag.Experimental4:
+                    return new ExperimentalPacket(tag, objStream);
+                default:
+                    throw new IOException("unknown packet type encountered: " + tag);
             }
         }
 
         public PacketTag SkipMarkerPackets()
         {
+            return SkipMarkerAndPaddingPackets();
+        }
+
+        public PacketTag SkipMarkerAndPaddingPackets()
+        {
             PacketTag tag;
-            while ((tag = NextPacketTag()) == PacketTag.Marker)
+            while ((tag = NextPacketTag()) == PacketTag.Marker || tag == PacketTag.Padding)
             {
                 ReadPacket();
             }
@@ -243,7 +252,7 @@ namespace Org.BouncyCastle.Bcpg
 		private class PartialInputStream
             : BaseInputStream
         {
-            private BcpgInputStream m_in;
+            private readonly BcpgInputStream m_in;
             private bool partial;
             private int dataLength;
 

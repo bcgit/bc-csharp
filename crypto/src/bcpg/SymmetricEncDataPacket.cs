@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Bcpg
     {
         public SymmetricEncDataPacket(
             BcpgInputStream bcpgIn)
-            : base(bcpgIn)
+            : base(bcpgIn, PacketTag.SymmetricKeyEncrypted)
         {
         }
     }
