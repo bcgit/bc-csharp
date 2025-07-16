@@ -1,7 +1,9 @@
 using System;
+using System.IO;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -9,26 +11,22 @@ namespace Org.BouncyCastle.Bcpg
     public sealed class MPInteger
         : BcpgObject
     {
-        private readonly BigInteger m_val;
+        private readonly BigInteger m_value;
 
         public MPInteger(BcpgInputStream bcpgIn)
         {
             if (bcpgIn == null)
                 throw new ArgumentNullException(nameof(bcpgIn));
 
-            int lengthInBits = StreamUtilities.RequireUInt16BE(bcpgIn);
-            int lengthInBytes = (lengthInBits + 7) / 8;
+            /*
+             * TODO RFC 9580 3.2. When parsing an MPI in a version 6 Key, Signature, or Public Key Encrypted
+             * Session Key (PKESK) packet, the implementation MUST check that the encoded length matches the
+             * length starting from the most significant non-zero bit; if it doesn't match, reject the packet as
+             * malformed.
+             */
+            bool validateLength = false;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> bytes = lengthInBytes <= 512
-                ? stackalloc byte[lengthInBytes]
-                : new byte[lengthInBytes];
-#else
-            byte[] bytes = new byte[lengthInBytes];
-#endif
-
-            bcpgIn.ReadFully(bytes);
-            m_val = new BigInteger(1, bytes);
+            m_value = ReadMpi(bcpgIn, validateLength);
         }
 
         public MPInteger(BigInteger val)
@@ -38,17 +36,17 @@ namespace Org.BouncyCastle.Bcpg
             if (val.SignValue < 0)
                 throw new ArgumentException("Values must be positive", nameof(val));
 
-            m_val = val;
+            m_value = val;
         }
 
-        public BigInteger Value => m_val;
+        public BigInteger Value => m_value;
 
-        public override void Encode(BcpgOutputStream bcpgOut) => Encode(bcpgOut, m_val);
+        public override void Encode(BcpgOutputStream bcpgOut) => Encode(bcpgOut, m_value);
 
         internal static void Encode(BcpgOutputStream bcpgOut, BigInteger n)
         {
             StreamUtilities.WriteUInt16BE(bcpgOut, (ushort)n.BitLength);
-            bcpgOut.Write(n.ToByteArrayUnsigned());
+            BigIntegers.WriteUnsignedByteArray(bcpgOut, n);
         }
 
         internal static BigInteger ToMpiBigInteger(ECPoint point)
@@ -58,11 +56,33 @@ namespace Org.BouncyCastle.Bcpg
             Span<byte> encoding = encodedLength <= 512
                 ? stackalloc byte[encodedLength]
                 : new byte[encodedLength];
-            point.EncodeTo(false, encoding);
+            point.EncodeTo(compressed: false, encoding);
 #else
-            byte[] encoding = point.GetEncoded(false);
+            byte[] encoding = point.GetEncoded(compressed: false);
 #endif
             return new BigInteger(1, encoding);
+        }
+
+        private static BigInteger ReadMpi(BcpgInputStream bcpgIn, bool validateLength)
+        {
+            int bitLength = StreamUtilities.RequireUInt16BE(bcpgIn);
+            int byteLength = (bitLength + 7) / 8;
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> bytes = byteLength <= 512
+                ? stackalloc byte[byteLength]
+                : new byte[byteLength];
+#else
+            byte[] bytes = new byte[byteLength];
+#endif
+
+            bcpgIn.ReadFully(bytes);
+            BigInteger n = new BigInteger(1, bytes);
+
+            if (validateLength && n.BitLength != bitLength)
+                throw new IOException("malformed MPI");
+
+            return n;
         }
     }
 }

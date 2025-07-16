@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.Raw;
@@ -329,6 +330,26 @@ namespace Org.BouncyCastle.Utilities
                 uint[] m = Nat.FromBigInteger(bits, M);
                 uint[] x = Nat.FromBigInteger(bits, X);
                 return Mod.ModOddIsCoprimeVar(m, x);
+            }
+        }
+
+        public static void WriteUnsignedByteArray(Stream outStr, BigInteger n)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            int length = n.GetLengthofByteArrayUnsigned();
+            if (length <= 512)
+            {
+                Span<byte> buffer = stackalloc byte[length];
+                n.ToByteArrayUnsigned(buffer);
+
+                outStr.Write(buffer);
+            }
+            else
+#endif
+            {
+                byte[] buffer = n.ToByteArrayUnsigned();
+
+                outStr.Write(buffer, 0, buffer.Length);
             }
         }
     }
