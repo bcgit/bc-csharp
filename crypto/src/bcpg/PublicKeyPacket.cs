@@ -88,7 +88,13 @@ namespace Org.BouncyCastle.Bcpg
                 key = new X448PublicBcpgKey(bcpgIn);
                 break;
             default:
-            throw new IOException("unknown PGP public key algorithm encountered");
+                if (version == Version5 || version == Version6)
+                {
+                    // with version 5 and 6, we can gracefully handle unknown key types, as the length is known.
+                    key = new UnknownBCPGKey((int)v6KeyLen, bcpgIn);
+                    break;
+                }
+                throw new IOException("unknown PGP public key algorithm encountered");
             }
         }
 
