@@ -11,7 +11,6 @@ using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -79,24 +78,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             SymmetricKeyAlgorithmTag symmAlg = (SymmetricKeyAlgorithmTag)sessionData[0];
             if (symmAlg == SymmetricKeyAlgorithmTag.Null)
-                return encData.GetInputStream();
+                return GetInputStream();
+
+            string cipherName = PgpUtilities.GetSymmetricCipherName(symmAlg);
 
             IBufferedCipher cipher;
-            string cipherName = PgpUtilities.GetSymmetricCipherName(symmAlg);
-            string cName = cipherName;
-
             try
             {
-                if (encData is SymmetricEncIntegrityPacket)
-                {
-                    cName += "/CFB/NoPadding";
-                }
-                else
-                {
-                    cName += "/OpenPGPCFB/NoPadding";
-                }
-
-                cipher = CipherUtilities.GetCipher(cName);
+                cipher = CreateBufferedCipher(cipherName);
             }
             catch (PgpException)
             {
@@ -109,47 +98,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             try
             {
-                KeyParameter key = ParameterUtilities.CreateKeyParameter(cipherName, sessionData, 1,
-                    sessionData.Length - 3);
+                var key = ParameterUtilities.CreateKeyParameter(cipherName, sessionData, 1, sessionData.Length - 3);
 
-                byte[] iv = new byte[cipher.GetBlockSize()];
+                cipher.Init(forEncryption: false, new ParametersWithIV(key, iv: new byte[cipher.GetBlockSize()]));
 
-                cipher.Init(false, new ParametersWithIV(key, iv));
+                var decStream = InitDecStream(new CipherStream(GetInputStream(), cipher, null));
 
-                encStream = BcpgInputStream.Wrap(new CipherStream(encData.GetInputStream(), cipher, null));
+                byte[] prefix = StreamUtilities.RequireBytes(decStream, cipher.GetBlockSize() + 2);
 
-                if (encData is SymmetricEncIntegrityPacket)
-                {
-                    truncStream = new TruncatedStream(encStream);
+                /*
+                 * The oracle attack on the "quick check" bytes is deemed a security risk for typical public key
+                 * encryption usages, therefore we do not perform the check.
+                 */
+                //QuickCheck(prefix);
 
-                    IDigest digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
-
-                    encStream = new DigestStream(truncStream, digest, null);
-                }
-
-                if (Streams.ReadFully(encStream, iv, 0, iv.Length) < iv.Length)
-                    throw new EndOfStreamException("unexpected end of stream.");
-
-                int v1 = encStream.ReadByte();
-                int v2 = encStream.ReadByte();
-
-                if (v1 < 0 || v2 < 0)
-                    throw new EndOfStreamException("unexpected end of stream.");
-
-                // Note: the oracle attack on the "quick check" bytes is deemed
-                // a security risk for typical public key encryption usages,
-                // therefore we do not perform the check.
-
-                //bool repeatCheckPassed = iv[iv.Length - 2] == (byte)v1 && iv[iv.Length - 1] == (byte)v2;
-
-                //// Note: some versions of PGP appear to produce 0 for the extra
-                //// bytes rather than repeating the two previous bytes
-                //bool zerosCheckPassed = v1 == 0 && v2 == 0;
-
-                //if (!repeatCheckPassed && !zerosCheckPassed)
-                //    throw new PgpDataValidationException("quick check failed.");
-
-                return encStream;
+                return decStream;
             }
             catch (PgpException)
             {
@@ -171,7 +134,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 try
                 {
-                    cipher.Init(false, privKey.Key);
+                    cipher.Init(forEncryption: false, privKey.Key);
                 }
                 catch (InvalidKeyException e)
                 {
@@ -268,10 +231,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             KeyParameter key = new KeyParameter(Rfc6637Utilities.CreateKey(privKey.PublicKeyPacket, secret));
 
-            IWrapper w = PgpUtilities.CreateWrapper(ecPubKey.SymmetricKeyAlgorithm);
-            w.Init(false, key);
+            IWrapper wrapper = PgpUtilities.CreateWrapper(ecPubKey.SymmetricKeyAlgorithm);
+            wrapper.Init(forWrapping: false, key);
 
-            return PgpPad.UnpadSessionData(w.Unwrap(keyEnc, 0, keyEnc.Length));
+            return PgpPad.UnpadSessionData(wrapper.Unwrap(keyEnc, 0, keyEnc.Length));
         }
 
         private static bool ConfirmCheckSum(byte[] sessionInfo)

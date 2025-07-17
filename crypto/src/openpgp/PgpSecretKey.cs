@@ -420,17 +420,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private byte[] ExtractKeyData(byte[] rawPassPhrase, bool clearPassPhrase)
         {
-            SymmetricKeyAlgorithmTag encAlgorithm = secret.EncAlgorithm;
             byte[] encData = secret.GetSecretKeyData();
 
+            SymmetricKeyAlgorithmTag encAlgorithm = secret.EncAlgorithm;
             if (encAlgorithm == SymmetricKeyAlgorithmTag.Null)
-                // TODO Check checksum here?
                 return encData;
 
             // TODO Factor this block out as 'decryptData'
             try
             {
-                KeyParameter key = PgpUtilities.DoMakeKeyFromPassPhrase(secret.EncAlgorithm, secret.S2k, rawPassPhrase,
+                KeyParameter key = PgpUtilities.DoMakeKeyFromPassPhrase(encAlgorithm, secret.S2k, rawPassPhrase,
                     clearPassPhrase);
                 byte[] iv = secret.GetIV();
                 byte[] data;
@@ -440,15 +439,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     data = RecoverKeyData(encAlgorithm, "/CFB/NoPadding", key, iv, encData, 0, encData.Length);
 
                     bool useSha1 = secret.S2kUsage == SecretKeyPacket.UsageSha1;
-                    byte[] check = Checksum(useSha1, data, (useSha1) ? data.Length - 20 : data.Length - 2);
+                    byte[] check = Checksum(useSha1, data, useSha1 ? data.Length - 20 : data.Length - 2);
 
-                    for (int i = 0; i != check.Length; i++)
-                    {
-                        if (check[i] != data[data.Length - check.Length + i])
-                        {
-                            throw new PgpException("Checksum mismatch at " + i + " of " + check.Length);
-                        }
-                    }
+                    if (!Arrays.FixedTimeEquals(check.Length, check, 0, data, data.Length - check.Length))
+                        throw new PgpException("Checksum mismatch in checksum of " + check.Length + " bytes");
                 }
                 else // version 2 or 3, RSA only.
                 {
@@ -683,11 +677,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 try
                 {
-                    IDigest dig = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
-                    dig.BlockUpdate(bytes, 0, length);
-                    return DigestUtilities.DoFinal(dig);
+                    var digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha1);
+
+                    return DigestUtilities.DoFinal(digest, bytes, 0, length);
                 }
-                //catch (NoSuchAlgorithmException e)
                 catch (Exception e)
                 {
                     throw new PgpException("Can't find SHA-1", e);
