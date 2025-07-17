@@ -23,6 +23,8 @@ namespace Org.BouncyCastle.Crypto.IO
             m_writeMac = writeMac;
         }
 
+        public Stream Stream => m_stream;
+
         public IMac ReadMac => m_readMac;
 
         public IMac WriteMac => m_writeMac;

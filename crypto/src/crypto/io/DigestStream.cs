@@ -23,6 +23,8 @@ namespace Org.BouncyCastle.Crypto.IO
             m_writeDigest = writeDigest;
         }
 
+        public Stream Stream => m_stream;
+
         public IDigest ReadDigest => m_readDigest;
 
         public IDigest WriteDigest => m_writeDigest;
