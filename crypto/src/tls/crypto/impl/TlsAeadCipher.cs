@@ -499,13 +499,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         protected virtual void Setup13Cipher(TlsAeadCipherImpl cipher, byte[] nonce, TlsSecret secret,
             int cryptoHashAlgorithm)
         {
-            byte[] key = TlsCryptoUtilities.HkdfExpandLabel(secret, cryptoHashAlgorithm, "key",
-                TlsUtilities.EmptyBytes, m_keySize).Extract();
-            byte[] iv = TlsCryptoUtilities.HkdfExpandLabel(secret, cryptoHashAlgorithm, "iv", TlsUtilities.EmptyBytes,
-                m_fixed_iv_length).Extract();
-
+            byte[] key = HkdfExpandLabel(secret, cryptoHashAlgorithm, "key", m_keySize).Extract();
             cipher.SetKey(key, 0, m_keySize);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HkdfExpandLabel(secret, cryptoHashAlgorithm, "iv", m_fixed_iv_length).ExtractTo(nonce);
+#else
+            byte[] iv = HkdfExpandLabel(secret, cryptoHashAlgorithm, "iv", m_fixed_iv_length).Extract();
             Array.Copy(iv, 0, nonce, 0, m_fixed_iv_length);
+#endif
         }
 
         private static int GetNonceMode(bool isTLSv13, int aeadType)
@@ -523,5 +525,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
         }
+
+        private static TlsSecret HkdfExpandLabel(TlsSecret secret, int cryptoHashAlgorithm, string label, int length) =>
+            TlsCryptoUtilities.HkdfExpandLabel(secret, cryptoHashAlgorithm, label, TlsUtilities.EmptyBytes, length);
     }
 }

@@ -413,8 +413,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 byte[] expectedMac = m_readMac.CalculateMac(seqNo, recordType, m_decryptConnectionID, ciphertext,
                     offset, len - macSize);
 
-                bool checkMac = TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext,
-                    offset + len - macSize);
+                bool checkMac = Arrays.FixedTimeEquals(macSize, expectedMac, 0, ciphertext, offset + len - macSize);
                 if (!checkMac)
                 {
                     /*
@@ -451,8 +450,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 byte[] expectedMac = m_readMac.CalculateMacConstantTime(seqNo, recordType, m_decryptConnectionID,
                     ciphertext, offset, innerPlaintextLength, blocks_length - macSize, m_randomData);
 
-                badMac |= !TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext,
-                    offset + innerPlaintextLength);
+                badMac |= !Arrays.FixedTimeEquals(macSize, expectedMac, 0, ciphertext, offset + innerPlaintextLength);
             }
 
             if (badMac)

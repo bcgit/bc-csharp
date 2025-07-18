@@ -48,6 +48,11 @@ namespace Org.BouncyCastle.Tls.Tests
             return supportedGroups;
         }
 
+        protected override ProtocolVersion[] GetSupportedVersions()
+        {
+            return ProtocolVersion.TLSv13.Only();
+        }
+
         public override TlsSession GetSessionToResume()
         {
             return m_session;

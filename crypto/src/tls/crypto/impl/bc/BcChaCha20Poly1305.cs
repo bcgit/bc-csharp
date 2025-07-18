@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 m_mac.BlockUpdate(expectedMac, 0, 16);
                 m_mac.DoFinal(expectedMac, 0);
 
-                bool badMac = !TlsUtilities.ConstantTimeAreEqual(16, expectedMac, 0, input, inputOffset + ciphertextLength);
+                bool badMac = !Arrays.FixedTimeEquals(16, expectedMac, 0, input, inputOffset + ciphertextLength);
                 if (badMac)
                     throw new TlsFatalAlert(AlertDescription.bad_record_mac);
 

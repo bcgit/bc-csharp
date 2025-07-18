@@ -175,8 +175,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             byte[] expectedMac = m_readMac.CalculateMac(seqNo, recordType, m_decryptConnectionID, ciphertext, offset,
                 innerPlaintextLength);
 
-            bool badMac = !TlsUtilities.ConstantTimeAreEqual(macSize, expectedMac, 0, ciphertext,
-                offset + innerPlaintextLength);
+            bool badMac = !Arrays.FixedTimeEquals(macSize, expectedMac, 0, ciphertext, offset + innerPlaintextLength);
             if (badMac)
                 throw new TlsFatalAlert(AlertDescription.bad_record_mac);
 

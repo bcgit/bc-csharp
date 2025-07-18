@@ -17,7 +17,6 @@ namespace Org.BouncyCastle.Tls.Tests
             NamedGroup.MLKEM512,
             NamedGroup.MLKEM768,
             NamedGroup.MLKEM1024,
-            NamedGroup.x25519,
         };
 
         internal MockTlsKemServer()
@@ -36,6 +35,11 @@ namespace Org.BouncyCastle.Tls.Tests
         public override int[] GetSupportedGroups()
         {
             return m_namedGroups;
+        }
+
+        protected override ProtocolVersion[] GetSupportedVersions()
+        {
+            return ProtocolVersion.TLSv13.Only();
         }
 
         public override TlsCredentials GetCredentials()

@@ -1444,15 +1444,9 @@ namespace Org.BouncyCastle.Tls
         public static string[] Clone(string[] s) =>
             null == s ? null : s.Length < 1 ? EmptyStrings : (string[])s.Clone();
 
-        public static bool ConstantTimeAreEqual(int len, byte[] a, int aOff, byte[] b, int bOff)
-        {
-            int d = 0;
-            for (int i = 0; i < len; ++i)
-            {
-                d |= a[aOff + i] ^ b[bOff + i];
-            }
-            return 0 == d;
-        }
+        [Obsolete("Use 'Arrays.FixedTimeEquals' instead")]
+        public static bool ConstantTimeAreEqual(int len, byte[] a, int aOff, byte[] b, int bOff) =>
+            Arrays.FixedTimeEquals(len, a, aOff, b, bOff);
 
         public static byte[] CopyOfRangeExact(byte[] original, int from, int to)
         {
@@ -4798,7 +4792,7 @@ namespace Org.BouncyCastle.Tls
         private static void CheckDowngradeMarker(byte[] randomBlock, byte[] downgradeMarker)
         {
             int len = downgradeMarker.Length;
-            if (ConstantTimeAreEqual(len, downgradeMarker, 0, randomBlock, randomBlock.Length - len))
+            if (Arrays.FixedTimeEquals(len, downgradeMarker, 0, randomBlock, randomBlock.Length - len))
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter);
         }
 

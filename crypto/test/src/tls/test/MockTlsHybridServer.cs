@@ -17,7 +17,6 @@ namespace Org.BouncyCastle.Tls.Tests
             NamedGroup.SecP256r1MLKEM768,
             NamedGroup.X25519MLKEM768,
             NamedGroup.SecP384r1MLKEM1024,
-            NamedGroup.x25519,
         };
 
         internal MockTlsHybridServer()
@@ -36,6 +35,11 @@ namespace Org.BouncyCastle.Tls.Tests
         public override int[] GetSupportedGroups()
         {
             return m_namedGroups;
+        }
+
+        protected override ProtocolVersion[] GetSupportedVersions()
+        {
+            return ProtocolVersion.TLSv13.Only();
         }
 
         public override TlsCredentials GetCredentials()
