@@ -223,6 +223,37 @@ namespace Org.BouncyCastle.Bcpg
                 bcpgIn.ReadFully(signatureEncoding);
                 break;
 
+            // https://datatracker.ietf.org/doc/draft-ietf-openpgp-pqc/
+            case PublicKeyAlgorithmTag.MLDsa65_Ed25519:
+                    signature = null;
+                    signatureEncoding = new byte[64+3309];
+                    bcpgIn.ReadFully(signatureEncoding);
+                    break;
+
+            case PublicKeyAlgorithmTag.MLDsa87_Ed448:
+                signature = null;
+                signatureEncoding = new byte[114+4627];
+                bcpgIn.ReadFully(signatureEncoding);
+                break;
+
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128s:
+                signature = null;
+                signatureEncoding = new byte[7856];
+                bcpgIn.ReadFully(signatureEncoding);
+                break;
+
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128f:
+                signature = null;
+                signatureEncoding = new byte[17088];
+                bcpgIn.ReadFully(signatureEncoding);
+                break;
+
+            case PublicKeyAlgorithmTag.SlhDsa_Shake256s:
+                signature = null;
+                signatureEncoding = new byte[29792];
+                bcpgIn.ReadFully(signatureEncoding);
+                break;
+
             default:
 				if (keyAlgorithm < PublicKeyAlgorithmTag.Experimental_1 || keyAlgorithm > PublicKeyAlgorithmTag.Experimental_11)
                     throw new IOException("unknown signature key algorithm: " + keyAlgorithm);

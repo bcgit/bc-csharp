@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Bcpg
         Ed448 = 28,
 
         // https://datatracker.ietf.org/doc/draft-ietf-openpgp-pqc/
-        MLDsa64_Ed25519 = 30,
+        MLDsa65_Ed25519 = 30,
         MLDsa87_Ed448 = 31,
         SlhDsa_Shake128s = 32,
         SlhDsa_Shake128f = 33,
