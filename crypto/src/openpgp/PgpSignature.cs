@@ -565,7 +565,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             SignaturePacket sigpkt;
 
-            if (sig1.KeyAlgorithm == PublicKeyAlgorithmTag.Ed25519 || sig1.KeyAlgorithm == PublicKeyAlgorithmTag.Ed448)
+            if (
+                sig1.KeyAlgorithm == PublicKeyAlgorithmTag.Ed25519
+                || sig1.KeyAlgorithm == PublicKeyAlgorithmTag.Ed448
+                || sig1.KeyAlgorithm == PublicKeyAlgorithmTag.MLDsa65_Ed25519
+                || sig1.KeyAlgorithm == PublicKeyAlgorithmTag.MLDsa87_Ed448
+                || sig1.KeyAlgorithm == PublicKeyAlgorithmTag.SlhDsa_Shake128s
+                || sig1.KeyAlgorithm == PublicKeyAlgorithmTag.SlhDsa_Shake128f
+                || sig1.KeyAlgorithm == PublicKeyAlgorithmTag.SlhDsa_Shake256s)
             {
                 sigpkt = new SignaturePacket(
                     sig1.Version,
