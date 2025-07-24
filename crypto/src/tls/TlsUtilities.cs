@@ -2288,7 +2288,7 @@ namespace Org.BouncyCastle.Tls
                     verified = verifier.VerifyRawSignature(certificateVerify, hash);
                 }
             }
-            catch (TlsFatalAlert )
+            catch (TlsFatalAlert)
             {
                 throw;
             }

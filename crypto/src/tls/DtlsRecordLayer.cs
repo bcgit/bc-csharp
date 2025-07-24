@@ -141,10 +141,9 @@ namespace Org.BouncyCastle.Tls
             SetPlaintextLimit(MAX_FRAGMENT_LENGTH);
         }
 
-        internal virtual bool IsClosed
-        {
-            get { return m_closed; }
-        }
+        internal virtual bool IsClosed => m_closed;
+
+        internal virtual bool IsFailed => m_failed;
 
         internal virtual void ResetAfterHelloVerifyRequestServer(long recordSeq)
         {
@@ -865,7 +864,7 @@ namespace Org.BouncyCastle.Tls
                     if (alertLevel == AlertLevel.fatal)
                     {
                         Failed();
-                        throw new TlsFatalAlert(alertDescription);
+                        throw new TlsFatalAlertReceived(alertDescription);
                     }
 
                     // TODO Can close_notify be a fatal alert?

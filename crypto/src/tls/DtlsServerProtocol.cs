@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -57,6 +58,12 @@ namespace Org.BouncyCastle.Tls
             try
             {
                 return ServerHandshake(state, recordLayer, request);
+            }
+            catch (TlsFatalAlertReceived)
+            {
+                Debug.Assert(recordLayer.IsFailed);
+                InvalidateSession(state);
+                throw;
             }
             catch (TlsFatalAlert fatalAlert)
             {

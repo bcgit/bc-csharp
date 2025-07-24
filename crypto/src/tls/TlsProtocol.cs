@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 #if NET9_0_OR_GREATER
 using System.Threading;
@@ -138,7 +139,7 @@ namespace Org.BouncyCastle.Tls
         private TlsStream m_tlsStream = null;
 
         private volatile bool m_closed = false;
-        private volatile bool m_failedWithError = false;
+        private volatile bool m_failed = false;
         private volatile bool m_appDataReady = false;
         private volatile bool m_appDataSplitEnabled = true;
         private volatile bool m_keyUpdateEnabled = false;
@@ -303,8 +304,8 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void HandleFailure()
         {
-            this.m_closed = true;
-            this.m_failedWithError = true;
+            m_closed = true;
+            m_failed = true;
 
             /*
              * RFC 2246 7.2.1. The session becomes unresumable if any connection is terminated
@@ -717,9 +718,9 @@ namespace Org.BouncyCastle.Tls
 
             while (m_applicationDataQueue.Available < 1)
             {
-                if (this.m_closed)
+                if (m_closed)
                 {
-                    if (this.m_failedWithError)
+                    if (m_failed)
                         throw new IOException("Cannot read application data on failed TLS connection");
 
                     return 0;
@@ -749,9 +750,9 @@ namespace Org.BouncyCastle.Tls
 
             while (m_applicationDataQueue.Available < 1)
             {
-                if (this.m_closed)
+                if (m_closed)
                 {
-                    if (this.m_failedWithError)
+                    if (m_failed)
                         throw new IOException("Cannot read application data on failed TLS connection");
 
                     return 0;
@@ -817,7 +818,7 @@ namespace Org.BouncyCastle.Tls
             }
             catch (TlsFatalAlertReceived)
             {
-                // Connection failure already handled at source
+                Debug.Assert(IsFailed);
                 throw;
             }
             catch (TlsFatalAlert e)
@@ -847,6 +848,11 @@ namespace Org.BouncyCastle.Tls
             try
             {
                 return m_recordStream.ReadFullRecord(input, inputOff, inputLen);
+            }
+            catch (TlsFatalAlertReceived)
+            {
+                Debug.Assert(IsFailed);
+                throw;
             }
             catch (TlsFatalAlert e)
             {
@@ -1774,10 +1780,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_appDataReady; }
         }
 
-        public virtual bool IsClosed
-        {
-            get { return m_closed; }
-        }
+        public virtual bool IsClosed => m_closed;
 
         public virtual bool IsConnected
         {
@@ -1791,6 +1794,8 @@ namespace Org.BouncyCastle.Tls
                 return null != context && context.IsConnected;
             }
         }
+
+        public virtual bool IsFailed => m_failed;
 
         public virtual bool IsHandshaking
         {
