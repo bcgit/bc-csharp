@@ -113,9 +113,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
             internal ServerTask(TlsServerProtocol serverProtocol, TlsServer server, bool shouldFail)
             {
-                this.m_serverProtocol = serverProtocol;
-                this.m_server = server;
-                this.m_shouldFail = shouldFail;
+                m_serverProtocol = serverProtocol;
+                m_server = server;
+                m_shouldFail = shouldFail;
             }
 
             public void Run()
@@ -129,6 +129,11 @@ namespace Org.BouncyCastle.Tls.Tests
                         {
                             Assert.Fail();
                         }
+
+                        using (var stream = m_serverProtocol.Stream)
+                        {
+                            Streams.PipeAll(stream, stream);
+                        }
                     }
                     catch (IOException)
                     {
@@ -138,7 +143,6 @@ namespace Org.BouncyCastle.Tls.Tests
                         }
                     }
 
-                    Streams.PipeAll(m_serverProtocol.Stream, m_serverProtocol.Stream);
                     m_serverProtocol.Close();
                 }
                 catch (Exception)
