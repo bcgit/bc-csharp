@@ -26,10 +26,6 @@ namespace Org.BouncyCastle.Tls
 
             TlsClientContextImpl clientContext = new TlsClientContextImpl(client.Crypto);
 
-            ClientHandshakeState state = new ClientHandshakeState();
-            state.client = client;
-            state.clientContext = clientContext;
-
             client.Init(clientContext);
             clientContext.HandshakeBeginning(client);
 
@@ -39,9 +35,14 @@ namespace Org.BouncyCastle.Tls
             DtlsRecordLayer recordLayer = new DtlsRecordLayer(clientContext, client, transport);
             client.NotifyCloseHandle(recordLayer);
 
+            ClientHandshakeState state = new ClientHandshakeState();
+            state.client = client;
+            state.clientContext = clientContext;
+            state.recordLayer = recordLayer;
+
             try
             {
-                return ClientHandshake(state, recordLayer);
+                return ClientHandshake(state);
             }
             catch (TlsFatalAlertReceived)
             {
@@ -51,17 +52,17 @@ namespace Org.BouncyCastle.Tls
             }
             catch (TlsFatalAlert fatalAlert)
             {
-                AbortClientHandshake(state, recordLayer, fatalAlert.AlertDescription);
+                AbortClientHandshake(state, fatalAlert.AlertDescription);
                 throw;
             }
             catch (IOException)
             {
-                AbortClientHandshake(state, recordLayer, AlertDescription.internal_error);
+                AbortClientHandshake(state, AlertDescription.internal_error);
                 throw;
             }
             catch (Exception e)
             {
-                AbortClientHandshake(state, recordLayer, AlertDescription.internal_error);
+                AbortClientHandshake(state, AlertDescription.internal_error);
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
             finally
@@ -70,18 +71,18 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        internal virtual void AbortClientHandshake(ClientHandshakeState state, DtlsRecordLayer recordLayer,
-            short alertDescription)
+        internal virtual void AbortClientHandshake(ClientHandshakeState state, short alertDescription)
         {
-            recordLayer.Fail(alertDescription);
+            state.recordLayer.Fail(alertDescription);
             InvalidateSession(state);
         }
 
         /// <exception cref="IOException"/>
-        internal virtual DtlsTransport ClientHandshake(ClientHandshakeState state, DtlsRecordLayer recordLayer)
+        internal virtual DtlsTransport ClientHandshake(ClientHandshakeState state)
         {
             TlsClient client = state.client;
             TlsClientContextImpl clientContext = state.clientContext;
+            DtlsRecordLayer recordLayer = state.recordLayer;
             SecurityParameters securityParameters = clientContext.SecurityParameters;
 
             DtlsReliableHandshake handshake = new DtlsReliableHandshake(clientContext, recordLayer,
@@ -1122,6 +1123,7 @@ namespace Org.BouncyCastle.Tls
         {
             internal TlsClient client = null;
             internal TlsClientContextImpl clientContext = null;
+            internal DtlsRecordLayer recordLayer = null;
             internal TlsSession tlsSession = null;
             internal SessionParameters sessionParameters = null;
             internal TlsSecret sessionMasterSecret = null;
