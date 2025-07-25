@@ -34,13 +34,6 @@ namespace Org.BouncyCastle.Tls.Tests
                 AddTestCase(testSuite, c, "FallbackGood");
             }
 
-            /*
-             * NOTE: Temporarily disabled automatic test runs because of problems getting a clean exit
-             * of the DTLS server after a fatal alert. As of writing, manual runs show the correct
-             * alerts being raised
-             */
-
-#if false
             {
                 TlsTestConfig c = CreateDtlsTestConfig(ProtocolVersion.DTLSv12);
                 c.clientFallback = true;
@@ -49,7 +42,6 @@ namespace Org.BouncyCastle.Tls.Tests
 
                 AddTestCase(testSuite, c, "FallbackBad");
             }
-#endif
 
             {
                 TlsTestConfig c = CreateDtlsTestConfig(ProtocolVersion.DTLSv12);

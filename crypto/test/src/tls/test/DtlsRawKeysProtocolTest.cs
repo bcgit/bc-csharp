@@ -158,8 +158,6 @@ namespace Org.BouncyCastle.Tls.Tests
             PumpData(client, server);
         }
 
-        // NOTE: Test disabled because of problems getting a clean exit of the DTLS server after a fatal alert.
-/*
         [Test]
         public void TestClientSendsClientCertExtensionButServerHasNoCommonTypes()
         {
@@ -191,10 +189,7 @@ namespace Org.BouncyCastle.Tls.Tests
                     "Should have caused unsupported_certificate alert");
             }
         }
-*/
 
-        // NOTE: Test disabled because of problems getting a clean exit of the DTLS server after a fatal alert.
-/*
         [Test]
         public void TestClientSendsServerCertExtensionButServerHasNoCommonTypes()
         {
@@ -227,7 +222,6 @@ namespace Org.BouncyCastle.Tls.Tests
                     "Should have caused unsupported_certificate alert");
             }
         }
-*/
 
         private Ed25519PrivateKeyParameters GenerateKeyPair() => new Ed25519PrivateKeyParameters(Random);
 

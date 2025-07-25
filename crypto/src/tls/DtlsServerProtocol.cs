@@ -108,9 +108,6 @@ namespace Org.BouncyCastle.Tls
             {
                 clientMessage = handshake.ReceiveMessage();
 
-                // NOTE: DtlsRecordLayer requires any DTLS version, we don't otherwise constrain this
-                //ProtocolVersion recordLayerVersion = recordLayer.ReadVersion;
-
                 if (clientMessage.Type == HandshakeType.client_hello)
                 {
                     ProcessClientHello(state, clientMessage.Body);
@@ -131,13 +128,6 @@ namespace Org.BouncyCastle.Tls
 
             {
                 byte[] serverHelloBody = GenerateServerHello(state);
-
-                // TODO[dtls13] Ideally, move this into GenerateServerHello once legacy_record_version clarified
-                {
-                    ProtocolVersion recordLayerVersion = serverContext.ServerVersion;
-                    recordLayer.ReadVersion = recordLayerVersion;
-                    recordLayer.SetWriteVersion(recordLayerVersion);
-                }
 
                 handshake.SendMessage(HandshakeType.server_hello, serverHelloBody);
             }
@@ -453,7 +443,6 @@ namespace Org.BouncyCastle.Tls
             TlsServerContextImpl serverContext = state.serverContext;
             SecurityParameters securityParameters = serverContext.SecurityParameters;
 
-            // TODO[dtls13] Negotiate cipher suite first?
 
             ProtocolVersion serverVersion;
 
@@ -468,7 +457,7 @@ namespace Org.BouncyCastle.Tls
                 //    ? ProtocolVersion.DTLSv12
                 //    : server_version;
 
-                //recordLayer.SetWriteVersion(legacy_record_version);
+                //state.recordLayer.SetWriteVersion(legacy_record_version);
                 securityParameters.m_negotiatedVersion = serverVersion;
             }
 
@@ -476,14 +465,16 @@ namespace Org.BouncyCastle.Tls
             //if (ProtocolVersion.DTLSv13.IsEqualOrEarlierVersionOf(serverVersion))
             //{
             //    // See RFC 8446 D.4.
-            //    recordStream.SetIgnoreChangeCipherSpec(true);
+            //    state.recordLayer.SetIgnoreChangeCipherSpec(true);
 
-            //    recordStream.SetWriteVersion(ProtocolVersion.DTLSv12);
+            //    state.recordLayer.ReadVersion = ProtocolVersion.DTLSv12;
+            //    state.recordLayer.SetWriteVersion(ProtocolVersion.DTLSv12);
 
             //    return Generate13ServerHello(clientHello, clientHelloMessage, false);
             //}
 
-            //recordStream.setWriteVersion(serverVersion);
+            state.recordLayer.ReadVersion = serverVersion;
+            state.recordLayer.SetWriteVersion(serverVersion);
 
             {
                 bool useGmtUnixTime = server.ShouldUseGmtUnixTime();
@@ -830,6 +821,8 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void ProcessClientHello(ServerHandshakeState state, ClientHello clientHello)
         {
+            state.recordLayer.SetWriteVersion(ProtocolVersion.DTLSv10);
+
             state.clientHello = clientHello;
 
             // TODO Read RFCs for guidance on the expected record layer version number
