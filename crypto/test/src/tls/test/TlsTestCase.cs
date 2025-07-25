@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 
 using NUnit.Framework;
@@ -50,6 +49,7 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsTestServerImpl serverImpl = new TlsTestServerImpl(config);
 
             ServerTask serverTask = new ServerTask(this, serverProtocol, serverImpl);
+
             Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
@@ -61,27 +61,27 @@ namespace Org.BouncyCastle.Tls.Tests
                 byte[] data = new byte[1000];
                 clientImpl.Crypto.SecureRandom.NextBytes(data);
 
-                Stream stream = clientProtocol.Stream;
-                stream.Write(data, 0, data.Length);
-
-                byte[] echo = new byte[data.Length];
-                int count = Streams.ReadFully(stream, echo, 0, echo.Length);
-
-                Assert.AreEqual(count, data.Length);
-                Assert.IsTrue(Arrays.AreEqual(data, echo));
-
-                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsKeyingMaterial1, serverImpl.m_tlsKeyingMaterial1));
-                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsKeyingMaterial2, serverImpl.m_tlsKeyingMaterial2));
-                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsServerEndPoint, serverImpl.m_tlsServerEndPoint));
-
-                if (!TlsUtilities.IsTlsV13(clientImpl.m_negotiatedVersion))
+                using (var stream = clientProtocol.Stream)
                 {
-                    Assert.NotNull(clientImpl.m_tlsUnique);
-                    Assert.NotNull(serverImpl.m_tlsUnique);
-                }
-                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsUnique, serverImpl.m_tlsUnique));
+                    stream.Write(data, 0, data.Length);
 
-                stream.Close();
+                    byte[] echo = new byte[data.Length];
+                    int count = Streams.ReadFully(stream, echo, 0, echo.Length);
+
+                    Assert.AreEqual(count, data.Length);
+                    Assert.IsTrue(Arrays.AreEqual(data, echo));
+
+                    Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsKeyingMaterial1, serverImpl.m_tlsKeyingMaterial1));
+                    Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsKeyingMaterial2, serverImpl.m_tlsKeyingMaterial2));
+                    Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsServerEndPoint, serverImpl.m_tlsServerEndPoint));
+
+                    if (!TlsUtilities.IsTlsV13(clientImpl.m_negotiatedVersion))
+                    {
+                        Assert.NotNull(clientImpl.m_tlsUnique);
+                        Assert.NotNull(serverImpl.m_tlsUnique);
+                    }
+                    Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsUnique, serverImpl.m_tlsUnique));
+                }
             }
             catch (Exception e)
             {
@@ -132,9 +132,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
             internal ServerTask(TlsTestCase outer, TlsTestServerProtocol serverProtocol, TlsServer server)
             {
-                this.m_outer = outer;
-                this.m_serverProtocol = serverProtocol;
-                this.m_server = server;
+                m_outer = outer;
+                m_serverProtocol = serverProtocol;
+                m_server = server;
             }
 
             internal void AllowExit()
@@ -151,8 +151,11 @@ namespace Org.BouncyCastle.Tls.Tests
                 try
                 {
                     m_serverProtocol.Accept(m_server);
-                    Streams.PipeAll(m_serverProtocol.Stream, m_serverProtocol.Stream);
-                    m_serverProtocol.Close();
+
+                    using (var stream = m_serverProtocol.Stream)
+                    {
+                        Streams.PipeAll(stream, stream);
+                    }
                 }
                 catch (Exception e)
                 {

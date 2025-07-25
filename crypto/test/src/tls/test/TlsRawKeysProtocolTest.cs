@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 
 using NUnit.Framework;
@@ -229,6 +228,7 @@ namespace Org.BouncyCastle.Tls.Tests
             TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
 
             ServerTask serverTask = new ServerTask(serverProtocol, server);
+
             Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
@@ -240,16 +240,16 @@ namespace Org.BouncyCastle.Tls.Tests
             byte[] data = new byte[length];
             Random.NextBytes(data);
 
-            Stream output = clientProtocol.Stream;
-            output.Write(data, 0, data.Length);
+            using (var stream = clientProtocol.Stream)
+            {
+                stream.Write(data, 0, data.Length);
 
-            byte[] echo = new byte[data.Length];
-            int count = Streams.ReadFully(clientProtocol.Stream, echo);
+                byte[] echo = new byte[data.Length];
+                int count = Streams.ReadFully(stream, echo);
 
-            Assert.AreEqual(count, data.Length);
-            Assert.IsTrue(Arrays.AreEqual(data, echo));
-
-            output.Close();
+                Assert.AreEqual(count, data.Length);
+                Assert.IsTrue(Arrays.AreEqual(data, echo));
+            }
 
             serverThread.Join();
         }
@@ -270,8 +270,11 @@ namespace Org.BouncyCastle.Tls.Tests
                 try
                 {
                     m_serverProtocol.Accept(m_server);
-                    Streams.PipeAll(m_serverProtocol.Stream, m_serverProtocol.Stream);
-                    m_serverProtocol.Close();
+
+                    using (var stream = m_serverProtocol.Stream)
+                    {
+                        Streams.PipeAll(stream, stream);
+                    }
                 }
                 catch (Exception)
                 {

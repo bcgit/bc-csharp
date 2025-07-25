@@ -29,6 +29,7 @@ namespace Org.BouncyCastle.Tls.Tests
             server.SetNamedGroups(new int[]{ NamedGroup.X25519MLKEM768 });
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, shouldFail: true);
+
             Thread serverThread = new Thread(serverTask.Run);
             try
             {
@@ -83,6 +84,7 @@ namespace Org.BouncyCastle.Tls.Tests
             server.SetNamedGroups(new int[]{ hybridGroup });
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, shouldFail: false);
+
             Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
@@ -91,16 +93,16 @@ namespace Org.BouncyCastle.Tls.Tests
             byte[] data = new byte[1000];
             client.Crypto.SecureRandom.NextBytes(data);
 
-            Stream output = clientProtocol.Stream;
-            output.Write(data, 0, data.Length);
+            using (var stream = clientProtocol.Stream)
+            {
+                stream.Write(data, 0, data.Length);
 
-            byte[] echo = new byte[data.Length];
-            int count = Streams.ReadFully(clientProtocol.Stream, echo);
+                byte[] echo = new byte[data.Length];
+                int count = Streams.ReadFully(stream, echo);
 
-            Assert.AreEqual(count, data.Length);
-            Assert.IsTrue(Arrays.AreEqual(data, echo));
-
-            output.Close();
+                Assert.AreEqual(count, data.Length);
+                Assert.IsTrue(Arrays.AreEqual(data, echo));
+            }
 
             serverThread.Join();
         }
@@ -142,8 +144,6 @@ namespace Org.BouncyCastle.Tls.Tests
                             Assert.Fail();
                         }
                     }
-
-                    m_serverProtocol.Close();
                 }
                 catch (Exception)
                 {

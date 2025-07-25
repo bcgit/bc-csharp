@@ -40,9 +40,10 @@ namespace Org.BouncyCastle.Tls.Tests
                 tlsVersion);
             TlsClientProtocol protocol = OpenTlsClientConnection(host, port, client);
 
-            Http11Get(host, port, protocol.Stream);
-
-            protocol.Close();
+            using (var s = protocol.Stream)
+            {
+                Http11Get(host, port, s);
+            }
         }
 
         private static void Http11Get(string host, int port, Stream s)

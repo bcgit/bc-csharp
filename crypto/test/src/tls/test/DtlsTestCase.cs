@@ -116,10 +116,10 @@ namespace Org.BouncyCastle.Tls.Tests
             internal ServerTask(DtlsTestCase outer, DtlsTestServerProtocol serverProtocol,
                 DatagramTransport serverTransport, TlsTestServerImpl serverImpl)
             {
-                this.m_outer = outer;
-                this.m_serverProtocol = serverProtocol;
-                this.m_serverTransport = serverTransport;
-                this.m_serverImpl = serverImpl;
+                m_outer = outer;
+                m_serverProtocol = serverProtocol;
+                m_serverTransport = serverTransport;
+                m_serverImpl = serverImpl;
             }
 
             public void Run()
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 }
                 catch (Exception e)
                 {
-                    this.m_caught = e;
+                    m_caught = e;
                     m_outer.LogException(m_caught);
                 }
             }
@@ -149,16 +149,13 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 if (!m_isShutdown)
                 {
-                    this.m_isShutdown = true;
+                    m_isShutdown = true;
                     //serverThread.Interrupt();
                     serverThread.Join();
                 }
             }
 
-            internal Exception Caught
-            {
-                get { return m_caught; }
-            }
+            internal Exception Caught => m_caught;
         }
     }
 }

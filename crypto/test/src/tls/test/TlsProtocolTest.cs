@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Threading;
 
 using NUnit.Framework;
@@ -25,6 +24,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockTlsServer server = new MockTlsServer();
 
             ServerTask serverTask = new ServerTask(serverProtocol, server);
+
             Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
@@ -33,16 +33,16 @@ namespace Org.BouncyCastle.Tls.Tests
             byte[] data = new byte[1000];
             client.Crypto.SecureRandom.NextBytes(data);
 
-            Stream output = clientProtocol.Stream;
-            output.Write(data, 0, data.Length);
+            using (var stream = clientProtocol.Stream)
+            {
+                stream.Write(data, 0, data.Length);
 
-            byte[] echo = new byte[data.Length];
-            int count = Streams.ReadFully(clientProtocol.Stream, echo);
+                byte[] echo = new byte[data.Length];
+                int count = Streams.ReadFully(stream, echo);
 
-            Assert.AreEqual(count, data.Length);
-            Assert.IsTrue(Arrays.AreEqual(data, echo));
-
-            output.Close();
+                Assert.AreEqual(count, data.Length);
+                Assert.IsTrue(Arrays.AreEqual(data, echo));
+            }
 
             serverThread.Join();
         }
@@ -54,8 +54,8 @@ namespace Org.BouncyCastle.Tls.Tests
 
             internal ServerTask(TlsServerProtocol serverProtocol, TlsServer server)
             {
-                this.m_serverProtocol = serverProtocol;
-                this.m_server = server;
+                m_serverProtocol = serverProtocol;
+                m_server = server;
             }
 
             public void Run()
@@ -63,8 +63,11 @@ namespace Org.BouncyCastle.Tls.Tests
                 try
                 {
                     m_serverProtocol.Accept(m_server);
-                    Streams.PipeAll(m_serverProtocol.Stream, m_serverProtocol.Stream);
-                    m_serverProtocol.Close();
+
+                    using (var stream = m_serverProtocol.Stream)
+                    {
+                        Streams.PipeAll(stream, stream);
+                    }
                 }
                 catch (Exception)
                 {

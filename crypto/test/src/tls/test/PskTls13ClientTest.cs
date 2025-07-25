@@ -26,9 +26,10 @@ namespace Org.BouncyCastle.Tls.Tests
             long time1 = DateTimeUtilities.CurrentUnixMs();
             Console.WriteLine("Elapsed: " + (time1 - time0) + "ms");
 
-            Http11Get(host, port, protocol.Stream);
-
-            protocol.Close();
+            using (var s = protocol.Stream)
+            {
+                Http11Get(host, port, s);
+            }
         }
 
         private static void Http11Get(string host, int port, Stream s)

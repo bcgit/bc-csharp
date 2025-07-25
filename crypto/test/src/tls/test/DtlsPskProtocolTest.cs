@@ -121,9 +121,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
             internal ServerTask(DtlsServerProtocol serverProtocol, TlsServer server, DatagramTransport serverTransport)
             {
-                this.m_serverProtocol = serverProtocol;
-                this.m_server = server;
-                this.m_serverTransport = serverTransport;
+                m_serverProtocol = serverProtocol;
+                m_server = server;
+                m_serverTransport = serverTransport;
             }
 
             public void Run()

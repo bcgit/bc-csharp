@@ -8,53 +8,43 @@ namespace Org.BouncyCastle.Tls.Tests
 {
     public class MockDatagramAssociation
     {
-        private int m_mtu;
-        private MockDatagramTransport m_client, m_server;
+        private readonly int m_mtu;
+        private readonly MockDatagramTransport m_client, m_server;
 
         public MockDatagramAssociation(int mtu)
         {
-            this.m_mtu = mtu;
+            m_mtu = mtu;
 
             var clientQueue = new List<byte[]>();
             var serverQueue = new List<byte[]>();
 
-            this.m_client = new MockDatagramTransport(this, clientQueue, serverQueue);
-            this.m_server = new MockDatagramTransport(this, serverQueue, clientQueue);
+            m_client = new MockDatagramTransport(this, clientQueue, serverQueue);
+            m_server = new MockDatagramTransport(this, serverQueue, clientQueue);
         }
 
-        public virtual DatagramTransport Client
-        {
-            get { return m_client; }
-        }
+        public virtual int Mtu => m_mtu;
 
-        public virtual DatagramTransport Server
-        {
-            get { return m_server; }
-        }
+        public virtual DatagramTransport Client => m_client;
+
+        public virtual DatagramTransport Server => m_server;
 
         private class MockDatagramTransport
             : DatagramTransport
         {
             private readonly MockDatagramAssociation m_outer;
-            private IList<byte[]> m_receiveQueue, m_sendQueue;
+            private readonly IList<byte[]> m_receiveQueue, m_sendQueue;
 
             internal MockDatagramTransport(MockDatagramAssociation outer, IList<byte[]> receiveQueue,
                 IList<byte[]> sendQueue)
             {
-                this.m_outer = outer;
-                this.m_receiveQueue = receiveQueue;
-                this.m_sendQueue = sendQueue;
+                m_outer = outer;
+                m_receiveQueue = receiveQueue;
+                m_sendQueue = sendQueue;
             }
 
-            public virtual int GetReceiveLimit()
-            {
-                return m_outer.m_mtu;
-            }
+            public virtual int GetReceiveLimit() => m_outer.Mtu;
 
-            public virtual int GetSendLimit()
-            {
-                return m_outer.m_mtu;
-            }
+            public virtual int GetSendLimit() => m_outer.Mtu;
 
             public virtual int Receive(byte[] buf, int off, int len, int waitMillis)
             {
@@ -124,7 +114,7 @@ namespace Org.BouncyCastle.Tls.Tests
 #if NET6_0_OR_GREATER
                 Send(buf.AsSpan(off, len));
 #else
-                if (len > m_outer.m_mtu)
+                if (len > m_outer.Mtu)
                 {
                     // TODO Simulate rejection?
                 }
@@ -143,7 +133,7 @@ namespace Org.BouncyCastle.Tls.Tests
 #if NET6_0_OR_GREATER
             public virtual void Send(ReadOnlySpan<byte> buffer)
             {
-                if (buffer.Length > m_outer.m_mtu)
+                if (buffer.Length > m_outer.Mtu)
                 {
                     // TODO Simulate rejection?
                 }

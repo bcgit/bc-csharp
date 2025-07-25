@@ -62,9 +62,14 @@ namespace Org.BouncyCastle.Tls.Tests
                     MockPskTlsServer server = new MockPskTlsServer();
                     TlsServerProtocol serverProtocol = new TlsServerProtocol(s.GetStream());
                     serverProtocol.Accept(server);
-                    Stream log = new TeeOutputStream(serverProtocol.Stream, stdout);
-                    Streams.PipeAll(serverProtocol.Stream, log);
-                    serverProtocol.Close();
+
+                    using (var stream = serverProtocol.Stream)
+                    {
+                        // NB: We don't dispose this directly to avoid disposing stdout
+                        Stream log = new TeeOutputStream(stream, stdout);
+
+                        Streams.PipeAll(stream, log);
+                    }
                 }
                 finally
                 {

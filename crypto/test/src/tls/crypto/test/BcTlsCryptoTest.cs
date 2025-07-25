@@ -580,40 +580,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             }
         }
 
-        private void Expect(TlsSecret secret, string expectedHex)
-        {
-            Expect(Extract(secret), Hex(expectedHex));
-        }
+        private void Expect(TlsSecret secret, string expectedHex) => Expect(Extract(secret), Hex(expectedHex));
 
-        private void Expect(byte[] actualOctets, string expectedHex)
-        {
-            Expect(actualOctets, Hex(expectedHex));
-        }
+        private void Expect(byte[] actualOctets, string expectedHex) => Expect(actualOctets, Hex(expectedHex));
 
-        private void Expect(byte[] actualOctets, byte[] expectedOctets)
-        {
+        private void Expect(byte[] actualOctets, byte[] expectedOctets) =>
             AssertArrayEquals(actualOctets, expectedOctets);
-        }
 
-        private byte[] Extract(TlsSecret secret)
-        {
-            return m_crypto.AdoptSecret(secret).Extract();
-        }
+        private byte[] Extract(TlsSecret secret) => m_crypto.AdoptSecret(secret).Extract();
 
-        private byte[] GetCurrentHash(TlsHash hash)
-        {
-            return hash.CloneHash().CalculateHash();
-        }
+        private byte[] GetCurrentHash(TlsHash hash) => hash.CloneHash().CalculateHash();
 
-        private static void AssertArrayEquals(byte[] a, byte[] b)
-        {
-            Assert.IsTrue(Arrays.AreEqual(a, b));
-        }
+        private static void AssertArrayEquals(byte[] a, byte[] b) => Assert.IsTrue(Arrays.AreEqual(a, b));
 
-        private static byte[] Hex(string s)
-        {
-            return Utilities.Encoders.Hex.Decode(s.Replace(" ", ""));
-        }
+        private static byte[] Hex(string s) => Utilities.Encoders.Hex.Decode(s.Replace(" ", ""));
 
         private byte[] ImplPrehash(int signatureScheme, byte[] message)
         {
@@ -834,22 +814,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             internal TestTlsCryptoParameters(ProtocolVersion serverVersion)
                 : base(null)
             {
-                this.m_serverVersion = serverVersion;
+                m_serverVersion = serverVersion;
             }
 
-            public override ProtocolVersion ServerVersion
-            {
-                get { return m_serverVersion; }
-            }
+            public override ProtocolVersion ServerVersion => m_serverVersion;
         }
 
         private class TestTlsDHGroupVerifier
             : DefaultTlsDHGroupVerifier
         {
-            internal IList<DHGroup> Groups
-            {
-                get { return m_groups; }
-            }
+            internal IList<DHGroup> Groups => m_groups;
         }
     }
 }
