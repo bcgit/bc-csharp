@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 
 using Org.BouncyCastle.Utilities.IO;
@@ -6,6 +7,7 @@ using Org.BouncyCastle.Utilities.IO;
 namespace Org.BouncyCastle.Bcpg
 {
     /// <remarks>Reader for PGP objects.</remarks>
+    // TODO[api] Make sealed
     public class BcpgInputStream
         : BaseInputStream
     {
@@ -162,7 +164,8 @@ namespace Org.BouncyCastle.Bcpg
             }
             else
             {
-                PartialInputStream pis = new PartialInputStream(this, partial, bodyLen);
+                Debug.Assert(!this.next);
+                PartialInputStream pis = new PartialInputStream(m_in, partial, bodyLen);
                 objStream = new BcpgInputStream(new BufferedStream(pis));
             }
 
@@ -244,13 +247,13 @@ namespace Org.BouncyCastle.Bcpg
         private class PartialInputStream
             : BaseInputStream
         {
-            private BcpgInputStream m_in;
+            private readonly Stream m_in;
             private bool m_partial;
             private uint m_dataLength;
 
-            internal PartialInputStream(BcpgInputStream bcpgIn, bool partial, uint dataLength)
+            internal PartialInputStream(Stream inStr, bool partial, uint dataLength)
             {
-                m_in = bcpgIn;
+                m_in = inStr;
                 m_partial = partial;
                 m_dataLength = dataLength;
             }
