@@ -385,7 +385,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public static SignaturePacket FromByteArray(byte[] data)
         {
-            BcpgInputStream input = BcpgInputStream.Wrap(new MemoryStream(data));
+            BcpgInputStream input = BcpgInputStream.Wrap(new MemoryStream(data, writable: false));
 
             return new SignaturePacket(input);
         }

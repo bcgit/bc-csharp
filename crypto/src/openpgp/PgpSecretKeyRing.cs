@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public PgpSecretKeyRing(
             byte[] encoding)
-            : this(new MemoryStream(encoding))
+            : this(new MemoryStream(encoding, writable: false))
         {
         }
 

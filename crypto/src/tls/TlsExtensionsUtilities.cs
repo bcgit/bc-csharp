@@ -981,7 +981,7 @@ namespace Org.BouncyCastle.Tls
             if (extensionData == null)
                 throw new ArgumentNullException(nameof(extensionData));
 
-            MemoryStream buf = new MemoryStream(extensionData);
+            MemoryStream buf = new MemoryStream(extensionData, writable: false);
 
             int length = TlsUtilities.ReadUint16(buf);
             if (length != (extensionData.Length - 2))
@@ -1015,7 +1015,7 @@ namespace Org.BouncyCastle.Tls
             if (extensionData.Length < 5)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
 
-            MemoryStream buf = new MemoryStream(extensionData);
+            MemoryStream buf = new MemoryStream(extensionData, writable: false);
 
             int length = TlsUtilities.ReadUint16(buf);
             if (length != (extensionData.Length - 2))
