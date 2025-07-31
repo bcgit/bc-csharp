@@ -32,6 +32,8 @@
                                 <a href="#mozTocId3413">Notes:</a>
                                 <ol>
                                     <li>
+                                        <a href="#mozTocId9020700">Release 2.7.0</a>
+                                    <li>
                                         <a href="#mozTocId9020602">Release 2.6.2</a>
                                     <li>
                                         <a href="#mozTocId9020601">Release 2.6.1</a>
@@ -342,6 +344,29 @@
         <br />
         <hr style="WIDTH: 100%; HEIGHT: 2px">
         <h3><a class="mozTocH3" name="mozTocId3413"></a>Notes:</h3>
+
+        <h4><a class="mozTocH4" name="mozTocId9020700"></a>Release 2.7.0, TBD</h4>
+        <h5>Defects Fixed</h5>
+        <ul>
+            <li>TLS: Server now selects a key_share group before checking for an early key_share.</li>
+            <li>TLS: Throw fatal decrypt_error for invalid TLS 1.3 PSK binder (instead of just skipping).</li>
+        </ul>
+        <h5>Additional Features and Functionality</h5>
+        <ul>
+            <li>TLS: Expand SrtpProtectionProfile constants.</li>
+            <li>TLS: Hybrid ECDHE-MLKEM key shares in TLS 1.3 per draft-ietf-tls-ecdhe-mlkem-00.</li>
+            <li>TLS: Server may send supported_groups in TLS 1.3.</li>
+            <li>TLS: Server optionally prefers its supported_groups order in TLS 1.3.</li>
+            <li>DTLS: Now throws TlsFatalAlertReceived when fatal alert received, as for TLS.</li>
+            <li>DTLS: Set server record layer version(s) earlier, allowing for earlier handshake alerts.</li>
+        </ul>
+        <h5>Additional Notes</h5>
+        <ul>
+            <li>
+                See the (cumulative) list of GitHub pull requests that we have accepted at
+                <a href="https://github.com/bcgit/bc-csharp/pulls?q=is%3Apr+is%3Aclosed">bcgit/bc-csharp</a>.
+            </li>
+        </ul>
 
         <h4><a class="mozTocH4" name="mozTocId9020602"></a>Release 2.6.2, Thursday July 31, 2025</h4>
         <h5>Defects Fixed</h5>
