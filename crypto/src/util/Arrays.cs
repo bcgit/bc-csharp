@@ -39,8 +39,8 @@ namespace Org.BouncyCastle.Utilities
 #endif
 
         public static bool AreEqual(
-            bool[]  a,
-            bool[]  b)
+            bool[] a,
+            bool[] b)
         {
             if (a == b)
                 return true;
@@ -232,8 +232,8 @@ namespace Org.BouncyCastle.Utilities
 #endif
 
         public static bool AreEqual(
-            int[]	a,
-            int[]	b)
+            int[] a,
+            int[] b)
         {
             if (a == b)
                 return true;
@@ -312,8 +312,8 @@ namespace Org.BouncyCastle.Utilities
         }
 
         private static bool HaveSameContents(
-            byte[]	a,
-            byte[]	b)
+            byte[] a,
+            byte[] b)
         {
             int i = a.Length;
             if (i != b.Length)
@@ -328,8 +328,8 @@ namespace Org.BouncyCastle.Utilities
         }
 
         private static bool HaveSameContents(
-            int[]	a,
-            int[]	b)
+            int[] a,
+            int[] b)
         {
             int i = a.Length;
             if (i != b.Length)
@@ -1065,7 +1065,7 @@ namespace Org.BouncyCastle.Utilities
         public static T[] Prepend<T>(T[] a, T b)
         {
             if (a == null)
-                return new T[1]{ b };
+                return new T[1] { b };
 
             T[] result = new T[1 + a.Length];
             result[0] = b;
@@ -1121,6 +1121,17 @@ namespace Org.BouncyCastle.Utilities
 
             Array.Reverse(array);
             return array;
+        }
+
+        public static void ReverseInPlace<T>(T[] a, int aOff, int aLen)
+        {
+            int p1 = aOff, p2 = aOff + aLen - 1;
+            while (p1 < p2)
+            {
+                T t1 = a[p1], t2 = a[p2];
+                a[p1++] = t2;
+                a[p2--] = t1;
+            }
         }
 
         public static void Clear(byte[] data)
