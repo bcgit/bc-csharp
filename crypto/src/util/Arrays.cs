@@ -1123,6 +1123,11 @@ namespace Org.BouncyCastle.Utilities
             return array;
         }
 
+        public static void ReverseInPlace<T>(T[] array, int index, int length)
+        {
+            Array.Reverse(array, index, length);
+        }
+
         public static void Clear(byte[] data)
         {
             if (null != data)
