@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
     public interface IGcmExponentiator
 	{
 		void Init(byte[] x);
-		void ExponentiateX(long pow, byte[] output);
-	}
+        void ExponentiateX(long pow, byte[] output);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        void ExponentiateX(long pow, Span<byte> output);
+#endif
+    }
 }

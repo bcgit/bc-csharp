@@ -18,17 +18,16 @@ namespace Org.BouncyCastle.Crypto.Engines
     {
         public static bool IsSupported => Org.BouncyCastle.Runtime.Intrinsics.X86.Aes.IsEnabled;
 
-        private static Vector128<byte>[] CreateRoundKeys(ReadOnlySpan<byte> key, bool forEncryption)
+        private static void CreateRoundKeys(ReadOnlySpan<byte> key, bool forEncryption, Span<Vector128<byte>> K, out int length)
         {
-            Vector128<byte>[] K;
-
             switch (key.Length)
             {
             case 16:
             {
                 ReadOnlySpan<byte> rcon = stackalloc byte[]{ 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36 };
 
-                K = new Vector128<byte>[11];
+                length = 11;
+                K = K[..length];
 
                 var s = Load128(key[..16]);
                 K[0] = s;
@@ -47,7 +46,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             case 24:
             {
-                K = new Vector128<byte>[13];
+                length = 13;
+                K = K[..length];
 
                 var s1 = Load128(key[..16]);
                 var s2 = Load64(key[16..24]).ToVector128();
@@ -93,7 +93,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             case 32:
             {
-                K = new Vector128<byte>[15];
+                length = 15;
+                K = K[..length];
 
                 var s1 = Load128(key[..16]);
                 var s2 = Load128(key[16..32]);
@@ -134,15 +135,19 @@ namespace Org.BouncyCastle.Crypto.Engines
                     K[i] = Aes.InverseMixColumns(K[i]);
                 }
 
-                Array.Reverse(K);
+                K.Reverse();
             }
-
-            return K;
         }
 
         private enum Mode { DEC_128, DEC_192, DEC_256, ENC_128, ENC_192, ENC_256, UNINITIALIZED };
 
-        private Vector128<byte>[] m_roundKeys = null;
+        struct Keys
+        {
+            public Vector128<byte> k0, k1, k2, k3, k4, k5, k6, k7, k8, k9, k10, k11, k12, k13, k14;
+        }
+        private Keys keys;
+        private int keysLength = 15;
+        private Span<Vector128<byte>> m_roundKeys => MemoryMarshal.Cast<Keys, Vector128<byte>>(MemoryMarshal.CreateSpan(ref keys, 1))[..keysLength];
         private Mode m_mode = Mode.UNINITIALIZED;
 
         public AesEngine_X86()
@@ -163,7 +168,9 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException("invalid type: " + Platform.GetTypeName(parameters), nameof(parameters));
             }
 
-            m_roundKeys = CreateRoundKeys(keyParameter.Key, forEncryption);
+            keysLength = 15;
+            m_roundKeys.Fill(default);
+            CreateRoundKeys(keyParameter.Key, forEncryption, m_roundKeys, out keysLength);
 
             if (m_roundKeys.Length == 11)
             {
@@ -250,7 +257,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Decrypt128(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
+        private static void Decrypt128(ReadOnlySpan<Vector128<byte>> roundKeys, ref Vector128<byte> state)
         {
             var bounds = roundKeys[10];
             var value = Sse2.Xor(state, roundKeys[0]);
@@ -267,7 +274,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Decrypt192(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
+        private static void Decrypt192(ReadOnlySpan<Vector128<byte>> roundKeys, ref Vector128<byte> state)
         {
             var bounds = roundKeys[12];
             var value = Sse2.Xor(state, roundKeys[0]);
@@ -286,7 +293,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Decrypt256(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
+        private static void Decrypt256(ReadOnlySpan<Vector128<byte>> roundKeys, ref Vector128<byte> state)
         {
             var bounds = roundKeys[14];
             var value = Sse2.Xor(state, roundKeys[0]);
@@ -307,7 +314,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void DecryptFour128(Vector128<byte>[] rk,
+        private static void DecryptFour128(ReadOnlySpan<Vector128<byte>> rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
             var bounds = rk[10];
@@ -369,7 +376,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void DecryptFour192(Vector128<byte>[] rk,
+        private static void DecryptFour192(ReadOnlySpan<Vector128<byte>> rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
             var bounds = rk[12];
@@ -441,7 +448,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void DecryptFour256(Vector128<byte>[] rk,
+        private static void DecryptFour256(ReadOnlySpan<Vector128<byte>> rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
             var bounds = rk[14];
@@ -523,7 +530,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Encrypt128(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
+        private static void Encrypt128(ReadOnlySpan<Vector128<byte>> roundKeys, ref Vector128<byte> state)
         {
             var bounds = roundKeys[10];
             var value = Sse2.Xor(state, roundKeys[0]);
@@ -540,7 +547,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Encrypt192(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
+        private static void Encrypt192(ReadOnlySpan<Vector128<byte>> roundKeys, ref Vector128<byte> state)
         {
             var bounds = roundKeys[12];
             var value = Sse2.Xor(state, roundKeys[0]);
@@ -559,7 +566,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Encrypt256(Vector128<byte>[] roundKeys, ref Vector128<byte> state)
+        private static void Encrypt256(ReadOnlySpan<Vector128<byte>> roundKeys, ref Vector128<byte> state)
         {
             var bounds = roundKeys[14];
             var value = Sse2.Xor(state, roundKeys[0]);
@@ -580,7 +587,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void EncryptFour128(Vector128<byte>[] rk,
+        private static void EncryptFour128(ReadOnlySpan<Vector128<byte>> rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
             var bounds = rk[10];
@@ -642,7 +649,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void EncryptFour192(Vector128<byte>[] rk,
+        private static void EncryptFour192(ReadOnlySpan<Vector128<byte>> rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
             var bounds = rk[12];
@@ -714,7 +721,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void EncryptFour256(Vector128<byte>[] rk,
+        private static void EncryptFour256(ReadOnlySpan<Vector128<byte>> rk,
             ref Vector128<byte> s1, ref Vector128<byte> s2, ref Vector128<byte> s3, ref Vector128<byte> s4)
         {
             var bounds = rk[14];

@@ -292,7 +292,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
-            int headerAllocation, ReadOnlySpan<byte> plaintext)
+            int headerAllocation, ReadOnlySpan<byte> plaintext,
+            System.Buffers.ArrayPool<byte> pool = null)
         {
             int blockSize = m_encryptCipher.GetBlockSize();
             int macSize = m_writeMac.Size;
@@ -321,57 +322,65 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 totalSize += blockSize;
             }
 
-            byte[] outBuf = new byte[headerAllocation + totalSize];
+            int bufferSize = headerAllocation + totalSize;
             int outOff = headerAllocation;
+            short recordType;
+            byte[] outBuf = pool?.Rent(bufferSize) ?? new byte[bufferSize];
+            try {
+                if (m_useExplicitIV)
+                {
+                    // Technically the explicit IV will be the encryption of this nonce
+                    byte[] explicitIV = m_cryptoParams.NonceGenerator.GenerateNonce(blockSize);
+                    Array.Copy(explicitIV, 0, outBuf, outOff, blockSize);
+                    outOff += blockSize;
+                }
 
-            if (m_useExplicitIV)
+                int innerPlaintextOffset = outOff;
+
+                plaintext.CopyTo(outBuf.AsSpan(outOff));
+                outOff += plaintext.Length;
+
+                recordType = contentType;
+                if (m_encryptUseInnerPlaintext)
+                {
+                    outBuf[outOff++] = (byte)contentType;
+                    recordType = ContentType.tls12_cid;
+                }
+
+                if (!m_encryptThenMac)
+                {
+                    byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID,
+                        outBuf.AsSpan(innerPlaintextOffset, innerPlaintextLength));
+                    mac.CopyTo(outBuf.AsSpan(outOff));
+                    outOff += mac.Length;
+                }
+
+                byte padByte = (byte)(padding_length - 1);
+                for (int i = 0; i < padding_length; ++i)
+                {
+                    outBuf[outOff++] = padByte;
+                }
+
+                m_encryptCipher.DoFinal(outBuf, headerAllocation, outOff - headerAllocation, outBuf, headerAllocation);
+
+                if (m_encryptThenMac)
+                {
+                    byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID,
+                        outBuf.AsSpan(headerAllocation, outOff - headerAllocation));
+                    Array.Copy(mac, 0, outBuf, outOff, mac.Length);
+                    outOff += mac.Length;
+                }
+
+                if (outOff != bufferSize)
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+            catch
             {
-                // Technically the explicit IV will be the encryption of this nonce
-                byte[] explicitIV = m_cryptoParams.NonceGenerator.GenerateNonce(blockSize);
-                Array.Copy(explicitIV, 0, outBuf, outOff, blockSize);
-                outOff += blockSize;
+                pool?.Return(outBuf);
+                throw;
             }
 
-            int innerPlaintextOffset = outOff;
-
-            plaintext.CopyTo(outBuf.AsSpan(outOff));
-            outOff += plaintext.Length;
-
-            short recordType = contentType;
-            if (m_encryptUseInnerPlaintext)
-            {
-                outBuf[outOff++] = (byte)contentType;
-                recordType = ContentType.tls12_cid;
-            }
-
-            if (!m_encryptThenMac)
-            {
-                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID,
-                    outBuf.AsSpan(innerPlaintextOffset, innerPlaintextLength));
-                mac.CopyTo(outBuf.AsSpan(outOff));
-                outOff += mac.Length;
-            }
-
-            byte padByte = (byte)(padding_length - 1);
-            for (int i = 0; i < padding_length; ++i)
-            {
-                outBuf[outOff++] = padByte;
-            }
-
-            m_encryptCipher.DoFinal(outBuf, headerAllocation, outOff - headerAllocation, outBuf, headerAllocation);
-
-            if (m_encryptThenMac)
-            {
-                byte[] mac = m_writeMac.CalculateMac(seqNo, recordType, m_encryptConnectionID,
-                    outBuf.AsSpan(headerAllocation, outOff - headerAllocation));
-                Array.Copy(mac, 0, outBuf, outOff, mac.Length);
-                outOff += mac.Length;
-            }
-
-            if (outOff != outBuf.Length)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-
-            return new TlsEncodeResult(outBuf, 0, outBuf.Length, recordType);
+            return new TlsEncodeResult(outBuf, 0, bufferSize, recordType, pool);
         }
 #endif
 

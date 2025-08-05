@@ -1,4 +1,7 @@
 ﻿using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
@@ -394,59 +397,70 @@ namespace Org.BouncyCastle.Tls
             Timeout timeout = Timeout.ForWaitMillis(waitMillis, currentTimeMillis);
             byte[] record = null;
 
-            while (waitMillis >= 0)
+            try
             {
-                if (null != m_retransmitTimeout && m_retransmitTimeout.RemainingMillis(currentTimeMillis) < 1)
+                while (waitMillis >= 0)
                 {
-                    m_retransmit = null;
-                    m_retransmitEpoch = null;
-                    m_retransmitTimeout = null;
+                    if (null != m_retransmitTimeout && m_retransmitTimeout.RemainingMillis(currentTimeMillis) < 1)
+                    {
+                        m_retransmit = null;
+                        m_retransmitEpoch = null;
+                        m_retransmitTimeout = null;
+                    }
+
+                    if (Timeout.HasExpired(m_heartbeatTimeout, currentTimeMillis))
+                    {
+                        if (null != m_heartbeatInFlight)
+                            throw new TlsTimeoutException("Heartbeat timed out");
+
+                        this.m_heartbeatInFlight = HeartbeatMessage.Create(m_context,
+                            HeartbeatMessageType.heartbeat_request, m_heartbeat.GeneratePayload());
+                        this.m_heartbeatTimeout = new Timeout(m_heartbeat.TimeoutMillis, currentTimeMillis);
+
+                        this.m_heartbeatResendMillis = TlsUtilities.GetHandshakeResendTimeMillis(m_peer);
+                        this.m_heartbeatResendTimeout = new Timeout(m_heartbeatResendMillis, currentTimeMillis);
+
+                        SendHeartbeatMessage(m_heartbeatInFlight);
+                    }
+                    else if (Timeout.HasExpired(m_heartbeatResendTimeout, currentTimeMillis))
+                    {
+                        this.m_heartbeatResendMillis = DtlsReliableHandshake.BackOff(m_heartbeatResendMillis);
+                        this.m_heartbeatResendTimeout = new Timeout(m_heartbeatResendMillis, currentTimeMillis);
+
+                        SendHeartbeatMessage(m_heartbeatInFlight);
+                    }
+
+                    waitMillis = Timeout.ConstrainWaitMillis(waitMillis, m_heartbeatTimeout, currentTimeMillis);
+                    waitMillis = Timeout.ConstrainWaitMillis(waitMillis, m_heartbeatResendTimeout, currentTimeMillis);
+
+                    // NOTE: Guard against bad logic giving a negative value 
+                    if (waitMillis < 0)
+                    {
+                        waitMillis = 1;
+                    }
+
+                    int receiveLimit = m_transport.GetReceiveLimit();
+                    if (null == record || record.Length < receiveLimit)
+                    {
+                        // record = new byte[receiveLimit];
+                        if (record is not null)
+                            ArrayPool<byte>.Shared.Return(record);
+                        record = ArrayPool<byte>.Shared.Rent(receiveLimit);
+                    }
+
+                    int received = ReceiveRecord(record, 0, receiveLimit, waitMillis);
+                    int processed = ProcessRecord(received, record, buffer, recordCallback);
+                    if (processed >= 0)
+                        return processed;
+
+                    currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
+                    waitMillis = Timeout.GetWaitMillis(timeout, currentTimeMillis);
                 }
-
-                if (Timeout.HasExpired(m_heartbeatTimeout, currentTimeMillis))
-                {
-                    if (null != m_heartbeatInFlight)
-                        throw new TlsTimeoutException("Heartbeat timed out");
-
-                    this.m_heartbeatInFlight = HeartbeatMessage.Create(m_context,
-                        HeartbeatMessageType.heartbeat_request, m_heartbeat.GeneratePayload());
-                    this.m_heartbeatTimeout = new Timeout(m_heartbeat.TimeoutMillis, currentTimeMillis);
-
-                    this.m_heartbeatResendMillis = TlsUtilities.GetHandshakeResendTimeMillis(m_peer);
-                    this.m_heartbeatResendTimeout = new Timeout(m_heartbeatResendMillis, currentTimeMillis);
-
-                    SendHeartbeatMessage(m_heartbeatInFlight);
-                }
-                else if (Timeout.HasExpired(m_heartbeatResendTimeout, currentTimeMillis))
-                {
-                    this.m_heartbeatResendMillis = DtlsReliableHandshake.BackOff(m_heartbeatResendMillis);
-                    this.m_heartbeatResendTimeout = new Timeout(m_heartbeatResendMillis, currentTimeMillis);
-
-                    SendHeartbeatMessage(m_heartbeatInFlight);
-                }
-
-                waitMillis = Timeout.ConstrainWaitMillis(waitMillis, m_heartbeatTimeout, currentTimeMillis);
-                waitMillis = Timeout.ConstrainWaitMillis(waitMillis, m_heartbeatResendTimeout, currentTimeMillis);
-
-                // NOTE: Guard against bad logic giving a negative value 
-                if (waitMillis < 0)
-                {
-                    waitMillis = 1;
-                }
-
-                int receiveLimit = m_transport.GetReceiveLimit();
-                if (null == record || record.Length < receiveLimit)
-                {
-                    record = new byte[receiveLimit];
-                }
-
-                int received = ReceiveRecord(record, 0, receiveLimit, waitMillis);
-                int processed = ProcessRecord(received, record, buffer, recordCallback);
-                if (processed >= 0)
-                    return processed;
-
-                currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
-                waitMillis = Timeout.GetWaitMillis(timeout, currentTimeMillis);
+            }
+            finally
+            {
+                if (record is not null)
+                    ArrayPool<byte>.Shared.Return(record);
             }
 
             return -1;
@@ -1143,8 +1157,12 @@ namespace Org.BouncyCastle.Tls
                 int recordHeaderLength = m_writeEpoch.RecordHeaderLengthWrite;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                TlsEncodeResult encoded = m_writeEpoch.Cipher.EncodePlaintext(macSequenceNumber, contentType,
-                    recordVersion, recordHeaderLength, buffer);
+                using var encoded = m_writeEpoch.Cipher.EncodePlaintext(macSequenceNumber, contentType,
+                    recordVersion, recordHeaderLength, buffer
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    , ArrayPool<byte>.Shared
+#endif
+                );
 #else
                 TlsEncodeResult encoded = m_writeEpoch.Cipher.EncodePlaintext(macSequenceNumber, contentType,
                     recordVersion, recordHeaderLength, buf, off, len);

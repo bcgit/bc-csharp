@@ -256,7 +256,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
-            int headerAllocation, ReadOnlySpan<byte> plaintext)
+            int headerAllocation, ReadOnlySpan<byte> plaintext,
+            System.Buffers.ArrayPool<byte> pool = null)
         {
             byte[] nonce = new byte[m_encryptNonce.Length + m_record_iv_length];
 
@@ -286,51 +287,60 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             int encryptionLength = m_encryptCipher.GetOutputSize(innerPlaintextLength);
             int ciphertextLength = m_record_iv_length + encryptionLength;
 
-            byte[] output = new byte[headerAllocation + ciphertextLength];
+            int bufferSize = headerAllocation + ciphertextLength;
+            byte[] output = pool?.Rent(bufferSize) ?? new byte[bufferSize];
             int outputPos = headerAllocation;
-
-            if (m_record_iv_length != 0)
-            {
-                Array.Copy(nonce, nonce.Length - m_record_iv_length, output, outputPos, m_record_iv_length);
-                outputPos += m_record_iv_length;
-            }
-
-            short recordType = contentType;
-            if (m_encryptUseInnerPlaintext)
-            {
-                recordType = m_isTlsV13 ? ContentType.application_data : ContentType.tls12_cid;
-            }
-
-            byte[] additionalData = GetAdditionalData(seqNo, recordType, recordVersion, ciphertextLength,
-                innerPlaintextLength, m_encryptConnectionID);
-
+            short recordType;
             try
             {
-                plaintext.CopyTo(output.AsSpan(outputPos));
-                if (m_encryptUseInnerPlaintext)
+                if (m_record_iv_length != 0)
                 {
-                    output[outputPos + plaintext.Length] = (byte)contentType;
+                    Array.Copy(nonce, nonce.Length - m_record_iv_length, output, outputPos, m_record_iv_length);
+                    outputPos += m_record_iv_length;
                 }
 
-                outputPos += m_encryptCipher.DoFinal(additionalData, output, outputPos, innerPlaintextLength, output,
-                    outputPos);
+                recordType = contentType;
+                if (m_encryptUseInnerPlaintext)
+                {
+                    recordType = m_isTlsV13 ? ContentType.application_data : ContentType.tls12_cid;
+                }
+
+                byte[] additionalData = GetAdditionalData(seqNo, recordType, recordVersion, ciphertextLength,
+                    innerPlaintextLength, m_encryptConnectionID);
+
+                try
+                {
+                    plaintext.CopyTo(output.AsSpan(outputPos));
+                    if (m_encryptUseInnerPlaintext)
+                    {
+                        output[outputPos + plaintext.Length] = (byte)contentType;
+                    }
+
+                    outputPos += m_encryptCipher.DoFinal(additionalData, output, outputPos, innerPlaintextLength, output,
+                        outputPos);
+                }
+                catch (IOException)
+                {
+                    throw;
+                }
+                catch (Exception e)
+                {
+                    throw new TlsFatalAlert(AlertDescription.internal_error, e);
+                }
+
+                if (outputPos != bufferSize)
+                {
+                    // NOTE: The additional data mechanism for AEAD ciphers requires exact output size prediction.
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+                }
             }
-            catch (IOException)
+            catch
             {
+                pool?.Return(output);
                 throw;
             }
-            catch (Exception e)
-            {
-                throw new TlsFatalAlert(AlertDescription.internal_error, e);
-            }
 
-            if (outputPos != output.Length)
-            {
-                // NOTE: The additional data mechanism for AEAD ciphers requires exact output size prediction.
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
-
-            return new TlsEncodeResult(output, 0, output.Length, recordType);
+            return new TlsEncodeResult(output, 0, bufferSize, recordType, pool);
         }
 #endif
 
