@@ -144,7 +144,8 @@ namespace Org.BouncyCastle.Tls
 
                 handshake.Finish();
 
-                if (securityParameters.IsExtendedMasterSecret)
+                if (securityParameters.IsExtendedMasterSecret &&
+                    ProtocolVersion.DTLSv12.IsEqualOrLaterVersionOf(securityParameters.NegotiatedVersion))
                 {
                     securityParameters.m_tlsUnique = securityParameters.PeerVerifyData;
                 }
@@ -371,7 +372,10 @@ namespace Org.BouncyCastle.Tls
 
             state.tlsSession = TlsUtilities.ImportSession(securityParameters.SessionID, state.sessionParameters);
 
-            securityParameters.m_tlsUnique = securityParameters.LocalVerifyData;
+            if (ProtocolVersion.DTLSv12.IsEqualOrLaterVersionOf(securityParameters.NegotiatedVersion))
+            {
+                securityParameters.m_tlsUnique = securityParameters.LocalVerifyData;
+            }
 
             clientContext.HandshakeComplete(client, state.tlsSession);
 
