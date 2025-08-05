@@ -66,17 +66,14 @@ namespace Org.BouncyCastle.Tls
             DtlsRecordLayer.SendHelloVerifyRequestRecord(sender, recordSeq, message);
         }
 
-        /*
-         * No 'final' modifiers so that it works in earlier JDKs
-         */
-        private DtlsRecordLayer m_recordLayer;
-        private Timeout m_handshakeTimeout;
+        private readonly DtlsRecordLayer m_recordLayer;
+        private readonly Timeout m_handshakeTimeout;
 
-        private TlsHandshakeHash m_handshakeHash;
+        private readonly TlsHandshakeHash m_handshakeHash;
 
-        private IDictionary<int, DtlsReassembler> m_currentInboundFlight = new Dictionary<int, DtlsReassembler>();
-        private IDictionary<int, DtlsReassembler> m_previousInboundFlight = null;
-        private IList<Message> m_outboundFlight = new List<Message>();
+        private Dictionary<int, DtlsReassembler> m_currentInboundFlight = new Dictionary<int, DtlsReassembler>();
+        private Dictionary<int, DtlsReassembler> m_previousInboundFlight = null;
+        private List<Message> m_outboundFlight = new List<Message>();
 
         private readonly int m_initialResendMillis;
         private int m_resendMillis = -1;
@@ -87,15 +84,15 @@ namespace Org.BouncyCastle.Tls
         internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis,
             int initialResendMillis, DtlsRequest request)
         {
-            this.m_recordLayer = transport;
-            this.m_handshakeHash = new DeferredHash(context);
-            this.m_handshakeTimeout = Timeout.ForWaitMillis(timeoutMillis);
+            m_recordLayer = transport;
+            m_handshakeHash = new DeferredHash(context);
+            m_handshakeTimeout = Timeout.ForWaitMillis(timeoutMillis);
             m_initialResendMillis = initialResendMillis;
 
             if (null != request)
             {
-                this.m_resendMillis = m_initialResendMillis;
-                this.m_resendTimeout = new Timeout(m_resendMillis);
+                m_resendMillis = m_initialResendMillis;
+                m_resendTimeout = new Timeout(m_resendMillis);
 
                 long recordSeq = request.RecordSeq;
                 int messageSeq = request.MessageSeq;
@@ -109,8 +106,8 @@ namespace Org.BouncyCastle.Tls
                 m_currentInboundFlight[messageSeq] = reassembler;
 
                 // We sent HelloVerifyRequest with (message) sequence number 0
-                this.m_next_send_seq = 1;
-                this.m_next_receive_seq = messageSeq + 1;
+                m_next_send_seq = 1;
+                m_next_receive_seq = messageSeq + 1;
 
                 m_handshakeHash.Update(message, 0, message.Length);
             }
@@ -118,28 +115,22 @@ namespace Org.BouncyCastle.Tls
 
         internal void ResetAfterHelloVerifyRequestClient()
         {
-            this.m_currentInboundFlight = new Dictionary<int, DtlsReassembler>();
-            this.m_previousInboundFlight = null;
-            this.m_outboundFlight = new List<Message>();
+            m_currentInboundFlight = new Dictionary<int, DtlsReassembler>();
+            m_previousInboundFlight = null;
+            m_outboundFlight = new List<Message>();
 
-            this.m_resendMillis = -1;
-            this.m_resendTimeout = null;
+            m_resendMillis = -1;
+            m_resendTimeout = null;
 
             // We're waiting for ServerHello, always with (message) sequence number 1
-            this.m_next_receive_seq = 1;
+            m_next_receive_seq = 1;
 
             m_handshakeHash.Reset();
         }
 
-        internal TlsHandshakeHash HandshakeHash
-        {
-            get { return m_handshakeHash; }
-        }
+        internal TlsHandshakeHash HandshakeHash => m_handshakeHash;
 
-        internal void PrepareToFinish()
-        {
-            m_handshakeHash.StopTracking();
-        }
+        internal void PrepareToFinish() => m_handshakeHash.StopTracking();
 
         /// <exception cref="IOException"/>
         internal void SendMessage(short msg_type, byte[] body)
@@ -150,8 +141,8 @@ namespace Org.BouncyCastle.Tls
             {
                 CheckInboundFlight();
 
-                this.m_resendMillis = -1;
-                this.m_resendTimeout = null;
+                m_resendMillis = -1;
+                m_resendTimeout = null;
 
                 m_outboundFlight.Clear();
             }
@@ -175,23 +166,13 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         internal byte[] ReceiveMessageBody(short msg_type)
         {
-            Message message = ImplReceiveMessage();
-            if (message.Type != msg_type)
-                throw new TlsFatalAlert(AlertDescription.unexpected_message);
-
+            Message message = ImplExpectMessage(msg_type);
             UpdateHandshakeMessagesDigest(message);
             return message.Body;
         }
 
         /// <exception cref="IOException"/>
-        internal Message ReceiveMessageDelayedDigest(short msg_type)
-        {
-            Message message = ImplReceiveMessage();
-            if (message.Type != msg_type)
-                throw new TlsFatalAlert(AlertDescription.unexpected_message);
-
-            return message;
-        }
+        internal Message ReceiveMessageDelayedDigest(short msg_type) => ImplExpectMessage(msg_type);
 
         /// <exception cref="IOException"/>
         internal void UpdateHandshakeMessagesDigest(Message message)
@@ -287,6 +268,16 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        private Message ImplExpectMessage(short msg_type)
+        {
+            Message message = ImplReceiveMessage();
+            if (message.Type != msg_type)
+                throw new TlsFatalAlert(AlertDescription.unexpected_message);
+
+            return message;
+        }
+
+        /// <exception cref="IOException"/>
         private Message ImplReceiveMessage()
         {
             long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
@@ -342,7 +333,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        private void PrepareInboundFlight(IDictionary<int, DtlsReassembler> nextFlight)
+        private void PrepareInboundFlight(Dictionary<int, DtlsReassembler> nextFlight)
         {
             ResetAll(m_currentInboundFlight);
             m_previousInboundFlight = m_currentInboundFlight;
@@ -476,7 +467,7 @@ namespace Org.BouncyCastle.Tls
             fragment.SendToRecordLayer(m_recordLayer);
         }
 
-        private static bool CheckAll(IDictionary<int, DtlsReassembler> inboundFlight)
+        private static bool CheckAll(Dictionary<int, DtlsReassembler> inboundFlight)
         {
             foreach (DtlsReassembler r in inboundFlight.Values)
             {
@@ -486,7 +477,7 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
-        private static void ResetAll(IDictionary<int, DtlsReassembler> inboundFlight)
+        private static void ResetAll(Dictionary<int, DtlsReassembler> inboundFlight)
         {
             foreach (DtlsReassembler r in inboundFlight.Values)
             {
@@ -502,25 +493,16 @@ namespace Org.BouncyCastle.Tls
 
             internal Message(int message_seq, short msg_type, byte[] body)
             {
-                this.m_message_seq = message_seq;
-                this.m_msg_type = msg_type;
-                this.m_body = body;
+                m_message_seq = message_seq;
+                m_msg_type = msg_type;
+                m_body = body;
             }
 
-            public int Seq
-            {
-                get { return m_message_seq; }
-            }
+            public int Seq => m_message_seq;
 
-            public short Type
-            {
-                get { return m_msg_type; }
-            }
+            public short Type => m_msg_type;
 
-            public byte[] Body
-            {
-                get { return m_body; }
-            }
+            public byte[] Body => m_body;
         }
 
         internal class RecordLayerBuffer
@@ -548,13 +530,11 @@ namespace Org.BouncyCastle.Tls
 
             internal Retransmit(DtlsReliableHandshake outer)
             {
-                this.m_outer = outer;
+                m_outer = outer;
             }
 
-            public void ReceivedHandshakeRecord(int epoch, byte[] buf, int off, int len)
-            {
+            public void ReceivedHandshakeRecord(int epoch, byte[] buf, int off, int len) =>
                 m_outer.ProcessRecord(0, epoch, buf, off, len);
-            }
         }
     }
 }
