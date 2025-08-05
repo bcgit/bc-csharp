@@ -335,13 +335,18 @@ namespace Org.BouncyCastle.Bcpg
 
         public void WritePacket(ContainedPacket p) => p.Encode(this);
 
-        internal void WritePacket(PacketTag tag, byte[] body) => WritePacket(tag, body, useOldFormat);
-
-        internal void WritePacket(PacketTag tag, byte[] body, bool oldFormat)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void WritePacket(PacketTag tag, ReadOnlySpan<byte> body)
+#else
+        internal void WritePacket(PacketTag tag, byte[] body)
+#endif
         {
-            WriteHeader(tag, oldFormat, partial: false, body.Length);
+            WritePacketHeader(tag, (uint)body.Length);
             Write(body);
         }
+
+        internal void WritePacketHeader(PacketTag tag, uint bodyLength) =>
+            WriteHeader(tag, useOldFormat, partial: false, bodyLength);
 
         public void WriteObject(BcpgObject bcpgObject) => bcpgObject.Encode(this);
 
