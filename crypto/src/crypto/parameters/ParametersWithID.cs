@@ -1,7 +1,4 @@
 ﻿using System;
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
-#endif
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
@@ -10,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ParametersWithID Create<TState>(ICipherParameters parameters, int idLength, TState state,
-            SpanAction<byte, TState> action)
+            System.Buffers.SpanAction<byte, TState> action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
@@ -81,10 +78,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public int IDLength => m_id.Length;
 
-        public ICipherParameters Parameters => m_parameters;
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal ReadOnlySpan<byte> ID => m_id;
+        internal ReadOnlySpan<byte> InternalID => m_id;
 #endif
+
+        public ICipherParameters Parameters => m_parameters;
     }
 }

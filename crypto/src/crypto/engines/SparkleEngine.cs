@@ -188,7 +188,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 key = withIV.Parameters as KeyParameter;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                iv = withIV.IV;
+                iv = withIV.InternalIV;
 #else
                 iv = withIV.GetIV();
 #endif

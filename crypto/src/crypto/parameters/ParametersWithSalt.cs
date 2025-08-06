@@ -45,6 +45,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return (byte[])m_salt.Clone();
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> InternalSalt => m_salt;
+#endif
+
         public ICipherParameters Parameters => m_parameters;
+
+        public int SaltLength => m_salt.Length;
     }
 }

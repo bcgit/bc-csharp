@@ -99,7 +99,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 initKeyParam = (KeyParameter)ivParams.Parameters;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                initNonce = ivParams.IV;
+                initNonce = ivParams.InternalIV;
 #else
                 initNonce = ivParams.GetIV();
 #endif

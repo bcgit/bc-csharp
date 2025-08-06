@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Cms
 			DerSequence seq = new DerSequence(
 				new DerObjectIdentifier(keyEncryptionKeyOID),
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                new DerOctetString(parametersWithIV.IV)
+                new DerOctetString(parametersWithIV.InternalIV)
 #else
                 new DerOctetString(iv)
 #endif

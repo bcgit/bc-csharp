@@ -1,7 +1,4 @@
 using System;
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
-#endif
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
@@ -11,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         // TODO[api] 'parameter' -> 'parameters'
         public static ParametersWithIV Create<TState>(ICipherParameters parameter, int ivLength, TState state,
-            SpanAction<byte, TState> action)
+            System.Buffers.SpanAction<byte, TState> action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
@@ -80,12 +77,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public byte[] GetIV() => (byte[])m_iv.Clone();
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> InternalIV => m_iv;
+#endif
+
         public int IVLength => m_iv.Length;
 
         public ICipherParameters Parameters => m_parameters;
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal ReadOnlySpan<byte> IV => m_iv;
-#endif
     }
 }

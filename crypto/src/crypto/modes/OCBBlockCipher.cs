@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             else if (parameters is ParametersWithIV parametersWithIV)
             {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                N = parametersWithIV.IV;
+                N = parametersWithIV.InternalIV;
 #else
                 N = parametersWithIV.GetIV();
 #endif
