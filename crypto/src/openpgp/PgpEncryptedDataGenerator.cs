@@ -329,34 +329,51 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
         /// the historical behaviour of the library (1.7 and earlier).
         /// </remarks>
-        public void AddMethod(char[] passPhrase, HashAlgorithmTag s2kDigest)
+        public void AddMethod(char[] passPhrase, HashAlgorithmTag s2kDigest, int itCount = 0x60)
         {
+            if (itCount < 0x00 || itCount > 0xFF)
+            {
+                throw new ArgumentOutOfRangeException(nameof(itCount), "Coded S2K iteration count must be in range 0-255");
+            }
+
             var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: false);
 
-            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest);
+            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount);
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
         /// <remarks>
         /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
         /// </remarks>
-        public void AddMethodUtf8(char[] passPhrase, HashAlgorithmTag s2kDigest)
+        public void AddMethodUtf8(char[] passPhrase, HashAlgorithmTag s2kDigest, int itCount = 0x60)
         {
+            if (itCount < 0x00 || itCount > 0xFF)
+            {
+                throw new ArgumentOutOfRangeException(nameof(itCount), "Coded S2K iteration count must be in range 0-255");
+            }
+
             var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: true);
 
-            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest);
+            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount);
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
         /// <remarks>
         /// Allows the caller to handle the encoding of the passphrase to bytes.
         /// </remarks>
-        public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest) =>
-            DoAddMethod(rawPassPhrase, clearPassPhrase: false, s2kDigest);
-
-        internal void DoAddMethod(byte[] rawPassPhrase, bool clearPassPhrase, HashAlgorithmTag s2kDigest)
+        public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest, int itCount = 0x60)
         {
-            var s2k = S2k.GenerateSaltedAndIterated(rand, s2kDigest, 0x60);
+            if (itCount < 0x00 || itCount > 0xFF)
+            {
+                throw new ArgumentOutOfRangeException(nameof(itCount), "Coded S2K iteration count must be in range 0-255");
+            }
+
+            DoAddMethod(rawPassPhrase, clearPassPhrase: false, s2kDigest, itCount);
+        }
+
+        internal void DoAddMethod(byte[] rawPassPhrase, bool clearPassPhrase, HashAlgorithmTag s2kDigest, int itCount)
+        {
+            var s2k = S2k.GenerateSaltedAndIterated(rand, s2kDigest, itCount);
             var key = PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase);
             var encMethod = new PbeMethod(defAlgorithm, s2k, key);
             methods.Add(encMethod);
