@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -52,6 +54,16 @@ namespace Org.BouncyCastle.Security
 
             AlgorithmOidMap[EdECObjectIdentifiers.id_X25519] = "X25519";
             AlgorithmOidMap[EdECObjectIdentifiers.id_X448] = "X448";
+
+            AlgorithmMap.Add("GOST-3410-2001", "ECGOST3410");
+            AlgorithmOidMap.Add(CryptoProObjectIdentifiers.GostR3410x2001, "ECGOST3410");
+            AlgorithmOidMap[CryptoProObjectIdentifiers.GostR3410x2001CryptoProESDH] = "ECGOST3410";
+
+            AlgorithmOidMap[RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256] = "ECGOST3410-2012-256";
+            AlgorithmOidMap[RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256] = "ECGOST3410-2012-256";
+
+            AlgorithmOidMap[RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512] = "ECGOST3410-2012-512";
+            AlgorithmOidMap[RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512] = "ECGOST3410-2012-512";
 
 #if DEBUG
             foreach (var key in AlgorithmMap.Keys)
@@ -243,6 +255,15 @@ namespace Org.BouncyCastle.Security
             if (mechanism == "X448")
                 return new X448Agreement();
 
+            if (mechanism == "ECGOST3410")
+                return CreateECVkoAgreeement("GOST3411");
+
+            if (mechanism == "ECGOST3410-2012-256")
+                return CreateECVkoAgreeement("GOST3411-2012-256");
+
+            if (mechanism == "ECGOST3410-2012-512")
+                return CreateECVkoAgreeement("GOST3411-2012-512");
+
             return null;
         }
 
@@ -262,5 +283,8 @@ namespace Org.BouncyCastle.Security
 
         private static IDerivationFunction CreateECDHKekGenerator(string digestName) =>
             new ECDHKekGenerator(DigestUtilities.GetDigest(digestName));
+
+        private static IRawAgreement CreateECVkoAgreeement(string digestName) =>
+            new ECVkoAgreement(DigestUtilities.GetDigest(digestName));
     }
 }

@@ -1,58 +1,57 @@
 ﻿using NUnit.Framework;
-using Org.BouncyCastle.Asn1.CryptoPro;
-using Org.BouncyCastle.Asn1.X9;
+
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-    public class ECVkoTest: SimpleTest
+    public class ECVkoTest
     {
-        public override string Name
-        {
-            get { return "ECVko"; }
-        }
-
         [Test]
-        public void TestFunction()
+        public void Consistency()
         {
-            string resultText = Perform().ToString();
+            var random = new SecureRandom();
+            var domainParameters = ECNamedDomainParameters.LookupOid(
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA);
 
-            Assert.AreEqual(Name + ": Okay", resultText);
-        }
+            var kpg = new ECKeyPairGenerator();
+            kpg.Init(new ECKeyGenerationParameters(domainParameters, random));
 
-        public override void PerformTest()
-        {
             for (int i = 0; i < 10; ++i)
             {
-                DoTestAgreement();
+                var ukm = SecureRandom.GetNextBytes(random, 8);
+
+                var kpA = kpg.GenerateKeyPair();
+                var kpB = kpg.GenerateKeyPair();
+
+                byte[] secretA = ImplAgreement(ukm, kpA.Private, kpB.Public);
+                byte[] secretB = ImplAgreement(ukm, kpB.Private, kpA.Public);
+
+                Assert.True(Arrays.AreEqual(secretA, secretB));
             }
         }
 
-        private void DoTestAgreement()
+        [Test]
+        public void Rfc7836_AppendixB_7()
         {
-            // See https://datatracker.ietf.org/doc/html/rfc7836#appendix-A
-            // 7 - VKO_GOSTR3410_2012_256 with 256-bit output on the GOST
-            // R 34.10-2012 512-bit keys with id-tc26-gost-3410-12-512-paramSetA
-            // for params.
+            // See https://datatracker.ietf.org/doc/html/rfc7836#appendix-B, example 7;
+            // VKO_GOSTR3410_2012_256 with 256-bit output on the GOST R 34.10-2012 512-bit keys with
+            // id-tc26-gost-3410-12-512-paramSetA.
 
             byte[] ukm = new byte[] { 0x1d, 0x80, 0x60, 0x3c, 0x85, 0x44, 0xc7, 0x27 };
 
-            X9ECParameters parameters = ECGost3410NamedCurves.GetByName("tc26-gost-3410-12-512-paramSetA");
-            ECCurve curve = parameters.Curve;
-            ECDomainParameters spec = new ECDomainParameters(
-                parameters.Curve,
-                parameters.G,
-                parameters.N,
-                parameters.H,
-                parameters.GetSeed());
+            var domainParameters = ECNamedDomainParameters.LookupOid(
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA);
+
+            var curve = domainParameters.Curve;
 
             BigInteger dA = new BigInteger(1, Hex.Decode("c990ecd972fce84ec4db022778f50fcac726f46708384b8d458304962d7147f8c2db41cef22c90b102f2968404f9b9be6d47c79692d81826b32b8daca43cb667"), bigEndian: false);
             BigInteger xpA = new BigInteger(1, Hex.Decode("aab0eda4abff21208d18799fb9a8556654ba783070eba10cb9abb253ec56dcf5d3ccba6192e464e6e5bcb6dea137792f2431f6c897eb1b3c0cc14327b1adc0a7"), bigEndian: false);
@@ -64,51 +63,30 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             byte[] expectedResult = Hex.Decode("c9a9a77320e2cc559ed72dce6f47e2192ccea95fa648670582c054c0ef36c221");
 
-            ECPrivateKeyParameters sKeyA = new ECPrivateKeyParameters(
-                "ECGOST3410",
-                dA,
-                spec);
-            ECPublicKeyParameters pKeyA = new ECPublicKeyParameters(
-                "ECGOST3410",
-                curve.CreatePoint(
-                    xpA,
-                    ypA),
-                spec);
+            ECPrivateKeyParameters sKeyA = new ECPrivateKeyParameters("ECGOST3410", dA, domainParameters);
+            ECPublicKeyParameters pKeyA = new ECPublicKeyParameters("ECGOST3410", curve.CreatePoint(xpA, ypA),
+                domainParameters);
 
-            ECPrivateKeyParameters sKeyB = new ECPrivateKeyParameters(
-                "ECGOST3410",
-                dB,
-                spec);
-            ECPublicKeyParameters pKeyB = new ECPublicKeyParameters(
-                "ECGOST3410",
-                curve.CreatePoint(
-                    xpB,
-                    ypB),
-                spec);
+            ECPrivateKeyParameters sKeyB = new ECPrivateKeyParameters("ECGOST3410", dB, domainParameters);
+            ECPublicKeyParameters pKeyB = new ECPublicKeyParameters("ECGOST3410", curve.CreatePoint(xpB, ypB),
+                domainParameters);
 
-            IDigest digest = new Gost3411_2012_256Digest();
+            var secretA = ImplAgreement(ukm, sKeyA, pKeyB);
+            var secretB = ImplAgreement(ukm, sKeyB, pKeyA);
 
-            ECVkoAgreement agreeA = new ECVkoAgreement(digest);
-            ParametersWithUkm parametersWithVkoA = new ParametersWithUkm(sKeyA, ukm);
-            agreeA.Init(parametersWithVkoA);
-            byte[] secretA = new byte[agreeA.AgreementSize];
-            secretA = agreeA.CalculateAgreement(pKeyB);
+            Assert.True(Arrays.AreEqual(secretA, secretB), "ECVKO agreement failed");
+            Assert.True(Arrays.AreEqual(secretA, expectedResult), "ECVKO agreement unexpected result");
+        }
 
-            ECVkoAgreement agreeB = new ECVkoAgreement(digest);
-            ParametersWithUkm parametersWithVkoB = new ParametersWithUkm(sKeyB, ukm);
-            agreeB.Init(parametersWithVkoB);
-            byte[] secretB = new byte[agreeB.AgreementSize];
-            secretB = agreeB.CalculateAgreement(pKeyA);
-
-            if (!AreEqual(secretA, secretB))
-            {
-                Fail("ECVKO agreement failed");
-            }
-
-            if (!AreEqual(secretA, expectedResult))
-            {
-                Fail("ECVKO agreement unexpected result");
-            }
+        private static byte[] ImplAgreement(byte[] ukm, AsymmetricKeyParameter privateKey,
+            AsymmetricKeyParameter publicKey)
+        {
+            var digest = new Gost3411_2012_256Digest();
+            var agreement = new ECVkoAgreement(digest);
+            agreement.Init(new ParametersWithUkm(privateKey, ukm));
+            byte[] secret = new byte[agreement.AgreementSize];
+            agreement.CalculateAgreement(publicKey, secret, 0);
+            return secret;
         }
     }
 }

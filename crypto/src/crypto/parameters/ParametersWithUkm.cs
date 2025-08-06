@@ -8,8 +8,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public class ParametersWithUkm 
         : ICipherParameters
     {
-        private readonly byte[] m_ukm;
         private readonly ICipherParameters m_parameters;
+        private readonly byte[] m_ukm;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ParametersWithUkm Create<TState>(ICipherParameters parameters, int ukmLength, TState state,
@@ -72,8 +72,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public byte[] GetUkm() => (byte[])m_ukm.Clone();
 
-        public int UkmLength => m_ukm.Length;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal ReadOnlySpan<byte> InternalUkm => m_ukm;
+#endif
 
         public ICipherParameters Parameters => m_parameters;
+
+        public int UkmLength => m_ukm.Length;
     }
 }
