@@ -159,11 +159,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 				//
 				// Set the S-Box
 				//
-				byte[] sBox = param.GetSBox();
-				if (sBox.Length != Sbox_Default.Length)
+				if (param.SBoxLength != Sbox_Default.Length)
 					throw new ArgumentException("invalid S-box passed to GOST28147 init");
 
-				this.S = Arrays.Clone(sBox);
+				this.S = param.GetSBox();
 
 				//
 				// set key if there is one

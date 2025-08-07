@@ -1,5 +1,7 @@
 using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ParametersWithIV
@@ -12,8 +14,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
-            if (ivLength < 0)
-                throw new ArgumentOutOfRangeException(nameof(ivLength));
 
             ParametersWithIV result = new ParametersWithIV(parameter, ivLength);
             action(result.m_iv, state);
@@ -21,31 +21,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
-        internal static ICipherParameters ApplyOptionalIV(ICipherParameters parameters, byte[] iv) =>
-            iv == null ? parameters : new ParametersWithIV(parameters, iv);
-
         private readonly ICipherParameters m_parameters;
         private readonly byte[] m_iv;
 
         public ParametersWithIV(ICipherParameters parameters, byte[] iv)
         {
             // NOTE: 'parameters' may be null to imply key re-use
-            if (iv == null)
-                throw new ArgumentNullException(nameof(iv));
-
             m_parameters = parameters;
-            m_iv = (byte[])iv.Clone();
+            m_iv = Arrays.CopyBuffer(iv);
         }
 
         public ParametersWithIV(ICipherParameters parameters, byte[] iv, int ivOff, int ivLen)
         {
             // NOTE: 'parameters' may be null to imply key re-use
-            if (iv == null)
-                throw new ArgumentNullException(nameof(iv));
-
             m_parameters = parameters;
-            m_iv = new byte[ivLen];
-            Array.Copy(iv, ivOff, m_iv, 0, ivLen);
+            m_iv = Arrays.CopySegment(iv, ivOff, ivLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -59,23 +49,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private ParametersWithIV(ICipherParameters parameters, int ivLength)
         {
-            if (ivLength < 0)
-                throw new ArgumentOutOfRangeException(nameof(ivLength));
-
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
-            m_iv = new byte[ivLength];
+            m_iv = Arrays.CreateBuffer<byte>(ivLength);
         }
 
-        public void CopyIVTo(byte[] buf, int off, int len)
-        {
-            if (m_iv.Length != len)
-                throw new ArgumentOutOfRangeException(nameof(len));
+        public void CopyIVTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_iv, buf, off, len);
 
-            Array.Copy(m_iv, 0, buf, off, len);
-        }
-
-        public byte[] GetIV() => (byte[])m_iv.Clone();
+        public byte[] GetIV() => Arrays.InternalCopyBuffer(m_iv);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal ReadOnlySpan<byte> InternalIV => m_iv;

@@ -1,8 +1,10 @@
 using System;
-using System.Runtime.CompilerServices;
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+#else
+using System.Runtime.CompilerServices;
 #endif
 using System.Text;
 
@@ -1168,6 +1170,52 @@ namespace Org.BouncyCastle.Utilities
             return null == array || array.Length < 1;
         }
 
+        public static T[] CopyBuffer<T>(T[] buf)
+        {
+            ValidateBuffer(buf);
+            return InternalCopyBuffer(buf);
+        }
+
+        public static void CopyBufferToSegment<T>(T[] srcBuf, T[] dstBuf, int dstOff, int dstLen)
+        {
+            ValidateBuffer(srcBuf);
+            ValidateSegment(dstBuf, dstOff, dstLen);
+            InternalCopyBufferToSegment(srcBuf, dstBuf, dstOff, dstLen);
+        }
+
+        public static T[] CopySegment<T>(T[] buf, int off, int len)
+        {
+            ValidateSegment(buf, off, len);
+            return InternalCopySegment(buf, off, len);
+        }
+
+        public static T[] CreateBuffer<T>(int len)
+        {
+            ValidateBufferLength(len);
+            return new T[len];
+        }
+
+        internal static T[] InternalCopyBuffer<T>(T[] buf) => (T[])buf.Clone();
+
+        internal static void InternalCopyBufferToSegment<T>(T[] srcBuf, T[] dstBuf, int dstOff, int dstLen)
+        {
+            if (srcBuf.Length != dstLen)
+                throw new ArgumentOutOfRangeException(nameof(dstLen));
+
+            Array.Copy(srcBuf, 0, dstBuf, dstOff, dstLen);
+        }
+
+        internal static T[] InternalCopySegment<T>(T[] buf, int off, int len)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return buf.AsSpan(off, len).ToArray();
+#else
+            T[] result = new T[len];
+            Array.Copy(buf, off, result, 0, len);
+            return result;
+#endif
+        }
+
         public static bool SegmentsOverlap(int aOff, int aLen, int bOff, int bLen)
         {
             return aLen > 0
@@ -1180,6 +1228,12 @@ namespace Org.BouncyCastle.Utilities
         {
             if (buf == null)
                 throw new ArgumentNullException(nameof(buf));
+        }
+
+        public static void ValidateBufferLength(int len)
+        {
+            if (len < 0)
+                throw new ArgumentOutOfRangeException(nameof(len));
         }
 
         public static void ValidateRange<T>(T[] buf, int from, int to)

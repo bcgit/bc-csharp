@@ -1,5 +1,7 @@
 ﻿using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ParametersWithContext
@@ -11,8 +13,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
-            if (contextLength < 0)
-                throw new ArgumentOutOfRangeException(nameof(contextLength));
 
             ParametersWithContext result = new ParametersWithContext(parameters, contextLength);
             action(result.m_context, state);
@@ -20,31 +20,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
-        internal static ICipherParameters ApplyOptionalContext(ICipherParameters parameters, byte[] context) =>
-            context == null ? parameters : new ParametersWithContext(parameters, context);
-
         private readonly ICipherParameters m_parameters;
         private readonly byte[] m_context;
 
         public ParametersWithContext(ICipherParameters parameters, byte[] context)
         {
             // NOTE: 'parameters' may be null to imply key re-use
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             m_parameters = parameters;
-            m_context = (byte[])context.Clone();
+            m_context = Arrays.CopyBuffer(context);
         }
 
         public ParametersWithContext(ICipherParameters parameters, byte[] context, int contextOff, int contextLen)
         {
             // NOTE: 'parameters' may be null to imply key re-use
-            if (context == null)
-                throw new ArgumentNullException(nameof(context));
-
             m_parameters = parameters;
-            m_context = new byte[contextLen];
-            Array.Copy(context, contextOff, m_context, 0, contextLen);
+            m_context = Arrays.CopySegment(context, contextOff, contextLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -58,25 +48,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private ParametersWithContext(ICipherParameters parameters, int contextLength)
         {
-            if (contextLength < 0)
-                throw new ArgumentOutOfRangeException(nameof(contextLength));
-
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
-            m_context = new byte[contextLength];
+            m_context = Arrays.CreateBuffer<byte>(contextLength);
         }
 
         public int ContextLength => m_context.Length;
 
-        public void CopyContextTo(byte[] buf, int off, int len)
-        {
-            if (m_context.Length != len)
-                throw new ArgumentOutOfRangeException(nameof(len));
+        public void CopyContextTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_context, buf, off, len);
 
-            Array.Copy(m_context, 0, buf, off, len);
-        }
-
-        public byte[] GetContext() => (byte[])m_context.Clone();
+        public byte[] GetContext() => Arrays.InternalCopyBuffer(m_context);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal ReadOnlySpan<byte> InternalContext => m_context;

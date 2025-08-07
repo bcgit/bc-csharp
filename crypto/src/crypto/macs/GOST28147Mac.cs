@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 				//
 				// Set the S-Box
 				//
-				param.GetSBox().CopyTo(this.S, 0);
+				param.CopySBoxTo(this.S, 0, this.S.Length);
 
 				//
 				// set key if there is one
