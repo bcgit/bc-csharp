@@ -329,7 +329,37 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
         /// the historical behaviour of the library (1.7 and earlier).
         /// </remarks>
-        public void AddMethod(char[] passPhrase, HashAlgorithmTag s2kDigest, int itCount = 0x60)
+        public void AddMethod(char[] passPhrase, HashAlgorithmTag s2kDigest)
+        {
+            var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: false);
+
+            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount: 0x60);
+        }
+
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// </remarks>
+        public void AddMethodUtf8(char[] passPhrase, HashAlgorithmTag s2kDigest)
+        {
+            var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: true);
+
+            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount: 0x60);
+        }
+
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// Allows the caller to handle the encoding of the passphrase to bytes.
+        /// </remarks>
+        public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest) =>
+            DoAddMethod(rawPassPhrase, clearPassPhrase: false, s2kDigest, itCount: 0x60);
+
+        /// <summary>Add a PBE encryption method to the encrypted object.</summary>
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier).
+        /// </remarks>
+        public void AddMethod(char[] passPhrase, HashAlgorithmTag s2kDigest, int itCount)
         {
             if (itCount < 0x00 || itCount > 0xFF)
             {
@@ -345,7 +375,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <remarks>
         /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
         /// </remarks>
-        public void AddMethodUtf8(char[] passPhrase, HashAlgorithmTag s2kDigest, int itCount = 0x60)
+        public void AddMethodUtf8(char[] passPhrase, HashAlgorithmTag s2kDigest, int itCount)
         {
             if (itCount < 0x00 || itCount > 0xFF)
             {
@@ -361,7 +391,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <remarks>
         /// Allows the caller to handle the encoding of the passphrase to bytes.
         /// </remarks>
-        public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest, int itCount = 0x60)
+        public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest, int itCount)
         {
             if (itCount < 0x00 || itCount > 0xFF)
             {
