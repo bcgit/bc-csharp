@@ -20,6 +20,9 @@ namespace Org.BouncyCastle.Bcpg
         public static S2k GenerateSaltedAndIterated(SecureRandom secureRandom, HashAlgorithmTag hashAlgorithm,
             int itCount)
         {
+            if (itCount < 0x00 || itCount > 0xFF)
+                throw new ArgumentOutOfRangeException(nameof(itCount), "Coded S2K iteration count must be in range 0-255");
+
             var iv = GenerateIV(secureRandom);
             return new S2k(hashAlgorithm, iv, itCount);
         }

@@ -333,7 +333,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: false);
 
-            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount: 0x60);
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount: 0x60);
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
@@ -344,7 +344,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: true);
 
-            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount: 0x60);
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount: 0x60);
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
@@ -352,7 +352,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// Allows the caller to handle the encoding of the passphrase to bytes.
         /// </remarks>
         public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest) =>
-            DoAddMethod(rawPassPhrase, clearPassPhrase: false, s2kDigest, itCount: 0x60);
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: false, s2kDigest, itCount: 0x60);
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
         /// <remarks>
@@ -361,14 +361,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// </remarks>
         public void AddMethod(char[] passPhrase, HashAlgorithmTag s2kDigest, int itCount)
         {
-            if (itCount < 0x00 || itCount > 0xFF)
-            {
-                throw new ArgumentOutOfRangeException(nameof(itCount), "Coded S2K iteration count must be in range 0-255");
-            }
-
             var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: false);
 
-            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount);
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount);
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
@@ -377,31 +372,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// </remarks>
         public void AddMethodUtf8(char[] passPhrase, HashAlgorithmTag s2kDigest, int itCount)
         {
-            if (itCount < 0x00 || itCount > 0xFF)
-            {
-                throw new ArgumentOutOfRangeException(nameof(itCount), "Coded S2K iteration count must be in range 0-255");
-            }
-
             var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: true);
 
-            DoAddMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount);
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: true, s2kDigest, itCount);
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
         /// <remarks>
         /// Allows the caller to handle the encoding of the passphrase to bytes.
         /// </remarks>
-        public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest, int itCount)
-        {
-            if (itCount < 0x00 || itCount > 0xFF)
-            {
-                throw new ArgumentOutOfRangeException(nameof(itCount), "Coded S2K iteration count must be in range 0-255");
-            }
+        public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest, int itCount) =>
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: false, s2kDigest, itCount);
 
-            DoAddMethod(rawPassPhrase, clearPassPhrase: false, s2kDigest, itCount);
-        }
-
-        internal void DoAddMethod(byte[] rawPassPhrase, bool clearPassPhrase, HashAlgorithmTag s2kDigest, int itCount)
+        internal void ImplAddPbeMethod(byte[] rawPassPhrase, bool clearPassPhrase, HashAlgorithmTag s2kDigest,
+            int itCount)
         {
             var s2k = S2k.GenerateSaltedAndIterated(rand, s2kDigest, itCount);
             var key = PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase);

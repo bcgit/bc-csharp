@@ -962,6 +962,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             HashAlgorithmTag hashAlgorithm, byte[] rawPassPhrase, bool clearPassPhrase, SecureRandom random,
             out S2k s2k, out byte[] iv)
         {
+            // TODO Configurable iterations?
             s2k = S2k.GenerateSaltedAndIterated(random, hashAlgorithm, 0x60);
 
             KeyParameter key = PgpUtilities.DoMakeKeyFromPassPhrase(encAlgorithm, s2k, rawPassPhrase, clearPassPhrase);
