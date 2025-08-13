@@ -25,6 +25,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             return CreateKeyPair(m_parameters, t, rho, s, hpk, nonce, seed);
         }
 
+        // NB: Don't remove - needed by commented-out test cases
         internal AsymmetricCipherKeyPair InternalGenerateKeyPair(byte[] d, byte[] z)
         {
             var engine = m_parameters.ParameterSet.GetEngine(random: null);
