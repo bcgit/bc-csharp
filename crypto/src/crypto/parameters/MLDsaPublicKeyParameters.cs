@@ -39,6 +39,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal byte[] GetPublicKeyHash() =>
             Objects.EnsureSingletonInitialized(ref cachedPublicKeyHash, this, CreatePublicKeyHash);
 
+        // NB: Don't remove - needed by commented-out test cases
         internal bool VerifyInternal(byte[] msg, int msgOff, int msgLen, byte[] sig)
         {
             var engine = Parameters.ParameterSet.GetEngine(random: null);

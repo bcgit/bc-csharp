@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public byte[] GetEncoded() => Arrays.Concatenate(m_t, m_rho);
 
+        // NB: Don't remove - needed by commented-out test cases
         internal Tuple<byte[], byte[]> InternalEncapsulate(byte[] randBytes)
         {
             var engine = Parameters.ParameterSet.GetEngine(random: null);
