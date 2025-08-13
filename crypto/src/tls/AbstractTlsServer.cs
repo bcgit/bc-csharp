@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -37,45 +36,21 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
-        protected virtual bool AllowCertificateStatus()
-        {
-            return true;
-        }
+        protected virtual bool AllowCertificateStatus() => true;
 
-        protected virtual bool AllowEncryptThenMac()
-        {
-            return true;
-        }
+        protected virtual bool AllowEncryptThenMac() => true;
 
-        protected virtual bool AllowMultiCertStatus()
-        {
-            return false;
-        }
+        protected virtual bool AllowMultiCertStatus() => false;
 
-        protected virtual bool AllowTruncatedHmac()
-        {
-            return false;
-        }
+        protected virtual bool AllowTruncatedHmac() => false;
 
-        protected virtual bool AllowTrustedCAIndication()
-        {
-            return false;
-        }
+        protected virtual bool AllowTrustedCAIndication() => false;
 
-        protected virtual string GetDetailMessageNoCipherSuite()
-        {
-            return "No selectable cipher suite";
-        }
+        protected virtual string GetDetailMessageNoCipherSuite() => "No selectable cipher suite";
 
-        protected virtual int GetMaximumDefaultCurveBits()
-        {
-            return NamedGroup.GetCurveBits(NamedGroup.secp521r1);
-        }
+        protected virtual int GetMaximumDefaultCurveBits() => NamedGroup.GetCurveBits(NamedGroup.secp521r1);
 
-        protected virtual int GetMaximumDefaultFiniteFieldBits()
-        {
-            return NamedGroup.GetFiniteFieldBits(NamedGroup.ffdhe8192);
-        }
+        protected virtual int GetMaximumDefaultFiniteFieldBits() => NamedGroup.GetFiniteFieldBits(NamedGroup.ffdhe8192);
 
         protected virtual int GetMaximumNegotiableCurveBits()
         {
@@ -125,10 +100,7 @@ namespace Org.BouncyCastle.Tls
             return maxBits;
         }
 
-        protected virtual IList<ProtocolName> GetProtocolNames()
-        {
-            return null;
-        }
+        protected virtual IList<ProtocolName> GetProtocolNames() => null;
 
         protected virtual bool IsSelectableCipherSuite(int cipherSuite, int availCurveBits, int availFiniteFieldBits,
             IList<short> sigAlgs)
@@ -140,20 +112,14 @@ namespace Org.BouncyCastle.Tls
                 && TlsUtilities.IsValidCipherSuiteForSignatureAlgorithms(cipherSuite, sigAlgs);
         }
 
-        protected virtual bool PreferLocalCipherSuites()
-        {
-            return false;
-        }
+        protected virtual bool PreferLocalCipherSuites() => false;
 
-        public virtual bool PreferLocalSupportedGroups()
-        {
-            return false;
-        }
+        public virtual bool PreferLocalSupportedGroups() => false;
 
         /// <exception cref="IOException"/>
         protected virtual bool SelectCipherSuite(int cipherSuite)
         {
-            this.m_selectedCipherSuite = cipherSuite;
+            m_selectedCipherSuite = cipherSuite;
             return true;
         }
 
@@ -259,20 +225,11 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
-        protected virtual bool ShouldSelectProtocolNameEarly()
-        {
-            return true;
-        }
+        protected virtual bool ShouldSelectProtocolNameEarly() => true;
 
-        protected virtual bool PreferLocalClientCertificateTypes()
-        {
-            return false;
-        }
+        protected virtual bool PreferLocalClientCertificateTypes() => false;
 
-        protected virtual short[] GetAllowedClientCertificateTypes()
-        {
-            return null;
-        }
+        protected virtual short[] GetAllowedClientCertificateTypes() => null;
 
         /// <summary>RFC 9146 DTLS connection ID.</summary>
         /// <remarks>
@@ -286,52 +243,37 @@ namespace Org.BouncyCastle.Tls
 
         public virtual void Init(TlsServerContext context)
         {
-            this.m_context = context;
+            m_context = context;
 
-            this.m_protocolVersions = GetSupportedVersions();
-            this.m_cipherSuites = GetSupportedCipherSuites();
+            m_protocolVersions = GetSupportedVersions();
+            m_cipherSuites = GetSupportedCipherSuites();
         }
 
-        public override ProtocolVersion[] GetProtocolVersions()
-        {
-            return m_protocolVersions;
-        }
+        public override ProtocolVersion[] GetProtocolVersions() => m_protocolVersions;
 
-        public override int[] GetCipherSuites()
-        {
-            return m_cipherSuites;
-        }
+        public override int[] GetCipherSuites() => m_cipherSuites;
 
         public override void NotifyHandshakeBeginning()
         {
             base.NotifyHandshakeBeginning();
 
-            this.m_offeredCipherSuites = null;
-            this.m_clientExtensions = null;
-            this.m_encryptThenMACOffered = false;
-            this.m_maxFragmentLengthOffered = 0;
-            this.m_truncatedHMacOffered = false;
-            this.m_clientSentECPointFormats = false;
-            this.m_certificateStatusRequest = null;
-            this.m_selectedCipherSuite = -1;
-            this.m_selectedProtocolName = null;
-            this.m_serverExtensions.Clear();
+            m_offeredCipherSuites = null;
+            m_clientExtensions = null;
+            m_encryptThenMACOffered = false;
+            m_maxFragmentLengthOffered = 0;
+            m_truncatedHMacOffered = false;
+            m_clientSentECPointFormats = false;
+            m_certificateStatusRequest = null;
+            m_selectedCipherSuite = -1;
+            m_selectedProtocolName = null;
+            m_serverExtensions.Clear();
         }
 
-        public virtual TlsSession GetSessionToResume(byte[] sessionID)
-        {
-            return null;
-        }
+        public virtual TlsSession GetSessionToResume(byte[] sessionID) => null;
 
-        public virtual byte[] GetNewSessionID()
-        {
-            return null;
-        }
+        public virtual byte[] GetNewSessionID() => null;
 
-        public virtual TlsPskExternal GetExternalPsk(IList<PskIdentity> identities)
-        {
-            return null;
-        }
+        public virtual TlsPskExternal GetExternalPsk(IList<PskIdentity> identities) => null;
 
         public virtual void NotifySession(TlsSession session)
         {
@@ -377,40 +319,40 @@ namespace Org.BouncyCastle.Tls
 
         public virtual void NotifyOfferedCipherSuites(int[] offeredCipherSuites)
         {
-            this.m_offeredCipherSuites = offeredCipherSuites;
+            m_offeredCipherSuites = offeredCipherSuites;
         }
 
         public virtual void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
         {
-            this.m_clientExtensions = clientExtensions;
+            m_clientExtensions = clientExtensions;
 
             if (null != clientExtensions)
             {
-                this.m_clientProtocolNames = TlsExtensionsUtilities.GetAlpnExtensionClient(clientExtensions);
+                m_clientProtocolNames = TlsExtensionsUtilities.GetAlpnExtensionClient(clientExtensions);
 
                 if (ShouldSelectProtocolNameEarly())
                 {
                     if (null != m_clientProtocolNames && m_clientProtocolNames.Count > 0)
                     {
-                        this.m_selectedProtocolName = SelectProtocolName();
+                        m_selectedProtocolName = SelectProtocolName();
                     }
                 }
 
                 // TODO[tls13] Don't need these if we have negotiated (D)TLS 1.3+
                 {
-                    this.m_encryptThenMACOffered = TlsExtensionsUtilities.HasEncryptThenMacExtension(clientExtensions);
-                    this.m_truncatedHMacOffered = TlsExtensionsUtilities.HasTruncatedHmacExtension(clientExtensions);
-                    this.m_statusRequestV2 = TlsExtensionsUtilities.GetStatusRequestV2Extension(clientExtensions);
-                    this.m_trustedCAKeys = TlsExtensionsUtilities.GetTrustedCAKeysExtensionClient(clientExtensions);
+                    m_encryptThenMACOffered = TlsExtensionsUtilities.HasEncryptThenMacExtension(clientExtensions);
+                    m_truncatedHMacOffered = TlsExtensionsUtilities.HasTruncatedHmacExtension(clientExtensions);
+                    m_statusRequestV2 = TlsExtensionsUtilities.GetStatusRequestV2Extension(clientExtensions);
+                    m_trustedCAKeys = TlsExtensionsUtilities.GetTrustedCAKeysExtensionClient(clientExtensions);
 
                     // We only support uncompressed format, this is just to validate the extension, and note its presence.
-                    this.m_clientSentECPointFormats =
+                    m_clientSentECPointFormats =
                         null != TlsExtensionsUtilities.GetSupportedPointFormatsExtension(clientExtensions);
                 }
 
-                this.m_certificateStatusRequest = TlsExtensionsUtilities.GetStatusRequestExtension(clientExtensions);
+                m_certificateStatusRequest = TlsExtensionsUtilities.GetStatusRequestExtension(clientExtensions);
 
-                this.m_maxFragmentLengthOffered = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions);
+                m_maxFragmentLengthOffered = TlsExtensionsUtilities.GetMaxFragmentLengthExtension(clientExtensions);
                 if (m_maxFragmentLengthOffered >= 0 && !MaxFragmentLength.IsValid(m_maxFragmentLengthOffered))
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
@@ -547,7 +489,7 @@ namespace Org.BouncyCastle.Tls
                      */
                     TlsExtensionsUtilities.AddEmptyExtensionData(m_serverExtensions, ExtensionType.status_request_v2);
                 }
-                else if (null != this.m_certificateStatusRequest && AllowCertificateStatus())
+                else if (null != m_certificateStatusRequest && AllowCertificateStatus())
                 {
                     /*
                      * RFC 6066 8. If a server returns a "CertificateStatus" message, then the server MUST
@@ -654,7 +596,7 @@ namespace Org.BouncyCastle.Tls
             {
                 if (null != m_clientProtocolNames && m_clientProtocolNames.Count > 0)
                 {
-                    this.m_selectedProtocolName = SelectProtocolName();
+                    m_selectedProtocolName = SelectProtocolName();
                 }
             }
 
@@ -689,32 +631,17 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        public virtual IList<SupplementalDataEntry> GetServerSupplementalData()
-        {
-            return null;
-        }
+        public virtual IList<SupplementalDataEntry> GetServerSupplementalData() => null;
 
         public abstract TlsCredentials GetCredentials();
 
-        public virtual CertificateStatus GetCertificateStatus()
-        {
-            return null;
-        }
+        public virtual CertificateStatus GetCertificateStatus() => null;
 
-        public virtual CertificateRequest GetCertificateRequest()
-        {
-            return null;
-        }
+        public virtual CertificateRequest GetCertificateRequest() => null;
 
-        public virtual TlsPskIdentityManager GetPskIdentityManager()
-        {
-            return null;
-        }
+        public virtual TlsPskIdentityManager GetPskIdentityManager() => null;
 
-        public virtual TlsSrpLoginParameters GetSrpLoginParameters()
-        {
-            return null;
-        }
+        public virtual TlsSrpLoginParameters GetSrpLoginParameters() => null;
 
         public virtual TlsDHConfig GetDHConfig()
         {
@@ -736,10 +663,8 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
         }
 
-        public virtual void NotifyClientCertificate(Certificate clientCertificate)
-        {
+        public virtual void NotifyClientCertificate(Certificate clientCertificate) =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
 
         public virtual NewSessionTicket GetNewSessionTicket()
         {
