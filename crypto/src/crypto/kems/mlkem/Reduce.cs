@@ -38,5 +38,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             a += (short)((a >> 15) & MLKemEngine.Q);
             return a;
         }
+
+        // NB: We only care about the sign bit fof the result: it will be 1 iff the argument was in range
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        internal static int CheckModulus(short a) => a - MLKemEngine.Q;
     }
 }

@@ -19,8 +19,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (encoding.Length != publicKeyLength)
                 throw new ArgumentException("invalid encoding", nameof(encoding));
 
-            byte[] t = Arrays.CopyOfRange(encoding, 0, publicKeyLength - MLKemEngine.SymBytes);
-            byte[] rho = Arrays.CopyOfRange(encoding, publicKeyLength - MLKemEngine.SymBytes, publicKeyLength);
+            byte[] t = Arrays.CopySegment(encoding, 0, publicKeyLength - MLKemEngine.SymBytes);
+            byte[] rho = Arrays.CopySegment(encoding, publicKeyLength - MLKemEngine.SymBytes, MLKemEngine.SymBytes);
             return new MLKemPublicKeyParameters(parameters, t, rho);
         }
 
@@ -30,6 +30,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal MLKemPublicKeyParameters(MLKemParameters parameters, byte[] t, byte[] rho)
             : base(false, parameters)
         {
+            var parameterSet = parameters.ParameterSet;
+            var engine = parameterSet.GetEngine(random: null);
+
+            if (t.Length != engine.PolyVecBytes)
+                throw new ArgumentException("Invalid length", nameof(t));
+            if (rho.Length != MLKemEngine.SymBytes)
+                throw new ArgumentException("Invalid length", nameof(rho));
+
+            if (!engine.CheckModulus(t))
+                throw new ArgumentException("Modulus check failed for ML-KEM public key");
+
             m_t = t;
             m_rho = rho;
         }
@@ -44,9 +55,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
             byte[] enc = new byte[engine.CryptoCipherTextBytes];
             byte[] sec = new byte[engine.CryptoBytes];
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            engine.KemEncryptInternal(enc.AsSpan(), sec.AsSpan(), GetEncoded().AsSpan(), randBytes.AsSpan());
+            engine.KemEncrypt(enc.AsSpan(), sec.AsSpan(), this, randBytes.AsSpan());
 #else
-            engine.KemEncryptInternal(enc, 0, sec, 0, GetEncoded(), randBytes);
+            engine.KemEncrypt(enc, 0, sec, 0, this, randBytes);
 #endif
             return Tuple.Create(enc, sec);
         }

@@ -269,5 +269,27 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
                 m_vec[i].CondSubQ();
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static int CheckModulus(MLKemEngine engine, ReadOnlySpan<byte> t)
+        {
+            int result = -1;
+            for (int i = 0, k = engine.K; i < k; ++i)
+            {
+                result &= Poly.CheckModulus(t.Slice(i * MLKemEngine.PolyBytes));
+            }
+            return result;
+        }
+#else
+        internal static int CheckModulus(MLKemEngine engine, byte[] t)
+        {
+            int result = -1;
+            for (int i = 0, k = engine.K; i < k; ++i)
+            {
+                result &= Poly.CheckModulus(t, i * MLKemEngine.PolyBytes);
+            }
+            return result;
+        }
+#endif
     }
 }

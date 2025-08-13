@@ -320,5 +320,39 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
                 Coeffs[i] = Reduce.CondSubQ(Coeffs[i]);
             }
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static int CheckModulus(ReadOnlySpan<byte> a)
+        {
+            int result = -1;
+            for (int i = 0; i < MLKemEngine.N / 2; i++)
+            {
+                ushort a0 = a[3 * i + 0];
+                ushort a1 = a[3 * i + 1];
+                ushort a2 = a[3 * i + 2];
+                short c0 = (short)(((a0 >> 0) | (a1 << 8)) & 0xFFF);
+                short c1 = (short)(((a1 >> 4) | (a2 << 4)) & 0xFFF);
+                result &= Reduce.CheckModulus(c0);
+                result &= Reduce.CheckModulus(c1);
+            }
+            return result;
+        }
+#else
+        internal static int CheckModulus(byte[] a, int off)
+        {
+            int result = -1;
+            for (int i = 0; i < MLKemEngine.N / 2; i++)
+            {
+                ushort a0 = a[off + 3 * i + 0];
+                ushort a1 = a[off + 3 * i + 1];
+                ushort a2 = a[off + 3 * i + 2];
+                short c0 = (short)(((a0 >> 0) | (a1 << 8)) & 0xFFF);
+                short c1 = (short)(((a1 >> 4) | (a2 << 4)) & 0xFFF);
+                result &= Reduce.CheckModulus(c0);
+                result &= Reduce.CheckModulus(c1);
+            }
+            return result;
+        }
+#endif
     }
 }

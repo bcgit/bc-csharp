@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -89,6 +90,8 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         internal SecureRandom Random => m_random;
 
+        internal bool CheckModulus(byte[] t) => PolyVec.CheckModulus(this, t) < 0;
+
         internal void GenerateKemKeyPair(out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk, out byte[] nonce,
             out byte[] seed)
         {
@@ -120,8 +123,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal void KemDecrypt(Span<byte> secret, ReadOnlySpan<byte> encapsulation, byte[] secretKey)
+        internal void KemDecrypt(Span<byte> secret, ReadOnlySpan<byte> encapsulation,
+            MLKemPrivateKeyParameters privateKey)
         {
+            byte[] secretKey = privateKey.GetEncoded();
+
             // TODO do input validation
             Span<byte> kr = stackalloc byte[2 * SymBytes];
             Span<byte> buf = stackalloc byte[2 * SymBytes];
@@ -148,28 +154,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             kr[..SharedSecretBytes].CopyTo(secret);
         }
 
-        internal void KemEncrypt(Span<byte> encapsulation, Span<byte> secret, ReadOnlySpan<byte> pk,
+        internal void KemEncrypt(Span<byte> encapsulation, Span<byte> secret, MLKemPublicKeyParameters publicKey,
             ReadOnlySpan<byte> randBytes)
         {
-            //TODO: do input validation elsewhere?
-            // Input validation (6.2 ML-KEM Encaps)
-            // Type Check
-            if (pk.Length != IndCpaPublicKeyBytes)
-                throw new ArgumentException("Input validation Error: Type check failed for ml-kem encapsulation");
+            ReadOnlySpan<byte> pk = publicKey.GetEncoded();
 
-            // Modulus Check
-            PolyVec polyVec = new PolyVec(this);
-            byte[] seed = m_indCpa.UnpackPublicKey(polyVec, pk);
-            byte[] ek = m_indCpa.PackPublicKey(polyVec, seed);
-            if (!pk.SequenceEqual(ek))
-                throw new ArgumentException("Input validation: Modulus check failed for ml-kem encapsulation");
-
-            KemEncryptInternal(encapsulation, secret, pk, randBytes);
-        }
-
-        internal void KemEncryptInternal(Span<byte> encapsulation, Span<byte> secret, ReadOnlySpan<byte> pk,
-            ReadOnlySpan<byte> randBytes)
-        {
             Span<byte> buf = stackalloc byte[2 * SymBytes];
             Span<byte> kr = stackalloc byte[2 * SymBytes];
 
@@ -196,8 +185,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             }
         }
 #else
-        internal void KemDecrypt(byte[] secBuf, int secOff, byte[] encBuf, int encOff, byte[] secretKey)
+        internal void KemDecrypt(byte[] secBuf, int secOff, byte[] encBuf, int encOff,
+            MLKemPrivateKeyParameters privateKey)
         {
+            byte[] secretKey = privateKey.GetEncoded();
+
             //TODO do input validation
             byte[] buf = new byte[2 * SymBytes], kr = new byte[2 * SymBytes], cmp = new byte[CipherTextBytes];
             byte[] pk = Arrays.CopyOfRange(secretKey, IndCpaSecretKeyBytes, secretKey.Length);
@@ -221,26 +213,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             Array.Copy(kr, 0, secBuf, secOff, SharedSecretBytes);
         }
 
-        internal void KemEncrypt(byte[] encBuf, int encOff, byte[] secBuf, int secOff, byte[] pk, byte[] randBytes)
+        internal void KemEncrypt(byte[] encBuf, int encOff, byte[] secBuf, int secOff,
+            MLKemPublicKeyParameters publicKey, byte[] randBytes)
         {
-            //TODO: do input validation elsewhere?
-            // Input validation (6.2 ML-KEM Encaps)
-            // Type Check
-            if (pk.Length != IndCpaPublicKeyBytes)
-                throw new ArgumentException("Input validation Error: Type check failed for ml-kem encapsulation");
+            byte[] pk = publicKey.GetEncoded();
 
-            // Modulus Check
-            PolyVec polyVec = new PolyVec(this);
-            byte[] seed = m_indCpa.UnpackPublicKey(polyVec, pk);
-            byte[] ek = m_indCpa.PackPublicKey(polyVec, seed);
-            if (!Arrays.AreEqual(ek, pk))
-                throw new ArgumentException("Input validation: Modulus check failed for ml-kem encapsulation");
-
-            KemEncryptInternal(encBuf, encOff, secBuf, secOff, pk, randBytes);
-        }
-
-        internal void KemEncryptInternal(byte[] encBuf, int encOff, byte[] secBuf, int secOff, byte[] pk, byte[] randBytes)
-        {
             byte[] buf = new byte[2 * SymBytes];
             byte[] kr = new byte[2 * SymBytes];
 

@@ -172,28 +172,17 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                     byte[] key = Hex.Decode(line);
 
-                    var random = new SecureRandom();
                     var parameters = AcvpFileParameters[fileName];
 
-                    var publicKey = MLKemPublicKeyParameters.FromEncoding(parameters, key);
-
-                    var encapsulator = new MLKemEncapsulator(parameters);
-                    encapsulator.Init(new ParametersWithRandom(publicKey, random));
-
-                    bool caughtException = false;
                     try
                     {
-                        var enc = new byte[encapsulator.EncapsulationLength];
-                        var sec = new byte[encapsulator.SecretLength];
-
-                        encapsulator.Encapsulate(enc, 0, enc.Length, sec, 0, sec.Length);
+                        MLKemPublicKeyParameters.FromEncoding(parameters, key);
+                        Assert.Fail();
                     }
-                    catch (Exception)
+                    catch (ArgumentException e)
                     {
-                        caughtException = true;
+                        Assert.AreEqual("Modulus check failed for ML-KEM public key", e.Message);
                     }
-
-                    Assert.True(caughtException);
                 }
             }
         }

@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Crypto.Kems
             if (SecretLength != secLen)
                 throw new ArgumentException(nameof(secLen));
 
-            m_engine.KemDecrypt(secBuf, secOff, encBuf, encOff, m_privateKey.GetEncoded());
+            m_engine.KemDecrypt(secBuf, secOff, encBuf, encOff, m_privateKey);
 #endif
         }
 
@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Kems
             if (SecretLength != secret.Length)
                 throw new ArgumentException(nameof(secret));
 
-            m_engine.KemDecrypt(secret, encapsulation, m_privateKey.GetEncoded());
+            m_engine.KemDecrypt(secret, encapsulation, m_privateKey);
         }
 #endif
 

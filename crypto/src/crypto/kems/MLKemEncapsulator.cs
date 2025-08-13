@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Crypto.Kems
 
             byte[] r = new byte[32];
             m_engine.Random.NextBytes(r);
-            m_engine.KemEncrypt(encBuf, encOff, secBuf, secOff, m_publicKey.GetEncoded(), r);
+            m_engine.KemEncrypt(encBuf, encOff, secBuf, secOff, m_publicKey, r);
 #endif
         }
 
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Kems
 
             Span<byte> r = stackalloc byte[32];
             m_engine.Random.NextBytes(r);
-            m_engine.KemEncrypt(encapsulation, secret, m_publicKey.GetEncoded(), r);
+            m_engine.KemEncrypt(encapsulation, secret, m_publicKey, r);
         }
 #endif
 
