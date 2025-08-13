@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -27,36 +26,27 @@ namespace Org.BouncyCastle.Tls
         public SrpTlsServer(TlsCrypto crypto, TlsSrpIdentityManager srpIdentityManager)
             : base(crypto)
         {
-            this.m_srpIdentityManager = srpIdentityManager;
+            m_srpIdentityManager = srpIdentityManager;
         }
 
         /// <exception cref="IOException"/>
-        protected virtual TlsCredentialedSigner GetDsaSignerCredentials()
-        {
+        protected virtual TlsCredentialedSigner GetDsaSignerCredentials() =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
 
         /// <exception cref="IOException"/>
-        protected virtual TlsCredentialedSigner GetRsaSignerCredentials()
-        {
+        protected virtual TlsCredentialedSigner GetRsaSignerCredentials() =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
-        }
 
-        protected override ProtocolVersion[] GetSupportedVersions()
-        {
-            return ProtocolVersion.TLSv12.Only();
-        }
+        protected override ProtocolVersion[] GetSupportedVersions() => ProtocolVersion.TLSv12.Only();
 
-        protected override int[] GetSupportedCipherSuites()
-        {
-            return TlsUtilities.GetSupportedCipherSuites(Crypto, DefaultCipherSuites);
-        }
+        protected override int[] GetSupportedCipherSuites() =>
+            TlsUtilities.GetSupportedCipherSuites(Crypto, DefaultCipherSuites);
 
         public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
         {
             base.ProcessClientExtensions(clientExtensions);
 
-            this.m_srpIdentity = TlsSrpUtilities.GetSrpExtension(clientExtensions);
+            m_srpIdentity = TlsSrpUtilities.GetSrpExtension(clientExtensions);
         }
 
         public override int GetSelectedCipherSuite()
@@ -67,7 +57,7 @@ namespace Org.BouncyCastle.Tls
             {
                 if (m_srpIdentity != null)
                 {
-                    this.m_srpLoginParameters = m_srpIdentityManager.GetLoginParameters(m_srpIdentity);
+                    m_srpLoginParameters = m_srpIdentityManager.GetLoginParameters(m_srpIdentity);
                 }
 
                 if (m_srpLoginParameters == null)
@@ -98,9 +88,6 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        public override TlsSrpLoginParameters GetSrpLoginParameters()
-        {
-            return m_srpLoginParameters;
-        }
+        public override TlsSrpLoginParameters GetSrpLoginParameters() => m_srpLoginParameters;
     }
 }
