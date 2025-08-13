@@ -217,8 +217,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         {
             for (int i = 0; i < MLKemEngine.N / 2; i++)
             {
-                Coeffs[2 * i] = (short)((((a[3 * i + 0] & 0xFF) >> 0) | (ushort)((a[3 * i + 1] & 0xFF) << 8)) & 0xFFF);
-                Coeffs[2 * i + 1] = (short)((((a[3 * i + 1] & 0xFF) >> 4) | (ushort)((a[3 * i + 2] & 0xFF) << 4)) & 0xFFF);
+                ushort a0 = a[3 * i + 0];
+                ushort a1 = a[3 * i + 1];
+                ushort a2 = a[3 * i + 2];
+                Coeffs[2 * i + 0] = (short)(((a0 >> 0) | (a1 << 8)) & 0xFFF);
+                Coeffs[2 * i + 1] = (short)(((a1 >> 4) | (a2 << 4)) & 0xFFF);
             }
         }
 
@@ -228,11 +231,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             for (int i = 0; i < MLKemEngine.N / 2; i++)
             {
-                ushort t0 = (ushort)Coeffs[2 * i];
+                ushort t0 = (ushort)Coeffs[2 * i + 0];
                 ushort t1 = (ushort)Coeffs[2 * i + 1];
-                r[3 * i + 0] = (byte)(ushort)(t0 >> 0);
-                r[3 * i + 1] = (byte)((t0 >> 8) | (ushort)(t1 << 4));
-                r[3 * i + 2] = (byte)(ushort)(t1 >> 4);
+                r[3 * i + 0] = (byte)t0;
+                r[3 * i + 1] = (byte)((t0 >> 8) | (t1 << 4));
+                r[3 * i + 2] = (byte)(t1 >> 4);
             }
         }
 #else
@@ -240,8 +243,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         {
             for (int i = 0; i < MLKemEngine.N / 2; i++)
             {
-                Coeffs[2 * i] = (short) ((((a[off + 3 * i + 0] & 0xFF) >> 0) | (ushort)((a[off + 3 * i + 1] & 0xFF) << 8)) & 0xFFF);
-                Coeffs[2 * i + 1] = (short) ((((a[off + 3 * i + 1] & 0xFF) >> 4) | (ushort)((a[off + 3 * i + 2] & 0xFF) << 4)) & 0xFFF);
+                ushort a0 = a[off + 3 * i + 0];
+                ushort a1 = a[off + 3 * i + 1];
+                ushort a2 = a[off + 3 * i + 2];
+                Coeffs[2 * i + 0] = (short)(((a0 >> 0) | (a1 << 8)) & 0xFFF);
+                Coeffs[2 * i + 1] = (short)(((a1 >> 4) | (a2 << 4)) & 0xFFF);
             }
         }
 
@@ -251,11 +257,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             for (int i = 0; i < MLKemEngine.N/2; i++)
             {
-                ushort t0 = (ushort) Coeffs[2 * i];
-                ushort t1 = (ushort) Coeffs[2 * i + 1];
-                r[off + 3 * i + 0] = (byte) (ushort) (t0 >> 0);
-                r[off + 3 * i + 1] = (byte)((t0 >> 8) | (ushort) (t1 << 4));
-                r[off + 3 * i + 2] = (byte) (ushort) (t1 >> 4);
+                ushort t0 = (ushort)Coeffs[2 * i + 0];
+                ushort t1 = (ushort)Coeffs[2 * i + 1];
+                r[off + 3 * i + 0] = (byte)t0;
+                r[off + 3 * i + 1] = (byte)((t0 >> 8) | (t1 << 4));
+                r[off + 3 * i + 2] = (byte)(t1 >> 4);
             }
         }
 #endif
