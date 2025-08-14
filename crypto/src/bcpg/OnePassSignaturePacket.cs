@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
@@ -49,7 +51,12 @@ namespace Org.BouncyCastle.Bcpg
 
         public override void Encode(BcpgOutputStream bcpgOut)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> body = stackalloc byte[13];
+#else
             byte[] body = new byte[13];
+#endif
+
             body[0] = (byte)m_version;
             body[1] = (byte)m_sigType;
             body[2] = (byte)m_hashAlgorithm;
