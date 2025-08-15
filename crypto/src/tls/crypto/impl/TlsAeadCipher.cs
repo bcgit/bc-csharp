@@ -41,8 +41,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             if (!TlsImplUtilities.IsTlsV12(negotiatedVersion))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            this.m_isTlsV13 = TlsImplUtilities.IsTlsV13(negotiatedVersion);
-            this.m_nonceMode = GetNonceMode(m_isTlsV13, aeadType);
+            m_isTlsV13 = TlsImplUtilities.IsTlsV13(negotiatedVersion);
+            m_nonceMode = GetNonceMode(m_isTlsV13, aeadType);
 
             m_decryptConnectionID = securityParameters.ConnectionIDPeer;
             m_encryptConnectionID = securityParameters.ConnectionIDLocal;
@@ -53,32 +53,32 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             switch (m_nonceMode)
             {
             case NONCE_RFC5288:
-                this.m_fixed_iv_length = 4;
-                this.m_record_iv_length = 8;
+                m_fixed_iv_length = 4;
+                m_record_iv_length = 8;
                 break;
             case NONCE_RFC7905:
-                this.m_fixed_iv_length = 12;
-                this.m_record_iv_length = 0;
+                m_fixed_iv_length = 12;
+                m_record_iv_length = 0;
                 break;
             default:
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
 
-            this.m_cryptoParams = cryptoParams;
-            this.m_keySize = keySize;
-            this.m_macSize = macSize;
+            m_cryptoParams = cryptoParams;
+            m_keySize = keySize;
+            m_macSize = macSize;
 
-            this.m_decryptCipher = decryptCipher;
-            this.m_encryptCipher = encryptCipher;
+            m_decryptCipher = decryptCipher;
+            m_encryptCipher = encryptCipher;
 
-            this.m_decryptNonce = new byte[m_fixed_iv_length];
-            this.m_encryptNonce = new byte[m_fixed_iv_length];
+            m_decryptNonce = new byte[m_fixed_iv_length];
+            m_encryptNonce = new byte[m_fixed_iv_length];
 
             bool isServer = cryptoParams.IsServer;
             if (m_isTlsV13)
             {
-                RekeyCipher(securityParameters, decryptCipher, m_decryptNonce, !isServer);
-                RekeyCipher(securityParameters, encryptCipher, m_encryptNonce, isServer);
+                RekeyDecoder();
+                RekeyEncoder();
                 return;
             }
 
@@ -152,10 +152,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
         // TODO[api] Remove
-        public virtual int GetPlaintextLimit(int ciphertextLimit)
-        {
-            return GetPlaintextEncodeLimit(ciphertextLimit);
-        }
+        public virtual int GetPlaintextLimit(int ciphertextLimit) => GetPlaintextEncodeLimit(ciphertextLimit);
 
         public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
         {
@@ -413,20 +410,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, encryptionOffset, plaintextLength, contentType);
         }
 
-        public virtual void RekeyDecoder()
-        {
+        public virtual void RekeyDecoder() =>
             RekeyCipher(m_cryptoParams.SecurityParameters, m_decryptCipher, m_decryptNonce, !m_cryptoParams.IsServer);
-        }
 
-        public virtual void RekeyEncoder()
-        {
+        public virtual void RekeyEncoder() =>
             RekeyCipher(m_cryptoParams.SecurityParameters, m_encryptCipher, m_encryptNonce, m_cryptoParams.IsServer);
-        }
 
-        public virtual bool UsesOpaqueRecordType
-        {
-            get { return m_isTlsV13; }
-        }
+        public virtual bool UsesOpaqueRecordType => m_isTlsV13;
 
         protected virtual byte[] GetAdditionalData(long seqNo, short recordType, ProtocolVersion recordVersion,
             int ciphertextLength, int plaintextLength)
@@ -510,13 +500,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 #endif
         }
 
-        private static int GetNonceMode(bool isTLSv13, int aeadType)
+        private static int GetNonceMode(bool isTlsV13, int aeadType)
         {
             switch (aeadType)
             {
             case AEAD_CCM:
             case AEAD_GCM:
-                return isTLSv13 ? NONCE_RFC7905 : NONCE_RFC5288;
+                return isTlsV13 ? NONCE_RFC7905 : NONCE_RFC5288;
 
             case AEAD_CHACHA20_POLY1305:
                 return NONCE_RFC7905;
