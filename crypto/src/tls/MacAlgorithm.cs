@@ -7,6 +7,7 @@ namespace Org.BouncyCastle.Tls
     /// Note that the values here are implementation-specific and arbitrary. It is recommended not to depend on the
     /// particular values (e.g. serialization).
     /// </remarks>
+    // TODO[api] Make static
     public abstract class MacAlgorithm
     {
         public const int cls_null = 0;

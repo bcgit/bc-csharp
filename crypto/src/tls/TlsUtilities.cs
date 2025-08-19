@@ -1812,6 +1812,7 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_AES_128_CCM_8_SHA256:
             case CipherSuite.TLS_AES_128_GCM_SHA256:
             case CipherSuite.TLS_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.TLS_SHA256_SHA256:
             {
                 if (isTlsV13)
                     return PrfAlgorithm.tls13_hkdf_sha256;
@@ -1820,6 +1821,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             case CipherSuite.TLS_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_SHA384_SHA384:
             {
                 if (isTlsV13)
                     return PrfAlgorithm.tls13_hkdf_sha384;
@@ -2088,9 +2090,11 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_AES_128_CCM_8_SHA256:
             case CipherSuite.TLS_AES_128_GCM_SHA256:
             case CipherSuite.TLS_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.TLS_SHA256_SHA256:
                 return PrfAlgorithm.tls13_hkdf_sha256;
 
             case CipherSuite.TLS_AES_256_GCM_SHA384:
+            case CipherSuite.TLS_SHA384_SHA384:
                 return PrfAlgorithm.tls13_hkdf_sha384;
 
             case CipherSuite.TLS_SM4_CCM_SM3:
@@ -2849,6 +2853,12 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_RSA_PSK_WITH_NULL_SHA384:
                 return EncryptionAlgorithm.NULL;
 
+            case CipherSuite.TLS_SHA256_SHA256:
+                return EncryptionAlgorithm.NULL_HMAC_SHA256;
+
+            case CipherSuite.TLS_SHA384_SHA384:
+                return EncryptionAlgorithm.NULL_HMAC_SHA384;
+
             case CipherSuite.TLS_RSA_WITH_RC4_128_MD5:
             case CipherSuite.TLS_RSA_WITH_RC4_128_SHA:
                 return EncryptionAlgorithm.RC4_128;
@@ -2887,6 +2897,8 @@ namespace Org.BouncyCastle.Tls
             case EncryptionAlgorithm.CAMELLIA_128_GCM:
             case EncryptionAlgorithm.CAMELLIA_256_GCM:
             case EncryptionAlgorithm.CHACHA20_POLY1305:
+            case EncryptionAlgorithm.NULL_HMAC_SHA256:
+            case EncryptionAlgorithm.NULL_HMAC_SHA384:
             case EncryptionAlgorithm.SM4_CCM:
             case EncryptionAlgorithm.SM4_GCM:
                 return CipherType.aead;
@@ -3166,6 +3178,8 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_AES_128_GCM_SHA256:
             case CipherSuite.TLS_AES_256_GCM_SHA384:
             case CipherSuite.TLS_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.TLS_SHA256_SHA256:
+            case CipherSuite.TLS_SHA384_SHA384:
             case CipherSuite.TLS_SM4_CCM_SM3:
             case CipherSuite.TLS_SM4_GCM_SM3:
                 return KeyExchangeAlgorithm.NULL;
@@ -3396,6 +3410,8 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_RSA_WITH_ARIA_256_GCM_SHA384:
             case CipherSuite.TLS_RSA_WITH_CAMELLIA_128_GCM_SHA256:
             case CipherSuite.TLS_RSA_WITH_CAMELLIA_256_GCM_SHA384:
+            case CipherSuite.TLS_SHA256_SHA256:
+            case CipherSuite.TLS_SHA384_SHA384:
             case CipherSuite.TLS_SM4_CCM_SM3:
             case CipherSuite.TLS_SM4_GCM_SM3:
                 return MacAlgorithm.cls_null;
@@ -3599,6 +3615,8 @@ namespace Org.BouncyCastle.Tls
             case CipherSuite.TLS_AES_128_GCM_SHA256:
             case CipherSuite.TLS_AES_256_GCM_SHA384:
             case CipherSuite.TLS_CHACHA20_POLY1305_SHA256:
+            case CipherSuite.TLS_SHA256_SHA256:
+            case CipherSuite.TLS_SHA384_SHA384:
             case CipherSuite.TLS_SM4_CCM_SM3:
             case CipherSuite.TLS_SM4_GCM_SM3:
                 return ProtocolVersion.TLSv13;

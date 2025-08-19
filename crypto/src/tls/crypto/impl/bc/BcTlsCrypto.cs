@@ -118,6 +118,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 return CreateChaCha20Poly1305(cryptoParams);
             case EncryptionAlgorithm.NULL:
                 return CreateNullCipher(cryptoParams, macAlgorithm);
+            case EncryptionAlgorithm.NULL_HMAC_SHA256:
+                // NOTE: Ignores macAlgorithm
+                return Create13NullCipher(cryptoParams, MacAlgorithm.hmac_sha256);
+            case EncryptionAlgorithm.NULL_HMAC_SHA384:
+                // NOTE: Ignores macAlgorithm
+                return Create13NullCipher(cryptoParams, MacAlgorithm.hmac_sha384);
             case EncryptionAlgorithm.SM4_CCM:
                 // NOTE: Ignores macAlgorithm
                 return CreateCipher_SM4_Ccm(cryptoParams);
@@ -313,6 +319,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case EncryptionAlgorithm.SM4_CCM:
             case EncryptionAlgorithm.SM4_GCM:
                 return true;
+
+            case EncryptionAlgorithm.NULL_HMAC_SHA256:
+                return HasMacAlgorithm(MacAlgorithm.hmac_sha256);
+
+            case EncryptionAlgorithm.NULL_HMAC_SHA384:
+                return HasMacAlgorithm(MacAlgorithm.hmac_sha384);
 
             case EncryptionAlgorithm.cls_28147_CNT_IMIT:
             case EncryptionAlgorithm.DES_CBC:
@@ -640,6 +652,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, 16, 16, TlsAeadCipher.AEAD_GCM);
         }
+
+        protected virtual Tls13NullCipher Create13NullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm) =>
+            new Tls13NullCipher(cryptoParams, CreateHmac(macAlgorithm), CreateHmac(macAlgorithm));
 
         protected virtual TlsNullCipher CreateNullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm)
         {
