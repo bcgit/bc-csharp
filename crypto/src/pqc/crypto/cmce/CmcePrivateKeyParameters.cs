@@ -39,13 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 
         }
 
-        public byte[] ReconstructPublicKey()
-        {
-            ICmceEngine engine = Parameters.Engine;
-            byte[] pk = new byte[engine.PublicKeySize];
-            engine.GeneratePublicKeyFromPrivateKey(privateKey);
-            return pk;
-        }
+        public byte[] ReconstructPublicKey() => Parameters.Engine.GeneratePublicKeyFromPrivateKey(privateKey);
 
         public byte[] GetEncoded()
         {
