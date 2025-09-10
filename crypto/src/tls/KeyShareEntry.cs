@@ -1,14 +1,11 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
     public sealed class KeyShareEntry
     {
-        private static bool CheckKeyExchangeLength(int length)
-        {
-            return 0 < length && length < (1 << 16);
-        }
+        private static bool CheckKeyExchangeLength(int length) => 0 < length && length < (1 << 16);
 
         private readonly int m_namedGroup;
         private readonly byte[] m_keyExchange;
@@ -18,26 +15,20 @@ namespace Org.BouncyCastle.Tls
         public KeyShareEntry(int namedGroup, byte[] keyExchange)
         {
             if (!TlsUtilities.IsValidUint16(namedGroup))
-                throw new ArgumentException("should be a uint16", "namedGroup");
+                throw new ArgumentException("should be a uint16", nameof(namedGroup));
             if (null == keyExchange)
-                throw new ArgumentNullException("keyExchange");
+                throw new ArgumentNullException(nameof(keyExchange));
             if (!CheckKeyExchangeLength(keyExchange.Length))
-                throw new ArgumentException("must have length from 1 to (2^16 - 1)", "keyExchange");
+                throw new ArgumentException("must have length from 1 to (2^16 - 1)", nameof(keyExchange));
 
-            this.m_namedGroup = namedGroup;
-            this.m_keyExchange = keyExchange;
+            m_namedGroup = namedGroup;
+            m_keyExchange = keyExchange;
         }
 
         /// <returns><see cref="NamedGroup"/></returns>
-        public int NamedGroup
-        {
-            get { return m_namedGroup; }
-        }
+        public int NamedGroup => m_namedGroup;
 
-        public byte[] KeyExchange
-        {
-            get { return m_keyExchange; }
-        }
+        public byte[] KeyExchange => m_keyExchange;
 
         /// <summary>Encode this <see cref="KeyShareEntry"/> to a <see cref="Stream"/>.</summary>
         /// <param name="output">the <see cref="Stream"/> to encode to.</param>

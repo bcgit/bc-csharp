@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Math;
@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.SRP_RSA:
                 return keyExchange;
             default:
-                throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+                throw new ArgumentException("unsupported key exchange algorithm", nameof(keyExchange));
             }
         }
 

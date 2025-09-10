@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -17,14 +17,14 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.DH_anon:
                 return keyExchange;
             default:
-                throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+                throw new ArgumentException("unsupported key exchange algorithm", nameof(keyExchange));
             }
         }
 
         // TODO[api] Make readonly
         protected TlsDHGroupVerifier m_dhGroupVerifier;
-        protected TlsDHConfig m_dhConfig;
 
+        protected TlsDHConfig m_dhConfig;
         protected TlsAgreement m_agreement;
 
         public TlsDHanonKeyExchange(int keyExchange, TlsDHGroupVerifier dhGroupVerifier)

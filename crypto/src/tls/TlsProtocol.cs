@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -1860,8 +1860,8 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         internal static void EstablishMasterSecret(TlsContext context, TlsKeyExchange keyExchange)
         {
-            TlsSecret preMasterSecret = keyExchange.GeneratePreMasterSecret() ??
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsSecret preMasterSecret = keyExchange.GeneratePreMasterSecret()
+                ?? throw new TlsFatalAlert(AlertDescription.internal_error);
 
             try
             {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.ECDH_RSA:
                 return keyExchange;
             default:
-                throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+                throw new ArgumentException("unsupported key exchange algorithm", nameof(keyExchange));
             }
         }
 
@@ -39,8 +39,7 @@ namespace Org.BouncyCastle.Tls
 
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
-            m_ecdhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(
-                TlsCertificateRole.ECDH);
+            m_ecdhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.ECDH);
         }
 
         public override short[] GetClientCertificateTypes()

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Tls
             case Tls.IdentifierType.x509_name:
                 return identifier is X509Name;
             default:
-                throw new ArgumentException("unsupported IdentifierType", "identifierType");
+                throw new ArgumentException("unsupported IdentifierType", nameof(identifierType));
             }
         }
 

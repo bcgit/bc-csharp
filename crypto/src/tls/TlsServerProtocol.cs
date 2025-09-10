@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -361,8 +361,8 @@ namespace Org.BouncyCastle.Tls
             {
                 int namedGroup = clientShare.NamedGroup;
 
-                TlsAgreement agreement = TlsUtilities.CreateKeyShare(crypto, namedGroup, isServer: true) ??
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+                TlsAgreement agreement = TlsUtilities.CreateKeyShare(crypto, namedGroup, isServer: true)
+                    ?? throw new TlsFatalAlert(AlertDescription.internal_error);
 
                 agreement.ReceivePeerValue(clientShare.KeyExchange);
 
@@ -1469,9 +1469,8 @@ namespace Org.BouncyCastle.Tls
                     }
                 }
 
-                TlsCredentialedSigner serverCredentials = TlsUtilities.Establish13ServerCredentials(m_tlsServer);
-                if (null == serverCredentials)
-                    throw new TlsFatalAlert(AlertDescription.internal_error);
+                TlsCredentialedSigner serverCredentials = TlsUtilities.Establish13ServerCredentials(m_tlsServer)
+                    ?? throw new TlsFatalAlert(AlertDescription.internal_error);
 
                 // Certificate
                 {

@@ -17,6 +17,21 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         public static ResponseBytes GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new ResponseBytes(Asn1Sequence.GetInstance(obj, explicitly));
 
+        public static ResponseBytes GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is ResponseBytes responseBytes)
+                return responseBytes;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new ResponseBytes(asn1Sequence);
+
+            return null;
+        }
+
         public static ResponseBytes GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ResponseBytes(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -25,7 +40,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public ResponseBytes(DerObjectIdentifier responseType, Asn1OctetString response)
         {
-			m_responseType = responseType ?? throw new ArgumentNullException(nameof(responseType));
+            m_responseType = responseType ?? throw new ArgumentNullException(nameof(responseType));
             m_response = response ?? throw new ArgumentNullException(nameof(response));
         }
 
@@ -43,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public Asn1OctetString Response => m_response;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * ResponseBytes ::=       Sequence {
@@ -51,9 +66,6 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          *     response       OCTET STRING }
          * </pre>
          */
-        public override Asn1Object ToAsn1Object()
-        {
-			return new DerSequence(m_responseType, m_response);
-        }
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_responseType, m_response);
     }
 }

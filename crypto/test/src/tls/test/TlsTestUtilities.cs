@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -50,10 +50,8 @@ namespace Org.BouncyCastle.Tls.Tests
         internal static TlsPskIdentity CreateDefaultPskIdentity(bool badKey) =>
             new BasicTlsPskIdentity("client", GetPskPasswordUtf8(badKey));
 
-        internal static bool EqualsIgnoreCase(string a, string b)
-        {
-            return string.Equals(a, b, StringComparison.InvariantCultureIgnoreCase);
-        }
+        internal static bool EqualsIgnoreCase(string a, string b) =>
+            string.Equals(a, b, StringComparison.InvariantCultureIgnoreCase);
 
         internal static string Fingerprint(X509CertificateStructure c)
         {

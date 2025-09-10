@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.DH_RSA:
                 return keyExchange;
             default:
-                throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+                throw new ArgumentException("unsupported key exchange algorithm", nameof(keyExchange));
             }
         }
 
@@ -42,10 +42,8 @@ namespace Org.BouncyCastle.Tls
             m_dhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
         }
 
-        public override short[] GetClientCertificateTypes()
-        {
-            return new short[]{ ClientCertificateType.dss_fixed_dh, ClientCertificateType.rsa_fixed_dh };
-        }
+        public override short[] GetClientCertificateTypes() =>
+            new short[]{ ClientCertificateType.dss_fixed_dh, ClientCertificateType.rsa_fixed_dh };
 
         public override void SkipClientCredentials() => new TlsFatalAlert(AlertDescription.unexpected_message);
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading;
 
@@ -52,19 +52,19 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         [Test]
-        public void TestMLKem512()
+        public void TestMLKEM512()
         {
             ImplTestClientServer(NamedGroup.MLKEM512);
         }
 
         [Test]
-        public void TestMLKem768()
+        public void TestMLKEM768()
         {
             ImplTestClientServer(NamedGroup.MLKEM768);
         }
 
         [Test]
-        public void TestMLKem1024()
+        public void TestMLKEM1024()
         {
             ImplTestClientServer(NamedGroup.MLKEM1024);
         }

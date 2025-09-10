@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.RSA_PSK:
                 return keyExchange;
             default:
-                throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+                throw new ArgumentException("unsupported key exchange algorithm", nameof(keyExchange));
             }
         }
 
@@ -81,8 +81,7 @@ namespace Org.BouncyCastle.Tls
             if (m_keyExchange != KeyExchangeAlgorithm.RSA_PSK)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-            m_serverEncryptor = serverCertificate.GetCertificateAt(0).CreateEncryptor(
-                TlsCertificateRole.RsaEncryption);
+            m_serverEncryptor = serverCertificate.GetCertificateAt(0).CreateEncryptor(TlsCertificateRole.RsaEncryption);
         }
 
         public override byte[] GenerateServerKeyExchange()

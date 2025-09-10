@@ -251,29 +251,29 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             m_ordering = new List<DerObjectIdentifier>();
 
-            // Don't require empty sequence; we see empty extension blocks in the wild
+            // Don't require non-empty sequence; we see empty extension blocks in the wild
 
-			foreach (Asn1Encodable ae in seq)
-			{
+            foreach (Asn1Encodable ae in seq)
+            {
                 // TODO Move this block to an X509Extension.GetInstance method
 
-				Asn1Sequence s = Asn1Sequence.GetInstance(ae);
+                Asn1Sequence s = Asn1Sequence.GetInstance(ae);
 
-				if (s.Count < 2 || s.Count > 3)
-					throw new ArgumentException("Bad sequence size: " + s.Count);
+                if (s.Count < 2 || s.Count > 3)
+                    throw new ArgumentException("Bad sequence size: " + s.Count);
 
-				DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(s[0]);
+                DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(s[0]);
 
-				bool isCritical = s.Count == 3 && DerBoolean.GetInstance(s[1]).IsTrue;
+                bool isCritical = s.Count == 3 && DerBoolean.GetInstance(s[1]).IsTrue;
 
-				Asn1OctetString octets = Asn1OctetString.GetInstance(s[s.Count - 1]);
+                Asn1OctetString octets = Asn1OctetString.GetInstance(s[s.Count - 1]);
 
                 if (m_extensions.ContainsKey(oid))
                     throw new ArgumentException("repeated extension found: " + oid);
 
                 m_extensions.Add(oid, new X509Extension(isCritical, octets));
-				m_ordering.Add(oid);
-			}
+                m_ordering.Add(oid);
+            }
         }
 
         /**
@@ -328,17 +328,13 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public int Count => m_ordering.Count;
 
-		/**
-		 * return an Enumeration of the extension field's object ids.
-		 */
-		public IEnumerable<DerObjectIdentifier> ExtensionOids
-        {
-			get { return CollectionUtilities.Proxy(m_ordering); }
-        }
+        /**
+         * return an Enumeration of the extension field's object ids.
+         */
+        public IEnumerable<DerObjectIdentifier> ExtensionOids => CollectionUtilities.Proxy(m_ordering);
 
-		/**
-         * return the extension represented by the object identifier
-         * passed in.
+        /**
+         * return the extension represented by the object identifier passed in.
          *
          * @return the extension if it's present, null otherwise.
          */
@@ -355,22 +351,22 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public Asn1OctetString GetExtensionValue(DerObjectIdentifier oid) => GetExtension(oid)?.Value;
 
-		/**
-		 * <pre>
-		 *     Extensions        ::=   SEQUENCE SIZE (1..MAX) OF Extension
-		 *
-		 *     Extension         ::=   SEQUENCE {
-		 *        extnId            EXTENSION.&amp;id ({ExtensionSet}),
-		 *        critical          BOOLEAN DEFAULT FALSE,
-		 *        extnValue         OCTET STRING }
-		 * </pre>
-		 */
-		public override Asn1Object ToAsn1Object()
+        /**
+         * <pre>
+         *     Extensions        ::=   SEQUENCE SIZE (1..MAX) OF Extension
+         *
+         *     Extension         ::=   SEQUENCE {
+         *        extnId            EXTENSION.&amp;id ({ExtensionSet}),
+         *        critical          BOOLEAN DEFAULT FALSE,
+         *        extnValue         OCTET STRING }
+         * </pre>
+         */
+        public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector	v = new Asn1EncodableVector(m_ordering.Count);
+            Asn1EncodableVector v = new Asn1EncodableVector(m_ordering.Count);
 
-			foreach (DerObjectIdentifier oid in m_ordering)
-			{
+            foreach (DerObjectIdentifier oid in m_ordering)
+            {
                 X509Extension ext = m_extensions[oid];
                 if (ext.IsCritical)
                 {
@@ -382,7 +378,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 }
             }
 
-			return new DerSequence(v);
+            return new DerSequence(v);
         }
 
         internal Asn1Sequence ToAsn1ObjectTrimmed()
@@ -409,10 +405,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
             return new DerSequence(v);
         }
-		public bool Equivalent(X509Extensions other)
-		{
-			if (m_extensions.Count != other.m_extensions.Count)
-				return false;
+        public bool Equivalent(X509Extensions other)
+        {
+            if (m_extensions.Count != other.m_extensions.Count)
+                return false;
 
             foreach (var entry in m_extensions)
             {
@@ -420,14 +416,14 @@ namespace Org.BouncyCastle.Asn1.X509
                     return false;
             }
 
-			return true;
-		}
+            return true;
+        }
 
-		public DerObjectIdentifier[] GetExtensionOids() => m_ordering.ToArray();
+        public DerObjectIdentifier[] GetExtensionOids() => m_ordering.ToArray();
 
-		public DerObjectIdentifier[] GetNonCriticalExtensionOids() => GetExtensionOids(false);
+        public DerObjectIdentifier[] GetNonCriticalExtensionOids() => GetExtensionOids(false);
 
-		public DerObjectIdentifier[] GetCriticalExtensionOids() => GetExtensionOids(true);
+        public DerObjectIdentifier[] GetCriticalExtensionOids() => GetExtensionOids(true);
 
         public bool HasAnyCriticalExtensions()
         {
@@ -441,18 +437,18 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
         private DerObjectIdentifier[] GetExtensionOids(bool isCritical)
-		{
-			var oids = new List<DerObjectIdentifier>();
+        {
+            var oids = new List<DerObjectIdentifier>();
 
-			foreach (DerObjectIdentifier oid in m_ordering)
+            foreach (DerObjectIdentifier oid in m_ordering)
             {
-				if (m_extensions[oid].IsCritical == isCritical)
-				{
-					oids.Add(oid);
-				}
+                if (m_extensions[oid].IsCritical == isCritical)
+                {
+                    oids.Add(oid);
+                }
             }
 
             return oids.ToArray();
-		}
-	}
+        }
+    }
 }

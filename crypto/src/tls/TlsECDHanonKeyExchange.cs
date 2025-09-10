@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -17,12 +17,11 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.ECDH_anon:
                 return keyExchange;
             default:
-                throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+                throw new ArgumentException("unsupported key exchange algorithm", nameof(keyExchange));
             }
         }
 
         protected TlsECConfig m_ecConfig;
-
         protected TlsAgreement m_agreement;
 
         public TlsECDHanonKeyExchange(int keyExchange)
@@ -36,9 +35,7 @@ namespace Org.BouncyCastle.Tls
             m_ecConfig = ecConfig;
         }
 
-        public override void SkipServerCredentials()
-        {
-        }
+        public override void SkipServerCredentials() {}
 
         public override void ProcessServerCredentials(TlsCredentials serverCredentials) =>
             throw new TlsFatalAlert(AlertDescription.internal_error);

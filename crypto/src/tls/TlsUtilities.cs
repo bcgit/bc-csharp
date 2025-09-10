@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Sockets;
@@ -2142,8 +2142,7 @@ namespace Org.BouncyCastle.Tls
             return h.CalculateHash();
         }
 
-        internal static void SendSignatureInput(TlsContext context, DigestInputBuffer buf,
-            Stream output)
+        internal static void SendSignatureInput(TlsContext context, DigestInputBuffer buf, Stream output)
         {
             SecurityParameters sp = context.SecurityParameters;
             // NOTE: The implicit copy here is intended (and important)

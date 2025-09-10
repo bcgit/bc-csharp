@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
@@ -14,9 +14,9 @@ namespace Org.BouncyCastle.Tls
         public UrlAndHash(string url, byte[] sha1Hash)
         {
             if (TlsUtilities.IsNullOrEmpty(url) || url.Length >= (1 << 16))
-                throw new ArgumentException("must have length from 1 to (2^16 - 1)", "url");
+                throw new ArgumentException("must have length from 1 to (2^16 - 1)", nameof(url));
             if (sha1Hash != null && sha1Hash.Length != 20)
-                throw new ArgumentException("must have length == 20, if present", "sha1Hash");
+                throw new ArgumentException("must have length == 20, if present", nameof(sha1Hash));
 
             m_url = url;
             m_sha1Hash = sha1Hash;

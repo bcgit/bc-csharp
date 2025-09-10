@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
@@ -18,14 +18,14 @@ namespace Org.BouncyCastle.Tls
             case KeyExchangeAlgorithm.DHE_RSA:
                 return keyExchange;
             default:
-                throw new ArgumentException("unsupported key exchange algorithm", "keyExchange");
+                throw new ArgumentException("unsupported key exchange algorithm", nameof(keyExchange));
             }
         }
 
         // TODO[api] Make readonly
         protected TlsDHGroupVerifier m_dhGroupVerifier;
-        protected TlsDHConfig m_dhConfig;
 
+        protected TlsDHConfig m_dhConfig;
         protected TlsCredentialedSigner m_serverCredentials = null;
         protected TlsCertificate m_serverCertificate = null;
         protected TlsAgreement m_agreement;
