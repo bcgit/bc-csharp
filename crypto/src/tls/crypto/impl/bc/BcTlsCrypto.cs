@@ -422,6 +422,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public override bool HasSignatureAndHashAlgorithm(SignatureAndHashAlgorithm sigAndHashAlgorithm)
         {
+            int signatureScheme = SignatureScheme.From(sigAndHashAlgorithm);
+            if (SignatureScheme.IsMLDsaScheme(signatureScheme))
+                // TODO[tls-mldsa] Finish ML-DSA support before enabling
+                return false;
+
             short signature = sigAndHashAlgorithm.Signature;
 
             switch (sigAndHashAlgorithm.Hash)
@@ -438,10 +443,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             switch (signatureScheme)
             {
             case SignatureScheme.sm2sig_sm3:
-            // TODO[tls] Test coverage before adding
+                return false;
             case SignatureScheme.mldsa44:
             case SignatureScheme.mldsa65:
             case SignatureScheme.mldsa87:
+                // TODO[tls-mldsa] Finish ML-DSA support before enabling
                 return false;
             default:
             {

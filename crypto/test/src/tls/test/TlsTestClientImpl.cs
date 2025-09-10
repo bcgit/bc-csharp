@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -293,6 +293,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
                 string[] trustedCertResources = new string[]{ "x509-server-dsa.pem", "x509-server-ecdh.pem",
                     "x509-server-ecdsa.pem", "x509-server-ed25519.pem", "x509-server-ed448.pem",
+                    "x509-server-ml_dsa_44.pem", "x509-server-ml_dsa_65.pem", "x509-server-ml_dsa_87.pem",
                     "x509-server-rsa_pss_256.pem", "x509-server-rsa_pss_384.pem", "x509-server-rsa_pss_512.pem",
                     "x509-server-rsa-enc.pem", "x509-server-rsa-sign.pem" };
 

@@ -109,12 +109,27 @@ namespace Org.BouncyCastle.Tls.Tests
 
             if (EqualsIgnoreCase("ed25519", eeCertResource))
             {
-                return GetCACertResource(SignatureAlgorithm.ed25519);
+                return GetCACertResource13(SignatureScheme.ed25519);
             }
 
             if (EqualsIgnoreCase("ed448", eeCertResource))
             {
-                return GetCACertResource(SignatureAlgorithm.ed448);
+                return GetCACertResource13(SignatureScheme.ed448);
+            }
+
+            if (EqualsIgnoreCase("ml_dsa_44", eeCertResource))
+            {
+                return GetCACertResource13(SignatureScheme.DRAFT_mldsa44);
+            }
+
+            if (EqualsIgnoreCase("ml_dsa_65", eeCertResource))
+            {
+                return GetCACertResource13(SignatureScheme.DRAFT_mldsa65);
+            }
+
+            if (EqualsIgnoreCase("ml_dsa_87", eeCertResource))
+            {
+                return GetCACertResource13(SignatureScheme.DRAFT_mldsa87);
             }
 
             if (EqualsIgnoreCase("rsa", eeCertResource)
@@ -138,6 +153,11 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        internal static string GetCACertResource13(int signatureScheme)
+        {
+            return "x509-ca-" + GetResourceName13(signatureScheme) + ".pem";
         }
 
         internal static string GetPskPassword(bool badKey) => badKey ? "TLS_TEST_PSK_BAD" : "TLS_TEST_PSK";
@@ -172,6 +192,26 @@ namespace Org.BouncyCastle.Tls.Tests
             case SignatureAlgorithm.gostr34102012_256:
             case SignatureAlgorithm.gostr34102012_512:
 
+            default:
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+            }
+        }
+
+        internal static string GetResourceName13(int signatureScheme)
+        {
+            if (SignatureScheme.IsMLDsaScheme(signatureScheme))
+            {
+                return SignatureScheme.DRAFT_mldsa44 == signatureScheme ? "ml_dsa_44"
+                    :  SignatureScheme.DRAFT_mldsa65 == signatureScheme ? "ml_dsa_65"
+                    :                                                     "ml_dsa_87";
+            }
+
+            switch (signatureScheme)
+            {
+            case SignatureScheme.ed25519:
+                return "ed25519";
+            case SignatureScheme.ed448:
+                return "ed448";
             default:
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }

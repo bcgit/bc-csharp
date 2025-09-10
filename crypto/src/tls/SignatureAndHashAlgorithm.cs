@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 
 namespace Org.BouncyCastle.Tls
@@ -12,14 +12,15 @@ namespace Org.BouncyCastle.Tls
             Create(SignatureScheme.ecdsa_brainpoolP384r1tls13_sha384);
         public static readonly SignatureAndHashAlgorithm ecdsa_brainpoolP512r1tls13_sha512 =
             Create(SignatureScheme.ecdsa_brainpoolP512r1tls13_sha512);
-        public static readonly SignatureAndHashAlgorithm ed25519 =
-            Create(SignatureScheme.ed25519);
-        public static readonly SignatureAndHashAlgorithm ed448 =
-            Create(SignatureScheme.ed448);
+        public static readonly SignatureAndHashAlgorithm ed25519 = Create(SignatureScheme.ed25519);
+        public static readonly SignatureAndHashAlgorithm ed448 = Create(SignatureScheme.ed448);
         public static readonly SignatureAndHashAlgorithm gostr34102012_256 =
             Create(HashAlgorithm.Intrinsic, SignatureAlgorithm.gostr34102012_256);
         public static readonly SignatureAndHashAlgorithm gostr34102012_512 =
             Create(HashAlgorithm.Intrinsic, SignatureAlgorithm.gostr34102012_512);
+        public static readonly SignatureAndHashAlgorithm DRAFT_mldsa44 = Create(SignatureScheme.mldsa44);
+        public static readonly SignatureAndHashAlgorithm DRAFT_mldsa65 = Create(SignatureScheme.mldsa65);
+        public static readonly SignatureAndHashAlgorithm DRAFT_mldsa87 = Create(SignatureScheme.mldsa87);
         public static readonly SignatureAndHashAlgorithm rsa_pss_rsae_sha256 =
             Create(SignatureScheme.rsa_pss_rsae_sha256);
         public static readonly SignatureAndHashAlgorithm rsa_pss_rsae_sha384 =

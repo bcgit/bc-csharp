@@ -212,9 +212,23 @@ namespace Org.BouncyCastle.Tls
 
         public static SignatureAndHashAlgorithm GetSignatureAndHashAlgorithm(int signatureScheme)
         {
-            return SignatureAndHashAlgorithm.GetInstance(
-                GetHashAlgorithm(signatureScheme),
-                GetSignatureAlgorithm(signatureScheme));
+            switch (signatureScheme)
+            {
+            case ed25519:
+                return SignatureAndHashAlgorithm.ed25519;
+            case ed448:
+                return SignatureAndHashAlgorithm.ed448;
+            case mldsa44:
+                return SignatureAndHashAlgorithm.DRAFT_mldsa44;
+            case mldsa65:
+                return SignatureAndHashAlgorithm.DRAFT_mldsa65;
+            case mldsa87:
+                return SignatureAndHashAlgorithm.DRAFT_mldsa87;
+            default:
+                return SignatureAndHashAlgorithm.GetInstance(
+                    GetHashAlgorithm(signatureScheme),
+                    GetSignatureAlgorithm(signatureScheme));
+            }
         }
 
         public static string GetText(int signatureScheme)
