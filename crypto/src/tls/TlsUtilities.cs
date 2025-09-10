@@ -1372,6 +1372,20 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
+        internal static void Verify12SignatureAlgorithm(SignatureAndHashAlgorithm signatureAlgorithm, short alertDescription)
+        {
+            if (signatureAlgorithm != null)
+            {
+                int signatureScheme = SignatureScheme.From(signatureAlgorithm);
+
+                // TODO In future there might be more cases, so we'd need a more general method.
+                if (SignatureScheme.IsMLDsaScheme(signatureScheme))
+                    throw new TlsFatalAlert(alertDescription);
+            }
+        }
+
+        /// <exception cref="IOException"/>
+        [Obsolete("Will be removed")]
         public static void VerifySupportedSignatureAlgorithm(
             IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms, SignatureAndHashAlgorithm signatureAlgorithm)
         {
@@ -2252,7 +2266,10 @@ namespace Org.BouncyCastle.Tls
             }
             else
             {
-                VerifySupportedSignatureAlgorithm(securityParameters.ServerSigAlgs, sigAndHashAlg);
+                Verify12SignatureAlgorithm(sigAndHashAlg, AlertDescription.illegal_parameter);
+
+                VerifySupportedSignatureAlgorithm(securityParameters.ServerSigAlgs, sigAndHashAlg,
+                    AlertDescription.illegal_parameter);
 
                 signatureAlgorithm = sigAndHashAlg.Signature;
 
@@ -2342,7 +2359,7 @@ namespace Org.BouncyCastle.Tls
                 int signatureScheme = certificateVerify.Algorithm;
 
                 SignatureAndHashAlgorithm algorithm = SignatureScheme.GetSignatureAndHashAlgorithm(signatureScheme);
-                VerifySupportedSignatureAlgorithm(supportedAlgorithms, algorithm);
+                VerifySupportedSignatureAlgorithm(supportedAlgorithms, algorithm, AlertDescription.illegal_parameter);
 
                 Tls13Verifier verifier = certificate.CreateVerifier(signatureScheme);
 
@@ -2440,7 +2457,10 @@ namespace Org.BouncyCastle.Tls
                 if (!IsValidSignatureAlgorithmForServerKeyExchange(signatureAlgorithm, keyExchangeAlgorithm))
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-                VerifySupportedSignatureAlgorithm(securityParameters.ClientSigAlgs, sigAndHashAlg);
+                Verify12SignatureAlgorithm(sigAndHashAlg, AlertDescription.illegal_parameter);
+
+                VerifySupportedSignatureAlgorithm(securityParameters.ClientSigAlgs, sigAndHashAlg,
+                    AlertDescription.illegal_parameter);
             }
 
             TlsVerifier verifier = serverCertificate.CreateVerifier(signatureAlgorithm);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             : base(crypto, privateKey)
         {
             if (!SignatureScheme.IsRsaPss(signatureScheme))
-                throw new ArgumentException("signatureScheme");
+                throw new ArgumentException(nameof(signatureScheme));
 
             this.m_signatureScheme = signatureScheme;
         }

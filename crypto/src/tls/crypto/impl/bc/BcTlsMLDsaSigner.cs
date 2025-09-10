@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -21,6 +21,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         private BcTlsMLDsaSigner(BcTlsCrypto crypto, MLDsaPrivateKeyParameters privateKey, int signatureScheme)
             : base(crypto, privateKey)
         {
+            if (!SignatureScheme.IsMLDsaScheme(signatureScheme))
+                throw new ArgumentException(nameof(signatureScheme));
+
             m_signatureScheme = signatureScheme;
         }
 
@@ -31,6 +34,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
             var mlDsaAlgOid = PqcUtilities.GetMLDsaObjectidentifier(m_signatureScheme);
 
+            /*
+             * draft-ietf-tls-mldsa-00 3. The context parameter [..] MUST be the empty string.
+             */
             var signer = SignerUtilities.InitSigner(mlDsaAlgOid, forSigning: true, m_privateKey, m_crypto.SecureRandom);
 
             return new BcTlsStreamSigner(signer);

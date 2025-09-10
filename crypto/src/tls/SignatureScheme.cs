@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Tls.Crypto;
 
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Tls
         public const int sm2sig_sm3 = 0x0708;
 
         /*
-         * draft-tls-westerbaan-mldsa-00
+         * draft-ietf-tls-mldsa-00
          */
         public static readonly int DRAFT_mldsa44 = 0x0904;
         public static readonly int DRAFT_mldsa65 = 0x0905;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -262,6 +262,8 @@ namespace Org.BouncyCastle.Tls
                         clientAuthAlgorithm = TlsUtilities.GetSignatureAndHashAlgorithm(
                             securityParameters.NegotiatedVersion, clientAuthSigner);
                         clientAuthStreamSigner = clientAuthSigner.GetStreamSigner();
+
+                        TlsUtilities.Verify12SignatureAlgorithm(clientAuthAlgorithm, AlertDescription.internal_error);
 
                         if (ProtocolVersion.DTLSv12.Equals(securityParameters.NegotiatedVersion))
                         {
