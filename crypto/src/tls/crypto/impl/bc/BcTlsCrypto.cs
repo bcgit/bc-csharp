@@ -424,8 +424,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
             int signatureScheme = SignatureScheme.From(sigAndHashAlgorithm);
             if (SignatureScheme.IsMLDsaScheme(signatureScheme))
-                // TODO[tls-mldsa] Finish ML-DSA support before enabling
-                return false;
+                return true;
 
             short signature = sigAndHashAlgorithm.Signature;
 
@@ -447,8 +446,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case SignatureScheme.mldsa44:
             case SignatureScheme.mldsa65:
             case SignatureScheme.mldsa87:
-                // TODO[tls-mldsa] Finish ML-DSA support before enabling
-                return false;
+                return true;
             default:
             {
                 short signature = SignatureScheme.GetSignatureAlgorithm(signatureScheme);

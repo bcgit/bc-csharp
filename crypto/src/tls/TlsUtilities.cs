@@ -84,9 +84,9 @@ namespace Org.BouncyCastle.Tls
             AddCertSigAlgOid(d, EdECObjectIdentifiers.id_Ed25519, SignatureAndHashAlgorithm.ed25519);
             AddCertSigAlgOid(d, EdECObjectIdentifiers.id_Ed448, SignatureAndHashAlgorithm.ed448);
 
-            AddCertSigAlgOid(d, NistObjectIdentifiers.id_ml_dsa_44, SignatureAndHashAlgorithm.DRAFT_mldsa44);
-            AddCertSigAlgOid(d, NistObjectIdentifiers.id_ml_dsa_65, SignatureAndHashAlgorithm.DRAFT_mldsa65);
-            AddCertSigAlgOid(d, NistObjectIdentifiers.id_ml_dsa_87, SignatureAndHashAlgorithm.DRAFT_mldsa87);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_ml_dsa_44, SignatureAndHashAlgorithm.mldsa44);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_ml_dsa_65, SignatureAndHashAlgorithm.mldsa65);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_ml_dsa_87, SignatureAndHashAlgorithm.mldsa87);
 
             AddCertSigAlgOid(d, RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256,
                 SignatureAndHashAlgorithm.gostr34102012_256);
@@ -107,12 +107,15 @@ namespace Org.BouncyCastle.Tls
             result.Add(SignatureAndHashAlgorithm.GetInstance(HashAlgorithm.sha256, SignatureAlgorithm.ecdsa));
             result.Add(SignatureAndHashAlgorithm.GetInstance(HashAlgorithm.sha384, SignatureAlgorithm.ecdsa));
             result.Add(SignatureAndHashAlgorithm.GetInstance(HashAlgorithm.sha512, SignatureAlgorithm.ecdsa));
-            result.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
-            result.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha384);
-            result.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha512);
             result.Add(SignatureAndHashAlgorithm.rsa_pss_pss_sha256);
             result.Add(SignatureAndHashAlgorithm.rsa_pss_pss_sha384);
             result.Add(SignatureAndHashAlgorithm.rsa_pss_pss_sha512);
+            result.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
+            result.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha384);
+            result.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha512);
+            result.Add(SignatureAndHashAlgorithm.mldsa44);
+            result.Add(SignatureAndHashAlgorithm.mldsa65);
+            result.Add(SignatureAndHashAlgorithm.mldsa87);
             result.Add(SignatureAndHashAlgorithm.GetInstance(HashAlgorithm.sha256, SignatureAlgorithm.rsa));
             result.Add(SignatureAndHashAlgorithm.GetInstance(HashAlgorithm.sha384, SignatureAlgorithm.rsa));
             result.Add(SignatureAndHashAlgorithm.GetInstance(HashAlgorithm.sha512, SignatureAlgorithm.rsa));

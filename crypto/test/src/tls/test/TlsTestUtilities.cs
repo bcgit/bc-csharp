@@ -119,17 +119,17 @@ namespace Org.BouncyCastle.Tls.Tests
 
             if (EqualsIgnoreCase("ml_dsa_44", eeCertResource))
             {
-                return GetCACertResource13(SignatureScheme.DRAFT_mldsa44);
+                return GetCACertResource13(SignatureScheme.mldsa44);
             }
 
             if (EqualsIgnoreCase("ml_dsa_65", eeCertResource))
             {
-                return GetCACertResource13(SignatureScheme.DRAFT_mldsa65);
+                return GetCACertResource13(SignatureScheme.mldsa65);
             }
 
             if (EqualsIgnoreCase("ml_dsa_87", eeCertResource))
             {
-                return GetCACertResource13(SignatureScheme.DRAFT_mldsa87);
+                return GetCACertResource13(SignatureScheme.mldsa87);
             }
 
             if (EqualsIgnoreCase("rsa", eeCertResource)
@@ -201,9 +201,9 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             if (SignatureScheme.IsMLDsaScheme(signatureScheme))
             {
-                return SignatureScheme.DRAFT_mldsa44 == signatureScheme ? "ml_dsa_44"
-                    :  SignatureScheme.DRAFT_mldsa65 == signatureScheme ? "ml_dsa_65"
-                    :                                                     "ml_dsa_87";
+                return SignatureScheme.mldsa44 == signatureScheme ? "ml_dsa_44"
+                    :  SignatureScheme.mldsa65 == signatureScheme ? "ml_dsa_65"
+                    :                                               "ml_dsa_87";
             }
 
             switch (signatureScheme)

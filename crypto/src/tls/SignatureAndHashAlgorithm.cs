@@ -18,9 +18,9 @@ namespace Org.BouncyCastle.Tls
             Create(HashAlgorithm.Intrinsic, SignatureAlgorithm.gostr34102012_256);
         public static readonly SignatureAndHashAlgorithm gostr34102012_512 =
             Create(HashAlgorithm.Intrinsic, SignatureAlgorithm.gostr34102012_512);
-        public static readonly SignatureAndHashAlgorithm DRAFT_mldsa44 = Create(SignatureScheme.mldsa44);
-        public static readonly SignatureAndHashAlgorithm DRAFT_mldsa65 = Create(SignatureScheme.mldsa65);
-        public static readonly SignatureAndHashAlgorithm DRAFT_mldsa87 = Create(SignatureScheme.mldsa87);
+        public static readonly SignatureAndHashAlgorithm mldsa44 = Create(SignatureScheme.mldsa44);
+        public static readonly SignatureAndHashAlgorithm mldsa65 = Create(SignatureScheme.mldsa65);
+        public static readonly SignatureAndHashAlgorithm mldsa87 = Create(SignatureScheme.mldsa87);
         public static readonly SignatureAndHashAlgorithm rsa_pss_rsae_sha256 =
             Create(SignatureScheme.rsa_pss_rsae_sha256);
         public static readonly SignatureAndHashAlgorithm rsa_pss_rsae_sha384 =

@@ -51,13 +51,16 @@ namespace Org.BouncyCastle.Tls
         /*
          * draft-ietf-tls-mldsa-00
          */
-        public static readonly int DRAFT_mldsa44 = 0x0904;
-        public static readonly int DRAFT_mldsa65 = 0x0905;
-        public static readonly int DRAFT_mldsa87 = 0x0906;
+        public const int mldsa44 = 0x0904;
+        public const int mldsa65 = 0x0905;
+        public const int mldsa87 = 0x0906;
 
-        internal const int mldsa44 = 0x0904;
-        internal const int mldsa65 = 0x0905;
-        internal const int mldsa87 = 0x0906;
+        [Obsolete("Use 'mldsa44' instead")]
+        public static readonly int DRAFT_mldsa44 = mldsa44;
+        [Obsolete("Use 'mldsa65' instead")]
+        public static readonly int DRAFT_mldsa65 = mldsa65;
+        [Obsolete("Use 'mldsa87' instead")]
+        public static readonly int DRAFT_mldsa87 = mldsa87;
 
         /*
          * RFC 8446 reserved for private use (0xFE00..0xFFFF)
@@ -161,11 +164,11 @@ namespace Org.BouncyCastle.Tls
             case sm2sig_sm3:
                 return "sm2sig_sm3";
             case mldsa44:
-                return "DRAFT_mldsa44";
+                return "mldsa44";
             case mldsa65:
-                return "DRAFT_mldsa65";
+                return "mldsa65";
             case mldsa87:
-                return "DRAFT_mldsa87";
+                return "mldsa87";
             default:
                 return "UNKNOWN";
             }
@@ -219,11 +222,11 @@ namespace Org.BouncyCastle.Tls
             case ed448:
                 return SignatureAndHashAlgorithm.ed448;
             case mldsa44:
-                return SignatureAndHashAlgorithm.DRAFT_mldsa44;
+                return SignatureAndHashAlgorithm.mldsa44;
             case mldsa65:
-                return SignatureAndHashAlgorithm.DRAFT_mldsa65;
+                return SignatureAndHashAlgorithm.mldsa65;
             case mldsa87:
-                return SignatureAndHashAlgorithm.DRAFT_mldsa87;
+                return SignatureAndHashAlgorithm.mldsa87;
             default:
                 return SignatureAndHashAlgorithm.GetInstance(
                     GetHashAlgorithm(signatureScheme),
