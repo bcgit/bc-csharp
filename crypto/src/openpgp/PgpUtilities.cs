@@ -489,7 +489,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             //
             // nothing but new lines, little else, assume regular armoring
             //
-            if (count < 4)
+            if (index < 4)
                 return new ArmoredInputStream(inputStream);
 
             //
