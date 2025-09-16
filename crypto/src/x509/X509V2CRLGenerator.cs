@@ -41,17 +41,17 @@ namespace Org.BouncyCastle.X509
             var extensions = template.TbsCertList.Extensions;
             if (extensions != null)
             {
-				foreach (var oid in extensions.ExtensionOids)
-				{
-					if (X509Extensions.AltSignatureAlgorithm.Equals(oid) ||
-						X509Extensions.AltSignatureValue.Equals(oid))
-					{
-						continue;
-					}
+                foreach (var oid in extensions.ExtensionOids)
+                {
+                    if (X509Extensions.AltSignatureAlgorithm.Equals(oid) ||
+                        X509Extensions.AltSignatureValue.Equals(oid))
+                    {
+                        continue;
+                    }
 
-					X509Extension ext = extensions.GetExtension(oid);
-					extGenerator.AddExtension(oid, ext.critical, ext.Value.GetOctets());
-				}
+                    var extension = extensions.GetExtension(oid);
+                    extGenerator.AddExtension(oid, extension.IsCritical, extension.Value.GetOctets());
+                }
             }
         }
 

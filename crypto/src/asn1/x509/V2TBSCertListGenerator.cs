@@ -29,14 +29,15 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class V2TbsCertListGenerator
     {
-        private DerInteger			version = DerInteger.One;
-        private AlgorithmIdentifier	signature;
-        private X509Name			issuer;
-        private Time				thisUpdate, nextUpdate;
-        private X509Extensions		extensions;
-        private List<Asn1Sequence>  crlEntries;
+        private DerInteger version = DerInteger.One;
+        private AlgorithmIdentifier signature;
+        private X509Name issuer;
+        private Time thisUpdate, nextUpdate;
+        // TODO[api] Eventually should be 'Extensions', but support X509Extensions for now
+        private Asn1Encodable m_extensions;
+        private List<Asn1Sequence> crlEntries;
 
-		public V2TbsCertListGenerator()
+        public V2TbsCertListGenerator()
         {
         }
 
@@ -140,7 +141,13 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public void SetExtensions(X509Extensions extensions)
         {
-            this.extensions = extensions;
+            //SetExtensions(Extensions.GetInstance(extensions));
+            m_extensions = extensions;
+        }
+
+        public void SetExtensions(Extensions extensions)
+        {
+            m_extensions = extensions;
         }
 
         public Asn1Sequence GeneratePreTbsCertList()
@@ -178,7 +185,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 v.Add(new DerSequence(crlEntries.ToArray()));
             }
 
-            v.AddOptionalTagged(true, 0, extensions);
+            v.AddOptionalTagged(true, 0, m_extensions);
 
             return new DerSequence(v);
         }

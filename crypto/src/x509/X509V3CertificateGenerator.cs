@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
@@ -50,10 +50,10 @@ namespace Org.BouncyCastle.X509
                     continue;
                 }
 
-                X509Extension ext = extensions.GetExtension(oid);
-                extGenerator.AddExtension(oid, ext.critical, ext.Value.GetOctets());
+                var extension = extensions.GetExtension(oid);
+                extGenerator.AddExtension(oid, extension.IsCritical, extension.Value.GetOctets());
             }
-		}
+        }
 
 		/// <summary>
 		/// Reset the Generator.

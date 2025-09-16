@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
@@ -28,6 +28,21 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public static Extension GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Extension(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static Extension GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is Extension existing)
+                return existing;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new Extension(asn1Sequence);
+
+            return null;
+        }
 
         public static Extension GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Extension(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
@@ -63,6 +78,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public Asn1OctetString ExtnValue => m_extnValue;
 
+        public Asn1Object GetParsedValue() => ConvertValueToObject(m_extnValue);
+
+        public X509Extension GetX509Extension() => new X509Extension(m_critical, m_extnValue);
+
         public override Asn1Object ToAsn1Object()
         {
             return DefaultCritical.Equals(m_critical)
@@ -70,6 +89,16 @@ namespace Org.BouncyCastle.Asn1.X509
                 :   new DerSequence(m_extnID, m_critical, m_extnValue);
         }
 
-        public X509Extension GetX509Extension() => new X509Extension(m_critical, m_extnValue);
+        internal static Asn1Object ConvertValueToObject(Asn1OctetString extnValue)
+        {
+            try
+            {
+                return Asn1Object.FromByteArray(extnValue.GetOctets());
+            }
+            catch (Exception e)
+            {
+                throw new ArgumentException("can't convert extension", e);
+            }
+        }
     }
 }

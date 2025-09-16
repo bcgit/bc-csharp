@@ -76,8 +76,8 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             foreach (var oid in extensions.GetExtensionOids())
             {
-                X509Extension ext = extensions.GetExtension(oid);
-                AddExtension(oid, ext.critical, ext.Value.GetOctets());
+                var extension = extensions.GetExtension(oid);
+                AddExtension(oid, extension.IsCritical, extension.Value.GetOctets());
             }
         }
 
