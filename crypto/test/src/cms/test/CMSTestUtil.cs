@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Cms.Tests
         public static readonly SecureRandom Random = new SecureRandom();
 
         private static IAsymmetricCipherKeyPairGenerator kpg;
+        private static IAsymmetricCipherKeyPairGenerator kpg_2048;
         private static IAsymmetricCipherKeyPairGenerator gostKpg;
         private static IAsymmetricCipherKeyPairGenerator dsaKpg;
         private static IAsymmetricCipherKeyPairGenerator ecGostKpg;
@@ -143,20 +144,23 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         private static IAsymmetricCipherKeyPairGenerator InitKpg(ref IAsymmetricCipherKeyPairGenerator kpg,
-			string algorithm, Func<KeyGenerationParameters> createParameters)
+            string algorithm, Func<KeyGenerationParameters> createParameters)
         {
             var current = Volatile.Read(ref kpg);
             if (null != current)
                 return current;
 
-			var candidate = GeneratorUtilities.GetKeyPairGenerator(algorithm);
-			candidate.Init(createParameters());
+            var candidate = GeneratorUtilities.GetKeyPairGenerator(algorithm);
+            candidate.Init(createParameters());
 
             return Interlocked.CompareExchange(ref kpg, candidate, null) ?? candidate;
         }
 
-		private static IAsymmetricCipherKeyPairGenerator Kpg => InitKpg(ref kpg, "RSA", () =>
-			new RsaKeyGenerationParameters(BigInteger.ValueOf(17), Random, 1024, 25));
+        private static IAsymmetricCipherKeyPairGenerator Kpg => InitKpg(ref kpg, "RSA", () =>
+            new RsaKeyGenerationParameters(BigInteger.ValueOf(17), Random, 1024, 25));
+
+        private static IAsymmetricCipherKeyPairGenerator Kpg_2048 => InitKpg(ref kpg_2048, "RSA", () =>
+            new RsaKeyGenerationParameters(BigInteger.ValueOf(17), Random, 2048, 25));
 
         private static IAsymmetricCipherKeyPairGenerator GostKpg => InitKpg(ref gostKpg, "GOST3410", () =>
             new Gost3410KeyGenerationParameters(Random, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
@@ -300,10 +304,12 @@ namespace Org.BouncyCastle.Cms.Tests
 			return buf.ToString();
 		}
 
-		public static X509V2AttributeCertificate GetAttributeCertificate() =>
-			new X509AttrCertParser().ReadAttrCert(attrCert);
+        public static X509V2AttributeCertificate GetAttributeCertificate() =>
+            new X509AttrCertParser().ReadAttrCert(attrCert);
 
         public static AsymmetricCipherKeyPair MakeKeyPair() => Kpg.GenerateKeyPair();
+
+        public static AsymmetricCipherKeyPair MakeKeyPair_2048() => Kpg_2048.GenerateKeyPair();
 
         public static AsymmetricCipherKeyPair MakeGostKeyPair() => GostKpg.GenerateKeyPair();
 

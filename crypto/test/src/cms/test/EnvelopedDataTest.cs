@@ -24,31 +24,31 @@ namespace Org.BouncyCastle.Cms.Tests
     [TestFixture]
     [Parallelizable(ParallelScope.All)]
     public class EnvelopedDataTest
-	{
-		private const string SignDN = "O=Bouncy Castle, C=AU";
+    {
+        private const string SignDN = "O=Bouncy Castle, C=AU";
 
-		private static AsymmetricCipherKeyPair signKP;
-//		private static X509Certificate signCert;
-		//signCert = CmsTestUtil.MakeCertificate(_signKP, SignDN, _signKP, SignDN);
+        private static AsymmetricCipherKeyPair signKP;
+        //private static X509Certificate signCert = CmsTestUtil.MakeCertificate(_signKP, SignDN, _signKP, SignDN);
 
-//		private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
+        //private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
 
-//		private static AsymmetricCipherKeyPair origKP;
-		//origKP = CmsTestUtil.MakeKeyPair();
-//		private static X509Certificate origCert;
-		//origCert = CmsTestUtil.MakeCertificate(_origKP, OrigDN, _signKP, SignDN);
+        //private static AsymmetricCipherKeyPair origKP = CmsTestUtil.MakeKeyPair();
+        //private static X509Certificate origCert = CmsTestUtil.MakeCertificate(_origKP, OrigDN, _signKP, SignDN);
 
-		private const string ReciDN = "CN=Doug, OU=Sales, O=Bouncy Castle, C=AU";
-		private const string ReciDN2 = "CN=Fred, OU=Sales, O=Bouncy Castle, C=AU";
+        private const string ReciDN = "CN=Doug, OU=Sales, O=Bouncy Castle, C=AU";
+        private const string ReciDN2 = "CN=Fred, OU=Sales, O=Bouncy Castle, C=AU";
 
-		private static AsymmetricCipherKeyPair reciKP;
-		private static X509Certificate reciCert;
+        private static AsymmetricCipherKeyPair reciKP;
+        private static X509Certificate reciCert;
 
-		private static AsymmetricCipherKeyPair origECKP;
-		private static AsymmetricCipherKeyPair reciECKP;
-		private static X509Certificate reciECCert;
-		private static AsymmetricCipherKeyPair reciECKP2;
-		private static X509Certificate reciECCert2;
+        private static AsymmetricCipherKeyPair reciKP_2048;
+        private static X509Certificate reciCert_2048;
+
+        private static AsymmetricCipherKeyPair origECKP;
+        private static AsymmetricCipherKeyPair reciECKP;
+        private static X509Certificate reciECCert;
+        private static AsymmetricCipherKeyPair reciECKP2;
+        private static X509Certificate reciECCert2;
         private static AsymmetricCipherKeyPair reciMLKem512KP;
         private static X509Certificate reciMLKem512Cert;
         private static AsymmetricCipherKeyPair reciMLKem768KP;
@@ -60,6 +60,8 @@ namespace Org.BouncyCastle.Cms.Tests
             CmsTestUtil.InitKP(ref origECKP, CmsTestUtil.MakeECDsaKeyPair);
 
         private static AsymmetricCipherKeyPair ReciKP => CmsTestUtil.InitKP(ref reciKP, CmsTestUtil.MakeKeyPair);
+
+        private static AsymmetricCipherKeyPair ReciKP_2048 => CmsTestUtil.InitKP(ref reciKP_2048, CmsTestUtil.MakeKeyPair_2048);
 
         private static AsymmetricCipherKeyPair ReciECKP =>
             CmsTestUtil.InitKP(ref reciECKP, CmsTestUtil.MakeECDsaKeyPair);
@@ -78,8 +80,11 @@ namespace Org.BouncyCastle.Cms.Tests
 
         private static AsymmetricCipherKeyPair SignKP => CmsTestUtil.InitKP(ref signKP, CmsTestUtil.MakeKeyPair);
 
-		private static X509Certificate ReciCert => CmsTestUtil.InitCertificate(ref reciCert,
-			() => CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN));
+        private static X509Certificate ReciCert => CmsTestUtil.InitCertificate(ref reciCert,
+            () => CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN));
+
+        private static X509Certificate ReciCert_2048 => CmsTestUtil.InitCertificate(ref reciCert_2048,
+            () => CmsTestUtil.MakeCertificate(ReciKP_2048, ReciDN, SignKP, SignDN));
 
         private static X509Certificate ReciECCert => CmsTestUtil.InitCertificate(ref reciECCert,
             () => CmsTestUtil.MakeCertificate(ReciECKP, ReciDN, SignKP, SignDN));
