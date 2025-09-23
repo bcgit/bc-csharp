@@ -157,44 +157,20 @@ namespace Org.BouncyCastle.Utilities
         }
 
         [Obsolete("Use 'FixedTimeEquals' instead")]
-        public static bool ConstantTimeAreEqual(byte[] a, byte[] b)
-        {
-            return FixedTimeEquals(a, b);
-        }
+        public static bool ConstantTimeAreEqual(byte[] a, byte[] b) => FixedTimeEquals(a, b);
 
         [Obsolete("Use 'FixedTimeEquals' instead")]
-        public static bool ConstantTimeAreEqual(int len, byte[] a, int aOff, byte[] b, int bOff)
-        {
-            return FixedTimeEquals(len, a, aOff, b, bOff);
-        }
+        public static bool ConstantTimeAreEqual(int len, byte[] a, int aOff, byte[] b, int bOff) =>
+            FixedTimeEquals(len, a, aOff, b, bOff);
 
-#if !(NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-#endif
         public static bool FixedTimeEquals(byte[] a, byte[] b)
         {
             if (null == a || null == b)
                 return false;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return CryptographicOperations.FixedTimeEquals(a, b);
-#else
-            int len = a.Length;
-            if (len != b.Length)
-                return false;
-
-            int d = 0;
-            for (int i = 0; i < len; ++i)
-            {
-                d |= a[i] ^ b[i];
-            }
-            return 0 == d;
-#endif
+            return InternalFixedTimeEquals(a, b);
         }
 
-#if !(NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-#endif
         public static bool FixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
         {
             if (null == a)
@@ -208,30 +184,8 @@ namespace Org.BouncyCastle.Utilities
             if (bOff > (b.Length - len))
                 throw new IndexOutOfRangeException("'bOff' value invalid for specified length");
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return CryptographicOperations.FixedTimeEquals(a.AsSpan(aOff, len), b.AsSpan(bOff, len));
-#else
-            int d = 0;
-            for (int i = 0; i < len; ++i)
-            {
-                d |= a[aOff + i] ^ b[bOff + i];
-            }
-            return 0 == d;
-#endif
+            return InternalFixedTimeEquals(len, a, aOff, b, bOff);
         }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        [Obsolete("Use 'FixedTimeEquals' instead")]
-        public static bool ConstantTimeAreEqual(Span<byte> a, Span<byte> b)
-        {
-            return CryptographicOperations.FixedTimeEquals(a, b);
-        }
-
-        public static bool FixedTimeEquals(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
-        {
-            return CryptographicOperations.FixedTimeEquals(a, b);
-        }
-#endif
 
         public static bool AreEqual(
             int[]	a,
@@ -808,13 +762,6 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static void Fill<T>(Span<T> ts, T t)
-        {
-            ts.Fill(t);
-        }
-#endif
-
         public static byte[] CopyOf(byte[] data, int newLength)
         {
             byte[] tmp = new byte[newLength];
@@ -1258,8 +1205,19 @@ namespace Org.BouncyCastle.Utilities
                 throw new ArgumentOutOfRangeException(nameof(len));
         }
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void ZeroMemory(byte[] buf)
+        {
+            ValidateBuffer(buf);
+            InternalZeroMemory(buf);
+        }
 
+        public static void ZeroMemory(byte[] buf, int off, int len)
+        {
+            ValidateSegment(buf, off, len);
+            InternalZeroMemory(buf, off, len);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
         {
             byte[] rv = new byte[a.Length + b.Length];
@@ -1288,12 +1246,77 @@ namespace Org.BouncyCastle.Utilities
             return rv;
         }
 
+        [Obsolete("Use 'FixedTimeEquals' instead")]
+        public static bool ConstantTimeAreEqual(Span<byte> a, Span<byte> b) => FixedTimeEquals(a, b);
+
+        public static void Fill<T>(Span<T> ts, T t) => ts.Fill(t);
+
+        public static bool FixedTimeEquals(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b) =>
+            CryptographicOperations.FixedTimeEquals(a, b);
+
+        public static bool InternalFixedTimeEquals(byte[] a, byte[] b) => CryptographicOperations.FixedTimeEquals(a, b);
+
+        public static bool InternalFixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff) =>
+            CryptographicOperations.FixedTimeEquals(a.AsSpan(aOff, len), b.AsSpan(bOff, len));
+
+        internal static void InternalZeroMemory(byte[] buf) =>
+            CryptographicOperations.ZeroMemory(buf);
+
+        internal static void InternalZeroMemory(byte[] buf, int off, int len) =>
+            CryptographicOperations.ZeroMemory(buf.AsSpan(off, len));
+
         public static T[] Prepend<T>(ReadOnlySpan<T> a, T b)
         {
             T[] result = new T[1 + a.Length];
             result[0] = b;
             a.CopyTo(result.AsSpan(1));
             return result;
+        }
+
+        public static void ZeroMemory(Span<byte> buffer) => CryptographicOperations.ZeroMemory(buffer);
+#else
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static bool InternalFixedTimeEquals(byte[] a, byte[] b)
+        {
+            int len = a.Length;
+            if (len != b.Length)
+                return false;
+
+            int d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= a[i] ^ b[i];
+            }
+            return 0 == d;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static bool InternalFixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
+        {
+            int d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= a[aOff + i] ^ b[bOff + i];
+            }
+            return 0 == d;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(byte[] buf)
+        {
+            for (int i = 0; i < buf.Length; ++i)
+            {
+                buf[i] = 0;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(byte[] buf, int off, int len)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                buf[off + i] = 0;
+            }
         }
 #endif
     }
