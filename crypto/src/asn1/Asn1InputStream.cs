@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Buffers.Binary;
 #endif
@@ -397,6 +398,12 @@ namespace Org.BouncyCastle.Asn1
                 bool usedBuffer = GetBuffer(defIn, tmpBuffers, out var contents);
                 return DerEnumerated.CreatePrimitive(contents, clone: usedBuffer);
             }
+            case Asn1Tags.Null:
+            {
+                Asn1Null.CheckContentsLength(defIn.Remaining);
+                Debug.Assert(defIn.Remaining == 0);
+                return Asn1Null.CreatePrimitive();
+            }
             case Asn1Tags.ObjectIdentifier:
             {
                 DerObjectIdentifier.CheckContentsLength(defIn.Remaining);
@@ -427,8 +434,6 @@ namespace Org.BouncyCastle.Asn1
                 return DerIA5String.CreatePrimitive(bytes);
             case Asn1Tags.Integer:
                 return DerInteger.CreatePrimitive(bytes);
-            case Asn1Tags.Null:
-                return Asn1Null.CreatePrimitive(bytes);
             case Asn1Tags.NumericString:
                 return DerNumericString.CreatePrimitive(bytes);
             case Asn1Tags.ObjectDescriptor:
