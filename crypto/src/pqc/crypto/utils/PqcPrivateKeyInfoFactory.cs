@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             {
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.HqcOidLookup(hqcPrivateKeyParameters.Parameters));
-                byte[] encoding = hqcPrivateKeyParameters.PrivateKey;
+                byte[] encoding = hqcPrivateKeyParameters.GetEncoded();
                 return new PrivateKeyInfo(algorithmIdentifier, new DerOctetString(encoding), attributes);
             }
             else if (privateKey is NtruPrivateKeyParameters ntruPrivateKeyParameters)

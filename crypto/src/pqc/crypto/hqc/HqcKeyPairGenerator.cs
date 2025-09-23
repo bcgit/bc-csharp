@@ -1,38 +1,22 @@
-﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
 {
-    public class HqcKeyPairGenerator : IAsymmetricCipherKeyPairGenerator
+    public class HqcKeyPairGenerator
+        : IAsymmetricCipherKeyPairGenerator
     {
         private int n;
-
         private int k;
-
-        private int delta;
-
-        private int w;
-
-        private int wr;
-
-        private int we;
         private int N_BYTE;
         private HqcKeyGenerationParameters hqcKeyGenerationParameters;
 
         private SecureRandom random;
 
-        public AsymmetricCipherKeyPair GenerateKeyPair()
-        {
-            byte[] seed = new byte[48];
-            random.NextBytes(seed);
-            return GenKeyPair(seed);
-        }
+        public AsymmetricCipherKeyPair GenerateKeyPair() => GenKeyPair(SecureRandom.GetNextBytes(random, 48));
 
-        public AsymmetricCipherKeyPair GenerateKeyPairWithSeed(byte[] seed)
-        {
-            return GenKeyPair(seed);
-        }
+        public AsymmetricCipherKeyPair GenerateKeyPairWithSeed(byte[] seed) => GenKeyPair(seed);
 
         public void Init(KeyGenerationParameters parameters)
         {
@@ -42,12 +26,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             // get parameters
             n = hqcKeyGenerationParameters.Parameters.N;
             k = hqcKeyGenerationParameters.Parameters.K;
-            delta = hqcKeyGenerationParameters.Parameters.Delta;
-            w = hqcKeyGenerationParameters.Parameters.W;
-            wr = hqcKeyGenerationParameters.Parameters.Wr;
-            we = hqcKeyGenerationParameters.Parameters.We;
             N_BYTE = (n + 7) / 8;
         }
+
         private AsymmetricCipherKeyPair GenKeyPair(byte[] seed)
         {
             HqcEngine engine = hqcKeyGenerationParameters.Parameters.Engine;
@@ -62,8 +43,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             return new AsymmetricCipherKeyPair(publicKey, privateKey);
         }
-
-       
-
     }
 }

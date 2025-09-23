@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities;
@@ -7,32 +7,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     internal sealed class HqcKeccakRandomGenerator
     {
-        private static readonly ulong[] KeccakRoundConstants =
-        {
-            0x0000000000000001L, 0x0000000000008082L, 0x800000000000808aL, 0x8000000080008000L,
-            0x000000000000808bL, 0x0000000080000001L, 0x8000000080008081L, 0x8000000000008009L,
-            0x000000000000008aL, 0x0000000000000088L, 0x0000000080008009L, 0x000000008000000aL,
-            0x000000008000808bL, 0x800000000000008bL, 0x8000000000008089L, 0x8000000000008003L,
-            0x8000000000008002L, 0x8000000000000080L, 0x000000000000800aL, 0x800000008000000aL,
-            0x8000000080008081L, 0x8000000000008080L, 0x0000000080000001L, 0x8000000080008008L
-        };
-
         private readonly ulong[] state = new ulong[26];
         private readonly byte[] dataQueue = new byte[192];
         private int rate;
-        private int fixedOutputLength;
 
         public HqcKeccakRandomGenerator()
+            : this(288)
         {
-            Init(288);
         }
 
         public HqcKeccakRandomGenerator(int bitLength)
-        {
-            Init(bitLength);
-        }
-
-        private void Init(int bitLength)
         {
             switch (bitLength)
             {
@@ -42,22 +26,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             case 288:
             case 384:
             case 512:
-                InitSponge(1600 - (bitLength << 1));
+            {
+                this.rate = 1600 - (bitLength << 1);
+
+                if ((rate <= 0) || (rate >= 1600) || ((rate % 64) != 0))
+                    throw new InvalidOperationException("invalid rate value");
+
+                //Arrays.Fill(state, 0UL);
+                //Arrays.Fill(dataQueue, 0);
                 break;
+            }
             default:
                 throw new ArgumentException("bitLength must be one of 128, 224, 256, 288, 384, or 512.");
             }
-        }
-
-        private void InitSponge(int rate)
-        {
-            if ((rate <= 0) || (rate >= 1600) || ((rate % 64) != 0))
-                throw new InvalidOperationException("invalid rate value");
-
-            this.rate = rate;
-            Arrays.Fill(state, 0UL);
-            Arrays.Fill(dataQueue, 0);
-            fixedOutputLength = (1600 - rate) / 2;
         }
 
         private void KeccakIncAbsorb(byte[] input, int inputLen)

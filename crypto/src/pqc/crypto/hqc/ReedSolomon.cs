@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
@@ -14,19 +15,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         // Encode
         internal static void Encode(byte[] codeWord, byte[] message, int mBitSize, int n1, int paramK, int paramG, int[] rsPoly)
         {
-            int gateValue = 0;
             byte[] encodedBytes = new byte[n1];
             int[] tmp = new int[paramG];
 
-            byte[] msgByte = Arrays.Clone(message);
-
             for (int i = 0; i < paramK; i++)
             {
-                gateValue = Utils.ToUnsigned8bits(msgByte[paramK - 1 - i] ^ encodedBytes[n1 - paramK - 1]);
+                int gateValue = Utils.ToUnsigned8bits(message[paramK - 1 - i] ^ encodedBytes[n1 - paramK - 1]);
 
                 for (int j = 0; j < paramG; j++)
                 {
-                    tmp[j] = GFCalculator.mult(gateValue, rsPoly[j]);
+                    tmp[j] = GFCalculator.Mul(gateValue, rsPoly[j]);
                 }
 
                 for (int j = n1 - paramK - 1; j > 0; j--)
@@ -36,7 +34,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 encodedBytes[0] = (byte)(tmp[0]);
             }
 
-            Array.Copy(msgByte, 0, encodedBytes, n1 - paramK, paramK);
+            Array.Copy(message, 0, encodedBytes, n1 - paramK, paramK);
             Array.Copy(encodedBytes, 0, codeWord, 0, codeWord.Length);
         }
 
@@ -73,7 +71,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             // Step 6: Correct errors
             for (int i = 0; i < n1; i++)
             {
-                codeWordByte[i] ^= (byte) errors[i];
+                codeWordByte[i] ^= (byte)errors[i];
             }
             byte[] mTmp = new byte[paramK];
             Array.Copy(codeWordByte, paramG - 1, mTmp, 0, paramK);
@@ -88,7 +86,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 {
                     for (int j = 1; j < n1; j++)
                     {
-                        syndromes[i] ^= GFCalculator.mult(Utils.ToUnsigned8bits(codeWord[j]), alpha128[i, j - 1]);
+                        syndromes[i] ^= GFCalculator.Mul(Utils.ToUnsigned8bits(codeWord[j]), alpha128[i, j - 1]);
                     }
                     syndromes[i] ^= Utils.ToUnsigned8bits(codeWord[0]);
                 }
@@ -99,7 +97,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 {
                     for (int j = 1; j < n1; j++)
                     {
-                        syndromes[i] ^= GFCalculator.mult(Utils.ToUnsigned8bits(codeWord[j]), alpha192[i, j - 1]);
+                        syndromes[i] ^= GFCalculator.Mul(Utils.ToUnsigned8bits(codeWord[j]), alpha192[i, j - 1]);
                     }
                     syndromes[i] ^= Utils.ToUnsigned8bits(codeWord[0]);
                 }
@@ -110,7 +108,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 {
                     for (int j = 1; j < n1; j++)
                     {
-                        syndromes[i] ^= GFCalculator.mult(Utils.ToUnsigned8bits(codeWord[j]), alpha256[i, j - 1]);
+                        syndromes[i] ^= GFCalculator.Mul(Utils.ToUnsigned8bits(codeWord[j]), alpha256[i, j - 1]);
                     }
                     syndromes[i] ^= Utils.ToUnsigned8bits(codeWord[0]);
                 }
@@ -135,11 +133,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 Array.Copy(sigma, 0, sigmaDup, 0, delta + 1);
                 degSigmaDup = degSigma;
-                int dd = GFCalculator.mult(d, GFCalculator.inverse(dp));
+                int dd = GFCalculator.Div(d, dp);
 
                 for (int j = 1; j <= i + 1 && j <= delta; j++)
                 {
-                    sigma[j] ^= GFCalculator.mult(dd, sigmaP[j]);
+                    sigma[j] ^= GFCalculator.Mul(dd, sigmaP[j]);
                 }
 
                 int degX = Utils.ToUnsigned16Bits(i - pp);
@@ -169,7 +167,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 for (int k = 1; k <= i + 1 && k <= delta; k++)
                 {
-                    d ^= GFCalculator.mult(sigma[k], syndromes[i + 1 - k]);
+                    d ^= GFCalculator.Mul(sigma[k], syndromes[i + 1 - k]);
                 }
             }
             return degSigma;
@@ -194,7 +192,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 for (int j = 1; j < i; j++)
                 {
-                    output[i] ^= (mask) & GFCalculator.mult(sigma[j], syndromes[i - j - 1]);
+                    output[i] ^= (mask) & GFCalculator.Mul(sigma[j], syndromes[i - j - 1]);
                 }
             }
         }
@@ -204,46 +202,43 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             int[] betaSet = new int[delta];
             int[] eSet = new int[delta];
 
-            int deltaCount = 0;
-            int deltaVal = 0;
-            int mask1 = 0;
+            int deltaCount1 = 0;
             for (int i = 0; i < n1; i++)
             {
                 int mark = 0;
                 int mask = errorCompactSet[i] != 0 ? 0xffff : 0;
                 for (int j = 0; j < delta; j++)
                 {
-                    int iMask = j == deltaCount ? 0xffff : 0;
+                    int iMask = j == deltaCount1 ? 0xffff : 0;
                     betaSet[j] += iMask & mask & expArrays[i];
                     mark += iMask & mask & 1;
                 }
-                deltaCount += mark;
+                deltaCount1 += mark;
             }
-            deltaVal = deltaCount;
 
             for (int i = 0; i < delta; i++)
             {
                 int temp1 = 1;
                 int temp2 = 1;
-                int inv = GFCalculator.inverse(betaSet[i]);
+                int inv = GFCalculator.Inv(betaSet[i]);
                 int invPow = 1;
 
                 for (int j = 1; j <= delta; j++)
                 {
-                    invPow = GFCalculator.mult(invPow, inv);
-                    temp1 ^= GFCalculator.mult(invPow, zx[j]);
+                    invPow = GFCalculator.Mul(invPow, inv);
+                    temp1 ^= GFCalculator.Mul(invPow, zx[j]);
                 }
 
                 for (int j = 1; j < delta; j++)
                 {
-                    temp2 = GFCalculator.mult(temp2, (1 ^ GFCalculator.mult(inv, betaSet[(i + j) % delta])));
+                    temp2 = GFCalculator.Mul(temp2, (1 ^ GFCalculator.Mul(inv, betaSet[(i + j) % delta])));
                 }
 
-                mask1 = i < deltaVal ? 0xffff : 0;
-                eSet[i] = mask1 & GFCalculator.mult(temp1, GFCalculator.inverse(temp2));
+                int mask1 = i < deltaCount1 ? 0xffff : 0;
+                eSet[i] = mask1 & GFCalculator.Div(temp1, temp2);
             }
 
-            deltaCount = 0;
+            int deltaCount2 = 0;
             for (int i = 0; i < n1; i++)
             {
                 int mark = 0;
@@ -251,11 +246,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 for (int j = 0; j < delta; j++)
                 {
-                    int iMask = j == deltaCount ? 0xffff : 0;
+                    int iMask = j == deltaCount2 ? 0xffff : 0;
                     res[i] += iMask & mask & eSet[j];
                     mark += iMask & mask & 1;
                 }
-                deltaCount += mark;
+                deltaCount2 += mark;
             }
         }
     }

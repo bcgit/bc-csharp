@@ -1,4 +1,4 @@
-﻿namespace Org.BouncyCastle.Pqc.Crypto.Hqc
+namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     internal class GF2PolynomialCalculator
     {
@@ -11,6 +11,14 @@
             _vecNSize64 = vecNSize64;
             _paramN = paramN;
             _redMask = (long)redMask;
+        }
+
+        internal void VectMul(long[] o, long[] a1, long[] a2)
+        {
+            long[] unreduced = new long[_vecNSize64 << 1];
+            long[] tmpBuffer = new long[_vecNSize64 << 4];
+            karatsuba(unreduced, 0, a1, 0, a2, 0, _vecNSize64, tmpBuffer, 0);
+            reduce(o, unreduced);
         }
 
         internal void MultLongs(long[] res, long[] a, long[] b)

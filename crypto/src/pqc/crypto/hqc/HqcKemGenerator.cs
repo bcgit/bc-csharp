@@ -1,16 +1,19 @@
-﻿using System;
+using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
-    public class HqcKemGenerator : IEncapsulatedSecretGenerator
+    public class HqcKemGenerator
+        : IEncapsulatedSecretGenerator
     {
-        private SecureRandom sr;
+        private readonly SecureRandom m_random;
+
         public HqcKemGenerator(SecureRandom random)
         {
-            sr = random;
+            m_random = random ?? throw new ArgumentNullException(nameof(random));
         }
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
@@ -22,66 +25,58 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             byte[] u = new byte[key.Parameters.NBytes];
             byte[] v = new byte[key.Parameters.N1n2Bytes];
             byte[] salt = new byte[key.Parameters.SaltSizeBytes];
-            byte[] pk = key.PublicKey;
-            byte[] seed = new byte[48];
+            byte[] seed = SecureRandom.GetNextBytes(m_random, 48);
 
-            sr.NextBytes(seed);
-
-            engine.Encaps(u, v, K, pk, seed, salt);
+            engine.Encaps(u, v, K, key.InternalPublicKey, seed, salt);
 
             byte[] cipherText = Arrays.ConcatenateAll(u, v, salt);
 
             return new SecretWithEncapsulationImpl(K, cipherText);
         }
 
-        private sealed class SecretWithEncapsulationImpl : ISecretWithEncapsulation
+        private sealed class SecretWithEncapsulationImpl
+            : ISecretWithEncapsulation
         {
-            private volatile bool hasBeenDestroyed;
+            private volatile bool m_hasBeenDestroyed;
 
-            private byte[] sessionKey;
-            private byte[] cipher_text;
+            private readonly byte[] m_sessionKey;
+            private readonly byte[] m_cipherText;
 
-            public SecretWithEncapsulationImpl(byte[] sessionKey, byte[] cipher_text)
+            internal SecretWithEncapsulationImpl(byte[] sessionKey, byte[] cipherText)
             {
-                this.sessionKey = sessionKey;
-                this.cipher_text = cipher_text;
+                m_sessionKey = sessionKey;
+                m_cipherText = cipherText;
             }
 
             public byte[] GetSecret()
             {
                 CheckDestroyed();
-                return Arrays.Clone(sessionKey);
+                return Arrays.Clone(m_sessionKey);
             }
 
             public byte[] GetEncapsulation()
             {
                 CheckDestroyed();
-
-                return Arrays.Clone(cipher_text);
+                return Arrays.Clone(m_cipherText);
             }
 
             public void Dispose()
             {
-                if (!hasBeenDestroyed)
+                if (!m_hasBeenDestroyed)
                 {
-                    Arrays.Clear(sessionKey);
-                    Arrays.Clear(cipher_text);
-                    hasBeenDestroyed = true;
+                    Arrays.Clear(m_sessionKey);
+                    Arrays.Clear(m_cipherText);
+                    m_hasBeenDestroyed = true;
                 }
                 GC.SuppressFinalize(this);
             }
 
-            public bool IsDestroyed()
-            {
-                return hasBeenDestroyed;
-            }
+            public bool IsDestroyed() => m_hasBeenDestroyed;
 
-            void CheckDestroyed()
+            private void CheckDestroyed()
             {
                 if (IsDestroyed())
-                {
                     throw new Exception("data has been destroyed");
-                }
             }
         }
     }

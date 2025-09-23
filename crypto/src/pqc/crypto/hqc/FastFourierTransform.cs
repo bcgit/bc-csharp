@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             // Step 3: Compute deltas
             for (int i = 0; i < m - 1; i++)
             {
-                deltas[i] = GFCalculator.mult(betas[i], betas[i]) ^ betas[i];
+                deltas[i] = GFCalculator.Mul(betas[i], betas[i]) ^ betas[i];
             }
 
             // Step 5:
@@ -38,8 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             ComputeFFTRec(v, f1, noCoefs / 2, m - 1, fft - 1, deltas, fft, m);
 
             // Step 6.7
-            int k = 1;
-            k = 1 << (m - 1);
+            int k = 1 << (m - 1);
 
             Array.Copy(v, 0, output, k, k);
 
@@ -48,7 +47,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             for (int i = 1; i < k; i++)
             {
-                output[i] = u[i] ^ GFCalculator.mult(betaSum[i], v[i]);
+                output[i] = u[i] ^ GFCalculator.Mul(betaSum[i], v[i]);
                 output[k + i] ^= output[i];
             }
         }
@@ -78,52 +77,58 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         {
             switch (mf)
             {
-                case 4:
-                    f0[4] = f[8] ^ f[12];
-                    f0[6] = f[12] ^ f[14];
-                    f0[7] = f[14] ^ f[15];
-                    f1[5] = f[11] ^ f[13];
-                    f1[6] = f[13] ^ f[14];
-                    f1[7] = f[15];
-                    f0[5] = f[10] ^ f[12] ^ f1[5];
-                    f1[4] = f[9] ^ f[13] ^ f0[5];
+            case 4:
+            {
+                f0[4] = f[8] ^ f[12];
+                f0[6] = f[12] ^ f[14];
+                f0[7] = f[14] ^ f[15];
+                f1[5] = f[11] ^ f[13];
+                f1[6] = f[13] ^ f[14];
+                f1[7] = f[15];
+                f0[5] = f[10] ^ f[12] ^ f1[5];
+                f1[4] = f[9] ^ f[13] ^ f0[5];
 
-                    f0[0] = f[0];
-                    f1[3] = f[7] ^ f[11] ^ f[15];
-                    f0[3] = f[6] ^ f[10] ^ f[14] ^ f1[3];
-                    f0[2] = f[4] ^ f0[4] ^ f0[3] ^ f1[3];
-                    f1[1] = f[3] ^ f[5] ^ f[9] ^ f[13] ^ f1[3];
-                    f1[2] = f[3] ^ f1[1] ^ f0[3];
-                    f0[1] = f[2] ^ f0[2] ^ f1[1];
-                    f1[0] = f[1] ^ f0[1];
-                    return;
-
-                case 3:
-                    f0[0] = f[0];
-                    f0[2] = f[4] ^ f[6];
-                    f0[3] = f[6] ^ f[7];
-                    f1[1] = f[3] ^ f[5] ^ f[7];
-                    f1[2] = f[5] ^ f[6];
-                    f1[3] = f[7];
-                    f0[1] = f[2] ^ f0[2] ^ f1[1];
-                    f1[0] = f[1] ^ f0[1];
-                    return;
-
-                case 2:
-                    f0[0] = f[0];
-                    f0[1] = f[2] ^ f[3];
-                    f1[0] = f[1] ^ f0[1];
-                    f1[1] = f[3];
-                    return;
-
-                case 1:
-                    f0[0] = f[0];
-                    f1[0] = f[1];
-                    return;
-
-                default:
-                    ComputeRadixBig(f0, f1, f, mf, fft);
-                    break;
+                f0[0] = f[0];
+                f1[3] = f[7] ^ f[11] ^ f[15];
+                f0[3] = f[6] ^ f[10] ^ f[14] ^ f1[3];
+                f0[2] = f[4] ^ f0[4] ^ f0[3] ^ f1[3];
+                f1[1] = f[3] ^ f[5] ^ f[9] ^ f[13] ^ f1[3];
+                f1[2] = f[3] ^ f1[1] ^ f0[3];
+                f0[1] = f[2] ^ f0[2] ^ f1[1];
+                f1[0] = f[1] ^ f0[1];
+                break;
+            }
+            case 3:
+            {
+                f0[0] = f[0];
+                f0[2] = f[4] ^ f[6];
+                f0[3] = f[6] ^ f[7];
+                f1[1] = f[3] ^ f[5] ^ f[7];
+                f1[2] = f[5] ^ f[6];
+                f1[3] = f[7];
+                f0[1] = f[2] ^ f0[2] ^ f1[1];
+                f1[0] = f[1] ^ f0[1];
+                break;
+            }
+            case 2:
+            {
+                f0[0] = f[0];
+                f0[1] = f[2] ^ f[3];
+                f1[0] = f[1] ^ f0[1];
+                f1[1] = f[3];
+                break;
+            }
+            case 1:
+            {
+                f0[0] = f[0];
+                f1[0] = f[1];
+                break;
+            }
+            default:
+            {
+                ComputeRadixBig(f0, f1, f, mf, fft);
+                break;
+            }
             }
         }
 
@@ -170,18 +175,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             int[] fx1 = new int[fftSize];
             int[] gammaSet = new int[m - 2];
             int[] deltaSet = new int[m - 2];
-            int k = 1;
             int[] gammaSumSet = new int[mSize];
             int[] uSet = new int[mSize];
             int[] vSet = new int[mSize];
             int[] tempSet = new int[m - fft + 1];
 
-            int x = 0;
+            int x;
             if (noCoeffsPlus == 1)
             {
                 for (int i = 0; i < noOfBetas; i++)
                 {
-                    tempSet[i] = GFCalculator.mult(betaSet[i], func[1]);
+                    tempSet[i] = GFCalculator.Mul(betaSet[i], func[1]);
                 }
 
                 output[0] = func[0];
@@ -204,8 +208,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 x <<= noCoeffsPlus;
                 for (int i = 1; i < x; i++)
                 {
-                    betaMPow = GFCalculator.mult(betaMPow, betaSet[noOfBetas - 1]);
-                    func[i] = GFCalculator.mult(betaMPow, func[i]);
+                    betaMPow = GFCalculator.Mul(betaMPow, betaSet[noOfBetas - 1]);
+                    func[i] = GFCalculator.Mul(betaMPow, func[i]);
                 }
             }
 
@@ -213,23 +217,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             for (int i = 0; i < noOfBetas - 1; i++)
             {
-                gammaSet[i] = GFCalculator.mult(betaSet[i], GFCalculator.inverse(betaSet[noOfBetas - 1]));
-                deltaSet[i] = GFCalculator.mult(gammaSet[i], gammaSet[i]) ^ gammaSet[i];
+                gammaSet[i] = GFCalculator.Div(betaSet[i], betaSet[noOfBetas - 1]);
+                deltaSet[i] = GFCalculator.Mul(gammaSet[i], gammaSet[i]) ^ gammaSet[i];
             }
 
             ComputeSubsetSum(gammaSumSet, gammaSet, noOfBetas - 1);
 
             ComputeFFTRec(uSet, fx0, (noCoeffs + 1) / 2, noOfBetas - 1, noCoeffsPlus - 1, deltaSet, fft, m);
 
-            k = 1;
-            k <<= ((noOfBetas - 1) & 0xf);
+            int k = 1 << ((noOfBetas - 1) & 0xf);
             if (noCoeffs <= 3)
             {
                 output[0] = uSet[0];
                 output[k] = uSet[0] ^ fx1[0];
                 for (int i = 1; i < k; i++)
                 {
-                    output[i] = uSet[i] ^ GFCalculator.mult(gammaSumSet[i], fx1[0]);
+                    output[i] = uSet[i] ^ GFCalculator.Mul(gammaSumSet[i], fx1[0]);
                     output[k + i] = output[i] ^ fx1[0];
                 }
             }
@@ -239,15 +242,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 Array.Copy(vSet, 0, output, k, k);
 
-                output[0] = uSet[0];
-                output[k] ^= uSet[0];
+                int t0 = uSet[0];
+                output[0] = t0;
+                output[k] ^= t0;
+
                 for (int i = 1; i < k; i++)
                 {
-                    output[i] = uSet[i] ^ GFCalculator.mult(gammaSumSet[i], vSet[i]);
-                    output[k + i] ^= output[i];
+                    int ti = uSet[i] ^ GFCalculator.Mul(gammaSumSet[i], vSet[i]);
+                    output[i] = ti;
+                    output[k + i] ^= ti;
                 }
-
-
             }
         }
 
@@ -258,21 +262,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             int[] gammaSet = new int[m - 1];
             int[] gammaSumSet = new int[mSize];
-            int k = mSize;
 
             ComputeFFTBetas(gammaSet, m);
             ComputeSubsetSum(gammaSumSet, gammaSet, m - 1);
 
             errorSet[0] ^= (byte) (1 ^ Utils.ToUnsigned16Bits(-input[0] >> 15));
-            errorSet[0] ^= (byte) (1 ^ Utils.ToUnsigned16Bits(-input[k] >> 15));
+            errorSet[0] ^= (byte) (1 ^ Utils.ToUnsigned16Bits(-input[mSize] >> 15));
 
-            for (int i = 1; i < k; i++)
+            for (int i = 1; i < mSize; i++)
             {
                 int tmp = gfMulOrder - logArrays[gammaSumSet[i]];
                 errorSet[tmp] ^= (byte) (1 ^ System.Math.Abs(-input[i] >> 15));
 
                 tmp = gfMulOrder - logArrays[gammaSumSet[i] ^ 1];
-                errorSet[tmp] ^= (byte) (1 ^ System.Math.Abs(-input[k + i] >> 15));
+                errorSet[tmp] ^= (byte) (1 ^ System.Math.Abs(-input[mSize + i] >> 15));
             }
         }
     }

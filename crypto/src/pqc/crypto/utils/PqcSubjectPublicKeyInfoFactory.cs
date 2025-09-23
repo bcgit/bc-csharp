@@ -131,12 +131,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             }
             if (publicKey is HqcPublicKeyParameters hqcPublicKeyParameters)
             {
-                byte[] encoding = hqcPublicKeyParameters.GetEncoded();
-
                 AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(
                     PqcUtilities.HqcOidLookup(hqcPublicKeyParameters.Parameters));
-
-                return new SubjectPublicKeyInfo(algorithmIdentifier, encoding);
+                return new SubjectPublicKeyInfo(algorithmIdentifier,
+                    publicKey: new DerBitString(hqcPublicKeyParameters.InternalPublicKey));
             }
             if (publicKey is NtruPublicKeyParameters ntruPublicKeyParameters)
             {

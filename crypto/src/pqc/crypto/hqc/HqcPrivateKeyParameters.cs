@@ -1,21 +1,28 @@
-﻿using Org.BouncyCastle.Utilities;
+using System;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     public sealed class HqcPrivateKeyParameters
         : HqcKeyParameters
     {
-        private byte[] sk;
+        private readonly byte[] m_sk;
 
-        public HqcPrivateKeyParameters(HqcParameters param, byte[] sk) : base(true, param)
+        // TODO[api] Rename to 'parameters'
+        public HqcPrivateKeyParameters(HqcParameters param, byte[] sk)
+            : base(isPrivate: true, param)
         {
-            this.sk = Arrays.Clone(sk);
+            m_sk = Arrays.CopyBuffer(sk);
         }
 
-        public byte[] PrivateKey => Arrays.Clone(sk);
-        public byte[] GetEncoded()
-        {
-            return PrivateKey;
-        }
+        public byte[] GetEncoded() => GetPrivateKey();
+
+        public byte[] GetPrivateKey() => Arrays.CopyBuffer(m_sk);
+
+        internal byte[] InternalPrivateKey => m_sk;
+
+        [Obsolete("Use 'GetPrivateKey' instead")]
+        public byte[] PrivateKey => GetPrivateKey();
     }
 }

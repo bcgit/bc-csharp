@@ -1,4 +1,4 @@
-﻿using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
@@ -6,24 +6,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         : IEncapsulatedSecretExtractor
     {
         private readonly HqcPrivateKeyParameters m_privateKey;
-
-        private HqcEngine m_engine;
+        private readonly HqcEngine m_engine;
 
         public HqcKemExtractor(HqcPrivateKeyParameters privParams)
         {
             m_privateKey = privParams;
-            InitCipher(m_privateKey.Parameters);
-        }
-
-        private void InitCipher(HqcParameters param)
-        {
-            m_engine = param.Engine;
+            m_engine = privParams.Parameters.Engine;
         }
 
         public byte[] ExtractSecret(byte[] encapsulation)
         {
-            byte[] session_key = new byte[m_engine.GetSessionKeySize()];
-            m_engine.Decaps(ss: session_key, ct: encapsulation, sk: m_privateKey.PrivateKey);
+            byte[] session_key = new byte[64];
+            m_engine.Decaps(ss: session_key, ct: encapsulation, sk: m_privateKey.InternalPrivateKey);
             return session_key;
         }
 

@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
@@ -39,7 +40,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         //private int SALT_SIZE_64 = 2;
 
         private int[] generatorPoly;
-        private int SHA512_BYTES = 512 / 8;
 
         private ulong RED_MASK;
         private GF2PolynomialCalculator gfCalculator;
@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             randomGenerator.Squeeze(m, K_BYTE);
 
             // 2. Generate theta
-            byte[] theta = new byte[SHA512_BYTES];
+            byte[] theta = new byte[64];
             byte[] tmp = new byte[K_BYTE + (SALT_SIZE_BYTES * 2) + SALT_SIZE_BYTES];
             randomGenerator.Squeeze(salt, SALT_SIZE_BYTES);
 
@@ -216,7 +216,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             int result = Decrypt(mPrimeBytes, mPrimeBytes, sigma, u, v, y);
 
             // 2. Compute theta'
-            byte[] theta = new byte[SHA512_BYTES];
+            byte[] theta = new byte[64];
             byte[] tmp = new byte[K_BYTE + (SALT_SIZE_BYTES * 2) + SALT_SIZE_BYTES];
             Array.Copy(mPrimeBytes, 0, tmp, 0, mPrimeBytes.Length);
             Array.Copy(pk, 0, tmp, K_BYTE, SALT_SIZE_BYTES * 2);
@@ -262,11 +262,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Array.Copy(v, 0, hashInputK, K_BYTE + N_BYTE, N1N2_BYTE);
             shakeDigest.SHAKE256_512_ds(ss, hashInputK, hashInputK.Length, new[] { K_FCT_DOMAIN });
             return -result;;
-        }
-
-        internal int GetSessionKeySize()
-        {
-            return SHA512_BYTES;
         }
 
         /**
@@ -356,53 +351,50 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             for (int i = 0; i < weight; i++)
             {
-                support[i] = (int) (i + ((rand_u32[i]&0xFFFFFFFFL) % (n - i)));
+                support[i] = (int)(i + ((rand_u32[i]&0xFFFFFFFFL) % (n - i)));
             }
 
-            for (int i = (weight - 1); i >= 0; i--)
+            for (int i = weight - 1; i >= 0; i--)
             {
-                int found = 0;
+                int mask = 0;
                 for (int j = i + 1; j < weight; j++)
                 {
                     if (support[j] == support[i])
                     {
-                        found |= 1;
+                        mask = -1;
                     }
                 }
 
-                int mask = -found;
                 support[i] = (mask & i) ^ (~mask & support[i]);
             }
 
             for (int i = 0; i < weight; i++)
             {
                 index_tab[i] = (int)((uint)support[i] >> 6);
-                int pos = support[i] & 0x3f;
-                bit_tab[i] = (1L) << pos;
+                int pos = support[i] & 63;
+                bit_tab[i] = 1L << pos;
             }
-            long val = 0;
+
             for (int i = 0; i < N_BYTE_64; i++)
             {
-                val = 0;
+                long val = output[i];
                 for (int j = 0; j < weight; j++)
                 {
-                    int tmp = i - index_tab[j];
-                    int val1 = 1 ^ ((int)((uint)(tmp | -tmp) >> 31));
-                    long mask = -val1;
-                    val |= (bit_tab[j] & mask);
+                    long tmp = i ^ index_tab[j];
+                    long mask = (tmp | -tmp) >> 63;
+                    val |= bit_tab[j] & ~mask;
                 }
-                output[i] |= val;
+                output[i] = val;
             }
         }
-        
+
         void GeneratePublicKeyH(long[] output, HqcKeccakRandomGenerator random)
         {
             byte[] randBytes = new byte[N_BYTE];
             random.ExpandSeed(randBytes, N_BYTE);
-            long[] tmp = new long[N_BYTE_64];
-            Utils.FromByteArrayToLongArray(tmp, randBytes);
-            tmp[N_BYTE_64 - 1] &= Utils.BitMask((ulong)n, 64);
-            Array.Copy(tmp, 0, output, 0, output.Length);
+
+            Utils.FromByteArrayToLongArray(output, randBytes);
+            output[N_BYTE_64 - 1] &= (1L << (n & 63)) - 1L;
         }
 
         private void ExtractPublicKeys(long[] h, byte[] s, byte[] pk)
@@ -413,10 +405,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             HqcKeccakRandomGenerator randomPublic = new HqcKeccakRandomGenerator(256);
             randomPublic.SeedExpanderInit(publicKeySeed, publicKeySeed.Length);
 
-            long[] hLongBytes = new long[N_BYTE_64];
-            GeneratePublicKeyH(hLongBytes, randomPublic);
+            GeneratePublicKeyH(h, randomPublic);
 
-            Array.Copy(hLongBytes, 0, h, 0, h.Length);
             Array.Copy(pk, 40, s, 0, s.Length);
         }
 

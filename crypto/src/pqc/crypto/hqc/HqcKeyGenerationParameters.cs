@@ -1,19 +1,22 @@
-﻿using Org.BouncyCastle.Crypto;
+using System;
+
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
-    public class HqcKeyGenerationParameters : KeyGenerationParameters
+    public class HqcKeyGenerationParameters
+        : KeyGenerationParameters
     {
-        private HqcParameters param;
+        private readonly HqcParameters m_parameters;
 
-        public HqcKeyGenerationParameters(
-            SecureRandom random,
-            HqcParameters param) : base(random, 256)
-            {
-                this.param = param;
-            }
-
-            public HqcParameters Parameters => param;
+        // TODO[api] Rename to 'parameters'
+        public HqcKeyGenerationParameters(SecureRandom random, HqcParameters param)
+            : base(random, 256)
+        {
+            m_parameters = param ?? throw new ArgumentNullException(nameof(param));
         }
+
+        public HqcParameters Parameters => m_parameters;
+    }
 }

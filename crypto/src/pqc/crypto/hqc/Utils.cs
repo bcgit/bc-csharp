@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
@@ -47,12 +48,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                     output[off++] = (byte)(input[max] >> (count++ * 8));
                 }
             }
-        }
-
-        internal static long BitMask(ulong a, ulong b)
-        {
-            uint tmp = (uint)(a % b);
-            return ((1L << (int)tmp) - 1);
         }
 
         internal static void FromByteArrayToLongArray(long[] output, byte[] input)
