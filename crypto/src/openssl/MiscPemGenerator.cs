@@ -287,8 +287,7 @@ namespace Org.BouncyCastle.OpenSsl
 
                 return info.ParsePrivateKey().GetEncoded();
             }
-            else if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey) ||
-                     algOid.Equals(CryptoProObjectIdentifiers.GostR3410x2001))
+            else if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey))
             {
                 keyType = "EC PRIVATE KEY";
 

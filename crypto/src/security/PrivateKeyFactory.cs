@@ -164,6 +164,7 @@ namespace Org.BouncyCastle.Security
                 }
 
                 return new ECPrivateKeyParameters(
+                    "ECGOST3410",
                     d,
                     new ECGost3410Parameters(
                         ecSpec,
