@@ -1,5 +1,5 @@
 using System;
-
+using System.Collections.Generic;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
@@ -20,6 +20,15 @@ namespace Org.BouncyCastle.Pkcs
 {
     public static class PrivateKeyInfoFactory
     {
+        private static readonly HashSet<DerObjectIdentifier> cryptoProOids = new HashSet<DerObjectIdentifier>
+        {
+            CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+            CryptoProObjectIdentifiers.GostR3410x2001CryptoProB,
+            CryptoProObjectIdentifiers.GostR3410x2001CryptoProC,
+            CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchA,
+            CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchB,
+        };
+
         public static PrivateKeyInfo CreatePrivateKeyInfo(AsymmetricKeyParameter privateKey) =>
             CreatePrivateKeyInfo(privateKey, null);
 
@@ -122,12 +131,22 @@ namespace Org.BouncyCastle.Pkcs
                         (domainParameters).DigestParamSet,
                         (domainParameters).EncryptionParamSet);
 
-                    bool is512 = ecKey.D.BitLength > 256;
-                    DerObjectIdentifier identifier = (is512) ?
-                        RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512 :
-                        RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
-                    int size = (is512) ? 64 : 32;
+                    int size;
+                    DerObjectIdentifier identifier;
 
+                    if (cryptoProOids.Contains(gostParams.PublicKeyParamSet))
+                    {
+                        size = 32;
+                        identifier = CryptoProObjectIdentifiers.GostR3410x2001;
+                    }
+                    else
+                    {
+                        bool is512 = ecKey.D.BitLength > 256;
+                        identifier = (is512) ?
+                            RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512 :
+                            RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
+                        size = (is512) ? 64 : 32;
+                    }
                     byte[] encKey = new byte[size];
 
                     ExtractBytes(encKey, size, 0, ecKey.D);
