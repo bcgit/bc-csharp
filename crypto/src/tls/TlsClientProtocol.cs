@@ -90,14 +90,14 @@ namespace Org.BouncyCastle.Tls
         {
             base.CleanupHandshake();
 
-            this.m_clientAgreements = null;
-            this.m_clientBinders = null;
-            this.m_clientHello = null;
-            this.m_keyExchange = null;
-            this.m_authentication = null;
+            m_clientAgreements = null;
+            m_clientBinders = null;
+            m_clientHello = null;
+            m_keyExchange = null;
+            m_authentication = null;
 
-            this.m_certificateStatus = null;
-            this.m_certificateRequest = null;
+            m_certificateStatus = null;
+            m_certificateRequest = null;
         }
 
         protected override TlsContext Context
@@ -616,6 +616,8 @@ namespace Org.BouncyCastle.Tls
                         EstablishMasterSecret(m_tlsClientContext, m_keyExchange);
                     }
 
+                    m_keyExchange = null;
+
                     m_recordStream.SetPendingCipher(TlsUtilities.InitCipher(m_tlsClientContext));
 
                     if (clientAuthSigner != null)
@@ -777,9 +779,9 @@ namespace Org.BouncyCastle.Tls
         protected virtual void HandleSupplementalData(IList<SupplementalDataEntry> serverSupplementalData)
         {
             m_tlsClient.ProcessServerSupplementalData(serverSupplementalData);
-            this.m_connectionState = CS_SERVER_SUPPLEMENTAL_DATA;
+            m_connectionState = CS_SERVER_SUPPLEMENTAL_DATA;
 
-            this.m_keyExchange = TlsUtilities.InitKeyExchangeClient(m_tlsClientContext, m_tlsClient);
+            m_keyExchange = TlsUtilities.InitKeyExchangeClient(m_tlsClientContext, m_tlsClient);
         }
 
         /// <exception cref="IOException"/>

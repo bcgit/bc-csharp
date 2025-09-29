@@ -313,6 +313,8 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_sessionHash = TlsUtilities.GetCurrentPrfHash(handshake.HandshakeHash);
 
             TlsProtocol.EstablishMasterSecret(clientContext, state.keyExchange);
+            state.keyExchange = null;
+
             recordLayer.InitPendingEpoch(TlsUtilities.InitCipher(clientContext));
 
             if (clientAuthSigner != null)

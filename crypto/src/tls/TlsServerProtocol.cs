@@ -77,9 +77,9 @@ namespace Org.BouncyCastle.Tls
         {
             base.CleanupHandshake();
 
-            this.m_offeredCipherSuites = null;
-            this.m_keyExchange = null;
-            this.m_certificateRequest = null;
+            m_offeredCipherSuites = null;
+            m_keyExchange = null;
+            m_certificateRequest = null;
         }
 
         protected virtual bool ExpectCertificateVerifyMessage()
@@ -982,7 +982,7 @@ namespace Org.BouncyCastle.Tls
                         this.m_connectionState = CS_SERVER_SUPPLEMENTAL_DATA;
                     }
 
-                    this.m_keyExchange = TlsUtilities.InitKeyExchangeServer(m_tlsServerContext, m_tlsServer);
+                    m_keyExchange = TlsUtilities.InitKeyExchangeServer(m_tlsServerContext, m_tlsServer);
 
                     TlsCredentials serverCredentials = null;
 
@@ -1410,6 +1410,8 @@ namespace Org.BouncyCastle.Tls
                 // NOTE: For (D)TLS, session hash potentially needed for extended_master_secret
                 EstablishMasterSecret(m_tlsServerContext, m_keyExchange);
             }
+
+            m_keyExchange = null;
 
             m_recordStream.SetPendingCipher(TlsUtilities.InitCipher(m_tlsServerContext));
 
