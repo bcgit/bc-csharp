@@ -860,7 +860,10 @@ namespace Org.BouncyCastle.Tls
                      * fatal alert.
                      */
                     if (null == TlsUtilities.GetExtensionData(state.clientExtensions, extType))
-                        throw new TlsFatalAlert(AlertDescription.unsupported_extension);
+                    {
+                        throw new TlsFatalAlert(AlertDescription.unsupported_extension,
+                            "Unrequested extension in ServerHello: " + ExtensionType.GetText(extType));
+                    }
 
                     /*
                      * RFC 3546 2.3. If [...] the older session is resumed, then the server MUST ignore

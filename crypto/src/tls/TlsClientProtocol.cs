@@ -832,7 +832,7 @@ namespace Org.BouncyCastle.Tls
                     if (null == TlsUtilities.GetExtensionData(m_clientExtensions, extensionType))
                     {
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension,
-                            "received unrequested extension response: " + ExtensionType.GetText(extensionType));
+                            "Unrequested extension in HelloRetryRequest: " + ExtensionType.GetText(extensionType));
                     }
                 }
             }
@@ -1200,7 +1200,10 @@ namespace Org.BouncyCastle.Tls
                      * fatal alert.
                      */
                     if (null == TlsUtilities.GetExtensionData(m_clientExtensions, extType))
-                        throw new TlsFatalAlert(AlertDescription.unsupported_extension);
+                    {
+                        throw new TlsFatalAlert(AlertDescription.unsupported_extension,
+                            "Unrequested extension in ServerHello: " + ExtensionType.GetText(extType));
+                    }
 
                     /*
                      * RFC 3546 2.3. If [...] the older session is resumed, then the server MUST ignore
@@ -1425,7 +1428,10 @@ namespace Org.BouncyCastle.Tls
                 foreach (int extType in m_serverExtensions.Keys)
                 {
                     if (null == TlsUtilities.GetExtensionData(m_clientExtensions, extType))
-                        throw new TlsFatalAlert(AlertDescription.unsupported_extension);
+                    {
+                        throw new TlsFatalAlert(AlertDescription.unsupported_extension,
+                            "Unrequested extension in EncryptedExtensions: " + ExtensionType.GetText(extType));
+                    }
                 }
             }
 
