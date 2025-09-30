@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Asn1.X509;
 
@@ -45,11 +45,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
         [Obsolete("Use constructor from Asn1TaggedObject instead")]
         public OobCert(int type, Asn1Encodable otherCert)
             : base(type, otherCert)
-        {
-        }
-
-        internal OobCert(CmpCertificate other)
-            : base(other)
         {
         }
 

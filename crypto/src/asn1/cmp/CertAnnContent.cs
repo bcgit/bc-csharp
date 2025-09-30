@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Asn1.X509;
 
@@ -48,11 +48,6 @@ namespace Org.BouncyCastle.Asn1.Cmp
 #pragma warning disable CS0618 // Type or member is obsolete
             : base(type, otherCert)
 #pragma warning restore CS0618 // Type or member is obsolete
-        {
-        }
-
-        internal CertAnnContent(CmpCertificate other)
-            : base(other)
         {
         }
 

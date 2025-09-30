@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 switch (taggedObject.TagNo)
                 {
                 case 0:
-                    return DerNull.GetTagged(taggedObject, false);
+                    return Asn1Null.GetTagged(taggedObject, false);
                 case 1:
                     return PopoSigningKey.GetTagged(taggedObject, false);
                 case 2:

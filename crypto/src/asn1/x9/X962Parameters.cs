@@ -54,11 +54,6 @@ namespace Org.BouncyCastle.Asn1.X9
             m_params = obj;
         }
 
-        private X962Parameters(Asn1Object obj)
-        {
-            m_params = obj;
-        }
-
         public bool IsNamedCurve => m_params is DerObjectIdentifier;
 
         public bool IsImplicitlyCA => m_params is Asn1Null;
