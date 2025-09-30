@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -179,11 +179,11 @@ namespace Org.BouncyCastle.Tls
 
             state.keyExchange = TlsUtilities.InitKeyExchangeServer(serverContext, server);
 
-            state.serverCredentials = null;
+            TlsCredentials serverCredentials = null;
 
             if (!KeyExchangeAlgorithm.IsAnonymous(securityParameters.KeyExchangeAlgorithm))
             {
-                state.serverCredentials = TlsUtilities.EstablishServerCredentials(server);
+                serverCredentials = TlsUtilities.EstablishServerCredentials(server);
             }
 
             // Server certificate
@@ -191,15 +191,15 @@ namespace Org.BouncyCastle.Tls
                 Certificate serverCertificate = null;
 
                 MemoryStream endPointHash = new MemoryStream();
-                if (state.serverCredentials == null)
+                if (serverCredentials == null)
                 {
                     state.keyExchange.SkipServerCredentials();
                 }
                 else
                 {
-                    state.keyExchange.ProcessServerCredentials(state.serverCredentials);
+                    state.keyExchange.ProcessServerCredentials(serverCredentials);
 
-                    serverCertificate = state.serverCredentials.Certificate;
+                    serverCertificate = serverCredentials.Certificate;
 
                     SendCertificateMessage(serverContext, handshake, serverCertificate, endPointHash);
                 }
@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Tls
                 handshake.SendMessage(HandshakeType.server_key_exchange, serverKeyExchange);
             }
 
-            if (state.serverCredentials != null)
+            if (serverCredentials != null)
             {
                 state.certificateRequest = server.GetCertificateRequest();
 
@@ -1005,7 +1005,6 @@ namespace Org.BouncyCastle.Tls
             internal IDictionary<int, byte[]> serverExtensions = null;
             internal bool expectSessionTicket = false;
             internal TlsKeyExchange keyExchange = null;
-            internal TlsCredentials serverCredentials = null;
             internal CertificateRequest certificateRequest = null;
             internal TlsHeartbeat heartbeat = null;
             internal short heartbeatPolicy = HeartbeatMode.peer_not_allowed_to_send;

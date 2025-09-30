@@ -105,7 +105,6 @@ namespace Org.BouncyCastle.Tls
         protected virtual bool IsSelectableCipherSuite(int cipherSuite, int availCurveBits, int availFiniteFieldBits,
             IList<short> sigAlgs)
         {
-            // TODO[tls13] The version check should be separated out (eventually select ciphersuite before version)
             return TlsUtilities.IsValidVersionForCipherSuite(cipherSuite, m_context.ServerVersion)
                 && availCurveBits >= TlsEccUtilities.GetMinimumCurveBits(cipherSuite)
                 && availFiniteFieldBits >= TlsDHUtilities.GetMinimumFiniteFieldBits(cipherSuite)
