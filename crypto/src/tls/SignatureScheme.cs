@@ -63,6 +63,35 @@ namespace Org.BouncyCastle.Tls
         public static readonly int DRAFT_mldsa87 = mldsa87;
 
         /*
+         * draft-reddy-tls-slhdsa-01
+         */
+        internal const int slhdsa_sha2_128s = 0x0911;
+        internal const int slhdsa_sha2_128f = 0x0912;
+        internal const int slhdsa_sha2_192s = 0x0913;
+        internal const int slhdsa_sha2_192f = 0x0914;
+        internal const int slhdsa_sha2_256s = 0x0915;
+        internal const int slhdsa_sha2_256f = 0x0916;
+        internal const int slhdsa_shake_128s = 0x0917;
+        internal const int slhdsa_shake_128f = 0x0918;
+        internal const int slhdsa_shake_192s = 0x0919;
+        internal const int slhdsa_shake_192f = 0x091A;
+        internal const int slhdsa_shake_256s = 0x091B;
+        internal const int slhdsa_shake_256f = 0x091C;
+
+        public static readonly int DRAFT_slhdsa_sha2_128s = slhdsa_sha2_128s;
+        public static readonly int DRAFT_slhdsa_sha2_128f = slhdsa_sha2_128f;
+        public static readonly int DRAFT_slhdsa_sha2_192s = slhdsa_sha2_192s;
+        public static readonly int DRAFT_slhdsa_sha2_192f = slhdsa_sha2_192f;
+        public static readonly int DRAFT_slhdsa_sha2_256s = slhdsa_sha2_256s;
+        public static readonly int DRAFT_slhdsa_sha2_256f = slhdsa_sha2_256f;
+        public static readonly int DRAFT_slhdsa_shake_128s = slhdsa_shake_128s;
+        public static readonly int DRAFT_slhdsa_shake_128f = slhdsa_shake_128f;
+        public static readonly int DRAFT_slhdsa_shake_192s = slhdsa_shake_192s;
+        public static readonly int DRAFT_slhdsa_shake_192f = slhdsa_shake_192f;
+        public static readonly int DRAFT_slhdsa_shake_256s = slhdsa_shake_256s;
+        public static readonly int DRAFT_slhdsa_shake_256f = slhdsa_shake_256f;
+
+        /*
          * RFC 8446 reserved for private use (0xFE00..0xFFFF)
          */
 
@@ -88,6 +117,18 @@ namespace Org.BouncyCastle.Tls
             case mldsa44:
             case mldsa65:
             case mldsa87:
+            case slhdsa_sha2_128s:
+            case slhdsa_sha2_128f:
+            case slhdsa_sha2_192s:
+            case slhdsa_sha2_192f:
+            case slhdsa_sha2_256s:
+            case slhdsa_sha2_256f:
+            case slhdsa_shake_128s:
+            case slhdsa_shake_128f:
+            case slhdsa_shake_192s:
+            case slhdsa_shake_192f:
+            case slhdsa_shake_256s:
+            case slhdsa_shake_256f:
                 return -1;
             case ecdsa_brainpoolP256r1tls13_sha256:
             case rsa_pss_pss_sha256:
@@ -169,6 +210,30 @@ namespace Org.BouncyCastle.Tls
                 return "mldsa65";
             case mldsa87:
                 return "mldsa87";
+            case slhdsa_sha2_128s:
+                return "slhdsa_sha2_128s";
+            case slhdsa_sha2_128f:
+                return "slhdsa_sha2_128f";
+            case slhdsa_sha2_192s:
+                return "slhdsa_sha2_192s";
+            case slhdsa_sha2_192f:
+                return "slhdsa_sha2_192f";
+            case slhdsa_sha2_256s:
+                return "slhdsa_sha2_256s";
+            case slhdsa_sha2_256f:
+                return "slhdsa_sha2_256f";
+            case slhdsa_shake_128s:
+                return "slhdsa_shake_128s";
+            case slhdsa_shake_128f:
+                return "slhdsa_shake_128f";
+            case slhdsa_shake_192s:
+                return "slhdsa_shake_192s";
+            case slhdsa_shake_192f:
+                return "slhdsa_shake_192f";
+            case slhdsa_shake_256s:
+                return "slhdsa_shake_256s";
+            case slhdsa_shake_256f:
+                return "slhdsa_shake_256f";
             default:
                 return "UNKNOWN";
             }
@@ -227,6 +292,30 @@ namespace Org.BouncyCastle.Tls
                 return SignatureAndHashAlgorithm.mldsa65;
             case mldsa87:
                 return SignatureAndHashAlgorithm.mldsa87;
+            case slhdsa_sha2_128s:
+                return SignatureAndHashAlgorithm.slhdsa_sha2_128s;
+            case slhdsa_sha2_128f:
+                return SignatureAndHashAlgorithm.slhdsa_sha2_128f;
+            case slhdsa_sha2_192s:
+                return SignatureAndHashAlgorithm.slhdsa_sha2_192s;
+            case slhdsa_sha2_192f:
+                return SignatureAndHashAlgorithm.slhdsa_sha2_192f;
+            case slhdsa_sha2_256s:
+                return SignatureAndHashAlgorithm.slhdsa_sha2_256s;
+            case slhdsa_sha2_256f:
+                return SignatureAndHashAlgorithm.slhdsa_sha2_256f;
+            case slhdsa_shake_128s:
+                return SignatureAndHashAlgorithm.slhdsa_shake_128s;
+            case slhdsa_shake_128f:
+                return SignatureAndHashAlgorithm.slhdsa_shake_128f;
+            case slhdsa_shake_192s:
+                return SignatureAndHashAlgorithm.slhdsa_shake_192s;
+            case slhdsa_shake_192f:
+                return SignatureAndHashAlgorithm.slhdsa_shake_192f;
+            case slhdsa_shake_256s:
+                return SignatureAndHashAlgorithm.slhdsa_shake_256s;
+            case slhdsa_shake_256f:
+                return SignatureAndHashAlgorithm.slhdsa_shake_256f;
             default:
                 return SignatureAndHashAlgorithm.GetInstance(
                     GetHashAlgorithm(signatureScheme),
@@ -284,6 +373,28 @@ namespace Org.BouncyCastle.Tls
             case rsa_pss_pss_sha256:
             case rsa_pss_pss_sha384:
             case rsa_pss_pss_sha512:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        public static bool IsSlhDsa(int signatureScheme)
+        {
+            switch (signatureScheme)
+            {
+            case slhdsa_sha2_128s:
+            case slhdsa_sha2_128f:
+            case slhdsa_sha2_192s:
+            case slhdsa_sha2_192f:
+            case slhdsa_sha2_256s:
+            case slhdsa_sha2_256f:
+            case slhdsa_shake_128s:
+            case slhdsa_shake_128f:
+            case slhdsa_shake_192s:
+            case slhdsa_shake_192f:
+            case slhdsa_shake_256s:
+            case slhdsa_shake_256f:
                 return true;
             default:
                 return false;

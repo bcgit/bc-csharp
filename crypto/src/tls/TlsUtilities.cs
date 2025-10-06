@@ -88,6 +88,19 @@ namespace Org.BouncyCastle.Tls
             AddCertSigAlgOid(d, NistObjectIdentifiers.id_ml_dsa_65, SignatureAndHashAlgorithm.mldsa65);
             AddCertSigAlgOid(d, NistObjectIdentifiers.id_ml_dsa_87, SignatureAndHashAlgorithm.mldsa87);
 
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_sha2_128s, SignatureAndHashAlgorithm.slhdsa_sha2_128s);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_sha2_128f, SignatureAndHashAlgorithm.slhdsa_sha2_128f);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_sha2_192s, SignatureAndHashAlgorithm.slhdsa_sha2_192s);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_sha2_192f, SignatureAndHashAlgorithm.slhdsa_sha2_192f);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_sha2_256s, SignatureAndHashAlgorithm.slhdsa_sha2_256s);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_sha2_256f, SignatureAndHashAlgorithm.slhdsa_sha2_256f);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_shake_128s, SignatureAndHashAlgorithm.slhdsa_shake_128s);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_shake_128f, SignatureAndHashAlgorithm.slhdsa_shake_128f);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_shake_192s, SignatureAndHashAlgorithm.slhdsa_shake_192s);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_shake_192f, SignatureAndHashAlgorithm.slhdsa_shake_192f);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_shake_256s, SignatureAndHashAlgorithm.slhdsa_shake_256s);
+            AddCertSigAlgOid(d, NistObjectIdentifiers.id_slh_dsa_shake_256f, SignatureAndHashAlgorithm.slhdsa_shake_256f);
+
             AddCertSigAlgOid(d, RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256,
                 SignatureAndHashAlgorithm.gostr34102012_256);
             AddCertSigAlgOid(d, RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512,
@@ -1386,8 +1399,11 @@ namespace Org.BouncyCastle.Tls
                 int signatureScheme = SignatureScheme.From(signatureAlgorithm);
 
                 // TODO In future there might be more cases, so we'd need a more general method.
-                if (SignatureScheme.IsMLDsaScheme(signatureScheme))
+                if (SignatureScheme.IsMLDsaScheme(signatureScheme) ||
+                    SignatureScheme.IsSlhDsa(signatureScheme))
+                {
                     throw new TlsFatalAlert(alertDescription);
+                }
             }
         }
 

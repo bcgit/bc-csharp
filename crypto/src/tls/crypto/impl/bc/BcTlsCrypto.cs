@@ -423,8 +423,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         public override bool HasSignatureAndHashAlgorithm(SignatureAndHashAlgorithm sigAndHashAlgorithm)
         {
             int signatureScheme = SignatureScheme.From(sigAndHashAlgorithm);
-            if (SignatureScheme.IsMLDsaScheme(signatureScheme))
-                return true;
+            if (SignatureScheme.IsMLDsaScheme(signatureScheme) ||
+                SignatureScheme.IsSlhDsa(signatureScheme))
+            {
+                return HasSignatureScheme(signatureScheme);
+            }
 
             short signature = sigAndHashAlgorithm.Signature;
 
@@ -446,6 +449,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case SignatureScheme.mldsa44:
             case SignatureScheme.mldsa65:
             case SignatureScheme.mldsa87:
+            case SignatureScheme.slhdsa_sha2_128s:
+            case SignatureScheme.slhdsa_sha2_128f:
+            case SignatureScheme.slhdsa_sha2_192s:
+            case SignatureScheme.slhdsa_sha2_192f:
+            case SignatureScheme.slhdsa_sha2_256s:
+            case SignatureScheme.slhdsa_sha2_256f:
+            case SignatureScheme.slhdsa_shake_128s:
+            case SignatureScheme.slhdsa_shake_128f:
+            case SignatureScheme.slhdsa_shake_192s:
+            case SignatureScheme.slhdsa_shake_192f:
+            case SignatureScheme.slhdsa_shake_256s:
+            case SignatureScheme.slhdsa_shake_256f:
                 return true;
             default:
             {

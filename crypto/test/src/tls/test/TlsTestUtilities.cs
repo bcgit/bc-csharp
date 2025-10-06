@@ -97,60 +97,73 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             if (EqualsIgnoreCase("dsa", eeCertResource))
-            {
                 return GetCACertResource(SignatureAlgorithm.dsa);
-            }
 
-            if (EqualsIgnoreCase("ecdh", eeCertResource)
-                || EqualsIgnoreCase("ecdsa", eeCertResource))
+            if (EqualsIgnoreCase("ecdh", eeCertResource) ||
+                EqualsIgnoreCase("ecdsa", eeCertResource))
             {
                 return GetCACertResource(SignatureAlgorithm.ecdsa);
             }
 
             if (EqualsIgnoreCase("ed25519", eeCertResource))
-            {
                 return GetCACertResource13(SignatureScheme.ed25519);
-            }
-
             if (EqualsIgnoreCase("ed448", eeCertResource))
-            {
                 return GetCACertResource13(SignatureScheme.ed448);
-            }
 
-            if (EqualsIgnoreCase("ml_dsa_44", eeCertResource))
+            if (eeCertResource.StartsWith("ml_dsa_"))
             {
-                return GetCACertResource13(SignatureScheme.mldsa44);
+                if (EqualsIgnoreCase("ml_dsa_44", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.mldsa44);
+                if (EqualsIgnoreCase("ml_dsa_65", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.mldsa65);
+                if (EqualsIgnoreCase("ml_dsa_87", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.mldsa87);
             }
 
-            if (EqualsIgnoreCase("ml_dsa_65", eeCertResource))
+            if (eeCertResource.StartsWith("slh_dsa_sha2_"))
             {
-                return GetCACertResource13(SignatureScheme.mldsa65);
+                if (EqualsIgnoreCase("slh_dsa_sha2_128s", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_sha2_128s);
+                if (EqualsIgnoreCase("slh_dsa_sha2_128f", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_sha2_128f);
+                if (EqualsIgnoreCase("slh_dsa_sha2_192s", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_sha2_192s);
+                if (EqualsIgnoreCase("slh_dsa_sha2_192f", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_sha2_192f);
+                if (EqualsIgnoreCase("slh_dsa_sha2_256s", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_sha2_256s);
+                if (EqualsIgnoreCase("slh_dsa_sha2_256f", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_sha2_256f);
             }
-
-            if (EqualsIgnoreCase("ml_dsa_87", eeCertResource))
+            if (eeCertResource.StartsWith("slh_dsa_shake_"))
             {
-                return GetCACertResource13(SignatureScheme.mldsa87);
+                if (EqualsIgnoreCase("slh_dsa_shake_128s", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_shake_128s);
+                if (EqualsIgnoreCase("slh_dsa_shake_128f", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_shake_128f);
+                if (EqualsIgnoreCase("slh_dsa_shake_192s", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_shake_192s);
+                if (EqualsIgnoreCase("slh_dsa_shake_192f", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_shake_192f);
+                if (EqualsIgnoreCase("slh_dsa_shake_256s", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_shake_256s);
+                if (EqualsIgnoreCase("slh_dsa_shake_256f", eeCertResource))
+                    return GetCACertResource13(SignatureScheme.DRAFT_slhdsa_shake_256f);
             }
 
-            if (EqualsIgnoreCase("rsa", eeCertResource)
-                || EqualsIgnoreCase("rsa-enc", eeCertResource)
-                || EqualsIgnoreCase("rsa-sign", eeCertResource))
+            if (EqualsIgnoreCase("rsa", eeCertResource) ||
+                EqualsIgnoreCase("rsa-enc", eeCertResource) ||
+                EqualsIgnoreCase("rsa-sign", eeCertResource))
             {
                 return GetCACertResource(SignatureAlgorithm.rsa);
             }
 
             if (EqualsIgnoreCase("rsa_pss_256", eeCertResource))
-            {
                 return GetCACertResource(SignatureAlgorithm.rsa_pss_pss_sha256);
-            }
             if (EqualsIgnoreCase("rsa_pss_384", eeCertResource))
-            {
                 return GetCACertResource(SignatureAlgorithm.rsa_pss_pss_sha384);
-            }
             if (EqualsIgnoreCase("rsa_pss_512", eeCertResource))
-            {
                 return GetCACertResource(SignatureAlgorithm.rsa_pss_pss_sha512);
-            }
 
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
@@ -199,11 +212,21 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static string GetResourceName13(int signatureScheme)
         {
-            if (SignatureScheme.IsMLDsaScheme(signatureScheme))
+            // TODO[tls-slhdsa] Move into switch statement once constants available
+            if (SignatureScheme.IsSlhDsa(signatureScheme))
             {
-                return SignatureScheme.mldsa44 == signatureScheme ? "ml_dsa_44"
-                    :  SignatureScheme.mldsa65 == signatureScheme ? "ml_dsa_65"
-                    :                                               "ml_dsa_87";
+                return SignatureScheme.DRAFT_slhdsa_sha2_128s == signatureScheme ? "slh_dsa_sha2_128s"
+                    :  SignatureScheme.DRAFT_slhdsa_sha2_128f == signatureScheme ? "slh_dsa_sha2_128f"
+                    :  SignatureScheme.DRAFT_slhdsa_sha2_192s == signatureScheme ? "slh_dsa_sha2_192s"
+                    :  SignatureScheme.DRAFT_slhdsa_sha2_192f == signatureScheme ? "slh_dsa_sha2_192f"
+                    :  SignatureScheme.DRAFT_slhdsa_sha2_256s == signatureScheme ? "slh_dsa_sha2_256s"
+                    :  SignatureScheme.DRAFT_slhdsa_sha2_256f == signatureScheme ? "slh_dsa_sha2_256f"
+                    :  SignatureScheme.DRAFT_slhdsa_shake_128s == signatureScheme ? "slh_dsa_shake_128s"
+                    :  SignatureScheme.DRAFT_slhdsa_shake_128f == signatureScheme ? "slh_dsa_shake_128f"
+                    :  SignatureScheme.DRAFT_slhdsa_shake_192s == signatureScheme ? "slh_dsa_shake_192s"
+                    :  SignatureScheme.DRAFT_slhdsa_shake_192f == signatureScheme ? "slh_dsa_shake_192f"
+                    :  SignatureScheme.DRAFT_slhdsa_shake_256s == signatureScheme ? "slh_dsa_shake_256s"
+                    :                                                               "slh_dsa_shake_256f";
             }
 
             switch (signatureScheme)
@@ -212,6 +235,12 @@ namespace Org.BouncyCastle.Tls.Tests
                 return "ed25519";
             case SignatureScheme.ed448:
                 return "ed448";
+            case SignatureScheme.mldsa44:
+                return "ml_dsa_44";
+            case SignatureScheme.mldsa65:
+                return "ml_dsa_65";
+            case SignatureScheme.mldsa87:
+                return "ml_dsa_87";
             default:
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }

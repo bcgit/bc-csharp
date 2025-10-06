@@ -58,6 +58,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
                 throw new ArgumentException("ML-DSA private key of wrong type for signature algorithm");
             }
+            else if (privateKey is SlhDsaPrivateKeyParameters slhDsaPrivateKey)
+            {
+                if (signatureAndHashAlgorithm != null)
+                {
+                    int signatureScheme = SignatureScheme.From(signatureAndHashAlgorithm);
+                    TlsSigner signer = BcTlsSlhDsaSigner.Create(crypto, slhDsaPrivateKey, signatureScheme);
+                    if (signer != null)
+                        return signer;
+                }
+
+                throw new ArgumentException("SLH-DSA private key of wrong type for signature algorithm");
+            }
             else
             {
                 throw new ArgumentException("'privateKey' type not supported: " + privateKey.GetType().FullName);

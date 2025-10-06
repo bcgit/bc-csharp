@@ -234,6 +234,29 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 return new BcTls13Verifier(verifier);
             }
 
+            case SignatureScheme.slhdsa_sha2_128s:
+            case SignatureScheme.slhdsa_sha2_128f:
+            case SignatureScheme.slhdsa_sha2_192s:
+            case SignatureScheme.slhdsa_sha2_192f:
+            case SignatureScheme.slhdsa_sha2_256s:
+            case SignatureScheme.slhdsa_sha2_256f:
+            case SignatureScheme.slhdsa_shake_128s:
+            case SignatureScheme.slhdsa_shake_128f:
+            case SignatureScheme.slhdsa_shake_192s:
+            case SignatureScheme.slhdsa_shake_192f:
+            case SignatureScheme.slhdsa_shake_256s:
+            case SignatureScheme.slhdsa_shake_256f:
+            {
+                var slhDsaAlgOid = PqcUtilities.GetSlhDsaObjectidentifier(signatureScheme);
+                ValidateSlhDsa(slhDsaAlgOid);
+
+                var publicKey = GetPubKeySlhDsa();
+
+                var verifier = SignerUtilities.InitSigner(slhDsaAlgOid, forSigning: false, publicKey, random: null);
+
+                return new BcTls13Verifier(verifier);
+            }
+
             default:
                 throw new TlsFatalAlert(AlertDescription.internal_error);
             }
@@ -392,6 +415,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
         /// <exception cref="IOException"/>
+        public virtual SlhDsaPublicKeyParameters GetPubKeySlhDsa()
+        {
+            try
+            {
+                return (SlhDsaPublicKeyParameters)GetPublicKey();
+            }
+            catch (InvalidCastException e)
+            {
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "Public key not SLH-DSA", e);
+            }
+        }
+
+        /// <exception cref="IOException"/>
         public virtual bool SupportsSignatureAlgorithm(short signatureAlgorithm)
         {
             return SupportsSignatureAlgorithm(signatureAlgorithm, KeyUsage.DigitalSignature);
@@ -466,6 +502,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
             AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
             return RsaUtilities.SupportsPss_Rsae(pubKeyAlgID);
+        }
+
+        protected virtual bool SupportsSlhDsa(DerObjectIdentifier slhDsaAlgOid)
+        {
+            AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
+            return PqcUtilities.SupportsSlhDsa(pubKeyAlgID, slhDsaAlgOid);
         }
 
         /// <exception cref="IOException"/>
@@ -570,6 +612,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             if (!SupportsRsa_Pss_Rsae())
                 throw new TlsFatalAlert(AlertDescription.certificate_unknown,
                     "No support for rsa_pss_rsae signature schemes");
+        }
+
+        /// <exception cref="IOException"/>
+        protected virtual void ValidateSlhDsa(DerObjectIdentifier slhDsaAlgOid)
+        {
+            if (!SupportsSlhDsa(slhDsaAlgOid))
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown, "No support for SLH-DSA signature scheme");
         }
     }
 }

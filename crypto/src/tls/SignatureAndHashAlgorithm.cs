@@ -33,6 +33,18 @@ namespace Org.BouncyCastle.Tls
             Create(SignatureScheme.rsa_pss_pss_sha384);
         public static readonly SignatureAndHashAlgorithm rsa_pss_pss_sha512 =
             Create(SignatureScheme.rsa_pss_pss_sha512);
+        public static readonly SignatureAndHashAlgorithm slhdsa_sha2_128s = Create(SignatureScheme.slhdsa_sha2_128s);
+        public static readonly SignatureAndHashAlgorithm slhdsa_sha2_128f = Create(SignatureScheme.slhdsa_sha2_128f);
+        public static readonly SignatureAndHashAlgorithm slhdsa_sha2_192s = Create(SignatureScheme.slhdsa_sha2_192s);
+        public static readonly SignatureAndHashAlgorithm slhdsa_sha2_192f = Create(SignatureScheme.slhdsa_sha2_192f);
+        public static readonly SignatureAndHashAlgorithm slhdsa_sha2_256s = Create(SignatureScheme.slhdsa_sha2_256s);
+        public static readonly SignatureAndHashAlgorithm slhdsa_sha2_256f = Create(SignatureScheme.slhdsa_sha2_256f);
+        public static readonly SignatureAndHashAlgorithm slhdsa_shake_128s = Create(SignatureScheme.slhdsa_shake_128s);
+        public static readonly SignatureAndHashAlgorithm slhdsa_shake_128f = Create(SignatureScheme.slhdsa_shake_128f);
+        public static readonly SignatureAndHashAlgorithm slhdsa_shake_192s = Create(SignatureScheme.slhdsa_shake_192s);
+        public static readonly SignatureAndHashAlgorithm slhdsa_shake_192f = Create(SignatureScheme.slhdsa_shake_192f);
+        public static readonly SignatureAndHashAlgorithm slhdsa_shake_256s = Create(SignatureScheme.slhdsa_shake_256s);
+        public static readonly SignatureAndHashAlgorithm slhdsa_shake_256f = Create(SignatureScheme.slhdsa_shake_256f);
 
         public static SignatureAndHashAlgorithm GetInstance(short hashAlgorithm, short signatureAlgorithm)
         {

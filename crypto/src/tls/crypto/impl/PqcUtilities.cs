@@ -35,10 +35,75 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             throw new ArgumentException();
         }
 
-        public static bool SupportsMLDsa(AlgorithmIdentifier pubKeyAlgID, DerObjectIdentifier mlDsaAlgOid)
+        public static DerObjectIdentifier GetSlhDsaObjectidentifier(int signatureScheme)
         {
-            return pubKeyAlgID.Algorithm.Equals(mlDsaAlgOid)
-                && pubKeyAlgID.Parameters == null;
+            switch (signatureScheme)
+            {
+            case SignatureScheme.slhdsa_sha2_128s:
+                return NistObjectIdentifiers.id_slh_dsa_sha2_128s;
+            case SignatureScheme.slhdsa_sha2_128f:
+                return NistObjectIdentifiers.id_slh_dsa_sha2_128f;
+            case SignatureScheme.slhdsa_sha2_192s:
+                return NistObjectIdentifiers.id_slh_dsa_sha2_192s;
+            case SignatureScheme.slhdsa_sha2_192f:
+                return NistObjectIdentifiers.id_slh_dsa_sha2_192f;
+            case SignatureScheme.slhdsa_sha2_256s:
+                return NistObjectIdentifiers.id_slh_dsa_sha2_256s;
+            case SignatureScheme.slhdsa_sha2_256f:
+                return NistObjectIdentifiers.id_slh_dsa_sha2_256f;
+            case SignatureScheme.slhdsa_shake_128s:
+                return NistObjectIdentifiers.id_slh_dsa_shake_128s;
+            case SignatureScheme.slhdsa_shake_128f:
+                return NistObjectIdentifiers.id_slh_dsa_shake_128f;
+            case SignatureScheme.slhdsa_shake_192s:
+                return NistObjectIdentifiers.id_slh_dsa_shake_192s;
+            case SignatureScheme.slhdsa_shake_192f:
+                return NistObjectIdentifiers.id_slh_dsa_shake_192f;
+            case SignatureScheme.slhdsa_shake_256s:
+                return NistObjectIdentifiers.id_slh_dsa_shake_256s;
+            case SignatureScheme.slhdsa_shake_256f:
+                return NistObjectIdentifiers.id_slh_dsa_shake_256f;
+            default:
+                throw new ArgumentException();
+            }
         }
+
+        public static int GetSlhDsaSignatureScheme(SlhDsaParameters parameters)
+        {
+            if (SlhDsaParameters.slh_dsa_sha2_128s == parameters)
+                return SignatureScheme.slhdsa_sha2_128s;
+            if (SlhDsaParameters.slh_dsa_sha2_128f == parameters)
+                return SignatureScheme.slhdsa_sha2_128f;
+            if (SlhDsaParameters.slh_dsa_sha2_192s == parameters)
+                return SignatureScheme.slhdsa_sha2_192s;
+            if (SlhDsaParameters.slh_dsa_sha2_192f == parameters)
+                return SignatureScheme.slhdsa_sha2_192f;
+            if (SlhDsaParameters.slh_dsa_sha2_256s == parameters)
+                return SignatureScheme.slhdsa_sha2_256s;
+            if (SlhDsaParameters.slh_dsa_sha2_256f == parameters)
+                return SignatureScheme.slhdsa_sha2_256f;
+            if (SlhDsaParameters.slh_dsa_shake_128s == parameters)
+                return SignatureScheme.slhdsa_shake_128s;
+            if (SlhDsaParameters.slh_dsa_shake_128f == parameters)
+                return SignatureScheme.slhdsa_shake_128f;
+            if (SlhDsaParameters.slh_dsa_shake_192s == parameters)
+                return SignatureScheme.slhdsa_shake_192s;
+            if (SlhDsaParameters.slh_dsa_shake_192f == parameters)
+                return SignatureScheme.slhdsa_shake_192f;
+            if (SlhDsaParameters.slh_dsa_shake_256s == parameters)
+                return SignatureScheme.slhdsa_shake_256s;
+            if (SlhDsaParameters.slh_dsa_shake_256f == parameters)
+                return SignatureScheme.slhdsa_shake_256f;
+            throw new ArgumentException();
+        }
+
+        public static bool SupportsMLDsa(AlgorithmIdentifier pubKeyAlgID, DerObjectIdentifier mlDsaAlgOid) =>
+            HasOidWithNullParameters(pubKeyAlgID, mlDsaAlgOid);
+
+        public static bool SupportsSlhDsa(AlgorithmIdentifier pubKeyAlgID, DerObjectIdentifier slhDsaAlgOid) =>
+            HasOidWithNullParameters(pubKeyAlgID, slhDsaAlgOid);
+
+        private static bool HasOidWithNullParameters(AlgorithmIdentifier algID, DerObjectIdentifier algOid) =>
+            algID.Algorithm.Equals(algOid) && algID.Parameters == null;
     }
 }
