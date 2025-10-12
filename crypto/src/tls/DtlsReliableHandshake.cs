@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -84,15 +84,17 @@ namespace Org.BouncyCastle.Tls
         internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis,
             int initialResendMillis, DtlsRequest request)
         {
+            long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
+
             m_recordLayer = transport;
             m_handshakeHash = new DeferredHash(context);
-            m_handshakeTimeout = Timeout.ForWaitMillis(timeoutMillis);
+            m_handshakeTimeout = Timeout.ForWaitMillis(timeoutMillis, currentTimeMillis);
             m_initialResendMillis = initialResendMillis;
 
             if (null != request)
             {
                 m_resendMillis = m_initialResendMillis;
-                m_resendTimeout = new Timeout(m_resendMillis);
+                m_resendTimeout = new Timeout(m_resendMillis, currentTimeMillis);
 
                 long recordSeq = request.RecordSeq;
                 int messageSeq = request.MessageSeq;
