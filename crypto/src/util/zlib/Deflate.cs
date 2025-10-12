@@ -1565,18 +1565,18 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             if(strm.avail_in!=0 || lookahead!=0 ||
                 (flush != Z_NO_FLUSH && status != FINISH_STATE)) {
                 int bstate=-1;
-                switch(config_table[level].func){
-                    case STORED: 
-                        bstate = deflate_stored(flush);
-                        break;
-                    case FAST: 
-                        bstate = deflate_fast(flush);
-                        break;
-                    case SLOW: 
-                        bstate = deflate_slow(flush);
-                        break;
-                    default:
-                        break;
+                switch (config_table[level].func){
+                case STORED: 
+                    bstate = deflate_stored(flush);
+                    break;
+                case FAST: 
+                    bstate = deflate_fast(flush);
+                    break;
+                case SLOW: 
+                    bstate = deflate_slow(flush);
+                    break;
+                default:
+                    break;
                 }
 
                 if (bstate==FinishStarted || bstate==FinishDone) {

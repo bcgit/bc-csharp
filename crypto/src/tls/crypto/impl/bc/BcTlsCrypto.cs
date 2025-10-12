@@ -466,7 +466,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             {
                 short signature = SignatureScheme.GetSignatureAlgorithm(signatureScheme);
 
-                switch(SignatureScheme.GetCryptoHashAlgorithm(signatureScheme))
+                switch (SignatureScheme.GetCryptoHashAlgorithm(signatureScheme))
                 {
                 case CryptoHashAlgorithm.md5:
                     return SignatureAlgorithm.rsa == signature && HasSignatureAlgorithm(signature);

@@ -486,16 +486,16 @@ step3:
 				x0 = init_random.NextInt();
 				c  = init_random.NextInt();
 
-				switch(size)
+				switch (size)
 				{
-					case 512:
-						procedure_A(x0, c, pq, 512);
-						break;
-					case 1024:
-						procedure_B(x0, c, pq);
-						break;
-					default:
-						throw new ArgumentException("Ooops! key size 512 or 1024 bit.");
+				case 512:
+					procedure_A(x0, c, pq, 512);
+					break;
+				case 1024:
+					procedure_B(x0, c, pq);
+					break;
+				default:
+					throw new ArgumentException("Ooops! key size 512 or 1024 bit.");
 				}
 				p = pq[0];  q = pq[1];
 				a = procedure_C(p, q);
@@ -508,16 +508,16 @@ step3:
 				x0L = init_random.NextLong();
 				cL  = init_random.NextLong();
 
-				switch(size)
+				switch (size)
 				{
-					case 512:
-						procedure_Aa(x0L, cL, pq, 512);
-						break;
-					case 1024:
-						procedure_Bb(x0L, cL, pq);
-						break;
-					default:
-						throw new InvalidOperationException("Ooops! key size 512 or 1024 bit.");
+				case 512:
+					procedure_Aa(x0L, cL, pq, 512);
+					break;
+				case 1024:
+					procedure_Bb(x0L, cL, pq);
+					break;
+				default:
+					throw new InvalidOperationException("Ooops! key size 512 or 1024 bit.");
 				}
 				p = pq[0];  q = pq[1];
 				a = procedure_C(p, q);
