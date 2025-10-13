@@ -50,6 +50,9 @@ namespace Org.BouncyCastle.Tls
         }
 
         // TODO[api] Add to DatagramTransport (with a default null parameter)
+        /// <remarks>
+        /// A <paramref name="waitMillis"/> of zero is interpreted as an infinite timeout.
+        /// </remarks>
         /// <exception cref="IOException"/>
         public virtual int Receive(byte[] buf, int off, int len, int waitMillis, DtlsRecordCallback recordCallback)
         {
@@ -182,6 +185,9 @@ namespace Org.BouncyCastle.Tls
         }
 
         // TODO[api] Add to DatagramTransport (with a default null parameter)
+        /// <remarks>
+        /// A <paramref name="waitMillis"/> of zero is interpreted as an infinite timeout.
+        /// </remarks>
         /// <exception cref="IOException"/>
         public virtual int Receive(Span<byte> buffer, int waitMillis, DtlsRecordCallback recordCallback)
         {

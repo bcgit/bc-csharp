@@ -271,6 +271,9 @@ namespace Org.BouncyCastle.Tls
         public virtual int Receive(byte[] buf, int off, int len, int waitMillis) =>
             Receive(buf, off, len, waitMillis, null);
 
+        /// <remarks>
+        /// A <paramref name="waitMillis"/> of zero is interpreted as an infinite timeout.
+        /// </remarks>
         /// <exception cref="IOException"/>
         internal int Receive(byte[] buf, int off, int len, int waitMillis, DtlsRecordCallback recordCallback)
         {
@@ -370,6 +373,9 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual int Receive(Span<byte> buffer, int waitMillis) => Receive(buffer, waitMillis, null);
 
+        /// <remarks>
+        /// A <paramref name="waitMillis"/> of zero is interpreted as an infinite timeout.
+        /// </remarks>
         /// <exception cref="IOException"/>
         internal int Receive(Span<byte> buffer, int waitMillis, DtlsRecordCallback recordCallback)
         {
