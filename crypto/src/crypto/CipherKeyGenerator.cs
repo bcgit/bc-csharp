@@ -5,78 +5,64 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto
 {
-    /**
-	 * The base class for symmetric, or secret, cipher key generators.
-	 */
+    /// <summary>The base class for symmetric, or secret, cipher key generators.</summary>
     public class CipherKeyGenerator
-	{
-		protected internal SecureRandom	random;
-		protected internal int			strength;
-		private bool uninitialised = true;
-		private int defaultStrength;
+    {
+        protected internal SecureRandom random;
+        protected internal int strength;
 
-		public CipherKeyGenerator()
-		{
-		}
+        private bool m_uninitialised = true;
+        private int m_defaultStrength;
 
-		internal CipherKeyGenerator(
-			int defaultStrength)
-		{
-			if (defaultStrength < 1)
-				throw new ArgumentException("strength must be a positive value", "defaultStrength");
-
-			this.defaultStrength = defaultStrength;
-		}
-
-		public int DefaultStrength
-		{
-			get { return defaultStrength; }
-		}
-
-		/**
-		 * initialise the key generator.
-		 *
-		 * @param param the parameters to be used for key generation
-		 */
-		public void Init(KeyGenerationParameters parameters)
-		{
-			if (parameters == null)
-				throw new ArgumentNullException(nameof(parameters));
-
-			this.uninitialised = false;
-
-			EngineInit(parameters);
-		}
-
-		protected virtual void EngineInit(KeyGenerationParameters parameters)
-		{
-			this.random = parameters.Random;
-			this.strength = (parameters.Strength + 7) / 8;
-		}
-
-		/**
-		 * Generate a secret key.
-		 *
-		 * @return a byte array containing the key value.
-		 */
-		public byte[] GenerateKey()
-		{
-			EnsureInitialized();
-
-			return EngineGenerateKey();
-		}
-
-		public KeyParameter GenerateKeyParameter()
-		{
-            EnsureInitialized();
-
-			return EngineGenerateKeyParameter();
+        public CipherKeyGenerator()
+        {
         }
 
-        protected virtual byte[] EngineGenerateKey()
-		{
-            return SecureRandom.GetNextBytes(random, strength);
-		}
+        internal CipherKeyGenerator(int defaultStrength)
+        {
+            if (defaultStrength < 1)
+                throw new ArgumentException("strength must be a positive value", nameof(defaultStrength));
+
+            m_defaultStrength = defaultStrength;
+        }
+
+        public int DefaultStrength => m_defaultStrength;
+
+        /// <summary>Initialise the key generator.</summary>
+        /// <param name="parameters">The parameters to be used for key generation</param>
+        public void Init(KeyGenerationParameters parameters)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+
+            m_uninitialised = false;
+
+            EngineInit(parameters);
+        }
+
+        protected virtual void EngineInit(KeyGenerationParameters parameters)
+        {
+            this.random = parameters.Random;
+            this.strength = (parameters.Strength + 7) / 8;
+        }
+
+        /// <summary>Generate a secret key.</summary>
+        /// <returns>A byte array containing the key value.</returns>
+        public byte[] GenerateKey()
+        {
+            EnsureInitialized();
+
+            return EngineGenerateKey();
+        }
+
+        public KeyParameter GenerateKeyParameter()
+        {
+            EnsureInitialized();
+
+            return EngineGenerateKeyParameter();
+        }
+
+        protected virtual byte[] EngineGenerateKey() => SecureRandom.GetNextBytes(random, strength);
 
         protected virtual KeyParameter EngineGenerateKeyParameter()
         {
@@ -84,7 +70,7 @@ namespace Org.BouncyCastle.Crypto
             // TODO[api] Redesign to avoid this exceptional case
             // Avoid problems if EngineGenerateKey() was overridden before this method even existed.
             if (GetType() == typeof(CipherKeyGenerator))
-			{
+            {
                 return KeyParameter.Create(strength, random, (bytes, random) =>
                 {
                     random.NextBytes(bytes);
@@ -92,19 +78,19 @@ namespace Org.BouncyCastle.Crypto
             }
 #endif
 
-			return new KeyParameter(EngineGenerateKey());
+            return new KeyParameter(EngineGenerateKey());
         }
 
         protected virtual void EnsureInitialized()
-		{
-            if (uninitialised)
+        {
+            if (m_uninitialised)
             {
-                if (defaultStrength < 1)
+                if (m_defaultStrength < 1)
                     throw new InvalidOperationException("Generator has not been initialised");
 
-                uninitialised = false;
+                m_uninitialised = false;
 
-                EngineInit(new KeyGenerationParameters(CryptoServicesRegistrar.GetSecureRandom(), defaultStrength));
+                EngineInit(new KeyGenerationParameters(CryptoServicesRegistrar.GetSecureRandom(), m_defaultStrength));
             }
         }
     }

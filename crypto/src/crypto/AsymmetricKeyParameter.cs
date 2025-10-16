@@ -1,47 +1,21 @@
-using System;
-
-using Org.BouncyCastle.Crypto;
-
 namespace Org.BouncyCastle.Crypto
 {
     public abstract class AsymmetricKeyParameter
-		: ICipherParameters
+        : ICipherParameters
     {
-        private readonly bool privateKey;
+        private readonly bool m_privateKey;
 
-        protected AsymmetricKeyParameter(
-            bool privateKey)
+        protected AsymmetricKeyParameter(bool privateKey)
         {
-            this.privateKey = privateKey;
+            m_privateKey = privateKey;
         }
 
-		public bool IsPrivate
-        {
-            get { return privateKey; }
-        }
+        public bool IsPrivate => m_privateKey;
 
-		public override bool Equals(
-			object obj)
-		{
-			AsymmetricKeyParameter other = obj as AsymmetricKeyParameter;
+        public override bool Equals(object obj) => obj is AsymmetricKeyParameter that && Equals(that);
 
-			if (other == null)
-			{
-				return false;
-			}
+        protected bool Equals(AsymmetricKeyParameter other) => m_privateKey == other.m_privateKey;
 
-			return Equals(other);
-		}
-
-		protected bool Equals(
-			AsymmetricKeyParameter other)
-		{
-			return privateKey == other.privateKey;
-		}
-
-		public override int GetHashCode()
-		{
-			return privateKey.GetHashCode();
-		}
+        public override int GetHashCode() => m_privateKey.GetHashCode();
     }
 }

@@ -1,29 +1,19 @@
-using System;
 using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto
 {
-    /**
-     * The basic interface that basic Diffie-Hellman implementations
-     * conforms to.
-     */
+    /// <summary>The interface that basic Diffie-Hellman implementations conform to.</summary>
     public interface IBasicAgreement
     {
-        /**
-         * initialise the agreement engine.
-         */
+        /// <summary>Initialise the agreement engine.</summary>
         void Init(ICipherParameters parameters);
 
-        /**
-         * return the field size for the agreement algorithm in bytes.
-         */
+        /// <summary>Return the field size for the agreement algorithm in bytes.</summary>
         int GetFieldSize();
 
-        /**
-         * given a public key from a given party calculate the next
-         * message in the agreement sequence.
-         */
+        /// <summary>
+        /// Given a public key from a given party calculate the next message in the agreement sequence.
+        /// </summary>
         BigInteger CalculateAgreement(ICipherParameters pubKey);
     }
-
 }
