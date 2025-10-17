@@ -5,18 +5,12 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
-    internal class Fors
+    internal static class Fors
     {
-        private readonly SphincsPlusEngine engine;
-
-        internal Fors(SphincsPlusEngine engine)
-        {
-            this.engine = engine;
-        }
-
         // Input: Secret seed SK.seed, start index s, target node height z, public seed PK.seed, address Adrs
         // Output: n-byte root node - top node on Stack
-        internal byte[] TreeHash(byte[] skSeed, uint s, int z, byte[] pkSeed, Adrs adrsParam)
+        internal static byte[] TreeHash(SphincsPlusEngine engine, byte[] skSeed, uint s, int z, byte[] pkSeed,
+            Adrs adrsParam)
         {
             if ((s >> z) << z != s)
                 return null;
@@ -62,7 +56,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             return stack.Peek().nodeValue;
         }
 
-        internal SIG_FORS[] Sign(byte[] md, byte[] skSeed, byte[] pkSeed, Adrs paramAdrs, bool legacy)
+        internal static SIG_FORS[] Sign(SphincsPlusEngine engine, byte[] md, byte[] skSeed, byte[] pkSeed,
+            Adrs paramAdrs, bool legacy)
         {
             Adrs adrs = new Adrs(paramAdrs);
             SIG_FORS[] sig_fors = new SIG_FORS[engine.K];
@@ -91,7 +86,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
                 for (int j = 0; j < engine.A; j++)
                 {
                     uint s = (idx >> j) ^ 1U;
-                    authPath[j] = TreeHash(skSeed, (i << engine.A) + (s << j), j, pkSeed, adrs);
+                    authPath[j] = TreeHash(engine, skSeed, (i << engine.A) + (s << j), j, pkSeed, adrs);
                 }
 
                 sig_fors[i] = new SIG_FORS(sk, authPath);
@@ -99,8 +94,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
             return sig_fors;
         }
-
-        internal byte[] PKFromSig(SIG_FORS[] sig_fors, byte[] message, byte[] pkSeed, Adrs adrs, bool legacy)
+ 
+        internal static byte[] PKFromSig(SphincsPlusEngine engine, SIG_FORS[] sig_fors, byte[] message, byte[] pkSeed,
+            Adrs adrs, bool legacy)
         {
             byte[][] root = new byte[engine.K][];
             uint[] indices = legacy ? null : Base2B(message, engine.A, engine.K);

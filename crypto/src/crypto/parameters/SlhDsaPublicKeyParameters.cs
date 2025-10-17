@@ -48,14 +48,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             engine.Init(PK.seed);
 
             Adrs adrs = new Adrs();
-            SIG sig = new SIG(engine.N, engine.K, engine.A, engine.D, engine.H_PRIME, engine.WOTS_LEN, signature);
+            SIG sig = new SIG(engine, signature);
 
             byte[] R = sig.R;
             SIG_FORS[] sig_fors = sig.SIG_FORS;
             SIG_XMSS[] SIG_HT = sig.SIG_HT;
 
             // compute message digest and index
-            IndexedDigest idxDigest = engine.H_msg(R, PK.seed, PK.root, msg, msgOff, msgLen);
+            IndexedDigest idxDigest = engine.H_msg(R, 0, PK.seed, PK.root, msg, msgOff, msgLen);
             byte[] mHash = idxDigest.digest;
             ulong idx_tree = idxDigest.idx_tree;
             uint idx_leaf = idxDigest.idx_leaf;
@@ -65,7 +65,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             adrs.SetLayerAddress(0);
             adrs.SetTreeAddress(idx_tree);
             adrs.SetKeyPairAddress(idx_leaf);
-            byte[] PK_FORS = new Fors(engine).PKFromSig(sig_fors, mHash, PK.seed, adrs, legacy: false);
+
+            byte[] PK_FORS = Fors.PKFromSig(engine, sig_fors, mHash, PK.seed, adrs, legacy: false);
 
             // verify HT signature
             adrs.SetTypeAndClear(Adrs.TREE);

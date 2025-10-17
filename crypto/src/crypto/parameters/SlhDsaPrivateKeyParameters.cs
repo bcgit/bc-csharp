@@ -63,11 +63,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             // init
             engine.Init(PK.seed);
 
-            Fors fors = new Fors(engine);
-            byte[] R = engine.PRF_msg(SK.prf, optRand, msg, msgOff, msgLen);
+            byte[] signature = new byte[engine.SignatureLength];
+
+            engine.PRF_msg(SK.prf, optRand, msg, msgOff, msgLen, signature, 0);
+            int pos = engine.N;
 
             // compute message digest and index
-            IndexedDigest idxDigest = engine.H_msg(R, PK.seed, PK.root, msg, msgOff, msgLen);
+            IndexedDigest idxDigest = engine.H_msg(signature, 0, PK.seed, PK.root, msg, msgOff, msgLen);
             byte[] mHash = idxDigest.digest;
             ulong idx_tree = idxDigest.idx_tree;
             uint idx_leaf = idxDigest.idx_leaf;
@@ -77,7 +79,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             adrs.SetTypeAndClear(Adrs.FORS_TREE);
             adrs.SetTreeAddress(idx_tree);
             adrs.SetKeyPairAddress(idx_leaf);
-            SIG_FORS[] sig_fors = fors.Sign(mHash, SK.seed, PK.seed, adrs, legacy: false);
+
+            SIG_FORS[] sig_fors = Fors.Sign(engine, mHash, SK.seed, PK.seed, adrs, legacy: false);
 
             // get FORS public key - spec shows M?
             adrs = new Adrs();
@@ -85,19 +88,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             adrs.SetTreeAddress(idx_tree);
             adrs.SetKeyPairAddress(idx_leaf);
 
-            byte[] PK_FORS = fors.PKFromSig(sig_fors, mHash, PK.seed, adrs, legacy: false);
+            byte[] PK_FORS = Fors.PKFromSig(engine, sig_fors, mHash, PK.seed, adrs, legacy: false);
 
             // sign FORS public key with HT
             Adrs treeAdrs = new Adrs();
             treeAdrs.SetTypeAndClear(Adrs.TREE);
 
             HT ht = new HT(engine, SK.seed, PK.seed);
-
-            byte[] signature = new byte[engine.SignatureLength];
-            int pos = 0;
-
-            Array.Copy(R, 0, signature, 0, R.Length);
-            pos += R.Length;
 
             for (int i = 0; i < sig_fors.Length; ++i)
             {

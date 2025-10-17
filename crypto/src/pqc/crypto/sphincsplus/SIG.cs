@@ -4,12 +4,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
     internal class SIG
     {
-        private byte[] r;
-        private SIG_FORS[] sig_fors;
-        private SIG_XMSS[] sig_ht;
+        private readonly byte[] r;
+        private readonly SIG_FORS[] sig_fors;
+        private readonly SIG_XMSS[] sig_ht;
 
-        public SIG(int n, int k, int a, uint d, uint hPrime, int wots_len, byte[] signature)
+        internal SIG(SphincsPlusEngine engine, byte[] signature)
         {
+            int n = engine.N;
+            int k = engine.K;
+            int a = engine.A;
+            uint d = engine.D;
+            uint hPrime = engine.H_PRIME;
+            int wots_len = engine.WOTS_LEN;
+
             this.r = new byte[n];
             Array.Copy(signature, 0, r, 0, n);
 

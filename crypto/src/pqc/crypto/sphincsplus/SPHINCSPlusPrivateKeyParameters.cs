@@ -71,5 +71,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         {
             return Arrays.Clone(m_sk.seed);
         }
+
+        internal PK PK => m_pk;
+
+        internal SK SK => m_sk;
     }
 }
