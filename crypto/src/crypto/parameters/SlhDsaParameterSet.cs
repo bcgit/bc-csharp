@@ -1,16 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 
-using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
+using Org.BouncyCastle.Crypto.Signers.SlhDsa;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-    internal interface ISphincsPlusEngineProvider
+    internal interface ISlhDsaEngineProvider
     {
         int N { get; }
 
-        SphincsPlusEngine Get();
+        SlhDsaEngine Get();
     }
 
     public sealed class SlhDsaParameterSet
@@ -65,9 +65,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal static SlhDsaParameterSet FromName(string name) => CollectionUtilities.GetValueOrNull(ByName, name);
 
         private readonly string m_name;
-        private readonly ISphincsPlusEngineProvider m_engineProvider;
+        private readonly ISlhDsaEngineProvider m_engineProvider;
 
-        private SlhDsaParameterSet(string name, ISphincsPlusEngineProvider engineProvider)
+        private SlhDsaParameterSet(string name, ISlhDsaEngineProvider engineProvider)
         {
             m_name = name ?? throw new ArgumentNullException(nameof(name));
             m_engineProvider = engineProvider;
@@ -83,20 +83,15 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal int N => m_engineProvider.N;
 
-        internal SphincsPlusEngine GetEngine() => m_engineProvider.Get();
+        internal SlhDsaEngine GetEngine() => m_engineProvider.Get();
     }
 
     internal sealed class Sha2EngineProvider
-        : ISphincsPlusEngineProvider
+        : ISlhDsaEngineProvider
     {
-        private readonly int n;
-        private readonly uint w;
-        private readonly uint d;
-        private readonly int a;
-        private readonly int k;
-        private readonly uint h;
+        private readonly int n, w, d, a, k, h;
 
-        internal Sha2EngineProvider(int n, uint w, uint d, int a, int k, uint h)
+        internal Sha2EngineProvider(int n, int w, int d, int a, int k, int h)
         {
             this.n = n;
             this.w = w;
@@ -108,20 +103,15 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public int N => this.n;
 
-        public SphincsPlusEngine Get() => new SphincsPlusEngine.Sha2Engine(robust: false, n, w, d, a, k, h);
+        public SlhDsaEngine Get() => new SlhDsaEngine.Sha2Engine(n, w, d, a, k, h);
     }
 
     internal sealed class Shake256EngineProvider
-        : ISphincsPlusEngineProvider
+        : ISlhDsaEngineProvider
     {
-        private readonly int n;
-        private readonly uint w;
-        private readonly uint d;
-        private readonly int a;
-        private readonly int k;
-        private readonly uint h;
+        private readonly int n, w, d, a, k, h;
 
-        internal Shake256EngineProvider(int n, uint w, uint d, int a, int k, uint h)
+        internal Shake256EngineProvider(int n, int w, int d, int a, int k, int h)
         {
             this.n = n;
             this.w = w;
@@ -133,6 +123,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         public int N => this.n;
 
-        public SphincsPlusEngine Get() => new SphincsPlusEngine.Shake256Engine(robust: false, n, w, d, a, k, h);
+        public SlhDsaEngine Get() => new SlhDsaEngine.Shake256Engine(n, w, d, a, k, h);
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 
-using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
+using Org.BouncyCastle.Crypto.Signers.SlhDsa;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
@@ -34,11 +33,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_pk = pk;
         }
 
-        public byte[] GetEncoded() => Arrays.ConcatenateAll(m_sk.seed, m_sk.prf, m_pk.seed, m_pk.root);
+        public byte[] GetEncoded() => Arrays.ConcatenateAll(m_sk.Seed, m_sk.Prf, m_pk.Seed, m_pk.Root);
 
         public SlhDsaPublicKeyParameters GetPublicKey() => new SlhDsaPublicKeyParameters(Parameters, m_pk);
 
-        public byte[] GetPublicKeyEncoded() => Arrays.Concatenate(m_pk.seed, m_pk.root);
+        public byte[] GetPublicKeyEncoded() => Arrays.Concatenate(m_pk.Seed, m_pk.Root);
 
         internal PK PK => m_pk;
 
@@ -46,63 +45,50 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal byte[] SignInternal(byte[] optRand, byte[] msg, int msgOff, int msgLen)
         {
-            // # Input: Message M, private key SK = (SK.seed, SK.prf, PK.seed, PK.root)
-            // # Output: SPHINCS+ signature SIG
-
             var engine = Parameters.ParameterSet.GetEngine();
 
             if (optRand == null)
             {
-                optRand = Arrays.CopyOfRange(PK.seed, 0, engine.N);
+                optRand = Arrays.CopyOfRange(PK.Seed, 0, engine.N);
             }
             else if (optRand.Length != engine.N)
             {
                 throw new ArgumentOutOfRangeException(nameof(optRand));
             }
 
-            // init
-            engine.Init(PK.seed);
+            engine.Init(PK.Seed);
 
             byte[] signature = new byte[engine.SignatureLength];
-
-            engine.PRF_msg(SK.prf, optRand, msg, msgOff, msgLen, signature, 0);
-            int pos = engine.N;
+            engine.PrfMsg(SK.Prf, optRand, msg, msgOff, msgLen, signature, 0);
 
             // compute message digest and index
-            IndexedDigest idxDigest = engine.H_msg(signature, 0, PK.seed, PK.root, msg, msgOff, msgLen);
-            byte[] mHash = idxDigest.digest;
-            ulong idx_tree = idxDigest.idx_tree;
-            uint idx_leaf = idxDigest.idx_leaf;
+            IndexedDigest idxDigest = engine.HMsg(signature, 0, PK.Seed, PK.Root, msg, msgOff, msgLen);
+
+            byte[] digest = idxDigest.Digest;
+            ulong idxTree = idxDigest.IdxTree;
+            uint idxLeaf = idxDigest.IdxLeaf;
 
             // FORS sign
-            Adrs adrs = new Adrs();
-            adrs.SetTypeAndClear(Adrs.FORS_TREE);
-            adrs.SetTreeAddress(idx_tree);
-            adrs.SetKeyPairAddress(idx_leaf);
+            Adrs adrs = new Adrs(Adrs.ForsTree);
+            adrs.SetTreeAddress(idxTree);
+            adrs.SetKeyPairAddress(idxLeaf);
 
-            SIG_FORS[] sig_fors = Fors.Sign(engine, mHash, SK.seed, PK.seed, adrs, legacy: false);
+            Fors.Sign(engine, digest, SK.Seed, adrs, signature);
 
             // get FORS public key - spec shows M?
-            adrs = new Adrs();
-            adrs.SetTypeAndClear(Adrs.FORS_TREE);
-            adrs.SetTreeAddress(idx_tree);
-            adrs.SetKeyPairAddress(idx_leaf);
+            adrs = new Adrs(Adrs.ForsTree);
+            adrs.SetTreeAddress(idxTree);
+            adrs.SetKeyPairAddress(idxLeaf);
 
-            byte[] PK_FORS = Fors.PKFromSig(engine, sig_fors, mHash, PK.seed, adrs, legacy: false);
+            byte[] PK_FORS = new byte[engine.N];
+            Fors.PKFromSig(engine, signature, digest, adrs, PK_FORS, 0);
 
             // sign FORS public key with HT
-            Adrs treeAdrs = new Adrs();
-            treeAdrs.SetTypeAndClear(Adrs.TREE);
+            Adrs treeAdrs = new Adrs(Adrs.Tree);
 
-            HT ht = new HT(engine, SK.seed, PK.seed);
+            HT ht = new HT(engine, SK.Seed, PK.Seed);
+            ht.Sign(PK_FORS, idxTree, idxLeaf, signature);
 
-            for (int i = 0; i < sig_fors.Length; ++i)
-            {
-                sig_fors[i].CopyToSignature(signature, ref pos);
-            }
-
-            ht.Sign(PK_FORS, idx_tree, idx_leaf, signature, ref pos);
-            Debug.Assert(pos == engine.SignatureLength);
             return signature;
         }
     }

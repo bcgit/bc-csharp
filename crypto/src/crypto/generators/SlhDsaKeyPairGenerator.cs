@@ -1,5 +1,5 @@
 ﻿using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
+using Org.BouncyCastle.Crypto.Signers.SlhDsa;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Generators
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             engine.Init(pkSeed);
 
             // TODO
-            PK pk = new PK(pkSeed, new HT(engine, sk.seed, pkSeed).HTPubKey);
+            PK pk = new PK(pkSeed, new HT(engine, sk.Seed, pkSeed).HTPubKey);
 
             return new AsymmetricCipherKeyPair(
                 new SlhDsaPublicKeyParameters(m_parameters, pk),

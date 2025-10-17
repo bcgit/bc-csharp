@@ -2,7 +2,7 @@
 using System.IO;
 
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Pqc.Crypto.SphincsPlus;
+using Org.BouncyCastle.Crypto.Signers.SlhDsa;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SlhDsaPrivateKeyParameters m_privateKey;
         private SlhDsaPublicKeyParameters m_publicKey;
         private SecureRandom m_random;
-        private SphincsPlusEngine m_engine;
+        private SlhDsaEngine m_engine;
 
         public SlhDsaSigner(SlhDsaParameters parameters, bool deterministic)
         {
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
         public void Reset() => m_buffer.Reset();
 
-        private SphincsPlusEngine GetEngine(SlhDsaParameters keyParameters)
+        private SlhDsaEngine GetEngine(SlhDsaParameters keyParameters)
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
             }
 
-            internal byte[] GenerateSignature(SlhDsaPrivateKeyParameters privateKey, SphincsPlusEngine engine,
+            internal byte[] GenerateSignature(SlhDsaPrivateKeyParameters privateKey, SlhDsaEngine engine,
                 SecureRandom random)
             {
                 lock (this)
@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 }
             }
 
-            internal bool VerifySignature(SlhDsaPublicKeyParameters publicKey, SphincsPlusEngine engine,
+            internal bool VerifySignature(SlhDsaPublicKeyParameters publicKey, SlhDsaEngine engine,
                 byte[] signature)
             {
                 if (engine.SignatureLength != signature.Length)
