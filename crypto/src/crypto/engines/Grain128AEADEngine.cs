@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             // TODO Check for encryption with reused nonce
 
-            key.CopyTo(workingKeyAndIV, 0, KeySize);
+            key.CopyKeyTo(workingKeyAndIV, 0, KeySize);
             withIV.CopyIVTo(workingKeyAndIV, KeySize, IVSize);
 
             m_state = forEncryption ? State.EncInit : State.DecInit;

@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException("invalid type: " + Platform.GetTypeName(parameters), nameof(parameters));
             }
 
-            m_roundKeys = CreateRoundKeys(keyParameter.Key, forEncryption);
+            m_roundKeys = CreateRoundKeys(keyParameter.InternalKey, forEncryption);
 
             if (m_roundKeys.Length == 11)
             {

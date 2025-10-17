@@ -4,7 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-    public class ParametersWithUkm 
+    public class ParametersWithUkm
         : ICipherParameters
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_ukm = Arrays.CopyBuffer(ukm);
         }
 
-        public ParametersWithUkm(ICipherParameters parameters, byte[] ukm, int ukmOff,int ukmLen)
+        public ParametersWithUkm(ICipherParameters parameters, byte[] ukm, int ukmOff, int ukmLen)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
@@ -46,12 +46,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private ParametersWithUkm(ICipherParameters parameters, int ukmLength)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
             m_ukm = Arrays.CreateBuffer<byte>(ukmLength);
         }
+#endif
 
         public void CopyUkmTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_ukm, buf, off, len);
 

@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (null != initKeyParam)
             {
-                initKeyParam.CopyTo(mKey, 0, KeySize);
+                initKeyParam.CopyKeyTo(mKey, 0, KeySize);
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

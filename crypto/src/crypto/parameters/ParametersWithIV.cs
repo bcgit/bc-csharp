@@ -47,12 +47,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private ParametersWithIV(ICipherParameters parameters, int ivLength)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
             m_iv = Arrays.CreateBuffer<byte>(ivLength);
         }
+#endif
 
         public void CopyIVTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_iv, buf, off, len);
 

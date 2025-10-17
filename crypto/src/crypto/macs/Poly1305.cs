@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         private void SetKey(KeyParameter keyParameter, byte[] nonce)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            var key = keyParameter.Key;
+            var key = keyParameter.InternalKey;
 #else
             byte[] key = keyParameter.GetKey();
 #endif

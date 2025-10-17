@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new ArgumentException(algorithmName + " requires exactly " + expectedIVLength + " bytes of IV");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Pack.LE_To_UInt32(key.Key, k);
+            Pack.LE_To_UInt32(key.InternalKey, k);
             Pack.LE_To_UInt32(iv, npub);
 #else
             Pack.LE_To_UInt32(key.GetKey(), 0, k);

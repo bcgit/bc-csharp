@@ -425,7 +425,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             int keyLength = key.KeyLength;
             byte[] sessionInfo = new byte[keyLength + 3];
             sessionInfo[0] = (byte)algorithm;
-            key.CopyTo(sessionInfo, 1, keyLength);
+            key.CopyKeyTo(sessionInfo, 1, keyLength);
             AddCheckSum(sessionInfo);
             return sessionInfo;
         }

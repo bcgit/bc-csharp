@@ -24,10 +24,11 @@ namespace Org.BouncyCastle.Crypto.Generators
         public void Init(IDerivationParameters parameters)
         {
             if (!(parameters is MgfParameters mgfParameters))
-                throw new ArgumentException("MGF parameters required for MGF1Generator");
+                throw new ArgumentException($"MGF parameters required for {nameof(Mgf1BytesGenerator)}", nameof(parameters));
 
-            m_buffer = new byte[mgfParameters.SeedLength + 4 + m_hLen];
-            mgfParameters.GetSeed(m_buffer, 0);
+            int seedLength = mgfParameters.SeedLength;
+            m_buffer = new byte[seedLength + 4 + m_hLen];
+            mgfParameters.CopySeedTo(m_buffer, 0, seedLength);
         }
 
         /// <summary>the underlying digest.</summary>

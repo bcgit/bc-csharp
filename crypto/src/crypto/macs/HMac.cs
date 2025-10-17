@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             if (keyLength > blockLength)
             {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                digest.BlockUpdate(keyParameter.Key);
+                digest.BlockUpdate(keyParameter.InternalKey);
 #else
                 byte[] key = keyParameter.GetKey();
                 digest.BlockUpdate(key, 0, keyLength);
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
             else
             {
-                keyParameter.CopyTo(inputPad, 0, keyLength);
+                keyParameter.CopyKeyTo(inputPad, 0, keyLength);
             }
 
 			Array.Clear(inputPad, keyLength, blockLength - keyLength);

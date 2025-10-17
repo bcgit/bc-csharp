@@ -8,7 +8,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class KeyParameter
-		: ICipherParameters
+        : ICipherParameters
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static KeyParameter Create<TState>(int length, TState state, SpanAction<byte, TState> action)
@@ -26,25 +26,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private readonly byte[] m_key;
 
-		public KeyParameter(byte[] key)
-		{
-			if (key == null)
-				throw new ArgumentNullException(nameof(key));
-
-			m_key = (byte[])key.Clone();
-		}
-
-		public KeyParameter(byte[] key, int keyOff, int keyLen)
+        public KeyParameter(byte[] key)
         {
-			if (key == null)
-				throw new ArgumentNullException(nameof(key));
-			if (keyOff < 0 || keyOff > key.Length)
-				throw new ArgumentOutOfRangeException(nameof(keyOff));
-            if (keyLen < 0 || keyLen > (key.Length - keyOff))
-				throw new ArgumentOutOfRangeException(nameof(keyLen));
+            m_key = Arrays.CopyBuffer(key);
+        }
 
-			m_key = new byte[keyLen];
-            Array.Copy(key, keyOff, m_key, 0, keyLen);
+        public KeyParameter(byte[] key, int keyOff, int keyLen)
+        {
+            m_key = Arrays.CopySegment(key, keyOff, keyLen);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -62,6 +51,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_key = new byte[length];
         }
 
+        public void CopyKeyTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_key, buf, off, len);
+
+        [Obsolete("Use 'CopyKeyTo' instead")]
         public void CopyTo(byte[] buf, int off, int len)
         {
             if (m_key.Length != len)
@@ -70,20 +62,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             Array.Copy(m_key, 0, buf, off, len);
         }
 
-        public byte[] GetKey()
-        {
-			return (byte[])m_key.Clone();
-        }
+        public byte[] GetKey() => Arrays.InternalCopyBuffer(m_key);
 
         public int KeyLength => m_key.Length;
 
-        internal bool FixedTimeEquals(byte[] data)
-        {
-            return Arrays.FixedTimeEquals(m_key, data);
-        }
+        internal bool FixedTimeEquals(byte[] data) => Arrays.FixedTimeEquals(m_key, data);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal ReadOnlySpan<byte> Key => m_key;
+        internal ReadOnlySpan<byte> InternalKey => m_key;
 #endif
 
         public KeyParameter Reverse()

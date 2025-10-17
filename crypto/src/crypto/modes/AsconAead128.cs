@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 throw new ArgumentException($"{AlgorithmName} requires exactly {CryptoABytes} bytes of IV");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            var k = key.Key;
+            var k = key.InternalKey;
 #else
             byte[] k = key.GetKey();
 #endif

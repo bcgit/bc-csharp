@@ -283,7 +283,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 				throw new ArgumentException("key size must be 128 bits");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            var inKey = keyParameter.Key;
+            var inKey = keyParameter.InternalKey;
 #else
             byte[] inKey = keyParameter.GetKey();
 #endif

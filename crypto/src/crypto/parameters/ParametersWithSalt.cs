@@ -47,12 +47,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private ParametersWithSalt(ICipherParameters parameters, int saltLength)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
             m_salt = Arrays.CreateBuffer<byte>(saltLength);
         }
+#endif
 
         public void CopySaltTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_salt, buf, off, len);
 

@@ -46,12 +46,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private ParametersWithContext(ICipherParameters parameters, int contextLength)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
             m_context = Arrays.CreateBuffer<byte>(contextLength);
         }
+#endif
 
         public int ContextLength => m_context.Length;
 

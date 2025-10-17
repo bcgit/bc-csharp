@@ -46,12 +46,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private ParametersWithID(ICipherParameters parameters, int idLength)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
             m_id = Arrays.CreateBuffer<byte>(idLength);
         }
+#endif
 
         public void CopyIDTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_id, buf, off, len);
 

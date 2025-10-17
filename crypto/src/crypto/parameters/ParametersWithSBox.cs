@@ -46,12 +46,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private ParametersWithSBox(ICipherParameters parameters, int sBoxLength)
         {
             // NOTE: 'parameters' may be null to imply key re-use
             m_parameters = parameters;
             m_sBox = Arrays.CreateBuffer<byte>(sBoxLength);
         }
+#endif
 
         public void CopySBoxTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_sBox, buf, off, len);
 

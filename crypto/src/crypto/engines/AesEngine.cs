@@ -291,7 +291,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private uint[][] GenerateWorkingKey(KeyParameter keyParameter, bool forEncryption)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            var key = keyParameter.Key;
+            var key = keyParameter.InternalKey;
 #else
             byte[] key = keyParameter.GetKey();
 #endif
