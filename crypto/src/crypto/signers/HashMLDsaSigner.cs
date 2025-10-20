@@ -3,7 +3,7 @@
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Crypto.Signers.MLDsa;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Signers
@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Signers
     public sealed class HashMLDsaSigner
         : ISigner
     {
-        private readonly ShakeDigest m_msgRepDigest = DilithiumEngine.MsgRepCreateDigest();
+        private readonly ShakeDigest m_msgRepDigest = MLDsaEngine.MsgRepCreateDigest();
 
         private readonly MLDsaParameters m_parameters;
         private readonly byte[] m_preHashOidEncoding;
@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         private byte[] m_context;
         private MLDsaPrivateKeyParameters m_privateKey;
         private MLDsaPublicKeyParameters m_publicKey;
-        private DilithiumEngine m_engine;
+        private MLDsaEngine m_engine;
 
         public HashMLDsaSigner(MLDsaParameters parameters, bool deterministic)
         {
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             byte[] sig = new byte[m_engine.CryptoBytes];
             m_engine.MsgRepEndSign(msgRepDigest, sig, sig.Length, m_privateKey.m_rho, m_privateKey.m_k,
-                m_privateKey.m_t0, m_privateKey.m_s1, m_privateKey.m_s2, legacy: false);
+                m_privateKey.m_t0, m_privateKey.m_s1, m_privateKey.m_s2);
             return sig;
         }
 
@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             return msgRepDigest;
         }
 
-        private DilithiumEngine GetEngine(MLDsaParameters keyParameters, SecureRandom random)
+        private MLDsaEngine GetEngine(MLDsaParameters keyParameters, SecureRandom random)
         {
             var keyParameterSet = keyParameters.ParameterSet;
 

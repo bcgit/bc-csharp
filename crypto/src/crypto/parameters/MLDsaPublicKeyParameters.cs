@@ -1,6 +1,6 @@
 ﻿using System;
 
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Crypto.Signers.MLDsa;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
@@ -17,8 +17,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (encoding.Length != parameters.ParameterSet.PublicKeyLength)
                 throw new ArgumentException("invalid encoding", nameof(encoding));
 
-            byte[] rho = Arrays.CopyOfRange(encoding, 0, DilithiumEngine.SeedBytes);
-            byte[] t1 = Arrays.CopyOfRange(encoding, DilithiumEngine.SeedBytes, encoding.Length);
+            byte[] rho = Arrays.CopyOfRange(encoding, 0, MLDsaEngine.SeedBytes);
+            byte[] t1 = Arrays.CopyOfRange(encoding, MLDsaEngine.SeedBytes, encoding.Length);
             return new MLDsaPublicKeyParameters(parameters, rho, t1);
         }
 
@@ -49,6 +49,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         private static byte[] CreatePublicKeyHash(MLDsaPublicKeyParameters publicKey) =>
-            DilithiumEngine.CalculatePublicKeyHash(publicKey.m_rho, publicKey.m_t1);
+            MLDsaEngine.CalculatePublicKeyHash(publicKey.m_rho, publicKey.m_t1);
     }
 }

@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             var engine = m_parameters.ParameterSet.GetEngine(m_random);
 
             byte[] rho, k, tr, s1, s2, t0, encT1, seed;
-            engine.GenerateKeyPair(legacy: false, out rho, out k, out tr, out s1, out s2, out t0, out encT1, out seed);
+            engine.GenerateKeyPair(out rho, out k, out tr, out s1, out s2, out t0, out encT1, out seed);
 
             var format = MLDsaPrivateKeyParameters.Format.SeedAndEncoding;
 
