@@ -93,7 +93,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
         public abstract void F(Adrs adrs, byte[] m1, int m1Off);
 
-        public abstract void H(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off, byte[] output);
+        public abstract void H1(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off);
+
+        public abstract void H2(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off);
 
         public abstract IndexedDigest HMsg(byte[] prf, int prfOff, byte[] pkSeed, byte[] pkRoot, byte[] msg,
             int msgOff, int msgLen);
@@ -115,6 +117,7 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
             private byte[] msgDigestBuf;
             private IDigest sha256;
             private byte[] sha256Buf;
+            private byte[] compressedAdrs = new byte[22];
 
             private IMemoable msgMemo;
             private IMemoable sha256Memo;
@@ -160,7 +163,7 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
             public override void F(Adrs adrs, byte[] m1, int m1Off)
             {
-                byte[] compressedAdrs = CompressedAdrs(adrs);
+                CompressedAdrs(adrs);
 
                 ((IMemoable)sha256).Reset(sha256Memo);
 
@@ -171,9 +174,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                 Array.Copy(sha256Buf, 0, m1, m1Off, N);
             }
 
-            public override void H(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off, byte[] output)
+            public override void H1(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off)
             {
-                byte[] compressedAdrs = CompressedAdrs(adrs);
+                CompressedAdrs(adrs);
 
                 ((IMemoable)msgDigest).Reset(msgMemo);
 
@@ -182,7 +185,21 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                 msgDigest.BlockUpdate(m2, m2Off, N);
                 msgDigest.DoFinal(msgDigestBuf, 0);
 
-                Array.Copy(msgDigestBuf, 0, output, 0, N);
+                Array.Copy(msgDigestBuf, 0, m1, m1Off, N);
+            }
+
+            public override void H2(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off)
+            {
+                CompressedAdrs(adrs);
+
+                ((IMemoable)msgDigest).Reset(msgMemo);
+
+                msgDigest.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
+                msgDigest.BlockUpdate(m1, m1Off, N);
+                msgDigest.BlockUpdate(m2, m2Off, N);
+                msgDigest.DoFinal(msgDigestBuf, 0);
+
+                Array.Copy(msgDigestBuf, 0, m2, m2Off, N);
             }
 
             public override IndexedDigest HMsg(byte[] prf, int prfOff, byte[] pkSeed, byte[] pkRoot, byte[] msg,
@@ -226,9 +243,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
             public override void T_l(Adrs adrs, byte[] m, byte[] output, int outputOff)
             {
-                ((IMemoable)msgDigest).Reset(msgMemo);
+                CompressedAdrs(adrs);
 
-                byte[] compressedAdrs = CompressedAdrs(adrs);
+                ((IMemoable)msgDigest).Reset(msgMemo);
 
                 msgDigest.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
                 msgDigest.BlockUpdate(m, 0, m.Length);
@@ -239,9 +256,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
             public override void Prf(Adrs adrs, byte[] skSeed, byte[] prf, int prfOff)
             {
-                ((IMemoable)sha256).Reset(sha256Memo);
+                CompressedAdrs(adrs);
 
-                byte[] compressedAdrs = CompressedAdrs(adrs);
+                ((IMemoable)sha256).Reset(sha256Memo);
 
                 sha256.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
                 sha256.BlockUpdate(skSeed, 0, N);
@@ -261,14 +278,12 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                 Array.Copy(hmacBuf, 0, r, rOff, N);
             }
 
-            private byte[] CompressedAdrs(Adrs adrs)
+            private void CompressedAdrs(Adrs adrs)
             {
-                byte[] rv = new byte[22];
-                Array.Copy(adrs.Value, Adrs.OffsetLayer + 3, rv, 0, 1); // LSB layer address
-                Array.Copy(adrs.Value, Adrs.OffsetTree + 4, rv, 1, 8); // LS 8 bytes Tree address
-                Array.Copy(adrs.Value, Adrs.OffsetType + 3, rv, 9, 1); // LSB type
-                Array.Copy(adrs.Value, 20, rv, 10, 12);
-                return rv;
+                Array.Copy(adrs.Value, Adrs.OffsetLayer + 3, compressedAdrs, 0, 1); // LSB layer address
+                Array.Copy(adrs.Value, Adrs.OffsetTree + 4, compressedAdrs, 1, 8); // LS 8 bytes Tree address
+                Array.Copy(adrs.Value, Adrs.OffsetType + 3, compressedAdrs, 9, 1); // LSB type
+                Array.Copy(adrs.Value, 20, compressedAdrs, 10, 12);
             }
         }
 
@@ -298,13 +313,22 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                 m_treeDigest.OutputFinal(m1, m1Off, N);
             }
 
-            public override void H(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off, byte[] output)
+            public override void H1(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off)
             {
                 m_treeDigest.BlockUpdate(m_pkSeed, 0, N);
                 m_treeDigest.BlockUpdate(adrs.Value, 0, adrs.Value.Length);
                 m_treeDigest.BlockUpdate(m1, m1Off, N);
                 m_treeDigest.BlockUpdate(m2, m2Off, N);
-                m_treeDigest.OutputFinal(output, 0, N);
+                m_treeDigest.OutputFinal(m1, m1Off, N);
+            }
+
+            public override void H2(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off)
+            {
+                m_treeDigest.BlockUpdate(m_pkSeed, 0, N);
+                m_treeDigest.BlockUpdate(adrs.Value, 0, adrs.Value.Length);
+                m_treeDigest.BlockUpdate(m1, m1Off, N);
+                m_treeDigest.BlockUpdate(m2, m2Off, N);
+                m_treeDigest.OutputFinal(m2, m2Off, N);
             }
 
             public override IndexedDigest HMsg(byte[] prf, int prfOff, byte[] pkSeed, byte[] pkRoot, byte[] msg,

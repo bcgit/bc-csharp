@@ -98,12 +98,12 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                 if ((idx & (1U << k)) == 0U)
                 {
                     adrs.SetTreeIndex(adrs.GetTreeIndex() / 2);
-                    engine.H(adrs, node, 0, sigXmss, sigXmssOff, node);
+                    engine.H1(adrs, node, 0, sigXmss, sigXmssOff);
                 }
                 else
                 {
                     adrs.SetTreeIndex((adrs.GetTreeIndex() - 1) / 2);
-                    engine.H(adrs, sigXmss, sigXmssOff, node, 0, node);
+                    engine.H2(adrs, sigXmss, sigXmssOff, node, 0);
                 }
                 sigXmssOff += engine.N;
             }
@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                     adrs.SetTreeIndex(adrsTreeIndex);
 
                     var current = stack.Pop();
-                    engine.H(adrs, current.NodeValue, 0, node, 0, node);
+                    engine.H2(adrs, current.NodeValue, 0, node, 0);
 
                     // topmost node is now one layer higher
                     adrs.SetTreeHeight(++adrsTreeHeight);

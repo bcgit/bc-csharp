@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 {
     internal static class Fors
@@ -42,7 +40,7 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                     adrs.SetTreeIndex(adrsTreeIndex);
 
                     var current = stack.Pop();
-                    engine.H(adrs, current.NodeValue, 0, node, 0, node);
+                    engine.H2(adrs, current.NodeValue, 0, node, 0);
 
                     // topmost node is now one layer higher
                     adrs.SetTreeHeight(++adrsTreeHeight);
@@ -91,29 +89,30 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
         internal static void PKFromSig(SlhDsaEngine engine, byte[] signature, byte[] message, Adrs adrs, byte[] output,
             int outputOff)
         {
-            byte[][] root = new byte[engine.K][];
-            var indexGenerator = new IndexGenerator(engine.A);
-            int forsPos = engine.N;
+            int a = engine.A, k = engine.K, n = engine.N;
+
+            byte[] roots = new byte[k * n];
+            var indexGenerator = new IndexGenerator(a);
+            int forsPos = n;
 
             // compute roots
-            for (uint i = 0; i < engine.K; i++)
+            for (int i = 0, rootsPos = 0; i < k; ++i, rootsPos += n)
             {
                 uint idx = indexGenerator.NextIndex(message);
 
+                // compute root from leaf and AUTH
+                uint adrsTreeIndex = ((uint)i << a) + idx;
+
                 // compute leaf
                 adrs.SetTreeHeight(0);
-                adrs.SetTreeIndex((i << engine.A) + idx);
+                adrs.SetTreeIndex(adrsTreeIndex);
 
                 // sig_fors[i].SK
-                byte[] node = new byte[engine.N];
-                Array.Copy(signature, forsPos, node, 0, engine.N);
-                forsPos += engine.N;
-                engine.F(adrs, node, 0);
+                Array.Copy(signature, forsPos, roots, rootsPos, n);
+                forsPos += n;
+                engine.F(adrs, roots, rootsPos);
 
-                // compute root from leaf and AUTH
-                uint adrsTreeIndex = (i << engine.A) + idx;
-
-                for (int j = 0; j < engine.A; j++)
+                for (int j = 0; j < a; j++)
                 {
                     // sig_fors[i].AuthPath[j]
 
@@ -123,25 +122,24 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                     {
                         adrsTreeIndex = adrsTreeIndex / 2;
                         adrs.SetTreeIndex(adrsTreeIndex);
-                        engine.H(adrs, node, 0, signature, forsPos, node);
+                        engine.H1(adrs, roots, rootsPos, signature, forsPos);
                     }
                     else
                     {
                         adrsTreeIndex = (adrsTreeIndex - 1) / 2;
                         adrs.SetTreeIndex(adrsTreeIndex);
-                        engine.H(adrs, signature, forsPos, node, 0, node);
+                        engine.H2(adrs, signature, forsPos, roots, rootsPos);
                     }
 
-                    forsPos += engine.N;
+                    forsPos += n;
                 }
-
-                root[i] = node;
             }
 
-            Adrs forspkAdrs = new Adrs(adrs, Adrs.ForsPK); // copy address to create FTS public key address
+            // copy address to create FTS public key address
+            Adrs forspkAdrs = new Adrs(adrs, Adrs.ForsPK);
             forspkAdrs.SetKeyPairAddress(adrs.GetKeyPairAddress());
 
-            engine.T_l(forspkAdrs, Arrays.ConcatenateAll(root), output, outputOff);
+            engine.T_l(forspkAdrs, roots, output, outputOff);
         }
 
         private struct IndexGenerator
