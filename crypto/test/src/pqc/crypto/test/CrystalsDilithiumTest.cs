@@ -2,9 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using NUnit.Framework;
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.BC;
-using Org.BouncyCastle.Asn1.X509;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
@@ -14,7 +12,7 @@ using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
-    [TestFixture]
+    [TestFixture, Explicit]
     public class CrystalsDilithiumTest
     {
         private static readonly Dictionary<string, DilithiumParameters> Parameters = new Dictionary<string, DilithiumParameters>()

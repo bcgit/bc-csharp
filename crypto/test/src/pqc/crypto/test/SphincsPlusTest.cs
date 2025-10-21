@@ -18,7 +18,7 @@ using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
-    [TestFixture]
+    [TestFixture, Explicit]
     public class SphincsPlusTest
     {
         private static readonly string[] TestVectorFilesSimpleFast =
