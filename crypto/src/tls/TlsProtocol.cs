@@ -876,7 +876,7 @@ namespace Org.BouncyCastle.Tls
         {
             try
             {
-                m_recordStream.WriteRecord(type, buf, offset, len);
+                WriteRecord(type, buf, offset, len);
             }
             catch (TlsFatalAlert e)
             {
@@ -901,7 +901,7 @@ namespace Org.BouncyCastle.Tls
         {
             try
             {
-                m_recordStream.WriteRecord(type, buffer);
+                WriteRecord(type, buffer);
             }
             catch (TlsFatalAlert e)
             {
@@ -919,6 +919,16 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.internal_error, e);
             }
         }
+#endif
+
+        /// <exception cref="IOException"/>
+        protected virtual void WriteRecord(short type, byte[] buf, int off, int len) =>
+            m_recordStream.WriteRecord(type, buf, off, len);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <exception cref="IOException"/>
+        protected virtual void WriteRecord(short type, ReadOnlySpan<byte> buffer) =>
+            m_recordStream.WriteRecord(type, buffer);
 #endif
 
         /// <summary>Write some application data.</summary>
@@ -1047,12 +1057,12 @@ namespace Org.BouncyCastle.Tls
                         case ADS_MODE_0_N_FIRSTONLY:
                         {
                             this.m_appDataSplitEnabled = false;
-                            SafeWriteRecord(ContentType.application_data, TlsUtilities.EmptyBytes, 0, 0);
+                            SafeWriteRecord(ContentType.application_data, ReadOnlySpan<byte>.Empty);
                             break;
                         }
                         case ADS_MODE_0_N:
                         {
-                            SafeWriteRecord(ContentType.application_data, TlsUtilities.EmptyBytes, 0, 0);
+                            SafeWriteRecord(ContentType.application_data, ReadOnlySpan<byte>.Empty);
                             break;
                         }
                         case ADS_MODE_1_Nsub1:
@@ -1157,7 +1167,11 @@ namespace Org.BouncyCastle.Tls
             {
                 // Fragment data according to the current fragment limit.
                 int toWrite = System.Math.Min(len - total, m_recordStream.PlaintextLimit);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                SafeWriteRecord(ContentType.handshake, buf.AsSpan(off + total, toWrite));
+#else
                 SafeWriteRecord(ContentType.handshake, buf, off + total, toWrite);
+#endif
                 total += toWrite;
             }
             while (total < len);
@@ -1585,11 +1599,15 @@ namespace Org.BouncyCastle.Tls
         {
             Peer.NotifyAlertRaised(AlertLevel.fatal, alertDescription, message, cause);
 
-            byte[] alert = new byte[]{ (byte)AlertLevel.fatal, (byte)alertDescription };
-
             try
             {
-                m_recordStream.WriteRecord(ContentType.alert, alert, 0, 2);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<byte> alert = stackalloc byte[] { (byte)AlertLevel.fatal, (byte)alertDescription };
+                WriteRecord(ContentType.alert, alert);
+#else
+                byte[] alert = new byte[]{ (byte)AlertLevel.fatal, (byte)alertDescription };
+                WriteRecord(ContentType.alert, alert, 0, 2);
+#endif
             }
             catch (Exception)
             {
@@ -1602,11 +1620,14 @@ namespace Org.BouncyCastle.Tls
         {
             Peer.NotifyAlertRaised(AlertLevel.warning, alertDescription, message, null);
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> alert = stackalloc byte[] { (byte)AlertLevel.warning, (byte)alertDescription };
+            SafeWriteRecord(ContentType.alert, alert);
+#else
             byte[] alert = new byte[]{ (byte)AlertLevel.warning, (byte)alertDescription };
-
             SafeWriteRecord(ContentType.alert, alert, 0, 2);
+#endif
         }
-
 
         /// <exception cref="IOException"/>
         protected virtual void Receive13KeyUpdate(MemoryStream buf)
@@ -1696,8 +1717,13 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void SendChangeCipherSpecMessage()
         {
-            byte[] message = new byte[]{ 1 };
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> message = stackalloc byte[] { (byte)ChangeCipherSpec.change_cipher_spec };
+            SafeWriteRecord(ContentType.change_cipher_spec, message);
+#else
+            byte[] message = new byte[]{ (byte)ChangeCipherSpec.change_cipher_spec };
             SafeWriteRecord(ContentType.change_cipher_spec, message, 0, message.Length);
+#endif
         }
 
         /// <exception cref="IOException"/>

@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Tls
         public virtual void Connect(TlsClient tlsClient)
         {
             if (tlsClient == null)
-                throw new ArgumentNullException("tlsClient");
+                throw new ArgumentNullException(nameof(tlsClient));
             if (m_tlsClient != null)
                 throw new InvalidOperationException("'Connect' can only be called once");
 
@@ -1076,6 +1076,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void ProcessServerHello(ServerHello serverHello)
         {
+            var clientHelloExtensions = m_clientHello.Extensions;
             var serverHelloExtensions = serverHello.Extensions;
 
             ProtocolVersion legacy_version = serverHello.Version;
@@ -1199,7 +1200,7 @@ namespace Org.BouncyCastle.Tls
                      * associated ClientHello, it MUST abort the handshake with an unsupported_extension
                      * fatal alert.
                      */
-                    if (null == TlsUtilities.GetExtensionData(m_clientExtensions, extType))
+                    if (null == TlsUtilities.GetExtensionData(clientHelloExtensions, extType))
                     {
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension,
                             "Unrequested extension in ServerHello: " + ExtensionType.GetText(extType));
@@ -1264,7 +1265,7 @@ namespace Org.BouncyCastle.Tls
             {
                 bool negotiatedEms = false;
 
-                if (TlsExtensionsUtilities.HasExtendedMasterSecretExtension(m_clientExtensions))
+                if (TlsExtensionsUtilities.HasExtendedMasterSecretExtension(clientHelloExtensions))
                 {
                     negotiatedEms = TlsExtensionsUtilities.HasExtendedMasterSecretExtension(serverHelloExtensions);
 
@@ -1306,7 +1307,7 @@ namespace Org.BouncyCastle.Tls
                 serverHelloExtensions);
             securityParameters.m_applicationProtocolSet = true;
 
-            var sessionClientExtensions = m_clientExtensions;
+            var sessionClientExtensions = clientHelloExtensions;
             var sessionServerExtensions = serverHelloExtensions;
 
             if (securityParameters.IsResumedSession)
