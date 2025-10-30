@@ -203,24 +203,12 @@ namespace Org.BouncyCastle.OpenSsl
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static ICipherParameters GetCipherParameters(ReadOnlySpan<char> password, PemBaseAlg baseAlg,
             ReadOnlySpan<byte> salt)
+#else
+        private static ICipherParameters GetCipherParameters(char[] password, PemBaseAlg baseAlg, byte[] salt)
+#endif
         {
-            string algorithm;
-            int keyBits;
-            switch (baseAlg)
-            {
-            case PemBaseAlg.AES_128: keyBits = 128; algorithm = "AES128"; break;
-            case PemBaseAlg.AES_192: keyBits = 192; algorithm = "AES192"; break;
-            case PemBaseAlg.AES_256: keyBits = 256; algorithm = "AES256"; break;
-            case PemBaseAlg.BF: keyBits = 128; algorithm = "BLOWFISH"; break;
-            case PemBaseAlg.DES: keyBits = 64; algorithm = "DES"; break;
-            case PemBaseAlg.DES_EDE: keyBits = 128; algorithm = "DESEDE"; break;
-            case PemBaseAlg.DES_EDE3: keyBits = 192; algorithm = "DESEDE3"; break;
-            case PemBaseAlg.RC2: keyBits = 128; algorithm = "RC2"; break;
-            case PemBaseAlg.RC2_40: keyBits = 40; algorithm = "RC2"; break;
-            case PemBaseAlg.RC2_64: keyBits = 64; algorithm = "RC2"; break;
-            default:
+            if (!TryGetCipherAlgorithm(baseAlg, out var algorithm, out var keyBits))
                 return null;
-            }
 
             OpenSslPbeParametersGenerator pGen = new OpenSslPbeParametersGenerator();
 
@@ -228,36 +216,79 @@ namespace Org.BouncyCastle.OpenSsl
 
             return pGen.GenerateDerivedParameters(algorithm, keyBits);
         }
-#else
-		private static ICipherParameters GetCipherParameters(
-			char[]		password,
-			PemBaseAlg	baseAlg,
-			byte[]		salt)
-		{
-			string algorithm;
-			int keyBits;
-			switch (baseAlg)
-			{
-				case PemBaseAlg.AES_128:		keyBits = 128;	algorithm = "AES128";	break;
-				case PemBaseAlg.AES_192:		keyBits = 192;	algorithm = "AES192";	break;
-				case PemBaseAlg.AES_256:		keyBits = 256;	algorithm = "AES256";	break;
-				case PemBaseAlg.BF:				keyBits = 128;	algorithm = "BLOWFISH";	break;
-				case PemBaseAlg.DES:			keyBits = 64;	algorithm = "DES";		break;
-				case PemBaseAlg.DES_EDE:		keyBits = 128;	algorithm = "DESEDE";	break;
-				case PemBaseAlg.DES_EDE3:		keyBits = 192;	algorithm = "DESEDE3";	break;
-				case PemBaseAlg.RC2:			keyBits = 128;	algorithm = "RC2";		break;
-				case PemBaseAlg.RC2_40:			keyBits = 40;	algorithm = "RC2";		break;
-				case PemBaseAlg.RC2_64:			keyBits = 64;	algorithm = "RC2";		break;
-				default:
-					return null;
-			}
 
-			OpenSslPbeParametersGenerator pGen = new OpenSslPbeParametersGenerator();
-
-			pGen.Init(PbeParametersGenerator.Pkcs5PasswordToBytes(password), salt);
-
-			return pGen.GenerateDerivedParameters(algorithm, keyBits);
-		}
-#endif
+        private static bool TryGetCipherAlgorithm(PemBaseAlg baseAlg, out string algorithm, out int keyBits)
+        {
+            switch (baseAlg)
+            {
+            case PemBaseAlg.AES_128:
+            {
+                algorithm = "AES128";
+                keyBits = 128;
+                break;
+            }
+            case PemBaseAlg.AES_192:
+            {
+                algorithm = "AES192";
+                keyBits = 192;
+                break;
+            }
+            case PemBaseAlg.AES_256:
+            {
+                algorithm = "AES256";
+                keyBits = 256;
+                break;
+            }
+            case PemBaseAlg.BF:
+            {
+                algorithm = "BLOWFISH";
+                keyBits = 128;
+                break;
+            }
+            case PemBaseAlg.DES:
+            {
+                algorithm = "DES";
+                keyBits = 64;
+                break;
+            }
+            case PemBaseAlg.DES_EDE:
+            {
+                algorithm = "DESEDE";
+                keyBits = 128;
+                break;
+            }
+            case PemBaseAlg.DES_EDE3:
+            {
+                algorithm = "DESEDE3";
+                keyBits = 192;
+                break;
+            }
+            case PemBaseAlg.RC2:
+            {
+                algorithm = "RC2";
+                keyBits = 128;
+                break;
+            }
+            case PemBaseAlg.RC2_40:
+            {
+                algorithm = "RC2";
+                keyBits = 40;
+                break;
+            }
+            case PemBaseAlg.RC2_64:
+            {
+                algorithm = "RC2";
+                keyBits = 64;
+                break;
+            }
+            default:
+            {
+                algorithm = null;
+                keyBits = -1;
+                return false;
+            }
+            }
+            return true;
+        }
     }
 }
