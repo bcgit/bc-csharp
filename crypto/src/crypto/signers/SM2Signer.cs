@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -65,8 +66,9 @@ namespace Org.BouncyCastle.Crypto.Signers
                 baseParam = withID.Parameters;
                 userID = withID.GetID();
 
+                // The length in bits must be expressible in two bytes
                 if (userID.Length >= 8192)
-                    throw new ArgumentException("SM2 user ID must be less than 2^13 bits long");
+                    throw new ArgumentException("SM2 user ID must be less than 2^16 bits long");
             }
             else
             {
@@ -287,15 +289,17 @@ namespace Org.BouncyCastle.Crypto.Signers
             return DigestUtilities.DoFinal(digest);
         }
 
-        private void AddUserID(IDigest digest, byte[] userID)
+        private static void AddUserID(IDigest digest, byte[] userID)
         {
-            int len = userID.Length * 8;
+            uint len = (uint)(userID.Length * 8);
+            Debug.Assert(len >> 16 == 0);
+
             digest.Update((byte)(len >> 8));
             digest.Update((byte)len);
             digest.BlockUpdate(userID, 0, userID.Length);
         }
 
-        private void AddFieldElement(IDigest digest, ECFieldElement v)
+        private static void AddFieldElement(IDigest digest, ECFieldElement v)
         {
             byte[] p = v.GetEncoded();
             digest.BlockUpdate(p, 0, p.Length);

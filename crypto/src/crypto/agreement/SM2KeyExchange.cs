@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -40,15 +41,15 @@ namespace Org.BouncyCastle.Crypto.Agreement
         {
             SM2KeyExchangePrivateParameters baseParam;
 
-            if (privParam is ParametersWithID)
+            if (privParam is ParametersWithID withID)
             {
-                baseParam = (SM2KeyExchangePrivateParameters)((ParametersWithID)privParam).Parameters;
-                mUserID = ((ParametersWithID)privParam).GetID();
+                baseParam = (SM2KeyExchangePrivateParameters)withID.Parameters;
+                mUserID = CheckUserID(withID.GetID());
             }
             else
             {
                 baseParam = (SM2KeyExchangePrivateParameters)privParam;
-                mUserID = new byte[0];
+                mUserID = Array.Empty<byte>();
             }
 
             mInitiator = baseParam.IsInitiator;
@@ -65,15 +66,15 @@ namespace Org.BouncyCastle.Crypto.Agreement
             SM2KeyExchangePublicParameters otherPub;
             byte[] otherUserID;
 
-            if (pubParam is ParametersWithID)
+            if (pubParam is ParametersWithID withID)
             {
-                otherPub = (SM2KeyExchangePublicParameters)((ParametersWithID)pubParam).Parameters;
-                otherUserID = ((ParametersWithID)pubParam).GetID();
+                otherPub = (SM2KeyExchangePublicParameters)withID.Parameters;
+                otherUserID = CheckUserID(withID.GetID());
             }
             else
             {
                 otherPub = (SM2KeyExchangePublicParameters)pubParam;
-                otherUserID = new byte[0];
+                otherUserID = Array.Empty<byte>();
             }
 
             byte[] za = GetZ(mDigest, mUserID, mStaticPubPoint);
@@ -99,15 +100,15 @@ namespace Org.BouncyCastle.Crypto.Agreement
             SM2KeyExchangePublicParameters otherPub;
             byte[] otherUserID;
 
-            if (pubParam is ParametersWithID)
+            if (pubParam is ParametersWithID withID)
             {
-                otherPub = (SM2KeyExchangePublicParameters)((ParametersWithID)pubParam).Parameters;
-                otherUserID = ((ParametersWithID)pubParam).GetID();
+                otherPub = (SM2KeyExchangePublicParameters)withID.Parameters;
+                otherUserID = CheckUserID(withID.GetID());
             }
             else
             {
                 otherPub = (SM2KeyExchangePublicParameters)pubParam;
-                otherUserID = new byte[0];
+                otherUserID = Array.Empty<byte>();
             }
 
             if (mInitiator && confirmationTag == null)
@@ -256,19 +257,29 @@ namespace Org.BouncyCastle.Crypto.Agreement
             return DigestUtilities.DoFinal(digest);
         }
 
-        private void AddUserID(IDigest digest, byte[] userID)
+        private static void AddUserID(IDigest digest, byte[] userID)
         {
             uint len = (uint)(userID.Length * 8);
+            Debug.Assert(len >> 16 == 0);
 
             digest.Update((byte)(len >> 8));
             digest.Update((byte)len);
             digest.BlockUpdate(userID, 0, userID.Length);
         }
 
-        private void AddFieldElement(IDigest digest, ECFieldElement v)
+        private static void AddFieldElement(IDigest digest, ECFieldElement v)
         {
             byte[] p = v.GetEncoded();
             digest.BlockUpdate(p, 0, p.Length);
+        }
+
+        private static byte[] CheckUserID(byte[] userID)
+        {
+            // The length in bits must be expressible in two bytes
+            if (userID.Length >= 8192)
+                throw new ArgumentException("SM2 user ID must be less than 2^16 bits long");
+
+            return userID;
         }
     }
 }
