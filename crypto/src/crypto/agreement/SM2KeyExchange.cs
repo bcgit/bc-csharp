@@ -269,8 +269,14 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
         private static void AddFieldElement(IDigest digest, ECFieldElement v)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> buf = stackalloc byte[v.GetEncodedLength()];
+            v.EncodeTo(buf);
+            digest.BlockUpdate(buf);
+#else
             byte[] p = v.GetEncoded();
             digest.BlockUpdate(p, 0, p.Length);
+#endif
         }
 
         private static byte[] CheckUserID(byte[] userID)
