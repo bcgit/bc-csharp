@@ -11,6 +11,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
     {
         public enum Format { SeedOnly, EncodingOnly, SeedAndEncoding };
 
+        /*
+         * RFC 9881 8.1. [..] the seed format is RECOMMENDED for storage efficiency.
+         */
+        public static readonly Format DefaultFormat = Format.SeedOnly;
+
         public static MLDsaPrivateKeyParameters FromEncoding(MLDsaParameters parameters, byte[] encoding)
         {
             if (parameters == null)
@@ -52,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         public static MLDsaPrivateKeyParameters FromSeed(MLDsaParameters parameters, byte[] seed) =>
-            FromSeed(parameters, seed, preferredFormat: Format.SeedOnly);
+            FromSeed(parameters, seed, preferredFormat: DefaultFormat);
 
         public static MLDsaPrivateKeyParameters FromSeed(MLDsaParameters parameters, byte[] seed,
             Format preferredFormat)
