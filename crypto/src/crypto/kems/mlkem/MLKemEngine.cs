@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -142,7 +143,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             m_indCpa.Encrypt(cmp, buf[..SymBytes], pk, kr[SymBytes..]);
 
-            bool fail = !Arrays.FixedTimeEquals(cmp, encapsulation);
+            int fail = ~FixedTimeEquals(cmp, encapsulation);
 
             Symmetric.Hash_h(encapsulation, kr[SymBytes..]);
             secretKey.AsSpan(SecretKeyBytes - SymBytes, SymBytes).CopyTo(implicit_rejection);
@@ -173,16 +174,30 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             kr[..SharedSecretBytes].CopyTo(secret);
         }
 
-        private static void CMov(Span<byte> r, ReadOnlySpan<byte> x, int len, bool b)
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        private static void CMov(Span<byte> r, ReadOnlySpan<byte> x, int xLen, int cond)
         {
-            if (b)
+            Debug.Assert(0 == cond || -1 == cond);
+
+            for (int i = 0; i < xLen; ++i)
             {
-                x[..len].CopyTo(r);
+                int r_i = r[i], diff = r_i ^ x[i];
+                r_i ^= diff & cond;
+                r[i] = (byte)r_i;
             }
-            else
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static int FixedTimeEquals(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
+        {
+            int d = 0;
+            for (int i = 0, len = a.Length; i < len; ++i)
             {
-                r[..len].CopyTo(r);
+                d |= a[i] ^ b[i];
             }
+            d |= d >> 16;
+            d &= 0xFFFF;
+            return (d - 1) >> 31;
         }
 #else
         internal void KemDecrypt(byte[] secBuf, int secOff, byte[] encBuf, int encOff,
@@ -201,7 +216,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             m_indCpa.Encrypt(cmp, 0, Arrays.CopyOf(buf, SymBytes), pk, Arrays.CopyOfRange(kr, SymBytes, kr.Length));
 
-            bool fail = !Arrays.FixedTimeEquals(cmp.Length, cmp, 0, encBuf, encOff);
+            int fail = ~FixedTimeEquals(cmp.Length, cmp, 0, encBuf, encOff);
 
             Symmetric.Hash_h(encBuf, encOff, CipherTextBytes, kr, SymBytes);
             Array.Copy(secretKey, SecretKeyBytes - SymBytes, implicit_rejection, 0, SymBytes);
@@ -233,16 +248,30 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             Array.Copy(kr, 0, secBuf, secOff, SharedSecretBytes);
         }
 
-        private static void CMov(byte[] r, byte[] x, int len, bool b)
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        private static void CMov(byte[] r, byte[] x, int xLen, int cond)
         {
-            if (b)
+            Debug.Assert(0 == cond || -1 == cond);
+
+            for (int i = 0; i < xLen; ++i)
             {
-                Array.Copy(x, 0, r, 0, len);
+                int r_i = r[i], diff = r_i ^ x[i];
+                r_i ^= diff & cond;
+                r[i] = (byte)r_i;
             }
-            else
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        public static int FixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
+        {
+            int d = 0;
+            for (int i = 0; i < len; ++i)
             {
-                Array.Copy(r, 0, r, 0, len);
+                d |= a[aOff + i] ^ b[bOff + i];
             }
+            d |= d >> 16;
+            d &= 0xFFFF;
+            return (d - 1) >> 31;
         }
 #endif
     }
