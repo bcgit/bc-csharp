@@ -18,6 +18,10 @@ namespace Org.BouncyCastle.Cert.Tests
         public static readonly SampleCredentials ML_DSA_65 = Load("ML-DSA-65", "pkix/cert/mldsa", "ML-DSA-65.pem");
         public static readonly SampleCredentials ML_DSA_87 = Load("ML-DSA-87", "pkix/cert/mldsa", "ML-DSA-87.pem");
 
+        public static readonly SampleCredentials ML_KEM_512 = Load("ML-KEM-512", "pkix/cert/mlkem", "ML-KEM-512.pem");
+        public static readonly SampleCredentials ML_KEM_768 = Load("ML-KEM-768", "pkix/cert/mlkem", "ML-KEM-768.pem");
+        public static readonly SampleCredentials ML_KEM_1024 = Load("ML-KEM-1024", "pkix/cert/mlkem", "ML-KEM-1024.pem");
+
         public static readonly SampleCredentials SLH_DSA_SHA2_128S = Load("SLH-DSA-SHA2-128S", "pkix/cert/slhdsa",
             "SLH-DSA-SHA2-128S.pem");
 
