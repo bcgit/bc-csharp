@@ -1805,6 +1805,7 @@ namespace Org.BouncyCastle.Tls
             }
 
             // NOT renegotiating
+            if (offeringTlsV12Minus)
             {
                 /*
                  * RFC 5746 3.4. Client Behavior: Initial Handshake (both full and session-resumption)
@@ -1821,8 +1822,8 @@ namespace Org.BouncyCastle.Tls
 
                 if (noRenegExt && noRenegScsv)
                 {
-                    // TODO[tls13] Probably want to not add this if no pre-TLSv13 versions offered?
-                    offeredCipherSuites = Arrays.Append(offeredCipherSuites, CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV);
+                    offeredCipherSuites = Arrays.Append(offeredCipherSuites,
+                        CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV);
                 }
             }
 

@@ -527,12 +527,17 @@ namespace Org.BouncyCastle.Tls
                 state.clientExtensions.Remove(ExtensionType.extended_master_secret);
             }
 
-            // Cipher Suites (and SCSV)
+            // NOT renegotiating
+            if (offeringDtlsV12Minus)
             {
                 /*
-                 * RFC 5746 3.4. The client MUST include either an empty "renegotiation_info" extension,
-                 * or the TLS_EMPTY_RENEGOTIATION_INFO_SCSV signaling cipher suite value in the
-                 * ClientHello. Including both is NOT RECOMMENDED.
+                 * RFC 5746 3.4. Client Behavior: Initial Handshake (both full and session-resumption)
+                 */
+
+                /*
+                 * The client MUST include either an empty "renegotiation_info" extension, or the
+                 * TLS_EMPTY_RENEGOTIATION_INFO_SCSV signaling cipher suite value in the ClientHello.
+                 * Including both is NOT RECOMMENDED.
                  */
                 bool noRenegExt = (null == TlsUtilities.GetExtensionData(state.clientExtensions,
                     ExtensionType.renegotiation_info));
