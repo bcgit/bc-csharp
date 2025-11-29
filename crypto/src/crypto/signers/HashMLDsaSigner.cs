@@ -119,7 +119,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             ShakeDigest msgRepDigest = new ShakeDigest(m_msgRepDigest);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> preHash = stackalloc byte[msgRepDigest.GetDigestSize()];
+            Span<byte> preHash = stackalloc byte[m_preHashDigest.GetDigestSize()];
             m_preHashDigest.DoFinal(preHash);
             msgRepDigest.BlockUpdate(preHash);
 #else
