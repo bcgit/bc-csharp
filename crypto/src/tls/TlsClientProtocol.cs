@@ -867,7 +867,7 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            int selected_group = TlsExtensionsUtilities.GetKeyShareHelloRetryRequest(extensions);
+            int selectedGroup = TlsExtensionsUtilities.GetKeyShareHelloRetryRequest(extensions);
 
             /*
              * TODO[tls:psk_ke]
@@ -875,7 +875,7 @@ namespace Org.BouncyCastle.Tls
              * RFC 8446 4.2.8. Servers [..] MUST NOT send a KeyShareEntry when using the "psk_ke"
              * PskKeyExchangeMode.
              */
-            if (selected_group < 0)
+            if (selectedGroup < 0)
             {
                 throw new TlsFatalAlert(AlertDescription.missing_extension,
                     "missing extension response: " + ExtensionType.GetText(ExtensionType.key_share));
@@ -890,7 +890,7 @@ namespace Org.BouncyCastle.Tls
              * MUST abort the handshake with an "illegal_parameter" alert.
              */
             if (!TlsUtilities.IsValidKeyShareSelection(server_version, securityParameters.ClientSupportedGroups,
-                m_clientAgreements, selected_group))
+                m_clientAgreements, selectedGroup))
             {
                 throw new TlsFatalAlert(AlertDescription.illegal_parameter, "invalid key_share selected");
             }
@@ -911,7 +911,7 @@ namespace Org.BouncyCastle.Tls
 
             this.m_clientAgreements = null;
             this.m_retryCookie = cookie;
-            this.m_retryGroup = selected_group;
+            this.m_retryGroup = selectedGroup;
         }
 
         /// <exception cref="IOException"/>
@@ -1011,8 +1011,8 @@ namespace Org.BouncyCastle.Tls
 
             TlsSecret sharedSecret = null;
             {
-                KeyShareEntry keyShareEntry = TlsExtensionsUtilities.GetKeyShareServerHello(extensions);
-                if (null == keyShareEntry)
+                KeyShareEntry serverShare = TlsExtensionsUtilities.GetKeyShareServerHello(extensions);
+                if (null == serverShare)
                 {
                     if (afterHelloRetryRequest
                         || null == pskEarlySecret
@@ -1029,10 +1029,12 @@ namespace Org.BouncyCastle.Tls
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                     }
 
-                    if (!m_clientAgreements.TryGetValue(keyShareEntry.NamedGroup, out var agreement))
+                    int namedGroup = serverShare.NamedGroup;
+
+                    if (!m_clientAgreements.TryGetValue(namedGroup, out var agreement))
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter);
 
-                    agreement.ReceivePeerValue(keyShareEntry.KeyExchange);
+                    agreement.ReceivePeerValue(serverShare.KeyExchange);
                     sharedSecret = agreement.CalculateSecret();
                 }
             }
