@@ -452,22 +452,34 @@ namespace Org.BouncyCastle.Tls
                     {
                         Process13HelloRetryRequest(serverHello);
                         m_handshakeHash.NotifyPrfDetermined();
-                        m_handshakeHash.SealHashAlgorithms();
+
                         TlsUtilities.AdjustTranscriptForRetry(m_handshakeHash);
+
                         buf.UpdateHash(m_handshakeHash);
                         this.m_connectionState = CS_SERVER_HELLO_RETRY_REQUEST;
 
                         Send13ClientHelloRetry();
                         this.m_connectionState = CS_CLIENT_HELLO_RETRY;
+
+                        /*
+                         * PSK binders (if any) when retrying ClientHello currently require handshakeHash buffering
+                         */
+                        m_handshakeHash.SealHashAlgorithms();
                     }
                     else
                     {
                         ProcessServerHello(serverHello);
                         m_handshakeHash.NotifyPrfDetermined();
+
                         if (TlsUtilities.IsTlsV13(securityParameters.NegotiatedVersion))
                         {
                             m_handshakeHash.SealHashAlgorithms();
                         }
+                        else
+                        {
+                            // For pre-1.3 wait until ServerHelloDone is received
+                        }
+
                         buf.UpdateHash(m_handshakeHash);
                         this.m_connectionState = CS_SERVER_HELLO;
 
