@@ -149,9 +149,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         public override ProtocolVersion GetServerVersion()
         {
-            ProtocolVersion serverVersion = (null != m_config.serverNegotiateVersion)
-                ?   m_config.serverNegotiateVersion
-                :   base.GetServerVersion();
+            ProtocolVersion serverVersion = m_config.serverNegotiateVersion ?? base.GetServerVersion();
 
             if (TlsTestConfig.Debug)
             {
@@ -318,15 +316,8 @@ namespace Org.BouncyCastle.Tls.Tests
             return TlsUtilities.GetSupportedCipherSuites(Crypto, TestCipherSuites);
         }
 
-        protected override ProtocolVersion[] GetSupportedVersions()
-        {
-            if (m_config.serverSupportedVersions != null)
-            {
-                return m_config.serverSupportedVersions;
-            }
-
-            return base.GetSupportedVersions();
-        }
+        protected override ProtocolVersion[] GetSupportedVersions() =>
+            m_config.serverSupportedVersions ?? base.GetSupportedVersions();
 
         protected virtual string ToHexString(byte[] data)
         {

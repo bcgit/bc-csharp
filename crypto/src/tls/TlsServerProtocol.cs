@@ -181,9 +181,8 @@ namespace Org.BouncyCastle.Tls
 
                 this.m_retryCookie = null;
 
-                clientShare = TlsUtilities.GetRetryKeyShare(clientShares, m_retryGroup);
-                if (null == clientShare)
-                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+                clientShare = TlsUtilities.GetRetryKeyShare(clientShares, m_retryGroup)
+                    ?? throw new TlsFatalAlert(AlertDescription.illegal_parameter);
             }
             else
             {
