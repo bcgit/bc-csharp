@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            Console.WriteLine("TLS-SRP server negotiated " + serverVersion);
+            Console.WriteLine("TLS-SRP server negotiated version " + serverVersion);
 
             return serverVersion;
         }

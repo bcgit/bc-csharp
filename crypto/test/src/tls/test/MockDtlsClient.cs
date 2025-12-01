@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyServerVersion(serverVersion);
 
-            Console.WriteLine("DTLS client negotiated " + serverVersion);
+            Console.WriteLine("DTLS client negotiated version " + serverVersion);
         }
 
         public override TlsAuthentication GetAuthentication()

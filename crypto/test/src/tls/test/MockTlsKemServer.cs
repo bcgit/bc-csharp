@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            Console.WriteLine("TLS KEM server negotiated " + serverVersion);
+            Console.WriteLine("TLS KEM server negotiated version " + serverVersion);
 
             return serverVersion;
         }

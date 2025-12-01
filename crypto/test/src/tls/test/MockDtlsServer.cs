@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            Console.WriteLine("DTLS server negotiated " + serverVersion);
+            Console.WriteLine("DTLS server negotiated version " + serverVersion);
 
             return serverVersion;
         }

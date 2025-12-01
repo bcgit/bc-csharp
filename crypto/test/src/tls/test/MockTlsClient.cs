@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyServerVersion(serverVersion);
 
-            Console.WriteLine("TLS client negotiated " + serverVersion);
+            Console.WriteLine("TLS client negotiated version " + serverVersion);
         }
 
         public override TlsAuthentication GetAuthentication()

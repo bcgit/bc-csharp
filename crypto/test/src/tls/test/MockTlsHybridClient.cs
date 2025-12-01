@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyServerVersion(serverVersion);
 
-            Console.WriteLine("TLS hybrid client negotiated " + serverVersion);
+            Console.WriteLine("TLS hybrid client negotiated version " + serverVersion);
         }
 
         public override TlsAuthentication GetAuthentication()

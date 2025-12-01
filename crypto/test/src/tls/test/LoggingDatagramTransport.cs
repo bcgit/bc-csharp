@@ -9,6 +9,8 @@ namespace Org.BouncyCastle.Tls.Tests
     public class LoggingDatagramTransport
         : DatagramTransport
     {
+        private static readonly bool EnableDumps = false;
+
         private static readonly string HEX_CHARS = "0123456789ABCDEF";
 
         private readonly DatagramTransport m_transport;
@@ -80,6 +82,9 @@ namespace Org.BouncyCastle.Tls.Tests
 #if NET6_0_OR_GREATER
         private void DumpDatagram(string verb, ReadOnlySpan<byte> buffer)
         {
+            if (!EnableDumps)
+                return;
+
             int len = buffer.Length;
             long timestamp = DateTimeUtilities.CurrentUnixMs() - m_launchTimestamp;
             StringBuilder sb = new StringBuilder("(+" + timestamp + "ms) " + verb + " " + len + " byte datagram:");
@@ -107,6 +112,9 @@ namespace Org.BouncyCastle.Tls.Tests
 #else
         private void DumpDatagram(string verb, byte[] buf, int off, int len)
         {
+            if (!EnableDumps)
+                return;
+
             long timestamp = DateTimeUtilities.CurrentUnixMs() - m_launchTimestamp;
             StringBuilder sb = new StringBuilder("(+" + timestamp + "ms) " + verb + " " + len + " byte datagram:");
             for (int pos = 0; pos < len; ++pos)

@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyServerVersion(serverVersion);
 
-            Console.WriteLine("DTLS-PSK client negotiated " + serverVersion);
+            Console.WriteLine("DTLS-PSK client negotiated version " + serverVersion);
         }
 
         public override TlsAuthentication GetAuthentication()

@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            Console.WriteLine("TLS hybrid server negotiated " + serverVersion);
+            Console.WriteLine("TLS hybrid server negotiated version " + serverVersion);
 
             return serverVersion;
         }

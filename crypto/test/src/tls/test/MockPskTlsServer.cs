@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            Console.WriteLine("TLS-PSK server negotiated " + serverVersion);
+            Console.WriteLine("TLS-PSK server negotiated version " + serverVersion);
 
             return serverVersion;
         }

@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyServerVersion(serverVersion);
 
-            Console.WriteLine("TLS 1.3 PSK client negotiated " + serverVersion);
+            Console.WriteLine("TLS 1.3 PSK client negotiated version " + serverVersion);
         }
 
         public override TlsAuthentication GetAuthentication()

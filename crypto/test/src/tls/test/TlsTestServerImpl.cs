@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
             if (TlsTestConfig.Debug)
             {
-                Console.WriteLine("TLS server negotiated " + serverVersion);
+                Console.WriteLine("TLS server negotiated version " + serverVersion);
             }
 
             return serverVersion;

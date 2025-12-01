@@ -181,7 +181,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
             if (TlsTestConfig.Debug)
             {
-                Console.WriteLine("TLS client negotiated " + serverVersion);
+                Console.WriteLine("TLS client negotiated version " + serverVersion);
             }
         }
 

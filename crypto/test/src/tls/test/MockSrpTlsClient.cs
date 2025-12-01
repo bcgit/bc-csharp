@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyServerVersion(serverVersion);
 
-            Console.WriteLine("TLS-SRP client negotiated " + serverVersion);
+            Console.WriteLine("TLS-SRP client negotiated version " + serverVersion);
         }
 
         public override TlsAuthentication GetAuthentication()
