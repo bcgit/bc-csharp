@@ -24,6 +24,13 @@ namespace Org.BouncyCastle.Utilities
             0x32, 0x18, 0x23, 0x1F, 0x3B, 0x13, 0x38, 0x0F, 0x31, 0x1E, 0x12, 0x0E, 0x1D, 0x0D, 0x0C, 0x0B };
 #endif
 
+        public static int Compare(long x, long y) => x.CompareTo(y);
+
+        [CLSCompliant(false)]
+        public static int Compare(ulong x, ulong y) => x.CompareTo(y);
+
+        public static int CompareUnsigned(long x, long y) => Compare((ulong)x, (ulong)y);
+
         public static long HighestOneBit(long i)
         {
             return (long)HighestOneBit((ulong)i);
