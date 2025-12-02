@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
@@ -8,42 +10,41 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    /*  The BLAKE2 cryptographic hash function was designed by Jean-
-     Philippe Aumasson, Samuel Neves, Zooko Wilcox-O'Hearn, and Christian
-     Winnerlein.
-   
-     Reference Implementation and Description can be found at: https://blake2.net/      
-     Internet Draft: https://tools.ietf.org/html/draft-saarinen-blake2-02
-
-     This implementation does not support the Tree Hashing Mode. 
- 
-       For unkeyed hashing, developers adapting BLAKE2 to ASN.1 - based
-       message formats SHOULD use the OID tree at x = 1.3.6.1.4.1.1722.12.2.
-
-             Algorithm     | Target | Collision | Hash | Hash ASN.1 |
-                Identifier |  Arch  |  Security |  nn  | OID Suffix |
-            ---------------+--------+-----------+------+------------+
-             id-blake2b160 | 64-bit |   2**80   |  20  |   x.1.20   |
-             id-blake2b256 | 64-bit |   2**128  |  32  |   x.1.32   |
-             id-blake2b384 | 64-bit |   2**192  |  48  |   x.1.48   |
-             id-blake2b512 | 64-bit |   2**256  |  64  |   x.1.64   |
-            ---------------+--------+-----------+------+------------+
+    /*
+     * The BLAKE2 cryptographic hash function was designed by Jean-Philippe Aumasson, Samuel Neves, Zooko
+     * Wilcox-O'Hearn, and Christian Winnerlein.
+     *
+     * Reference Implementation and Description can be found at: https://blake2.net/
+     * RFC: https://tools.ietf.org/html/rfc7693
+     *
+     * This implementation does not support the Tree Hashing Mode.
+     *
+     * For unkeyed hashing, developers adapting BLAKE2 to ASN.1-based message formats SHOULD use the OID tree at:
+     *     x = 1.3.6.1.4.1.1722.12.2.
+     *
+     * +---------------+--------+-----------+------+------------+
+     * | Algorithm     | Target | Collision | Hash | Hash ASN.1 |
+     * |    Identifier |  Arch  |  Security |  nn  | OID Suffix |
+     * +---------------+--------+-----------+------+------------+
+     * | id-blake2b160 | 64-bit |   2**80   |  20  |   x.1.20   |
+     * | id-blake2b256 | 64-bit |   2**128  |  32  |   x.1.32   |
+     * | id-blake2b384 | 64-bit |   2**192  |  48  |   x.1.48   |
+     * | id-blake2b512 | 64-bit |   2**256  |  64  |   x.1.64   |
+     * +---------------+--------+-----------+------+------------+
      */
 
     /// <summary>
-    /// Implementation of the cryptographic hash function Blake2b. 
-    /// BLAKE2b is optimized for 64-bit platforms and produces digests of any size
-    /// between 1 and 64 bytes.
+    /// Implementation of the cryptographic hash function BLAKE2b. BLAKE2b is optimized for 64-bit platforms and
+    /// produces digests of any size between 1 and 64 bytes.
     /// </summary>
-    /// 
     /// <remarks>
     /// <para>
-    /// Blake2b offers a built-in keying mechanism to be used directly
-    /// for authentication ("Prefix-MAC") rather than a HMAC construction.
+    /// BLAKE2b offers a built-in keying mechanism to be used directly for authentication ("Prefix-MAC") rather than an
+    /// HMAC construction.
     /// </para>
     /// <para>
-    /// Blake2b offers a built-in support for a salt for randomized hashing
-    /// and a personal string for defining a unique hash function for each application.
+    /// BLAKE2b offers built-in support for a salt for randomized hashing and a personal string for defining a unique
+    /// hash function for each application.
     /// </para>
     /// </remarks>
     public sealed class Blake2bDigest
@@ -87,29 +88,32 @@ namespace Org.BouncyCastle.Crypto.Digests
         private readonly byte[] buffer = new byte[BLOCK_LENGTH_BYTES];
 
         // General parameters:
-        private int digestLength = 64; // 1- 64 bytes
-        private byte[] m_salt = null;// new byte[16];
-        private byte[] m_personalization = null;// new byte[16];
+        private int digestLength = 64; // 1 - 64 bytes
+        private byte[] m_salt = null;
+        private byte[] m_personalization = null;
         private byte[] m_key = null;
 
-        // Tree hashing parameters:
-        // Because this class does not implement the Tree Hashing Mode,
-        // these parameters can be treated as constants (see init() function)
         /*
-	     * private int fanout = 1; // 0-255 private int depth = 1; // 1 - 255
-	     * private int leafLength= 0; private long nodeOffset = 0L; private int
-	     * nodeDepth = 0; private int innerHashLength = 0;
-	     */
+         * Tree hashing parameters; because this class does not implement the Tree Hashing Mode, these parameters can be
+         * treated as constants (see Init() function).
+         */
+        //private int fanout = 1; // 0 - 255
+        //private int depth = 1; // 1 - 255
+        //private int leafLength = 0;
+        //private long nodeOffset = 0L;
+        //private int nodeDepth = 0;
+        //private int innerHashLength = 0;
+        //private bool isLastNode = false;
 
         // Position of last inserted byte:
-        private int bufferPos = 0;// a value from 0 up to 128
+        private int bufferPos = 0; // a value from 0 up to BLOCK_LENGTH_BYTES
 
         private ulong t0 = 0UL; // holds last significant bits, counter (counts bytes)
         private ulong t1 = 0UL; // counter: Length up to 2^128 are supported
-        private ulong f0 = 0UL; // finalization flag, for last block: ~0L
+        private ulong f0 = 0UL; // finalization flag, for last block: ~0UL
 
         // For Tree Hashing Mode, not used here:
-        // private long f1 = 0L; // finalization flag, for last node: ~0L
+        //private ulong f1 = 0UL; // finalization flag, for last node: ~0UL
 
         /// <summary>
         /// Initializes a new instance of <see cref="Blake2bDigest"/>.
@@ -158,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// Initializes a new instance of <see cref="Blake2bDigest"/> with a key.
         /// </para>
         /// 
-        /// Blake2b for authentication ("Prefix-MAC mode").
+        /// BLAKE2b for authentication ("Prefix-MAC mode").
         /// After calling the <see cref="DoFinal(byte[], int)"/> method, the key will
         /// remain to be used for further computations of this instance.
         /// The key can be cleared using the <see cref="ClearKey"/> method.
@@ -169,12 +173,12 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
             this.digestLength = 64;
 
-            if (key != null && key.Length > 0)
+            if (!Arrays.IsNullOrEmpty(key))
             {
                 if (key.Length > 64)
-                    throw new ArgumentException("Keys > 64 are not supported", nameof(key));
+                    throw new ArgumentException("Keys > 64 bytes are not supported", nameof(key));
 
-                m_key = (byte[])key.Clone();
+                m_key = Arrays.CopyBuffer(key);
             }
 
             Init();
@@ -202,12 +206,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             this.digestLength = digestLength;
 
-            if (key != null && key.Length > 0)
+            if (!Arrays.IsNullOrEmpty(key))
             {
                 if (key.Length > 64)
-                    throw new ArgumentException("Keys > 64 are not supported", nameof(key));
+                    throw new ArgumentException("Keys > 64 bytes are not supported", nameof(key));
 
-                m_key = (byte[])key.Clone();
+                m_key = Arrays.CopyBuffer(key);
             }
 
             if (salt != null)
@@ -215,7 +219,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 if (salt.Length != 16)
                     throw new ArgumentException("salt length must be exactly 16 bytes", nameof(salt));
 
-                m_salt = (byte[])salt.Clone();
+                m_salt = Arrays.CopyBuffer(salt);
             }
 
             if (personalization != null)
@@ -224,7 +228,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                     throw new ArgumentException("personalization length must be exactly 16 bytes",
                         nameof(personalization));
 
-                m_personalization = (byte[])personalization.Clone();
+                m_personalization = Arrays.CopyBuffer(personalization);
             }
 
             Init();
@@ -272,12 +276,9 @@ namespace Org.BouncyCastle.Crypto.Digests
             // process the buffer if full else add to buffer:
             int remainingLength = BLOCK_LENGTH_BYTES - bufferPos;
             if (remainingLength == 0)
-            { // full buffer
-                t0 += BLOCK_LENGTH_BYTES;
-                if (t0 == 0)
-                { // if message > 2^64
-                    t1++;
-                }
+            {
+                // full buffer
+                IncrementCounter(BLOCK_LENGTH_BYTES);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 Compress(buffer);
 #else
@@ -289,8 +290,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
             else
             {
-                buffer[bufferPos] = b;
-                bufferPos++;
+                buffer[bufferPos++] = b;
             }
         }
 
@@ -306,42 +306,35 @@ namespace Org.BouncyCastle.Crypto.Digests
             int remainingLength = 0; // left bytes of buffer
 
             if (bufferPos != 0)
-            { // commenced, incomplete buffer
+            {
+                // commenced, incomplete buffer
 
                 // complete the buffer:
                 remainingLength = BLOCK_LENGTH_BYTES - bufferPos;
-                if (remainingLength < len)
-                { // full buffer + at least 1 byte
-                    Array.Copy(message, offset, buffer, bufferPos, remainingLength);
-                    t0 += BLOCK_LENGTH_BYTES;
-                    if (t0 == 0)
-                    { // if message > 2^64
-                        t1++;
-                    }
-                    Compress(buffer, 0);
-                    bufferPos = 0;
-                    Array.Clear(buffer, 0, buffer.Length);// clear buffer
-                }
-                else
+                if (remainingLength >= len)
                 {
                     Array.Copy(message, offset, buffer, bufferPos, len);
                     bufferPos += len;
                     return;
                 }
+
+                // full buffer + at least 1 byte
+                Array.Copy(message, offset, buffer, bufferPos, remainingLength);
+                IncrementCounter(BLOCK_LENGTH_BYTES);
+                Compress(buffer, 0);
+                bufferPos = 0;
+                Array.Clear(buffer, 0, buffer.Length);// clear buffer
             }
 
             // process blocks except last block (also if last block is full)
-            int messagePos;
             int blockWiseLastPos = offset + len - BLOCK_LENGTH_BYTES;
-            for (messagePos = offset + remainingLength; messagePos < blockWiseLastPos; messagePos += BLOCK_LENGTH_BYTES)
-            { // block wise 128 bytes
-                // without buffer:
-                t0 += BLOCK_LENGTH_BYTES;
-                if (t0 == 0)
-                {
-                    t1++;
-                }
+            int messagePos = offset + remainingLength;
+            while (messagePos < blockWiseLastPos)
+            {
+                // block wise 128 bytes without buffer:
+                IncrementCounter(BLOCK_LENGTH_BYTES);
                 Compress(message, messagePos);
+                messagePos += BLOCK_LENGTH_BYTES;
             }
 
             // fill the buffer with left bytes, this might be a full block
@@ -360,42 +353,35 @@ namespace Org.BouncyCastle.Crypto.Digests
             int remainingLength = 0; // left bytes of buffer
 
             if (bufferPos != 0)
-            { // commenced, incomplete buffer
+            {
+                // commenced, incomplete buffer
 
                 // complete the buffer:
                 remainingLength = BLOCK_LENGTH_BYTES - bufferPos;
-                if (remainingLength < input.Length)
-                { // full buffer + at least 1 byte
-                    input[..remainingLength].CopyTo(buffer.AsSpan(bufferPos));
-                    t0 += BLOCK_LENGTH_BYTES;
-                    if (t0 == 0)
-                    { // if message > 2^64
-                        t1++;
-                    }
-                    Compress(buffer);
-                    bufferPos = 0;
-                    Array.Clear(buffer, 0, buffer.Length);// clear buffer
-                }
-                else
+                if (remainingLength >= input.Length)
                 {
                     input.CopyTo(buffer.AsSpan(bufferPos));
                     bufferPos += input.Length;
                     return;
                 }
+
+                // full buffer + at least 1 byte
+                input[..remainingLength].CopyTo(buffer.AsSpan(bufferPos));
+                IncrementCounter(BLOCK_LENGTH_BYTES);
+                Compress(buffer);
+                bufferPos = 0;
+                Array.Clear(buffer, 0, buffer.Length);// clear buffer
             }
 
             // process blocks except last block (also if last block is full)
-            int messagePos;
             int blockWiseLastPos = input.Length - BLOCK_LENGTH_BYTES;
-            for (messagePos = remainingLength; messagePos < blockWiseLastPos; messagePos += BLOCK_LENGTH_BYTES)
-            { // block wise 128 bytes
-                // without buffer:
-                t0 += BLOCK_LENGTH_BYTES;
-                if (t0 == 0)
-                {
-                    t1++;
-                }
+            int messagePos = remainingLength;
+            while (messagePos < blockWiseLastPos)
+            {
+                // block wise 128 bytes without buffer:
+                IncrementCounter(BLOCK_LENGTH_BYTES);
                 Compress(input[messagePos..]);
+                messagePos += BLOCK_LENGTH_BYTES;
             }
 
             // fill the buffer with left bytes, this might be a full block
@@ -420,21 +406,23 @@ namespace Org.BouncyCastle.Crypto.Digests
             return DoFinal(output.AsSpan(outOffset));
 #else
             f0 = 0xFFFFFFFFFFFFFFFFUL;
-            t0 += (ulong)bufferPos;
-            if (bufferPos > 0 && t0 == 0)
+            //if (isLastNode)
+            //{
+            //    f1 = 0xFFFFFFFFFFFFFFFFUL;
+            //}
+
+            if (bufferPos > 0)
             {
-                t1++;
+                IncrementCounter(bufferPos);
             }
+
             Compress(buffer, 0);
-            Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
 
             int full = digestLength >> 3, partial = digestLength & 7;
             Pack.UInt64_To_LE(chainValue, 0, full, output, outOffset);
             if (partial > 0)
             {
-                byte[] bytes = new byte[8];
-                Pack.UInt64_To_LE(chainValue[full], bytes, 0);
-                Array.Copy(bytes, 0, output, outOffset + digestLength - partial, partial);
+                Pack.UInt64_To_LE_Low(chainValue[full], output, outOffset + digestLength - partial, partial);
             }
 
             Reset();
@@ -456,21 +444,23 @@ namespace Org.BouncyCastle.Crypto.Digests
             Check.OutputLength(output, digestLength, "output buffer too short");
 
             f0 = 0xFFFFFFFFFFFFFFFFUL;
-            t0 += (ulong)bufferPos;
-            if (bufferPos > 0 && t0 == 0)
+            //if (isLastNode)
+            //{
+            //    f1 = 0xFFFFFFFFFFFFFFFFUL;
+            //}
+
+            if (bufferPos > 0)
             {
-                t1++;
+                IncrementCounter(bufferPos);
             }
+
             Compress(buffer);
-            Array.Clear(buffer, 0, buffer.Length);// Holds eventually the key if input is null
 
             int full = digestLength >> 3, partial = digestLength & 7;
             Pack.UInt64_To_LE(chainValue.AsSpan(0, full), output);
             if (partial > 0)
             {
-                Span<byte> bytes = stackalloc byte[8];
-                Pack.UInt64_To_LE(chainValue[full], bytes);
-                bytes[..partial].CopyTo(output[(digestLength - partial)..]);
+                Pack.UInt64_To_LE_Low(chainValue[full], output.Slice(digestLength - partial, partial));
             }
 
             Reset();
@@ -486,9 +476,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         public void Reset()
         {
             bufferPos = 0;
-            f0 = 0L;
-            t0 = 0L;
-            t1 = 0L;
+            f0 = 0UL;
+            t0 = 0UL;
+            t1 = 0UL;
 
             Array.Clear(buffer, 0, buffer.Length);
 
@@ -636,6 +626,21 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (m_salt != null)
             {
                 Array.Clear(m_salt, 0, m_salt.Length);
+            }
+        }
+
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        private void IncrementCounter(int count)
+        {
+            Debug.Assert(count > 0);
+
+            ulong count64 = (ulong)count;
+            t0 += count64;
+            if (t0 < count64)
+            {
+                ++t1;
             }
         }
 

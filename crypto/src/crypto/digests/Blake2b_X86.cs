@@ -342,7 +342,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             G1(r24, ref row1, ref row2, ref row3, ref row4, b3);
             G2(r16, ref row1, ref row2, ref row3, ref row4, b4);
 
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Diagonalize(ref row3, ref row1, ref row4);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -385,23 +385,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             row3 = Avx2.Add(row3, row4);
             row2 = Avx2.Xor(row2, row3);
             row2 = Avx2.Xor(Avx2.ShiftRightLogical(row2, 63), Avx2.Add(row2, row2));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Undiagonalize(ref Vector256<ulong> row1, ref Vector256<ulong> row3,
-            ref Vector256<ulong> row4)
-        {
-            //     +-------------------+        +-------------------+
-            //     |  3 |  0 |  1 |  2 |        |  0 |  1 |  2 |  3 |
-            //     +-------------------+        +-------------------+
-            //     |  9 | 10 | 11 |  8 |  --->  |  8 |  9 | 10 | 11 |
-            //     +-------------------+        +-------------------+
-            //     | 14 | 15 | 12 | 13 |        | 12 | 13 | 14 | 15 |
-            //     +-------------------+        +-------------------+
-
-            row1 = Avx2.Permute4x64(row1, 0b_00_11_10_01);
-            row3 = Avx2.Permute4x64(row3, 0b_10_01_00_11);
-            row4 = Avx2.Permute4x64(row4, 0b_01_00_11_10);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -315,7 +315,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             G1(r16, ref row1, ref row2, ref row3, ref row4, b3);
             G2(r8, ref row1, ref row2, ref row3, ref row4, b4);
 
-            Undiagonalize(ref row1, ref row3, ref row4);
+            Diagonalize(ref row3, ref row1, ref row4);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -358,22 +358,6 @@ namespace Org.BouncyCastle.Crypto.Digests
             row3 = Sse2.Add(row3, row4);
             row2 = Sse2.Xor(row2, row3);
             row2 = Sse2.Xor(Sse2.ShiftRightLogical(row2, 7), Sse2.ShiftLeftLogical(row2, 32 - 7));
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void Undiagonalize(ref Vector128<uint> row1, ref Vector128<uint> row3, ref Vector128<uint> row4)
-        {
-            //     +-------------------+        +-------------------+
-            //     |  3 |  0 |  1 |  2 |        |  0 |  1 |  2 |  3 |
-            //     +-------------------+        +-------------------+
-            //     |  9 | 10 | 11 |  8 |  --->  |  8 |  9 | 10 | 11 |
-            //     +-------------------+        +-------------------+
-            //     | 14 | 15 | 12 | 13 |        | 12 | 13 | 14 | 15 |
-            //     +-------------------+        +-------------------+
-
-            row1 = Sse2.Shuffle(row1, 0b_00_11_10_01);
-            row3 = Sse2.Shuffle(row3, 0b_10_01_00_11);
-            row4 = Sse2.Shuffle(row4, 0b_01_00_11_10);
         }
     }
 }
