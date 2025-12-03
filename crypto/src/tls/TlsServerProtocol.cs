@@ -261,6 +261,8 @@ namespace Org.BouncyCastle.Tls
                 if (selectedGroup < 0)
                     throw new TlsFatalAlert(AlertDescription.handshake_failure);
 
+                securityParameters.m_negotiatedGroup = selectedGroup;
+
                 clientShare = TlsUtilities.FindEarlyKeyShare(clientShares, selectedGroup);
 
                 if (null == clientShare)
@@ -292,7 +294,7 @@ namespace Org.BouncyCastle.Tls
                 int[] serverSupportedGroups = securityParameters.ServerSupportedGroups;
 
                 if (!TlsUtilities.IsNullOrEmpty(serverSupportedGroups) &&
-                    clientShare.NamedGroup != serverSupportedGroups[0] &&
+                    serverSupportedGroups[0] != securityParameters.NegotiatedGroup &&
                     !serverEncryptedExtensions.ContainsKey(ExtensionType.supported_groups))
                 {
                     TlsExtensionsUtilities.AddSupportedGroupsExtension(serverEncryptedExtensions, serverSupportedGroups);
@@ -358,15 +360,18 @@ namespace Org.BouncyCastle.Tls
 
             TlsSecret sharedSecret;
             {
-                int namedGroup = clientShare.NamedGroup;
+                int negotiatedGroup = securityParameters.NegotiatedGroup;
 
-                TlsAgreement agreement = TlsUtilities.CreateKeyShare(crypto, namedGroup, isServer: true)
+                if (clientShare.NamedGroup != negotiatedGroup)
+                    throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+
+                TlsAgreement agreement = TlsUtilities.CreateKeyShare(crypto, negotiatedGroup, isServer: true)
                     ?? throw new TlsFatalAlert(AlertDescription.internal_error);
 
                 agreement.ReceivePeerValue(clientShare.KeyExchange);
 
                 byte[] key_exchange = agreement.GenerateEphemeral();
-                KeyShareEntry serverShare = new KeyShareEntry(namedGroup, key_exchange);
+                KeyShareEntry serverShare = new KeyShareEntry(negotiatedGroup, key_exchange);
                 TlsExtensionsUtilities.AddKeyShareServerHello(serverHelloExtensions, serverShare);
 
                 sharedSecret = agreement.CalculateSecret();

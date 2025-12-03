@@ -50,6 +50,7 @@ namespace Org.BouncyCastle.Tls
         internal Certificate m_localCertificate = null;
         internal Certificate m_peerCertificate = null;
         internal ProtocolVersion m_negotiatedVersion = null;
+        internal int m_negotiatedGroup = -1;
         internal int m_statusRequestVersion = 0;
         internal short m_clientCertificateType = CertificateType.X509;
         internal short m_serverCertificateType = CertificateType.X509;
@@ -229,6 +230,15 @@ namespace Org.BouncyCastle.Tls
         {
             get { return m_maxFragmentLength; }
         }
+
+        /// <summary>
+        /// The named group selected by the server for key exchange (if any), or -1 when not negotiated.
+        /// </summary>
+        /// <remarks>
+        /// See <see cref="NamedGroup"/> for group constants. Currently not set (i.e. -1) when pre-1.3 version
+        /// negotiated. Not all TLS 1.3 key exchanges negotiate a group (e.g. PskKeyExchangeMode.psk_ke).
+        /// </remarks>
+        public int NegotiatedGroup => m_negotiatedGroup;
 
         public ProtocolVersion NegotiatedVersion
         {

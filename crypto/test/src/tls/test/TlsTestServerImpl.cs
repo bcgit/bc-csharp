@@ -142,6 +142,12 @@ namespace Org.BouncyCastle.Tls.Tests
 
             if (TlsTestConfig.Debug)
             {
+                int negotiatedGroup = securityParameters.NegotiatedGroup;
+                if (negotiatedGroup >= 0)
+                {
+                    Console.WriteLine("TLS server negotiated group: " + NamedGroup.GetText(negotiatedGroup));
+                }
+
                 Console.WriteLine("TLS server reports 'tls-server-end-point' = " + ToHexString(m_tlsServerEndPoint));
                 Console.WriteLine("TLS server reports 'tls-unique' = " + ToHexString(m_tlsUnique));
             }

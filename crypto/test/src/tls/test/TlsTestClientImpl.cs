@@ -168,6 +168,12 @@ namespace Org.BouncyCastle.Tls.Tests
 
             if (TlsTestConfig.Debug)
             {
+                int negotiatedGroup = securityParameters.NegotiatedGroup;
+                if (negotiatedGroup >= 0)
+                {
+                    Console.WriteLine("TLS client negotiated group: " + NamedGroup.GetText(negotiatedGroup));
+                }
+
                 Console.WriteLine("TLS client reports 'tls-server-end-point' = " + ToHexString(m_tlsServerEndPoint));
                 Console.WriteLine("TLS client reports 'tls-unique' = " + ToHexString(m_tlsUnique));
             }

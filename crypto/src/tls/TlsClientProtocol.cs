@@ -921,6 +921,8 @@ namespace Org.BouncyCastle.Tls
             TlsUtilities.NegotiatedCipherSuite(securityParameters, cipherSuite);
             m_tlsClient.NotifySelectedCipherSuite(cipherSuite);
 
+            securityParameters.m_negotiatedGroup = selectedGroup;
+
             this.m_clientAgreements = null;
             this.m_retryCookie = cookie;
             this.m_retryGroup = selectedGroup;
@@ -1026,17 +1028,17 @@ namespace Org.BouncyCastle.Tls
                 KeyShareEntry serverShare = TlsExtensionsUtilities.GetKeyShareServerHello(extensions);
                 if (null == serverShare)
                 {
-                    if (afterHelloRetryRequest
-                        || null == pskEarlySecret
-                        || !Arrays.Contains(m_clientBinders.m_pskKeyExchangeModes, PskKeyExchangeMode.psk_ke))
+                    if (afterHelloRetryRequest ||
+                        pskEarlySecret == null ||
+                        !Arrays.Contains(m_clientBinders.m_pskKeyExchangeModes, PskKeyExchangeMode.psk_ke))
                     {
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                     }
                 }
                 else
                 {
-                    if (null != pskEarlySecret
-                        && !Arrays.Contains(m_clientBinders.m_pskKeyExchangeModes, PskKeyExchangeMode.psk_dhe_ke))
+                    if (pskEarlySecret != null &&
+                        !Arrays.Contains(m_clientBinders.m_pskKeyExchangeModes, PskKeyExchangeMode.psk_dhe_ke))
                     {
                         throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                     }
@@ -1048,6 +1050,11 @@ namespace Org.BouncyCastle.Tls
 
                     agreement.ReceivePeerValue(serverShare.KeyExchange);
                     sharedSecret = agreement.CalculateSecret();
+
+                    if (!afterHelloRetryRequest)
+                    {
+                        securityParameters.m_negotiatedGroup = namedGroup;
+                    }
                 }
             }
 

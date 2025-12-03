@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Tls.Tests
     public class TlsTestConfig
     {
         // TODO[tls-port]
-        public static readonly bool Debug = true;
+        public static readonly bool Debug = false;
 
         /// <summary>Client does not authenticate, ignores any certificate request.</summary>
         public const int CLIENT_AUTH_NONE = 0;

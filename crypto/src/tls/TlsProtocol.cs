@@ -153,6 +153,7 @@ namespace Org.BouncyCastle.Tls
         protected TlsSecret m_sessionMasterSecret = null;
 
         protected byte[] m_retryCookie = null;
+        // TODO[api] Remove and manage via SecurityParameters.m_negotiatedGroup
         protected int m_retryGroup = -1;
         protected IDictionary<int, byte[]> m_clientExtensions = null;
         protected IDictionary<int, byte[]> m_serverExtensions = null;

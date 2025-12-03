@@ -102,10 +102,18 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyHandshakeComplete();
 
-            ProtocolName protocolName = m_context.SecurityParameters.ApplicationProtocol;
+            var securityParameters = m_context.SecurityParameters;
+
+            ProtocolName protocolName = securityParameters.ApplicationProtocol;
             if (protocolName != null)
             {
                 Console.WriteLine("Client ALPN: " + protocolName.GetUtf8Decoding());
+            }
+
+            int negotiatedGroup = securityParameters.NegotiatedGroup;
+            if (negotiatedGroup >= 0)
+            {
+                Console.WriteLine("Client negotiated group: " + NamedGroup.GetText(negotiatedGroup));
             }
         }
 
