@@ -52,6 +52,12 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         [Test]
+        public void TestCurveSM2MLKEM768()
+        {
+            ImplTestClientServer(NamedGroup.curveSM2MLKEM768);
+        }
+
+        [Test]
         public void TestSecP256r1MLKEM768()
         {
             ImplTestClientServer(NamedGroup.SecP256r1MLKEM768);
