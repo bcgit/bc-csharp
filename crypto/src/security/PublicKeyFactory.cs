@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.Gnu;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
+using Org.BouncyCastle.Asn1.UA;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
@@ -253,6 +254,55 @@ namespace Org.BouncyCastle.Security
             else if (SlhDsaParameters.ByOid.TryGetValue(algOid, out SlhDsaParameters slhDsaParameters))
             {
                 return GetSlhDsaPublicKey(slhDsaParameters, keyInfo.PublicKey);
+            }
+            else if (UAObjectIdentifiers.dstu4145be.Equals(algOid)
+                ||   UAObjectIdentifiers.dstu4145le.Equals(algOid))
+            {
+                bool isLE = UAObjectIdentifiers.dstu4145le.Equals(algOid);
+                Dstu4145Params dstuParams = Dstu4145Params.GetInstance(algID.Parameters);
+
+                Asn1OctetString key;
+                try
+                {
+                    key = (Asn1OctetString)keyInfo.ParsePublicKey();
+                }
+                catch (Exception)
+                {
+                    throw new ArgumentException("error recovering DSTU public key");
+                }
+
+                byte[] keyOctets = key.GetOctets();
+                if (isLE)
+                {
+                    keyOctets = Arrays.Reverse(keyOctets);
+                }
+
+                ECDomainParameters ecDomain;
+                if (dstuParams.IsNamedCurve)
+                {
+                    ecDomain = Dstu4145NamedCurves.GetByOid(dstuParams.NamedCurve);
+                }
+                else
+                {
+                    Dstu4145ECBinary ecBinary = dstuParams.ECBinary;
+                    BigInteger b = new BigInteger(1, ecBinary.B.GetOctets(), bigEndian: !isLE);
+
+                    Dstu4145BinaryField field = ecBinary.Field;
+                    ECCurve curve = new F2mCurve(field.M, field.K, field.J, field.L, ecBinary.A.Value, b, null, null);
+
+                    byte[] bpOctets = ecBinary.BP.GetOctets();
+                    if (isLE)
+                    {
+                        bpOctets = Arrays.Reverse(bpOctets);
+                    }
+
+                    ECPoint g = Dstu4145PointEncoder.DecodePoint(curve, bpOctets);
+                    ecDomain = new ECDomainParameters(curve, g, ecBinary.N.Value);
+                }
+
+                ECPoint q = Dstu4145PointEncoder.DecodePoint(ecDomain.Curve, keyOctets);
+
+                return new ECPublicKeyParameters(q, ecDomain);
             }
             else
             {
