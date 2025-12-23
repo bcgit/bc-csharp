@@ -19,23 +19,7 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class Sha3DigestTest
         : SimpleTest
     {
-        internal class MySha3Digest : Sha3Digest
-        {
-            internal MySha3Digest(int bitLength)
-                : base(bitLength)
-            {
-            }
-
-            internal int MyDoFinal(byte[] output, int outOff, byte partialByte, int partialBits)
-            {
-                return DoFinal(output, outOff, partialByte, partialBits);
-            }
-        }
-
-        public override string Name
-        {
-            get { return "SHA-3"; }
-        }
+        public override string Name => "SHA-3";
 
         public override void PerformTest()
         {
@@ -46,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public void TestVectors()
         {
-            using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.SHA3TestVectors.txt")))
+            using (StreamReader r = new StreamReader(GetTestDataAsStream("crypto.SHA3TestVectors.txt")))
             {
                 string line;
                 while (null != (line = ReadLine(r)))
@@ -60,67 +44,36 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private MySha3Digest CreateDigest(string algorithm)
+        [Test]
+        public void TestFunction()
         {
-            if (algorithm.StartsWith("SHA3-"))
-            {
-                int bits = ParseDecimal(algorithm.Substring("SHA3-".Length));
-                return new MySha3Digest(bits);
-            }
-            throw new ArgumentException("Unknown algorithm: " + algorithm, "algorithm");
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
         }
 
-        private byte[] DecodeBinary(string block)
+        [Test, Explicit]
+        public void BenchDigest_Sha3_224()
         {
-            int bits = block.Length;
-            int fullBytes = bits / 8;
-            int totalBytes = (bits + 7) / 8;
-            byte[] result = new byte[totalBytes];
-
-            for (int i = 0; i < fullBytes; ++i)
-            {
-                string byteStr = Reverse(block.Substring(i * 8, 8));
-                result[i] = (byte)ParseBinary(byteStr);
-            }
-
-            if (totalBytes > fullBytes)
-            {
-                string byteStr = Reverse(block.Substring(fullBytes * 8));
-                result[fullBytes] = (byte)ParseBinary(byteStr);
-            }
-
-            return result;
+            ImplBenchDigest(224);
         }
 
-        private int ParseBinary(string s)
+        [Test, Explicit]
+        public void BenchDigest_Sha3_256()
         {
-            return new BigInteger(s, 2).IntValue;
+            ImplBenchDigest(256);
         }
 
-        private int ParseDecimal(string s)
+        [Test, Explicit]
+        public void BenchDigest_Sha3_384()
         {
-            return int.Parse(s);
+            ImplBenchDigest(384);
         }
 
-        private string ReadBlock(StreamReader r)
+        [Test, Explicit]
+        public void BenchDigest_Sha3_512()
         {
-            StringBuilder b = new StringBuilder();
-            string line;
-            while ((line = ReadBlockLine(r)) != null)
-            {
-                b.Append(line);
-            }
-            return b.ToString();
-        }
-
-        private string ReadBlockLine(StreamReader r)
-        {
-            string line = ReadLine(r);
-            if (line == null || line.Length == 0)
-            {
-                return null;
-            }
-            return line.Replace(" ", "");
+            ImplBenchDigest(512);
         }
 
         private TestVector ReadTestVector(StreamReader r, string header)
@@ -144,37 +97,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new TestVector(algorithm, bits, message, hash);
         }
 
-        private string ReadLine(StreamReader r)
-        {
-            string line = r.ReadLine();
-            return line == null ? null : StripFromChar(line, '#').Trim();
-        }
-
-        private string RequireLine(StreamReader r)
-        {
-            string line = ReadLine(r);
-            if (line == null)
-            {
-                throw new EndOfStreamException();
-            }
-            return line;
-        }
-
-        private string Reverse(string s)
-        {
-            char[] cs = s.ToCharArray();
-            Array.Reverse(cs);
-            return new string(cs);
-        }
-
         private void RunTestVector(TestVector v)
         {
             int bits = v.Bits;
             int partialBits = bits % 8;
-
-            //Console.WriteLine(v.Algorithm + " " + bits + "-bit");
-            //Console.WriteLine(Hex.ToHexString(v.Message).ToUpper());
-            //Console.WriteLine(Hex.ToHexString(v.Hash).ToUpper());
 
             MySha3Digest d = CreateDigest(v.Algorithm);
             byte[] output = new byte[d.GetDigestSize()];
@@ -194,12 +120,109 @@ namespace Org.BouncyCastle.Crypto.Tests
             if (!Arrays.AreEqual(v.Hash, output))
             {
                 Fail(v.Algorithm + " " + v.Bits + "-bit test vector hash mismatch");
-                //Console.Error.WriteLine(v.Algorithm + " " + v.Bits + "-bit test vector hash mismatch");
-                //Console.Error.WriteLine(Hex.ToHexString(output).ToUpper());
             }
         }
 
-        private void SkipUntil(StreamReader r, string header)
+        private static MySha3Digest CreateDigest(string algorithm)
+        {
+            if (algorithm.StartsWith("SHA3-"))
+            {
+                int bits = ParseDecimal(algorithm.Substring("SHA3-".Length));
+                return new MySha3Digest(bits);
+            }
+            throw new ArgumentException("Unknown algorithm: " + algorithm, "algorithm");
+        }
+
+        private static byte[] DecodeBinary(string block)
+        {
+            int bits = block.Length;
+            int fullBytes = bits / 8;
+            int totalBytes = (bits + 7) / 8;
+            byte[] result = new byte[totalBytes];
+
+            for (int i = 0; i < fullBytes; ++i)
+            {
+                string byteStr = Reverse(block.Substring(i * 8, 8));
+                result[i] = (byte)ParseBinary(byteStr);
+            }
+
+            if (totalBytes > fullBytes)
+            {
+                string byteStr = Reverse(block.Substring(fullBytes * 8));
+                result[fullBytes] = (byte)ParseBinary(byteStr);
+            }
+
+            return result;
+        }
+
+        private static void ImplBenchDigest(int bitLength)
+        {
+            IDigest digest = new Sha3Digest(bitLength);
+
+            byte[] data = new byte[1024];
+            for (int i = 0; i < 1024; ++i)
+            {
+                for (int j = 0; j < 1024; ++j)
+                {
+                    // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+                    //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    digest.BlockUpdate(data);
+#else
+                    digest.BlockUpdate(data, 0, 1024);
+#endif
+                }
+
+                // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+                //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                digest.DoFinal(data);
+#else
+                digest.DoFinal(data, 0);
+#endif
+            }
+        }
+
+        private static int ParseBinary(string s) => new BigInteger(s, 2).IntValue;
+
+        private static int ParseDecimal(string s) => int.Parse(s);
+
+        private static string ReadBlock(StreamReader r)
+        {
+            StringBuilder b = new StringBuilder();
+            string line;
+            while ((line = ReadBlockLine(r)) != null)
+            {
+                b.Append(line);
+            }
+            return b.ToString();
+        }
+
+        private static string ReadBlockLine(StreamReader r)
+        {
+            string line = ReadLine(r);
+            if (line == null || line.Length == 0)
+                return null;
+
+            return line.Replace(" ", "");
+        }
+
+        private static string ReadLine(StreamReader r)
+        {
+            string line = r.ReadLine();
+            return line == null ? null : StripFromChar(line, '#').Trim();
+        }
+
+        private static string RequireLine(StreamReader r) => ReadLine(r) ?? throw new EndOfStreamException();
+
+        private static string Reverse(string s)
+        {
+            char[] cs = s.ToCharArray();
+            Array.Reverse(cs);
+            return new string(cs);
+        }
+
+        private static void SkipUntil(StreamReader r, string header)
         {
             string line;
             do
@@ -207,13 +230,12 @@ namespace Org.BouncyCastle.Crypto.Tests
                 line = RequireLine(r);
             }
             while (line.Length == 0);
+
             if (!line.Equals(header))
-            {
                 throw new IOException("Expected: " + header);
-            }
         }
 
-        private string[] SplitAround(string s, string separator)
+        private static string[] SplitAround(string s, string separator)
         {
             int i = s.IndexOf(separator);
             if (i < 0)
@@ -221,7 +243,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new string[] { s.Substring(0, i), s.Substring(i + separator.Length) };
         }
 
-        private string StripFromChar(string s, char c)
+        private static string StripFromChar(string s, char c)
         {
             int i = s.IndexOf(c);
             if (i >= 0)
@@ -231,62 +253,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             return s;
         }
 
-        [Test]
-        public void TestFunction()
+        internal class MySha3Digest : Sha3Digest
         {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
-        }
-
-        [Test, Explicit]
-        public void BenchDigest_Sha3_224()
-        {
-            ImplBenchDigest(new Sha3Digest(224));
-        }
-
-        [Test, Explicit]
-        public void BenchDigest_Sha3_256()
-        {
-            ImplBenchDigest(new Sha3Digest(256));
-        }
-
-        [Test, Explicit]
-        public void BenchDigest_Sha3_384()
-        {
-            ImplBenchDigest(new Sha3Digest(384));
-        }
-
-        [Test, Explicit]
-        public void BenchDigest_Sha3_512()
-        {
-            ImplBenchDigest(new Sha3Digest(512));
-        }
-
-        private static void ImplBenchDigest(IDigest digest)
-        {
-            byte[] data = new byte[1024];
-            for (int i = 0; i < 1024; ++i)
+            internal MySha3Digest(int bitLength)
+                : base(bitLength)
             {
-                for (int j = 0; j < 1024; ++j)
-                {
-                    // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
-//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    digest.BlockUpdate(data);
-#else
-                    digest.BlockUpdate(data, 0, 1024);
-#endif
-                }
-
-                // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
-//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                digest.DoFinal(data);
-#else
-                digest.DoFinal(data, 0);
-#endif
             }
+
+            internal int MyDoFinal(byte[] output, int outOff, byte partialByte, int partialBits) =>
+                DoFinal(output, outOff, partialByte, partialBits);
         }
 
         internal class TestVector
@@ -308,25 +283,13 @@ namespace Org.BouncyCastle.Crypto.Tests
                 this.hash = hash;
             }
 
-            public string Algorithm
-            {
-                get { return algorithm; }
-            }
+            public string Algorithm => algorithm;
 
-            public int Bits
-            {
-                get { return bits; }
-            }
+            public int Bits => bits;
 
-            public byte[] Message
-            {
-                get { return message; }
-            }
+            public byte[] Message => message;
 
-            public byte[] Hash
-            {
-                get { return hash; }
-            }
+            public byte[] Hash => hash;
         }
     }
 }

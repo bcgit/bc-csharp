@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
@@ -20,23 +19,7 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class ShakeDigestTest
         : SimpleTest
     {
-        internal class MyShakeDigest : ShakeDigest
-        {
-            internal MyShakeDigest(int bitLength)
-                : base(bitLength)
-            {
-            }
-
-            internal int MyOutputFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits)
-            {
-                return OutputFinal(output, outOff, outLen, partialByte, partialBits);
-            }
-        }
-
-        public override string Name
-        {
-            get { return "SHAKE"; }
-        }
+        public override string Name => "SHAKE";
 
         public override void PerformTest()
         {
@@ -47,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public void TestVectors()
         {
-            using (StreamReader r = new StreamReader(SimpleTest.GetTestDataAsStream("crypto.SHAKETestVectors.txt")))
+            using (StreamReader r = new StreamReader(GetTestDataAsStream("crypto.SHAKETestVectors.txt")))
             {
                 string line;
                 while (null != (line = ReadLine(r)))
@@ -61,67 +44,36 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private MyShakeDigest CreateDigest(string algorithm)
+        [Test]
+        public void TestFunction()
         {
-            if (algorithm.StartsWith("SHAKE-"))
-            {
-                int bits = ParseDecimal(algorithm.Substring("SHAKE-".Length));
-                return new MyShakeDigest(bits);
-            }
-            throw new ArgumentException("Unknown algorithm: " + algorithm, "algorithm");
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
         }
 
-        private byte[] DecodeBinary(string block)
+        [Test, Explicit]
+        public void BenchXof_Shake128()
         {
-            int bits = block.Length;
-            int fullBytes = bits / 8;
-            int totalBytes = (bits + 7) / 8;
-            byte[] result = new byte[totalBytes];
-
-            for (int i = 0; i < fullBytes; ++i)
-            {
-                string byteStr = Reverse(block.Substring(i * 8, 8));
-                result[i] = (byte)ParseBinary(byteStr);
-            }
-
-            if (totalBytes > fullBytes)
-            {
-                string byteStr = Reverse(block.Substring(fullBytes * 8));
-                result[fullBytes] = (byte)ParseBinary(byteStr);
-            }
-
-            return result;
+            ImplBenchXof(128);
         }
 
-        private int ParseBinary(string s)
+        [Test, Explicit]
+        public void BenchXof_Shake256()
         {
-            return new BigInteger(s, 2).IntValue;
+            ImplBenchXof(256);
         }
 
-        private int ParseDecimal(string s)
+        [Test]
+        public void TestOutputXof_Shake128()
         {
-            return int.Parse(s);
+            ImplTestOutputXof(128);
         }
 
-        private string ReadBlock(StreamReader r)
+        [Test]
+        public void TestOutputXof_Shake256()
         {
-            StringBuilder b = new StringBuilder();
-            string line;
-            while ((line = ReadBlockLine(r)) != null)
-            {
-                b.Append(line);
-            }
-            return b.ToString();
-        }
-
-        private string ReadBlockLine(StreamReader r)
-        {
-            string line = ReadLine(r);
-            if (line == null || line.Length == 0)
-            {
-                return null;
-            }
-            return line.Replace(" ", "");
+            ImplTestOutputXof(256);
         }
 
         private TestVector ReadTestVector(StreamReader r, string header)
@@ -145,39 +97,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             return new TestVector(algorithm, bits, message, output);
         }
 
-        private string ReadLine(StreamReader r)
-        {
-            string line = r.ReadLine();
-            return line == null ? null : StripFromChar(line, '#').Trim();
-        }
-
-        private string RequireLine(StreamReader r)
-        {
-            string line = ReadLine(r);
-            if (line == null)
-            {
-                throw new EndOfStreamException();
-            }
-            return line;
-        }
-
-        private string Reverse(string s)
-        {
-            char[] cs = s.ToCharArray();
-            Array.Reverse(cs);
-            return new string(cs);
-        }
-
         private void RunTestVector(TestVector v)
         {
             int bits = v.Bits;
             int partialBits = bits % 8;
 
             byte[] expected = v.Output;
-
-            //Console.WriteLine(v.Algorithm + " " + bits + "-bit");
-            //Console.WriteLine(Hex.ToHexString(v.Message).ToUpper());
-            //Console.WriteLine(Hex.ToHexString(expected).ToUpper());
 
             int outLen = expected.Length;
 
@@ -199,8 +124,6 @@ namespace Org.BouncyCastle.Crypto.Tests
             if (!Arrays.AreEqual(expected, output))
             {
                 Fail(v.Algorithm + " " + v.Bits + "-bit test vector hash mismatch");
-                //Console.Error.WriteLine(v.Algorithm + " " + v.Bits + "-bit test vector hash mismatch");
-                //Console.Error.WriteLine(Hex.ToHexString(output).ToUpper());
             }
 
             if (partialBits == 0)
@@ -248,79 +171,49 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void SkipUntil(StreamReader r, string header)
+        private static MyShakeDigest CreateDigest(string algorithm)
         {
-            string line;
-            do
+            if (algorithm.StartsWith("SHAKE-"))
             {
-                line = RequireLine(r);
+                int bits = ParseDecimal(algorithm.Substring("SHAKE-".Length));
+                return new MyShakeDigest(bits);
             }
-            while (line.Length == 0);
-            if (!line.Equals(header))
+            throw new ArgumentException("Unknown algorithm: " + algorithm, "algorithm");
+        }
+
+        private static byte[] DecodeBinary(string block)
+        {
+            int bits = block.Length;
+            int fullBytes = bits / 8;
+            int totalBytes = (bits + 7) / 8;
+            byte[] result = new byte[totalBytes];
+
+            for (int i = 0; i < fullBytes; ++i)
             {
-                throw new IOException("Expected: " + header);
+                string byteStr = Reverse(block.Substring(i * 8, 8));
+                result[i] = (byte)ParseBinary(byteStr);
             }
-        }
 
-        private string[] SplitAround(string s, string separator)
-        {
-            int i = s.IndexOf(separator);
-            if (i < 0)
-                throw new InvalidOperationException();
-            return new string[] { s.Substring(0, i), s.Substring(i + separator.Length) };
-        }
-
-        private string StripFromChar(string s, char c)
-        {
-            int i = s.IndexOf(c);
-            if (i >= 0)
+            if (totalBytes > fullBytes)
             {
-                s = s.Substring(0, i);
+                string byteStr = Reverse(block.Substring(fullBytes * 8));
+                result[fullBytes] = (byte)ParseBinary(byteStr);
             }
-            return s;
+
+            return result;
         }
 
-        [Test]
-        public void TestFunction()
+        private static void ImplBenchXof(int bitLength)
         {
-            string resultText = Perform().ToString();
+            IXof xof = new ShakeDigest(bitLength);
 
-            Assert.AreEqual(Name + ": Okay", resultText);
-        }
-
-        [Test, Explicit]
-        public void BenchXof_Shake128()
-        {
-            ImplBenchXof(new ShakeDigest(128));
-        }
-
-        [Test, Explicit]
-        public void BenchXof_Shake256()
-        {
-            ImplBenchXof(new ShakeDigest(256));
-        }
-
-        [Test]
-        public void TestOutputXof_Shake128()
-        {
-            ImplTestOutputXof(new ShakeDigest(128));
-        }
-
-        [Test]
-        public void TestOutputXof_Shake256()
-        {
-            ImplTestOutputXof(new ShakeDigest(256));
-        }
-
-        private static void ImplBenchXof(IXof xof)
-        {
             byte[] data = new byte[1024];
             for (int i = 0; i < 1024; ++i)
             {
                 for (int j = 0; j < 1024; ++j)
                 {
                     // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
-//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     xof.BlockUpdate(data);
 #else
@@ -329,7 +222,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 }
 
                 // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
-//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 xof.OutputFinal(data);
 #else
@@ -338,8 +231,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private static void ImplTestOutputXof(IXof xof)
+        private static void ImplTestOutputXof(int bitLength)
         {
+            IXof xof = new ShakeDigest(bitLength);
+
             int rate = xof.GetByteLength();
             int maxStep = rate * 3;
             int totalOutput = maxStep * rate;
@@ -369,6 +264,87 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
+        private static int ParseBinary(string s) => new BigInteger(s, 2).IntValue;
+
+        private static int ParseDecimal(string s) => int.Parse(s);
+
+        private static string ReadBlock(StreamReader r)
+        {
+            StringBuilder b = new StringBuilder();
+            string line;
+            while ((line = ReadBlockLine(r)) != null)
+            {
+                b.Append(line);
+            }
+            return b.ToString();
+        }
+
+        private static string ReadBlockLine(StreamReader r)
+        {
+            string line = ReadLine(r);
+            if (line == null || line.Length == 0)
+                return null;
+
+            return line.Replace(" ", "");
+        }
+
+        private static string ReadLine(StreamReader r)
+        {
+            string line = r.ReadLine();
+            return line == null ? null : StripFromChar(line, '#').Trim();
+        }
+
+        private static string RequireLine(StreamReader r) => ReadLine(r) ?? throw new EndOfStreamException();
+
+        private static string Reverse(string s)
+        {
+            char[] cs = s.ToCharArray();
+            Array.Reverse(cs);
+            return new string(cs);
+        }
+
+        private static void SkipUntil(StreamReader r, string header)
+        {
+            string line;
+            do
+            {
+                line = RequireLine(r);
+            }
+            while (line.Length == 0);
+
+            if (!line.Equals(header))
+                throw new IOException("Expected: " + header);
+        }
+
+        private static string[] SplitAround(string s, string separator)
+        {
+            int i = s.IndexOf(separator);
+            if (i < 0)
+                throw new InvalidOperationException();
+            return new string[] { s.Substring(0, i), s.Substring(i + separator.Length) };
+        }
+
+        private static string StripFromChar(string s, char c)
+        {
+            int i = s.IndexOf(c);
+            if (i >= 0)
+            {
+                s = s.Substring(0, i);
+            }
+            return s;
+        }
+
+        internal class MyShakeDigest : ShakeDigest
+        {
+            internal MyShakeDigest(int bitLength)
+                : base(bitLength)
+            {
+            }
+
+            internal int MyOutputFinal(byte[] output, int outOff, int outLen, byte partialByte, int partialBits) =>
+                OutputFinal(output, outOff, outLen, partialByte, partialBits);
+        }
+
         internal class TestVector
         {
             internal static string SAMPLE_OF = " sample of ";
@@ -388,25 +364,13 @@ namespace Org.BouncyCastle.Crypto.Tests
                 this.output = output;
             }
 
-            public string Algorithm
-            {
-                get { return algorithm; }
-            }
+            public string Algorithm => algorithm;
 
-            public int Bits
-            {
-                get { return bits; }
-            }
+            public int Bits => bits;
 
-            public byte[] Message
-            {
-                get { return message; }
-            }
+            public byte[] Message => message;
 
-            public byte[] Output
-            {
-                get { return output; }
-            }
+            public byte[] Output => output;
         }
     }
 }

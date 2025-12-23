@@ -1,11 +1,6 @@
-﻿using System;
+﻿using NUnit.Framework;
 
-using NUnit.Framework;
-
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
@@ -14,30 +9,31 @@ namespace Org.BouncyCastle.Crypto.Tests
      *
      * Note, only the last 2 message entries are FIPS originated..
      */
+    [TestFixture]
     public class Sha512t224DigestTest
         : DigestTest
     {
-        private static string[] messages =
+        private static readonly string[] Messages =
         {
             "",
             "a",
             "abc",
-            "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu"
+            "abcdefghbcdefghicdefghijdefghijkefghijklfghijklmghijklmnhijklmnoijklmnopjklmnopqklmnopqrlmnopqrsmnopqrstnopqrstu",
         };
 
-        private static string[] digests =
+        private static readonly string[] Digests =
         {
             "6ed0dd02806fa89e25de060c19d3ac86cabb87d6a0ddd05c333b84f4",
             "d5cdb9ccc769a5121d4175f2bfdd13d6310e0d3d361ea75d82108327",
             "4634270F707B6A54DAAE7530460842E20E37ED265CEEE9A43E8924AA",
-            "23FEC5BB94D60B23308192640B0C453335D664734FE40E7268674AF9"
+            "23FEC5BB94D60B23308192640B0C453335D664734FE40E7268674AF9",
         };
 
         // 1 million 'a'
-        private const string million_a_digest = "37ab331d76f0d36de422bd0edeb22a28accd487b7a8453ae965dd287";
+        private const string MillionADigest = "37ab331d76f0d36de422bd0edeb22a28accd487b7a8453ae965dd287";
 
-        internal Sha512t224DigestTest()
-            : base(new Sha512tDigest(224), messages, digests)
+        public Sha512t224DigestTest()
+            : base(new Sha512tDigest(224), Messages, Digests)
         {
         }
 
@@ -45,12 +41,17 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             base.PerformTest();
 
-            MillionATest(million_a_digest);
+            MillionATest(MillionADigest);
         }
 
-        protected override IDigest CloneDigest(IDigest digest)
+        protected override IDigest CloneDigest(IDigest digest) => new Sha512tDigest((Sha512tDigest)digest);
+
+        [Test]
+        public void TestFunction()
         {
-            return new Sha512tDigest((Sha512tDigest)digest);
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
         }
     }
 }
