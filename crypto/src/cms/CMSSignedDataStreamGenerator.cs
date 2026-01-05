@@ -459,9 +459,7 @@ namespace Org.BouncyCastle.Cms
 
             sigGen.AddObject(CalculateVersion(contentTypeOid));
 
-            DerSet digestAlgs = DerSet.Map(m_messageDigestOids, DigestAlgorithmFinder.Find);
-
-            digestAlgs.EncodeTo(sigGen.GetRawOutputStream());
+            sigGen.AddObject(DerSet.Map(m_messageDigestOids, DigestAlgorithmFinder.Find));
 
             BerSequenceGenerator eiGen = new BerSequenceGenerator(sigGen.GetRawOutputStream());
             eiGen.AddObject(contentTypeOid);
@@ -717,7 +715,7 @@ namespace Org.BouncyCastle.Cms
                         ? CmsUtilities.ToDerSet(outer._certs)
                         : CmsUtilities.ToBerSet(outer._certs);
 
-                    WriteToGenerator(_sigGen, new BerTaggedObject(false, 0, certs));
+                    _sigGen.AddObject(new BerTaggedObject(false, 0, certs));
                 }
 
                 if (outer._crls.Count > 0)
@@ -726,7 +724,7 @@ namespace Org.BouncyCastle.Cms
                         ? CmsUtilities.ToDerSet(outer._crls)
                         : CmsUtilities.ToBerSet(outer._crls);
 
-                    WriteToGenerator(_sigGen, new BerTaggedObject(false, 1, crls));
+                    _sigGen.AddObject(new BerTaggedObject(false, 1, crls));
                 }
 
                 //
@@ -786,15 +784,10 @@ namespace Org.BouncyCastle.Cms
                     }
                 }
 
-                WriteToGenerator(_sigGen, DerSet.FromVector(signerInfos));
+                _sigGen.AddObject(DerSet.FromVector(signerInfos));
 
                 _sigGen.Dispose();
                 _sGen.Dispose();
-            }
-
-            private static void WriteToGenerator(Asn1Generator ag, Asn1Encodable ae)
-            {
-                ae.EncodeTo(ag.GetRawOutputStream());
             }
         }
     }
