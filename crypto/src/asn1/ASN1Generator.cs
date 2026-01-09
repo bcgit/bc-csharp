@@ -47,5 +47,13 @@ namespace Org.BouncyCastle.Asn1
         }
 
         #endregion
+
+        internal static int InheritConstructedFlag(int intoTag, int fromTag)
+        {
+            if ((fromTag & Asn1Tags.Constructed) != 0)
+                return intoTag | Asn1Tags.Constructed;
+
+            return intoTag & ~Asn1Tags.Constructed;
+        }
     }
 }

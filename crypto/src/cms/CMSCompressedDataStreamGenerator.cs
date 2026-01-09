@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Cms
     {
         public static readonly string ZLib = CmsObjectIdentifiers.ZlibCompress.Id;
 
-        private int _bufferSize;
+        private int m_bufferSize;
 
         /**
          * base constructor
@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Cms
          */
         public void SetBufferSize(int bufferSize)
         {
-            _bufferSize = bufferSize;
+            m_bufferSize = bufferSize;
         }
 
         public Stream Open(Stream outStream)
@@ -62,88 +62,76 @@ namespace Org.BouncyCastle.Cms
                 throw new ArgumentException("Unsupported compression algorithm: " + compressionOid,
                     nameof(compressionOid));
 
+            // ContentInfo
             BerSequenceGenerator sGen = new BerSequenceGenerator(outStream);
-
             sGen.AddObject(CmsObjectIdentifiers.CompressedData);
 
-            //
-            // Compressed Data
-            //
-            BerSequenceGenerator cGen = new BerSequenceGenerator(
-                sGen.GetRawOutputStream(), 0, true);
-
-            // CMSVersion
+            // CompressedData
+            BerSequenceGenerator cGen = new BerSequenceGenerator(sGen.GetRawOutputStream(), 0, true);
             cGen.AddObject(DerInteger.Zero);
-
-            // CompressionAlgorithmIdentifier
             cGen.AddObject(new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress));
 
-            //
-            // Encapsulated ContentInfo
-            //
-            BerSequenceGenerator eiGen = new BerSequenceGenerator(cGen.GetRawOutputStream());
+            // EncapsulatedContentInfo
+            BerSequenceGenerator eciGen = new BerSequenceGenerator(cGen.GetRawOutputStream());
+            eciGen.AddObject(new DerObjectIdentifier(contentOid));
 
-            eiGen.AddObject(new DerObjectIdentifier(contentOid));
+            // eContent [0] EXPLICIT OCTET STRING OPTIONAL
+            BerOctetStringGenerator ecGen = new BerOctetStringGenerator(eciGen.GetRawOutputStream(), 0, true);
+            Stream ecStream = ecGen.GetOctetOutputStream(m_bufferSize);
 
-            BerOctetStringGenerator octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, true);
-            Stream octetStream = octGen.GetOctetOutputStream(_bufferSize);
+            var compressedStream = Utilities.IO.Compression.ZLib.CompressOutput(ecStream, -1);
 
-            return new CmsCompressedOutputStream(
-                Utilities.IO.Compression.ZLib.CompressOutput(octetStream, -1), sGen, cGen, eiGen, octGen);
+            return new CmsCompressedOutputStream(compressedStream, sGen, cGen, eciGen, ecGen);
         }
 
         private class CmsCompressedOutputStream
             : BaseOutputStream
         {
-            private Stream _out;
-            private BerSequenceGenerator _sGen;
-            private BerSequenceGenerator _cGen;
-            private BerSequenceGenerator _eiGen;
-            private BerOctetStringGenerator _octGen;
+            private Stream m_out;
+            private BerSequenceGenerator m_sGen;
+            private BerSequenceGenerator m_cGen;
+            private BerSequenceGenerator m_eciGen;
+            private BerOctetStringGenerator m_ecGen;
 
-            internal CmsCompressedOutputStream(
-                Stream outStream,
-                BerSequenceGenerator sGen,
-                BerSequenceGenerator cGen,
-                BerSequenceGenerator eiGen,
-                BerOctetStringGenerator octGen)
+            internal CmsCompressedOutputStream(Stream outStream, BerSequenceGenerator sGen, BerSequenceGenerator cGen,
+                BerSequenceGenerator eciGen, BerOctetStringGenerator ecGen)
             {
-                _out = outStream;
-                _sGen = sGen;
-                _cGen = cGen;
-                _eiGen = eiGen;
-                _octGen = octGen;
+                m_out = outStream;
+                m_sGen = sGen;
+                m_cGen = cGen;
+                m_eciGen = eciGen;
+                m_ecGen = ecGen;
             }
 
             public override void Write(byte[] buffer, int offset, int count)
             {
-                _out.Write(buffer, offset, count);
+                m_out.Write(buffer, offset, count);
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public override void Write(ReadOnlySpan<byte> buffer)
             {
-                _out.Write(buffer);
+                m_out.Write(buffer);
             }
 #endif
 
             public override void WriteByte(byte value)
             {
-                _out.WriteByte(value);
+                m_out.WriteByte(value);
             }
 
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
-                    _out.Dispose();
+                    m_out.Dispose();
 
                     // TODO Parent context(s) should really be be closed explicitly
 
-                    _octGen.Dispose();
-                    _eiGen.Dispose();
-                    _cGen.Dispose();
-                    _sGen.Dispose();
+                    m_ecGen.Dispose();
+                    m_eciGen.Dispose();
+                    m_cGen.Dispose();
+                    m_sGen.Dispose();
                 }
                 base.Dispose(disposing);
             }

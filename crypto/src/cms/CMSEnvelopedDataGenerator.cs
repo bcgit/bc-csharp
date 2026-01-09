@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Cms
         {
             AlgorithmIdentifier encAlgID = null;
             KeyParameter encKey;
-            Asn1OctetString encContent;
+            Asn1OctetString encryptedContent;
 
             try
             {
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Cms
                     content.Write(cOut);
                 }
 
-                encContent = new BerOctetString(bOut.ToArray());
+                encryptedContent = new BerOctetString(bOut.ToArray());
             }
             catch (SecurityUtilityException e)
             {
@@ -95,19 +95,23 @@ namespace Org.BouncyCastle.Cms
                 throw new CmsException("error making encrypted content.", e);
             }
 
-            EncryptedContentInfo eci = new EncryptedContentInfo(CmsObjectIdentifiers.Data, encAlgID, encContent);
+            EncryptedContentInfo encryptedContentInfo = new EncryptedContentInfo(CmsObjectIdentifiers.Data, encAlgID,
+                encryptedContent);
 
-            Asn1Set unprotectedAttrSet = null;
+            Asn1Set unprotectedAttrs = null;
             if (unprotectedAttributeGenerator != null)
             {
                 Asn1.Cms.AttributeTable attrTable = unprotectedAttributeGenerator.GetAttributes(
                     new Dictionary<CmsAttributeTableParameter, object>());
 
-                unprotectedAttrSet = BerSet.FromCollection(attrTable);
+                unprotectedAttrs = BerSet.FromCollection(attrTable);
             }
 
-            var envData = new EnvelopedData(null, recipientInfos, eci, unprotectedAttrSet);
-            var contentInfo = new ContentInfo(CmsObjectIdentifiers.EnvelopedData, envData);
+            var envelopedData = new EnvelopedData(originatorInfo: null, recipientInfos, encryptedContentInfo,
+                unprotectedAttrs);
+
+            var contentInfo = new ContentInfo(CmsObjectIdentifiers.EnvelopedData, envelopedData);
+
             return new CmsEnvelopedData(contentInfo);
         }
 
@@ -133,7 +137,6 @@ namespace Org.BouncyCastle.Cms
 
         public CmsEnvelopedData Generate(CmsProcessable content, ICipherBuilderWithKey cipherBuilder)
         {
-            //AlgorithmIdentifier encAlgId = null;
             KeyParameter encKey;
             Asn1OctetString encContent;
 
@@ -177,8 +180,10 @@ namespace Org.BouncyCastle.Cms
                 throw new CmsException("error making encrypted content.", e);
             }
 
-            EncryptedContentInfo eci = new EncryptedContentInfo(CmsObjectIdentifiers.Data,
-                (AlgorithmIdentifier)cipherBuilder.AlgorithmDetails, encContent);
+            AlgorithmIdentifier encAlgID = (AlgorithmIdentifier)cipherBuilder.AlgorithmDetails;
+
+            EncryptedContentInfo encryptedContentInfo = new EncryptedContentInfo(CmsObjectIdentifiers.Data, encAlgID,
+                encContent);
 
             Asn1Set unprotectedAttrs = null;
             if (unprotectedAttributeGenerator != null)
@@ -189,8 +194,11 @@ namespace Org.BouncyCastle.Cms
                 unprotectedAttrs = BerSet.FromCollection(attrTable);
             }
 
-            var envData = new EnvelopedData(null, recipientInfos, eci, unprotectedAttrs);
-            var contentInfo = new ContentInfo(CmsObjectIdentifiers.EnvelopedData, envData);
+            var envelopedData = new EnvelopedData(originatorInfo: null, recipientInfos, encryptedContentInfo,
+                unprotectedAttrs);
+
+            var contentInfo = new ContentInfo(CmsObjectIdentifiers.EnvelopedData, envelopedData);
+
             return new CmsEnvelopedData(contentInfo);
         }
 

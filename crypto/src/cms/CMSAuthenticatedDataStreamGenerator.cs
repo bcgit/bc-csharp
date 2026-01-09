@@ -32,10 +32,10 @@ namespace Org.BouncyCastle.Cms
         : CmsAuthenticatedGenerator
     {
         // TODO Add support
-        //private object _originatorInfo = null;
-        //private object _unprotectedAttributes = null;
-        private int _bufferSize;
-        private bool _berEncodeRecipientSet;
+        //private object m_originatorInfo = null;
+        //private object m_unprotectedAttributes = null;
+        private int m_bufferSize;
+        private bool m_berEncodeRecipientSet;
 
         public CmsAuthenticatedDataStreamGenerator()
         {
@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Cms
          */
         public void SetBufferSize(int bufferSize)
         {
-            _bufferSize = bufferSize;
+            m_bufferSize = bufferSize;
         }
 
         /**
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Cms
          */
         public void SetBerEncodeRecipients(bool berEncodeRecipientSet)
         {
-            _berEncodeRecipientSet = berEncodeRecipientSet;
+            m_berEncodeRecipientSet = berEncodeRecipientSet;
         }
 
         /**
@@ -110,23 +110,16 @@ namespace Org.BouncyCastle.Cms
         {
             try
             {
-                //
                 // ContentInfo
-                //
                 BerSequenceGenerator cGen = new BerSequenceGenerator(outStr);
-
                 cGen.AddObject(CmsObjectIdentifiers.AuthenticatedData);
 
-                //
-                // Authenticated Data
-                //
-                BerSequenceGenerator authGen = new BerSequenceGenerator(
-                    cGen.GetRawOutputStream(), 0, true);
-
+                // AuthenticatedData
+                BerSequenceGenerator authGen = new BerSequenceGenerator(cGen.GetRawOutputStream(), 0, true);
                 authGen.AddObject(DerInteger.ValueOf(AuthenticatedData.CalculateVersion(null)));
 
                 Stream authRaw = authGen.GetRawOutputStream();
-                using (var recipGen = _berEncodeRecipientSet
+                using (var recipGen = m_berEncodeRecipientSet
                     ? (Asn1Generator)new BerSetGenerator(authRaw)
                     : new DerSetGenerator(authRaw))
                 {
@@ -138,18 +131,21 @@ namespace Org.BouncyCastle.Cms
 
                 authGen.AddObject(macAlgId);
 
-                BerSequenceGenerator eiGen = new BerSequenceGenerator(authRaw);
-                eiGen.AddObject(CmsObjectIdentifiers.Data);
+                // EncapsulatedContentInfo
+                BerSequenceGenerator eciGen = new BerSequenceGenerator(authRaw);
+                eciGen.AddObject(CmsObjectIdentifiers.Data);
 
-                BerOctetStringGenerator octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, true);
-                Stream octetOutputStream = octGen.GetOctetOutputStream(_bufferSize);
+                // eContent [0] EXPLICIT OCTET STRING OPTIONAL
+                BerOctetStringGenerator ecGen = new BerOctetStringGenerator(eciGen.GetRawOutputStream(), 0, true);
+                Stream ecStream = ecGen.GetOctetOutputStream(m_bufferSize);
 
+                // TODO[cms] bc-java appears to support some sort of digest-only authentication here
                 IMac mac = MacUtilities.GetMac(macAlgId.Algorithm);
                 // TODO Confirm no ParametersWithRandom needed
                 mac.Init(cipherParameters);
-                Stream mOut = new TeeOutputStream(octetOutputStream, new MacSink(mac));
+                Stream mOut = new TeeOutputStream(ecStream, new MacSink(mac));
 
-                return new CmsAuthenticatedDataOutputStream(mOut, mac, cGen, authGen, eiGen, octGen);
+                return new CmsAuthenticatedDataOutputStream(mOut, mac, cGen, authGen, eciGen, ecGen);
             }
             catch (SecurityUtilityException e)
             {
@@ -192,64 +188,58 @@ namespace Org.BouncyCastle.Cms
         private class CmsAuthenticatedDataOutputStream
             : BaseOutputStream
         {
-            private readonly Stream macStream;
-            private readonly IMac mac;
-            private readonly BerSequenceGenerator cGen;
-            private readonly BerSequenceGenerator authGen;
-            private readonly BerSequenceGenerator eiGen;
-            private readonly BerOctetStringGenerator octGen;
+            private readonly Stream m_macStream;
+            private readonly IMac m_mac;
+            private readonly BerSequenceGenerator m_cGen;
+            private readonly BerSequenceGenerator m_authGen;
+            private readonly BerSequenceGenerator m_eciGen;
+            private readonly BerOctetStringGenerator m_ecGen;
 
-            public CmsAuthenticatedDataOutputStream(
-                Stream macStream,
-                IMac mac,
-                BerSequenceGenerator cGen,
-                BerSequenceGenerator authGen,
-                BerSequenceGenerator eiGen,
-                BerOctetStringGenerator octGen)
+            public CmsAuthenticatedDataOutputStream(Stream macStream, IMac mac, BerSequenceGenerator cGen,
+                BerSequenceGenerator authGen, BerSequenceGenerator eciGen, BerOctetStringGenerator ecGen)
             {
-                this.macStream = macStream;
-                this.mac = mac;
-                this.cGen = cGen;
-                this.authGen = authGen;
-                this.eiGen = eiGen;
-                this.octGen = octGen;
+                m_macStream = macStream;
+                m_mac = mac;
+                m_cGen = cGen;
+                m_authGen = authGen;
+                m_eciGen = eciGen;
+                m_ecGen = ecGen;
             }
 
             public override void Write(byte[] buffer, int offset, int count)
             {
-                macStream.Write(buffer, offset, count);
+                m_macStream.Write(buffer, offset, count);
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public override void Write(ReadOnlySpan<byte> buffer)
             {
-                macStream.Write(buffer);
+                m_macStream.Write(buffer);
             }
 #endif
 
             public override void WriteByte(byte value)
             {
-                macStream.WriteByte(value);
+                m_macStream.WriteByte(value);
             }
 
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
-                    macStream.Dispose();
+                    m_macStream.Dispose();
 
                     // TODO Parent context(s) should really be be closed explicitly
 
-                    octGen.Dispose();
-                    eiGen.Dispose();
+                    m_ecGen.Dispose();
+                    m_eciGen.Dispose();
 
                     // [TODO] auth attributes go here 
-                    byte[] macOctets = MacUtilities.DoFinal(mac);
-                    authGen.AddObject(new DerOctetString(macOctets));
+                    m_authGen.AddObject(DerOctetString.WithContents(MacUtilities.DoFinal(m_mac)));
                     // [TODO] unauth attributes go here
 
-                    authGen.Dispose();
-                    cGen.Dispose();
+                    m_authGen.Dispose();
+                    m_cGen.Dispose();
                 }
                 base.Dispose(disposing);
             }

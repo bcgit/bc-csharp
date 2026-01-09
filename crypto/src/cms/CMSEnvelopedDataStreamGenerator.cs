@@ -32,10 +32,10 @@ namespace Org.BouncyCastle.Cms
     public class CmsEnvelopedDataStreamGenerator
         : CmsEnvelopedGenerator
     {
-        private object _originatorInfo = null;
-        private object _unprotectedAttributes = null;
-        private int _bufferSize;
-        private bool _berEncodeRecipientSet;
+        private object m_originatorInfo = null;
+        private object m_unprotectedAttributes = null;
+        private int m_bufferSize;
+        private bool m_berEncodeRecipientSet;
 
         public CmsEnvelopedDataStreamGenerator()
         {
@@ -52,13 +52,13 @@ namespace Org.BouncyCastle.Cms
         /// <param name="bufferSize">Length of octet strings to buffer the data.</param>
         public void SetBufferSize(int bufferSize)
         {
-            _bufferSize = bufferSize;
+            m_bufferSize = bufferSize;
         }
 
         /// <summary>Use a BER Set to store the recipient information.</summary>
         public void SetBerEncodeRecipients(bool berEncodeRecipientSet)
         {
-            _berEncodeRecipientSet = berEncodeRecipientSet;
+            m_berEncodeRecipientSet = berEncodeRecipientSet;
         }
 
         /// <summary>
@@ -102,25 +102,20 @@ namespace Org.BouncyCastle.Cms
         {
             try
             {
-                //
                 // ContentInfo
-                //
                 BerSequenceGenerator cGen = new BerSequenceGenerator(outStream);
-
                 cGen.AddObject(CmsObjectIdentifiers.EnvelopedData);
 
-                //
-                // Encrypted Data
-                //
+                // EnvelopedData
                 BerSequenceGenerator envGen = new BerSequenceGenerator(cGen.GetRawOutputStream(), 0, true);
 
-                bool isV2 = _originatorInfo != null || _unprotectedAttributes != null;
+                bool isV2 = m_originatorInfo != null || m_unprotectedAttributes != null;
                 var version = isV2 ? DerInteger.Two : DerInteger.Zero;
 
                 envGen.AddObject(version);
 
                 Stream envRaw = envGen.GetRawOutputStream();
-                using (var recipGen = _berEncodeRecipientSet
+                using (var recipGen = m_berEncodeRecipientSet
                     ? (Asn1Generator)new BerSetGenerator(envRaw)
                     : new DerSetGenerator(envRaw))
                 {
@@ -130,18 +125,20 @@ namespace Org.BouncyCastle.Cms
                     }
                 }
 
-                BerSequenceGenerator eiGen = new BerSequenceGenerator(envRaw);
-                eiGen.AddObject(CmsObjectIdentifiers.Data);
-                eiGen.AddObject(encAlgID);
+                // EncryptedContentInfo
+                BerSequenceGenerator eciGen = new BerSequenceGenerator(envRaw);
+                eciGen.AddObject(CmsObjectIdentifiers.Data);
+                eciGen.AddObject(encAlgID);
 
-                BerOctetStringGenerator octGen = new BerOctetStringGenerator(eiGen.GetRawOutputStream(), 0, false);
-                Stream octetOutputStream = octGen.GetOctetOutputStream(_bufferSize);
+                // encryptedContent [0] IMPLICIT EncryptedContent OPTIONAL (EncryptedContent ::= OCTET STRING)
+                BerOctetStringGenerator ecGen = new BerOctetStringGenerator(eciGen.GetRawOutputStream(), 0, false);
+                Stream ecStream = ecGen.GetOctetOutputStream(m_bufferSize);
 
                 IBufferedCipher cipher = CipherUtilities.GetCipher(encAlgID.Algorithm);
                 cipher.Init(true, new ParametersWithRandom(cipherParameters, m_random));
-                CipherStream cOut = new CipherStream(octetOutputStream, null, cipher);
+                CipherStream cOut = new CipherStream(ecStream, null, cipher);
 
-                return new CmsEnvelopedDataOutputStream(this, cOut, cGen, envGen, eiGen, octGen);
+                return new CmsEnvelopedDataOutputStream(this, cOut, cGen, envGen, eciGen, ecGen);
             }
             catch (SecurityUtilityException e)
             {
@@ -186,70 +183,65 @@ namespace Org.BouncyCastle.Cms
         private class CmsEnvelopedDataOutputStream
             : BaseOutputStream
         {
-            private readonly CmsEnvelopedGenerator _outer;
+            private readonly CmsEnvelopedGenerator m_outer;
 
-            private readonly CipherStream _out;
-            private readonly BerSequenceGenerator _cGen;
-            private readonly BerSequenceGenerator _envGen;
-            private readonly BerSequenceGenerator _eiGen;
-            private readonly BerOctetStringGenerator _octGen;
+            private readonly CipherStream m_out;
+            private readonly BerSequenceGenerator m_cGen;
+            private readonly BerSequenceGenerator m_envGen;
+            private readonly BerSequenceGenerator m_eciGen;
+            private readonly BerOctetStringGenerator m_ecGen;
 
-            public CmsEnvelopedDataOutputStream(
-                CmsEnvelopedGenerator outer,
-                CipherStream outStream,
-                BerSequenceGenerator cGen,
-                BerSequenceGenerator envGen,
-                BerSequenceGenerator eiGen,
-                BerOctetStringGenerator octGen)
+            public CmsEnvelopedDataOutputStream(CmsEnvelopedGenerator outer, CipherStream outStream, BerSequenceGenerator cGen,
+                BerSequenceGenerator envGen, BerSequenceGenerator eciGen, BerOctetStringGenerator ecGen)
             {
-                _outer = outer;
-                _out = outStream;
-                _cGen = cGen;
-                _envGen = envGen;
-                _eiGen = eiGen;
-                _octGen = octGen;
+                m_outer = outer;
+                m_out = outStream;
+                m_cGen = cGen;
+                m_envGen = envGen;
+                m_eciGen = eciGen;
+                m_ecGen = ecGen;
             }
 
             public override void Write(byte[] buffer, int offset, int count)
             {
-                _out.Write(buffer, offset, count);
+                m_out.Write(buffer, offset, count);
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public override void Write(ReadOnlySpan<byte> buffer)
             {
-                _out.Write(buffer);
+                m_out.Write(buffer);
             }
 #endif
 
             public override void WriteByte(byte value)
             {
-                _out.WriteByte(value);
+                m_out.WriteByte(value);
             }
 
             protected override void Dispose(bool disposing)
             {
                 if (disposing)
                 {
-                    _out.Dispose();
+                    m_out.Dispose();
 
                     // TODO Parent context(s) should really be closed explicitly
 
-                    _octGen.Dispose();
-                    _eiGen.Dispose();
+                    m_ecGen.Dispose();
+                    m_eciGen.Dispose();
 
-                    if (_outer.unprotectedAttributeGenerator != null)
+                    if (m_outer.unprotectedAttributeGenerator != null)
                     {
-                        Asn1.Cms.AttributeTable attrTable = _outer.unprotectedAttributeGenerator.GetAttributes(
+                        Asn1.Cms.AttributeTable attrTable = m_outer.unprotectedAttributeGenerator.GetAttributes(
                             new Dictionary<CmsAttributeTableParameter, object>());
 
                         Asn1Set unprotectedAttrs = BerSet.FromCollection(attrTable);
 
-                        _envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
+                        m_envGen.AddObject(new DerTaggedObject(false, 1, unprotectedAttrs));
                     }
 
-                    _envGen.Dispose();
-                    _cGen.Dispose();
+                    m_envGen.Dispose();
+                    m_cGen.Dispose();
                 }
                 base.Dispose(disposing);
             }

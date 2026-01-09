@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Asn1
 
         protected DerGenerator(Stream outStream)
             : base(outStream)
-		{
+        {
         }
 
         protected DerGenerator(Stream outStream, int tagNo, bool isExplicit)
@@ -24,32 +24,30 @@ namespace Org.BouncyCastle.Asn1
             _tagNo = tagNo;
         }
 
-		internal void WriteDerEncoded(int tag, byte[] bytes)
+        internal void WriteDerEncoded(int tag, byte[] bytes)
         {
-            if (_tagged)
+            if (!_tagged)
             {
-                int tagNum = _tagNo | Asn1Tags.ContextSpecific;
-
-                if (_isExplicit)
-                {
-                    int newTag = _tagNo | Asn1Tags.Constructed | Asn1Tags.ContextSpecific;
-					MemoryStream bOut = new MemoryStream();
-                    WriteDerEncoded(bOut, tag, bytes);
-                    WriteDerEncoded(OutStream, newTag, bOut.ToArray());
-                }
-                else
-                {
-					if ((tag & Asn1Tags.Constructed) != 0)
-					{
-						tagNum |= Asn1Tags.Constructed;
-					}
-
-					WriteDerEncoded(OutStream, tagNum, bytes);
-                }
+                WriteDerEncoded(OutStream, tag, bytes);
+            }
+            else if (_isExplicit)
+            {
+                /*
+                 * X.690-0207 8.14.2. If implicit tagging [..] was not used [..], the encoding shall be constructed
+                 * and the contents octets shall be the complete base encoding.
+                 */
+                MemoryStream buf = new MemoryStream();
+                WriteDerEncoded(buf, tag, bytes);
+                WriteDerEncoded(OutStream, _tagNo | Asn1Tags.ContextSpecific | Asn1Tags.Constructed, buf.ToArray());
             }
             else
             {
-                WriteDerEncoded(OutStream, tag, bytes);
+                /*
+                 * X.690-0207 8.14.3. If implicit tagging was used [..], then: a) the encoding shall be constructed
+                 * if the base encoding is constructed, and shall be primitive otherwise; and b) the contents octets
+                 * shall be [..] the contents octets of the base encoding.
+                 */
+                WriteDerEncoded(OutStream, InheritConstructedFlag(_tagNo | Asn1Tags.ContextSpecific, tag), bytes);
             }
         }
 
@@ -60,9 +58,9 @@ namespace Org.BouncyCastle.Asn1
             outStream.Write(bytes, 0, bytes.Length);
         }
 
-        internal static void WriteDerEncoded(Stream	outStream, int tag, Stream	inStream)
+        internal static void WriteDerEncoded(Stream outStream, int tag, Stream inStream)
         {
-			WriteDerEncoded(outStream, tag, Streams.ReadAll(inStream));
+            WriteDerEncoded(outStream, tag, Streams.ReadAll(inStream));
         }
 
         private static void WriteLength(Stream outStream, int length)
