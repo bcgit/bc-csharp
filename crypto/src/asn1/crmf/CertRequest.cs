@@ -41,7 +41,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         }
 
         public CertRequest(int certReqId, CertTemplate certTemplate, Controls controls)
-            : this(new DerInteger(certReqId), certTemplate, controls)
+            : this(DerInteger.ValueOf(certReqId), certTemplate, controls)
         {
         }
 

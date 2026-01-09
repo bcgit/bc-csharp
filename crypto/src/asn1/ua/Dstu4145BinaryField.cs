@@ -98,16 +98,16 @@ namespace Org.BouncyCastle.Asn1.UA
          */
         public override Asn1Object ToAsn1Object()
         {
-            DerInteger m = new DerInteger(m_m);
-            DerInteger k = new DerInteger(m_k);
+            DerInteger m = DerInteger.ValueOf(m_m);
+            DerInteger k = DerInteger.ValueOf(m_k);
 
             Asn1Encodable exponents = k;
             if (m_j != 0 || m_l != 0)
             {
                 // Pentanomial
 
-                DerInteger j = new DerInteger(m_j);
-                DerInteger l = new DerInteger(m_l);
+                DerInteger j = DerInteger.ValueOf(m_j);
+                DerInteger l = DerInteger.ValueOf(m_l);
 
                 exponents = new DerSequence(k, j, l);
             }

@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 		private Asn1Sequence    generalInfo;
 
         public PkiHeaderBuilder(int pvno, GeneralName sender, GeneralName recipient)
-            : this(new DerInteger(pvno), sender, recipient)
+            : this(DerInteger.ValueOf(pvno), sender, recipient)
         {
         }
 

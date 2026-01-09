@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
         {
             if (predefinedBiometricType == Picture || predefinedBiometricType == HandwrittenSignature)
             {
-                m_obj = new DerInteger(predefinedBiometricType);
+                m_obj = DerInteger.ValueOf(predefinedBiometricType);
             }
             else
             {

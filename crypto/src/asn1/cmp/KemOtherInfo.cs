@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public KemOtherInfo(Asn1OctetString transactionID, Asn1OctetString senderNonce, Asn1OctetString recipNonce,
             long len, AlgorithmIdentifier mac, Asn1OctetString ct)
-            : this(transactionID, senderNonce, recipNonce, new DerInteger(len), mac, ct)
+            : this(transactionID, senderNonce, recipNonce, DerInteger.ValueOf(len), mac, ct)
         {
         }
 

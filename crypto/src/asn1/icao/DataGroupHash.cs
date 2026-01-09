@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Asn1.Icao
 
 		public DataGroupHash(int dataGroupNumber, Asn1OctetString dataGroupHashValue)
         {
-            m_dataGroupNumber = new DerInteger(dataGroupNumber);
+            m_dataGroupNumber = DerInteger.ValueOf(dataGroupNumber);
             m_dataGroupHashValue = dataGroupHashValue ?? throw new ArgumentNullException(nameof(dataGroupHashValue));
         }
 

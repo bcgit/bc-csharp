@@ -53,6 +53,6 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 
 		public BigInteger A => m_a.PositiveValue;
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(new DerInteger(m_keySize), m_p, m_q, m_a);
+		public override Asn1Object ToAsn1Object() => new DerSequence(DerInteger.ValueOf(m_keySize), m_p, m_q, m_a);
     }
 }

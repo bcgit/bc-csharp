@@ -74,8 +74,8 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         public MonetaryLimit(string currency, int amount, int exponent)
         {
             m_currency = new DerPrintableString(currency, true);
-            m_amount = new DerInteger(amount);
-            m_exponent = new DerInteger(exponent);
+            m_amount = DerInteger.ValueOf(amount);
+            m_exponent = DerInteger.ValueOf(exponent);
         }
 
 		public virtual string Currency => m_currency.GetString();

@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 }
                 else if (o is int i)
                 {
-                    di = new DerInteger(i);
+                    di = DerInteger.ValueOf(i);
                 }
                 else
                 {

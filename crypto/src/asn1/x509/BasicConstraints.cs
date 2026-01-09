@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public BasicConstraints(int pathLenConstraint)
         {
             m_cA = DerBoolean.True;
-            m_pathLenConstraint = new DerInteger(pathLenConstraint);
+            m_pathLenConstraint = DerInteger.ValueOf(pathLenConstraint);
         }
 
         public bool IsCA() => m_cA.IsTrue;

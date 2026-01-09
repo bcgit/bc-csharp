@@ -23,12 +23,14 @@ namespace Org.BouncyCastle.Asn1
 
         public const string AllowUnsafeProperty = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
-        public static readonly DerInteger Zero = new DerInteger(0);
-        public static readonly DerInteger One = new DerInteger(1);
-        public static readonly DerInteger Two = new DerInteger(2);
-        public static readonly DerInteger Three = new DerInteger(3);
-        public static readonly DerInteger Four = new DerInteger(4);
-        public static readonly DerInteger Five = new DerInteger(5);
+        private static readonly DerInteger[] SmallConstants = new DerInteger[17];
+
+        public static readonly DerInteger Zero;
+        public static readonly DerInteger One;
+        public static readonly DerInteger Two;
+        public static readonly DerInteger Three;
+        public static readonly DerInteger Four;
+        public static readonly DerInteger Five;
 
         internal static bool AllowUnsafe()
         {
@@ -103,12 +105,37 @@ namespace Org.BouncyCastle.Asn1
             return (DerInteger)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
+        public static DerInteger ValueOf(long value)
+        {
+            if (value >= 0L && value < SmallConstants.Length)
+                return SmallConstants[(int)value];
+
+            return new DerInteger(value);
+        }
+
+        static DerInteger()
+        {
+            for (long i = 0; i < SmallConstants.Length; ++i)
+            {
+                SmallConstants[i] = new DerInteger(i);
+            }
+
+            Zero = SmallConstants[0];
+            One = SmallConstants[1];
+            Two = SmallConstants[2];
+            Three = SmallConstants[3];
+            Four = SmallConstants[4];
+            Five = SmallConstants[5];
+        }
+
+        // TODO[api] Obsolete in favour of ValueOf
         public DerInteger(int value)
         {
             this.bytes = BigInteger.ValueOf(value).ToByteArray();
             this.start = 0;
         }
 
+        // TODO[api] Obsolete in favour of ValueOf
         public DerInteger(long value)
         {
             this.bytes = BigInteger.ValueOf(value).ToByteArray();

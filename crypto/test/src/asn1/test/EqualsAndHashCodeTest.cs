@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerGeneralizedTime("20070315173729Z"),
                 new DerGeneralString("hello world"),
                 new DerIA5String("hello"),
-                new DerInteger(1000),
+                DerInteger.ValueOf(1000),
                 DerNull.Instance,
                 new DerNumericString("123456"),
                 new DerObjectIdentifier("1.1.1.10000.1"),

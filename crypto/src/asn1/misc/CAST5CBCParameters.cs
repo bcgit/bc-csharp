@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Misc
         public Cast5CbcParameters(byte[] iv, int keyLength)
         {
             m_iv = new DerOctetString(iv ?? new byte[8]);
-            m_keyLength = new DerInteger(keyLength);
+            m_keyLength = DerInteger.ValueOf(keyLength);
         }
 
         public Asn1OctetString IV => m_iv;

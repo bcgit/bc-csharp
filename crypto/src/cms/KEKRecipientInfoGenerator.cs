@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Cms
 			{
 				return new AlgorithmIdentifier(
 					PkcsObjectIdentifiers.IdAlgCmsRC2Wrap,
-					new DerInteger(58));
+					DerInteger.ValueOf(58));
 			}
 			else if (Platform.StartsWith(algorithm, "AES"))
 			{

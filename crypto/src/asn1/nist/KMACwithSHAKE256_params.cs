@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1.Nist
     {
         private const int _DefaultOutputLength = 512;
 
-        public static readonly DerInteger DefaultOutputLength = new DerInteger(_DefaultOutputLength);
+        public static readonly DerInteger DefaultOutputLength = DerInteger.ValueOf(_DefaultOutputLength);
         public static readonly Asn1OctetString DefaultCustomizationString = DerOctetString.Empty;
         public static KMacWithShake256Params GetInstance(object o)
         {
@@ -52,13 +52,13 @@ namespace Org.BouncyCastle.Asn1.Nist
 
         public KMacWithShake256Params(int outputLength)
         {
-            m_outputLength = new DerInteger(outputLength);
+            m_outputLength = DerInteger.ValueOf(outputLength);
             m_customizationString = DefaultCustomizationString;
         }
 
         public KMacWithShake256Params(int outputLength, byte[] customizationString)
         {
-            m_outputLength = new DerInteger(outputLength);
+            m_outputLength = DerInteger.ValueOf(outputLength);
             m_customizationString = DerOctetString.FromContents(customizationString);
         }
         public int OutputLength => m_outputLength.IntValueExact;

@@ -289,7 +289,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             DerObjectIdentifier signatureOid = signatureAlgorithm.Algorithm;
 
             if (EdECObjectIdentifiers.id_Ed448.Equals(signatureOid))
-                return new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len, new DerInteger(512));
+                return new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len, DerInteger.ValueOf(512));
 
             DerObjectIdentifier digestOid;
             if (PkcsObjectIdentifiers.IdRsassaPss.Equals(signatureOid))

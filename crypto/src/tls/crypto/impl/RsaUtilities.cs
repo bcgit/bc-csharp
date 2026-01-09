@@ -34,9 +34,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             AlgorithmIdentifier mgf1SHA384Identifier_B = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, sha384Identifier_B);
             AlgorithmIdentifier mgf1SHA512Identifier_B = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, sha512Identifier_B);
 
-            DerInteger sha256Size = new DerInteger(TlsCryptoUtilities.GetHashOutputSize(CryptoHashAlgorithm.sha256));
-            DerInteger sha384Size = new DerInteger(TlsCryptoUtilities.GetHashOutputSize(CryptoHashAlgorithm.sha384));
-            DerInteger sha512Size = new DerInteger(TlsCryptoUtilities.GetHashOutputSize(CryptoHashAlgorithm.sha512));
+            DerInteger sha256Size = DerInteger.ValueOf(TlsCryptoUtilities.GetHashOutputSize(CryptoHashAlgorithm.sha256));
+            DerInteger sha384Size = DerInteger.ValueOf(TlsCryptoUtilities.GetHashOutputSize(CryptoHashAlgorithm.sha384));
+            DerInteger sha512Size = DerInteger.ValueOf(TlsCryptoUtilities.GetHashOutputSize(CryptoHashAlgorithm.sha512));
 
             DerInteger trailerField = RsassaPssParameters.DefaultTrailerField;
 

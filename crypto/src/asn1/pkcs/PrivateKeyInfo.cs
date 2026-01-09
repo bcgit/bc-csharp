@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static PrivateKeyInfo Create(AlgorithmIdentifier privateKeyAlgorithm, Asn1OctetString privateKey,
             Asn1Set attributes, DerBitString publicKey)
         {
-            var version = new DerInteger(publicKey != null ? 1 : 0);
+            var version = DerInteger.ValueOf(publicKey != null ? 1 : 0);
 
             return new PrivateKeyInfo(version, privateKeyAlgorithm, privateKey, attributes, publicKey);
         }
@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public PrivateKeyInfo(AlgorithmIdentifier privateKeyAlgorithm, Asn1Encodable privateKey, Asn1Set attributes,
             byte[] publicKey)
         {
-            m_version = new DerInteger(publicKey != null ? 1 : 0);
+            m_version = DerInteger.ValueOf(publicKey != null ? 1 : 0);
             m_privateKeyAlgorithm = privateKeyAlgorithm ?? throw new ArgumentNullException(nameof(privateKeyAlgorithm));
             m_privateKey = new DerOctetString(privateKey);
             m_attributes = attributes;

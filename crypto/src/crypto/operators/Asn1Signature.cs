@@ -246,7 +246,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             return new RsassaPssParameters(
                 digAlgID,
                 new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, digAlgID),
-                new DerInteger(saltSize),
+                DerInteger.ValueOf(saltSize),
                 RsassaPssParameters.DefaultTrailerField);
         }
 

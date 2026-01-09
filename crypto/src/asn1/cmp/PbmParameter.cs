@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         }
 
         public PbmParameter(byte[] salt, AlgorithmIdentifier owf, int iterationCount, AlgorithmIdentifier mac)
-            : this(DerOctetString.FromContents(salt), owf, new DerInteger(iterationCount), mac)
+            : this(DerOctetString.FromContents(salt), owf, DerInteger.ValueOf(iterationCount), mac)
         {
         }
 

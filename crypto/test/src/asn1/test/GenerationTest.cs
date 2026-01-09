@@ -314,7 +314,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             X509Name issuerName, int issuerSerialNumber)
         {
             var authorityCertIssuer = new GeneralNames(new GeneralName(issuerName));
-            var authorityCertSerialNumber = new DerInteger(issuerSerialNumber);
+            var authorityCertSerialNumber = DerInteger.ValueOf(issuerSerialNumber);
 
             return X509ExtensionUtilities.CreateAuthorityKeyIdentifier(issuerSpki, authorityCertIssuer,
                 authorityCertSerialNumber);

@@ -213,19 +213,19 @@ namespace Org.BouncyCastle.Tsp
                 DerInteger seconds = null;
                 if (accuracySeconds > 0)
                 {
-                    seconds = new DerInteger(accuracySeconds);
+                    seconds = DerInteger.ValueOf(accuracySeconds);
                 }
 
                 DerInteger millis = null;
                 if (accuracyMillis > 0)
                 {
-                    millis = new DerInteger(accuracyMillis);
+                    millis = DerInteger.ValueOf(accuracyMillis);
                 }
 
                 DerInteger micros = null;
                 if (accuracyMicros > 0)
                 {
-                    micros = new DerInteger(accuracyMicros);
+                    micros = DerInteger.ValueOf(accuracyMicros);
                 }
 
                 accuracy = new Accuracy(seconds, millis, micros);

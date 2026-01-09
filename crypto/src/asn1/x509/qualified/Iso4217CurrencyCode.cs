@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
                     NumericMaxSize + ")");
             }
 
-            m_obj = new DerInteger(numeric);
+            m_obj = DerInteger.ValueOf(numeric);
         }
 
         public Iso4217CurrencyCode(string alphabetic)

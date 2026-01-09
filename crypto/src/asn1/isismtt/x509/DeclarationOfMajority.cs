@@ -90,7 +90,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         public DeclarationOfMajority(int notYoungerThan)
         {
             m_tag = (int)Choice.NotYoungerThan;
-            m_baseObject = new DerInteger(notYoungerThan);
+            m_baseObject = DerInteger.ValueOf(notYoungerThan);
         }
 
         public DeclarationOfMajority(bool fullAge, string country)

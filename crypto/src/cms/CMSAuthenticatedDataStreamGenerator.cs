@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Cms
                 BerSequenceGenerator authGen = new BerSequenceGenerator(
                     cGen.GetRawOutputStream(), 0, true);
 
-                authGen.AddObject(new DerInteger(AuthenticatedData.CalculateVersion(null)));
+                authGen.AddObject(DerInteger.ValueOf(AuthenticatedData.CalculateVersion(null)));
 
                 Stream authRaw = authGen.GetRawOutputStream();
                 using (var recipGen = _berEncodeRecipientSet

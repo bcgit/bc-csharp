@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
 
         public SphincsPlusPrivateKey(int version, byte[] skseed, byte[] skprf, SphincsPlusPublicKey publicKey)
         {
-            m_version = new DerInteger(version);
+            m_version = DerInteger.ValueOf(version);
             m_skseed = DerOctetString.FromContents(skseed);
             m_skprf = DerOctetString.FromContents(skprf);
             m_publicKey = publicKey;

@@ -67,8 +67,8 @@ namespace Org.BouncyCastle.Tsp
 
         private PkiStatusInfo GetPkiStatusInfo()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(
-                new DerInteger((int)status));
+            Asn1EncodableVector v = new Asn1EncodableVector(3);
+            v.Add(DerInteger.ValueOf((int)status));
 
             if (statusStrings.Count > 0)
             {

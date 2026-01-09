@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         }
 
         public KemBMParameter(AlgorithmIdentifier kdf, long len, AlgorithmIdentifier mac)
-            : this(kdf, new DerInteger(len), mac)
+            : this(kdf, DerInteger.ValueOf(len), mac)
         {
         }
 

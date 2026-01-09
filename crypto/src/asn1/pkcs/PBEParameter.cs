@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 		public PbeParameter(byte[] salt, int iterationCount)
 		{
 			m_salt = DerOctetString.FromContents(salt);
-			m_iterationCount = new DerInteger(iterationCount);
+			m_iterationCount = DerInteger.ValueOf(iterationCount);
 		}
 
 		public byte[] GetSalt() => m_salt.GetOctets();

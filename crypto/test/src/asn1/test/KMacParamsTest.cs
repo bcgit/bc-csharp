@@ -22,25 +22,25 @@ namespace Org.BouncyCastle.Asn1.Tests
             Assert.IsTrue(Arrays.AreEqual(new KMacWithShake128Params(256).GetEncoded(), new DerSequence().GetEncoded()));
             Assert.IsTrue(Arrays.AreEqual(new KMacWithShake256Params(512).GetEncoded(), new DerSequence().GetEncoded()));
 
-            Assert.IsTrue(Arrays.AreEqual(new KMacWithShake128Params(512).GetEncoded(), new DerSequence(new DerInteger(512)).GetEncoded()));
-            Assert.IsTrue(Arrays.AreEqual(new KMacWithShake256Params(256).GetEncoded(), new DerSequence(new DerInteger(256)).GetEncoded()));
+            Assert.IsTrue(Arrays.AreEqual(new KMacWithShake128Params(512).GetEncoded(), new DerSequence(DerInteger.ValueOf(512)).GetEncoded()));
+            Assert.IsTrue(Arrays.AreEqual(new KMacWithShake256Params(256).GetEncoded(), new DerSequence(DerInteger.ValueOf(256)).GetEncoded()));
 
-            Assert.IsTrue(Arrays.AreEqual(new KMacWithShake128Params(512).GetEncoded(), KMacWithShake128Params.GetInstance(new DerSequence(new DerInteger(512))).GetEncoded()));
-            Assert.IsTrue(Arrays.AreEqual(new KMacWithShake256Params(256).GetEncoded(), KMacWithShake256Params.GetInstance(new DerSequence(new DerInteger(256))).GetEncoded()));
+            Assert.IsTrue(Arrays.AreEqual(new KMacWithShake128Params(512).GetEncoded(), KMacWithShake128Params.GetInstance(new DerSequence(DerInteger.ValueOf(512))).GetEncoded()));
+            Assert.IsTrue(Arrays.AreEqual(new KMacWithShake256Params(256).GetEncoded(), KMacWithShake256Params.GetInstance(new DerSequence(DerInteger.ValueOf(256))).GetEncoded()));
 
             byte[] customizationString = Strings.ToByteArray("hello, world!");
 
             Assert.IsTrue(Arrays.AreEqual(new KMacWithShake128Params(512, customizationString).GetEncoded(), new DerSequence(
-                new Asn1Encodable[] { new DerInteger(512), new DerOctetString(customizationString) }).GetEncoded()));
+                new Asn1Encodable[] { DerInteger.ValueOf(512), new DerOctetString(customizationString) }).GetEncoded()));
             Assert.IsTrue(Arrays.AreEqual(new KMacWithShake256Params(256, customizationString).GetEncoded(), new DerSequence(
-                new Asn1Encodable[] { new DerInteger(256), new DerOctetString(customizationString) }).GetEncoded()));
+                new Asn1Encodable[] { DerInteger.ValueOf(256), new DerOctetString(customizationString) }).GetEncoded()));
 
             Assert.IsTrue(Arrays.AreEqual(new KMacWithShake128Params(512, customizationString).GetEncoded(),
                 KMacWithShake128Params.GetInstance(
-                    new DerSequence(new Asn1Encodable[] { new DerInteger(512), new DerOctetString(customizationString) })).GetEncoded()));
+                    new DerSequence(new Asn1Encodable[] { DerInteger.ValueOf(512), new DerOctetString(customizationString) })).GetEncoded()));
             Assert.IsTrue(Arrays.AreEqual(new KMacWithShake256Params(256, customizationString).GetEncoded(),
-                KMacWithShake256Params.GetInstance(new DerSequence(
-                new Asn1Encodable[] { new DerInteger(256), new DerOctetString(customizationString) })).GetEncoded()));
+                KMacWithShake256Params.GetInstance(
+                    new DerSequence(new Asn1Encodable[] { DerInteger.ValueOf(256), new DerOctetString(customizationString) })).GetEncoded()));
 
             Assert.IsTrue(Arrays.AreEqual(new KMacWithShake128Params(256, customizationString).GetEncoded(), new DerSequence(
                 new Asn1Encodable[] { new DerOctetString(customizationString) }).GetEncoded()));
@@ -51,8 +51,8 @@ namespace Org.BouncyCastle.Asn1.Tests
                 KMacWithShake128Params.GetInstance(
                     new DerSequence(new Asn1Encodable[] { new DerOctetString(customizationString) })).GetEncoded()));
             Assert.IsTrue(Arrays.AreEqual(new KMacWithShake256Params(512, customizationString).GetEncoded(),
-                KMacWithShake256Params.GetInstance(new DerSequence(
-                new Asn1Encodable[] { new DerOctetString(customizationString) })).GetEncoded()));
+                KMacWithShake256Params.GetInstance(
+                    new DerSequence(new Asn1Encodable[] { new DerOctetString(customizationString) })).GetEncoded()));
 
             KMacWithShake128Params p128 = new KMacWithShake128Params(256, customizationString);
             Assert.AreEqual(256, p128.OutputLength);

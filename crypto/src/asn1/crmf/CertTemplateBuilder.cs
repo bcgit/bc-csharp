@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         /** Sets the X.509 version. Note: for X509v3, use 2 here. */
         public virtual CertTemplateBuilder SetVersion(int ver)
         {
-            version = new DerInteger(ver);
+            version = DerInteger.ValueOf(ver);
             return this;
         }
 

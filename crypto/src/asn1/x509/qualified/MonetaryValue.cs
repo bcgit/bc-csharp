@@ -50,8 +50,8 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
         public MonetaryValue(Iso4217CurrencyCode currency, int amount, int exponent)
         {
             m_currency = currency ?? throw new ArgumentNullException(nameof(currency));
-            m_amount = new DerInteger(amount);
-            m_exponent = new DerInteger(exponent);
+            m_amount = DerInteger.ValueOf(amount);
+            m_exponent = DerInteger.ValueOf(exponent);
         }
 
 		public Iso4217CurrencyCode Currency => m_currency;

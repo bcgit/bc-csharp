@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Asn1.X9
             m_fieldType = X9ObjectIdentifiers.CharacteristicTwoField;
 
             Asn1EncodableVector fieldIdParams = new Asn1EncodableVector(3);
-            fieldIdParams.Add(new DerInteger(m));
+            fieldIdParams.Add(DerInteger.ValueOf(m));
 
             if (k2 == 0)
             {
@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Asn1.X9
 
                 fieldIdParams.Add(
                     X9ObjectIdentifiers.TPBasis,
-                    new DerInteger(k1));
+                    DerInteger.ValueOf(k1));
             }
             else
             {
@@ -117,9 +117,9 @@ namespace Org.BouncyCastle.Asn1.X9
                 fieldIdParams.Add(
                     X9ObjectIdentifiers.PPBasis,
                     new DerSequence(
-                        new DerInteger(k1),
-                        new DerInteger(k2),
-                        new DerInteger(k3)));
+                        DerInteger.ValueOf(k1),
+                        DerInteger.ValueOf(k2),
+                        DerInteger.ValueOf(k3)));
             }
 
             m_parameters = new DerSequence(fieldIdParams);

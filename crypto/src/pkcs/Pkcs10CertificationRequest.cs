@@ -268,7 +268,7 @@ namespace Org.BouncyCastle.Pkcs
             return new RsassaPssParameters(
                 hashAlgId,
                 new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgId),
-                new DerInteger(saltSize),
+                DerInteger.ValueOf(saltSize),
                 RsassaPssParameters.DefaultTrailerField);
         }
 

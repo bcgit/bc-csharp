@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         }
 
         public PkiHeader(int pvno, GeneralName sender, GeneralName recipient)
-            : this(new DerInteger(pvno), sender, recipient)
+            : this(DerInteger.ValueOf(pvno), sender, recipient)
         {
         }
 

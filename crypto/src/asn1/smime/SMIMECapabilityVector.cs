@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Asn1.Smime
             m_capabilities.Add(DerSequence.FromElement(capability));
 
         public void AddCapability(DerObjectIdentifier capability, int value) =>
-            AddCapability(capability, new DerInteger(value));
+            AddCapability(capability, DerInteger.ValueOf(value));
 
         public void AddCapability(DerObjectIdentifier capability, Asn1Encodable parameters) =>
             m_capabilities.Add(DerSequence.FromElements(capability, parameters));

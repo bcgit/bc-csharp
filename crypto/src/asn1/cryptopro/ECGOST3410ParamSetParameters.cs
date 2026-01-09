@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             m_b = new DerInteger(b);
             m_p = new DerInteger(p);
             m_q = new DerInteger(q);
-            m_x = new DerInteger(x);
+            m_x = DerInteger.ValueOf(x);
             m_y = new DerInteger(y);
         }
 

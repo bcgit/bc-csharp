@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             return m_icvLen == DefaultIcvLen
                 ?  new DerSequence(m_nonce)
-                :  new DerSequence(m_nonce, new DerInteger(m_icvLen));
+                :  new DerSequence(m_nonce, DerInteger.ValueOf(m_icvLen));
         }
     }
 }

@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private readonly DerInteger m_status;
 
 		private PkiStatusEncodable(PkiStatus status)
-			: this(new DerInteger((int)status))
+			: this(DerInteger.ValueOf((int)status))
 		{
 		}
 

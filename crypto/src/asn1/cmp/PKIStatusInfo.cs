@@ -75,21 +75,21 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public PkiStatusInfo(int status)
 		{
-			m_status = new DerInteger(status);
+			m_status = DerInteger.ValueOf(status);
 			m_statusString = null;
 			m_failInfo = null;
 		}
 
 		public PkiStatusInfo(int status, PkiFreeText statusString)
 		{
-			m_status = new DerInteger(status);
+			m_status = DerInteger.ValueOf(status);
 			m_statusString = statusString;
             m_failInfo = null;
         }
 
         public PkiStatusInfo(int status, PkiFreeText statusString, PkiFailureInfo failInfo)
         {
-            m_status = new DerInteger(status);
+            m_status = DerInteger.ValueOf(status);
 			m_statusString = statusString;
 			m_failInfo = failInfo;
 		}
