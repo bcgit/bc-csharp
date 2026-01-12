@@ -105,6 +105,14 @@ namespace Org.BouncyCastle.Asn1
             return (DerInteger)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
+        public static DerInteger ValueOf(int value)
+        {
+            if (value >= 0L && value < SmallConstants.Length)
+                return SmallConstants[value];
+
+            return new DerInteger(value);
+        }
+
         public static DerInteger ValueOf(long value)
         {
             if (value >= 0L && value < SmallConstants.Length)
@@ -115,7 +123,7 @@ namespace Org.BouncyCastle.Asn1
 
         static DerInteger()
         {
-            for (long i = 0; i < SmallConstants.Length; ++i)
+            for (int i = 0; i < SmallConstants.Length; ++i)
             {
                 SmallConstants[i] = new DerInteger(i);
             }
