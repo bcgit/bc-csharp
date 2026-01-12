@@ -73,6 +73,14 @@ namespace Org.BouncyCastle.Asn1.Sec
             m_publicKey = publicKey;
         }
 
+        public ECPrivateKeyStructure(Asn1OctetString privateKey, Asn1Encodable parameters, DerBitString publicKey)
+        {
+            m_version = DerInteger.One;
+            m_privateKey = privateKey ?? throw new ArgumentNullException(nameof(privateKey));
+            m_parameters = parameters;
+            m_publicKey = publicKey;
+        }
+
         public DerInteger Version => m_version;
 
         public Asn1OctetString PrivateKey => m_privateKey;
