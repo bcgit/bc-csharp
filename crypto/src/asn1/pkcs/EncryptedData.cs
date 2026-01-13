@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 if (m_data.Count != 3)
                     return null;
 
-                Asn1TaggedObject tagged = Asn1TaggedObject.GetInstance(m_data[2], Asn1Tags.ContextSpecific, 0);
+                Asn1TaggedObject tagged = Asn1TaggedObject.GetContextInstance(m_data[2], 0);
 
                 return Asn1OctetString.GetTagged(tagged, declaredExplicit: false);
             }

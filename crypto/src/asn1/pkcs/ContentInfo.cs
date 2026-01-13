@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
             if (seq.Count > 1)
             {
-                m_content = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific, 0).GetExplicitBaseObject();
+                m_content = Asn1TaggedObject.GetContextInstance(seq[1], 0).GetExplicitBaseObject();
             }
         }
 

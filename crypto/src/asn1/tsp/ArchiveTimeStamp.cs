@@ -89,13 +89,15 @@ namespace Org.BouncyCastle.Asn1.Tsp
             if (!CmsObjectIdentifiers.SignedData.Equals(m_timeStamp.ContentType))
                 throw new InvalidOperationException("cannot identify algorithm identifier for digest");
 
-            SignedData tsData = SignedData.GetInstance(m_timeStamp.Content);
-            var contentInfo = tsData.EncapContentInfo;
+            var tsData = SignedData.GetInstance(m_timeStamp.Content);
+            var encapContentInfo = tsData.EncapContentInfo;
 
-            if (!Asn1.Pkcs.PkcsObjectIdentifiers.IdCTTstInfo.Equals(contentInfo.ContentType))
+            if (!Asn1.Pkcs.PkcsObjectIdentifiers.IdCTTstInfo.Equals(encapContentInfo.ContentType))
                 throw new InvalidOperationException("cannot parse time stamp");
 
-            return TstInfo.GetInstance(Asn1OctetString.GetInstance(contentInfo.Content).GetOctets());
+            var encapContent = Asn1OctetString.GetInstance(encapContentInfo.Content);
+
+            return TstInfo.GetInstance(encapContent.GetOctets());
         }
 
         /**

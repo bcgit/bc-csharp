@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         private SignerAttribute(Asn1Sequence seq, bool dummy)
 		{
-			Asn1TaggedObject taggedObject = Asn1TaggedObject.GetInstance(seq[0], Asn1Tags.ContextSpecific);
+			Asn1TaggedObject taggedObject = Asn1TaggedObject.GetContextInstance(seq[0]);
 			if (taggedObject.TagNo == 0)
 			{
 				m_claimedAttributes = Asn1Sequence.GetTagged(taggedObject, true);

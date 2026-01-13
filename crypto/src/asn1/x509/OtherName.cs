@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_typeID = DerObjectIdentifier.GetInstance(seq[0]);
-            m_value = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific, 0).GetExplicitBaseObject();
+            m_value = Asn1TaggedObject.GetContextInstance(seq[1], 0).GetExplicitBaseObject();
         }
 
         /**

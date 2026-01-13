@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Asn1
      * rules (as with sequences).
      */
     public abstract class Asn1TaggedObject
-		: Asn1Object, Asn1TaggedObjectParser
+        : Asn1Object, Asn1TaggedObjectParser
     {
         private const int DeclaredExplicit = 1;
         private const int DeclaredImplicit = 2;
@@ -19,8 +19,30 @@ namespace Org.BouncyCastle.Asn1
         private const int ParsedExplicit = 3;
         private const int ParsedImplicit = 4;
 
+        public static Asn1TaggedObject GetContextInstance(object obj) =>
+            Asn1Utilities.CheckContextTagClass(CheckInstance(obj));
+
+        public static Asn1TaggedObject GetContextInstance(object obj, int tagNo) =>
+            Asn1Utilities.CheckContextTag(CheckInstance(obj), tagNo);
+
+        public static Asn1TaggedObject GetContextOptional(Asn1Encodable element)
+        {
+            var taggedObject = GetOptional(element);
+            if (taggedObject != null && taggedObject.HasContextTag())
+                return taggedObject;
+            return null;
+        }
+
+        public static Asn1TaggedObject GetContextOptional(Asn1Encodable element, int tagNo)
+        {
+            var taggedObject = GetOptional(element);
+            if (taggedObject != null && taggedObject.HasContextTag(tagNo))
+                return taggedObject;
+            return null;
+        }
+
         public static Asn1TaggedObject GetInstance(object obj)
-		{
+        {
             if (obj == null)
                 return null;
 
@@ -45,22 +67,16 @@ namespace Org.BouncyCastle.Asn1
             }
 
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
-		}
-
-        public static Asn1TaggedObject GetInstance(object obj, int tagClass)
-        {
-            return Asn1Utilities.CheckTagClass(CheckInstance(obj), tagClass);
         }
 
-        public static Asn1TaggedObject GetInstance(object obj, int tagClass, int tagNo)
-        {
-            return Asn1Utilities.CheckTag(CheckInstance(obj), tagClass, tagNo);
-        }
+        public static Asn1TaggedObject GetInstance(object obj, int tagClass) =>
+            Asn1Utilities.CheckTagClass(CheckInstance(obj), tagClass);
 
-        public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return Asn1Utilities.GetExplicitContextBaseTagged(CheckInstance(taggedObject, declaredExplicit));
-        }
+        public static Asn1TaggedObject GetInstance(object obj, int tagClass, int tagNo) =>
+            Asn1Utilities.CheckTag(CheckInstance(obj), tagClass, tagNo);
+
+        public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            Asn1Utilities.GetExplicitContextBaseTagged(CheckInstance(taggedObject, declaredExplicit));
 
         public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, int tagClass, bool declaredExplicit)
         {
@@ -121,7 +137,7 @@ namespace Org.BouncyCastle.Asn1
         internal readonly int m_tagNo;
         internal readonly Asn1Encodable m_object;
 
-		/**
+        /**
          * @param explicitly true if the object is explicitly tagged.
          * @param tagNo the tag number for this object.
          * @param obj the tagged object.
@@ -187,10 +203,10 @@ namespace Org.BouncyCastle.Asn1
             }
 
             return p1.CallAsn1Equals(p2);
-		}
+        }
 
-		protected override int Asn1GetHashCode()
-		{
+        protected override int Asn1GetHashCode()
+        {
             return (m_tagClass * 7919) ^ m_tagNo ^ (IsExplicit() ? 0x0F : 0xF0) ^ m_object.ToAsn1Object().CallAsn1GetHashCode();
         }
 
@@ -392,10 +408,10 @@ namespace Org.BouncyCastle.Asn1
             return GetImplicitBaseTagged(baseTagClass, baseTagNo);
         }
 
-		public override string ToString()
-		{
+        public override string ToString()
+        {
             return Asn1Utilities.GetTagText(m_tagClass, m_tagNo) + m_object;
-		}
+        }
 
         internal abstract Asn1Sequence RebuildConstructed(Asn1Object asn1Object);
 

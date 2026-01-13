@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_certID = DerObjectIdentifier.GetInstance(seq[0]);
-            m_certValue = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific, 0).GetExplicitBaseObject();
+            m_certValue = Asn1TaggedObject.GetContextInstance(seq[1], 0).GetExplicitBaseObject();
         }
 
         // TODO[api] Remove as redundant

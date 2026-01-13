@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_bagID = DerObjectIdentifier.GetInstance(seq[pos++]);
-            m_bagValue = Asn1TaggedObject.GetInstance(seq[pos++], Asn1Tags.ContextSpecific, 0).GetExplicitBaseObject();
+            m_bagValue = Asn1TaggedObject.GetContextInstance(seq[pos++], 0).GetExplicitBaseObject();
             m_bagAttributes = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Set.GetOptional);
 
             if (pos != count)

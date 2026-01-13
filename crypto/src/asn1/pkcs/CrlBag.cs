@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_crlID = DerObjectIdentifier.GetInstance(seq[0]);
-            m_crlValue = Asn1TaggedObject.GetInstance(seq[1], Asn1Tags.ContextSpecific, 0).GetExplicitBaseObject();
+            m_crlValue = Asn1TaggedObject.GetContextInstance(seq[1], 0).GetExplicitBaseObject();
         }
 
         public CrlBag(DerObjectIdentifier crlID, Asn1Encodable crlValue)
