@@ -187,6 +187,9 @@ namespace Org.BouncyCastle.Asn1
                 case 21: return ParseUtc(s, @"yyyyMMddHHmmss.fffff\Z");
                 case 22: return ParseUtc(s, @"yyyyMMddHHmmss.ffffff\Z");
                 case 23: return ParseUtc(s, @"yyyyMMddHHmmss.fffffff\Z");
+                case 24: return ParseUtc(s, @"yyyyMMddHHmmss.ffffffff\Z");
+                case 25: return ParseUtc(s, @"yyyyMMddHHmmss.fffffffff\Z");
+                case 26: return ParseUtc(s, @"yyyyMMddHHmmss.ffffffffff\Z");
                 default:
                     throw new FormatException();
                 }
@@ -208,6 +211,9 @@ namespace Org.BouncyCastle.Asn1
                 case 20: return ParseLocal(s, @"yyyyMMddHHmmss.fffff");
                 case 21: return ParseLocal(s, @"yyyyMMddHHmmss.ffffff");
                 case 22: return ParseLocal(s, @"yyyyMMddHHmmss.fffffff");
+                case 23: return ParseLocal(s, @"yyyyMMddHHmmss.ffffffff");
+                case 24: return ParseLocal(s, @"yyyyMMddHHmmss.fffffffff");
+                case 25: return ParseLocal(s, @"yyyyMMddHHmmss.ffffffffff");
                 default:
                     throw new FormatException();
                 }
@@ -227,6 +233,9 @@ namespace Org.BouncyCastle.Asn1
                 case 25: return ParseTimeZone(s, @"yyyyMMddHHmmss.fffffzzz");
                 case 26: return ParseTimeZone(s, @"yyyyMMddHHmmss.ffffffzzz");
                 case 27: return ParseTimeZone(s, @"yyyyMMddHHmmss.fffffffzzz");
+                case 28: return ParseTimeZone(s, @"yyyyMMddHHmmss.ffffffffzzz");
+                case 29: return ParseTimeZone(s, @"yyyyMMddHHmmss.fffffffffzzz");
+                case 30: return ParseTimeZone(s, @"yyyyMMddHHmmss.ffffffffffzzz");
                 default:
                     throw new FormatException();
                 }
@@ -246,6 +255,9 @@ namespace Org.BouncyCastle.Asn1
                 case 23: return ParseTimeZone(s, @"yyyyMMddHHmmss.fffffzz");
                 case 24: return ParseTimeZone(s, @"yyyyMMddHHmmss.ffffffzz");
                 case 25: return ParseTimeZone(s, @"yyyyMMddHHmmss.fffffffzz");
+                case 26: return ParseTimeZone(s, @"yyyyMMddHHmmss.ffffffffzz");
+                case 27: return ParseTimeZone(s, @"yyyyMMddHHmmss.fffffffffzz");
+                case 28: return ParseTimeZone(s, @"yyyyMMddHHmmss.ffffffffffzz");
                 default:
                     throw new FormatException();
                 }
