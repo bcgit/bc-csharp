@@ -2,6 +2,7 @@
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers.SlhDsa;
 using Org.BouncyCastle.Security;
@@ -23,15 +24,43 @@ namespace Org.BouncyCastle.Crypto.Signers
         private SlhDsaEngine m_engine;
 
         public HashSlhDsaSigner(SlhDsaParameters parameters, bool deterministic)
+          : this(parameters, deterministic,
+                DigestUtilities.GetDigest(parameters.PreHashOid),
+                parameters.PreHashOid)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (parameters.PreHashOid == null)
+                throw new ArgumentException("cannot be used for SLH-DSA", nameof(parameters));
+        }
+
+        public static HashSlhDsaSigner CreatePrehashSigner(SlhDsaParameters parameters, bool deterministic)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
             if (parameters.PreHashOid == null)
                 throw new ArgumentException("cannot be used for SLH-DSA", nameof(parameters));
 
+            IDigest preHashDigest = DigestUtilities.GetDigest(parameters.PreHashOid);
+            return new HashSlhDsaSigner(parameters, deterministic, Prehash.ForDigest(preHashDigest), parameters.PreHashOid);
+        }
+
+        public static HashSlhDsaSigner CreatePrehashSigner(SlhDsaParameters parametersWithoutPrehash, bool deterministic, DerObjectIdentifier preHashOid)
+        {
+            if (parametersWithoutPrehash == null)
+                throw new ArgumentNullException(nameof(parametersWithoutPrehash));
+            if (preHashOid == null)
+                throw new ArgumentNullException(nameof(preHashOid));
+
+            IDigest preHashDigest = DigestUtilities.GetDigest(preHashOid);
+            return new HashSlhDsaSigner(parametersWithoutPrehash, deterministic, Prehash.ForDigest(preHashDigest), preHashOid);
+        }
+
+        private HashSlhDsaSigner(SlhDsaParameters parameters, bool deterministic, IDigest preHashDigest, DerObjectIdentifier preHashOid)
+        {
             m_parameters = parameters;
-            m_preHashOidEncoding = parameters.PreHashOid.GetEncoded(Asn1Encodable.Der);
-            m_preHashDigest = DigestUtilities.GetDigest(parameters.PreHashOid);
+            m_preHashOidEncoding = preHashOid.GetEncoded(Asn1Encodable.Der);
+            m_preHashDigest = preHashDigest;
             m_deterministic = deterministic;
         }
 
