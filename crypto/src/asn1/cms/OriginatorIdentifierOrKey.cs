@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1Encodable ID => m_id;
 
-        public IssuerAndSerialNumber IssuerAndSerialNumber => IssuerAndSerialNumber.GetInstance(m_id);
+        public IssuerAndSerialNumber IssuerAndSerialNumber => IssuerAndSerialNumber.GetOptional(m_id);
 
         public SubjectKeyIdentifier SubjectKeyIdentifier =>
             Asn1Utilities.GetOptionalContextTagged(m_id, 0, false, SubjectKeyIdentifier.GetTagged);
