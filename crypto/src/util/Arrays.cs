@@ -15,8 +15,8 @@ namespace Org.BouncyCastle.Utilities
     /// <summary> General array utilities.</summary>
     public static class Arrays
     {
-        public static readonly byte[] EmptyBytes = new byte[0];
-        public static readonly int[] EmptyInts = new int[0];
+        public static readonly byte[] EmptyBytes = Array.Empty<byte>();
+        public static readonly int[] EmptyInts = Array.Empty<int>();
 
         public static bool AreAllZeroes(byte[] buf, int off, int len)
         {
@@ -40,9 +40,7 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
-        public static bool AreEqual(
-            bool[]  a,
-            bool[]  b)
+        public static bool AreEqual(bool[] a, bool[] b)
         {
             if (a == b)
                 return true;
@@ -53,9 +51,7 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
-        public static bool AreEqual(
-            char[] a,
-            char[] b)
+        public static bool AreEqual(char[] a, char[] b)
         {
             if (a == b)
                 return true;
@@ -173,23 +169,16 @@ namespace Org.BouncyCastle.Utilities
 
         public static bool FixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
         {
-            if (null == a)
-                throw new ArgumentNullException("a");
-            if (null == b)
-                throw new ArgumentNullException("b");
             if (len < 0)
-                throw new ArgumentException("cannot be negative", "len");
-            if (aOff > (a.Length - len))
-                throw new IndexOutOfRangeException("'aOff' value invalid for specified length");
-            if (bOff > (b.Length - len))
-                throw new IndexOutOfRangeException("'bOff' value invalid for specified length");
+                throw new ArgumentOutOfRangeException(nameof(len), "cannot be negative");
+
+            ValidateSegment(a, aOff, len);
+            ValidateSegment(b, bOff, len);
 
             return InternalFixedTimeEquals(len, a, aOff, b, bOff);
         }
 
-        public static bool AreEqual(
-            int[]	a,
-            int[]	b)
+        public static bool AreEqual(int[] a, int[] b)
         {
             if (a == b)
                 return true;
@@ -235,9 +224,7 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
-        private static bool HaveSameContents(
-            bool[] a,
-            bool[] b)
+        private static bool HaveSameContents(bool[] a, bool[] b)
         {
             int i = a.Length;
             if (i != b.Length)
@@ -251,9 +238,7 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
-        private static bool HaveSameContents(
-            char[] a,
-            char[] b)
+        private static bool HaveSameContents(char[] a, char[] b)
         {
             int i = a.Length;
             if (i != b.Length)
@@ -267,9 +252,7 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
-        private static bool HaveSameContents(
-            byte[]	a,
-            byte[]	b)
+        private static bool HaveSameContents(byte[] a, byte[] b)
         {
             int i = a.Length;
             if (i != b.Length)
@@ -283,9 +266,7 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
-        private static bool HaveSameContents(
-            int[]	a,
-            int[]	b)
+        private static bool HaveSameContents(int[] a, int[] b)
         {
             int i = a.Length;
             if (i != b.Length)
@@ -341,8 +322,7 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
-        public static string ToString(
-            object[] a)
+        public static string ToString(object[] a)
         {
             StringBuilder sb = new StringBuilder("[");
             if (a.Length > 0)
@@ -623,48 +603,24 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
-        public static bool[] Clone(bool[] data)
-        {
-            return data == null ? null : (bool[])data.Clone();
-        }
+        public static bool[] Clone(bool[] data) => (bool[])data?.Clone();
 
-        public static byte[] Clone(byte[] data)
-        {
-            return data == null ? null : (byte[])data.Clone();
-        }
+        public static byte[] Clone(byte[] data) => (byte[])data?.Clone();
 
-        public static short[] Clone(short[] data)
-        {
-            return data == null ? null : (short[])data.Clone();
-        }
+        public static short[] Clone(short[] data) => (short[])data?.Clone();
 
         [CLSCompliant(false)]
-        public static ushort[] Clone(ushort[] data)
-        {
-            return data == null ? null : (ushort[])data.Clone();
-        }
+        public static ushort[] Clone(ushort[] data) => (ushort[])data?.Clone();
 
-        public static int[] Clone(int[] data)
-        {
-            return data == null ? null : (int[])data.Clone();
-        }
+        public static int[] Clone(int[] data) => (int[])data?.Clone();
 
         [CLSCompliant(false)]
-        public static uint[] Clone(uint[] data)
-        {
-            return data == null ? null : (uint[])data.Clone();
-        }
+        public static uint[] Clone(uint[] data) => (uint[])data?.Clone();
 
-        public static long[] Clone(long[] data)
-        {
-            return data == null ? null : (long[])data.Clone();
-        }
+        public static long[] Clone(long[] data) => (long[])data?.Clone();
 
         [CLSCompliant(false)]
-        public static ulong[] Clone(ulong[] data)
-        {
-            return data == null ? null : (ulong[])data.Clone();
-        }
+        public static ulong[] Clone(ulong[] data) => (ulong[])data?.Clone();
 
         public static byte[] Clone(byte[] data, byte[] existing)
         {
@@ -718,23 +674,14 @@ namespace Org.BouncyCastle.Utilities
         }
 
         // TODO[api] Redundant with generic version
-        public static void Fill(byte[] buf, byte b)
-        {
-            Fill<byte>(buf, b);
-        }
+        public static void Fill(byte[] buf, byte b) => Fill<byte>(buf, b);
 
         // TODO[api] Redundant with generic version
         [CLSCompliant(false)]
-        public static void Fill(ulong[] buf, ulong b)
-        {
-            Fill<ulong>(buf, b);
-        }
+        public static void Fill(ulong[] buf, ulong b) => Fill<ulong>(buf, b);
 
         // TODO[api] Redundant with generic version
-        public static void Fill(byte[] buf, int from, int to, byte b)
-        {
-            Fill<byte>(buf, from, to, b);
-        }
+        public static void Fill(byte[] buf, int from, int to, byte b) => Fill<byte>(buf, from, to, b);
 
         public static void Fill<T>(T[] ts, T t)
         {
@@ -1014,7 +961,7 @@ namespace Org.BouncyCastle.Utilities
         public static T[] Prepend<T>(T[] a, T b)
         {
             if (a == null)
-                return new T[1]{ b };
+                return new T[1] { b };
 
             T[] result = new T[1 + a.Length];
             result[0] = b;
@@ -1254,13 +1201,13 @@ namespace Org.BouncyCastle.Utilities
         public static bool FixedTimeEquals(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b) =>
             CryptographicOperations.FixedTimeEquals(a, b);
 
-        public static bool InternalFixedTimeEquals(byte[] a, byte[] b) => CryptographicOperations.FixedTimeEquals(a, b);
+        internal static bool InternalFixedTimeEquals(byte[] a, byte[] b) =>
+            CryptographicOperations.FixedTimeEquals(a, b);
 
-        public static bool InternalFixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff) =>
+        internal static bool InternalFixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff) =>
             CryptographicOperations.FixedTimeEquals(a.AsSpan(aOff, len), b.AsSpan(bOff, len));
 
-        internal static void InternalZeroMemory(byte[] buf) =>
-            CryptographicOperations.ZeroMemory(buf);
+        internal static void InternalZeroMemory(byte[] buf) => CryptographicOperations.ZeroMemory(buf);
 
         internal static void InternalZeroMemory(byte[] buf, int off, int len) =>
             CryptographicOperations.ZeroMemory(buf.AsSpan(off, len));
@@ -1291,7 +1238,7 @@ namespace Org.BouncyCastle.Utilities
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static bool InternalFixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
+        internal static bool InternalFixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
         {
             int d = 0;
             for (int i = 0; i < len; ++i)
