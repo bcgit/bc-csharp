@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-using Org.BouncyCastle.Asn1;
+﻿using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto.Agreement.Kdf;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -13,8 +11,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
         internal static BigInteger CalculateAgreementWithKdf(string algorithm, IDerivationFunction kdf, int fieldSize,
             BigInteger result)
         {
-            // Note that the ec.KeyAgreement class in JCE only uses kdf in one
-            // of the engineGenerateSecret methods.
+            // Note that the ec.KeyAgreement class in JCE only uses kdf in oneof the engineGenerateSecret methods.
 
             int keySize = GeneratorUtilities.GetDefaultKeySize(algorithm);
 
