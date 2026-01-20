@@ -9,30 +9,27 @@ namespace Org.BouncyCastle.Asn1
     {
         public static readonly DerOctetString Empty = new DerOctetString(EmptyOctets);
 
-        public static DerOctetString FromContents(byte[] contents)
-        {
-            if (contents == null)
-                throw new ArgumentNullException(nameof(contents));
+        public static DerOctetString FromContents(byte[] contents) =>
+            InternalFromContents(contents ?? throw new ArgumentNullException(nameof(contents)));
 
-            return contents.Length < 1 ? Empty : new DerOctetString(Arrays.Clone(contents));
-        }
+        public static DerOctetString FromContentsOptional(byte[] contents) =>
+            contents == null ? null : InternalFromContents(contents);
 
-        public static DerOctetString FromContentsOptional(byte[] contents)
-        {
-            if (contents == null)
-                return null;
+        public static DerOctetString WithContents(byte[] contents) =>
+            InternalWithContents(contents ?? throw new ArgumentNullException(nameof(contents)));
 
-            return contents.Length < 1 ? Empty : new DerOctetString(Arrays.Clone(contents));
-        }
+        public static DerOctetString WithContentsOptional(byte[] contents) =>
+            contents == null ? null : InternalWithContents(contents);
 
-        internal static DerOctetString WithContents(byte[] contents)
-        {
-            return contents.Length < 1 ? Empty : new DerOctetString(contents);
-        }
+        internal static DerOctetString InternalFromContents(byte[] contents) =>
+            contents.Length < 1 ? Empty : new DerOctetString(Arrays.InternalCopyBuffer(contents));
+
+        internal static DerOctetString InternalWithContents(byte[] contents) =>
+            contents.Length < 1 ? Empty : new DerOctetString(contents);
 
         /// <param name="contents">The octets making up the octet string.</param>
         public DerOctetString(byte[] contents)
-			: base(contents)
+            : base(contents)
         {
         }
 
@@ -53,28 +50,20 @@ namespace Org.BouncyCastle.Asn1
         }
 #endif
 
-        internal override IAsn1Encoding GetEncoding(int encoding)
-        {
-            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);
-        }
+        internal override IAsn1Encoding GetEncoding(int encoding) =>
+            new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);
 
-        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
-        {
-            return new PrimitiveEncoding(tagClass, tagNo, contents);
-        }
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo) =>
+            new PrimitiveEncoding(tagClass, tagNo, contents);
 
-        internal sealed override DerEncoding GetEncodingDer()
-        {
-            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);
-        }
+        internal sealed override DerEncoding GetEncodingDer() =>
+            new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);
 
-        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
-        {
-            return new PrimitiveDerEncoding(tagClass, tagNo, contents);
-        }
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo) =>
+            new PrimitiveDerEncoding(tagClass, tagNo, contents);
 
         internal static void Encode(Asn1OutputStream asn1Out, byte[] buf, int off, int len)
-		{
+        {
             asn1Out.WriteIdentifier(Asn1Tags.Universal, Asn1Tags.OctetString);
             asn1Out.WriteDL(len);
             asn1Out.Write(buf, off, len);

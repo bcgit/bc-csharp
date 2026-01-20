@@ -10,31 +10,19 @@ namespace Org.BouncyCastle.Asn1
     {
         public static new readonly BerOctetString Empty = new BerOctetString(EmptyOctets);
 
-        public static new BerOctetString FromContents(byte[] contents)
-        {
-            if (contents == null)
-                throw new ArgumentNullException(nameof(contents));
+        public static new BerOctetString FromContents(byte[] contents) =>
+            InternalFromContents(contents ?? throw new ArgumentNullException(nameof(contents)));
 
-            return contents.Length < 1 ? Empty : new BerOctetString(Arrays.Clone(contents));
-        }
+        public static new BerOctetString FromContentsOptional(byte[] contents) =>
+            contents == null ? null : InternalFromContents(contents);
 
-        public static new BerOctetString FromContentsOptional(byte[] contents)
-        {
-            if (contents == null)
-                return null;
+        public static BerOctetString FromSequence(Asn1Sequence seq) => new BerOctetString(seq.MapElements(GetInstance));
 
-            return contents.Length < 1 ? Empty : new BerOctetString(Arrays.Clone(contents));
-        }
+        public static new BerOctetString WithContents(byte[] contents) =>
+            InternalWithContents(contents ?? throw new ArgumentNullException(nameof(contents)));
 
-        public static BerOctetString FromSequence(Asn1Sequence seq)
-        {
-            return new BerOctetString(seq.MapElements(GetInstance));
-        }
-
-        internal static new BerOctetString WithContents(byte[] contents)
-        {
-            return contents.Length < 1 ? Empty : new BerOctetString(contents);
-        }
+        public static new BerOctetString WithContentsOptional(byte[] contents) =>
+            contents == null ? null : InternalWithContents(contents);
 
         internal static byte[] FlattenOctetStrings(Asn1OctetString[] octetStrings)
         {
@@ -68,12 +56,18 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        private readonly Asn1OctetString[] elements;
+        internal static new BerOctetString InternalFromContents(byte[] contents) =>
+            contents.Length < 1 ? Empty : new BerOctetString(Arrays.InternalCopyBuffer(contents));
+
+        internal static new BerOctetString InternalWithContents(byte[] contents) =>
+            contents.Length < 1 ? Empty : new BerOctetString(contents);
+
+        private readonly Asn1OctetString[] m_elements;
 
         public BerOctetString(byte[] contents)
-			: this(contents, null)
-		{
-		}
+            : this(contents, null)
+        {
+        }
 
         public BerOctetString(Asn1OctetString[] elements)
             : this(FlattenOctetStrings(elements), elements)
@@ -96,14 +90,14 @@ namespace Org.BouncyCastle.Asn1
         internal BerOctetString(ReadOnlySpan<byte> contents)
             : base(contents)
         {
-            this.elements = null;
+            m_elements = null;
         }
 #endif
 
         private BerOctetString(byte[] contents, Asn1OctetString[] elements)
             : base(contents)
         {
-            this.elements = elements;
+            m_elements = elements;
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding)
@@ -111,11 +105,11 @@ namespace Org.BouncyCastle.Asn1
             if (Asn1OutputStream.EncodingBer != encoding)
                 return base.GetEncoding(encoding);
 
-            if (null == elements)
+            if (m_elements == null)
                 return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.OctetString, contents);
 
             return new ConstructedILEncoding(Asn1Tags.Universal, Asn1Tags.OctetString,
-                Asn1OutputStream.GetContentsEncodings(encoding, elements));
+                Asn1OutputStream.GetContentsEncodings(encoding, m_elements));
         }
 
         internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
@@ -123,11 +117,11 @@ namespace Org.BouncyCastle.Asn1
             if (Asn1OutputStream.EncodingBer != encoding)
                 return base.GetEncodingImplicit(encoding, tagClass, tagNo);
 
-            if (null == elements)
+            if (m_elements == null)
                 return new PrimitiveEncoding(tagClass, tagNo, contents);
 
             return new ConstructedILEncoding(tagClass, tagNo,
-                Asn1OutputStream.GetContentsEncodings(encoding, elements));
+                Asn1OutputStream.GetContentsEncodings(encoding, m_elements));
         }
     }
 }
