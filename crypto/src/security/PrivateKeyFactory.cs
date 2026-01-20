@@ -88,8 +88,16 @@ namespace Org.BouncyCastle.Security
 
                 return new DsaPrivateKeyParameters(derX.Value, parameters);
             }
+            /*
+             * TODO id-ecDH (SecObjectIdentifiers.ecdh) and/or id-ecMQV (SecObjectIdentifiers.ecmqv) could be supported
+             * if we could properly restrict usage of the resulting key.
+             */
             else if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey))
             {
+                /*
+                 * TODO Consistency checks in case parameters and/or public key are specified at both the
+                 * PrivateKeyInfo and ECPrivateKey levels?
+                 */
                 ECPrivateKeyStructure ecPrivateKey = ECPrivateKeyStructure.GetInstance(keyInfo.ParsePrivateKey());
                 X962Parameters parameters = X962Parameters.GetInstance(algID.Parameters);
                 ECDomainParameters domainParameters = ECDomainParameters.FromX962Parameters(parameters);

@@ -113,6 +113,10 @@ namespace Org.BouncyCastle.Security
 
                 return new DsaPublicKeyParameters(derY.Value, parameters);
             }
+            /*
+             * TODO id-ecDH (SecObjectIdentifiers.ecdh) and/or id-ecMQV (SecObjectIdentifiers.ecmqv) could be supported
+             * if we could properly restrict usage of the resulting key.
+             */
             else if (algOid.Equals(X9ObjectIdentifiers.IdECPublicKey))
             {
                 X962Parameters parameters = X962Parameters.GetInstance(algID.Parameters);
