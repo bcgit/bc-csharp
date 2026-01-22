@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Cms
 		{
 			byte[] keyBytes = contentEncryptionKey.GetKey();
 
-            IWrapper keyWrapper = WrapperUtilities.GetWrapper(keyEncryptionAlgorithm.Algorithm.Id);
+            IWrapper keyWrapper = WrapperUtilities.GetWrapper(keyEncryptionAlgorithm.Algorithm);
 			keyWrapper.Init(true, new ParametersWithRandom(keyEncryptionKey, random));
         	Asn1OctetString encryptedKey = new DerOctetString(
 				keyWrapper.Wrap(keyBytes, 0, keyBytes.Length));

@@ -72,17 +72,17 @@ namespace Org.BouncyCastle.Cms
         private AsymmetricKeyParameter GetSenderPublicKey(AsymmetricKeyParameter receiverPrivateKey,
             OriginatorIdentifierOrKey originator)
         {
-            OriginatorPublicKey opk = originator.OriginatorPublicKey;
-            if (opk != null)
-                return GetPublicKeyFromOriginatorPublicKey(receiverPrivateKey, opk);
+            OriginatorPublicKey originatorKey = originator.OriginatorKey;
+            if (originatorKey != null)
+                return GetPublicKeyFromOriginatorPublicKey(receiverPrivateKey, originatorKey);
 
             OriginatorID origID = new OriginatorID();
 
-            Asn1.Cms.IssuerAndSerialNumber iAndSN = originator.IssuerAndSerialNumber;
-            if (iAndSN != null)
+            Asn1.Cms.IssuerAndSerialNumber issuerAndSerialNumber = originator.IssuerAndSerialNumber;
+            if (issuerAndSerialNumber != null)
             {
-                origID.Issuer = iAndSN.Issuer;
-                origID.SerialNumber = iAndSN.SerialNumber.Value;
+                origID.Issuer = issuerAndSerialNumber.Issuer;
+                origID.SerialNumber = issuerAndSerialNumber.SerialNumber.Value;
             }
             else
             {

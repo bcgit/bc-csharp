@@ -44,16 +44,19 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private readonly Asn1Encodable m_id;
 
+        // TODO[api] Rename 'id' to 'issuerAndSerialNumber'
         public OriginatorIdentifierOrKey(IssuerAndSerialNumber id)
         {
             m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
+        // TODO[api] Rename 'id' to 'subjectKeyIdentifier'
         public OriginatorIdentifierOrKey(SubjectKeyIdentifier id)
         {
             m_id = new DerTaggedObject(false, 0, id);
         }
 
+        // TODO[api] Rename 'id' to 'originatorKey'
         public OriginatorIdentifierOrKey(OriginatorPublicKey id)
         {
             m_id = new DerTaggedObject(false, 1, id);
@@ -63,11 +66,14 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public IssuerAndSerialNumber IssuerAndSerialNumber => IssuerAndSerialNumber.GetOptional(m_id);
 
+        public OriginatorPublicKey OriginatorKey =>
+            Asn1Utilities.GetOptionalContextTagged(m_id, 1, false, OriginatorPublicKey.GetTagged);
+
         public SubjectKeyIdentifier SubjectKeyIdentifier =>
             Asn1Utilities.GetOptionalContextTagged(m_id, 0, false, SubjectKeyIdentifier.GetTagged);
 
-        public OriginatorPublicKey OriginatorPublicKey =>
-            Asn1Utilities.GetOptionalContextTagged(m_id, 1, false, OriginatorPublicKey.GetTagged);
+        [Obsolete("Use 'OriginatorKey' instead")]
+        public OriginatorPublicKey OriginatorPublicKey => OriginatorKey;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.

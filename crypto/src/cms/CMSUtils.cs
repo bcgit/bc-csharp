@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Ocsp;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
@@ -21,12 +22,17 @@ namespace Org.BouncyCastle.Cms
         // TODO Is there a .NET equivalent to this?
         //		private static readonly Runtime RUNTIME = Runtime.getRuntime();
 
+        private static readonly HashSet<DerObjectIdentifier> DesAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> ECAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> GostAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> MqvAlgorithms = new HashSet<DerObjectIdentifier>();
 
         static CmsUtilities()
         {
+            DesAlgorithms.Add(OiwObjectIdentifiers.DesCbc);
+            DesAlgorithms.Add(Asn1.Pkcs.PkcsObjectIdentifiers.DesEde3Cbc);
+            DesAlgorithms.Add(Asn1.Pkcs.PkcsObjectIdentifiers.IdAlgCms3DesWrap);
+
             ECAlgorithms.Add(X9ObjectIdentifiers.DHSinglePassStdDHSha1KdfScheme);
             ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha224kdf_scheme);
             ECAlgorithms.Add(SecObjectIdentifiers.dhSinglePass_stdDH_sha256kdf_scheme);
@@ -63,6 +69,8 @@ namespace Org.BouncyCastle.Cms
                 return buf.ToArray();
             }
         }
+
+        internal static bool IsDes(DerObjectIdentifier oid) => DesAlgorithms.Contains(oid);
 
         internal static bool IsEC(DerObjectIdentifier oid) => ECAlgorithms.Contains(oid);
 
