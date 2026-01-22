@@ -7,6 +7,7 @@ using System.Threading;
 
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X500.Style;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -1011,22 +1012,21 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private static string StripInternalSpaces(string str)
         {
-            StringBuilder res = new StringBuilder();
+            int first = Platform.IndexOf(str, "  ");
+            if (first < 0)
+                return str;
 
-            if (str.Length != 0)
+            StringBuilder res = new StringBuilder(str, 0, first + 1, str.Length - 1);
+
+            bool b1 = false;
+            for (int i = first + 2; i < str.Length; ++i)
             {
-                char c1 = str[0];
-
-                res.Append(c1);
-
-                for (int k = 1; k < str.Length; k++)
+                char c2 = str[i];
+                bool b2 = c2 != ' ';
+                if (b1 | b2)
                 {
-                    char c2 = str[k];
-                    if (!(c1 == ' ' && c2 == ' '))
-                    {
-                        res.Append(c2);
-                    }
-                    c1 = c2;
+                    res.Append(c2);
+                    b1 = b2;
                 }
             }
 
