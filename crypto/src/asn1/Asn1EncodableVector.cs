@@ -116,20 +116,32 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        // TODO[api] Rename 'isExplicit' to 'declaredExplicit', 'obj' to 'element'
         public void AddOptionalTagged(bool isExplicit, int tagNo, Asn1Encodable obj)
         {
             if (null != obj)
             {
-                Add(new DerTaggedObject(isExplicit, tagNo, obj));
+                AddTagged(isExplicit, tagNo, obj);
             }
         }
 
+        // TODO[api] Rename 'isExplicit' to 'declaredExplicit', 'obj' to 'element'
         public void AddOptionalTagged(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
         {
             if (null != obj)
             {
-                Add(new DerTaggedObject(isExplicit, tagClass, tagNo, obj));
+                AddTagged(isExplicit, tagClass, tagNo, obj);
             }
+        }
+
+        public void AddTagged(bool declaredExplicit, int tagNo, Asn1Encodable element)
+        {
+            Add(new DerTaggedObject(declaredExplicit, tagNo, element));
+        }
+
+        public void AddTagged(bool declaredExplicit, int tagClass, int tagNo, Asn1Encodable element)
+        {
+            Add(new DerTaggedObject(declaredExplicit, tagClass, tagNo, element));
         }
 
         public void AddAll(IEnumerable<Asn1Encodable> e)
