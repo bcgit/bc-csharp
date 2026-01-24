@@ -12,41 +12,41 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
      *        suppPubInfo [2] EXPLICIT OCTET STRING   }
      * </pre>
      */
-    public class ECCCMSSharedInfo
+    public class ECC_CMS_SharedInfo
         : Asn1Encodable
     {
-        public static ECCCMSSharedInfo GetInstance(object obj)
+        public static ECC_CMS_SharedInfo GetInstance(object obj)
         {
             if (obj == null)
                 return null;
-            if (obj is ECCCMSSharedInfo eccCmsSharedInfo)
+            if (obj is ECC_CMS_SharedInfo eccCmsSharedInfo)
                 return eccCmsSharedInfo;
-            return new ECCCMSSharedInfo(Asn1Sequence.GetInstance(obj));
+            return new ECC_CMS_SharedInfo(Asn1Sequence.GetInstance(obj));
         }
 
-        public static ECCCMSSharedInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
-            new ECCCMSSharedInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+        public static ECC_CMS_SharedInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ECC_CMS_SharedInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
-        public static ECCCMSSharedInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
-            new ECCCMSSharedInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+        public static ECC_CMS_SharedInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new ECC_CMS_SharedInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_keyInfo;
         private readonly Asn1OctetString m_entityUInfo;
         private readonly Asn1OctetString m_suppPubInfo;
 
-        public ECCCMSSharedInfo(AlgorithmIdentifier keyInfo, Asn1OctetString suppPubInfo)
+        public ECC_CMS_SharedInfo(AlgorithmIdentifier keyInfo, Asn1OctetString suppPubInfo)
             : this(keyInfo, entityUInfo: null, suppPubInfo)
         {
         }
 
-        public ECCCMSSharedInfo(AlgorithmIdentifier keyInfo, Asn1OctetString entityUInfo, Asn1OctetString suppPubInfo)
+        public ECC_CMS_SharedInfo(AlgorithmIdentifier keyInfo, Asn1OctetString entityUInfo, Asn1OctetString suppPubInfo)
         {
             m_keyInfo = keyInfo ?? throw new ArgumentNullException(nameof(keyInfo));
             m_entityUInfo = entityUInfo;
             m_suppPubInfo = suppPubInfo ?? throw new ArgumentNullException(nameof(suppPubInfo));
         }
 
-        private ECCCMSSharedInfo(Asn1Sequence seq)
+        private ECC_CMS_SharedInfo(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
             if (count < 2 || count > 3)
