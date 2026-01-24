@@ -1,38 +1,31 @@
 using System;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Security;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using Org.BouncyCastle.Utilities;
+#endif
 
 namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 {
-    /**
-    * RFC 2631 Diffie-hellman KEK derivation function.
-    */
+    /// <summary>RFC 2631 Diffie-hellman KEK derivation function.</summary>
     public sealed class DHKekGenerator
         : IDerivationFunction
     {
         private readonly IDigest m_digest;
 
-        private DerObjectIdentifier	algorithm;
-        private int					keySize;
-        private byte[]				z;
-        private byte[]				partyAInfo;
+        private DHKdfParameters m_parameters;
 
         public DHKekGenerator(IDigest digest)
         {
-            m_digest = digest;
+            m_digest = digest ?? throw new ArgumentNullException(nameof(digest));
         }
 
         public void Init(IDerivationParameters param)
         {
-            DHKdfParameters parameters = (DHKdfParameters)param;
-
-            this.algorithm = parameters.Algorithm;
-            this.keySize = parameters.KeySize;
-            this.z = parameters.GetZ(); // TODO Clone?
-            this.partyAInfo = parameters.GetExtraInfo(); // TODO Clone?
+            m_parameters = (DHKdfParameters)param ?? throw new ArgumentNullException(nameof(param));
         }
 
         public IDigest Digest => m_digest;
@@ -44,126 +37,99 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return GenerateBytes(outBytes.AsSpan(outOff, length));
 #else
-            long oBytes = length;
-            int digestSize = m_digest.GetDigestSize();
-
-            //
-            // this is at odds with the standard implementation, the
-            // maximum value should be hBits * (2^32 - 1) where hBits
-            // is the digest output size in bits. We can't have an
-            // array with a long index at the moment...
-            //
-            if (oBytes > ((2L << 32) - 1))
-                throw new ArgumentException("Output length too large");
-
-            int cThreshold = (int)((oBytes + digestSize - 1) / digestSize);
-
-            byte[] dig = new byte[digestSize];
-
-            uint counter = 1;
-
-            for (int i = 0; i < cThreshold; i++)
-            {
-                // KeySpecificInfo
-                DerSequence keyInfo = new DerSequence(algorithm, new DerOctetString(Pack.UInt32_To_BE(counter)));
-
-                // OtherInfo
-                Asn1EncodableVector v1 = new Asn1EncodableVector(keyInfo);
-
-                if (partyAInfo != null)
-                {
-                    v1.Add(new DerTaggedObject(true, 0, new DerOctetString(partyAInfo)));
-                }
-
-                v1.Add(new DerTaggedObject(true, 2, new DerOctetString(Pack.UInt32_To_BE((uint)keySize))));
-
-                byte[] other = new DerSequence(v1).GetDerEncoded();
-
-                m_digest.BlockUpdate(z, 0, z.Length);
-                m_digest.BlockUpdate(other, 0, other.Length);
-                m_digest.DoFinal(dig, 0);
-
-                if (length > digestSize)
-                {
-                    Array.Copy(dig, 0, outBytes, outOff, digestSize);
-                    outOff += digestSize;
-                    length -= digestSize;
-                }
-                else
-                {
-                    Array.Copy(dig, 0, outBytes, outOff, length);
-                }
-
-                counter++;
-            }
-
             m_digest.Reset();
 
-            return (int)oBytes;
+            int outputLength = length;
+            int digestSize = m_digest.GetDigestSize();
+
+            // NOTE: This limit isn't reachable for current array lengths
+            if (outputLength > ((1L << 32) - 1) * digestSize)
+                throw new ArgumentException("Output length too large");
+
+            var z = m_parameters.Z;
+
+            uint counter32 = 0;
+            byte[] counterOctets = new byte[4];
+            var counter = DerOctetString.WithContents(counterOctets);
+            var keyInfo = new KeySpecificInfo(m_parameters.Algorithm, counter);
+            var partyAInfo = DerOctetString.WithContentsOptional(m_parameters.ExtraInfo);
+            var suppPubInfo = DerOctetString.WithContents(Pack.UInt32_To_BE((uint)m_parameters.KeySize));
+            var otherInfo = new OtherInfo(keyInfo, partyAInfo, suppPubInfo);
+
+            var digestSink = new DigestSink(m_digest);
+
+            while (length > 0)
+            {
+                m_digest.BlockUpdate(z, 0, z.Length);
+
+                // NOTE: Modify counterOctets in-situ since counter is private to this method
+                Pack.UInt32_To_BE(++counter32, counterOctets);
+                otherInfo.EncodeTo(digestSink, Asn1Encodable.Der);
+
+                if (length < digestSize)
+                {
+                    byte[] tmp = new byte[digestSize];
+                    m_digest.DoFinal(tmp, 0);
+                    Array.Copy(tmp, 0, outBytes, outOff, length);
+                    break;
+                }
+
+                m_digest.DoFinal(outBytes, outOff);
+                outOff += digestSize;
+                length -= digestSize;
+            }
+
+            return outputLength;
 #endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int GenerateBytes(Span<byte> output)
         {
-            long oBytes = output.Length;
-            int digestSize = m_digest.GetDigestSize();
-
-            //
-            // this is at odds with the standard implementation, the
-            // maximum value should be hBits * (2^32 - 1) where hBits
-            // is the digest output size in bits. We can't have an
-            // array with a long index at the moment...
-            //
-            if (oBytes > ((2L << 32) - 1))
-                throw new ArgumentException("Output length too large");
-
-            int cThreshold = (int)((oBytes + digestSize - 1) / digestSize);
-
-            Span<byte> dig = digestSize <= 128
-                ? stackalloc byte[digestSize]
-                : new byte[digestSize];
-
-            uint counter = 1;
-
-            for (int i = 0; i < cThreshold; i++)
-            {
-                // KeySpecificInfo
-                DerSequence keyInfo = new DerSequence(algorithm, new DerOctetString(Pack.UInt32_To_BE(counter)));
-
-                // OtherInfo
-                Asn1EncodableVector v1 = new Asn1EncodableVector(keyInfo);
-
-                if (partyAInfo != null)
-                {
-                    v1.Add(new DerTaggedObject(true, 0, new DerOctetString(partyAInfo)));
-                }
-
-                v1.Add(new DerTaggedObject(true, 2, new DerOctetString(Pack.UInt32_To_BE((uint)keySize))));
-
-                byte[] other = new DerSequence(v1).GetDerEncoded();
-
-                m_digest.BlockUpdate(z);
-                m_digest.BlockUpdate(other);
-                m_digest.DoFinal(dig);
-
-                int remaining = output.Length;
-                if (remaining > digestSize)
-                {
-                    dig.CopyTo(output);
-                    output = output[digestSize..];
-                }
-                else
-                {
-                    dig[..remaining].CopyTo(output);
-                }
-
-                counter++;
-            }
-
             m_digest.Reset();
 
-            return (int)oBytes;
+            int outputLength = output.Length;
+            int digestSize = m_digest.GetDigestSize();
+
+            // NOTE: This limit isn't reachable for current span lengths
+            if (outputLength > ((1L << 32) - 1) * digestSize)
+                throw new ArgumentException("Output length too large");
+
+            var z = m_parameters.Z;
+
+            uint counter32 = 0;
+            byte[] counterOctets = new byte[4];
+            var counter = DerOctetString.WithContents(counterOctets);
+            var keyInfo = new KeySpecificInfo(m_parameters.Algorithm, counter);
+            var partyAInfo = DerOctetString.WithContentsOptional(m_parameters.ExtraInfo);
+            var suppPubInfo = DerOctetString.WithContents(Pack.UInt32_To_BE((uint)m_parameters.KeySize));
+            var otherInfo = new OtherInfo(keyInfo, partyAInfo, suppPubInfo);
+
+            var digestSink = new DigestSink(m_digest);
+
+            while (!output.IsEmpty)
+            {
+                m_digest.BlockUpdate(z);
+
+                // NOTE: Modify counterOctets in-situ since counter is private to this method
+                Pack.UInt32_To_BE(++counter32, counterOctets);
+                otherInfo.EncodeTo(digestSink, Asn1Encodable.Der);
+
+                if (output.Length < digestSize)
+                {
+                    Span<byte> tmp = digestSize <= 128
+                        ? stackalloc byte[digestSize]
+                        : new byte[digestSize];
+                    m_digest.DoFinal(tmp);
+                    output.CopyFrom(tmp);
+                    break;
+                }
+
+                m_digest.DoFinal(output[..digestSize]);
+                output = output[digestSize..];
+            }
+
+            return outputLength;
         }
 #endif
     }

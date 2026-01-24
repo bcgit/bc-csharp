@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Asn1.X9
 
         public Asn1OctetString SuppPubInfo => m_suppPubInfo;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *  OtherInfo ::= Sequence {
@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Asn1.X9
             Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.Add(m_keyInfo);
             v.AddOptionalTagged(true, 0, m_partyAInfo);
-            v.Add(new DerTaggedObject(2, m_suppPubInfo));
+            v.AddTagged(true, 2, m_suppPubInfo);
             return new DerSequence(v);
         }
     }
