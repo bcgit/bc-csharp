@@ -1,8 +1,8 @@
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-    /**
-     * parameters for Key derivation functions for IEEE P1363a
-     */
+    /// <summary>Parameters for Key Derivation Functions for IEEE P1363a.</summary>
     public class KdfParameters
         : IDerivationParameters
     {
@@ -15,14 +15,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_iv = iv;
         }
 
-        public byte[] GetSharedSecret()
-        {
-            return m_shared;
-        }
+        public byte[] GetIV() => m_iv;
 
-        public byte[] GetIV()
-        {
-            return m_iv;
-        }
+        public byte[] GetSharedSecret() => m_shared;
     }
 }

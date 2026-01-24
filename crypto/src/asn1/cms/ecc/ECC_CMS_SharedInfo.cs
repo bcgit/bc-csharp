@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
             Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.Add(m_keyInfo);
             v.AddOptionalTagged(true, 0, m_entityUInfo);
-            v.Add(new DerTaggedObject(true, 2, m_suppPubInfo));
+            v.AddTagged(true, 2, m_suppPubInfo);
             return new DerSequence(v);
         }
     }
