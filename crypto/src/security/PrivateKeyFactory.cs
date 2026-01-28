@@ -13,7 +13,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Kems.MLKem;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
@@ -376,12 +376,10 @@ namespace Org.BouncyCastle.Security
 
                 // TODO[api] Eventually remove legacy support for raw octets
                 {
-                    var parameterSet = mlKemParameters.ParameterSet;
-
-                    if (length == parameterSet.SeedLength)
+                    if (length == MLKemEngine.SeedBytes)
                         return MLKemPrivateKeyParameters.FromSeed(mlKemParameters, seed: privateKey.GetOctets());
 
-                    if (length == parameterSet.PrivateKeyLength)
+                    if (length == mlKemParameters.ParameterSet.Engine.SecretKeyBytes)
                         return MLKemPrivateKeyParameters.FromEncoding(mlKemParameters, encoding: privateKey.GetOctets());
                 }
 

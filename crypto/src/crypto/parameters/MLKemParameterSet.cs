@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto.Kems.MLKem;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Parameters
@@ -24,51 +23,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal static MLKemParameterSet FromName(string name) => CollectionUtilities.GetValueOrNull(ByName, name);
 
         private readonly string m_name;
-        private readonly int m_k;
+        private readonly MLKemEngine m_engine;
 
         private MLKemParameterSet(string name, int k)
         {
             m_name = name ?? throw new ArgumentNullException(nameof(name));
-            m_k = k;
+            m_engine = new MLKemEngine(k);
         }
 
-        internal MLKemEngine GetEngine(SecureRandom random) => new MLKemEngine(m_k, random);
-
-        internal int K => m_k;
+        internal MLKemEngine Engine => m_engine;
 
         public string Name => m_name;
-
-        internal int PrivateKeyLength
-        {
-            get
-            {
-                switch (m_k)
-                {
-                case 2: return 1632;
-                case 3: return 2400;
-                case 4: return 3168;
-                default:
-                    throw new InvalidOperationException();
-                };
-            }
-        }
-
-        internal int PublicKeyLength
-        {
-            get
-            {
-                switch (m_k)
-                {
-                case 2: return 800;
-                case 3: return 1184;
-                case 4: return 1568;
-                default:
-                    throw new InvalidOperationException();
-                };
-            }
-        }
-
-        internal int SeedLength => MLKemEngine.SymBytes * 2;
 
         public override string ToString() => Name;
     }

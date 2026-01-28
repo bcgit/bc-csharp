@@ -15,9 +15,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
 
-            int publicKeyLength = parameters.ParameterSet.PublicKeyLength;
+            int publicKeyLength = parameters.ParameterSet.Engine.PublicKeyBytes;
             if (encoding.Length != publicKeyLength)
-                throw new ArgumentException("invalid encoding", nameof(encoding));
+                throw new ArgumentException("Invalid length", nameof(encoding));
 
             byte[] t = Arrays.CopySegment(encoding, 0, publicKeyLength - MLKemEngine.SymBytes);
             byte[] rho = Arrays.CopySegment(encoding, publicKeyLength - MLKemEngine.SymBytes, MLKemEngine.SymBytes);
@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             : base(false, parameters)
         {
             var parameterSet = parameters.ParameterSet;
-            var engine = parameterSet.GetEngine(random: null);
+            var engine = parameterSet.Engine;
 
             if (t.Length != engine.PolyVecBytes)
                 throw new ArgumentException("Invalid length", nameof(t));
@@ -50,10 +50,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         // NB: Don't remove - needed by commented-out test cases
         internal Tuple<byte[], byte[]> InternalEncapsulate(byte[] randBytes)
         {
-            var engine = Parameters.ParameterSet.GetEngine(random: null);
+            var engine = Parameters.ParameterSet.Engine;
 
-            byte[] enc = new byte[engine.CryptoCipherTextBytes];
-            byte[] sec = new byte[engine.CryptoBytes];
+            byte[] enc = new byte[engine.CipherTextBytes];
+            byte[] sec = new byte[MLKemEngine.SharedSecretBytes];
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             engine.KemEncrypt(enc.AsSpan(), sec.AsSpan(), this, randBytes.AsSpan());
 #else

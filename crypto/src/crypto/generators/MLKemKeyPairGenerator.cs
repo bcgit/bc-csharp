@@ -17,10 +17,10 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            var engine = m_parameters.ParameterSet.GetEngine(m_random);
+            var engine = m_parameters.ParameterSet.Engine;
 
-            engine.GenerateKemKeyPair(out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk, out byte[] nonce,
-                out byte[] seed);
+            engine.GenerateKemKeyPair(m_random, out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk,
+                out byte[] nonce, out byte[] seed);
 
             return CreateKeyPair(m_parameters, t, rho, s, hpk, nonce, seed);
         }

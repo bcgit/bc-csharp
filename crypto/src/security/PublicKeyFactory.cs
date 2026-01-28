@@ -351,7 +351,7 @@ namespace Org.BouncyCastle.Security
         {
             if (publicKey.IsOctetAligned())
             {
-                int publicKeyLength = mlKemParameters.ParameterSet.PublicKeyLength;
+                int publicKeyLength = mlKemParameters.ParameterSet.Engine.PublicKeyBytes;
 
                 int bytesLength = publicKey.GetBytesLength();
                 if (bytesLength == publicKeyLength)

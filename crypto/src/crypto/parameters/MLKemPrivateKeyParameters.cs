@@ -17,10 +17,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentNullException(nameof(parameters));
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
-            if (encoding.Length != parameters.ParameterSet.PrivateKeyLength)
-                throw new ArgumentException("invalid encoding", nameof(encoding));
 
-            var engine = parameters.ParameterSet.GetEngine(random: null);
+            var engine = parameters.ParameterSet.Engine;
+            if (encoding.Length != engine.SecretKeyBytes)
+                throw new ArgumentException("Invalid length", nameof(encoding));
 
             int index = 0;
 
@@ -54,12 +54,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentNullException(nameof(parameters));
             if (seed == null)
                 throw new ArgumentNullException(nameof(seed));
-            if (seed.Length != parameters.ParameterSet.SeedLength)
-                throw new ArgumentException("invalid seed", nameof(seed));
+            if (seed.Length != MLKemEngine.SeedBytes)
+                throw new ArgumentException("Invalid length", nameof(seed));
 
             var format = CheckFormat(preferredFormat, seed);
 
-            var engine = parameters.ParameterSet.GetEngine(random: null);
+            var engine = parameters.ParameterSet.Engine;
 
             byte[] d = Arrays.CopyOfRange(seed, 0, MLKemEngine.SymBytes);
             byte[] z = Arrays.CopyOfRange(seed, MLKemEngine.SymBytes, seed.Length);

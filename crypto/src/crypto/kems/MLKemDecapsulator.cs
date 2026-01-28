@@ -31,9 +31,9 @@ namespace Org.BouncyCastle.Crypto.Kems
             m_engine = GetEngine(m_privateKey.Parameters);
         }
 
-        public int EncapsulationLength => m_engine.CryptoCipherTextBytes;
+        public int EncapsulationLength => m_engine.CipherTextBytes;
 
-        public int SecretLength => m_engine.CryptoBytes;
+        public int SecretLength => MLKemEngine.SharedSecretBytes;
 
         public void Decapsulate(byte[] encBuf, int encOff, int encLen, byte[] secBuf, int secOff, int secLen)
         {
@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Kems
             if (keyParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
-            return keyParameterSet.GetEngine(random: null);
+            return keyParameterSet.Engine;
         }
     }
 }

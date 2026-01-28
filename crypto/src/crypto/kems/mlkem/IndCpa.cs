@@ -1,21 +1,24 @@
 ﻿using System;
 
+using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Kems.MLKem
 {
-    internal class IndCpa
+    internal sealed class IndCpa
     {
+        private const int Shake128Rate = 168;
+
+        private static readonly int GenerateMatrixNBlocks =
+            (((12 * MLKemEngine.N / 8) << 12) / MLKemEngine.Q + Shake128Rate) / Shake128Rate;
+
         private readonly MLKemEngine m_engine;
-        private readonly Symmetric m_symmetric;
 
         internal IndCpa(MLKemEngine engine)
         {
             m_engine = engine;
-            m_symmetric = engine.Symmetric;
         }
-
-        private int GenerateMatrixNBlocks => ((12 * MLKemEngine.N / 8 * (1 << 12) / MLKemEngine.Q + m_symmetric.XofBlockBytes) / m_symmetric.XofBlockBytes);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void GenerateMatrix(PolyVec[] a, ReadOnlySpan<byte> seed, bool transposed)
@@ -24,63 +27,79 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 #endif
         {
             int K = m_engine.K;
+            ShakeDigest xof = new ShakeDigest(128);
 
-            byte[] buf = new byte[GenerateMatrixNBlocks * m_symmetric.XofBlockBytes + 2];
+            byte[] buf = new byte[GenerateMatrixNBlocks * Shake128Rate + 2];
             for (int i = 0; i < K; i++)
             {
                 for (int j = 0; j < K; j++)
                 {
+                    xof.Reset();
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    xof.BlockUpdate(seed);
+#else
+                    xof.BlockUpdate(seed, 0, seed.Length);
+#endif
+
                     if (transposed)
                     {
-                        m_symmetric.XofAbsorb(seed, (byte)i, (byte)j);
+                        xof.Update((byte)i);
+                        xof.Update((byte)j);
                     }
                     else
                     {
-                        m_symmetric.XofAbsorb(seed, (byte)j, (byte)i);
-                    }
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    m_symmetric.XofSqueezeBlocks(buf.AsSpan(0, GenerateMatrixNBlocks * m_symmetric.XofBlockBytes));
-#else
-                    m_symmetric.XofSqueezeBlocks(buf, 0, GenerateMatrixNBlocks * m_symmetric.XofBlockBytes);
-#endif
-                    int buflen = GenerateMatrixNBlocks * m_symmetric.XofBlockBytes;
-                    int ctr = RejectionSampling(a[i].m_vec[j].m_coeffs, 0, MLKemEngine.N, buf, buflen);
-                    while (ctr < MLKemEngine.N)
-                    {
-                        int off = buflen % 3;
-                        for (int k = 0; k < off; k++)
-                        {
-                            buf[k] = buf[buflen - off + k];
-                        }
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                        m_symmetric.XofSqueezeBlocks(buf.AsSpan(off, m_symmetric.XofBlockBytes * 2));
-#else
-                        m_symmetric.XofSqueezeBlocks(buf, off, m_symmetric.XofBlockBytes * 2);
-#endif
-                        buflen = off + m_symmetric.XofBlockBytes;
-                        ctr += RejectionSampling(a[i].m_vec[j].m_coeffs, ctr, MLKemEngine.N - ctr, buf, buflen);
+                        xof.Update((byte)j);
+                        xof.Update((byte)i);
                     }
 
+                    int bufLen = GenerateMatrixNBlocks * Shake128Rate;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    xof.Output(buf.AsSpan(0, bufLen));
+#else
+                    xof.Output(buf, 0, bufLen);
+#endif
+
+                    int ctr = RejectionSampling(a[i].m_vec[j].m_coeffs, 0, MLKemEngine.N, buf, bufLen);
+                    while (ctr < MLKemEngine.N)
+                    {
+                        int off = bufLen % 3;
+                        for (int k = 0; k < off; k++)
+                        {
+                            buf[k] = buf[bufLen - off + k];
+                        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                        xof.Output(buf.AsSpan(off, Shake128Rate * 2));
+#else
+                        xof.Output(buf, off, Shake128Rate * 2);
+#endif
+
+                        bufLen = off + Shake128Rate;
+                        // Error in code Section Unsure
+                        ctr += RejectionSampling(a[i].m_vec[j].m_coeffs, ctr, MLKemEngine.N - ctr, buf, bufLen);
+                    }
                 }
             }
         }
 
-        private int RejectionSampling(short[] r, int off, int len, byte[] buf, int buflen)
+        private static int RejectionSampling(short[] r, int off, int len, byte[] buf, int bufLen)
         {
             int ctr = 0, pos = 0;
-            while (ctr < len && pos + 3 <= buflen)
+            while (ctr < len && pos + 3 <= bufLen)
             {
-                ushort val0 = (ushort) ((((ushort) (buf[pos + 0] & 0xFF) >> 0) | ((ushort)(buf[pos + 1] & 0xFF) << 8)) & 0xFFF);
-                ushort val1 = (ushort) ((((ushort) (buf[pos + 1] & 0xFF) >> 4) | ((ushort)(buf[pos + 2] & 0xFF) << 4)) & 0xFFF);
+                uint t = Pack.LE_To_UInt24(buf, pos);
+                ushort d1 = (ushort)(t & 0xFFF);
+                ushort d2 = (ushort)(t >> 12);
                 pos += 3;
 
-                if (val0 < MLKemEngine.Q)
+                if (d1 < MLKemEngine.Q)
                 {
-                    r[off + ctr++] = (short)val0;
+                    r[off + ctr++] = (short)d1;
                 }
-                if (ctr < len && val1 < MLKemEngine.Q)
+                if (ctr < len && d2 < MLKemEngine.Q)
                 {
-                    r[off + ctr++] = (short)val1;
+                    r[off + ctr++] = (short)d2;
                 }
             }
             return ctr;
@@ -95,7 +114,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             PolyVec[] Matrix = new PolyVec[K];
             PolyVec e = new PolyVec(m_engine), pkpv = new PolyVec(m_engine), skpv = new PolyVec(m_engine);
 
-            m_symmetric.Hash_g(Arrays.Append(d, (byte)K), buf);
+            MLKemEngine.G(Arrays.Append(d, (byte)K), buf);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             var publicSeed = buf.AsSpan(0, MLKemEngine.SymBytes);
@@ -112,14 +131,16 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             GenerateMatrix(Matrix, publicSeed, false);
 
+            var xof = new ShakeDigest(256);
+
             for (int i = 0; i < K; i++)
             {
-                skpv.m_vec[i].GetNoiseEta1(noiseSeed, nonce++);
+                skpv.m_vec[i].GetNoiseEta1(xof, noiseSeed, nonce++);
             }
 
             for (int i = 0; i < K; i++)
             {
-                e.m_vec[i].GetNoiseEta1(noiseSeed, nonce++);
+                e.m_vec[i].GetNoiseEta1(xof, noiseSeed, nonce++);
             }
 
             skpv.Ntt();
@@ -186,16 +207,18 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             GenerateMatrix(MatrixTransposed, seed, true);
 
+            var xof = new ShakeDigest(256);
+
             for (int i = 0; i < K; i++)
             {
-                sp.m_vec[i].GetNoiseEta1(coins, nonce++);
+                sp.m_vec[i].GetNoiseEta1(xof, coins, nonce++);
             }
 
             for (int i = 0; i < K; i++)
             {
-                ep.m_vec[i].GetNoiseEta2(coins, nonce++);
+                ep.m_vec[i].GetNoiseEta2(xof, coins, nonce++);
             }
-            epp.GetNoiseEta2(coins, nonce++);
+            epp.GetNoiseEta2(xof, coins, nonce++);
 
             sp.Ntt();
 
@@ -272,16 +295,18 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             GenerateMatrix(MatrixTransposed, seed, true);
 
+            var xof = new ShakeDigest(256);
+
             for (int i = 0; i < K; i++)
             {
-                sp.m_vec[i].GetNoiseEta1(coins, nonce++);
+                sp.m_vec[i].GetNoiseEta1(xof, coins, nonce++);
             }
 
             for (int i = 0; i < K; i++)
             {
-                ep.m_vec[i].GetNoiseEta2(coins, nonce++);
+                ep.m_vec[i].GetNoiseEta2(xof, coins, nonce++);
             }
-            epp.GetNoiseEta2(coins, nonce++);
+            epp.GetNoiseEta2(xof, coins, nonce++);
 
             sp.Ntt();
 

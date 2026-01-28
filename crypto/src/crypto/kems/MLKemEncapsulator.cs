@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Crypto.Kems
         private readonly MLKemParameters m_parameters;
 
         private MLKemPublicKeyParameters m_publicKey;
+        private SecureRandom m_random;
         private MLKemEngine m_engine;
 
         public MLKemEncapsulator(MLKemParameters parameters)
@@ -28,12 +29,13 @@ namespace Org.BouncyCastle.Crypto.Kems
                 throw new ArgumentException($"{nameof(MLKemEncapsulator)} expects {nameof(MLKemPublicKeyParameters)}");
 
             m_publicKey = publicKey;
-            m_engine = GetEngine(m_publicKey.Parameters, CryptoServicesRegistrar.GetSecureRandom(providedRandom));
+            m_random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
+            m_engine = GetEngine(m_publicKey.Parameters);
         }
 
-        public int EncapsulationLength => m_engine.CryptoCipherTextBytes;
+        public int EncapsulationLength => m_engine.CipherTextBytes;
 
-        public int SecretLength => m_engine.CryptoBytes;
+        public int SecretLength => MLKemEngine.SharedSecretBytes;
 
         public void Encapsulate(byte[] encBuf, int encOff, int encLen, byte[] secBuf, int secOff, int secLen)
         {
@@ -49,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Kems
                 throw new ArgumentException(nameof(secLen));
 
             byte[] r = new byte[32];
-            m_engine.Random.NextBytes(r);
+            m_random.NextBytes(r);
             m_engine.KemEncrypt(encBuf, encOff, secBuf, secOff, m_publicKey, r);
 #endif
         }
@@ -63,19 +65,19 @@ namespace Org.BouncyCastle.Crypto.Kems
                 throw new ArgumentException(nameof(secret));
 
             Span<byte> r = stackalloc byte[32];
-            m_engine.Random.NextBytes(r);
+            m_random.NextBytes(r);
             m_engine.KemEncrypt(encapsulation, secret, m_publicKey, r);
         }
 #endif
 
-        private MLKemEngine GetEngine(MLKemParameters keyParameters, SecureRandom random)
+        private MLKemEngine GetEngine(MLKemParameters keyParameters)
         {
             var keyParameterSet = keyParameters.ParameterSet;
 
             if (keyParameterSet != m_parameters.ParameterSet)
                 throw new ArgumentException("Mismatching key parameter set", nameof(keyParameters));
 
-            return keyParameterSet.GetEngine(random);
+            return keyParameterSet.Engine;
         }
     }
 }

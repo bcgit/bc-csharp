@@ -1,49 +1,63 @@
 ﻿using System;
 
+using Org.BouncyCastle.Crypto.Digests;
+
 namespace Org.BouncyCastle.Crypto.Kems.MLKem
 {
     internal sealed class Poly
     {
         private readonly MLKemEngine m_engine;
-        private readonly Symmetric m_symmetric;
 
         internal readonly short[] m_coeffs = new short[MLKemEngine.N];
 
         internal Poly(MLKemEngine mEngine)
         {
             m_engine = mEngine;
-            m_symmetric = mEngine.Symmetric;
         }
 
         internal short[] Coeffs => m_coeffs;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal void GetNoiseEta1(ReadOnlySpan<byte> seed, byte nonce)
+        internal void GetNoiseEta1(IXof xof, ReadOnlySpan<byte> seed, byte nonce)
         {
             Span<byte> buf = stackalloc byte[m_engine.Eta1 * MLKemEngine.N / 4];
-            m_symmetric.Prf(seed, nonce, buf);
+            Prf(xof, seed, nonce, buf);
             Cbd.Eta(this, buf, m_engine.Eta1);
         }
 
-        internal void GetNoiseEta2(ReadOnlySpan<byte> seed, byte nonce)
+        internal void GetNoiseEta2(IXof xof, ReadOnlySpan<byte> seed, byte nonce)
         {
             Span<byte> buf = stackalloc byte[MLKemEngine.Eta2 * MLKemEngine.N / 4];
-            m_symmetric.Prf(seed, nonce, buf);
+            Prf(xof, seed, nonce, buf);
             Cbd.Eta(this, buf, MLKemEngine.Eta2);
         }
+
+        private static void Prf(IXof xof, ReadOnlySpan<byte> seed, byte nonce, Span<byte> output)
+        {
+            xof.BlockUpdate(seed);
+            xof.Update(nonce);
+            xof.OutputFinal(output);
+        }
 #else
-        internal void GetNoiseEta1(byte[] seed, byte nonce)
+        internal void GetNoiseEta1(IXof xof, byte[] seed, byte nonce)
         {
             byte[] buf = new byte[m_engine.Eta1 * MLKemEngine.N / 4];
-            m_symmetric.Prf(seed, nonce, buf);
+            Prf(xof, seed, nonce, buf);
             Cbd.Eta(this, buf, m_engine.Eta1);
         }
 
-        internal void GetNoiseEta2(byte[] seed, byte nonce)
+        internal void GetNoiseEta2(IXof xof, byte[] seed, byte nonce)
         {
             byte[] buf = new byte[MLKemEngine.Eta2 * MLKemEngine.N / 4];
-            m_symmetric.Prf(seed, nonce, buf);
+            Prf(xof, seed, nonce, buf);
             Cbd.Eta(this, buf, MLKemEngine.Eta2);
+        }
+
+        private static void Prf(IXof xof, byte[] seed, byte nonce, byte[] output)
+        {
+            xof.BlockUpdate(seed, 0, seed.Length);
+            xof.Update(nonce);
+            xof.OutputFinal(output, 0, output.Length);
         }
 #endif
 
