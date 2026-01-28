@@ -75,6 +75,20 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         internal bool CheckModulus(byte[] t) => PolyVec.CheckModulus(this, t) < 0;
 
+        internal bool CheckPrivateKeyHash(byte[] encoding)
+        {
+            int k = K, k384 = k * 384, k768 = k * 768;
+
+            byte[] kH = new byte[SymBytes];
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            H(encoding.AsSpan(k384, k384 + 32), kH.AsSpan());
+#else
+            H(encoding, k384, k384 + 32, kH, 0);
+#endif
+
+            return Arrays.FixedTimeEquals(SymBytes, kH, 0, encoding, k768 + 32);
+        }
+
         internal void GenerateKemKeyPair(SecureRandom random, out byte[] t, out byte[] rho, out byte[] s,
             out byte[] hpk, out byte[] nonce, out byte[] seed)
         {

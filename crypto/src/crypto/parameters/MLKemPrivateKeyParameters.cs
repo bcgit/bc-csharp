@@ -21,6 +21,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             var engine = parameters.ParameterSet.Engine;
             if (encoding.Length != engine.SecretKeyBytes)
                 throw new ArgumentException("Invalid length", nameof(encoding));
+            if (!engine.CheckPrivateKeyHash(encoding))
+                throw new ArgumentException("Failed hash check", nameof(encoding));
 
             int index = 0;
 
