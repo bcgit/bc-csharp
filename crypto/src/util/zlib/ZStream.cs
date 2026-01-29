@@ -160,13 +160,21 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             if(len>avail_out) len=avail_out;
             if(len==0) return;
 
-            if(dstate.pending_buf.Length<=dstate.pending_out ||
-                next_out.Length<=next_out_index ||
-                dstate.pending_buf.Length<(dstate.pending_out+len) ||
-                next_out.Length<(next_out_index+len)){
-                //      System.out.println(dstate.pending_buf.length+", "+dstate.pending_out+
-                //			 ", "+next_out.length+", "+next_out_index+", "+len);
-                //      System.out.println("avail_out="+avail_out);
+            if (this.dstate.pending_buf.Length <= this.dstate.pending_out || this.next_out.Length <= this.next_out_index || this.dstate.pending_buf.Length < this.dstate.pending_out + len || this.next_out.Length < this.next_out_index + len)
+            {
+                Console.Out.WriteLine(string.Concat(new object[]
+                {
+                    this.dstate.pending_buf.Length,
+                    ", ",
+                    this.dstate.pending_out,
+                    ", ",
+                    this.next_out.Length,
+                    ", ",
+                    this.next_out_index,
+                    ", ",
+                    len
+                }));
+                Console.Out.WriteLine("avail_out=" + this.avail_out);
             }
 
             System.Array.Copy(dstate.pending_buf, dstate.pending_out,

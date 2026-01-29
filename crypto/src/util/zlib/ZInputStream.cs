@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
             return z;
         }
 
-        private const int BufferSize = 4096;
+        private const int BufferSize = 512;
 
         protected ZStream z;
         protected int flushLevel = JZlib.Z_NO_FLUSH;
@@ -186,8 +186,6 @@ namespace Org.BouncyCastle.Utilities.Zlib
                 if (nomoreinput && err == JZlib.Z_BUF_ERROR)
                     return 0;
                 if (err != JZlib.Z_OK && err != JZlib.Z_STREAM_END)
-                    // TODO
-                    //throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
                     throw new IOException((compress ? "de" : "in") + "flating: " + z.msg);
                 if ((nomoreinput || err == JZlib.Z_STREAM_END) && z.avail_out == count)
                     return 0;
