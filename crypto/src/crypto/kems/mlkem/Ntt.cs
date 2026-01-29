@@ -1,4 +1,8 @@
-﻿namespace Org.BouncyCastle.Crypto.Kems.MLKem
+﻿#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
+
+namespace Org.BouncyCastle.Crypto.Kems.MLKem
 {
     internal static class Ntt
     {
@@ -28,10 +32,10 @@
             3127, 3042, 1907, 1836, 1517, 359, 758, 1441
         };
 
-        private static short FactorQMulMont(short a, short b)
-        {
-            return Reduce.MontgomeryReduce(a * b);
-        }
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
+        private static short MulMont(short a, short b) => Reduce.MontgomeryReduce(a * b);
 
         internal static void NTT(short[] r)
         {
@@ -43,9 +47,9 @@
                     short zeta = Zetas[k++];
                     for (j = start; j < start + len; ++j)
                     {
-                        short t = FactorQMulMont(zeta, r[j + len]);
-                        r[j + len] = (short)(r[j] - t);
-                        r[j] = (short)(r[j] + t);
+                        short t = r[j], u = MulMont(zeta, r[j + len]);
+                        r[j + len] = (short)(t - u);
+                        r[j      ] = (short)(t + u);
                     }
                 }
             }
@@ -61,29 +65,27 @@
                     short zeta = ZetasInv[k++];
                     for (j = start; j < start + len; ++j)
                     {
-                        short t = r[j];
-                        r[j] = Reduce.BarrettReduce((short)(t + r[j + len]));
-                        r[j + len] = (short)(t - r[j + len]);
-                        r[j + len] = FactorQMulMont(zeta, r[j + len]);
-
+                        short t = r[j], u = r[j + len];
+                        r[j      ] = Reduce.BarrettReduce((short)(t + u));
+                        r[j + len] = MulMont(zeta, (short)(t - u));
                     }
                 }
             }
             for (int i = 0; i < 256; ++i)
             {
-                r[i] = FactorQMulMont(r[i], ZetasInv[127]);
+                r[i] = MulMont(r[i], ZetasInv[127]);
             }
         }
 
         internal static void BaseMult(short[] r, int off, short a0, short a1, short b0, short b1, short zeta)
         {
-            short outVal0 = FactorQMulMont(a1, b1);
-            outVal0 = FactorQMulMont(outVal0, zeta);
-            outVal0 += FactorQMulMont(a0, b0);
+            short outVal0 = MulMont(a1, b1);
+            outVal0 = MulMont(outVal0, zeta);
+            outVal0 += MulMont(a0, b0);
             r[off] = outVal0;
 
-            short outVal1 = FactorQMulMont(a0, b1);
-            outVal1 += FactorQMulMont(a1, b0);
+            short outVal1 = MulMont(a0, b1);
+            outVal1 += MulMont(a1, b0);
             r[off + 1] = outVal1;
         }
     }

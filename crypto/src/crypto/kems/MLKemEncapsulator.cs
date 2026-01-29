@@ -50,9 +50,10 @@ namespace Org.BouncyCastle.Crypto.Kems
             if (SecretLength != secLen)
                 throw new ArgumentException(nameof(secLen));
 
-            byte[] r = new byte[32];
-            m_random.NextBytes(r);
-            m_engine.KemEncrypt(encBuf, encOff, secBuf, secOff, m_publicKey, r);
+            byte[] randBytes = new byte[MLKemEngine.SymBytes];
+            m_random.NextBytes(randBytes);
+
+            m_engine.KemEncrypt(m_publicKey.Encoding, randBytes, encBuf, encOff, secBuf, secOff);
 #endif
         }
 
@@ -64,9 +65,10 @@ namespace Org.BouncyCastle.Crypto.Kems
             if (SecretLength != secret.Length)
                 throw new ArgumentException(nameof(secret));
 
-            Span<byte> r = stackalloc byte[32];
-            m_random.NextBytes(r);
-            m_engine.KemEncrypt(encapsulation, secret, m_publicKey, r);
+            Span<byte> randBytes = stackalloc byte[MLKemEngine.SymBytes];
+            m_random.NextBytes(randBytes);
+
+            m_engine.KemEncrypt(m_publicKey.Encoding.AsSpan(), randBytes, encapsulation, secret);
         }
 #endif
 

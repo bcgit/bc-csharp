@@ -209,9 +209,9 @@ namespace Org.BouncyCastle.Crypto.Tests
                         MLKemPublicKeyParameters.FromEncoding(parameters, key);
                         Assert.Fail();
                     }
-                    catch (ArgumentException e)
+                    catch (ArgumentException)
                     {
-                        Assert.AreEqual("Modulus check failed for ML-KEM public key", e.Message);
+                        // expected
                     }
                 }
             }

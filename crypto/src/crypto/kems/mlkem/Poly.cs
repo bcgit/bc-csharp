@@ -1,35 +1,28 @@
-﻿using System;
-
-using Org.BouncyCastle.Crypto.Digests;
+﻿#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System;
+#endif
 
 namespace Org.BouncyCastle.Crypto.Kems.MLKem
 {
     internal sealed class Poly
     {
-        private readonly MLKemEngine m_engine;
-
         internal readonly short[] m_coeffs = new short[MLKemEngine.N];
-
-        internal Poly(MLKemEngine mEngine)
-        {
-            m_engine = mEngine;
-        }
 
         internal short[] Coeffs => m_coeffs;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal void GetNoiseEta1(IXof xof, ReadOnlySpan<byte> seed, byte nonce)
-        {
-            Span<byte> buf = stackalloc byte[m_engine.Eta1 * MLKemEngine.N / 4];
-            Prf(xof, seed, nonce, buf);
-            Cbd.Eta(this, buf, m_engine.Eta1);
-        }
-
         internal void GetNoiseEta2(IXof xof, ReadOnlySpan<byte> seed, byte nonce)
         {
-            Span<byte> buf = stackalloc byte[MLKemEngine.Eta2 * MLKemEngine.N / 4];
+            Span<byte> buf = stackalloc byte[2 * MLKemEngine.N / 4];
             Prf(xof, seed, nonce, buf);
-            Cbd.Eta(this, buf, MLKemEngine.Eta2);
+            Cbd.Eta2(m_coeffs.AsSpan(), buf);
+        }
+
+        internal void GetNoiseEta3(IXof xof, ReadOnlySpan<byte> seed, byte nonce)
+        {
+            Span<byte> buf = stackalloc byte[3 * MLKemEngine.N / 4];
+            Prf(xof, seed, nonce, buf);
+            Cbd.Eta3(m_coeffs.AsSpan(), buf);
         }
 
         private static void Prf(IXof xof, ReadOnlySpan<byte> seed, byte nonce, Span<byte> output)
@@ -39,18 +32,18 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             xof.OutputFinal(output);
         }
 #else
-        internal void GetNoiseEta1(IXof xof, byte[] seed, byte nonce)
-        {
-            byte[] buf = new byte[m_engine.Eta1 * MLKemEngine.N / 4];
-            Prf(xof, seed, nonce, buf);
-            Cbd.Eta(this, buf, m_engine.Eta1);
-        }
-
         internal void GetNoiseEta2(IXof xof, byte[] seed, byte nonce)
         {
-            byte[] buf = new byte[MLKemEngine.Eta2 * MLKemEngine.N / 4];
+            byte[] buf = new byte[2 * MLKemEngine.N / 4];
             Prf(xof, seed, nonce, buf);
-            Cbd.Eta(this, buf, MLKemEngine.Eta2);
+            Cbd.Eta2(m_coeffs, buf);
+        }
+
+        internal void GetNoiseEta3(IXof xof, byte[] seed, byte nonce)
+        {
+            byte[] buf = new byte[3 * MLKemEngine.N / 4];
+            Prf(xof, seed, nonce, buf);
+            Cbd.Eta3(m_coeffs, buf);
         }
 
         private static void Prf(IXof xof, byte[] seed, byte nonce, byte[] output)
@@ -121,13 +114,13 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal void CompressPoly(Span<byte> rBuf)
+        internal void CompressPoly128(Span<byte> rBuf)
         {
             int pos = 0;
 
             Span<byte> t = stackalloc byte[8];
 #else
-        internal void CompressPoly(byte[] rBuf, int rOff)
+        internal void CompressPoly128(byte[] rBuf, int rOff)
         {
             int pos = rOff;
 
@@ -136,93 +129,103 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             CondSubQ();
 
-            if (m_engine.PolyCompressedBytes == 128)
+            for (int i = 0; i < MLKemEngine.N / 8; i++)
             {
-                for (int i = 0; i < MLKemEngine.N / 8; i++)
+                for (int j = 0; j < 8; j++)
                 {
-                    for (int j = 0; j < 8; j++)
-                    {
-                        int c_j = m_coeffs[8 * i + j];
+                    int c_j = m_coeffs[8 * i + j];
 
-                        // Avoid non-constant-time division by Q.
-                        //t[j] = (byte)((((c_j << 4) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 15);
-                        t[j] = (byte)((((c_j + (MLKemEngine.Q >> 5)) * 315) >> 16) & 0xF);
-                    }
-                    rBuf[pos + 0] = (byte)(t[0] | (t[1] << 4));
-                    rBuf[pos + 1] = (byte)(t[2] | (t[3] << 4));
-                    rBuf[pos + 2] = (byte)(t[4] | (t[5] << 4));
-                    rBuf[pos + 3] = (byte)(t[6] | (t[7] << 4));
-                    pos += 4;
+                    // Avoid non-constant-time division by Q.
+                    //t[j] = (byte)((((c_j << 4) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 15);
+                    t[j] = (byte)((((c_j + (MLKemEngine.Q >> 5)) * 315) >> 16) & 0xF);
                 }
-            }
-            else if (m_engine.PolyCompressedBytes == 160)
-            {
-                for (int i = 0; i < MLKemEngine.N / 8; i++)
-                {
-                    for (int j = 0; j < 8; j++)
-                    {
-                        int c_j = m_coeffs[8 * i + j];
-
-                        // Avoid non-constant-time division by Q.
-                        //t[j] = (byte)((((c_j << 5) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 31);
-                        t[j] = (byte)((((c_j + (MLKemEngine.Q >> 6)) * 630) >> 16) & 0x1F);
-                    }
-                    rBuf[pos + 0] = (byte)((t[0] >> 0) | (t[1] << 5));
-                    rBuf[pos + 1] = (byte)((t[1] >> 3) | (t[2] << 2) | (t[3] << 7));
-                    rBuf[pos + 2] = (byte)((t[3] >> 1) | (t[4] << 4));
-                    rBuf[pos + 3] = (byte)((t[4] >> 4) | (t[5] << 1) | (t[6] << 6));
-                    rBuf[pos + 4] = (byte)((t[6] >> 2) | (t[7] << 3));
-                    pos += 5;
-                }
-            }
-            else
-            {
-                throw new ArgumentException("PolyCompressedBytes is neither 128 or 160!");
+                rBuf[pos + 0] = (byte)(t[0] | (t[1] << 4));
+                rBuf[pos + 1] = (byte)(t[2] | (t[3] << 4));
+                rBuf[pos + 2] = (byte)(t[4] | (t[5] << 4));
+                rBuf[pos + 3] = (byte)(t[6] | (t[7] << 4));
+                pos += 4;
             }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal void DecompressPoly(ReadOnlySpan<byte> cBuf)
+        internal void CompressPoly160(Span<byte> rBuf)
+        {
+            int pos = 0;
+
+            Span<byte> t = stackalloc byte[8];
+#else
+        internal void CompressPoly160(byte[] rBuf, int rOff)
+        {
+            int pos = rOff;
+
+            byte[] t = new byte[8];
+#endif
+
+            CondSubQ();
+
+            for (int i = 0; i < MLKemEngine.N / 8; i++)
+            {
+                for (int j = 0; j < 8; j++)
+                {
+                    int c_j = m_coeffs[8 * i + j];
+
+                    // Avoid non-constant-time division by Q.
+                    //t[j] = (byte)((((c_j << 5) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 31);
+                    t[j] = (byte)((((c_j + (MLKemEngine.Q >> 6)) * 630) >> 16) & 0x1F);
+                }
+                rBuf[pos + 0] = (byte)((t[0] >> 0) | (t[1] << 5));
+                rBuf[pos + 1] = (byte)((t[1] >> 3) | (t[2] << 2) | (t[3] << 7));
+                rBuf[pos + 2] = (byte)((t[3] >> 1) | (t[4] << 4));
+                rBuf[pos + 3] = (byte)((t[4] >> 4) | (t[5] << 1) | (t[6] << 6));
+                rBuf[pos + 4] = (byte)((t[6] >> 2) | (t[7] << 3));
+                pos += 5;
+            }
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void DecompressPoly128(ReadOnlySpan<byte> cBuf)
         {
             int pos = 0;
 #else
-        internal void DecompressPoly(byte[] cBuf, int cOff)
+        internal void DecompressPoly128(byte[] cBuf, int cOff)
         {
             int pos = cOff;
 #endif
 
-            if (m_engine.PolyCompressedBytes == 128)
+            for (int i = 0; i < MLKemEngine.N / 2; i++)
             {
-                for (int i = 0; i < MLKemEngine.N / 2; i++)
-                {
-                    Coeffs[2 * i + 0]  = (short)((((short)((cBuf[pos] & 0xFF) & 15) * MLKemEngine.Q) + 8) >> 4);
-                    Coeffs[2 * i + 1] = (short)((((short)((cBuf[pos] & 0xFF) >> 4) * MLKemEngine.Q) + 8) >> 4);
-                    pos += 1;
-                }
+                Coeffs[2 * i + 0] = (short)((((short)((cBuf[pos] & 0xFF) & 15) * MLKemEngine.Q) + 8) >> 4);
+                Coeffs[2 * i + 1] = (short)((((short)((cBuf[pos] & 0xFF) >> 4) * MLKemEngine.Q) + 8) >> 4);
+                pos += 1;
             }
-            else if (m_engine.PolyCompressedBytes == 160)
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void DecompressPoly160(ReadOnlySpan<byte> cBuf)
+        {
+            int pos = 0;
+#else
+        internal void DecompressPoly160(byte[] cBuf, int cOff)
+        {
+            int pos = cOff;
+#endif
+
+            byte[] t = new byte[8];
+            for (int i = 0; i < MLKemEngine.N / 8; i++)
             {
-                byte[] t = new byte[8];
-                for (int i = 0; i < MLKemEngine.N / 8; i++)
+                t[0] = (byte)((cBuf[pos + 0] & 0xFF) >> 0);
+                t[1] = (byte)(((cBuf[pos + 0] & 0xFF) >> 5) | ((cBuf[pos + 1] & 0xFF) << 3));
+                t[2] = (byte)((cBuf[pos + 1] & 0xFF) >> 2);
+                t[3] = (byte)(((cBuf[pos + 1] & 0xFF) >> 7) | ((cBuf[pos + 2] & 0xFF) << 1));
+                t[4] = (byte)(((cBuf[pos + 2] & 0xFF) >> 4) | ((cBuf[pos + 3] & 0xFF) << 4));
+                t[5] = (byte)((cBuf[pos + 3] & 0xFF) >> 1);
+                t[6] = (byte)(((cBuf[pos + 3] & 0xFF) >> 6) | ((cBuf[pos + 4] & 0xFF) << 2));
+                t[7] = (byte)((cBuf[pos + 4] & 0xFF) >> 3);
+                pos += 5;
+                for (int j = 0; j < 8; j++)
                 {
-                    t[0] = (byte)((cBuf[pos + 0] & 0xFF) >> 0);
-                    t[1] = (byte)(((cBuf[pos + 0] & 0xFF) >> 5) | ((cBuf[pos + 1] & 0xFF) << 3));
-                    t[2] = (byte)((cBuf[pos + 1] & 0xFF) >> 2);
-                    t[3] = (byte)(((cBuf[pos + 1] & 0xFF) >> 7) | ((cBuf[pos + 2] & 0xFF) << 1));
-                    t[4] = (byte)(((cBuf[pos + 2] & 0xFF) >> 4) | ((cBuf[pos + 3] & 0xFF) << 4));
-                    t[5] = (byte)((cBuf[pos + 3] & 0xFF) >> 1);
-                    t[6] = (byte)(((cBuf[pos + 3] & 0xFF) >> 6) | ((cBuf[pos + 4] & 0xFF) << 2));
-                    t[7] = (byte)((cBuf[pos + 4] & 0xFF) >> 3);
-                    pos += 5;
-                    for (int j = 0; j < 8; j++)
-                    {
-                        Coeffs[8 * i + j] = (short)(((t[j] & 31) * MLKemEngine.Q + 16) >> 5);
-                    }
+                    Coeffs[8 * i + j] = (short)(((t[j] & 31) * MLKemEngine.Q + 16) >> 5);
                 }
-            }
-            else
-            {
-                throw new ArgumentException("PolyCompressedBytes is neither 128 or 160!");
             }
         }
 
@@ -314,9 +317,6 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         internal void FromMsg(byte[] m)
 #endif
         {
-            if (m.Length != MLKemEngine.N / 8)
-                throw new ArgumentException("ML_KEM_INDCPA_MSGBYTES must be equal to ML_KEM_N/8 bytes!");
-
             for (int i = 0; i < MLKemEngine.N / 8; i++)
             {
                 for (int j = 0; j < 8; j++)

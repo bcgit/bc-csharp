@@ -1,26 +1,25 @@
-﻿using System;
+﻿#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System;
+#endif
 
 namespace Org.BouncyCastle.Crypto.Kems.MLKem
 {
     internal sealed class PolyVec
     {
-        private readonly MLKemEngine m_engine;
-
         internal readonly Poly[] m_vec;
 
-        internal PolyVec(MLKemEngine engine)
+        internal PolyVec(int K)
         {
-            m_engine = engine;
-            m_vec = new Poly[engine.K];
-            for (int i = 0; i < engine.K; i++)
+            m_vec = new Poly[K];
+            for (int i = 0; i < K; i++)
             {
-                m_vec[i] = new Poly(engine);
+                m_vec[i] = new Poly();
             }
         }
 
         internal void Ntt()
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
                 m_vec[i].PolyNtt();
             }
@@ -28,17 +27,17 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         internal void InverseNttToMont()
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
                 m_vec[i].PolyInverseNttToMont();
             }
         }
 
-        internal static void PointwiseAccountMontgomery(Poly r, PolyVec a, PolyVec b, MLKemEngine engine)
+        internal static void PointwiseAccountMontgomery(Poly r, PolyVec a, PolyVec b)
         {
-            Poly t = new Poly(engine);
+            Poly t = new Poly();
             Poly.BaseMultMontgomery(r, a.m_vec[0], b.m_vec[0]);
-            for (int i = 1; i < engine.K; i++)
+            for (int i = 1; i < a.m_vec.Length; i++)
             {
                 Poly.BaseMultMontgomery(t, a.m_vec[i], b.m_vec[i]);
                 r.Add(t);
@@ -48,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         internal void Add(PolyVec a)
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
                 m_vec[i].Add(a.m_vec[i]);
             }
@@ -56,7 +55,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         internal void Reduce()
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
                 m_vec[i].PolyReduce();
             }
@@ -71,47 +70,20 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         {
             int pos = rOff;
 #endif
+
             ConditionalSubQ();
-            if (m_engine.PolyVecCompressedBytes == m_engine.K * 320)
+
+            if (m_vec.Length == 4)
             {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                Span<short> t = stackalloc short[4];
-#else
-                short[] t = new short[4];
-#endif
+                // PolyVecCompressedBytes == K * 352
 
-                for (int i = 0; i < m_engine.K; i++)
-                {
-                    short[] coeffs = m_vec[i].m_coeffs;
-
-                    for (int j = 0; j < MLKemEngine.N / 4; j++)
-                    {
-                        for (int k = 0; k < 4; k++)
-                        {
-                            int c_k = coeffs[4 * j + k];
-
-                            // Avoid non-constant-time division by Q.
-                            //t[k] = (short)((((c_k << 10) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 0x3FF);
-                            t[k] = (short)((((long)((c_k << 3) + (MLKemEngine.Q >> 8)) * 165141429) >> 32) & 0x3FF);
-                        }
-                        rBuf[pos + 0] = (byte)(t[0] >> 0);
-                        rBuf[pos + 1] = (byte)((t[0] >> 8) | (t[1] << 2));
-                        rBuf[pos + 2] = (byte)((t[1] >> 6) | (t[2] << 4));
-                        rBuf[pos + 3] = (byte)((t[2] >> 4) | (t[3] << 6));
-                        rBuf[pos + 4] = (byte)((t[3] >> 2));
-                        pos += 5;
-                    }
-                }
-            }
-            else if (m_engine.PolyVecCompressedBytes == m_engine.K * 352)
-            {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 Span<short> t = stackalloc short[8];
 #else
                 short[] t = new short[8];
 #endif
 
-                for (int i = 0; i < m_engine.K; i++)
+                for (int i = 0; i < m_vec.Length; i++)
                 {
                     short[] coeffs = m_vec[i].m_coeffs;
 
@@ -142,7 +114,36 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             }
             else
             {
-                throw new ArgumentException("ML-KEM PolyVecCompressedBytes neither 320 * K or 352 * K!");
+                // PolyVecCompressedBytes == K * 320
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<short> t = stackalloc short[4];
+#else
+                short[] t = new short[4];
+#endif
+
+                for (int i = 0; i < m_vec.Length; i++)
+                {
+                    short[] coeffs = m_vec[i].m_coeffs;
+
+                    for (int j = 0; j < MLKemEngine.N / 4; j++)
+                    {
+                        for (int k = 0; k < 4; k++)
+                        {
+                            int c_k = coeffs[4 * j + k];
+
+                            // Avoid non-constant-time division by Q.
+                            //t[k] = (short)((((c_k << 10) + (MLKemEngine.Q / 2)) / MLKemEngine.Q) & 0x3FF);
+                            t[k] = (short)((((long)((c_k << 3) + (MLKemEngine.Q >> 8)) * 165141429) >> 32) & 0x3FF);
+                        }
+                        rBuf[pos + 0] = (byte)(t[0] >> 0);
+                        rBuf[pos + 1] = (byte)((t[0] >> 8) | (t[1] << 2));
+                        rBuf[pos + 2] = (byte)((t[1] >> 6) | (t[2] << 4));
+                        rBuf[pos + 3] = (byte)((t[2] >> 4) | (t[3] << 6));
+                        rBuf[pos + 4] = (byte)((t[3] >> 2));
+                        pos += 5;
+                    }
+                }
             }
         }
 
@@ -156,35 +157,11 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             int pos = cOff;
 #endif
 
-            if (m_engine.PolyVecCompressedBytes == (m_engine.K * 320))
+            if (m_vec.Length == 4)
             {
-                for (int i = 0; i < m_engine.K; i++)
-                {
-                    short[] coeffs = m_vec[i].m_coeffs;
-                    for (int j = 0; j < MLKemEngine.N; j += 4)
-                    {
-                        int c0 = cBuf[pos + 0];
-                        int c1 = cBuf[pos + 1];
-                        int c2 = cBuf[pos + 2];
-                        int c3 = cBuf[pos + 3];
-                        int c4 = cBuf[pos + 4];
-                        pos += 5;
+                // PolyVecCompressedBytes == K * 352
 
-                        short t0 = (short)((c0 >> 0) | ((ushort)c1 << 8));
-                        short t1 = (short)((c1 >> 2) | ((ushort)c2 << 6));
-                        short t2 = (short)((c2 >> 4) | ((ushort)c3 << 4));
-                        short t3 = (short)((c3 >> 6) | ((ushort)c4 << 2));
-
-                        coeffs[j + 0] = (short)(((t0 & 0x3FF) * MLKemEngine.Q + 512) >> 10);
-                        coeffs[j + 1] = (short)(((t1 & 0x3FF) * MLKemEngine.Q + 512) >> 10);
-                        coeffs[j + 2] = (short)(((t2 & 0x3FF) * MLKemEngine.Q + 512) >> 10);
-                        coeffs[j + 3] = (short)(((t3 & 0x3FF) * MLKemEngine.Q + 512) >> 10);
-                    }
-                }
-            }
-            else if (m_engine.PolyVecCompressedBytes == (m_engine.K * 352))
-            {
-                for (int i = 0; i < m_engine.K; i++)
+                for (int i = 0; i < m_vec.Length; i++)
                 {
                     short[] coeffs = m_vec[i].m_coeffs;
                     for (int j = 0; j < MLKemEngine.N; j += 8)
@@ -224,14 +201,38 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             }
             else
             {
-                throw new ArgumentException("ML-KEM PolyVecCompressedBytes neither 320 * K or 352 * K!");
+                // PolyVecCompressedBytes == K * 320
+
+                for (int i = 0; i < m_vec.Length; i++)
+                {
+                    short[] coeffs = m_vec[i].m_coeffs;
+                    for (int j = 0; j < MLKemEngine.N; j += 4)
+                    {
+                        int c0 = cBuf[pos + 0];
+                        int c1 = cBuf[pos + 1];
+                        int c2 = cBuf[pos + 2];
+                        int c3 = cBuf[pos + 3];
+                        int c4 = cBuf[pos + 4];
+                        pos += 5;
+
+                        short t0 = (short)((c0 >> 0) | ((ushort)c1 << 8));
+                        short t1 = (short)((c1 >> 2) | ((ushort)c2 << 6));
+                        short t2 = (short)((c2 >> 4) | ((ushort)c3 << 4));
+                        short t3 = (short)((c3 >> 6) | ((ushort)c4 << 2));
+
+                        coeffs[j + 0] = (short)(((t0 & 0x3FF) * MLKemEngine.Q + 512) >> 10);
+                        coeffs[j + 1] = (short)(((t1 & 0x3FF) * MLKemEngine.Q + 512) >> 10);
+                        coeffs[j + 2] = (short)(((t2 & 0x3FF) * MLKemEngine.Q + 512) >> 10);
+                        coeffs[j + 3] = (short)(((t3 & 0x3FF) * MLKemEngine.Q + 512) >> 10);
+                    }
+                }
             }
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal void FromBytes(ReadOnlySpan<byte> pk)
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
                 m_vec[i].FromBytes(pk.Slice(i * MLKemEngine.PolyBytes));
             }
@@ -239,7 +240,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         internal void ToBytes(Span<byte> r)
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
                 m_vec[i].ToBytes(r.Slice(i * MLKemEngine.PolyBytes));
             }
@@ -247,24 +248,24 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 #else
         internal void FromBytes(byte[] pk)
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
                 m_vec[i].FromBytes(pk, i * MLKemEngine.PolyBytes);
             }
         }
 
-        internal void ToBytes(byte[] r)
+        internal void ToBytes(byte[] r, int rOff)
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
-                m_vec[i].ToBytes(r, i * MLKemEngine.PolyBytes);
+                m_vec[i].ToBytes(r, rOff + i * MLKemEngine.PolyBytes);
             }
         }
 #endif
 
         private void ConditionalSubQ()
         {
-            for (int i = 0; i < m_engine.K; i++)
+            for (int i = 0; i < m_vec.Length; i++)
             {
                 m_vec[i].CondSubQ();
             }

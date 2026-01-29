@@ -17,22 +17,12 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            var engine = m_parameters.ParameterSet.Engine;
+            m_parameters.ParameterSet.Engine.GenerateKemKeyPair(m_random, out byte[] seed, out byte[] encoding);
 
-            engine.GenerateKemKeyPair(m_random, out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk,
-                out byte[] nonce, out byte[] seed);
+            var privateKey = new MLKemPrivateKeyParameters(m_parameters, seed, encoding,
+                preferredFormat: MLKemPrivateKeyParameters.Format.SeedAndEncoding);
 
-            return CreateKeyPair(m_parameters, t, rho, s, hpk, nonce, seed);
-        }
-
-        private static AsymmetricCipherKeyPair CreateKeyPair(MLKemParameters parameters, byte[] t, byte[] rho, byte[] s,
-            byte[] hpk, byte[] nonce, byte[] seed)
-        {
-            var format = MLKemPrivateKeyParameters.Format.SeedAndEncoding;
-
-            return new AsymmetricCipherKeyPair(
-                publicParameter: new MLKemPublicKeyParameters(parameters, t, rho),
-                privateParameter: new MLKemPrivateKeyParameters(parameters, s, hpk, nonce, t, rho, seed, format));
+            return new AsymmetricCipherKeyPair(privateKey.GetPublicKey(), privateKey);
         }
     }
 }

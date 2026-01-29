@@ -19,31 +19,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentNullException(nameof(encoding));
 
             var engine = parameters.ParameterSet.Engine;
+
             if (encoding.Length != engine.SecretKeyBytes)
                 throw new ArgumentException("Invalid length", nameof(encoding));
-            if (!engine.CheckPrivateKeyHash(encoding))
-                throw new ArgumentException("Failed hash check", nameof(encoding));
 
-            int index = 0;
+            encoding = Arrays.InternalCopyBuffer(encoding);
 
-            byte[] s = Arrays.CopyOfRange(encoding, 0, engine.IndCpaSecretKeyBytes);
-            index += engine.IndCpaSecretKeyBytes;
+            if (!engine.CheckDecapKeyHash(encoding))
+                throw new ArgumentException("Hash check failed", nameof(encoding));
 
-            byte[] t = Arrays.CopyOfRange(encoding, index, index + engine.IndCpaPublicKeyBytes - MLKemEngine.SymBytes);
-            index += engine.IndCpaPublicKeyBytes - MLKemEngine.SymBytes;
-
-            byte[] rho = Arrays.CopyOfRange(encoding, index, index + 32);
-            index += 32;
-
-            byte[] hpk = Arrays.CopyOfRange(encoding, index, index + 32);
-            index += 32;
-
-            byte[] nonce = Arrays.CopyOfRange(encoding, index, index + MLKemEngine.SymBytes);
-            //index += MLKemEngine.SymBytes;
-
-            byte[] seed = null;
-
-            return new MLKemPrivateKeyParameters(parameters, s, hpk, nonce, t, rho, seed, Format.EncodingOnly);
+            return new MLKemPrivateKeyParameters(parameters, seed: null, encoding, Format.EncodingOnly);
         }
 
         public static MLKemPrivateKeyParameters FromSeed(MLKemParameters parameters, byte[] seed) =>
@@ -59,48 +44,38 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (seed.Length != MLKemEngine.SeedBytes)
                 throw new ArgumentException("Invalid length", nameof(seed));
 
-            var format = CheckFormat(preferredFormat, seed);
+            preferredFormat = CheckFormat(preferredFormat, seed);
 
-            var engine = parameters.ParameterSet.Engine;
+            seed = Arrays.InternalCopyBuffer(seed);
 
-            byte[] d = Arrays.CopyOfRange(seed, 0, MLKemEngine.SymBytes);
-            byte[] z = Arrays.CopyOfRange(seed, MLKemEngine.SymBytes, seed.Length);
+            parameters.ParameterSet.Engine.GenerateKemKeyPairInternal(seed, out byte[] encoding);
 
-            engine.GenerateKemKeyPairInternal(d, z, out byte[] t, out byte[] rho, out byte[] s, out byte[] hpk,
-                out byte[] nonce, out byte[] seed2);
-
-            return new MLKemPrivateKeyParameters(parameters, s, hpk, nonce, t, rho, seed2, format);
+            return new MLKemPrivateKeyParameters(parameters, seed, encoding, preferredFormat);
         }
 
-        internal readonly byte[] m_s;
-        internal readonly byte[] m_hpk;
-        internal readonly byte[] m_nonce;
-        internal readonly byte[] m_t;
-        internal readonly byte[] m_rho;
-        internal readonly byte[] m_seed;
-
+        private readonly byte[] m_seed;
+        private readonly byte[] m_encoding;
         private readonly Format m_preferredFormat;
 
-        internal MLKemPrivateKeyParameters(MLKemParameters parameters, byte[] s, byte[] hpk, byte[] nonce, byte[] t,
-            byte[] rho, byte[] seed, Format preferredFormat)
-            : base(true, parameters)
+        internal MLKemPrivateKeyParameters(MLKemParameters parameters, byte[] seed, byte[] encoding,
+            Format preferredFormat)
+            : base(isPrivate: true, parameters)
         {
             Debug.Assert(null != seed || Format.EncodingOnly == preferredFormat);
 
-            m_s = s;
-            m_hpk = hpk;
-            m_nonce = nonce;
-            m_t = t;
-            m_rho = rho;
             m_seed = seed;
+            m_encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
             m_preferredFormat = preferredFormat;
         }
 
-        public byte[] GetEncoded() => Arrays.ConcatenateAll(m_s, m_t, m_rho, m_hpk, m_nonce);
+        internal byte[] Encoding => m_encoding;
 
-        public MLKemPublicKeyParameters GetPublicKey() => new MLKemPublicKeyParameters(Parameters, m_t, m_rho);
+        public byte[] GetEncoded() => Arrays.InternalCopyBuffer(m_encoding);
 
-        public byte[] GetPublicKeyEncoded() => Arrays.Concatenate(m_t, m_rho);
+        public MLKemPublicKeyParameters GetPublicKey() =>
+            new MLKemPublicKeyParameters(Parameters, GetPublicKeyEncoded());
+
+        public byte[] GetPublicKeyEncoded() => Parameters.ParameterSet.Engine.CopyEncapKey(decapKey: m_encoding);
 
         public byte[] GetSeed() => Arrays.Clone(m_seed);
 
@@ -113,8 +88,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (m_preferredFormat == preferredFormat)
                 return this;
 
-            return new MLKemPrivateKeyParameters(Parameters, m_s, m_hpk, m_nonce, m_t, m_rho, m_seed,
-                CheckFormat(preferredFormat, m_seed));
+            return new MLKemPrivateKeyParameters(Parameters, m_seed, m_encoding, CheckFormat(preferredFormat, m_seed));
         }
 
         private static Format CheckFormat(Format preferredFormat, byte[] seed)

@@ -15,49 +15,45 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (encoding == null)
                 throw new ArgumentNullException(nameof(encoding));
 
-            int publicKeyLength = parameters.ParameterSet.Engine.PublicKeyBytes;
-            if (encoding.Length != publicKeyLength)
+            var engine = parameters.ParameterSet.Engine;
+
+            if (encoding.Length != engine.PublicKeyBytes)
                 throw new ArgumentException("Invalid length", nameof(encoding));
 
-            byte[] t = Arrays.CopySegment(encoding, 0, publicKeyLength - MLKemEngine.SymBytes);
-            byte[] rho = Arrays.CopySegment(encoding, publicKeyLength - MLKemEngine.SymBytes, MLKemEngine.SymBytes);
-            return new MLKemPublicKeyParameters(parameters, t, rho);
+            encoding = Arrays.InternalCopyBuffer(encoding);
+
+            if (!engine.CheckEncapKeyModulus(encoding))
+                throw new ArgumentException("Modulus check failed", nameof(encoding));
+
+            return new MLKemPublicKeyParameters(parameters, encoding);
         }
 
-        internal readonly byte[] m_t;
-        internal readonly byte[] m_rho;
+        internal readonly byte[] m_encoding;
 
-        internal MLKemPublicKeyParameters(MLKemParameters parameters, byte[] t, byte[] rho)
-            : base(false, parameters)
+        internal MLKemPublicKeyParameters(MLKemParameters parameters, byte[] encoding)
+            : base(isPrivate: false, parameters)
         {
-            var parameterSet = parameters.ParameterSet;
-            var engine = parameterSet.Engine;
-
-            if (t.Length != engine.PolyVecBytes)
-                throw new ArgumentException("Invalid length", nameof(t));
-            if (rho.Length != MLKemEngine.SymBytes)
-                throw new ArgumentException("Invalid length", nameof(rho));
-
-            if (!engine.CheckModulus(t))
-                throw new ArgumentException("Modulus check failed for ML-KEM public key");
-
-            m_t = t;
-            m_rho = rho;
+            m_encoding = encoding ?? throw new ArgumentNullException(nameof(encoding));
         }
 
-        public byte[] GetEncoded() => Arrays.Concatenate(m_t, m_rho);
+        internal byte[] Encoding => m_encoding;
+
+        public byte[] GetEncoded() => Arrays.InternalCopyBuffer(m_encoding);
 
         // NB: Don't remove - needed by commented-out test cases
         internal Tuple<byte[], byte[]> InternalEncapsulate(byte[] randBytes)
         {
+            if (randBytes.Length != MLKemEngine.SymBytes)
+                throw new ArgumentException(nameof(randBytes));
+
             var engine = Parameters.ParameterSet.Engine;
 
             byte[] enc = new byte[engine.CipherTextBytes];
             byte[] sec = new byte[MLKemEngine.SharedSecretBytes];
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            engine.KemEncrypt(enc.AsSpan(), sec.AsSpan(), this, randBytes.AsSpan());
+            engine.KemEncrypt(Encoding.AsSpan(), randBytes.AsSpan(), enc.AsSpan(), sec.AsSpan());
 #else
-            engine.KemEncrypt(enc, 0, sec, 0, this, randBytes);
+            engine.KemEncrypt(Encoding, randBytes, enc, 0, sec, 0);
 #endif
             return Tuple.Create(enc, sec);
         }

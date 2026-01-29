@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 using Org.BouncyCastle.Crypto.Digests;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -73,50 +72,48 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             m_indCpa = new IndCpa(this);
         }
 
-        internal bool CheckModulus(byte[] t) => PolyVec.CheckModulus(this, t) < 0;
-
-        internal bool CheckPrivateKeyHash(byte[] encoding)
+        internal bool CheckDecapKeyHash(byte[] decapKey)
         {
             int k = K, k384 = k * 384, k768 = k * 768;
 
             byte[] kH = new byte[SymBytes];
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            H(encoding.AsSpan(k384, k384 + 32), kH.AsSpan());
+            H(decapKey.AsSpan(k384, k384 + 32), kH.AsSpan());
 #else
-            H(encoding, k384, k384 + 32, kH, 0);
+            H(decapKey, k384, k384 + 32, kH, 0);
 #endif
 
-            return Arrays.FixedTimeEquals(SymBytes, kH, 0, encoding, k768 + 32);
+            return Arrays.FixedTimeEquals(SymBytes, kH, 0, decapKey, k768 + 32);
         }
 
-        internal void GenerateKemKeyPair(SecureRandom random, out byte[] t, out byte[] rho, out byte[] s,
-            out byte[] hpk, out byte[] nonce, out byte[] seed)
-        {
-            byte[] d = new byte[SymBytes];
-            byte[] z = new byte[SymBytes];
-            random.NextBytes(d);
-            random.NextBytes(z);
+        internal bool CheckEncapKeyModulus(byte[] encapKey) => PolyVec.CheckModulus(this, t: encapKey) < 0;
 
-            GenerateKemKeyPairInternal(d, z, out t, out rho, out s, out hpk, out nonce, out seed);
+        internal byte[] CopyEncapKey(byte[] decapKey) =>
+            Arrays.CopySegment(decapKey, IndCpaSecretKeyBytes, PublicKeyBytes);
+
+        internal void GenerateKemKeyPair(SecureRandom random, out byte[] seed, out byte[] encoding)
+        {
+            seed = SecureRandom.GetNextBytes(random, SymBytes * 2);
+
+            GenerateKemKeyPairInternal(seed, out encoding);
         }
 
-        internal void GenerateKemKeyPairInternal(byte[] d, byte[] z, out byte[] t, out byte[] rho, out byte[] s,
-            out byte[] hpk, out byte[] nonce, out byte[] seed)
+        internal void GenerateKemKeyPairInternal(byte[] seed, out byte[] encoding)
         {
-            m_indCpa.GenerateKeyPair(d, out byte[] pk, out s);
-            Debug.Assert(s.Length == IndCpaSecretKeyBytes);
+            Debug.Assert(seed.Length == SeedBytes);
 
-            hpk = new byte[32];
+            encoding = new byte[SecretKeyBytes];
+
+            m_indCpa.GenerateKeyPair(seed, encoding);
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            H(pk.AsSpan(), hpk.AsSpan());
+            H(encoding.AsSpan(IndCpaSecretKeyBytes, IndCpaPublicKeyBytes),
+                encoding.AsSpan(SecretKeyBytes - SymBytes * 2));
 #else
-            H(pk, 0, pk.Length, hpk, 0);
+            H(encoding, IndCpaSecretKeyBytes, IndCpaPublicKeyBytes, encoding, SecretKeyBytes - SymBytes * 2);
 #endif
 
-            t = Arrays.CopyOfRange(pk, 0, IndCpaPublicKeyBytes - 32);
-            rho = Arrays.CopyOfRange(pk, IndCpaPublicKeyBytes - 32, IndCpaPublicKeyBytes);
-            nonce = z;
-            seed = Arrays.Concatenate(d, z);
+            Array.Copy(seed, SymBytes, encoding, SecretKeyBytes - SymBytes, SymBytes);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -132,23 +129,22 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             digest.DoFinal(output);
         }
 
-        internal void KemDecrypt(Span<byte> secret, ReadOnlySpan<byte> encapsulation,
-            MLKemPrivateKeyParameters privateKey)
+        internal void KemDecrypt(ReadOnlySpan<byte> decapKey, ReadOnlySpan<byte> encapsulation, Span<byte> secret)
         {
-            byte[] decapKey = privateKey.GetEncoded();
+            Debug.Assert(decapKey.Length == SecretKeyBytes);
 
             // TODO Input validation?
-            Span<byte> kr = stackalloc byte[2 * SymBytes];
             Span<byte> buf = stackalloc byte[2 * SymBytes];
-            Span<byte> cmp = stackalloc byte[CipherTextBytes];
-            ReadOnlySpan<byte> pk = decapKey.AsSpan(IndCpaSecretKeyBytes);
+            m_indCpa.Decrypt(encapsulation, decapKey, buf);
+            decapKey.Slice(SecretKeyBytes - 2 * SymBytes, SymBytes).CopyTo(buf[SymBytes..]);
 
-            m_indCpa.Decrypt(buf, encapsulation, decapKey);
-            decapKey.AsSpan(SecretKeyBytes - 2 * SymBytes, SymBytes).CopyTo(buf[SymBytes..]);
-
+            Span<byte> kr = stackalloc byte[2 * SymBytes];
             G(buf, kr);
 
-            m_indCpa.Encrypt(cmp, buf[..SymBytes], pk, kr[SymBytes..]);
+            Span<byte> cmp = stackalloc byte[CipherTextBytes];
+            ReadOnlySpan<byte> pk = decapKey.Slice(IndCpaSecretKeyBytes, IndCpaPublicKeyBytes);
+
+            m_indCpa.Encrypt(buf[..SymBytes], pk, kr[SymBytes..], cmp);
 
             int fail = ~FixedTimeEquals(cmp, encapsulation);
 
@@ -158,7 +154,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
                 // J(z||c)
                 var xof = new ShakeDigest(256);
-                xof.BlockUpdate(decapKey.AsSpan(SecretKeyBytes - SymBytes, SymBytes));
+                xof.BlockUpdate(decapKey.Slice(SecretKeyBytes - SymBytes, SymBytes));
                 xof.BlockUpdate(encapsulation);
                 xof.OutputFinal(implicitRejection);
 
@@ -168,21 +164,22 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             kr[..SharedSecretBytes].CopyTo(secret);
         }
 
-        internal void KemEncrypt(Span<byte> encapsulation, Span<byte> secret, MLKemPublicKeyParameters publicKey,
-            ReadOnlySpan<byte> randBytes)
+        internal void KemEncrypt(ReadOnlySpan<byte> encapKey, ReadOnlySpan<byte> randBytes, Span<byte> encapsulation,
+            Span<byte> secret)
         {
-            ReadOnlySpan<byte> pk = publicKey.GetEncoded();
+            Debug.Assert(encapKey.Length == PublicKeyBytes);
+            Debug.Assert(randBytes.Length == SymBytes);
 
             Span<byte> buf = stackalloc byte[2 * SymBytes];
             Span<byte> kr = stackalloc byte[2 * SymBytes];
 
             randBytes[..SymBytes].CopyTo(buf);
 
-            H(pk, buf[SymBytes..]);
+            H(encapKey, buf[SymBytes..]);
 
             G(buf, kr);
 
-            m_indCpa.Encrypt(encapsulation, buf[..SymBytes], pk, kr[SymBytes..]);
+            m_indCpa.Encrypt(buf[..SymBytes], encapKey, kr[SymBytes..], encapsulation);
 
             kr[..SharedSecretBytes].CopyTo(secret);
         }
@@ -225,20 +222,22 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             digest.DoFinal(outBuf, outOff);
         }
 
-        internal void KemDecrypt(byte[] secBuf, int secOff, byte[] encBuf, int encOff,
-            MLKemPrivateKeyParameters privateKey)
+        internal void KemDecrypt(byte[] decapKey, byte[] encBuf, int encOff, byte[] secBuf, int secOff)
         {
-            byte[] decapKey = privateKey.GetEncoded();
+            Debug.Assert(decapKey.Length == SecretKeyBytes);
 
             // TODO Input validation?
-            byte[] buf = new byte[2 * SymBytes], kr = new byte[2 * SymBytes], cmp = new byte[CipherTextBytes];
-            byte[] pk = Arrays.CopyOfRange(decapKey, IndCpaSecretKeyBytes, decapKey.Length);
-            m_indCpa.Decrypt(buf, encBuf, encOff, decapKey);
+            byte[] buf = new byte[2 * SymBytes];
+            m_indCpa.Decrypt(encBuf, encOff, decapKey, buf);
             Array.Copy(decapKey, SecretKeyBytes - 2 * SymBytes, buf, SymBytes, SymBytes);
 
+            byte[] kr = new byte[2 * SymBytes];
             G(buf, kr);
 
-            m_indCpa.Encrypt(cmp, 0, Arrays.CopyOf(buf, SymBytes), pk, Arrays.CopyOfRange(kr, SymBytes, kr.Length));
+            byte[] cmp = new byte[CipherTextBytes];
+            byte[] pk = Arrays.InternalCopySegment(decapKey, IndCpaSecretKeyBytes, IndCpaPublicKeyBytes);
+
+            m_indCpa.Encrypt(buf, pk, Arrays.InternalCopySegment(kr, SymBytes, SymBytes), cmp, 0);
 
             int fail = ~FixedTimeEquals(CipherTextBytes, cmp, 0, encBuf, encOff);
 
@@ -258,22 +257,22 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             Array.Copy(kr, 0, secBuf, secOff, SharedSecretBytes);
         }
 
-        internal void KemEncrypt(byte[] encBuf, int encOff, byte[] secBuf, int secOff,
-            MLKemPublicKeyParameters publicKey, byte[] randBytes)
+        internal void KemEncrypt(byte[] encapKey, byte[] randBytes, byte[] encBuf, int encOff, byte[] secBuf,
+            int secOff)
         {
-            byte[] pk = publicKey.GetEncoded();
+            Debug.Assert(encapKey.Length == PublicKeyBytes);
+            Debug.Assert(randBytes.Length == SymBytes);
 
             byte[] buf = new byte[2 * SymBytes];
             byte[] kr = new byte[2 * SymBytes];
 
             Array.Copy(randBytes, 0, buf, 0, SymBytes);
 
-            H(pk, 0, pk.Length, buf, SymBytes);
+            H(encapKey, 0, PublicKeyBytes, buf, SymBytes);
 
             G(buf, kr);
 
-            m_indCpa.Encrypt(encBuf, encOff, Arrays.CopyOfRange(buf, 0, SymBytes), pk,
-                Arrays.CopyOfRange(kr, SymBytes, 2 * SymBytes));
+            m_indCpa.Encrypt(buf, encapKey, Arrays.InternalCopySegment(kr, SymBytes, SymBytes), encBuf, encOff);
 
             Array.Copy(kr, 0, secBuf, secOff, SharedSecretBytes);
         }
