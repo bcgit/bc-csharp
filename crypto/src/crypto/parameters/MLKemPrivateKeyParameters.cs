@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (m_preferredFormat == preferredFormat)
                 return this;
 
-            return new MLKemPrivateKeyParameters(Parameters, m_seed, m_hpk, m_nonce, m_t, m_rho, m_seed,
+            return new MLKemPrivateKeyParameters(Parameters, m_s, m_hpk, m_nonce, m_t, m_rho, m_seed,
                 CheckFormat(preferredFormat, m_seed));
         }
 

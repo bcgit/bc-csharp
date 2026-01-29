@@ -275,6 +275,23 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.True(Arrays.AreEqual(randBytes, testBytes));
         }
 
+        [Test]
+        public void WithPreferredFormat()
+        {
+            foreach (var parameters in ParametersValues)
+            {
+                var kpg = new MLKemKeyPairGenerator();
+                kpg.Init(new MLKemKeyGenerationParameters(Random, parameters));
+
+                var kp = kpg.GenerateKeyPair();
+                var privateKey = (MLKemPrivateKeyParameters)kp.Private;
+
+                ImplWithPreferredFormat(privateKey, MLKemPrivateKeyParameters.Format.SeedOnly);
+                ImplWithPreferredFormat(privateKey, MLKemPrivateKeyParameters.Format.EncodingOnly);
+                ImplWithPreferredFormat(privateKey, MLKemPrivateKeyParameters.Format.SeedAndEncoding);
+            }
+        }
+
         private static void ImplDecap(string name, Dictionary<string, string> data, MLKemParameters parameters)
         {
             byte[] c = Hex.Decode(data["c"]);
@@ -334,6 +351,29 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.True(Arrays.AreEqual(dk, privateKeyRT.GetEncoded()), name + ": dk");
             Assert.True(Arrays.AreEqual(ek, publicKeyRT.GetEncoded()), name + ": ek");
+        }
+
+        private static void ImplWithPreferredFormat(MLKemPrivateKeyParameters privateKey,
+            MLKemPrivateKeyParameters.Format format)
+        {
+            var originalFormat = privateKey.PreferredFormat;
+            var originalSeed = privateKey.GetSeed();
+            var originalEncoding = privateKey.GetEncoded();
+
+            var updatedPrivateKey = privateKey.WithPreferredFormat(format);
+
+            var updatedFormat = updatedPrivateKey.PreferredFormat;
+            var updatedSeed = updatedPrivateKey.GetSeed();
+            var updatedEncoding = updatedPrivateKey.GetEncoded();
+
+            Assert.AreEqual(format, updatedFormat);
+            Assert.True(Arrays.AreEqual(originalSeed, updatedSeed));
+            Assert.True(Arrays.AreEqual(originalEncoding, updatedEncoding));
+
+            if (format == originalFormat)
+            {
+                Assert.AreSame(privateKey, updatedPrivateKey);
+            }
         }
 
         private static void RunTestVectors(string homeDir, string fileName, RunTestVector runTestVector)
