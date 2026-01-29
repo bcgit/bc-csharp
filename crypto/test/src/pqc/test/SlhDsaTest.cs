@@ -16,19 +16,7 @@ namespace Org.BouncyCastle.Pqc.Tests
         private static readonly byte[] Message = Strings.ToByteArray(
             "Cthulhu Fthagn --What a wonderful phrase!Cthulhu Fthagn --Say it and you're crazed!");
 
-        private SecureRandom m_random = null;
-
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            m_random = new SecureRandom();
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            m_random = null;
-        }
+        private readonly SecureRandom Random = new SecureRandom();
 
         [Test]
         public void HashSlhDsaKatSigSha2()
@@ -98,13 +86,13 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void HashSlhDsaRandomSigSha2()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(m_random,
+            kpg.Init(new SlhDsaKeyGenerationParameters(Random,
                 NistObjectIdentifiers.id_hash_slh_dsa_sha2_256f_with_sha512));
 
             var kp = kpg.GenerateKeyPair();
 
             var sig = SignerUtilities.InitSigner(NistObjectIdentifiers.id_hash_slh_dsa_sha2_256f_with_sha512,
-                forSigning: true, kp.Private, m_random);
+                forSigning: true, kp.Private, Random);
 
             sig.BlockUpdate(Message, 0, Message.Length);
             byte[] s = sig.GenerateSignature();
@@ -120,13 +108,13 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void HashSlhDsaRandomSigShake()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(m_random,
+            kpg.Init(new SlhDsaKeyGenerationParameters(Random,
                 NistObjectIdentifiers.id_hash_slh_dsa_shake_256f_with_shake256));
 
             var kp = kpg.GenerateKeyPair();
 
             var sig = SignerUtilities.InitSigner(NistObjectIdentifiers.id_hash_slh_dsa_shake_256f_with_shake256,
-                forSigning: true, kp.Private, m_random);
+                forSigning: true, kp.Private, Random);
 
             sig.BlockUpdate(Message, 0, Message.Length);
             byte[] s = sig.GenerateSignature();
@@ -204,12 +192,12 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void SlhDsaRandomSigSha2()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_slh_dsa_sha2_256f));
+            kpg.Init(new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_sha2_256f));
 
             var kp = kpg.GenerateKeyPair();
 
             var sig = SignerUtilities.InitSigner(NistObjectIdentifiers.id_slh_dsa_sha2_256f, forSigning: true,
-                kp.Private, m_random);
+                kp.Private, Random);
 
             sig.BlockUpdate(Message, 0, Message.Length);
             byte[] s = sig.GenerateSignature();
@@ -225,12 +213,12 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void SlhDsaRandomSigShake()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("SLH-DSA");
-            kpg.Init(new SlhDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_slh_dsa_shake_256f));
+            kpg.Init(new SlhDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_slh_dsa_shake_256f));
 
             var kp = kpg.GenerateKeyPair();
 
             var sig = SignerUtilities.InitSigner(NistObjectIdentifiers.id_slh_dsa_shake_256f, forSigning: true,
-                kp.Private, m_random);
+                kp.Private, Random);
 
             sig.BlockUpdate(Message, 0, Message.Length);
             byte[] s = sig.GenerateSignature();

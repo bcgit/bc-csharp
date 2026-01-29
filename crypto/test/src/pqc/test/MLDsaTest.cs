@@ -20,19 +20,7 @@ namespace Org.BouncyCastle.Pqc.Tests
     {
         private static readonly byte[] Message = Strings.ToByteArray("Hello World!");
 
-        private SecureRandom m_random = null;
-
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            m_random = new SecureRandom();
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            m_random = null;
-        }
+        private readonly SecureRandom Random = new SecureRandom();
 
         [Test]
         public void HashMLDsaKatSig()
@@ -76,7 +64,7 @@ namespace Org.BouncyCastle.Pqc.Tests
             Assert.True(sigDet.VerifySignature(s));
 
             // check randomisation
-            var withRandom = new ParametersWithRandom(kp.Private, m_random);
+            var withRandom = new ParametersWithRandom(kp.Private, Random);
 
             sigRnd.Init(forSigning: true, withRandom);
             sigRnd.BlockUpdate(msg, 0, msg.Length);
@@ -150,7 +138,7 @@ namespace Org.BouncyCastle.Pqc.Tests
             Assert.True(sigDet.VerifySignature(s));
 
             // check randomisation
-            var withRandom = new ParametersWithRandom(kp.Private, m_random);
+            var withRandom = new ParametersWithRandom(kp.Private, Random);
 
             sigRnd.Init(forSigning: true, new ParametersWithContext(withRandom, context));
             sigRnd.BlockUpdate(msg, 0, msg.Length);
@@ -166,12 +154,12 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void HashMLDsaRandomSig()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            kpg.Init(new MLDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512));
+            kpg.Init(new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512));
 
             var kp = kpg.GenerateKeyPair();
 
             var sig = SignerUtilities.InitSigner(NistObjectIdentifiers.id_hash_ml_dsa_44_with_sha512, forSigning: true,
-                kp.Private, m_random);
+                kp.Private, Random);
 
             sig.BlockUpdate(Message, 0, Message.Length);
             byte[] s = sig.GenerateSignature();
@@ -225,7 +213,7 @@ namespace Org.BouncyCastle.Pqc.Tests
             Assert.True(sigDet.VerifySignature(s));
 
             // check randomisation
-            var withRandom = new ParametersWithRandom(kp.Private, m_random);
+            var withRandom = new ParametersWithRandom(kp.Private, Random);
 
             sigRnd.Init(forSigning: true, withRandom);
             sigRnd.BlockUpdate(msg, 0, msg.Length);
@@ -281,7 +269,7 @@ namespace Org.BouncyCastle.Pqc.Tests
             Assert.True(sigDet.VerifySignature(s));
 
             // check randomisation
-            var withRandom = new ParametersWithRandom(kp.Private, m_random);
+            var withRandom = new ParametersWithRandom(kp.Private, Random);
 
             sigRnd.Init(forSigning: true, new ParametersWithContext(withRandom, context));
             sigRnd.BlockUpdate(msg, 0, msg.Length);
@@ -297,12 +285,12 @@ namespace Org.BouncyCastle.Pqc.Tests
         public void MLDsaRandomSig()
         {
             var kpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            kpg.Init(new MLDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_ml_dsa_44));
+            kpg.Init(new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
 
             var kp = kpg.GenerateKeyPair();
 
             var sig = SignerUtilities.InitSigner(NistObjectIdentifiers.id_ml_dsa_44, forSigning: true, kp.Private,
-                m_random);
+                Random);
 
             sig.BlockUpdate(Message, 0, Message.Length);
             byte[] s = sig.GenerateSignature();

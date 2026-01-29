@@ -11,10 +11,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748.Tests
     [TestFixture]
     public class X25519Test
     {
-        private static readonly SecureRandom Random = new SecureRandom();
+        private readonly SecureRandom Random = new SecureRandom();
 
-        [SetUp]
-        public void SetUp()
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
         {
             X25519.Precompute();
         }

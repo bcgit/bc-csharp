@@ -21,11 +21,6 @@ namespace Org.BouncyCastle.Math.EC.Tests
     public class ECPointTest
     {
         /**
-         * Random source used to generate random points
-         */
-        private SecureRandom Random = new SecureRandom();
-
-        /**
          * Nested class containing sample literature values for <code>Fp</code>.
          */
         public class Fp
@@ -46,19 +41,21 @@ namespace Org.BouncyCastle.Math.EC.Tests
 
             internal static readonly int[] pointSource = { 1, 5, 4, 10, 234, 1024, 817, 912 };
 
-            internal static ECPoint[] p = new ECPoint[pointSource.Length / 2];
+            internal static ECPoint[] p = CreatePoints();
 
             /**
              * Creates the points on the curve with literature values.
              */
-            internal static void CreatePoints()
+            internal static ECPoint[] CreatePoints()
             {
+                ECPoint[] p = new ECPoint[pointSource.Length / 2];
                 for (int i = 0; i < pointSource.Length / 2; i++)
                 {
                     p[i] = curve.CreatePoint(
                         new BigInteger(pointSource[2 * i].ToString()),
                         new BigInteger(pointSource[2 * i + 1].ToString()));
                 }
+                return p;
             }
         }
 
@@ -89,28 +86,25 @@ namespace Org.BouncyCastle.Math.EC.Tests
             internal static readonly string[] pointSource = { "0010", "1111", "1100", "1100",
                     "0001", "0001", "1011", "0010" };
 
-            internal static readonly ECPoint[] p = new ECPoint[pointSource.Length / 2];
+            internal static readonly ECPoint[] p = CreatePoints();
 
             /**
              * Creates the points on the curve with literature values.
              */
-            internal static void CreatePoints()
+            private static ECPoint[] CreatePoints()
             {
+                ECPoint[] p = new ECPoint[pointSource.Length / 2];
                 for (int i = 0; i < pointSource.Length / 2; i++)
                 {
                     p[i] = curve.CreatePoint(
                         new BigInteger(pointSource[2 * i], 2),
                         new BigInteger(pointSource[2 * i + 1], 2));
                 }
+                return p;
             }
         }
 
-        [SetUp]
-        public void SetUp()
-        {
-            Fp.CreatePoints();
-            F2m.CreatePoints();
-        }
+        private readonly SecureRandom Random = new SecureRandom();
 
         /**
          * Tests, if inconsistent points can be created, i.e. points with exactly

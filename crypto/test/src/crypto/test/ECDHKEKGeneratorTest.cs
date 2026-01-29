@@ -14,19 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tests
     [TestFixture]
     public class ECDHKekGeneratorTest
     {
-        private static SecureRandom Random;
-
-        [SetUp]
-        public void SetUp()
-        {
-            Random = new SecureRandom();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            Random = null;
-        }
+        private readonly SecureRandom Random = new SecureRandom();
 
         [Test]
         public void Test128()

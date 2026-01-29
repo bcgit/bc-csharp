@@ -21,19 +21,7 @@ namespace Org.BouncyCastle.Cmp.Tests
     [TestFixture]
     public class PqcTest
     {
-        private SecureRandom m_random = null;
-
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            m_random = new SecureRandom();
-        }
-
-        [OneTimeTearDown]
-        public void OneTimeTearDown()
-        {
-            m_random = null;
-        }
+        private readonly SecureRandom Random = new SecureRandom();
 
         [Test]
         public void MLKemRequestWithMLDsaCA()
@@ -43,14 +31,14 @@ namespace Org.BouncyCastle.Cmp.Tests
             GeneralName recipient = new GeneralName(new X509Name("CN=ML-DSA Issuer"));
 
             var mlDsaKpg = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            mlDsaKpg.Init(new MLDsaKeyGenerationParameters(m_random, NistObjectIdentifiers.id_ml_dsa_65));
+            mlDsaKpg.Init(new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_65));
 
             var mlDsaKP = mlDsaKpg.GenerateKeyPair();
 
             X509Certificate caCert = MakeV3Certificate("ML-DSA-65", "CN=ML-DSA Issuer", mlDsaKP);
 
             var mlKemKpg = GeneratorUtilities.GetKeyPairGenerator("ML-KEM");
-            mlKemKpg.Init(new MLKemKeyGenerationParameters(m_random, NistObjectIdentifiers.id_alg_ml_kem_768));
+            mlKemKpg.Init(new MLKemKeyGenerationParameters(Random, NistObjectIdentifiers.id_alg_ml_kem_768));
 
             var mlKemKP = mlKemKpg.GenerateKeyPair();
 

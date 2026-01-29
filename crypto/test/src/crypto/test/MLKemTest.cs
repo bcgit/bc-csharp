@@ -77,21 +77,21 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static readonly IEnumerable<MLKemParameters> ParametersValues = Parameters.Values;
 
+        private readonly SecureRandom Random = new SecureRandom();
+
         [TestCaseSource(nameof(ParametersValues))]
         [Parallelizable(ParallelScope.All)]
         public void Consistency(MLKemParameters parameters)
         {
-            var random = new SecureRandom();
-
             var kpg = new MLKemKeyPairGenerator();
-            kpg.Init(new MLKemKeyGenerationParameters(random, parameters));
+            kpg.Init(new MLKemKeyGenerationParameters(Random, parameters));
 
             for (int i = 0; i < 100; ++i)
             {
                 var kp = kpg.GenerateKeyPair();
 
                 var encapsulator = new MLKemEncapsulator(parameters);
-                encapsulator.Init(new ParametersWithRandom(kp.Public, random));
+                encapsulator.Init(new ParametersWithRandom(kp.Public, Random));
 
                 byte[] enc = new byte[encapsulator.EncapsulationLength];
                 byte[] sec1 = new byte[encapsulator.SecretLength];
@@ -221,12 +221,11 @@ namespace Org.BouncyCastle.Crypto.Tests
         //[Test]
         //public void TestPrivInfoGeneration()
         //{
-        //    SecureRandom random = new SecureRandom();
         //    PqcOtherInfoGenerator.PartyU partyU = new PqcOtherInfoGenerator.PartyU(MLKemParameters.ml_kem_512,
-        //        new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
+        //        new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), Random);
         //    byte[] partA = partyU.GetSuppPrivInfoPartA();
         //    PqcOtherInfoGenerator.PartyV partyV = new PqcOtherInfoGenerator.PartyV(MLKemParameters.ml_kem_512,
-        //        new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
+        //        new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), Random);
         //    byte[] partB = partyV.GetSuppPrivInfoPartB(partA);
         //    DerOtherInfo otherInfoU = partyU.Generate(partB);
         //    DerOtherInfo otherInfoV = partyV.Generate();
@@ -299,8 +298,6 @@ namespace Org.BouncyCastle.Crypto.Tests
         //    byte[] c = Hex.Decode(data["c"]);
         //    byte[] k = Hex.Decode(data["k"]);
         //    byte[] ek = Hex.Decode(data["ek"]);
-
-        //    var random = new SecureRandom();
 
         //    var publicKey = MLKemPublicKeyParameters.FromEncoding(parameters, ek);
 

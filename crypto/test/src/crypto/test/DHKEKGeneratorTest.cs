@@ -14,19 +14,7 @@ namespace Org.BouncyCastle.Crypto.Tests
     [TestFixture]
     public class DHKekGeneratorTest
     {
-        private static SecureRandom Random;
-
-        [SetUp]
-        public void SetUp()
-        {
-            Random = new SecureRandom();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            Random = null;
-        }
+        private readonly SecureRandom Random = new SecureRandom();
 
         [Test]
         public void Test128Extra()
@@ -54,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             CheckMask(nameof(Test192), kdf, kdfParameters, result);
         }
 
-        private static void CheckMask(string name, IDerivationFunction kdf, IDerivationParameters parameters,
+        private void CheckMask(string name, IDerivationFunction kdf, IDerivationParameters parameters,
             byte[] result)
         {
             byte[] data = SecureRandom.GetNextBytes(Random, result.Length);

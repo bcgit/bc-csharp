@@ -44,10 +44,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             new BlockCipherMonteCarloTest(23, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386")), "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168")
         };
 
-        private static readonly SecureRandom Random = new SecureRandom();
+        private readonly SecureRandom Random = new SecureRandom();
 
         [OneTimeSetUp]
-        public static void OneTimeSetup()
+        public void OneTimeSetUp()
         {
             if (!AesEngine_X86.IsSupported)
             {
@@ -124,7 +124,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             ImplTestFourBlocks(true, 256);
         }
 
-        private static void ImplTestFourBlocks(bool forEncryption, int keySize)
+        private void ImplTestFourBlocks(bool forEncryption, int keySize)
         {
             Span<byte> key = stackalloc byte[keySize / 8];
             Span<byte> data = stackalloc byte[64];
