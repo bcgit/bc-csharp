@@ -70,6 +70,7 @@ namespace Org.BouncyCastle.Security
             VMPC,
             VMPC_KSA3,
             XTEA,
+            LIBSECUREXTEA
         };
 
         private enum CipherMode { ECB, NONE, CBC, CCM, CFB, CTR, CTS, EAX, GCM, GOFB, OCB, OFB, OPENPGPCFB, SIC };
@@ -533,6 +534,8 @@ namespace Org.BouncyCastle.Security
                 break;
             case CipherAlgorithm.XTEA:
                 blockCipher = new XteaEngine();
+            case CipherAlgorithm.LIBSECUREXTEA:
+                blockCipher = new LibSecureXteaEngine();
                 break;
             default:
                 return null;
@@ -832,6 +835,7 @@ namespace Org.BouncyCastle.Security
             case CipherAlgorithm.TNEPRES: return new TnepresEngine();
             case CipherAlgorithm.TWOFISH: return new TwofishEngine();
             case CipherAlgorithm.XTEA: return new XteaEngine();
+            case CipherAlgorithm.LIBSECUREXTEA: return new LibSecureXteaEngine();
             default:
                 throw new SecurityUtilityException("Cipher " + cipherAlgorithm + " not recognised or not a block cipher");
             }
