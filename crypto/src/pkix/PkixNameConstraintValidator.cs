@@ -1431,8 +1431,8 @@ namespace Org.BouncyCastle.Pkix
                 tempDomain = tempDomain.Substring(1);
             }
 
-            string[] domainParts = tempDomain.Split('.'); // Strings.split(tempDomain, '.');
-            string[] testDomainParts = testDomain.Split('.'); // Strings.split(testDomain, '.');
+            string[] domainParts = Strings.Split(tempDomain, '.');
+            string[] testDomainParts = Strings.Split(testDomain, '.');
 
             // must have at least one subdomain
             if (testDomainParts.Length <= domainParts.Length)

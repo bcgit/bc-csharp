@@ -148,5 +148,7 @@ namespace Org.BouncyCastle.Utilities
             Debug.Assert(bytes == byteCount);
             return array;
         }
+
+        public static string[] Split(string input, char delimiter) => input.Split(delimiter);
     }
 }
