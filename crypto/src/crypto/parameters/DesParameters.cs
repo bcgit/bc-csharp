@@ -1,5 +1,7 @@
 using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class DesParameters
@@ -75,32 +77,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (key.Length - offset < DesKeyLength)
                 throw new ArgumentException("key material too short.");
 
-			//nextkey:
             for (int i = 0; i < N_DES_WEAK_KEYS; i++)
             {
-                bool unmatch = false;
-                for (int j = 0; j < DesKeyLength; j++)
-                {
-                    if (key[j + offset] != DES_weak_keys[i * DesKeyLength + j])
-                    {
-                        //continue nextkey;
-                        unmatch = true;
-						break;
-                    }
-                }
-
-				if (!unmatch)
-					return true;
+                if (Arrays.FixedTimeEquals(DesKeyLength, key, offset, DES_weak_keys, i * DesKeyLength))
+                    return true;
             }
 
-			return false;
+            return false;
 #endif
         }
 
-        public static bool IsWeakKey(byte[] key)
-		{
-			return IsWeakKey(key, 0);
-		}
+        public static bool IsWeakKey(byte[] key) => IsWeakKey(key, 0);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static bool IsWeakKey(ReadOnlySpan<byte> key)
@@ -108,21 +95,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (key.Length < DesKeyLength)
                 throw new ArgumentException("key material too short.");
 
-            //nextkey:
             for (int i = 0; i < N_DES_WEAK_KEYS; i++)
             {
-                bool unmatch = false;
-                for (int j = 0; j < DesKeyLength; j++)
-                {
-                    if (key[j] != DES_weak_keys[i * DesKeyLength + j])
-                    {
-                        //continue nextkey;
-                        unmatch = true;
-                        break;
-                    }
-                }
-
-                if (!unmatch)
+                if (Arrays.FixedTimeEquals(key[..DesKeyLength], DES_weak_keys.AsSpan(i * DesKeyLength, DesKeyLength)))
                     return true;
             }
 
