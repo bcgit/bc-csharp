@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
     {
         private const int Shake128Rate = 168;
 
-        private static readonly int GenerateMatrixNBlocks =
+        private static readonly int NumMatrixBlocks =
             (((12 * MLKemEngine.N / 8) << 12) / MLKemEngine.Q + Shake128Rate) / Shake128Rate;
 
         private readonly MLKemEngine m_engine;
@@ -23,15 +23,15 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private void GenerateMatrix(PolyVec[] a, ReadOnlySpan<byte> seed, bool transpose)
+        private void GenerateMatrixA(PolyVec[] a, ReadOnlySpan<byte> seed, bool transpose)
 #else
-        private void GenerateMatrix(PolyVec[] a, byte[] seed, bool transpose)
+        private void GenerateMatrixA(PolyVec[] a, byte[] seed, bool transpose)
 #endif
         {
             int K = m_engine.K;
             ShakeDigest xof = new ShakeDigest(128);
 
-            byte[] buf = new byte[GenerateMatrixNBlocks * Shake128Rate + 2];
+            byte[] buf = new byte[NumMatrixBlocks * Shake128Rate + 2];
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> seedPlus = stackalloc byte[MLKemEngine.SymBytes + 2];
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
                     xof.BlockUpdate(seedPlus, 0, seedPlus.Length);
 #endif
 
-                    int bufLen = GenerateMatrixNBlocks * Shake128Rate;
+                    int bufLen = NumMatrixBlocks * Shake128Rate;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                     xof.Output(buf.AsSpan(0, bufLen));
 #else
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             byte[] buf = new byte[2 * MLKemEngine.SymBytes];
 #endif
 
-            PolyVec[] Matrix = new PolyVec[K];
+            PolyVec[] matrixA = new PolyVec[K];
             PolyVec e = new PolyVec(K), pkpv = new PolyVec(K), skpv = new PolyVec(K);
 
             {
@@ -142,15 +142,15 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             for (int i = 0; i < K; i++)
             {
-                Matrix[i] = new PolyVec(K);
+                matrixA[i] = new PolyVec(K);
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            GenerateMatrix(Matrix, buf, transpose: false);
+            GenerateMatrixA(matrixA, buf, transpose: false);
 
             var noiseSeed = buf[MLKemEngine.SymBytes..];
 #else
-            GenerateMatrix(Matrix, buf, transpose: false);
+            GenerateMatrixA(matrixA, buf, transpose: false);
 
             byte[] noiseSeed = Arrays.CopySegment(buf, MLKemEngine.SymBytes, MLKemEngine.SymBytes);
 #endif
@@ -188,7 +188,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             for (int i = 0; i < K; i++)
             {
-                PolyVec.PointwiseAccountMontgomery(pkpv.m_vec[i], Matrix[i], skpv);
+                PolyVec.PointwiseAccountMontgomery(pkpv.m_vec[i], matrixA[i], skpv);
                 pkpv.m_vec[i].ToMont();
             }
 
@@ -244,7 +244,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
                 matrixTransposed[i] = new PolyVec(K);
             }
 
-            GenerateMatrix(matrixTransposed, seed, transpose: true);
+            GenerateMatrixA(matrixTransposed, seed, transpose: true);
 
             var xof = new ShakeDigest(256);
 
@@ -372,7 +372,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             byte[] seed = new byte[MLKemEngine.SymBytes];
             PolyVec sp = new PolyVec(K), pkpv = new PolyVec(K), ep = new PolyVec(K), bp = new PolyVec(K);
-            PolyVec[] matrixTransposed = new PolyVec[K];
+            PolyVec[] matrixATransposed = new PolyVec[K];
             Poly v = new Poly(), k = new Poly(), epp = new Poly();
 
             UnpackPublicKey(pk, pkpv, seed);
@@ -381,10 +381,10 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             for (int i = 0; i < K; i++)
             {
-                matrixTransposed[i] = new PolyVec(K);
+                matrixATransposed[i] = new PolyVec(K);
             }
 
-            GenerateMatrix(matrixTransposed, seed, transpose: true);
+            GenerateMatrixA(matrixATransposed, seed, transpose: true);
 
             var xof = new ShakeDigest(256);
 
@@ -414,7 +414,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             for (int i = 0; i < K; i++)
             {
-                PolyVec.PointwiseAccountMontgomery(bp.m_vec[i], matrixTransposed[i], sp);
+                PolyVec.PointwiseAccountMontgomery(bp.m_vec[i], matrixATransposed[i], sp);
             }
 
             PolyVec.PointwiseAccountMontgomery(v, pkpv, sp);

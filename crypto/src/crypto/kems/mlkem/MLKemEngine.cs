@@ -24,7 +24,6 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         internal const int Eta2 = 2;
 
-        internal const int IndCpaMsgBytes = SymBytes;
         internal const int SeedBytes = SymBytes * 2;
 
         // Parameters
@@ -163,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             kr[..SharedSecretBytes].CopyTo(secret);
         }
-
+ 
         internal void KemEncrypt(ReadOnlySpan<byte> encapKey, ReadOnlySpan<byte> randBytes, Span<byte> encapsulation,
             Span<byte> secret)
         {
@@ -234,9 +233,9 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             byte[] kr = new byte[2 * SymBytes];
             G(buf, kr);
 
-            byte[] cmp = new byte[CipherTextBytes];
             byte[] pk = Arrays.InternalCopySegment(decapKey, IndCpaSecretKeyBytes, IndCpaPublicKeyBytes);
 
+            byte[] cmp = new byte[CipherTextBytes];
             m_indCpa.Encrypt(buf, pk, Arrays.InternalCopySegment(kr, SymBytes, SymBytes), cmp, 0);
 
             int fail = ~FixedTimeEquals(CipherTextBytes, cmp, 0, encBuf, encOff);

@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             int pos = rOff;
 #endif
 
-            ConditionalSubQ();
+            CondSubQ();
 
             if (m_vec.Length == 4)
             {
@@ -263,7 +263,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         }
 #endif
 
-        private void ConditionalSubQ()
+        private void CondSubQ()
         {
             for (int i = 0; i < m_vec.Length; i++)
             {

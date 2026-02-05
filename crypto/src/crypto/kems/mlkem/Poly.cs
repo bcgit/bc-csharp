@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         internal static void BaseMultMontgomery(Poly r, Poly a, Poly b)
         {
-            for (int i = 0; i < MLKemEngine.N/4; i++)
+            for (int i = 0; i < MLKemEngine.N / 4; i++)
             {
                 Ntt.BaseMult(r.Coeffs, 4 * i,
                     a.Coeffs[4 * i], a.Coeffs[4 * i + 1],
@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         {
             for (int i = 0; i < MLKemEngine.N; i++)
             {
-                Coeffs[i] = (short) (a.Coeffs[i] - Coeffs[i]);
+                Coeffs[i] = (short)(a.Coeffs[i] - Coeffs[i]);
             }
         }
 
@@ -272,7 +272,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         {
             CondSubQ();
 
-            for (int i = 0; i < MLKemEngine.N/2; i++)
+            for (int i = 0; i < MLKemEngine.N / 2; i++)
             {
                 ushort t0 = (ushort)Coeffs[2 * i + 0];
                 ushort t1 = (ushort)Coeffs[2 * i + 1];
