@@ -31,7 +31,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_engine = new MLKemEngine(k);
         }
 
+        public int EncapsulationLength => m_engine.CipherTextBytes;
+
         internal MLKemEngine Engine => m_engine;
+
+        public int SecretLength => MLKemEngine.SharedSecretBytes;
 
         public string Name => m_name;
 
