@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
         }
 
-        public static SubsequentMessage ValueOf(int value)
+        public static new SubsequentMessage ValueOf(int value)
         {
             if (value == 0)
                 return encrCert;

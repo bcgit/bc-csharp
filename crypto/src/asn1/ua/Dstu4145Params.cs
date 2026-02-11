@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Asn1.UA
 
         private Dstu4145Params(Asn1Sequence seq)
         {
-            int count = seq.Count, pos = 0;
+            int count = seq.Count;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
