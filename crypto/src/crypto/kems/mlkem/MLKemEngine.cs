@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         private static void H(ReadOnlySpan<byte> input, Span<byte> output) =>
             ImplDigest(new Sha3Digest(256), input, output);
 
-        private static void ImplDigest(IDigest digest, ReadOnlySpan<byte> input, Span<byte> output)
+        private static void ImplDigest(Sha3Digest digest, ReadOnlySpan<byte> input, Span<byte> output)
         {
             digest.BlockUpdate(input);
             digest.DoFinal(output);
@@ -215,7 +215,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         private static void H(byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff) =>
             ImplDigest(new Sha3Digest(256), inBuf, inOff, inLen, outBuf, outOff);
 
-        private static void ImplDigest(IDigest digest, byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
+        private static void ImplDigest(Sha3Digest digest, byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
         {
             digest.BlockUpdate(inBuf, inOff, inLen);
             digest.DoFinal(outBuf, outOff);
