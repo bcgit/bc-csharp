@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal Tuple<byte[], byte[]> InternalEncapsulate(byte[] randBytes)
         {
             if (randBytes.Length != MLKemEngine.SymBytes)
-                throw new ArgumentException(nameof(randBytes));
+                throw new ArgumentException("Invalid length", nameof(randBytes));
 
             var engine = Parameters.ParameterSet.Engine;
 
