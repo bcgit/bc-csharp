@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Signers
 {
+    // TODO[api] Make sealed (no need for protected virtual methods)
     public class PlainDsaEncoding
         : IDsaEncoding
     {
