@@ -425,7 +425,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         {
             Decode128(x, xOff, z, zOff);
             Decode128(x, xOff + 4, z, zOff + 5);
-            z[9] &= M24;
+            z[zOff + 9] &= M24;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
