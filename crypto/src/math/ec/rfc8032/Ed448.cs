@@ -346,7 +346,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             int x_0 = (p[PointBytes - 1] & 0x80) >> 7;
 
-            F.Decode(p, r.y);
+            F.Decode448(p, r.y);
 
             uint[] u = F.Create();
             uint[] v = F.Create();

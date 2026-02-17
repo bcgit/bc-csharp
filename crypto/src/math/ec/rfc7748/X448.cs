@@ -45,40 +45,22 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint Decode32(ReadOnlySpan<byte> bs)
-        {
-            uint n = bs[0];
-            n |= (uint)bs[1] << 8;
-            n |= (uint)bs[2] << 16;
-            n |= (uint)bs[3] << 24;
-            return n;
-        }
-
         private static void DecodeScalar(ReadOnlySpan<byte> k, uint[] n)
         {
             for (int i = 0; i < 14; ++i)
             {
-                n[i] = Decode32(k[(i * 4)..]);
+                n[i] = F.Decode32(k[(i * 4)..]);
             }
 
             n[ 0] &= 0xFFFFFFFCU;
             n[13] |= 0x80000000U;
         }
 #else
-        private static uint Decode32(byte[] bs, int off)
-        {
-            uint n = bs[off];
-            n |= (uint)bs[++off] << 8;
-            n |= (uint)bs[++off] << 16;
-            n |= (uint)bs[++off] << 24;
-            return n;
-        }
-
         private static void DecodeScalar(byte[] k, int kOff, uint[] n)
         {
             for (int i = 0; i < 14; ++i)
             {
-                n[i] = Decode32(k, kOff + i * 4);
+                n[i] = F.Decode32(k, kOff + i * 4);
             }
 
             n[ 0] &= 0xFFFFFFFCU;
@@ -150,7 +132,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #else
             uint[] n = new uint[14];    DecodeScalar(k, kOff, n);
 
-            uint[] x1 = F.Create();     F.Decode(u, uOff, x1);
+            uint[] x1 = F.Create();     F.Decode448(u, uOff, x1, 0);
             uint[] x2 = F.Create();     F.Copy(x1, 0, x2, 0);
             uint[] z2 = F.Create();     z2[0] = 1;
             uint[] x3 = F.Create();     x3[0] = 1;
@@ -220,7 +202,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         {
             uint[] n = new uint[14];    DecodeScalar(k, n);
 
-            uint[] x1 = F.Create();     F.Decode(u, x1);
+            uint[] x1 = F.Create();     F.Decode448(u, x1);
             uint[] x2 = F.Create();     F.Copy(x1, 0, x2, 0);
             uint[] z2 = F.Create();     z2[0] = 1;
             uint[] x3 = F.Create();     x3[0] = 1;

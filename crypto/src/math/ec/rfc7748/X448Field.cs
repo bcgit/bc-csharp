@@ -227,68 +227,24 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
-        public static void Decode(uint[] x, int xOff, uint[] z)
-        {
-            Decode224(x, xOff, z, 0);
-            Decode224(x, xOff + 7, z, 8);
-        }
+        [Obsolete("Use 'Decode448' instead")]
+        public static void Decode(byte[] x, uint[] z) => Decode448(x, 0, z, 0);
+
+        [Obsolete("Use 'Decode448' instead")]
+        public static void Decode(byte[] x, int xOff, uint[] z) => Decode448(x, xOff, z, 0);
+
+        [Obsolete("Use 'Decode448' instead")]
+        public static void Decode(byte[] x, int xOff, uint[] z, int zOff) => Decode448(x, xOff, z, zOff);
+
+        [Obsolete("Use 'Decode448' instead")]
+        public static void Decode(uint[] x, int xOff, uint[] z) => Decode448(x, xOff, z, 0);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static void Decode(ReadOnlySpan<uint> x, Span<uint> z)
-        {
-            Decode224(x, z);
-            Decode224(x[7..], z[8..]);
-        }
-#endif
+        [Obsolete("Use 'Decode448' instead")]
+        public static void Decode(ReadOnlySpan<byte> x, Span<uint> z) => Decode448(x, z);
 
-        public static void Decode(byte[] x, uint[] z)
-        {
-            Decode56(x, 0, z, 0);
-            Decode56(x, 7, z, 2);
-            Decode56(x, 14, z, 4);
-            Decode56(x, 21, z, 6);
-            Decode56(x, 28, z, 8);
-            Decode56(x, 35, z, 10);
-            Decode56(x, 42, z, 12);
-            Decode56(x, 49, z, 14);
-        }
-
-        public static void Decode(byte[] x, int xOff, uint[] z)
-        {
-            Decode56(x, xOff, z, 0);
-            Decode56(x, xOff + 7, z, 2);
-            Decode56(x, xOff + 14, z, 4);
-            Decode56(x, xOff + 21, z, 6);
-            Decode56(x, xOff + 28, z, 8);
-            Decode56(x, xOff + 35, z, 10);
-            Decode56(x, xOff + 42, z, 12);
-            Decode56(x, xOff + 49, z, 14);
-        }
-
-        public static void Decode(byte[] x, int xOff, uint[] z, int zOff)
-        {
-            Decode56(x, xOff, z, zOff);
-            Decode56(x, xOff + 7, z, zOff + 2);
-            Decode56(x, xOff + 14, z, zOff + 4);
-            Decode56(x, xOff + 21, z, zOff + 6);
-            Decode56(x, xOff + 28, z, zOff + 8);
-            Decode56(x, xOff + 35, z, zOff + 10);
-            Decode56(x, xOff + 42, z, zOff + 12);
-            Decode56(x, xOff + 49, z, zOff + 14);
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static void Decode(ReadOnlySpan<byte> x, Span<uint> z)
-        {
-            Decode56(x, z);
-            Decode56(x[7..], z[2..]);
-            Decode56(x[14..], z[4..]);
-            Decode56(x[21..], z[6..]);
-            Decode56(x[28..], z[8..]);
-            Decode56(x[35..], z[10..]);
-            Decode56(x[42..], z[12..]);
-            Decode56(x[49..], z[14..]);
-        }
+        [Obsolete("Use 'Decode448' instead")]
+        public static void Decode(ReadOnlySpan<uint> x, Span<uint> z) => Decode448(x, z);
 #endif
 
         private static void Decode224(uint[] x, int xOff, uint[] z, int zOff)
@@ -341,10 +297,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
-        private static uint Decode32(byte[] bs, int off)
+        internal static uint Decode32(byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return BinaryPrimitives.ReadUInt32LittleEndian(bs.AsSpan(off));
+            return Decode32(bs.AsSpan(off));
 #else
             uint n = bs[off];
             n |= (uint)bs[++off] << 8;
@@ -355,9 +311,48 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint Decode32(ReadOnlySpan<byte> bs)
+        internal static uint Decode32(ReadOnlySpan<byte> bs) => BinaryPrimitives.ReadUInt32LittleEndian(bs);
+#endif
+
+        public static void Decode448(byte[] x, uint[] z) => Decode448(x, 0, z, 0);
+
+        public static void Decode448(byte[] x, int xOff, uint[] z, int zOff)
         {
-            return BinaryPrimitives.ReadUInt32LittleEndian(bs);
+            Decode56(x, xOff, z, zOff);
+            Decode56(x, xOff + 7, z, zOff + 2);
+            Decode56(x, xOff + 14, z, zOff + 4);
+            Decode56(x, xOff + 21, z, zOff + 6);
+            Decode56(x, xOff + 28, z, zOff + 8);
+            Decode56(x, xOff + 35, z, zOff + 10);
+            Decode56(x, xOff + 42, z, zOff + 12);
+            Decode56(x, xOff + 49, z, zOff + 14);
+        }
+
+        public static void Decode448(uint[] x, uint[] z) => Decode448(x, 0, z, 0);
+
+        public static void Decode448(uint[] x, int xOff, uint[] z, int zOff)
+        {
+            Decode224(x, xOff, z, zOff);
+            Decode224(x, xOff + 7, z, zOff + 8);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Decode448(ReadOnlySpan<byte> x, Span<uint> z)
+        {
+            Decode56(x, z);
+            Decode56(x[7..], z[2..]);
+            Decode56(x[14..], z[4..]);
+            Decode56(x[21..], z[6..]);
+            Decode56(x[28..], z[8..]);
+            Decode56(x[35..], z[10..]);
+            Decode56(x[42..], z[12..]);
+            Decode56(x[49..], z[14..]);
+        }
+
+        public static void Decode448(ReadOnlySpan<uint> x, Span<uint> z)
+        {
+            Decode224(x, z);
+            Decode224(x[7..], z[8..]);
         }
 #endif
 
@@ -543,7 +538,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             Mod.ModOddInverse(P32, u, u);
 
-            Decode(u, 0, z);
+            Decode448(u, z);
 #endif
         }
 
@@ -559,7 +554,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             Mod.ModOddInverse(P32, u, u);
 
-            Decode(u, z);
+            Decode448(u, z);
         }
 #endif
 
@@ -577,7 +572,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             Mod.ModOddInverseVar(P32, u, u);
 
-            Decode(u, 0, z);
+            Decode448(u, z);
 #endif
         }
 
@@ -593,7 +588,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             Mod.ModOddInverseVar(P32, u, u);
 
-            Decode(u, z);
+            Decode448(u, z);
         }
 #endif
 

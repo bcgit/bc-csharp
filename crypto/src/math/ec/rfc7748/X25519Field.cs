@@ -332,52 +332,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             }
         }
 
+        [Obsolete("Use 'Decode255' instead")]
+        public static void Decode(byte[] x, int[] z) => Decode255(x, 0, z, 0);
+
+        [Obsolete("Use 'Decode255' instead")]
+        public static void Decode(byte[] x, int xOff, int[] z) => Decode255(x, xOff, z, 0);
+
+        [Obsolete("Use 'Decode255' instead")]
+        public static void Decode(byte[] x, int xOff, int[] z, int zOff) => Decode255(x, xOff, z, zOff);
+
         [CLSCompliant(false)]
-        public static void Decode(uint[] x, int xOff, int[] z)
-        {
-            Decode128(x, xOff, z, 0);
-            Decode128(x, xOff + 4, z, 5);
-            z[9] &= M24;
-        }
+        [Obsolete("Use 'Decode255' instead")]
+        public static void Decode(uint[] x, int xOff, int[] z) => Decode255(x, xOff, z, 0);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [Obsolete("Use 'Decode255' instead")]
+        public static void Decode(ReadOnlySpan<byte> x, Span<int> z) => Decode255(x, z);
+
         [CLSCompliant(false)]
-        public static void Decode(ReadOnlySpan<uint> x, Span<int> z)
-        {
-            Decode128(x, z);
-            Decode128(x[4..], z[5..]);
-            z[9] &= M24;
-        }
-#endif
-
-        public static void Decode(byte[] x, int[] z)
-        {
-            Decode128(x, 0, z, 0);
-            Decode128(x, 16, z, 5);
-            z[9] &= M24;
-        }
-
-        public static void Decode(byte[] x, int xOff, int[] z)
-        {
-            Decode128(x, xOff, z, 0);
-            Decode128(x, xOff + 16, z, 5);
-            z[9] &= M24;
-        }
-
-        public static void Decode(byte[] x, int xOff, int[] z, int zOff)
-        {
-            Decode128(x, xOff, z, zOff);
-            Decode128(x, xOff + 16, z, zOff + 5);
-            z[zOff + 9] &= M24;
-        }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static void Decode(ReadOnlySpan<byte> x, Span<int> z)
-        {
-            Decode128(x, z);
-            Decode128(x[16..], z[5..]);
-            z[9] &= M24;
-        }
+        [Obsolete("Use 'Decode255' instead")]
+        public static void Decode(ReadOnlySpan<uint> x, Span<int> z) => Decode255(x, z);
 #endif
 
         private static void Decode128(uint[] x, int xOff, int[] z, int zOff)
@@ -434,10 +408,47 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 #endif
 
-        private static uint Decode32(byte[] bs, int off)
+        public static void Decode255(byte[] x, int[] z) => Decode255(x, 0, z, 0);
+
+        public static void Decode255(byte[] x, int xOff, int[] z, int zOff)
+        {
+            Decode128(x, xOff, z, zOff);
+            Decode128(x, xOff + 16, z, zOff + 5);
+            z[zOff + 9] &= M24;
+        }
+
+        [CLSCompliant(false)]
+        public static void Decode255(uint[] x, int[] z) => Decode255(x, 0, z, 0);
+
+        [CLSCompliant(false)]
+        public static void Decode255(uint[] x, int xOff, int[] z, int zOff)
+        {
+            Decode128(x, xOff, z, zOff);
+            Decode128(x, xOff + 4, z, zOff + 5);
+            z[9] &= M24;
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Decode255(ReadOnlySpan<byte> x, Span<int> z)
+        {
+            Decode128(x, z);
+            Decode128(x[16..], z[5..]);
+            z[9] &= M24;
+        }
+
+        [CLSCompliant(false)]
+        public static void Decode255(ReadOnlySpan<uint> x, Span<int> z)
+        {
+            Decode128(x, z);
+            Decode128(x[4..], z[5..]);
+            z[9] &= M24;
+        }
+#endif
+
+        internal static uint Decode32(byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return BinaryPrimitives.ReadUInt32LittleEndian(bs.AsSpan(off));
+            return Decode32(bs.AsSpan(off));
 #else
             uint n = bs[off];
             n |= (uint)bs[++off] << 8;
@@ -448,10 +459,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static uint Decode32(ReadOnlySpan<byte> bs)
-        {
-            return BinaryPrimitives.ReadUInt32LittleEndian(bs);
-        }
+        internal static uint Decode32(ReadOnlySpan<byte> bs) => BinaryPrimitives.ReadUInt32LittleEndian(bs);
 #endif
 
         [CLSCompliant(false)]
@@ -582,7 +590,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             Mod.ModOddInverse(P32, u, u);
 
-            Decode(u, 0, z);
+            Decode255(u, z);
 #endif
         }
 
@@ -598,7 +606,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             Mod.ModOddInverse(P32, u, u);
 
-            Decode(u, z);
+            Decode255(u, z);
         }
 #endif
 
@@ -616,7 +624,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             Mod.ModOddInverseVar(P32, u, u);
 
-            Decode(u, 0, z);
+            Decode255(u, z);
 #endif
         }
 
@@ -632,7 +640,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 
             Mod.ModOddInverseVar(P32, u, u);
 
-            Decode(u, z);
+            Decode255(u, z);
         }
 #endif
 
