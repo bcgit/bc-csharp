@@ -230,35 +230,35 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal void FromBytes(ReadOnlySpan<byte> pk)
+        internal void FromBytes(ReadOnlySpan<byte> buf)
         {
             for (int i = 0; i < m_vec.Length; i++)
             {
-                m_vec[i].FromBytes(pk.Slice(i * MLKemEngine.PolyBytes));
+                m_vec[i].FromBytes(buf.Slice(i * MLKemEngine.PolyBytes));
             }
         }
 
-        internal void ToBytes(Span<byte> r)
+        internal void ToBytes(Span<byte> buf)
         {
             for (int i = 0; i < m_vec.Length; i++)
             {
-                m_vec[i].ToBytes(r.Slice(i * MLKemEngine.PolyBytes));
+                m_vec[i].ToBytes(buf.Slice(i * MLKemEngine.PolyBytes));
             }
         }
 #else
-        internal void FromBytes(byte[] pk)
+        internal void FromBytes(byte[] buf, int off)
         {
             for (int i = 0; i < m_vec.Length; i++)
             {
-                m_vec[i].FromBytes(pk, i * MLKemEngine.PolyBytes);
+                m_vec[i].FromBytes(buf, off + i * MLKemEngine.PolyBytes);
             }
         }
 
-        internal void ToBytes(byte[] r, int rOff)
+        internal void ToBytes(byte[] buf, int off)
         {
             for (int i = 0; i < m_vec.Length; i++)
             {
-                m_vec[i].ToBytes(r, rOff + i * MLKemEngine.PolyBytes);
+                m_vec[i].ToBytes(buf, off + i * MLKemEngine.PolyBytes);
             }
         }
 #endif

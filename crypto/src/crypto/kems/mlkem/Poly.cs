@@ -27,28 +27,28 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
         private static void Prf(IXof xof, ReadOnlySpan<byte> seed, byte nonce, Span<byte> output)
         {
-            xof.BlockUpdate(seed);
+            xof.BlockUpdate(seed[..MLKemEngine.SymBytes]);
             xof.Update(nonce);
             xof.OutputFinal(output);
         }
 #else
-        internal void GetNoiseEta2(IXof xof, byte[] seed, byte nonce)
+        internal void GetNoiseEta2(IXof xof, byte[] seed, int seedOff, byte nonce)
         {
             byte[] buf = new byte[2 * MLKemEngine.N / 4];
-            Prf(xof, seed, nonce, buf);
+            Prf(xof, seed, seedOff, nonce, buf);
             Cbd.Eta2(m_coeffs, buf);
         }
 
-        internal void GetNoiseEta3(IXof xof, byte[] seed, byte nonce)
+        internal void GetNoiseEta3(IXof xof, byte[] seed, int seedOff, byte nonce)
         {
             byte[] buf = new byte[3 * MLKemEngine.N / 4];
-            Prf(xof, seed, nonce, buf);
+            Prf(xof, seed, seedOff, nonce, buf);
             Cbd.Eta3(m_coeffs, buf);
         }
 
-        private static void Prf(IXof xof, byte[] seed, byte nonce, byte[] output)
+        private static void Prf(IXof xof, byte[] seed, int seedOff, byte nonce, byte[] output)
         {
-            xof.BlockUpdate(seed, 0, seed.Length);
+            xof.BlockUpdate(seed, seedOff, MLKemEngine.SymBytes);
             xof.Update(nonce);
             xof.OutputFinal(output, 0, output.Length);
         }
@@ -312,20 +312,32 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal void FromMsg(ReadOnlySpan<byte> m)
-#else
-        internal void FromMsg(byte[] m)
-#endif
+        internal void FromMsg(ReadOnlySpan<byte> msg)
         {
             for (int i = 0; i < MLKemEngine.N / 8; i++)
             {
+                int msg_i = msg[i];
                 for (int j = 0; j < 8; j++)
                 {
-                    short mask = (short)((-1) * (short)(((m[i] & 0xFF) >> j) & 1));
+                    short mask = (short)-((msg_i >> j) & 1);
                     Coeffs[8 * i + j] = (short)(mask & ((MLKemEngine.Q + 1) / 2));
                 }
             }
         }
+#else
+        internal void FromMsg(byte[] msg, int msgOff)
+        {
+            for (int i = 0; i < MLKemEngine.N / 8; i++)
+            {
+                int msg_i = msg[msgOff + i];
+                for (int j = 0; j < 8; j++)
+                {
+                    short mask = (short)-((msg_i >> j) & 1);
+                    Coeffs[8 * i + j] = (short)(mask & ((MLKemEngine.Q + 1) / 2));
+                }
+            }
+        }
+#endif
 
         internal void CondSubQ()
         {

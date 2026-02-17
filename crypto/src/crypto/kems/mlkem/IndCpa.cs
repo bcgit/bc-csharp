@@ -126,34 +126,28 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             byte[] buf = new byte[2 * MLKemEngine.SymBytes];
 #endif
 
-            PolyVec[] matrixA = new PolyVec[K];
-            PolyVec e = new PolyVec(K), pkpv = new PolyVec(K), skpv = new PolyVec(K);
+            PolyVec e = new PolyVec(K);
+            PolyVec skpv = new PolyVec(K);
 
             {
                 var G = new Sha3Digest(512);
-                G.BlockUpdate(d, 0, MLKemEngine.SymBytes);
-                G.Update((byte)K);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                G.BlockUpdate(d.AsSpan(0, MLKemEngine.SymBytes));
+                G.Update((byte)K);
                 G.DoFinal(buf);
 #else
+                G.BlockUpdate(d, 0, MLKemEngine.SymBytes);
+                G.Update((byte)K);
                 G.DoFinal(buf, 0);
 #endif
             }
 
+            PolyVec[] matrixA = new PolyVec[K];
             for (int i = 0; i < K; i++)
             {
                 matrixA[i] = new PolyVec(K);
             }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             GenerateMatrixA(matrixA, buf, transpose: false);
-
-            var noiseSeed = buf[MLKemEngine.SymBytes..];
-#else
-            GenerateMatrixA(matrixA, buf, transpose: false);
-
-            byte[] noiseSeed = Arrays.CopySegment(buf, MLKemEngine.SymBytes, MLKemEngine.SymBytes);
-#endif
 
             var xof = new ShakeDigest(256);
 
@@ -162,36 +156,52 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             {
                 for (int i = 0; i < K; i++)
                 {
-                    skpv.m_vec[i].GetNoiseEta2(xof, noiseSeed, nonce++);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    skpv.m_vec[i].GetNoiseEta2(xof, buf[MLKemEngine.SymBytes..], nonce++);
+#else
+                    skpv.m_vec[i].GetNoiseEta2(xof, buf, MLKemEngine.SymBytes, nonce++);
+#endif
                 }
 
                 for (int i = 0; i < K; i++)
                 {
-                    e.m_vec[i].GetNoiseEta2(xof, noiseSeed, nonce++);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    e.m_vec[i].GetNoiseEta2(xof, buf[MLKemEngine.SymBytes..], nonce++);
+#else
+                    e.m_vec[i].GetNoiseEta2(xof, buf, MLKemEngine.SymBytes, nonce++);
+#endif
                 }
             }
             else
             {
                 for (int i = 0; i < K; i++)
                 {
-                    skpv.m_vec[i].GetNoiseEta3(xof, noiseSeed, nonce++);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    skpv.m_vec[i].GetNoiseEta3(xof, buf[MLKemEngine.SymBytes..], nonce++);
+#else
+                    skpv.m_vec[i].GetNoiseEta3(xof, buf, MLKemEngine.SymBytes, nonce++);
+#endif
                 }
 
                 for (int i = 0; i < K; i++)
                 {
-                    e.m_vec[i].GetNoiseEta3(xof, noiseSeed, nonce++);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    e.m_vec[i].GetNoiseEta3(xof, buf[MLKemEngine.SymBytes..], nonce++);
+#else
+                    e.m_vec[i].GetNoiseEta3(xof, buf, MLKemEngine.SymBytes, nonce++);
+#endif
                 }
             }
 
             skpv.Ntt();
             e.Ntt();
 
+            PolyVec pkpv = new PolyVec(K);
             for (int i = 0; i < K; i++)
             {
                 PolyVec.PointwiseAccountMontgomery(pkpv.m_vec[i], matrixA[i], skpv);
                 pkpv.m_vec[i].ToMont();
             }
-
             pkpv.Add(e);
             pkpv.Reduce();
 
@@ -225,25 +235,24 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             mp.ToMsg(m);
         }
 
-        internal void Encrypt(ReadOnlySpan<byte> m, ReadOnlySpan<byte> pk, ReadOnlySpan<byte> coins,
+        internal void Encrypt(ReadOnlySpan<byte> pk, ReadOnlySpan<byte> msg, ReadOnlySpan<byte> coins,
             Span<byte> encapsulation)
         {
             int K = m_engine.K;
 
             byte[] seed = new byte[MLKemEngine.SymBytes];
             PolyVec sp = new PolyVec(K), pkpv = new PolyVec(K), ep = new PolyVec(K), bp = new PolyVec(K);
-            PolyVec[] matrixTransposed = new PolyVec[K];
             Poly v = new Poly(), k = new Poly(), epp = new Poly();
 
             UnpackPublicKey(pk, pkpv, seed);
 
-            k.FromMsg(m);
+            k.FromMsg(msg);
 
+            PolyVec[] matrixTransposed = new PolyVec[K];
             for (int i = 0; i < K; i++)
             {
                 matrixTransposed[i] = new PolyVec(K);
             }
-
             GenerateMatrixA(matrixTransposed, seed, transpose: true);
 
             var xof = new ShakeDigest(256);
@@ -366,24 +375,24 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             mp.ToMsg(m);
         }
 
-        internal void Encrypt(byte[] m, byte[] pk, byte[] coins, byte[] c, int cOff)
+        internal void Encrypt(byte[] pk, int pkOff, byte[] msg, int msgOff, byte[] coins, int coinsOff,
+            byte[] enc, int encOff)
         {
             int K = m_engine.K;
 
             byte[] seed = new byte[MLKemEngine.SymBytes];
             PolyVec sp = new PolyVec(K), pkpv = new PolyVec(K), ep = new PolyVec(K), bp = new PolyVec(K);
-            PolyVec[] matrixATransposed = new PolyVec[K];
             Poly v = new Poly(), k = new Poly(), epp = new Poly();
 
-            UnpackPublicKey(pk, pkpv, seed);
+            UnpackPublicKey(pk, pkOff, pkpv, seed);
 
-            k.FromMsg(m);
+            k.FromMsg(msg, msgOff);
 
+            PolyVec[] matrixATransposed = new PolyVec[K];
             for (int i = 0; i < K; i++)
             {
                 matrixATransposed[i] = new PolyVec(K);
             }
-
             GenerateMatrixA(matrixATransposed, seed, transpose: true);
 
             var xof = new ShakeDigest(256);
@@ -393,22 +402,22 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             {
                 for (int i = 0; i < K; i++)
                 {
-                    sp.m_vec[i].GetNoiseEta2(xof, coins, nonce++);
+                    sp.m_vec[i].GetNoiseEta2(xof, coins, coinsOff, nonce++);
                 }
             }
             else
             {
                 for (int i = 0; i < K; i++)
                 {
-                    sp.m_vec[i].GetNoiseEta3(xof, coins, nonce++);
+                    sp.m_vec[i].GetNoiseEta3(xof, coins, coinsOff, nonce++);
                 }
             }
 
             for (int i = 0; i < K; i++)
             {
-                ep.m_vec[i].GetNoiseEta2(xof, coins, nonce++);
+                ep.m_vec[i].GetNoiseEta2(xof, coins, coinsOff, nonce++);
             }
-            epp.GetNoiseEta2(xof, coins, nonce++);
+            epp.GetNoiseEta2(xof, coins, coinsOff, nonce++);
 
             sp.Ntt();
 
@@ -431,7 +440,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             bp.Reduce();
             v.PolyReduce();
 
-            PackCipherText(bp, v, c, cOff);
+            PackCipherText(bp, v, enc, encOff);
         }
 
         private void PackCipherText(PolyVec b, Poly v, byte[] c, int cOff)
@@ -475,15 +484,15 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             }
         }
 
-        private void UnpackPublicKey(byte[] pk, PolyVec pkpv, byte[] seed)
+        private void UnpackPublicKey(byte[] pk, int pkOff, PolyVec pkpv, byte[] seed)
         {
-            pkpv.FromBytes(pk);
-            Array.Copy(pk, m_engine.PolyVecBytes, seed, 0, MLKemEngine.SymBytes);
+            pkpv.FromBytes(pk, pkOff);
+            Array.Copy(pk, pkOff + m_engine.PolyVecBytes, seed, 0, MLKemEngine.SymBytes);
         }
 
         private void UnpackSecretKey(byte[] sk, PolyVec skpv)
         {
-            skpv.FromBytes(sk);
+            skpv.FromBytes(sk, 0);
         }
 #endif
     }

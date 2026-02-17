@@ -143,7 +143,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             Span<byte> cmp = stackalloc byte[CipherTextBytes];
             ReadOnlySpan<byte> pk = decapKey.Slice(IndCpaSecretKeyBytes, IndCpaPublicKeyBytes);
 
-            m_indCpa.Encrypt(buf[..SymBytes], pk, kr[SymBytes..], cmp);
+            m_indCpa.Encrypt(pk, buf[..SymBytes], kr[SymBytes..], cmp);
 
             int fail = ~FixedTimeEquals(cmp, encapsulation);
 
@@ -178,7 +178,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             G(buf, kr);
 
-            m_indCpa.Encrypt(buf[..SymBytes], encapKey, kr[SymBytes..], encapsulation);
+            m_indCpa.Encrypt(encapKey, buf[..SymBytes], kr[SymBytes..], encapsulation);
 
             kr[..SharedSecretBytes].CopyTo(secret);
         }
@@ -233,10 +233,8 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
             byte[] kr = new byte[2 * SymBytes];
             G(buf, kr);
 
-            byte[] pk = Arrays.InternalCopySegment(decapKey, IndCpaSecretKeyBytes, IndCpaPublicKeyBytes);
-
             byte[] cmp = new byte[CipherTextBytes];
-            m_indCpa.Encrypt(buf, pk, Arrays.InternalCopySegment(kr, SymBytes, SymBytes), cmp, 0);
+            m_indCpa.Encrypt(pk: decapKey, pkOff: IndCpaSecretKeyBytes, buf, 0, kr, SymBytes, cmp, 0);
 
             int fail = ~FixedTimeEquals(CipherTextBytes, cmp, 0, encBuf, encOff);
 
@@ -271,7 +269,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
 
             G(buf, kr);
 
-            m_indCpa.Encrypt(buf, encapKey, Arrays.InternalCopySegment(kr, SymBytes, SymBytes), encBuf, encOff);
+            m_indCpa.Encrypt(pk: encapKey, pkOff: 0, buf, 0, kr, SymBytes, encBuf, encOff);
 
             Array.Copy(kr, 0, secBuf, secOff, SharedSecretBytes);
         }
