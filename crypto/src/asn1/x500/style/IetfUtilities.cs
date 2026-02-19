@@ -2,12 +2,11 @@
 using System.IO;
 using System.Text;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.X500.Style
 {
-    // TODO[api] static
+    // TODO[api] Make static
     public abstract class IetfUtilities
     {
         internal static string Unescape(string elt)

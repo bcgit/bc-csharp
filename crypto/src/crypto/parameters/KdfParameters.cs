@@ -1,5 +1,3 @@
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     /// <summary>Parameters for Key Derivation Functions for IEEE P1363a.</summary>

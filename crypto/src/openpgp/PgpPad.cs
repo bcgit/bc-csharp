@@ -3,6 +3,7 @@
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
     /// <remarks>Padding functions.</remarks>
+    // TODO[api] Make static
     public sealed class PgpPad
     {
         private PgpPad()

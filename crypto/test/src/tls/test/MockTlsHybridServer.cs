@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Tls.Tests
             NamedGroup.X25519MLKEM768,
             NamedGroup.SecP384r1MLKEM1024,
             NamedGroup.curveSM2MLKEM768,
+            NamedGroup.x25519,
         };
 
         internal MockTlsHybridServer()

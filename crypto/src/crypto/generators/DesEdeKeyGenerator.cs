@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             do
             {
                 random.NextBytes(newKey);
-                DesEdeParameters.SetOddParity(newKey);
+                DesParameters.SetOddParity(newKey);
             }
             while (DesEdeParameters.IsWeakKey(newKey) || !DesEdeParameters.IsRealEdeKey(newKey, 0));
 
@@ -71,7 +71,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 do
                 {
                     random.NextBytes(bytes);
-                    DesEdeParameters.SetOddParity(bytes);
+                    DesParameters.SetOddParity(bytes);
                 }
                 while (DesEdeParameters.IsWeakKey(bytes) || !DesEdeParameters.IsRealEdeKey(bytes));
             });

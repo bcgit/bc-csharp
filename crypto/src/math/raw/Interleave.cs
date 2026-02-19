@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP3_0_OR_GREATER
             if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
             {
-                return Bmi2.ParallelBitDeposit(t, 0x55555555U);
+                return Bmi2.ParallelBitDeposit(t, 0x5555U);
             }
 #endif
             t = (t | (t << 4)) & 0x0F0FU;

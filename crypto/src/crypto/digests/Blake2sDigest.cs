@@ -94,8 +94,8 @@ namespace Org.BouncyCastle.Crypto.Digests
          * Tree hashing parameters; the Tree Hashing Mode is not supported but these are used for the XOF
          * implementation.
          */
-        private int fanout = 1; // 0-255
-        private int depth = 1; // 1-255
+        private int fanout = 1; // 0 - 255
+        private int depth = 1; // 1 - 255
         private int leafLength = 0;
         private long nodeOffset = 0L;
         private int nodeDepth = 0;

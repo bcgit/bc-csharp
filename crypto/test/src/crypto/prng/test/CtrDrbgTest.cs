@@ -471,49 +471,38 @@ namespace Org.BouncyCastle.Crypto.Prng.Test
 
         internal class KeyParityCipher : IBlockCipher
         {
-            private IBlockCipher cipher;
+            private readonly IBlockCipher m_cipher;
 
             internal KeyParityCipher(IBlockCipher cipher)
             {
-                this.cipher = cipher;
+                m_cipher = cipher;
             }
 
             public void Init(bool forEncryption, ICipherParameters parameters)
             {
-                byte[] k = Arrays.Clone(((KeyParameter)parameters).GetKey());
+                byte[] originalKey = ((KeyParameter)parameters).GetKey();
 
-                DesEdeParameters.SetOddParity(k);
+                byte[] parityKey = Arrays.CopyBuffer(originalKey);
+                DesParameters.SetOddParity(parityKey);
 
-                if (!Arrays.AreEqual(((KeyParameter)parameters).GetKey(), k))
-                {
+                if (!Arrays.AreEqual(originalKey, parityKey))
                     throw new ArgumentException("key not odd parity");
-                }
 
-                cipher.Init(forEncryption, parameters);
+                m_cipher.Init(forEncryption, parameters);
             }
 
-            public string AlgorithmName
-            {
-                get { return cipher.AlgorithmName; }
-            }
+            public string AlgorithmName => m_cipher.AlgorithmName;
 
-            public int GetBlockSize()
-            {
-                return cipher.GetBlockSize();
-            }
+            public int GetBlockSize() => m_cipher.GetBlockSize();
 
-            public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
-            {
-                return cipher.ProcessBlock(input, inOff, output, outOff);
-            }
+            public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff) =>
+                m_cipher.ProcessBlock(input, inOff, output, outOff);
 
             // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
 //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 #if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
-            {
-                return cipher.ProcessBlock(input, output);
-            }
+            public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output) =>
+                m_cipher.ProcessBlock(input, output);
 #endif
         }
     }
