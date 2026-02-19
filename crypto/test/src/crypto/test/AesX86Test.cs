@@ -17,32 +17,41 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class AesX86Test
         : CipherTest
     {
-        private static SimpleTest[] CreateTests() => new SimpleTest[]{
-            new BlockCipherVectorTest(0, new AesEngine_X86(), new KeyParameter(Hex.Decode("80000000000000000000000000000000")), "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
-            new BlockCipherVectorTest(1, new AesEngine_X86(), new KeyParameter(Hex.Decode("00000000000000000000000000000080")), "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
-            new BlockCipherMonteCarloTest(2, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("00000000000000000000000000000000")), "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
-            new BlockCipherMonteCarloTest(3, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("5F060D3716B345C253F6749ABAC10917")), "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
-            new BlockCipherVectorTest(4, new AesEngine_X86(), new KeyParameter(Hex.Decode("000000000000000000000000000000000000000000000000")), "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
-            new BlockCipherMonteCarloTest(5, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114")), "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
-            new BlockCipherVectorTest(6, new AesEngine_X86(), new KeyParameter(Hex.Decode("0000000000000000000000000000000000000000000000000000000000000000")), "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
-            new BlockCipherMonteCarloTest(7, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386")), "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168"),
-            new BlockCipherVectorTest(8, new AesEngine_X86(), new KeyParameter(Hex.Decode("80000000000000000000000000000000")), "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
-            new BlockCipherVectorTest(9, new AesEngine_X86(), new KeyParameter(Hex.Decode("00000000000000000000000000000080")), "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
-            new BlockCipherMonteCarloTest(10, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("00000000000000000000000000000000")), "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
-            new BlockCipherMonteCarloTest(11, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("5F060D3716B345C253F6749ABAC10917")), "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
-            new BlockCipherVectorTest(12, new AesEngine_X86(), new KeyParameter(Hex.Decode("000000000000000000000000000000000000000000000000")), "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
-            new BlockCipherMonteCarloTest(13, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114")), "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
-            new BlockCipherVectorTest(14, new AesEngine_X86(), new KeyParameter(Hex.Decode("0000000000000000000000000000000000000000000000000000000000000000")), "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
-            new BlockCipherMonteCarloTest(15, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386")), "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168"),
-            new BlockCipherVectorTest(16, new AesEngine_X86(), new KeyParameter(Hex.Decode("80000000000000000000000000000000")), "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
-            new BlockCipherVectorTest(17, new AesEngine_X86(), new KeyParameter(Hex.Decode("00000000000000000000000000000080")), "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
-            new BlockCipherMonteCarloTest(18, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("00000000000000000000000000000000")), "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
-            new BlockCipherMonteCarloTest(19, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("5F060D3716B345C253F6749ABAC10917")), "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
-            new BlockCipherVectorTest(20, new AesEngine_X86(), new KeyParameter(Hex.Decode("000000000000000000000000000000000000000000000000")), "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
-            new BlockCipherMonteCarloTest(21, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114")), "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
-            new BlockCipherVectorTest(22, new AesEngine_X86(), new KeyParameter(Hex.Decode("0000000000000000000000000000000000000000000000000000000000000000")), "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
-            new BlockCipherMonteCarloTest(23, 10000, new AesEngine_X86(), new KeyParameter(Hex.Decode("28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386")), "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168")
+        private static SimpleTest[] CreateBlockCipherVectors() => new SimpleTest[]
+        {
+            CreateVectorTest(0, "80000000000000000000000000000000", "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
+            CreateVectorTest(1, "00000000000000000000000000000080", "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
+            CreateMonteCarloTest(2, 10000, "00000000000000000000000000000000", "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
+            CreateMonteCarloTest(3, 10000, "5F060D3716B345C253F6749ABAC10917", "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
+            CreateVectorTest(4, "000000000000000000000000000000000000000000000000", "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
+            CreateMonteCarloTest(5, 10000, "AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114", "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
+            CreateVectorTest(6, "0000000000000000000000000000000000000000000000000000000000000000", "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
+            CreateMonteCarloTest(7, 10000, "28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386", "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168"),
+            CreateVectorTest(8, "80000000000000000000000000000000", "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
+            CreateVectorTest(9, "00000000000000000000000000000080", "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
+            CreateMonteCarloTest(10, 10000, "00000000000000000000000000000000", "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
+            CreateMonteCarloTest(11, 10000, "5F060D3716B345C253F6749ABAC10917", "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
+            CreateVectorTest(12, "000000000000000000000000000000000000000000000000", "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
+            CreateMonteCarloTest(13, 10000, "AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114", "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
+            CreateVectorTest(14, "0000000000000000000000000000000000000000000000000000000000000000", "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
+            CreateMonteCarloTest(15, 10000, "28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386", "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168"),
+            CreateVectorTest(16, "80000000000000000000000000000000", "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
+            CreateVectorTest(17, "00000000000000000000000000000080", "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
+            CreateMonteCarloTest(18, 10000, "00000000000000000000000000000000", "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
+            CreateMonteCarloTest(19, 10000, "5F060D3716B345C253F6749ABAC10917", "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
+            CreateVectorTest(20, "000000000000000000000000000000000000000000000000", "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
+            CreateMonteCarloTest(21, 10000, "AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114", "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
+            CreateVectorTest(22, "0000000000000000000000000000000000000000000000000000000000000000", "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
+            CreateMonteCarloTest(23, 10000, "28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386", "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168")
         };
+
+        private static SimpleTest CreateMonteCarloTest(int id, int iters, string key, string input, string output) =>
+            new BlockCipherMonteCarloTest(id, iters, new AesEngine_X86(), HexKey(key), input, output);
+
+        private static SimpleTest CreateVectorTest(int id, string key, string input, string output) =>
+            new BlockCipherVectorTest(id, new AesEngine_X86(), HexKey(key), input, output);
+
+        private static KeyParameter HexKey(string key) => new KeyParameter(Hex.DecodeStrict(key));
 
         private readonly SecureRandom Random = new SecureRandom();
 
@@ -57,242 +66,127 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         public override string Name => "AesX86";
 
-        public AesX86Test()
-            : base()
-        {
-        }
+        [Test, Explicit]
+        public void BenchDecrypt128() => ImplBenchProcess(forEncryption: false, keySize: 128);
 
-        public override ITestResult Perform()
+        [Test, Explicit]
+        public void BenchDecrypt192() => ImplBenchProcess(forEncryption: false, keySize: 192);
+
+        [Test, Explicit]
+        public void BenchDecrypt256() => ImplBenchProcess(forEncryption: false, keySize: 256);
+
+        [Test, Explicit]
+        public void BenchDecryptFour128() => ImplBenchProcessFour(forEncryption: false, keySize: 128);
+
+        [Test, Explicit]
+        public void BenchDecryptFour192() => ImplBenchProcessFour(forEncryption: false, keySize: 192);
+
+        [Test, Explicit]
+        public void BenchDecryptFour256() => ImplBenchProcessFour(forEncryption: false, keySize: 256);
+
+        [Test, Explicit]
+        public void BenchEncrypt128() => ImplBenchProcess(forEncryption: true, keySize: 128);
+
+        [Test, Explicit]
+        public void BenchEncrypt192() => ImplBenchProcess(forEncryption: true, keySize: 192);
+
+        [Test, Explicit]
+        public void BenchEncrypt256() => ImplBenchProcess(forEncryption: true, keySize: 256);
+
+        [Test, Explicit]
+        public void BenchEncryptFour128() => ImplBenchProcessFour(forEncryption: true, keySize: 128);
+
+        [Test, Explicit]
+        public void BenchEncryptFour192() => ImplBenchProcessFour(forEncryption: true, keySize: 192);
+
+        [Test, Explicit]
+        public void BenchEncryptFour256() => ImplBenchProcessFour(forEncryption: true, keySize: 256);
+
+        [Test]
+        public void BlockCipherVectors() => RunTests(CreateBlockCipherVectors());
+
+        [Test]
+        public void EngineChecks128() => ImplEngineChecks(keySize: 128);
+
+        [Test]
+        public void EngineChecks192() => ImplEngineChecks(keySize: 192);
+
+        [Test]
+        public void EngineChecks256() => ImplEngineChecks(keySize: 256);
+
+        [Test]
+        public void FourBlocksDecrypt128() => ImplTestFourBlocks(forEncryption: false, keySize: 128);
+
+        [Test]
+        public void FourBlocksDecrypt192() => ImplTestFourBlocks(forEncryption: false, keySize: 192);
+
+        [Test]
+        public void FourBlocksDecrypt256() => ImplTestFourBlocks(forEncryption: false, keySize: 256);
+
+        [Test]
+        public void FourBlocksEncrypt128() => ImplTestFourBlocks(forEncryption: true, keySize: 128);
+
+        [Test]
+        public void FourBlocksEncrypt192() => ImplTestFourBlocks(forEncryption: true, keySize: 192);
+
+        [Test]
+        public void FourBlocksEncrypt256() => ImplTestFourBlocks(forEncryption: true, keySize: 256);
+
+        private void ImplBenchProcess(bool forEncryption, int keySize)
         {
-            if (AesEngine_X86.IsSupported)
+            var engine = RandomEngine(forEncryption, keySize);
+            Span<byte> data = stackalloc byte[16];
+            Random.NextBytes(data);
+            for (int i = 0; i < 1000000000; ++i)
             {
-                ITestResult result = base.Perform();
-                if (!result.IsSuccessful())
-                    return result;
+                engine.ProcessBlock(data, data);
             }
-
-            return new SimpleTestResult(true, Name + ": Okay");
         }
 
-        public override void PerformTest()
+        private void ImplBenchProcessFour(bool forEncryption, int keySize)
         {
-            RunTests(CreateTests());
-            RunEngineChecks(new AesEngine_X86(), new KeyParameter(new byte[16]));
+            var engine = RandomEngine(forEncryption, keySize);
+            Span<byte> data = stackalloc byte[64];
+            Random.NextBytes(data);
+            for (int i = 0; i < 1000000000 / 4; ++i)
+            {
+                engine.ProcessFourBlocks(data, data);
+            }
         }
 
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
-        }
-
-        [Test]
-        public void TestFourBlocksDecrypt128()
-        {
-            ImplTestFourBlocks(false, 128);
-        }
-
-        [Test]
-        public void TestFourBlocksDecrypt192()
-        {
-            ImplTestFourBlocks(false, 192);
-        }
-
-        [Test]
-        public void TestFourBlocksDecrypt256()
-        {
-            ImplTestFourBlocks(false, 256);
-        }
-
-        [Test]
-        public void TestFourBlocksEncrypt128()
-        {
-            ImplTestFourBlocks(true, 128);
-        }
-
-        [Test]
-        public void TestFourBlocksEncrypt192()
-        {
-            ImplTestFourBlocks(true, 192);
-        }
-
-        [Test]
-        public void TestFourBlocksEncrypt256()
-        {
-            ImplTestFourBlocks(true, 256);
-        }
+        private void ImplEngineChecks(int keySize) => RunEngineChecks(new AesEngine_X86(), RandomKey(keySize));
 
         private void ImplTestFourBlocks(bool forEncryption, int keySize)
         {
-            Span<byte> key = stackalloc byte[keySize / 8];
             Span<byte> data = stackalloc byte[64];
             Span<byte> fourBlockOutput = stackalloc byte[64];
             Span<byte> singleBlockOutput = stackalloc byte[64];
 
             for (int i = 0; i < 100; ++i)
             {
-                Random.NextBytes(key);
                 Random.NextBytes(data);
 
-                var aes = new AesEngine_X86();
-                aes.Init(forEncryption, new KeyParameter(key));
+                var engine = RandomEngine(forEncryption, keySize);
 
-                aes.ProcessFourBlocks(data, fourBlockOutput);
+                engine.ProcessFourBlocks(data, fourBlockOutput);
 
                 for (int j = 0; j < 64; j += 16)
                 {
-                    aes.ProcessBlock(data[j..], singleBlockOutput[j..]);
+                    engine.ProcessBlock(data[j..], singleBlockOutput[j..]);
                 }
 
                 Assert.IsTrue(fourBlockOutput.SequenceEqual(singleBlockOutput));
             }
         }
 
-        [Test, Explicit]
-        public void BenchDecrypt128()
+        private AesEngine_X86 RandomEngine(bool forEncryption, int keySize)
         {
-            byte[] data = new byte[16];
             var engine = new AesEngine_X86();
-            engine.Init(false, new KeyParameter(new byte[16]));
-            for (int i = 0; i < 1000000000; ++i)
-            {
-                engine.ProcessBlock(data, 0, data, 0);
-            }
+            engine.Init(forEncryption, RandomKey(keySize));
+            return engine;
         }
 
-        [Test, Explicit]
-        public void BenchDecrypt192()
-        {
-            byte[] data = new byte[16];
-            var engine = new AesEngine_X86();
-            engine.Init(false, new KeyParameter(new byte[24]));
-            for (int i = 0; i < 1000000000; ++i)
-            {
-                engine.ProcessBlock(data, 0, data, 0);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchDecrypt256()
-        {
-            byte[] data = new byte[16];
-            var engine = new AesEngine_X86();
-            engine.Init(false, new KeyParameter(new byte[32]));
-            for (int i = 0; i < 1000000000; ++i)
-            {
-                engine.ProcessBlock(data, 0, data, 0);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchEncrypt128()
-        {
-            byte[] data = new byte[16];
-            var engine = new AesEngine_X86();
-            engine.Init(true, new KeyParameter(new byte[16]));
-            for (int i = 0; i < 1000000000; ++i)
-            {
-                engine.ProcessBlock(data, 0, data, 0);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchDecryptFour128()
-        {
-            byte[] data = new byte[64];
-            var engine = new AesEngine_X86();
-            engine.Init(false, new KeyParameter(new byte[16]));
-            for (int i = 0; i < 1000000000 / 4; ++i)
-            {
-                engine.ProcessFourBlocks(data, data);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchDecryptFour192()
-        {
-            byte[] data = new byte[64];
-            var engine = new AesEngine_X86();
-            engine.Init(false, new KeyParameter(new byte[24]));
-            for (int i = 0; i < 1000000000 / 4; ++i)
-            {
-                engine.ProcessFourBlocks(data, data);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchDecryptFour256()
-        {
-            byte[] data = new byte[64];
-            var engine = new AesEngine_X86();
-            engine.Init(false, new KeyParameter(new byte[32]));
-            for (int i = 0; i < 1000000000 / 4; ++i)
-            {
-                engine.ProcessFourBlocks(data, data);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchEncrypt192()
-        {
-            byte[] data = new byte[16];
-            var engine = new AesEngine_X86();
-            engine.Init(true, new KeyParameter(new byte[24]));
-            for (int i = 0; i < 1000000000; ++i)
-            {
-                engine.ProcessBlock(data, 0, data, 0);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchEncrypt256()
-        {
-            byte[] data = new byte[16];
-            var engine = new AesEngine_X86();
-            engine.Init(true, new KeyParameter(new byte[32]));
-            for (int i = 0; i < 1000000000; ++i)
-            {
-                engine.ProcessBlock(data, 0, data, 0);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchEncryptFour128()
-        {
-            byte[] data = new byte[64];
-            var engine = new AesEngine_X86();
-            engine.Init(true, new KeyParameter(new byte[16]));
-            for (int i = 0; i < 1000000000 / 4; ++i)
-            {
-                engine.ProcessFourBlocks(data, data);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchEncryptFour192()
-        {
-            byte[] data = new byte[64];
-            var engine = new AesEngine_X86();
-            engine.Init(true, new KeyParameter(new byte[24]));
-            for (int i = 0; i < 1000000000 / 4; ++i)
-            {
-                engine.ProcessFourBlocks(data, data);
-            }
-        }
-
-        [Test, Explicit]
-        public void BenchEncryptFour256()
-        {
-            byte[] data = new byte[64];
-            var engine = new AesEngine_X86();
-            engine.Init(true, new KeyParameter(new byte[32]));
-            for (int i = 0; i < 1000000000 / 4; ++i)
-            {
-                engine.ProcessFourBlocks(data, data);
-            }
-        }
+        private KeyParameter RandomKey(int keySize) => KeyParameter.Create(keySize / 8, Random, SecureRandom.Fill);
     }
 }
 #endif
