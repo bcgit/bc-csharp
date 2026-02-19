@@ -33,6 +33,11 @@ namespace Org.BouncyCastle.Security
             return prng;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // System.Buffers.SpanAction<byte, in SecureRandom>
+        public static void Fill(Span<byte> buf, SecureRandom secureRandom) => secureRandom.NextBytes(buf);
+#endif
+
         public static byte[] GetNextBytes(SecureRandom secureRandom, int length)
         {
             byte[] result = new byte[length];

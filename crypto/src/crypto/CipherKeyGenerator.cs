@@ -71,10 +71,7 @@ namespace Org.BouncyCastle.Crypto
             // Avoid problems if EngineGenerateKey() was overridden before this method even existed.
             if (GetType() == typeof(CipherKeyGenerator))
             {
-                return KeyParameter.Create(strength, random, (bytes, random) =>
-                {
-                    random.NextBytes(bytes);
-                });
+                return KeyParameter.Create(strength, random, SecureRandom.Fill);
             }
 #endif
 
