@@ -208,6 +208,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private void ImplMultiplyAcc(ulong[] x, int xOff, ulong[] y, int yOff, ulong[] zz)
         {
+            // TODO Karatsuba/Toom-Cook at larger sizes
+
             var xBounds = x[xOff + Size - 1];
             var yBounds = y[yOff + Size - 1];
             var zzBounds = zz[SizeExt - 1];
@@ -256,12 +258,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                         Z45 = Sse2.Xor(Z45, U45);
 
                         Z01 = Sse2.Xor(Z01, Sse2.ShiftLeftLogical128BitLane (Z12, 8));
-                        Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
 
-                        Z23 = Sse2.Xor(Z23, Sse2.ShiftLeftLogical128BitLane (Z34, 8));
-                        Z45 = Sse2.Xor(Z45, Sse2.ShiftRightLogical128BitLane(Z34, 8));
+                        if (Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled)
+                        {
+                            Z23 = Sse2.Xor(Z23, Ssse3.AlignRight(Z34, Z12, 8));
+                            Z45 = Sse2.Xor(Z45, Ssse3.AlignRight(Z56, Z34, 8));
+                        }
+                        else
+                        {
+                            Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
+                            Z23 = Sse2.Xor(Z23, Sse2.ShiftLeftLogical128BitLane (Z34, 8));
+                            Z45 = Sse2.Xor(Z45, Sse2.ShiftRightLogical128BitLane(Z34, 8));
+                            Z45 = Sse2.Xor(Z45, Sse2.ShiftLeftLogical128BitLane (Z56, 8));
+                        }
 
-                        Z45 = Sse2.Xor(Z45, Sse2.ShiftLeftLogical128BitLane (Z56, 8));
                         Z67 = Sse2.Xor(Z67, Sse2.ShiftRightLogical128BitLane(Z56, 8));
 
                         zz[i + j + 0] ^= Z01.GetElement(0);
@@ -304,9 +314,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                         var Z12 = Sse2.Xor(U12, V12);
                         var Z23 = Sse2.Xor(U23, V23);
 
+                        Z01 = Sse2.Xor(Z01, Sse2.ShiftLeftLogical128BitLane(Z12, 8));
+                        Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
+
                         zz[i + j + 0] ^= Z01.GetElement(0);
-                        zz[i + j + 1] ^= Z01.GetElement(1) ^ Z12.GetElement(0);
-                        zz[i + j + 2] ^= Z23.GetElement(0) ^ Z12.GetElement(1);
+                        zz[i + j + 1] ^= Z01.GetElement(1);
+                        zz[i + j + 2] ^= Z23.GetElement(0);
                         zz[i + j + 3] ^= Z23.GetElement(1);
                     }
 
@@ -316,9 +329,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                                            Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x10));
                         var Z23 = Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x11);
 
+                        Z01 = Sse2.Xor(Z01, Sse2.ShiftLeftLogical128BitLane (Z12, 8));
+                        Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
+
                         zz[i + i + 0] ^= Z01.GetElement(0);
-                        zz[i + i + 1] ^= Z01.GetElement(1) ^ Z12.GetElement(0);
-                        zz[i + i + 2] ^= Z23.GetElement(0) ^ Z12.GetElement(1);
+                        zz[i + i + 1] ^= Z01.GetElement(1);
+                        zz[i + i + 2] ^= Z23.GetElement(0);
                         zz[i + i + 3] ^= Z23.GetElement(1);
                     }
 
@@ -354,50 +370,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
 #endif
 
-            ulong[] u = new ulong[16];
-
-            // Schoolbook
-
-            //for (int i = 0; i < Size; ++i)
-            //{
-            //    ulong x_i = x[i];
-
-            //    for (int j = 0; j < Size; ++j)
-            //    {
-            //        ulong y_j = y[j];
-
-            //        ImplMulwAcc(u, x_i, y_j, zz, i + j);
-            //    }
-            //}
-
             // Arbitrary-degree Karatsuba
-
-            for (int i = 0; i < Size; ++i)
             {
-                ImplMulwAcc(u, x[xOff + i], y[yOff + i], zz, i << 1);
-            }
+                ulong[] u = new ulong[16];
 
-            ulong v0 = zz[0], v1 = zz[1];
-            for (int i = 1; i < Size; ++i)
-            {
-                v0 ^= zz[i << 1]; zz[i] = v0 ^ v1; v1 ^= zz[(i << 1) + 1];
-            }
-
-            ulong w = v0 ^ v1;
-            Nat.Xor64(Size, zz, 0, w, zz, Size);
-
-            int last = Size - 1;
-            for (int zPos = 1; zPos < (last * 2); ++zPos)
-            {
-                int hi = System.Math.Min(last, zPos);
-                int lo = zPos - hi;
-
-                while (lo < hi)
+                for (int i = 0; i < Size; ++i)
                 {
-                    ImplMulwAcc(u, x[xOff + lo] ^ x[xOff + hi], y[yOff + lo] ^ y[yOff + hi], zz, zPos);
+                    ImplMulwAcc(u, x[xOff + i], y[yOff + i], zz, i << 1);
+                }
 
-                    ++lo;
-                    --hi;
+                ulong v0 = zz[0], v1 = zz[1];
+                for (int i = 1; i < Size; ++i)
+                {
+                    v0 ^= zz[i << 1]; zz[i] = v0 ^ v1; v1 ^= zz[(i << 1) + 1];
+                }
+
+                ulong w = v0 ^ v1;
+                Nat.Xor64(Size, zz, 0, w, zz, Size);
+
+                int last = Size - 1;
+                for (int zPos = 1; zPos < (last * 2); ++zPos)
+                {
+                    int hi = System.Math.Min(last, zPos);
+                    int lo = zPos - hi;
+
+                    while (lo < hi)
+                    {
+                        ImplMulwAcc(u, x[xOff + lo] ^ x[xOff + hi], y[yOff + lo] ^ y[yOff + hi], zz, zPos);
+
+                        ++lo;
+                        --hi;
+                    }
                 }
             }
         }
@@ -493,35 +496,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             return (int)p;
         }
 
+        /**
+         * Carryless multiply of x and y, accumulating the result at z[zOff..zOff + 1], using u as a temporary buffer.
+         */
         private static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
         {
-            //u[0] = 0;
+            ulong h = 0, m = x, n = y;
+
+            //u[0] = 0UL;
             u[1] = y;
             for (int i = 2; i < 16; i += 2)
             {
-                u[i    ] = u[i >> 1] << 1;
-                u[i + 1] = u[i     ] ^  y;
+                ulong u_i = u[i / 2] << 1;
+                u[i    ] = u_i;
+                u[i + 1] = u_i ^ y;
+
+                // Interleave "repair" steps here for performance
+                m = (m & 0xFEFEFEFEFEFEFEFEUL) >> 1;
+                h ^= m & (ulong)((long)n >> 63);
+                n <<= 1;
             }
 
             uint j = (uint)x;
-            ulong g, h = 0, l = u[j & 15]
-                              ^ u[(j >> 4) & 15] << 4;
+            ulong g, l = u[j & 15]
+                       ^ u[(j >> 4) & 15] << 4;
             int k = 56;
             do
             {
                 j  = (uint)(x >> k);
                 g  = u[j & 15]
                    ^ u[(j >> 4) & 15] << 4;
-                l ^= (g << k);
-                h ^= (g >> -k);
+                l ^= g << k;
+                h ^= g >> -k;
             }
             while ((k -= 8) > 0);
-
-            for (int p = 0; p < 7; ++p)
-            {
-                x = (x & 0xFEFEFEFEFEFEFEFEUL) >> 1;
-                h ^= x & (ulong)((long)(y << p) >> 63);
-            }
 
             Debug.Assert(h >> 63 == 0);
 

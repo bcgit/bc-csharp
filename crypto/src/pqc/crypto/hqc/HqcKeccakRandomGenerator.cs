@@ -7,9 +7,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     internal sealed class HqcKeccakRandomGenerator
     {
-        private readonly ulong[] state = new ulong[26];
-        private readonly byte[] dataQueue = new byte[192];
-        private int rate;
+        private readonly ulong[] m_state = new ulong[26];
+        private readonly int m_rate;
 
         public HqcKeccakRandomGenerator()
             : this(288)
@@ -27,13 +26,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             case 384:
             case 512:
             {
-                this.rate = 1600 - (bitLength << 1);
+                int rate = 1600 - (bitLength << 1);
 
                 if ((rate <= 0) || (rate >= 1600) || ((rate % 64) != 0))
                     throw new InvalidOperationException("invalid rate value");
 
-                //Arrays.Fill(state, 0UL);
-                //Arrays.Fill(dataQueue, 0);
+                m_rate = rate;
                 break;
             }
             default:
@@ -44,62 +42,62 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         private void KeccakIncAbsorb(byte[] input, int inputLen)
         {
             int count = 0;
-            int rateBytes = rate >> 3;
-            while (inputLen + (long)state[25] >= rateBytes)
+            int rateBytes = m_rate >> 3;
+            while (inputLen + (long)m_state[25] >= rateBytes)
             {
-                for (int i = 0; i < rateBytes - (long)state[25]; i++)
+                for (int i = 0; i < rateBytes - (long)m_state[25]; i++)
                 {
-                    int tmp = (int)((long)state[25] + i) >> 3;
-                    state[tmp] ^= (ulong)input[i + count] << (8 * (((int)state[25] + i) & 0x07));
+                    int tmp = (int)((long)m_state[25] + i) >> 3;
+                    m_state[tmp] ^= (ulong)input[i + count] << (8 * (((int)m_state[25] + i) & 0x07));
                 }
-                inputLen -= (int)(rateBytes - (long)state[25]);
-                count += (int) (rateBytes - (long)state[25]);
-                state[25] = 0UL;
-                KeccakDigest.KeccakPermutation(state);
+                inputLen -= (int)(rateBytes - (long)m_state[25]);
+                count += (int)(rateBytes - (long)m_state[25]);
+                m_state[25] = 0UL;
+                KeccakDigest.KeccakPermutation(m_state);
             }
 
             for (int i = 0; i < inputLen; i++)
             {
-                int tmp = (int)((long)state[25] + i) >> 3;
-                state[tmp] ^= (ulong)input[i + count] << (8 * (((int)state[25] + i) & 0x07));
+                int tmp = (int)((long)m_state[25] + i) >> 3;
+                m_state[tmp] ^= (ulong)input[i + count] << (8 * (((int)m_state[25] + i) & 0x07));
             }
 
-            state[25] = (ulong)((long)state[25] + inputLen);
+            m_state[25] = (ulong)((long)m_state[25] + inputLen);
         }
 
         private void KeccakIncFinalize(int p)
         {
-            int rateBytes = rate >> 3;
+            int rateBytes = m_rate >> 3;
 
-            state[(int)state[25] >> 3] ^= (ulong)p << (int)(8 * (((long)state[25]) & 0x07));
-            state[(rateBytes - 1) >> 3] ^= 128UL << (8 * ((rateBytes - 1) & 0x07));
-            state[25] = 0UL;
+            m_state[(int)m_state[25] >> 3] ^= (ulong)p << (int)(8 * (((long)m_state[25]) & 0x07));
+            m_state[(rateBytes - 1) >> 3] ^= 128UL << (8 * ((rateBytes - 1) & 0x07));
+            m_state[25] = 0UL;
         }
 
         private void KeccakIncSqueeze(byte[] output, int outLen)
         {
-            int rateBytes = rate >> 3;
+            int rateBytes = m_rate >> 3;
             int i;
-            for (i = 0; i < outLen && i < (long)state[25]; i++)
+            for (i = 0; i < outLen && i < (long)m_state[25]; i++)
             {
-                output[i] = (byte)(state[(int)((rateBytes - (long)state[25] + i) >> 3)] >> (int)(8 * ((rateBytes - (long)state[25] + i) & 0x07)));
+                output[i] = (byte)(m_state[(int)((rateBytes - (long)m_state[25] + i) >> 3)] >> (int)(8 * ((rateBytes - (long)m_state[25] + i) & 0x07)));
             }
 
             int count = i;
             outLen -= i;
-            state[25] = (ulong)((long)state[25] - i);
+            m_state[25] = (ulong)((long)m_state[25] - i);
 
             while (outLen > 0)
             {
-                KeccakDigest.KeccakPermutation(state);
+                KeccakDigest.KeccakPermutation(m_state);
 
                 for (i = 0; i < outLen && i < rateBytes; i++)
                 {
-                    output[count + i] = (byte)(state[i >> 3] >> (8 * (i & 0x07)));
+                    output[count + i] = (byte)(m_state[i >> 3] >> (8 * (i & 0x07)));
                 }
                 count = count + i;
                 outLen -= i;
-                state[25] = (ulong)(long)(rateBytes - i);
+                m_state[25] = (ulong)(long)(rateBytes - i);
             }
         }
 
@@ -140,7 +138,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         public void SHAKE256_512_ds(byte[] output, byte[] input, int inLen, byte[] domain)
         {
-            Arrays.Fill(state, 0UL);
+            Arrays.Fill(m_state, 0UL);
             KeccakIncAbsorb(input, inLen);
             KeccakIncAbsorb(domain, domain.Length);
             KeccakIncFinalize(0x1F);

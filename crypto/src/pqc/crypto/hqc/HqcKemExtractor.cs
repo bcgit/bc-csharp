@@ -1,16 +1,20 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
+    // TODO[api] Make sealed
     public class HqcKemExtractor
         : IEncapsulatedSecretExtractor
     {
         private readonly HqcPrivateKeyParameters m_privateKey;
         private readonly HqcEngine m_engine;
 
+        // TODO[api] 'privateKey'
         public HqcKemExtractor(HqcPrivateKeyParameters privParams)
         {
-            m_privateKey = privParams;
+            m_privateKey = privParams ?? throw new ArgumentNullException(nameof(privParams));
             m_engine = privParams.Parameters.Engine;
         }
 
@@ -21,8 +25,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             return session_key;
         }
 
-        public int EncapsulationLength => Parameters.NBytes + Parameters.N1n2Bytes + 16;
-
-        private HqcParameters Parameters => m_privateKey.Parameters;
+        public int EncapsulationLength => m_engine.CipherTextBytes;
     }
 }

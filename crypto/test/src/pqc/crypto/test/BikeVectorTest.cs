@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         [Parallelizable(ParallelScope.All)]
         public void TV(string testVectorFile)
         {
-            RunTestVectorFile(testVectorFile);
+            RunTestVectorFile(testVectorFile, sampleOnly: true);
         }
 
         private static void RunTestVector(string name, IDictionary<string, string> buf)
@@ -86,10 +86,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key");
         }
 
-        private static void RunTestVectorFile(string name)
+        private static void RunTestVectorFile(string name, bool sampleOnly)
         {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
+            var data = new Dictionary<string, string>();
+            var sampler = sampleOnly ? new TestSampler() : null;
             using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/bike", name)))
             {
                 string line;
@@ -104,28 +104,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                         int a = line.IndexOf('=');
                         if (a > -1)
                         {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
+                            data[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
                         }
                         continue;
                     }
 
-                    if (buf.Count > 0)
+                    if (data.Count > 0)
                     {
-                        if (!sampler.SkipTest(buf["count"]))
+                        if (sampler == null || !sampler.SkipTest(data["count"]))
                         {
-                            RunTestVector(name, buf);
+                            RunTestVector(name, data);
                         }
-                        buf.Clear();
+                        data.Clear();
                     }
                 }
 
-                if (buf.Count > 0)
+                if (data.Count > 0)
                 {
-                    if (!sampler.SkipTest(buf["count"]))
+                    if (sampler == null || !sampler.SkipTest(data["count"]))
                     {
-                        RunTestVector(name, buf);
+                        RunTestVector(name, data);
                     }
-                    buf.Clear();
+                    data.Clear();
                 }
             }
         }

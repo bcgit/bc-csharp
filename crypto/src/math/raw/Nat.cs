@@ -797,29 +797,107 @@ namespace Org.BouncyCastle.Math.Raw
 
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ulong EqualTo64(int len, ReadOnlySpan<ulong> x, ulong y)
+#else
+        public static ulong EqualTo64(int len, ulong[] x, ulong y)
+#endif
+        {
+            ulong d = x[0] ^ y;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1UL);
+            return (ulong)(((long)d - 1L) >> 63);
+        }
+
+        public static ulong EqualTo64(int len, ulong[] x, int xOff, ulong y)
+        {
+            ulong d = x[xOff] ^ y;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[xOff + i];
+            }
+            d = (d >> 1) | (d & 1UL);
+            return (ulong)(((long)d - 1L) >> 63);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ulong EqualTo64(int len, ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y)
+#else
+        public static ulong EqualTo64(int len, ulong[] x, ulong[] y)
+#endif
+        {
+            ulong d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[i] ^ y[i];
+            }
+            d = (d >> 1) | (d & 1UL);
+            return (ulong)(((long)d - 1L) >> 63);
+        }
+
+        public static ulong EqualTo64(int len, ulong[] x, int xOff, ulong[] y, int yOff)
+        {
+            ulong d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[xOff + i] ^ y[yOff + i];
+            }
+            d = (d >> 1) | (d & 1UL);
+            return (ulong)(((long)d - 1L) >> 63);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static uint EqualToZero(int len, ReadOnlySpan<uint> x)
 #else
         public static uint EqualToZero(int len, uint[] x)
 #endif
         {
-            uint d = 0;
+            uint d = 0U;
             for (int i = 0; i < len; ++i)
             {
                 d |= x[i];
             }
-            d = (d >> 1) | (d & 1);
+            d = (d >> 1) | (d & 1U);
             return (uint)(((int)d - 1) >> 31);
         }
 
         public static uint EqualToZero(int len, uint[] x, int xOff)
         {
-            uint d = 0;
+            uint d = 0U;
             for (int i = 0; i < len; ++i)
             {
                 d |= x[xOff + i];
             }
-            d = (d >> 1) | (d & 1);
+            d = (d >> 1) | (d & 1U);
             return (uint)(((int)d - 1) >> 31);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ulong EqualToZero64(int len, ReadOnlySpan<ulong> x)
+#else
+        public static ulong EqualToZero64(int len, ulong[] x)
+#endif
+        {
+            ulong d = 0UL;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            d = (d >> 1) | (d & 1UL);
+            return (ulong)(((long)d - 1L) >> 63);
+        }
+
+        public static ulong EqualToZero64(int len, ulong[] x, int xOff)
+        {
+            ulong d = 0UL;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= x[xOff + i];
+            }
+            d = (d >> 1) | (d & 1UL);
+            return (ulong)(((long)d - 1L) >> 63);
         }
 
         public static uint[] FromBigInteger(int bits, BigInteger x)
@@ -2788,6 +2866,66 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static void Xor(int len, uint[] x, uint y, uint[] z)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Xor(len, x.AsSpan(0, len), y, z.AsSpan(0, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[i] = x[i] ^ y;
+            }
+#endif
+        }
+
+        public static void Xor(int len, uint[] x, int xOff, uint y, uint[] z, int zOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Xor(len, x.AsSpan(xOff, len), y, z.AsSpan(zOff, len));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] = x[xOff + i] ^ y;
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void Xor(int len, ReadOnlySpan<uint> x, uint y, Span<uint> z)
+        {
+            int i = 0;
+            if (Vector.IsHardwareAccelerated)
+            {
+                var vy = new Vector<uint>(y);
+
+                int limit = len - Vector<uint>.Count;
+                while (i <= limit)
+                {
+                    var vx = new Vector<uint>(x[i..]);
+                    (vx ^ vy).CopyTo(z[i..]);
+                    i += Vector<uint>.Count;
+                }
+            }
+            else
+            {
+                int limit = len - 4;
+                while (i <= limit)
+                {
+                    z[i + 0] = x[i + 0] ^ y;
+                    z[i + 1] = x[i + 1] ^ y;
+                    z[i + 2] = x[i + 2] ^ y;
+                    z[i + 3] = x[i + 3] ^ y;
+                    i += 4;
+                }
+            }
+            while (i < len)
+            {
+                z[i] = x[i] ^ y;
+                ++i;
+            }
+        }
+#endif
+
         public static void Xor(int len, uint[] x, uint[] y, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -3106,6 +3244,18 @@ namespace Org.BouncyCastle.Math.Raw
 #endif
         }
 
+        public static void Zero(int len, uint[] z, int zOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            z.AsSpan(zOff, len).Fill(0U);
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] = 0U;
+            }
+#endif
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Zero(int len, Span<uint> z)
         {
@@ -3121,6 +3271,18 @@ namespace Org.BouncyCastle.Math.Raw
             for (int i = 0; i < len; ++i)
             {
                 z[i] = 0UL;
+            }
+#endif
+        }
+
+        public static void Zero64(int len, ulong[] z, int zOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            z.AsSpan(zOff, len).Fill(0UL);
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                z[zOff + i] = 0UL;
             }
 #endif
         }

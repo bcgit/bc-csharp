@@ -2,9 +2,9 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
-    internal class FastFourierTransform
+    internal static class FastFourierTransform
     {
-        internal static void FFT(int[] output, int[] elements, int noCoefs, int fft)
+        internal static void Fft(int[] output, int[] elements, int noCoefs, int fft)
         {
             int m = HqcParameters.PARAM_M;
             int mSize = 1 << (HqcParameters.PARAM_M - 1);
@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             int[] betas = new int[m - 1];
             int[] betaSum = new int[mSize];
 
-            ComputeFFTBetas(betas, m);
+            ComputeFftBetas(betas, m);
             ComputeSubsetSum(betaSum, betas, m - 1);
 
             // Step 2: Compute radix
@@ -30,12 +30,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             // Step 3: Compute deltas
             for (int i = 0; i < m - 1; i++)
             {
-                deltas[i] = GFCalculator.Mul(betas[i], betas[i]) ^ betas[i];
+                int beta_i = betas[i];
+                deltas[i] = GFCalculator.Sqr(beta_i) ^ beta_i;
             }
 
             // Step 5:
-            ComputeFFTRec(u, f0, (noCoefs + 1) / 2, m - 1, fft - 1, deltas, fft, m);
-            ComputeFFTRec(v, f1, noCoefs / 2, m - 1, fft - 1, deltas, fft, m);
+            ComputeFftRec(u, f0, (noCoefs + 1) / 2, m - 1, fft - 1, deltas, fft, m);
+            ComputeFftRec(v, f1, noCoefs / 2, m - 1, fft - 1, deltas, fft, m);
 
             // Step 6.7
             int k = 1 << (m - 1);
@@ -47,12 +48,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             for (int i = 1; i < k; i++)
             {
-                output[i] = u[i] ^ GFCalculator.Mul(betaSum[i], v[i]);
-                output[k + i] ^= output[i];
+                int ti = u[i] ^ GFCalculator.Mul(betaSum[i], v[i]);
+                output[i] = ti;
+                output[k + i] ^= ti;
             }
         }
 
-        internal static void ComputeFFTBetas(int[] betas, int m)
+        internal static void ComputeFftBetas(int[] betas, int m)
         {
             for (int i = 0; i < m - 1; i++)
             {
@@ -134,8 +136,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         internal static void ComputeRadixBig(int[] f0, int[] f1, int[] f, int mf, int fft)
         {
-            int n = 1;
-            n <<= (mf - 2);
+            int n = 1 << (mf - 2);
             int fftSize = 1 << (fft - 2);
 
             int[] Q = new int[2 * fftSize + 1];
@@ -146,27 +147,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             int[] R0 = new int[fftSize];
             int[] R1 = new int[fftSize];
 
-
-            Utils.CopyBytes(f, 3 * n, Q, 0, 2 * n);
-            Utils.CopyBytes(f, 3 * n, Q, n, 2 * n);
-            Utils.CopyBytes(f, 0, R, 0, 4 * n);
+            Array.Copy(f, 3 * n, Q, 0, n);
+            Array.Copy(f, 3 * n, Q, n, n);
+            Array.Copy(f, 0, R, 0, 2 * n);
 
             for (int i = 0; i < n; ++i)
             {
-                Q[i] ^= f[2 * n + i];
-                R[n + i] ^= Q[i];
+                int qi = Q[i] ^ f[2 * n + i];
+                Q[i] = qi;
+                R[n + i] ^= qi;
             }
 
             ComputeRadix(Q0, Q1, Q, mf - 1, fft);
             ComputeRadix(R0, R1, R, mf - 1, fft);
 
-            Utils.CopyBytes(R0, 0, f0, 0, 2 * n);
-            Utils.CopyBytes(Q0, 0, f0, n, 2 * n);
-            Utils.CopyBytes(R1, 0, f1, 0, 2 * n);
-            Utils.CopyBytes(Q1, 0, f1, n, 2 * n);
+            Array.Copy(R0, 0, f0, 0, n);
+            Array.Copy(Q0, 0, f0, n, n);
+            Array.Copy(R1, 0, f1, 0, n);
+            Array.Copy(Q1, 0, f1, n, n);
         }
 
-        internal static void ComputeFFTRec(int[] output, int[] func, int noCoeffs, int noOfBetas, int noCoeffsPlus, int[] betaSet, int fft, int m)
+        internal static void ComputeFftRec(int[] output, int[] func, int noCoeffs, int noOfBetas, int noCoeffsPlus, int[] betaSet, int fft, int m)
         {
             int fftSize = 1 << (fft - 2);
             int mSize = 1 << (m - 2);
@@ -180,7 +181,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             int[] vSet = new int[mSize];
             int[] tempSet = new int[m - fft + 1];
 
-            int x;
             if (noCoeffsPlus == 1)
             {
                 for (int i = 0; i < noOfBetas; i++)
@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 }
 
                 output[0] = func[0];
-                x = 1;
+                int x = 1;
                 for (int j = 0; j < noOfBetas; j++)
                 {
                     for (int t = 0; t < x; t++)
@@ -204,8 +204,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             if (betaSet[noOfBetas - 1] != 1)
             {
                 int betaMPow = 1;
-                x = 1;
-                x <<= noCoeffsPlus;
+                int x = 1 << noCoeffsPlus;
                 for (int i = 1; i < x; i++)
                 {
                     betaMPow = GFCalculator.Mul(betaMPow, betaSet[noOfBetas - 1]);
@@ -217,28 +216,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             for (int i = 0; i < noOfBetas - 1; i++)
             {
-                gammaSet[i] = GFCalculator.Div(betaSet[i], betaSet[noOfBetas - 1]);
-                deltaSet[i] = GFCalculator.Mul(gammaSet[i], gammaSet[i]) ^ gammaSet[i];
+                int gamma_i = GFCalculator.Div(betaSet[i], betaSet[noOfBetas - 1]);
+                gammaSet[i] = gamma_i;
+                deltaSet[i] = GFCalculator.Sqr(gamma_i) ^ gamma_i;
             }
 
             ComputeSubsetSum(gammaSumSet, gammaSet, noOfBetas - 1);
 
-            ComputeFFTRec(uSet, fx0, (noCoeffs + 1) / 2, noOfBetas - 1, noCoeffsPlus - 1, deltaSet, fft, m);
+            ComputeFftRec(uSet, fx0, (noCoeffs + 1) / 2, noOfBetas - 1, noCoeffsPlus - 1, deltaSet, fft, m);
 
-            int k = 1 << ((noOfBetas - 1) & 0xf);
+            int k = 1 << ((noOfBetas - 1) & 0xF);
             if (noCoeffs <= 3)
             {
                 output[0] = uSet[0];
                 output[k] = uSet[0] ^ fx1[0];
                 for (int i = 1; i < k; i++)
                 {
-                    output[i] = uSet[i] ^ GFCalculator.Mul(gammaSumSet[i], fx1[0]);
-                    output[k + i] = output[i] ^ fx1[0];
+                    int ti = uSet[i] ^ GFCalculator.Mul(gammaSumSet[i], fx1[0]);
+                    output[i] = ti;
+                    output[k + i] = ti ^ fx1[0];
                 }
             }
             else
             {
-                ComputeFFTRec(vSet, fx1, noCoeffs / 2, noOfBetas - 1, noCoeffsPlus - 1, deltaSet, fft, m);
+                ComputeFftRec(vSet, fx1, noCoeffs / 2, noOfBetas - 1, noCoeffsPlus - 1, deltaSet, fft, m);
 
                 Array.Copy(vSet, 0, output, k, k);
 
@@ -263,19 +264,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             int[] gammaSet = new int[m - 1];
             int[] gammaSumSet = new int[mSize];
 
-            ComputeFFTBetas(gammaSet, m);
+            ComputeFftBetas(gammaSet, m);
             ComputeSubsetSum(gammaSumSet, gammaSet, m - 1);
 
-            errorSet[0] ^= (byte) (1 ^ Utils.ToUnsigned16Bits(-input[0] >> 15));
-            errorSet[0] ^= (byte) (1 ^ Utils.ToUnsigned16Bits(-input[mSize] >> 15));
+            errorSet[0] ^= (byte)(1 ^ Utils.ToUnsigned16Bits(-input[0] >> 15));
+            errorSet[0] ^= (byte)(1 ^ Utils.ToUnsigned16Bits(-input[mSize] >> 15));
 
             for (int i = 1; i < mSize; i++)
             {
                 int tmp = gfMulOrder - logArrays[gammaSumSet[i]];
-                errorSet[tmp] ^= (byte) (1 ^ System.Math.Abs(-input[i] >> 15));
+                errorSet[tmp] ^= (byte)(1 ^ System.Math.Abs(-input[i] >> 15));
 
                 tmp = gfMulOrder - logArrays[gammaSumSet[i] ^ 1];
-                errorSet[tmp] ^= (byte) (1 ^ System.Math.Abs(-input[mSize + i] >> 15));
+                errorSet[tmp] ^= (byte)(1 ^ System.Math.Abs(-input[mSize + i] >> 15));
             }
         }
     }

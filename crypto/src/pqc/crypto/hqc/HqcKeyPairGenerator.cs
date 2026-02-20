@@ -2,7 +2,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
-
 {
     public class HqcKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator

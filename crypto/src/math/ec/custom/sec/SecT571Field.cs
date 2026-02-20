@@ -665,33 +665,35 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             }
 #endif
 
-            //u[0] = 0;
+            ulong h = 0, m = x, n = y;
+
+            //u[0] = 0UL;
             u[1] = y;
             for (int i = 2; i < 16; i += 2)
             {
-                u[i    ] = u[i >> 1] << 1;
-                u[i + 1] = u[i     ] ^  y;
+                ulong u_i = u[i / 2] << 1;
+                u[i    ] = u_i;
+                u[i + 1] = u_i ^ y;
+
+                // Interleave "repair" steps here for performance
+                m = (m & 0xFEFEFEFEFEFEFEFEUL) >> 1;
+                h ^= m & (ulong)((long)n >> 63);
+                n <<= 1;
             }
 
             uint j = (uint)x;
-            ulong g, h = 0, l = u[(int)j & 15]
-                              ^ u[(int)(j >> 4) & 15] << 4;
+            ulong g, l = u[(int)j & 15]
+                       ^ u[(int)(j >> 4) & 15] << 4;
             int k = 56;
             do
             {
                 j  = (uint)(x >> k);
                 g  = u[(int)j & 15]
                    ^ u[(int)(j >> 4) & 15] << 4;
-                l ^= (g << k);
-                h ^= (g >> -k);
+                l ^= g << k;
+                h ^= g >> -k;
             }
             while ((k -= 8) > 0);
-
-            for (int p = 0; p < 7; ++p)
-            {
-                x = (x & 0xFEFEFEFEFEFEFEFEUL) >> 1;
-                h ^= x & (ulong)((long)(y << p) >> 63);
-            }
 
             Debug.Assert(h >> 63 == 0);
 

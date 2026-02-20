@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
+    // TODO[api] Make sealed
     public class HqcKemGenerator
         : IEncapsulatedSecretGenerator
     {

@@ -1,10 +1,8 @@
 using System;
 
-using Org.BouncyCastle.Utilities;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
-    internal class ReedMuller
+    internal static class ReedMuller
     {
         internal class Codeword
         {
@@ -18,16 +16,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
-        static void EncodeSub(Codeword codeword, int m)
+        internal static void EncodeSub(Codeword codeword, int m)
         {
             int word1 = Bit0Mask(m >> 7);
-
             word1 ^= (int)(Bit0Mask(m >> 0) & 0xaaaaaaaa);
             word1 ^= (int)(Bit0Mask(m >> 1) & 0xcccccccc);
             word1 ^= (int)(Bit0Mask(m >> 2) & 0xf0f0f0f0);
             word1 ^= (int)(Bit0Mask(m >> 3) & 0xff00ff00);
             word1 ^= (int)(Bit0Mask(m >> 4) & 0xffff0000);
-
             codeword.type32[0] = word1;
 
             word1 ^= Bit0Mask(m >> 5);
@@ -40,28 +36,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             codeword.type32[2] = word1;
         }
 
-        private static void HadamardTransform(int[] srcCode, int[] desCode)
+        private static void HadamardTransform(int[] src, int[] dst)
         {
-            int[] srcCodeCopy = Arrays.Clone(srcCode);
-            int[] desCodeCopy = Arrays.Clone(desCode);
-
             for (int i = 0; i < 7; i++)
             {
                 for (int j = 0; j < 64; j++)
                 {
-                    desCodeCopy[j] = srcCodeCopy[2 * j] + srcCodeCopy[2 * j + 1];
-                    desCodeCopy[j + 64] = srcCodeCopy[2 * j] - srcCodeCopy[2 * j + 1];
+                    int u = src[2 * j], v = src[2 * j + 1];
+                    dst[j     ] = u + v;
+                    dst[j + 64] = u - v;
                 }
 
-                //swap srcCode and desCode
-                int[] tmp = srcCodeCopy; srcCodeCopy = desCodeCopy; desCodeCopy = tmp;
+                // Swap
+                int[] tmp = src; src = dst; dst = tmp;
             }
-
-            // swap
-            Array.Copy(desCodeCopy, 0, srcCode, 0, srcCode.Length);
-            Array.Copy(srcCodeCopy, 0, desCode, 0, desCode.Length);
         }
-
 
         private static void ExpandThenSum(int[] desCode, Codeword[] srcCode, int off, int mulParam)
         {
@@ -109,7 +98,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         private static int Bit0Mask(int b) => -(b & 1);
 
-        public static void Encode(long[] codeword, byte[] m, int n1, int mulParam)
+        public static void Encode(ulong[] codeword, byte[] m, int n1, int mulParam)
         {
             Codeword[] codewordCopy = new Codeword[n1 * mulParam];
             for (int i = 0; i < codewordCopy.Length; i++)
@@ -128,23 +117,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 }
             }
 
-
-            int[] cwd64 = new int[codewordCopy.Length * 4];
-            int off = 0;
-            for (int i = 0; i < codewordCopy.Length; i++)
-            {
-                Array.Copy(codewordCopy[i].type32, 0, cwd64, off, codewordCopy[i].type32.Length);
-                off += 4;
-            }
-
-            Utils.FromByte32ArrayToLongArray(codeword, cwd64);
+            CopyCodeword(codeword, codewordCopy);
         }
 
-        public static void Decode(byte[] m, long[] codeword, int n1, int mulParam)
+        public static void Decode(byte[] m, ulong[] codeword, int n1, int mulParam)
         {
             Codeword[] codewordCopy = new Codeword[codeword.Length / 2]; // because each codewordCopy has a 32 bit array size 4
             int[] byteCodeWords = new int[codeword.Length * 2];
-            Utils.FromLongArrayToByte32Array(byteCodeWords, codeword);
+            Utils.FromUInt64ArrayToByte32Array(byteCodeWords, codeword);
 
             for (int i = 0; i < codewordCopy.Length; i++)
             {
@@ -170,6 +150,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 m[i] = (byte)FindPeaks(tmp);
             }
 
+            CopyCodeword(codeword, codewordCopy);
+        }
+
+        private static void CopyCodeword(ulong[] codeword, Codeword[] codewordCopy)
+        {
             int[] cwd64 = new int[codewordCopy.Length * 4];
             int off = 0;
             for (int i = 0; i < codewordCopy.Length; i++)
@@ -177,7 +162,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 Array.Copy(codewordCopy[i].type32, 0, cwd64, off, 4);
                 off += 4;
             }
-            Utils.FromByte32ArrayToLongArray(codeword, cwd64);
+            Utils.FromByte32ArrayToUInt64Array(codeword, cwd64);
         }
     }
 }

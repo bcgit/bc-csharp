@@ -1,236 +1,361 @@
+using System;
+using System.Diagnostics;
+#if NETCOREAPP3_0_OR_GREATER
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
+
+using Org.BouncyCastle.Math.Raw;
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     internal class GF2PolynomialCalculator
     {
-        private readonly int _vecNSize64;
-        private readonly int _paramN;
-        private readonly long _redMask;
+#if NETCOREAPP3_0_OR_GREATER
+        private static bool IsHardwareAccelerated => false;// Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled;
+#endif
 
-        public GF2PolynomialCalculator(int vecNSize64, int paramN, ulong redMask)
+        private readonly int m_bits;
+        private readonly int m_size;
+        private readonly int m_sizeExt;
+
+        internal GF2PolynomialCalculator(int n)
         {
-            _vecNSize64 = vecNSize64;
-            _paramN = paramN;
-            _redMask = (long)redMask;
+            if ((n & 0xFFFF0001) != 1)
+                throw new ArgumentException();
+
+            m_bits = n;
+            m_size = Utils.GetByte64SizeFromBitSize(n);
+            m_sizeExt = m_size * 2;
         }
 
-        internal void VectMul(long[] o, long[] a1, long[] a2)
+        internal void AddTo(ulong[] x, ulong[] z) => Nat.XorTo64(m_size, x, z);
+
+        internal ulong[] Create() => new ulong[m_size];
+
+        internal ulong[] CreateExt() => new ulong[m_sizeExt];
+
+        internal ulong EqualTo(ulong[] x, ulong[] y) => Nat.EqualTo64(m_size, x, y);
+
+        internal void Mul(ulong[] x, ulong[] y, ulong[] z)
         {
-            long[] unreduced = new long[_vecNSize64 << 1];
-            long[] tmpBuffer = new long[_vecNSize64 << 4];
-            karatsuba(unreduced, 0, a1, 0, a2, 0, _vecNSize64, tmpBuffer, 0);
-            reduce(o, unreduced);
+            ulong[] tt = CreateExt();
+            ulong[] tmp = new ulong[m_size << 4];
+            Karatsuba(m_size, x, 0, y, 0, tt, 0, tmp, 0);
+            Reduce(tt, z);
         }
 
-        internal void MultLongs(long[] res, long[] a, long[] b)
+        private static void BaseMul(int len, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] zz, int zzOff)
         {
-            long[] stack = new long[_vecNSize64 << 3];
-            long[] oKarat = new long[(_vecNSize64 << 1) + 1];
+            int lenExt = len * 2;
+            Arrays.Fill(zz, zzOff, zzOff + lenExt, 0UL);
 
-            karatsuba(oKarat, 0, a, 0,  b, 0, _vecNSize64, stack, 0);
-            reduce(res, oKarat);
-        }
-
-
-        private void base_mul(long[] c, int cOffset, long a, long b)
-        {
-            long h = 0;
-            long l = 0;
-            long g;
-            long[] u = new long[16];
-            long[] maskTab = new long[4];
-
-            // Step 1
-            u[0] = 0;
-            u[1] = b & ((1L << (64 - 4)) - 1L);
-            u[2] = u[1] << 1;
-            u[3] = u[2] ^ u[1];
-            u[4] = u[2] << 1;
-            u[5] = u[4] ^ u[1];
-            u[6] = u[3] << 1;
-            u[7] = u[6] ^ u[1];
-            u[8] = u[4] << 1;
-            u[9] = u[8] ^ u[1];
-            u[10] = u[5] << 1;
-            u[11] = u[10] ^ u[1];
-            u[12] = u[6] << 1;
-            u[13] = u[12] ^ u[1];
-            u[14] = u[7] << 1;
-            u[15] = u[14] ^ u[1];
-
-            g=0;
-            long tmp1 = a & 15;
-
-            for(int i = 0; i < 16; i++)
+#if NETCOREAPP3_0_OR_GREATER
+            if (IsHardwareAccelerated)
             {
-                long tmp2 = tmp1 - i;
-                g ^= (u[i] & -(1 - (long)((ulong)(tmp2 | -tmp2) >> 63)));
-            }
-            l = g;
-            h = 0;
+                var xBounds = x[xOff + len - 1];
+                var yBounds = y[yOff + len - 1];
+                var zzBounds = zz[zzOff + lenExt - 1];
 
-            // Step 2
-            for (byte i = 4; i < 64; i += 4)
-            {
-                g = 0;
-                long temp1 = (a >> i) & 15;
-                for (int j = 0; j < 16; ++j)
+                int i = 0;
+
+                int limit4 = len - 4;
+                while (i <= limit4)
                 {
-                    long tmp2 = temp1 - j;
-                    g ^= (u[j] & -(1 - (long)((ulong)(tmp2 | -tmp2) >> 63)));
+                    var X01 = Vector128.Create(x[xOff + i + 0], x[xOff + i + 1]);
+                    var X23 = Vector128.Create(x[xOff + i + 2], x[xOff + i + 3]);
+
+                    int j = 0;
+                    while (j <= limit4)
+                    {
+                        var Y01 = Vector128.Create(y[yOff + j + 0], y[yOff + j + 1]);
+                        var Y23 = Vector128.Create(y[yOff + j + 2], y[yOff + j + 3]);
+
+                        var Z01 = Pclmulqdq.CarrylessMultiply(X01, Y01, 0x00);
+                        var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(X01, Y01, 0x10));
+                        var Z23 = Pclmulqdq.CarrylessMultiply(X01, Y01, 0x11);
+
+                        var T23 = Pclmulqdq.CarrylessMultiply(X01, Y23, 0x00);
+                        var T34 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y23, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(X01, Y23, 0x10));
+                        var T45 = Pclmulqdq.CarrylessMultiply(X01, Y23, 0x11);
+
+                        var U23 = Pclmulqdq.CarrylessMultiply(X23, Y01, 0x00);
+                        var U34 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y01, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(X23, Y01, 0x10));
+                        var U45 = Pclmulqdq.CarrylessMultiply(X23, Y01, 0x11);
+
+                        var Z45 = Pclmulqdq.CarrylessMultiply(X23, Y23, 0x00);
+                        var Z56 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X23, Y23, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(X23, Y23, 0x10));
+                        var Z67 = Pclmulqdq.CarrylessMultiply(X23, Y23, 0x11);
+
+                        Z23 = Sse2.Xor(Z23, T23);
+                        Z23 = Sse2.Xor(Z23, U23);
+                        var Z34 = Sse2.Xor(T34, U34);
+                        Z45 = Sse2.Xor(Z45, T45);
+                        Z45 = Sse2.Xor(Z45, U45);
+
+                        Z01 = Sse2.Xor(Z01, Sse2.ShiftLeftLogical128BitLane (Z12, 8));
+
+                        if (Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled)
+                        {
+                            Z23 = Sse2.Xor(Z23, Ssse3.AlignRight(Z34, Z12, 8));
+                            Z45 = Sse2.Xor(Z45, Ssse3.AlignRight(Z56, Z34, 8));
+                        }
+                        else
+                        {
+                            Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
+                            Z23 = Sse2.Xor(Z23, Sse2.ShiftLeftLogical128BitLane (Z34, 8));
+                            Z45 = Sse2.Xor(Z45, Sse2.ShiftRightLogical128BitLane(Z34, 8));
+                            Z45 = Sse2.Xor(Z45, Sse2.ShiftLeftLogical128BitLane (Z56, 8));
+                        }
+
+                        Z67 = Sse2.Xor(Z67, Sse2.ShiftRightLogical128BitLane(Z56, 8));
+
+                        zz[zzOff + i + j + 0] ^= Z01.GetElement(0);
+                        zz[zzOff + i + j + 1] ^= Z01.GetElement(1);
+                        zz[zzOff + i + j + 2] ^= Z23.GetElement(0);
+                        zz[zzOff + i + j + 3] ^= Z23.GetElement(1);
+                        zz[zzOff + i + j + 4] ^= Z45.GetElement(0);
+                        zz[zzOff + i + j + 5] ^= Z45.GetElement(1);
+                        zz[zzOff + i + j + 6] ^= Z67.GetElement(0);
+                        zz[zzOff + i + j + 7] ^= Z67.GetElement(1);
+
+                        j += 4;
+                    }
+
+                    i += 4;
                 }
 
-                l ^= g << i;
-                h ^= (long)((ulong)g) >> (64 - i);
+                int limit2 = len - 2;
+                if (i <= limit2)
+                {
+                    var Xi = Vector128.Create(x[xOff + i], x[xOff + i + 1]);
+                    var Yi = Vector128.Create(y[yOff + i], y[yOff + i + 1]);
+
+                    for (int j = 0; j < i; j += 2)
+                    {
+                        var Xj = Vector128.Create(x[xOff + j], x[xOff + j + 1]);
+                        var Yj = Vector128.Create(y[yOff + j], y[yOff + j + 1]);
+
+                        var U01 = Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x00);
+                        var U12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x10));
+                        var U23 = Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x11);
+
+                        var V01 = Pclmulqdq.CarrylessMultiply(Xj, Yi, 0x00);
+                        var V12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xj, Yi, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(Xj, Yi, 0x10));
+                        var V23 = Pclmulqdq.CarrylessMultiply(Xj, Yi, 0x11);
+
+                        var Z01 = Sse2.Xor(U01, V01);
+                        var Z12 = Sse2.Xor(U12, V12);
+                        var Z23 = Sse2.Xor(U23, V23);
+
+                        Z01 = Sse2.Xor(Z01, Sse2.ShiftLeftLogical128BitLane (Z12, 8));
+                        Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
+
+                        zz[zzOff + i + j + 0] ^= Z01.GetElement(0);
+                        zz[zzOff + i + j + 1] ^= Z01.GetElement(1);
+                        zz[zzOff + i + j + 2] ^= Z23.GetElement(0);
+                        zz[zzOff + i + j + 3] ^= Z23.GetElement(1);
+                    }
+
+                    {
+                        var Z01 = Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x00);
+                        var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x01),
+                                           Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x10));
+                        var Z23 = Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x11);
+
+                        Z01 = Sse2.Xor(Z01, Sse2.ShiftLeftLogical128BitLane (Z12, 8));
+                        Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
+
+                        zz[zzOff + i + i + 0] ^= Z01.GetElement(0);
+                        zz[zzOff + i + i + 1] ^= Z01.GetElement(1);
+                        zz[zzOff + i + i + 2] ^= Z23.GetElement(0);
+                        zz[zzOff + i + i + 3] ^= Z23.GetElement(1);
+                    }
+
+                    i += 2;
+                }
+
+                if (i < len)
+                {
+                    var Xi = Vector128.CreateScalar(x[xOff + i]);
+                    var Yi = Vector128.CreateScalar(y[yOff + i]);
+
+                    for (int j = 0; j < i; ++j)
+                    {
+                        var Xj = Vector128.CreateScalar(x[xOff + j]);
+                        var Yj = Vector128.CreateScalar(y[yOff + j]);
+
+                        var Z = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x00),
+                                         Pclmulqdq.CarrylessMultiply(Yi, Xj, 0x00));
+
+                        zz[zzOff + i + j + 0] ^= Z.GetElement(0);
+                        zz[zzOff + i + j + 1] ^= Z.GetElement(1);
+                    }
+
+                    {
+                        var Z = Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x00);
+
+                        zz[zzOff + i + i + 0] ^= Z.GetElement(0);
+                        zz[zzOff + i + i + 1] ^= Z.GetElement(1);
+                    }
+                }
+                return;
             }
+#endif
 
-            // Step 3
-            maskTab [0] = -((b >> 60) & 1);
-            maskTab [1] = -((b >> 61) & 1);
-            maskTab [2] = -((b >> 62) & 1);
-            maskTab [3] = -((b >> 63) & 1);
+            // Arbitrary-degree Karatsuba
+            {
+                ulong[] u = new ulong[16];
 
-            l ^= ((a << 60) & maskTab[0]);
-            h ^= ((long)((ulong)a >> 4) & maskTab[0]);
+                for (int i = 0; i < len; ++i)
+                {
+                    ImplMulwAcc(u, x[xOff + i], y[yOff + i], zz, zzOff + (i << 1));
+                }
 
-            l ^= ((a << 61) & maskTab[1]);
-            h ^= ((long)((ulong)a >> 3) & maskTab[1]);
+                ulong v0 = zz[zzOff], v1 = zz[zzOff + 1];
+                for (int i = 1; i < len; ++i)
+                {
+                    v0 ^= zz[zzOff + (i << 1)]; zz[zzOff + i] = v0 ^ v1; v1 ^= zz[zzOff + (i << 1) + 1];
+                }
 
-            l ^= ((a << 62) & maskTab[2]);
-            h ^= ((long)((ulong)a >> 2) & maskTab[2]);
+                ulong w = v0 ^ v1;
+                Nat.Xor64(len, zz, zzOff, w, zz, zzOff + len);
 
-            l ^= ((a << 63) & maskTab[3]);
-            h ^= ((long)((ulong)a >> 1) & maskTab[3]);
+                int last = len - 1;
+                for (int zzPos = 1; zzPos < (last * 2); ++zzPos)
+                {
+                    int hi = System.Math.Min(last, zzPos);
+                    int lo = zzPos - hi;
 
-            c[0 + cOffset] = l;
-            c[1 + cOffset] = h;
+                    while (lo < hi)
+                    {
+                        ImplMulwAcc(u, x[xOff + lo] ^ x[xOff + hi], y[yOff + lo] ^ y[yOff + hi], zz, zzOff + zzPos);
+
+                        ++lo;
+                        --hi;
+                    }
+                }
+            }
         }
 
-
-
-
-        private void karatsuba_add1(long[] alh, int alhOffset,
-                            long[] blh, int blhOffset,
-                            long[] a, int aOffset,
-                            long[] b, int bOffset,
-                            int size_l, int size_h)
+        private void Karatsuba(int len, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] zz, int zzOff, ulong[] tmp,
+            int tmpOff)
         {
-            for (int i = 0; i < size_h; i++)
+            int cutOff = 12;
+
+#if NETCOREAPP3_0_OR_GREATER
+            if (IsHardwareAccelerated)
             {
-                alh[i + alhOffset] = a[i+ aOffset] ^ a[i + size_l + aOffset];
-                blh[i + blhOffset] = b[i+ bOffset] ^ b[i + size_l + bOffset];
+                cutOff = 24;
             }
+#endif
 
-            if (size_h < size_l)
+            if (len < cutOff)
             {
-                alh[size_h + alhOffset] = a[size_h + aOffset];
-                blh[size_h + blhOffset] = b[size_h + bOffset];
-            }
-        }
-
-
-
-        private void karatsuba_add2(long[] o, int oOffset,
-                           long[] tmp1, int tmp1Offset,
-                           long[] tmp2, int tmp2Offset,
-                            int size_l, int size_h)
-        {
-            for (int i = 0; i < (2 * size_l) ; i++)
-            {
-                tmp1[i + tmp1Offset] = tmp1[i + tmp1Offset] ^ o[i + oOffset];
-            }
-
-            for (int i = 0; i < ( 2 * size_h); i++)
-            {
-                tmp1[i + tmp1Offset] = tmp1[i + tmp1Offset] ^ tmp2[i + tmp2Offset];
-            }
-
-            for (int i = 0; i < (2 * size_l); i++)
-            {
-                o[i + size_l + oOffset] = o[i + size_l + oOffset] ^ tmp1[i + tmp1Offset];
-            }
-        }
-
-
-
-        /**
-         * Karatsuba multiplication of a and b, Implementation inspired from the NTL library.
-         *
-         * \param[out] o Polynomial
-         * \param[in] a Polynomial
-         * \param[in] b Polynomial
-         * \param[in] size Length of polynomial
-         * \param[in] stack Length of polynomial
-         */
-        private void karatsuba(long[] o, int oOffset, long[] a, int aOffset, long[] b, int bOffset, int size, long[] stack, int stackOffset)
-        {
-            int size_l, size_h;
-            int ahOffset, bhOffset;
-
-            if (size == 1)
-            {
-                base_mul(o, oOffset, a[0 + aOffset], b[0 + bOffset]);
+                BaseMul(len, x, xOff, y, yOff, zz, zzOff);
                 return;
             }
 
-            size_h = size / 2;
-            size_l = (size + 1) / 2;
+            // NB: This only works for n > 4
+            Debug.Assert(len > 4);
 
-            // alh = stack
-            int alhOffset = stackOffset;
-            // blh = stack with size_l offset
-            int blhOffset = alhOffset + size_l;
-            // tmp1 = stack with size_l * 2 offset;
-            int tmp1Offset = blhOffset + size_l;
-            // tmp2 = o with size_l * 2 offset;
-            int tmp2Offset = oOffset + size_l*2;
+            int m = len >> 1;
+            int n1 = len - m;
+            int sizeExt = len << 1;
+            int mx2 = m << 1;
+            int n1x2 = n1 << 1;
 
-            stackOffset += 4 * size_l;
+            int z2Offset = tmpOff + sizeExt;
+            int zMidOffset = z2Offset + sizeExt;
+            int taOffset = zMidOffset + sizeExt;
+            int tbOffset = taOffset + len;
+            int childBufferOffset = tmpOff + (len << 3);
 
-            ahOffset = aOffset + size_l;
-            bhOffset = bOffset + size_l;
+            Karatsuba(m, x, xOff, y, yOff, tmp, tmpOff, tmp, childBufferOffset);
+            Karatsuba(n1, x, xOff + m, y, yOff + m, tmp, z2Offset, tmp, childBufferOffset);
 
-            karatsuba(o, oOffset, a, aOffset, b, bOffset, size_l, stack, stackOffset);
+            for (int i = 0; i < n1; i++)
+            {
+                ulong loa = (i < m) ? x[xOff + i] : 0;
+                ulong lob = (i < m) ? y[yOff + i] : 0;
+                tmp[taOffset + i] = loa ^ x[xOff + m + i];
+                tmp[tbOffset + i] = lob ^ y[yOff + m + i];
+            }
 
-            karatsuba(o, tmp2Offset, a, ahOffset, b, bhOffset, size_h, stack, stackOffset);
+            Karatsuba(n1, tmp, taOffset, tmp, tbOffset, tmp, zMidOffset, tmp, childBufferOffset);
 
-            karatsuba_add1(stack, alhOffset, stack, blhOffset, a, aOffset, b, bOffset, size_l, size_h);
+            Array.Copy(tmp, tmpOff, zz, zzOff, mx2);
+            Array.Copy(tmp, z2Offset, zz, zzOff + mx2, n1x2);
 
-            karatsuba(stack, tmp1Offset, stack, alhOffset, stack, blhOffset, size_l, stack, stackOffset);
-
-            karatsuba_add2(o, oOffset, stack, tmp1Offset, o, tmp2Offset, size_l, size_h);
+            for (int i = 0; i < 2 * n1; i++)
+            {
+                ulong z0i = (i < mx2) ? tmp[tmpOff + i] : 0;
+                ulong z2i = (i < n1x2) ? tmp[z2Offset + i] : 0;
+                zz[zzOff + m + i] ^= tmp[zMidOffset + i] ^ z0i ^ z2i;
+            }
         }
-
-
 
         /**
-         * @brief Compute o(x) = a(x) mod \f$ X^n - 1\f$
-         *
-         * This function computes the modular reduction of the polynomial a(x)
-         *
-         * @param[in] a Pointer to the polynomial a(x)
-         * @param[out] o Pointer to the result
+         * Reduces a polynomial modulo {@code X^n - 1}.
          */
-        private void reduce(long[] o, long[] a)
+        private void Reduce(ulong[] tt, ulong[] z)
         {
-            int i;
-            long r;
-            long carry;
+            int partialBits = m_bits & 63;
+            int excessBits = 64 - partialBits;
+            ulong partialMask = ulong.MaxValue >> excessBits;
 
-            for (i = 0; i < _vecNSize64; i++)
-            {
-                r = (long)((ulong)a[i + _vecNSize64 - 1] >> (_paramN & 0x3F));
-                carry = a[i + _vecNSize64 ] << (int)(64 - (_paramN & 0x3FL));
-                o[i] = a[i] ^ r ^ carry;
-            }
-            o[_vecNSize64 - 1] &= _redMask;
+            ulong c = Nat.ShiftUpBits64(m_size, tt, m_size, excessBits, tt[m_size - 1], z, 0);
+            Debug.Assert(c == 0UL);
+            AddTo(tt, z);
+            z[m_size - 1] &= partialMask;
         }
 
-        internal static void AddLongs(long[] res, long[] a, long[] b)
+        /**
+         * Carryless multiply of x and y, accumulating the result at z[zOff..zOff + 1], using u as a temporary buffer.
+         */
+        private static void ImplMulwAcc(ulong[] u, ulong x, ulong y, ulong[] z, int zOff)
         {
-            for (int i = 0; i < a.Length; i++)
+            ulong h = 0, m = x, n = y;
+
+            //u[0] = 0UL;
+            u[1] = y;
+            for (int i = 2; i < 16; i += 2)
             {
-                res[i] = a[i] ^ b[i];
+                ulong u_i = u[i / 2] << 1;
+                u[i    ] = u_i;
+                u[i + 1] = u_i ^ y;
+
+                // Interleave "repair" steps here for performance
+                m = (m & 0xFEFEFEFEFEFEFEFEUL) >> 1;
+                h ^= m & (ulong)((long)n >> 63);
+                n <<= 1;
             }
+
+            uint j = (uint)x;
+            ulong g, l = u[j & 15]
+                       ^ u[(j >> 4) & 15] << 4;
+            int k = 56;
+            do
+            {
+                j  = (uint)(x >> k);
+                g  = u[j & 15]
+                   ^ u[(j >> 4) & 15] << 4;
+                l ^= g << k;
+                h ^= g >> -k;
+            }
+            while ((k -= 8) > 0);
+
+            Debug.Assert(h >> 63 == 0);
+
+            z[zOff    ] ^= l;
+            z[zOff + 1] ^= h;
         }
     }
 }
