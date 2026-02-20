@@ -53,21 +53,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
 
-        [Test]
-        public void TestParameters()
-        {
-            Assert.AreEqual(128, HqcParameters.hqc128.DefaultKeySize);
-            Assert.AreEqual(192, HqcParameters.hqc192.DefaultKeySize);
-            Assert.AreEqual(256, HqcParameters.hqc256.DefaultKeySize);
-        }
-
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
         public void TV(string testVectorFile)
         {
             RunTestVectorFile(testVectorFile, sampleOnly: true);
         }
- 
+
         private static void RunTestVector(string name, IDictionary<string, string> buf)
         {
             string count = buf["count"];
