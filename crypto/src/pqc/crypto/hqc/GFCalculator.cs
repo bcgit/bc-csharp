@@ -1,5 +1,4 @@
 #if DEBUG
-using System;
 using System.Diagnostics;
 #endif
 
@@ -15,11 +14,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 #if DEBUG
         static GFCalculator()
         {
-            // NB: Log[0] and Exp[255] are both dummy values that map to each other for consistency
+            // NB: _Log[0] and _Exp[255] are both dummy values that map to each other for consistency
             for (int i = 0; i < 256; ++i)
             {
-                Debug.Assert(Exp[Log[i]] == i);
-                Debug.Assert(Log[Exp[i]] == i);
+                Debug.Assert(_Exp[_Log[i]] == i);
+                Debug.Assert(_Log[_Exp[i]] == i);
             }
         }
 #endif
