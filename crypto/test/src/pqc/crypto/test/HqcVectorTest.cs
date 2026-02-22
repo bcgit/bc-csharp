@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -10,7 +9,6 @@ using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -62,22 +60,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TV(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile, sampleOnly: false);
-        }
+        public void TV(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/hqc", testVectorFile, sampleOnly: false, RunTestVector);
 
-        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        private static void RunTestVector(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
-            byte[] pk = Hex.Decode(buf["pk"]);     // public key
-            byte[] sk = Hex.Decode(buf["sk"]);     // private key
-            byte[] ct = Hex.Decode(buf["ct"]);     // ciphertext
-            byte[] ss = Hex.Decode(buf["ss"]);     // session key
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]); // seed for SecureRandom
+            byte[] pk = Hex.Decode(data["pk"]);     // public key
+            byte[] sk = Hex.Decode(data["sk"]);     // private key
+            byte[] ct = Hex.Decode(data["ct"]);     // ciphertext
+            byte[] ss = Hex.Decode(data["ss"]);     // session key
 
             var random = new Shake256SecureRandom(seed);
-            var hqcParameters = Parameters[name];
+            var hqcParameters = Parameters[path];
 
             var kpGen = new HqcKeyPairGenerator();
             kpGen.Init(new HqcKeyGenerationParameters(random, hqcParameters));
@@ -92,68 +88,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             var privParams = (HqcPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
                 PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey));
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), path + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), path + " " + count + ": secret key");
 
             // Encapsulation
             var kemGenerator = new HqcKemGenerator(random);
             ISecretWithEncapsulation secretWithEnc = kemGenerator.GenerateEncapsulated(pubParams);
 
             byte[] cipherText = secretWithEnc.GetEncapsulation();
-            Assert.True(Arrays.AreEqual(ct, cipherText), name + " " + count + ": ciphertext");
+            Assert.True(Arrays.AreEqual(ct, cipherText), path + " " + count + ": ciphertext");
 
             byte[] encapSecret = secretWithEnc.GetSecret();
-            Assert.True(Arrays.AreEqual(ss, encapSecret), name + " " + count + ": encapSecret");
+            Assert.True(Arrays.AreEqual(ss, encapSecret), path + " " + count + ": encapSecret");
 
             // Decapsulation
             var kemExtractor = new HqcKemExtractor(privParams);
 
             byte[] decapSecret = kemExtractor.ExtractSecret(cipherText);
-            Assert.True(Arrays.AreEqual(ss, decapSecret), name + " " + count + ": decapSecret");
-        }
-
-        private static void RunTestVectorFile(string name, bool sampleOnly)
-        {
-            var data = new Dictionary<string, string>();
-            var sampler = sampleOnly ? new TestSampler() : null;
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/hqc", name)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf('=');
-                        if (a > -1)
-                        {
-                            data[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (data.Count > 0)
-                    {
-                        if (sampler == null || !sampler.SkipTest(data["count"]))
-                        {
-                            RunTestVector(name, data);
-                        }
-                        data.Clear();
-                    }
-                }
-
-                if (data.Count > 0)
-                {
-                    if (sampler == null || !sampler.SkipTest(data["count"]))
-                    {
-                        RunTestVector(name, data);
-                    }
-                    data.Clear();
-                }
-            }
+            Assert.True(Arrays.AreEqual(ss, decapSecret), path + " " + count + ": decapSecret");
         }
 
         private class Shake256SecureRandom : SecureRandom

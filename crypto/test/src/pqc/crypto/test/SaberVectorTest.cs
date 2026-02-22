@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -8,7 +7,6 @@ using Org.BouncyCastle.Pqc.Crypto.Saber;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -52,22 +50,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TV(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
+        public void TV(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/saber", testVectorFile, sampleOnly: true, RunTestVector);
 
-        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        private static void RunTestVector(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
-            byte[] pk = Hex.Decode(buf["pk"]); // public key
-            byte[] sk = Hex.Decode(buf["sk"]); // private key
-            byte[] ct = Hex.Decode(buf["ct"]); // ciphertext
-            byte[] ss = Hex.Decode(buf["ss"]); // session key
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]); // seed for SecureRandom
+            byte[] pk = Hex.Decode(data["pk"]); // public key
+            byte[] sk = Hex.Decode(data["sk"]); // private key
+            byte[] ct = Hex.Decode(data["ct"]); // ciphertext
+            byte[] ss = Hex.Decode(data["ss"]); // session key
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            SaberParameters parameters = Parameters[name];
+            SaberParameters parameters = Parameters[path];
 
             SaberKeyPairGenerator kpGen = new SaberKeyPairGenerator();
             SaberKeyGenerationParameters genParam = new SaberKeyGenerationParameters(random, parameters);
@@ -78,20 +74,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
             SaberPublicKeyParameters pubParams = (SaberPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
-                    PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((SaberPublicKeyParameters)kp.Public));
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((SaberPublicKeyParameters)kp.Public));
             SaberPrivateKeyParameters privParams = (SaberPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
-                    PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((SaberPrivateKeyParameters)kp.Private));
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((SaberPrivateKeyParameters)kp.Private));
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), name + " " + count + ": public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), name + " " + count + ": secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), path + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), path + " " + count + ": secret key");
 
             // KEM Enc
             SaberKemGenerator SABEREncCipher = new SaberKemGenerator(random);
             ISecretWithEncapsulation secWenc = SABEREncCipher.GenerateEncapsulated(pubParams);
             byte[] generated_cipher_text = secWenc.GetEncapsulation();
-            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
+            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), path + " " + count + ": kem_enc cipher text");
             byte[] secret = secWenc.GetSecret();
-            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc key");
+            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), path + " " + count + ": kem_enc key");
 
             // KEM Dec
             SaberKemExtractor SABERDecCipher = new SaberKemExtractor(privParams);
@@ -99,52 +95,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] dec_key = SABERDecCipher.ExtractSecret(generated_cipher_text);
 
             Assert.True(parameters.DefaultKeySize == dec_key.Length * 8);
-            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), name + " " + count + ": kem_dec ss");
-            Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key");
-        }
-
-        private static void RunTestVectorFile(string name)
-        {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/saber", name)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf("=");
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (buf.Count > 0)
-                    {
-                        if (!sampler.SkipTest(buf["count"]))
-                        {
-                            RunTestVector(name, buf);
-                        }
-                        buf.Clear();
-                    }
-                }
-
-                if (buf.Count > 0)
-                {
-                    if (!sampler.SkipTest(buf["count"]))
-                    {
-                        RunTestVector(name, buf);
-                    }
-                    buf.Clear();
-                }
-            }
+            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), path + " " + count + ": kem_dec ss");
+            Assert.True(Arrays.AreEqual(dec_key, secret), path + " " + count + ": kem_dec key");
         }
     }
 }

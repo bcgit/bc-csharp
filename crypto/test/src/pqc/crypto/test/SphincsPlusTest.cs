@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 
 using NUnit.Framework;
@@ -49,17 +48,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFilesSimpleFast))]
         [Parallelizable(ParallelScope.All)]
-        public void TVSimpleFast(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
+        public void TVSimpleFast(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/sphincs_plus", $"subset_{testVectorFile}", sampleOnly: true, RunTestVector);
 
         [Explicit, TestCaseSource(nameof(TestVectorFilesSimpleSlow))]
         [Parallelizable(ParallelScope.All)]
-        public void TVSimpleSlow(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
+        public void TVSimpleSlow(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/sphincs_plus", $"subset_{testVectorFile}", sampleOnly: true, RunTestVector);
 
         [Test]
         public void TestBasicKeyGeneration()
@@ -329,21 +324,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             return l.ToArray();
         }
 
-        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        private static void RunTestVector(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] sk = Hex.Decode(buf["sk"]);
-            byte[] pk = Hex.Decode(buf["pk"]);
-            byte[] msg = Hex.Decode(buf["msg"]);
-            byte[] sigExpected = Hex.Decode(buf["sm"]);
-            byte[] oprR = Hex.Decode(buf["optrand"]);
+            path = path.Substring("subset_".Length);
+
+            string count = data["count"];
+            byte[] sk = Hex.Decode(data["sk"]);
+            byte[] pk = Hex.Decode(data["pk"]);
+            byte[] msg = Hex.Decode(data["msg"]);
+            byte[] sigExpected = Hex.Decode(data["sm"]);
+            byte[] oprR = Hex.Decode(data["optrand"]);
 
             SphincsPlusKeyPairGenerator kpGen = new SphincsPlusKeyPairGenerator();
 
             FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(sk) };
             SecureRandom random = new FixedSecureRandom(source);
 
-            string[] nameParts = SplitOn(name, '-');
+            string[] nameParts = SplitOn(path, '-');
             bool sha2 = nameParts[0].Equals("sha2");
             bool shake = nameParts[0].Equals("shake");
             bool haraka = nameParts[0].Equals("haraka");
@@ -414,7 +411,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             SphincsPlusPrivateKeyParameters privParams = (SphincsPlusPrivateKeyParameters)kp.Private;
 
             // FIXME No OIDs for simple variants of SPHINCS+
-            if (!name.Contains("-simple"))
+            if (!path.Contains("-simple"))
             {
                 pubParams = (SphincsPlusPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
                     PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams));
@@ -422,8 +419,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams));
             }
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), path + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), path + " " + count + ": secret key");
 
             //
             // Signature test
@@ -440,52 +437,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             signer.Init(false, pubParams);
 
-            Assert.True(signer.VerifySignature(msg, sigGenerated), name + " " + count + ": signature verify");
-            Assert.True(Arrays.AreEqual(sigExpected, attachedSig), name + " " + count + ": signature gen match");
-        }
-
-        private static void RunTestVectorFile(string name)
-        {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/sphincs_plus", $"subset_{name}")))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf("=");
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (buf.Count > 0)
-                    {
-                        if (!sampler.SkipTest(buf["count"]))
-                        {
-                            RunTestVector(name, buf);
-                        }
-                        buf.Clear();
-                    }
-                }
-
-                if (buf.Count > 0)
-                {
-                    if (!sampler.SkipTest(buf["count"]))
-                    {
-                        RunTestVector(name, buf);
-                    }
-                    buf.Clear();
-                }
-            }
+            Assert.True(signer.VerifySignature(msg, sigGenerated), path + " " + count + ": signature verify");
+            Assert.True(Arrays.AreEqual(sigExpected, attachedSig), path + " " + count + ": signature gen match");
         }
     }
 }

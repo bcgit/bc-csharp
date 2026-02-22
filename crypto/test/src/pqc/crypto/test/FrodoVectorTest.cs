@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -8,7 +7,6 @@ using Org.BouncyCastle.Pqc.Crypto.Frodo;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -52,29 +50,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFilesAes))]
         [Parallelizable(ParallelScope.All)]
-        public void TVAes(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
+        public void TVAes(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/frodo", testVectorFile, sampleOnly: true, RunTestVector);
 
         [TestCaseSource(nameof(TestVectorFilesShake))]
         [Parallelizable(ParallelScope.All)]
-        public void TVShake(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
+        public void TVShake(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/frodo", testVectorFile, sampleOnly: true, RunTestVector);
 
-        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        private static void RunTestVector(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
-            byte[] pk = Hex.Decode(buf["pk"]);     // public key
-            byte[] sk = Hex.Decode(buf["sk"]);     // private key
-            byte[] ct = Hex.Decode(buf["ct"]);     // ciphertext
-            byte[] ss = Hex.Decode(buf["ss"]);     // session key
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]); // seed for SecureRandom
+            byte[] pk = Hex.Decode(data["pk"]);     // public key
+            byte[] sk = Hex.Decode(data["sk"]);     // private key
+            byte[] ct = Hex.Decode(data["ct"]);     // ciphertext
+            byte[] ss = Hex.Decode(data["ss"]);     // session key
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            FrodoParameters frodoParameters = Parameters[name];
+            FrodoParameters frodoParameters = Parameters[path];
 
             FrodoKeyPairGenerator kpGen = new FrodoKeyPairGenerator();
             FrodoKeyGenerationParameters genParams = new FrodoKeyGenerationParameters(random, frodoParameters);
@@ -89,16 +83,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             FrodoPrivateKeyParameters privParams = (FrodoPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
                 PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((FrodoPrivateKeyParameters)kp.Private));
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), $"{name} {count} : public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), $"{name} {count} : secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), $"{path} {count} : public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), $"{path} {count} : secret key");
 
             // kem_enc
             FrodoKEMGenerator frodoEncCipher = new FrodoKEMGenerator(random);
             ISecretWithEncapsulation secWenc = frodoEncCipher.GenerateEncapsulated(pubParams);
             byte[] generated_cipher_text = secWenc.GetEncapsulation();
-            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
+            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), path + " " + count + ": kem_enc cipher text");
             byte[] secret = secWenc.GetSecret();
-            Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc key");
+            Assert.True(Arrays.AreEqual(ss, secret), path + " " + count + ": kem_enc key");
 
             // kem_dec
             FrodoKEMExtractor frodoDecCipher = new FrodoKEMExtractor(privParams);
@@ -106,52 +100,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] dec_key = frodoDecCipher.ExtractSecret(generated_cipher_text);
 
             Assert.True(frodoParameters.DefaultKeySize == dec_key.Length * 8);
-            Assert.True(Arrays.AreEqual(dec_key, ss), $"{name} {count}: kem_dec ss");
-            Assert.True(Arrays.AreEqual(dec_key, secret), $"{name} {count}: kem_dec key");
-        }
-
-        private static void RunTestVectorFile(string name)
-        {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/frodo", name)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf("=");
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (buf.Count > 0)
-                    {
-                        if (!sampler.SkipTest(buf["count"]))
-                        {
-                            RunTestVector(name, buf);
-                        }
-                        buf.Clear();
-                    }
-                }
-
-                if (buf.Count > 0)
-                {
-                    if (!sampler.SkipTest(buf["count"]))
-                    {
-                        RunTestVector(name, buf);
-                    }
-                    buf.Clear();
-                }
-            }
+            Assert.True(Arrays.AreEqual(dec_key, ss), $"{path} {count}: kem_dec ss");
+            Assert.True(Arrays.AreEqual(dec_key, secret), $"{path} {count}: kem_dec key");
         }
     }
 }

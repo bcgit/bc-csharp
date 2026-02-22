@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -9,7 +8,6 @@ using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -66,24 +64,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TV(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
+        public void TV(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/picnic", testVectorFile, sampleOnly: true, RunTestVector);
 
-        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        private static void RunTestVector(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]);      // seed for SecureRandom
-            int mlen = int.Parse(buf["mlen"]);          // message length
-            byte[] msg = Hex.Decode(buf["msg"]);        // message
-            byte[] pk = Hex.Decode(buf["pk"]);          // public key
-            byte[] sk = Hex.Decode(buf["sk"]);          // private key
-            int smlen = int.Parse(buf["smlen"]);        // signature length
-            byte[] sigExpected = Hex.Decode(buf["sm"]); // signature
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]);      // seed for SecureRandom
+            int mlen = int.Parse(data["mlen"]);          // message length
+            byte[] msg = Hex.Decode(data["msg"]);        // message
+            byte[] pk = Hex.Decode(data["pk"]);          // public key
+            byte[] sk = Hex.Decode(data["sk"]);          // private key
+            int smlen = int.Parse(data["smlen"]);        // signature length
+            byte[] sigExpected = Hex.Decode(data["sm"]); // signature
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            PicnicParameters picnicParameters = Parameters[name];
+            PicnicParameters picnicParameters = Parameters[path];
 
             PicnicKeyPairGenerator kpGen = new PicnicKeyPairGenerator();
             PicnicKeyGenerationParameters genParams = new PicnicKeyGenerationParameters(random, picnicParameters);
@@ -94,12 +90,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             kpGen.Init(genParams);
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
+            PicnicPublicKeyParameters pubParams = (PicnicPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
+            PicnicPrivateKeyParameters privParams = (PicnicPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
 
-            PicnicPublicKeyParameters pubParams = (PicnicPublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(kp.Public));
-            PicnicPrivateKeyParameters privParams = (PicnicPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private));
-
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), path + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), path + " " + count + ": secret key");
 
             //
             // Signature test
@@ -110,11 +107,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] sigGenerated = signer.GenerateSignature(msg);
             byte[] attachedSig = Arrays.ConcatenateAll(UInt32_To_LE((uint)sigGenerated.Length), msg, sigGenerated);
             
-            Assert.True(smlen == attachedSig.Length, name + " " + count + ": signature length");
+            Assert.True(smlen == attachedSig.Length, path + " " + count + ": signature length");
 
             signer.Init(false, pubParams);
-            Assert.True(signer.VerifySignature(msg, sigGenerated), (name + " " + count + ": signature verify"));
-            Assert.True(Arrays.AreEqual(sigExpected, attachedSig), name + " " + count + ": signature gen match");
+            Assert.True(signer.VerifySignature(msg, sigGenerated), (path + " " + count + ": signature verify"));
+            Assert.True(Arrays.AreEqual(sigExpected, attachedSig), path + " " + count + ": signature gen match");
         }
 
         private static byte[] UInt32_To_LE(uint n)
@@ -125,50 +122,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             bs[2] = (byte)(n >> 16);
             bs[3] = (byte)(n >> 24);
             return bs;
-        }
-
-        private static void RunTestVectorFile(string name)
-        {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/picnic", name)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf('=');
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (buf.Count > 0)
-                    {
-                        if (!sampler.SkipTest(buf["count"]))
-                        {
-                            RunTestVector(name, buf);
-                        }
-                        buf.Clear();
-                    }
-                }
-
-                if (buf.Count > 0)
-                {
-                    if (!sampler.SkipTest(buf["count"]))
-                    {
-                        RunTestVector(name, buf);
-                    }
-                    buf.Clear();
-                }
-            }
         }
     }
 }

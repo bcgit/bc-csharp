@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -7,7 +6,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pqc.Crypto.NtruPrime;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -58,29 +56,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFilesNtruLP))]
         [Parallelizable(ParallelScope.All)]
-        public void TVNtruLP(string testVectorFile)
-        {
-            RunTestVectorNtruLPFile(testVectorFile);
-        }
+        public void TVNtruLP(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/ntruprime/ntrulpr", testVectorFile, sampleOnly: true, RunTestVectorNtruLP);
 
         [TestCaseSource(nameof(TestVectorFilesSNtruP))]
         [Parallelizable(ParallelScope.All)]
-        public void TVSNtruP(string testVectorFile)
-        {
-            RunTestVectorSNtruPFile(testVectorFile);
-        }
+        public void TVSNtruP(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/ntruprime/sntrup", testVectorFile, sampleOnly: true, RunTestVectorSNtruP);
 
-        private static void RunTestVectorNtruLP(string name, IDictionary<string, string> buf)
+        private static void RunTestVectorNtruLP(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]);
-            byte[] pk = Hex.Decode(buf["pk"]);
-            byte[] ct = Hex.Decode(buf["ct"]);
-            byte[] sk = Hex.Decode(buf["sk"]);
-            byte[] ss = Hex.Decode(buf["ss"]);
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]);
+            byte[] pk = Hex.Decode(data["pk"]);
+            byte[] ct = Hex.Decode(data["ct"]);
+            byte[] sk = Hex.Decode(data["sk"]);
+            byte[] ss = Hex.Decode(data["ss"]);
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            NtruLPRimeParameters ntruPParameters = ParametersNtruLP[name];
+            NtruLPRimeParameters ntruPParameters = ParametersNtruLP[path];
 
             NtruLPRimeKeyPairGenerator kpGen = new NtruLPRimeKeyPairGenerator();
             NtruLPRimeKeyGenerationParameters genParams = new NtruLPRimeKeyGenerationParameters(random, ntruPParameters);
@@ -93,8 +87,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             NtruLPRimePrivateKeyParameters privParams = (NtruLPRimePrivateKeyParameters)kp.Private;
 
             // Check public and private key
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), $"{name} {count} : public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), $"{name} {count} : private key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), $"{path} {count} : public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), $"{path} {count} : private key");
 
             // Encapsulation
             NtruLPRimeKemGenerator ntruPEncCipher = new NtruLPRimeKemGenerator(random);
@@ -102,11 +96,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] generatedCT = secWenc.GetEncapsulation();
 
             // Check ciphertext
-            Assert.True(Arrays.AreEqual(ct, generatedCT), name + " " + count + ": kem_enc cipher text");
+            Assert.True(Arrays.AreEqual(ct, generatedCT), path + " " + count + ": kem_enc cipher text");
 
             // Check secret
             byte[] secret = secWenc.GetSecret();
-            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc secret");
+            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), path + " " + count + ": kem_enc secret");
 
             // Decapsulation
             NtruLPRimeKemExtractor ntruDecCipher = new NtruLPRimeKemExtractor(privParams);
@@ -114,65 +108,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             // Check decapsulation secret
             Assert.True(ntruPParameters.DefaultKeySize == dec_key.Length * 8);
-            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), $"{name} {count}: kem_dec ss");
-            Assert.True(Arrays.AreEqual(dec_key, secret), $"{name} {count}: kem_dec key");
+            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), $"{path} {count}: kem_dec ss");
+            Assert.True(Arrays.AreEqual(dec_key, secret), $"{path} {count}: kem_dec key");
         }
 
-        private static void RunTestVectorNtruLPFile(string name)
+        private static void RunTestVectorSNtruP(string path, Dictionary<string, string> data)
         {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/ntruprime/ntrulpr", name)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf("=");
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (buf.Count > 0)
-                    {
-                        if (!sampler.SkipTest(buf["count"]))
-                        {
-                            RunTestVectorNtruLP(name, buf);
-                        }
-                        buf.Clear();
-                    }
-                }
-
-                if (buf.Count > 0)
-                {
-                    if (!sampler.SkipTest(buf["count"]))
-                    {
-                        RunTestVectorNtruLP(name, buf);
-                    }
-                    buf.Clear();
-                }
-            }
-        }
-
-        private static void RunTestVectorSNtruP(string name, IDictionary<string, string> buf)
-        {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]);
-            byte[] pk = Hex.Decode(buf["pk"]);
-            byte[] ct = Hex.Decode(buf["ct"]);
-            byte[] sk = Hex.Decode(buf["sk"]);
-            byte[] ss = Hex.Decode(buf["ss"]);
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]);
+            byte[] pk = Hex.Decode(data["pk"]);
+            byte[] ct = Hex.Decode(data["ct"]);
+            byte[] sk = Hex.Decode(data["sk"]);
+            byte[] ss = Hex.Decode(data["ss"]);
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            SNtruPrimeParameters ntruPParameters = ParametersSNtruP[name];
+            SNtruPrimeParameters ntruPParameters = ParametersSNtruP[path];
 
             SNtruPrimeKeyPairGenerator kpGen = new SNtruPrimeKeyPairGenerator();
             SNtruPrimeKeyGenerationParameters genParams = new SNtruPrimeKeyGenerationParameters(random, ntruPParameters);
@@ -185,8 +135,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             SNtruPrimePrivateKeyParameters privParams = (SNtruPrimePrivateKeyParameters)kp.Private;
 
             // Check public and private key
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), $"{name} {count} : public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), $"{name} {count} : private key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), $"{path} {count} : public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), $"{path} {count} : private key");
 
             // Encapsulation
             SNtruPrimeKemGenerator ntruPEncCipher = new SNtruPrimeKemGenerator(random);
@@ -194,11 +144,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] generatedCT = secWenc.GetEncapsulation();
 
             // Check ciphertext
-            Assert.True(Arrays.AreEqual(ct, generatedCT), name + " " + count + ": kem_enc cipher text");
+            Assert.True(Arrays.AreEqual(ct, generatedCT), path + " " + count + ": kem_enc cipher text");
 
             // Check secret
             byte[] secret = secWenc.GetSecret();
-            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc secret");
+            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), path + " " + count + ": kem_enc secret");
 
             // Decapsulation
             SNtruPrimeKemExtractor ntruDecCipher = new SNtruPrimeKemExtractor(privParams);
@@ -206,52 +156,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             // Check decapsulation secret
             Assert.True(ntruPParameters.DefaultKeySize == dec_key.Length * 8);
-            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), $"{name} {count}: kem_dec ss");
-            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, secret, 0, secret.Length), $"{name} {count}: kem_dec key");
-        }
-
-        private static void RunTestVectorSNtruPFile(string name)
-        {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/ntruprime/sntrup", name)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf("=");
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (buf.Count > 0)
-                    {
-                        if (!sampler.SkipTest(buf["count"]))
-                        {
-                            RunTestVectorSNtruP(name, buf);
-                        }
-                        buf.Clear();
-                    }
-                }
-
-                if (buf.Count > 0)
-                {
-                    if (!sampler.SkipTest(buf["count"]))
-                    {
-                        RunTestVectorSNtruP(name, buf);
-                    }
-                    buf.Clear();
-                }
-            }
+            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), $"{path} {count}: kem_dec ss");
+            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, secret, 0, secret.Length), $"{path} {count}: kem_dec key");
         }
     }
 }

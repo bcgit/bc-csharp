@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -8,7 +7,6 @@ using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -32,10 +30,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TV(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile);
-        }
+        public void TV(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/dilithium", testVectorFile, sampleOnly: true, RunTestVector);
 
         [Test]
         public void TestKeyEncodingDilithium2()
@@ -70,19 +66,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.AreEqual(((DilithiumPrivateKeyParameters)priv).GetEncoded(), ((DilithiumPrivateKeyParameters)privDec).GetEncoded());
         }
 
-        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        private static void RunTestVector(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]);      // seed for SecureRandom
-            int mlen = int.Parse(buf["mlen"]);          // message length
-            byte[] msg = Hex.Decode(buf["msg"]);        // message
-            byte[] pk = Hex.Decode(buf["pk"]);          // public key
-            byte[] sk = Hex.Decode(buf["sk"]);          // private key
-            int smlen = int.Parse(buf["smlen"]);        // signature length
-            byte[] sm = Hex.Decode(buf["sm"]);          // signature
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]);      // seed for SecureRandom
+            int mlen = int.Parse(data["mlen"]);          // message length
+            byte[] msg = Hex.Decode(data["msg"]);        // message
+            byte[] pk = Hex.Decode(data["pk"]);          // public key
+            byte[] sk = Hex.Decode(data["sk"]);          // private key
+            int smlen = int.Parse(data["smlen"]);        // signature length
+            byte[] sm = Hex.Decode(data["sm"]);          // signature
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            DilithiumParameters dilithiumparameters = Parameters[name];
+            DilithiumParameters dilithiumparameters = Parameters[path];
 
             DilithiumKeyPairGenerator kpGen = new DilithiumKeyPairGenerator();
             DilithiumKeyGenerationParameters genParams =
@@ -99,8 +95,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             DilithiumPrivateKeyParameters privParams = (DilithiumPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
                 PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((DilithiumPrivateKeyParameters)kp.Private));
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), path + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), path + " " + count + ": secret key");
 
             //
             // Signature test
@@ -123,54 +119,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             sigGenerated[3]++; // changing the signature by 1 byte should cause it to fail
             bool vrfyresfail = verifier.VerifySignature(msg, sigGenerated);
             
-            Assert.True(Arrays.AreEqual(attachedSig, sm), name + " " + count + " signature");
+            Assert.True(Arrays.AreEqual(attachedSig, sm), path + " " + count + " signature");
             //verify
-            Assert.True(vrfyrespass, name + " " + count + " verify failed when should pass");
-            Assert.False(vrfyresfail, name + " " + count + " verify passed when should fail");
-        }
-
-        public static void RunTestVectorFile(string name)
-        {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/dilithium", name)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf('=');
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (buf.Count > 0)
-                    {
-                        if (!sampler.SkipTest(buf["count"]))
-                        {
-                            RunTestVector(name, buf);
-                        }
-                        buf.Clear();
-                    }
-                }
-
-                if (buf.Count > 0)
-                {
-                    if (!sampler.SkipTest(buf["count"]))
-                    {
-                        RunTestVector(name, buf);
-                    }
-                    buf.Clear();
-                }
-            }
+            Assert.True(vrfyrespass, path + " " + count + " verify failed when should pass");
+            Assert.False(vrfyresfail, path + " " + count + " verify passed when should fail");
         }
     }
 }

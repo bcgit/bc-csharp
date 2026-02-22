@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -8,7 +7,6 @@ using Org.BouncyCastle.Pqc.Crypto.Bike;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -34,22 +32,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
-        public void TV(string testVectorFile)
-        {
-            RunTestVectorFile(testVectorFile, sampleOnly: true);
-        }
+        public void TV(string testVectorFile) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/bike", testVectorFile, sampleOnly: true, RunTestVector);
 
-        private static void RunTestVector(string name, IDictionary<string, string> buf)
+        private static void RunTestVector(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]); // seed for SecureRandom
-            byte[] pk = Hex.Decode(buf["pk"]);     // public key
-            byte[] sk = Hex.Decode(buf["sk"]);     // private key
-            byte[] ct = Hex.Decode(buf["ct"]);     // ciphertext
-            byte[] ss = Hex.Decode(buf["ss"]);     // session key
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]); // seed for SecureRandom
+            byte[] pk = Hex.Decode(data["pk"]);     // public key
+            byte[] sk = Hex.Decode(data["sk"]);     // private key
+            byte[] ct = Hex.Decode(data["ct"]);     // ciphertext
+            byte[] ss = Hex.Decode(data["ss"]);     // session key
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
-            BikeParameters bikeParameters = Parameters[name];
+            BikeParameters bikeParameters = Parameters[path];
 
             BikeKeyPairGenerator kpGen = new BikeKeyPairGenerator();
             BikeKeyGenerationParameters genParam = new BikeKeyGenerationParameters(random, bikeParameters);
@@ -64,17 +60,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             BikePrivateKeyParameters privParams = (BikePrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
                 PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((BikePrivateKeyParameters) kp.Private));
 
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), path + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), path + " " + count + ": secret key");
 
             // KEM Enc
             BikeKemGenerator BikeEncCipher = new BikeKemGenerator(random);
             ISecretWithEncapsulation secWenc = BikeEncCipher.GenerateEncapsulated(pubParams);
             byte[] generated_cipher_text = secWenc.GetEncapsulation();
-            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
+            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), path + " " + count + ": kem_enc cipher text");
 
             byte[] secret = secWenc.GetSecret();
-            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), name + " " + count + ": kem_enc key");
+            Assert.True(Arrays.AreEqual(ss, 0, secret.Length, secret, 0, secret.Length), path + " " + count + ": kem_enc key");
 
             // KEM Dec
             BikeKemExtractor BikeDecCipher = new BikeKemExtractor(privParams);
@@ -82,52 +78,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] dec_key = BikeDecCipher.ExtractSecret(generated_cipher_text);
 
             Assert.True(bikeParameters.DefaultKeySize == dec_key.Length * 8);
-            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), name + " " + count + ": kem_dec ss");
-            Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key");
-        }
-
-        private static void RunTestVectorFile(string name, bool sampleOnly)
-        {
-            var data = new Dictionary<string, string>();
-            var sampler = sampleOnly ? new TestSampler() : null;
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/bike", name)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf('=');
-                        if (a > -1)
-                        {
-                            data[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (data.Count > 0)
-                    {
-                        if (sampler == null || !sampler.SkipTest(data["count"]))
-                        {
-                            RunTestVector(name, data);
-                        }
-                        data.Clear();
-                    }
-                }
-
-                if (data.Count > 0)
-                {
-                    if (sampler == null || !sampler.SkipTest(data["count"]))
-                    {
-                        RunTestVector(name, data);
-                    }
-                    data.Clear();
-                }
-            }
+            Assert.True(Arrays.AreEqual(dec_key, 0, dec_key.Length, ss, 0, dec_key.Length), path + " " + count + ": kem_dec ss");
+            Assert.True(Arrays.AreEqual(dec_key, secret), path + " " + count + ": kem_dec key");
         }
     }
 }

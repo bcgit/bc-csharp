@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 
 using NUnit.Framework;
 
@@ -12,7 +11,6 @@ using Org.BouncyCastle.Pqc.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Tests
 {
@@ -42,21 +40,34 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
         private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
 
-        [TestCaseSource(nameof(TestVectorFiles))]
-        [Parallelizable(ParallelScope.All)]
-        public void TV(string testVectorPath)
+        [Test]
+        public void TestPrivInfoGeneration()
         {
-            RunTestVectorFile(testVectorPath);
+            SecureRandom random = new SecureRandom();
+            PqcOtherInfoGenerator.PartyU partyU = new PqcOtherInfoGenerator.PartyU(NtruParameters.NtruHrss701,
+                new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
+            byte[] partA = partyU.GetSuppPrivInfoPartA();
+            PqcOtherInfoGenerator.PartyV partyV = new PqcOtherInfoGenerator.PartyV(NtruParameters.NtruHrss701,
+                new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
+            byte[] partB = partyV.GetSuppPrivInfoPartB(partA);
+            DerOtherInfo otherInfoU = partyU.Generate(partB);
+            DerOtherInfo otherInfoV = partyV.Generate();
+            Assert.True(Arrays.AreEqual(otherInfoU.GetEncoded(), otherInfoV.GetEncoded()));
         }
 
-        private static void RunTestVector(string path, IDictionary<string, string> buf)
+        [TestCaseSource(nameof(TestVectorFiles))]
+        [Parallelizable(ParallelScope.All)]
+        public void TV(string testVectorPath) =>
+            PqcTestUtilities.RunTestVectors("pqc/crypto/ntru", testVectorPath, sampleOnly: true, RunTestVector);
+
+        private static void RunTestVector(string path, Dictionary<string, string> data)
         {
-            string count = buf["count"];
-            byte[] seed = Hex.Decode(buf["seed"]);
-            byte[] pk = Hex.Decode(buf["pk"]);
-            byte[] ct = Hex.Decode(buf["ct"]);
-            byte[] sk = Hex.Decode(buf["sk"]);
-            byte[] ss = Hex.Decode(buf["ss"]);
+            string count = data["count"];
+            byte[] seed = Hex.Decode(data["seed"]);
+            byte[] pk = Hex.Decode(data["pk"]);
+            byte[] ct = Hex.Decode(data["ct"]);
+            byte[] sk = Hex.Decode(data["sk"]);
+            byte[] ss = Hex.Decode(data["ss"]);
 
             NistSecureRandom random = new NistSecureRandom(seed, null);
             NtruParameters ntruParameters = Parameters[path];
@@ -99,65 +110,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                 NtruPrivateKeyParameters.FromEncoding(ntruParameters, sk));
             byte[] extractedSecret = decapsulator.ExtractSecret(ct);
             Assert.True(Arrays.AreEqual(ss, extractedSecret), $"{path} {count} : extracted secret");
-        }
-
-        private static void RunTestVectorFile(string path)
-        {
-            var buf = new Dictionary<string, string>();
-            TestSampler sampler = new TestSampler();
-            using (var src = new StreamReader(SimpleTest.FindTestResource("pqc/crypto/ntru", path)))
-            {
-                string line;
-                while ((line = src.ReadLine()) != null)
-                {
-                    line = line.Trim();
-                    if (line.StartsWith("#"))
-                        continue;
-
-                    if (line.Length > 0)
-                    {
-                        int a = line.IndexOf("=");
-                        if (a > -1)
-                        {
-                            buf[line.Substring(0, a).Trim()] = line.Substring(a + 1).Trim();
-                        }
-                        continue;
-                    }
-
-                    if (buf.Count > 0)
-                    {
-                        if (!sampler.SkipTest(buf["count"]))
-                        {
-                            RunTestVector(path, buf);
-                        }
-                        buf.Clear();
-                    }
-                }
-
-                if (buf.Count > 0)
-                {
-                    if (!sampler.SkipTest(buf["count"]))
-                    {
-                        RunTestVector(path, buf);
-                    }
-                    buf.Clear();
-                }
-            }
-        }
-
-        [Test]
-        public void TestPrivInfoGeneration()
-        {
-            SecureRandom random = new SecureRandom();
-            PqcOtherInfoGenerator.PartyU partyU = new PqcOtherInfoGenerator.PartyU(NtruParameters.NtruHrss701,
-                new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
-            byte[] partA = partyU.GetSuppPrivInfoPartA();
-            PqcOtherInfoGenerator.PartyV partyV = new PqcOtherInfoGenerator.PartyV(NtruParameters.NtruHrss701,
-                new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), Hex.Decode("beef"), Hex.Decode("cafe"), random);
-            byte[] partB = partyV.GetSuppPrivInfoPartB(partA);
-            DerOtherInfo otherInfoU = partyU.Generate(partB);
-            DerOtherInfo otherInfoV = partyV.Generate();
-            Assert.True(Arrays.AreEqual(otherInfoU.GetEncoded(), otherInfoV.GetEncoded()));
         }
     }
 }
