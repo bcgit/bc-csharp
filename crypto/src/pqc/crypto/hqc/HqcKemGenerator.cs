@@ -14,25 +14,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         public HqcKemGenerator(SecureRandom random)
         {
-            m_random = random ?? throw new ArgumentNullException(nameof(random));
+            m_random = CryptoServicesRegistrar.GetSecureRandom(random);
         }
 
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
-            HqcPublicKeyParameters key = (HqcPublicKeyParameters)recipientKey;
-            HqcEngine engine = key.Parameters.Engine;
+            var key = (HqcPublicKeyParameters)recipientKey;
+            var parameters = key.Parameters;
+            var engine = parameters.Engine;
 
-            byte[] K = new byte[key.Parameters.Sha512Bytes];
-            byte[] u = new byte[key.Parameters.NBytes];
-            byte[] v = new byte[key.Parameters.N1n2Bytes];
-            byte[] salt = new byte[key.Parameters.SaltSizeBytes];
-            byte[] seed = SecureRandom.GetNextBytes(m_random, 48);
+            byte[] K = new byte[parameters.Sha512Bytes];
+            byte[] u = new byte[parameters.NBytes];
+            byte[] v = new byte[parameters.N1N2Bytes];
+            byte[] salt = new byte[parameters.SaltSizeBytes];
+            byte[] pk = key.InternalPublicKey;
 
-            engine.Encaps(u, v, K, key.InternalPublicKey, seed, salt);
+            engine.Encaps(u, v, K, pk, salt, m_random);
 
             byte[] cipherText = Arrays.ConcatenateAll(u, v, salt);
 
-            return new SecretWithEncapsulationImpl(K, cipherText);
+            return new SecretWithEncapsulationImpl(Arrays.CopySegment(K, 0, 32), cipherText);
         }
 
         private sealed class SecretWithEncapsulationImpl

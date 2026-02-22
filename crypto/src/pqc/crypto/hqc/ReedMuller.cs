@@ -58,18 +58,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 for (int j = 0; j < 32; j++)
                 {
-                    long ii = srcCode[0 + off].type32[i] >> j & 1;
-                    desCode[i * 32 + j] = srcCode[0 + off].type32[i] >> j & 1;
+                    desCode[i * 32 + j] = srcCode[off].type32[i] >> j & 1;
                 }
             }
 
             for (int i = 1; i < mulParam; i++)
             {
+                int[] type32 = srcCode[off + i].type32;
                 for (int j = 0; j < 4; j++)
                 {
                     for (int k = 0; k < 32; k++)
                     {
-                        desCode[j * 32 + k] += srcCode[i + off].type32[j] >> k & 1;
+                        desCode[j * 32 + k] += type32[j] >> k & 1;
                     }
                 }
             }
@@ -129,23 +129,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             for (int i = 0; i < codewordCopy.Length; i++)
             {
                 codewordCopy[i] = new Codeword();
-                for (int j = 0; j < 4; j++)
-                {
-                    codewordCopy[i].type32[j] = byteCodeWords[i * 4 + j];
-                }
+                Array.Copy(byteCodeWords, i * 4, codewordCopy[i].type32, 0, 4);
             }
 
             int[] expandedCodeword = new int[128];
-
+            int[] tmp = new int[128];
 
             for (int i = 0; i < n1; i++)
             {
                 ExpandThenSum(expandedCodeword, codewordCopy, i * mulParam, mulParam);
-
-
-                int[] tmp = new int[128];
                 HadamardTransform(expandedCodeword, tmp);
-
                 tmp[0] -= 64 * mulParam;
                 m[i] = (byte)FindPeaks(tmp);
             }

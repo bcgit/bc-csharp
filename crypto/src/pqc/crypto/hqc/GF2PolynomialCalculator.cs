@@ -5,6 +5,7 @@ using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
 #endif
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 
@@ -13,7 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
     internal class GF2PolynomialCalculator
     {
 #if NETCOREAPP3_0_OR_GREATER
-        private static bool IsHardwareAccelerated => false;// Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled;
+        private static bool IsHardwareAccelerated => Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled;
 #endif
 
         private readonly int m_bits;
@@ -32,6 +33,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         internal void AddTo(ulong[] x, ulong[] z) => Nat.XorTo64(m_size, x, z);
 
+        internal void Clear(ulong[] z) => Nat.Zero64(m_size, z);
+
         internal ulong[] Create() => new ulong[m_size];
 
         internal ulong[] CreateExt() => new ulong[m_sizeExt];
@@ -44,6 +47,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             ulong[] tmp = new ulong[m_size << 4];
             Karatsuba(m_size, x, 0, y, 0, tt, 0, tmp, 0);
             Reduce(tt, z);
+        }
+
+        internal void Random(Shake256RandomGenerator generator, ulong[] z)
+        {
+            byte[] tmp = new byte[m_size << 3];
+            generator.XofGetBytes(tmp, Utils.GetByteSizeFromBitSize(m_bits));
+            Pack.LE_To_UInt64(tmp, 0, z);
+            z[m_size - 1] &= (1UL << (m_bits & 63)) - 1L;
         }
 
         private static void BaseMul(int len, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] zz, int zzOff)

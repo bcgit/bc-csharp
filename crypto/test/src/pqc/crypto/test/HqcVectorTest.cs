@@ -4,8 +4,10 @@ using System.IO;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Pqc.Crypto.Hqc;
 using Org.BouncyCastle.Pqc.Crypto.Utilities;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -15,49 +17,54 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
     [TestFixture]
     public class HqcVectorTest
     {
-        [Test]
-        public void TestReedSolomon()
-        {
-            byte[] seed = Hex.Decode("416a32ada1c7a569c34d5334273a781c340aac25eb7614271aa6930d0358fb30fd87e111336a29e165dc60d9643a3e9b");
-            byte[] kemSeed = Hex.Decode("13f36c0636ff93af6d702f7774097c185bf67cddc9b09f9b584d736c4faf40e073b0499efa0c926e9a44fec1e45ee4cf");
-            FixedSecureRandom random = new FixedSecureRandom(
-                new FixedSecureRandom.Source[] { new FixedSecureRandom.Data(seed) });
-            HqcKeyPairGenerator kpGen = new HqcKeyPairGenerator();
-            HqcKeyGenerationParameters genParam = new HqcKeyGenerationParameters(random, HqcParameters.hqc128);
-            kpGen.Init(genParam);
-            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
-            HqcPublicKeyParameters pubParams = (HqcPublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((HqcPublicKeyParameters)kp.Public));
-            HqcPrivateKeyParameters privParams = (HqcPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((HqcPrivateKeyParameters)kp.Private));
-
-            HqcKemGenerator hqcEncCipher = new HqcKemGenerator(new FixedSecureRandom(new FixedSecureRandom.Source[] { new FixedSecureRandom.Data(kemSeed) }));
-            ISecretWithEncapsulation secWenc = hqcEncCipher.GenerateEncapsulated(pubParams);
-            byte[] generated_cipher_text = secWenc.GetEncapsulation();
-
-            byte[] secret = secWenc.GetSecret();
-
-
-            // KEM Dec
-            HqcKemExtractor hqcDecCipher = new HqcKemExtractor(privParams);
-
-            byte[] dec_key = hqcDecCipher.ExtractSecret(generated_cipher_text);
-
-            Assert.True(Arrays.AreEqual(dec_key, secret));
-        }
-
         private static readonly Dictionary<string, HqcParameters> Parameters = new Dictionary<string, HqcParameters>()
         {
-            { "HQC-128.rsp", HqcParameters.hqc128 },
-            { "HQC-192.rsp", HqcParameters.hqc192 },
-            { "HQC-256.rsp", HqcParameters.hqc256 },
+            { "PQCkemKAT_2321.rsp", HqcParameters.hqc128 },
+            { "PQCkemKAT_4602.rsp", HqcParameters.hqc192 },
+            { "PQCkemKAT_7333.rsp", HqcParameters.hqc256 },
         };
 
+        private static readonly IEnumerable<HqcParameters> ParametersValues = Parameters.Values;
+
         private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
+
+        private readonly SecureRandom Random = new SecureRandom();
+
+        [TestCaseSource(nameof(ParametersValues))]
+        [Parallelizable(ParallelScope.All)]
+        public void Consistency(HqcParameters parameters)
+        {
+            var kpg = new HqcKeyPairGenerator();
+            kpg.Init(new HqcKeyGenerationParameters(Random, parameters));
+
+            for (int i = 0; i < 10; ++i)
+            {
+                var kp = kpg.GenerateKeyPair();
+
+                for (int j = 0; j < 10; ++j)
+                {
+                    var generator = new HqcKemGenerator(Random);
+                    var encapsulated = generator.GenerateEncapsulated(kp.Public);
+                    var encapSecret = encapsulated.GetSecret();
+                    var encapsulation = encapsulated.GetEncapsulation();
+                    Assert.AreEqual(parameters.SecretLength, encapSecret.Length);
+                    Assert.AreEqual(parameters.EncapsulationLength, encapsulation.Length);
+
+                    var extractor = new HqcKemExtractor((HqcPrivateKeyParameters)kp.Private);
+                    var decapSecret = extractor.ExtractSecret(encapsulation);
+                    if (!Arrays.AreEqual(encapSecret, decapSecret))
+                    {
+                        Assert.Fail("Consistency " + parameters + " #" + i + "[" + j + "]");
+                    }
+                }
+            }
+        }
 
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
         public void TV(string testVectorFile)
         {
-            RunTestVectorFile(testVectorFile, sampleOnly: true);
+            RunTestVectorFile(testVectorFile, sampleOnly: false);
         }
 
         private static void RunTestVector(string name, IDictionary<string, string> buf)
@@ -69,41 +76,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             byte[] ct = Hex.Decode(buf["ct"]);     // ciphertext
             byte[] ss = Hex.Decode(buf["ss"]);     // session key
 
-            FixedSecureRandom random = new FixedSecureRandom(
-                new FixedSecureRandom.Source[]{ new FixedSecureRandom.Data(seed) });
-            HqcParameters hqcParameters = Parameters[name];
+            var random = new Shake256SecureRandom(seed);
+            var hqcParameters = Parameters[name];
 
-            HqcKeyPairGenerator kpGen = new HqcKeyPairGenerator();
-            HqcKeyGenerationParameters genParam = new HqcKeyGenerationParameters(random, hqcParameters);
+            var kpGen = new HqcKeyPairGenerator();
+            kpGen.Init(new HqcKeyGenerationParameters(random, hqcParameters));
 
-            //
-            // Generate keys and test.
-            //
-            kpGen.Init(genParam);
-            AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
+            // KeyGen
+            var kp = kpGen.GenerateKeyPair();
+            var publicKey = (HqcPublicKeyParameters)kp.Public;
+            var privateKey = (HqcPrivateKeyParameters)kp.Private;
 
-            HqcPublicKeyParameters pubParams = (HqcPublicKeyParameters)PqcPublicKeyFactory.CreateKey(PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo((HqcPublicKeyParameters) kp.Public));
-            HqcPrivateKeyParameters privParams = (HqcPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo((HqcPrivateKeyParameters) kp.Private));
-                           
-            Assert.True(Arrays.AreEqual(pk, pubParams.GetPublicKey()), name + " " + count + ": public key");
-            Assert.True(Arrays.AreEqual(sk, privParams.GetPrivateKey()), name + " " + count + ": secret key");
+            var pubParams = (HqcPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
+            var privParams = (HqcPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey));
 
-            // KEM Enc
-            HqcKemGenerator hqcEncCipher = new HqcKemGenerator(new FixedSecureRandom(new FixedSecureRandom.Source[] { new FixedSecureRandom.Data(seed) }));
-            ISecretWithEncapsulation secWenc = hqcEncCipher.GenerateEncapsulated(pubParams);
-            byte[] generated_cipher_text = secWenc.GetEncapsulation();
-            Assert.True(Arrays.AreEqual(ct, generated_cipher_text), name + " " + count + ": kem_enc cipher text");
+            Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), name + " " + count + ": public key");
+            Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + " " + count + ": secret key");
 
-            byte[] secret = secWenc.GetSecret();
-            Assert.True(Arrays.AreEqual(ss, secret), name + " " + count + ": kem_enc key");
+            // Encapsulation
+            var kemGenerator = new HqcKemGenerator(random);
+            ISecretWithEncapsulation secretWithEnc = kemGenerator.GenerateEncapsulated(pubParams);
 
-            // KEM Dec
-            HqcKemExtractor hqcDecCipher = new HqcKemExtractor(privParams);
+            byte[] cipherText = secretWithEnc.GetEncapsulation();
+            Assert.True(Arrays.AreEqual(ct, cipherText), name + " " + count + ": ciphertext");
 
-            byte[] dec_key = hqcDecCipher.ExtractSecret(generated_cipher_text);
+            byte[] encapSecret = secretWithEnc.GetSecret();
+            Assert.True(Arrays.AreEqual(ss, encapSecret), name + " " + count + ": encapSecret");
 
-            Assert.True(Arrays.AreEqual(dec_key, ss), name + " " + count + ": kem_dec ss");
-            Assert.True(Arrays.AreEqual(dec_key, secret), name + " " + count + ": kem_dec key");
+            // Decapsulation
+            var kemExtractor = new HqcKemExtractor(privParams);
+
+            byte[] decapSecret = kemExtractor.ExtractSecret(cipherText);
+            Assert.True(Arrays.AreEqual(ss, decapSecret), name + " " + count + ": decapSecret");
         }
 
         private static void RunTestVectorFile(string name, bool sampleOnly)
@@ -148,6 +154,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     data.Clear();
                 }
             }
+        }
+
+        private class Shake256SecureRandom : SecureRandom
+        {
+            private readonly ShakeDigest m_xof = new ShakeDigest(256);
+
+            internal Shake256SecureRandom(byte[] seed)
+            {
+                m_xof.BlockUpdate(seed, 0, seed.Length);
+                m_xof.Update(0x00);
+            }
+
+            public override void NextBytes(byte[] buf) => m_xof.Output(buf, 0, buf.Length);
+
+            public override void NextBytes(byte[] buf, int off, int len) => m_xof.Output(buf, off, len);
         }
     }
 }

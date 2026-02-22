@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
@@ -20,9 +21,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         public byte[] ExtractSecret(byte[] encapsulation)
         {
-            byte[] session_key = new byte[64];
-            m_engine.Decaps(ss: session_key, ct: encapsulation, sk: m_privateKey.InternalPrivateKey);
-            return session_key;
+            byte[] ss = new byte[64];
+            byte[] sk = m_privateKey.InternalPrivateKey;
+
+            m_engine.Decaps(ss, ct: encapsulation, sk);
+
+            return Arrays.CopySegment(ss, 0, 32);
         }
 
         public int EncapsulationLength => m_engine.CipherTextBytes;

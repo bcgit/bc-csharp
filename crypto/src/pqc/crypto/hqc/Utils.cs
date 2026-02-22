@@ -1,39 +1,9 @@
-using System;
-
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
     internal static class Utils
     {
-        internal static void ResizeArray(ulong[] output, int sizeOutBits, ulong[] input, int sizeInBits,
-            int n1n2ByteSize, int n1n2Byte64Size)
-        {
-            ulong mask = 0x7FFFFFFFFFFFFFFFUL;
-            int val = 0;
-            if (sizeOutBits < sizeInBits)
-            {
-                if (sizeOutBits % 64 != 0)
-                {
-                    val = 64 - (sizeOutBits % 64);
-                }
-
-                Array.Copy(input, 0, output, 0, n1n2ByteSize);
-
-                for (int i = 0; i < val; ++i)
-                {
-                    output[n1n2Byte64Size - 1] &= mask >> i;
-                }
-            }
-            else
-            {
-                Array.Copy(input, 0, output, 0, (sizeInBits + 7) / 8);
-            }
-        }
-
-        internal static void FromUInt64ArrayToByteArray(byte[] output, ulong[] input) =>
-            FromUInt64ArrayToByteArray(output, 0, output.Length, input);
-
         internal static void FromUInt64ArrayToByteArray(byte[] output, int outOff, int outLen, ulong[] input)
         {
             int nsLen = outLen >> 3;

@@ -6,40 +6,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
     public class HqcKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private int n;
-        private int k;
-        private int N_BYTE;
-        private HqcKeyGenerationParameters hqcKeyGenerationParameters;
-
-        private SecureRandom random;
-
-        public AsymmetricCipherKeyPair GenerateKeyPair() => GenKeyPair(SecureRandom.GetNextBytes(random, 48));
-
-        public AsymmetricCipherKeyPair GenerateKeyPairWithSeed(byte[] seed) => GenKeyPair(seed);
+        private SecureRandom m_random;
+        private HqcParameters m_parameters;
 
         public void Init(KeyGenerationParameters parameters)
         {
-            hqcKeyGenerationParameters = (HqcKeyGenerationParameters)parameters;
-            random = parameters.Random;
-
-            // get parameters
-            n = hqcKeyGenerationParameters.Parameters.N;
-            k = hqcKeyGenerationParameters.Parameters.K;
-            N_BYTE = (n + 7) / 8;
+            m_random = parameters.Random;
+            m_parameters = ((HqcKeyGenerationParameters)parameters).Parameters;
         }
 
-        private AsymmetricCipherKeyPair GenKeyPair(byte[] seed)
+        public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            HqcEngine engine = hqcKeyGenerationParameters.Parameters.Engine;
-            byte[] pk = new byte[40 + N_BYTE];
-            byte[] sk = new byte[40 + 40 + k + N_BYTE];
+            byte[] pk = new byte[m_parameters.PublicKeyBytes];
+            byte[] sk = new byte[m_parameters.SecretKeyBytes];
 
-            engine.GenKeyPair(pk, sk, seed);
+            m_parameters.Engine.GenKeyPair(pk, sk, m_random);
 
-            // form keys
-            HqcPublicKeyParameters publicKey = new HqcPublicKeyParameters(hqcKeyGenerationParameters.Parameters, pk);
-            HqcPrivateKeyParameters privateKey = new HqcPrivateKeyParameters(hqcKeyGenerationParameters.Parameters, sk);
-
+            var publicKey = new HqcPublicKeyParameters(m_parameters, pk);
+            var privateKey = new HqcPrivateKeyParameters(m_parameters, sk);
             return new AsymmetricCipherKeyPair(publicKey, privateKey);
         }
     }
