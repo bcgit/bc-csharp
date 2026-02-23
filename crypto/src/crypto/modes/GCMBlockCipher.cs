@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private readonly IBlockCipher	cipher;
         private readonly IGcmMultiplier	multiplier;
-        private IGcmExponentiator exp;
+        private BasicGcmExponentiator exp;
 
         // These fields are set by Init and not modified by processing
         private bool        forEncryption;
@@ -90,13 +90,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (c.GetBlockSize() != BlockSize)
                 throw new ArgumentException("cipher required with a block size of " + BlockSize + ".");
 
-            if (m == null)
-            {
-                m = CreateGcmMultiplier();
-            }
-
             this.cipher = c;
-            this.multiplier = m;
+            this.multiplier = m ?? CreateGcmMultiplier();
         }
 
         public string AlgorithmName => cipher.AlgorithmName + "/GCM";
@@ -212,7 +207,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     var H3 = GcmUtilities.Multiply(H1, H2);
                     var H4 = GcmUtilities.Square(H2);
 
-                    HPow = new Vector128<ulong>[4]{ H4, H3, H2, H1 };
+                    HPow = new[]{ H4, H3, H2, H1 };
                 }
 #endif
             }

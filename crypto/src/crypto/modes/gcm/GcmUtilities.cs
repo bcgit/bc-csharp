@@ -172,7 +172,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             out Vector128<ulong> Z1, out Vector128<ulong> Z2)
         {
             if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled)
-                throw new PlatformNotSupportedException(nameof(GcmUtilities.MultiplyExt));
+                throw new PlatformNotSupportedException(nameof(MultiplyExt));
 
             Z0 =          Pclmulqdq.CarrylessMultiply(X, Y, 0x00);
             Z1 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X, Y, 0x01),
@@ -248,7 +248,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         internal static void SquareExt(Vector128<ulong> X, out Vector128<ulong> Z0, out Vector128<ulong> Z2)
         {
             if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled)
-                throw new PlatformNotSupportedException(nameof(GcmUtilities.SquareExt));
+                throw new PlatformNotSupportedException(nameof(SquareExt));
 
             Z0 = Pclmulqdq.CarrylessMultiply(X, X, 0x00);
             Z2 = Pclmulqdq.CarrylessMultiply(X, X, 0x11);
