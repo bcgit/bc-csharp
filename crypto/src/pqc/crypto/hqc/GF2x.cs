@@ -11,7 +11,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 {
-    internal class GF2PolynomialCalculator
+    internal class GF2x
     {
 #if NETCOREAPP3_0_OR_GREATER
         private static bool IsHardwareAccelerated => Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled;
@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         private readonly int m_size;
         private readonly int m_sizeExt;
 
-        internal GF2PolynomialCalculator(int n)
+        internal GF2x(int n)
         {
             if ((n & 0xFFFF0001) != 1)
                 throw new ArgumentException();

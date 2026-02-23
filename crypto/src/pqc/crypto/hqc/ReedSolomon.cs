@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 for (int j = 0; j < paramG; j++)
                 {
-                    tmp[j] = GFCalculator.Mul(gateValue, rsPoly[j]);
+                    tmp[j] = GF.Mul(gateValue, rsPoly[j]);
                 }
 
                 for (int j = n1 - paramK - 1; j > 0; j--)
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 for (int j = 1; j < n1; j++)
                 {
-                    syndromes[i] ^= GFCalculator.Mul(codeWord[j], alpha[i, j - 1]);
+                    syndromes[i] ^= GF.Mul(codeWord[j], alpha[i, j - 1]);
                 }
                 syndromes[i] ^= codeWord[0];
             }
@@ -123,11 +123,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 Array.Copy(sigma, 0, sigmaDup, 0, delta + 1);
                 int degSigmaDup = degSigma;
-                int dd = GFCalculator.Div(d, dp);
+                int dd = GF.Div(d, dp);
 
                 for (int j = 1; j <= i + 1 && j <= delta; j++)
                 {
-                    sigma[j] ^= GFCalculator.Mul(dd, sigmaP[j]);
+                    sigma[j] ^= GF.Mul(dd, sigmaP[j]);
                 }
 
                 int degX = Utils.ToUnsigned16Bits(i - pp);
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 for (int k = 1; k <= i + 1 && k <= delta; k++)
                 {
-                    d ^= GFCalculator.Mul(sigma[k], syndromes[i + 1 - k]);
+                    d ^= GF.Mul(sigma[k], syndromes[i + 1 - k]);
                 }
             }
             return degSigma;
@@ -180,7 +180,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 for (int j = 1; j < i; j++)
                 {
-                    output[i] ^= (mask) & GFCalculator.Mul(sigma[j], syndromes[i - j - 1]);
+                    output[i] ^= (mask) & GF.Mul(sigma[j], syndromes[i - j - 1]);
                 }
             }
         }
@@ -208,22 +208,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 int temp1 = 1;
                 int temp2 = 1;
-                int inv = GFCalculator.Inv(betaSet[i]);
+                int inv = GF.Inv(betaSet[i]);
                 int invPow = 1;
 
                 for (int j = 1; j <= delta; j++)
                 {
-                    invPow = GFCalculator.Mul(invPow, inv);
-                    temp1 ^= GFCalculator.Mul(invPow, zx[j]);
+                    invPow = GF.Mul(invPow, inv);
+                    temp1 ^= GF.Mul(invPow, zx[j]);
                 }
 
                 for (int j = 1; j < delta; j++)
                 {
-                    temp2 = GFCalculator.Mul(temp2, 1 ^ GFCalculator.Mul(inv, betaSet[(i + j) % delta]));
+                    temp2 = GF.Mul(temp2, 1 ^ GF.Mul(inv, betaSet[(i + j) % delta]));
                 }
 
                 int mask1 = i < deltaCount1 ? 0xffff : 0;
-                eSet[i] = mask1 & GFCalculator.Div(temp1, temp2);
+                eSet[i] = mask1 & GF.Div(temp1, temp2);
             }
 
             int deltaCount2 = 0;

@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             for (int i = 0; i < m - 1; i++)
             {
                 int beta_i = betas[i];
-                deltas[i] = GFCalculator.Sqr(beta_i) ^ beta_i;
+                deltas[i] = GF.Sqr(beta_i) ^ beta_i;
             }
 
             // Step 5:
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             for (int i = 1; i < k; i++)
             {
-                int ti = u[i] ^ GFCalculator.Mul(betaSum[i], v[i]);
+                int ti = u[i] ^ GF.Mul(betaSum[i], v[i]);
                 output[i] = ti;
                 output[k + i] ^= ti;
             }
@@ -185,7 +185,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             {
                 for (int i = 0; i < noOfBetas; i++)
                 {
-                    tempSet[i] = GFCalculator.Mul(betaSet[i], func[1]);
+                    tempSet[i] = GF.Mul(betaSet[i], func[1]);
                 }
 
                 output[0] = func[0];
@@ -207,8 +207,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 int x = 1 << noCoeffsPlus;
                 for (int i = 1; i < x; i++)
                 {
-                    betaMPow = GFCalculator.Mul(betaMPow, betaSet[noOfBetas - 1]);
-                    func[i] = GFCalculator.Mul(betaMPow, func[i]);
+                    betaMPow = GF.Mul(betaMPow, betaSet[noOfBetas - 1]);
+                    func[i] = GF.Mul(betaMPow, func[i]);
                 }
             }
 
@@ -216,9 +216,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             for (int i = 0; i < noOfBetas - 1; i++)
             {
-                int gamma_i = GFCalculator.Div(betaSet[i], betaSet[noOfBetas - 1]);
+                int gamma_i = GF.Div(betaSet[i], betaSet[noOfBetas - 1]);
                 gammaSet[i] = gamma_i;
-                deltaSet[i] = GFCalculator.Sqr(gamma_i) ^ gamma_i;
+                deltaSet[i] = GF.Sqr(gamma_i) ^ gamma_i;
             }
 
             ComputeSubsetSum(gammaSumSet, gammaSet, noOfBetas - 1);
@@ -232,7 +232,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 output[k] = uSet[0] ^ fx1[0];
                 for (int i = 1; i < k; i++)
                 {
-                    int ti = uSet[i] ^ GFCalculator.Mul(gammaSumSet[i], fx1[0]);
+                    int ti = uSet[i] ^ GF.Mul(gammaSumSet[i], fx1[0]);
                     output[i] = ti;
                     output[k + i] = ti ^ fx1[0];
                 }
@@ -249,7 +249,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
                 for (int i = 1; i < k; i++)
                 {
-                    int ti = uSet[i] ^ GFCalculator.Mul(gammaSumSet[i], vSet[i]);
+                    int ti = uSet[i] ^ GF.Mul(gammaSumSet[i], vSet[i]);
                     output[i] = ti;
                     output[k + i] ^= ti;
                 }
