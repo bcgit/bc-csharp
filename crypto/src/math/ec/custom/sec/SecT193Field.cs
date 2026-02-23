@@ -363,30 +363,43 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             if (Org.BouncyCastle.Runtime.Intrinsics.X86.Pclmulqdq.IsEnabled)
             {
                 var X01 = Vector128.Create(x[0], x[1]);
-                var X2_ = Vector128.CreateScalar(x[2]);
                 var Y01 = Vector128.Create(y[0], y[1]);
-                var Y2_ = Vector128.CreateScalar(y[2]);
+                var XY2 = Vector128.Create(x[2], y[2]);
 
                 var Z01 =          Pclmulqdq.CarrylessMultiply(X01, Y01, 0x00);
                 var Z12 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x01),
                                    Pclmulqdq.CarrylessMultiply(X01, Y01, 0x10));
-                var Z23 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y2_, 0x00),
+                var Z23 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, XY2, 0x10),
                           Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y01, 0x11),
-                                   Pclmulqdq.CarrylessMultiply(X2_, Y01, 0x00)));
-                var Z34 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, Y2_, 0x01),
-                                   Pclmulqdq.CarrylessMultiply(X2_, Y01, 0x10));
-                var Z45 =          Pclmulqdq.CarrylessMultiply(X2_, Y2_, 0x00);
+                                   Pclmulqdq.CarrylessMultiply(XY2, Y01, 0x00)));
+                var Z34 = Sse2.Xor(Pclmulqdq.CarrylessMultiply(X01, XY2, 0x11),
+                                   Pclmulqdq.CarrylessMultiply(XY2, Y01, 0x10));
+                var Z45 =          Pclmulqdq.CarrylessMultiply(XY2, XY2, 0x10);
 
                 ulong X3M = 0UL - x[3];
                 ulong Y3M = 0UL - y[3];
 
+                Z01 = Sse2.Xor(Z01, Sse2.ShiftLeftLogical128BitLane (Z12, 8));
+
+                if (Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled)
+                {
+                    Z23 = Sse2.Xor(Z23, Ssse3.AlignRight(Z34, Z12, 8));
+                }
+                else
+                {
+                    Z23 = Sse2.Xor(Z23, Sse2.ShiftRightLogical128BitLane(Z12, 8));
+                    Z23 = Sse2.Xor(Z23, Sse2.ShiftLeftLogical128BitLane (Z34, 8));
+                }
+
+                Z45 = Sse2.Xor(Z45, Sse2.ShiftRightLogical128BitLane(Z34, 8));
+
                 zz[0] = Z01.GetElement(0);
-                zz[1] = Z01.GetElement(1) ^ Z12.GetElement(0);
-                zz[2] = Z23.GetElement(0) ^ Z12.GetElement(1);
-                zz[3] = Z23.GetElement(1) ^ Z34.GetElement(0) ^ (X3M & y[0]) ^ (x[0] & Y3M);
-                zz[4] = Z45.GetElement(0) ^ Z34.GetElement(1) ^ (X3M & y[1]) ^ (x[1] & Y3M);
-                zz[5] = Z45.GetElement(1)                     ^ (X3M & y[2]) ^ (x[2] & Y3M);
-                zz[6] =                                          X3M & y[3];
+                zz[1] = Z01.GetElement(1);
+                zz[2] = Z23.GetElement(0);
+                zz[3] = Z23.GetElement(1) ^ (X3M & y[0]) ^ (x[0] & Y3M);
+                zz[4] = Z45.GetElement(0) ^ (X3M & y[1]) ^ (x[1] & Y3M);
+                zz[5] = Z45.GetElement(1) ^ (X3M & y[2]) ^ (x[2] & Y3M);
+                zz[6] =                      X3M & y[3];
                 return;
             }
 #endif

@@ -343,27 +343,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
                 if (i < Size)
                 {
-                    var Xi = Vector128.CreateScalar(x[xOff + i]);
-                    var Yi = Vector128.CreateScalar(y[yOff + i]);
+                    var XYi = Vector128.Create(x[xOff + i], y[yOff + i]);
 
                     for (int j = 0; j < i; ++j)
                     {
-                        var Xj = Vector128.CreateScalar(x[xOff + j]);
-                        var Yj = Vector128.CreateScalar(y[yOff + j]);
+                        var XYj = Vector128.Create(x[xOff + j], y[yOff + j]);
 
-                        var Z = Sse2.Xor(Pclmulqdq.CarrylessMultiply(Xi, Yj, 0x00),
-                                         Pclmulqdq.CarrylessMultiply(Yi, Xj, 0x00));
+                        var Z = Sse2.Xor(Pclmulqdq.CarrylessMultiply(XYi, XYj, 0x01),
+                                         Pclmulqdq.CarrylessMultiply(XYi, XYj, 0x10));
 
                         zz[i + j + 0] ^= Z.GetElement(0);
                         zz[i + j + 1] ^= Z.GetElement(1);
                     }
 
                     {
-                        var Z = Pclmulqdq.CarrylessMultiply(Xi, Yi, 0x00);
+                        var Z = Pclmulqdq.CarrylessMultiply(XYi, XYi, 0x01);
 
                         zz[i + i + 0] ^= Z.GetElement(0);
                         zz[i + i + 1] ^= Z.GetElement(1);
-
                     }
                 }
                 return;
