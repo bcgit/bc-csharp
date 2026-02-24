@@ -625,45 +625,117 @@ namespace Org.BouncyCastle.Utilities
 
         public static bool[] Clone(bool[] data)
         {
-            return data == null ? null : (bool[])data.Clone();
+            if (data == null)
+                return null;
+
+#if NET5_0_OR_GREATER
+            bool[] result = GC.AllocateUninitializedArray<bool>(data.Length);
+#else
+            bool[] result = new bool[data.Length];
+#endif
+            Buffer.BlockCopy(data, 0, result, 0, data.Length);
+            return result;
         }
 
         public static byte[] Clone(byte[] data)
         {
-            return data == null ? null : (byte[])data.Clone();
+            if (data == null)
+                return null;
+
+#if NET5_0_OR_GREATER
+            byte[] result = GC.AllocateUninitializedArray<byte>(data.Length);
+#else
+            byte[] result = new byte[data.Length];
+#endif
+            Buffer.BlockCopy(data, 0, result, 0, data.Length);
+            return result;
         }
 
         public static short[] Clone(short[] data)
         {
-            return data == null ? null : (short[])data.Clone();
+            if (data == null)
+                return null;
+
+#if NET5_0_OR_GREATER
+            short[] result = GC.AllocateUninitializedArray<short>(data.Length);
+#else
+            short[] result = new short[data.Length];
+#endif
+            Buffer.BlockCopy(data, 0, result, 0, data.Length * sizeof(short));
+            return result;
         }
 
         [CLSCompliant(false)]
         public static ushort[] Clone(ushort[] data)
         {
-            return data == null ? null : (ushort[])data.Clone();
+            if (data == null)
+                return null;
+
+#if NET5_0_OR_GREATER
+            ushort[] result = GC.AllocateUninitializedArray<ushort>(data.Length);
+#else
+            ushort[] result = new ushort[data.Length];
+#endif
+            Buffer.BlockCopy(data, 0, result, 0, data.Length * sizeof(ushort));
+            return result;
         }
 
         public static int[] Clone(int[] data)
         {
-            return data == null ? null : (int[])data.Clone();
+            if (data == null)
+                return null;
+
+#if NET5_0_OR_GREATER
+            int[] result = GC.AllocateUninitializedArray<int>(data.Length);
+#else
+            int[] result = new int[data.Length];
+#endif
+            Buffer.BlockCopy(data, 0, result, 0, data.Length * sizeof(int));
+            return result;
         }
 
         [CLSCompliant(false)]
         public static uint[] Clone(uint[] data)
         {
-            return data == null ? null : (uint[])data.Clone();
+            if (data == null)
+                return null;
+
+#if NET5_0_OR_GREATER
+            uint[] result = GC.AllocateUninitializedArray<uint>(data.Length);
+#else
+            uint[] result = new uint[data.Length];
+#endif
+            Buffer.BlockCopy(data, 0, result, 0, data.Length * sizeof(uint));
+            return result;
         }
 
         public static long[] Clone(long[] data)
         {
-            return data == null ? null : (long[])data.Clone();
+            if (data == null)
+                return null;
+
+#if NET5_0_OR_GREATER
+            long[] result = GC.AllocateUninitializedArray<long>(data.Length);
+#else
+            long[] result = new long[data.Length];
+#endif
+            Buffer.BlockCopy(data, 0, result, 0, data.Length * sizeof(long));
+            return result;
         }
 
         [CLSCompliant(false)]
         public static ulong[] Clone(ulong[] data)
         {
-            return data == null ? null : (ulong[])data.Clone();
+            if (data == null)
+                return null;
+
+#if NET5_0_OR_GREATER
+            ulong[] result = GC.AllocateUninitializedArray<ulong>(data.Length);
+#else
+            ulong[] result = new ulong[data.Length];
+#endif
+            Buffer.BlockCopy(data, 0, result, 0, data.Length * sizeof(ulong));
+            return result;
         }
 
         public static byte[] Clone(byte[] data, byte[] existing)
@@ -1142,7 +1214,16 @@ namespace Org.BouncyCastle.Utilities
             return new T[len];
         }
 
-        internal static T[] InternalCopyBuffer<T>(T[] buf) => (T[])buf.Clone();
+        internal static T[] InternalCopyBuffer<T>(T[] buf)
+        {
+#if NET5_0_OR_GREATER
+            T[] result = GC.AllocateUninitializedArray<T>(buf.Length);
+#else
+            T[] result = new T[buf.Length];
+#endif
+            Array.Copy(buf, 0, result, 0, buf.Length);
+            return result;
+        }
 
         internal static void InternalCopyBufferToSegment<T>(T[] srcBuf, T[] dstBuf, int dstOff, int dstLen)
         {
