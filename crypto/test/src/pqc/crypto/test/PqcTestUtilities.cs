@@ -34,14 +34,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
                     if (data.Count > 0)
                     {
-                        runTestVector(path2, data);
+                        if (sampler == null || !sampler.SkipTest(data["count"]))
+                        {
+                            runTestVector(path2, data);
+                        }
                         data.Clear();
                     }
                 }
 
                 if (data.Count > 0)
                 {
-                    runTestVector(path2, data);
+                    if (sampler == null || !sampler.SkipTest(data["count"]))
+                    {
+                        runTestVector(path2, data);
+                    }
                     data.Clear();
                 }
             }
