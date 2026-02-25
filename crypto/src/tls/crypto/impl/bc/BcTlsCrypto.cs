@@ -412,9 +412,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case SignatureAlgorithm.gostr34102012_256:
             case SignatureAlgorithm.gostr34102012_512:
 
-            // TODO[RFC 8998]
-            //case SignatureAlgorithm.sm2:
-
             default:
                 return false;
             }

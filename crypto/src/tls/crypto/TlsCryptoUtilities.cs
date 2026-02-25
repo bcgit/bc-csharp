@@ -2,6 +2,7 @@
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
@@ -134,9 +135,8 @@ namespace Org.BouncyCastle.Tls.Crypto
                 return NistObjectIdentifiers.IdSha384;
             case CryptoHashAlgorithm.sha512:
                 return NistObjectIdentifiers.IdSha512;
-            // TODO[RFC 8998]
-            //case CryptoHashAlgorithm.sm3:
-            //    return GMObjectIdentifiers.sm3;
+            case CryptoHashAlgorithm.sm3:
+                return GMObjectIdentifiers.sm3;
             case CryptoHashAlgorithm.gostr3411_2012_256:
                 return RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
             default:

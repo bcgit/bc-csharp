@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Bsi;
 using Org.BouncyCastle.Asn1.Eac;
 using Org.BouncyCastle.Asn1.EdEC;
+using Org.BouncyCastle.Asn1.GM;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -106,8 +107,7 @@ namespace Org.BouncyCastle.Tls
             AddCertSigAlgOid(d, RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512,
                 SignatureAndHashAlgorithm.gostr34102012_512);
 
-            // TODO[RFC 8998]
-            //AddCertSigAlgOid(d, GMObjectIdentifiers.sm2sign_with_sm3, HashAlgorithm.sm3, SignatureAlgorithm.sm2);
+            AddCertSigAlgOid(d, GMObjectIdentifiers.sm2sign_with_sm3, SignatureAndHashAlgorithm.sm2sig_sm3);
 
             return d;
         }
@@ -1827,9 +1827,6 @@ namespace Org.BouncyCastle.Tls
                 return NistObjectIdentifiers.IdSha384;
             case HashAlgorithm.sha512:
                 return NistObjectIdentifiers.IdSha512;
-                // TODO[RFC 8998]
-            //case HashAlgorithm.sm3:
-            //    return GMObjectIdentifiers.sm3;
             default:
                 throw new ArgumentException("invalid HashAlgorithm: " + HashAlgorithm.GetText(hashAlgorithm));
             }

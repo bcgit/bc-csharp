@@ -45,6 +45,7 @@ namespace Org.BouncyCastle.Tls
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_192f = Create(SignatureScheme.slhdsa_shake_192f);
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_256s = Create(SignatureScheme.slhdsa_shake_256s);
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_256f = Create(SignatureScheme.slhdsa_shake_256f);
+        public static readonly SignatureAndHashAlgorithm sm2sig_sm3 = Create(SignatureScheme.sm2sig_sm3);
 
         public static SignatureAndHashAlgorithm GetInstance(short hashAlgorithm, short signatureAlgorithm)
         {

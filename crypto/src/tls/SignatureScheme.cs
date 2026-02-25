@@ -266,17 +266,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        public static short GetHashAlgorithm(int signatureScheme)
-        {
-            // TODO[RFC 8998] sm2sig_sm3
-            return (short)((signatureScheme >> 8) & 0xFF);
-        }
+        public static short GetHashAlgorithm(int signatureScheme) => (short)((signatureScheme >> 8) & 0xFF);
 
-        public static short GetSignatureAlgorithm(int signatureScheme)
-        {
-            // TODO[RFC 8998] sm2sig_sm3
-            return (short)(signatureScheme & 0xFF);
-        }
+        public static short GetSignatureAlgorithm(int signatureScheme) => (short)(signatureScheme & 0xFF);
 
         public static SignatureAndHashAlgorithm GetSignatureAndHashAlgorithm(int signatureScheme)
         {
@@ -316,6 +308,8 @@ namespace Org.BouncyCastle.Tls
                 return SignatureAndHashAlgorithm.slhdsa_shake_256s;
             case slhdsa_shake_256f:
                 return SignatureAndHashAlgorithm.slhdsa_shake_256f;
+            case sm2sig_sm3:
+                return SignatureAndHashAlgorithm.sm2sig_sm3;
             default:
                 return SignatureAndHashAlgorithm.GetInstance(
                     GetHashAlgorithm(signatureScheme),
