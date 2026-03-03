@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Numerics;
 using System.Runtime.InteropServices;
 #endif
 
@@ -1734,10 +1734,10 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBit(int len, uint[] z, uint c)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBit(len, z.AsSpan(0, len), c);
+            return ShiftUpBit(len, z.AsSpan(), c);
 #else
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = z[i + 0];
                 uint next1 = z[i + 1];
@@ -1764,10 +1764,10 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBit(int len, uint[] z, int zOff, uint c)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBit(len, z.AsSpan(zOff, len), c);
+            return ShiftUpBit(len, z.AsSpan(zOff), c);
 #else
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = z[zOff + i + 0];
                 uint next1 = z[zOff + i + 1];
@@ -1794,8 +1794,8 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static uint ShiftUpBit(int len, Span<uint> z, uint c)
         {
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = z[i + 0];
                 uint next1 = z[i + 1];
@@ -1822,10 +1822,10 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBit(int len, uint[] x, uint c, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBit(len, x.AsSpan(0, len), c, z.AsSpan(0, len));
+            return ShiftUpBit(len, x.AsSpan(), c, z.AsSpan());
 #else
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = x[i + 0];
                 uint next1 = x[i + 1];
@@ -1852,10 +1852,10 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBit(int len, uint[] x, int xOff, uint c, uint[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBit(len, x.AsSpan(xOff, len), c, z.AsSpan(zOff, len));
+            return ShiftUpBit(len, x.AsSpan(xOff), c, z.AsSpan(zOff));
 #else
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = x[xOff + i + 0];
                 uint next1 = x[xOff + i + 1];
@@ -1882,8 +1882,8 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static uint ShiftUpBit(int len, ReadOnlySpan<uint> x, uint c, Span<uint> z)
         {
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = x[i + 0];
                 uint next1 = x[i + 1];
@@ -1910,10 +1910,10 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBit64(int len, ulong[] x, ulong c, ulong[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBit64(len, x.AsSpan(0, len), c, z.AsSpan(0, len));
+            return ShiftUpBit64(len, x.AsSpan(), c, z.AsSpan());
 #else
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = x[i + 0];
                 ulong next1 = x[i + 1];
@@ -1940,10 +1940,10 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBit64(int len, ulong[] x, int xOff, ulong c, ulong[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBit64(len, x.AsSpan(xOff, len), c, z.AsSpan(zOff, len));
+            return ShiftUpBit64(len, x.AsSpan(xOff), c, z.AsSpan(zOff));
 #else
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = x[xOff + i + 0];
                 ulong next1 = x[xOff + i + 1];
@@ -1970,8 +1970,8 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ulong ShiftUpBit64(int len, ReadOnlySpan<ulong> x, ulong c, Span<ulong> z)
         {
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = x[i + 0];
                 ulong next1 = x[i + 1];
@@ -1998,11 +1998,11 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, uint[] z, int bits, uint c)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBits(len, z.AsSpan(0, len), bits, c);
+            return ShiftUpBits(len, z.AsSpan(), bits, c);
 #else
             Debug.Assert(bits > 0 && bits < 32);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = z[i + 0];
                 uint next1 = z[i + 1];
@@ -2029,11 +2029,11 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, uint[] z, int zOff, int bits, uint c)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBits(len, z.AsSpan(zOff, len), bits, c);
+            return ShiftUpBits(len, z.AsSpan(zOff), bits, c);
 #else
             Debug.Assert(bits > 0 && bits < 32);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = z[zOff + i + 0];
                 uint next1 = z[zOff + i + 1];
@@ -2061,8 +2061,8 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, Span<uint> z, int bits, uint c)
         {
             Debug.Assert(bits > 0 && bits < 32);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = z[i + 0];
                 uint next1 = z[i + 1];
@@ -2089,11 +2089,11 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, uint[] x, int bits, uint c, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBits(len, x.AsSpan(0, len), bits, c, z.AsSpan(0, len));
+            return ShiftUpBits(len, x.AsSpan(), bits, c, z.AsSpan());
 #else
             Debug.Assert(bits > 0 && bits < 32);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = x[i + 0];
                 uint next1 = x[i + 1];
@@ -2120,11 +2120,11 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, uint[] x, int xOff, int bits, uint c, uint[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBits(len, x.AsSpan(xOff, len), bits, c, z.AsSpan(zOff, len));
+            return ShiftUpBits(len, x.AsSpan(xOff), bits, c, z.AsSpan(zOff));
 #else
             Debug.Assert(bits > 0 && bits < 32);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = x[xOff + i + 0];
                 uint next1 = x[xOff + i + 1];
@@ -2152,8 +2152,8 @@ namespace Org.BouncyCastle.Math.Raw
         public static uint ShiftUpBits(int len, ReadOnlySpan<uint> x, int bits, uint c, Span<uint> z)
         {
             Debug.Assert(bits > 0 && bits < 32);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 uint next0 = x[i + 0];
                 uint next1 = x[i + 1];
@@ -2180,11 +2180,11 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ulong[] z, int bits, ulong c)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBits64(len, z.AsSpan(0, len), bits, c);
+            return ShiftUpBits64(len, z.AsSpan(), bits, c);
 #else
             Debug.Assert(bits > 0 && bits < 64);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = z[i + 0];
                 ulong next1 = z[i + 1];
@@ -2211,11 +2211,11 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ulong[] z, int zOff, int bits, ulong c)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBits64(len, z.AsSpan(zOff, len), bits, c);
+            return ShiftUpBits64(len, z.AsSpan(zOff), bits, c);
 #else
             Debug.Assert(bits > 0 && bits < 64);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = z[zOff + i + 0];
                 ulong next1 = z[zOff + i + 1];
@@ -2243,8 +2243,8 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, Span<ulong> z, int bits, ulong c)
         {
             Debug.Assert(bits > 0 && bits < 64);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = z[i + 0];
                 ulong next1 = z[i + 1];
@@ -2271,11 +2271,11 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ulong[] x, int bits, ulong c, ulong[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBits64(len, x.AsSpan(0, len), bits, c, z.AsSpan(0, len));
+            return ShiftUpBits64(len, x.AsSpan(), bits, c, z.AsSpan());
 #else
             Debug.Assert(bits > 0 && bits < 64);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = x[i + 0];
                 ulong next1 = x[i + 1];
@@ -2302,11 +2302,11 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ulong[] x, int xOff, int bits, ulong c, ulong[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ShiftUpBits64(len, x.AsSpan(xOff, len), bits, c, z.AsSpan(zOff, len));
+            return ShiftUpBits64(len, x.AsSpan(xOff), bits, c, z.AsSpan(zOff));
 #else
             Debug.Assert(bits > 0 && bits < 64);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = x[xOff + i + 0];
                 ulong next1 = x[xOff + i + 1];
@@ -2334,8 +2334,8 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong ShiftUpBits64(int len, ReadOnlySpan<ulong> x, int bits, ulong c, Span<ulong> z)
         {
             Debug.Assert(bits > 0 && bits < 64);
-            int i = 0, limit4 = len - 4;
-            while (i <= limit4)
+            int i = 0;
+            while (i <= len - 4)
             {
                 ulong next0 = x[i + 0];
                 ulong next1 = x[i + 1];
@@ -2869,7 +2869,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor(int len, uint[] x, uint y, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Xor(len, x.AsSpan(0, len), y, z.AsSpan(0, len));
+            Xor(len, x.AsSpan(), y, z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -2881,7 +2881,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor(int len, uint[] x, int xOff, uint y, uint[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Xor(len, x.AsSpan(xOff, len), y, z.AsSpan(zOff, len));
+            Xor(len, x.AsSpan(xOff), y, z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -2894,29 +2894,15 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor(int len, ReadOnlySpan<uint> x, uint y, Span<uint> z)
         {
             int i = 0;
-            if (Vector.IsHardwareAccelerated)
+            while (i <= len - 16)
             {
-                var vy = new Vector<uint>(y);
-
-                int limit = len - Vector<uint>.Count;
-                while (i <= limit)
-                {
-                    var vx = new Vector<uint>(x[i..]);
-                    (vx ^ vy).CopyTo(z[i..]);
-                    i += Vector<uint>.Count;
-                }
+                Nat512.Xor(x[i..], y, z[i..]);
+                i += 16;
             }
-            else
+            if (i <= len - 8)
             {
-                int limit = len - 4;
-                while (i <= limit)
-                {
-                    z[i + 0] = x[i + 0] ^ y;
-                    z[i + 1] = x[i + 1] ^ y;
-                    z[i + 2] = x[i + 2] ^ y;
-                    z[i + 3] = x[i + 3] ^ y;
-                    i += 4;
-                }
+                Nat256.Xor(x[i..], y, z[i..]);
+                i += 8;
             }
             while (i < len)
             {
@@ -2929,7 +2915,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor(int len, uint[] x, uint[] y, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Xor(len, x.AsSpan(0, len), y.AsSpan(0, len), z.AsSpan(0, len));
+            Xor(len, x.AsSpan(), y.AsSpan(), z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -2941,7 +2927,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Xor(len, x.AsSpan(xOff, len), y.AsSpan(yOff, len), z.AsSpan(zOff, len));
+            Xor(len, x.AsSpan(xOff), y.AsSpan(yOff), z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -2953,11 +2939,16 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Xor(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
-            int i = 0, limit16 = len - 16;
-            while (i <= limit16)
+            int i = 0;
+            while (i <= len - 16)
             {
                 Nat512.Xor(x[i..], y[i..], z[i..]);
                 i += 16;
+            }
+            if (i <= len - 8)
+            {
+                Nat256.Xor(x[i..], y[i..], z[i..]);
+                i += 8;
             }
             while (i < len)
             {
@@ -2970,7 +2961,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor64(int len, ulong[] x, ulong y, ulong[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Xor64(len, x.AsSpan(0, len), y, z.AsSpan(0, len));
+            Xor64(len, x.AsSpan(), y, z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -2982,7 +2973,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor64(int len, ulong[] x, int xOff, ulong y, ulong[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Xor64(len, x.AsSpan(xOff, len), y, z.AsSpan(zOff, len));
+            Xor64(len, x.AsSpan(xOff), y, z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -2995,29 +2986,15 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor64(int len, ReadOnlySpan<ulong> x, ulong y, Span<ulong> z)
         {
             int i = 0;
-            if (Vector.IsHardwareAccelerated)
+            while (i <= len - 8)
             {
-                var vy = new Vector<ulong>(y);
-
-                int limit = len - Vector<ulong>.Count;
-                while (i <= limit)
-                {
-                    var vx = new Vector<ulong>(x[i..]);
-                    (vx ^ vy).CopyTo(z[i..]);
-                    i += Vector<ulong>.Count;
-                }
+                Nat512.Xor64(x[i..], y, z[i..]);
+                i += 8;
             }
-            else
+            if (i <= len - 4)
             {
-                int limit = len - 4;
-                while (i <= limit)
-                {
-                    z[i + 0] = x[i + 0] ^ y;
-                    z[i + 1] = x[i + 1] ^ y;
-                    z[i + 2] = x[i + 2] ^ y;
-                    z[i + 3] = x[i + 3] ^ y;
-                    i += 4;
-                }
+                Nat256.Xor64(x[i..], y, z[i..]);
+                i += 4;
             }
             while (i < len)
             {
@@ -3030,7 +3007,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor64(int len, ulong[] x, ulong[] y, ulong[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Xor64(len, x.AsSpan(0, len), y.AsSpan(0, len), z.AsSpan(0, len));
+            Xor64(len, x.AsSpan(), y.AsSpan(), z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3042,7 +3019,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Xor64(int len, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Xor64(len, x.AsSpan(xOff, len), y.AsSpan(yOff, len), z.AsSpan(zOff, len));
+            Xor64(len, x.AsSpan(xOff), y.AsSpan(yOff), z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3054,11 +3031,16 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Xor64(int len, ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> z)
         {
-            int i = 0, limit8 = len - 8;
-            while (i <= limit8)
+            int i = 0;
+            while (i <= len - 8)
             {
                 Nat512.Xor64(x[i..], y[i..], z[i..]);
                 i += 8;
+            }
+            if (i <= len - 4)
+            {
+                Nat256.Xor64(x[i..], y[i..], z[i..]);
+                i += 4;
             }
             while (i < len)
             {
@@ -3071,7 +3053,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void XorBothTo(int len, uint[] x, uint[] y, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            XorBothTo(len, x.AsSpan(0, len), y.AsSpan(0, len), z.AsSpan(0, len));
+            XorBothTo(len, x.AsSpan(), y.AsSpan(), z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3083,7 +3065,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void XorBothTo(int len, uint[] x, int xOff, uint[] y, int yOff, uint[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            XorBothTo(len, x.AsSpan(xOff, len), y.AsSpan(yOff, len), z.AsSpan(zOff, len));
+            XorBothTo(len, x.AsSpan(xOff), y.AsSpan(yOff), z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3095,11 +3077,16 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void XorBothTo(int len, ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
-            int i = 0, limit16 = len - 16;
-            while (i <= limit16)
+            int i = 0;
+            while (i <= len - 16)
             {
                 Nat512.XorBothTo(x[i..], y[i..], z[i..]);
                 i += 16;
+            }
+            if (i <= len - 8)
+            {
+                Nat256.XorBothTo(x[i..], y[i..], z[i..]);
+                i += 8;
             }
             while (i < len)
             {
@@ -3112,7 +3099,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void XorBothTo64(int len, ulong[] x, ulong[] y, ulong[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            XorBothTo64(len, x.AsSpan(0, len), y.AsSpan(0, len), z.AsSpan(0, len));
+            XorBothTo64(len, x.AsSpan(), y.AsSpan(), z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3124,7 +3111,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void XorBothTo64(int len, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            XorBothTo64(len, x.AsSpan(xOff, len), y.AsSpan(yOff, len), z.AsSpan(zOff, len));
+            XorBothTo64(len, x.AsSpan(xOff), y.AsSpan(yOff), z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3136,11 +3123,16 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void XorBothTo64(int len, ReadOnlySpan<ulong> x, ReadOnlySpan<ulong> y, Span<ulong> z)
         {
-            int i = 0, limit8 = len - 8;
-            while (i <= limit8)
+            int i = 0;
+            while (i <= len - 8)
             {
                 Nat512.XorBothTo64(x[i..], y[i..], z[i..]);
                 i += 8;
+            }
+            if (i <= len - 4)
+            {
+                Nat256.XorBothTo64(x[i..], y[i..], z[i..]);
+                i += 4;
             }
             while (i < len)
             {
@@ -3153,7 +3145,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void XorTo(int len, uint[] x, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            XorTo(len, x.AsSpan(0, len), z.AsSpan(0, len));
+            XorTo(len, x.AsSpan(), z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3165,7 +3157,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void XorTo(int len, uint[] x, int xOff, uint[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            XorTo(len, x.AsSpan(xOff, len), z.AsSpan(zOff, len));
+            XorTo(len, x.AsSpan(xOff), z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3177,11 +3169,16 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void XorTo(int len, ReadOnlySpan<uint> x, Span<uint> z)
         {
-            int i = 0, limit16 = len - 16;
-            while (i <= limit16)
+            int i = 0;
+            while (i <= len - 16)
             {
                 Nat512.XorTo(x[i..], z[i..]);
                 i += 16;
+            }
+            if (i <= len - 8)
+            {
+                Nat256.XorTo(x[i..], z[i..]);
+                i += 8;
             }
             while (i < len)
             {
@@ -3194,7 +3191,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void XorTo64(int len, ulong[] x, ulong[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            XorTo64(len, x.AsSpan(0, len), z.AsSpan(0, len));
+            XorTo64(len, x.AsSpan(), z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3206,7 +3203,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void XorTo64(int len, ulong[] x, int xOff, ulong[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            XorTo64(len, x.AsSpan(xOff, len), z.AsSpan(zOff, len));
+            XorTo64(len, x.AsSpan(xOff), z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3218,11 +3215,16 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void XorTo64(int len, ReadOnlySpan<ulong> x, Span<ulong> z)
         {
-            int i = 0, limit8 = len - 8;
-            while (i <= limit8)
+            int i = 0;
+            while (i <= len - 8)
             {
                 Nat512.XorTo64(x[i..], z[i..]);
                 i += 8;
+            }
+            if (i <= len - 4)
+            {
+                Nat256.XorTo64(x[i..], z[i..]);
+                i += 4;
             }
             while (i < len)
             {
@@ -3235,7 +3237,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Zero(int len, uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            z.AsSpan(0, len).Fill(0U);
+            Zero(len, z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3247,7 +3249,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Zero(int len, uint[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            z.AsSpan(zOff, len).Fill(0U);
+            Zero(len, z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3259,14 +3261,25 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Zero(int len, Span<uint> z)
         {
-            z[..len].Fill(0U);
+            int i = 0;
+            while (i <= len - 16)
+            {
+                Nat512.Zero(z[i..]);
+                i += 16;
+            }
+            if (i <= len - 8)
+            {
+                Nat256.Zero(z[i..]);
+                i += 8;
+            }
+            z[i..len].Fill(0U);
         }
 #endif
 
         public static void Zero64(int len, ulong[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            z.AsSpan(0, len).Fill(0UL);
+            Zero64(len, z.AsSpan());
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3278,7 +3291,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static void Zero64(int len, ulong[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            z.AsSpan(zOff, len).Fill(0UL);
+            Zero64(len, z.AsSpan(zOff));
 #else
             for (int i = 0; i < len; ++i)
             {
@@ -3290,7 +3303,18 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void Zero64(int len, Span<ulong> z)
         {
-            z[..len].Fill(0UL);
+            int i = 0;
+            while (i <= len - 8)
+            {
+                Nat512.Zero64(z[i..]);
+                i += 8;
+            }
+            if (i <= len - 4)
+            {
+                Nat256.Zero64(z[i..]);
+                i += 4;
+            }
+            z[i..len].Fill(0UL);
         }
 #endif
     }

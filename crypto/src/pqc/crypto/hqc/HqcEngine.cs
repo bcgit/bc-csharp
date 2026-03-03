@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             Utils.FromUInt64ArrayToByteArray(u, 0, u.Length, u64);
             Utils.FromUInt64ArrayToByteArray(v, 0, v.Length, v64);
             m_gf2x.Clear(u64);
-            Arrays.Fill(v64, 0UL);
+            Nat.Zero64(v64.Length, v64);
             Arrays.Clear(m);
             Arrays.Clear(hashEkKem);
         }
