@@ -40,13 +40,13 @@ namespace Org.BouncyCastle.Security
             Algorithms["PKCS5SCHEME2"] = "Pkcs5scheme2";
             Algorithms["PBKDF2"] = "Pkcs5scheme2";
             Algorithms[PkcsObjectIdentifiers.IdPbeS2.Id] = "Pkcs5scheme2";
-//			algorithms[PkcsObjectIdentifiers.IdPbkdf2.Id] = "Pkcs5scheme2";
+            //algorithms[PkcsObjectIdentifiers.IdPbkdf2.Id] = "Pkcs5scheme2";
 
-            // FIXME Add support for these? (see Pkcs8Generator)
-//			algorithms[PkcsObjectIdentifiers.DesEde3Cbc.Id] = "Pkcs5scheme2";
-//			algorithms[NistObjectIdentifiers.IdAes128Cbc.Id] = "Pkcs5scheme2";
-//			algorithms[NistObjectIdentifiers.IdAes192Cbc.Id] = "Pkcs5scheme2";
-//			algorithms[NistObjectIdentifiers.IdAes256Cbc.Id] = "Pkcs5scheme2";
+            // TODO[Pkcs8Generator]
+            //algorithms[PkcsObjectIdentifiers.DesEde3Cbc.Id] = "Pkcs5scheme2";
+            //algorithms[NistObjectIdentifiers.IdAes128Cbc.Id] = "Pkcs5scheme2";
+            //algorithms[NistObjectIdentifiers.IdAes192Cbc.Id] = "Pkcs5scheme2";
+            //algorithms[NistObjectIdentifiers.IdAes256Cbc.Id] = "Pkcs5scheme2";
 
             Algorithms["PBEWITHMD2ANDDES-CBC"] = "PBEwithMD2andDES-CBC";
             Algorithms[PkcsObjectIdentifiers.PbeWithMD2AndDesCbc.Id] = "PBEwithMD2andDES-CBC";

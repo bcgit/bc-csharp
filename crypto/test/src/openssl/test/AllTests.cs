@@ -1,91 +1,81 @@
-using System;
 using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.OpenSsl.Tests
 {
-	[TestFixture]
-	public class AllTests
-	{
-		private class Password
-			: IPasswordFinder
-		{
-			private readonly char[] password;
+    [TestFixture]
+    public class AllTests
+    {
+        private readonly SecureRandom Random = new SecureRandom();
 
-			public Password(
-				char[] word)
-			{
-				this.password = (char[]) word.Clone();
-			}
+        [Test]
+        public void Pkcs8Encrypted()
+        {
+            var kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            kpGen.Init(new KeyGenerationParameters(Random, 1024));
 
-			public char[] GetPassword()
-			{
-				return (char[]) password.Clone();
-			}
-		}
+            var kp = kpGen.GenerateKeyPair();
+            var privateKey = kp.Private;
 
-		[Test]
-		public void TestPkcs8Encrypted()
-		{
-			IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
-			kpGen.Init(new KeyGenerationParameters(new SecureRandom(), 1024));
+            // TODO[Pkcs8Generator]
+            //EncryptedTest(privateKey, Pkcs8Generator.Aes128Cbc);
+            //EncryptedTest(privateKey, Pkcs8Generator.Aes192Cbc);
+            //EncryptedTest(privateKey, Pkcs8Generator.Aes256Cbc);
+            //EncryptedTest(privateKey, Pkcs8Generator.Des3Cbc);
+            EncryptedTest(privateKey, Pkcs8Generator.PbeWithShaAnd3KeyTripleDesCbc);
+        }
 
-			AsymmetricKeyParameter privKey = kpGen.GenerateKeyPair().Private;
+        [Test]
+        public void Pkcs8Plain()
+        {
+            var kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            kpGen.Init(new KeyGenerationParameters(Random, 1024));
 
-			// FIXME see PbeUtilities and Pkcs8Generator
-//			EncryptedTest(privKey, Pkcs8Generator.Aes256Cbc);
-//			EncryptedTest(privKey, Pkcs8Generator.Des3Cbc);
-			EncryptedTest(privKey, Pkcs8Generator.PbeSha1_3DES);
-		}
+            var kp = kpGen.GenerateKeyPair();
+            var privateKey = kp.Private;
 
-		private void EncryptedTest(AsymmetricKeyParameter privKey, string algorithm)
-		{
-			Pkcs8Generator pkcs8 = new Pkcs8Generator(privKey, algorithm);
-			pkcs8.Password = "hello".ToCharArray();
+            Pkcs8Generator pkcs8 = new Pkcs8Generator(privateKey);
 
             StringWriter sw = new StringWriter();
-			using (var pWrt = new PemWriter(sw))
-			{
+            using (var pWrt = new PemWriter(sw))
+            {
                 pWrt.WriteObject(pkcs8);
             }
 
-			string result = sw.ToString();
+            string result = sw.ToString();
 
-			using (var pRd = new PemReader(new StringReader(result), new Password("hello".ToCharArray())))
-			{
-                AsymmetricKeyParameter rdKey = (AsymmetricKeyParameter)pRd.ReadObject();
+            using (var pr = new PemReader(new StringReader(result), new TestPassword("hello")))
+            {
+                AsymmetricKeyParameter readKey = (AsymmetricKeyParameter)pr.ReadObject();
 
-                Assert.AreEqual(privKey, rdKey);
+                Assert.AreEqual(privateKey, readKey);
             }
         }
 
-		[Test]
-		public void TestPkcs8Plain()
-		{
-			IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
-			kpGen.Init(new KeyGenerationParameters(new SecureRandom(), 1024));
-
-			AsymmetricKeyParameter privKey = kpGen.GenerateKeyPair().Private;
-            Pkcs8Generator pkcs8 = new Pkcs8Generator(privKey);
+        private void EncryptedTest(AsymmetricKeyParameter privateKey, DerObjectIdentifier algorithm)
+        {
+            Pkcs8Generator pkcs8 = new Pkcs8Generator(privateKey, algorithm);
+            pkcs8.Password = "hello".ToCharArray();
 
             StringWriter sw = new StringWriter();
-			using (var pWrt = new PemWriter(sw))
-			{
-                pWrt.WriteObject(pkcs8);
+            using (var pw = new PemWriter(sw))
+            {
+                pw.WriteObject(pkcs8);
             }
 
-			string result = sw.ToString();
+            string result = sw.ToString();
 
-			using (var pRd = new PemReader(new StringReader(result), new Password("hello".ToCharArray())))
-			{
-                AsymmetricKeyParameter rdKey = (AsymmetricKeyParameter)pRd.ReadObject();
+            using (var pRd = new PemReader(new StringReader(result), new TestPassword("hello")))
+            {
+                AsymmetricKeyParameter readKey = (AsymmetricKeyParameter)pRd.ReadObject();
 
-                Assert.AreEqual(privKey, rdKey);
+                Assert.AreEqual(privateKey, readKey);
             }
         }
-	}
+    }
 }

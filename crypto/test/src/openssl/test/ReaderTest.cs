@@ -3,7 +3,6 @@ using System.IO;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -21,27 +20,9 @@ namespace Org.BouncyCastle.OpenSsl.Tests
     public class ReaderTest
         : SimpleTest
     {
-        private class Password
-            : IPasswordFinder
-        {
-            private readonly char[] password;
+        private readonly SecureRandom Random = new SecureRandom();
 
-            public Password(
-                char[] word)
-            {
-                this.password = (char[]) word.Clone();
-            }
-
-            public char[] GetPassword()
-            {
-                return (char[]) password.Clone();
-            }
-        }
-
-        public override string Name
-        {
-            get { return "PEMReaderTest"; }
-        }
+        public override string Name => "ReaderTest";
 
         [Test]
         public void TestGost3410_2012()
@@ -60,9 +41,17 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             }
         }
 
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
         public override void PerformTest()
         {
-            IPasswordFinder pGet = new Password("secret".ToCharArray());
+            IPasswordFinder pGet = new TestPassword("secret");
             using (var pemRd = OpenPemResource("test.pem", pGet))
             {
                 object o;
@@ -104,7 +93,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
                 pemRd = OpenPemResource("eckey.pem", null);
     
                 // TODO Resolve return type issue with EC keys and fix PemReader to return parameters
-//				ECNamedCurveParameterSpec spec = (ECNamedCurveParameterSpec)pemRd.ReadObject();
+                //ECNamedCurveParameterSpec spec = (ECNamedCurveParameterSpec)pemRd.ReadObject();
     
                 pair = (AsymmetricCipherKeyPair)pemRd.ReadObject();
                 ISigner sgr = SignerUtilities.GetSigner("ECDSA");
@@ -127,47 +116,39 @@ namespace Org.BouncyCastle.OpenSsl.Tests
                 }
 
                 // TODO Resolve this issue with the algorithm name, study Java version
-//				if (!((ECPublicKeyParameters) pair.Public).AlgorithmName.Equals("ECDSA"))
-//				{
-//					Fail("wrong algorithm name on public got: " + ((ECPublicKeyParameters) pair.Public).AlgorithmName);
-//				}
-//	
-//				if (!((ECPrivateKeyParameters) pair.Private).AlgorithmName.Equals("ECDSA"))
-//				{
-//					Fail("wrong algorithm name on private got: " + ((ECPrivateKeyParameters) pair.Private).AlgorithmName);
-//				}
+                //if (!((ECPublicKeyParameters) pair.Public).AlgorithmName.Equals("ECDSA"))
+                //{
+                //    Fail("wrong algorithm name on public got: " + ((ECPublicKeyParameters) pair.Public).AlgorithmName);
+                //}
+                
+                //if (!((ECPrivateKeyParameters) pair.Private).AlgorithmName.Equals("ECDSA"))
+                //{
+                //    Fail("wrong algorithm name on private got: " + ((ECPrivateKeyParameters) pair.Private).AlgorithmName);
+                //}
             }
             */
 
             //
             // writer/parser test
             //
-            IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
-            kpGen.Init(
-                new RsaKeyGenerationParameters(
-                BigInteger.ValueOf(0x10001),
-                new SecureRandom(),
-                768,
-                25));
+            var kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            kpGen.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), Random, 768, 25));
 
-            AsymmetricCipherKeyPair pair = kpGen.GenerateKeyPair();
+            var kp = kpGen.GenerateKeyPair();
 
-            keyPairTest("RSA", pair);
+            ImplKeyPairTest("RSA", kp);
 
-//			kpGen = KeyPairGenerator.getInstance("DSA");
-//			kpGen.initialize(512, new SecureRandom());
+            //kpGen = KeyPairGenerator.getInstance("DSA");
+            //kpGen.initialize(512, Random);
             DsaParametersGenerator pGen = new DsaParametersGenerator();
-            pGen.Init(512, 80, new SecureRandom());
+            pGen.Init(512, 80, Random);
 
             kpGen = GeneratorUtilities.GetKeyPairGenerator("DSA");
-            kpGen.Init(
-                new DsaKeyGenerationParameters(
-                    new SecureRandom(),
-                    pGen.GenerateParameters()));
+            kpGen.Init(new DsaKeyGenerationParameters(Random, pGen.GenerateParameters()));
 
-            pair = kpGen.GenerateKeyPair();
+            kp = kpGen.GenerateKeyPair();
 
-            keyPairTest("DSA", pair);
+            ImplKeyPairTest("DSA", kp);
 
             //
             // PKCS7
@@ -182,51 +163,51 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             {
                 d = (ContentInfo)pemRd.ReadObject();
 
-                if (!d.ContentType.Equals(CmsObjectIdentifiers.EnvelopedData))
+                if (!CmsObjectIdentifiers.EnvelopedData.Equals(d.ContentType))
                 {
-                    Fail("failed envelopedData recode check");
+                    Fail("failed EnvelopedData recode check");
                 }
             }
 
             // OpenSSL test cases (as embedded resources)
-            doOpenSslDsaTest("unencrypted");
-            doOpenSslRsaTest("unencrypted");
+            ImplOpenSslDsaTest("unencrypted");
+            ImplOpenSslRsaTest("unencrypted");
 
-            doOpenSslTests("aes128");
-            doOpenSslTests("aes192");
-            doOpenSslTests("aes256");
-            doOpenSslTests("blowfish");
-            doOpenSslTests("des1");
-            doOpenSslTests("des2");
-            doOpenSslTests("des3");
-            doOpenSslTests("rc2_128");
+            ImplOpenSslTests("aes128");
+            ImplOpenSslTests("aes192");
+            ImplOpenSslTests("aes256");
+            ImplOpenSslTests("blowfish");
+            ImplOpenSslTests("des1");
+            ImplOpenSslTests("des2");
+            ImplOpenSslTests("des3");
+            ImplOpenSslTests("rc2_128");
 
-            doOpenSslDsaTest("rc2_40_cbc");
-            doOpenSslRsaTest("rc2_40_cbc");
-            doOpenSslDsaTest("rc2_64_cbc");
-            doOpenSslRsaTest("rc2_64_cbc");
+            ImplOpenSslDsaTest("rc2_40_cbc");
+            ImplOpenSslRsaTest("rc2_40_cbc");
+            ImplOpenSslDsaTest("rc2_64_cbc");
+            ImplOpenSslRsaTest("rc2_64_cbc");
 
-            doDudPasswordTest("7fd98", 0, "corrupted stream - out of bounds length found: 599005160 >= 19");
-            doDudPasswordTest("ef677", 1, "corrupted stream - out of bounds length found: 2087569732 >= 66");
-            doDudPasswordTest("800ce", 2, "unknown tag 26 encountered");
-            doDudPasswordTest("b6cd8", 3, "DEF length 81 object truncated by 56");
-            doDudPasswordTest("28ce09", 4, "corrupted stream - high tag number < 31 found");
-            doDudPasswordTest("2ac3b9", 5, "long form definite-length more than 31 bits");
-            doDudPasswordTest("2cba96", 6, "corrupted stream - out of bounds length found: 100 >= 67");
-            doDudPasswordTest("2e3354", 7, "corrupted stream - out of bounds length found: 42 >= 35");
-            doDudPasswordTest("2f4142", 8, "long form definite-length more than 31 bits");
-            doDudPasswordTest("2fe9bb", 9, "long form definite-length more than 31 bits");
-            doDudPasswordTest("3ee7a8", 10, "long form definite-length more than 31 bits");
-            doDudPasswordTest("41af75", 11, "unknown tag 16 encountered");
-            doDudPasswordTest("1704a5", 12, "corrupted stream detected");
-            doDudPasswordTest("1c5822", 13, "extra data found after object");
-            doDudPasswordTest("5a3d16", 14, "corrupted stream detected");
-            doDudPasswordTest("8d0c97", 15, "corrupted stream detected");
-            doDudPasswordTest("bc0daf", 16, "corrupted stream detected");
-            doDudPasswordTest("aaf9c4d", 17, "corrupted stream - out of bounds length found: 1580418590 >= 447");
+            ImplDudPasswordTest("7fd98", 0, "corrupted stream - out of bounds length found: 599005160 >= 19");
+            ImplDudPasswordTest("ef677", 1, "corrupted stream - out of bounds length found: 2087569732 >= 66");
+            ImplDudPasswordTest("800ce", 2, "unknown tag 26 encountered");
+            ImplDudPasswordTest("b6cd8", 3, "DEF length 81 object truncated by 56");
+            ImplDudPasswordTest("28ce09", 4, "corrupted stream - high tag number < 31 found");
+            ImplDudPasswordTest("2ac3b9", 5, "long form definite-length more than 31 bits");
+            ImplDudPasswordTest("2cba96", 6, "corrupted stream - out of bounds length found: 100 >= 67");
+            ImplDudPasswordTest("2e3354", 7, "corrupted stream - out of bounds length found: 42 >= 35");
+            ImplDudPasswordTest("2f4142", 8, "long form definite-length more than 31 bits");
+            ImplDudPasswordTest("2fe9bb", 9, "long form definite-length more than 31 bits");
+            ImplDudPasswordTest("3ee7a8", 10, "long form definite-length more than 31 bits");
+            ImplDudPasswordTest("41af75", 11, "unknown tag 16 encountered");
+            ImplDudPasswordTest("1704a5", 12, "corrupted stream detected");
+            ImplDudPasswordTest("1c5822", 13, "extra data found after object");
+            ImplDudPasswordTest("5a3d16", 14, "corrupted stream detected");
+            ImplDudPasswordTest("8d0c97", 15, "corrupted stream detected");
+            ImplDudPasswordTest("bc0daf", 16, "corrupted stream detected");
+            ImplDudPasswordTest("aaf9c4d", 17, "corrupted stream - out of bounds length found: 1580418590 >= 447");
 
             // encrypted private key test
-            pGet = new Password("password".ToCharArray());
+            pGet = new TestPassword("password");
             using (var pemRd = OpenPemResource("enckey.pem", pGet))
             {
                 var privKey = (RsaPrivateCrtKeyParameters)pemRd.ReadObject();
@@ -238,7 +219,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             }
 
             // general PKCS8 test
-            pGet = new Password("password".ToCharArray());
+            pGet = new TestPassword("password");
             using (var pemRd = OpenPemResource("pkcs8test.pem", pGet))
             {
                 RsaPrivateCrtKeyParameters privKey;
@@ -252,9 +233,7 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             }
         }
 
-        private void keyPairTest(
-            string					name,
-            AsymmetricCipherKeyPair	pair) 
+        private void ImplKeyPairTest(string name, AsymmetricCipherKeyPair pair)
         {
             MemoryStream bOut = new MemoryStream();
             using (var pWrt = new PemWriter(new StreamWriter(bOut)))
@@ -291,52 +270,45 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             }
         }
 
-        private void doOpenSslTests(
-            string baseName)
+        private void ImplOpenSslTests(string baseName)
         {
-            doOpenSslDsaModesTest(baseName);
-            doOpenSslRsaModesTest(baseName);
+            ImplOpenSslDsaModesTest(baseName);
+            ImplOpenSslRsaModesTest(baseName);
         }
 
-        private void doOpenSslDsaModesTest(
-            string baseName)
+        private void ImplOpenSslDsaModesTest(string baseName)
         {
-            doOpenSslDsaTest(baseName + "_cbc");
-            doOpenSslDsaTest(baseName + "_cfb");
-            doOpenSslDsaTest(baseName + "_ecb");
-            doOpenSslDsaTest(baseName + "_ofb");
+            ImplOpenSslDsaTest(baseName + "_cbc");
+            ImplOpenSslDsaTest(baseName + "_cfb");
+            ImplOpenSslDsaTest(baseName + "_ecb");
+            ImplOpenSslDsaTest(baseName + "_ofb");
         }
 
-        private void doOpenSslRsaModesTest(
-            string baseName)
+        private void ImplOpenSslRsaModesTest(string baseName)
         {
-            doOpenSslRsaTest(baseName + "_cbc");
-            doOpenSslRsaTest(baseName + "_cfb");
-            doOpenSslRsaTest(baseName + "_ecb");
-            doOpenSslRsaTest(baseName + "_ofb");
+            ImplOpenSslRsaTest(baseName + "_cbc");
+            ImplOpenSslRsaTest(baseName + "_cfb");
+            ImplOpenSslRsaTest(baseName + "_ecb");
+            ImplOpenSslRsaTest(baseName + "_ofb");
         }
 
-        private void doOpenSslDsaTest(
-            string name)
+        private void ImplOpenSslDsaTest(string name)
         {
             string fileName = "dsa.openssl_dsa_" + name + ".pem";
 
-            doOpenSslTestFile(fileName, typeof(DsaPrivateKeyParameters));
+            ImplOpenSslTestFile(fileName, typeof(DsaPrivateKeyParameters));
         }
 
-        private void doOpenSslRsaTest(
-            string name)
+        private void ImplOpenSslRsaTest(string name)
         {
             string fileName = "rsa.openssl_rsa_" + name + ".pem";
 
-            doOpenSslTestFile(fileName, typeof(RsaPrivateCrtKeyParameters));
+            ImplOpenSslTestFile(fileName, typeof(RsaPrivateCrtKeyParameters));
         }
 
-        private void doOpenSslTestFile(
-            string	fileName,
-            Type	expectedPrivKeyType)
+        private void ImplOpenSslTestFile(string fileName, Type expectedPrivKeyType)
         {
-            using (var pr = OpenPemResource(fileName, new Password("changeit".ToCharArray())))
+            using (var pr = OpenPemResource(fileName, new TestPassword("changeit")))
             {
                 AsymmetricCipherKeyPair kp = pr.ReadObject() as AsymmetricCipherKeyPair;
 
@@ -352,13 +324,13 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             }
         }
 
-        private void doDudPasswordTest(string password, int index, string message)
+        private void ImplDudPasswordTest(string password, int index, string message)
         {
             // illegal state exception check - in this case the wrong password will
             // cause an underlying class cast exception.
             try
             {
-                IPasswordFinder pGet = new Password(password.ToCharArray());
+                IPasswordFinder pGet = new TestPassword(password);
                 using (var pemRd = OpenPemResource("test.pem", pGet))
                 {
                     object o;
@@ -379,21 +351,11 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             }
         }
 
-        private static PemReader OpenPemResource(
-            string			fileName,
-            IPasswordFinder	pGet)
+        private static PemReader OpenPemResource(string fileName, IPasswordFinder pGet)
         {
             Stream data = GetTestDataAsStream("openssl." + fileName);
             TextReader tr = new StreamReader(data);
             return new PemReader(tr, pGet);
-        }
-
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
         }
     }
 }
