@@ -613,7 +613,7 @@ namespace Org.BouncyCastle.Utilities
 #else
             bool[] result = new bool[data.Length];
 #endif
-            Buffer.BlockCopy(data, 0, result, 0, data.Length);
+            Buffer.BlockCopy(data, 0, result, 0, data.Length * sizeof(bool));
             return result;
         }
 
