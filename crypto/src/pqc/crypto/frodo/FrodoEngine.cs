@@ -1,7 +1,9 @@
 
 using System;
+
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -90,7 +92,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             this.gen = mGen;
         }
 
-        private short[] SampleMatrix(short[] r, int offset, int n1, int n2)
+        private short[] SampleMatrix(ushort[] r, int offset, int n1, int n2)
         {
             short[] E = new short[n1 * n2];
             Noise.Sample(T_chi, r, offset, E);
@@ -100,10 +102,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private short[] MatrixTranspose(short[] X, int n1, int n2)
         {
             short[] res = new short[n1 * n2];
-
             for (int i = 0; i < n2; i++)
-            for (int j = 0; j < n1; j++)
-                res[i * n1 + j] = X[j * n2 + i];
+            {
+                for (int j = 0; j < n1; j++)
+                {
+                    res[i * n1 + j] = X[j * n2 + i];
+                }
+            }
             return res;
         }
 
@@ -123,7 +128,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                     res[i * Ycol + j] = (short)(accum & qMask);
                 }
             }
-
             return res;
         }
 
@@ -153,29 +157,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 
             while (i < output.Length && (j < n || ((j == n) && (bits > 0))))
             {
-
                 byte b = 0; // bits in output[i] already filled in
                 while (b < 8)
                 {
                     int nbits = System.Math.Min(8 - b, bits);
-                    short mask = (short) ((1 << nbits) - 1);
-                    byte t = (byte) ((w >> (bits - nbits)) & mask); // the bits to copy from w to out
-                    output[i] = (byte) (output[i] + (t << (8 - b - nbits)));
-                    b += (byte) nbits;
-                    bits -= (byte) nbits;
+                    short mask = (short)((1 << nbits) - 1);
+                    byte t = (byte)((w >> (bits - nbits)) & mask); // the bits to copy from w to out
+                    output[i] = (byte)(output[i] + (t << (8 - b - nbits)));
+                    b += (byte)nbits;
+                    bits -= (byte)nbits;
 
                     if (bits == 0)
                     {
-                        if (j < n)
-                        {
-                            w = C[j];
-                            bits = (byte) D;
-                            j++;
-                        }
-                        else
-                        {
+                        if (j >= n)
                             break; // the input vector is exhausted
-                        }
+
+                        w = C[j];
+                        bits = (byte)D;
+                        j++;
                     }
                 }
 
@@ -185,7 +184,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                     i++;
                 }
             }
-
             return output;
         }
 
@@ -200,24 +198,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             byte[] z = Arrays.CopyOfRange(s_seedSE_z, len_s_bytes + len_seedSE_bytes,
                 len_s_bytes + len_seedSE_bytes + len_z_bytes);
 
-            // 2. Generate pseudorandom seed seedA = SHAKE(z, len_seedA) (length in bits)
+            // 2. Generate pseudo-random seed seedA = SHAKE(z, len_seedA) (length in bits)
             byte[] seedA = new byte[len_seedA_bytes];
             digest.BlockUpdate(z, 0, z.Length);
-            ((IXof) digest).OutputFinal(seedA, 0, seedA.Length);
+            ((IXof)digest).OutputFinal(seedA, 0, seedA.Length);
 
             // 3. A = Frodo.Gen(seedA)
-            short[] A = gen.GenMatrix(seedA);
+            short[] A = gen.GenMatrix(seedA, 0, seedA.Length);
 
             // 4. r = SHAKE(0x5F || seedSE, 2*n*nbar*len_chi) (length in bits), parsed as 2*n*nbar len_chi-bit integers in little-endian byte order
             byte[] rbytes = new byte[2 * n * nbar * len_chi_bytes];
-
             digest.Update((byte) 0x5f);
             digest.BlockUpdate(seedSE, 0, seedSE.Length);
-            ((IXof) digest).OutputFinal(rbytes, 0, rbytes.Length);
+            ((IXof)digest).OutputFinal(rbytes, 0, rbytes.Length);
 
-            short[] r = new short[2 * n * nbar];
-            for (int i = 0; i < r.Length; i++)
-                r[i] = (short) Pack.LE_To_UInt16(rbytes, i * 2);
+            ushort[] r = Pack.LE_To_UInt16(rbytes, 0, rbytes.Length / 2);
 
             // 5. S^T = Frodo.SampleMatrix(r[0 .. n*nbar-1], nbar, n)
             short[] S_T = SampleMatrix(r, 0, nbar, n);
@@ -234,25 +229,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 
             // 9. pkh = SHAKE(seedA || b, len_pkh) (length in bits)
             // 10. pk = seedA || b
-            Array.Copy(Arrays.Concatenate(seedA, b), 0, pk, 0, len_pk_bytes);
+            Array.Copy(seedA, 0, pk, 0, len_seedA_bytes);
+            Array.Copy(b, 0, pk, len_seedA_bytes, len_pk_bytes - len_seedA_bytes);
 
             byte[] pkh = new byte[len_pkh_bytes];
             digest.BlockUpdate(pk, 0, pk.Length);
             ((IXof) digest).OutputFinal(pkh, 0, pkh.Length);
 
             //10. sk = (s || seedA || b, S^T, pkh)
-            Array.Copy(Arrays.Concatenate(s, pk), 0,
-                sk, 0, len_s_bytes + len_pk_bytes);
+            Array.Copy(s, 0, sk, 0, len_s_bytes);
+            Array.Copy(pk, 0, sk, len_s_bytes, len_pk_bytes);
 
-            byte[] temp = new byte[4];
-            for (int i = 0; i < nbar; i++)
+            // S_T is not 'ushort[]'
+            //Pack.UInt16_To_LE(S_T, sk, len_s_bytes + len_pk_bytes);
+            for (int i = 0; i < S_T.Length; ++i)
             {
-                for (int j = 0; j < n; j++)
-                {
-                    Pack.UInt16_To_LE((ushort)S_T[i * n + j], temp);
-                    Array.Copy(temp, 0,
-                        sk, len_s_bytes + len_pk_bytes + i * n * 2 + j * 2, 2);
-                }
+                Pack.UInt16_To_LE((ushort)S_T[i], sk, len_s_bytes + len_pk_bytes + i * 2);
             }
 
             Array.Copy(pkh, 0, sk, len_sk_bytes - len_pkh_bytes, len_pkh_bytes);
@@ -273,26 +265,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                 while (b < D)
                 {
                     int nbits = System.Math.Min(D - b, bits);
-                    short mask = (short) (((1 << nbits) - 1) & 0xffff); // todo <<<?
-                    byte t = (byte) ((((w & 0xff) >> ((bits & 0xff) - nbits)) & (mask & 0xffff)) &
-                                     0xff); // the bits to copy from w to out
-                    output[i] = (short) ((output[i] & 0xffff) + (((t & 0xff) << (D - (b & 0xff) - nbits))) & 0xffff);
-                    b += (byte) nbits;
-                    bits -= (byte) nbits;
-                    w &= (byte) ~(mask << bits);
+                    short mask = (short)(((1 << nbits) - 1) & 0xffff); // todo <<<?
+                    byte t = (byte)((((w & 0xff) >> ((bits & 0xff) - nbits)) & (mask & 0xffff)) & 0xff); // the bits to copy from w to out
+                    output[i] = (short)((output[i] & 0xffff) + (((t & 0xff) << (D - (b & 0xff) - nbits))) & 0xffff);
+                    b += (byte)nbits;
+                    bits -= (byte)nbits;
+                    w &= (byte)~(mask << bits);
 
                     if (bits == 0)
                     {
-                        if (j < input.Length)
-                        {
-                            w = input[j];
-                            bits = 8;
-                            j++;
-                        }
-                        else
-                        {
+                        if (j >= input.Length)
                             break; // the input vector is exhausted
-                        }
+
+                        w = input[j];
+                        bits = 8;
+                        j++;
                     }
                 }
 
@@ -302,16 +289,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                     i++;
                 }
             }
-
             return output;
         }
 
         private short[] Encode(byte[] k)
         {
-            int l, byte_index = 0;
+            int byte_index = 0;
             int bit = 0;
             short[] K = new short[mbar * nbar];
-            int temp;
+
             // 1. for i = 0; i < mbar; i += 1
             for (int i = 0; i < mbar; i++)
             {
@@ -319,8 +305,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                 for (int j = 0; j < nbar; j++)
                 {
                     // 3. tmp = sum_{l=0}^{B-1} k_{(i*nbar+j)*B+l} 2^l
-                    temp = 0;
-                    for (l = 0; l < B; l++)
+                    int temp = 0;
+                    for (int l = 0; l < B; l++)
                     {
                         temp += ((k[byte_index] >> bit) & 1) << l;
 
@@ -330,7 +316,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
                     }
 
                     // 4. K[i][j] = ec(tmp) = tmp * q/2^B
-                    K[i * nbar + j] = (short) (temp * (q / (1 << B)));
+                    K[i * nbar + j] = (short)(temp * (q / (1 << B)));
                 }
             }
 
@@ -340,7 +326,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         public void kem_enc(byte[] ct, byte[] ss, byte[] pk, SecureRandom random)
         {
             // Parse pk = seedA || b
-            byte[] seedA = Arrays.CopyOfRange(pk, 0, len_seedA_bytes);
+            //byte[] seedA = Arrays.CopyOfRange(pk, 0, len_seedA_bytes);
             byte[] b = Arrays.CopyOfRange(pk, len_seedA_bytes, len_pk_bytes);
 
             // 1. Choose a uniformly random key mu in {0,1}^len_mu (length in bits)
@@ -350,7 +336,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             // 2. pkh = SHAKE(pk, len_pkh)
             byte[] pkh = new byte[len_pkh_bytes];
             digest.BlockUpdate(pk, 0, len_pk_bytes);
-            ((IXof) digest).OutputFinal(pkh, 0, len_pkh_bytes);
+            ((IXof)digest).OutputFinal(pkh, 0, len_pkh_bytes);
 
             // 3. seedSE || k = SHAKE(pkh || mu, len_seedSE + len_k) (length in bits)
             byte[] x96_seedSE_k = new byte[len_seedSE + len_k];
@@ -358,17 +344,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 
             digest.BlockUpdate(pkh, 0, len_pkh_bytes);
             digest.BlockUpdate(mu, 0, len_mu_bytes);
-            ((IXof) digest).OutputFinal(x96_seedSE_k, 1, len_seedSE_bytes + len_k_bytes);
+            ((IXof)digest).OutputFinal(x96_seedSE_k, 1, len_seedSE_bytes + len_k_bytes);
 
             // 4. r = SHAKE(0x96 || seedSE, 2*mbar*n + mbar*nbar*len_chi) (length in bits)
             byte[] rbytes = new byte[(2 * mbar * n + mbar * nbar) * len_chi_bytes];
 
             digest.BlockUpdate(x96_seedSE_k, 0, 1 + len_seedSE_bytes);
-            ((IXof) digest).OutputFinal(rbytes, 0, rbytes.Length);
+            ((IXof)digest).OutputFinal(rbytes, 0, rbytes.Length);
 
-            short[] r = new short[rbytes.Length / 2];
-            for (int i = 0; i < r.Length; i++)
-                r[i] = (short) Pack.LE_To_UInt16(rbytes, i * 2);
+            ushort[] r = Pack.LE_To_UInt16(rbytes, 0, rbytes.Length / 2);
 
             // 5. S' = Frodo.SampleMatrix(r[0 .. mbar*n-1], mbar, n)
             short[] Sprime = SampleMatrix(r, 0, mbar, n);
@@ -377,7 +361,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             short[] Eprime = SampleMatrix(r, mbar * n, mbar, n);
 
             // 7. A = Frodo.Gen(seedA)
-            short[] A = gen.GenMatrix(seedA);
+            short[] A = gen.GenMatrix(pk, 0, len_seedA_bytes);
 
             // 8. B' = S' A + E'
             short[] Bprime = MatrixAdd(MatrixMul(Sprime, mbar, n, A, n), Eprime, mbar, n);
@@ -391,7 +375,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             // 11. B = Frodo.Unpack(b, n, nbar)
             short[] B = FrodoUnpack(b, n, nbar);
 
-
             // 12. V = S' B + E''
             short[] V = MatrixAdd(MatrixMul(Sprime, mbar, n, B, nbar), Eprimeprime, mbar, nbar);
 
@@ -403,12 +386,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             byte[] c2 = FrodoPack(C);
 
             // 15. ss = SHAKE(c1 || c2 || k, len_ss)
-            // ct = c1 + c2
-            Array.Copy(Arrays.Concatenate(c1, c2), 0, ct, 0, len_ct_bytes);
-            digest.BlockUpdate(c1, 0, c1.Length);
-            digest.BlockUpdate(c2, 0, c2.Length);
+            // ct = c1 || c2
+            Array.Copy(c1, 0, ct, 0, c1.Length);
+            Array.Copy(c2, 0, ct, c1.Length, len_ct_bytes - c1.Length);
+
+            digest.BlockUpdate(ct, 0, len_ct_bytes);
             digest.BlockUpdate(x96_seedSE_k, 1 + len_seedSE_bytes, len_k_bytes);
-            ((IXof) digest).OutputFinal(ss, 0, len_s_bytes);
+            ((IXof)digest).OutputFinal(ss, 0, len_s_bytes);
         }
 
         private short[] MatrixSub(short[] X, short[] Y, int n1, int n2)
@@ -427,62 +411,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 
         private byte[] Decode(short[] input)
         {
-            int i, j, index = 0, npieces_word = 8;
+            int index = 0, npieces_word = 8;
             int nwords = (nbar * nbar) / 8;
-            short temp;
-            short maskex = (short) ((1 << B) - 1);
-            short maskq = (short) ((1 << D) - 1);
+            short maskex = (short)((1 << B) - 1);
+            short maskq = (short)((1 << D) - 1);
             byte[] output = new byte[npieces_word * B];
-            long templong;
 
-            for (i = 0; i < nwords; i++)
+            for (int i = 0; i < nwords; i++)
             {
-                templong = 0;
-                for (j = 0; j < npieces_word; j++)
+                long templong = 0;
+                for (int j = 0; j < npieces_word; j++)
                 {
                     // temp = floor(in*2^{-11}+0.5)
-                    temp = (short) (((input[index] & maskq) + (1 << (D - B - 1))) >> (D - B));
-                    templong |= ((long) (temp & maskex)) << (B * j);
+                    short temp = (short)(((input[index] & maskq) + (1 << (D - B - 1))) >> (D - B));
+                    templong |= ((long)(temp & maskex)) << (B * j);
                     index++;
                 }
-
-                for (j = 0; j < B; j++)
-                    output[i * B + j] = (byte) ((templong >> (8 * j)) & 0xFF);
+                for (int j = 0; j < B; j++)
+                {
+                    output[i * B + j] = (byte)((templong >> (8 * j)) & 0xFF);
+                }
             }
-
             return output;
-        }
-
-
-        private short CTVerify(short[] a1, short[] a2, short[] b1, short[] b2)
-        {
-            // Compare two arrays in constant time.
-            // Returns 0 if the byte arrays are equal, -1 otherwise.
-            short r = 0;
-
-            for (short i = 0; i < a1.Length; i++)
-            {
-                r |= (short) (a1[i] ^ b1[i]);
-            }
-
-            for (short i = 0; i < a2.Length; i++)
-                r |= (short) (a2[i] ^ b2[i]);
-
-//        r = (short) ((-(short)(r >> 1) | -(short)(r & 1)) >> (8*2-1));
-            if (r == 0)
-                return 0;
-            return -1;
-        }
-
-        private byte[] CTSelect(byte[] a, byte[] b, short selector)
-        {
-            // Select one of the two input arrays to be moved to r
-            // If (selector == 0) then load r with a, else if (selector == -1) load r with b
-            byte[] r = new byte[a.Length];
-            for (int i = 0; i < a.Length; i++)
-                r[i] = (byte) (((~selector & a[i]) & 0xff) | ((selector & b[i]) & 0xff));
-
-            return r;
         }
 
         public void kem_dec(byte[] ss, byte[] ct, byte[] sk)
@@ -497,15 +447,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             byte[] c2 = Arrays.CopyOfRange(ct, offset, offset + length);
 
             // Parse sk = (s || seedA || b, S^T, pkh)
-            offset = 0;
-            length = len_s_bytes;
-            byte[] s = Arrays.CopyOfRange(sk, offset, offset + length);
+            //byte[] s = Arrays.CopyOfRange(sk, 0, len_s_bytes);
+            //byte[] seedA = Arrays.CopyOfRange(sk, len_s_bytes, len_s_bytes + len_seedA_bytes);
 
-            offset += length;
-            length = len_seedA_bytes;
-            byte[] seedA = Arrays.CopyOfRange(sk, offset, offset + length);
-
-            offset += length;
+            offset = len_s_bytes + len_seedA_bytes;
             length = (D * n * nbar) / 8;
             byte[] b = Arrays.CopyOfRange(sk, offset, offset + length);
 
@@ -516,8 +461,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             short[] Stransposed = new short[nbar * n];
 
             for (int i = 0; i < nbar; i++)
-            for (int j = 0; j < n; j++)
-                Stransposed[i * n + j] = (short) Pack.LE_To_UInt16(Sbytes, i * n * 2 + j * 2);
+            {
+                for (int j = 0; j < n; j++)
+                {
+                    Stransposed[i * n + j] = (short)Pack.LE_To_UInt16(Sbytes, i * n * 2 + j * 2);
+                }
+            }
 
             short[] S = MatrixTranspose(Stransposed, nbar, n);
 
@@ -544,21 +493,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             byte[] seedSEprime_kprime = new byte[len_seedSE_bytes + len_k_bytes];
             digest.BlockUpdate(pkh, 0, len_pkh_bytes);
             digest.BlockUpdate(muprime, 0, len_mu_bytes);
-            ((IXof) digest).OutputFinal(seedSEprime_kprime, 0, len_seedSE_bytes + len_k_bytes);
+            ((IXof)digest).OutputFinal(seedSEprime_kprime, 0, len_seedSE_bytes + len_k_bytes);
 
-            byte[] kprime = Arrays.CopyOfRange(seedSEprime_kprime, len_seedSE_bytes, len_seedSE_bytes + len_k_bytes);
+            byte[] K = Arrays.CopyOfRange(seedSEprime_kprime, len_seedSE_bytes, len_seedSE_bytes + len_k_bytes);
 
             // 7. r = SHAKE(0x96 || seedSE', 2*mbar*n + mbar*nbar*len_chi) (length in bits)
             byte[] rbytes = new byte[(2 * mbar * n + mbar * mbar) * len_chi_bytes];
-            digest.Update((byte) 0x96);
+            digest.Update(0x96);
             digest.BlockUpdate(seedSEprime_kprime, 0, len_seedSE_bytes);
-            ((IXof) digest).OutputFinal(rbytes, 0, rbytes.Length);
+            ((IXof)digest).OutputFinal(rbytes, 0, rbytes.Length);
 
-            short[] r = new short[2 * mbar * n + mbar * nbar];
-            for (int i = 0; i < r.Length; i++)
-            {
-                r[i] = (short) Pack.LE_To_UInt16(rbytes, i * 2);
-            }
+            ushort[] r = Pack.LE_To_UInt16(rbytes, 0, rbytes.Length / 2);
 
             // 8. S' = Frodo.SampleMatrix(r[0 .. mbar*n-1], mbar, n)
             short[] Sprime = SampleMatrix(r, 0, mbar, n);
@@ -567,7 +512,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             short[] Eprime = SampleMatrix(r, mbar * n, mbar, n);
 
             // 10. A = Frodo.Gen(seedA)
-            short[] A = gen.GenMatrix(seedA);
+            short[] A = gen.GenMatrix(sk, len_s_bytes, len_seedA_bytes);
 
             // 11. B'' = S' A + E'
             short[] Bprimeprime = MatrixAdd(MatrixMul(Sprime, mbar, n, A, n), Eprime, mbar, n);
@@ -589,15 +534,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             // Qian Guo, Thomas Johansson, Alexander Nilsson. A key-recovery timing attack on post-quantum
             // primitives using the Fujisaki-Okamoto transformation and its application on FrodoKEM. In CRYPTO 2020.
             //TODO change it so Bprime and C are in the same array same with B'' and C'
-            short use_kprime = CTVerify(Bprime, C, Bprimeprime, Cprime);
-            byte[] kbar = CTSelect(kprime, s, use_kprime);
+            int use_kprime = CTVerify(Bprime, C, Bprimeprime, Cprime);
+            Bytes.CMov(K.Length, ~use_kprime, sk, K);
 
             // 17. ss = SHAKE(c1 || c2 || kbar, len_ss) (length in bits)
             digest.BlockUpdate(c1, 0, c1.Length);
             digest.BlockUpdate(c2, 0, c2.Length);
-            digest.BlockUpdate(kbar, 0, kbar.Length);
-            ((IXof) digest).OutputFinal(ss, 0, len_ss_bytes);
+            digest.BlockUpdate(K, 0, K.Length);
+            ((IXof)digest).OutputFinal(ss, 0, len_ss_bytes);
         }
 
+        private static int CTVerify(short[] a1, short[] a2, short[] b1, short[] b2)
+        {
+            int r = 0;
+            for (int i = 0; i < a1.Length; i++)
+            {
+                r |= a1[i] ^ b1[i];
+            }
+            for (int i = 0; i < a2.Length; i++)
+            {
+                r |= a2[i] ^ b2[i];
+            }
+            return (int)Nat.CZero((uint)r);
+        }
     }
 }

@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
     internal static class Noise
     {
-        internal static void Sample(short[] cdf, short[] r, int rOff, short[] s)
+        internal static void Sample(short[] cdf, ushort[] r, int rOff, short[] s)
         {
             // No need to compare with the last value.
             Debug.Assert(cdf[cdf.Length - 1] == 0x7FFF);
@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             for (int i = 0, n = s.Length; i < n; ++i)
             {
                 int sample = 0;
-                int r_i = r[rOff + i] & 0xFFFF;
+                int r_i = r[rOff + i];
                 int prnd = (r_i & 0xFFFE) >> 1;     // Drop the least significant bit
                 int sign = r_i & 1;                 // Pick the least significant bit
 
