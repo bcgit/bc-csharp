@@ -30,6 +30,10 @@ namespace Org.BouncyCastle.Bcpg
             m_aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
             m_chunkSize = bcpgIn.RequireByte();
 
+            // RFC 9580 - 5.13.2
+            if (m_chunkSize < 0 || m_chunkSize > 16)
+                throw new MalformedPacketException("chunkSize out of range");
+
             m_iv = new byte[GetIVLength(m_aeadAlgorithm)];
             bcpgIn.ReadFully(m_iv);
         }
@@ -38,6 +42,10 @@ namespace Org.BouncyCastle.Bcpg
             byte[] iv)
             : base(null)
         {
+            // RFC 9580 - 5.13.2
+            if (chunkSize < 0 || chunkSize > 16)
+                throw new ArgumentOutOfRangeException(nameof(chunkSize));
+
             m_version = 1;
             m_algorithm = algorithm;
             m_aeadAlgorithm = aeadAlgorithm;
