@@ -2567,6 +2567,192 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static void XorToEachOther(uint[] u, uint[] v)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorToEachOther(u.AsSpan(), v.AsSpan());
+#else
+            for (int i = 0; i < 8; ++i)
+            {
+                uint t = u[i] ^ v[i];
+                u[i] = t;
+                v[i] = t;
+            }
+#endif
+        }
+
+        public static void XorToEachOther(uint[] u, int uOff, uint[] v, int vOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorToEachOther(u.AsSpan(uOff), v.AsSpan(vOff));
+#else
+            for (int i = 0; i < 8; ++i)
+            {
+                uint t = u[uOff + i] ^ v[vOff + i];
+                u[uOff + i] = t;
+                v[vOff + i] = t;
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void XorToEachOther(Span<uint> u, Span<uint> v)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPacked)
+            {
+                var U = MemoryMarshal.AsBytes(u[..8]);
+                var V = MemoryMarshal.AsBytes(v[..8]);
+
+                var U0 = MemoryMarshal.Read<Vector256<byte>>(U[0x00..0x20]);
+
+                var V0 = MemoryMarshal.Read<Vector256<byte>>(V[0x00..0x20]);
+
+                var T0 = Avx2.Xor(U0, V0);
+
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(U[0x00..0x20], in T0);
+                MemoryMarshal.Write(V[0x00..0x20], in T0);
+#else
+                MemoryMarshal.Write(U[0x00..0x20], ref T0);
+                MemoryMarshal.Write(V[0x00..0x20], ref T0);
+#endif
+                return;
+            }
+
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPacked)
+            {
+                var U = MemoryMarshal.AsBytes(u[..8]);
+                var V = MemoryMarshal.AsBytes(v[..8]);
+
+                var U0 = MemoryMarshal.Read<Vector128<byte>>(U[0x00..0x10]);
+                var U1 = MemoryMarshal.Read<Vector128<byte>>(U[0x10..0x20]);
+
+                var V0 = MemoryMarshal.Read<Vector128<byte>>(V[0x00..0x10]);
+                var V1 = MemoryMarshal.Read<Vector128<byte>>(V[0x10..0x20]);
+
+                var T0 = Sse2.Xor(U0, V0);
+                var T1 = Sse2.Xor(U1, V1);
+
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(U[0x00..0x10], in T0);
+                MemoryMarshal.Write(V[0x00..0x10], in T0);
+                MemoryMarshal.Write(U[0x10..0x20], in T1);
+                MemoryMarshal.Write(V[0x10..0x20], in T1);
+#else
+                MemoryMarshal.Write(U[0x00..0x10], ref T0);
+                MemoryMarshal.Write(V[0x00..0x10], ref T0);
+                MemoryMarshal.Write(U[0x10..0x20], ref T1);
+                MemoryMarshal.Write(V[0x10..0x20], ref T1);
+#endif
+                return;
+            }
+#endif
+
+            for (int i = 0; i < 8; ++i)
+            {
+                uint t = u[i] ^ v[i];
+                u[i] = t;
+                v[i] = t;
+            }
+        }
+#endif
+
+        public static void XorToEachOther64(ulong[] u, ulong[] v)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorToEachOther64(u.AsSpan(), v.AsSpan());
+#else
+            for (int i = 0; i < 4; ++i)
+            {
+                ulong t = u[i] ^ v[i];
+                u[i] = t;
+                v[i] = t;
+            }
+#endif
+        }
+
+        public static void XorToEachOther64(ulong[] u, int uOff, ulong[] v, int vOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorToEachOther64(u.AsSpan(uOff), v.AsSpan(vOff));
+#else
+            for (int i = 0; i < 4; ++i)
+            {
+                ulong t = u[uOff + i] ^ v[vOff + i];
+                u[uOff + i] = t;
+                v[vOff + i] = t;
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void XorToEachOther64(Span<ulong> u, Span<ulong> v)
+        {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPacked)
+            {
+                var U = MemoryMarshal.AsBytes(u[..4]);
+                var V = MemoryMarshal.AsBytes(v[..4]);
+
+                var U0 = MemoryMarshal.Read<Vector256<byte>>(U[0x00..0x20]);
+
+                var V0 = MemoryMarshal.Read<Vector256<byte>>(V[0x00..0x20]);
+
+                var T0 = Avx2.Xor(U0, V0);
+
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(U[0x00..0x20], in T0);
+                MemoryMarshal.Write(V[0x00..0x20], in T0);
+#else
+                MemoryMarshal.Write(U[0x00..0x20], ref T0);
+                MemoryMarshal.Write(V[0x00..0x20], ref T0);
+#endif
+                return;
+            }
+
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled &&
+                Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPacked)
+            {
+                var U = MemoryMarshal.AsBytes(u[..4]);
+                var V = MemoryMarshal.AsBytes(v[..4]);
+
+                var U0 = MemoryMarshal.Read<Vector128<byte>>(U[0x00..0x10]);
+                var U1 = MemoryMarshal.Read<Vector128<byte>>(U[0x10..0x20]);
+
+                var V0 = MemoryMarshal.Read<Vector128<byte>>(V[0x00..0x10]);
+                var V1 = MemoryMarshal.Read<Vector128<byte>>(V[0x10..0x20]);
+
+                var T0 = Sse2.Xor(U0, V0);
+                var T1 = Sse2.Xor(U1, V1);
+
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(U[0x00..0x10], in T0);
+                MemoryMarshal.Write(V[0x00..0x10], in T0);
+                MemoryMarshal.Write(U[0x10..0x20], in T1);
+                MemoryMarshal.Write(V[0x10..0x20], in T1);
+#else
+                MemoryMarshal.Write(U[0x00..0x10], ref T0);
+                MemoryMarshal.Write(V[0x00..0x10], ref T0);
+                MemoryMarshal.Write(U[0x10..0x20], ref T1);
+                MemoryMarshal.Write(V[0x10..0x20], ref T1);
+#endif
+                return;
+            }
+#endif
+
+            for (int i = 0; i < 4; ++i)
+            {
+                ulong t = u[i] ^ v[i];
+                u[i] = t;
+                v[i] = t;
+            }
+        }
+#endif
+
         public static void Zero(uint[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

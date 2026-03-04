@@ -262,6 +262,18 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static uint AddTo(int len, uint[] x, uint[] z, uint cIn)
+        {
+            ulong c = cIn;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (ulong)x[i] + z[i];
+                z[i] = (uint)c;
+                c >>= 32;
+            }
+            return (uint)c;
+        }
+
         public static uint AddTo(int len, uint[] x, int xOff, uint[] z, int zOff, uint cIn)
         {
             ulong c = cIn;
@@ -287,6 +299,19 @@ namespace Org.BouncyCastle.Math.Raw
             return (uint)c;
         }
 #endif
+
+        public static uint AddToEachOther(int len, uint[] u, uint[] v)
+        {
+            ulong c = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                c += (ulong)u[i] + v[i];
+                u[i] = (uint)c;
+                v[i] = (uint)c;
+                c >>= 32;
+            }
+            return (uint)c;
+        }
 
         public static uint AddToEachOther(int len, uint[] u, int uOff, uint[] v, int vOff)
         {
@@ -3229,6 +3254,110 @@ namespace Org.BouncyCastle.Math.Raw
             while (i < len)
             {
                 z[i] ^= x[i];
+                ++i;
+            }
+        }
+#endif
+
+        public static void XorToEachOther(int len, uint[] u, uint[] v)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorToEachOther(len, u.AsSpan(), v.AsSpan());
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                uint t = u[i] ^ v[i];
+                u[i] = t;
+                v[i] = t;
+            }
+#endif
+        }
+
+        public static void XorToEachOther(int len, uint[] u, int uOff, uint[] v, int vOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorToEachOther(len, u.AsSpan(uOff), v.AsSpan(vOff));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                uint t = u[uOff + i] ^ v[vOff + i];
+                u[uOff + i] = t;
+                v[vOff + i] = t;
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void XorToEachOther(int len, Span<uint> u, Span<uint> v)
+        {
+            int i = 0;
+            while (i <= len - 16)
+            {
+                Nat512.XorToEachOther(u[i..], v[i..]);
+                i += 16;
+            }
+            if (i <= len - 8)
+            {
+                Nat256.XorToEachOther(u[i..], v[i..]);
+                i += 8;
+            }
+            while (i < len)
+            {
+                uint t = u[i] ^ v[i];
+                u[i] = t;
+                v[i] = t;
+                ++i;
+            }
+        }
+#endif
+
+        public static void XorToEachOther64(int len, ulong[] u, ulong[] v)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorToEachOther64(len, u.AsSpan(), v.AsSpan());
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                ulong t = u[i] ^ v[i];
+                u[i] = t;
+                v[i] = t;
+            }
+#endif
+        }
+
+        public static void XorToEachOther64(int len, ulong[] u, int uOff, ulong[] v, int vOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            XorToEachOther64(len, u.AsSpan(uOff), v.AsSpan(vOff));
+#else
+            for (int i = 0; i < len; ++i)
+            {
+                ulong t = u[uOff + i] ^ v[vOff + i];
+                u[uOff + i] = t;
+                v[vOff + i] = t;
+            }
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static void XorToEachOther64(int len, Span<ulong> u, Span<ulong> v)
+        {
+            int i = 0;
+            while (i <= len - 8)
+            {
+                Nat512.XorToEachOther64(u[i..], v[i..]);
+                i += 8;
+            }
+            if (i <= len - 4)
+            {
+                Nat256.XorToEachOther64(u[i..], v[i..]);
+                i += 4;
+            }
+            while (i < len)
+            {
+                ulong t = u[i] ^ v[i];
+                u[i] = t;
+                v[i] = t;
                 ++i;
             }
         }
