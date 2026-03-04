@@ -90,31 +90,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             this.gen = mGen;
         }
 
-        private short Sample(short r)
-        {
-            short t, e;
-            // 1. t = sum_{i=1}^{len_x - 1} r_i * 2^{i-1}
-            t = (short) ((r & 0xffff) >> 1);
-            e = 0; // 2. e = 0
-            for (int z = 0; z < T_chi.Length; z++)
-            {
-                if (t > T_chi[z]) // 4. if t > T_chi(z)
-                    e++; // 5. e = e + 1
-            }
-            // 6. e = (-1)^{r_0} * e
-
-            if (((r & 0xffff) % 2) == 1)
-                e = (short) ((e) * (-1) & 0xffff);
-
-            return e;
-        }
-
         private short[] SampleMatrix(short[] r, int offset, int n1, int n2)
         {
             short[] E = new short[n1 * n2];
-            for (int i = 0; i < n1; i++)
-            for (int j = 0; j < n2; j++)
-                E[i * n2 + j] = Sample(r[i * n2 + j + offset]);
+            Noise.Sample(T_chi, r, offset, E);
             return E;
         }
 
