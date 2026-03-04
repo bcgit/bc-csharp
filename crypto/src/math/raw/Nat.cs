@@ -645,6 +645,16 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        internal static uint CZero(uint x)
+        {
+            return (uint)((int)((x - 1) & ~x) >> 31);
+        }
+
+        internal static ulong CZero64(ulong x)
+        {
+            return (ulong)((long)((x - 1) & ~x) >> 63);
+        }
+
         public static int Dec(int len, uint[] z)
         {
             for (int i = 0; i < len; ++i)
@@ -779,8 +789,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[i];
             }
-            d = (d >> 1) | (d & 1);
-            return (uint)(((int)d - 1) >> 31);
+            return CZero(d);
         }
 
         public static uint EqualTo(int len, uint[] x, int xOff, uint y)
@@ -790,8 +799,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[xOff + i];
             }
-            d = (d >> 1) | (d & 1);
-            return (uint)(((int)d - 1) >> 31);
+            return CZero(d);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -805,8 +813,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[i] ^ y[i];
             }
-            d = (d >> 1) | (d & 1);
-            return (uint)(((int)d - 1) >> 31);
+            return CZero(d);
         }
 
         public static uint EqualTo(int len, uint[] x, int xOff, uint[] y, int yOff)
@@ -816,10 +823,8 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[xOff + i] ^ y[yOff + i];
             }
-            d = (d >> 1) | (d & 1);
-            return (uint)(((int)d - 1) >> 31);
+            return CZero(d);
         }
-
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ulong EqualTo64(int len, ReadOnlySpan<ulong> x, ulong y)
@@ -832,8 +837,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[i];
             }
-            d = (d >> 1) | (d & 1UL);
-            return (ulong)(((long)d - 1L) >> 63);
+            return CZero64(d);
         }
 
         public static ulong EqualTo64(int len, ulong[] x, int xOff, ulong y)
@@ -843,8 +847,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[xOff + i];
             }
-            d = (d >> 1) | (d & 1UL);
-            return (ulong)(((long)d - 1L) >> 63);
+            return CZero64(d);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -858,8 +861,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[i] ^ y[i];
             }
-            d = (d >> 1) | (d & 1UL);
-            return (ulong)(((long)d - 1L) >> 63);
+            return CZero64(d);
         }
 
         public static ulong EqualTo64(int len, ulong[] x, int xOff, ulong[] y, int yOff)
@@ -869,8 +871,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[xOff + i] ^ y[yOff + i];
             }
-            d = (d >> 1) | (d & 1UL);
-            return (ulong)(((long)d - 1L) >> 63);
+            return CZero64(d);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -884,8 +885,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[i];
             }
-            d = (d >> 1) | (d & 1U);
-            return (uint)(((int)d - 1) >> 31);
+            return CZero(d);
         }
 
         public static uint EqualToZero(int len, uint[] x, int xOff)
@@ -895,8 +895,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[xOff + i];
             }
-            d = (d >> 1) | (d & 1U);
-            return (uint)(((int)d - 1) >> 31);
+            return CZero(d);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -910,8 +909,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[i];
             }
-            d = (d >> 1) | (d & 1UL);
-            return (ulong)(((long)d - 1L) >> 63);
+            return CZero64(d);
         }
 
         public static ulong EqualToZero64(int len, ulong[] x, int xOff)
@@ -921,8 +919,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[xOff + i];
             }
-            d = (d >> 1) | (d & 1UL);
-            return (ulong)(((long)d - 1L) >> 63);
+            return CZero64(d);
         }
 
         public static uint[] FromBigInteger(int bits, BigInteger x)

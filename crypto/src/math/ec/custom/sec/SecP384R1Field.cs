@@ -80,16 +80,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             Mod.CheckedModOddInverse(P, x, z);
         }
 
-        public static int IsZero(uint[] x)
-        {
-            uint d = 0;
-            for (int i = 0; i < 12; ++i)
-            {
-                d |= x[i];
-            }
-            d = (d >> 1) | (d & 1);
-            return ((int)d - 1) >> 31;
-        }
+        public static int IsZero(uint[] x) => (int)Nat.EqualToZero(12, x);
 
         public static void Multiply(uint[] x, uint[] y, uint[] z)
         {

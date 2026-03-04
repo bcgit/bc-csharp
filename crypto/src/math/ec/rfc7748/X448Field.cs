@@ -96,9 +96,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             {
                 d |= x[i] ^ y[i];
             }
-            d |= d >> 16;
-            d &= 0xFFFF;
-            return ((int)d - 1) >> 31;
+            return (int)((d - 1) & ~d) >> 31;
         }
 
         public static bool AreEqualVar(uint[] x, uint[] y)
@@ -599,9 +597,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             {
                 d |= x[i];
             }
-            d |= d >> 16;
-            d &= 0xFFFF;
-            return ((int)d - 1) >> 31;
+            return (int)((d - 1) & ~d) >> 31;
         }
 
         public static bool IsOneVar(uint[] x)
@@ -616,9 +612,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
             {
                 d |= x[i];
             }
-            d |= d >> 16;
-            d &= 0xFFFF;
-            return ((int)d - 1) >> 31;
+            return (int)((d - 1) & ~d) >> 31;
         }
 
         public static bool IsZeroVar(uint[] x)

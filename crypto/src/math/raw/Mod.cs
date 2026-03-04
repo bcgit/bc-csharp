@@ -643,8 +643,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 d |= x[i];
             }
-            d = (int)((uint)d >> 1) | (d & 1);
-            return (d - 1) >> 31;
+            return (int)Nat.CZero((uint)d);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

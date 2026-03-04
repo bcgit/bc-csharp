@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Utilities
             return BitOperations.TrailingZeroCount(i);
 #else
             int n = DeBruijnTZ[(uint)((i & -i) * 0x0EF96A62) >> 27];
-            int m = (((i & 0xFFFF) | (int)((uint)i >> 16)) - 1) >> 31;
+            int m = (int)Nat.CZero((uint)i);
             return n - m;
 #endif
         }
