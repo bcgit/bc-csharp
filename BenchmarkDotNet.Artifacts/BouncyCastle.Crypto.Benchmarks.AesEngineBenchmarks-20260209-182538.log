@@ -1,0 +1,382 @@
+// Validating benchmarks:
+// ***** BenchmarkRunner: Start   *****
+// ***** Found 2 benchmark(s) in total *****
+// ***** Building 1 exe(s) in Parallel: Start   *****
+// start dotnet  restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1/" /p:OutDir="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1\bin\Release\net10.0/" /p:OutputPath="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1\bin\Release\net10.0/" /p:PublishDir="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1\publish/" in D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1
+// command took 0.95 sec and exited with 0
+// start dotnet  build -c Release --no-restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1/" /p:OutDir="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1\bin\Release\net10.0/" /p:OutputPath="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1\bin\Release\net10.0/" /p:PublishDir="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1\publish/" --output "D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1\bin\Release\net10.0/" in D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1
+// command took 7.28 sec and exited with 0
+// ***** Done, took 00:00:08 (8.28 sec)   *****
+// ***** Building 1 exe(s) in Sequential: Start   *****
+// start dotnet  restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2/" /p:OutDir="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2\bin\Release\net481/" /p:OutputPath="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2\bin\Release\net481/" /p:PublishDir="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2\publish/" in D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2
+// command took 0.96 sec and exited with 0
+// start dotnet  build -c Release --no-restore --nodeReuse:false /p:UseSharedCompilation=false /p:Deterministic=true /p:Optimize=true /p:ArtifactsPath="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2/" /p:OutDir="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2\bin\Release\net481/" /p:OutputPath="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2\bin\Release\net481/" /p:PublishDir="D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2\publish/" --output "D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2\bin\Release\net481/" in D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2
+// command took 3.83 sec and exited with 1
+// ***** Done, took 00:00:04 (4.81 sec)   *****
+// Found 2 benchmarks:
+//   AesEngineBenchmarks.Init: .NET 10.0(Runtime=.NET 10.0, InvocationCount=1, UnrollFactor=1)
+//   AesEngineBenchmarks.Init: .NET Framework 4.8.1(Runtime=.NET Framework 4.8.1, InvocationCount=1, UnrollFactor=1)
+
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// **************************
+// Benchmark: AesEngineBenchmarks.Init: .NET 10.0(Runtime=.NET 10.0, InvocationCount=1, UnrollFactor=1)
+// *** Execute ***
+// Launch: 1 / 1
+// Execute: dotnet BouncyCastle.Crypto.Benchmarks-1.dll --anonymousPipes 1920 1940 --benchmarkName BouncyCastle.Crypto.Benchmarks.AesEngineBenchmarks.Init --job ".NET 10.0" --benchmarkId 0 in D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-1\bin\Release\net10.0
+// BeforeAnythingElse
+
+// Benchmark Process Environment Information:
+// BenchmarkDotNet v0.15.8
+// Runtime=.NET 10.0.2 (10.0.2, 10.0.225.61305), X64 RyuJIT x86-64-v3
+// GC=Concurrent Workstation
+// HardwareIntrinsics=AVX2+BMI1+BMI2+F16C+FMA+LZCNT+MOVBE,AVX,SSE3+SSSE3+SSE4.1+SSE4.2+POPCNT,X86Base+SSE+SSE2,AES+PCLMUL,AvxVnni,SERIALIZE VectorSize=256
+// Job: .NET 10.0(InvocationCount=1, UnrollFactor=1)
+
+OverheadJitting  1: 1 op, 75400.00 ns, 75.4000 us/op
+WorkloadJitting  1: 1 op, 1069800.00 ns, 1.0698 ms/op
+
+OverheadWarmup   1: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   2: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   3: 1 op, 200.00 ns, 200.0000 ns/op
+OverheadWarmup   4: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadWarmup   5: 1 op, 100.00 ns, 100.0000 ns/op
+
+OverheadActual   1: 1 op, 200.00 ns, 200.0000 ns/op
+OverheadActual   2: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   3: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   4: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   5: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   6: 1 op, 200.00 ns, 200.0000 ns/op
+OverheadActual   7: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual   8: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual   9: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  10: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  11: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  12: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  13: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  14: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  15: 1 op, 0.00 ns, 0.0000 ns/op
+OverheadActual  16: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  17: 1 op, 200.00 ns, 200.0000 ns/op
+OverheadActual  18: 1 op, 200.00 ns, 200.0000 ns/op
+OverheadActual  19: 1 op, 100.00 ns, 100.0000 ns/op
+OverheadActual  20: 1 op, 100.00 ns, 100.0000 ns/op
+
+WorkloadWarmup   1: 1 op, 2600.00 ns, 2.6000 us/op
+WorkloadWarmup   2: 1 op, 2500.00 ns, 2.5000 us/op
+WorkloadWarmup   3: 1 op, 2100.00 ns, 2.1000 us/op
+WorkloadWarmup   4: 1 op, 2200.00 ns, 2.2000 us/op
+WorkloadWarmup   5: 1 op, 2300.00 ns, 2.3000 us/op
+WorkloadWarmup   6: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadWarmup   7: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadWarmup   8: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadWarmup   9: 1 op, 1300.00 ns, 1.3000 us/op
+
+// BeforeActualRun
+WorkloadActual   1: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual   2: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadActual   3: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual   4: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual   5: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual   6: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual   7: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadActual   8: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual   9: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  10: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  11: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  12: 1 op, 2200.00 ns, 2.2000 us/op
+WorkloadActual  13: 1 op, 1800.00 ns, 1.8000 us/op
+WorkloadActual  14: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadActual  15: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadActual  16: 1 op, 2100.00 ns, 2.1000 us/op
+WorkloadActual  17: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadActual  18: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  19: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  20: 1 op, 1900.00 ns, 1.9000 us/op
+WorkloadActual  21: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  22: 1 op, 2000.00 ns, 2.0000 us/op
+WorkloadActual  23: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  24: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  25: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  26: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  27: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  28: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  29: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  30: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  31: 1 op, 1800.00 ns, 1.8000 us/op
+WorkloadActual  32: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  33: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  34: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  35: 1 op, 2500.00 ns, 2.5000 us/op
+WorkloadActual  36: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  37: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  38: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  39: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  40: 1 op, 1900.00 ns, 1.9000 us/op
+WorkloadActual  41: 1 op, 2400.00 ns, 2.4000 us/op
+WorkloadActual  42: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadActual  43: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  44: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  45: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  46: 1 op, 1900.00 ns, 1.9000 us/op
+WorkloadActual  47: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  48: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  49: 1 op, 1800.00 ns, 1.8000 us/op
+WorkloadActual  50: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  51: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  52: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  53: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  54: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  55: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  56: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  57: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  58: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  59: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  60: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  61: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadActual  62: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  63: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  64: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  65: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  66: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  67: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  68: 1 op, 2100.00 ns, 2.1000 us/op
+WorkloadActual  69: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  70: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  71: 1 op, 1800.00 ns, 1.8000 us/op
+WorkloadActual  72: 1 op, 2100.00 ns, 2.1000 us/op
+WorkloadActual  73: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  74: 1 op, 2300.00 ns, 2.3000 us/op
+WorkloadActual  75: 1 op, 1800.00 ns, 1.8000 us/op
+WorkloadActual  76: 1 op, 2000.00 ns, 2.0000 us/op
+WorkloadActual  77: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  78: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  79: 1 op, 2000.00 ns, 2.0000 us/op
+WorkloadActual  80: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  81: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadActual  82: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  83: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  84: 1 op, 2500.00 ns, 2.5000 us/op
+WorkloadActual  85: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadActual  86: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  87: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadActual  88: 1 op, 2200.00 ns, 2.2000 us/op
+WorkloadActual  89: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadActual  90: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  91: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  92: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  93: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  94: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  95: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  96: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadActual  97: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadActual  98: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  99: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadActual  100: 1 op, 1500.00 ns, 1.5000 us/op
+
+// AfterActualRun
+WorkloadResult   1: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult   2: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadResult   3: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult   4: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult   5: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult   6: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult   7: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadResult   8: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult   9: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  10: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  11: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  12: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadResult  13: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadResult  14: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadResult  15: 1 op, 2000.00 ns, 2.0000 us/op
+WorkloadResult  16: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadResult  17: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  18: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  19: 1 op, 1800.00 ns, 1.8000 us/op
+WorkloadResult  20: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  21: 1 op, 1900.00 ns, 1.9000 us/op
+WorkloadResult  22: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  23: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  24: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  25: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  26: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  27: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  28: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  29: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  30: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadResult  31: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  32: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  33: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  34: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  35: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  36: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  37: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  38: 1 op, 1800.00 ns, 1.8000 us/op
+WorkloadResult  39: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadResult  40: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  41: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  42: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  43: 1 op, 1800.00 ns, 1.8000 us/op
+WorkloadResult  44: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  45: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  46: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadResult  47: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  48: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  49: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  50: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  51: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  52: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  53: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  54: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  55: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  56: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  57: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  58: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadResult  59: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  60: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  61: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  62: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  63: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  64: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  65: 1 op, 2000.00 ns, 2.0000 us/op
+WorkloadResult  66: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  67: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  68: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadResult  69: 1 op, 2000.00 ns, 2.0000 us/op
+WorkloadResult  70: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  71: 1 op, 1700.00 ns, 1.7000 us/op
+WorkloadResult  72: 1 op, 1900.00 ns, 1.9000 us/op
+WorkloadResult  73: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  74: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  75: 1 op, 1900.00 ns, 1.9000 us/op
+WorkloadResult  76: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  77: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadResult  78: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  79: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  80: 1 op, 1600.00 ns, 1.6000 us/op
+WorkloadResult  81: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  82: 1 op, 1500.00 ns, 1.5000 us/op
+WorkloadResult  83: 1 op, 1300.00 ns, 1.3000 us/op
+WorkloadResult  84: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  85: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  86: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  87: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  88: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  89: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  90: 1 op, 1100.00 ns, 1.1000 us/op
+WorkloadResult  91: 1 op, 1200.00 ns, 1.2000 us/op
+WorkloadResult  92: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  93: 1 op, 1400.00 ns, 1.4000 us/op
+WorkloadResult  94: 1 op, 1400.00 ns, 1.4000 us/op
+// GC:  0 0 0 832 1
+// Threading:  0 0 1
+
+// AfterAll
+// Benchmark Process 63416 has exited with code 0.
+
+Mean = 1.367 μs, StdErr = 0.025 μs (1.80%), N = 94, StdDev = 0.238 μs
+Min = 1.100 μs, Q1 = 1.200 μs, Median = 1.300 μs, Q3 = 1.475 μs, Max = 2.000 μs
+IQR = 0.275 μs, LowerFence = 0.787 μs, UpperFence = 1.887 μs
+ConfidenceInterval = [1.283 μs; 1.451 μs] (CI 99.9%), Margin = 0.084 μs (6.11% of Mean)
+Skewness = 1.05, Kurtosis = 3.28, MValue = 4.4
+
+// ** Remained 1 (50.0%) benchmark(s) to run. Estimated finish 2026-02-09 18:25 (0h 0m from now) **
+Setup power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// Build Error: Standard output: 
+  
+ Standard error: 
+ D:\.nuget\microsoft.build.tasks.git\8.0.0\build\Microsoft.Build.Tasks.Git.targets(25,5): warning : Repository 'D:\repos\bcgit\bc-csharp' does not have the specified remote 'public'; using 'origin' instead. [D:\repos\bcgit\bc-csharp\crypto\src\BouncyCastle.Crypto.csproj::TargetFramework=net461]
+D:\repos\bcgit\bc-csharp\crypto\src\asn1\ua\Dstu4145Params.cs(82,36): warning CS0219: The variable 'pos' is assigned but its value is never used [D:\repos\bcgit\bc-csharp\crypto\src\BouncyCastle.Crypto.csproj::TargetFramework=net461]
+  BouncyCastle.Crypto -> D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2\bin\Release\net481\BouncyCastle.Cryptography.dll
+CSC : error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater. [D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\BouncyCastle.Crypto.Benchmarks.csproj::TargetFramework=net481]
+Build FAILED.
+D:\.nuget\microsoft.build.tasks.git\8.0.0\build\Microsoft.Build.Tasks.Git.targets(25,5): warning : Repository 'D:\repos\bcgit\bc-csharp' does not have the specified remote 'public'; using 'origin' instead. [D:\repos\bcgit\bc-csharp\crypto\src\BouncyCastle.Crypto.csproj::TargetFramework=net461]
+D:\repos\bcgit\bc-csharp\crypto\src\asn1\ua\Dstu4145Params.cs(82,36): warning CS0219: The variable 'pos' is assigned but its value is never used [D:\repos\bcgit\bc-csharp\crypto\src\BouncyCastle.Crypto.csproj::TargetFramework=net461]
+CSC : error CS8630: Invalid 'nullable' value: 'Enable' for C# 7.3. Please use language version '8.0' or greater. [D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\BouncyCastle.Crypto.Benchmarks.csproj::TargetFramework=net481]
+    2 Warning(s)
+    1 Error(s)
+Time Elapsed 00:00:03.67
+
+// BenchmarkDotNet has failed to build the auto-generated boilerplate code.
+// It can be found in D:\repos\bcgit\bc-csharp\crypto\benchmark\BouncyCastle.Crypto.Benchmarks\bin\Release\net10.0\BouncyCastle.Crypto.Benchmarks-2
+// Please follow the troubleshooting guide: https://benchmarkdotnet.org/articles/guides/troubleshooting.html
+
+// ** Remained 0 (0.0%) benchmark(s) to run. Estimated finish 2026-02-09 18:25 (0h 0m from now) **
+Successfully reverted power plan (GUID: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c FriendlyName: High performance)
+// ***** BenchmarkRunner: Finish  *****
+
+// * Export *
+  BenchmarkDotNet.Artifacts\results\BouncyCastle.Crypto.Benchmarks.AesEngineBenchmarks-report.csv
+  BenchmarkDotNet.Artifacts\results\BouncyCastle.Crypto.Benchmarks.AesEngineBenchmarks-report-github.md
+  BenchmarkDotNet.Artifacts\results\BouncyCastle.Crypto.Benchmarks.AesEngineBenchmarks-report.html
+
+// * Detailed results *
+AesEngineBenchmarks.Init: .NET 10.0(Runtime=.NET 10.0, InvocationCount=1, UnrollFactor=1)
+Runtime = .NET 10.0.2 (10.0.2, 10.0.225.61305), X64 RyuJIT x86-64-v3; GC = Concurrent Workstation
+Mean = 1.367 μs, StdErr = 0.025 μs (1.80%), N = 94, StdDev = 0.238 μs
+Min = 1.100 μs, Q1 = 1.200 μs, Median = 1.300 μs, Q3 = 1.475 μs, Max = 2.000 μs
+IQR = 0.275 μs, LowerFence = 0.787 μs, UpperFence = 1.887 μs
+ConfidenceInterval = [1.283 μs; 1.451 μs] (CI 99.9%), Margin = 0.084 μs (6.11% of Mean)
+Skewness = 1.05, Kurtosis = 3.28, MValue = 4.4
+-------------------- Histogram --------------------
+[1.031 μs ; 1.181 μs) | @@@@@@@@@@@@@@
+[1.181 μs ; 1.319 μs) | @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+[1.319 μs ; 1.381 μs) | 
+[1.381 μs ; 1.519 μs) | @@@@@@@@@@@@@@@@@@@@@
+[1.519 μs ; 1.581 μs) | 
+[1.581 μs ; 1.719 μs) | @@@@@@@@@@
+[1.719 μs ; 1.781 μs) | 
+[1.781 μs ; 1.919 μs) | @@@@@@
+[1.919 μs ; 2.069 μs) | @@@
+---------------------------------------------------
+
+AesEngineBenchmarks.Init: .NET Framework 4.8.1(Runtime=.NET Framework 4.8.1, InvocationCount=1, UnrollFactor=1)
+Runtime = ; GC = 
+There are not any results runs
+
+// * Summary *
+
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.7705/25H2/2025Update/HudsonValley2)
+13th Gen Intel Core i9-13900K 3.00GHz, 1 CPU, 32 logical and 24 physical cores
+.NET SDK 10.0.102
+  [Host]    : .NET 10.0.2 (10.0.2, 10.0.225.61305), X64 RyuJIT x86-64-v3
+  .NET 10.0 : .NET 10.0.2 (10.0.2, 10.0.225.61305), X64 RyuJIT x86-64-v3
+
+InvocationCount=1  UnrollFactor=1  
+
+| Method | Job                  | Runtime              | Mean     | Error     | StdDev    | Median   | Allocated |
+|------- |--------------------- |--------------------- |---------:|----------:|----------:|---------:|----------:|
+| Init   | .NET 10.0            | .NET 10.0            | 1.367 μs | 0.0836 μs | 0.2384 μs | 1.300 μs |     832 B |
+| Init   | .NET Framework 4.8.1 | .NET Framework 4.8.1 |       NA |        NA |        NA |       NA |        NA |
+
+Benchmarks with issues:
+  AesEngineBenchmarks.Init: .NET Framework 4.8.1(Runtime=.NET Framework 4.8.1, InvocationCount=1, UnrollFactor=1)
+
+// * Warnings *
+MultimodalDistribution
+  AesEngineBenchmarks.Init: .NET 10.0 -> It seems that the distribution is multimodal (mValue = 4.4)
+MinIterationTime
+  AesEngineBenchmarks.Init: .NET 10.0 -> The minimum observed iteration time is 1.2μs which is very small. It's recommended to increase it to at least 100ms using more operations.
+
+// * Hints *
+Outliers
+  AesEngineBenchmarks.Init: .NET 10.0 -> 6 outliers were removed (2.20 μs..2.50 μs)
+
+// * Legends *
+  Mean      : Arithmetic mean of all measurements
+  Error     : Half of 99.9% confidence interval
+  StdDev    : Standard deviation of all measurements
+  Median    : Value separating the higher half of all measurements (50th percentile)
+  Allocated : Allocated memory per single operation (managed only, inclusive, 1KB = 1024B)
+  1 μs      : 1 Microsecond (0.000001 sec)
+
+// * Diagnostic Output - MemoryDiagnoser *
+
+
+// ***** BenchmarkRunner: End *****
+Run time: 00:00:00 (0.43 sec), executed benchmarks: 1
+
+Global total time: 00:00:14 (14.21 sec), executed benchmarks: 1
+// * Artifacts cleanup *
+Artifacts cleanup is finished
