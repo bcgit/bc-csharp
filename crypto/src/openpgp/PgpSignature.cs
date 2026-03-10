@@ -446,7 +446,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public void Encode(Stream outStream, bool forTransfer)
         {
             // Exportable signatures MUST NOT be exported if forTransfer==true
-            if (forTransfer && (!GetHashedSubPackets().IsExportable() || !GetUnhashedSubPackets().IsExportable()))
+            if (forTransfer && (IsNotExportable(GetHashedSubPackets()) || IsNotExportable(GetUnhashedSubPackets())))
                 return;
 
             var bcpgOut = BcpgOutputStream.Wrap(outStream);
@@ -489,6 +489,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 return false;
             }
         }
+
+        private static bool IsNotExportable(PgpSignatureSubpacketVector subPackets) =>
+            subPackets != null && !subPackets.IsExportable();
 
         public static bool IsSignatureEncodingEqual(PgpSignature sig1, PgpSignature sig2)
         {
