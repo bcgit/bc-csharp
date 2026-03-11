@@ -1,14 +1,13 @@
 using System;
+using System.IO;
 using System.Runtime.Serialization;
 
-namespace Org.BouncyCastle.OpenSsl
+namespace Org.BouncyCastle.Security
 {
+    [Obsolete("Use Org.BouncyCastle.OpenSsl.PasswordException instead")]
     [Serializable]
     public class PasswordException
-        // TODO[api] Change to IOException
-#pragma warning disable CS0618 // Type or member is obsolete
-        : Security.PasswordException
-#pragma warning restore CS0618 // Type or member is obsolete
+        : IOException
     {
         public PasswordException()
             : base()
