@@ -130,6 +130,11 @@ namespace Org.BouncyCastle.OpenSsl
                 type = "PKCS7";
                 encoding = pkcsContentInfo.GetEncoded();
             }
+            else if (obj is Asn1.X9.X962Parameters x962Parameters)
+            {
+                type = "EC PARAMETERS";
+                encoding = x962Parameters.GetEncoded();
+            }
             else
             {
                 throw new PemGenerationException("Object type not supported: " + Platform.GetTypeName(obj));

@@ -35,21 +35,21 @@ namespace Org.BouncyCastle.OpenSsl
 
         static PemReader()
         {
-//			Parsers.Add("CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
-//			Parsers.Add("NEW CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
-//			Parsers.Add("CERTIFICATE", new X509CertificateParser(provider));
-//			Parsers.Add("X509 CERTIFICATE", new X509CertificateParser(provider));
-//			Parsers.Add("X509 CRL", new X509CRLParser(provider));
-//			Parsers.Add("PKCS7", new PKCS7Parser());
-//			Parsers.Add("ATTRIBUTE CERTIFICATE", new X509AttributeCertificateParser());
-//			Parsers.Add("EC PARAMETERS", new ECNamedCurveSpecParser());
-//			Parsers.Add("PUBLIC KEY", new PublicKeyParser(provider));
-//			Parsers.Add("RSA PUBLIC KEY", new RSAPublicKeyParser(provider));
-//			Parsers.Add("RSA PRIVATE KEY", new RSAKeyPairParser(provider));
-//			Parsers.Add("DSA PRIVATE KEY", new DSAKeyPairParser(provider));
-//			Parsers.Add("EC PRIVATE KEY", new ECDSAKeyPairParser(provider));
-//			Parsers.Add("ENCRYPTED PRIVATE KEY", new EncryptedPrivateKeyParser(provider));
-//			Parsers.Add("PRIVATE KEY", new PrivateKeyParser(provider));
+            //Parsers.Add("CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
+            //Parsers.Add("NEW CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
+            //Parsers.Add("CERTIFICATE", new X509CertificateParser(provider));
+            //Parsers.Add("X509 CERTIFICATE", new X509CertificateParser(provider));
+            //Parsers.Add("X509 CRL", new X509CRLParser(provider));
+            //Parsers.Add("PKCS7", new PKCS7Parser());
+            //Parsers.Add("ATTRIBUTE CERTIFICATE", new X509AttributeCertificateParser());
+            //Parsers.Add("EC PARAMETERS", new ECNamedCurveSpecParser());
+            //Parsers.Add("PUBLIC KEY", new PublicKeyParser(provider));
+            //Parsers.Add("RSA PUBLIC KEY", new RSAPublicKeyParser(provider));
+            //Parsers.Add("RSA PRIVATE KEY", new RSAKeyPairParser(provider));
+            //Parsers.Add("DSA PRIVATE KEY", new DSAKeyPairParser(provider));
+            //Parsers.Add("EC PRIVATE KEY", new ECDSAKeyPairParser(provider));
+            //Parsers.Add("ENCRYPTED PRIVATE KEY", new EncryptedPrivateKeyParser(provider));
+            //Parsers.Add("PRIVATE KEY", new PrivateKeyParser(provider));
         }
 
         private readonly IPasswordFinder pFinder;
@@ -59,8 +59,7 @@ namespace Org.BouncyCastle.OpenSsl
         *
         * @param reader the Reader
         */
-        public PemReader(
-            TextReader reader)
+        public PemReader(TextReader reader)
             : this(reader, null)
         {
         }
@@ -71,9 +70,7 @@ namespace Org.BouncyCastle.OpenSsl
         * @param reader the Reader
         * @param pFinder the password finder
         */
-        public PemReader(
-            TextReader		reader,
-            IPasswordFinder	pFinder)
+        public PemReader(TextReader reader, IPasswordFinder pFinder)
             : base(reader)
         {
             this.pFinder = pFinder;
@@ -87,50 +84,47 @@ namespace Org.BouncyCastle.OpenSsl
                 return null;
 
             // TODO Follow Java build and map to parser objects?
-//			if (parsers.Contains(obj.Type))
-//				return ((PemObjectParser)parsers[obj.Type]).ParseObject(obj);
+            //if (parsers.Contains(obj.Type))
+            //    return ((PemObjectParser)parsers[obj.Type]).ParseObject(obj);
 
             if (Platform.EndsWith(obj.Type, "PRIVATE KEY"))
                 return ReadPrivateKey(obj);
 
             switch (obj.Type)
             {
-                case "PUBLIC KEY":
-                    return ReadPublicKey(obj);
-                case "RSA PUBLIC KEY":
-                    return ReadRsaPublicKey(obj);
-                case "CERTIFICATE REQUEST":
-                case "NEW CERTIFICATE REQUEST":
-                    return ReadCertificateRequest(obj);
-                case "CERTIFICATE":
-                case "X509 CERTIFICATE":
-                    return ReadCertificate(obj);
-                case "PKCS7":
-                case "CMS":
-                    return ReadPkcs7(obj);
-                case "X509 CRL":
-                    return ReadCrl(obj);
-                case "ATTRIBUTE CERTIFICATE":
-                    return ReadAttributeCertificate(obj);
-                // TODO Add back in when tests done, and return type issue resolved
-                //case "EC PARAMETERS":
-                //	return ReadECParameters(obj);
-                default:
-                    throw new IOException("unrecognised object: " + obj.Type);
+            case "PUBLIC KEY":
+                return ReadPublicKey(obj);
+            case "RSA PUBLIC KEY":
+                return ReadRsaPublicKey(obj);
+            case "CERTIFICATE REQUEST":
+            case "NEW CERTIFICATE REQUEST":
+                return ReadCertificateRequest(obj);
+            case "CERTIFICATE":
+            case "X509 CERTIFICATE":
+                return ReadCertificate(obj);
+            case "PKCS7":
+            case "CMS":
+                return ReadPkcs7(obj);
+            case "X509 CRL":
+                return ReadCrl(obj);
+            case "ATTRIBUTE CERTIFICATE":
+                return ReadAttributeCertificate(obj);
+            case "EC PARAMETERS":
+                return ReadECParameters(obj);
+            default:
+                throw new IOException("unrecognised object: " + obj.Type);
             }
         }
 
-        private AsymmetricKeyParameter ReadRsaPublicKey(PemObject pemObject)
+        private static AsymmetricKeyParameter ReadRsaPublicKey(PemObject pemObject)
         {
             RsaPublicKeyStructure rsaPublicKey = RsaPublicKeyStructure.GetInstance(pemObject.Content);
 
             return new RsaKeyParameters(isPrivate: false, rsaPublicKey.Modulus, rsaPublicKey.PublicExponent);
         }
 
-        private AsymmetricKeyParameter ReadPublicKey(PemObject pemObject)
-        {
-            return PublicKeyFactory.CreateKey(pemObject.Content);
-        }
+        private static AsymmetricKeyParameter ReadPublicKey(PemObject pemObject) =>
+            PublicKeyFactory.CreateKey(pemObject.Content);
 
         /**
         * Reads in a X509Certificate.
@@ -138,7 +132,7 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the X509Certificate
         * @throws IOException if an I/O error occured
         */
-        private X509Certificate ReadCertificate(PemObject pemObject)
+        private static X509Certificate ReadCertificate(PemObject pemObject)
         {
             try
             {
@@ -156,7 +150,7 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the X509Certificate
         * @throws IOException if an I/O error occured
         */
-        private X509Crl ReadCrl(PemObject pemObject)
+        private static X509Crl ReadCrl(PemObject pemObject)
         {
             try
             {
@@ -174,7 +168,7 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the certificate request.
         * @throws IOException if an I/O error occured
         */
-        private Pkcs10CertificationRequest ReadCertificateRequest(PemObject pemObject)
+        private static Pkcs10CertificationRequest ReadCertificateRequest(PemObject pemObject)
         {
             try
             {
@@ -192,10 +186,11 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the X509 Attribute Certificate
         * @throws IOException if an I/O error occured
         */
-        private X509V2AttributeCertificate ReadAttributeCertificate(PemObject pemObject)
-        {
-            return new X509V2AttributeCertificate(pemObject.Content);
-        }
+        private static X509V2AttributeCertificate ReadAttributeCertificate(PemObject pemObject) =>
+            new X509V2AttributeCertificate(pemObject.Content);
+
+        private static X962Parameters ReadECParameters(PemObject pemObject) =>
+            X962Parameters.GetInstance(pemObject.Content);
 
         /**
         * Reads in a PKCS7 object. This returns a ContentInfo object suitable for use with the CMS
@@ -204,8 +199,8 @@ namespace Org.BouncyCastle.OpenSsl
         * @return the X509Certificate
         * @throws IOException if an I/O error occured
         */
-        // TODO Consider returning Asn1.Pkcs.ContentInfo
-        private Asn1.Cms.ContentInfo ReadPkcs7(PemObject pemObject)
+        // TODO[api] Consider returning Asn1.Pkcs.ContentInfo
+        private static Asn1.Cms.ContentInfo ReadPkcs7(PemObject pemObject)
         {
             try
             {
@@ -265,88 +260,88 @@ namespace Org.BouncyCastle.OpenSsl
 
                 switch (type)
                 {
-                    case "RSA":
+                case "RSA":
+                {
+                    if (seq.Count != 9)
+                        throw new PemException("malformed sequence in RSA private key");
+
+                    RsaPrivateKeyStructure rsa = RsaPrivateKeyStructure.GetInstance(seq);
+
+                    pubSpec = new RsaKeyParameters(false, rsa.Modulus, rsa.PublicExponent);
+                    privSpec = new RsaPrivateCrtKeyParameters(
+                        rsa.Modulus, rsa.PublicExponent, rsa.PrivateExponent,
+                        rsa.Prime1, rsa.Prime2, rsa.Exponent1, rsa.Exponent2,
+                        rsa.Coefficient);
+
+                    break;
+                }
+
+                case "DSA":
+                {
+                    if (seq.Count != 6)
+                        throw new PemException("malformed sequence in DSA private key");
+
+                    // TODO Create an ASN1 object somewhere for this?
+                    //DerInteger v = (DerInteger)seq[0];
+                    DerInteger p = (DerInteger)seq[1];
+                    DerInteger q = (DerInteger)seq[2];
+                    DerInteger g = (DerInteger)seq[3];
+                    DerInteger y = (DerInteger)seq[4];
+                    DerInteger x = (DerInteger)seq[5];
+
+                    DsaParameters parameters = new DsaParameters(p.Value, q.Value, g.Value);
+
+                    privSpec = new DsaPrivateKeyParameters(x.Value, parameters);
+                    pubSpec = new DsaPublicKeyParameters(y.Value, parameters);
+
+                    break;
+                }
+
+                case "EC":
+                {
+                    ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(seq);
+                    AlgorithmIdentifier algId = new AlgorithmIdentifier(
+                        X9ObjectIdentifiers.IdECPublicKey, pKey.Parameters);
+
+                    PrivateKeyInfo privInfo = new PrivateKeyInfo(algId, pKey.ToAsn1Object());
+
+                    // TODO Are the keys returned here ECDSA, as Java version forces?
+                    privSpec = PrivateKeyFactory.CreateKey(privInfo);
+
+                    DerBitString pubKey = pKey.PublicKey;
+                    if (pubKey != null)
                     {
-                        if (seq.Count != 9)
-                            throw new PemException("malformed sequence in RSA private key");
-
-                        RsaPrivateKeyStructure rsa = RsaPrivateKeyStructure.GetInstance(seq);
-
-                        pubSpec = new RsaKeyParameters(false, rsa.Modulus, rsa.PublicExponent);
-                        privSpec = new RsaPrivateCrtKeyParameters(
-                            rsa.Modulus, rsa.PublicExponent, rsa.PrivateExponent,
-                            rsa.Prime1, rsa.Prime2, rsa.Exponent1, rsa.Exponent2,
-                            rsa.Coefficient);
-
-                        break;
-                    }
-
-                    case "DSA":
-                    {
-                        if (seq.Count != 6)
-                            throw new PemException("malformed sequence in DSA private key");
-
-                        // TODO Create an ASN1 object somewhere for this?
-                        //DerInteger v = (DerInteger)seq[0];
-                        DerInteger p = (DerInteger)seq[1];
-                        DerInteger q = (DerInteger)seq[2];
-                        DerInteger g = (DerInteger)seq[3];
-                        DerInteger y = (DerInteger)seq[4];
-                        DerInteger x = (DerInteger)seq[5];
-
-                        DsaParameters parameters = new DsaParameters(p.Value, q.Value, g.Value);
-
-                        privSpec = new DsaPrivateKeyParameters(x.Value, parameters);
-                        pubSpec = new DsaPublicKeyParameters(y.Value, parameters);
-
-                        break;
-                    }
-
-                    case "EC":
-                    {
-                        ECPrivateKeyStructure pKey = ECPrivateKeyStructure.GetInstance(seq);
-                        AlgorithmIdentifier algId = new AlgorithmIdentifier(
-                            X9ObjectIdentifiers.IdECPublicKey, pKey.Parameters);
-
-                        PrivateKeyInfo privInfo = new PrivateKeyInfo(algId, pKey.ToAsn1Object());
+                        SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(algId, pubKey);
 
                         // TODO Are the keys returned here ECDSA, as Java version forces?
-                        privSpec = PrivateKeyFactory.CreateKey(privInfo);
-
-                        DerBitString pubKey = pKey.PublicKey;
-                        if (pubKey != null)
-                        {
-                            SubjectPublicKeyInfo pubInfo = new SubjectPublicKeyInfo(algId, pubKey);
-
-                            // TODO Are the keys returned here ECDSA, as Java version forces?
-                            pubSpec = PublicKeyFactory.CreateKey(pubInfo);
-                        }
-                        else
-                        {
-                            pubSpec = ECKeyPairGenerator.GetCorrespondingPublicKey(
-                                (ECPrivateKeyParameters)privSpec);
-                        }
-
-                        break;
+                        pubSpec = PublicKeyFactory.CreateKey(pubInfo);
                     }
-
-                    case "ENCRYPTED":
+                    else
                     {
-                        char[] password = pFinder.GetPassword();
-
-                        if (password == null)
-                            throw new PasswordException("Password is null, but a password is required");
-
-                        return PrivateKeyFactory.DecryptKey(password, EncryptedPrivateKeyInfo.GetInstance(seq));
+                        pubSpec = ECKeyPairGenerator.GetCorrespondingPublicKey(
+                            (ECPrivateKeyParameters)privSpec);
                     }
 
-                    case "":
-                    {
-                        return PrivateKeyFactory.CreateKey(PrivateKeyInfo.GetInstance(seq));
-                    }
+                    break;
+                }
 
-                    default:
-                        throw new ArgumentException("Unknown key type: " + type, "type");
+                case "ENCRYPTED":
+                {
+                    char[] password = pFinder.GetPassword();
+
+                    if (password == null)
+                        throw new PasswordException("Password is null, but a password is required");
+
+                    return PrivateKeyFactory.DecryptKey(password, EncryptedPrivateKeyInfo.GetInstance(seq));
+                }
+
+                case "":
+                {
+                    return PrivateKeyFactory.CreateKey(PrivateKeyInfo.GetInstance(seq));
+                }
+
+                default:
+                    throw new ArgumentException("Unknown key type: " + type, "type");
                 }
 
                 return new AsymmetricCipherKeyPair(pubSpec, privSpec);
