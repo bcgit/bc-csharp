@@ -396,7 +396,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 if (email2.IndexOf('@') != -1)
                 {
-                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
                     if (WithinDomain(_sub, email1))
                     {
                         intersect.Add(email2);
@@ -531,7 +531,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 if (email2.IndexOf('@') != -1)
                 {
-                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
                     if (WithinDomain(_sub, email1))
                     {
                         union.Add(email1);
@@ -577,7 +577,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 if (email2.IndexOf('@') != -1)
                 {
-                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
                     if (Platform.EqualsIgnoreCase(_sub, email1))
                     {
                         union.Add(email1);
@@ -1181,7 +1181,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 if (email2.IndexOf('@') != -1)
                 {
-                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
                     if (WithinDomain(_sub, email1))
                     {
                         intersect.Add(email2);
@@ -1308,7 +1308,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 if (email2.IndexOf('@') != -1)
                 {
-                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
                     if (WithinDomain(_sub, email1))
                     {
                         union.Add(email1);
@@ -1354,7 +1354,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 if (email2.IndexOf('@') != -1)
                 {
-                    string _sub = email2.Substring(email1.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
                     if (Platform.EqualsIgnoreCase(_sub, email1))
                     {
                         union.Add(email1);
