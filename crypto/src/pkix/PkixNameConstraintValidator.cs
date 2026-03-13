@@ -172,10 +172,10 @@ namespace Org.BouncyCastle.Pkix
         {
             if (excluded.Count < 1)
             {
-                if (dn == null)
-                    return excluded;
-
-                excluded.Add(dn);
+                if (dn != null)
+                {
+                    excluded.Add(dn);
+                }
                 return excluded;
             }
 
@@ -228,10 +228,7 @@ namespace Org.BouncyCastle.Pkix
             return false;
         }
 
-        private bool IsOtherNameConstrained(OtherName constraint, OtherName otherName)
-        {
-            return constraint.Equals(otherName);
-        }
+        private bool IsOtherNameConstrained(OtherName constraint, OtherName otherName) => constraint.Equals(otherName);
 
         private HashSet<OtherName> IntersectOtherName(HashSet<OtherName> permitted, HashSet<GeneralSubtree> otherNames)
         {
@@ -306,25 +303,24 @@ namespace Org.BouncyCastle.Pkix
 
         private bool IsEmailConstrained(string constraint, string email)
         {
-            string sub = email.Substring(email.IndexOf('@') + 1);
+            int atPos = constraint.IndexOf('@');
+
             // a particular mailbox
-            if (constraint.IndexOf('@') != -1)
-            {
-                if (string.Equals(email, constraint, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
-            // on particular host
-            else if (constraint[0] != '.')
-            {
-                if (string.Equals(sub, constraint, StringComparison.OrdinalIgnoreCase))
-                    return true;
-            }
+            if (atPos > 0)
+                return Platform.EqualsIgnoreCase(email, constraint);
+
+            string sub = email.Substring(email.IndexOf('@') + 1);
+
+            // "@domain" style
+            if (atPos == 0)
+                return Platform.EqualsIgnoreCase(sub, constraint.Substring(1));
+
             // address in sub domain
-            else if (WithinDomain(sub, constraint))
-            {
-                return true;
-            }
-            return false;
+            if (Platform.StartsWith(constraint, "."))
+                return WithinDomain(sub, constraint);
+
+            // on particular host
+            return Platform.EqualsIgnoreCase(sub, constraint);
         }
 
         private HashSet<string> IntersectEmail(HashSet<string> permitted, HashSet<GeneralSubtree> emails)
@@ -336,10 +332,7 @@ namespace Org.BouncyCastle.Pkix
 
                 if (permitted == null)
                 {
-                    if (email != null)
-                    {
-                        intersect.Add(email);
-                    }
+                    intersect.Add(email);
                 }
                 else
                 {
@@ -362,12 +355,15 @@ namespace Org.BouncyCastle.Pkix
          */
         private void IntersectEmail(string email1, string email2, HashSet<string> intersect)
         {
+            int email1AtPos = email1.IndexOf('@');
+            int email2AtPos = email2.IndexOf('@');
+
             // email1 is a particular address
-            if (email1.IndexOf('@') != -1)
+            if (email1AtPos != -1)
             {
-                string _sub = email1.Substring(email1.IndexOf('@') + 1);
+                string _sub = email1.Substring(email1AtPos + 1);
                 // both are a particular mailbox
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
                     if (Platform.EqualsIgnoreCase(email1, email2))
                     {
@@ -394,9 +390,9 @@ namespace Org.BouncyCastle.Pkix
             // email specifies a domain
             else if (Platform.StartsWith(email1, "."))
             {
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2AtPos + 1);
                     if (WithinDomain(_sub, email1))
                     {
                         intersect.Add(email2);
@@ -425,9 +421,9 @@ namespace Org.BouncyCastle.Pkix
             // email1 specifies a host
             else
             {
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2AtPos + 1);
                     if (Platform.EqualsIgnoreCase(_sub, email1))
                     {
                         intersect.Add(email2);
@@ -456,10 +452,10 @@ namespace Org.BouncyCastle.Pkix
         {
             if (excluded.Count < 1)
             {
-                if (email == null)
-                    return excluded;
-
-                excluded.Add(email);
+                if (email != null)
+                {
+                    excluded.Add(email);
+                }
                 return excluded;
             }
 
@@ -482,12 +478,15 @@ namespace Org.BouncyCastle.Pkix
          */
         private void UnionEmail(string email1, string email2, HashSet<string> union)
         {
+            int email1AtPos = email1.IndexOf('@');
+            int email2AtPos = email2.IndexOf('@');
+
             // email1 is a particular address
-            if (email1.IndexOf('@') != -1)
+            if (email1AtPos != -1)
             {
-                string _sub = email1.Substring(email1.IndexOf('@') + 1);
+                string _sub = email1.Substring(email1AtPos + 1);
                 // both are a particular mailbox
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
                     if (Platform.EqualsIgnoreCase(email1, email2))
                     {
@@ -529,9 +528,9 @@ namespace Org.BouncyCastle.Pkix
             // email1 specifies a domain
             else if (Platform.StartsWith(email1, "."))
             {
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2AtPos + 1);
                     if (WithinDomain(_sub, email1))
                     {
                         union.Add(email1);
@@ -575,9 +574,9 @@ namespace Org.BouncyCastle.Pkix
             // email specifies a host
             else
             {
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2AtPos + 1);
                     if (Platform.EqualsIgnoreCase(_sub, email1))
                     {
                         union.Add(email1);
@@ -719,16 +718,17 @@ namespace Org.BouncyCastle.Pkix
                 byte[] ip = Asn1OctetString.GetInstance(subtree.Base.Name).GetOctets();
                 if (permitted == null)
                 {
-                    if (ip != null)
-                    {
-                        intersect.Add(ip);
-                    }
+                    intersect.Add(ip);
                 }
                 else
                 {
                     foreach (byte[] _permitted in permitted)
                     {
-                        intersect.UnionWith(IntersectIPRange(_permitted, ip));
+                        var intersection = IntersectIPRange(_permitted, ip);
+                        if (intersection != null)
+                        {
+                            intersect.Add(intersection);
+                        }
                     }
                 }
             }
@@ -743,10 +743,10 @@ namespace Org.BouncyCastle.Pkix
          * @return A <code>Set</code> with the single IP address with its subnet
          *         mask as a byte array or an empty <code>Set</code>.
          */
-        private HashSet<byte[]> IntersectIPRange(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
+        private byte[] IntersectIPRange(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
         {
             if (ipWithSubmask1.Length != ipWithSubmask2.Length)
-                return new HashSet<byte[]>();
+                return null;
 
             byte[][] temp = ExtractIPsAndSubnetMasks(ipWithSubmask1, ipWithSubmask2);
             byte[] ip1 = temp[0];
@@ -762,19 +762,13 @@ namespace Org.BouncyCastle.Pkix
 
             // minimum IP address must be bigger than max
             if (CompareTo(min, max) == 1)
-            {
-                //return Collections.EMPTY_SET;
-                return new HashSet<byte[]>();
-            }
+                return null;
+
             // OR keeps all significant bits
             byte[] ip = Or(minMax[0], minMax[2]);
             byte[] subnetmask = Or(subnetmask1, subnetmask2);
 
-            //return new HashSet( ICollectionsingleton(IpWithSubnetMask(ip, subnetmask));
-            var hs = new HashSet<byte[]>();
-            hs.Add(IpWithSubnetMask(ip, subnetmask));
-
-            return hs;
+            return IpWithSubnetMask(ip, subnetmask);
         }
 
         /**
@@ -791,10 +785,10 @@ namespace Org.BouncyCastle.Pkix
         {
             if (excluded.Count < 1)
             {
-                if (ip == null)
-                    return excluded;
-
-                excluded.Add(ip);
+                if (ip != null)
+                {
+                    excluded.Add(ip);
+                }
                 return excluded;
             }
 
@@ -853,9 +847,7 @@ namespace Org.BouncyCastle.Pkix
          * @return An array with two elements. Each element contains the IP address
          *         and the subnet mask in this order.
          */
-        private byte[][] ExtractIPsAndSubnetMasks(
-            byte[] ipWithSubmask1,
-            byte[] ipWithSubmask2)
+        private byte[][] ExtractIPsAndSubnetMasks(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
         {
             int ipLength = ipWithSubmask1.Length / 2;
             byte[] ip1 = new byte[ipLength];
@@ -883,11 +875,7 @@ namespace Org.BouncyCastle.Pkix
          *         min and max IP address of the first/second IP address and its
          *         subnet mask.
          */
-        private byte[][] MinMaxIPs(
-            byte[] ip1,
-            byte[] subnetmask1,
-            byte[] ip2,
-            byte[] subnetmask2)
+        private byte[][] MinMaxIPs(byte[] ip1, byte[] subnetmask1, byte[] ip2, byte[] subnetmask2)
         {
             int ipLength = ip1.Length;
             byte[] min1 = new byte[ipLength];
@@ -1020,12 +1008,10 @@ namespace Org.BouncyCastle.Pkix
             foreach (GeneralSubtree subtree in dnss)
             {
                 string dns = ExtractNameAsString(subtree.Base);
+
                 if (permitted == null)
                 {
-                    if (dns != null)
-                    {
-                        intersect.Add(dns);
-                    }
+                    intersect.Add(dns);
                 }
                 else
                 {
@@ -1049,10 +1035,10 @@ namespace Org.BouncyCastle.Pkix
         {
             if (excluded.Count < 1)
             {
-                if (dns == null)
-                    return excluded;
-
-                excluded.Add(dns);
+                if (dns != null)
+                {
+                    excluded.Add(dns);
+                }
                 return excluded;
             }
 
@@ -1111,11 +1097,9 @@ namespace Org.BouncyCastle.Pkix
         {
             string host = ExtractHostFromURL(uri);
 
+            // in sub domain or domain
             if (Platform.StartsWith(constraint, "."))
-            {
-                // in sub domain or domain
                 return WithinDomain(host, constraint);
-            }
 
             // a host
             return Platform.EqualsIgnoreCase(host, constraint);
@@ -1127,12 +1111,10 @@ namespace Org.BouncyCastle.Pkix
             foreach (GeneralSubtree subtree in uris)
             {
                 string uri = ExtractNameAsString(subtree.Base);
+
                 if (permitted == null)
                 {
-                    if (uri != null)
-                    {
-                        intersect.Add(uri);
-                    }
+                    intersect.Add(uri);
                 }
                 else
                 {
@@ -1147,12 +1129,15 @@ namespace Org.BouncyCastle.Pkix
 
         private void IntersectUri(string email1, string email2, HashSet<string> intersect)
         {
+            int email1AtPos = email1.IndexOf('@');
+            int email2AtPos = email2.IndexOf('@');
+
             // email1 is a particular address
-            if (email1.IndexOf('@') != -1)
+            if (email1AtPos != -1)
             {
-                string _sub = email1.Substring(email1.IndexOf('@') + 1);
+                string _sub = email1.Substring(email1AtPos + 1);
                 // both are a particular mailbox
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
                     if (Platform.EqualsIgnoreCase(email1, email2))
                     {
@@ -1179,9 +1164,9 @@ namespace Org.BouncyCastle.Pkix
             // email specifies a domain
             else if (Platform.StartsWith(email1, "."))
             {
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2AtPos + 1);
                     if (WithinDomain(_sub, email1))
                     {
                         intersect.Add(email2);
@@ -1210,9 +1195,9 @@ namespace Org.BouncyCastle.Pkix
             // email1 specifies a host
             else
             {
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2AtPos + 1);
                     if (Platform.EqualsIgnoreCase(_sub, email1))
                     {
                         intersect.Add(email2);
@@ -1241,10 +1226,10 @@ namespace Org.BouncyCastle.Pkix
         {
             if (excluded.Count < 1)
             {
-                if (uri == null)
-                    return excluded;
-
-                excluded.Add(uri);
+                if (uri != null)
+                {
+                    excluded.Add(uri);
+                }
                 return excluded;
             }
 
@@ -1258,12 +1243,15 @@ namespace Org.BouncyCastle.Pkix
 
         private void UnionUri(string email1, string email2, HashSet<string> union)
         {
+            int email1AtPos = email1.IndexOf('@');
+            int email2AtPos = email2.IndexOf('@');
+
             // email1 is a particular address
-            if (email1.IndexOf('@') != -1)
+            if (email1AtPos != -1)
             {
-                string _sub = email1.Substring(email1.IndexOf('@') + 1);
+                string _sub = email1.Substring(email1AtPos + 1);
                 // both are a particular mailbox
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
                     if (Platform.EqualsIgnoreCase(email1, email2))
                     {
@@ -1306,9 +1294,9 @@ namespace Org.BouncyCastle.Pkix
             // email1 specifies a domain
             else if (Platform.StartsWith(email1, "."))
             {
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2AtPos + 1);
                     if (WithinDomain(_sub, email1))
                     {
                         union.Add(email1);
@@ -1352,9 +1340,9 @@ namespace Org.BouncyCastle.Pkix
             // email specifies a host
             else
             {
-                if (email2.IndexOf('@') != -1)
+                if (email2AtPos != -1)
                 {
-                    string _sub = email2.Substring(email2.IndexOf('@') + 1);
+                    string _sub = email2.Substring(email2AtPos + 1);
                     if (Platform.EqualsIgnoreCase(_sub, email1))
                     {
                         union.Add(email1);
@@ -1400,23 +1388,25 @@ namespace Org.BouncyCastle.Pkix
             // remove ':' after protocol, e.g. http:
             string sub = url.Substring(url.IndexOf(':') + 1);
             // extract host from Common Internet Scheme Syntax, e.g. http://
-            int idxOfSlashes = Platform.IndexOf(sub, "//");
-            if (idxOfSlashes != -1)
+            int slashesPos = sub.IndexOf("//");
+            if (slashesPos != -1)
             {
-                sub = sub.Substring(idxOfSlashes + 2);
+                sub = sub.Substring(slashesPos + 2);
             }
             // first remove port, e.g. http://test.com:21
-            if (sub.LastIndexOf(':') != -1)
+            int portColonPos = sub.LastIndexOf(':');
+            if (portColonPos != -1)
             {
-                sub = sub.Substring(0, sub.LastIndexOf(':'));
+                sub = sub.Substring(0, portColonPos);
             }
             // remove user and password, e.g. http://john:password@test.com
             sub = sub.Substring(sub.IndexOf(':') + 1);
             sub = sub.Substring(sub.IndexOf('@') + 1);
             // remove local parts, e.g. http://test.com/bla
-            if (sub.IndexOf('/') != -1)
+            int slashPos = sub.IndexOf('/');
+            if (slashPos != -1)
             {
-                sub = sub.Substring(0, sub.IndexOf('/'));
+                sub = sub.Substring(0, slashPos);
             }
             return sub;
         }
@@ -1491,6 +1481,7 @@ namespace Org.BouncyCastle.Pkix
             case GeneralName.IPAddress:
                 CheckPermittedIP(permittedSubtreesIP, Asn1OctetString.GetInstance(name.Name).GetOctets());
                 break;
+            // Other tags ignored
             }
         }
 
@@ -1532,6 +1523,7 @@ namespace Org.BouncyCastle.Pkix
             case GeneralName.IPAddress:
                 CheckExcludedIP(excludedSubtreesIP, Asn1OctetString.GetInstance(name.Name).GetOctets());
                 break;
+            // Other tags ignored
             }
         }
 
@@ -1590,11 +1582,6 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        private string ExtractNameAsString(GeneralName name)
-        {
-            return DerIA5String.GetInstance(name.Name).GetString();
-        }
-
         public void IntersectEmptyPermittedSubtree(int nameType)
         {
             switch (nameType)
@@ -1636,20 +1623,16 @@ namespace Org.BouncyCastle.Pkix
                     OtherName.GetInstance(subTreeBase.Name));
                 break;
             case GeneralName.Rfc822Name:
-                excludedSubtreesEmail = UnionEmail(excludedSubtreesEmail,
-                    ExtractNameAsString(subTreeBase));
+                excludedSubtreesEmail = UnionEmail(excludedSubtreesEmail, ExtractNameAsString(subTreeBase));
                 break;
             case GeneralName.DnsName:
-                excludedSubtreesDns = UnionDns(excludedSubtreesDns,
-                    ExtractNameAsString(subTreeBase));
+                excludedSubtreesDns = UnionDns(excludedSubtreesDns, ExtractNameAsString(subTreeBase));
                 break;
             case GeneralName.DirectoryName:
-                excludedSubtreesDN = UnionDN(excludedSubtreesDN,
-                    (Asn1Sequence)subTreeBase.Name.ToAsn1Object());
+                excludedSubtreesDN = UnionDN(excludedSubtreesDN, (Asn1Sequence)subTreeBase.Name.ToAsn1Object());
                 break;
             case GeneralName.UniformResourceIdentifier:
-                excludedSubtreesUri = UnionUri(excludedSubtreesUri,
-                    ExtractNameAsString(subTreeBase));
+                excludedSubtreesUri = UnionUri(excludedSubtreesUri, ExtractNameAsString(subTreeBase));
                 break;
             case GeneralName.IPAddress:
                 excludedSubtreesIP = UnionIP(excludedSubtreesIP,
@@ -1878,5 +1861,7 @@ namespace Org.BouncyCastle.Pkix
             sb.Append(value);
             sb.AppendLine();
         }
+
+        private static string ExtractNameAsString(GeneralName name) => DerIA5String.GetInstance(name.Name).GetString();
     }
 }
