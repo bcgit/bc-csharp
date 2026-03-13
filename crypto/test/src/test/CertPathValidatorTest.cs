@@ -6,9 +6,11 @@ using NUnit.Framework;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
+using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Tests
 {
@@ -16,7 +18,7 @@ namespace Org.BouncyCastle.Tests
     public class CertPathValidatorTest
         : SimpleTest
     {
-        private byte[] AC_PR = Base64.Decode(
+        private readonly byte[] AC_PR = Base64.Decode(
             "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlFU1RDQ0F6R2dBd0lC"
             + "QWdJQkJUQU5CZ2txaGtpRzl3MEJBUVVGQURDQnRERUxNQWtHQTFVRUJoTUNR"
             + "bEl4DQpFekFSQmdOVkJBb1RDa2xEVUMxQ2NtRnphV3d4UFRBN0JnTlZCQXNU"
@@ -53,7 +55,7 @@ namespace Org.BouncyCastle.Tests
             + "Nm1Sc0ZjcXRGaWdScjVFcmtKZDdoUVV6eHNOV0VrNzJEVUFIcVgvNlNjeWtt"
             + "SkR2V0plSUpqZlcNCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0NCg==");
 
-        private byte[] AC_RAIZ_ICPBRASIL = Base64.Decode(
+        private readonly byte[] AC_RAIZ_ICPBRASIL = Base64.Decode(
             "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tDQpNSUlFdURDQ0E2Q2dBd0lC"
             + "QWdJQkJEQU5CZ2txaGtpRzl3MEJBUVVGQURDQnRERUxNQWtHQTFVRUJoTUNR"
             + "bEl4DQpFekFSQmdOVkJBb1RDa2xEVUMxQ2NtRnphV3d4UFRBN0JnTlZCQXNU"
@@ -94,7 +96,7 @@ namespace Org.BouncyCastle.Tests
             + "QkdIRjEvUzVubVBiDQpLKzlBNDZzZDMzb3FLOG44DQotLS0tLUVORCBDRVJU"
             + "SUZJQ0FURS0tLS0tDQo=");
 
-        private byte[] schefer = Base64.Decode(
+        private readonly byte[] schefer = Base64.Decode(
             "MIIEnDCCBAWgAwIBAgICIPAwDQYJKoZIhvcNAQEEBQAwgcAxCzAJBgNVBAYT"
             + "AkRFMQ8wDQYDVQQIEwZIRVNTRU4xGDAWBgNVBAcTDzY1MDA4IFdpZXNiYWRl"
             + "bjEaMBgGA1UEChMRU0NIVUZBIEhPTERJTkcgQUcxGjAYBgNVBAsTEVNDSFVG"
@@ -123,8 +125,77 @@ namespace Org.BouncyCastle.Tests
             + "GkeB/m+FArTwRbwpqhCNTwZywOp0eDosgPjCX1t53BB/m/2EYkRiYdDGsot0"
             + "kQPOVGSjQSQ4+/D+TM8=");
 
+        // circular dependency certificates
+        private readonly byte[] CircCA = Base64.Decode(
+            "MIIDTzCCAjegAwIBAgIDARAAMA0GCSqGSIb3DQEBBQUAMDkxCzAJBgNVBAYT"
+            + "AkZSMRAwDgYDVQQKEwdHSVAtQ1BTMRgwFgYDVQQLEw9HSVAtQ1BTIEFOT05Z"
+            + "TUUwHhcNMDQxMDExMDAwMDAxWhcNMTQxMjMxMjM1OTU5WjA5MQswCQYDVQQG"
+            + "EwJGUjEQMA4GA1UEChMHR0lQLUNQUzEYMBYGA1UECxMPR0lQLUNQUyBBTk9O"
+            + "WU1FMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA3WyWDwcM58aU"
+            + "hPX4ueI1mwETt3WdQtMfIdRiCXeBrjCkYCc7nIgCmGbnfTzXSplHRgKColWh"
+            + "q/Z+1rHYayje1gjAEU2+4/r1P2pnBmPgquDuguktCIbDtCcGZu0ylyKeHh37"
+            + "aeIKzkcmRSLRzvGf/eO3RdFksrvaPaSjqCVfGRXVDKK2uftE8rIFJE+bCqow"
+            + "6+WiaAaDDiJaSJPuu5hC1NA5jw0/BFodlCuAvl1GJ8A+TICkYWcSpKS9bkSC"
+            + "0i8xdGbSSk94shA1PdDvRdFMfFys8g4aupBXV8yqqEAUkBYmOtZSJckc3W4y"
+            + "2Gx53y7vY07Xh63mcgtJs2T82WJICwIDAQABo2AwXjAdBgNVHQ4EFgQU8c/P"
+            + "NNJaL0srd9SwHwgtvwPB/3cwDgYDVR0PAQH/BAQDAgIEMBkGA1UdIAQSMBAw"
+            + "DgYMKoF6AUcDBwgAAAABMBIGA1UdEwEB/wQIMAYBAf8CAQEwDQYJKoZIhvcN"
+            + "AQEFBQADggEBAHRjYDPJKlfUzID0YzajZpgR/i2ngJrJqYeaWCmwzBgNUPad"
+            + "uBKSGHmPVg21sfULMSnirnR+e90i/D0EVzLwQzcbjPDD/85rp9QDCeMxqqPe"
+            + "9ZCHGs2BpE/HOQMP0QfQ3/Kpk7SvOH/ZcpIf6+uE6lLBQYAGs5cxvtTGOzZk"
+            + "jCVFG+TrAnF4V5sNkn3maCWiYLmyqcnxtKEFSONy2bYqqudx/dBBlRrDbRfZ"
+            + "9XsCBdiXAHY1hFHldbfDs8rslmkXJi3fJC028HZYB6oiBX/JE7BbMk7bRnUf"
+            + "HSpP7Sjxeso2SY7Yit+hQDVAlqTDGmh6kLt/hQMpsOMry4vgBL6XHKw=");
+
+        private readonly byte[] CircCrlCA = Base64.Decode(
+            "MIIDXDCCAkSgAwIBAgIDASAAMA0GCSqGSIb3DQEBBQUAMDkxCzAJBgNVBAYT"
+            + "AkZSMRAwDgYDVQQKEwdHSVAtQ1BTMRgwFgYDVQQLEw9HSVAtQ1BTIEFOT05Z"
+            + "TUUwHhcNMDQxMDExMDAwMDAxWhcNMTQxMjMxMjM1OTU5WjA5MQswCQYDVQQG"
+            + "EwJGUjEQMA4GA1UEChMHR0lQLUNQUzEYMBYGA1UECxMPR0lQLUNQUyBBTk9O"
+            + "WU1FMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAwfEcFK0g7Kfo"
+            + "o5f2IBF7VEd/AG+RVGSds0Yg+u2kNYu4k04HR/+tOdBQtJvyr4W5jrQKsC5X"
+            + "skeFWMyWaFKzAjZDWB52HWp/kiMivGcxnYDuYf5piukSC+d2+vL8YaAphDzV"
+            + "HPnxEKqoM/J66uUussDTqfcL3JC/Bc7kBwn4srrsZOsamMWTQQtEqVQxNN7A"
+            + "ROSRsdiTt3hMOKditc9/NBNmjZWxgc7Twr/SaZ8CfN5wf2wuOl23knWL0QsJ"
+            + "0lSMBSBTzTcfAke4/jIT7d4nVMp3t7dsna8rt56pFK4wpRFGuCt+1P5gi51x"
+            + "xVSdI+JoNXv6zGO4o8YVaRpC5rQeGQIDAQABo20wazAfBgNVHSMEGDAWgBTx"
+            + "z8800lovSyt31LAfCC2/A8H/dzAdBgNVHQ4EFgQUGa3SbBrJx/wa2MQwhWPl"
+            + "dwLw1+IwDgYDVR0PAQH/BAQDAgECMBkGA1UdIAQSMBAwDgYMKoF6AUcDBwgA"
+            + "AAABMA0GCSqGSIb3DQEBBQUAA4IBAQAPDpYe2WPYnXTLsXSIUREBNMLmg+/7"
+            + "4Yhq9uOm5Hb5LVkDuHoEHGfmpXXEvucx5Ehu69hw+F4YSrd9wPjOiG8G6GXi"
+            + "RcrK8nE8XDvvV+E1HpJ7NKN4fSAoSb+0gliiq3aF15bvXP8nfespdd/x1xWQ"
+            + "mpYCx/mJeuqONQv2/D/7hfRKYoDBaAkWGodenPFPVs6FxwnEuH2R+KWCUdA9"
+            + "L04v8JBeL3kZiALkU7+DCCm7A0imUAgeeArbAbfIPu6eDygm+XndZ9qi7o4O"
+            + "AntPxrqbeXFIbDrQ4GV1kpxnW+XpSGDd96SWKe715gxkkDBppR5IKYJwRb6O"
+            + "1TRQIf2F+muQ");
+
+        private readonly byte[] CircCrl = Base64.Decode(
+            "MIIB1DCBvQIBATANBgkqhkiG9w0BAQUFADA5MQswCQYDVQQGEwJGUjEQMA4G"
+            + "A1UEChMHR0lQLUNQUzEYMBYGA1UECxMPR0lQLUNQUyBBTk9OWU1FFw0xMDAx"
+            + "MDcwMzAwMTVaFw0xMDAxMTMwMzAwMTVaMACgTjBMMB8GA1UdIwQYMBaAFBmt"
+            + "0mwaycf8GtjEMIVj5XcC8NfiMAsGA1UdFAQEAgILgzAcBgNVHRIEFTATgRFh"
+            + "Yy1naXBAZ2lwLWNwcy5mcjANBgkqhkiG9w0BAQUFAAOCAQEAtF1DdFl1MQvf"
+            + "vNkbrCPuppNYcHen4+za/ZDepKuwHsH/OpKuaDJc4LndRgd5IwzfpCHkQGzt"
+            + "shK50bakN8oaYJgthKIOIJzR+fn6NMjftfR2a27Hdk2o3eQXRHQ360qMbpSy"
+            + "qPb3WfuBhxO2/DlLChJP+OxZIHtT/rNYgE0tlIv7swYi81Gq+DafzaZ9+A5t"
+            + "I0L2Gp/NUDsp5dF6PllAGiXQzl27qkcu+r50w+u0gul3nobXgbwPcMSYuWUz"
+            + "1lhA+uDn/EUWV4RSiJciCGSS10WCkFh1/YPo++mV15KDB0m+8chscrSu/bAl"
+            + "B19LxL/pCX3qr5iLE9ss3olVImyFZg==");
+
+        public override string Name => "CertPathValidator";
+
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
         public override void PerformTest()
         {
+            ImplConstraintTest();
+
             X509CertificateParser certParser = new X509CertificateParser();
             X509CrlParser crlParser = new X509CrlParser();
 
@@ -248,26 +319,118 @@ namespace Org.BouncyCastle.Tests
             }
             catch (Exception e)
             {
-                if (e is PkixCertPathValidatorException 
-                    && e.Message.StartsWith("Could not validate certificate signature."))
+                if (!(e is PkixCertPathValidatorException 
+                    && e.Message.StartsWith("Could not validate certificate signature.")))
                 {
-                    return;
+                    Fail("unexpected exception", e);
                 }
-                Fail("unexpected exception", e);
             }
+
+            ImplCheckCircProcessing();
+            ImplCheckPolicyProcessingAtDomainMatch();
         }
 
-        public override string Name
+        private void ImplCheckCircProcessing()
         {
-            get { return "CertPathValidator"; }
+            X509CertificateParser certParser = new X509CertificateParser();
+            X509CrlParser crlParser = new X509CrlParser();
+
+            X509Certificate caCert = certParser.ReadCertificate(CircCA);
+            X509Certificate crlCACert = certParser.ReadCertificate(CircCrlCA);
+            X509Crl crl = crlParser.ReadCrl(CircCrl);
+
+            var x509Certs = new List<X509Certificate>();
+            x509Certs.Add(caCert);
+            x509Certs.Add(crlCACert);
+
+            var x509Crls = new List<X509Crl>();
+            x509Crls.Add(crl);
+
+            var x509CertStore = CollectionUtilities.CreateStore(x509Certs);
+            var x509CrlStore = CollectionUtilities.CreateStore(x509Crls);
+
+            var validDate = crl.ThisUpdate.AddHours(1);
+
+            //validating path
+            var certchain = new List<X509Certificate>();
+            certchain.Add(crlCACert);
+            var certPath = new PkixCertPath(certchain);
+
+            var trust = new HashSet<TrustAnchor>();
+            trust.Add(new TrustAnchor(caCert, null));
+
+            var certPathValidator = new PkixCertPathValidator();
+
+            X509CertStoreSelector certSelector = new X509CertStoreSelector();
+            certSelector.Certificate = crlCACert;
+
+            PkixBuilderParameters pkixParams = new PkixBuilderParameters(trust, null);
+            pkixParams.SetTargetConstraintsCert(certSelector);
+            pkixParams.AddStoreCert(x509CertStore);
+            pkixParams.AddStoreCrl(x509CrlStore);
+            pkixParams.IsRevocationEnabled = true;
+            pkixParams.Date = validDate;
+
+            var result = certPathValidator.Validate(certPath, pkixParams);
+            IsTrue(result != null);
         }
 
-        [Test]
-        public void TestFunction()
+        private void ImplCheckPolicyProcessingAtDomainMatch()
         {
-            string resultText = Perform().ToString();
+            X509CertificateParser certParser = new X509CertificateParser();
 
-            Assert.AreEqual(Name + ": Okay", resultText);
+            var root = certParser.ReadCertificate(GetTestDataAsStream("qvRooCa3.crt"));
+            var ca1 = certParser.ReadCertificate(GetTestDataAsStream("suvaRoot1.crt"));
+            var ca2 = certParser.ReadCertificate(GetTestDataAsStream("suvaEmail1.crt"));
+            var ee = certParser.ReadCertificate(GetTestDataAsStream("suvaEE.crt"));
+
+            var validDate = DateTimeUtilities.UnixMsToDateTime(0x156445410b4L); // around 1st August 2016
+
+            var certchain = new List<X509Certificate>();
+            certchain.Add(ee);
+            certchain.Add(ca2);
+            certchain.Add(ca1);
+            var certPath = new PkixCertPath(certchain);
+
+            var trust = new HashSet<TrustAnchor>();
+            trust.Add(new TrustAnchor(root, null));
+
+            var certPathValidator = new PkixCertPathValidator();
+
+            var pkixParams = new PkixParameters(trust);
+            pkixParams.IsRevocationEnabled = false;
+            pkixParams.Date = validDate;
+
+            var checker = new MyChecker();
+            pkixParams.AddCertPathChecker(checker);
+
+            var result = certPathValidator.Validate(certPath, pkixParams);
+            IsTrue(result != null);
+        }
+
+        private void ImplConstraintTest()
+        {
+            X509CertificateParser certParser = new X509CertificateParser();
+
+            var rootCert = certParser.ReadCertificate(GetTestDataAsStream("CERT_CI_ECDSA_NIST.pem"));
+            var interCert = certParser.ReadCertificate(GetTestDataAsStream("CERT_EUM_ECDSA_NIST.pem"));
+            var finalCert = certParser.ReadCertificate(GetTestDataAsStream("CERT_EUICC_ECDSA_NIST.pem"));
+
+            var certchain = new List<X509Certificate>();
+            certchain.Add(interCert);
+            certchain.Add(finalCert);
+            var certPath = new PkixCertPath(certchain);
+
+            var trust = new HashSet<TrustAnchor>();
+            trust.Add(new TrustAnchor(rootCert, null));
+
+            var certPathValidator = new PkixCertPathValidator();
+
+            var pkixParams = new PkixParameters(trust);
+            pkixParams.IsRevocationEnabled = false;
+
+            var result = certPathValidator.Validate(certPath, pkixParams);
+            IsTrue(result != null);
         }
 
         private class MyChecker
