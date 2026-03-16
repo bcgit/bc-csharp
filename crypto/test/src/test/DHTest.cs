@@ -2,6 +2,7 @@ using System;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -11,14 +12,12 @@ using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tests
 {
     [TestFixture]
     public class DHTest
-        : SimpleTest
     {
         private static readonly BigInteger g512 = new BigInteger("153d5d6172adb43045b68ae8e1de1070b6137005686d29d3d73a7749199681ee5b212c9b96bfdcfa5b20cd5e3fd2044895d609cf9b410b7a0f12ca1cb9a428cc", 16);
         private static readonly BigInteger p512 = new BigInteger("9494fec095f3b85ee286542b3836fc81a5dd0a0349b4c239dd38744d488cf8e31db8bcb7d33b41abb9e5a33cca9144b1cef332c94bf0573bf047a3aca98cdf3b", 16);
@@ -30,7 +29,7 @@ namespace Org.BouncyCastle.Tests
         private static readonly BigInteger p1024 = new BigInteger("a00e283b3c624e5b2b4d9fbc2653b5185d99499b00fd1bf244c6f0bb817b4d1c451b2958d62a0f8a38caef059fb5ecd25d75ed9af403f5b5bdab97a642902f824e3c13789fed95fa106ddfe0ff4a707c85e2eb77d49e68f2808bcea18ce128b178cd287c6bc00efa9a1ad2a673fe0dceace53166f75b81d6709d5f8af7c66bb7", 16);
 
         // public key with mismatched oid/parameters
-        private byte[] oldPubEnc = Base64.Decode(
+        private readonly byte[] oldPubEnc = Base64.Decode(
             "MIIBnzCCARQGByqGSM4+AgEwggEHAoGBAPxSrN417g43VAM9sZRf1dt6AocAf7D6" +
             "WVCtqEDcBJrMzt63+g+BNJzhXVtbZ9kp9vw8L/0PHgzv0Ot/kOLX7Khn+JalOECW" +
             "YlkyBhmOVbjR79TY5u2GAlvG6pqpizieQNBCEMlUuYuK1Iwseil6VoRuA13Zm7uw" +
@@ -42,7 +41,7 @@ namespace Org.BouncyCastle.Tests
             "NNhN2O62TLs67msxT28S4/S89+LMtc98mevQ2SX+JF3wEVU=");
 
         // bogus key with full PKCS parameter set
-        private byte[] oldFullParams = Base64.Decode(
+        private readonly byte[] oldFullParams = Base64.Decode(
             "MIIBIzCCARgGByqGSM4+AgEwggELAoGBAP1/U4EddRIpUt9KnC7s5Of2EbdSPO9E" +
             "AMMeP4C2USZpRV1AIlH7WT2NWPq/xfW6MPbLm1Vs14E7gB00b/JmYLdrmVClpJ+f" +
             "6AR7ECLCT7up1/63xhv4O1fnxqimFQ8E+4P208UewwI1VBNaFpEy9nXzrith1yrv" +
@@ -51,7 +50,7 @@ namespace Org.BouncyCastle.Tests
             "fwv6ITVi8ftiegEkO8yk8b6oUZCJqIPf4VrlnwaSi2ZegHtVJWQBTDv+z0kqAgFk" +
             "AwUAAgIH0A==");
 
-        private byte[] samplePubEnc = Base64.Decode(
+        private readonly byte[] samplePubEnc = Base64.Decode(
             "MIIBpjCCARsGCSqGSIb3DQEDATCCAQwCgYEA/X9TgR11EilS30qcLuzk5/YRt1I8" +
             "70QAwx4/gLZRJmlFXUAiUftZPY1Y+r/F9bow9subVWzXgTuAHTRv8mZgt2uZUKWk" +
             "n5/oBHsQIsJPu6nX/rfGG/g7V+fGqKYVDwT7g/bTxR7DAjVUE1oWkTL2dfOuK2HX" +
@@ -62,7 +61,7 @@ namespace Org.BouncyCastle.Tests
             "lZhNs++d0VPATLAyXovjfgENT9SGCbuZttYcqqLdKTbMXBWPek+rfnAl9E4iEMED" +
             "IDd83FJTKs9hQcPAm7zmp0Xm1bGF9CbUFjP5G02265z7eBmHDaT0SNlB");
 
-        private byte[] samplePrivEnc = Base64.Decode(
+        private readonly byte[] samplePrivEnc = Base64.Decode(
             "MIIBZgIBADCCARsGCSqGSIb3DQEDATCCAQwCgYEA/X9TgR11EilS30qcLuzk5/YR" +
             "t1I870QAwx4/gLZRJmlFXUAiUftZPY1Y+r/F9bow9subVWzXgTuAHTRv8mZgt2uZ" +
             "UKWkn5/oBHsQIsJPu6nX/rfGG/g7V+fGqKYVDwT7g/bTxR7DAjVUE1oWkTL2dfOu" +
@@ -72,22 +71,14 @@ namespace Org.BouncyCastle.Tests
             "SSoCAgIABEICQAZYXnBHazxXUUdFP4NIf2Ipu7du0suJPZQKKff81wymi2zfCfHh" +
             "uhe9gQ9xdm4GpzeNtrQ8/MzpTy+ZVrtd29Q=");
 
-        public override string Name
-        {
-            get { return "DH"; }
-        }
+        private readonly SecureRandom Random = new SecureRandom();
 
-        private void ImplTestGP(
-            string		algName,
-            int         size,
-            int         privateValueSize,
-            BigInteger  g,
-            BigInteger  p)
+        private void ImplTestGP(string algName, int size, int privateValueSize, BigInteger g, BigInteger p)
         {
             IAsymmetricCipherKeyPairGenerator keyGen = GeneratorUtilities.GetKeyPairGenerator(algName);
 
             DHParameters dhParams = new DHParameters(p, g, null, privateValueSize);
-            KeyGenerationParameters kgp = new DHKeyGenerationParameters(new SecureRandom(), dhParams);
+            KeyGenerationParameters kgp = new DHKeyGenerationParameters(Random, dhParams);
 
             keyGen.Init(kgp);
 
@@ -98,7 +89,7 @@ namespace Org.BouncyCastle.Tests
 
             IBasicAgreement aKeyAgreeBasic = AgreementUtilities.GetBasicAgreement(algName);
 
-            checkKeySize(privateValueSize, aKeyPair);
+            CheckKeySize(privateValueSize, aKeyPair);
 
             aKeyAgreeBasic.Init(aKeyPair.Private);
 
@@ -109,133 +100,120 @@ namespace Org.BouncyCastle.Tests
 
             IBasicAgreement bKeyAgreeBasic = AgreementUtilities.GetBasicAgreement(algName);
 
-            checkKeySize(privateValueSize, bKeyPair);
+            CheckKeySize(privateValueSize, bKeyPair);
 
             bKeyAgreeBasic.Init(bKeyPair.Private);
 
             //
             // agreement
             //
-//			aKeyAgreeBasic.doPhase(bKeyPair.Public, true);
-//			bKeyAgreeBasic.doPhase(aKeyPair.Public, true);
-//
-//			BigInteger  k1 = new BigInteger(aKeyAgreeBasic.generateSecret());
-//			BigInteger  k2 = new BigInteger(bKeyAgreeBasic.generateSecret());
             BigInteger k1 = aKeyAgreeBasic.CalculateAgreement(bKeyPair.Public);
             BigInteger k2 = bKeyAgreeBasic.CalculateAgreement(aKeyPair.Public);
 
             if (!k1.Equals(k2))
             {
-                Fail(size + " bit 2-way test failed");
+                Assert.Fail(size + " bit 2-way test failed");
             }
 
             //
             // public key encoding test
             //
-//			byte[]              pubEnc = aKeyPair.Public.GetEncoded();
             byte[] pubEnc = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(aKeyPair.Public).GetDerEncoded();
 
-//			KeyFactory          keyFac = KeyFactory.getInstance(algName);
-//			X509EncodedKeySpec  pubX509 = new X509EncodedKeySpec(pubEnc);
-//			DHPublicKey         pubKey = (DHPublicKey)keyFac.generatePublic(pubX509);
             DHPublicKeyParameters pubKey = (DHPublicKeyParameters) PublicKeyFactory.CreateKey(pubEnc);
-//			DHParameterSpec     spec = pubKey.Parameters;
             DHParameters spec = pubKey.Parameters;
 
             if (!spec.G.Equals(dhParams.G) || !spec.P.Equals(dhParams.P))
             {
-                Fail(size + " bit public key encoding/decoding test failed on parameters");
+                Assert.Fail(size + " bit public key encoding/decoding test failed on parameters");
             }
 
             if (!((DHPublicKeyParameters)aKeyPair.Public).Y.Equals(pubKey.Y))
             {
-                Fail(size + " bit public key encoding/decoding test failed on y value");
+                Assert.Fail(size + " bit public key encoding/decoding test failed on y value");
             }
 
             //
             // public key serialisation test
             //
             // TODO Put back in
-//			MemoryStream bOut = new MemoryStream();
-//			ObjectOutputStream oOut = new ObjectOutputStream(bOut);
-//
-//			oOut.WriteObject(aKeyPair.Public);
-//
-//			MemoryStream bIn = new MemoryStream(bOut.ToArray(), false);
-//			ObjectInputStream oIn = new ObjectInputStream(bIn);
-//
-//			pubKey = (DHPublicKeyParameters)oIn.ReadObject();
+            //MemoryStream bOut = new MemoryStream();
+            //ObjectOutputStream oOut = new ObjectOutputStream(bOut);
+
+            //oOut.WriteObject(aKeyPair.Public);
+
+            //MemoryStream bIn = new MemoryStream(bOut.ToArray(), false);
+            //ObjectInputStream oIn = new ObjectInputStream(bIn);
+
+            //pubKey = (DHPublicKeyParameters)oIn.ReadObject();
             spec = pubKey.Parameters;
 
             if (!spec.G.Equals(dhParams.G) || !spec.P.Equals(dhParams.P))
             {
-                Fail(size + " bit public key serialisation test failed on parameters");
+                Assert.Fail(size + " bit public key serialisation test failed on parameters");
             }
 
             if (!((DHPublicKeyParameters)aKeyPair.Public).Y.Equals(pubKey.Y))
             {
-                Fail(size + " bit public key serialisation test failed on y value");
+                Assert.Fail(size + " bit public key serialisation test failed on y value");
             }
 
             //
             // private key encoding test
             //
-//			byte[] privEnc = aKeyPair.Private.GetEncoded();
             byte[] privEnc = PrivateKeyInfoFactory.CreatePrivateKeyInfo(aKeyPair.Private).GetDerEncoded();
-//			PKCS8EncodedKeySpec privPKCS8 = new PKCS8EncodedKeySpec(privEnc);
-//			DHPrivateKeyParameters privKey = (DHPrivateKey)keyFac.generatePrivate(privPKCS8);
             DHPrivateKeyParameters privKey = (DHPrivateKeyParameters) PrivateKeyFactory.CreateKey(privEnc);
 
             spec = privKey.Parameters;
 
             if (!spec.G.Equals(dhParams.G) || !spec.P.Equals(dhParams.P))
             {
-                Fail(size + " bit private key encoding/decoding test failed on parameters");
+                Assert.Fail(size + " bit private key encoding/decoding test failed on parameters");
             }
 
             if (!((DHPrivateKeyParameters)aKeyPair.Private).X.Equals(privKey.X))
             {
-                Fail(size + " bit private key encoding/decoding test failed on y value");
+                Assert.Fail(size + " bit private key encoding/decoding test failed on y value");
             }
 
             //
             // private key serialisation test
             //
             // TODO Put back in
-//			bOut = new MemoryStream();
-//			oOut = new ObjectOutputStream(bOut);
-//
-//			oOut.WriteObject(aKeyPair.Private);
-//
-//			bIn = new MemoryStream(bOut.ToArray(), false);
-//			oIn = new ObjectInputStream(bIn);
-//
-//			privKey = (DHPrivateKeyParameters)oIn.ReadObject();
+            //bOut = new MemoryStream();
+            //oOut = new ObjectOutputStream(bOut);
+
+            //oOut.WriteObject(aKeyPair.Private);
+
+            //bIn = new MemoryStream(bOut.ToArray(), false);
+            //oIn = new ObjectInputStream(bIn);
+
+            //privKey = (DHPrivateKeyParameters)oIn.ReadObject();
             spec = privKey.Parameters;
 
             if (!spec.G.Equals(dhParams.G) || !spec.P.Equals(dhParams.P))
             {
-                Fail(size + " bit private key serialisation test failed on parameters");
+                Assert.Fail(size + " bit private key serialisation test failed on parameters");
             }
 
             if (!((DHPrivateKeyParameters)aKeyPair.Private).X.Equals(privKey.X))
             {
-                Fail(size + " bit private key serialisation test failed on y value");
+                Assert.Fail(size + " bit private key serialisation test failed on y value");
             }
 
             //
             // three party test
             //
             IAsymmetricCipherKeyPairGenerator aPairGen = GeneratorUtilities.GetKeyPairGenerator(algName);
-            aPairGen.Init(new DHKeyGenerationParameters(new SecureRandom(), spec));
+            aPairGen.Init(new DHKeyGenerationParameters(Random, spec));
             AsymmetricCipherKeyPair aPair = aPairGen.GenerateKeyPair();
 
             IAsymmetricCipherKeyPairGenerator bPairGen = GeneratorUtilities.GetKeyPairGenerator(algName);
-            bPairGen.Init(new DHKeyGenerationParameters(new SecureRandom(), spec));
+            bPairGen.Init(new DHKeyGenerationParameters(Random, spec));
             AsymmetricCipherKeyPair bPair = bPairGen.GenerateKeyPair();
 
             IAsymmetricCipherKeyPairGenerator cPairGen = GeneratorUtilities.GetKeyPairGenerator(algName);
-            cPairGen.Init(new DHKeyGenerationParameters(new SecureRandom(), spec));
+            cPairGen.Init(new DHKeyGenerationParameters(Random, spec));
             AsymmetricCipherKeyPair cPair = cPairGen.GenerateKeyPair();
 
 
@@ -248,18 +226,6 @@ namespace Org.BouncyCastle.Tests
             IBasicAgreement cKeyAgree = AgreementUtilities.GetBasicAgreement(algName);
             cKeyAgree.Init(cPair.Private);
 
-//			Key ac = aKeyAgree.doPhase(cPair.Public, false);
-//			Key ba = bKeyAgree.doPhase(aPair.Public, false);
-//			Key cb = cKeyAgree.doPhase(bPair.Public, false);
-//
-//			aKeyAgree.doPhase(cb, true);
-//			bKeyAgree.doPhase(ac, true);
-//			cKeyAgree.doPhase(ba, true);
-//
-//			BigInteger aShared = new BigInteger(aKeyAgree.generateSecret());
-//			BigInteger bShared = new BigInteger(bKeyAgree.generateSecret());
-//			BigInteger cShared = new BigInteger(cKeyAgree.generateSecret());
-
             DHPublicKeyParameters ac = new DHPublicKeyParameters(aKeyAgree.CalculateAgreement(cPair.Public), spec);
             DHPublicKeyParameters ba = new DHPublicKeyParameters(bKeyAgree.CalculateAgreement(aPair.Public), spec);
             DHPublicKeyParameters cb = new DHPublicKeyParameters(cKeyAgree.CalculateAgreement(bPair.Public), spec);
@@ -270,26 +236,22 @@ namespace Org.BouncyCastle.Tests
 
             if (!aShared.Equals(bShared))
             {
-                Fail(size + " bit 3-way test failed (a and b differ)");
+                Assert.Fail(size + " bit 3-way test failed (a and b differ)");
             }
 
             if (!cShared.Equals(bShared))
             {
-                Fail(size + " bit 3-way test failed (c and b differ)");
+                Assert.Fail(size + " bit 3-way test failed (c and b differ)");
             }
         }
 
-        private void ImplTestExplicitWrapping(
-            int			size,
-            int			privateValueSize,
-            BigInteger	g,
-            BigInteger	p)
+        private void ImplTestExplicitWrapping(int size, int privateValueSize, BigInteger g, BigInteger p)
         {
             DHParameters dhParams = new DHParameters(p, g, null, privateValueSize);
 
             IAsymmetricCipherKeyPairGenerator keyGen = GeneratorUtilities.GetKeyPairGenerator("DH");
 
-            keyGen.Init(new DHKeyGenerationParameters(new SecureRandom(), dhParams));
+            keyGen.Init(new DHKeyGenerationParameters(Random, dhParams));
 
             //
             // a side
@@ -298,7 +260,7 @@ namespace Org.BouncyCastle.Tests
 
             IBasicAgreement aKeyAgree = AgreementUtilities.GetBasicAgreement("DH");
 
-            checkKeySize(privateValueSize, aKeyPair);
+            CheckKeySize(privateValueSize, aKeyPair);
 
             aKeyAgree.Init(aKeyPair.Private);
 
@@ -309,32 +271,23 @@ namespace Org.BouncyCastle.Tests
 
             IBasicAgreement bKeyAgree = AgreementUtilities.GetBasicAgreement("DH");
 
-            checkKeySize(privateValueSize, bKeyPair);
+            CheckKeySize(privateValueSize, bKeyPair);
 
             bKeyAgree.Init(bKeyPair.Private);
 
             //
             // agreement
             //
-//			aKeyAgree.doPhase(bKeyPair.Public, true);
-//			bKeyAgree.doPhase(aKeyPair.Public, true);
-//
-//			SecretKey k1 = aKeyAgree.generateSecret(PkcsObjectIdentifiers.IdAlgCms3DesWrap.Id);
-//			SecretKey k2 = bKeyAgree.generateSecret(PkcsObjectIdentifiers.IdAlgCms3DesWrap.Id);
-
-            // TODO Does this really test the same thing as the above code?
             BigInteger b1 = aKeyAgree.CalculateAgreement(bKeyPair.Public);
             BigInteger b2 = bKeyAgree.CalculateAgreement(aKeyPair.Public);
 
             if (!b1.Equals(b2))
             {
-                Fail("Explicit wrapping test failed");
+                Assert.Fail("Explicit wrapping test failed");
             }
         }
 
-        private void checkKeySize(
-            int						privateValueSize,
-            AsymmetricCipherKeyPair	aKeyPair)
+        private void CheckKeySize(int privateValueSize, AsymmetricCipherKeyPair aKeyPair)
         {
             if (privateValueSize != 0)
             {
@@ -342,47 +295,16 @@ namespace Org.BouncyCastle.Tests
 
                 if (key.X.BitLength != privateValueSize)
                 {
-                    Fail("limited key check failed for key size " + privateValueSize);
+                    Assert.Fail("limited key check failed for key size " + privateValueSize);
                 }
             }
         }
 
-// TODO Put back in
-//    private void ImplTestRandom(int size)
-//    {
-//        AlgorithmParameterGenerator a = AlgorithmParameterGenerator.getInstance("DH");
-//        a.init(size, new SecureRandom());
-//        AlgorithmParameters parameters = a.generateParameters();
-//
-//        byte[] encodeParams = parameters.GetEncoded();
-//
-//        AlgorithmParameters a2 = AlgorithmParameters.getInstance("DH");
-//        a2.init(encodeParams);
-//
-//        // a and a2 should be equivalent!
-//        byte[] encodeParams_2 = a2.GetEncoded();
-//
-//        if (!areEqual(encodeParams, encodeParams_2))
-//        {
-//            Fail("encode/Decode parameters failed");
-//        }
-//
-//        DHParameterSpec dhP = (DHParameterSpec)parameters.getParameterSpec(DHParameterSpec.class);
-//
-//        ImplTestGP("DH", size, 0, dhP.G, dhP.P);
-//    }
+        [Test]
+        public void TestECDH() => ImplTestECDH("ECDH");
 
         [Test]
-        public void TestECDH()
-        {
-            ImplTestECDH("ECDH");
-        }
-
-        [Test]
-        public void TestECDHC()
-        {
-            ImplTestECDH("ECDHC");
-        }
+        public void TestECDHC() => ImplTestECDH("ECDHC");
 
         private void ImplTestECDH(string algorithm)
         {
@@ -391,7 +313,7 @@ namespace Org.BouncyCastle.Tests
             X9ECParameters x9 = ECNamedCurveTable.GetByName("prime239v1");
             ECDomainParameters ecSpec = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H);
 
-            g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom()));
+            g.Init(new ECKeyGenerationParameters(ecSpec, Random));
 
             //
             // a side
@@ -419,63 +341,44 @@ namespace Org.BouncyCastle.Tests
 
             if (!k1.Equals(k2))
             {
-                Fail(algorithm + " 2-way test failed");
+                Assert.Fail(algorithm + " 2-way test failed");
             }
 
             //
             // public key encoding test
             //
-//			byte[] pubEnc = aKeyPair.Public.GetEncoded();
             byte[] pubEnc = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(aKeyPair.Public).GetDerEncoded();
 
-//			KeyFactory keyFac = KeyFactory.getInstance(algorithm);
-//			X509EncodedKeySpec pubX509 = new X509EncodedKeySpec(pubEnc);
-//			ECPublicKey pubKey = (ECPublicKey)keyFac.generatePublic(pubX509);
             ECPublicKeyParameters pubKey = (ECPublicKeyParameters) PublicKeyFactory.CreateKey(pubEnc);
 
             ECDomainParameters ecDP = pubKey.Parameters;
 
-//			if (!pubKey.getW().Equals(((ECPublicKeyParameters)aKeyPair.Public).getW()))
             ECPoint pq1 = pubKey.Q.Normalize(), pq2 = ((ECPublicKeyParameters)aKeyPair.Public).Q.Normalize();
             if (!pq1.Equals(pq2))
             {
-//				Console.WriteLine(" expected " + pubKey.getW().getAffineX() + " got " + ((ECPublicKey)aKeyPair.Public).getW().getAffineX());
-//				Console.WriteLine(" expected " + pubKey.getW().getAffineY() + " got " + ((ECPublicKey)aKeyPair.Public).getW().getAffineY());
-//				Fail(algorithm + " public key encoding (W test) failed");
-                Console.WriteLine(" expected " + pq1.AffineXCoord.ToBigInteger()
-                    + " got " + pq2.AffineXCoord.ToBigInteger());
-                Console.WriteLine(" expected " + pq1.AffineYCoord.ToBigInteger()
-                    + " got " + pq2.AffineYCoord.ToBigInteger());
-                Fail(algorithm + " public key encoding (Q test) failed");
+                Assert.Fail(algorithm + " public key encoding (Q test) failed");
             }
 
-//			if (!pubKey.Parameters.getGenerator().Equals(((ECPublicKeyParameters)aKeyPair.Public).Parameters.getGenerator()))
             if (!pubKey.Parameters.G.Equals(((ECPublicKeyParameters)aKeyPair.Public).Parameters.G))
             {
-                Fail(algorithm + " public key encoding (G test) failed");
+                Assert.Fail(algorithm + " public key encoding (G test) failed");
             }
 
             //
             // private key encoding test
             //
-//			byte[] privEnc = aKeyPair.Private.GetEncoded();
             byte[] privEnc = PrivateKeyInfoFactory.CreatePrivateKeyInfo(aKeyPair.Private).GetDerEncoded();
 
-//			PKCS8EncodedKeySpec privPKCS8 = new PKCS8EncodedKeySpec(privEnc);
-//			ECPrivateKey        privKey = (ECPrivateKey)keyFac.generatePrivate(privPKCS8);
             ECPrivateKeyParameters privKey = (ECPrivateKeyParameters) PrivateKeyFactory.CreateKey(privEnc);
 
-//			if (!privKey.getS().Equals(((ECPrivateKey)aKeyPair.Private).getS()))
             if (!privKey.D.Equals(((ECPrivateKeyParameters)aKeyPair.Private).D))
             {
-//				Fail(algorithm + " private key encoding (S test) failed");
-                Fail(algorithm + " private key encoding (D test) failed");
+                Assert.Fail(algorithm + " private key encoding (D test) failed");
             }
 
-//			if (!privKey.Parameters.getGenerator().Equals(((ECPrivateKey)aKeyPair.Private).Parameters.getGenerator()))
             if (!privKey.Parameters.G.Equals(((ECPrivateKeyParameters)aKeyPair.Private).Parameters.G))
             {
-                Fail(algorithm + " private key encoding (G test) failed");
+                Assert.Fail(algorithm + " private key encoding (G test) failed");
             }
         }
 
@@ -488,7 +391,6 @@ namespace Org.BouncyCastle.Tests
             {
                 IBasicAgreement aKeyAgreeBasic = AgreementUtilities.GetBasicAgreement("DH");
 
-//				aKeyAgreeBasic.generateSecret("DES");
                 aKeyAgreeBasic.CalculateAgreement(null);
             }
             catch (InvalidOperationException)
@@ -497,19 +399,17 @@ namespace Org.BouncyCastle.Tests
             }
             catch (Exception e)
             {
-                Fail("Unexpected exception: " + e, e);
+                Assert.Fail("Unexpected exception: " + e, e);
             }
         }
 
-        private void ImplTestDesAndDesEde(
-            BigInteger	g,
-            BigInteger	p)
+        private void ImplTestDesAndDesEde(BigInteger g, BigInteger p)
         {
             DHParameters dhParams = new DHParameters(p, g, null, 256);
 
             IAsymmetricCipherKeyPairGenerator keyGen = GeneratorUtilities.GetKeyPairGenerator("DH");
 
-            keyGen.Init(new DHKeyGenerationParameters(new SecureRandom(), dhParams));
+            keyGen.Init(new DHKeyGenerationParameters(Random, dhParams));
 
             AsymmetricCipherKeyPair kp = keyGen.GenerateKeyPair();
 
@@ -523,36 +423,36 @@ namespace Org.BouncyCastle.Tests
             // bytes from 'agreedBytes' for each key type - need C# equivalent?
             // (see JCEDHKeyAgreement.engineGenerateSecret)
 
-//			SecretKey key = keyAgreement.generateSecret("DES");
-//
-//			if (key.getEncoded().length != 8)
-//			{
-//				Fail("DES length wrong");
-//			}
-//
-//			if (!DESKeySpec.isParityAdjusted(key.getEncoded(), 0))
-//			{
-//				Fail("DES parity wrong");
-//			}
-//
-//			key = keyAgreement.generateSecret("DESEDE");
-//
-//			if (key.getEncoded().length != 24)
-//			{
-//				Fail("DESEDE length wrong");
-//			}
-//
-//			if (!DESedeKeySpec.isParityAdjusted(key.getEncoded(), 0))
-//			{
-//				Fail("DESEDE parity wrong");
-//			}
-//
-//			key = keyAgreement.generateSecret("Blowfish");
-//
-//			if (key.getEncoded().length != 16)
-//			{
-//				Fail("Blowfish length wrong");
-//			}
+            //SecretKey key = keyAgreement.generateSecret("DES");
+
+            //if (key.getEncoded().length != 8)
+            //{
+            //    Fail("DES length wrong");
+            //}
+
+            //if (!DESKeySpec.isParityAdjusted(key.getEncoded(), 0))
+            //{
+            //    Fail("DES parity wrong");
+            //}
+
+            //key = keyAgreement.generateSecret("DESEDE");
+
+            //if (key.getEncoded().length != 24)
+            //{
+            //    Fail("DESEDE length wrong");
+            //}
+
+            //if (!DESedeKeySpec.isParityAdjusted(key.getEncoded(), 0))
+            //{
+            //    Fail("DESEDE parity wrong");
+            //}
+
+            //key = keyAgreement.generateSecret("Blowfish");
+
+            //if (key.getEncoded().length != 16)
+            //{
+            //    Fail("Blowfish length wrong");
+            //}
         }
 
         [Test]
@@ -565,88 +465,74 @@ namespace Org.BouncyCastle.Tests
             ImplTestGP("DiffieHellman", 768, 128, g768, p768);
             ImplTestGP("DIFFIEHELLMAN", 1024, 256, g1024, p1024);
             ImplTestExplicitWrapping(512, 0, g512, p512);
-            // TODO Put back in
-            //ImplTestRandom(256);
-
             ImplTestDesAndDesEde(g768, p768);
         }
 
         [Test]
         public void TestEnc()
         {
-//			KeyFactory kFact = KeyFactory.getInstance("DH", "BC");
-//			
-//			Key k = kFact.generatePrivate(new PKCS8EncodedKeySpec(samplePrivEnc));
             AsymmetricKeyParameter k = PrivateKeyFactory.CreateKey(samplePrivEnc);
             byte[] encoded = PrivateKeyInfoFactory.CreatePrivateKeyInfo(k).GetEncoded();
 
             if (!Arrays.AreEqual(samplePrivEnc, encoded))
             {
-                Fail("private key re-encode failed");
+                Assert.Fail("private key re-encode failed");
             }
 
-//			k = kFact.generatePublic(new X509EncodedKeySpec(samplePubEnc));
             k = PublicKeyFactory.CreateKey(samplePubEnc);
             encoded = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(k).GetEncoded();
 
             if (!Arrays.AreEqual(samplePubEnc, encoded))
             {
-                Fail("public key re-encode failed");
+                Assert.Fail("public key re-encode failed");
             }
 
-//			k = kFact.generatePublic(new X509EncodedKeySpec(oldPubEnc));
             k = PublicKeyFactory.CreateKey(oldPubEnc);
             encoded = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(k).GetEncoded();
 
             if (!Arrays.AreEqual(oldPubEnc, encoded))
             {
-                Fail("old public key re-encode failed");
+                Assert.Fail("old public key re-encode failed");
             }
 
-//			k = kFact.generatePublic(new X509EncodedKeySpec(oldFullParams));
             k = PublicKeyFactory.CreateKey(oldFullParams);
             encoded = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(k).GetEncoded();
 
             if (!Arrays.AreEqual(oldFullParams, encoded))
             {
-                Fail("old full public key re-encode failed");
+                Assert.Fail("old full public key re-encode failed");
             }
         }
 
         internal static readonly string Message = "Hello";
 
-        internal static readonly SecureRandom rand = new SecureRandom();
-
         public static DHParameters Ike2048()
         {
             BigInteger p = new BigInteger(
-                "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74"
-                    + "020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f1437"
-                    + "4fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7ed"
-                    + "ee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf05"
-                    + "98da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb"
-                    + "9ed529077096966d670c354e4abc9804f1746c08ca18217c32905e462e36ce3b"
-                    + "e39e772c180e86039b2783a2ec07a28fb5c55df06f4c52c9de2bcbf695581718"
-                    + "3995497cea956ae515d2261898fa051015728e5a8aacaa68ffffffffffffffff", 16);
-            BigInteger g = new BigInteger("2");
+                "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74" + 
+                "020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f1437" +
+                "4fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7ed" +
+                "ee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf05" +
+                "98da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb" +
+                "9ed529077096966d670c354e4abc9804f1746c08ca18217c32905e462e36ce3b" +
+                "e39e772c180e86039b2783a2ec07a28fb5c55df06f4c52c9de2bcbf695581718" +
+                "3995497cea956ae515d2261898fa051015728e5a8aacaa68ffffffffffffffff", 16);
+            BigInteger g = BigInteger.Two;
             return new DHParameters(p, g);
         }
 
         internal class DHWeakPubKey
             : DHPublicKeyParameters
         {
-            private readonly BigInteger weakY;
+            private readonly BigInteger m_weakY;
 
             public DHWeakPubKey(BigInteger weakY, DHParameters parameters)
-			    : base(BigInteger.Two, parameters)
+                : base(BigInteger.Two, parameters)
             {
-                this.weakY = weakY;
+                m_weakY = weakY;
             }
 
-            public override BigInteger Y
-            {
-                get { return weakY; }
-            }
+            public override BigInteger Y => m_weakY;
         }
 
         /**
@@ -669,7 +555,7 @@ namespace Org.BouncyCastle.Tests
             IAsymmetricCipherKeyPairGenerator keyGen = GeneratorUtilities.GetKeyPairGenerator("DH");
 
             //keyGen.initialize(params);
-            keyGen.Init(new DHKeyGenerationParameters(new SecureRandom(), parameters));
+            keyGen.Init(new DHKeyGenerationParameters(Random, parameters));
 
             AsymmetricCipherKeyPair kp = keyGen.GenerateKeyPair();
             AsymmetricKeyParameter priv = kp.Private;
@@ -684,11 +570,11 @@ namespace Org.BouncyCastle.Tests
                 try
                 {
                     new DHPublicKeyParameters(weakKey, parameters);
-                    Fail("Generated weak public key");
+                    Assert.Fail("Generated weak public key");
                 }
                 catch (ArgumentException ex)
                 {
-                    IsTrue("wrong message (constructor)", ex.Message.StartsWith("invalid DH public key"));
+                    Assert.True(ex.Message.StartsWith("invalid DH public key"), "wrong message (constructor)");
                 }
 
                 ka.Init(priv);
@@ -696,23 +582,42 @@ namespace Org.BouncyCastle.Tests
                 try
                 {
                     ka.CalculateAgreement(new DHWeakPubKey(weakKey, parameters));
-                    Fail("Generated secrets with weak public key");
+                    Assert.Fail("Generated secrets with weak public key");
                 }
                 catch (ArgumentException ex)
                 {
-                    IsTrue("wrong message (CalculateAgreement)", "Diffie-Hellman public key is weak".Equals(ex.Message));
+                    Assert.True("Diffie-Hellman public key is weak".Equals(ex.Message), "wrong message (CalculateAgreement)");
                 }
             }
         }
 
-        public override void PerformTest()
+        /**
+         * Different curves should fail due to domain parameter mismatch.
+         */
+        [Test]
+        public void TestDifferentCurveAgreement()
         {
-            TestEnc();
-            TestFunction();
-            TestECDH();
-            TestECDHC();
-            TestExceptions();
-            TestSubgroupConfinement();
+            var kpg256 = GeneratorUtilities.GetKeyPairGenerator("EC");
+            kpg256.Init(new ECKeyGenerationParameters(SecObjectIdentifiers.SecP256r1, Random));
+            var kp256 = kpg256.GenerateKeyPair();
+
+            var kpg384 = GeneratorUtilities.GetKeyPairGenerator("EC");
+            kpg384.Init(new ECKeyGenerationParameters(SecObjectIdentifiers.SecP384r1, Random));
+            var kp384 = kpg384.GenerateKeyPair();
+
+            var ka = AgreementUtilities.GetBasicAgreement("ECDH");
+
+            try
+            {
+                ka.Init(kp256.Private);
+                ka.CalculateAgreement(kp384.Public);
+
+                Assert.Fail("Expected InvalidKeyException for mismatched EC domain parameters");
+            }
+            catch (InvalidOperationException)
+            {
+                // Expected
+            }
         }
     }
 }
