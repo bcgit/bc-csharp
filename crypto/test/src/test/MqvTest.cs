@@ -6,75 +6,107 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Tests
 {
-	[TestFixture]
-	public class MqvTest
-		: SimpleTest
-	{
-		public override string Name
-		{
-			get { return "MQV"; }
-		}
+    [TestFixture]
+    public class MqvTest
+    {
+        private readonly SecureRandom Random = new SecureRandom();
 
-		public override void PerformTest()
-		{
-			TestECMqv();
-		}
+        /**
+         * Different curves should fail due to domain parameter mismatch.
+         */
+        [Test]
+        public void TestDifferentCurveAgreement()
+        {
+            var kpg256 = GeneratorUtilities.GetKeyPairGenerator("ECMQV");
+            kpg256.Init(new ECKeyGenerationParameters(ECNamedCurveTable.GetOid("secp256r1"), Random));
 
-		[Test]
-		public void TestECMqv()
-		{
-			IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("ECMQV");
+            var kpg384 = GeneratorUtilities.GetKeyPairGenerator("ECMQV");
+            kpg384.Init(new ECKeyGenerationParameters(ECNamedCurveTable.GetOid("secp384r1"), Random));
 
-            X9ECParameters x9 = ECNamedCurveTable.GetByName("prime239v1");
-            ECDomainParameters ecSpec = new ECDomainParameters(x9.Curve, x9.G, x9.N, x9.H);
+            var U1 = kpg256.GenerateKeyPair();
+            var U2 = kpg256.GenerateKeyPair();
 
-            g.Init(new ECKeyGenerationParameters(ecSpec, new SecureRandom()));
-			
-			//
-			// U side
-			//
-			AsymmetricCipherKeyPair U1 = g.GenerateKeyPair();
-			AsymmetricCipherKeyPair U2 = g.GenerateKeyPair();
-			
-			IBasicAgreement uAgree = AgreementUtilities.GetBasicAgreement("ECMQV");
-			uAgree.Init(new MqvPrivateParameters(
-				(ECPrivateKeyParameters)U1.Private,
-				(ECPrivateKeyParameters)U2.Private,
-				(ECPublicKeyParameters)U2.Public));
-			
-			//
-			// V side
-			//
-			AsymmetricCipherKeyPair V1 = g.GenerateKeyPair();
-			AsymmetricCipherKeyPair V2 = g.GenerateKeyPair();
+            var V1 = kpg384.GenerateKeyPair();
+            var V2 = kpg384.GenerateKeyPair();
 
-			IBasicAgreement vAgree = AgreementUtilities.GetBasicAgreement("ECMQV");
-			vAgree.Init(new MqvPrivateParameters(
-				(ECPrivateKeyParameters)V1.Private,
-				(ECPrivateKeyParameters)V2.Private,
-				(ECPublicKeyParameters)V2.Public));
-			
-			//
-			// agreement
-			//
-			BigInteger ux = uAgree.CalculateAgreement(new MqvPublicParameters(
-				(ECPublicKeyParameters)V1.Public,
-				(ECPublicKeyParameters)V2.Public));
-			BigInteger vx = vAgree.CalculateAgreement(new MqvPublicParameters(
-				(ECPublicKeyParameters)U1.Public,
-				(ECPublicKeyParameters)U2.Public));
+            try
+            {
+                var uAgree = AgreementUtilities.GetBasicAgreement("ECMQV");
+                InitECMqv(uAgree, U1, U2);
 
-			if (!ux.Equals(vx))
-			{
-				Fail("Agreement failed");
-			}
-		}
-	}
+                CalculateAgreementECMqv(uAgree, V1, V2);
+
+                Assert.Fail("Expected InvalidOperationException for mismatched EC domain parameters");
+            }
+            catch (InvalidOperationException)
+            {
+                // Expected
+            }
+
+            try
+            {
+                var uAgree = AgreementUtilities.GetBasicAgreement("ECMQV");
+                InitECMqv(uAgree, U1, V2);
+
+                Assert.Fail("Expected ArgumentException for mismatched EC domain parameters");
+            }
+            catch (ArgumentException)
+            {
+                // Expected
+            }
+        }
+
+        [Test]
+        public void TestECMqv()
+        {
+            var kpg = GeneratorUtilities.GetKeyPairGenerator("ECMQV");
+            kpg.Init(new ECKeyGenerationParameters(ECNamedCurveTable.GetOid("secp256r1"), Random));
+
+            //
+            // U side
+            //
+            var U1 = kpg.GenerateKeyPair();
+            var U2 = kpg.GenerateKeyPair();
+
+            var uAgree = AgreementUtilities.GetBasicAgreement("ECMQV");
+            InitECMqv(uAgree, U1, U2);
+
+            //
+            // V side
+            //
+            var V1 = kpg.GenerateKeyPair();
+            var V2 = kpg.GenerateKeyPair();
+
+            var vAgree = AgreementUtilities.GetBasicAgreement("ECMQV");
+            InitECMqv(vAgree, V1, V2);
+
+            //
+            // agreement
+            //
+            var ux = CalculateAgreementECMqv(uAgree, V1, V2);
+            var vx = CalculateAgreementECMqv(vAgree, U1, U2);
+
+            Assert.AreEqual(ux, vx, "Agreement failed");
+        }
+
+        private static void InitECMqv(IBasicAgreement agreement, AsymmetricCipherKeyPair staticKeyPair,
+            AsymmetricCipherKeyPair ephemeralKeyPair)
+        {
+            var mqvPrivate = new MqvPrivateParameters((ECPrivateKeyParameters)staticKeyPair.Private,
+                (ECPrivateKeyParameters)ephemeralKeyPair.Private, (ECPublicKeyParameters)ephemeralKeyPair.Public);
+            agreement.Init(mqvPrivate);
+        }
+
+        private static BigInteger CalculateAgreementECMqv(IBasicAgreement agreement,
+            AsymmetricCipherKeyPair staticKeyPair, AsymmetricCipherKeyPair ephemeralKeyPair)
+        {
+            var mqvPublic = new MqvPublicParameters((ECPublicKeyParameters)staticKeyPair.Public,
+                (ECPublicKeyParameters)ephemeralKeyPair.Public);
+            return agreement.CalculateAgreement(mqvPublic);
+        }
+    }
 }

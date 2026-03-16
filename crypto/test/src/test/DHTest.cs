@@ -612,7 +612,7 @@ namespace Org.BouncyCastle.Tests
                 ka.Init(kp256.Private);
                 ka.CalculateAgreement(kp384.Public);
 
-                Assert.Fail("Expected InvalidKeyException for mismatched EC domain parameters");
+                Assert.Fail("Expected InvalidOperationException for mismatched EC domain parameters");
             }
             catch (InvalidOperationException)
             {
