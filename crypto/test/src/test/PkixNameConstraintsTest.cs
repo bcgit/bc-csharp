@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -98,7 +95,7 @@ namespace Org.BouncyCastle.Tests
 
 		private readonly string[] dns2 = { "test.de", "www.test.de", "www.test.de" };
 
-		private readonly string[] dnsintersect = { "www.test.de", null, null };
+		private readonly string[] dnsintersect = { "www.test.de", null, "www.test.de" };
 
 		private readonly string[][] dnsunion = new string[3][] {
 			new string[] { "test.de" },
