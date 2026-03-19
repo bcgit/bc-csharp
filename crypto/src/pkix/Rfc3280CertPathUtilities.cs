@@ -236,7 +236,7 @@ namespace Org.BouncyCastle.Pkix
 			//
 			// (b), (c) permitted and excluded subtree checking.
 			//
-			if (!(PkixCertPathValidatorUtilities.IsSelfIssued(cert) && (i < n)))
+			if (!((i < n) && PkixCertPathValidatorUtilities.IsSelfIssued(cert)))
 			{
 				X509Name principal = cert.SubjectDN;
 
@@ -276,11 +276,10 @@ namespace Org.BouncyCastle.Pkix
 				var emails = X509Name.GetInstance(dns).GetValueList(X509Name.EmailAddress);
 				foreach (string email in emails)
 				{
-					GeneralName emailAsGeneralName = new GeneralName(GeneralName.Rfc822Name, email);
 					try
 					{
-						nameConstraintValidator.CheckPermittedName(emailAsGeneralName);
-						nameConstraintValidator.CheckExcludedName(emailAsGeneralName);
+						nameConstraintValidator.CheckPermittedEmail(email);
+						nameConstraintValidator.CheckExcludedEmail(email);
 					}
 					catch (PkixNameConstraintValidatorException ex)
 					{
