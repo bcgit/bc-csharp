@@ -859,7 +859,7 @@ namespace Org.BouncyCastle.Pkix
             byte[] subnetmask2 = new byte[ipLength];
             Array.Copy(ipWithSubmask2, 0, ip2, 0, ipLength);
             Array.Copy(ipWithSubmask2, ipLength, subnetmask2, 0, ipLength);
-            return new byte[][]{ ip1, subnetmask1, ip2, subnetmask2 };
+            return new byte[][] { ip1, subnetmask1, ip2, subnetmask2 };
         }
 
         /**
@@ -893,7 +893,7 @@ namespace Org.BouncyCastle.Pkix
                 max2[i] = (byte)(ip2[i] & subnetmask2[i] | ~subnetmask2[i]);
             }
 
-            return new byte[][]{ min1, max1, min2, max2 };
+            return new byte[][] { min1, max1, min2, max2 };
         }
 
         /**
@@ -1463,7 +1463,7 @@ namespace Org.BouncyCastle.Pkix
             case GeneralName.IPAddress:
                 CheckPermittedIP(permittedSubtreesIP, Asn1OctetString.GetInstance(nameValue).GetOctets());
                 break;
-            // Other tags ignored
+                // Other tags ignored
             }
         }
 
@@ -1504,7 +1504,7 @@ namespace Org.BouncyCastle.Pkix
             case GeneralName.IPAddress:
                 CheckExcludedIP(excludedSubtreesIP, Asn1OctetString.GetInstance(nameValue).GetOctets());
                 break;
-            // Other tags ignored
+                // Other tags ignored
             }
         }
 

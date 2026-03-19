@@ -7,26 +7,26 @@ namespace Org.BouncyCastle.Pkix
 {
     [Serializable]
     public class PkixCertPathBuilderException
-		: GeneralSecurityException
-	{
-		public PkixCertPathBuilderException()
-			: base()
-		{
-		}
+        : GeneralSecurityException
+    {
+        public PkixCertPathBuilderException()
+            : base()
+        {
+        }
 
-		public PkixCertPathBuilderException(string message)
-			: base(message)
-		{
-		}
+        public PkixCertPathBuilderException(string message)
+            : base(message)
+        {
+        }
 
-		public PkixCertPathBuilderException(string message, Exception innerException)
-			: base(message, innerException)
-		{
-		}
+        public PkixCertPathBuilderException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
 
-		protected PkixCertPathBuilderException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
-	}
+        protected PkixCertPathBuilderException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
 }

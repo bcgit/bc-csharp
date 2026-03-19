@@ -7,24 +7,24 @@ namespace Org.BouncyCastle.Pkix
     public class PkixNameConstraintValidatorException
         : Exception
     {
-		public PkixNameConstraintValidatorException()
-			: base()
-		{
-		}
+        public PkixNameConstraintValidatorException()
+            : base()
+        {
+        }
 
-		public PkixNameConstraintValidatorException(string message)
-			: base(message)
-		{
-		}
+        public PkixNameConstraintValidatorException(string message)
+            : base(message)
+        {
+        }
 
-		public PkixNameConstraintValidatorException(string message, Exception innerException)
-			: base(message, innerException)
-		{
-		}
+        public PkixNameConstraintValidatorException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
 
-		protected PkixNameConstraintValidatorException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
+        protected PkixNameConstraintValidatorException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
     }
 }

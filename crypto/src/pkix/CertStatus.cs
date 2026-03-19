@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Pkix
             set { this.revocationDate = value; }
         }
 
-		/// <summary>
+        /// <summary>
         /// Returns the certStatus.
         /// </summary>
         public int Status

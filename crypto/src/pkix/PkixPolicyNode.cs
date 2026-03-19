@@ -10,7 +10,6 @@ namespace Org.BouncyCastle.Pkix
     /// Summary description for PkixPolicyNode.
     /// </summary>
     public class PkixPolicyNode
-    //		: IPolicyNode
     {
         protected IList<PkixPolicyNode> mChildren;
         protected int mDepth;
@@ -73,13 +72,13 @@ namespace Org.BouncyCastle.Pkix
             string validPolicy,
             bool critical)
         {
-            this.mChildren = children == null ? new List<PkixPolicyNode>() : new List<PkixPolicyNode>(children);
-            this.mDepth = depth;
-            this.mExpectedPolicies = expectedPolicies;
-            this.mParent = parent;
-            this.mPolicyQualifiers = policyQualifiers;
-            this.mValidPolicy = validPolicy;
-            this.mCritical = critical;
+            mChildren = children == null ? new List<PkixPolicyNode>() : new List<PkixPolicyNode>(children);
+            mDepth = depth;
+            mExpectedPolicies = expectedPolicies;
+            mParent = parent;
+            mPolicyQualifiers = policyQualifiers;
+            mValidPolicy = validPolicy;
+            mCritical = critical;
         }
 
         public virtual void AddChild(PkixPolicyNode child)

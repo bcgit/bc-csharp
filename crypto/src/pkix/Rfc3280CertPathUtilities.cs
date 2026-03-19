@@ -1040,7 +1040,8 @@ namespace Org.BouncyCastle.Pkix
             {
                 // This format is enforced by the NistCertPath tests
                 var formattedDate = certStatus.RevocationDate.Value.ToString("ddd MMM dd HH:mm:ss K yyyy");
-                var message = $"Certificate revocation after {formattedDate}, reason: {CrlReasons[certStatus.Status]}";
+                var reason = CrlReasons[certStatus.Status];
+                var message = $"Certificate revocation after {formattedDate}, reason: {reason}";
                 throw new Exception(message);
             }
 

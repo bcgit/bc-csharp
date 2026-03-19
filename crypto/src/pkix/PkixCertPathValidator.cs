@@ -8,27 +8,27 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Pkix
 {
     /**
-	 * The <i>Service Provider Interface</i> (<b>SPI</b>)
-	 * for the {@link CertPathValidator CertPathValidator} class. All
-	 * <code>CertPathValidator</code> implementations must include a class (the
-	 * SPI class) that extends this class (<code>CertPathValidatorSpi</code>)
-	 * and implements all of its methods. In general, instances of this class
-	 * should only be accessed through the <code>CertPathValidator</code> class.
-	 * For details, see the Java Cryptography Architecture.<br />
-	 * <br />
-	 * <b>Concurrent Access</b><br />
-	 * <br />
-	 * Instances of this class need not be protected against concurrent
-	 * access from multiple threads. Threads that need to access a single
-	 * <code>CertPathValidatorSpi</code> instance concurrently should synchronize
-	 * amongst themselves and provide the necessary locking before calling the
-	 * wrapping <code>CertPathValidator</code> object.<br />
-	 * <br />
-	 * However, implementations of <code>CertPathValidatorSpi</code> may still
-	 * encounter concurrency issues, since multiple threads each
-	 * manipulating a different <code>CertPathValidatorSpi</code> instance need not
-	 * synchronize.
-	 */
+     * The <i>Service Provider Interface</i> (<b>SPI</b>)
+     * for the {@link CertPathValidator CertPathValidator} class. All
+     * <code>CertPathValidator</code> implementations must include a class (the
+     * SPI class) that extends this class (<code>CertPathValidatorSpi</code>)
+     * and implements all of its methods. In general, instances of this class
+     * should only be accessed through the <code>CertPathValidator</code> class.
+     * For details, see the Java Cryptography Architecture.<br />
+     * <br />
+     * <b>Concurrent Access</b><br />
+     * <br />
+     * Instances of this class need not be protected against concurrent
+     * access from multiple threads. Threads that need to access a single
+     * <code>CertPathValidatorSpi</code> instance concurrently should synchronize
+     * amongst themselves and provide the necessary locking before calling the
+     * wrapping <code>CertPathValidator</code> object.<br />
+     * <br />
+     * However, implementations of <code>CertPathValidatorSpi</code> may still
+     * encounter concurrency issues, since multiple threads each
+     * manipulating a different <code>CertPathValidatorSpi</code> instance need not
+     * synchronize.
+     */
     /// <summary>
     /// CertPathValidatorSpi implementation for X.509 Certificate validation a la RFC
     /// 3280.
@@ -37,10 +37,10 @@ namespace Org.BouncyCastle.Pkix
     {
         public virtual PkixCertPathValidatorResult Validate(PkixCertPath certPath, PkixParameters paramsPkix)
         {
-			if (paramsPkix.GetTrustAnchors() == null)
+            if (paramsPkix.GetTrustAnchors() == null)
             {
                 throw new ArgumentException(
-					"trustAnchors is null, this is not allowed for certification path validation.",
+                    "trustAnchors is null, this is not allowed for certification path validation.",
                     nameof(paramsPkix));
             }
 
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Pkix
             if (n == 0)
                 throw new PkixCertPathValidatorException("Certification path is empty.", null, 0);
 
-			//
+            //
             // (b)
             //
             // DateTime validDate = PkixCertPathValidatorUtilities.GetValidDate(paramsPkix);
@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Pkix
             catch (PkixCertPathValidatorException e)
             {
                 throw new PkixCertPathValidatorException(
-                        "Algorithm identifier of public key of trust anchor could not be read.", e, -1);
+                    "Algorithm identifier of public key of trust anchor could not be read.", e, -1);
             }
 
             //DerObjectIdentifier workingPublicKeyAlgorithm = workingAlgID.Algorithm;
@@ -208,11 +208,11 @@ namespace Org.BouncyCastle.Pkix
             // 6.1.3
             //
 
-			var targetConstraints = paramsPkix.GetTargetConstraintsCert();
+            var targetConstraints = paramsPkix.GetTargetConstraintsCert();
             if (targetConstraints != null && !targetConstraints.Match(certs[0]))
             {
                 throw new PkixCertPathValidatorException(
-					"Target certificate in certification path does not match targetConstraints.", null, 0);
+                    "Target certificate in certification path does not match targetConstraints.", null, 0);
             }
 
             //
@@ -247,13 +247,13 @@ namespace Org.BouncyCastle.Pkix
                 // 6.1.3
                 //
 
-                Rfc3280CertPathUtilities.ProcessCertA(certPath, paramsPkix, index, workingPublicKey,
-					workingIssuerName, sign);
+                Rfc3280CertPathUtilities.ProcessCertA(certPath, paramsPkix, index, workingPublicKey, workingIssuerName,
+                    sign);
 
                 Rfc3280CertPathUtilities.ProcessCertBC(certPath, index, nameConstraintValidator);
 
-                validPolicyTree = Rfc3280CertPathUtilities.ProcessCertD(certPath, index,
-					acceptablePolicies, validPolicyTree, policyNodes, inhibitAnyPolicy);
+                validPolicyTree = Rfc3280CertPathUtilities.ProcessCertD(certPath, index, acceptablePolicies,
+                    validPolicyTree, policyNodes, inhibitAnyPolicy);
 
                 validPolicyTree = Rfc3280CertPathUtilities.ProcessCertE(certPath, index, validPolicyTree);
 
@@ -272,13 +272,13 @@ namespace Org.BouncyCastle.Pkix
                             continue;
 
                         throw new PkixCertPathValidatorException(
-							"Version 1 certificates can't be used as CA ones.", null, index);
+                            "Version 1 certificates can't be used as CA ones.", null, index);
                     }
 
                     Rfc3280CertPathUtilities.PrepareNextCertA(certPath, index);
 
                     validPolicyTree = Rfc3280CertPathUtilities.PrepareCertB(certPath, index, policyNodes,
-						validPolicyTree, policyMapping);
+                        validPolicyTree, policyMapping);
 
                     Rfc3280CertPathUtilities.PrepareNextCertG(certPath, index, nameConstraintValidator);
 
@@ -308,33 +308,33 @@ namespace Org.BouncyCastle.Pkix
                     // (n)
                     Rfc3280CertPathUtilities.PrepareNextCertN(certPath, index);
 
-					var criticalExtensions1 = cert.GetCriticalExtensionOids();
+                    var criticalExtensions1 = cert.GetCriticalExtensionOids();
 
-					if (criticalExtensions1 != null)
-					{
-						criticalExtensions1 = new HashSet<string>(criticalExtensions1);
+                    if (criticalExtensions1 != null)
+                    {
+                        criticalExtensions1 = new HashSet<string>(criticalExtensions1);
 
-						// these extensions are handled by the algorithm
-						criticalExtensions1.Remove(X509Extensions.KeyUsage.Id);
-						criticalExtensions1.Remove(X509Extensions.CertificatePolicies.Id);
-						criticalExtensions1.Remove(X509Extensions.PolicyMappings.Id);
-						criticalExtensions1.Remove(X509Extensions.InhibitAnyPolicy.Id);
-						criticalExtensions1.Remove(X509Extensions.IssuingDistributionPoint.Id);
-						criticalExtensions1.Remove(X509Extensions.DeltaCrlIndicator.Id);
-						criticalExtensions1.Remove(X509Extensions.PolicyConstraints.Id);
-						criticalExtensions1.Remove(X509Extensions.BasicConstraints.Id);
-						criticalExtensions1.Remove(X509Extensions.SubjectAlternativeName.Id);
-						criticalExtensions1.Remove(X509Extensions.NameConstraints.Id);
-					}
-					else
-					{
-						criticalExtensions1 = new HashSet<string>();
-					}
+                        // these extensions are handled by the algorithm
+                        criticalExtensions1.Remove(X509Extensions.KeyUsage.Id);
+                        criticalExtensions1.Remove(X509Extensions.CertificatePolicies.Id);
+                        criticalExtensions1.Remove(X509Extensions.PolicyMappings.Id);
+                        criticalExtensions1.Remove(X509Extensions.InhibitAnyPolicy.Id);
+                        criticalExtensions1.Remove(X509Extensions.IssuingDistributionPoint.Id);
+                        criticalExtensions1.Remove(X509Extensions.DeltaCrlIndicator.Id);
+                        criticalExtensions1.Remove(X509Extensions.PolicyConstraints.Id);
+                        criticalExtensions1.Remove(X509Extensions.BasicConstraints.Id);
+                        criticalExtensions1.Remove(X509Extensions.SubjectAlternativeName.Id);
+                        criticalExtensions1.Remove(X509Extensions.NameConstraints.Id);
+                    }
+                    else
+                    {
+                        criticalExtensions1 = new HashSet<string>();
+                    }
 
-					// (o)
-					Rfc3280CertPathUtilities.PrepareNextCertO(certPath, index, criticalExtensions1, certPathCheckers);
+                    // (o)
+                    Rfc3280CertPathUtilities.PrepareNextCertO(certPath, index, criticalExtensions1, certPathCheckers);
 
-					// set signing certificate for next round
+                    // set signing certificate for next round
                     sign = cert;
 
                     // (c)
@@ -351,6 +351,7 @@ namespace Org.BouncyCastle.Pkix
                     }
 
                     workingAlgID = PkixCertPathValidatorUtilities.GetAlgorithmIdentifier(workingPublicKey);
+
                     // (f)
                     //workingPublicKeyAlgorithm = workingAlgID.Algorithm;
                     // (e)
@@ -405,11 +406,9 @@ namespace Org.BouncyCastle.Pkix
                 userInitialPolicySet, index + 1, policyNodes, validPolicyTree, acceptablePolicies);
 
             if ((explicitPolicy > 0) || (intersection != null))
-            {
-				return new PkixCertPathValidatorResult(trust, intersection, cert.GetPublicKey());
-			}
+                return new PkixCertPathValidatorResult(trust, intersection, cert.GetPublicKey());
 
-			throw new PkixCertPathValidatorException("Path processing failed on policy.", null, index);
+            throw new PkixCertPathValidatorException("Path processing failed on policy.", null, index);
         }
     }
 }
