@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Pkix
         public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix) =>
             ImplFindCrls(crlSelector, paramsPkix);
 
+        // TODO[api] Rename 'paramsPkix' to 'pkixParams'
         public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix) =>
             ImplFindCrls(crlSelector, paramsPkix);
 
@@ -21,21 +22,24 @@ namespace Org.BouncyCastle.Pkix
         public virtual ISet<X509Crl> FindCrls(X509CrlStoreSelector crlSelector, PkixParameters paramsPkix,
             DateTime currentDate)
         {
-            return ImplFindCrls(crlSelector, paramsPkix, currentDate);
+            var validityDate = PkixCertPathValidatorUtilities.GetValidityDate(paramsPkix, currentDate);
+            return ImplFindCrls(crlSelector, paramsPkix, validityDate);
         }
 
+        // TODO[api] Rename 'paramsPkix' to 'pkixParams'
         public virtual ISet<X509Crl> FindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix,
             DateTime currentDate)
         {
-            return ImplFindCrls(crlSelector, paramsPkix, currentDate);
+            var validityDate = PkixCertPathValidatorUtilities.GetValidityDate(paramsPkix, currentDate);
+            return ImplFindCrls(crlSelector, paramsPkix, validityDate);
         }
 
-        internal static HashSet<X509Crl> ImplFindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix)
+        internal static HashSet<X509Crl> ImplFindCrls(ISelector<X509Crl> crlSelector, PkixParameters pkixParams)
         {
             // get complete CRL(s)
             try
             {
-                return ImplFindCrls(crlSelector, paramsPkix.GetStoresCrl());
+                return ImplFindCrls(crlSelector, pkixParams.GetStoresCrl());
             }
             catch (Exception e)
             {
@@ -43,18 +47,10 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        internal static HashSet<X509Crl> ImplFindCrls(ISelector<X509Crl> crlSelector, PkixParameters paramsPkix,
-            DateTime currentDate)
+        internal static HashSet<X509Crl> ImplFindCrls(ISelector<X509Crl> crlSelector, PkixParameters pkixParams,
+            DateTime validityDate)
         {
-            var initialSet = ImplFindCrls(crlSelector, paramsPkix);
-
-            var finalSet = new HashSet<X509Crl>();
-            DateTime validityDate = currentDate;
-
-            if (paramsPkix.Date != null)
-            {
-                validityDate = paramsPkix.Date.Value;
-            }
+            var initialSet = ImplFindCrls(crlSelector, pkixParams);
 
             X509Certificate cert = null;
             if (crlSelector is ICheckingCertificate checkingCertificate)
@@ -62,12 +58,14 @@ namespace Org.BouncyCastle.Pkix
                 cert = checkingCertificate.CertificateChecking;
             }
 
+            var finalSet = new HashSet<X509Crl>();
+
             // based on RFC 5280 6.3.3
             foreach (X509Crl crl in initialSet)
             {
                 DateTime? nextUpdate = crl.NextUpdate;
 
-                if (null == nextUpdate || nextUpdate.Value.CompareTo(validityDate) > 0)
+                if (!nextUpdate.HasValue || nextUpdate.Value.CompareTo(validityDate) > 0)
                 {
                     if (null == cert || crl.ThisUpdate.CompareTo(cert.NotAfter) < 0)
                     {

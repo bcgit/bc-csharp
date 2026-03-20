@@ -35,13 +35,28 @@ namespace Org.BouncyCastle.Pkix
     /// </summary>
     public class PkixCertPathValidator
     {
+        private readonly bool m_isForCrlCheck;
+
+        public PkixCertPathValidator()
+            : this(isForCrlCheck: false)
+        {
+        }
+
+        internal PkixCertPathValidator(bool isForCrlCheck)
+        {
+            m_isForCrlCheck = isForCrlCheck;
+        }
+
+        // TODO[api] Rename 'paramsPkix' to 'pkixParams'
         public virtual PkixCertPathValidatorResult Validate(PkixCertPath certPath, PkixParameters paramsPkix)
         {
-            if (paramsPkix.GetTrustAnchors() == null)
+            var pkixParams = paramsPkix;
+
+            if (pkixParams.GetTrustAnchors() == null)
             {
                 throw new ArgumentException(
                     "trustAnchors is null, this is not allowed for certification path validation.",
-                    nameof(paramsPkix));
+                    nameof(pkixParams));
             }
 
             //
@@ -60,12 +75,13 @@ namespace Org.BouncyCastle.Pkix
             //
             // (b)
             //
-            // DateTime validDate = PkixCertPathValidatorUtilities.GetValidDate(paramsPkix);
+            DateTime currentDate = DateTime.UtcNow;
+            DateTime validityDate = PkixCertPathValidatorUtilities.GetValidityDate(pkixParams, currentDate);
 
             //
             // (c)
             //
-            var userInitialPolicySet = paramsPkix.GetInitialPolicies();
+            var userInitialPolicySet = pkixParams.GetInitialPolicies();
 
             //
             // (d)
@@ -74,7 +90,7 @@ namespace Org.BouncyCastle.Pkix
             try
             {
                 trust = PkixCertPathValidatorUtilities.FindTrustAnchor(certs[certs.Count - 1],
-                    paramsPkix.GetTrustAnchors());
+                    pkixParams.GetTrustAnchors());
 
                 if (trust == null)
                     throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, -1);
@@ -123,7 +139,7 @@ namespace Org.BouncyCastle.Pkix
             int explicitPolicy;
             var acceptablePolicies = new HashSet<string>();
 
-            if (paramsPkix.IsExplicitPolicyRequired)
+            if (pkixParams.IsExplicitPolicyRequired)
             {
                 explicitPolicy = 0;
             }
@@ -137,7 +153,7 @@ namespace Org.BouncyCastle.Pkix
             //
             int inhibitAnyPolicy;
 
-            if (paramsPkix.IsAnyPolicyInhibited)
+            if (pkixParams.IsAnyPolicyInhibited)
             {
                 inhibitAnyPolicy = 0;
             }
@@ -151,7 +167,7 @@ namespace Org.BouncyCastle.Pkix
             //
             int policyMapping;
 
-            if (paramsPkix.IsPolicyMappingInhibited)
+            if (pkixParams.IsPolicyMappingInhibited)
             {
                 policyMapping = 0;
             }
@@ -208,7 +224,7 @@ namespace Org.BouncyCastle.Pkix
             // 6.1.3
             //
 
-            var targetConstraints = paramsPkix.GetTargetConstraintsCert();
+            var targetConstraints = pkixParams.GetTargetConstraintsCert();
             if (targetConstraints != null && !targetConstraints.Match(certs[0]))
             {
                 throw new PkixCertPathValidatorException(
@@ -218,7 +234,7 @@ namespace Org.BouncyCastle.Pkix
             //
             // initialize CertPathChecker's
             //
-            var certPathCheckers = paramsPkix.GetCertPathCheckers();
+            var certPathCheckers = pkixParams.GetCertPathCheckers();
             foreach (var certPathChecker in certPathCheckers)
             {
                 certPathChecker.Init(false);
@@ -242,18 +258,19 @@ namespace Org.BouncyCastle.Pkix
                 // first time from the TrustAnchor
                 //
                 cert = certs[index];
+                bool verificationAlreadyPerformed = (index == certs.Count - 1);
 
                 //
                 // 6.1.3
                 //
 
-                Rfc3280CertPathUtilities.ProcessCertA(certPath, paramsPkix, index, workingPublicKey, workingIssuerName,
-                    sign);
+                Rfc3280CertPathUtilities.ProcessCertA(certPath, pkixParams, currentDate, validityDate, index,
+                    workingPublicKey, verificationAlreadyPerformed, workingIssuerName, sign);
 
-                Rfc3280CertPathUtilities.ProcessCertBC(certPath, index, nameConstraintValidator);
+                Rfc3280CertPathUtilities.ProcessCertBC(certPath, index, nameConstraintValidator, m_isForCrlCheck);
 
                 validPolicyTree = Rfc3280CertPathUtilities.ProcessCertD(certPath, index, acceptablePolicies,
-                    validPolicyTree, policyNodes, inhibitAnyPolicy);
+                    validPolicyTree, policyNodes, inhibitAnyPolicy, m_isForCrlCheck);
 
                 validPolicyTree = Rfc3280CertPathUtilities.ProcessCertE(certPath, index, validPolicyTree);
 
@@ -402,7 +419,7 @@ namespace Org.BouncyCastle.Pkix
 
             Rfc3280CertPathUtilities.WrapupCertF(certPath, index + 1, certPathCheckers, criticalExtensions);
 
-            PkixPolicyNode intersection = Rfc3280CertPathUtilities.WrapupCertG(certPath, paramsPkix,
+            PkixPolicyNode intersection = Rfc3280CertPathUtilities.WrapupCertG(certPath, pkixParams,
                 userInitialPolicySet, index + 1, policyNodes, validPolicyTree, acceptablePolicies);
 
             if ((explicitPolicy > 0) || (intersection != null))

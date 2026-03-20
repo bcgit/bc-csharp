@@ -65,10 +65,11 @@ namespace Org.BouncyCastle.Pkix
          * @throws CertPathValidatorException if the certificate is revoked or the
          *             status cannot be checked or some error occurs.
          */
-        internal static void CheckCrls(X509V2AttributeCertificate attrCert, PkixParameters paramsPKIX,
-            X509Certificate issuerCert, DateTime validDate, IList<X509Certificate> certPathCerts)
+        internal static void CheckCrls(X509V2AttributeCertificate attrCert, PkixParameters pkixParams,
+            DateTime currentDate, DateTime validityDate, X509Certificate issuerCert,
+            IList<X509Certificate> certPathCerts)
         {
-            if (!paramsPKIX.IsRevocationEnabled)
+            if (!pkixParams.IsRevocationEnabled)
                 return;
 
             // check if revocation is available
@@ -96,7 +97,7 @@ namespace Org.BouncyCastle.Pkix
 
             try
             {
-                PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, paramsPKIX);
+                PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, pkixParams);
             }
             catch (Exception e)
             {
@@ -124,14 +125,19 @@ namespace Org.BouncyCastle.Pkix
 
                 try
                 {
-                    for (int i = 0;
-                        i < dps.Length && certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons;
-                        i++)
+                    for (int i = 0; i < dps.Length && certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons; i++)
                     {
-                        PkixParameters paramsPKIXClone = (PkixParameters)paramsPKIX.Clone();
-                        CheckCrl(dps[i], attrCert, paramsPKIXClone, validDate, issuerCert, certStatus, reasonsMask,
-                            certPathCerts);
-                        validCrlFound = true;
+                        try
+                        {
+                            PkixParameters pkixParamsClone = (PkixParameters)pkixParams.Clone();
+                            CheckCrl(dps[i], attrCert, pkixParamsClone, currentDate, validityDate, issuerCert,
+                                certStatus, reasonsMask, certPathCerts);
+                            validCrlFound = true;
+                        }
+                        catch (Exception e)
+                        {
+                            lastException = e;
+                        }
                     }
                 }
                 catch (Exception e)
@@ -167,9 +173,9 @@ namespace Org.BouncyCastle.Pkix
                     DistributionPoint dp = new DistributionPoint(
                         new DistributionPointName(0, new GeneralNames(
                             new GeneralName(GeneralName.DirectoryName, issuer))), null, null);
-                    PkixParameters paramsPKIXClone = (PkixParameters)paramsPKIX.Clone();
-                    CheckCrl(dp, attrCert, paramsPKIXClone, validDate, issuerCert, certStatus, reasonsMask,
-                        certPathCerts);
+                    PkixParameters pkixParamsClone = (PkixParameters)pkixParams.Clone();
+                    CheckCrl(dp, attrCert, pkixParamsClone, currentDate, validityDate, issuerCert, certStatus,
+                        reasonsMask, certPathCerts);
                     validCrlFound = true;
                 }
                 catch (Exception e)
@@ -190,7 +196,7 @@ namespace Org.BouncyCastle.Pkix
                 throw new PkixCertPathValidatorException(message);
             }
 
-            if (!reasonsMask.IsAllReasons && certStatus.Status == CertStatus.Unrevoked)
+            if (certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons)
             {
                 certStatus.Status = CertStatus.Undetermined;
             }
@@ -220,11 +226,11 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        internal static void ProcessAttrCert5(X509V2AttributeCertificate attrCert, PkixParameters pkixParams)
+        internal static void ProcessAttrCert5(X509V2AttributeCertificate attrCert, DateTime validityDate)
         {
             try
             {
-                attrCert.CheckValidity(PkixCertPathValidatorUtilities.GetValidDate(pkixParams));
+                attrCert.CheckValidity(validityDate);
             }
             catch (CertificateExpiredException e)
             {
@@ -403,15 +409,15 @@ namespace Org.BouncyCastle.Pkix
          * @param validDate The date when the certificate revocation status should
          *            be checked.
          * @param issuerCert Certificate to check if it is revoked.
-         * @param reasonMask The reasons mask which is already checked.
+         * @param reasonsMask The reasons mask which is already checked.
          * @param certPathCerts The certificates of the certification path to be
          *            checked.
          * @throws Exception if the certificate is revoked or the status
          *             cannot be checked or some error occurs.
          */
         private static void CheckCrl(DistributionPoint dp, X509V2AttributeCertificate attrCert,
-            PkixParameters paramsPKIX, DateTime validDate, X509Certificate issuerCert, CertStatus certStatus,
-            ReasonsMask reasonMask, IList<X509Certificate> certPathCerts)
+            PkixParameters pkixParams, DateTime currentDate, DateTime validityDate, X509Certificate issuerCert,
+            CertStatus certStatus, ReasonsMask reasonsMask, IList<X509Certificate> certPathCerts)
         {
             /*
              * 4.3.6 No Revocation Available
@@ -423,8 +429,7 @@ namespace Org.BouncyCastle.Pkix
             if (attrCert.GetExtensionValue(X509Extensions.NoRevAvail) != null)
                 return;
 
-            DateTime currentDate = DateTime.UtcNow;
-            if (validDate.CompareTo(currentDate) > 0)
+            if (validityDate.CompareTo(currentDate) > 0)
                 throw new Exception("Validation time is in future.");
 
             // (a)
@@ -434,19 +439,19 @@ namespace Org.BouncyCastle.Pkix
              * CRLs must be enabled in the ExtendedPkixParameters and are in
              * getAdditionalStore()
              */
-            var crls = PkixCertPathValidatorUtilities.GetCompleteCrls(dp, attrCert, currentDate, paramsPKIX);
+            var crls = PkixCertPathValidatorUtilities.GetCompleteCrls(dp, attrCert, pkixParams, validityDate);
             bool validCrlFound = false;
             Exception lastException = null;
 
-            var crl_iter = crls.GetEnumerator();
-
-            while (crl_iter.MoveNext()
-                && certStatus.Status == CertStatus.Unrevoked
-                && !reasonMask.IsAllReasons)
+            foreach (var crl in crls)
             {
+                if (certStatus.Status != CertStatus.Unrevoked || reasonsMask.IsAllReasons)
+                    break;
+
                 try
                 {
-                    X509Crl crl = crl_iter.Current;
+                    PkixCertPathValidatorUtilities.CheckCrlCriticalExtensions(crl,
+                        "CRL contains unsupported critical extensions.");
 
                     // (d)
                     ReasonsMask interimReasonsMask = Rfc3280CertPathUtilities.ProcessCrlD(crl, dp);
@@ -457,27 +462,15 @@ namespace Org.BouncyCastle.Pkix
                      * can update it. If this CRL does not contain new reasons it
                      * must be ignored.
                      */
-                    if (!interimReasonsMask.HasNewReasons(reasonMask))
+                    if (!interimReasonsMask.HasNewReasons(reasonsMask))
                         continue;
 
                     // (f)
-                    var keys = Rfc3280CertPathUtilities.ProcessCrlF(crl, attrCert, null, null, paramsPKIX,
+                    var keys = Rfc3280CertPathUtilities.ProcessCrlF(crl, attrCert, null, null, pkixParams,
                         certPathCerts);
 
                     // (g)
                     AsymmetricKeyParameter pubKey = Rfc3280CertPathUtilities.ProcessCrlG(crl, keys);
-
-                    X509Crl deltaCRL = null;
-
-                    if (paramsPKIX.IsUseDeltasEnabled)
-                    {
-                        // get delta CRLs
-                        var deltaCRLs = PkixCertPathValidatorUtilities.GetDeltaCrls(currentDate, paramsPKIX, crl);
-
-                        // we only want one valid delta CRL
-                        // (h)
-                        deltaCRL = Rfc3280CertPathUtilities.ProcessCrlH(deltaCRLs, pubKey);
-                    }
 
                     /*
                      * CRL must be be valid at the current time, not the validation
@@ -491,7 +484,7 @@ namespace Org.BouncyCastle.Pkix
                      * certificate has been expired, so they do not have to be in
                      * the CRL vality time
                      */
-                    if (paramsPKIX.ValidityModel != PkixParameters.ChainValidityModel)
+                    if (pkixParams.ValidityModel != PkixParameters.ChainValidityModel)
                     {
                         /*
                          * if a certificate has expired, but was revoked, it is not
@@ -507,16 +500,29 @@ namespace Org.BouncyCastle.Pkix
                     // (b) (2)
                     Rfc3280CertPathUtilities.ProcessCrlB2(dp, attrCert, crl);
 
-                    // (c)
-                    Rfc3280CertPathUtilities.ProcessCrlC(deltaCRL, crl, paramsPKIX);
+                    if (pkixParams.IsUseDeltasEnabled)
+                    {
+                        // get delta CRLs
+                        var deltaCrls = PkixCertPathValidatorUtilities.GetDeltaCrls(validityDate, pkixParams, crl);
 
-                    // (i)
-                    Rfc3280CertPathUtilities.ProcessCrlI(validDate, deltaCRL,
-                        attrCert, certStatus, paramsPKIX);
+                        // we only want one valid delta CRL
+                        // (h)
+                        var deltaCrl = Rfc3280CertPathUtilities.ProcessCrlH(deltaCrls, pubKey);
+                        if (deltaCrl != null)
+                        {
+                            PkixCertPathValidatorUtilities.CheckCrlCriticalExtensions(deltaCrl,
+                                "Delta CRL contains unsupported critical extensions.");
+
+                            // (c)
+                            Rfc3280CertPathUtilities.ProcessCrlC(deltaCrl, crl, pkixParams);
+
+                            // (i)
+                            Rfc3280CertPathUtilities.ProcessCrlI(validityDate, deltaCrl, attrCert, certStatus);
+                        }
+                    }
 
                     // (j)
-                    Rfc3280CertPathUtilities.ProcessCrlJ(validDate, crl, attrCert,
-                        certStatus);
+                    Rfc3280CertPathUtilities.ProcessCrlJ(validityDate, crl, attrCert, certStatus);
 
                     // (k)
                     if (certStatus.Status == CrlReason.RemoveFromCrl)
@@ -525,7 +531,7 @@ namespace Org.BouncyCastle.Pkix
                     }
 
                     // update reasons mask
-                    reasonMask.AddReasons(interimReasonsMask);
+                    reasonsMask.AddReasons(interimReasonsMask);
                     validCrlFound = true;
                 }
                 catch (Exception e)

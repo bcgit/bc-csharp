@@ -169,14 +169,11 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        internal static DateTime GetValidDate(PkixParameters paramsPKIX)
+        internal static DateTime GetValidityDate(PkixParameters pkixParams, DateTime currentDate)
         {
-            DateTime? validDate = paramsPKIX.Date;
+            DateTime? validityDate = pkixParams.Date;
 
-            if (validDate == null)
-                return DateTime.UtcNow;
-
-            return validDate.Value;
+            return validityDate.HasValue ? validityDate.Value : currentDate;
         }
 
         /// <summary>
@@ -226,9 +223,7 @@ namespace Org.BouncyCastle.Pkix
             return policySet == null || policySet.Count < 1 || policySet.Contains(ANY_POLICY);
         }
 
-        internal static void AddAdditionalStoreFromLocation(
-            string location,
-            PkixParameters pkixParams)
+        internal static void AddAdditionalStoreFromLocation(string location, PkixParameters pkixParams)
         {
             if (pkixParams.IsAdditionalLocationsEnabled)
             {
@@ -500,13 +495,13 @@ namespace Org.BouncyCastle.Pkix
             throw new PkixCertPathValidatorException("DSA parameters cannot be inherited from previous certificate.");
         }
 
-        internal static DateTime GetValidCertDateFromValidityModel(PkixParameters paramsPkix, PkixCertPath certPath,
-            int index)
+        internal static DateTime GetValidCertDateFromValidityModel(DateTime validityDate, int validityModel,
+            PkixCertPath certPath, int index)
         {
-            if (PkixParameters.ChainValidityModel != paramsPkix.ValidityModel || index <= 0)
+            if (PkixParameters.ChainValidityModel != validityModel || index <= 0)
             {
                 // use given signing/encryption/... time (or current date)
-                return GetValidDate(paramsPkix);
+                return validityDate;
             }
 
             var issuedCert = certPath.Certificates[index - 1];
@@ -560,11 +555,8 @@ namespace Org.BouncyCastle.Pkix
          * @throws ClassCastException if <code>issuerPrincipals</code> does not
          * contain only <code>X500Principal</code>s.
          */
-        internal static void GetCrlIssuersFromDistributionPoint(
-            DistributionPoint dp,
-            ICollection<X509Name> issuerPrincipals,
-            X509CrlStoreSelector selector,
-            PkixParameters pkixParameters)
+        internal static void GetCrlIssuersFromDistributionPoint(DistributionPoint dp,
+            ICollection<X509Name> issuerPrincipals, X509CrlStoreSelector selector, PkixParameters pkixParams)
         {
             var issuers = new List<X509Name>();
             // indirect CRL
@@ -654,18 +646,16 @@ namespace Org.BouncyCastle.Pkix
          * Fetches complete CRLs according to RFC 3280.
          *
          * @param dp The distribution point for which the complete CRL
-         * @param cert The <code>X509Certificate</code> or
+         * @param certObj The <code>X509Certificate</code> or
          *            {@link Org.BouncyCastle.X509.X509AttributeCertificate} for
          *            which the CRL should be searched.
-         * @param currentDate The date for which the delta CRLs must be valid.
-         * @param paramsPKIX The extended PKIX parameters.
-         * @return A <code>Set</code> of <code>X509CRL</code>s with complete
-         *         CRLs.
-         * @throws Exception if an exception occurs while picking the CRLs
-         *             or no CRLs are found.
+         * @param pkixParams The extended PKIX parameters.
+         * @param validityDate The date for which the delta CRLs must be valid.
+         * @return A <code>Set</code> of <code>X509CRL</code>s with complete CRLs.
+         * @throws Exception if an exception occurs while picking the CRLs or no CRLs are found.
          */
-        internal static HashSet<X509Crl> GetCompleteCrls(DistributionPoint dp, object certObj, DateTime currentDate,
-            PkixParameters pkixParameters)
+        internal static HashSet<X509Crl> GetCompleteCrls(DistributionPoint dp, object certObj,
+            PkixParameters pkixParams, DateTime validityDate)
         {
             var certObjIssuer = GetIssuerPrincipal(certObj);
 
@@ -675,7 +665,7 @@ namespace Org.BouncyCastle.Pkix
                 var issuers = new HashSet<X509Name>();
                 issuers.Add(certObjIssuer);
 
-                GetCrlIssuersFromDistributionPoint(dp, issuers, crlselect, pkixParameters);
+                GetCrlIssuersFromDistributionPoint(dp, issuers, crlselect, pkixParams);
             }
             catch (Exception e)
             {
@@ -693,7 +683,7 @@ namespace Org.BouncyCastle.Pkix
 
             crlselect.CompleteCrlEnabled = true;
 
-            var crls = PkixCrlUtilities.ImplFindCrls(crlselect, pkixParameters, currentDate);
+            var crls = PkixCrlUtilities.ImplFindCrls(crlselect, pkixParams, validityDate);
             if (crls.Count < 1)
                 throw new Exception("No CRLs found for issuer \"" + certObjIssuer + "\"");
 
@@ -703,14 +693,14 @@ namespace Org.BouncyCastle.Pkix
         /**
          * Fetches delta CRLs according to RFC 3280 section 5.2.4.
          *
-         * @param currentDate The date for which the delta CRLs must be valid.
-         * @param paramsPKIX The extended PKIX parameters.
-         * @param completeCRL The complete CRL the delta CRL is for.
+         * @param validityDate The date for which the delta CRLs must be valid.
+         * @param pkixParams The extended PKIX parameters.
+         * @param completeCrl The complete CRL the delta CRL is for.
          * @return A <code>Set</code> of <code>X509CRL</code>s with delta CRLs.
          * @throws Exception if an exception occurs while picking the delta
          *             CRLs.
          */
-        internal static HashSet<X509Crl> GetDeltaCrls(DateTime currentDate, PkixParameters pkixParameters,
+        internal static HashSet<X509Crl> GetDeltaCrls(DateTime validityDate, PkixParameters pkixParams,
             X509Crl completeCrl)
         {
             X509CrlStoreSelector deltaSelect = new X509CrlStoreSelector();
@@ -764,7 +754,7 @@ namespace Org.BouncyCastle.Pkix
             deltaSelect.DeltaCrlIndicatorEnabled = true;
 
             // find delta CRLs
-            var deltaCrls = PkixCrlUtilities.ImplFindCrls(deltaSelect, pkixParameters, currentDate);
+            var deltaCrls = PkixCrlUtilities.ImplFindCrls(deltaSelect, pkixParams, validityDate);
             RetainDeltaCrls(deltaCrls);
 
             /*
@@ -937,6 +927,12 @@ namespace Org.BouncyCastle.Pkix
 
         internal static void CheckCrlCriticalExtensions(X509Crl crl, string exceptionMessage)
         {
+            /*
+             * In Java the 'hasUnsupportedCriticalExtension' method may also need to be called, since 'crl' might be a
+             * third-party implementation with unknown extension support. We only expect our own X509Crl, so we can just
+             * check here for the critical extensions that we support.
+             */
+
             var c = crl.CertificateList.TbsCertList;
             if (c.Version >= 2)
             {
@@ -961,6 +957,12 @@ namespace Org.BouncyCastle.Pkix
 
         internal static void CheckCrlEntryCriticalExtensions(X509CrlEntry crlEntry, string exceptionMessage)
         {
+            /*
+             * In Java the 'hasUnsupportedCriticalExtension' method may also need to be called, since 'crlEntry' might
+             * be a third-party implementation with unknown extension support. We only expect our own X509CrlEntry,
+             * which doesn't support any critical extensions (as is also the case with the BC provider implementation).
+             */
+
             var extensions = crlEntry.CrlEntry.Extensions;
             if (extensions != null && extensions.HasAnyCriticalExtensions())
                 throw new Exception(exceptionMessage);

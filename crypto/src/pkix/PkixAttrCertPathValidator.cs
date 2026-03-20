@@ -45,28 +45,22 @@ namespace Org.BouncyCastle.Pkix
                     nameof(pkixParams));
             }
 
+            DateTime currentDate = DateTime.UtcNow;
+            DateTime validityDate = PkixCertPathValidatorUtilities.GetValidityDate(pkixParams, currentDate);
+
             var attrCert = attrCertSelector.AttributeCert;
             PkixCertPath holderCertPath = Rfc3281CertPathUtilities.ProcessAttrCert1(attrCert, pkixParams);
             PkixCertPathValidatorResult result = Rfc3281CertPathUtilities.ProcessAttrCert2(certPath, pkixParams);
             X509Certificate issuerCert = (X509Certificate)certPath.Certificates[0];
             Rfc3281CertPathUtilities.ProcessAttrCert3(issuerCert, pkixParams);
             Rfc3281CertPathUtilities.ProcessAttrCert4(issuerCert, pkixParams);
-            Rfc3281CertPathUtilities.ProcessAttrCert5(attrCert, pkixParams);
+            Rfc3281CertPathUtilities.ProcessAttrCert5(attrCert, validityDate);
             // 6 already done in X509AttrCertStoreSelector
             Rfc3281CertPathUtilities.ProcessAttrCert7(attrCert, certPath, holderCertPath, pkixParams);
             Rfc3281CertPathUtilities.AdditionalChecks(attrCert, pkixParams);
 
-            DateTime validDate;
-            try
-            {
-                validDate = PkixCertPathValidatorUtilities.GetValidCertDateFromValidityModel(pkixParams, null, -1);
-            }
-            catch (Exception e)
-            {
-                throw new PkixCertPathValidatorException("Could not get validity date from attribute certificate.", e);
-            }
-
-            Rfc3281CertPathUtilities.CheckCrls(attrCert, pkixParams, issuerCert, validDate, certPath.Certificates);
+            Rfc3281CertPathUtilities.CheckCrls(attrCert, pkixParams, currentDate, validityDate, issuerCert,
+                certPath.Certificates);
             return result;
         }
     }

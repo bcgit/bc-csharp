@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Pkix
          */
         internal void AddReasons(ReasonsMask mask)
         {
-            m_reasons |= mask.Reasons.IntValue;
+            m_reasons |= mask.m_reasons;
         }
 
         /// <summary>

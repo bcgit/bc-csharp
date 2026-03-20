@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Pkix
         private bool useDeltas = false;
 
         /**
-         * Creates an instance of PKIXParameters with the specified Set of
+         * Creates an instance of PkixParameters with the specified Set of
          * most-trusted CAs. Each element of the set is a TrustAnchor.<br />
          * <br />
          * Note that the Set is copied to protect against subsequent modifications.

@@ -14,6 +14,18 @@ namespace Org.BouncyCastle.Pkix
      */
     public class PkixCertPathBuilder
     {
+        private readonly bool m_isForCrlCheck;
+
+        public PkixCertPathBuilder()
+            : this(isForCrlCheck: false)
+        {
+        }
+
+        internal PkixCertPathBuilder(bool isForCrlCheck)
+        {
+            m_isForCrlCheck = isForCrlCheck;
+        }
+
         /**
          * Build and validate a CertPath using the given parameter.
          *
@@ -83,7 +95,7 @@ namespace Org.BouncyCastle.Pkix
             tbvPath.Add(tbvCert);
 
             PkixCertPathBuilderResult builderResult = null;
-            PkixCertPathValidator validator = new PkixCertPathValidator();
+            PkixCertPathValidator validator = new PkixCertPathValidator(m_isForCrlCheck);
 
             try
             {

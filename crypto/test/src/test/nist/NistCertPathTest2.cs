@@ -225,7 +225,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[]{"InvalidDNnameConstraintsTest20EE", "nameConstraintsDN1CACert"},
                 new string[]{"nameConstraintsDN1CACRL", "TrustAnchorRootCRL"},
                 0,
-                "CertPath for CRL signer failed to validate.");   // due to a subtree failure
+                "Subtree check for certificate subject failed.");
         }
 
 		private void DoExceptionTest(
