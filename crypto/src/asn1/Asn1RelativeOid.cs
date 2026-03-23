@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -364,75 +365,132 @@ namespace Org.BouncyCastle.Asn1
             return objId.ToString();
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static byte[] ParseIdentifier(string identifier)
         {
-            MemoryStream bOut = new MemoryStream();
-            OidTokenizer tok = new OidTokenizer(identifier);
-            while (tok.HasMoreTokens)
+            int contentsLimit = (identifier.Length + 1) / 2;
+            Span<byte> buf = contentsLimit <= 1024
+                ? stackalloc byte[contentsLimit]
+                : new byte[contentsLimit];
+
+            int i = 0, j = 0, off = 0;
+            while (++j < identifier.Length)
             {
-                string token = tok.NextToken();
-                if (token.Length <= 18)
+                if (identifier[j] == '.')
                 {
-                    WriteField(bOut, long.Parse(token));
-                }
-                else
-                {
-                    WriteField(bOut, new BigInteger(token));
+                    WriteField(buf, ref off, identifier, i, j);
+                    i = j + 1;
+                    j = i;
                 }
             }
-            return bOut.ToArray();
+            WriteField(buf, ref off, identifier, i, j);
+
+            return buf[..off].ToArray();
         }
 
-        internal static void WriteField(Stream outputStream, long fieldValue)
+        internal static void WriteField(Span<byte> buf, ref int off, string identifier, int from, int to)
         {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> result = stackalloc byte[9];
+            int length = to - from;
+            if (length <= 19)
+            {
+                var fieldValue = ulong.Parse(identifier.AsSpan(from, length));
+                WriteField(buf, ref off, fieldValue);
+            }
+            else
+            {
+                var fieldValue = new BigInteger(identifier.Substring(from, length));
+                WriteField(buf, ref off, fieldValue);
+            }
+        }
+
+        internal static void WriteField(Span<byte> buf, ref int off, ulong fieldValue)
+        {
+            int bitLength = Longs.NumBits - Longs.NumberOfLeadingZeros((long)fieldValue | 1);
+            //int byteCount = (bitLength + 6) / 7;
+            int byteCount = ((bitLength + 6) * 9363) >> 16;
+            int pos = byteCount - 1;
+            buf[off + pos] = (byte)((int)fieldValue & 0x7F);
+            while (--pos >= 0)
+            {
+                fieldValue >>= 7;
+                buf[off + pos] = (byte)((int)fieldValue | 0x80);
+            }
+            off += byteCount;
+        }
+
+        internal static void WriteField(Span<byte> buf, ref int off, BigInteger fieldValue)
+        {
+            Debug.Assert(fieldValue.SignValue > 0);
+            int byteCount = (fieldValue.BitLength + 6) / 7;
+            int pos = byteCount - 1;
+            buf[off + pos] = (byte)(fieldValue.IntValue & 0x7F);
+            while (--pos >= 0)
+            {
+                fieldValue = fieldValue.ShiftRight(7);
+                buf[off + pos] = (byte)(fieldValue.IntValue | 0x80);
+            }
+            off += byteCount;
+        }
 #else
-            byte[] result = new byte[9];
-#endif
-            int pos = 8;
+        internal static byte[] ParseIdentifier(string identifier)
+        {
+            int contentsLimit = (identifier.Length + 1) / 2;
+            MemoryStream buf = new MemoryStream(capacity: contentsLimit);
+
+            int i = 0, j = 0;
+            while (++j < identifier.Length)
+            {
+                if (identifier[j] == '.')
+                {
+                    WriteField(buf, identifier, i, j);
+                    i = j + 1;
+                    j = i;
+                }
+            }
+            WriteField(buf, identifier, i, j);
+
+            return buf.ToArray();
+        }
+ 
+        internal static void WriteField(MemoryStream buf, string identifier, int from, int to)
+        {
+            string token = identifier.Substring(from, to - from);
+            if (token.Length <= 19)
+            {
+                WriteField(buf, ulong.Parse(token));
+            }
+            else
+            {
+                WriteField(buf, new BigInteger(token));
+            }
+        }
+
+        internal static void WriteField(MemoryStream buf, ulong fieldValue)
+        {
+            byte[] result = new byte[10];
+            int pos = result.Length - 1;
             result[pos] = (byte)((int)fieldValue & 0x7F);
             while (fieldValue >= (1L << 7))
             {
                 fieldValue >>= 7;
                 result[--pos] = (byte)((int)fieldValue | 0x80);
             }
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            outputStream.Write(result[pos..]);
-#else
-            outputStream.Write(result, pos, 9 - pos);
-#endif
+            buf.Write(result, pos, result.Length - pos);
         }
 
-        internal static void WriteField(Stream outputStream, BigInteger fieldValue)
+        internal static void WriteField(MemoryStream buf, BigInteger fieldValue)
         {
+            Debug.Assert(fieldValue.SignValue > 0);
             int byteCount = (fieldValue.BitLength + 6) / 7;
-            if (byteCount == 0)
+            byte[] tmp = new byte[byteCount];
+            for (int i = byteCount - 1; i >= 0; i--)
             {
-                outputStream.WriteByte(0);
+                tmp[i] = (byte)(fieldValue.IntValue | 0x80);
+                fieldValue = fieldValue.ShiftRight(7);
             }
-            else
-            {
-                BigInteger tmpValue = fieldValue;
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                Span<byte> tmp = byteCount <= 16
-                    ? stackalloc byte[byteCount]
-                    : new byte[byteCount];
-#else
-                byte[] tmp = new byte[byteCount];
-#endif
-                for (int i = byteCount - 1; i >= 0; i--)
-                {
-                    tmp[i] = (byte)(tmpValue.IntValue | 0x80);
-                    tmpValue = tmpValue.ShiftRight(7);
-                }
-                tmp[byteCount - 1] &= 0x7F;
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                outputStream.Write(tmp);
-#else
-                outputStream.Write(tmp, 0, tmp.Length);
-#endif
-            }
+            tmp[byteCount - 1] &= 0x7F;
+            buf.Write(tmp, 0, tmp.Length);
         }
+#endif
     }
 }

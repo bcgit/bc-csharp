@@ -15,10 +15,7 @@ namespace Org.BouncyCastle.Asn1.Tests
         private static readonly byte[] req1 = Hex.Decode("0D03813403");
         private static readonly byte[] req2 = Hex.Decode("0D082A36FFFFFFDD6311");
 
-        public override string Name
-        {
-            get { return "RelativeOID"; }
-        }
+        public override string Name => "RelativeOID";
 
         private void RecodeCheck(string oid, byte[] enc)
         {
@@ -43,10 +40,10 @@ namespace Org.BouncyCastle.Asn1.Tests
             Assert.True(Asn1RelativeOid.TryFromID(oid, out var ignore));
 
             Asn1RelativeOid o = new Asn1RelativeOid(oid);
-			o = (Asn1RelativeOid)Asn1Object.FromByteArray(o.GetEncoded());
+            o = (Asn1RelativeOid)Asn1Object.FromByteArray(o.GetEncoded());
 
-			if (!o.GetID().Equals(oid))
-			{
+            if (!o.GetID().Equals(oid))
+            {
                 Fail("failed relative oid check for " + oid);
             }
         }
@@ -95,6 +92,15 @@ namespace Org.BouncyCastle.Asn1.Tests
             CheckValid("3.1");
             CheckValid("37.196556539987194312349856245628873852187.100");
             CheckValid("192.168.1.1");
+            CheckValid("9");
+            CheckValid("99");
+            CheckValid("999");
+            CheckValid("9999");
+            CheckValid("99999");
+            CheckValid("999999");
+            CheckValid("999999999999999999");
+            CheckValid("9999999999999999999");
+            CheckValid("99999999999999999999");
 
             CheckInvalid("00");
             CheckInvalid("0.01");
