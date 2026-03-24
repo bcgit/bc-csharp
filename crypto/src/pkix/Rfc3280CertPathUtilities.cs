@@ -1036,7 +1036,7 @@ namespace Org.BouncyCastle.Pkix
             if (certStatus.Status != CertStatus.Unrevoked)
             {
                 // This format is enforced by the NistCertPath tests
-                var formattedDate = certStatus.RevocationDate.Value.ToString("ddd MMM dd HH:mm:ss K yyyy");
+                var formattedDate = certStatus.RevocationDate.Value.ToString("yyyy-MM-dd HH:mm:ss K");
                 var reason = CrlReasons[certStatus.Status];
                 var message = $"Certificate revocation after {formattedDate}, reason: {reason}";
                 throw new Exception(message);
