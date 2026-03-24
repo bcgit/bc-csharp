@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -1676,7 +1677,10 @@ namespace Org.BouncyCastle.Pkix
             }
 
             if (criticalExtensions.Count > 0)
-                throw new PkixCertPathValidatorException("Certificate has unsupported critical extension.", null, index);
+            {
+                throw new PkixCertPathValidatorException(GetUnsupportedCriticalExtensionMessage(criticalExtensions),
+                    null, index);
+            }
         }
 
         internal static int PrepareNextCertH1(PkixCertPath certPath, int index, int explicitPolicy)
@@ -1814,7 +1818,10 @@ namespace Org.BouncyCastle.Pkix
             }
 
             if (criticalExtensions.Count > 0)
-                throw new PkixCertPathValidatorException("Certificate has unsupported critical extension", null, index);
+            {
+                throw new PkixCertPathValidatorException(GetUnsupportedCriticalExtensionMessage(criticalExtensions),
+                    null, index);
+            }
         }
 
         internal static PkixPolicyNode WrapupCertG(PkixCertPath certPath, PkixParameters pkixParams,
@@ -2071,5 +2078,26 @@ namespace Org.BouncyCastle.Pkix
             "privilegeWithdrawn",
             "aACompromise"
         };
+
+        private static string GetUnsupportedCriticalExtensionMessage(ISet<string> criticalExtensions)
+        {
+            // TODO Still susceptible to sort order for stable error messages
+            StringBuilder sb = new StringBuilder("Certificate has unsupported critical extension: [");
+            var en = criticalExtensions.GetEnumerator();
+            if (en.MoveNext())
+            {
+                for (;;)
+                {
+                    sb.Append(en.Current);
+
+                    if (!en.MoveNext())
+                        break;
+
+                    sb.Append(", ");
+                }
+            }
+            sb.Append(']');
+            return sb.ToString();
+        }
     }
 }
