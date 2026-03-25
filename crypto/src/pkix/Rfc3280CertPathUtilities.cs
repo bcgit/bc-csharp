@@ -806,7 +806,7 @@ namespace Org.BouncyCastle.Pkix
          * @throws AnnotatedException if the certificate is revoked or the status cannot be checked
          *                            or some error occurs.
          */
-        private static void CheckCrl(DistributionPoint dp, PkixParameters pkixParams, X509Certificate cert,
+        private static void CheckCrl(int index, DistributionPoint dp, PkixParameters pkixParams, X509Certificate cert,
             DateTime currentDate, DateTime validityDate, X509Certificate defaultCRLSignCert,
             AsymmetricKeyParameter defaultCRLSignKey, CertStatus certStatus, ReasonsMask reasonsMask,
             IList<X509Certificate> certPathCerts)
@@ -822,7 +822,7 @@ namespace Org.BouncyCastle.Pkix
              * getAdditionalStore()
              */
 
-            var crls = PkixCertPathValidatorUtilities.GetCompleteCrls(dp, cert, pkixParams, validityDate);
+            var crls = PkixCertPathValidatorUtilities.GetCompleteCrls(index, dp, cert, pkixParams, validityDate);
             bool validCrlFound = false;
             Exception lastException = null;
 
@@ -896,7 +896,7 @@ namespace Org.BouncyCastle.Pkix
                                 "Delta CRL contains unsupported critical extensions.");
 
                             // (c)
-                            ProcessCrlC(deltaCrl, crl, pkixParams);
+                            ProcessCrlC(deltaCrl, crl);
 
                             // (i)
                             ProcessCrlI(validityDate, deltaCrl, cert, certStatus);
@@ -940,7 +940,7 @@ namespace Org.BouncyCastle.Pkix
          * @throws AnnotatedException if the certificate is revoked or the status cannot be checked
          *                            or some error occurs.
          */
-        internal static void CheckCrls(PkixParameters pkixParams, X509Certificate cert, DateTime currentDate,
+        internal static void CheckCrls(int index, PkixParameters pkixParams, X509Certificate cert, DateTime currentDate,
             DateTime validityDate, X509Certificate sign, AsymmetricKeyParameter workingPublicKey,
             IList<X509Certificate> certPathCerts)
         {
@@ -991,8 +991,8 @@ namespace Org.BouncyCastle.Pkix
                         try
                         {
                             PkixParameters pkixParamsClone = (PkixParameters)pkixParams.Clone();
-                            CheckCrl(dps[i], pkixParamsClone, cert, currentDate, validityDate, sign, workingPublicKey,
-                                certStatus, reasonsMask, certPathCerts);
+                            CheckCrl(index, dps[i], pkixParamsClone, cert, currentDate, validityDate, sign,
+                                workingPublicKey, certStatus, reasonsMask, certPathCerts);
                             validCrlFound = true;
                         }
                         catch (Exception e)
@@ -1021,8 +1021,8 @@ namespace Org.BouncyCastle.Pkix
                     DistributionPoint dp = new DistributionPoint(new DistributionPointName(0, new GeneralNames(
                         new GeneralName(GeneralName.DirectoryName, cert.IssuerDN))), null, null);
                     PkixParameters pkixParamsClone = (PkixParameters)pkixParams.Clone();
-                    CheckCrl(dp, pkixParamsClone, cert, currentDate, validityDate, sign, workingPublicKey, certStatus,
-                        reasonsMask, certPathCerts);
+                    CheckCrl(index, dp, pkixParamsClone, cert, currentDate, validityDate, sign, workingPublicKey,
+                        certStatus, reasonsMask, certPathCerts);
                     validCrlFound = true;
                 }
                 catch (Exception e)
@@ -1358,7 +1358,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 try
                 {
-                    CheckCrls(pkixParams, cert, currentDate, validityDate, sign, workingPublicKey, certs);
+                    CheckCrls(index, pkixParams, cert, currentDate, validityDate, sign, workingPublicKey, certs);
                 }
                 catch (Exception e)
                 {
@@ -1952,7 +1952,7 @@ namespace Org.BouncyCastle.Pkix
          * @param pkixParams  The PKIX paramaters.
          * @throws AnnotatedException if an exception occurs.
          */
-        internal static void ProcessCrlC(X509Crl deltaCrl, X509Crl completeCrl, PkixParameters pkixParams)
+        internal static void ProcessCrlC(X509Crl deltaCrl, X509Crl completeCrl)
         {
             IssuingDistributionPoint completeIdp;
             try
@@ -1965,65 +1965,62 @@ namespace Org.BouncyCastle.Pkix
                 throw new Exception("Issuing distribution point extension could not be decoded.", e);
             }
 
-            if (pkixParams.IsUseDeltasEnabled)
+            // (c) (1)
+            if (!deltaCrl.IssuerDN.Equivalent(completeCrl.IssuerDN, true))
+                throw new Exception("Complete CRL issuer does not match delta CRL issuer.");
+
+            // (c) (2)
+            IssuingDistributionPoint deltaIdp;
+            try
             {
-                // (c) (1)
-                if (!deltaCrl.IssuerDN.Equivalent(completeCrl.IssuerDN, true))
-                    throw new Exception("Complete CRL issuer does not match delta CRL issuer.");
+                deltaIdp = deltaCrl.GetExtension(X509Extensions.IssuingDistributionPoint,
+                    IssuingDistributionPoint.GetInstance);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(
+                    "Issuing distribution point extension from delta CRL could not be decoded.", e);
+            }
 
-                // (c) (2)
-                IssuingDistributionPoint deltaIdp;
-                try
-                {
-                    deltaIdp = deltaCrl.GetExtension(X509Extensions.IssuingDistributionPoint,
-                        IssuingDistributionPoint.GetInstance);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(
-                        "Issuing distribution point extension from delta CRL could not be decoded.", e);
-                }
+            if (!Objects.Equals(completeIdp, deltaIdp))
+            {
+                throw new Exception(
+                    "Issuing distribution point extension from delta CRL and complete CRL does not match.");
+            }
 
-                if (!Objects.Equals(completeIdp, deltaIdp))
-                {
-                    throw new Exception(
-                        "Issuing distribution point extension from delta CRL and complete CRL does not match.");
-                }
+            // (c) (3)
+            AuthorityKeyIdentifier completeKeyIdentifier;
+            try
+            {
+                completeKeyIdentifier = X509ExtensionUtilities.GetAuthorityKeyIdentifier(completeCrl);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(
+                    "Authority key identifier extension could not be extracted from complete CRL.", e);
+            }
 
-                // (c) (3)
-                AuthorityKeyIdentifier completeKeyIdentifier;
-                try
-                {
-                    completeKeyIdentifier = X509ExtensionUtilities.GetAuthorityKeyIdentifier(completeCrl);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(
-                        "Authority key identifier extension could not be extracted from complete CRL.", e);
-                }
+            AuthorityKeyIdentifier deltaKeyIdentifier;
+            try
+            {
+                deltaKeyIdentifier = X509ExtensionUtilities.GetAuthorityKeyIdentifier(deltaCrl);
+            }
+            catch (Exception e)
+            {
+                throw new Exception(
+                    "Authority key identifier extension could not be extracted from delta CRL.", e);
+            }
 
-                AuthorityKeyIdentifier deltaKeyIdentifier;
-                try
-                {
-                    deltaKeyIdentifier = X509ExtensionUtilities.GetAuthorityKeyIdentifier(deltaCrl);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception(
-                        "Authority key identifier extension could not be extracted from delta CRL.", e);
-                }
+            if (completeKeyIdentifier == null)
+                throw new Exception("CRL authority key identifier is null.");
 
-                if (completeKeyIdentifier == null)
-                    throw new Exception("CRL authority key identifier is null.");
+            if (deltaKeyIdentifier == null)
+                throw new Exception("Delta CRL authority key identifier is null.");
 
-                if (deltaKeyIdentifier == null)
-                    throw new Exception("Delta CRL authority key identifier is null.");
-
-                if (!completeKeyIdentifier.Equals(deltaKeyIdentifier))
-                {
-                    throw new Exception(
-                        "Delta CRL authority key identifier does not match complete CRL authority key identifier.");
-                }
+            if (!completeKeyIdentifier.Equals(deltaKeyIdentifier))
+            {
+                throw new Exception(
+                    "Delta CRL authority key identifier does not match complete CRL authority key identifier.");
             }
         }
 

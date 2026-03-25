@@ -1,5 +1,8 @@
 ﻿using System.Collections.Concurrent;
 
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
@@ -32,6 +35,20 @@ namespace Org.BouncyCastle.Tests.Nist
                     return new X509CrlParser().ReadCrl(s);
                 }
             });
+        }
+
+        internal static TrustAnchor GetTrustAnchor(string trustAnchorName)
+        {
+            X509Certificate cert = GetCertificate(trustAnchorName);
+            Asn1OctetString extensionValue = cert.GetExtensionValue(X509Extensions.NameConstraints);
+
+            byte[] nameConstraints = null;
+            if (extensionValue != null)
+            {
+                nameConstraints = NameConstraints.GetInstance(extensionValue.GetOctets()).GetEncoded(Asn1Encodable.Der);
+            }
+
+            return new TrustAnchor(cert, nameConstraints);
         }
     }
 }

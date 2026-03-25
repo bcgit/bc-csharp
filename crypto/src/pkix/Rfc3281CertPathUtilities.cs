@@ -439,7 +439,8 @@ namespace Org.BouncyCastle.Pkix
              * CRLs must be enabled in the ExtendedPkixParameters and are in
              * getAdditionalStore()
              */
-            var crls = PkixCertPathValidatorUtilities.GetCompleteCrls(dp, attrCert, pkixParams, validityDate);
+            var crls = PkixCertPathValidatorUtilities.GetCompleteCrls(index: -1, dp, attrCert, pkixParams,
+                validityDate);
             bool validCrlFound = false;
             Exception lastException = null;
 
@@ -514,7 +515,7 @@ namespace Org.BouncyCastle.Pkix
                                 "Delta CRL contains unsupported critical extensions.");
 
                             // (c)
-                            Rfc3280CertPathUtilities.ProcessCrlC(deltaCrl, crl, pkixParams);
+                            Rfc3280CertPathUtilities.ProcessCrlC(deltaCrl, crl);
 
                             // (i)
                             Rfc3280CertPathUtilities.ProcessCrlI(validityDate, deltaCrl, attrCert, certStatus);

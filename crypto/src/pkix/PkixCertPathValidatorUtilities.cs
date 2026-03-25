@@ -25,8 +25,6 @@ namespace Org.BouncyCastle.Pkix
         internal static readonly string ANY_POLICY = "2.5.29.32.0";
         internal static readonly DerObjectIdentifier ANY_POLICY_OID = new DerObjectIdentifier(ANY_POLICY);
 
-        internal static readonly string CRL_NUMBER = X509Extensions.CrlNumber.Id;
-
         /// <summary>
         /// key usage bits
         /// </summary>
@@ -654,7 +652,7 @@ namespace Org.BouncyCastle.Pkix
          * @return A <code>Set</code> of <code>X509CRL</code>s with complete CRLs.
          * @throws Exception if an exception occurs while picking the CRLs or no CRLs are found.
          */
-        internal static HashSet<X509Crl> GetCompleteCrls(DistributionPoint dp, object certObj,
+        internal static HashSet<X509Crl> GetCompleteCrls(int index, DistributionPoint dp, object certObj,
             PkixParameters pkixParams, DateTime validityDate)
         {
             var certObjIssuer = GetIssuerPrincipal(certObj);
