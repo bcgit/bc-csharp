@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert((m[0] & 1) != 0);
             Debug.Assert(m[len32 - 1] != 0);
 
-            int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
+            int bits = (len32 * Integers.NumBits) - Integers.NumberOfLeadingZeros(m[len32 - 1]);
             int len30 = (bits + 29) / 30;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert((m[0] & 1) != 0);
             Debug.Assert(m[len32 - 1] != 0);
 
-            int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
+            int bits = (len32 * Integers.NumBits) - Integers.NumberOfLeadingZeros(m[len32 - 1]);
             int len30 = (bits + 29) / 30;
 
             int clz = bits - Nat.GetBitLength(len32, x);
@@ -253,7 +253,7 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert((m[0] & 1) != 0);
             Debug.Assert(m[len32 - 1] != 0);
 
-            int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
+            int bits = (len32 * Integers.NumBits) - Integers.NumberOfLeadingZeros(m[len32 - 1]);
             int len30 = (bits + 29) / 30;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -309,7 +309,7 @@ namespace Org.BouncyCastle.Math.Raw
             Debug.Assert((m[0] & 1) != 0);
             Debug.Assert(m[len32 - 1] != 0);
 
-            int bits = (len32 << 5) - Integers.NumberOfLeadingZeros((int)m[len32 - 1]);
+            int bits = (len32 * Integers.NumBits) - Integers.NumberOfLeadingZeros(m[len32 - 1]);
             int len30 = (bits + 29) / 30;
 
             int clz = bits - Nat.GetBitLength(len32, x);

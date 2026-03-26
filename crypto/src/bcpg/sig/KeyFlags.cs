@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
 
         private static byte[] FlagsToData(int flags)
         {
-            int bits = 32 - Integers.NumberOfLeadingZeros(flags);
+            int bits = Integers.BitLength(flags);
             int bytes = (bits + 7) / 8;
 
             byte[] data = new byte[bytes];

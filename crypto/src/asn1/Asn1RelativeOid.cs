@@ -405,7 +405,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal static void WriteField(Span<byte> buf, ref int off, ulong fieldValue)
         {
-            int bitLength = Longs.NumBits - Longs.NumberOfLeadingZeros((long)fieldValue | 1);
+            int bitLength = Longs.BitLength(fieldValue | 1UL);
             //int byteCount = (bitLength + 6) / 7;
             int byteCount = ((bitLength + 6) * 9363) >> 16;
             int pos = byteCount - 1;

@@ -22,6 +22,11 @@ namespace Org.BouncyCastle.Utilities
             0x1E, 0x1A, 0x0C, 0x16, 0x14, 0x12, 0x0F, 0x06, 0x19, 0x0B, 0x11, 0x05, 0x0A, 0x04, 0x09, 0x08 };
 #endif
 
+        public static int BitLength(int i) => NumBits - NumberOfLeadingZeros(i);
+
+        [CLSCompliant(false)]
+        public static int BitLength(uint u) => BitLength((int)u);
+
         public static int Compare(int x, int y) => x.CompareTo(y);
 
         [CLSCompliant(false)]
@@ -29,10 +34,7 @@ namespace Org.BouncyCastle.Utilities
 
         public static int CompareUnsigned(int x, int y) => Compare((uint)x, (uint)y);
 
-        public static int HighestOneBit(int i)
-        {
-            return (int)HighestOneBit((uint)i);
-        }
+        public static int HighestOneBit(int i) => (int)HighestOneBit((uint)i);
 
         [CLSCompliant(false)]
         public static uint HighestOneBit(uint i)
@@ -45,16 +47,10 @@ namespace Org.BouncyCastle.Utilities
             return i - (i >> 1);
         }
 
-        public static int LowestOneBit(int i)
-        {
-            return i & -i;
-        }
+        public static int LowestOneBit(int i) => i & -i;
 
         [CLSCompliant(false)]
-        public static uint LowestOneBit(uint i)
-        {
-            return (uint)LowestOneBit((int)i);
-        }
+        public static uint LowestOneBit(uint i) => (uint)LowestOneBit((int)i);
 
         public static int NumberOfLeadingZeros(int i)
         {
@@ -75,6 +71,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        [CLSCompliant(false)]
+        public static int NumberOfLeadingZeros(uint u) => NumberOfLeadingZeros((int)u);
+
         public static int NumberOfTrailingZeros(int i)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -86,10 +85,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
-        public static int PopCount(int i)
-        {
-            return PopCount((uint)i);
-        }
+        [CLSCompliant(false)]
+        public static int NumberOfTrailingZeros(uint u) => NumberOfTrailingZeros((int)u);
+
+        public static int PopCount(int i) => PopCount((uint)i);
 
         [CLSCompliant(false)]
         public static int PopCount(uint u)
@@ -107,10 +106,7 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
-        public static int Reverse(int i)
-        {
-            return (int)Reverse((uint)i);
-        }
+        public static int Reverse(int i) => (int)Reverse((uint)i);
 
         [CLSCompliant(false)]
         public static uint Reverse(uint i)

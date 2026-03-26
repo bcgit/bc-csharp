@@ -1039,7 +1039,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 uint x_i = x[i];
                 if (x_i != 0)
-                    return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)x_i);
+                    return i * Integers.NumBits + Integers.BitLength(x_i);
             }
             return 0;
         }
@@ -1050,7 +1050,7 @@ namespace Org.BouncyCastle.Math.Raw
             {
                 uint x_i = x[xOff + i];
                 if (x_i != 0)
-                    return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)x_i);
+                    return i * Integers.NumBits + Integers.BitLength(x_i);
             }
             return 0;
         }

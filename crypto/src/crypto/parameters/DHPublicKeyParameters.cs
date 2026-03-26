@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                     Nat.ShiftDownWord(len, A, 0);
                 }
 
-                int shift = Integers.NumberOfTrailingZeros((int)A[0]);
+                int shift = Integers.NumberOfTrailingZeros(A[0]);
                 if (shift > 0)
                 {
                     Nat.ShiftDownBits(len, A, shift, 0);

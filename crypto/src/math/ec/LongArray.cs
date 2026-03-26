@@ -170,7 +170,7 @@ namespace Org.BouncyCastle.Math.EC
             }
             while (w == 0UL);
 
-            return (i << 6) + BitLength(w);
+            return i * Longs.NumBits + Longs.BitLength(w);
         }
 
         private int DegreeFrom(int limit)
@@ -186,12 +186,7 @@ namespace Org.BouncyCastle.Math.EC
             }
             while (w == 0);
 
-            return (i << 6) + BitLength(w);
-        }
-
-        private static int BitLength(ulong w)
-        {
-            return 64 - Longs.NumberOfLeadingZeros((long)w);
+            return i * Longs.NumBits + Longs.BitLength(w);
         }
 
         private ulong[] ResizedData(int newLen)

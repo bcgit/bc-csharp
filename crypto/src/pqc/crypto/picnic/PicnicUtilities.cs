@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 
         internal static uint ceil_log2(uint x)
         {
-            return x == 0 ? 0 : 32 - (uint)Integers.NumberOfLeadingZeros((int)(x - 1));
+            return x == 0U ? 0U : (uint)Integers.BitLength(x - 1);
         }
 
         internal static int Parity(byte[] data, int len)

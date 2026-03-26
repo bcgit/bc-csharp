@@ -553,7 +553,7 @@ namespace Org.BouncyCastle.Math.EC
             //}
 
             int n = (m + 1) >> 1;
-            int k = 31 - Integers.NumberOfLeadingZeros(n);
+            int k = Integers.BitLength(n) - 1;
             int nk = 1;
 
             ECFieldElement ht = this;
@@ -585,7 +585,7 @@ namespace Org.BouncyCastle.Math.EC
             //    tr = tr.Square().Add(this);
             //}
 
-            int k = 31 - Integers.NumberOfLeadingZeros(m);
+            int k = Integers.BitLength(m) - 1;
             int mk = 1;
 
             ECFieldElement tr = this;

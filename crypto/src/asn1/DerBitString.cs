@@ -147,7 +147,7 @@ namespace Org.BouncyCastle.Asn1
                 return;
             }
 
-            int bits = 32 - Integers.NumberOfLeadingZeros(namedBits);
+            int bits = Integers.BitLength(namedBits);
             int bytes = (bits + 7) / 8;
             Debug.Assert(0 < bytes && bytes <= 4);
 
@@ -162,12 +162,7 @@ namespace Org.BouncyCastle.Asn1
             Debug.Assert((namedBits & 0xFF) != 0);
             data[bytes] = (byte)namedBits;
 
-            int padBits = 0;
-            while ((namedBits & (1 << padBits)) == 0)
-            {
-                ++padBits;
-            }
-
+            int padBits = Integers.NumberOfTrailingZeros(namedBits);
             Debug.Assert(padBits < 8);
             data[0] = (byte)padBits;
 

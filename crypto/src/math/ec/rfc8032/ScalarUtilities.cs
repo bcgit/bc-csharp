@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             {
                 --i;
             }
-            return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)(x[i] ^ sign));
+            return i * Integers.NumBits + Integers.BitLength(x[i] ^ sign);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -205,7 +205,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             {
                 --i;
             }
-            return i * 32 + 32 - Integers.NumberOfLeadingZeros((int)x[i]);
+            return i * Integers.NumBits + Integers.BitLength(x[i]);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

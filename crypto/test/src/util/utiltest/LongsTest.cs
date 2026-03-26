@@ -8,7 +8,33 @@ namespace Org.BouncyCastle.Utilities.UtilTests
     public class LongsTest
     {
         [Test]
-        public void TestNumberOfLeadingZeros()
+        public void HighestOneBit()
+        {
+            for (int i = 0; i < 63; ++i)
+            {
+                Assert.AreEqual(1L << (63 - i), Longs.HighestOneBit((long)(0x8000000000000000UL >> i)));
+                Assert.AreEqual(1L << (63 - i), Longs.HighestOneBit((long)(0xFFFFFFFFFFFFFFFFUL >> i)));
+            }
+
+            Assert.AreEqual(1L, Longs.HighestOneBit(1L));
+            Assert.AreEqual(0L, Longs.HighestOneBit(0L));
+        }
+
+        [Test]
+        public void LowestOneBit()
+        {
+            for (int i = 0; i < 63; ++i)
+            {
+                Assert.AreEqual(1L << i, Longs.LowestOneBit((long)(0x0000000000000001UL << i)));
+                Assert.AreEqual(1L << i, Longs.LowestOneBit((long)(0xFFFFFFFFFFFFFFFFUL << i)));
+            }
+
+            Assert.AreEqual(1L, Longs.LowestOneBit(1L));
+            Assert.AreEqual(0L, Longs.LowestOneBit(0L));
+        }
+
+        [Test]
+        public void NumberOfLeadingZeros()
         {
             for (int i = 0; i < 63; ++i)
             {
@@ -21,7 +47,7 @@ namespace Org.BouncyCastle.Utilities.UtilTests
         }
 
         [Test]
-        public void TestNumberOfTrailingZeros()
+        public void NumberOfTrailingZeros()
         {
             for (int i = 0; i < 63; ++i)
             {
@@ -34,7 +60,7 @@ namespace Org.BouncyCastle.Utilities.UtilTests
         }
 
         [Test]
-        public void TestPopCount()
+        public void PopCount()
         {
             Random random = new Random();
 

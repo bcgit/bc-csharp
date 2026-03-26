@@ -1138,7 +1138,7 @@ namespace Org.BouncyCastle.Math
         private static int BitLen(byte b)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            return 32 - BitOperations.LeadingZeroCount((uint)b);
+            return Integers.BitLength(b);
 #else
             return BitLengthTable[b];
 #endif
@@ -1147,7 +1147,7 @@ namespace Org.BouncyCastle.Math
         private static int BitLen(uint v)
         {
 #if NETCOREAPP3_0_OR_GREATER
-            return 32 - BitOperations.LeadingZeroCount(v);
+            return Integers.BitLength(v);
 #else
             uint t = v >> 24;
             if (t != 0)

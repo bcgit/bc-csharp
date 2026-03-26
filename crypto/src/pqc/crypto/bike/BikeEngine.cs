@@ -360,7 +360,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 uint bits = black[i];
                 while (bits != 0)
                 {
-                    int tz = Integers.NumberOfTrailingZeros((int)bits);
+                    int tz = Integers.NumberOfTrailingZeros(bits);
                     RecomputeSyndrome(s, (i << 5) + tz, h0Compact, h1Compact);
                     bits ^= 1U << tz;
                 }
@@ -410,7 +410,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 uint bits = black[i];
                 while (bits != 0)
                 {
-                    int tz = Integers.NumberOfTrailingZeros((int)bits);
+                    int tz = Integers.NumberOfTrailingZeros(bits);
                     RecomputeSyndrome(s, (i << 5) + tz, h0Compact, h1Compact);
                     bits ^= 1U << tz;
                 }
@@ -458,7 +458,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 uint bits = updatedIndices[i];
                 while (bits != 0)
                 {
-                    int tz = Integers.NumberOfTrailingZeros((int)bits);
+                    int tz = Integers.NumberOfTrailingZeros(bits);
                     RecomputeSyndrome(s, (i << 5) + tz, h0Compact, h1Compact);
                     bits ^= 1U << tz;
                 }

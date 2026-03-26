@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             Copy(a, t);
 
             int rSub2 = m_bits - 2;
-            int bits = 32 - Integers.NumberOfLeadingZeros(rSub2);
+            int bits = Integers.BitLength(rSub2);
 
             for (int i = 1; i < bits; ++i)
             {
@@ -454,7 +454,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
         private static IEnumerable<int> EnumerateSquarePowersInv(int r)
         {
             int rSub2 = r - 2;
-            int bits = 32 - Integers.NumberOfLeadingZeros(rSub2);
+            int bits = Integers.BitLength(rSub2);
 
             for (int i = 1; i < bits; ++i)
             {
