@@ -5,11 +5,15 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Diffie-Hellman private key parameters.</summary>
     public class DHPrivateKeyParameters
 		: DHKeyParameters
     {
         private readonly BigInteger x;
 
+        /// <summary>Initializes a new instance of <see cref="DHPrivateKeyParameters"/>.</summary>
+        /// <param name="x">The private value X.</param>
+        /// <param name="parameters">The DH domain parameters.</param>
 		public DHPrivateKeyParameters(
             BigInteger		x,
             DHParameters	parameters)
@@ -27,6 +31,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.x = x;
         }
 
+        /// <summary>Gets the private value X.</summary>
 		public BigInteger X
         {
             get { return x; }

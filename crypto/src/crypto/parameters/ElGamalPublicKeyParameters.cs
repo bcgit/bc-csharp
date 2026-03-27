@@ -4,11 +4,15 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>ElGamal public key parameters.</summary>
     public class ElGamalPublicKeyParameters
 		: ElGamalKeyParameters
     {
         private readonly BigInteger y;
 
+        /// <summary>Initializes a new instance of <see cref="ElGamalPublicKeyParameters"/>.</summary>
+        /// <param name="y">The public value Y.</param>
+        /// <param name="parameters">The ElGamal domain parameters.</param>
 		public ElGamalPublicKeyParameters(
             BigInteger			y,
             ElGamalParameters	parameters)
@@ -20,10 +24,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
 			this.y = y;
         }
 
-		public BigInteger Y
-        {
-            get { return y; }
-        }
+        /// <summary>Gets the public value Y.</summary>
+		public BigInteger Y => y;
 
 		public override bool Equals(
             object obj)

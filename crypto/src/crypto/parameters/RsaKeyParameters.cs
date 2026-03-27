@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Base class for RSA key parameters.</summary>
 	public class RsaKeyParameters
 		: AsymmetricKeyParameter
     {
@@ -49,6 +50,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly BigInteger modulus;
         private readonly BigInteger exponent;
 
+        /// <summary>Initializes a new instance of <see cref="RsaKeyParameters"/>.</summary>
+        /// <param name="isPrivate">Whether the key is private or not.</param>
+        /// <param name="modulus">The RSA modulus.</param>
+        /// <param name="exponent">The RSA exponent (public exponent for public keys, private exponent for private keys).</param>
 		public RsaKeyParameters(
             bool		isPrivate,
             BigInteger	modulus,
@@ -70,11 +75,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
 			this.exponent = exponent;
         }
 
+        /// <summary>Gets the RSA modulus.</summary>
 		public BigInteger Modulus
         {
             get { return modulus; }
         }
 
+        /// <summary>Gets the RSA exponent.</summary>
 		public BigInteger Exponent
         {
             get { return exponent; }

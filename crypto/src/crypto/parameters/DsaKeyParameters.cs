@@ -4,11 +4,15 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Base class for Digital Signature Algorithm (DSA) key parameters.</summary>
     public abstract class DsaKeyParameters
 		: AsymmetricKeyParameter
     {
 		private readonly DsaParameters parameters;
 
+        /// <summary>Initializes a new instance of <see cref="DsaKeyParameters"/>.</summary>
+        /// <param name="isPrivate">Whether the key is private or not.</param>
+        /// <param name="parameters">The DSA domain parameters.</param>
 		protected DsaKeyParameters(
             bool			isPrivate,
             DsaParameters	parameters)
@@ -18,10 +22,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.parameters = parameters;
         }
 
-		public DsaParameters Parameters
-        {
-            get { return parameters; }
-        }
+        /// <summary>Gets the DSA domain parameters.</summary>
+		public DsaParameters Parameters => parameters;
 
 		public override bool Equals(
 			object obj)

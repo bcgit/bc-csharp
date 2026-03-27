@@ -5,18 +5,16 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    /**
-    * Draft FIPS 180-2 implementation of SHA-256. <b>Note:</b> As this is
-    * based on a draft this implementation is subject to change.
-    *
-    * <pre>
-    *         block  word  digest
-    * SHA-1   512    32    160
-    * SHA-256 512    32    256
-    * SHA-384 1024   64    384
-    * SHA-512 1024   64    512
-    * </pre>
-    */
+    /// <summary>Implementation of SHA-256 as defined in FIPS 180-2.</summary>
+    /// <remarks>
+    /// <pre>
+    ///         block  word  digest
+    /// SHA-1   512    32    160
+    /// SHA-256 512    32    256
+    /// SHA-384 1024   64    384
+    /// SHA-512 1024   64    512
+    /// </pre>
+    /// </remarks>
     public class Sha256Digest
 		: GeneralDigest
     {
@@ -26,15 +24,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         private uint[] X = new uint[64];
         private int xOff;
 
+        /// <summary>Initializes a new instance of <see cref="Sha256Digest"/>.</summary>
         public Sha256Digest()
         {
 			initHs();
         }
 
-        /**
-        * Copy constructor.  This will copy the state of the provided
-        * message digest.
-        */
+        /// <summary>Initializes a new instance of <see cref="Sha256Digest"/> from an existing one.</summary>
+        /// <param name="t">The digest to copy from.</param>
         public Sha256Digest(Sha256Digest t) : base(t)
         {
 			CopyIn(t);

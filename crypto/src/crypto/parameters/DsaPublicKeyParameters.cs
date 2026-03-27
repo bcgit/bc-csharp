@@ -4,6 +4,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Digital Signature Algorithm (DSA) public key parameters.</summary>
     public class DsaPublicKeyParameters
 		: DsaKeyParameters
     {
@@ -25,6 +26,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private readonly BigInteger y;
 
+        /// <summary>Initializes a new instance of <see cref="DsaPublicKeyParameters"/>.</summary>
+        /// <param name="y">The public value Y.</param>
+        /// <param name="parameters">The DSA domain parameters.</param>
 		public DsaPublicKeyParameters(
             BigInteger		y,
             DsaParameters	parameters)
@@ -36,10 +40,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
 			this.y = Validate(y, parameters);
         }
 
-		public BigInteger Y
-        {
-            get { return y; }
-        }
+        /// <summary>Gets the public value Y.</summary>
+		public BigInteger Y => y;
 
 		public override bool Equals(object obj)
         {

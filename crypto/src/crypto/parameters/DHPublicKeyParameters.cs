@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Diffie-Hellman public key parameters.</summary>
     public class DHPublicKeyParameters
 		: DHKeyParameters
     {
@@ -46,6 +47,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private readonly BigInteger m_y;
 
+        /// <summary>Initializes a new instance of <see cref="DHPublicKeyParameters"/>.</summary>
+        /// <param name="y">The public point Y.</param>
+        /// <param name="parameters">The DH domain parameters.</param>
 		public DHPublicKeyParameters(BigInteger y, DHParameters	parameters)
 			: base(false, parameters)
         {
@@ -58,6 +62,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_y = Validate(y, parameters);
         }
 
+        /// <summary>Gets the public point Y.</summary>
         public virtual BigInteger Y => m_y;
 
 		public override bool Equals(object obj)

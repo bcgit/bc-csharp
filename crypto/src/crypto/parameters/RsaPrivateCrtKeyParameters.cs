@@ -6,11 +6,21 @@ using Org.BouncyCastle.Asn1.Pkcs;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>RSA key parameters for use with the Chinese Remainder Theorem.</summary>
     public class RsaPrivateCrtKeyParameters
         : RsaKeyParameters
     {
         private readonly BigInteger e, p, q, dP, dQ, qInv;
 
+        /// <summary>Initializes a new instance of <see cref="RsaPrivateCrtKeyParameters"/>.</summary>
+        /// <param name="modulus">The RSA modulus.</param>
+        /// <param name="publicExponent">The public exponent.</param>
+        /// <param name="privateExponent">The private exponent.</param>
+        /// <param name="p">The first prime factor (p) of the modulus.</param>
+        /// <param name="q">The second prime factor (q) of the modulus.</param>
+        /// <param name="dP">The CRT exponent for prime p.</param>
+        /// <param name="dQ">The CRT exponent for prime q.</param>
+        /// <param name="qInv">The CRT coefficient (inverse of q mod p).</param>
         public RsaPrivateCrtKeyParameters(
             BigInteger modulus,
             BigInteger publicExponent,
@@ -50,31 +60,37 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Gets the public exponent.</summary>
         public BigInteger PublicExponent
         {
             get { return e; }
         }
 
+        /// <summary>Gets the first prime factor (p) of the modulus.</summary>
         public BigInteger P
         {
             get { return p; }
         }
 
+        /// <summary>Gets the second prime factor (q) of the modulus.</summary>
         public BigInteger Q
         {
             get { return q; }
         }
 
+        /// <summary>Gets the CRT exponent for prime p.</summary>
         public BigInteger DP
         {
             get { return dP; }
         }
 
+        /// <summary>Gets the CRT exponent for prime q.</summary>
         public BigInteger DQ
         {
             get { return dQ; }
         }
 
+        /// <summary>Gets the CRT coefficient (inverse of q mod p).</summary>
         public BigInteger QInv
         {
             get { return qInv; }
