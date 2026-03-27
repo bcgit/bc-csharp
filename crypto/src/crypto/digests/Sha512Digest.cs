@@ -5,31 +5,28 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
-    /**
-     * Draft FIPS 180-2 implementation of SHA-512. <b>Note:</b> As this is
-     * based on a draft this implementation is subject to change.
-     *
-     * <pre>
-     *         block  word  digest
-     * SHA-1   512    32    160
-     * SHA-256 512    32    256
-     * SHA-384 1024   64    384
-     * SHA-512 1024   64    512
-     * </pre>
-     */
+    /// <summary>Implementation of SHA-512 as defined in FIPS 180-2.</summary>
+    /// <remarks>
+    /// <pre>
+    ///         block  word  digest
+    /// SHA-1   512    32    160
+    /// SHA-256 512    32    256
+    /// SHA-384 1024   64    384
+    /// SHA-512 1024   64    512
+    /// </pre>
+    /// </remarks>
     public class Sha512Digest
         : LongDigest
     {
         private const int DigestLength = 64;
 
+        /// <summary>Initializes a new instance of <see cref="Sha512Digest"/>.</summary>
         public Sha512Digest()
         {
         }
 
-        /**
-         * Copy constructor.  This will copy the state of the provided
-         * message digest.
-         */
+        /// <summary>Initializes a new instance of <see cref="Sha512Digest"/> from an existing one.</summary>
+        /// <param name="t">The digest to copy from.</param>
         public Sha512Digest(
             Sha512Digest t)
             : base(t)

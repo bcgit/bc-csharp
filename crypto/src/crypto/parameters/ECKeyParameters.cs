@@ -8,6 +8,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Base class for elliptic curve key parameters.</summary>
     public abstract class ECKeyParameters
         : AsymmetricKeyParameter
     {
@@ -26,6 +27,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly string m_algorithm;
         private readonly ECDomainParameters m_parameters;
 
+        /// <summary>Initializes a new instance of <see cref="ECKeyParameters"/>.</summary>
+        /// <param name="algorithm">The algorithm name.</param>
+        /// <param name="isPrivate">Whether the key is private or not.</param>
+        /// <param name="parameters">The EC domain parameters.</param>
         protected ECKeyParameters(string algorithm, bool isPrivate, ECDomainParameters parameters)
             : base(isPrivate)
         {
@@ -50,8 +55,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_parameters = ECNamedDomainParameters.LookupOid(oid: publicKeyParamSet);
         }
 
+        /// <summary>Gets the algorithm name.</summary>
         public string AlgorithmName => m_algorithm;
 
+        /// <summary>Gets the EC domain parameters.</summary>
         public ECDomainParameters Parameters => m_parameters;
 
         public DerObjectIdentifier PublicKeyParamSet => (m_parameters as ECNamedDomainParameters)?.Name;

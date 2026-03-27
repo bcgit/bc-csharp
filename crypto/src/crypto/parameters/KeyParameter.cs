@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>Base class for symmetric key parameters.</summary>
     public class KeyParameter
         : ICipherParameters
     {
@@ -26,11 +27,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         private readonly byte[] m_key;
 
+        /// <summary>Initializes a new instance of <see cref="KeyParameter"/>.</summary>
+        /// <param name="key">The byte array containing the key material.</param>
         public KeyParameter(byte[] key)
         {
             m_key = Arrays.CopyBuffer(key);
         }
 
+        /// <summary>Initializes a new instance of <see cref="KeyParameter"/>.</summary>
+        /// <param name="key">The byte array containing the key material.</param>
+        /// <param name="keyOff">The offset into the byte array where the key starts.</param>
+        /// <param name="keyLen">The length of the key material.</param>
         public KeyParameter(byte[] key, int keyOff, int keyLen)
         {
             m_key = Arrays.CopySegment(key, keyOff, keyLen);
@@ -62,8 +69,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
             Array.Copy(m_key, 0, buf, off, len);
         }
 
+        /// <summary>Gets the key material.</summary>
+        /// <returns>A copy of the key material as a byte array.</returns>
         public byte[] GetKey() => Arrays.InternalCopyBuffer(m_key);
 
+        /// <summary>Gets the length of the key material in bytes.</summary>
         public int KeyLength => m_key.Length;
 
         internal bool FixedTimeEquals(byte[] data) => Arrays.FixedTimeEquals(m_key, data);
