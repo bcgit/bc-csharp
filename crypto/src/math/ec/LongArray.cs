@@ -92,41 +92,13 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        internal void CopyTo(ulong[] z, int zOff)
-        {
-            Array.Copy(m_data, 0, z, zOff, m_data.Length);
-        }
+        internal void CopyTo(ulong[] z, int zOff) => Array.Copy(m_data, 0, z, zOff, m_data.Length);
 
-        internal bool IsOne()
-        {
-            ulong[] a = m_data;
-            int aLen = a.Length;
-            if (aLen < 1 || a[0] != 1UL)
-                return false;
+        internal bool IsOne() => m_data.Length != 0 && Nat.EqualToOne64(m_data.Length, m_data) != 0UL;
 
-            for (int i = 1; i < aLen; ++i)
-            {
-                if (a[i] != 0UL)
-                    return false;
-            }
-            return true;
-        }
+        internal bool IsZero() => Nat.EqualToZero64(m_data.Length, m_data) != 0UL;
 
-        internal bool IsZero()
-        {
-            ulong[] a = m_data;
-            for (int i = 0; i < a.Length; ++i)
-            {
-                if (a[i] != 0UL)
-                    return false;
-            }
-            return true;
-        }
-
-        internal int GetUsedLength()
-        {
-            return GetUsedLengthFrom(m_data.Length);
-        }
+        internal int GetUsedLength() => GetUsedLengthFrom(m_data.Length);
 
         internal int GetUsedLengthFrom(int from)
         {
@@ -1215,29 +1187,15 @@ namespace Org.BouncyCastle.Math.EC
             }
         }
 
-        public override bool Equals(object obj)
-        {
-            if (obj is LongArray longArray)
-                return Equals(ref longArray);
-
-            return false;
-        }
+        public override bool Equals(object obj) => obj is LongArray longArray && Equals(ref longArray);
 
         internal bool Equals(ref LongArray other)
         {
             if (AreAliased(ref this, ref other))
                 return true;
 
-            int usedLen = GetUsedLength();
-            if (other.GetUsedLength() != usedLen)
-                return false;
-
-            for (int i = 0; i < usedLen; i++)
-            {
-                if (m_data[i] != other.m_data[i])
-                    return false;
-            }
-            return true;
+            int len = GetUsedLength();
+            return other.GetUsedLength() == len && Nat.EqualTo64(len, m_data, other.m_data) != 0UL;
         }
 
         public override int GetHashCode() => Arrays.GetHashCode(m_data, 0, GetUsedLength());

@@ -856,7 +856,7 @@ namespace Org.BouncyCastle.Math.Raw
         public static ulong EqualTo64(int len, ulong[] x, ulong[] y)
 #endif
         {
-            ulong d = 0;
+            ulong d = 0UL;
             for (int i = 0; i < len; ++i)
             {
                 d |= x[i] ^ y[i];
@@ -866,10 +866,58 @@ namespace Org.BouncyCastle.Math.Raw
 
         public static ulong EqualTo64(int len, ulong[] x, int xOff, ulong[] y, int yOff)
         {
-            ulong d = 0;
+            ulong d = 0UL;
             for (int i = 0; i < len; ++i)
             {
                 d |= x[xOff + i] ^ y[yOff + i];
+            }
+            return CZero64(d);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static uint EqualToOne(int len, ReadOnlySpan<uint> x)
+#else
+        public static uint EqualToOne(int len, uint[] x)
+#endif
+        {
+            uint d = x[0] ^ 1U;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            return CZero(d);
+        }
+
+        public static uint EqualToOne(int len, uint[] x, int xOff)
+        {
+            uint d = x[xOff] ^ 1U;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[xOff + i];
+            }
+            return CZero(d);
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ulong EqualToOne64(int len, ReadOnlySpan<ulong> x)
+#else
+        public static ulong EqualToOne64(int len, ulong[] x)
+#endif
+        {
+            ulong d = x[0] ^ 1UL;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[i];
+            }
+            return CZero64(d);
+        }
+
+        public static ulong EqualToOne64(int len, ulong[] x, int xOff)
+        {
+            ulong d = x[xOff] ^ 1UL;
+            for (int i = 1; i < len; ++i)
+            {
+                d |= x[xOff + i];
             }
             return CZero64(d);
         }
