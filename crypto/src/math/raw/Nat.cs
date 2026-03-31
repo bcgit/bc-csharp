@@ -1103,6 +1103,32 @@ namespace Org.BouncyCastle.Math.Raw
             return 0;
         }
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static int GetBitLength64(int len, ReadOnlySpan<ulong> x)
+#else
+        public static int GetBitLength64(int len, ulong[] x)
+#endif
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                ulong x_i = x[i];
+                if (x_i != 0)
+                    return i * Longs.NumBits + Longs.BitLength(x_i);
+            }
+            return 0;
+        }
+
+        public static int GetBitLength64(int len, ulong[] x, int xOff)
+        {
+            for (int i = len - 1; i >= 0; --i)
+            {
+                ulong x_i = x[xOff + i];
+                if (x_i != 0)
+                    return i * Longs.NumBits + Longs.BitLength(x_i);
+            }
+            return 0;
+        }
+
         public static int GetLengthForBits(int bits)
         {
             if (bits < 1)
