@@ -921,7 +921,7 @@ namespace Org.BouncyCastle.Pkix
 
                     validCrlFound = true;
                 }
-                catch (Exception e)
+                catch (Exception e) when (!(e is PkixCertPathValidatorException))
                 {
                     lastException = e;
                 }
@@ -964,7 +964,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, pkixParamsCrlDP);
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is PkixCertPathValidatorException))
             {
                 throw new Exception(
                     "No additional CRL locations could be decoded from CRL distribution point extension.", e);
@@ -998,7 +998,7 @@ namespace Org.BouncyCastle.Pkix
                                 workingPublicKey, certStatus, reasonsMask, certPathCerts);
                             validCrlFound = true;
                         }
-                        catch (Exception e)
+                        catch (Exception e) when (!(e is PkixCertPathValidatorException))
                         {
                             lastException = e;
                         }
@@ -1029,7 +1029,7 @@ namespace Org.BouncyCastle.Pkix
                         certStatus, reasonsMask, certPathCerts);
                     validCrlFound = true;
                 }
-                catch (Exception e)
+                catch (Exception e) when (!(e is PkixCertPathValidatorException))
                 {
                     lastException = e;
                 }
@@ -1268,7 +1268,7 @@ namespace Org.BouncyCastle.Pkix
                 {
                     CheckCrls(index, pkixParams, cert, currentDate, validityDate, sign, workingPublicKey, certs);
                 }
-                catch (Exception e)
+                catch (Exception e) when (!(e is PkixCertPathValidatorException))
                 {
                     Exception cause = e.InnerException ?? e;
 

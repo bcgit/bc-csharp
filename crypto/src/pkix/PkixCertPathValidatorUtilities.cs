@@ -680,7 +680,11 @@ namespace Org.BouncyCastle.Pkix
 
             var crls = PkixCrlUtilities.ImplFindCrls(crlselect, pkixParams, validityDate);
             if (crls.Count < 1)
-                throw new Exception("No CRLs found for issuer \"" + certObjIssuer + "\"");
+            {
+                // TODO[pkix] RecoverableCertPathValidatorException
+                // TODO[pkix] Rfc4519Style for issuer
+                throw new PkixCertPathValidatorException($"No CRLs found for issuer \"{certObjIssuer}\"", null, index);
+            }
 
             return crls;
         }

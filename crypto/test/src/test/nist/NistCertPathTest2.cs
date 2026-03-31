@@ -3927,10 +3927,9 @@ namespace Org.BouncyCastle.Tests.Nist
         /// the certificate issuer has issued a CRL with an issuingDistributionPoint extension that includes a
         /// distributionPoint that matches the distributionPoint in the certificate.
         /// </remarks>
-        [Test, Ignore("Seems like there are multiple exceptions, and we end up with the wrong one")]
+        [Test]
         public void Test4_14_35()
         {
-            // TODO[pkix] Resolve Ignore
             new PkitsTest()
                 .WithEndEntity("Invalid cRLIssuer Test35 EE")
                 .WithCrls("indirectCRL CA5 CRL")

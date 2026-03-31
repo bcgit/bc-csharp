@@ -99,7 +99,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, pkixParamsCrlDP);
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is PkixCertPathValidatorException))
             {
                 throw new PkixCertPathValidatorException(
                     "No additional CRL locations could be decoded from CRL distribution point extension.", e);
@@ -133,7 +133,7 @@ namespace Org.BouncyCastle.Pkix
                                 certStatus, reasonsMask, certPathCerts);
                             validCrlFound = true;
                         }
-                        catch (Exception e)
+                        catch (Exception e) when (!(e is PkixCertPathValidatorException))
                         {
                             lastException = new Exception("No valid CRL for distribution point found.", e);
                         }
@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Pkix
                         reasonsMask, certPathCerts);
                     validCrlFound = true;
                 }
-                catch (Exception e)
+                catch (Exception e) when (!(e is PkixCertPathValidatorException))
                 {
                     lastException = new Exception("No valid CRL for distribution point found.", e);
                 }
@@ -313,7 +313,7 @@ namespace Org.BouncyCastle.Pkix
 
                         CollectionUtilities.CollectMatches(holderPKCs, selector, pkixParams.GetStoresCert());
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (!(e is PkixCertPathValidatorException))
                     {
                         throw new PkixCertPathValidatorException(
                             "Public key certificate for attribute certificate cannot be searched.",
@@ -339,7 +339,7 @@ namespace Org.BouncyCastle.Pkix
 
                         CollectionUtilities.CollectMatches(holderPKCs, selector, pkixParams.GetStoresCert());
                     }
-                    catch (Exception e)
+                    catch (Exception e) when (!(e is PkixCertPathValidatorException))
                     {
                         throw new PkixCertPathValidatorException(
                             "Public key certificate for attribute certificate cannot be searched.",
@@ -521,7 +521,7 @@ namespace Org.BouncyCastle.Pkix
                     reasonsMask.AddReasons(interimReasonsMask);
                     validCrlFound = true;
                 }
-                catch (Exception e)
+                catch (Exception e) when (!(e is PkixCertPathValidatorException))
                 {
                     lastException = e;
                 }
