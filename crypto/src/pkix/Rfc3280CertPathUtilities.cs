@@ -90,13 +90,18 @@ namespace Org.BouncyCastle.Pkix
                 }
                 if (dpName.Type == DistributionPointName.NameRelativeToCrlIssuer)
                 {
-                    var seq = Asn1Sequence.GetInstance(crl.IssuerDN.ToAsn1Object());
+                    Asn1Sequence seq;
+                    try
+                    {
+                        seq = Asn1Sequence.GetInstance(crl.IssuerDN);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new Exception("Could not read CRL issuer.", e);
+                    }
 
                     Asn1EncodableVector vec = new Asn1EncodableVector(seq.Count + 1);
-                    foreach (var element in seq)
-                    {
-                        vec.Add(element);
-                    }
+                    vec.AddAll(seq);
                     vec.Add(dpName.Name);
 
                     names.Add(new GeneralName(X509Name.GetInstance(new DerSequence(vec))));
@@ -123,10 +128,9 @@ namespace Org.BouncyCastle.Pkix
                             genNames = new GeneralName[1];
                             try
                             {
-                                genNames[0] = new GeneralName(
-                                    PkixCertPathValidatorUtilities.GetIssuerPrincipal(cert));
+                                genNames[0] = new GeneralName(PkixCertPathValidatorUtilities.GetIssuerPrincipal(cert));
                             }
-                            catch (IOException e)
+                            catch (Exception e)
                             {
                                 throw new Exception("Could not read certificate issuer.", e);
                             }
@@ -413,8 +417,8 @@ namespace Org.BouncyCastle.Pkix
                     }
                     catch (PkixCertPathValidatorException ex)
                     {
-                        throw new PkixCertPathValidatorException(
-                            "Policy qualifier info set could not be build.", ex, index);
+                        throw new PkixCertPathValidatorException("Policy qualifier info set could not be built.", ex,
+                            index);
                     }
 
                     bool match = PkixCertPathValidatorUtilities.ProcessCertD1i(i, policyNodes, pOid, pq);
@@ -726,9 +730,9 @@ namespace Org.BouncyCastle.Pkix
             for (int i = 0; i < validCerts.Count; i++)
             {
                 X509Certificate signCert = validCerts[i];
-                bool[] keyusage = signCert.GetKeyUsage();
+                bool[] keyUsage = signCert.GetKeyUsage();
 
-                if (keyusage != null && (keyusage.Length < 7 || !keyusage[CRL_SIGN]))
+                if (keyUsage != null && (keyUsage.Length <= CRL_SIGN || !keyUsage[CRL_SIGN]))
                 {
                     lastException = new Exception(
                         "Issuer certificate key usage extension does not permit CRL signing.");
@@ -806,8 +810,8 @@ namespace Org.BouncyCastle.Pkix
          * @throws AnnotatedException if the certificate is revoked or the status cannot be checked
          *                            or some error occurs.
          */
-        private static void CheckCrl(int index, DistributionPoint dp, PkixParameters pkixParams, X509Certificate cert,
-            DateTime currentDate, DateTime validityDate, X509Certificate defaultCRLSignCert,
+        private static void CheckCrl(int index, DistributionPoint dp, PkixParameters pkixParams, DateTime currentDate,
+            DateTime validityDate, X509Certificate cert, X509Certificate defaultCRLSignCert,
             AsymmetricKeyParameter defaultCRLSignKey, CertStatus certStatus, ReasonsMask reasonsMask,
             IList<X509Certificate> certPathCerts)
         {
@@ -944,8 +948,6 @@ namespace Org.BouncyCastle.Pkix
             DateTime validityDate, X509Certificate sign, AsymmetricKeyParameter workingPublicKey,
             IList<X509Certificate> certPathCerts)
         {
-            Exception lastException = null;
-
             CrlDistPoint crlDP;
             try
             {
@@ -956,9 +958,11 @@ namespace Org.BouncyCastle.Pkix
                 throw new Exception("CRL distribution point extension could not be read.", e);
             }
 
+            // NOTE: Always create pkixParamsCrlDP as a copy of pkixParams, even if there are no additional stores
+            var pkixParamsCrlDP = (PkixParameters)pkixParams.Clone();
             try
             {
-                PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, pkixParams);
+                PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, pkixParamsCrlDP);
             }
             catch (Exception e)
             {
@@ -969,8 +973,8 @@ namespace Org.BouncyCastle.Pkix
             CertStatus certStatus = new CertStatus();
             ReasonsMask reasonsMask = new ReasonsMask();
 
+            Exception lastException = null;
             bool validCrlFound = false;
-
             // for each distribution point
             if (crlDP != null)
             {
@@ -990,8 +994,7 @@ namespace Org.BouncyCastle.Pkix
                     {
                         try
                         {
-                            PkixParameters pkixParamsClone = (PkixParameters)pkixParams.Clone();
-                            CheckCrl(index, dps[i], pkixParamsClone, cert, currentDate, validityDate, sign,
+                            CheckCrl(index, dps[i], pkixParamsCrlDP, currentDate, validityDate, cert, sign,
                                 workingPublicKey, certStatus, reasonsMask, certPathCerts);
                             validCrlFound = true;
                         }
@@ -1018,10 +1021,11 @@ namespace Org.BouncyCastle.Pkix
                      * omitted and a distribution point name of the certificate
                      * issuer.
                      */
+                    var issuer = PkixCertPathValidatorUtilities.GetIssuerPrincipal(cert);
                     DistributionPoint dp = new DistributionPoint(new DistributionPointName(0, new GeneralNames(
-                        new GeneralName(GeneralName.DirectoryName, cert.IssuerDN))), null, null);
+                        new GeneralName(GeneralName.DirectoryName, issuer))), null, null);
                     PkixParameters pkixParamsClone = (PkixParameters)pkixParams.Clone();
-                    CheckCrl(index, dp, pkixParamsClone, cert, currentDate, validityDate, sign, workingPublicKey,
+                    CheckCrl(index, dp, pkixParamsClone, currentDate, validityDate, cert, sign, workingPublicKey,
                         certStatus, reasonsMask, certPathCerts);
                     validCrlFound = true;
                 }
@@ -1195,102 +1199,6 @@ namespace Org.BouncyCastle.Pkix
                 }
             }
             return validPolicyTree;
-        }
-
-        internal static ISet<X509Crl>[] ProcessCrlA1ii(PkixParameters pkixParams, DateTime validityDate,
-            X509Certificate cert, X509Crl crl)
-        {
-            X509CrlStoreSelector crlselect = new X509CrlStoreSelector();
-            crlselect.CertificateChecking = cert;
-
-            try
-            {
-                var issuer = new List<X509Name>();
-                issuer.Add(crl.IssuerDN);
-                crlselect.Issuers = issuer;
-            }
-            catch (IOException e)
-            {
-                throw new Exception("Cannot extract issuer from CRL." + e, e);
-            }
-
-            crlselect.CompleteCrlEnabled = true;
-            HashSet<X509Crl> completeSet = PkixCrlUtilities.ImplFindCrls(crlselect, pkixParams, validityDate);
-
-            HashSet<X509Crl> deltaSet;
-            if (pkixParams.IsUseDeltasEnabled)
-            {
-                // get delta CRL(s)
-                try
-                {
-                    deltaSet = PkixCertPathValidatorUtilities.GetDeltaCrls(validityDate, pkixParams, crl);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Exception obtaining delta CRLs.", e);
-                }
-            }
-            else
-            {
-                deltaSet = new HashSet<X509Crl>();
-            }
-
-            return new ISet<X509Crl>[]{ completeSet, deltaSet };
-        }
-
-        internal static HashSet<X509Crl> ProcessCrlA1i(PkixParameters pkixParams, DateTime validityDate,
-            X509Certificate cert, X509Crl crl)
-        {
-            if (pkixParams.IsUseDeltasEnabled)
-            {
-                CrlDistPoint freshestCRL;
-                try
-                {
-                    freshestCRL = cert.GetExtension(X509Extensions.FreshestCrl, CrlDistPoint.GetInstance);
-                }
-                catch (Exception e)
-                {
-                    throw new Exception("Freshest CRL extension could not be decoded from certificate.", e);
-                }
-
-                if (freshestCRL == null)
-                {
-                    try
-                    {
-                        freshestCRL = crl.GetExtension(X509Extensions.FreshestCrl, CrlDistPoint.GetInstance);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new Exception("Freshest CRL extension could not be decoded from CRL.", e);
-                    }
-                }
-
-                if (freshestCRL != null)
-                {
-                    try
-                    {
-                        PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(freshestCRL,
-                            pkixParams);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new Exception(
-                            "No new delta CRL locations could be added from Freshest CRL extension.", e);
-                    }
-
-                    // get delta CRL(s)
-                    try
-                    {
-                        return PkixCertPathValidatorUtilities.GetDeltaCrls(validityDate, pkixParams, crl);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new Exception("Exception obtaining delta CRLs.", e);
-                    }
-                }
-            }
-
-            return new HashSet<X509Crl>();
         }
 
         internal static void ProcessCertF(PkixCertPath certPath, int index, PkixPolicyNode validPolicyTree,
@@ -1645,9 +1553,9 @@ namespace Org.BouncyCastle.Pkix
             //
             // (n)
             //
-            bool[] _usage = cert.GetKeyUsage();
+            bool[] keyUsage = cert.GetKeyUsage();
 
-            if ((_usage != null) && !_usage[KEY_CERT_SIGN])
+            if (keyUsage != null && (keyUsage.Length <= KEY_CERT_SIGN || !keyUsage[KEY_CERT_SIGN]))
             {
                 throw new PkixCertPathValidatorException(
                     "Issuer certificate keyusage extension is critical and does not permit key signing.", null, index);
@@ -1842,8 +1750,8 @@ namespace Org.BouncyCastle.Pkix
             {
                 if (pkixParams.IsExplicitPolicyRequired)
                 {
-                    throw new PkixCertPathValidatorException(
-                        "Explicit policy requested but none available.", null, index);
+                    throw new PkixCertPathValidatorException("Explicit policy requested but none available.", null,
+                        index);
                 }
                 intersection = null;
             }

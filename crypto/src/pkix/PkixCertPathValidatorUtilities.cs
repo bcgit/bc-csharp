@@ -223,6 +223,8 @@ namespace Org.BouncyCastle.Pkix
 
         internal static void AddAdditionalStoreFromLocation(string location, PkixParameters pkixParams)
         {
+            // TODO[pkix] See bc-java's CrlCache class
+
             if (pkixParams.IsAdditionalLocationsEnabled)
             {
                 try
@@ -270,17 +272,12 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        private static BigInteger GetSerialNumber(
-            object cert)
+        private static BigInteger GetSerialNumber(object certObject)
         {
-            if (cert is X509Certificate)
-            {
-                return ((X509Certificate)cert).SerialNumber;
-            }
-            else
-            {
-                return ((X509V2AttributeCertificate)cert).SerialNumber;
-            }
+            if (certObject is X509Certificate cert)
+                return cert.SerialNumber;
+
+            return ((X509V2AttributeCertificate)certObject).SerialNumber;
         }
 
         //
@@ -817,29 +814,43 @@ namespace Org.BouncyCastle.Pkix
             }
             catch (Exception e)
             {
-                throw new Exception(
-                    "Distribution points could not be read.", e);
+                throw new Exception("Distribution points could not be read.", e);
             }
 
+            // TODO[pkix] Support for pkixParams.GetNamedCrlStoreMap() (see bc-java)
+            //Dictionary<GeneralName, IStore<X509Crl>> namedCrlStoreMap = pkixParams.GetNamedCrlStoreMap();
+            //if (namedCrlStoreMap.Count < 1)
+            //{
+            //    foreach (var name in EnumerateDPFullNames(dps))
+            //    {
+            //        // look for URIs in fullName
+            //        if (namedCrlStoreMap.TryGetValue(name, out var crlStore))
+            //        {
+            //            additionalStores.Add(crlStore);
+            //        }
+            //    }
+            //}
+
+            foreach (var name in EnumerateDPFullNames(dps))
+            {
+                if (name.TagNo == GeneralName.UniformResourceIdentifier)
+                {
+                    string location = DerIA5String.GetInstance(name.Name).GetString();
+                    AddAdditionalStoreFromLocation(location, pkixParams);
+                }
+            }
+        }
+
+        private static IEnumerable<GeneralName> EnumerateDPFullNames(DistributionPoint[] dps)
+        {
             for (int i = 0; i < dps.Length; i++)
             {
                 DistributionPointName dpn = dps[i].DistributionPointName;
-                // look for URIs in fullName
-                if (dpn != null)
+                if (dpn != null && dpn.Type == DistributionPointName.FullName)
                 {
-                    if (dpn.Type == DistributionPointName.FullName)
-                    {
-                        GeneralName[] genNames = GeneralNames.GetInstance(dpn.Name).GetNames();
-                        // look for an URI
-                        for (int j = 0; j < genNames.Length; j++)
-                        {
-                            if (genNames[j].TagNo == GeneralName.UniformResourceIdentifier)
-                            {
-                                string location = DerIA5String.GetInstance(genNames[j].Name).GetString();
-                                AddAdditionalStoreFromLocation(location, pkixParams);
-                            }
-                        }
-                    }
+                    GeneralName[] genNames = GeneralNames.GetInstance(dpn.Name).GetNames();
+                    for (int j = 0; j < genNames.Length; j++)
+                        yield return genNames[j];
                 }
             }
         }

@@ -100,6 +100,20 @@ namespace Org.BouncyCastle.Pkix
                 throw new PkixCertPathValidatorException(e.Message, e.InnerException, certs.Count - 1);
             }
 
+            // RFC 5280 - CRLs must originate from the same trust anchor as the target certificate.
+            // TODO[pkix] Recreate pkixParams (if necessary) with only 'trust' as a trust anchor
+
+            /*
+             * TODO[pkix] Move revocation checking into a PkixCertPathChecker
+             * - validate here that no more than one revocation checker is installed.
+             * - add default revocation checker only when none already added.
+             */
+            var certPathCheckers = pkixParams.GetCertPathCheckers();
+            foreach (var certPathChecker in certPathCheckers)
+            {
+                certPathChecker.Init(false);
+            }
+
             //
             // (e), (f), (g) are part of the paramsPkix object.
             //
@@ -231,15 +245,6 @@ namespace Org.BouncyCastle.Pkix
                     "Target certificate in certification path does not match targetConstraints.", null, 0);
             }
 
-            //
-            // initialize CertPathChecker's
-            //
-            var certPathCheckers = pkixParams.GetCertPathCheckers();
-            foreach (var certPathChecker in certPathCheckers)
-            {
-                certPathChecker.Init(false);
-            }
-
             X509Certificate cert = null;
 
             for (index = certs.Count - 1; index >= 0; index--)
@@ -367,12 +372,8 @@ namespace Org.BouncyCastle.Pkix
                         throw new PkixCertPathValidatorException("Next working key could not be retrieved.", e, index);
                     }
 
+                    // (e), (f)
                     workingAlgID = PkixCertPathValidatorUtilities.GetAlgorithmIdentifier(workingPublicKey);
-
-                    // (f)
-                    //workingPublicKeyAlgorithm = workingAlgID.Algorithm;
-                    // (e)
-                    //workingPublicKeyParameters = workingAlgID.Parameters;
                 }
             }
 

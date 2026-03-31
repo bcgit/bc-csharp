@@ -34,8 +34,7 @@ namespace Org.BouncyCastle.Pkix
                 }
                 catch (Exception e)
                 {
-                    throw new PkixCertPathValidatorException(
-                        "Target information extension could not be read.", e);
+                    throw new PkixCertPathValidatorException("Target information extension could not be read.", e);
                 }
             }
             critExtOids.Remove(X509Extensions.TargetInformation.Id);
@@ -81,7 +80,6 @@ namespace Org.BouncyCastle.Pkix
                     throw new PkixCertPathValidatorException(
                         "No rev avail extension is set, but also an AC revocation pointer.");
                 }
-
                 return;
             }
 
@@ -95,9 +93,11 @@ namespace Org.BouncyCastle.Pkix
                 throw new PkixCertPathValidatorException("CRL distribution point extension could not be read.", e);
             }
 
+            // NOTE: Always create pkixParamsCrlDP as a copy of pkixParams, even if there are no additional stores
+            var pkixParamsCrlDP = (PkixParameters)pkixParams.Clone();
             try
             {
-                PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, pkixParams);
+                PkixCertPathValidatorUtilities.AddAdditionalStoresFromCrlDistributionPoint(crlDP, pkixParamsCrlDP);
             }
             catch (Exception e)
             {
@@ -123,26 +123,21 @@ namespace Org.BouncyCastle.Pkix
                     throw new PkixCertPathValidatorException("Distribution points could not be read.", e);
                 }
 
-                try
+                if (dps != null)
                 {
                     for (int i = 0; i < dps.Length && certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons; i++)
                     {
                         try
                         {
-                            PkixParameters pkixParamsClone = (PkixParameters)pkixParams.Clone();
-                            CheckCrl(dps[i], attrCert, pkixParamsClone, currentDate, validityDate, issuerCert,
+                            CheckCrl(dps[i], attrCert, pkixParamsCrlDP, currentDate, validityDate, issuerCert,
                                 certStatus, reasonsMask, certPathCerts);
                             validCrlFound = true;
                         }
                         catch (Exception e)
                         {
-                            lastException = e;
+                            lastException = new Exception("No valid CRL for distribution point found.", e);
                         }
                     }
-                }
-                catch (Exception e)
-                {
-                    lastException = new Exception("No valid CRL for distribution point found.", e);
                 }
             }
 
@@ -161,18 +156,9 @@ namespace Org.BouncyCastle.Pkix
                      * fields omitted and a distribution point name of the
                      * certificate issuer.
                      */
-                    X509Name issuer;
-                    try
-                    {
-                        issuer = X509Name.GetInstance(attrCert.Issuer.GetPrincipals()[0].GetEncoded());
-                    }
-                    catch (Exception e)
-                    {
-                        throw new Exception("Issuer from certificate for CRL could not be reencoded.", e);
-                    }
-                    DistributionPoint dp = new DistributionPoint(
-                        new DistributionPointName(0, new GeneralNames(
-                            new GeneralName(GeneralName.DirectoryName, issuer))), null, null);
+                    var issuer = PkixCertPathValidatorUtilities.GetIssuerPrincipal(attrCert);
+                    DistributionPoint dp = new DistributionPoint(new DistributionPointName(0, new GeneralNames(
+                        new GeneralName(GeneralName.DirectoryName, issuer))), null, null);
                     PkixParameters pkixParamsClone = (PkixParameters)pkixParams.Clone();
                     CheckCrl(dp, attrCert, pkixParamsClone, currentDate, validityDate, issuerCert, certStatus,
                         reasonsMask, certPathCerts);
@@ -387,7 +373,7 @@ namespace Org.BouncyCastle.Pkix
                 catch (PkixCertPathBuilderException e)
                 {
                     lastException = new PkixCertPathValidatorException(
-                        "Certification path for public key certificate of attribute certificate could not be build.",
+                        "Certification path for public key certificate of attribute certificate could not be built.",
                         e);
                 }
             }
