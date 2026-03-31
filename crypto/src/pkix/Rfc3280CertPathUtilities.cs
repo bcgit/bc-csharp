@@ -1412,7 +1412,7 @@ namespace Org.BouncyCastle.Pkix
                 catch (Exception ex)
                 {
                     throw new PkixCertPathValidatorException(
-                        "Permitted subtrees cannot be build from name constraints extension.", ex, index);
+                        "Permitted subtrees could not be built from name constraints extension.", ex, index);
                 }
             }
 
@@ -1433,7 +1433,7 @@ namespace Org.BouncyCastle.Pkix
                 catch (Exception ex)
                 {
                     throw new PkixCertPathValidatorException(
-                        "Excluded subtrees cannot be build from name constraints extension.", ex, index);
+                        "Excluded subtrees could not be built from name constraints extension.", ex, index);
                 }
             }
         }
