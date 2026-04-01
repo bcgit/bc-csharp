@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
@@ -8,6 +8,21 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
+    /// <summary>
+    /// Implementation of the ChaCha20-Poly1305 AEAD construction as defined in RFC 7539 / RFC 8439.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// ChaCha20-Poly1305 is an Authenticated Encryption with Associated Data (AEAD) algorithm 
+    /// combining the ChaCha20 stream cipher with the Poly1305 message authentication code.
+    /// </para>
+    /// <para>
+    /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every 
+    /// invocation with the same key. Reusing a nonce with the same key catastrophically compromises 
+    /// the security of the cipher, allowing an attacker to recover the authentication key (Poly1305) 
+    /// and plaintext.
+    /// </para>
+    /// </remarks>
     public class ChaCha20Poly1305
         : IAeadCipher
     {
@@ -48,11 +63,20 @@ namespace Org.BouncyCastle.Crypto.Modes
         private State mState = State.Uninitialized;
         private int mBufPos;
 
+        /// <summary>
+        /// Default constructor using the standard <see cref="Poly1305"/> MAC.
+        /// </summary>
         public ChaCha20Poly1305()
             : this(new Poly1305())
         {
         }
 
+        /// <summary>
+        /// Constructor allowing a custom Poly1305 implementation.
+        /// </summary>
+        /// <param name="poly1305">The Poly1305 MAC implementation to use.</param>
+        /// <exception cref="ArgumentNullException">If poly1305 is null.</exception>
+        /// <exception cref="ArgumentException">If poly1305 is not a 128-bit MAC.</exception>
         public ChaCha20Poly1305(IMac poly1305)
         {
             if (null == poly1305)
@@ -64,11 +88,18 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.mPoly1305 = poly1305;
         }
 
+        /// <summary>The name of the algorithm ("ChaCha20Poly1305").</summary>
         public virtual string AlgorithmName
         {
             get { return "ChaCha20Poly1305"; }
         }
 
+        /// <summary>
+        /// Initialise the ChaCha20Poly1305 cipher.
+        /// </summary>
+        /// <param name="forEncryption">True if initializing for encryption, false for decryption.</param>
+        /// <param name="parameters">The parameters required (typically <see cref="AeadParameters"/> or <see cref="ParametersWithIV"/>).</param>
+        /// <exception cref="ArgumentException">If parameters are invalid or nonce is reused for encryption.</exception>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             KeyParameter initKeyParam;
@@ -157,6 +188,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             Reset(true, false);
         }
 
+        /// <summary>Return the size of the output buffer required for an input of <paramref name="len"/> bytes.</summary>
+        /// <param name="len">Input length.</param>
+        /// <returns>Required output buffer size.</returns>
         public virtual int GetOutputSize(int len)
         {
             int total = System.Math.Max(0, len);
@@ -177,6 +211,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <summary>Return the size of the output buffer required for a <c>ProcessBytes</c> call with <paramref name="len"/> bytes.</summary>
+        /// <param name="len">Input length.</param>
+        /// <returns>Update output size.</returns>
         public virtual int GetUpdateOutputSize(int len)
         {
             int total = System.Math.Max(0, len);
@@ -202,6 +239,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             return total - total % BufSize;
         }
 
+        /// <summary>Process a single byte of Additional Authenticated Data (AAD).</summary>
+        /// <param name="input">The byte to be processed.</param>
         public virtual void ProcessAadByte(byte input)
         {
             CheckAad();
@@ -210,6 +249,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             mPoly1305.Update(input);
         }
 
+        /// <summary>Process a sequence of bytes of Additional Authenticated Data (AAD).</summary>
+        /// <param name="inBytes">The input buffer containing AAD.</param>
+        /// <param name="inOff">The offset into the input buffer.</param>
+        /// <param name="len">The length of the data to process.</param>
         public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
             if (null == inBytes)
@@ -230,6 +273,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a span of bytes of Additional Authenticated Data (AAD).</summary>
+        /// <param name="input">The input span containing AAD.</param>
         public virtual void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             CheckAad();
@@ -242,6 +287,11 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Process a single byte of data.</summary>
+        /// <param name="input">The input byte.</param>
+        /// <param name="outBytes">The output buffer.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>Number of bytes written to the output buffer.</returns>
         public virtual int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
             CheckData();
@@ -289,6 +339,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a single byte of data using Spans.</summary>
+        /// <param name="input">The input byte.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>Number of bytes written to the output span.</returns>
         public virtual int ProcessByte(byte input, Span<byte> output)
         {
             CheckData();
@@ -328,6 +382,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Process a sequence of bytes from the input buffer.</summary>
+        /// <param name="inBytes">The input buffer.</param>
+        /// <param name="inOff">The offset into the input buffer.</param>
+        /// <param name="len">The length of data to process.</param>
+        /// <param name="outBytes">The output buffer.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>The number of bytes written to the output buffer.</returns>
         public virtual int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             if (null == inBytes)
@@ -463,6 +524,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a span of bytes from the input.</summary>
+        /// <param name="input">The input span.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>The number of bytes written to the output span.</returns>
         public virtual int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             CheckData();
@@ -573,6 +638,11 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Finish the operation, generating or verifying the MAC.</summary>
+        /// <param name="outBytes">The output buffer for remaining processed data and/or MAC.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>Number of bytes written to the output buffer.</returns>
+        /// <exception cref="InvalidCipherTextException">If the MAC check fails.</exception>
         public virtual int DoFinal(byte[] outBytes, int outOff)
         {
             if (null == outBytes)
@@ -641,6 +711,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Finish the operation using Spans, generating or verifying the MAC.</summary>
+        /// <param name="output">The output span for remaining data and/or MAC.</param>
+        /// <returns>Number of bytes written to the output span.</returns>
+        /// <exception cref="InvalidCipherTextException">If the MAC check fails.</exception>
         public virtual int DoFinal(Span<byte> output)
         {
             CheckData();
@@ -700,11 +774,14 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Return the Message Authentication Code (MAC) generated or verified by the cipher.</summary>
+        /// <returns>A byte array containing the MACBlock.</returns>
         public virtual byte[] GetMac()
         {
             return Arrays.Clone(mMac);
         }
 
+        /// <summary>Reset the cipher to its initial state (ready for a new message with the same key but DIFFERENT nonce).</summary>
         public virtual void Reset()
         {
             Reset(true, true);

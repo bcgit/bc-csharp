@@ -6,30 +6,25 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-    /**
-    * an implementation of the AES (Rijndael), from FIPS-197.
-    * <p>
-    * For further details see: <a href="http://csrc.nist.gov/encryption/aes/">http://csrc.nist.gov/encryption/aes/</a>.
-    *
-    * This implementation is based on optimizations from Dr. Brian Gladman's paper and C code at
-    * <a href="http://fp.gladman.plus.com/cryptography_technology/rijndael/">http://fp.gladman.plus.com/cryptography_technology/rijndael/</a>
-    *
-    * There are three levels of tradeoff of speed vs memory
-    * Because java has no preprocessor, they are written as three separate classes from which to choose
-    *
-    * The fastest uses 8Kbytes of static tables to precompute round calculations, 4 256 word tables for encryption
-    * and 4 for decryption.
-    *
-    * The middle performance version uses only one 256 word table for each, for a total of 2Kbytes,
-    * adding 12 rotate operations per round to compute the values contained in the other tables from
-    * the contents of the first.
-    *
-    * The slowest version uses no static tables at all and computes the values in each round.
-    * </p>
-    * <p>
-    * This file contains the middle performance version with 2Kbytes of static tables for round precomputation.
-    * </p>
-    */
+    /// <summary>An implementation of the AES (Rijndael), from FIPS-197.</summary>
+    /// <remarks>
+    /// For further details see: <a href="http://csrc.nist.gov/encryption/aes/">http://csrc.nist.gov/encryption/aes/</a>.
+    /// <para>
+    /// This implementation is based on optimizations from Dr. Brian Gladman's paper and C code at
+    /// <a href="http://fp.gladman.plus.com/cryptography_technology/rijndael/">http://fp.gladman.plus.com/cryptography_technology/rijndael/</a>
+    /// </para>
+    /// <para>
+    /// There are three levels of tradeoff of speed vs memory:
+    /// </para>
+    /// <list type="bullet">
+    /// <item>The fastest uses 8Kbytes of static tables to precompute round calculations.</item>
+    /// <item>The middle performance version uses only one 256 word table for each, for a total of 2Kbytes, adding 12 rotate operations per round.</item>
+    /// <item>The slowest version uses no static tables at all and computes the values in each round.</item>
+    /// </list>
+    /// <para>
+    /// This file contains the middle performance version with 2Kbytes of static tables for round precomputation.
+    /// </para>
+    /// </remarks>
     public sealed class AesEngine
         : IBlockCipher
     {
@@ -437,21 +432,15 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private const int BLOCK_SIZE = 16;
 
-        /**
-        * default constructor - 128 bit block size.
-        */
+        /// <summary>Default constructor - 128 bit block size.</summary>
         public AesEngine()
         {
         }
 
-        /**
-        * initialise an AES cipher.
-        *
-        * @param forEncryption whether or not we are for encryption.
-        * @param parameters the parameters required to set up the cipher.
-        * @exception ArgumentException if the parameters argument is
-        * inappropriate.
-        */
+        /// <summary>Initialise an AES cipher.</summary>
+        /// <param name="forEncryption">Whether or not we are using it for encryption.</param>
+        /// <param name="parameters">The parameters required to set up the cipher.</param>
+        /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             if (!(parameters is KeyParameter keyParameter))
@@ -464,16 +453,27 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.s = Arrays.Clone(forEncryption ? S : Si);
         }
 
+        /// <summary>The name of the algorithm this engine implements.</summary>
         public string AlgorithmName
         {
             get { return "AES"; }
         }
 
+        /// <summary>Return the block size for this cipher (in bytes).</summary>
+        /// <returns>16 (fixed block size for AES).</returns>
         public int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
+        /// <summary>Process a single block of data.</summary>
+        /// <param name="input">The input buffer containing the data to be processed.</param>
+        /// <param name="inOff">The offset into the input buffer.</param>
+        /// <param name="output">The output buffer to store the result.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>The number of bytes processed and produced.</returns>
+        /// <exception cref="DataLengthException">If the input buffer is too small, or the output buffer is too small.</exception>
+        /// <exception cref="InvalidOperationException">If the cipher isn't initialised.</exception>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (WorkingKey == null)

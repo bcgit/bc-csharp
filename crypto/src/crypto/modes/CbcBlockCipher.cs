@@ -5,9 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
-    /**
-    * implements Cipher-Block-Chaining (CBC) mode on top of a simple cipher.
-    */
+    /// <summary>Implements Cipher-Block-Chaining (CBC) mode on top of a simple cipher.</summary>
     public sealed class CbcBlockCipher
 		: IBlockCipherMode
     {
@@ -16,11 +14,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         private IBlockCipher	cipher;
         private bool			encrypting;
 
-        /**
-        * Basic constructor.
-        *
-        * @param cipher the block cipher to be used as the basis of chaining.
-        */
+        /// <summary>Basic constructor.</summary>
+        /// <param name="cipher">The block cipher to be used as the basis of chaining.</param>
         public CbcBlockCipher(
             IBlockCipher cipher)
         {
@@ -32,23 +27,15 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.cbcNextV = new byte[blockSize];
         }
 
-        /**
-        * return the underlying block cipher that we are wrapping.
-        *
-        * @return the underlying block cipher that we are wrapping.
-        */
+        /// <summary>Return the underlying block cipher that we are wrapping.</summary>
+        /// <returns>The underlying block cipher that we are wrapping.</returns>
         public IBlockCipher UnderlyingCipher => cipher;
 
-        /**
-        * Initialise the cipher and, possibly, the initialisation vector (IV).
-        * If an IV isn't passed as part of the parameter, the IV will be all zeros.
-        *
-        * @param forEncryption if true the cipher is initialised for
-        *  encryption, if false for decryption.
-        * @param param the key and other data required by the cipher.
-        * @exception ArgumentException if the parameters argument is
-        * inappropriate.
-        */
+        /// <summary>Initialise the cipher and, possibly, the initialisation vector (IV).</summary>
+        /// <remarks>If an IV isn't passed as part of the parameter, the IV will be all zeros.</remarks>
+        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.</param>
+        /// <param name="parameters">The key and other data required by the cipher.</param>
+        /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             bool oldEncrypting = this.encrypting;
@@ -82,26 +69,21 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-		/**
-        * return the algorithm name and mode.
-        *
-        * @return the name of the underlying algorithm followed by "/CBC".
-        */
+        /// <summary>Return the algorithm name and mode.</summary>
+        /// <returns>The name of the underlying algorithm followed by "/CBC".</returns>
         public string AlgorithmName
         {
             get { return cipher.AlgorithmName + "/CBC"; }
         }
 
+        /// <summary>Indicates whether this cipher can handle partial blocks.</summary>
 		public bool IsPartialBlockOkay
 		{
 			get { return false; }
 		}
 
-		/**
-        * return the block size of the underlying cipher.
-        *
-        * @return the block size of the underlying cipher.
-        */
+        /// <summary>Return the block size of the underlying cipher.</summary>
+        /// <returns>The block size in bytes.</returns>
         public int GetBlockSize()
         {
             return cipher.GetBlockSize();
@@ -129,10 +111,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        /**
-        * reset the chaining vector back to the IV and reset the underlying
-        * cipher.
-        */
+        /// <summary>Reset the chaining vector back to the IV and reset the underlying cipher.</summary>
         public void Reset()
         {
             Array.Copy(IV, 0, cbcV, 0, IV.Length);

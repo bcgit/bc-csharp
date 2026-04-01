@@ -6,6 +6,14 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 {
+    /// <summary>
+    /// Signer implementation for the CRYSTALS-Dilithium post-quantum signature algorithm.
+    /// </summary>
+    /// <remarks>
+    /// Dilithium is part of the CRYSTALS (Cryptographic Suite for Algebraic Lattices) family.
+    /// This implementation corresponds to the submission to the NIST PQC project.
+    /// Note: Users are encouraged to migrate to ML-DSA (FIPS 204) as the standardized version.
+    /// </remarks>
     [Obsolete("Use ML-DSA instead")]
     public class DilithiumSigner 
         : IMessageSigner
@@ -15,10 +23,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
 
         private SecureRandom random;
 
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
         public DilithiumSigner()
         {
         }
 
+        /// <summary>
+        /// Initialise the Dilithium signer.
+        /// </summary>
+        /// <param name="forSigning">True if initializing for signing, false for verification.</param>
+        /// <param name="param">The parameters for the signer (typically <see cref="DilithiumPrivateKeyParameters"/> or <see cref="DilithiumPublicKeyParameters"/>).</param>
         public void Init(bool forSigning, ICipherParameters param)
         {
             if (forSigning)
@@ -41,6 +57,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             }
         }
 
+        /// <summary>
+        /// Generate a signature for the given message.
+        /// </summary>
+        /// <param name="message">The message bytes to sign.</param>
+        /// <returns>The generated signature byte array.</returns>
         public byte[] GenerateSignature(byte[] message)
         {
             DilithiumEngine engine = privKey.Parameters.GetEngine(random);
@@ -50,6 +71,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium
             return sig;
         }
 
+        /// <summary>
+        /// Verify a signature for the given message.
+        /// </summary>
+        /// <param name="message">The original message bytes.</param>
+        /// <param name="signature">The signature bytes to verify.</param>
+        /// <returns>True if the signature is valid, false otherwise.</returns>
         public bool VerifySignature(byte[] message, byte[] signature)
         {
             var engine = pubKey.Parameters.GetEngine(random);

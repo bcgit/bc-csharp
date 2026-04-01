@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 
@@ -48,78 +48,68 @@ namespace Org.BouncyCastle.Crypto.Modes
         void ProcessAadBytes(ReadOnlySpan<byte> input);
 #endif
 
-        /**
-		* Encrypt/decrypt a single byte.
-		*
-		* @param input the byte to be processed.
-		* @param outBytes the output buffer the processed byte goes into.
-		* @param outOff the offset into the output byte array the processed data starts at.
-		* @return the number of bytes written to out.
-		* @exception DataLengthException if the output buffer is too small.
-		*/
+        /// <summary>Process a single byte of data.</summary>
+        /// <param name="input">The byte to be processed.</param>
+        /// <param name="outBytes">The output buffer.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>The number of bytes written to the output buffer.</returns>
+        /// <exception cref="DataLengthException">If the output buffer is too small.</exception>
         int ProcessByte(byte input, byte[] outBytes, int outOff);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a single byte of data using Spans.</summary>
+        /// <param name="input">The byte to be processed.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>The number of bytes written to the output span.</returns>
         int ProcessByte(byte input, Span<byte> output);
 #endif
 
-        /**
-        * Process a block of bytes from in putting the result into out.
-        *
-        * @param inBytes the input byte array.
-        * @param inOff the offset into the in array where the data to be processed starts.
-        * @param len the number of bytes to be processed.
-        * @param outBytes the output buffer the processed bytes go into.
-        * @param outOff the offset into the output byte array the processed data starts at.
-        * @return the number of bytes written to out.
-        * @exception DataLengthException if the output buffer is too small.
-        */
+        /// <summary>Process a sequence of bytes from the input buffer.</summary>
+        /// <param name="inBytes">The input buffer.</param>
+        /// <param name="inOff">The offset into the input buffer.</param>
+        /// <param name="len">The length of data to process.</param>
+        /// <param name="outBytes">The output buffer.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>The number of bytes written to the output buffer.</returns>
+        /// <exception cref="DataLengthException">If the output buffer is too small.</exception>
         int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a span of bytes from the input.</summary>
+        /// <param name="input">The input span.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>The number of bytes written to the output span.</returns>
         int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output);
 #endif
 
-        /**
-        * Finish the operation either appending or verifying the MAC at the end of the data.
-        *
-        * @param outBytes space for any resulting output data.
-        * @param outOff offset into out to start copying the data at.
-        * @return number of bytes written into out.
-        * @throws InvalidOperationException if the cipher is in an inappropriate state.
-        * @throws InvalidCipherTextException if the MAC fails to match.
-        */
+        /// <summary>Finish the operation, generating or verifying the MAC.</summary>
+        /// <param name="outBytes">The output buffer for remaining data and/or MAC.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>Number of bytes written to the output buffer.</returns>
+        /// <exception cref="InvalidOperationException">If the cipher is in an inappropriate state.</exception>
+        /// <exception cref="InvalidCipherTextException">If the MAC check fails.</exception>
         int DoFinal(byte[] outBytes, int outOff);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Finish the operation using Spans, generating or verifying the MAC.</summary>
+        /// <param name="output">The output span for remaining data and/or MAC.</param>
+        /// <returns>Number of bytes written to the output span.</returns>
+        /// <exception cref="InvalidCipherTextException">If the MAC check fails.</exception>
         int DoFinal(Span<byte> output);
 #endif
 
-        /**
-        * Return the value of the MAC associated with the last stream processed.
-        *
-        * @return MAC for plaintext data.
-        */
+        /// <summary>Return the Message Authentication Code (MAC) generated or verified by the cipher.</summary>
+        /// <returns>A byte array containing the MAC Block.</returns>
         byte[] GetMac();
 
-        /**
-        * Return the size of the output buffer required for a ProcessBytes
-        * an input of len bytes.
-        *
-        * @param len the length of the input.
-        * @return the space required to accommodate a call to ProcessBytes
-        * with len bytes of input.
-        */
+        /// <summary>Return the size of the output buffer required for a ProcessBytes call with <paramref name="len"/> bytes.</summary>
+        /// <param name="len">Input length.</param>
+        /// <returns>The space required for ProcessBytes with len bytes of input.</returns>
         int GetUpdateOutputSize(int len);
 
-        /**
-        * Return the size of the output buffer required for a ProcessBytes plus a
-        * DoFinal with an input of len bytes.
-        *
-        * @param len the length of the input.
-        * @return the space required to accommodate a call to ProcessBytes and DoFinal
-        * with len bytes of input.
-        */
+        /// <summary>Return the size of the output buffer required for a ProcessBytes plus a DoFinal call with <paramref name="len"/> bytes.</summary>
+        /// <param name="len">Input length.</param>
+        /// <returns>The space required for ProcessBytes and DoFinal with len bytes of input.</returns>
         int GetOutputSize(int len);
 
         /// <summary>
