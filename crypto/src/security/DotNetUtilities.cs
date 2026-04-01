@@ -58,14 +58,73 @@ namespace Org.BouncyCastle.Security
         public static SystemX509.X509Certificate ToX509Certificate(X509Certificate x509Cert) =>
             ToX509Certificate(x509Cert.CertificateStructure);
 
+        /// <summary>
+        /// Create a Bouncy Castle <see cref="X509Certificate"/> from a .NET <see cref="SystemX509.X509Certificate"/>.
+        /// </summary>
+        /// <param name="x509Cert">The .NET certificate.</param>
+        /// <returns>A Bouncy Castle <see cref="X509Certificate"/>.</returns>
         public static X509Certificate FromX509Certificate(SystemX509.X509Certificate x509Cert) =>
             new X509Certificate(x509Cert.GetRawCertData());
 
+        /// <summary>
+        /// Create a Bouncy Castle <see cref="X509Certificate"/> from a .NET <see cref="SystemX509.X509Certificate2"/>.
+        /// </summary>
+        /// <param name="x509Cert">The .NET certificate.</param>
+        /// <returns>A Bouncy Castle <see cref="X509Certificate"/>.</returns>
         public static X509Certificate FromX509Certificate(SystemX509.X509Certificate2 x509Cert) =>
             new X509Certificate(x509Cert.RawData);
 
+        /// <summary>
+        /// Extract the <see cref="SubjectPublicKeyInfo"/> (an X.509 ASN.1 type used for public keys) from a .NET
+        /// <see cref="SystemX509.X509Certificate2"/>.
+        /// </summary>
+        /// <param name="certificate">The .NET certificate.</param>
+        /// <returns>A <see cref="SubjectPublicKeyInfo"/> object.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="certificate"/> is null.</exception>
+        public static SubjectPublicKeyInfo GetSubjectPublicKeyInfo(SystemX509.X509Certificate2 certificate)
+        {
+            if (certificate == null)
+                throw new ArgumentNullException(nameof(certificate));
+
+#if NET6_0_OR_GREATER
+            return SubjectPublicKeyInfo.GetInstance(certificate.PublicKey.ExportSubjectPublicKeyInfo());
+#else
+            var bcCert = FromX509Certificate(certificate);
+            return SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(bcCert.GetPublicKey());
+#endif
+        }
+
+        /// <summary>
+        /// Extract the DER-encoded <see cref="SubjectPublicKeyInfo"/> bytes from a .NET
+        /// <see cref="SystemX509.X509Certificate2"/>.
+        /// </summary>
+        /// <param name="certificate">The .NET certificate.</param>
+        /// <returns>A byte array containing the DER-encoded public key info.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="certificate"/> is null.</exception>
+        public static byte[] GetSubjectPublicKeyInfoDer(SystemX509.X509Certificate2 certificate)
+        {
+            if (certificate == null)
+                throw new ArgumentNullException(nameof(certificate));
+
+#if NET6_0_OR_GREATER
+            return certificate.PublicKey.ExportSubjectPublicKeyInfo();
+#else
+            return GetSubjectPublicKeyInfo(certificate).GetEncoded(Asn1Encodable.Der);
+#endif
+        }
+
+        /// <summary>
+        /// Extract a DSA key pair from a .NET <see cref="DSA"/> object.
+        /// </summary>
+        /// <param name="dsa">The .NET DSA object.</param>
+        /// <returns>An <see cref="AsymmetricCipherKeyPair"/> containing the BC DSA keys.</returns>
         public static AsymmetricCipherKeyPair GetDsaKeyPair(DSA dsa) => GetDsaKeyPair(dsa.ExportParameters(true));
 
+        /// <summary>
+        /// Extract a DSA key pair from <see cref="DSAParameters"/>.
+        /// </summary>
+        /// <param name="dp">The .NET DSA parameters.</param>
+        /// <returns>An <see cref="AsymmetricCipherKeyPair"/> containing the BC DSA keys.</returns>
         public static AsymmetricCipherKeyPair GetDsaKeyPair(DSAParameters dp)
         {
             var publicKey = GetDsaPublicKey(dp);
@@ -73,8 +132,18 @@ namespace Org.BouncyCastle.Security
             return new AsymmetricCipherKeyPair(publicKey, privateKey);
         }
 
+        /// <summary>
+        /// Extract DSA public key parameters from a .NET <see cref="DSA"/> object.
+        /// </summary>
+        /// <param name="dsa">The .NET DSA object.</param>
+        /// <returns>A <see cref="DsaPublicKeyParameters"/> object.</returns>
         public static DsaPublicKeyParameters GetDsaPublicKey(DSA dsa) => GetDsaPublicKey(dsa.ExportParameters(false));
 
+        /// <summary>
+        /// Extract DSA public key parameters from <see cref="DSAParameters"/>.
+        /// </summary>
+        /// <param name="dp">The .NET DSA parameters.</param>
+        /// <returns>A <see cref="DsaPublicKeyParameters"/> object.</returns>
         public static DsaPublicKeyParameters GetDsaPublicKey(DSAParameters dp)
         {
             var validationParameters = (dp.Seed != null)
@@ -85,12 +154,28 @@ namespace Org.BouncyCastle.Security
         }
 
 #if NETCOREAPP1_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD1_6_OR_GREATER
+        /// <summary>
+        /// Extract an EC key pair from a .NET <see cref="ECDsa"/> object.
+        /// </summary>
+        /// <param name="ecDsa">The .NET ECDsa object.</param>
+        /// <returns>An <see cref="AsymmetricCipherKeyPair"/> containing the BC EC keys.</returns>
         public static AsymmetricCipherKeyPair GetECDsaKeyPair(ECDsa ecDsa) =>
             GetECKeyPair("ECDSA", ecDsa.ExportParameters(true));
 
+        /// <summary>
+        /// Extract EC public key parameters from a .NET <see cref="ECDsa"/> object.
+        /// </summary>
+        /// <param name="ecDsa">The .NET ECDsa object.</param>
+        /// <returns>An <see cref="ECPublicKeyParameters"/> object.</returns>
         public static ECPublicKeyParameters GetECDsaPublicKey(ECDsa ecDsa) =>
             GetECPublicKey("ECDSA", ecDsa.ExportParameters(false));
 
+        /// <summary>
+        /// Extract an EC key pair from <see cref="ECParameters"/>.
+        /// </summary>
+        /// <param name="algorithm">The algorithm name (e.g., "ECDSA").</param>
+        /// <param name="ec">The .NET EC parameters.</param>
+        /// <returns>An <see cref="AsymmetricCipherKeyPair"/> containing the BC EC keys.</returns>
         public static AsymmetricCipherKeyPair GetECKeyPair(string algorithm, ECParameters ec)
         {
             var publicKey = GetECPublicKey(algorithm, ec);
@@ -98,6 +183,12 @@ namespace Org.BouncyCastle.Security
             return new AsymmetricCipherKeyPair(publicKey, privateKey);
         }
 
+        /// <summary>
+        /// Extract EC public key parameters from <see cref="ECParameters"/>.
+        /// </summary>
+        /// <param name="algorithm">The algorithm name (e.g., "ECDSA").</param>
+        /// <param name="ec">The .NET EC parameters.</param>
+        /// <returns>An <see cref="ECPublicKeyParameters"/> object.</returns>
         public static ECPublicKeyParameters GetECPublicKey(string algorithm, ECParameters ec)
         {
             var x9 = GetX9ECParameters(ec.Curve) ?? throw new NotSupportedException("Unrecognized curve");
@@ -125,8 +216,18 @@ namespace Org.BouncyCastle.Security
         }
 #endif
 
+        /// <summary>
+        /// Extract an RSA key pair from a .NET <see cref="RSA"/> object.
+        /// </summary>
+        /// <param name="rsa">The .NET RSA object.</param>
+        /// <returns>An <see cref="AsymmetricCipherKeyPair"/> containing the BC RSA keys.</returns>
         public static AsymmetricCipherKeyPair GetRsaKeyPair(RSA rsa) => GetRsaKeyPair(rsa.ExportParameters(true));
 
+        /// <summary>
+        /// Extract an RSA key pair from <see cref="RSAParameters"/>.
+        /// </summary>
+        /// <param name="rp">The .NET RSA parameters.</param>
+        /// <returns>An <see cref="AsymmetricCipherKeyPair"/> containing the BC RSA keys.</returns>
         public static AsymmetricCipherKeyPair GetRsaKeyPair(RSAParameters rp)
         {
             var publicKey = GetRsaPublicKey(rp);
@@ -142,11 +243,27 @@ namespace Org.BouncyCastle.Security
             return new AsymmetricCipherKeyPair(publicKey, privateKey);
         }
 
+        /// <summary>
+        /// Extract RSA public key parameters from a .NET <see cref="RSA"/> object.
+        /// </summary>
+        /// <param name="rsa">The .NET RSA object.</param>
+        /// <returns>An <see cref="RsaKeyParameters"/> object.</returns>
         public static RsaKeyParameters GetRsaPublicKey(RSA rsa) => GetRsaPublicKey(rsa.ExportParameters(false));
 
+        /// <summary>
+        /// Extract RSA public key parameters from <see cref="RSAParameters"/>.
+        /// </summary>
+        /// <param name="rp">The .NET RSA parameters.</param>
+        /// <returns>An <see cref="RsaKeyParameters"/> object.</returns>
         public static RsaKeyParameters GetRsaPublicKey(RSAParameters rp) =>
             new RsaKeyParameters(false, BigNat(rp.Modulus), BigNat(rp.Exponent));
 
+        /// <summary>
+        /// Extract an asymmetric key pair from a .NET <see cref="AsymmetricAlgorithm"/> object.
+        /// </summary>
+        /// <param name="privateKey">The .NET private key object.</param>
+        /// <returns>An <see cref="AsymmetricCipherKeyPair"/> containing the BC keys.</returns>
+        /// <exception cref="ArgumentException">If the algorithm is not supported.</exception>
         public static AsymmetricCipherKeyPair GetKeyPair(AsymmetricAlgorithm privateKey)
         {
             if (privateKey is DSA dsa)
@@ -163,12 +280,23 @@ namespace Org.BouncyCastle.Security
             throw new ArgumentException("Unsupported algorithm specified", nameof(privateKey));
         }
 
+        /// <summary>
+        /// Create a .NET <see cref="RSA"/> instance from Bouncy Castle RSA public key parameters.
+        /// </summary>
+        /// <param name="rsaKey">The BC RSA public key.</param>
+        /// <returns>A .NET <see cref="RSA"/> instance.</returns>
         // TODO This appears to not work for private keys (when no CRT info)
 #if NET5_0_OR_GREATER
         [SupportedOSPlatform("windows")]
 #endif
         public static RSA ToRSA(RsaKeyParameters rsaKey) => CreateRSAProvider(ToRSAParameters(rsaKey));
 
+        /// <summary>
+        /// Create a .NET <see cref="RSA"/> instance from Bouncy Castle RSA public key parameters.
+        /// </summary>
+        /// <param name="rsaKey">The BC RSA public key.</param>
+        /// <param name="csp">The .NET CspParameters.</param>
+        /// <returns>A .NET <see cref="RSA"/> instance.</returns>
         // TODO This appears to not work for private keys (when no CRT info)
 #if NET5_0_OR_GREATER
         [SupportedOSPlatform("windows")]
@@ -176,28 +304,55 @@ namespace Org.BouncyCastle.Security
         public static RSA ToRSA(RsaKeyParameters rsaKey, CspParameters csp) =>
             CreateRSAProvider(ToRSAParameters(rsaKey), csp);
 
+        /// <summary>
+        /// Create a .NET <see cref="RSA"/> instance from Bouncy Castle RSA private CRT parameters.
+        /// </summary>
+        /// <param name="privKey">The BC RSA private CRT keys.</param>
+        /// <returns>A .NET <see cref="RSA"/> instance.</returns>
 #if NET5_0_OR_GREATER
         [SupportedOSPlatform("windows")]
 #endif
         public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey) => CreateRSAProvider(ToRSAParameters(privKey));
 
+        /// <summary>
+        /// Create a .NET <see cref="RSA"/> instance from Bouncy Castle RSA private CRT parameters and CSP info.
+        /// </summary>
+        /// <param name="privKey">The BC RSA private CRT keys.</param>
+        /// <param name="csp">The .NET CspParameters.</param>
+        /// <returns>A .NET <see cref="RSA"/> instance.</returns>
 #if NET5_0_OR_GREATER
         [SupportedOSPlatform("windows")]
 #endif
         public static RSA ToRSA(RsaPrivateCrtKeyParameters privKey, CspParameters csp) =>
             CreateRSAProvider(ToRSAParameters(privKey), csp);
 
+        /// <summary>
+        /// Create a .NET <see cref="RSA"/> instance from Bouncy Castle RSA private CRT structure.
+        /// </summary>
+        /// <param name="privKey">The BC RSA private CRT keys.</param>
+        /// <returns>A .NET <see cref="RSA"/> instance.</returns>
 #if NET5_0_OR_GREATER
         [SupportedOSPlatform("windows")]
 #endif
         public static RSA ToRSA(RsaPrivateKeyStructure privKey) => CreateRSAProvider(ToRSAParameters(privKey));
 
+        /// <summary>
+        /// Create a .NET <see cref="RSA"/> instance from Bouncy Castle RSA private CRT structure and CSP info.
+        /// </summary>
+        /// <param name="privKey">The BC RSA private CRT keys.</param>
+        /// <param name="csp">The .NET CspParameters.</param>
+        /// <returns>A .NET <see cref="RSA"/> instance.</returns>
 #if NET5_0_OR_GREATER
         [SupportedOSPlatform("windows")]
 #endif
         public static RSA ToRSA(RsaPrivateKeyStructure privKey, CspParameters csp) =>
             CreateRSAProvider(ToRSAParameters(privKey), csp);
 
+        /// <summary>
+        /// Convert Bouncy Castle RSA public key parameters to .NET <see cref="RSAParameters"/>.
+        /// </summary>
+        /// <param name="rsaKey">The BC RSA key.</param>
+        /// <returns>A .NET <see cref="RSAParameters"/> object.</returns>
         public static RSAParameters ToRSAParameters(RsaKeyParameters rsaKey)
         {
             RSAParameters rp = new RSAParameters();
@@ -209,6 +364,11 @@ namespace Org.BouncyCastle.Security
             return rp;
         }
 
+        /// <summary>
+        /// Convert Bouncy Castle RSA private CRT parameters to .NET <see cref="RSAParameters"/>.
+        /// </summary>
+        /// <param name="privKey">The BC RSA key.</param>
+        /// <returns>A .NET <see cref="RSAParameters"/> object.</returns>
         public static RSAParameters ToRSAParameters(RsaPrivateCrtKeyParameters privKey)
         {
             RSAParameters rp = new RSAParameters();
@@ -223,6 +383,11 @@ namespace Org.BouncyCastle.Security
             return rp;
         }
 
+        /// <summary>
+        /// Convert Bouncy Castle RSA private CRT structure to .NET <see cref="RSAParameters"/>.
+        /// </summary>
+        /// <param name="privKey">The BC RSA key.</param>
+        /// <returns>A .NET <see cref="RSAParameters"/> object.</returns>
         public static RSAParameters ToRSAParameters(RsaPrivateKeyStructure privKey)
         {
             RSAParameters rp = new RSAParameters();

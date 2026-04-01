@@ -11,6 +11,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -72,6 +73,38 @@ namespace Org.BouncyCastle.Security.Tests
                 DotNetUtilities.ToRSA((RsaPrivateCrtKeyParameters)kp.Private);
             }
         }
+
+#if NET6_0_OR_GREATER
+        [Test]
+        public void TestGetSubjectPublicKeyInfoDer()
+        {
+            RsaKeyPairGenerator pGen = new RsaKeyPairGenerator();
+            pGen.Init(new KeyGenerationParameters(new SecureRandom(), 1024));
+            AsymmetricCipherKeyPair pair = pGen.GenerateKeyPair();
+
+            X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
+            certGen.SetSerialNumber(BigInteger.One);
+            certGen.SetIssuerDN(new X509Name("CN=Test Issuer"));
+            certGen.SetSubjectDN(new X509Name("CN=Test Subject"));
+            certGen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
+            certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
+            certGen.SetPublicKey(pair.Public);
+
+            ISignatureFactory signatureFactory = new Asn1SignatureFactory("SHA256WithRSA", pair.Private);
+            X509Certificate bcCert = certGen.Generate(signatureFactory);
+
+            var dotNetCert = (SystemX509.X509Certificate2)DotNetUtilities.ToX509Certificate(bcCert);
+
+            byte[] encoded = DotNetUtilities.GetSubjectPublicKeyInfoDer(dotNetCert);
+
+            // OID for rsaEncryption (06 09 2a 86 48 86 f7 0d 01 01 01) followed by NULL (05 00)
+            string hexEncoded = Hex.ToHexString(encoded).ToLowerInvariant();
+            string expectedOidAndNull = "06092a864886f70d0101010500";
+
+            Assert.IsTrue(hexEncoded.Contains(expectedOidAndNull),
+                "GetSubjectPublicKeyInfoDer failed to produce correct RSA encoding with NULL parameters.");
+        }
+#endif
 
         [Test]
         public void TestX509CertificateConversion()

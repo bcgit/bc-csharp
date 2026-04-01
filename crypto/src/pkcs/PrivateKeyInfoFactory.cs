@@ -18,6 +18,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkcs
 {
+    /// <summary>
+    /// A factory to produce <see cref="PrivateKeyInfo"/> (PKCS#8) objects from Bouncy Castle private key parameters.
+    /// </summary>
     public static class PrivateKeyInfoFactory
     {
         private static readonly HashSet<DerObjectIdentifier> cryptoProOids = new HashSet<DerObjectIdentifier>
@@ -29,17 +32,28 @@ namespace Org.BouncyCastle.Pkcs
             CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchB,
         };
 
+        /// <summary>
+        /// Create a <see cref="PrivateKeyInfo"/> representation of a private key.
+        /// </summary>
+        /// <example>
+        /// Example of exporting a private key to PKCS#8 bytes:
+        /// <code>
+        /// byte[] pkcs8Bytes = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey).GetEncoded();
+        /// </code>
+        /// </example>
+        /// <param name="privateKey">The private key parameters.</param>
+        /// <returns>The <see cref="PrivateKeyInfo"/> object.</returns>
         public static PrivateKeyInfo CreatePrivateKeyInfo(AsymmetricKeyParameter privateKey) =>
             CreatePrivateKeyInfo(privateKey, null);
 
-        /**
-         * Create a PrivateKeyInfo representation of a private key with attributes.
-         *
-         * @param privateKey the key to be encoded into the info object.
-         * @param attributes the set of attributes to be included.
-         * @return the appropriate PrivateKeyInfo
-         * @throws java.io.IOException on an error encoding the key
-         */
+        /// <summary>
+        /// Create a <see cref="PrivateKeyInfo"/> representation of a private key with attributes.
+        /// </summary>
+        /// <param name="privateKey">The key to be encoded into the info object.</param>
+        /// <param name="attributes">The set of attributes to be included.</param>
+        /// <returns>The appropriate <see cref="PrivateKeyInfo"/>.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="privateKey"/> is null.</exception>
+        /// <exception cref="ArgumentException">If a public key is passed instead of a private key.</exception>
         public static PrivateKeyInfo CreatePrivateKeyInfo(AsymmetricKeyParameter privateKey, Asn1Set attributes)
         {
             if (privateKey == null)
@@ -267,9 +281,23 @@ namespace Org.BouncyCastle.Pkcs
             throw new ArgumentException("Class provided is not convertible: " + Platform.GetTypeName(privateKey));
         }
 
+        /// <summary>
+        /// Create a <see cref="PrivateKeyInfo"/> from an encrypted representation using a passphrase.
+        /// </summary>
+        /// <param name="passPhrase">The password for decryption.</param>
+        /// <param name="encInfo">The encrypted private key information.</param>
+        /// <returns>A <see cref="PrivateKeyInfo"/> object.</returns>
         public static PrivateKeyInfo CreatePrivateKeyInfo(char[] passPhrase, EncryptedPrivateKeyInfo encInfo) =>
             CreatePrivateKeyInfo(passPhrase, false, encInfo);
 
+        /// <summary>
+        /// Create a <see cref="PrivateKeyInfo"/> from an encrypted representation using a passphrase.
+        /// </summary>
+        /// <param name="passPhrase">The password for decryption.</param>
+        /// <param name="wrongPkcs12Zero">If true, uses a specific zero-padding for PKCS#12 PBE (for compatibility).</param>
+        /// <param name="encInfo">The encrypted private key information.</param>
+        /// <returns>A <see cref="PrivateKeyInfo"/> object.</returns>
+        /// <exception cref="ArgumentException">If the encryption algorithm is unknown.</exception>
         public static PrivateKeyInfo CreatePrivateKeyInfo(char[] passPhrase, bool wrongPkcs12Zero,
             EncryptedPrivateKeyInfo	encInfo)
         {
