@@ -17,8 +17,12 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.X509
 {
     /// <summary>
-    /// A factory to produce Public Key Info Objects.
+    /// A factory to produce SubjectPublicKeyInfo (X.509 / PKCS#8) objects from Bouncy Castle public key parameters.
     /// </summary>
+    /// <remarks>
+    /// This class handles the correct encoding of the AlgorithmIdentifier for various algorithms, 
+    /// including mandatory parameters like the DER NULL for RSA.
+    /// </remarks>
     public static class SubjectPublicKeyInfoFactory
     {
         private static readonly HashSet<DerObjectIdentifier> cryptoProOids = new HashSet<DerObjectIdentifier>
@@ -31,11 +35,19 @@ namespace Org.BouncyCastle.X509
         };
 
         /// <summary>
-        /// Create a Subject Public Key Info object for a given public key.
+        /// Create a <see cref="SubjectPublicKeyInfo"/> object for a given public key.
         /// </summary>
-        /// <param name="publicKey">One of ElGammalPublicKeyParameters, DSAPublicKeyParameter, DHPublicKeyParameters, RsaKeyParameters or ECPublicKeyParameters</param>
-        /// <returns>A subject public key info object.</returns>
-        /// <exception cref="Exception">Throw exception if object provided is not one of the above.</exception>
+        /// <example>
+        /// Example of converting a .NET X509Certificate2 to a PKCS#8/DER byte array:
+        /// <code>
+        /// var publicKey = DotNetUtilities.FromX509Certificate(certificate).GetPublicKey();
+        /// byte[] encoded = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey).GetEncoded(Asn1Encodable.Der);
+        /// </code>
+        /// </example>
+        /// <param name="publicKey">The public key parameters (e.g., <see cref="RsaKeyParameters"/>, <see cref="ECPublicKeyParameters"/>, etc.).</param>
+        /// <returns>A <see cref="SubjectPublicKeyInfo"/> object representing the public key.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="publicKey"/> is null.</exception>
+        /// <exception cref="ArgumentException">If a private key is passed instead of a public key.</exception>
         public static SubjectPublicKeyInfo CreateSubjectPublicKeyInfo(AsymmetricKeyParameter publicKey)
         {
             if (publicKey == null)
