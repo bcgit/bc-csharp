@@ -6,22 +6,40 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Paddings
 {
     /// <summary>
-    /// A padder that adds X9.23 padding to a block - if a SecureRandom is passed in random padding is assumed,
-    /// otherwise padding with zeros is used.
+    /// A padder that adds X9.23 padding to a block.
     /// </summary>
+    /// <remarks>
+    /// If a <see cref="SecureRandom"/> is passed in, random padding is used; otherwise, the block is padded with zeros.
+    /// </remarks>
     public class X923Padding
-		: IBlockCipherPadding
+        : IBlockCipherPadding
     {
         private SecureRandom m_random = null;
 
+        /// <summary>
+        /// Initialise the padder.
+        /// </summary>
+        /// <param name="random">A source of randomness.</param>
+        /// <remarks>
+        /// If <paramref name="random"/> is <c>null</c>, zero padding is used; otherwise, the block is padded with random bytes.
+        /// </remarks>
         public void Init(SecureRandom random)
         {
-            // NOTE: If random is null, zero padding is used
             m_random = random;
         }
 
+        /// <summary>
+        /// The algorithm name for the padding.
+        /// </summary>
+        /// <returns>The string "X9.23".</returns>
         public string PaddingName => "X9.23";
 
+        /// <summary>
+        /// Add padding to a given block.
+        /// </summary>
+        /// <param name="input">The array containing the data to be padded.</param>
+        /// <param name="inOff">The offset into the input array where padding should start.</param>
+        /// <returns>The number of bytes of padding added.</returns>
         public int AddPadding(byte[] input, int inOff)
         {
             int count = input.Length - inOff;
@@ -41,6 +59,12 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Add padding to a given block using Spans.
+        /// </summary>
+        /// <param name="block">The span to be padded.</param>
+        /// <param name="position">The position where padding should start.</param>
+        /// <returns>The number of bytes of padding added.</returns>
         public int AddPadding(Span<byte> block, int position)
         {
             int count = block.Length - position;
@@ -61,6 +85,12 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 #endif
 
+        /// <summary>
+        /// Return the number of pad bytes found in the passed in block.
+        /// </summary>
+        /// <param name="input">The array containing the padded data.</param>
+        /// <returns>The number of pad bytes.</returns>
+        /// <exception cref="InvalidCipherTextException">If the padding is corrupted.</exception>
         public int PadCount(byte[] input)
         {
             int count = input[input.Length - 1];
@@ -74,6 +104,12 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Return the number of pad bytes found in the passed in block using Spans.
+        /// </summary>
+        /// <param name="block">The read-only span containing the padded data.</param>
+        /// <returns>The number of pad bytes.</returns>
+        /// <exception cref="InvalidCipherTextException">If the padding is corrupted.</exception>
         public int PadCount(ReadOnlySpan<byte> block)
         {
             int count = block[block.Length - 1];

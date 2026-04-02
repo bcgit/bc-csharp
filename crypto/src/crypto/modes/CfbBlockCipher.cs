@@ -4,11 +4,11 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
-    /**
-    * implements a Cipher-FeedBack (CFB) mode on top of a simple cipher.
-    */
+    /// <summary>
+    /// Implements a Cipher-FeedBack (CFB) mode on top of a simple block cipher.
+    /// </summary>
     public class CfbBlockCipher
-		: IBlockCipherMode
+        : IBlockCipherMode
     {
         private byte[]	IV;
         private byte[]	cfbV;
@@ -18,13 +18,11 @@ namespace Org.BouncyCastle.Crypto.Modes
 		private readonly int			blockSize;
         private readonly IBlockCipher	cipher;
 
-		/**
-        * Basic constructor.
-        *
-        * @param cipher the block cipher to be used as the basis of the
-        * feedback mode.
-        * @param blockSize the block size in bits (note: a multiple of 8)
-        */
+        /// <summary>
+        /// Basic constructor.
+        /// </summary>
+        /// <param name="cipher">The block cipher to be used as the basis of the feedback mode.</param>
+        /// <param name="bitBlockSize">The block size in bits (must be a multiple of 8).</param>
         public CfbBlockCipher(
             IBlockCipher cipher,
             int          bitBlockSize)
@@ -38,24 +36,18 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.cfbV = new byte[cipher.GetBlockSize()];
             this.cfbOutV = new byte[cipher.GetBlockSize()];
         }
-        /**
-        * return the underlying block cipher that we are wrapping.
-        *
-        * @return the underlying block cipher that we are wrapping.
-        */
+        /// <summary>
+        /// The underlying block cipher that we are wrapping.
+        /// </summary>
+        /// <returns>The underlying block cipher that we are wrapping.</returns>
         public IBlockCipher UnderlyingCipher => cipher;
 
-        /**
-        * Initialise the cipher and, possibly, the initialisation vector (IV).
-        * If an IV isn't passed as part of the parameter, the IV will be all zeros.
-        * An IV which is too short is handled in FIPS compliant fashion.
-        *
-        * @param forEncryption if true the cipher is initialised for
-        *  encryption, if false for decryption.
-        * @param param the key and other data required by the cipher.
-        * @exception ArgumentException if the parameters argument is
-        * inappropriate.
-        */
+        /// <summary>
+        /// Initialise the cipher and, possibly, the initialisation vector (IV).
+        /// </summary>
+        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.</param>
+        /// <param name="parameters">The key and other data required by the cipher.</param>
+        /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public void Init(
             bool forEncryption,
             ICipherParameters parameters)
@@ -79,32 +71,40 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        /**
-        * return the algorithm name and mode.
-        *
-        * @return the name of the underlying algorithm followed by "/CFB"
-        * and the block size in bits.
-        */
+        /// <summary>
+        /// The algorithm name and mode.
+        /// </summary>
+        /// <returns>The name of the underlying algorithm followed by "/CFB" and the block size in bits.</returns>
         public string AlgorithmName
         {
             get { return cipher.AlgorithmName + "/CFB" + (blockSize * 8); }
         }
 
-		public bool IsPartialBlockOkay
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Indicates whether partial blocks are okay for this mode.
+        /// </summary>
+        public bool IsPartialBlockOkay
+        {
+            get { return true; }
+        }
 
-		/**
-        * return the block size we are operating at.
-        *
-        * @return the block size we are operating at (in bytes).
-        */
+        /// <summary>
+        /// Return the block size we are operating at.
+        /// </summary>
+        /// <returns>The block size we are operating at (in bytes).</returns>
         public int GetBlockSize()
         {
             return blockSize;
         }
 
+        /// <summary>
+        /// Process a block of data.
+        /// </summary>
+        /// <param name="input">The input buffer.</param>
+        /// <param name="inOff">The offset into the input buffer.</param>
+        /// <param name="output">The output buffer.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>The number of bytes processed.</returns>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -119,6 +119,12 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Process a block of data using Spans.
+        /// </summary>
+        /// <param name="input">The input span.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>The number of bytes processed.</returns>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             return encrypting
@@ -213,10 +219,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        /**
-        * reset the chaining vector back to the IV and reset the underlying
-        * cipher.
-        */
+        /// <summary>
+        /// Reset the chaining vector back to the IV and reset the underlying cipher.
+        /// </summary>
         public void Reset()
         {
             Array.Copy(IV, 0, cfbV, 0, IV.Length);
