@@ -20,7 +20,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         private readonly int m_delta;
         private readonly int m_w;
         private readonly int m_wr;
-        private readonly int m_g;
         private readonly int m_fft;
         private readonly int m_mulParam;
         private readonly int N_BYTE;
@@ -33,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         private readonly int m_rejectionThreshold;
         private readonly int m_cipherTextBytes;
 
-        internal HqcEngine(int n, int n1, int n2, int k, int g, int delta, int w, int wr, int fft, int nMu, int pkSize,
+        internal HqcEngine(int n, int n1, int n2, int k, int delta, int w, int wr, int fft, int nMu, int pkSize,
             int[] generatorPoly)
         {
             m_n = n;
@@ -43,7 +42,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             m_wr = wr;
             m_n1 = n1;
             m_generatorPoly = generatorPoly;
-            m_g = g;
             m_fft = fft;
             m_nMu = nMu;
             m_pkSize = pkSize;
@@ -162,7 +160,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             m_gf2x.AddTo(v64, cKemPrimeU64);
 
             ReedMuller.Decode(tmp, cKemPrimeU64, m_n1, m_mulParam);
-            ReedSolomon.Decode(mPrime, tmp, m_n1, m_fft, m_delta, m_k, m_g);
+            ReedSolomon.Decode(mPrime, tmp, m_n1, m_fft, m_delta, m_k, m_generatorPoly.Length);
 
             // Compute shared key K_prime and ciphertext cKemPrime
             HashHI(hashEkKem, 256, sk, m_pkSize, 0x01);
@@ -197,7 +195,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             ulong[] tmp = m_gf2x.Create(); // s, h1, h
             byte[] res = new byte[m_n1];
 
-            ReedSolomon.Encode(res, m, m_n1, m_k, m_g, m_generatorPoly);
+            ReedSolomon.Encode(res, m, m_n1, m_k, m_generatorPoly);
             ReedMuller.Encode(v, res, m_n1, m_mulParam);
 
             var randomGenerator = new Shake256RandomGenerator(ekPke, 0, SeedBytes, 0x01);
