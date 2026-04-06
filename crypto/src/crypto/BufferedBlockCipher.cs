@@ -7,41 +7,47 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto
 {
-    /**
-	* A wrapper class that allows block ciphers to be used to process data in
-	* a piecemeal fashion. The BufferedBlockCipher outputs a block only when the
-	* buffer is full and more data is being added, or on a doFinal.
-	* <p>
-	* Note: in the case where the underlying cipher is either a CFB cipher or an
-	* OFB one the last block may not be a multiple of the block size.
-	* </p>
-	*/
+    /// <summary>
+    /// A wrapper class that allows block ciphers to be used to process data in a piecemeal fashion.
+    /// </summary>
+    /// <remarks>
+    /// The <see cref="BufferedBlockCipher"/> outputs a block only when the buffer is full and more data is being added, or on a <c>DoFinal</c>.
+    /// In the case where the underlying cipher is a stream-oriented mode (like CFB or OFB), the last block may not be a multiple of the block size.
+    /// </remarks>
     public class BufferedBlockCipher
         : BufferedCipherBase
     {
+        /// <summary>The buffer where data is stored before being processed by the cipher.</summary>
         internal byte[] buf;
+        /// <summary>The current position in the buffer.</summary>
         internal int bufOff;
+        /// <summary>True if initialised for encryption, false for decryption.</summary>
         internal bool forEncryption;
+        /// <summary>The underlying cipher mode we are wrapping.</summary>
         internal IBlockCipherMode m_cipherMode;
 
-        /**
-		* constructor for subclasses
-		*/
+        /// <summary>
+        /// Constructor for subclasses.
+        /// </summary>
         protected BufferedBlockCipher()
         {
         }
 
+        /// <summary>
+        /// Basic constructor.
+        /// </summary>
+        /// <param name="cipher">The underlying block cipher.</param>
         public BufferedBlockCipher(IBlockCipher cipher)
             : this(EcbBlockCipher.GetBlockCipherMode(cipher))
         {
         }
 
-        /**
-		* Create a buffered block cipher without padding.
-		*
-		* @param cipher the underlying block cipher this buffering object wraps.
-		* false otherwise.
-		*/
+        /// <summary>
+        /// Create a buffered block cipher without padding.
+        /// </summary>
+        /// <param name="cipherMode">The underlying block cipher mode this buffering object wraps.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="cipherMode"/> is null.</exception>
+        /// <exception cref="ArgumentException">If the block size is non-positive.</exception>
         public BufferedBlockCipher(IBlockCipherMode cipherMode)
         {
             if (cipherMode == null)
@@ -56,18 +62,18 @@ namespace Org.BouncyCastle.Crypto
             bufOff = 0;
         }
 
+        /// <summary>
+        /// The algorithm name for the underlying cipher.
+        /// </summary>
+        /// <returns>The name of the underlying algorithm.</returns>
         public override string AlgorithmName => m_cipherMode.AlgorithmName;
 
-        /**
-		* initialise the cipher.
-		*
-		* @param forEncryption if true the cipher is initialised for
-		*  encryption, if false for decryption.
-		* @param param the key and other data required by the cipher.
-		* @exception ArgumentException if the parameters argument is
-		* inappropriate.
-		*/
-        // Note: This doubles as the Init in the event that this cipher is being used as an IWrapper
+        /// <summary>
+        /// Initialise the cipher.
+        /// </summary>
+        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.</param>
+        /// <param name="parameters">The key and other data required by the cipher.</param>
+        /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public override void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
@@ -80,35 +86,32 @@ namespace Org.BouncyCastle.Crypto
             m_cipherMode.Init(forEncryption, parameters);
         }
 
-        /**
-		* return the blocksize for the underlying cipher.
-		*
-		* @return the blocksize for the underlying cipher.
-		*/
+        /// <summary>
+        /// Return the block size for the underlying cipher.
+        /// </summary>
+        /// <returns>The block size in bytes.</returns>
         public override int GetBlockSize() => m_cipherMode.GetBlockSize();
 
-        /**
-		* return the size of the output buffer required for an update plus a
-		* doFinal with an input of len bytes.
-		*
-		* @param len the length of the input.
-		* @return the space required to accommodate a call to update and doFinal
-		* with len bytes of input.
-		*/
-        // Note: Can assume IsPartialBlockOkay is true for purposes of this calculation
+        /// <summary>
+        /// Return the size of the output buffer required for an update plus a DoFinal with an input of <paramref name="length"/> bytes.
+        /// </summary>
+        /// <param name="length">The length of the input.</param>
+        /// <returns>The space required to accommodate a call to update and DoFinal with <paramref name="length"/> bytes of input.</returns>
         public override int GetOutputSize(int length) => bufOff + length;
 
-        /**
-		* return the size of the output buffer required for an update
-		* an input of len bytes.
-		*
-		* @param len the length of the input.
-		* @return the space required to accommodate a call to update
-		* with len bytes of input.
-		*/
+        /// <summary>
+        /// Return the size of the output buffer required for an update with an input of <paramref name="length"/> bytes.
+        /// </summary>
+        /// <param name="length">The length of the input.</param>
+        /// <returns>The space required to accommodate a call to update with <paramref name="length"/> bytes of input.</returns>
         public override int GetUpdateOutputSize(int length) =>
             GetFullBlocksSize(totalSize: bufOff + length, blockSize: buf.Length);
 
+        /// <summary>
+        /// Process a single byte, returning the produced output.
+        /// </summary>
+        /// <param name="input">The input byte.</param>
+        /// <returns>A byte array containing the produced output, or <c>null</c> if no output is produced.</returns>
         public override byte[] ProcessByte(byte input)
         {
             int updateOutputSize = GetUpdateOutputSize(1);
@@ -123,16 +126,15 @@ namespace Org.BouncyCastle.Crypto
             return output;
         }
 
-        /**
-		* process a single byte, producing an output block if necessary.
-		*
-		* @param in the input byte.
-		* @param out the space for any output that might be produced.
-		* @param outOff the offset from which the output will be copied.
-		* @return the number of output bytes copied to out.
-		* @exception DataLengthException if there isn't enough space in out.
-		* @exception InvalidOperationException if the cipher isn't initialised.
-		*/
+        /// <summary>
+        /// Process a single byte, producing an output block if necessary.
+        /// </summary>
+        /// <param name="input">The input byte.</param>
+        /// <param name="output">The buffer for any output that might be produced.</param>
+        /// <param name="outOff">The offset from which the output will be copied.</param>
+        /// <returns>The number of output bytes copied to <paramref name="output"/>.</returns>
+        /// <exception cref="DataLengthException">If there isn't enough space in <paramref name="output"/>.</exception>
+        /// <exception cref="InvalidOperationException">If the cipher isn't initialised.</exception>
         public override int ProcessByte(byte input, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -153,6 +155,14 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Process a single byte, producing an output block if necessary.
+        /// </summary>
+        /// <param name="input">The input byte.</param>
+        /// <param name="output">The span for any output that might be produced.</param>
+        /// <returns>The number of output bytes copied to <paramref name="output"/>.</returns>
+        /// <exception cref="DataLengthException">If there isn't enough space in <paramref name="output"/>.</exception>
+        /// <exception cref="InvalidOperationException">If the cipher isn't initialised.</exception>
         public override int ProcessByte(byte input, Span<byte> output)
         {
             buf[bufOff++] = input;
@@ -169,6 +179,14 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <summary>
+        /// Process an array of bytes, returning the produced output.
+        /// </summary>
+        /// <param name="input">The input byte array.</param>
+        /// <param name="inOff">The offset at which the input data starts.</param>
+        /// <param name="length">The number of bytes to be processed.</param>
+        /// <returns>A byte array containing the produced output, or <c>null</c> if no output is produced.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="input"/> is null.</exception>
         public override byte[] ProcessBytes(byte[] input, int inOff, int length)
         {
             if (input == null)
@@ -188,18 +206,17 @@ namespace Org.BouncyCastle.Crypto
             return output;
         }
 
-        /**
-         * process an array of bytes, producing output if necessary.
-         *
-         * @param in the input byte array.
-         * @param inOff the offset at which the input data starts.
-         * @param len the number of bytes to be copied out of the input array.
-         * @param out the space for any output that might be produced.
-         * @param outOff the offset from which the output will be copied.
-         * @return the number of output bytes copied to out.
-         * @exception DataLengthException if there isn't enough space in out.
-         * @exception InvalidOperationException if the cipher isn't initialised.
-         */
+        /// <summary>
+        /// Process an array of bytes, producing output if necessary.
+        /// </summary>
+        /// <param name="input">The input byte array.</param>
+        /// <param name="inOff">The offset at which the input data starts.</param>
+        /// <param name="length">The number of bytes to be copied out of the input array.</param>
+        /// <param name="output">The buffer for any output that might be produced.</param>
+        /// <param name="outOff">The offset from which the output will be copied.</param>
+        /// <returns>The number of output bytes copied to <paramref name="output"/>.</returns>
+        /// <exception cref="DataLengthException">If there isn't enough space in <paramref name="output"/>.</exception>
+        /// <exception cref="InvalidOperationException">If the cipher isn't initialised.</exception>
         public override int ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             if (length < 1)
@@ -253,6 +270,14 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Process a span of bytes, producing output if necessary.
+        /// </summary>
+        /// <param name="input">The input span.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>The number of output bytes produced.</returns>
+        /// <exception cref="DataLengthException">If there isn't enough space in <paramref name="output"/>.</exception>
+        /// <exception cref="InvalidOperationException">If the cipher isn't initialised.</exception>
         public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int resultLen = 0;
@@ -292,6 +317,11 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <summary>
+        /// Process any remaining bytes in the buffer, returning the produced output.
+        /// </summary>
+        /// <returns>A byte array containing the produced output.</returns>
+        /// <exception cref="InvalidCipherTextException">If the padding is corrupted.</exception>
         public override byte[] DoFinal()
         {
             int outputSize = GetOutputSize(0);
@@ -310,6 +340,15 @@ namespace Org.BouncyCastle.Crypto
             return output;
         }
 
+        /// <summary>
+        /// Process an array of bytes plus any remaining bytes in the buffer, returning the produced output.
+        /// </summary>
+        /// <param name="input">The input byte array.</param>
+        /// <param name="inOff">The offset at which the input data starts.</param>
+        /// <param name="inLen">The number of bytes to be processed.</param>
+        /// <returns>A byte array containing the produced output.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="input"/> is null.</exception>
+        /// <exception cref="InvalidCipherTextException">If the padding is corrupted.</exception>
         public override byte[] DoFinal(byte[] input, int inOff, int inLen)
         {
             if (input == null)
@@ -333,20 +372,15 @@ namespace Org.BouncyCastle.Crypto
             return output;
         }
 
-        /**
-		* Process the last block in the buffer.
-		*
-		* @param out the array the block currently being held is copied into.
-		* @param outOff the offset at which the copying starts.
-		* @return the number of output bytes copied to out.
-		* @exception DataLengthException if there is insufficient space in out for
-		* the output, or the input is not block size aligned and should be.
-		* @exception InvalidOperationException if the underlying cipher is not
-		* initialised.
-		* @exception InvalidCipherTextException if padding is expected and not found.
-		* @exception DataLengthException if the input is not block size
-		* aligned.
-		*/
+        /// <summary>
+        /// Process the last block in the buffer.
+        /// </summary>
+        /// <param name="output">The array the block currently being held is copied into.</param>
+        /// <param name="outOff">The offset at which the copying starts.</param>
+        /// <returns>The number of output bytes copied to <paramref name="output"/>.</returns>
+        /// <exception cref="DataLengthException">If there is insufficient space in <paramref name="output"/>, or the input is not block size aligned.</exception>
+        /// <exception cref="InvalidOperationException">If the underlying cipher is not initialised.</exception>
+        /// <exception cref="InvalidCipherTextException">If padding is expected and not found.</exception>
         public override int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -374,6 +408,14 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Process any remaining bytes in the buffer, producing output if necessary.
+        /// </summary>
+        /// <param name="output">The output span.</param>
+        /// <returns>The number of output bytes produced.</returns>
+        /// <exception cref="DataLengthException">If there isn't enough space in <paramref name="output"/>, or the input is not block size aligned.</exception>
+        /// <exception cref="InvalidOperationException">If the underlying cipher is not initialised.</exception>
+        /// <exception cref="InvalidCipherTextException">If padding is expected and not found.</exception>
         public override int DoFinal(Span<byte> output)
         {
             try
@@ -397,10 +439,12 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
-        /**
-		* Reset the buffer and cipher. After resetting the object is in the same
-		* state as it was after the last init (if there was one).
-		*/
+        /// <summary>
+        /// Reset the buffer and cipher.
+        /// </summary>
+        /// <remarks>
+        /// After resetting, the object is in the same state as it was after the last init (if there was one).
+        /// </remarks>
         public override void Reset()
         {
             Array.Clear(buf, 0, buf.Length);

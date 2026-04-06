@@ -4,11 +4,11 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Modes
 {
-    /**
-    * implements a Output-FeedBack (OFB) mode on top of a simple cipher.
-    */
+    /// <summary>
+    /// Implements an Output-FeedBack (OFB) mode on top of a simple block cipher.
+    /// </summary>
     public class OfbBlockCipher
-		: IBlockCipherMode
+        : IBlockCipherMode
     {
         private byte[]	IV;
         private byte[]	ofbV;
@@ -17,13 +17,11 @@ namespace Org.BouncyCastle.Crypto.Modes
         private readonly int			blockSize;
         private readonly IBlockCipher	cipher;
 
-        /**
-        * Basic constructor.
-        *
-        * @param cipher the block cipher to be used as the basis of the
-        * feedback mode.
-        * @param blockSize the block size in bits (note: a multiple of 8)
-        */
+        /// <summary>
+        /// Basic constructor.
+        /// </summary>
+        /// <param name="cipher">The block cipher to be used as the basis of the feedback mode.</param>
+        /// <param name="blockSize">The block size in bits (must be a multiple of 8).</param>
         public OfbBlockCipher(
             IBlockCipher cipher,
             int         blockSize)
@@ -36,24 +34,18 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.ofbOutV = new byte[cipher.GetBlockSize()];
         }
 
-        /**
-        * return the underlying block cipher that we are wrapping.
-        *
-        * @return the underlying block cipher that we are wrapping.
-        */
+        /// <summary>
+        /// The underlying block cipher that we are wrapping.
+        /// </summary>
+        /// <returns>The underlying block cipher that we are wrapping.</returns>
         public IBlockCipher UnderlyingCipher => cipher;
 
-        /**
-        * Initialise the cipher and, possibly, the initialisation vector (IV).
-        * If an IV isn't passed as part of the parameter, the IV will be all zeros.
-        * An IV which is too short is handled in FIPS compliant fashion.
-        *
-        * @param forEncryption if true the cipher is initialised for
-        *  encryption, if false for decryption.
-        * @param param the key and other data required by the cipher.
-        * @exception ArgumentException if the parameters argument is
-        * inappropriate.
-        */
+        /// <summary>
+        /// Initialise the cipher and, possibly, the initialisation vector (IV).
+        /// </summary>
+        /// <param name="forEncryption">Ignored by this OFB mode.</param>
+        /// <param name="parameters">The key and other data required by the cipher (ParametersWithIV).</param>
+        /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public void Init(
             bool				forEncryption, //ignored by this OFB mode
             ICipherParameters	parameters)
@@ -88,32 +80,40 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        /**
-        * return the algorithm name and mode.
-        *
-        * @return the name of the underlying algorithm followed by "/OFB"
-        * and the block size in bits
-        */
+        /// <summary>
+        /// The algorithm name and mode.
+        /// </summary>
+        /// <returns>The name of the underlying algorithm followed by "/OFB" and the block size in bits.</returns>
         public string AlgorithmName
         {
             get { return cipher.AlgorithmName + "/OFB" + (blockSize * 8); }
         }
 
-		public bool IsPartialBlockOkay
-		{
-			get { return true; }
-		}
+        /// <summary>
+        /// Indicates whether partial blocks are okay for this mode.
+        /// </summary>
+        public bool IsPartialBlockOkay
+        {
+            get { return true; }
+        }
 
-		/**
-        * return the block size we are operating at (in bytes).
-        *
-        * @return the block size we are operating at (in bytes).
-        */
+        /// <summary>
+        /// Return the block size we are operating at.
+        /// </summary>
+        /// <returns>The block size we are operating at (in bytes).</returns>
         public int GetBlockSize()
         {
             return blockSize;
         }
 
+        /// <summary>
+        /// Process a block of data.
+        /// </summary>
+        /// <param name="input">The input buffer.</param>
+        /// <param name="inOff">The offset into the input buffer.</param>
+        /// <param name="output">The output buffer.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>The number of bytes processed.</returns>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, blockSize, "input buffer too short");
@@ -140,6 +140,12 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Process a block of data using Spans.
+        /// </summary>
+        /// <param name="input">The input span.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>The number of bytes processed.</returns>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input, blockSize, "input buffer too short");
@@ -166,10 +172,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
-        /**
-        * reset the feedback vector back to the IV and reset the underlying
-        * cipher.
-        */
+        /// <summary>
+        /// Reset the feedback vector back to the IV and reset the underlying cipher.
+        /// </summary>
         public void Reset()
         {
             Array.Copy(IV, 0, ofbV, 0, IV.Length);
