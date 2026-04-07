@@ -156,7 +156,7 @@ namespace Org.BouncyCastle.Asn1
         internal override DerBitString ToAsn1BitString() =>
             new DerBitString(BerBitString.FlattenBitStrings(GetConstructedBitStrings()), false);
 
-        internal override DerExternal ToAsn1External() => new DerExternal(this);
+        internal override DerExternal ToAsn1External() => DerExternal.FromSequence(this);
 
         internal override Asn1OctetString ToAsn1OctetString() =>
             DerOctetString.WithContents(BerOctetString.FlattenOctetStrings(GetConstructedOctetStrings()));

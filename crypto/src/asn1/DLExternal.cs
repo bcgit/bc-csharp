@@ -1,13 +1,31 @@
-﻿namespace Org.BouncyCastle.Asn1
+﻿using System;
+
+namespace Org.BouncyCastle.Asn1
 {
     public class DLExternal
         : DerExternal
     {
+        public static new DLExternal FromSequence(Asn1Sequence seq)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new DLExternal(seq);
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public static new DLExternal FromVector(Asn1EncodableVector vector)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new DLExternal(vector);
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        [Obsolete("Use 'FromVector' instead")]
         public DLExternal(Asn1EncodableVector vector)
             : base(vector)
         {
         }
 
+        [Obsolete("Use 'FromSequence' instead")]
         public DLExternal(Asn1Sequence sequence)
             : base(sequence)
         {

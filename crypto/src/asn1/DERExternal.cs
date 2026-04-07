@@ -21,6 +21,20 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        public static DerExternal FromSequence(Asn1Sequence seq)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new DerExternal(seq);
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
+        public static DerExternal FromVector(Asn1EncodableVector vector)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new DerExternal(vector);
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         public static DerExternal GetInstance(object obj)
         {
             if (obj == null)
@@ -46,7 +60,7 @@ namespace Org.BouncyCastle.Asn1
                 }
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), "obj");
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         public static DerExternal GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
@@ -76,11 +90,13 @@ namespace Org.BouncyCastle.Asn1
         internal readonly int m_encoding;
         internal readonly Asn1Object m_externalContent;
 
+        [Obsolete("Use 'FromVector' instead")]
         public DerExternal(Asn1EncodableVector vector)
             : this(new BerSequence(vector))
         {
         }
 
+        [Obsolete("Use 'FromSequence' instead")]
         public DerExternal(Asn1Sequence sequence)
         {
             int offset = 0;
@@ -96,9 +112,9 @@ namespace Org.BouncyCastle.Asn1
                 m_indirectReference = indirectReference;
                 asn1 = GetObjFromSequence(sequence, ++offset);
             }
-            if (!(asn1 is Asn1TaggedObject))
+            if (asn1 is Asn1ObjectDescriptor dataValueDescriptor)
             {
-                m_dataValueDescriptor = (Asn1ObjectDescriptor)asn1;
+                m_dataValueDescriptor = dataValueDescriptor;
                 asn1 = GetObjFromSequence(sequence, ++offset);
             }
 
@@ -197,8 +213,7 @@ namespace Org.BouncyCastle.Asn1
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            DerExternal that = asn1Object as DerExternal;
-            return null != that
+            return asn1Object is DerExternal that
                 && Equals(this.m_directReference, that.m_directReference)
                 && Equals(this.m_indirectReference, that.m_indirectReference)
                 && Equals(this.m_dataValueDescriptor, that.m_dataValueDescriptor)

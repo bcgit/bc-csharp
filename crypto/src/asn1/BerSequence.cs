@@ -151,7 +151,7 @@ namespace Org.BouncyCastle.Asn1
         internal override DerBitString ToAsn1BitString() => new BerBitString(GetConstructedBitStrings());
 
         // TODO[asn1] There is currently no BerExternal (or Asn1External)
-        internal override DerExternal ToAsn1External() => new DLExternal(this);
+        internal override DerExternal ToAsn1External() => DLExternal.FromSequence(this);
 
         internal override Asn1OctetString ToAsn1OctetString() => new BerOctetString(GetConstructedOctetStrings());
 
