@@ -254,7 +254,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             // 3. Compute K
             AlignE01From8To1(e01);
             ulong[] wlist = FunctionH(mPrime);
-            if (Arrays.AreEqual(e01, 0, R2_ULONG, wlist, 0, R2_ULONG))
+            if (Arrays.FixedTimeEquals(R2_ULONG, e01, 0, wlist, 0))
             {
                 FunctionK(mPrime, c0, c1, k);
             }

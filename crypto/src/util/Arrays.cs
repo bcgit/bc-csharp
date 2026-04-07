@@ -178,6 +178,18 @@ namespace Org.BouncyCastle.Utilities
             return InternalFixedTimeEquals(len, a, aOff, b, bOff);
         }
 
+        [CLSCompliant(false)]
+        public static bool FixedTimeEquals(int len, ulong[] a, int aOff, ulong[] b, int bOff)
+        {
+            if (len < 0)
+                throw new ArgumentOutOfRangeException(nameof(len), "cannot be negative");
+
+            ValidateSegment(a, aOff, len);
+            ValidateSegment(b, bOff, len);
+
+            return InternalFixedTimeEquals(len, a, aOff, b, bOff);
+        }
+
         public static bool AreEqual(int[] a, int[] b)
         {
             if (a == b)
@@ -1312,6 +1324,11 @@ namespace Org.BouncyCastle.Utilities
         internal static bool InternalFixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff) =>
             CryptographicOperations.FixedTimeEquals(a.AsSpan(aOff, len), b.AsSpan(bOff, len));
 
+        internal static bool InternalFixedTimeEquals(int len, ulong[] a, int aOff, ulong[] b, int bOff) =>
+            CryptographicOperations.FixedTimeEquals(
+                MemoryMarshal.AsBytes(a.AsSpan(aOff, len)),
+                MemoryMarshal.AsBytes(b.AsSpan(bOff, len)));
+
         internal static void InternalZeroMemory(byte[] buf) => CryptographicOperations.ZeroMemory(buf);
 
         internal static void InternalZeroMemory(byte[] buf, int off, int len) =>
@@ -1351,6 +1368,17 @@ namespace Org.BouncyCastle.Utilities
                 d |= a[aOff + i] ^ b[bOff + i];
             }
             return 0 == d;
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static bool InternalFixedTimeEquals(int len, ulong[] a, int aOff, ulong[] b, int bOff)
+        {
+            ulong d = 0;
+            for (int i = 0; i < len; ++i)
+            {
+                d |= a[aOff + i] ^ b[bOff + i];
+            }
+            return 0UL == d;
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
