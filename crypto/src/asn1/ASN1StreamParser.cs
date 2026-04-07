@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Asn1
         internal Asn1StreamParser(Stream input, int limit, byte[][] tmpBuffers)
         {
             if (!input.CanRead)
-                throw new ArgumentException("Expected stream to be readable", "input");
+                throw new ArgumentException("Expected stream to be readable", nameof(input));
 
             this._in = input;
             this._limit = limit;
@@ -197,7 +197,7 @@ namespace Org.BouncyCastle.Asn1
         internal IAsn1Convertible ParseObject(int univTagNo)
         {
             if (univTagNo < 0 || univTagNo > 30)
-                throw new ArgumentException("invalid universal tag number: " + univTagNo, "univTagNo");
+                throw new ArgumentException("invalid universal tag number: " + univTagNo, nameof(univTagNo));
 
             int tagHdr = _in.ReadByte();
             if (tagHdr < 0)

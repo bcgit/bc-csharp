@@ -236,14 +236,13 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        private DerBitString BuildConstructedBitString(Asn1EncodableVector contentsElements)
+        private static DLBitString BuildConstructedBitString(Asn1EncodableVector contentsElements)
         {
             DerBitString[] bitStrings = new DerBitString[contentsElements.Count];
 
             for (int i = 0; i != bitStrings.Length; i++)
             {
-                DerBitString bitString = contentsElements[i] as DerBitString;
-                if (null == bitString)
+                if (!(contentsElements[i] is DerBitString bitString))
                     throw new Asn1Exception("unknown object encountered in constructed BIT STRING: "
                         + Platform.GetTypeName(contentsElements[i]));
 
@@ -253,14 +252,13 @@ namespace Org.BouncyCastle.Asn1
             return new DLBitString(BerBitString.FlattenBitStrings(bitStrings), false);
         }
 
-        private Asn1OctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
+        private static DerOctetString BuildConstructedOctetString(Asn1EncodableVector contentsElements)
         {
             Asn1OctetString[] octetStrings = new Asn1OctetString[contentsElements.Count];
 
             for (int i = 0; i != octetStrings.Length; i++)
             {
-                Asn1OctetString octetString = contentsElements[i] as Asn1OctetString;
-                if (null == octetString)
+                if (!(contentsElements[i] is Asn1OctetString octetString))
                     throw new Asn1Exception("unknown object encountered in constructed OCTET STRING: "
                         + Platform.GetTypeName(contentsElements[i]));
 
