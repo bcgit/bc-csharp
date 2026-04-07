@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             //            .getCertificate(cert)
             //            .getPublicKey(),
             //        CMSAlgorithm.AES256_WRAP)
-            //        .setKDF(new AlgorithmIdentifier(NISTObjectIdentifiers.id_shake256)));
+            //        .setKDF(CMSAlgorithm.SHA256_KDF);
 
             //        CMSEnvelopedData encryptedCert = edGen.generate(
             //            new CMSProcessableCMPCertificate(cert),
@@ -191,6 +191,12 @@ namespace Org.BouncyCastle.Cmp.Tests
 
             //assertTrue(recContent.getStatusMessages()[0].isVerified(receivedCert, new JcaDigestCalculatorProviderBuilder().build()));
         }
+
+        // TODO[cmp] Port testMlKemRequestWithMlDsaCADirect from bc-java
+
+        // TODO[cmp] Port testNTRURequestWithMlDsaCA from bc-java
+
+        // TODO[cmp] Port testHQCRequestWithMlDsaCA from bc-java
 
         private static X509Certificate MakeV3Certificate(string sigAlgName, string _subDN, AsymmetricCipherKeyPair issKP)
         {
