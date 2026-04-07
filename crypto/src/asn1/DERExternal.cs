@@ -5,17 +5,15 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
-	/**
-	* Class representing the DER-type External
-	*/
-	public class DerExternal
-		: Asn1Object
-	{
+    /// <summary>Class representing the DER-type External.</summary>
+    public class DerExternal
+        : Asn1Object
+    {
         internal class Meta : Asn1UniversalType
         {
             internal static readonly Asn1UniversalType Instance = new Meta();
 
-            private Meta() : base(typeof(DerExternal), Asn1Tags.External) {}
+            private Meta() : base(typeof(DerExternal), Asn1Tags.External) { }
 
             internal override Asn1Object FromImplicitConstructed(Asn1Sequence sequence)
             {
@@ -72,11 +70,11 @@ namespace Org.BouncyCastle.Asn1
             return (DerExternal)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
-        internal readonly DerObjectIdentifier directReference;
-        internal readonly DerInteger indirectReference;
-        internal readonly Asn1ObjectDescriptor dataValueDescriptor;
-        internal readonly int encoding;
-        internal readonly Asn1Object externalContent;
+        internal readonly DerObjectIdentifier m_directReference;
+        internal readonly DerInteger m_indirectReference;
+        internal readonly Asn1ObjectDescriptor m_dataValueDescriptor;
+        internal readonly int m_encoding;
+        internal readonly Asn1Object m_externalContent;
 
         public DerExternal(Asn1EncodableVector vector)
             : this(new BerSequence(vector))
@@ -84,46 +82,46 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public DerExternal(Asn1Sequence sequence)
-		{
-			int offset = 0;
+        {
+            int offset = 0;
 
-			Asn1Object asn1 = GetObjFromSequence(sequence, offset);
-			if (asn1 is DerObjectIdentifier)
-			{
-				directReference = (DerObjectIdentifier)asn1;
+            Asn1Object asn1 = GetObjFromSequence(sequence, offset);
+            if (asn1 is DerObjectIdentifier directReference)
+            {
+                m_directReference = directReference;
                 asn1 = GetObjFromSequence(sequence, ++offset);
-			}
-			if (asn1 is DerInteger)
-			{
-				indirectReference = (DerInteger)asn1;
+            }
+            if (asn1 is DerInteger indirectReference)
+            {
+                m_indirectReference = indirectReference;
                 asn1 = GetObjFromSequence(sequence, ++offset);
-			}
-			if (!(asn1 is Asn1TaggedObject))
-			{
-				dataValueDescriptor = (Asn1ObjectDescriptor)asn1;
+            }
+            if (!(asn1 is Asn1TaggedObject))
+            {
+                m_dataValueDescriptor = (Asn1ObjectDescriptor)asn1;
                 asn1 = GetObjFromSequence(sequence, ++offset);
-			}
+            }
 
             if (sequence.Count != offset + 1)
-				throw new ArgumentException("input sequence too large", "sequence");
+                throw new ArgumentException("input sequence too large", nameof(sequence));
 
-            if (!(asn1 is Asn1TaggedObject))
-				throw new ArgumentException(
-                    "No tagged object found in sequence. Structure doesn't seem to be of type External", "sequence");
+            if (!(asn1 is Asn1TaggedObject externalData))
+                throw new ArgumentException(
+                    "No tagged object found in sequence. Structure doesn't seem to be of type External",
+                        nameof(sequence));
 
-            Asn1TaggedObject obj = (Asn1TaggedObject)asn1;
-			this.encoding = CheckEncoding(obj.TagNo);
-            this.externalContent = GetExternalContent(obj);
-		}
+            m_encoding = CheckEncoding(externalData.TagNo);
+            m_externalContent = GetExternalContent(externalData);
+        }
 
-        /**
-		* Creates a new instance of DerExternal
-		* See X.690 for more informations about the meaning of these parameters
-		* @param directReference The direct reference or <code>null</code> if not set.
-		* @param indirectReference The indirect reference or <code>null</code> if not set.
-		* @param dataValueDescriptor The data value descriptor or <code>null</code> if not set.
-		* @param externalData The external data in its encoded form.
-		*/
+        /// <summary>Creates a new instance of DerExternal.</summary>
+        /// <remarks>
+        /// See X.690 for more information about the meaning of these parameters.
+        /// </remarks>
+        /// <param name="directReference">The direct reference or <c>null</c> if not set.</param>
+        /// <param name="indirectReference">The indirect reference or <c>null</c> if not set.</param>
+        /// <param name="dataValueDescriptor">The data value descriptor or <c>null</c> if not set.</param>
+        /// <param name="externalData">The external data in its encoded form.</param>
         [Obsolete("Pass 'externalData' at type Asn1TaggedObject")]
         public DerExternal(DerObjectIdentifier directReference, DerInteger indirectReference,
             Asn1ObjectDescriptor dataValueDescriptor, DerTaggedObject externalData)
@@ -131,40 +129,48 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        /// <summary>Creates a new instance of DerExternal.</summary>
+        /// <remarks>
+        /// See X.690 for more information about the meaning of these parameters.
+        /// </remarks>
+        /// <param name="directReference">The direct reference or <c>null</c> if not set.</param>
+        /// <param name="indirectReference">The indirect reference or <c>null</c> if not set.</param>
+        /// <param name="dataValueDescriptor">The data value descriptor or <c>null</c> if not set.</param>
+        /// <param name="externalData">The external data in its encoded form.</param>
         public DerExternal(DerObjectIdentifier directReference, DerInteger indirectReference,
             Asn1ObjectDescriptor dataValueDescriptor, Asn1TaggedObject externalData)
         {
-            this.directReference = directReference;
-            this.indirectReference = indirectReference;
-            this.dataValueDescriptor = dataValueDescriptor;
-            this.encoding = CheckEncoding(externalData.TagNo);
-            this.externalContent = GetExternalContent(externalData);
+            m_directReference = directReference;
+            m_indirectReference = indirectReference;
+            m_dataValueDescriptor = dataValueDescriptor;
+            m_encoding = CheckEncoding(externalData.TagNo);
+            m_externalContent = GetExternalContent(externalData);
         }
 
-        /**
-		* Creates a new instance of DerExternal.
-		* See X.690 for more informations about the meaning of these parameters
-		* @param directReference The direct reference or <code>null</code> if not set.
-		* @param indirectReference The indirect reference or <code>null</code> if not set.
-		* @param dataValueDescriptor The data value descriptor or <code>null</code> if not set.
-		* @param encoding The encoding to be used for the external data
-		* @param externalData The external data
-		*/
+        /// <summary>Creates a new instance of DerExternal.</summary>
+        /// <remarks>
+        /// See X.690 for more information about the meaning of these parameters.
+        /// </remarks>
+        /// <param name="directReference">The direct reference or <c>null</c> if not set.</param>
+        /// <param name="indirectReference">The indirect reference or <c>null</c> if not set.</param>
+        /// <param name="dataValueDescriptor">The data value descriptor or <c>null</c> if not set.</param>
+        /// <param name="encoding">The encoding to be used for the external data.</param>
+        /// <param name="externalData">The external data.</param>
         public DerExternal(DerObjectIdentifier directReference, DerInteger indirectReference,
             Asn1ObjectDescriptor dataValueDescriptor, int encoding, Asn1Object externalData)
         {
-            this.directReference = directReference;
-            this.indirectReference = indirectReference;
-            this.dataValueDescriptor = dataValueDescriptor;
-            this.encoding = CheckEncoding(encoding);
-            this.externalContent = CheckExternalContent(encoding, externalData);
+            m_directReference = directReference;
+            m_indirectReference = indirectReference;
+            m_dataValueDescriptor = dataValueDescriptor;
+            m_encoding = CheckEncoding(encoding);
+            m_externalContent = CheckExternalContent(encoding, externalData);
         }
 
         internal virtual Asn1Sequence BuildSequence()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(4);
-            v.AddOptional(directReference, indirectReference, dataValueDescriptor);
-            v.Add(new DerTaggedObject(0 == encoding, encoding, externalContent));
+            v.AddOptional(m_directReference, m_indirectReference, m_dataValueDescriptor);
+            v.Add(new DerTaggedObject(isExplicit: 0 == m_encoding, m_encoding, m_externalContent));
             return new DerSequence(v);
         }
 
@@ -181,67 +187,43 @@ namespace Org.BouncyCastle.Asn1
             BuildSequence().GetEncodingDerImplicit(tagClass, tagNo);
 
         protected override int Asn1GetHashCode()
-		{
-            return Objects.GetHashCode(this.directReference)
-                ^  Objects.GetHashCode(this.indirectReference)
-                ^  Objects.GetHashCode(this.dataValueDescriptor)
-                ^  this.encoding
-                ^  this.externalContent.GetHashCode();
-		}
-
-		protected override bool Asn1Equals(Asn1Object asn1Object)
-		{
-			DerExternal that = asn1Object as DerExternal;
-            return null != that
-                && Equals(this.directReference, that.directReference)
-                && Equals(this.indirectReference, that.indirectReference)
-                && Equals(this.dataValueDescriptor, that.dataValueDescriptor)
-                && this.encoding == that.encoding
-				&& this.externalContent.Equals(that.externalContent);
-		}
-
-		public Asn1ObjectDescriptor DataValueDescriptor
-		{
-			get { return dataValueDescriptor; }
-		}
-
-		public DerObjectIdentifier DirectReference
-		{
-			get { return directReference; }
-		}
-
-		/**
-		* The encoding of the content. Valid values are
-		* <ul>
-		* <li><code>0</code> single-ASN1-type</li>
-		* <li><code>1</code> OCTET STRING</li>
-		* <li><code>2</code> BIT STRING</li>
-		* </ul>
-		*/
-		public int Encoding
-		{
-            get { return encoding; }
-		}
-
-		public Asn1Object ExternalContent
-		{
-			get { return externalContent; }
-		}
-
-		public DerInteger IndirectReference
-		{
-			get { return indirectReference; }
-		}
-
-        private static Asn1ObjectDescriptor CheckDataValueDescriptor(Asn1Object dataValueDescriptor)
         {
-            if (dataValueDescriptor is Asn1ObjectDescriptor)
-                return (Asn1ObjectDescriptor)dataValueDescriptor;
-            if (dataValueDescriptor is DerGraphicString)
-                return new Asn1ObjectDescriptor((DerGraphicString)dataValueDescriptor);
-
-            throw new ArgumentException("incompatible type for data-value-descriptor", "dataValueDescriptor");
+            return Objects.GetHashCode(m_directReference)
+                ^  Objects.GetHashCode(m_indirectReference)
+                ^  Objects.GetHashCode(m_dataValueDescriptor)
+                ^  m_encoding
+                ^  m_externalContent.GetHashCode();
         }
+
+        protected override bool Asn1Equals(Asn1Object asn1Object)
+        {
+            DerExternal that = asn1Object as DerExternal;
+            return null != that
+                && Equals(this.m_directReference, that.m_directReference)
+                && Equals(this.m_indirectReference, that.m_indirectReference)
+                && Equals(this.m_dataValueDescriptor, that.m_dataValueDescriptor)
+                && this.m_encoding == that.m_encoding
+                && this.m_externalContent.Equals(that.m_externalContent);
+        }
+
+        public Asn1ObjectDescriptor DataValueDescriptor => m_dataValueDescriptor;
+
+        public DerObjectIdentifier DirectReference => m_directReference;
+
+        /// <summary>The encoding of the content.</summary>
+        /// <remarks>
+        /// Valid values are:
+        /// <list>
+        /// <item><c>0</c>: single-ASN1-type</item>
+        /// <item><c>1</c>: OCTET STRING</item>
+        /// <item><c>2</c>: BIT STRING</item>
+        /// </list>
+        /// </remarks>
+        public int Encoding => m_encoding;
+
+        public Asn1Object ExternalContent => m_externalContent;
+
+        public DerInteger IndirectReference => m_indirectReference;
 
         private static int CheckEncoding(int encoding)
         {
@@ -264,29 +246,30 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        private static Asn1Object GetExternalContent(Asn1TaggedObject encoding)
+        private static Asn1Object GetExternalContent(Asn1TaggedObject externalData)
         {
-            Asn1Utilities.CheckContextTagClass(encoding);
+            Asn1Utilities.CheckContextTagClass(externalData);
 
-            switch (encoding.TagNo)
+            switch (externalData.TagNo)
             {
             case 0:
-                return encoding.GetExplicitBaseObject().ToAsn1Object();
+                return externalData.GetExplicitBaseObject().ToAsn1Object();
             case 1:
-                return Asn1OctetString.GetTagged(encoding, false);
+                return Asn1OctetString.GetTagged(externalData, false);
             case 2:
-                return DerBitString.GetTagged(encoding, false);
+                return DerBitString.GetTagged(externalData, false);
             default:
-                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(encoding), nameof(encoding));
+                throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(externalData),
+                    nameof(externalData));
             }
         }
 
         private static Asn1Object GetObjFromSequence(Asn1Sequence sequence, int index)
-		{
-			if (sequence.Count <= index)
-				throw new ArgumentException("too few objects in input sequence", "sequence");
+        {
+            if (sequence.Count <= index)
+                throw new ArgumentException("too few objects in input sequence", nameof(sequence));
 
-			return sequence[index].ToAsn1Object();
-		}
-	}
+            return sequence[index].ToAsn1Object();
+        }
+    }
 }
