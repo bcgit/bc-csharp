@@ -586,5 +586,14 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier snova_75_33_2_esk = snova.Branch("42");
         public static readonly DerObjectIdentifier snova_75_33_2_shake_ssk = snova.Branch("43");
         public static readonly DerObjectIdentifier snova_75_33_2_shake_esk = snova.Branch("44");
+
+        /**
+         * NTRU+
+         * */
+        public static readonly DerObjectIdentifier pqc_kem_ntruplus = bc_kem.Branch("10");
+
+        public static readonly DerObjectIdentifier ntruplus768 = pqc_kem_ntruplus.Branch("1");
+        public static readonly DerObjectIdentifier ntruplus864 = pqc_kem_ntruplus.Branch("2");
+        public static readonly DerObjectIdentifier ntruplus1152 = pqc_kem_ntruplus.Branch("3");
     }
 }
