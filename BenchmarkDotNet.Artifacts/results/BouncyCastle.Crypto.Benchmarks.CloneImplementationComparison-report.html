@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>BouncyCastle.Crypto.Benchmarks.CloneImplementationComparison-20260223-195811</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.7918/25H2/2025Update/HudsonValley2)
+13th Gen Intel Core i9-13900K 3.00GHz, 1 CPU, 32 logical and 24 physical cores
+.NET SDK 10.0.200-preview.0.26103.119
+  [Host]               : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v3
+  .NET 10.0            : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v3
+  .NET Framework 4.8.1 : .NET Framework 4.8.1 (4.8.9325.0), X64 RyuJIT VectorSize=256
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Method     </th><th>Job           </th><th>Runtime       </th><th>ArraySize</th><th>Mean</th><th>Ratio</th><th>Gen0</th><th>Gen1</th><th>Allocated</th><th>Alloc Ratio</th>
+</tr>
+</thead><tbody><tr><td>ArrayClone</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>33.286 ns</td><td>1.00</td><td>0.0021</td><td>-</td><td>40 B</td><td>1.00</td>
+</tr><tr><td>NewArrayBlockCopy</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>4.787 ns</td><td>0.14</td><td>0.0021</td><td>-</td><td>40 B</td><td>1.00</td>
+</tr><tr><td>ArrayClone</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>16</td><td>18.655 ns</td><td>1.00</td><td>0.0063</td><td>-</td><td>40 B</td><td>1.00</td>
+</tr><tr><td>NewArrayBlockCopy</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>16</td><td>7.217 ns</td><td>0.39</td><td>0.0064</td><td>-</td><td>40 B</td><td>1.00</td>
+</tr><tr><td>ArrayClone</td><td>.NET 10.0</td><td>.NET 10.0</td><td>128</td><td>33.653 ns</td><td>1.00</td><td>0.0080</td><td>-</td><td>152 B</td><td>1.00</td>
+</tr><tr><td>NewArrayBlockCopy</td><td>.NET 10.0</td><td>.NET 10.0</td><td>128</td><td>7.731 ns</td><td>0.23</td><td>0.0081</td><td>-</td><td>152 B</td><td>1.00</td>
+</tr><tr><td>ArrayClone</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>128</td><td>22.591 ns</td><td>1.00</td><td>0.0242</td><td>-</td><td>152 B</td><td>1.00</td>
+</tr><tr><td>NewArrayBlockCopy</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>128</td><td>11.276 ns</td><td>0.50</td><td>0.0242</td><td>-</td><td>152 B</td><td>1.00</td>
+</tr><tr><td>ArrayClone</td><td>.NET 10.0</td><td>.NET 10.0</td><td>1024</td><td>50.312 ns</td><td>1.00</td><td>0.0555</td><td>0.0002</td><td>1048 B</td><td>1.00</td>
+</tr><tr><td>NewArrayBlockCopy</td><td>.NET 10.0</td><td>.NET 10.0</td><td>1024</td><td>33.917 ns</td><td>0.67</td><td>0.0557</td><td>0.0002</td><td>1048 B</td><td>1.00</td>
+</tr><tr><td>ArrayClone</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>1024</td><td>44.428 ns</td><td>1.00</td><td>0.1670</td><td>0.0007</td><td>1051 B</td><td>1.00</td>
+</tr><tr><td>NewArrayBlockCopy</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>1024</td><td>34.993 ns</td><td>0.79</td><td>0.1670</td><td>0.0007</td><td>1051 B</td><td>1.00</td>
+</tr></tbody></table>
+</body>
+</html>
