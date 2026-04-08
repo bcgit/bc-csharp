@@ -22,6 +22,17 @@ namespace Org.BouncyCastle.Crypto.Modes
     /// <summary>
     /// Implements the Galois/Counter mode (GCM) detailed in NIST Special Publication 800-38D.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// GCM provides both confidentiality and data origin authentication (AEAD). 
+    /// It requires a block cipher with a 128-bit block size, typically <see cref="AesEngine"/>.
+    /// </para>
+    /// <para>
+    /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every 
+    /// invocation with the same key. Reusing a nonce with the same key catastrophically compromises 
+    /// the security of the cipher, allowing an attacker to recover the authentication key or plaintext.
+    /// </para>
+    /// </remarks>
     public sealed class GcmBlockCipher
         : IAeadBlockCipher
     {
@@ -76,6 +87,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         private ulong       atLength;
         private ulong       atLengthPre;
 
+        /// <summary>
+        /// Base constructor.
+        /// </summary>
+        /// <param name="c">The underlying block cipher to use (must have a 128-bit block size).</param>
         public GcmBlockCipher(
             IBlockCipher c)
             : this(c, null)
@@ -94,10 +109,14 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.multiplier = m ?? CreateGcmMultiplier();
         }
 
+        /// <summary>The name of the algorithm this cipher implements (e.g., "AES/GCM").</summary>
         public string AlgorithmName => cipher.AlgorithmName + "/GCM";
 
+        /// <summary>Return the underlying block cipher being wrapped.</summary>
         public IBlockCipher UnderlyingCipher => cipher;
 
+        /// <summary>Return the block size for GCM (fixed at 16 bytes).</summary>
+        /// <returns>16.</returns>
         public int GetBlockSize()
         {
             return BlockSize;
@@ -107,6 +126,12 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// MAC sizes from 32 bits to 128 bits (must be a multiple of 8) are supported. The default is 128 bits.
         /// Sizes less than 96 are not recommended, but are supported for specialized applications.
         /// </remarks>
+        /// <summary>
+        /// Initialise the GCM cipher.
+        /// </summary>
+        /// <param name="forEncryption">True if initializing for encryption, false for decryption.</param>
+        /// <param name="parameters">The parameters required (typically <see cref="AeadParameters"/> or <see cref="ParametersWithIV"/>).</param>
+        /// <exception cref="ArgumentException">If parameters are invalid or nonce is reused for encryption.</exception>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
@@ -254,11 +279,16 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <summary>Return the Message Authentication Code (MAC) generated or verified by the cipher.</summary>
+        /// <returns>A byte array containing the MACBlock.</returns>
         public byte[] GetMac()
         {
             return macBlock == null ? new byte[macSize] : (byte[])macBlock.Clone();
         }
 
+        /// <summary>Return the size of the output buffer required for an input of <paramref name="len"/> bytes.</summary>
+        /// <param name="len">Input length.</param>
+        /// <returns>Required output buffer size.</returns>
         public int GetOutputSize(int len)
         {
             int totalData = len + bufOff;
@@ -269,6 +299,9 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData < macSize ? 0 : totalData - macSize;
         }
 
+        /// <summary>Return the size of the output buffer required for a <c>ProcessBytes</c> call with <paramref name="len"/> bytes.</summary>
+        /// <param name="len">Input length.</param>
+        /// <returns>Update output size.</returns>
         public int GetUpdateOutputSize(int len)
         {
             int totalData = len + bufOff;
@@ -282,6 +315,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             return totalData - totalData % BlockSize;
         }
 
+        /// <summary>Process a single byte of Additional Authenticated Data (AAD).</summary>
+        /// <param name="input">The byte to be processed.</param>
         public void ProcessAadByte(byte input)
         {
             CheckStatus();
@@ -296,6 +331,10 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <summary>Process a sequence of bytes of Additional Authenticated Data (AAD).</summary>
+        /// <param name="inBytes">The input buffer containing AAD.</param>
+        /// <param name="inOff">The offset into the input buffer.</param>
+        /// <param name="len">The length of the data to process.</param>
         public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -336,6 +375,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a span of bytes of Additional Authenticated Data (AAD).</summary>
+        /// <param name="input">The input span containing AAD.</param>
         public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             CheckStatus();
@@ -390,6 +431,12 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
+        /// <summary>Process a single byte of data.</summary>
+        /// <param name="input">The input byte.</param>
+        /// <param name="output">The output buffer.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>Number of bytes written to the output buffer.</returns>
+        /// <exception cref="DataLengthException">If output buffer is too short.</exception>
         public int ProcessByte(byte	input, byte[] output, int outOff)
         {
             CheckStatus();
@@ -436,6 +483,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a single byte of data using Spans.</summary>
+        /// <param name="input">The input byte.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>Number of bytes written to the output span.</returns>
         public int ProcessByte(byte input, Span<byte> output)
         {
             CheckStatus();
@@ -474,6 +525,13 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Process a sequence of bytes from the input buffer.</summary>
+        /// <param name="input">The input buffer.</param>
+        /// <param name="inOff">The offset into the input buffer.</param>
+        /// <param name="len">The length of data to process.</param>
+        /// <param name="output">The output buffer.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>The number of bytes written to the output buffer.</returns>
         public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             CheckStatus();
@@ -626,6 +684,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Process a span of bytes from the input.</summary>
+        /// <param name="input">The input span.</param>
+        /// <param name="output">The output span.</param>
+        /// <returns>The number of bytes written to the output span.</returns>
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             CheckStatus();
@@ -801,6 +863,11 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Finish the operation, generating or verifying the Message Authentication Code (MAC).</summary>
+        /// <param name="output">The output buffer for remaining processed data and/or MAC.</param>
+        /// <param name="outOff">The offset into the output buffer.</param>
+        /// <returns>Number of bytes written to the output buffer.</returns>
+        /// <exception cref="InvalidCipherTextException">If the MAC check fails.</exception>
         public int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -921,6 +988,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Finish the operation using Spans, generating or verifying the MAC.</summary>
+        /// <param name="output">The output span for remaining data and/or MAC.</param>
+        /// <returns>Number of bytes written to the output span.</returns>
+        /// <exception cref="InvalidCipherTextException">If the MAC check fails.</exception>
         public int DoFinal(Span<byte> output)
         {
             CheckStatus();
@@ -1037,6 +1108,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>Reset the cipher to its initial state (ready for a new message with the same key but DIFFERENT nonce).</summary>
         public void Reset()
         {
             Reset(true);

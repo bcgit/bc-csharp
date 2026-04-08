@@ -6,6 +6,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 	public interface IAeadBlockCipher
         : IAeadCipher
 	{
+        /// <summary>Return the block size for this cipher (in bytes).</summary>
         /// <returns>The block size for this cipher, in bytes.</returns>
         int GetBlockSize();
 

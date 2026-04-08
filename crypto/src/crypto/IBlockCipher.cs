@@ -2,7 +2,9 @@ using System;
 
 namespace Org.BouncyCastle.Crypto
 {
-	/// <remarks>Base interface for a symmetric key block cipher.</remarks>
+    /// <summary>
+    /// Base interface for a symmetric key block cipher.
+    /// </summary>
     public interface IBlockCipher
     {
 		/// <summary>The name of the algorithm this cipher implements.</summary>
@@ -13,6 +15,9 @@ namespace Org.BouncyCastle.Crypto
 		/// <param name="parameters">The key or other data required by the cipher.</param>
 		void Init(bool forEncryption, ICipherParameters parameters);
 
+		/// <summary>
+		/// Return the block size for this cipher (in bytes).
+		/// </summary>
 		/// <returns>The block size for this cipher, in bytes.</returns>
 		int GetBlockSize();
 
