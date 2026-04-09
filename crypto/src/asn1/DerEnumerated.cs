@@ -82,68 +82,66 @@ namespace Org.BouncyCastle.Asn1
             return (DerEnumerated)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
 
-        private readonly byte[] contents;
-        private readonly int start;
+        private readonly byte[] m_contents;
+        private readonly int m_start;
 
         public DerEnumerated(int val)
         {
             if (val < 0)
-                throw new ArgumentException("enumerated must be non-negative", "val");
+                throw new ArgumentException("enumerated must be non-negative", nameof(val));
 
-            this.contents = BigInteger.ValueOf(val).ToByteArray();
-            this.start = 0;
+            m_contents = BigInteger.ValueOf(val).ToByteArray();
+            m_start = 0;
         }
 
         public DerEnumerated(long val)
         {
             if (val < 0L)
-                throw new ArgumentException("enumerated must be non-negative", "val");
+                throw new ArgumentException("enumerated must be non-negative", nameof(val));
 
-            this.contents = BigInteger.ValueOf(val).ToByteArray();
-            this.start = 0;
+            m_contents = BigInteger.ValueOf(val).ToByteArray();
+            m_start = 0;
         }
 
         public DerEnumerated(BigInteger val)
         {
             if (val.SignValue < 0)
-                throw new ArgumentException("enumerated must be non-negative", "val");
+                throw new ArgumentException("enumerated must be non-negative", nameof(val));
 
-            this.contents = val.ToByteArray();
-            this.start = 0;
+            m_contents = val.ToByteArray();
+            m_start = 0;
         }
 
         public DerEnumerated(byte[] contents)
-            : this(contents, true)
+            : this(contents, clone: true)
         {
         }
 
         internal DerEnumerated(byte[] contents, bool clone)
         {
             if (DerInteger.IsMalformed(contents))
-                throw new ArgumentException("malformed enumerated", "contents");
+                throw new ArgumentException("malformed enumerated", nameof(contents));
             if (0 != (contents[0] & 0x80))
-                throw new ArgumentException("enumerated must be non-negative", "contents");
+                throw new ArgumentException("enumerated must be non-negative", nameof(contents));
 
-            this.contents = clone ? Arrays.Clone(contents) : contents;
-            this.start = DerInteger.SignBytesToSkip(this.contents);
+            m_contents = clone ? Arrays.Clone(contents) : contents;
+            m_start = DerInteger.SignBytesToSkip(this.m_contents);
         }
 
-        public BigInteger Value
-        {
-            get { return new BigInteger(contents); }
-        }
+        // NB: The BigInteger constructor tolerates any redundant sign bytes (per 'AllowUnsafe')
+        public BigInteger Value => new BigInteger(m_contents);
 
         public bool HasValue(int x)
         {
-            return (contents.Length - start) <= 4
-                && DerInteger.IntValue(contents, start, DerInteger.SignExtSigned) == x;
+            return (m_contents.Length - m_start) <= 4
+                && DerInteger.IntValue(m_contents, m_start, DerInteger.SignExtSigned) == x;
         }
 
         public bool HasValue(BigInteger x)
         {
             return null != x
                 // Fast check to avoid allocation
-                && DerInteger.IntValue(contents, start, DerInteger.SignExtSigned) == x.IntValue
+                && DerInteger.IntValue(m_contents, m_start, DerInteger.SignExtSigned) == x.IntValue
                 && Value.Equals(x);
         }
 
@@ -151,47 +149,33 @@ namespace Org.BouncyCastle.Asn1
         {
             get
             {
-                int count = contents.Length - start;
+                int count = m_contents.Length - m_start;
                 if (count > 4)
                     throw new ArithmeticException("ASN.1 Enumerated out of int range");
 
-                return DerInteger.IntValue(contents, start, DerInteger.SignExtSigned);
+                return DerInteger.IntValue(m_contents, m_start, DerInteger.SignExtSigned);
             }
         }
 
-        internal override IAsn1Encoding GetEncoding(int encoding)
-        {
-            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Enumerated, contents);
-        }
+        internal override IAsn1Encoding GetEncoding(int encoding) =>
+            new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Enumerated, m_contents);
 
-        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
-        {
-            return new PrimitiveEncoding(tagClass, tagNo, contents);
-        }
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo) =>
+            new PrimitiveEncoding(tagClass, tagNo, m_contents);
 
-        internal sealed override DerEncoding GetEncodingDer()
-        {
-            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.Enumerated, contents);
-        }
+        internal sealed override DerEncoding GetEncodingDer() =>
+            new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.Enumerated, m_contents);
 
-        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
-        {
-            return new PrimitiveDerEncoding(tagClass, tagNo, contents);
-        }
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo) =>
+            new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
-            DerEnumerated other = asn1Object as DerEnumerated;
-            if (other == null)
-                return false;
-
-            return Arrays.AreEqual(this.contents, other.contents);
+            return asn1Object is DerEnumerated that
+                && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
-        protected override int Asn1GetHashCode()
-        {
-            return Arrays.GetHashCode(contents);
-        }
+        protected override int Asn1GetHashCode() => Arrays.GetHashCode(m_contents);
 
         private static readonly DerEnumerated[] cache = new DerEnumerated[12];
 
@@ -200,7 +184,7 @@ namespace Org.BouncyCastle.Asn1
             if (contents.Length > 1)
                 return new DerEnumerated(contents, clone);
             if (contents.Length == 0)
-                throw new ArgumentException("ENUMERATED has zero length", "contents");
+                throw new ArgumentException("ENUMERATED has zero length", nameof(contents));
 
             int value = contents[0];
             if (value >= cache.Length)
