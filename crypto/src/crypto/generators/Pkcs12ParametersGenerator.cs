@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 digest.BlockUpdate(I, 0, I.Length);
                 digest.DoFinal(A, 0);
 
-                for (int j = 1; j != mIterationCount; j++)
+                for (int j = 1; j < mIterationCount; j++)
                 {
                     digest.BlockUpdate(A, 0, A.Length);
                     digest.DoFinal(A, 0);
