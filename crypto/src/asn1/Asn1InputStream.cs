@@ -21,10 +21,10 @@ namespace Org.BouncyCastle.Asn1
     {
         public static readonly string MaxLimitProperty = "Org.BouncyCastle.Asn1.MaxLimit";
 
-        private readonly int limit;
+        private readonly int m_limit;
         private readonly bool m_leaveOpen;
 
-        internal byte[][] tmpBuffers;
+        internal byte[][] m_tmpBuffers;
 
         internal static int FindLimit(Stream input)
         {
@@ -88,16 +88,16 @@ namespace Org.BouncyCastle.Asn1
             if (!input.CanRead)
                 throw new ArgumentException("Expected stream to be readable", nameof(input));
 
-            this.limit = limit;
+            this.m_limit = limit;
             m_leaveOpen = leaveOpen;
-            this.tmpBuffers = tmpBuffers;
+            this.m_tmpBuffers = tmpBuffers;
         }
 
-        public int Limit => limit;
+        public int Limit => m_limit;
 
         protected override void Dispose(bool disposing)
         {
-            tmpBuffers = null;
+            m_tmpBuffers = null;
 
             if (m_leaveOpen)
             {
@@ -116,10 +116,10 @@ namespace Org.BouncyCastle.Asn1
         {
             // TODO[asn1] Special-case zero length first?
 
-            DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(s, length, limit);
+            DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(s, length, m_limit);
 
             if (0 == (tagHdr & Asn1Tags.Flags))
-                return CreatePrimitiveDerObject(tagNo, defIn, tmpBuffers);
+                return CreatePrimitiveDerObject(tagNo, defIn, m_tmpBuffers);
 
             int tagClass = tagHdr & Asn1Tags.Private;
             if (0 != tagClass)
@@ -178,7 +178,7 @@ namespace Org.BouncyCastle.Asn1
             if (remaining < 1)
                 return new Asn1EncodableVector(0);
 
-            using (var sub = new Asn1InputStream(defIn, remaining, leaveOpen: true, tmpBuffers))
+            using (var sub = new Asn1InputStream(defIn, remaining, leaveOpen: true, m_tmpBuffers))
             {
                 return sub.ReadVector();
             }
@@ -196,7 +196,7 @@ namespace Org.BouncyCastle.Asn1
             }
 
             int tagNo = ReadTagNumber(s, tagHdr);
-            int length = ReadLength(s, limit, false);
+            int length = ReadLength(s, m_limit, false);
 
             if (length >= 0)
             {
@@ -224,8 +224,8 @@ namespace Org.BouncyCastle.Asn1
             if (0 == (tagHdr & Asn1Tags.Constructed))
                 throw new IOException("indefinite-length primitive encoding encountered");
 
-            IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(s, limit);
-            Asn1StreamParser sp = new Asn1StreamParser(indIn, limit, tmpBuffers);
+            IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(s, m_limit);
+            Asn1StreamParser sp = new Asn1StreamParser(indIn, m_limit, m_tmpBuffers);
 
             int tagClass = tagHdr & Asn1Tags.Private;
             if (0 != tagClass)
@@ -503,7 +503,7 @@ namespace Org.BouncyCastle.Asn1
                     if (Streams.ReadFully(defIn, buf) != 8)
                         throw new EndOfStreamException("EOF encountered in middle of BMPString");
 
-                    str[stringPos    ] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[0..]);
+                    str[stringPos] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[0..]);
                     str[stringPos + 1] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[2..]);
                     str[stringPos + 2] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[4..]);
                     str[stringPos + 3] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[6..]);

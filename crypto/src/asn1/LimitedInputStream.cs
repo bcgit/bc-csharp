@@ -7,25 +7,22 @@ namespace Org.BouncyCastle.Asn1
     internal abstract class LimitedInputStream
         : BaseInputStream
     {
-        protected readonly Stream _in;
-        private int _limit;
+        protected readonly Stream m_in;
+        private int m_limit;
 
         internal LimitedInputStream(Stream inStream, int limit)
         {
-            this._in = inStream;
-            this._limit = limit;
+            m_in = inStream;
+            m_limit = limit;
         }
 
-        internal virtual int Limit
-        {
-            get { return _limit; }
-        }
+        internal virtual int Limit => m_limit;
 
-        protected void SetParentEofDetect()
+        protected void EnableParentEofDetect()
         {
-            if (_in is IndefiniteLengthInputStream)
+            if (m_in is IndefiniteLengthInputStream indef)
             {
-                ((IndefiniteLengthInputStream)_in).SetEofOn00(true);
+                indef.SetEofOn00(true);
             }
         }
     }

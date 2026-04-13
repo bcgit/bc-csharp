@@ -5,10 +5,10 @@ namespace Org.BouncyCastle.Asn1
 {
     public class Asn1StreamParser
     {
-        private readonly Stream _in;
-        private readonly int _limit;
+        private readonly Stream m_in;
+        private readonly int m_limit;
 
-        private readonly byte[][] tmpBuffers;
+        private readonly byte[][] m_tmpBuffers;
 
         public Asn1StreamParser(Stream input)
             : this(input, Asn1InputStream.FindLimit(input))
@@ -30,16 +30,16 @@ namespace Org.BouncyCastle.Asn1
             if (!input.CanRead)
                 throw new ArgumentException("Expected stream to be readable", nameof(input));
 
-            this._in = input;
-            this._limit = limit;
-            this.tmpBuffers = tmpBuffers;
+            m_in = input;
+            m_limit = limit;
+            m_tmpBuffers = tmpBuffers;
         }
 
-        public int Limit => _limit;
+        public int Limit => m_limit;
 
         public virtual IAsn1Convertible ReadObject()
         {
-            int tagHdr = _in.ReadByte();
+            int tagHdr = m_in.ReadByte();
             if (tagHdr < 0)
                 return null;
 
@@ -49,17 +49,17 @@ namespace Org.BouncyCastle.Asn1
         internal IAsn1Convertible ImplParseObject(int tagHdr)
         {
             // turn off looking for "00" while we resolve the tag
-            Set00Check(false);
+            DisableParentEofDetect();
 
             //
             // calculate tag number
             //
-            int tagNo = Asn1InputStream.ReadTagNumber(_in, tagHdr);
+            int tagNo = Asn1InputStream.ReadTagNumber(m_in, tagHdr);
 
             //
             // calculate length
             //
-            int length = Asn1InputStream.ReadLength(_in, _limit,
+            int length = Asn1InputStream.ReadLength(m_in, m_limit,
                 tagNo == Asn1Tags.BitString || tagNo == Asn1Tags.OctetString || tagNo == Asn1Tags.Sequence ||
                 tagNo == Asn1Tags.Set || tagNo == Asn1Tags.External);
 
@@ -68,8 +68,8 @@ namespace Org.BouncyCastle.Asn1
                 if (0 == (tagHdr & Asn1Tags.Constructed))
                     throw new IOException("indefinite-length primitive encoding encountered");
 
-                IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(_in, _limit);
-                Asn1StreamParser sp = new Asn1StreamParser(indIn, _limit, tmpBuffers);
+                IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(m_in, m_limit);
+                Asn1StreamParser sp = new Asn1StreamParser(indIn, m_limit, m_tmpBuffers);
 
                 int tagClass = tagHdr & Asn1Tags.Private;
                 if (0 != tagClass)
@@ -79,12 +79,12 @@ namespace Org.BouncyCastle.Asn1
             }
             else
             {
-                DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(_in, length, _limit);
+                DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(m_in, length, m_limit);
 
                 if (0 == (tagHdr & Asn1Tags.Flags))
                     return ParseImplicitPrimitive(tagNo, defIn);
 
-                Asn1StreamParser sp = new Asn1StreamParser(defIn, defIn.Remaining, tmpBuffers);
+                Asn1StreamParser sp = new Asn1StreamParser(defIn, defIn.Remaining, m_tmpBuffers);
 
                 int tagClass = tagHdr & Asn1Tags.Private;
                 if (0 != tagClass)
@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Asn1
         {
             if (!constructed)
             {
-                byte[] contentsOctets = ((DefiniteLengthInputStream)_in).ToArray();
+                byte[] contentsOctets = ((DefiniteLengthInputStream)m_in).ToArray();
                 return Asn1TaggedObject.CreatePrimitive(tagClass, tagNo, contentsOctets);
             }
 
@@ -166,7 +166,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal IAsn1Convertible ParseImplicitPrimitive(int univTagNo)
         {
-            return ParseImplicitPrimitive(univTagNo, (DefiniteLengthInputStream)_in);
+            return ParseImplicitPrimitive(univTagNo, (DefiniteLengthInputStream)m_in);
         }
 
         internal IAsn1Convertible ParseImplicitPrimitive(int univTagNo, DefiniteLengthInputStream defIn)
@@ -188,7 +188,7 @@ namespace Org.BouncyCastle.Asn1
 
             try
             {
-                return Asn1InputStream.CreatePrimitiveDerObject(univTagNo, defIn, tmpBuffers);
+                return Asn1InputStream.CreatePrimitiveDerObject(univTagNo, defIn, m_tmpBuffers);
             }
             catch (ArgumentException e)
             {
@@ -209,7 +209,7 @@ namespace Org.BouncyCastle.Asn1
             if (univTagNo < 0 || univTagNo > 30)
                 throw new ArgumentException("invalid universal tag number: " + univTagNo, nameof(univTagNo));
 
-            int tagHdr = _in.ReadByte();
+            int tagHdr = m_in.ReadByte();
             if (tagHdr < 0)
                 return null;
 
@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal Asn1TaggedObjectParser ParseTaggedObject()
         {
-            int tagHdr = _in.ReadByte();
+            int tagHdr = m_in.ReadByte();
             if (tagHdr < 0)
                 return null;
 
@@ -235,7 +235,7 @@ namespace Org.BouncyCastle.Asn1
         // TODO[asn1] Prefer 'LoadVector'
         internal Asn1EncodableVector ReadVector()
         {
-            int tagHdr = _in.ReadByte();
+            int tagHdr = m_in.ReadByte();
             if (tagHdr < 0)
                 return new Asn1EncodableVector(0);
 
@@ -246,15 +246,15 @@ namespace Org.BouncyCastle.Asn1
 
                 v.Add(obj.ToAsn1Object());
             }
-            while ((tagHdr = _in.ReadByte()) >= 0);
+            while ((tagHdr = m_in.ReadByte()) >= 0);
             return v;
         }
 
-        private void Set00Check(bool enabled)
+        private void DisableParentEofDetect()
         {
-            if (_in is IndefiniteLengthInputStream indef)
+            if (m_in is IndefiniteLengthInputStream indef)
             {
-                indef.SetEofOn00(enabled);
+                indef.SetEofOn00(false);
             }
         }
     }
