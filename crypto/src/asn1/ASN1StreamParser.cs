@@ -35,6 +35,8 @@ namespace Org.BouncyCastle.Asn1
             this.tmpBuffers = tmpBuffers;
         }
 
+        public int Limit => _limit;
+
         public virtual IAsn1Convertible ReadObject()
         {
             int tagHdr = _in.ReadByte();

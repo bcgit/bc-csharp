@@ -19,6 +19,8 @@ namespace Org.BouncyCastle.Asn1
     public class Asn1InputStream
         : FilterStream
     {
+        public static readonly string MaxLimitProperty = "Org.BouncyCastle.Asn1.MaxLimit";
+
         private readonly int limit;
         private readonly bool m_leaveOpen;
 
@@ -30,10 +32,13 @@ namespace Org.BouncyCastle.Asn1
                 return limited.Limit;
 
             if (input is Asn1InputStream asn1)
-                return asn1.limit;
+                return asn1.Limit;
 
             if (input is MemoryStream memory)
                 return GetMemoryStreamLimit(memory);
+
+            if (int.TryParse(Platform.GetEnvironmentVariable(MaxLimitProperty), out int maxLimit))
+                return maxLimit;
 
             return int.MaxValue;
         }
@@ -87,6 +92,8 @@ namespace Org.BouncyCastle.Asn1
             m_leaveOpen = leaveOpen;
             this.tmpBuffers = tmpBuffers;
         }
+
+        public int Limit => limit;
 
         protected override void Dispose(bool disposing)
         {
