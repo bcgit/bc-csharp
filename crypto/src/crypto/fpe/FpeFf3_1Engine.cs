@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
         public FpeFf3_1Engine(IBlockCipher baseCipher)
             : base(baseCipher)
         {
-            if (IsOverrideSet(SP80038G.FPE_DISABLED))
+            if (IsOverrideSet(SP80038G.FpeDisableProperty))
                 throw new InvalidOperationException("FPE disabled");
         }
 

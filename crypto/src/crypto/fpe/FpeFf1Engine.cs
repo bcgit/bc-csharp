@@ -16,8 +16,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
         public FpeFf1Engine(IBlockCipher baseCipher)
             : base(baseCipher)
         {
-            if (IsOverrideSet(SP80038G.FPE_DISABLED) ||
-                IsOverrideSet(SP80038G.FF1_DISABLED))
+            if (IsOverrideSet(SP80038G.FpeDisableProperty) ||
+                IsOverrideSet(SP80038G.FpeDisableFf1Property))
             {
                 throw new InvalidOperationException("FF1 encryption disabled");
             }

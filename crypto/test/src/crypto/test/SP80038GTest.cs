@@ -19,94 +19,6 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class SP80038GTest
 	    : SimpleTest
     {
-        private class FFSample
-        {
-            private readonly int radix;
-            private readonly byte[] key;
-            private readonly byte[] plaintext;
-            private readonly byte[] ciphertext;
-            private readonly byte[] tweak;
-
-            public static FFSample From(int radix, string hexKey, string asciiPT, string asciiCT, string hexTweak)
-            {
-                return new FFSample(radix, FromHex(hexKey), FromAscii(radix, asciiPT), FromAscii(radix, asciiCT),
-                    FromHex(hexTweak));
-            }
-
-            private static byte FromAlphaNumeric(char c)
-            {
-                if (c >= '0' && c <= '9')
-                {
-                    return (byte)(c - '0');
-                }
-                else if (c >= 'a' && c <= 'z')
-                {
-                    return (byte)(10 + (c - 'a'));
-                }
-                else if (c >= 'A' && c <= 'Z')
-                {
-                    return (byte)(36 + (c - 'A'));
-                }
-                else
-                {
-                    throw new ArgumentException();
-                }
-            }
-
-            private static byte[] FromAscii(int radix, string ascii)
-            {
-                byte[] result = new byte[ascii.Length];
-                for (int i = 0; i < result.Length; ++i)
-                {
-                    result[i] = FromAlphaNumeric(ascii[i]);
-                    if (result[i] < 0 || result[i] >= radix)
-                    {
-                        throw new ArgumentException();
-                    }
-                }
-                return result;
-            }
-
-            private static byte[] FromHex(string hex)
-            {
-                return Hex.Decode(hex);
-            }
-
-            private FFSample(int radix, byte[] key, byte[] plaintext, byte[] ciphertext, byte[] tweak)
-            {
-                this.radix = radix;
-                this.key = key;
-                this.plaintext = plaintext;
-                this.ciphertext = ciphertext;
-                this.tweak = tweak;
-            }
-
-            public byte[] Ciphertext
-            {
-                get { return ciphertext; }
-            }
-
-            public byte[] Key
-            {
-                get { return key; }
-            }
-
-            public byte[] Plaintext
-            {
-                get { return plaintext; }
-            }
-
-            public int Radix
-            {
-                get { return radix; }
-            }
-
-            public byte[] Tweak
-            {
-                get { return tweak; }
-            }
-        }
-
         private static readonly FFSample[] ff1Samples = new FFSample[]
         {
             // FF1-AES128
@@ -130,6 +42,42 @@ namespace Org.BouncyCastle.Crypto.Tests
             // FF3-AES128
             FFSample.From(62, "7793833CE891B496381BD5B882F77EA1", "YbpT3hDo0J9xwCQ5qUWt93iv", "dDEYxViK56lGbV1WdZTPTe4w", "C58797C2580174"),
         };
+
+        public override string Name => "SP80038GTest";
+
+        // On Linux platforms, ImplTestDisable requires setting
+        // environment variables, which isn't fully supported by
+        // dotnet due to libc's lack of locking semantics, which
+        // can result in race conditions reading and writing
+        // environment variables.
+        public override void PerformTest()
+        {
+            ImplTestFF1();
+            ImplTestFF1w();
+            ImplTestFF1Bounds();
+            ImplTestFF1Rounding();
+            ImplTestFF3_1();
+            ImplTestFF3_1w();
+            ImplTestFF3_1_255();
+            ImplTestFF3_1Bounds();
+
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                ImplTestDisable();
+            }
+#endif
+
+            ImplTestUtility();
+        }
+
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
+        }
 
         private void ImplTestFF1()
         {
@@ -274,9 +222,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
         private void ImplTestDisable()
         {
-            Environment.SetEnvironmentVariable("Org.BouncyCastle.Fpe.Disable", "true");
+            SetFpeDisableProperty(true);
+
             try
             {
                 ImplTestFF1();
@@ -296,9 +246,12 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 IsEquals("FPE disabled", e.Message);
             }
-            Environment.SetEnvironmentVariable("Org.BouncyCastle.Fpe.Disable", "false");
 
-            Environment.SetEnvironmentVariable("Org.BouncyCastle.Fpe.Disable_Ff1", "true");
+            //SetFpeDisableProperty(false);
+            ClearFpeDisableProperty();
+
+            SetFpeDisableFf1Property(true);
+
             try
             {
                 ImplTestFF1();
@@ -310,8 +263,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             ImplTestFF3_1();
-            Environment.SetEnvironmentVariable("Org.Bouncycastle.Fpe.Disable_Ff1", "false");
+
+            //SetFpeDisableFf1Property(false);
+            ClearFpeDisableFf1Property();
         }
+#endif
 
         private void ImplTestFF3_1_255()
         {
@@ -525,46 +481,91 @@ namespace Org.BouncyCastle.Crypto.Tests
             IsTrue("no match", Arrays.AreEqual(input, decrypted));
         }
 
-        // On Linux platforms, ImplTestDisable requires setting
-        // environment variables, which isn't fully supported by
-        // dotnet due to libc's lack of locking semantics, which
-        // can result in race conditions reading and writing
-        // environment variables.
-        public override void PerformTest()
-        {
-            ImplTestFF1();
-            ImplTestFF1w();
-            ImplTestFF1Bounds();
-            ImplTestFF1Rounding();
-            ImplTestFF3_1();
-            ImplTestFF3_1w();
-            ImplTestFF3_1_255();
-            ImplTestFF3_1Bounds();
-
 #if NETCOREAPP1_0_OR_GREATER || NETSTANDARD1_1_OR_GREATER || NET471_OR_GREATER
-            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                ImplTestDisable();
-            }
+        private static void ClearFpeDisableProperty() => SetFpeDisableProperty(null);
+
+        private static void ClearFpeDisableFf1Property() => SetFpeDisableFf1Property(null);
+
+        private static void SetFpeDisableProperty(bool value) => SetFpeDisableProperty(value ? "true" : "false");
+
+        private static void SetFpeDisableFf1Property(bool value) => SetFpeDisableFf1Property(value ? "true" : "false");
+
+        private static void SetFpeDisableProperty(string value) =>
+            Environment.SetEnvironmentVariable(SP80038G.FpeDisableProperty, value);
+
+        private static void SetFpeDisableFf1Property(string value) =>
+            Environment.SetEnvironmentVariable(SP80038G.FpeDisableFf1Property, value);
 #endif
 
-            ImplTestUtility();
-        }
-
-        public override string Name
+        private class FFSample
         {
-            get { return "SP80038GTest"; }
+            private readonly int radix;
+            private readonly byte[] key;
+            private readonly byte[] plaintext;
+            private readonly byte[] ciphertext;
+            private readonly byte[] tweak;
+
+            public static FFSample From(int radix, string hexKey, string asciiPT, string asciiCT, string hexTweak)
+            {
+                return new FFSample(radix, FromHex(hexKey), FromAscii(radix, asciiPT), FromAscii(radix, asciiCT),
+                    FromHex(hexTweak));
+            }
+
+            private static byte FromAlphaNumeric(char c)
+            {
+                if (c >= '0' && c <= '9')
+                {
+                    return (byte)(c - '0');
+                }
+                else if (c >= 'a' && c <= 'z')
+                {
+                    return (byte)(10 + (c - 'a'));
+                }
+                else if (c >= 'A' && c <= 'Z')
+                {
+                    return (byte)(36 + (c - 'A'));
+                }
+                else
+                {
+                    throw new ArgumentException();
+                }
+            }
+
+            private static byte[] FromAscii(int radix, string ascii)
+            {
+                byte[] result = new byte[ascii.Length];
+                for (int i = 0; i < result.Length; ++i)
+                {
+                    result[i] = FromAlphaNumeric(ascii[i]);
+                    if (result[i] < 0 || result[i] >= radix)
+                        throw new ArgumentException();
+                }
+                return result;
+            }
+
+            private static byte[] FromHex(string hex) => Hex.Decode(hex);
+
+            private FFSample(int radix, byte[] key, byte[] plaintext, byte[] ciphertext, byte[] tweak)
+            {
+                this.radix = radix;
+                this.key = key;
+                this.plaintext = plaintext;
+                this.ciphertext = ciphertext;
+                this.tweak = tweak;
+            }
+
+            public byte[] Ciphertext => ciphertext;
+
+            public byte[] Key => key;
+
+            public byte[] Plaintext => plaintext;
+
+            public int Radix => radix;
+
+            public byte[] Tweak => tweak;
         }
 
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
-        }
-
-        internal class FpeCharEncryptor
+        private class FpeCharEncryptor
         {
             private readonly FpeEngine fpeEngine;
             private readonly IAlphabetMapper alphabetMapper;
@@ -593,7 +594,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        internal class FpeCharDecryptor
+        private class FpeCharDecryptor
         {
             private readonly FpeEngine fpeEngine;
             private readonly IAlphabetMapper alphabetMapper;

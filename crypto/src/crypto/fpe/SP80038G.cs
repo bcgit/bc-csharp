@@ -7,24 +7,24 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Fpe
 {
     /*
-	 * SP800-38G Format-Preserving Encryption
-	 *
-	 * TODOs
-	 * - Initialize the cipher internally or externally?
-	 *     1. Algs 7-10 don't appear to require forward vs. inverse transform, although sample data is forward.
-	 *     2. Algs 9-10 specify reversal of the cipher key!
-	 * - Separate construction/initialization stage for "prerequisites"
-	 */
-    internal static class SP80038G
+     * SP800-38G Format-Preserving Encryption
+     *
+     * TODOs
+     * - Initialize the cipher internally or externally?
+     *     1. Algs 7-10 don't appear to require forward vs. inverse transform, although sample data is forward.
+     *     2. Algs 9-10 specify reversal of the cipher key!
+     * - Separate construction/initialization stage for "prerequisites"
+     */
+    public static class SP80038G
     {
-        internal static readonly string FPE_DISABLED = "Org.BouncyCastle.Fpe.Disable";
-        internal static readonly string FF1_DISABLED = "Org.BouncyCastle.Fpe.Disable_Ff1";
+        public static readonly string FpeDisableProperty = "Org.BouncyCastle.Fpe.Disable";
+        public static readonly string FpeDisableFf1Property = "Org.BouncyCastle.Fpe.Disable_Ff1";
 
         private static readonly int BLOCK_SIZE = 16;
-        private static readonly double LOG2 = System.Math.Log(2.0);
+        //private static readonly double LOG2 = System.Math.Log(2.0);
         private static readonly double TWO_TO_96 = System.Math.Pow(2, 96);
 
-        public static byte[] DecryptFF1(IBlockCipher cipher, int radix, byte[] tweak, byte[] buf, int off, int len)
+        internal static byte[] DecryptFF1(IBlockCipher cipher, int radix, byte[] tweak, byte[] buf, int off, int len)
         {
             CheckArgs(cipher, true, radix, buf, off, len);
 
@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return ToByte(rv);
         }
 
-        public static ushort[] DecryptFF1w(IBlockCipher cipher, int radix, byte[] tweak, ushort[] buf, int off, int len)
+        internal static ushort[] DecryptFF1w(IBlockCipher cipher, int radix, byte[] tweak, ushort[] buf, int off, int len)
         {
             CheckArgs(cipher, true, radix, buf, off, len);
 
@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return Arrays.Concatenate(A, B);
         }
 
-        public static byte[] DecryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
+        internal static byte[] DecryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
         {
             CheckArgs(cipher, false, radix, buf, off, len);
 
@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return ImplDecryptFF3(cipher, radix, tweak64, buf, off, len);
         }
 
-        public static byte[] DecryptFF3_1(IBlockCipher cipher, int radix, byte[] tweak56, byte[] buf, int off, int len)
+        internal static byte[] DecryptFF3_1(IBlockCipher cipher, int radix, byte[] tweak56, byte[] buf, int off, int len)
         {
             CheckArgs(cipher, false, radix, buf, off, len);
 
@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return ImplDecryptFF3(cipher, radix, tweak64, buf, off, len);
         }
 
-        public static ushort[] DecryptFF3_1w(IBlockCipher cipher, int radix, byte[] tweak56, ushort[] buf, int off, int len)
+        internal static ushort[] DecryptFF3_1w(IBlockCipher cipher, int radix, byte[] tweak56, ushort[] buf, int off, int len)
         {
             CheckArgs(cipher, false, radix, buf, off, len);
 
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return ImplDecryptFF3w(cipher, radix, tweak64, buf, off, len);
         }
 
-        public static byte[] EncryptFF1(IBlockCipher cipher, int radix, byte[] tweak, byte[] buf, int off, int len)
+        internal static byte[] EncryptFF1(IBlockCipher cipher, int radix, byte[] tweak, byte[] buf, int off, int len)
         {
             CheckArgs(cipher, true, radix, buf, off, len);
 
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return ToByte(EncFF1(cipher, radix, tweak, n, u, v, A, B));
         }
 
-        public static ushort[] EncryptFF1w(IBlockCipher cipher, int radix, byte[] tweak, ushort[] buf, int off, int len)
+        internal static ushort[] EncryptFF1w(IBlockCipher cipher, int radix, byte[] tweak, ushort[] buf, int off, int len)
         {
             CheckArgs(cipher, true, radix, buf, off, len);
 
@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return Arrays.Concatenate(A, B);
         }
 
-        public static byte[] EncryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
+        internal static byte[] EncryptFF3(IBlockCipher cipher, int radix, byte[] tweak64, byte[] buf, int off, int len)
         {
             CheckArgs(cipher, false, radix, buf, off, len);
 
@@ -203,7 +203,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return ImplEncryptFF3(cipher, radix, tweak64, buf, off, len);
         }
 
-        public static ushort[] EncryptFF3w(IBlockCipher cipher, int radix, byte[] tweak64, ushort[] buf, int off, int len)
+        internal static ushort[] EncryptFF3w(IBlockCipher cipher, int radix, byte[] tweak64, ushort[] buf, int off, int len)
         {
             CheckArgs(cipher, false, radix, buf, off, len);
 
@@ -213,7 +213,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return ImplEncryptFF3w(cipher, radix, tweak64, buf, off, len);
         }
 
-        public static ushort[] EncryptFF3_1w(IBlockCipher cipher, int radix, byte[] tweak56, ushort[] buf, int off, int len)
+        internal static ushort[] EncryptFF3_1w(IBlockCipher cipher, int radix, byte[] tweak56, ushort[] buf, int off, int len)
         {
             CheckArgs(cipher, false, radix, buf, off, len);
 
@@ -225,7 +225,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return EncryptFF3w(cipher, radix, tweak64, buf, off, len);
         }
 
-        public static byte[] EncryptFF3_1(IBlockCipher cipher, int radix, byte[] tweak56, byte[] buf, int off, int len)
+        internal static byte[] EncryptFF3_1(IBlockCipher cipher, int radix, byte[] tweak56, byte[] buf, int off, int len)
         {
             CheckArgs(cipher, false, radix, buf, off, len);
 
