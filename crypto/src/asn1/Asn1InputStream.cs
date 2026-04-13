@@ -202,6 +202,14 @@ namespace Org.BouncyCastle.Asn1
                 {
                     throw new Asn1Exception("corrupted stream detected", e);
                 }
+                catch (InvalidOperationException e)
+                {
+                    throw new Asn1Exception("corrupted stream detected", e);
+                }
+                catch (IndexOutOfRangeException e)
+                {
+                    throw new Asn1Exception("corrupted stream detected", e);
+                }
             }
 
             // indefinite-length

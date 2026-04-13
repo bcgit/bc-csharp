@@ -3,17 +3,17 @@ using System.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-	public class Asn1StreamParser
-	{
-		private readonly Stream _in;
-		private readonly int _limit;
+    public class Asn1StreamParser
+    {
+        private readonly Stream _in;
+        private readonly int _limit;
 
         private readonly byte[][] tmpBuffers;
 
         public Asn1StreamParser(Stream input)
-			: this(input, Asn1InputStream.FindLimit(input))
-		{
-		}
+            : this(input, Asn1InputStream.FindLimit(input))
+        {
+        }
 
         public Asn1StreamParser(byte[] encoding)
             : this(new MemoryStream(encoding, false), encoding.Length)
@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1StreamParser(Stream input, int limit)
             : this(input, limit, new byte[16][])
-		{
+        {
         }
 
         internal Asn1StreamParser(Stream input, int limit, byte[][] tmpBuffers)
@@ -35,11 +35,11 @@ namespace Org.BouncyCastle.Asn1
             this.tmpBuffers = tmpBuffers;
         }
 
-		public virtual IAsn1Convertible ReadObject()
-		{
-			int tagHdr = _in.ReadByte();
-			if (tagHdr < 0)
-				return null;
+        public virtual IAsn1Convertible ReadObject()
+        {
+            int tagHdr = _in.ReadByte();
+            if (tagHdr < 0)
+                return null;
 
             return ImplParseObject(tagHdr);
         }
@@ -49,20 +49,20 @@ namespace Org.BouncyCastle.Asn1
             // turn off looking for "00" while we resolve the tag
             Set00Check(false);
 
-			//
-			// calculate tag number
-			//
-			int tagNo = Asn1InputStream.ReadTagNumber(_in, tagHdr);
+            //
+            // calculate tag number
+            //
+            int tagNo = Asn1InputStream.ReadTagNumber(_in, tagHdr);
 
-			//
-			// calculate length
-			//
-			int length = Asn1InputStream.ReadLength(_in, _limit,
+            //
+            // calculate length
+            //
+            int length = Asn1InputStream.ReadLength(_in, _limit,
                 tagNo == Asn1Tags.BitString || tagNo == Asn1Tags.OctetString || tagNo == Asn1Tags.Sequence ||
                 tagNo == Asn1Tags.Set || tagNo == Asn1Tags.External);
 
-			if (length < 0) // indefinite-length method
-			{
+            if (length < 0) // indefinite-length method
+            {
                 if (0 == (tagHdr & Asn1Tags.Constructed))
                     throw new IOException("indefinite-length primitive encoding encountered");
 
@@ -74,10 +74,10 @@ namespace Org.BouncyCastle.Asn1
                     return new BerTaggedObjectParser(tagClass, tagNo, sp);
 
                 return sp.ParseImplicitConstructedIL(tagNo);
-			}
-			else
-			{
-				DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(_in, length, _limit);
+            }
+            else
+            {
+                DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(_in, length, _limit);
 
                 if (0 == (tagHdr & Asn1Tags.Flags))
                     return ParseImplicitPrimitive(tagNo, defIn);
@@ -93,8 +93,8 @@ namespace Org.BouncyCastle.Asn1
                 }
 
                 return sp.ParseImplicitConstructedDL(tagNo);
-			}
-		}
+            }
+        }
 
         internal Asn1Object LoadTaggedDL(int tagClass, int tagNo, bool constructed)
         {
@@ -136,7 +136,7 @@ namespace Org.BouncyCastle.Asn1
                 // TODO[asn1] DLSequenceParser
                 return new DerSequenceParser(this);
             default:
-				throw new Asn1Exception("unknown DL object encountered: 0x" + univTagNo.ToString("X"));
+                throw new Asn1Exception("unknown DL object encountered: 0x" + univTagNo.ToString("X"));
             }
         }
 
@@ -178,10 +178,10 @@ namespace Org.BouncyCastle.Asn1
                 throw new Asn1Exception("externals must use constructed encoding (see X.690 8.18)");
             case Asn1Tags.OctetString:
                 return new DerOctetStringParser(defIn);
-			case Asn1Tags.Set:
-				throw new Asn1Exception("sequences must use constructed encoding (see X.690 8.9.1/8.10.1)");
-			case Asn1Tags.Sequence:
-				throw new Asn1Exception("sets must use constructed encoding (see X.690 8.11.1/8.12.1)");
+            case Asn1Tags.Set:
+                throw new Asn1Exception("sequences must use constructed encoding (see X.690 8.9.1/8.10.1)");
+            case Asn1Tags.Sequence:
+                throw new Asn1Exception("sets must use constructed encoding (see X.690 8.11.1/8.12.1)");
             }
 
             try
@@ -189,6 +189,14 @@ namespace Org.BouncyCastle.Asn1
                 return Asn1InputStream.CreatePrimitiveDerObject(univTagNo, defIn, tmpBuffers);
             }
             catch (ArgumentException e)
+            {
+                throw new Asn1Exception("corrupted stream detected", e);
+            }
+            catch (InvalidOperationException e)
+            {
+                throw new Asn1Exception("corrupted stream detected", e);
+            }
+            catch (IndexOutOfRangeException e)
             {
                 throw new Asn1Exception("corrupted stream detected", e);
             }
@@ -240,12 +248,12 @@ namespace Org.BouncyCastle.Asn1
             return v;
         }
 
-		private void Set00Check(bool enabled)
-		{
-			if (_in is IndefiniteLengthInputStream indef)
-			{
-				indef.SetEofOn00(enabled);
-			}
-		}
-	}
+        private void Set00Check(bool enabled)
+        {
+            if (_in is IndefiniteLengthInputStream indef)
+            {
+                indef.SetEofOn00(enabled);
+            }
+        }
+    }
 }
