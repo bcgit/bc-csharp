@@ -27,7 +27,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// </summary>
         /// <param name="parameters">The base parameters.</param>
         /// <param name="random">The source of randomness.</param>
-        /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> or <paramref name="random"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> or <paramref name="random"/> is
+        /// null.</exception>
         public ParametersWithRandom(ICipherParameters parameters, SecureRandom random)
         {
 			m_parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));

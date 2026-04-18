@@ -45,7 +45,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// <summary>
         /// Initialise the cipher and, possibly, the initialisation vector (IV).
         /// </summary>
-        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.</param>
+        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.
+        /// </param>
         /// <param name="parameters">The key and other data required by the cipher.</param>
         /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public void Init(

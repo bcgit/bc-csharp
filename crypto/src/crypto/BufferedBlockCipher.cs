@@ -11,8 +11,9 @@ namespace Org.BouncyCastle.Crypto
     /// A wrapper class that allows block ciphers to be used to process data in a piecemeal fashion.
     /// </summary>
     /// <remarks>
-    /// The <see cref="BufferedBlockCipher"/> outputs a block only when the buffer is full and more data is being added, or on a <c>DoFinal</c>.
-    /// In the case where the underlying cipher is a stream-oriented mode (like CFB or OFB), the last block may not be a multiple of the block size.
+    /// The <see cref="BufferedBlockCipher"/> outputs a block only when the buffer is full and more data is being
+    /// added, or on a <c>DoFinal</c>. In the case where the underlying cipher is a stream-oriented mode (like CFB
+    /// or OFB), the last block may not be a multiple of the block size.
     /// </remarks>
     public class BufferedBlockCipher
         : BufferedCipherBase
@@ -71,7 +72,8 @@ namespace Org.BouncyCastle.Crypto
         /// <summary>
         /// Initialise the cipher.
         /// </summary>
-        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.</param>
+        /// <param name="forEncryption">If true the cipher is initialised for encryption, if false for decryption.
+        /// </param>
         /// <param name="parameters">The key and other data required by the cipher.</param>
         /// <exception cref="ArgumentException">If the parameters argument is inappropriate.</exception>
         public override void Init(bool forEncryption, ICipherParameters parameters)
@@ -93,17 +95,24 @@ namespace Org.BouncyCastle.Crypto
         public override int GetBlockSize() => m_cipherMode.GetBlockSize();
 
         /// <summary>
-        /// Return the size of the output buffer required for an update plus a DoFinal with an input of <paramref name="length"/> bytes.
+        /// Return the size of the output buffer required for an update plus a DoFinal with an input of
+        /// <paramref name="length"/> bytes.
         /// </summary>
         /// <param name="length">The length of the input.</param>
-        /// <returns>The space required to accommodate a call to update and DoFinal with <paramref name="length"/> bytes of input.</returns>
+        /// <returns>
+        /// The space required to accommodate a call to update and DoFinal with <paramref name="length"/> bytes of
+        /// input.
+        /// </returns>
+        // Note: Can assume IsPartialBlockOkay is true for purposes of this calculation
         public override int GetOutputSize(int length) => bufOff + length;
 
         /// <summary>
-        /// Return the size of the output buffer required for an update with an input of <paramref name="length"/> bytes.
+        /// Return the size of the output buffer required for an update with an input of <paramref name="length"/>
+        /// bytes.
         /// </summary>
         /// <param name="length">The length of the input.</param>
-        /// <returns>The space required to accommodate a call to update with <paramref name="length"/> bytes of input.</returns>
+        /// <returns>The space required to accommodate a call to update with <paramref name="length"/> bytes of
+        /// input.</returns>
         public override int GetUpdateOutputSize(int length) =>
             GetFullBlocksSize(totalSize: bufOff + length, blockSize: buf.Length);
 
@@ -378,7 +387,8 @@ namespace Org.BouncyCastle.Crypto
         /// <param name="output">The array the block currently being held is copied into.</param>
         /// <param name="outOff">The offset at which the copying starts.</param>
         /// <returns>The number of output bytes copied to <paramref name="output"/>.</returns>
-        /// <exception cref="DataLengthException">If there is insufficient space in <paramref name="output"/>, or the input is not block size aligned.</exception>
+        /// <exception cref="DataLengthException">If there is insufficient space in <paramref name="output"/>, or the
+        /// input is not block size aligned.</exception>
         /// <exception cref="InvalidOperationException">If the underlying cipher is not initialised.</exception>
         /// <exception cref="InvalidCipherTextException">If padding is expected and not found.</exception>
         public override int DoFinal(byte[] output, int outOff)
@@ -413,7 +423,8 @@ namespace Org.BouncyCastle.Crypto
         /// </summary>
         /// <param name="output">The output span.</param>
         /// <returns>The number of output bytes produced.</returns>
-        /// <exception cref="DataLengthException">If there isn't enough space in <paramref name="output"/>, or the input is not block size aligned.</exception>
+        /// <exception cref="DataLengthException">If there isn't enough space in <paramref name="output"/>, or the
+        /// input is not block size aligned.</exception>
         /// <exception cref="InvalidOperationException">If the underlying cipher is not initialised.</exception>
         /// <exception cref="InvalidCipherTextException">If padding is expected and not found.</exception>
         public override int DoFinal(Span<byte> output)

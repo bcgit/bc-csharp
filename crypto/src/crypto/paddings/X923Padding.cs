@@ -21,7 +21,8 @@ namespace Org.BouncyCastle.Crypto.Paddings
         /// </summary>
         /// <param name="random">A source of randomness.</param>
         /// <remarks>
-        /// If <paramref name="random"/> is <c>null</c>, zero padding is used; otherwise, the block is padded with random bytes.
+        /// If <paramref name="random"/> is <c>null</c>, zero padding is used; otherwise, the block is padded with
+        /// random bytes.
         /// </remarks>
         public void Init(SecureRandom random)
         {

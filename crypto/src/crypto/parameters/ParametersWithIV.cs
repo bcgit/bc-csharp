@@ -11,23 +11,24 @@ namespace Org.BouncyCastle.Crypto.Parameters
         : ICipherParameters
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // TODO[api] 'parameter' -> 'parameters'
         /// <summary>
         /// Create a new <see cref="ParametersWithIV"/> instance using a span action.
         /// </summary>
         /// <typeparam name="TState">The type of the state object.</typeparam>
-        /// <param name="parameters">The base parameters.</param>
+        /// <param name="parameter">The base parameters.</param>
         /// <param name="ivLength">The length of the IV in bytes.</param>
         /// <param name="state">The state object for the action.</param>
         /// <param name="action">The action to initialize the IV.</param>
         /// <returns>A new <see cref="ParametersWithIV"/>.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="action"/> is null.</exception>
-        public static ParametersWithIV Create<TState>(ICipherParameters parameters, int ivLength, TState state,
+        public static ParametersWithIV Create<TState>(ICipherParameters parameter, int ivLength, TState state,
             System.Buffers.SpanAction<byte, TState> action)
         {
             if (action == null)
                 throw new ArgumentNullException(nameof(action));
 
-            ParametersWithIV result = new ParametersWithIV(parameters, ivLength);
+            ParametersWithIV result = new ParametersWithIV(parameter, ivLength);
             action(result.m_iv, state);
             return result;
         }
