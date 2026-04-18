@@ -6,11 +6,40 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// An ML-KEM private (decapsulation) key, as specified in FIPS 203.
+    /// </summary>
+    /// <remarks>
+    /// A private key may be stored in one of three equivalent forms, selected by <see cref="Format"/>: the
+    /// 32-byte seed only, the expanded byte encoding only, or both. The seed form is the smallest and is
+    /// preferred where the runtime can re-expand it on use; the expanded encoding avoids re-expansion but is
+    /// much larger.
+    /// </remarks>
     public sealed class MLKemPrivateKeyParameters
         : MLKemKeyParameters
     {
-        public enum Format { SeedOnly, EncodingOnly, SeedAndEncoding };
+        /// <summary>Representation format for an ML-KEM private key.</summary>
+        public enum Format
+        {
+            /// <summary>Store the 32-byte seed only; the expanded encoding is regenerated on demand.</summary>
+            SeedOnly,
+            /// <summary>Store the full expanded FIPS 203 private key encoding only (no seed available).</summary>
+            EncodingOnly,
+            /// <summary>Store both the seed and the expanded encoding.</summary>
+            SeedAndEncoding
+        };
 
+        /// <summary>
+        /// Create an <see cref="MLKemPrivateKeyParameters"/> from its expanded FIPS 203 private key encoding.
+        /// </summary>
+        /// <param name="parameters">The ML-KEM algorithm parameters this key belongs to.</param>
+        /// <param name="encoding">The raw decapsulation key bytes. Length must equal the parameter set's
+        /// <c>SecretKeyBytes</c>.</param>
+        /// <returns>A private key in <see cref="Format.EncodingOnly"/> form (no seed retained).</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> or
+        /// <paramref name="encoding"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="encoding"/> has the wrong length or fails the
+        /// FIPS 203 hash check.</exception>
         public static MLKemPrivateKeyParameters FromEncoding(MLKemParameters parameters, byte[] encoding)
         {
             if (parameters == null)
@@ -31,9 +60,30 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return new MLKemPrivateKeyParameters(parameters, seed: null, encoding, Format.EncodingOnly);
         }
 
+        /// <summary>
+        /// Derive a private key from its 32-byte seed, defaulting to the <see cref="Format.SeedOnly"/>
+        /// representation.
+        /// </summary>
+        /// <param name="parameters">The ML-KEM algorithm parameters.</param>
+        /// <param name="seed">The 32-byte FIPS 203 seed <c>(d || z)</c>.</param>
+        /// <returns>A new private key whose expanded encoding is derived from the seed.</returns>
+        /// <exception cref="ArgumentNullException">If any argument is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="seed"/> has the wrong length.</exception>
         public static MLKemPrivateKeyParameters FromSeed(MLKemParameters parameters, byte[] seed) =>
             FromSeed(parameters, seed, preferredFormat: Format.SeedOnly);
 
+        /// <summary>
+        /// Derive a private key from its 32-byte seed, selecting the preferred on-disk representation.
+        /// </summary>
+        /// <param name="parameters">The ML-KEM algorithm parameters.</param>
+        /// <param name="seed">The 32-byte FIPS 203 seed <c>(d || z)</c>.</param>
+        /// <param name="preferredFormat">The format to report via <see cref="PreferredFormat"/>. Must be
+        /// <see cref="Format.SeedOnly"/> or <see cref="Format.SeedAndEncoding"/> since a seed is available.</param>
+        /// <returns>A new private key whose expanded encoding is derived from the seed.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> or
+        /// <paramref name="seed"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="seed"/> has the wrong length or
+        /// <paramref name="preferredFormat"/> is not valid.</exception>
         public static MLKemPrivateKeyParameters FromSeed(MLKemParameters parameters, byte[] seed,
             Format preferredFormat)
         {
@@ -70,19 +120,33 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal byte[] Encoding => m_encoding;
 
+        /// <summary>Returns a copy of the expanded FIPS 203 private key encoding.</summary>
         public byte[] GetEncoded() => Arrays.InternalCopyBuffer(m_encoding);
 
+        /// <summary>Extracts the matching <see cref="MLKemPublicKeyParameters"/> from this private key.</summary>
         public MLKemPublicKeyParameters GetPublicKey() =>
             new MLKemPublicKeyParameters(Parameters, GetPublicKeyEncoded());
 
+        /// <summary>Returns the raw public (encapsulation) key bytes embedded in this private key.</summary>
         public byte[] GetPublicKeyEncoded() => Parameters.ParameterSet.Engine.CopyEncapKey(decapKey: m_encoding);
 
+        /// <summary>
+        /// Returns a copy of the 32-byte seed, or <c>null</c> if the key was imported without one (i.e. created
+        /// via <see cref="FromEncoding"/>).
+        /// </summary>
         public byte[] GetSeed() => Arrays.Clone(m_seed);
 
+        /// <summary>The caller-preferred encoding format (see <see cref="Format"/>).</summary>
         public Format PreferredFormat => m_preferredFormat;
 
         internal byte[] Seed => m_seed;
 
+        /// <summary>
+        /// Returns this key with a different <see cref="PreferredFormat"/>, or the same instance if no change
+        /// is needed.
+        /// </summary>
+        /// <param name="preferredFormat">The new format. Requesting a seed-bearing format when no seed is
+        /// available throws <see cref="InvalidOperationException"/>.</param>
         public MLKemPrivateKeyParameters WithPreferredFormat(Format preferredFormat)
         {
             if (m_preferredFormat == preferredFormat)
