@@ -2,9 +2,11 @@
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
@@ -174,6 +176,40 @@ namespace Org.BouncyCastle.Security.Tests
 
             Assert.IsTrue(true, "DSATest worked.");
 
+        }
+
+        [Test]
+        public void TestRsaPublicKeyInfoEncodingHasNullParameters()
+        {
+            RsaKeyPairGenerator pGen = new RsaKeyPairGenerator();
+            pGen.Init(new KeyGenerationParameters(new SecureRandom(), 1024));
+            AsymmetricCipherKeyPair pair = pGen.GenerateKeyPair();
+            RsaKeyParameters pubKey = (RsaKeyParameters)pair.Public;
+
+            SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubKey);
+            byte[] encoded = info.GetEncoded(Asn1Encodable.Der);
+
+            // RFC 8017 / PKCS#1 v2.2: AlgorithmIdentifier for rsaEncryption (1.2.840.113549.1.1.1) MUST include
+            // DER NULL (05 00) in its parameters field.
+            string hexEncoded = Hex.ToHexString(encoded).ToLowerInvariant();
+            string expectedSequence = "06092a864886f70d0101010500";
+
+            Assert.IsTrue(hexEncoded.Contains(expectedSequence),
+                "RSA AlgorithmIdentifier in SubjectPublicKeyInfo missing mandatory NULL parameters (05 00).");
+        }
+
+        [Test]
+        public void TestSubjectPublicKeyInfoFactoryRsaConsistency()
+        {
+            RsaKeyPairGenerator pGen = new RsaKeyPairGenerator();
+            pGen.Init(new KeyGenerationParameters(new SecureRandom(), 1024));
+            AsymmetricCipherKeyPair pair = pGen.GenerateKeyPair();
+
+            SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pair.Public);
+            AlgorithmIdentifier algId = info.AlgorithmID;
+
+            Assert.AreEqual(PkcsObjectIdentifiers.RsaEncryption, algId.Algorithm);
+            Assert.IsInstanceOf<DerNull>(algId.Parameters, "RSA AlgorithmIdentifier parameters should be DerNull.");
         }
 
         [Test]

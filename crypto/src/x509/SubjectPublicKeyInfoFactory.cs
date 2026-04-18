@@ -17,11 +17,12 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.X509
 {
     /// <summary>
-    /// A factory to produce SubjectPublicKeyInfo (X.509 / PKCS#8) objects from Bouncy Castle public key parameters.
+    /// A factory to produce <see cref="SubjectPublicKeyInfo"/> (an X.509 ASN.1 type used for public keys) objects from
+    /// Bouncy Castle public key parameters.
     /// </summary>
     /// <remarks>
-    /// This class handles the correct encoding of the AlgorithmIdentifier for various algorithms, 
-    /// including mandatory parameters like the DER NULL for RSA.
+    /// This class handles the correct encoding of the AlgorithmIdentifier for various algorithms, including mandatory
+    /// parameters like the DER NULL for RSA.
     /// </remarks>
     public static class SubjectPublicKeyInfoFactory
     {
@@ -38,13 +39,15 @@ namespace Org.BouncyCastle.X509
         /// Create a <see cref="SubjectPublicKeyInfo"/> object for a given public key.
         /// </summary>
         /// <example>
-        /// Example of converting a .NET X509Certificate2 to a PKCS#8/DER byte array:
+        /// Example of converting a .NET X509Certificate2 to a DER-encoded SubjectPublicKeyInfo byte array:
         /// <code>
         /// var publicKey = DotNetUtilities.FromX509Certificate(certificate).GetPublicKey();
-        /// byte[] encoded = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey).GetEncoded(Asn1Encodable.Der);
+        /// byte[] encoded = SubjectPublicKeyInfoFactory
+        ///     .CreateSubjectPublicKeyInfo(publicKey).GetEncoded(Asn1Encodable.Der);
         /// </code>
         /// </example>
-        /// <param name="publicKey">The public key parameters (e.g., <see cref="RsaKeyParameters"/>, <see cref="ECPublicKeyParameters"/>, etc.).</param>
+        /// <param name="publicKey">The public key parameters (e.g., <see cref="RsaKeyParameters"/>,
+        /// <see cref="ECPublicKeyParameters"/>, etc.).</param>
         /// <returns>A <see cref="SubjectPublicKeyInfo"/> object representing the public key.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="publicKey"/> is null.</exception>
         /// <exception cref="ArgumentException">If a private key is passed instead of a public key.</exception>

@@ -71,37 +71,42 @@ namespace Org.BouncyCastle.Security
             new X509Certificate(x509Cert.RawData);
 
         /// <summary>
-        /// Extract the <see cref="SubjectPublicKeyInfo"/> (X.509 / PKCS#8) from a .NET <see cref="SystemX509.X509Certificate2"/>.
+        /// Extract the <see cref="SubjectPublicKeyInfo"/> (an X.509 ASN.1 type used for public keys) from a .NET
+        /// <see cref="SystemX509.X509Certificate2"/>.
         /// </summary>
         /// <param name="certificate">The .NET certificate.</param>
         /// <returns>A <see cref="SubjectPublicKeyInfo"/> object.</returns>
-        /// <remarks>
-        /// This is a convenience method that converts a .NET certificate to a Bouncy Castle certificate 
-        /// and then extracts the public key information using <see cref="SubjectPublicKeyInfoFactory"/>.
-        /// </remarks>
         /// <exception cref="ArgumentNullException">If <paramref name="certificate"/> is null.</exception>
         public static SubjectPublicKeyInfo GetSubjectPublicKeyInfo(SystemX509.X509Certificate2 certificate)
         {
             if (certificate == null)
                 throw new ArgumentNullException(nameof(certificate));
 
+#if NET6_0_OR_GREATER
+            return SubjectPublicKeyInfo.GetInstance(certificate.PublicKey.ExportSubjectPublicKeyInfo());
+#else
             var bcCert = FromX509Certificate(certificate);
             return SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(bcCert.GetPublicKey());
+#endif
         }
 
         /// <summary>
-        /// Extract the DER-encoded <see cref="SubjectPublicKeyInfo"/> bytes from a .NET <see cref="SystemX509.X509Certificate2"/>.
+        /// Extract the DER-encoded <see cref="SubjectPublicKeyInfo"/> bytes from a .NET
+        /// <see cref="SystemX509.X509Certificate2"/>.
         /// </summary>
         /// <param name="certificate">The .NET certificate.</param>
         /// <returns>A byte array containing the DER-encoded public key info.</returns>
-        /// <remarks>
-        /// This is a convenience method that returns the raw DER-encoded bytes of the public key info,
-        /// suitable for saving to disk or transmitting over the network.
-        /// </remarks>
         /// <exception cref="ArgumentNullException">If <paramref name="certificate"/> is null.</exception>
         public static byte[] GetSubjectPublicKeyInfoDer(SystemX509.X509Certificate2 certificate)
         {
+            if (certificate == null)
+                throw new ArgumentNullException(nameof(certificate));
+
+#if NET6_0_OR_GREATER
+            return certificate.PublicKey.ExportSubjectPublicKeyInfo();
+#else
             return GetSubjectPublicKeyInfo(certificate).GetEncoded(Asn1Encodable.Der);
+#endif
         }
 
         /// <summary>
