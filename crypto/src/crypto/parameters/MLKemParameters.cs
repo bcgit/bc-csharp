@@ -7,12 +7,24 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// Algorithm parameter set identifiers for ML-KEM (Module-Lattice-Based Key-Encapsulation Mechanism) as
+    /// specified in <a href="https://csrc.nist.gov/pubs/fips/203/final">FIPS 203</a>.
+    /// </summary>
+    /// <remarks>
+    /// ML-KEM is a post-quantum key-encapsulation mechanism standardized by NIST, derived from CRYSTALS-Kyber.
+    /// Each instance binds a human-readable algorithm name, an internal <see cref="MLKemParameterSet"/>, and the
+    /// NIST-assigned algorithm OID used in X.509/PKIX encodings.
+    /// </remarks>
     public sealed class MLKemParameters
     {
+        /// <summary>ML-KEM-512 parameter set (NIST security category 1).</summary>
         public static readonly MLKemParameters ml_kem_512 = new MLKemParameters("ML-KEM-512",
             MLKemParameterSet.ml_kem_512, NistObjectIdentifiers.id_alg_ml_kem_512);
+        /// <summary>ML-KEM-768 parameter set (NIST security category 3).</summary>
         public static readonly MLKemParameters ml_kem_768 = new MLKemParameters("ML-KEM-768",
             MLKemParameterSet.ml_kem_768, NistObjectIdentifiers.id_alg_ml_kem_768);
+        /// <summary>ML-KEM-1024 parameter set (NIST security category 5).</summary>
         public static readonly MLKemParameters ml_kem_1024 = new MLKemParameters("ML-KEM-1024",
             MLKemParameterSet.ml_kem_1024, NistObjectIdentifiers.id_alg_ml_kem_1024);
 
@@ -43,12 +55,15 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_oid = oid ?? throw new ArgumentNullException(nameof(oid));
         }
 
+        /// <summary>The standard algorithm name identifying this parameter set (e.g. <c>ML-KEM-768</c>).</summary>
         public string Name => m_name;
 
         internal DerObjectIdentifier Oid => m_oid;
 
+        /// <summary>The underlying ML-KEM parameter set (lattice dimensions, noise bounds, etc.).</summary>
         public MLKemParameterSet ParameterSet => m_parameterSet;
 
+        /// <summary>Returns the algorithm name (see <see cref="Name"/>).</summary>
         public override string ToString() => Name;
     }
 }
