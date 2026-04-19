@@ -237,8 +237,18 @@ namespace Org.BouncyCastle.Math.Tests
         [Test]
         public void TestConstructors()
         {
-            Assert.AreEqual(BigInteger.Zero, new BigInteger(new byte[]{ 0 }));
-            Assert.AreEqual(BigInteger.Zero, new BigInteger(new byte[]{ 0, 0 }));
+            ImplTestBytesConstructors(0, new byte[]{ 0x00 });
+            ImplTestBytesConstructors(0, new byte[]{ 0x00, 0x00 });
+            ImplTestBytesConstructors(-1, new byte[]{ 0xFF });
+            ImplTestBytesConstructors(-1, new byte[]{ 0xFF, 0xFF });
+            ImplTestBytesConstructors(-1 << 7, new byte[]{ 0x80 });
+            ImplTestBytesConstructors(-1 << 7, new byte[]{ 0xFF, 0x80 });
+            ImplTestBytesConstructors(-1 << 8, new byte[]{ 0xFF, 0x00 });
+            ImplTestBytesConstructors(-1 << 8, new byte[]{ 0xFF, 0xFF, 0x00 });
+            ImplTestBytesConstructors(-1 << 15, new byte[]{ 0x80, 0x00 });
+            ImplTestBytesConstructors(-1 << 15, new byte[]{ 0xFF, 0x80, 0x00 });
+            ImplTestBytesConstructors(-1 << 16, new byte[]{ 0xFF, 0x00, 0x00 });
+            ImplTestBytesConstructors(-1 << 16, new byte[]{ 0xFF, 0xFF, 0x00, 0x00 });
 
             for (int i = 0; i < 10; ++i)
             {
@@ -1085,6 +1095,32 @@ namespace Org.BouncyCastle.Math.Tests
                         "Problem: " + i + " XOR " + j + " should be " + (i ^ j));
                 }
             }
+        }
+
+        private static void ImplTestBytesConstructors(int expected, byte[] bytes)
+        {
+            var checkBE = new BigInteger(bytes, bigEndian: true);
+            Assert.AreEqual(expected, checkBE.IntValueExact);
+            Assert.AreEqual(expected.CompareTo(0), checkBE.SignValue);
+
+            var checkLE = new BigInteger(Arrays.Reverse(bytes), bigEndian: false);
+            Assert.AreEqual(expected, checkLE.IntValueExact);
+            Assert.AreEqual(expected.CompareTo(0), checkLE.SignValue);
+
+            int pad0 = 1 + random.Next(8), pad1 = 1 + random.Next(8);
+            byte[] padded = new byte[pad0 + bytes.Length + pad1];
+            random.NextBytes(padded);
+
+            int length = bytes.Length;
+            Array.Copy(bytes, 0, padded, pad0, length);
+
+            var checkBESeg = new BigInteger(padded, pad0, length, bigEndian: true);
+            Assert.AreEqual(expected, checkBESeg.IntValueExact);
+            Assert.AreEqual(expected.CompareTo(0), checkBESeg.SignValue);
+
+            var checkLESeg = new BigInteger(Arrays.Reverse(padded), pad1, length, bigEndian: false);
+            Assert.AreEqual(expected, checkLESeg.IntValueExact);
+            Assert.AreEqual(expected.CompareTo(0), checkLESeg.SignValue);
         }
 
         private static int RandomInt32() => random.Next(int.MinValue, int.MaxValue);

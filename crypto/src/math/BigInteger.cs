@@ -545,6 +545,11 @@ namespace Org.BouncyCastle.Math
             if (iBval >= end)
                 return One.magnitude;
 
+            if (bytes[iBval] == byte.MinValue)
+            {
+                --iBval;
+            }
+
             int numBytes = end - iBval;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -595,6 +600,11 @@ namespace Org.BouncyCastle.Math
 
             if (last < 0)
                 return One.magnitude;
+
+            if (bytes[offset + last] == byte.MinValue)
+            {
+                ++last;
+            }
 
             int numBytes = last + 1;
 
