@@ -15,6 +15,68 @@ namespace Org.BouncyCastle.Asn1.Tests
     public class MiscTest
         : SimpleTest
     {
+        public override string Name => "Misc";
+
+        public override void PerformTest()
+        {
+            byte[] testIv = { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+            Asn1Encodable[] values =
+            {
+                new Cast5CbcParameters(testIv, 128),
+                new NetscapeCertType(NetscapeCertType.Smime),
+                new VerisignCzagExtension(new DerIA5String("hello")),
+                new IdeaCbcPar(testIv),
+                new NetscapeRevocationUrl(new DerIA5String("http://test"))
+            };
+
+            byte[] data = Base64.Decode("MA4ECAECAwQFBgcIAgIAgAMCBSAWBWhlbGxvMAoECAECAwQFBgcIFgtodHRwOi8vdGVzdA==");
+
+            MemoryStream bOut = new MemoryStream();
+            using (var asn1Out = Asn1OutputStream.Create(bOut))
+            {
+                for (int i = 0; i != values.Length; i++)
+                {
+                    asn1Out.WriteObject(values[i]);
+                }
+            }
+
+            byte[] output = bOut.ToArray();
+            if (!Arrays.AreEqual(output, data))
+            {
+                Fail("Failed data check");
+            }
+
+            using (var asn1In = new Asn1InputStream(output))
+            {
+                for (int i = 0; i != values.Length; i++)
+                {
+                    Asn1Object o = asn1In.ReadObject();
+                    if (!values[i].Equals(o))
+                    {
+                        Fail("Failed equality test for " + o);
+                    }
+                    if (o.GetHashCode() != values[i].GetHashCode())
+                    {
+                        Fail("Failed hashCode test for " + o);
+                    }
+                }
+            }
+
+            DoShouldFailOnExtraData();
+            DoDerIntegerTest();
+
+            ClearAllowUnsafeProperty();
+        }
+
+        [Test]
+        public void TestFunction()
+        {
+            string resultText = Perform().ToString();
+
+            Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
         private void DoShouldFailOnExtraData()
         {
             // basic construction
@@ -84,72 +146,11 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        private void SetAllowUnsafeProperty(bool allowUnsafe)
-        {
-            Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, allowUnsafe ? "true" : "false");
-        }
+        private static void ClearAllowUnsafeProperty() => SetAllowUnsafeProperty(null);
 
-        public override void PerformTest()
-        {
-            byte[] testIv = { 1, 2, 3, 4, 5, 6, 7, 8 };
+        private static void SetAllowUnsafeProperty(bool value) => SetAllowUnsafeProperty(value ? "true" : "false");
 
-            Asn1Encodable[] values =
-            {
-                new Cast5CbcParameters(testIv, 128),
-                new NetscapeCertType(NetscapeCertType.Smime),
-                new VerisignCzagExtension(new DerIA5String("hello")),
-                new IdeaCbcPar(testIv),
-                new NetscapeRevocationUrl(new DerIA5String("http://test"))
-            };
-
-            byte[] data = Base64.Decode("MA4ECAECAwQFBgcIAgIAgAMCBSAWBWhlbGxvMAoECAECAwQFBgcIFgtodHRwOi8vdGVzdA==");
-
-            MemoryStream bOut = new MemoryStream();
-            using (var asn1Out = Asn1OutputStream.Create(bOut))
-            {
-                for (int i = 0; i != values.Length; i++)
-                {
-                    asn1Out.WriteObject(values[i]);
-                }
-            }
-
-            byte[] output = bOut.ToArray();
-            if (!Arrays.AreEqual(output, data))
-            {
-                Fail("Failed data check");
-            }
-
-            using (var asn1In = new Asn1InputStream(output))
-            {
-                for (int i = 0; i != values.Length; i++)
-                {
-                    Asn1Object o = asn1In.ReadObject();
-                    if (!values[i].Equals(o))
-                    {
-                        Fail("Failed equality test for " + o);
-                    }
-                    if (o.GetHashCode() != values[i].GetHashCode())
-                    {
-                        Fail("Failed hashCode test for " + o);
-                    }
-                }
-            }
-
-            DoShouldFailOnExtraData();
-            DoDerIntegerTest();
-        }
-
-        public override string Name
-        {
-            get { return "Misc"; }
-        }
-
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
-        }
+        private static void SetAllowUnsafeProperty(string value) =>
+            Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, value);
     }
 }
