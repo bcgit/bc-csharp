@@ -24,8 +24,21 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
 {
+    /// <summary>
+    /// Factory for <see cref="IBufferedCipher"/> instances, resolved from a textual algorithm name (with optional
+    /// mode/padding components) or from an ASN.1 algorithm OID.
+    /// </summary>
     /// <remarks>
-    ///  Cipher Utility class contains methods that can not be specifically grouped into other classes.
+    /// <para>
+    /// Algorithm strings follow the JCA-style <c>ALGORITHM[/MODE[/PADDING]]</c> convention (for example
+    /// <c>"AES/CBC/PKCS7Padding"</c> or <c>"DESEDE/ECB/NoPadding"</c>). Aliases for common algorithm names and
+    /// many standard ASN.1 OIDs are recognised. When the input cannot be resolved, a
+    /// <see cref="SecurityUtilityException"/> is thrown.
+    /// </para>
+    /// <para>
+    /// The returned <see cref="IBufferedCipher"/> is uninitialised; the caller must invoke
+    /// <see cref="IBufferedCipher.Init"/> before processing data.
+    /// </para>
     /// </remarks>
     public static class CipherUtilities
     {
@@ -295,11 +308,25 @@ namespace Org.BouncyCastle.Security
 #endif
         }
 
+        /// <summary>
+        /// Returns the canonical algorithm name registered for the given ASN.1 OID, or <c>null</c> if the OID
+        /// is not mapped to a known cipher.
+        /// </summary>
+        /// <param name="oid">An ASN.1 algorithm identifier.</param>
+        /// <returns>The canonical algorithm name (suitable for passing to <see cref="GetCipher(string)"/>),
+        /// or <c>null</c>.</returns>
         public static string GetAlgorithmName(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(AlgorithmOidMap, oid);
         }
 
+        /// <summary>
+        /// Resolve and instantiate an <see cref="IBufferedCipher"/> for the given ASN.1 algorithm OID.
+        /// </summary>
+        /// <param name="oid">The algorithm OID to look up.</param>
+        /// <returns>A new, uninitialised <see cref="IBufferedCipher"/>.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="oid"/> is <c>null</c>.</exception>
+        /// <exception cref="SecurityUtilityException">If the OID does not map to a known cipher.</exception>
         public static IBufferedCipher GetCipher(DerObjectIdentifier oid)
         {
             if (oid == null)
@@ -315,6 +342,16 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Cipher OID not recognised.");
         }
 
+        /// <summary>
+        /// Resolve and instantiate an <see cref="IBufferedCipher"/> for the given algorithm specification.
+        /// </summary>
+        /// <param name="algorithm">A JCA-style cipher name of the form <c>ALGORITHM[/MODE[/PADDING]]</c>
+        /// (e.g. <c>"AES/CBC/PKCS7Padding"</c>). Aliases such as <c>"DESede"</c> or <c>"3DES"</c> are
+        /// also accepted.</param>
+        /// <returns>A new, uninitialised <see cref="IBufferedCipher"/>.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="algorithm"/> is <c>null</c>.</exception>
+        /// <exception cref="SecurityUtilityException">If the algorithm, mode, or padding component is not
+        /// recognised.</exception>
         public static IBufferedCipher GetCipher(string algorithm)
         {
             if (algorithm == null)

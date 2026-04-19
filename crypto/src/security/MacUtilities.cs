@@ -17,8 +17,14 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
 {
+    /// <summary>
+    /// Factory for <see cref="IMac"/> instances (HMAC, CMAC, GMAC, Poly1305, etc.) and convenience helpers for
+    /// one-shot MAC computation.
+    /// </summary>
     /// <remarks>
-    ///  Utility class for creating HMac object from their names/Oids
+    /// MACs can be looked up by canonical name (e.g. <c>"HMAC-SHA256"</c>, <c>"AESCMAC"</c>) or by ASN.1 OID;
+    /// names are matched case-insensitively. The returned <see cref="IMac"/> is uninitialised — the caller
+    /// must invoke <see cref="IMac.Init"/> with a key before processing data.
     /// </remarks>
     public static class MacUtilities
     {
@@ -111,6 +117,12 @@ namespace Org.BouncyCastle.Security
 #endif
         }
 
+        /// <summary>
+        /// One-shot MAC of <paramref name="input"/> using the named algorithm and the supplied key parameters.
+        /// </summary>
+        /// <param name="algorithm">A MAC name or alias (e.g. <c>"HMAC-SHA256"</c>).</param>
+        /// <param name="cp">Key (and any other) parameters required to initialise the MAC.</param>
+        /// <param name="input">The data to authenticate.</param>
         public static byte[] CalculateMac(string algorithm, ICipherParameters cp, byte[] input)
         {
             IMac mac = GetMac(algorithm);
@@ -119,6 +131,7 @@ namespace Org.BouncyCastle.Security
             return DoFinal(mac);
         }
 
+        /// <summary>Finalises <paramref name="mac"/> and returns the resulting tag as a fresh array.</summary>
         public static byte[] DoFinal(IMac mac)
         {
             byte[] b = new byte[mac.GetMacSize()];
@@ -126,17 +139,26 @@ namespace Org.BouncyCastle.Security
             return b;
         }
 
+        /// <summary>Feeds <paramref name="input"/> into <paramref name="mac"/>, then finalises and returns the
+        /// tag.</summary>
         public static byte[] DoFinal(IMac mac, byte[] input)
         {
             mac.BlockUpdate(input, 0, input.Length);
             return DoFinal(mac);
         }
 
+        /// <summary>
+        /// Returns the canonical algorithm name registered for the given ASN.1 OID, or <c>null</c> if the OID
+        /// is not mapped to a known MAC.
+        /// </summary>
         public static string GetAlgorithmName(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(AlgorithmOidMap, oid);
         }
 
+        /// <summary>Resolve and instantiate an <see cref="IMac"/> for the given ASN.1 algorithm OID.</summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="id"/> is <c>null</c>.</exception>
+        /// <exception cref="SecurityUtilityException">If the OID does not map to a known MAC.</exception>
         // TODO[api] Change parameter name to 'oid'
         public static IMac GetMac(DerObjectIdentifier id)
         {
@@ -153,6 +175,11 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Mac OID not recognised.");
         }
 
+        /// <summary>Resolve and instantiate an <see cref="IMac"/> by name (or alias).</summary>
+        /// <param name="algorithm">A MAC name (e.g. <c>"HMAC-SHA512"</c>, <c>"AESCMAC"</c>,
+        /// <c>"POLY1305"</c>).</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="algorithm"/> is <c>null</c>.</exception>
+        /// <exception cref="SecurityUtilityException">If the MAC name is not recognised.</exception>
         public static IMac GetMac(string algorithm)
         {
             if (algorithm == null)
