@@ -11,6 +11,14 @@ namespace Org.BouncyCastle.Bcpg
         private readonly S2k m_s2k;
         private readonly byte[] m_secKeyData;
 
+        public static SymmetricKeyEncSessionPacket CreateV4Packet(SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k,
+            byte[] secKeyData)
+        {
+#pragma warning disable CS0618 // Type or member is obsolete
+            return new SymmetricKeyEncSessionPacket(encAlgorithm, s2k, secKeyData);
+#pragma warning restore CS0618 // Type or member is obsolete
+        }
+
         public SymmetricKeyEncSessionPacket(BcpgInputStream bcpgIn)
         {
             m_version = bcpgIn.RequireByte();
@@ -19,6 +27,7 @@ namespace Org.BouncyCastle.Bcpg
             m_secKeyData = bcpgIn.ReadAll();
         }
 
+        [Obsolete("Use 'CreateV4Packet' instead")]
         public SymmetricKeyEncSessionPacket(SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k, byte[] secKeyData)
         {
             m_version = 4;

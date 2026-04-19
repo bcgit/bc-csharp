@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
 
             public override void Encode(BcpgOutputStream pOut) =>
-                new SymmetricKeyEncSessionPacket(encAlgorithm, m_s2k, sessionInfo).Encode(pOut);
+                SymmetricKeyEncSessionPacket.CreateV4Packet(encAlgorithm, m_s2k, sessionInfo).Encode(pOut);
         }
 
         private class PubMethod
