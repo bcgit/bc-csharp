@@ -26,8 +26,21 @@ using Org.BouncyCastle.Utilities.Collections;
 namespace Org.BouncyCastle.Security
 {
     /// <summary>
-    ///  Signer Utility class contains methods that can not be specifically grouped into other classes.
+    /// Factory for <see cref="ISigner"/> instances and helpers for resolving signature algorithm metadata
+    /// (X.509 algorithm parameters, OID lookup) from algorithm names or OIDs.
     /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Algorithm names follow the JCA-style <c>DIGESTwithCIPHER</c> convention (for example
+    /// <c>"SHA256withRSA"</c>, <c>"SHA1withECDSA"</c>, <c>"SHA256withRSAandMGF1"</c>) and a number of common
+    /// aliases are recognised; matching is case-insensitive.
+    /// </para>
+    /// <para>
+    /// The returned <see cref="ISigner"/> is uninitialised — the caller must invoke
+    /// <see cref="ISigner.Init"/> before processing data, or use the higher-level
+    /// <see cref="InitSigner(string, bool, AsymmetricKeyParameter, SecureRandom)"/> overloads.
+    /// </para>
+    /// </remarks>
     public static class SignerUtilities
     {
         private static readonly Dictionary<string, string> AlgorithmMap =
@@ -613,8 +626,14 @@ namespace Org.BouncyCastle.Security
             }
         }
 
+        /// <summary>The set of canonical signature algorithm names recognised by this factory.</summary>
         public static ICollection<string> Algorithms => CollectionUtilities.ReadOnly(Oids.Keys);
 
+        /// <summary>
+        /// Returns the default X.509 <c>AlgorithmIdentifier</c> parameters block for the given signature
+        /// algorithm OID. For RSASSA-PSS variants this constructs a populated <c>RSASSA-PSS-params</c>
+        /// structure; for most other algorithms <see cref="DerNull.Instance"/> is returned.
+        /// </summary>
         // TODO[api] Change parameter name to 'oid'
         public static Asn1Encodable GetDefaultX509Parameters(DerObjectIdentifier id)
         {
@@ -627,6 +646,10 @@ namespace Org.BouncyCastle.Security
             return GetDefaultX509ParametersForMechanism(mechanism);
         }
 
+        /// <summary>
+        /// Returns the default X.509 <c>AlgorithmIdentifier</c> parameters block for the named signature
+        /// algorithm. See the OID overload for behaviour.
+        /// </summary>
         public static Asn1Encodable GetDefaultX509Parameters(string algorithm)
         {
             if (algorithm == null)
@@ -655,6 +678,10 @@ namespace Org.BouncyCastle.Security
             return DerNull.Instance;
         }
 
+        /// <summary>
+        /// Returns the canonical signature algorithm name registered for the given ASN.1 OID, or <c>null</c>
+        /// if the OID is not mapped.
+        /// </summary>
         public static string GetEncodingName(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(AlgorithmOidMap, oid);
@@ -704,6 +731,11 @@ namespace Org.BouncyCastle.Security
                 DerInteger.ValueOf(saltLen), RsassaPssParameters.DefaultTrailerField);
         }
 
+        /// <summary>
+        /// Resolve and instantiate an <see cref="ISigner"/> for the given ASN.1 algorithm OID.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="id"/> is <c>null</c>.</exception>
+        /// <exception cref="SecurityUtilityException">If the OID does not map to a known signer.</exception>
         // TODO[api] Change parameter name to 'oid'
         public static ISigner GetSigner(DerObjectIdentifier id)
         {
@@ -720,6 +752,12 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Signer OID not recognised.");
         }
 
+        /// <summary>
+        /// Resolve and instantiate an <see cref="ISigner"/> by name (e.g. <c>"SHA256withRSA"</c>,
+        /// <c>"SHA1withECDSA"</c>, <c>"Ed25519"</c>).
+        /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="algorithm"/> is <c>null</c>.</exception>
+        /// <exception cref="SecurityUtilityException">If the algorithm name is not recognised.</exception>
         public static ISigner GetSigner(string algorithm)
         {
             if (algorithm == null)
@@ -903,6 +941,17 @@ namespace Org.BouncyCastle.Security
             return null;
         }
 
+        /// <summary>
+        /// Resolve a signer for the given OID and initialise it for signing or verification.
+        /// </summary>
+        /// <param name="algorithmOid">The signature algorithm OID.</param>
+        /// <param name="forSigning"><c>true</c> to initialise for signing (private key required);
+        /// <c>false</c> for verification (public key).</param>
+        /// <param name="privateKey">The signing or verification key.</param>
+        /// <param name="random">Source of randomness, used by signers that require it; ignored
+        /// otherwise.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="algorithmOid"/> is <c>null</c>.</exception>
+        /// <exception cref="SecurityUtilityException">If the OID is not recognised.</exception>
         // TODO[api] Rename 'privateKey' to 'key'
         public static ISigner InitSigner(DerObjectIdentifier algorithmOid, bool forSigning,
             AsymmetricKeyParameter privateKey, SecureRandom random)
@@ -916,6 +965,10 @@ namespace Org.BouncyCastle.Security
             return InitSignerForMechanism(mechanism, forSigning, privateKey, random);
         }
 
+        /// <summary>
+        /// Resolve a signer by name and initialise it for signing or verification. See the OID overload for
+        /// parameter semantics.
+        /// </summary>
         // TODO[api] Rename 'privateKey' to 'key'
         public static ISigner InitSigner(string algorithm, bool forSigning, AsymmetricKeyParameter privateKey,
             SecureRandom random)
