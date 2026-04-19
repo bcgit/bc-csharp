@@ -493,27 +493,31 @@ namespace Org.BouncyCastle.Math
         }
 
         public BigInteger(byte[] bytes)
+            : this(bytes, bigEndian: true)
         {
-            this.magnitude = InitBE(bytes, 0, bytes.Length, out this.sign);
         }
 
         public BigInteger(byte[] bytes, bool bigEndian)
         {
+            Arrays.ValidateBuffer(bytes);
+
+            if (bytes.Length < 1)
+                throw new FormatException("Zero length BigInteger");
+
             this.magnitude = bigEndian
                 ? InitBE(bytes, 0, bytes.Length, out this.sign)
                 : InitLE(bytes, 0, bytes.Length, out this.sign);
         }
 
         public BigInteger(byte[] bytes, int offset, int length)
+            : this(bytes, offset, length, bigEndian: true)
         {
-            if (length == 0)
-                throw new FormatException("Zero length BigInteger");
-
-            this.magnitude = InitBE(bytes, offset, length, out this.sign);
         }
 
         public BigInteger(byte[] bytes, int offset, int length, bool bigEndian)
         {
+            Arrays.ValidateSegment(bytes, offset, length);
+
             if (length <= 0)
                 throw new FormatException("Zero length BigInteger");
 
@@ -769,27 +773,52 @@ namespace Org.BouncyCastle.Math
 #endif
 
         public BigInteger(int sign, byte[] bytes)
-            : this(sign, bytes, 0, bytes.Length, true)
+            : this(sign, bytes, bigEndian: true)
         {
         }
 
         public BigInteger(int sign, byte[] bytes, bool bigEndian)
-            : this(sign, bytes, 0, bytes.Length, bigEndian)
         {
-        }
+            Arrays.ValidateBuffer(bytes);
 
-        public BigInteger(int sign, byte[] bytes, int offset, int length)
-            : this(sign, bytes, offset, length, true)
-        {
-        }
-
-        public BigInteger(int sign, byte[] bytes, int offset, int length, bool bigEndian)
-        {
             if (sign < -1 || sign > 1)
                 throw new FormatException("Invalid sign value");
 
             if (sign == 0)
             {
+                if (!Arrays.AreAllZeroes(bytes, 0, bytes.Length))
+                    throw new FormatException("sign/bytes mismatch");
+
+                this.magnitude = ZeroMagnitude;
+                this.sign = 0;
+            }
+            else
+            {
+                // copy bytes
+                this.magnitude = bigEndian
+                    ? MakeMagnitudeBE(bytes, 0, bytes.Length)
+                    : MakeMagnitudeLE(bytes, 0, bytes.Length);
+                this.sign = this.magnitude.Length < 1 ? 0 : sign;
+            }
+        }
+
+        public BigInteger(int sign, byte[] bytes, int offset, int length)
+            : this(sign, bytes, offset, length, bigEndian: true)
+        {
+        }
+
+        public BigInteger(int sign, byte[] bytes, int offset, int length, bool bigEndian)
+        {
+            Arrays.ValidateSegment(bytes, offset, length);
+
+            if (sign < -1 || sign > 1)
+                throw new FormatException("Invalid sign value");
+
+            if (sign == 0)
+            {
+                if (!Arrays.AreAllZeroes(bytes, offset, length))
+                    throw new FormatException("sign/bytes mismatch");
+
                 this.sign = 0;
                 this.magnitude = ZeroMagnitude;
             }
