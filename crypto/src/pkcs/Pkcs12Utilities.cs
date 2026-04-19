@@ -4,54 +4,45 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkcs
 {
-    /**
-	 * Utility class for reencoding PKCS#12 files to definite length.
-	 */
+    /// <summary>Utility class for reencoding PKCS#12 files to definite length.</summary>
     public class Pkcs12Utilities
-	{
-        /**
-		 * Just re-encode the outer layer of the PKCS#12 file to definite length encoding.
-		 *
-		 * @param berPKCS12File - original PKCS#12 file
-		 * @return a byte array representing the DER encoding of the PFX structure
-		 * @throws IOException
-		 */
+    {
+        /// <summary>Just re-encode the outer layer of the PKCS#12 file to definite length encoding.</summary>
+        /// <param name="berPkcs12File">original PKCS#12 file.</param>
+        /// <returns>a byte array representing the DL encoding of the PFX structure.</returns>
+        /// <exception cref="IOException"/>
         public static byte[] ConvertToDefiniteLength(byte[] berPkcs12File) => DLEncode(Pfx.GetInstance(berPkcs12File));
 
-        /**
-		* Re-encode the PKCS#12 structure to definite length encoding at the inner layer
-		* as well, recomputing the MAC accordingly.
-		*
-		* @param berPKCS12File - original PKCS12 file.
-		* @param provider - provider to use for MAC calculation.
-		* @return a byte array representing the DER encoding of the PFX structure.
-		* @throws IOException on parsing, encoding errors.
-		*/
+        /// <summary>Re-encode the PKCS#12 structure to definite length encoding at the inner layer as well.</summary>
+        /// <remarks>The MAC (if present) is recomputed accordingly.</remarks>
+        /// <param name="berPkcs12File">original PKCS#12 file.</param>
+        /// <param name="passwd">The store password, if any.</param>
+        /// <returns>a byte array representing the DL encoding of the PFX structure.</returns>
+        /// <exception cref="IOException"/>
         public static byte[] ConvertToDefiniteLength(byte[] berPkcs12File, char[] passwd)
         {
             Pfx pfx = Pfx.GetInstance(berPkcs12File);
 
-			ContentInfo info = pfx.AuthSafe;
-			Asn1OctetString content = Asn1OctetString.GetInstance(info.Content);
-			byte[] contentOctets = content.GetOctets();
+            ContentInfo info = pfx.AuthSafe;
+            Asn1OctetString content = Asn1OctetString.GetInstance(info.Content);
+            byte[] contentOctets = content.GetOctets();
 
-			Asn1Object obj = Asn1Object.FromByteArray(contentOctets);
+            Asn1Object obj = Asn1Object.FromByteArray(contentOctets);
 
-			contentOctets = DLEncode(obj);
+            contentOctets = DLEncode(obj);
             content = new DerOctetString(contentOctets);
             info = new ContentInfo(info.ContentType, content);
 
-			/*
-			 * TODO This code should be more like Pkcs12Store Load then Save?
-			 * e.g. verify integrity on Load (retry with wrongPkcs12Zero)
-			 */
-			MacData macData = pfx.MacData;
-			if (macData != null)
-			{
+            /*
+             * TODO This code should be more like Pkcs12Store Load then Save?
+             * e.g. verify integrity on Load (retry with wrongPkcs12Zero)
+             */
+            MacData macData = pfx.MacData;
+            if (macData != null)
+            {
                 if (passwd == null)
                     throw new ArgumentNullException(nameof(passwd), "no password supplied when one expected");
 
@@ -78,9 +69,9 @@ namespace Org.BouncyCastle.Pkcs
 
             pfx = new Pfx(info, macData);
 
-			return DLEncode(pfx);
-		}
+            return DLEncode(pfx);
+        }
 
-		private static byte[] DLEncode(Asn1Encodable asn1Encodable) => asn1Encodable.GetEncoded(Asn1Encodable.DL);
-	}
+        private static byte[] DLEncode(Asn1Encodable asn1Encodable) => asn1Encodable.GetEncoded(Asn1Encodable.DL);
+    }
 }
