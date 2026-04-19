@@ -12,6 +12,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -317,14 +318,11 @@ namespace Org.BouncyCastle.Security
             return GenerateAlgorithmParameters(algorithmOid.Id, salt, iterationCount);
         }
 
-        public static Asn1Encodable GenerateAlgorithmParameters(
-            string  algorithm,
-            byte[]  salt,
-            int     iterationCount)
+        public static Asn1Encodable GenerateAlgorithmParameters(string algorithm, byte[] salt, int iterationCount)
         {
             if (IsPkcs12(algorithm))
             {
-                return new Pkcs12PbeParams(salt, iterationCount);
+                return new Pkcs12PbeParams(salt, Pkcs12Utilities.ValidateIterations(iterationCount));
             }
             else if (IsPkcs5Scheme2(algorithm))
             {
@@ -429,7 +427,7 @@ namespace Org.BouncyCastle.Security
             {
                 Pkcs12PbeParams pbeParams = Pkcs12PbeParams.GetInstance(pbeParameters);
                 salt = pbeParams.IV.GetOctets();
-                iterationCount = pbeParams.IterationsObject.IntValueExact;
+                iterationCount = Pkcs12Utilities.ValidateIterations(pbeParams.IterationsObject);
                 keyBytes = PbeParametersGenerator.Pkcs12PasswordToBytes(password, wrongPkcs12Zero);
             }
             else if (IsPkcs5Scheme2(mechanism))

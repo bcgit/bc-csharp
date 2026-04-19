@@ -962,7 +962,7 @@ namespace Org.BouncyCastle.Pkcs
                 // TODO Configurable number of iterations
                 int itCount = MinIterations;
 
-                byte[] macResult = CalculatePbeMac(macAlgID.Algorithm, salt, itCount, password,
+                byte[] macResult = CalculatePbeMac(macAlgID, salt, itCount, password,
                     wrongPkcs12Zero: false, data);
 
                 var digInfo = new DigestInfo(macAlgID, DerOctetString.WithContents(macResult));
@@ -994,16 +994,18 @@ namespace Org.BouncyCastle.Pkcs
             return new DerSequence(PkcsObjectIdentifiers.Pkcs9AtFriendlyName, friendlyName);
         }
 
-        internal static byte[] CalculatePbeMac(DerObjectIdentifier macAlgOID, byte[] salt, int iterations,
+        internal static byte[] CalculatePbeMac(AlgorithmIdentifier macAlgID, byte[] salt, int iterations,
             char[] password, bool wrongPkcs12Zero, byte[] data)
         {
+            var macAlgOid = macAlgID.Algorithm;
+
             // TODO Convert to HMAC algorithm here (restrict valid digest OIDs) instead of PbeUtilities doing it
             // TODO Support PBMAC1
-            var pbeParameters = PbeUtilities.GenerateAlgorithmParameters(macAlgOID, salt, iterations);
-            var cipherParameters = PbeUtilities.GenerateCipherParameters(macAlgOID, password, wrongPkcs12Zero,
+            var pbeParameters = PbeUtilities.GenerateAlgorithmParameters(macAlgOid, salt, iterations);
+            var cipherParameters = PbeUtilities.GenerateCipherParameters(macAlgOid, password, wrongPkcs12Zero,
                 pbeParameters);
 
-            IMac mac = (IMac)PbeUtilities.CreateEngine(macAlgOID);
+            IMac mac = (IMac)PbeUtilities.CreateEngine(macAlgOid);
             mac.Init(cipherParameters);
             return MacUtilities.DoFinal(mac, data);
         }
@@ -1011,8 +1013,8 @@ namespace Org.BouncyCastle.Pkcs
         internal static bool VerifyPbeMac(MacData macData, char[] password, bool wrongPkcs12Zero, byte[] data)
         {
             DigestInfo mac = macData.Mac;
-            byte[] macResult = CalculatePbeMac(mac.DigestAlgorithm.Algorithm, macData.MacSalt.GetOctets(),
-                macData.Iterations.IntValueExact, password, wrongPkcs12Zero, data);
+            byte[] macResult = CalculatePbeMac(mac.DigestAlgorithm, macData.MacSalt.GetOctets(),
+                Pkcs12Utilities.ValidateIterations(macData.Iterations), password, wrongPkcs12Zero, data);
             return Arrays.FixedTimeEquals(macResult, mac.Digest.GetOctets());
         }
 

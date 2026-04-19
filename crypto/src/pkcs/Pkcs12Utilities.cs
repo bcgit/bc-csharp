@@ -4,12 +4,17 @@ using System.IO;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkcs
 {
-    /// <summary>Utility class for reencoding PKCS#12 files to definite length.</summary>
+    /// <summary>Utility class for re-encoding PKCS#12 files to definite length.</summary>
     public class Pkcs12Utilities
     {
+        private static readonly int DefaultMaxIterations = 5000000;
+
+        internal static readonly string MaxIterationsProperty = "Org.BouncyCastle.Pkcs12.MaxIterations";
+
         /// <summary>Just re-encode the outer layer of the PKCS#12 file to definite length encoding.</summary>
         /// <param name="berPkcs12File">original PKCS#12 file.</param>
         /// <returns>a byte array representing the DL encoding of the PFX structure.</returns>
@@ -46,13 +51,12 @@ namespace Org.BouncyCastle.Pkcs
 
                 try
                 {
-                    var macAlgOid = macData.Mac.DigestAlgorithm.Algorithm;
-                    int iterations = macData.Iterations.IntValueExact;
+                    var macAlgID = macData.Mac.DigestAlgorithm;
+                    int iterations = ValidateIterations(macData.Iterations);
 
-                    byte[] macResult = Pkcs12Store.CalculatePbeMac(macAlgOid, macData.GetSalt(), iterations, passwd,
-                        wrongPkcs12Zero: false, data: contentOctets);
+                    byte[] macResult = Pkcs12Store.CalculatePbeMac(macAlgID, macData.MacSalt.GetOctets(), iterations,
+                        passwd, wrongPkcs12Zero: false, data: contentOctets);
 
-                    var macAlgID = new AlgorithmIdentifier(macAlgOid, DerNull.Instance);
                     var digInfo = new DigestInfo(macAlgID, DerOctetString.WithContents(macResult));
 
                     macData = new MacData(digInfo, macData.MacSalt, macData.Iterations);
@@ -80,6 +84,43 @@ namespace Org.BouncyCastle.Pkcs
 
         internal static Asn1OctetString GetEncryptedContent(EncryptedData encryptedData) => encryptedData.Content
             ?? throw new Asn1ParsingException("EncryptedContentInfo content missing");
+
+        internal static int ValidateIterations(DerInteger iterations)
+        {
+            if (iterations == null)
+                throw new ArgumentNullException(nameof(iterations));
+            if (!iterations.TryGetIntValueExact(out int intValueExact))
+                throw new InvalidOperationException("iteration counts >= 2^31 are not suppported");
+
+            return ValidateIterations(intValueExact);
+        }
+
+        //internal static int ValidateIterations(BigInteger iterations)
+        //{
+        //    if (iterations == null)
+        //        throw new ArgumentNullException(nameof(iterations));
+        //    if (iterations.BitLength > 31)
+        //        throw new InvalidOperationException("iteration counts >= 2^31 are not suppported");
+
+        //    return ValidateIterations(iterations.IntValueExact);
+        //}
+
+        internal static int ValidateIterations(int iterations)
+        {
+            if (iterations < 0)
+                throw new InvalidOperationException("negative iteration count found");
+
+            int max = DefaultMaxIterations;
+            if (int.TryParse(Platform.GetEnvironmentVariable(MaxIterationsProperty), out int maxIterations))
+            {
+                max = maxIterations;
+            }
+
+            if (iterations > max)
+                throw new InvalidOperationException($"iteration count {iterations} greater than {max}");
+
+            return iterations;
+        }
 
         private static byte[] DLEncode(Asn1Encodable asn1Encodable) => asn1Encodable.GetEncoded(Asn1Encodable.DL);
     }
