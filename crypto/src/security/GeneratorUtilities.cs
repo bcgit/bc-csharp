@@ -22,6 +22,16 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
 {
+    /// <summary>
+    /// Factory for symmetric key generators (<see cref="CipherKeyGenerator"/>) and asymmetric key pair
+    /// generators (<see cref="IAsymmetricCipherKeyPairGenerator"/>), resolved by algorithm name or ASN.1 OID.
+    /// </summary>
+    /// <remarks>
+    /// Names are matched case-insensitively. Symmetric generators are pre-configured with the algorithm's
+    /// default key size; asymmetric generators are returned uninitialised — the caller must invoke
+    /// <see cref="IAsymmetricCipherKeyPairGenerator.Init"/> with appropriate
+    /// <see cref="KeyGenerationParameters"/> before generating a key pair.
+    /// </remarks>
     public static class GeneratorUtilities
     {
         private static readonly IDictionary<string, string> KgAlgorithms =
@@ -352,11 +362,18 @@ namespace Org.BouncyCastle.Security
             return CollectionUtilities.GetValueOrNull(KpgAlgorithms, algorithm);
         }
 
+        /// <summary>Resolve a <see cref="CipherKeyGenerator"/> for the given symmetric algorithm OID.</summary>
         public static CipherKeyGenerator GetKeyGenerator(DerObjectIdentifier oid)
         {
             return GetKeyGenerator(oid.Id);
         }
 
+        /// <summary>
+        /// Resolve a <see cref="CipherKeyGenerator"/> for the named symmetric algorithm (e.g. <c>"AES"</c>,
+        /// <c>"DESede"</c>, <c>"ChaCha20"</c>), pre-configured with the algorithm's default key size.
+        /// </summary>
+        /// <exception cref="SecurityUtilityException">If the algorithm is not recognised or has no default
+        /// key size.</exception>
         public static CipherKeyGenerator GetKeyGenerator(string algorithm)
         {
             string canonicalName = GetCanonicalKeyGeneratorAlgorithm(algorithm);
@@ -378,11 +395,17 @@ namespace Org.BouncyCastle.Security
             return new CipherKeyGenerator(defaultKeySize);
         }
 
+        /// <summary>Resolve an <see cref="IAsymmetricCipherKeyPairGenerator"/> for the given algorithm OID.</summary>
         public static IAsymmetricCipherKeyPairGenerator GetKeyPairGenerator(DerObjectIdentifier oid)
         {
             return GetKeyPairGenerator(oid.Id);
         }
 
+        /// <summary>
+        /// Resolve an <see cref="IAsymmetricCipherKeyPairGenerator"/> for the named asymmetric algorithm
+        /// (e.g. <c>"RSA"</c>, <c>"ECDSA"</c>, <c>"Ed25519"</c>, <c>"DH"</c>).
+        /// </summary>
+        /// <exception cref="SecurityUtilityException">If the algorithm is not recognised.</exception>
         public static IAsymmetricCipherKeyPairGenerator GetKeyPairGenerator(string algorithm)
         {
             string canonicalName = GetCanonicalKeyPairGeneratorAlgorithm(algorithm);
