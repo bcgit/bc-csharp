@@ -138,7 +138,7 @@ namespace Org.BouncyCastle.Crypto
         {
 			byte[] outBytes = bufOff > 0
 				?	cipher.ProcessBlock(buffer, 0, bufOff)
-				:	EmptyBuffer;
+				:	Array.Empty<byte>();
 
 			Reset();
 

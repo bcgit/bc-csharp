@@ -97,13 +97,13 @@ namespace Org.BouncyCastle.Crypto
 		{
 			m_cipher.Reset();
 
-			return EmptyBuffer;
+			return Array.Empty<byte>();
 		}
 
 		public override byte[] DoFinal(byte[] input, int inOff, int length)
 		{
 			if (length < 1)
-				return EmptyBuffer;
+				return Array.Empty<byte>();
 
             byte[] output = new byte[length];
             m_cipher.ProcessBytes(input, inOff, length, output, 0);

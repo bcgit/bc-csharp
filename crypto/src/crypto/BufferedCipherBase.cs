@@ -7,6 +7,7 @@ namespace Org.BouncyCastle.Crypto
         : IBufferedCipher
     {
         // TODO[api] Hide/remove
+        [Obsolete("Will be removed")]
         protected static readonly byte[] EmptyBuffer = new byte[0];
 
         public abstract string AlgorithmName { get; }

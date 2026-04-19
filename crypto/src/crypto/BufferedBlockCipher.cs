@@ -337,7 +337,7 @@ namespace Org.BouncyCastle.Crypto
             if (outputSize < 1)
             {
                 Reset();
-                return EmptyBuffer;
+                return Array.Empty<byte>();
             }
 
             byte[] output = new byte[outputSize];
@@ -367,7 +367,7 @@ namespace Org.BouncyCastle.Crypto
             if (outputSize < 1)
             {
                 Reset();
-                return EmptyBuffer;
+                return Array.Empty<byte>();
             }
 
             byte[] output = new byte[outputSize];
