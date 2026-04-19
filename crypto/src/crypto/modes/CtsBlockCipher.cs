@@ -6,9 +6,9 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Modes
 {
     /**
-    * A Cipher Text Stealing (CTS) mode cipher. CTS allows block ciphers to
-    * be used to produce cipher text which is the same outLength as the plain text.
-    */
+     * A Cipher Text Stealing (CTS) mode cipher. CTS allows block ciphers to
+     * be used to produce cipher text which is the same outLength as the plain text.
+     */
     public class CtsBlockCipher
         : BufferedBlockCipher
     {
@@ -20,10 +20,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
         /**
-        * Create a buffered block cipher that uses Cipher Text Stealing
-        *
-        * @param cipher the underlying block cipher this buffering object wraps.
-        */
+         * Create a buffered block cipher that uses Cipher Text Stealing
+         *
+         * @param cipher the underlying block cipher this buffering object wraps.
+         */
         public CtsBlockCipher(IBlockCipherMode cipherMode)
         {
             if (!(cipherMode is CbcBlockCipher || cipherMode is EcbBlockCipher))
@@ -40,35 +40,35 @@ namespace Org.BouncyCastle.Crypto.Modes
         public override int GetBlockSize() => m_blockSize;
 
         /**
-        * return the size of the output buffer required for an update plus a
-        * doFinal with an input of length bytes.
-        *
-        * @param length the outLength of the input.
-        * @return the space required to accommodate a call to update and doFinal
-        * with length bytes of input.
-        */
+         * return the size of the output buffer required for an update plus a
+         * doFinal with an input of length bytes.
+         *
+         * @param length the outLength of the input.
+         * @return the space required to accommodate a call to update and doFinal
+         * with length bytes of input.
+         */
         public override int GetOutputSize(int length) => bufOff + length;
 
         /**
-        * return the size of the output buffer required for an update of 'length' bytes.
-        *
-        * @param length the outLength of the input.
-        * @return the space required to accommodate a call to update
-        * with length bytes of input.
-        */
+         * return the size of the output buffer required for an update of 'length' bytes.
+         *
+         * @param length the outLength of the input.
+         * @return the space required to accommodate a call to update
+         * with length bytes of input.
+         */
         public override int GetUpdateOutputSize(int length) =>
             GetFullBlocksSize(totalSize: bufOff + length - 1, blockSize: buf.Length);
 
         /**
-        * process a single byte, producing an output block if necessary.
-        *
-        * @param in the input byte.
-        * @param out the space for any output that might be produced.
-        * @param outOff the offset from which the output will be copied.
-        * @return the number of output bytes copied to out.
-        * @exception DataLengthException if there isn't enough space in out.
-        * @exception InvalidOperationException if the cipher isn't initialised.
-        */
+         * process a single byte, producing an output block if necessary.
+         *
+         * @param in the input byte.
+         * @param out the space for any output that might be produced.
+         * @param outOff the offset from which the output will be copied.
+         * @return the number of output bytes copied to out.
+         * @exception DataLengthException if there isn't enough space in out.
+         * @exception InvalidOperationException if the cipher isn't initialised.
+         */
         public override int ProcessByte(byte input, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -81,9 +81,9 @@ namespace Org.BouncyCastle.Crypto.Modes
                 Check.OutputLength(output, outOff, m_blockSize, "output buffer too short");
 
                 resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
-				Debug.Assert(resultLen == m_blockSize);
+                Debug.Assert(resultLen == m_blockSize);
 
-				Array.Copy(buf, m_blockSize, buf, 0, m_blockSize);
+                Array.Copy(buf, m_blockSize, buf, 0, m_blockSize);
                 bufOff = m_blockSize;
             }
 
@@ -116,17 +116,17 @@ namespace Org.BouncyCastle.Crypto.Modes
 #endif
 
         /**
-        * process an array of bytes, producing output if necessary.
-        *
-        * @param in the input byte array.
-        * @param inOff the offset at which the input data starts.
-        * @param length the number of bytes to be copied out of the input array.
-        * @param out the space for any output that might be produced.
-        * @param outOff the offset from which the output will be copied.
-        * @return the number of output bytes copied to out.
-        * @exception DataLengthException if there isn't enough space in out.
-        * @exception InvalidOperationException if the cipher isn't initialised.
-        */
+         * process an array of bytes, producing output if necessary.
+         *
+         * @param in the input byte array.
+         * @param inOff the offset at which the input data starts.
+         * @param length the number of bytes to be copied out of the input array.
+         * @param out the space for any output that might be produced.
+         * @param outOff the offset from which the output will be copied.
+         * @return the number of output bytes copied to out.
+         * @exception DataLengthException if there isn't enough space in out.
+         * @exception InvalidOperationException if the cipher isn't initialised.
+         */
         public override int ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             if (length < 1)
@@ -222,18 +222,18 @@ namespace Org.BouncyCastle.Crypto.Modes
 #endif
 
         /**
-        * Process the last block in the buffer.
-        *
-        * @param out the array the block currently being held is copied into.
-        * @param outOff the offset at which the copying starts.
-        * @return the number of output bytes copied to out.
-        * @exception DataLengthException if there is insufficient space in out for
-        * the output.
-        * @exception InvalidOperationException if the underlying cipher is not
-        * initialised.
-        * @exception InvalidCipherTextException if cipher text decrypts wrongly (in
-        * case the exception will never Get thrown).
-        */
+         * Process the last block in the buffer.
+         *
+         * @param out the array the block currently being held is copied into.
+         * @param outOff the offset at which the copying starts.
+         * @return the number of output bytes copied to out.
+         * @exception DataLengthException if there is insufficient space in out for
+         * the output.
+         * @exception InvalidOperationException if the underlying cipher is not
+         * initialised.
+         * @exception InvalidCipherTextException if cipher text decrypts wrongly (in
+         * case the exception will never Get thrown).
+         */
         public override int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

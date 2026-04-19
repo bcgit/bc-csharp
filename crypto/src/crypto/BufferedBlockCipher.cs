@@ -149,17 +149,17 @@ namespace Org.BouncyCastle.Crypto
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessByte(input, Spans.FromNullable(output, outOff));
 #else
-			buf[bufOff++] = input;
+            buf[bufOff++] = input;
 
-			if (bufOff == buf.Length)
-			{
-				Check.OutputLength(output, outOff, buf.Length, "output buffer too short");
+            if (bufOff == buf.Length)
+            {
+                Check.OutputLength(output, outOff, buf.Length, "output buffer too short");
 
-				bufOff = 0;
-				return m_cipherMode.ProcessBlock(buf, 0, output, outOff);
-			}
+                bufOff = 0;
+                return m_cipherMode.ProcessBlock(buf, 0, output, outOff);
+            }
 
-			return 0;
+            return 0;
 #endif
         }
 
@@ -239,14 +239,14 @@ namespace Org.BouncyCastle.Crypto
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessBytes(input.AsSpan(inOff, length), Spans.FromNullable(output, outOff));
 #else
-			int resultLen = 0;
+            int resultLen = 0;
             int blockSize = buf.Length;
             int available = blockSize - bufOff;
 
-			if (length >= available)
-			{
+            if (length >= available)
+            {
                 int updateOutputSize = GetUpdateOutputSize(length);
-				Debug.Assert(updateOutputSize >= blockSize);
+                Debug.Assert(updateOutputSize >= blockSize);
                 Check.OutputLength(output, outOff, updateOutputSize, "output buffer too short");
 
                 Array.Copy(input, inOff, buf, bufOff, available);
@@ -262,19 +262,19 @@ namespace Org.BouncyCastle.Crypto
                 }
 
                 resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
-				bufOff = 0;
+                bufOff = 0;
 
-				while (length >= blockSize)
-				{
-					resultLen += m_cipherMode.ProcessBlock(input, inOff, output, outOff + resultLen);
-					inOff += blockSize;
-					length -= blockSize;
-				}
-			}
+                while (length >= blockSize)
+                {
+                    resultLen += m_cipherMode.ProcessBlock(input, inOff, output, outOff + resultLen);
+                    inOff += blockSize;
+                    length -= blockSize;
+                }
+            }
 
-			Array.Copy(input, inOff, buf, bufOff, length);
-			bufOff += length;
-			return resultLen;
+            Array.Copy(input, inOff, buf, bufOff, length);
+            bufOff += length;
+            return resultLen;
 #endif
         }
 
@@ -397,23 +397,23 @@ namespace Org.BouncyCastle.Crypto
             return DoFinal(Spans.FromNullable(output, outOff));
 #else
             try
-			{
-				if (bufOff != 0)
-				{
+            {
+                if (bufOff != 0)
+                {
                     Check.DataLength(!m_cipherMode.IsPartialBlockOkay, "data not block size aligned");
                     Check.OutputLength(output, outOff, bufOff, "output buffer too short for DoFinal()");
 
                     // NB: Can't copy directly, or we may write too much output
                     m_cipherMode.ProcessBlock(buf, 0, buf, 0);
-					Array.Copy(buf, 0, output, outOff, bufOff);
-				}
+                    Array.Copy(buf, 0, output, outOff, bufOff);
+                }
 
-				return bufOff;
-			}
-			finally
-			{
-				Reset();
-			}
+                return bufOff;
+            }
+            finally
+            {
+                Reset();
+            }
 #endif
         }
 

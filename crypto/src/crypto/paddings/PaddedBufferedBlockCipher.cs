@@ -2,19 +2,18 @@ using System;
 using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Modes;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Paddings
 {
     /**
-	* A wrapper class that allows block ciphers to be used to process data in
-	* a piecemeal fashion with padding. The PaddedBufferedBlockCipher
-	* outputs a block only when the buffer is full and more data is being added,
-	* or on a doFinal (unless the current block in the buffer is a pad block).
-	* The default padding mechanism used is the one outlined in Pkcs5/Pkcs7.
-	*/
+     * A wrapper class that allows block ciphers to be used to process data in
+     * a piecemeal fashion with padding. The PaddedBufferedBlockCipher
+     * outputs a block only when the buffer is full and more data is being added,
+     * or on a doFinal (unless the current block in the buffer is a pad block).
+     * The default padding mechanism used is the one outlined in Pkcs5/Pkcs7.
+     */
     public class PaddedBufferedBlockCipher
         : BufferedBlockCipher
     {
@@ -26,11 +25,11 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
         /**
-		* Create a buffered block cipher with the desired padding.
-		*
-		* @param cipher the underlying block cipher this buffering object wraps.
-		* @param padding the padding type.
-		*/
+         * Create a buffered block cipher with the desired padding.
+         *
+         * @param cipher the underlying block cipher this buffering object wraps.
+         * @param padding the padding type.
+         */
         public PaddedBufferedBlockCipher(IBlockCipherMode cipherMode, IBlockCipherPadding padding)
             : base(cipherMode)
         {
@@ -38,24 +37,24 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
         /**
-		* Create a buffered block cipher Pkcs7 padding
-		*
-		* @param cipher the underlying block cipher this buffering object wraps.
-		*/
+         * Create a buffered block cipher Pkcs7 padding
+         *
+         * @param cipher the underlying block cipher this buffering object wraps.
+         */
         public PaddedBufferedBlockCipher(IBlockCipherMode cipherMode)
             : this(cipherMode, new Pkcs7Padding())
         {
         }
 
         /**
-		* initialise the cipher.
-		*
-		* @param forEncryption if true the cipher is initialised for
-		*  encryption, if false for decryption.
-		* @param param the key and other data required by the cipher.
-		* @exception ArgumentException if the parameters argument is
-		* inappropriate.
-		*/
+         * initialise the cipher.
+         *
+         * @param forEncryption if true the cipher is initialised for
+         *  encryption, if false for decryption.
+         * @param param the key and other data required by the cipher.
+         * @exception ArgumentException if the parameters argument is
+         * inappropriate.
+         */
         public override void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
@@ -70,13 +69,13 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
         /**
-		* return the minimum size of the output buffer required for an update
-		* plus a doFinal with an input of len bytes.
-		*
-		* @param len the length of the input.
-		* @return the space required to accommodate a call to update and doFinal
-		* with len bytes of input.
-		*/
+         * return the minimum size of the output buffer required for an update
+         * plus a doFinal with an input of len bytes.
+         *
+         * @param len the length of the input.
+         * @return the space required to accommodate a call to update and doFinal
+         * with len bytes of input.
+         */
         public override int GetOutputSize(int length)
         {
             int totalSize = bufOff + length;
@@ -88,44 +87,44 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
         /**
-		* return the size of the output buffer required for an update
-		* an input of len bytes.
-		*
-		* @param len the length of the input.
-		* @return the space required to accommodate a call to update
-		* with len bytes of input.
-		*/
+         * return the size of the output buffer required for an update
+         * an input of len bytes.
+         *
+         * @param len the length of the input.
+         * @return the space required to accommodate a call to update
+         * with len bytes of input.
+         */
         public override int GetUpdateOutputSize(int length) =>
             GetFullBlocksSize(totalSize: bufOff + length - 1, blockSize: buf.Length);
 
         /**
-		* process a single byte, producing an output block if necessary.
-		*
-		* @param in the input byte.
-		* @param out the space for any output that might be produced.
-		* @param outOff the offset from which the output will be copied.
-		* @return the number of output bytes copied to out.
-		* @exception DataLengthException if there isn't enough space in out.
-		* @exception InvalidOperationException if the cipher isn't initialised.
-		*/
+         * process a single byte, producing an output block if necessary.
+         *
+         * @param in the input byte.
+         * @param out the space for any output that might be produced.
+         * @param outOff the offset from which the output will be copied.
+         * @return the number of output bytes copied to out.
+         * @exception DataLengthException if there isn't enough space in out.
+         * @exception InvalidOperationException if the cipher isn't initialised.
+         */
         public override int ProcessByte(byte input, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessByte(input, Spans.FromNullable(output, outOff));
 #else
-			int resultLen = 0;
+            int resultLen = 0;
 
-			if (bufOff == buf.Length)
-			{
+            if (bufOff == buf.Length)
+            {
                 Check.OutputLength(output, outOff, buf.Length, "output buffer too short");
 
                 resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
-				bufOff = 0;
-			}
+                bufOff = 0;
+            }
 
-			buf[bufOff++] = input;
+            buf[bufOff++] = input;
 
-			return resultLen;
+            return resultLen;
 #endif
         }
 
@@ -177,8 +176,8 @@ namespace Org.BouncyCastle.Crypto.Paddings
             int blockSize = buf.Length;
             int available = blockSize - bufOff;
 
-			if (length > available)
-			{
+            if (length > available)
+            {
                 int updateOutputSize = GetUpdateOutputSize(length);
                 Debug.Assert(updateOutputSize >= blockSize);
                 Check.OutputLength(output, outOff, updateOutputSize, "output buffer too short");
@@ -196,19 +195,19 @@ namespace Org.BouncyCastle.Crypto.Paddings
                 }
 
                 resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
-				bufOff = 0;
+                bufOff = 0;
 
-				while (length > blockSize)
-				{
-					resultLen += m_cipherMode.ProcessBlock(input, inOff, output, outOff + resultLen);
+                while (length > blockSize)
+                {
+                    resultLen += m_cipherMode.ProcessBlock(input, inOff, output, outOff + resultLen);
                     inOff += blockSize;
                     length -= blockSize;
-				}
-			}
+                }
+            }
 
-			Array.Copy(input, inOff, buf, bufOff, length);
-			bufOff += length;
-			return resultLen;
+            Array.Copy(input, inOff, buf, bufOff, length);
+            bufOff += length;
+            return resultLen;
 #endif
         }
 
@@ -253,63 +252,63 @@ namespace Org.BouncyCastle.Crypto.Paddings
 #endif
 
         /**
-		* Process the last block in the buffer. If the buffer is currently
-		* full and padding needs to be added a call to doFinal will produce
-		* 2 * GetBlockSize() bytes.
-		*
-		* @param out the array the block currently being held is copied into.
-		* @param outOff the offset at which the copying starts.
-		* @return the number of output bytes copied to out.
-		* @exception DataLengthException if there is insufficient space in out for
-		* the output or we are decrypting and the input is not block size aligned.
-		* @exception InvalidOperationException if the underlying cipher is not
-		* initialised.
-		* @exception InvalidCipherTextException if padding is expected and not found.
-		*/
+         * Process the last block in the buffer. If the buffer is currently
+         * full and padding needs to be added a call to doFinal will produce
+         * 2 * GetBlockSize() bytes.
+         *
+         * @param out the array the block currently being held is copied into.
+         * @param outOff the offset at which the copying starts.
+         * @return the number of output bytes copied to out.
+         * @exception DataLengthException if there is insufficient space in out for
+         * the output or we are decrypting and the input is not block size aligned.
+         * @exception InvalidOperationException if the underlying cipher is not
+         * initialised.
+         * @exception InvalidCipherTextException if padding is expected and not found.
+         */
         public override int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return DoFinal(Spans.FromNullable(output, outOff));
 #else
-			try
-			{
+            try
+            {
                 int resultLen = 0;
                 int blockSize = buf.Length;
 
-				if (forEncryption)
-				{
-					if (bufOff == blockSize)
-					{
-						Check.OutputLength(output, outOff, blockSize * 2, "output buffer too short");
+                if (forEncryption)
+                {
+                    if (bufOff == blockSize)
+                    {
+                        Check.OutputLength(output, outOff, blockSize * 2, "output buffer too short");
 
-						resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
-						bufOff = 0;
-					}
-					else
-					{
+                        resultLen = m_cipherMode.ProcessBlock(buf, 0, output, outOff);
+                        bufOff = 0;
+                    }
+                    else
+                    {
                         Check.OutputLength(output, outOff, blockSize, "output buffer too short");
                     }
 
                     m_padding.AddPadding(buf, bufOff);
 
-					resultLen += m_cipherMode.ProcessBlock(buf, 0, output, outOff + resultLen);
-				}
-				else
-				{
+                    resultLen += m_cipherMode.ProcessBlock(buf, 0, output, outOff + resultLen);
+                }
+                else
+                {
                     Check.DataLength(bufOff != blockSize, "last block incomplete in decryption");
 
-					resultLen = m_cipherMode.ProcessBlock(buf, 0, buf, 0);
-					//bufOff = 0;
-					resultLen -= m_padding.PadCount(buf);
+                    resultLen = m_cipherMode.ProcessBlock(buf, 0, buf, 0);
+                    //bufOff = 0;
+                    resultLen -= m_padding.PadCount(buf);
 
-					// We only restrict to the actual data, not the GetOutputSize bound
+                    // We only restrict to the actual data, not the GetOutputSize bound
                     Check.OutputLength(output, outOff, resultLen, "output buffer too short");
 
                     Array.Copy(buf, 0, output, outOff, resultLen);
-				}
+                }
 
-				return resultLen;
-			}
+                return resultLen;
+            }
             finally
             {
                 Reset();
