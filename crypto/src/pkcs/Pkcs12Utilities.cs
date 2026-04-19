@@ -27,14 +27,12 @@ namespace Org.BouncyCastle.Pkcs
             Pfx pfx = Pfx.GetInstance(berPkcs12File);
 
             ContentInfo info = pfx.AuthSafe;
-            Asn1OctetString content = Asn1OctetString.GetInstance(info.Content);
-            byte[] contentOctets = content.GetOctets();
 
-            Asn1Object obj = Asn1Object.FromByteArray(contentOctets);
+            Asn1Object obj = Asn1Object.FromByteArray(GetContentOctets(info));
 
-            contentOctets = DLEncode(obj);
-            content = new DerOctetString(contentOctets);
-            info = new ContentInfo(info.ContentType, content);
+            var contentOctets = DLEncode(obj);
+
+            info = new ContentInfo(info.ContentType, DerOctetString.WithContents(contentOctets));
 
             /*
              * TODO This code should be more like Pkcs12Store Load then Save?
@@ -48,14 +46,16 @@ namespace Org.BouncyCastle.Pkcs
 
                 try
                 {
-                    var macDigestAlgorithm = macData.Mac.DigestAlgorithm;
-                    byte[] salt = macData.MacSalt.GetOctets();
+                    var macAlgOid = macData.Mac.DigestAlgorithm.Algorithm;
                     int iterations = macData.Iterations.IntValueExact;
-                    byte[] macResult = Pkcs12Store.CalculatePbeMac(macDigestAlgorithm, salt, iterations, passwd,
-                        wrongPkcs12Zero: false, data: contentOctets);
-                    var mac = new DigestInfo(macDigestAlgorithm, new DerOctetString(macResult));
 
-                    macData = new MacData(mac, macData.MacSalt, macData.Iterations);
+                    byte[] macResult = Pkcs12Store.CalculatePbeMac(macAlgOid, macData.GetSalt(), iterations, passwd,
+                        wrongPkcs12Zero: false, data: contentOctets);
+
+                    var macAlgID = new AlgorithmIdentifier(macAlgOid, DerNull.Instance);
+                    var digInfo = new DigestInfo(macAlgID, DerOctetString.WithContents(macResult));
+
+                    macData = new MacData(digInfo, macData.MacSalt, macData.Iterations);
                 }
                 catch (Exception e)
                 {
@@ -71,6 +71,15 @@ namespace Org.BouncyCastle.Pkcs
 
             return DLEncode(pfx);
         }
+
+        internal static Asn1Encodable GetContent(ContentInfo contentInfo) => contentInfo.Content
+            ?? throw new Asn1ParsingException("ContentInfo content missing");
+
+        internal static byte[] GetContentOctets(ContentInfo contentInfo) =>
+            Asn1OctetString.GetInstance(GetContent(contentInfo)).GetOctets();
+
+        internal static Asn1OctetString GetEncryptedContent(EncryptedData encryptedData) => encryptedData.Content
+            ?? throw new Asn1ParsingException("EncryptedContentInfo content missing");
 
         private static byte[] DLEncode(Asn1Encodable asn1Encodable) => asn1Encodable.GetEncoded(Asn1Encodable.DL);
     }

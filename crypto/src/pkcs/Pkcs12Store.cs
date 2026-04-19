@@ -193,7 +193,7 @@ namespace Org.BouncyCastle.Pkcs
                 if (password == null)
                     throw new ArgumentNullException(nameof(password), "no password supplied when one expected");
 
-                byte[] data = Asn1OctetString.GetInstance(info.Content).GetOctets();
+                byte[] data = Pkcs12Utilities.GetContentOctets(info);
 
                 if (!VerifyPbeMac(macData, password, wrongPkcs12Zero: false, data))
                 {
@@ -217,8 +217,7 @@ namespace Org.BouncyCastle.Pkcs
 
             if (PkcsObjectIdentifiers.Data.Equals(info.ContentType))
             {
-                Asn1OctetString content = Asn1OctetString.GetInstance(info.Content);
-                AuthenticatedSafe authSafe = AuthenticatedSafe.GetInstance(content.GetOctets());
+                AuthenticatedSafe authSafe = AuthenticatedSafe.GetInstance(Pkcs12Utilities.GetContentOctets(info));
                 ContentInfo[] cis = authSafe.GetContentInfo();
 
                 foreach (ContentInfo ci in cis)
@@ -228,15 +227,15 @@ namespace Org.BouncyCastle.Pkcs
                     byte[] octets = null;
                     if (PkcsObjectIdentifiers.Data.Equals(oid))
                     {
-                        octets = Asn1OctetString.GetInstance(ci.Content).GetOctets();
+                        octets = Pkcs12Utilities.GetContentOctets(ci);
                     }
                     else if (PkcsObjectIdentifiers.EncryptedData.Equals(oid))
                     {
                         passwordNeeded = true;
 
-                        EncryptedData d = EncryptedData.GetInstance(ci.Content);
-                        octets = CryptPbeData(false, d.EncryptionAlgorithm, password, wrongPkcs12Zero,
-                            data: d.Content.GetOctets());
+                        EncryptedData d = EncryptedData.GetInstance(Pkcs12Utilities.GetContent(ci));
+                        octets = CryptPbeData(forEncryption: false, d.EncryptionAlgorithm, password, wrongPkcs12Zero,
+                            data: Pkcs12Utilities.GetEncryptedContent(d).GetOctets());
                     }
                     else
                     {
@@ -957,18 +956,18 @@ namespace Org.BouncyCastle.Pkcs
             {
                 // TODO Support other HMAC digest algorithms (SHA-224, SHA-256, SHA384, SHA-512, SHA-512/224,
                 // or SHA-512/256) and PBMAC1 (RFC 9579).
-                var macDigestAlgorithm = DefaultDigestAlgorithmFinder.Instance.Find(OiwObjectIdentifiers.IdSha1);
+                var macAlgID = DefaultDigestAlgorithmFinder.Instance.Find(OiwObjectIdentifiers.IdSha1);
                 // TODO Configurable salt length?
                 byte[] salt = SecureRandom.GetNextBytes(random, 20);
                 // TODO Configurable number of iterations
                 int itCount = MinIterations;
 
-                byte[] macResult = CalculatePbeMac(macDigestAlgorithm, salt, itCount, password, wrongPkcs12Zero: false,
-                    data);
+                byte[] macResult = CalculatePbeMac(macAlgID.Algorithm, salt, itCount, password,
+                    wrongPkcs12Zero: false, data);
 
-                var mac = new DigestInfo(macDigestAlgorithm, new DerOctetString(macResult));
+                var digInfo = new DigestInfo(macAlgID, DerOctetString.WithContents(macResult));
 
-                macData = new MacData(mac, salt, itCount);
+                macData = new MacData(digInfo, DerOctetString.WithContents(salt), DerInteger.ValueOf(itCount));
             }
 
             //
@@ -995,17 +994,16 @@ namespace Org.BouncyCastle.Pkcs
             return new DerSequence(PkcsObjectIdentifiers.Pkcs9AtFriendlyName, friendlyName);
         }
 
-        internal static byte[] CalculatePbeMac(AlgorithmIdentifier macDigestAlgorithm, byte[] salt, int iterations,
+        internal static byte[] CalculatePbeMac(DerObjectIdentifier macAlgOID, byte[] salt, int iterations,
             char[] password, bool wrongPkcs12Zero, byte[] data)
         {
             // TODO Convert to HMAC algorithm here (restrict valid digest OIDs) instead of PbeUtilities doing it
             // TODO Support PBMAC1
-            var hmacDigestOid = macDigestAlgorithm.Algorithm;
-            var pbeParameters = PbeUtilities.GenerateAlgorithmParameters(hmacDigestOid, salt, iterations);
-            var cipherParameters = PbeUtilities.GenerateCipherParameters(hmacDigestOid, password, wrongPkcs12Zero,
+            var pbeParameters = PbeUtilities.GenerateAlgorithmParameters(macAlgOID, salt, iterations);
+            var cipherParameters = PbeUtilities.GenerateCipherParameters(macAlgOID, password, wrongPkcs12Zero,
                 pbeParameters);
 
-            IMac mac = (IMac)PbeUtilities.CreateEngine(hmacDigestOid);
+            IMac mac = (IMac)PbeUtilities.CreateEngine(macAlgOID);
             mac.Init(cipherParameters);
             return MacUtilities.DoFinal(mac, data);
         }
@@ -1013,7 +1011,7 @@ namespace Org.BouncyCastle.Pkcs
         internal static bool VerifyPbeMac(MacData macData, char[] password, bool wrongPkcs12Zero, byte[] data)
         {
             DigestInfo mac = macData.Mac;
-            byte[] macResult = CalculatePbeMac(mac.DigestAlgorithm, macData.MacSalt.GetOctets(),
+            byte[] macResult = CalculatePbeMac(mac.DigestAlgorithm.Algorithm, macData.MacSalt.GetOctets(),
                 macData.Iterations.IntValueExact, password, wrongPkcs12Zero, data);
             return Arrays.FixedTimeEquals(macResult, mac.Digest.GetOctets());
         }

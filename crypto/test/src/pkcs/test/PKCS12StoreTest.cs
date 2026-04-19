@@ -1706,6 +1706,24 @@ namespace Org.BouncyCastle.Pkcs.Tests
             }
         }
 
+        [Test]
+        public void MissingContentInfoContent()
+        {
+            byte[] payload = Hex.DecodeStrict(
+                "30490201033011060f2a864886f70d010701a0040402300030313021300906052b0e03021a050004140000000003000000000000000000020000000000040c000000000000000002020800");
+
+            var store = new Pkcs12StoreBuilder().Build();
+            try
+            {
+                store.Load(new MemoryStream(payload), Array.Empty<char>());
+                Assert.Fail();
+            }
+            catch (Asn1ParsingException)
+            {
+                // expected
+            }
+        }
+
         private static T GetFirst<T>(IEnumerable<T> e) => CollectionUtilities.RequireNext(e.GetEnumerator());
     }
 }
