@@ -208,17 +208,17 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 return new BcTls13Verifier(verifier);
             }
 
-            // TODO[RFC 8998]
-            //case SignatureScheme.sm2sig_sm3:
-            //{
-            //    ParametersWithID parametersWithID = new ParametersWithID(GetPubKeyEC(),
-            //        Strings.ToByteArray("TLSv1.3+GM+Cipher+Suite"));
-    
-            //    SM2Signer verifier = new SM2Signer();
-            //    verifier.Init(false, parametersWithID);
+            // RFC 8998
+            case SignatureScheme.sm2sig_sm3:
+            {
+                ParametersWithID parametersWithID = new ParametersWithID(GetPubKeyEC(),
+                    Strings.ToByteArray("TLSv1.3+GM+Cipher+Suite"));
 
-            //    return new BcTls13Verifier(verifier);
-            //}
+                SM2Signer verifier = new SM2Signer();
+                verifier.Init(false, parametersWithID);
+
+                return new BcTls13Verifier(verifier);
+            }
 
             case SignatureScheme.mldsa44:
             case SignatureScheme.mldsa65:

@@ -193,6 +193,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
             case SignatureScheme.ecdsa_brainpoolP512r1tls13_sha512:
             case SignatureScheme.ecdsa_secp384r1_sha384:
             case SignatureScheme.ecdsa_secp521r1_sha512:
+
+            // TODO[RFC 8998]
             case SignatureScheme.sm2sig_sm3:
 
             default:

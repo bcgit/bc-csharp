@@ -33,9 +33,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 {
                     int signatureScheme = SignatureScheme.From(signatureAndHashAlgorithm);
 
-                    // TODO[RFC 8998]
-                    //if (SignatureScheme.sm2sig_sm3 == signatureScheme)
-                    //    return new BcTlsSM2Signer(crypto, ecPrivateKey, Strings.ToByteArray("TLSv1.3+GM+Cipher+Suite"));
+                    // RFC 8998
+                    if (SignatureScheme.sm2sig_sm3 == signatureScheme)
+                        return new BcTlsSM2Signer(crypto, ecPrivateKey, signatureScheme);
 
                     if (SignatureScheme.IsECDsa(signatureScheme))
                         return new BcTlsECDsa13Signer(crypto, ecPrivateKey, signatureScheme);

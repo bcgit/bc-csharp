@@ -11,10 +11,20 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     {
         private readonly byte[] m_identifier;
 
+        [Obsolete("Will be removed")]
         public BcTlsSM2Signer(BcTlsCrypto crypto, ECPrivateKeyParameters privateKey, byte[] identifier)
             : base(crypto, privateKey)
         {
             m_identifier = Arrays.Clone(identifier);
+        }
+
+        public BcTlsSM2Signer(BcTlsCrypto crypto, ECPrivateKeyParameters privateKey, int signatureScheme)
+            : base(crypto, privateKey)
+        {
+            if (SignatureScheme.sm2sig_sm3 != signatureScheme)
+                throw new ArgumentException(nameof(signatureScheme));
+
+            m_identifier = Strings.ToByteArray("TLSv1.3+GM+Cipher+Suite");
         }
 
         public override TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)

@@ -267,14 +267,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case CryptoSignatureAlgorithm.rsa_pss_pss_sha256:
             case CryptoSignatureAlgorithm.rsa_pss_pss_sha384:
             case CryptoSignatureAlgorithm.rsa_pss_pss_sha512:
+            case CryptoSignatureAlgorithm.sm2: // RFC 8998
                 return true;
 
             // TODO[RFC 9189]
             case CryptoSignatureAlgorithm.gostr34102012_256:
             case CryptoSignatureAlgorithm.gostr34102012_512:
-
-            // TODO[RFC 8998]
-            case CryptoSignatureAlgorithm.sm2:
 
             default:
                 return false;
@@ -441,8 +439,6 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
             switch (signatureScheme)
             {
-            case SignatureScheme.sm2sig_sm3:
-                return false;
             case SignatureScheme.mldsa44:
             case SignatureScheme.mldsa65:
             case SignatureScheme.mldsa87:
@@ -458,6 +454,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             case SignatureScheme.slhdsa_shake_192f:
             case SignatureScheme.slhdsa_shake_256s:
             case SignatureScheme.slhdsa_shake_256f:
+            case SignatureScheme.sm2sig_sm3:
                 return true;
             default:
             {
