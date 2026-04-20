@@ -97,109 +97,24 @@ namespace Org.BouncyCastle.Tls.Crypto.Tests
         protected TlsCredentialedSigner LoadCredentialedSigner12(TlsCryptoParameters cryptoParams,
             SignatureAndHashAlgorithm signatureAndHashAlgorithm)
         {
-            switch (signatureAndHashAlgorithm.Signature)
-            {
-            case SignatureAlgorithm.dsa:
-                return LoadCredentialedSigner(cryptoParams, "dsa", signatureAndHashAlgorithm);
-            case SignatureAlgorithm.ecdsa:
-                return LoadCredentialedSigner(cryptoParams, "ecdsa", signatureAndHashAlgorithm);
-            case SignatureAlgorithm.ed25519:
-                return LoadCredentialedSigner(cryptoParams, "ed25519", signatureAndHashAlgorithm);
-            case SignatureAlgorithm.ed448:
-                return LoadCredentialedSigner(cryptoParams, "ed448", signatureAndHashAlgorithm);
-            case SignatureAlgorithm.rsa_pss_pss_sha256:
-                return LoadCredentialedSigner(cryptoParams, "rsa_pss_256", signatureAndHashAlgorithm);
-            case SignatureAlgorithm.rsa_pss_pss_sha384:
-                return LoadCredentialedSigner(cryptoParams, "rsa_pss_384", signatureAndHashAlgorithm);
-            case SignatureAlgorithm.rsa_pss_pss_sha512:
-                return LoadCredentialedSigner(cryptoParams, "rsa_pss_512", signatureAndHashAlgorithm);
-            case SignatureAlgorithm.rsa:
-            case SignatureAlgorithm.rsa_pss_rsae_sha256:
-            case SignatureAlgorithm.rsa_pss_rsae_sha384:
-            case SignatureAlgorithm.rsa_pss_rsae_sha512:
-                return LoadCredentialedSigner(cryptoParams, "rsa-sign", signatureAndHashAlgorithm);
+            var signatureAlgorithm = signatureAndHashAlgorithm.Signature;
 
-            // TODO[RFC 9189] Add test resources for these
-            case SignatureAlgorithm.gostr34102012_256:
-            case SignatureAlgorithm.gostr34102012_512:
-
-            default:
+            var resourceName = TlsTestUtilities.FindResourceName12(signatureAlgorithm, forServer: true);
+            if (resourceName == null)
                 return null;
-            }
+
+            return LoadCredentialedSigner(cryptoParams, resourceName, signatureAndHashAlgorithm);
         }
 
         protected TlsCredentialedSigner LoadCredentialedSigner13(TlsCryptoParameters cryptoParams, int signatureScheme)
         {
+            var resourceName = TlsTestUtilities.FindResourceName13(signatureScheme, forServer: true);
+            if (resourceName == null)
+                return null;
+
             var signatureAndHashAlgorithm = SignatureScheme.GetSignatureAndHashAlgorithm(signatureScheme);
 
-            // TODO[tls-slhdsa] Add test resources for these
-            if (SignatureScheme.IsSlhDsa(signatureScheme))
-                return null;
-
-            // TODO[tls-slhdsa] Move into switch statement once constants available
-            //if (SignatureScheme.DRAFT_slhdsa_sha2_128s == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_sha2_128s", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_sha2_128f == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_sha2_128f", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_sha2_192s == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_sha2_192s", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_sha2_192f == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_sha2_192f", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_sha2_256s == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_sha2_256s", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_sha2_256f == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_sha2_256f", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_shake_128s == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_shake_128s", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_shake_128f == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_shake_128f", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_shake_192s == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_shake_192s", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_shake_192f == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_shake_192f", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_shake_256s == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_shake_256s", signatureAndHashAlgorithm);
-            //if (SignatureScheme.DRAFT_slhdsa_shake_256f == signatureScheme)
-            //    return LoadCredentialedSigner(cryptoParams, "slh_dsa_shake_256f", signatureAndHashAlgorithm);
-
-            switch (signatureScheme)
-            {
-            case SignatureScheme.ecdsa_secp256r1_sha256:
-                return LoadCredentialedSigner(cryptoParams, "ecdsa", signatureAndHashAlgorithm);
-            case SignatureScheme.ed25519:
-                return LoadCredentialedSigner(cryptoParams, "ed25519", signatureAndHashAlgorithm);
-            case SignatureScheme.ed448:
-                return LoadCredentialedSigner(cryptoParams, "ed448", signatureAndHashAlgorithm);
-            case SignatureScheme.rsa_pss_pss_sha256:
-                return LoadCredentialedSigner(cryptoParams, "rsa_pss_256", signatureAndHashAlgorithm);
-            case SignatureScheme.rsa_pss_pss_sha384:
-                return LoadCredentialedSigner(cryptoParams, "rsa_pss_384", signatureAndHashAlgorithm);
-            case SignatureScheme.rsa_pss_pss_sha512:
-                return LoadCredentialedSigner(cryptoParams, "rsa_pss_512", signatureAndHashAlgorithm);
-            case SignatureScheme.rsa_pss_rsae_sha256:
-            case SignatureScheme.rsa_pss_rsae_sha384:
-            case SignatureScheme.rsa_pss_rsae_sha512:
-                return LoadCredentialedSigner(cryptoParams, "rsa-sign", signatureAndHashAlgorithm);
-            case SignatureScheme.mldsa44:
-                return LoadCredentialedSigner(cryptoParams, "ml_dsa_44", signatureAndHashAlgorithm);
-            case SignatureScheme.mldsa65:
-                return LoadCredentialedSigner(cryptoParams, "ml_dsa_65", signatureAndHashAlgorithm);
-            case SignatureScheme.mldsa87:
-                return LoadCredentialedSigner(cryptoParams, "ml_dsa_87", signatureAndHashAlgorithm);
-
-            // TODO[tls] Add test resources for these
-            case SignatureScheme.ecdsa_brainpoolP256r1tls13_sha256:
-            case SignatureScheme.ecdsa_brainpoolP384r1tls13_sha384:
-            case SignatureScheme.ecdsa_brainpoolP512r1tls13_sha512:
-            case SignatureScheme.ecdsa_secp384r1_sha384:
-            case SignatureScheme.ecdsa_secp521r1_sha512:
-
-            // TODO[RFC 8998]
-            case SignatureScheme.sm2sig_sm3:
-
-            default:
-                return null;
-            }
+            return LoadCredentialedSigner(cryptoParams, resourceName, signatureAndHashAlgorithm);
         }
 
         [Test]

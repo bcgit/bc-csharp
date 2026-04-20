@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static string GetCACertResource(short signatureAlgorithm)
         {
-            return "x509-ca-" + GetResourceName(signatureAlgorithm) + ".pem";
+            return "x509-ca-" + GetResourceName12(signatureAlgorithm, forServer: false) + ".pem";
         }
 
         internal static string GetCACertResource(string eeCertResource)
@@ -170,22 +170,23 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal static string GetCACertResource13(int signatureScheme)
         {
-            return "x509-ca-" + GetResourceName13(signatureScheme) + ".pem";
+            return "x509-ca-" + GetResourceName13(signatureScheme, forServer: false) + ".pem";
         }
 
         internal static string GetPskPassword(bool badKey) => badKey ? "TLS_TEST_PSK_BAD" : "TLS_TEST_PSK";
 
         internal static byte[] GetPskPasswordUtf8(bool badKey) => Strings.ToUtf8ByteArray(GetPskPassword(badKey));
 
-        internal static string GetResourceName(short signatureAlgorithm)
+        internal static string GetResourceName12(short signatureAlgorithm, bool forServer) =>
+            FindResourceName12(signatureAlgorithm, forServer) ?? throw new TlsFatalAlert(AlertDescription.internal_error);
+
+        internal static string GetResourceName13(int signatureScheme, bool forServer) =>
+            FindResourceName13(signatureScheme, forServer) ?? throw new TlsFatalAlert(AlertDescription.internal_error);
+
+        internal static string FindResourceName12(short signatureAlgorithm, bool forServer)
         {
             switch (signatureAlgorithm)
             {
-            case SignatureAlgorithm.rsa:
-            case SignatureAlgorithm.rsa_pss_rsae_sha256:
-            case SignatureAlgorithm.rsa_pss_rsae_sha384:
-            case SignatureAlgorithm.rsa_pss_rsae_sha512:
-                return "rsa";
             case SignatureAlgorithm.dsa:
                 return "dsa";
             case SignatureAlgorithm.ecdsa:
@@ -200,17 +201,22 @@ namespace Org.BouncyCastle.Tls.Tests
                 return "rsa_pss_384";
             case SignatureAlgorithm.rsa_pss_pss_sha512:
                 return "rsa_pss_512";
+            case SignatureAlgorithm.rsa:
+            case SignatureAlgorithm.rsa_pss_rsae_sha256:
+            case SignatureAlgorithm.rsa_pss_rsae_sha384:
+            case SignatureAlgorithm.rsa_pss_rsae_sha512:
+                return forServer ? "rsa-sign" : "rsa";
 
             // TODO[RFC 9189] Choose names here and apply reverse mappings in GetCACertResource(String)
             case SignatureAlgorithm.gostr34102012_256:
             case SignatureAlgorithm.gostr34102012_512:
 
             default:
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+                return null;
             }
         }
 
-        internal static string GetResourceName13(int signatureScheme)
+        internal static string FindResourceName13(int signatureScheme, bool forServer)
         {
             // TODO[tls-slhdsa] Move into switch statement once constants available
             if (SignatureScheme.IsSlhDsa(signatureScheme))
@@ -226,23 +232,47 @@ namespace Org.BouncyCastle.Tls.Tests
                     :  SignatureScheme.DRAFT_slhdsa_shake_192s == signatureScheme ? "slh_dsa_shake_192s"
                     :  SignatureScheme.DRAFT_slhdsa_shake_192f == signatureScheme ? "slh_dsa_shake_192f"
                     :  SignatureScheme.DRAFT_slhdsa_shake_256s == signatureScheme ? "slh_dsa_shake_256s"
-                    :                                                               "slh_dsa_shake_256f";
+                    :  SignatureScheme.DRAFT_slhdsa_shake_256f == signatureScheme ? "slh_dsa_shake_256f"
+                    :  throw new InvalidOperationException();
             }
 
             switch (signatureScheme)
             {
+            case SignatureScheme.ecdsa_secp256r1_sha256:
+                return "ecdsa";
             case SignatureScheme.ed25519:
                 return "ed25519";
             case SignatureScheme.ed448:
                 return "ed448";
+            case SignatureScheme.rsa_pss_pss_sha256:
+                return "rsa_pss_256";
+            case SignatureScheme.rsa_pss_pss_sha384:
+                return "rsa_pss_384";
+            case SignatureScheme.rsa_pss_pss_sha512:
+                return "rsa_pss_512";
+            case SignatureScheme.rsa_pss_rsae_sha256:
+            case SignatureScheme.rsa_pss_rsae_sha384:
+            case SignatureScheme.rsa_pss_rsae_sha512:
+                return forServer ? "rsa-sign" : "rsa";
             case SignatureScheme.mldsa44:
                 return "ml_dsa_44";
             case SignatureScheme.mldsa65:
                 return "ml_dsa_65";
             case SignatureScheme.mldsa87:
                 return "ml_dsa_87";
+
+            // TODO[tls] Add test resources for these
+            case SignatureScheme.ecdsa_brainpoolP256r1tls13_sha256:
+            case SignatureScheme.ecdsa_brainpoolP384r1tls13_sha384:
+            case SignatureScheme.ecdsa_brainpoolP512r1tls13_sha512:
+            case SignatureScheme.ecdsa_secp384r1_sha384:
+            case SignatureScheme.ecdsa_secp521r1_sha512:
+
+            // TODO[RFC 8998]
+            case SignatureScheme.sm2sig_sm3:
+
             default:
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+                return null;
             }
         }
 
@@ -342,17 +372,7 @@ namespace Org.BouncyCastle.Tls.Tests
         internal static TlsCredentialedSigner LoadSignerCredentialsServer(TlsContext context,
             IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms, short signatureAlgorithm)
         {
-            string sigName = GetResourceName(signatureAlgorithm);
-
-            switch (signatureAlgorithm)
-            {
-            case SignatureAlgorithm.rsa:
-            case SignatureAlgorithm.rsa_pss_rsae_sha256:
-            case SignatureAlgorithm.rsa_pss_rsae_sha384:
-            case SignatureAlgorithm.rsa_pss_rsae_sha512:
-                sigName += "-sign";
-                break;
-            }
+            string sigName = GetResourceName12(signatureAlgorithm, forServer: true);
 
             string certResource = "x509-server-" + sigName + ".pem";
             string keyResource = "x509-server-key-" + sigName + ".pem";
