@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Asn1.Tests
 {
@@ -239,6 +240,36 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
 
             Assert.IsTrue(Arrays.AreEqual(berExpTagSeqData, bOut.ToArray()), "explicit BER tag writing test failed.");
+        }
+
+        [Test]
+        public void HeavilyDLNestedSequence()
+        {
+            try
+            {
+                Asn1Sequence seq = Asn1Sequence.GetInstance(
+                    new Asn1InputStream(SimpleTest.FindTestResource("asn1", "nested_seq.der")).ReadObject());
+                Assert.Fail("no exception");
+            }
+            catch (Asn1Exception e)
+            {
+                Assert.AreEqual("maximum nested construction level reached", e.Message);
+            }
+        }
+
+        [Test]
+        public void HeavilyBerNestedSequence()
+        {
+            try
+            {
+                Asn1Sequence seq = Asn1Sequence.GetInstance(
+                    new Asn1InputStream(SimpleTest.FindTestResource("asn1", "nested_seq_indef.ber")).ReadObject());
+                Assert.Fail("no exception");
+            }
+            catch (Asn1Exception e)
+            {
+                Assert.AreEqual("maximum nested construction level reached", e.Message);
+            }
         }
 
         [Test]

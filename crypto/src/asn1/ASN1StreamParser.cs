@@ -5,7 +5,11 @@ namespace Org.BouncyCastle.Asn1
 {
     public class Asn1StreamParser
     {
+        internal static Asn1StreamParser CreateSubParser(Stream sub, int parentDepth, int limit, byte[][] tmpBuffers) =>
+            new Asn1StreamParser(sub, Asn1InputStream.DecrementDepth(parentDepth), limit, tmpBuffers);
+
         private readonly Stream m_in;
+        private readonly int m_depth;
         private readonly int m_limit;
 
         private readonly byte[][] m_tmpBuffers;
@@ -21,16 +25,17 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public Asn1StreamParser(Stream input, int limit)
-            : this(input, limit, new byte[16][])
+            : this(input, Asn1InputStream.FindDepth(), limit, new byte[16][])
         {
         }
 
-        internal Asn1StreamParser(Stream input, int limit, byte[][] tmpBuffers)
+        private Asn1StreamParser(Stream input, int depth, int limit, byte[][] tmpBuffers)
         {
             if (!input.CanRead)
                 throw new ArgumentException("Expected stream to be readable", nameof(input));
 
             m_in = input;
+            m_depth = depth;
             m_limit = limit;
             m_tmpBuffers = tmpBuffers;
         }
@@ -69,7 +74,7 @@ namespace Org.BouncyCastle.Asn1
                     throw new IOException("indefinite-length primitive encoding encountered");
 
                 IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(m_in, m_limit);
-                Asn1StreamParser sp = new Asn1StreamParser(indIn, m_limit, m_tmpBuffers);
+                Asn1StreamParser sp = CreateSubParser(indIn, m_depth, m_limit, m_tmpBuffers);
 
                 int tagClass = tagHdr & Asn1Tags.Private;
                 if (0 != tagClass)
@@ -84,7 +89,7 @@ namespace Org.BouncyCastle.Asn1
                 if (0 == (tagHdr & Asn1Tags.Flags))
                     return ParseImplicitPrimitive(tagNo, defIn);
 
-                Asn1StreamParser sp = new Asn1StreamParser(defIn, defIn.Remaining, m_tmpBuffers);
+                Asn1StreamParser sp = CreateSubParser(defIn, m_depth, defIn.Remaining, m_tmpBuffers);
 
                 int tagClass = tagHdr & Asn1Tags.Private;
                 if (0 != tagClass)

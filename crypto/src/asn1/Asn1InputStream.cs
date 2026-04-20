@@ -19,12 +19,23 @@ namespace Org.BouncyCastle.Asn1
     public class Asn1InputStream
         : FilterStream
     {
+        public static readonly string MaxDepthProperty = "Org.BouncyCastle.Asn1.MaxDepth";
         public static readonly string MaxLimitProperty = "Org.BouncyCastle.Asn1.MaxLimit";
 
-        private readonly int m_limit;
-        private readonly bool m_leaveOpen;
+        internal static int DecrementDepth(int parentDepth)
+        {
+            if (parentDepth <= 0)
+                throw new Asn1Exception("maximum nested construction level reached");
+            return parentDepth - 1;
+        }
 
-        internal byte[][] m_tmpBuffers;
+        internal static int FindDepth()
+        {
+            if (int.TryParse(Platform.GetEnvironmentVariable(MaxDepthProperty), out int maxDepth))
+                return System.Math.Max(0, maxDepth);
+
+            return 32;
+        }
 
         internal static int FindLimit(Stream input)
         {
@@ -44,6 +55,12 @@ namespace Org.BouncyCastle.Asn1
         }
 
         internal static int GetMemoryStreamLimit(MemoryStream input) => Convert.ToInt32(input.Length - input.Position);
+
+        private readonly int m_depth;
+        private readonly int m_limit;
+        private readonly bool m_leaveOpen;
+
+        internal byte[][] m_tmpBuffers;
 
         /**
          * Create an ASN1InputStream based on the input byte array. The length of DER objects in
@@ -66,6 +83,11 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
+        public Asn1InputStream(Stream input, bool leaveOpen)
+            : this(input, FindLimit(input), leaveOpen)
+        {
+        }
+
         /**
          * Create an ASN1InputStream where no DER object will be longer than limit.
          *
@@ -78,20 +100,24 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public Asn1InputStream(Stream input, int limit, bool leaveOpen)
-            : this(input, limit, leaveOpen, new byte[16][])
+            : this(input, FindDepth(), limit, leaveOpen, new byte[16][])
         {
         }
 
-        internal Asn1InputStream(Stream input, int limit, bool leaveOpen, byte[][] tmpBuffers)
+        internal Asn1InputStream(Stream input, int depth, int limit, bool leaveOpen, byte[][] tmpBuffers)
             : base(input)
         {
             if (!input.CanRead)
                 throw new ArgumentException("Expected stream to be readable", nameof(input));
 
-            this.m_limit = limit;
+            m_depth = depth;
+            m_limit = limit;
             m_leaveOpen = leaveOpen;
-            this.m_tmpBuffers = tmpBuffers;
+            m_tmpBuffers = tmpBuffers;
         }
+
+        private Asn1InputStream CreateSubStream(Stream sub, int limit) =>
+            new Asn1InputStream(sub, DecrementDepth(m_depth), limit, leaveOpen: true, m_tmpBuffers);
 
         public int Limit => m_limit;
 
@@ -178,7 +204,7 @@ namespace Org.BouncyCastle.Asn1
             if (remaining < 1)
                 return new Asn1EncodableVector(0);
 
-            using (var sub = new Asn1InputStream(defIn, remaining, leaveOpen: true, m_tmpBuffers))
+            using (var sub = CreateSubStream(defIn, remaining))
             {
                 return sub.ReadVector();
             }
@@ -225,7 +251,7 @@ namespace Org.BouncyCastle.Asn1
                 throw new IOException("indefinite-length primitive encoding encountered");
 
             IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(s, m_limit);
-            Asn1StreamParser sp = new Asn1StreamParser(indIn, m_limit, m_tmpBuffers);
+            Asn1StreamParser sp = Asn1StreamParser.CreateSubParser(indIn, m_depth, m_limit, m_tmpBuffers);
 
             int tagClass = tagHdr & Asn1Tags.Private;
             if (0 != tagClass)

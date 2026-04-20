@@ -66,13 +66,12 @@ namespace Org.BouncyCastle.Asn1
         /// <returns>The base ASN.1 object represented by the byte array.</returns>
         /// <exception cref="IOException">If there is a problem parsing the data.</exception>
         public static Asn1Object FromStream(Stream inStr)
-		{
-            int limit = Asn1InputStream.FindLimit(inStr);
-            using (var asn1In = new Asn1InputStream(inStr, limit, leaveOpen: true))
+        {
+            using (var asn1In = new Asn1InputStream(inStr, leaveOpen: true))
             {
                 return asn1In.ReadObject();
             }
-		}
+        }
 
         public sealed override Asn1Object ToAsn1Object() => this;
 
