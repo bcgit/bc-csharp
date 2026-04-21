@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1
             if (int.TryParse(Platform.GetEnvironmentVariable(MaxDepthProperty), out int maxDepth))
                 return System.Math.Max(0, maxDepth);
 
-            return 32;
+            return 64;
         }
 
         internal static int FindLimit(Stream input)
