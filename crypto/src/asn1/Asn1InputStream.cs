@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1
                 return GetMemoryStreamLimit(memory);
 
             if (int.TryParse(Platform.GetEnvironmentVariable(MaxLimitProperty), out int maxLimit))
-                return maxLimit;
+                return System.Math.Max(0, maxLimit);
 
             return int.MaxValue;
         }
