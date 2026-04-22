@@ -1227,6 +1227,12 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+#if NET6_0_OR_GREATER
+        public static int MaxLength => Array.MaxLength;
+#else
+        public static int MaxLength => 0X7FFFFFC7;
+#endif
+
         public static bool SegmentsOverlap(int aOff, int aLen, int bOff, int bLen)
         {
             return aLen > 0

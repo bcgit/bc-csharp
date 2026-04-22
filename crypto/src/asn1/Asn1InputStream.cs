@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1
             if (int.TryParse(Platform.GetEnvironmentVariable(MaxLimitProperty), out int maxLimit))
                 return System.Math.Max(0, maxLimit);
 
-            return int.MaxValue;
+            return Arrays.MaxLength;
         }
 
         internal static int GetMemoryStreamLimit(MemoryStream input) => Convert.ToInt32(input.Length - input.Position);

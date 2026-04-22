@@ -2,6 +2,7 @@
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1.Tests
@@ -22,7 +23,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             // 1g => 1073741824
 
             ClearMaxLimitProperty();
-            CheckLimit(int.MaxValue);
+            CheckLimit(Arrays.MaxLength);
         }
 
         private static void CheckLimit(int expected)
