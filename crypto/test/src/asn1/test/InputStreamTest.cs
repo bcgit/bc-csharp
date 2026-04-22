@@ -69,20 +69,19 @@ namespace Org.BouncyCastle.Asn1.Tests
 			}
 			catch (IOException e)
 			{
-                if (!e.Message.Equals("corrupted stream - out of bounds length found: 1048575 >= 5"))
+                if (!e.Message.Equals("corrupted stream - out of bounds length found: 1048575 > 5"))
                 {
 					Fail("wrong exception: " + e.Message);
 				}
 			}
 
-            // TODO Test data has length issues too; needs to be reworked
-            //DoTestWithByteArray(classCast1, "unknown object encountered: Org.BouncyCastle.Asn1.DerApplicationSpecific");
+            DoTestWithByteArray(classCast1, "corrupted stream - out of bounds length found: 80 > 16");
             DoTestWithByteArray(classCast2, "unknown object encountered: Org.BouncyCastle.Asn1.DLTaggedObjectParser");
             DoTestWithByteArray(classCast3, "unknown object encountered in constructed OCTET STRING: Org.BouncyCastle.Asn1.DLTaggedObject");
 
             // TODO Error dependent on parser choices; needs to be reworked
-            //DoTestWithByteArray(memoryError1, "corrupted stream - out of bounds length found: 2078365180 >= 39");
-            //DoTestWithByteArray(memoryError2, "corrupted stream - out of bounds length found: 2102504523 >= 39");
+            //DoTestWithByteArray(memoryError1, "corrupted stream - out of bounds length found: 2078365180 > 39");
+            //DoTestWithByteArray(memoryError2, "corrupted stream - out of bounds length found: 2102504523 > 39");
         }
 
         private void DoTestWithByteArray(byte[] data, string message)

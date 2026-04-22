@@ -22,6 +22,12 @@ namespace Org.BouncyCastle.Asn1
         public static readonly string MaxDepthProperty = "Org.BouncyCastle.Asn1.MaxDepth";
         public static readonly string MaxLimitProperty = "Org.BouncyCastle.Asn1.MaxLimit";
 
+        internal static void CheckLength(int length, int limit)
+        {
+            if (length > limit)
+                throw new Asn1Exception("corrupted stream - out of bounds length found: " + length + " > " + limit);
+        }
+
         internal static int DecrementDepth(int parentDepth)
         {
             if (parentDepth <= 0)
@@ -142,7 +148,8 @@ namespace Org.BouncyCastle.Asn1
         {
             // TODO[asn1] Special-case zero length first?
 
-            DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(s, length, m_limit);
+            CheckLength(length, m_limit);
+            DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(s, length, limit: length);
 
             if (0 == (tagHdr & Asn1Tags.Flags))
                 return CreatePrimitiveDerObject(tagNo, defIn, m_tmpBuffers);
@@ -222,7 +229,7 @@ namespace Org.BouncyCastle.Asn1
             }
 
             int tagNo = ReadTagNumber(s, tagHdr);
-            int length = ReadLength(s, m_limit, false);
+            int length = ReadLength(s);
 
             if (length >= 0)
             {
@@ -353,7 +360,7 @@ namespace Org.BouncyCastle.Asn1
             return tagNo;
         }
 
-        internal static int ReadLength(Stream s, int limit, bool isParsing)
+        internal static int ReadLength(Stream s)
         {
             int length = s.ReadByte();
             if (0U == ((uint)length >> 7))
@@ -390,9 +397,6 @@ namespace Org.BouncyCastle.Asn1
                 length = (length << 8) + octet;
             }
             while (++octetsPos < octetsCount);
-
-            if (length >= limit && !isParsing)   // after all we must have read at least 1 byte
-                throw new IOException("corrupted stream - out of bounds length found: " + length + " >= " + limit);
 
             return length;
         }

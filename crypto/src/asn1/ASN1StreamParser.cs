@@ -56,17 +56,8 @@ namespace Org.BouncyCastle.Asn1
             // turn off looking for "00" while we resolve the tag
             DisableParentEofDetect();
 
-            //
-            // calculate tag number
-            //
             int tagNo = Asn1InputStream.ReadTagNumber(m_in, tagHdr);
-
-            //
-            // calculate length
-            //
-            int length = Asn1InputStream.ReadLength(m_in, m_limit,
-                tagNo == Asn1Tags.BitString || tagNo == Asn1Tags.OctetString || tagNo == Asn1Tags.Sequence ||
-                tagNo == Asn1Tags.Set || tagNo == Asn1Tags.External);
+            int length = Asn1InputStream.ReadLength(m_in);
 
             if (length < 0) // indefinite-length method
             {
@@ -84,12 +75,14 @@ namespace Org.BouncyCastle.Asn1
             }
             else
             {
-                DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(m_in, length, m_limit);
+                // NOTE: Length can exceed the stream limit as long as we are parsing/streaming
+                int subLimit = System.Math.Min(m_limit, length);
+                DefiniteLengthInputStream defIn = new DefiniteLengthInputStream(m_in, length, subLimit);
 
                 if (0 == (tagHdr & Asn1Tags.Flags))
                     return ParseImplicitPrimitive(tagNo, defIn);
 
-                Asn1StreamParser sp = CreateSubParser(defIn, m_depth, defIn.Remaining, m_tmpBuffers);
+                Asn1StreamParser sp = CreateSubParser(defIn, m_depth, subLimit, m_tmpBuffers);
 
                 int tagClass = tagHdr & Asn1Tags.Private;
                 if (0 != tagClass)
@@ -190,6 +183,8 @@ namespace Org.BouncyCastle.Asn1
             case Asn1Tags.Sequence:
                 throw new Asn1Exception("sets must use constructed encoding (see X.690 8.11.1/8.12.1)");
             }
+
+            Asn1InputStream.CheckLength(defIn.Remaining, defIn.Limit);
 
             try
             {

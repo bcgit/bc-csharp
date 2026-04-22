@@ -105,10 +105,7 @@ namespace Org.BouncyCastle.Asn1
             if (m_remaining == 0)
                 return;
 
-            // make sure it's safe to do this!
-            int limit = Limit;
-            if (m_remaining >= limit)
-                throw new IOException("corrupted stream - out of bounds length found: " + m_remaining + " >= " + limit);
+            Asn1InputStream.CheckLength(m_remaining, Limit);
 
             if ((m_remaining -= Streams.ReadFully(m_in, buf, 0, buf.Length)) != 0)
                 throw new EndOfStreamException("DEF length " + m_originalLength + " object truncated by " + m_remaining);
@@ -120,10 +117,7 @@ namespace Org.BouncyCastle.Asn1
             if (m_remaining == 0)
                 return EmptyBytes;
 
-            // make sure it's safe to do this!
-            int limit = Limit;
-            if (m_remaining >= limit)
-                throw new IOException("corrupted stream - out of bounds length found: " + m_remaining + " >= " + limit);
+            Asn1InputStream.CheckLength(m_remaining, Limit);
 
             byte[] bytes = new byte[m_remaining];
             if ((m_remaining -= Streams.ReadFully(m_in, bytes, 0, bytes.Length)) != 0)
