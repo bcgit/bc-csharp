@@ -19,7 +19,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             : base(crypto, privateKey)
         {
             if (!SignatureScheme.IsECDsa(signatureScheme))
-                throw new ArgumentException(nameof(signatureScheme));
+                throw new ArgumentException($"{SignatureScheme.GetText(signatureScheme)} is not ECDSA",
+                    nameof(signatureScheme));
 
             m_signatureScheme = signatureScheme;
         }

@@ -17,9 +17,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             : base(crypto, publicKey)
         {
             if (!SignatureScheme.IsRsaPss(signatureScheme))
-                throw new ArgumentException(nameof(signatureScheme));
+                throw new ArgumentException($"{SignatureScheme.GetText(signatureScheme)} is not RSA/PSS",
+                    nameof(signatureScheme));
 
-            this.m_signatureScheme = signatureScheme;
+            m_signatureScheme = signatureScheme;
         }
 
         public override bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash)

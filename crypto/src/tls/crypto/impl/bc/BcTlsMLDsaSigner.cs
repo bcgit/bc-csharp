@@ -22,7 +22,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             : base(crypto, privateKey)
         {
             if (!SignatureScheme.IsMLDsaScheme(signatureScheme))
-                throw new ArgumentException(nameof(signatureScheme));
+                throw new ArgumentException($"{SignatureScheme.GetText(signatureScheme)} is not ML-DSA",
+                    nameof(signatureScheme));
 
             m_signatureScheme = signatureScheme;
         }

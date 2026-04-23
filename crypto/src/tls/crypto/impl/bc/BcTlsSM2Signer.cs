@@ -22,7 +22,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             : base(crypto, privateKey)
         {
             if (SignatureScheme.sm2sig_sm3 != signatureScheme)
-                throw new ArgumentException(nameof(signatureScheme));
+                throw new ArgumentException($"{SignatureScheme.GetText(signatureScheme)} is not SM2",
+                    nameof(signatureScheme));
 
             m_identifier = Strings.ToByteArray("TLSv1.3+GM+Cipher+Suite");
         }
