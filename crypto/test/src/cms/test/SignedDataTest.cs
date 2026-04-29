@@ -6,6 +6,7 @@ using System.Text;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Bsi;
 using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Ess;
@@ -561,7 +562,23 @@ namespace Org.BouncyCastle.Cms.Tests
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha256);
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
             NoParams.Add(X9ObjectIdentifiers.ECDsaWithSha512);
+            NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_224);
+            NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_256);
+            NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384);
+            NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512);
+
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA224);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA256);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA384);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA512);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_224);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_256);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_384);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA3_512);
+
             NoParams.Add(X9ObjectIdentifiers.IdDsaWithSha1);
+            NoParams.Add(OiwObjectIdentifiers.DsaWithSha1);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha224);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha256);
             NoParams.Add(NistObjectIdentifiers.DsaWithSha384);
@@ -570,15 +587,14 @@ namespace Org.BouncyCastle.Cms.Tests
             NoParams.Add(NistObjectIdentifiers.IdDsaWithSha3_256);
             NoParams.Add(NistObjectIdentifiers.IdDsaWithSha3_384);
             NoParams.Add(NistObjectIdentifiers.IdDsaWithSha3_512);
-            NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_224);
-            NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_256);
-            NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384);
-            NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512);
+
             NoParams.Add(EdECObjectIdentifiers.id_Ed25519);
             NoParams.Add(EdECObjectIdentifiers.id_Ed448);
+
             NoParams.Add(NistObjectIdentifiers.id_ml_dsa_44);
             NoParams.Add(NistObjectIdentifiers.id_ml_dsa_65);
             NoParams.Add(NistObjectIdentifiers.id_ml_dsa_87);
+
             NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_128f);
             NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_128s);
             NoParams.Add(NistObjectIdentifiers.id_slh_dsa_sha2_192f);
@@ -591,6 +607,11 @@ namespace Org.BouncyCastle.Cms.Tests
             NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_192s);
             NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_256f);
             NoParams.Add(NistObjectIdentifiers.id_slh_dsa_shake_256s);
+
+            NoParams.Add(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE128);
+            NoParams.Add(X509ObjectIdentifiers.id_RSASSA_PSS_SHAKE256);
+            NoParams.Add(X509ObjectIdentifiers.id_ecdsa_with_shake128);
+            NoParams.Add(X509ObjectIdentifiers.id_ecdsa_with_shake256);
         }
 
         [Test]
