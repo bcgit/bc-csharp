@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Pkcs
             m_noParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384);
             m_noParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512);
 
-            //m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA224);
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA256);
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA384);

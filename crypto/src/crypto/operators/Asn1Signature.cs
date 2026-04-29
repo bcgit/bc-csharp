@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Crypto.Operators
             AddNoParams(X9ObjectIdentifiers.ECDsaWithSha384);
             AddNoParams(X9ObjectIdentifiers.ECDsaWithSha512);
 
-            //AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA1);
             AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA224);
             AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA256);
             AddNoParams(BsiObjectIdentifiers.ecdsa_plain_SHA384);

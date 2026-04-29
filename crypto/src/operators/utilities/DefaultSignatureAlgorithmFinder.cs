@@ -300,7 +300,7 @@ namespace Org.BouncyCastle.Operators.Utilities
             NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_384);
             NoParams.Add(NistObjectIdentifiers.IdEcdsaWithSha3_512);
 
-            //NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA224);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA256);
             NoParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA384);

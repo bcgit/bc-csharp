@@ -204,7 +204,7 @@ namespace Org.BouncyCastle.Cms
             m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha384);
             m_noParams.Add(X9ObjectIdentifiers.ECDsaWithSha512);
 
-            //m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
+            m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA1);
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA224);
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA256);
             m_noParams.Add(BsiObjectIdentifiers.ecdsa_plain_SHA384);
