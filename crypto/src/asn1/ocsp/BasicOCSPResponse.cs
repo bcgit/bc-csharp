@@ -53,17 +53,17 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public ResponseData TbsResponseData => m_tbsResponseData;
+        public ResponseData TbsResponseData => m_tbsResponseData;
 
-		public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
+        public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
 
-		public DerBitString Signature => m_signature;
+        public DerBitString Signature => m_signature;
 
         public byte[] GetSignatureOctets() => m_signature.GetOctets();
 
         public Asn1Sequence Certs => m_certs;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * BasicOcspResponse       ::= Sequence {

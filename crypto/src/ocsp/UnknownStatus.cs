@@ -1,15 +1,11 @@
-using System;
-
 namespace Org.BouncyCastle.Ocsp
 {
-	/**
-	 * wrapper for the UnknownInfo object
-	 */
-	public class UnknownStatus
-		: CertificateStatus
-	{
-		public UnknownStatus()
-		{
-		}
-	}
+    /// <summary>Wrapper for the UnknownInfo object.</summary>
+    public class UnknownStatus
+        : CertificateStatus
+    {
+        public UnknownStatus()
+        {
+        }
+    }
 }

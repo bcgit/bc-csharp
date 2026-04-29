@@ -6,30 +6,20 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
 {
-	public class Req
-		: X509ExtensionBase
-	{
-		private Request req;
+    public class Req
+        : X509ExtensionBase
+    {
+        private readonly Request m_req;
 
-		public Req(
-			Request req)
-		{
-			this.req = req;
-		}
+        public Req(Request req)
+        {
+            m_req = req ?? throw new ArgumentNullException(nameof(req));
+        }
 
-		public CertificateID GetCertID()
-		{
-			return new CertificateID(req.ReqCert);
-		}
+        public CertificateID GetCertID() => new CertificateID(m_req.ReqCert);
 
-		public X509Extensions SingleRequestExtensions
-		{
-			get { return req.SingleRequestExtensions; }
-		}
+        public X509Extensions SingleRequestExtensions => m_req.SingleRequestExtensions;
 
-		protected override X509Extensions GetX509Extensions()
-		{
-			return SingleRequestExtensions;
-		}
-	}
+        protected override X509Extensions GetX509Extensions() => SingleRequestExtensions;
+    }
 }

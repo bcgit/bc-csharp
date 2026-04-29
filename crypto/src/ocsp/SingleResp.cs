@@ -6,65 +6,42 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
 {
-	public class SingleResp
-		: X509ExtensionBase
-	{
-		internal readonly SingleResponse resp;
+    public class SingleResp
+        : X509ExtensionBase
+    {
+        internal readonly SingleResponse m_resp;
 
-		public SingleResp(
-			SingleResponse resp)
-		{
-			this.resp = resp;
-		}
+        public SingleResp(SingleResponse resp)
+        {
+            m_resp = resp ?? throw new ArgumentNullException(nameof(resp));
+        }
 
-		public CertificateID GetCertID()
-		{
-			return new CertificateID(resp.CertId);
-		}
+        public CertificateID GetCertID() => new CertificateID(m_resp.CertId);
 
-		/**
-		 * Return the status object for the response - null indicates good.
-		 *
-		 * @return the status object for the response, null if it is good.
-		 */
-		public object GetCertStatus()
-		{
-			CertStatus s = resp.CertStatus;
+        /// <summary>Return the status object for the response - null indicates good.</summary>
+        public object GetCertStatus()
+        {
+            CertStatus s = m_resp.CertStatus;
 
-			if (s.TagNo == 0)
-			{
-				return null;            // good
-			}
+            if (s.TagNo == 0)
+                return null; // good
 
-			if (s.TagNo == 1)
-			{
-				return new RevokedStatus(RevokedInfo.GetInstance(s.Status));
-			}
+            if (s.TagNo == 1)
+                return new RevokedStatus(RevokedInfo.GetInstance(s.Status));
 
-			return new UnknownStatus();
-		}
+            return new UnknownStatus();
+        }
 
-		public DateTime ThisUpdate
-		{
-			get { return resp.ThisUpdate.ToDateTime(); }
-		}
+        public DateTime ThisUpdate => m_resp.ThisUpdate.ToDateTime();
 
-		/**
-		* return the NextUpdate value - note: this is an optional field so may
-		* be returned as null.
-		*
-		* @return nextUpdate, or null if not present.
-		*/
-		public DateTime? NextUpdate => resp.NextUpdate?.ToDateTime();
+        /// <summary>Return the NextUpdate value.</summary>
+        /// <remarks>
+        /// This is an optional field so may be returned as null.
+        /// </remarks>
+        public DateTime? NextUpdate => m_resp.NextUpdate?.ToDateTime();
 
-		public X509Extensions SingleExtensions
-		{
-			get { return resp.SingleExtensions; }
-		}
+        public X509Extensions SingleExtensions => m_resp.SingleExtensions;
 
-		protected override X509Extensions GetX509Extensions()
-		{
-			return SingleExtensions;
-		}
-	}
+        protected override X509Extensions GetX509Extensions() => SingleExtensions;
+    }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
@@ -8,251 +7,179 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Security.Certificates;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
 {
-	/**
-	 * Generator for basic OCSP response objects.
-	 */
-	public class BasicOcspRespGenerator
-	{
-		private readonly List<ResponseObject> list = new List<ResponseObject>();
+    /// <summary>Generator for basic OCSP response objects.</summary>
+    public class BasicOcspRespGenerator
+    {
+        private readonly List<ResponseObject> m_list = new List<ResponseObject>();
 
-		private X509Extensions responseExtensions;
-		private RespID responderID;
+        private X509Extensions m_responseExtensions;
+        private RespID m_responderID;
 
-		private class ResponseObject
-		{
-			internal CertificateID         certId;
-			internal CertStatus            certStatus;
-			internal DerGeneralizedTime    thisUpdate;
-			internal DerGeneralizedTime    nextUpdate;
-			internal X509Extensions        extensions;
+        private class ResponseObject
+        {
+            internal CertificateID certId;
+            internal CertStatus certStatus;
+            internal DerGeneralizedTime thisUpdate;
+            internal DerGeneralizedTime nextUpdate;
+            internal X509Extensions extensions;
 
-			internal ResponseObject(
-				CertificateID		certId,
-				CertificateStatus	certStatus,
-				DateTime			thisUpdate,
-				DateTime?			nextUpdate,
-				X509Extensions		extensions)
-			{
-				this.certId = certId;
+            internal ResponseObject(
+                CertificateID certId,
+                CertificateStatus certStatus,
+                DateTime thisUpdate,
+                DateTime? nextUpdate,
+                X509Extensions extensions)
+            {
+                this.certId = certId;
 
-				if (certStatus == null)
-				{
-					this.certStatus = new CertStatus();
-				}
-				else if (certStatus is UnknownStatus)
-				{
-					this.certStatus = new CertStatus(2, DerNull.Instance);
-				}
-				else
-				{
-					RevokedStatus rs = (RevokedStatus) certStatus;
-					CrlReason revocationReason = rs.HasRevocationReason
-						?	new CrlReason(rs.RevocationReason)
-						:	null;
+                if (certStatus == null)
+                {
+                    this.certStatus = new CertStatus();
+                }
+                else if (certStatus is UnknownStatus)
+                {
+                    this.certStatus = new CertStatus(2, DerNull.Instance);
+                }
+                else
+                {
+                    RevokedStatus rs = (RevokedStatus)certStatus;
+                    CrlReason revocationReason = rs.HasRevocationReason
+                        ? new CrlReason(rs.RevocationReason)
+                        : null;
 
-					var revocationTime = Rfc5280Asn1Utilities.CreateGeneralizedTime(rs.RevocationTime);
-					var revokedInfo = new RevokedInfo(revocationTime, revocationReason);
+                    var revocationTime = Rfc5280Asn1Utilities.CreateGeneralizedTime(rs.RevocationTime);
+                    var revokedInfo = new RevokedInfo(revocationTime, revocationReason);
 
                     this.certStatus = new CertStatus(revokedInfo);
-				}
+                }
 
-				this.thisUpdate = Rfc5280Asn1Utilities.CreateGeneralizedTime(thisUpdate);
-				this.nextUpdate = nextUpdate.HasValue ? Rfc5280Asn1Utilities.CreateGeneralizedTime(nextUpdate.Value) : null;
+                this.thisUpdate = Rfc5280Asn1Utilities.CreateGeneralizedTime(thisUpdate);
+                this.nextUpdate = nextUpdate.HasValue ? Rfc5280Asn1Utilities.CreateGeneralizedTime(nextUpdate.Value) : null;
 
-				this.extensions = extensions;
-			}
+                this.extensions = extensions;
+            }
 
-			public SingleResponse ToResponse()
-			{
-				return new SingleResponse(certId.ToAsn1Object(), certStatus, thisUpdate, nextUpdate, extensions);
-			}
+            public SingleResponse ToResponse()
+            {
+                return new SingleResponse(certId.ToAsn1Object(), certStatus, thisUpdate, nextUpdate, extensions);
+            }
         }
 
-        /**
-		 * basic constructor
-		 */
-        public BasicOcspRespGenerator(
-			RespID responderID)
-		{
-			this.responderID = responderID;
-		}
+        /// <summary>Basic constructor.</summary>
+        public BasicOcspRespGenerator(RespID responderID)
+        {
+            m_responderID = responderID;
+        }
 
-		/**
-		 * construct with the responderID to be the SHA-1 keyHash of the passed in public key.
-		 */
-		public BasicOcspRespGenerator(
-			AsymmetricKeyParameter publicKey)
-		{
-			this.responderID = new RespID(publicKey);
-		}
+        /// <summary>Construct with the responderID as the SHA-1 keyHash of the passed in public key.</summary>
+        public BasicOcspRespGenerator(AsymmetricKeyParameter publicKey)
+        {
+            m_responderID = new RespID(publicKey);
+        }
 
-		/**
-		 * Add a response for a particular Certificate ID.
-		 *
-		 * @param certID certificate ID details
-		 * @param certStatus status of the certificate - null if okay
-		 */
-		public void AddResponse(
-			CertificateID		certID,
-			CertificateStatus	certStatus)
-		{
-			list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, null, null));
-		}
+        /// <summary>Add a response for a particular Certificate ID.</summary>
+        /// <param name="certID">Certificate ID details.</param>
+        /// <param name="certStatus">Status of the certificate - null if okay.</param>
+        public void AddResponse(CertificateID certID, CertificateStatus certStatus)
+        {
+            m_list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, null, null));
+        }
 
-		/**
-		 * Add a response for a particular Certificate ID.
-		 *
-		 * @param certID certificate ID details
-		 * @param certStatus status of the certificate - null if okay
-		 * @param singleExtensions optional extensions
-		 */
-		public void AddResponse(
-			CertificateID		certID,
-			CertificateStatus	certStatus,
-			X509Extensions		singleExtensions)
-		{
-			list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, null, singleExtensions));
-		}
+        /// <summary>Add a response for a particular Certificate ID.</summary>
+        /// <param name="certID">Certificate ID details.</param>
+        /// <param name="certStatus">Status of the certificate - null if okay.</param>
+        /// <param name="singleExtensions">Optional extensions.</param>
+        public void AddResponse(CertificateID certID, CertificateStatus certStatus, X509Extensions singleExtensions)
+        {
+            m_list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, null, singleExtensions));
+        }
 
-		/**
-		 * Add a response for a particular Certificate ID.
-		 *
-		 * @param certID certificate ID details
-		 * @param nextUpdate date when next update should be requested
-		 * @param certStatus status of the certificate - null if okay
-		 * @param singleExtensions optional extensions
-		 */
-		public void AddResponse(
-			CertificateID		certID,
-			CertificateStatus	certStatus,
-			DateTime?			nextUpdate,
-			X509Extensions		singleExtensions)
-		{
-			list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, nextUpdate, singleExtensions));
-		}
+        /// <summary>Add a response for a particular Certificate ID.</summary>
+        /// <param name="certID">Certificate ID details.</param>
+        /// <param name="nextUpdate">The date when next update should be requested.</param>
+        /// <param name="certStatus">Status of the certificate - null if okay.</param>
+        /// <param name="singleExtensions">Optional extensions.</param>
+        public void AddResponse(CertificateID certID, CertificateStatus certStatus, DateTime? nextUpdate,
+            X509Extensions singleExtensions)
+        {
+            m_list.Add(new ResponseObject(certID, certStatus, DateTime.UtcNow, nextUpdate, singleExtensions));
+        }
 
-		/**
-		 * Add a response for a particular Certificate ID.
-		 *
-		 * @param certID certificate ID details
-		 * @param thisUpdate date this response was valid on
-		 * @param nextUpdate date when next update should be requested
-		 * @param certStatus status of the certificate - null if okay
-		 * @param singleExtensions optional extensions
-		 */
-		public void AddResponse(
-			CertificateID		certID,
-			CertificateStatus	certStatus,
-			DateTime			thisUpdate,
-			DateTime?			nextUpdate,
-			X509Extensions		singleExtensions)
-		{
-			list.Add(new ResponseObject(certID, certStatus, thisUpdate, nextUpdate, singleExtensions));
-		}
+        /// <summary>Add a response for a particular Certificate ID.</summary>
+        /// <param name="certID">Certificate ID details.</param>
+        /// <param name="thisUpdate">The date this response was valid on.</param>
+        /// <param name="nextUpdate">The date when next update should be requested.</param>
+        /// <param name="certStatus">Status of the certificate - null if okay.</param>
+        /// <param name="singleExtensions">Optional extensions.</param>
+        public void AddResponse(CertificateID certID, CertificateStatus certStatus, DateTime thisUpdate,
+            DateTime? nextUpdate, X509Extensions singleExtensions)
+        {
+            m_list.Add(new ResponseObject(certID, certStatus, thisUpdate, nextUpdate, singleExtensions));
+        }
 
-		/**
-		 * Set the extensions for the response.
-		 *
-		 * @param responseExtensions the extension object to carry.
-		 */
-		public void SetResponseExtensions(
-			X509Extensions responseExtensions)
-		{
-			this.responseExtensions = responseExtensions;
-		}
+        /// <summary>Set the extensions for the response.</summary>
+        public void SetResponseExtensions(X509Extensions responseExtensions)
+        {
+            m_responseExtensions = responseExtensions;
+        }
 
-		private BasicOcspResp GenerateResponse(ISignatureFactory signatureFactory, X509Certificate[] chain,
-			DateTime producedAt)
-		{
-            AlgorithmIdentifier signingAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
-            DerObjectIdentifier signingAlgorithm = signingAlgID.Algorithm;
+        private BasicOcspResp GenerateResponse(ISignatureFactory signatureFactory, X509Certificate[] chain,
+            DateTime producedAt)
+        {
+            AlgorithmIdentifier sigAlgID = (AlgorithmIdentifier)signatureFactory.AlgorithmDetails;
 
-			Asn1EncodableVector responses = new Asn1EncodableVector();
+            DerSequence responses;
+            try
+            {
+                responses = DerSequence.Map(m_list, ro => ro.ToResponse());
+            }
+            catch (Exception e)
+            {
+                throw new OcspException("exception creating Request", e);
+            }
 
-			foreach (ResponseObject respObj in list)
-			{
-				try
-				{
-					responses.Add(respObj.ToResponse());
-				}
-				catch (Exception e)
-				{
-					throw new OcspException("exception creating Request", e);
-				}
-			}
+            var responseData = new ResponseData(m_responderID.ToAsn1Object(),
+                Rfc5280Asn1Utilities.CreateGeneralizedTime(producedAt), responses, m_responseExtensions);
 
-			var responseData = new ResponseData(
-				responderID.ToAsn1Object(),
-				Rfc5280Asn1Utilities.CreateGeneralizedTime(producedAt),
-				new DerSequence(responses),
-				responseExtensions);
+            DerBitString signature;
+            try
+            {
+                signature = X509.X509Utilities.GenerateSignature(signatureFactory, responseData);
+            }
+            catch (Exception e)
+            {
+                throw new OcspException("exception processing ResponseData", e);
+            }
 
-			DerBitString bitSig;
-			try
-			{
-				bitSig = X509.X509Utilities.GenerateSignature(signatureFactory, responseData);
-			}
-			catch (Exception e)
-			{
-				throw new OcspException("exception processing TBSRequest: " + e, e);
-			}
+            DerSequence certs = null;
+            if (!Arrays.IsNullOrEmpty(chain))
+            {
+                certs = DerSequence.Map(chain, c => c.CertificateStructure);
+            }
 
-			AlgorithmIdentifier sigAlgID = OcspUtilities.GetSigAlgID(signingAlgorithm);
+            return new BasicOcspResp(new BasicOcspResponse(responseData, sigAlgID, signature, certs));
+        }
 
-			DerSequence chainSeq = null;
-			if (chain != null && chain.Length > 0)
-			{
-				Asn1EncodableVector v = new Asn1EncodableVector(chain.Length);
-				try
-				{
-					for (int i = 0; i != chain.Length; i++)
-					{
-						v.Add(chain[i].CertificateStructure);
-					}
-				}
-				catch (IOException e)
-				{
-					throw new OcspException("error processing certs", e);
-				}
-				catch (CertificateEncodingException e)
-				{
-					throw new OcspException("error encoding certs", e);
-				}
+        // TODO[api] Rename 'thisUpdate' to 'producedAt'
+        public BasicOcspResp Generate(string signingAlgorithm, AsymmetricKeyParameter privateKey,
+            X509Certificate[] chain, DateTime thisUpdate)
+        {
+            return Generate(signingAlgorithm, privateKey, chain, thisUpdate, null);
+        }
 
-				chainSeq = new DerSequence(v);
-			}
+        public BasicOcspResp Generate(string signingAlgorithm, AsymmetricKeyParameter privateKey,
+            X509Certificate[] chain, DateTime producedAt, SecureRandom random)
+        {
+            if (signingAlgorithm == null)
+                throw new ArgumentNullException(nameof(signingAlgorithm));
 
-			return new BasicOcspResp(new BasicOcspResponse(responseData, sigAlgID, bitSig, chainSeq));
-		}
-
-		public BasicOcspResp Generate(
-			string					signingAlgorithm,
-			AsymmetricKeyParameter	privateKey,
-			X509Certificate[]		chain,
-			DateTime				thisUpdate)
-		{
-			return Generate(signingAlgorithm, privateKey, chain, thisUpdate, null);
-		}
-
-		public BasicOcspResp Generate(
-			string					signingAlgorithm,
-			AsymmetricKeyParameter	privateKey,
-			X509Certificate[]		chain,
-			DateTime				producedAt,
-			SecureRandom			random)
-		{
-			if (signingAlgorithm == null)
-			{
-				throw new ArgumentException("no signing algorithm specified");
-			}
-
-			return GenerateResponse(new Asn1SignatureFactory(signingAlgorithm, privateKey, random), chain, producedAt);
-		}
+            return GenerateResponse(new Asn1SignatureFactory(signingAlgorithm, privateKey, random), chain, producedAt);
+        }
 
         /// <summary>
         /// Generate the signed response using the passed in signature calculator.
@@ -261,27 +188,17 @@ namespace Org.BouncyCastle.Ocsp
         /// <param name="chain">The certificate chain associated with the response signer.</param>
         /// <param name="producedAt">"produced at" date.</param>
         /// <returns></returns>
-        public BasicOcspResp Generate(
-            ISignatureFactory signatureCalculatorFactory,
-            X509Certificate[] chain,
+        // TODO[api] Rename 'signatureCalculatorFactory' to 'signatureFactory'
+        public BasicOcspResp Generate(ISignatureFactory signatureCalculatorFactory, X509Certificate[] chain,
             DateTime producedAt)
         {
             if (signatureCalculatorFactory == null)
-            {
-                throw new ArgumentException("no signature calculator specified");
-            }
+                throw new ArgumentNullException(nameof(signatureCalculatorFactory));
 
             return GenerateResponse(signatureCalculatorFactory, chain, producedAt);
         }
 
-        /**
-		 * Return an IEnumerable of the signature names supported by the generator.
-		 *
-		 * @return an IEnumerable containing recognised names.
-		 */
-        public IEnumerable<string> SignatureAlgNames
-		{
-			get { return OcspUtilities.AlgNames; }
-		}
-	}
+        /// <summary>Return an IEnumerable of the signature names supported by the generator.</summary>
+        public IEnumerable<string> SignatureAlgNames => Asn1SignatureFactory.SignatureAlgNames;
+    }
 }

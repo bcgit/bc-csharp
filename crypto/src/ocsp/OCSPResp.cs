@@ -73,9 +73,7 @@ namespace Org.BouncyCastle.Ocsp
             return rb.Response;
         }
 
-        /**
-         * return the ASN.1 encoded representation of this object.
-         */
+        /// <summary>Return the ASN.1 encoded representation of this object.</summary>
         public byte[] GetEncoded() => m_ocspResponse.GetEncoded();
 
         public override bool Equals(object obj)

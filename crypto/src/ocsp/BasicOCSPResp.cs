@@ -6,173 +6,125 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Ocsp;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Ocsp
 {
-	/// <remarks>
-	/// <code>
-	/// BasicOcspResponse ::= SEQUENCE {
-	///		tbsResponseData		ResponseData,
-	///		signatureAlgorithm	AlgorithmIdentifier,
-	///		signature			BIT STRING,
-	///		certs				[0] EXPLICIT SEQUENCE OF Certificate OPTIONAL
-	/// }
-	/// </code>
-	/// </remarks>
-	public class BasicOcspResp
-		: X509ExtensionBase
-	{
-		private readonly BasicOcspResponse	resp;
-		private readonly ResponseData		data;
-//		private readonly X509Certificate[]	chain;
+    /// <remarks>
+    /// <code>
+    /// BasicOcspResponse ::= SEQUENCE {
+    ///     tbsResponseData     ResponseData,
+    ///     signatureAlgorithm  AlgorithmIdentifier,
+    ///     signature           BIT STRING,
+    ///     certs               [0] EXPLICIT SEQUENCE OF Certificate OPTIONAL
+    /// }
+    /// </code>
+    /// </remarks>
+    public class BasicOcspResp
+        : X509ExtensionBase
+    {
+        private readonly BasicOcspResponse resp;
+        private readonly ResponseData data;
+        //private readonly X509Certificate[]	chain;
 
-		public BasicOcspResp(
-			BasicOcspResponse resp)
-		{
-			this.resp = resp;
-			this.data = resp.TbsResponseData;
-		}
-
-		/// <returns>The DER encoding of the tbsResponseData field.</returns>
-		/// <exception cref="OcspException">In the event of an encoding error.</exception>
-		public byte[] GetTbsResponseData()
-		{
-			try
-			{
-				return data.GetDerEncoded();
-			}
-			catch (IOException e)
-			{
-				throw new OcspException("problem encoding tbsResponseData", e);
-			}
-		}
-
-		public int Version
-		{
-            get { return data.Version.IntValueExact + 1; }
-		}
-
-		public RespID ResponderId
-		{
-			get { return new RespID(data.ResponderID); }
-		}
-
-		public DateTime ProducedAt
-		{
-			get { return data.ProducedAt.ToDateTime(); }
-		}
-
-        public SingleResp[] Responses
+        public BasicOcspResp(BasicOcspResponse resp)
         {
-            get { return data.Responses.MapElements(element => new SingleResp(SingleResponse.GetInstance(element))); }
+            this.resp = resp;
+            this.data = resp.TbsResponseData;
         }
 
-        public X509Extensions ResponseExtensions
-		{
-			get { return data.ResponseExtensions; }
-		}
+        /// <returns>The DER encoding of the tbsResponseData field.</returns>
+        /// <exception cref="OcspException">In the event of an encoding error.</exception>
+        public byte[] GetTbsResponseData()
+        {
+            try
+            {
+                return data.GetEncoded(Asn1Encodable.Der);
+            }
+            catch (IOException e)
+            {
+                throw new OcspException("problem encoding tbsResponseData", e);
+            }
+        }
 
-		protected override X509Extensions GetX509Extensions()
-		{
-			return ResponseExtensions;
-		}
+        public int Version => data.Version.IntValueExact + 1;
 
-		public string SignatureAlgName
-		{
-            get { return OcspUtilities.GetAlgorithmName(resp.SignatureAlgorithm.Algorithm); }
-		}
+        public RespID ResponderId => new RespID(data.ResponderID);
 
-		public string SignatureAlgOid
-		{
-            get { return resp.SignatureAlgorithm.Algorithm.Id; }
-		}
+        public DateTime ProducedAt => data.ProducedAt.ToDateTime();
 
-		public byte[] GetSignature()
-		{
-			return resp.GetSignatureOctets();
-		}
+        public SingleResp[] Responses =>
+            data.Responses.MapElements(element => new SingleResp(SingleResponse.GetInstance(element)));
 
-		private List<X509Certificate> GetCertList()
-		{
-			// load the certificates if we have any
+        public X509Extensions ResponseExtensions => data.ResponseExtensions;
 
-			var result = new List<X509Certificate>();
+        protected override X509Extensions GetX509Extensions() => ResponseExtensions;
 
-			Asn1Sequence certs = resp.Certs;
-			if (certs != null)
-			{
-				foreach (Asn1Encodable ae in certs)
-				{
-                    var c = X509CertificateStructure.GetInstance(ae);
-                    if (c != null)
-                    {
-                        result.Add(new X509Certificate(c));
-                    }
-				}
-			}
+        [Obsolete("Will be removed")]
+        public string SignatureAlgName => X509SignatureUtilities.GetSignatureName(SignatureAlgorithm);
 
-			return result;
-		}
+        public AlgorithmIdentifier SignatureAlgorithm => resp.SignatureAlgorithm;
 
-		public X509Certificate[] GetCerts()
-		{
-			return GetCertList().ToArray();
-		}
+        [Obsolete("Will be removed")]
+        public string SignatureAlgOid => resp.SignatureAlgorithm.Algorithm.GetID();
 
-		/// <returns>The certificates, if any, associated with the response.</returns>
-		/// <exception cref="OcspException">In the event of an encoding error.</exception>
-		public IStore<X509Certificate> GetCertificates()
-		{
-			return CollectionUtilities.CreateStore(this.GetCertList());
-		}
+        public byte[] GetSignature() => resp.GetSignatureOctets();
 
-		/// <summary>
-		/// Verify the signature against the tbsResponseData object we contain.
-		/// </summary>
-		public bool Verify(
-			AsymmetricKeyParameter publicKey)
-		{
-			try
-			{
-				ISigner signature = SignerUtilities.GetSigner(this.SignatureAlgName);
-				signature.Init(false, publicKey);
-				byte[] bs = data.GetDerEncoded();
-				signature.BlockUpdate(bs, 0, bs.Length);
+        private List<X509Certificate> GetCertList()
+        {
+            // load the certificates if we have any
 
-				return signature.VerifySignature(this.GetSignature());
-			}
-			catch (Exception e)
-			{
-				throw new OcspException("exception processing sig: " + e, e);
-			}
-		}
+            var result = new List<X509Certificate>();
 
-		/// <returns>The ASN.1 encoded representation of this object.</returns>
-		public byte[] GetEncoded()
-		{
-			return resp.GetEncoded();
-		}
+            Asn1Sequence certs = resp.Certs;
+            if (certs != null)
+            {
+                foreach (Asn1Encodable element in certs)
+                {
+                    result.Add(new X509Certificate(X509CertificateStructure.GetInstance(element)));
+                }
+            }
 
-		public override bool Equals(
-			object obj)
-		{
-			if (obj == this)
-				return true;
+            return result;
+        }
 
-			BasicOcspResp other = obj as BasicOcspResp;
+        public X509Certificate[] GetCerts() => GetCertList().ToArray();
 
-			if (other == null)
-				return false;
+        /// <returns>The certificates, if any, associated with the response.</returns>
+        /// <exception cref="OcspException">In the event of an encoding error.</exception>
+        public IStore<X509Certificate> GetCertificates() => CollectionUtilities.CreateStore(GetCertList());
 
-			return resp.Equals(other.resp);
-		}
+        /// <summary>
+        /// Verify the signature against the tbsResponseData object we contain.
+        /// </summary>
+        public bool Verify(AsymmetricKeyParameter publicKey)
+        {
+            try
+            {
+                var verifierFactory = new Asn1VerifierFactory(resp.SignatureAlgorithm, publicKey);
 
-		public override int GetHashCode()
-		{
-			return resp.GetHashCode();
-		}
-	}
+                return X509.X509Utilities.VerifySignature(verifierFactory, data, resp.Signature);
+            }
+            catch (Exception e)
+            {
+                throw new OcspException("exception processing sig", e);
+            }
+        }
+
+        /// <returns>The ASN.1 encoded representation of this object.</returns>
+        public byte[] GetEncoded() => resp.GetEncoded();
+
+        public override bool Equals(object obj)
+        {
+            if (obj == this)
+                return true;
+
+            return obj is BasicOcspResp that
+                && this.resp.Equals(that.resp);
+        }
+
+        public override int GetHashCode() => resp.GetHashCode();
+    }
 }

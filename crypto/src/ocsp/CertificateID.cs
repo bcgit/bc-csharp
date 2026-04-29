@@ -12,34 +12,30 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Ocsp
 {
     public class CertificateID
-		: IEquatable<CertificateID>
-	{
-		[Obsolete("Use 'OiwObjectIdentifiers.IdSha1.Id' instead")]
-		public const string HashSha1 = "1.3.14.3.2.26";
+        : IEquatable<CertificateID>
+    {
+        [Obsolete("Use 'OiwObjectIdentifiers.IdSha1.Id' instead")]
+        public const string HashSha1 = "1.3.14.3.2.26";
 
-		public static readonly AlgorithmIdentifier DigestSha1 = new AlgorithmIdentifier(
+        public static readonly AlgorithmIdentifier DigestSha1 = new AlgorithmIdentifier(
             OiwObjectIdentifiers.IdSha1, DerNull.Instance);
 
         private readonly CertID m_id;
 
-		public CertificateID(CertID id)
-		{
-			m_id = id ?? throw new ArgumentNullException(nameof(id));
-		}
+        public CertificateID(CertID id)
+        {
+            m_id = id ?? throw new ArgumentNullException(nameof(id));
+        }
 
-		/**
-		 * create from an issuer certificate and the serial number of the
-		 * certificate it signed.
-		 * @exception OcspException if any problems occur creating the id fields.
-		 */
-		[Obsolete("Will be removed")]
-		public CertificateID(string hashAlgorithm, X509Certificate issuerCert, BigInteger serialNumber)
-		{
-			AlgorithmIdentifier digestAlgorithm = new AlgorithmIdentifier(
-				new DerObjectIdentifier(hashAlgorithm), DerNull.Instance);
+        /// <summary>Create from an issuer certificate and the serial number of the certificate it signed.</summary>
+        [Obsolete("Will be removed")]
+        public CertificateID(string hashAlgorithm, X509Certificate issuerCert, BigInteger serialNumber)
+        {
+            AlgorithmIdentifier digestAlgorithm = new AlgorithmIdentifier(
+                new DerObjectIdentifier(hashAlgorithm), DerNull.Instance);
 
-			m_id = CreateCertID(digestAlgorithm, issuerCert, new DerInteger(serialNumber));
-		}
+            m_id = CreateCertID(digestAlgorithm, issuerCert, new DerInteger(serialNumber));
+        }
 
         public CertificateID(AlgorithmIdentifier digestAlgorithm, X509Certificate issuerCert, BigInteger serialNumber)
         {
@@ -53,20 +49,17 @@ namespace Org.BouncyCastle.Ocsp
 
         public string HashAlgOid => m_id.HashAlgorithm.Algorithm.Id;
 
-		public byte[] GetIssuerNameHash() => m_id.IssuerNameHash.GetOctets();
+        public byte[] GetIssuerNameHash() => m_id.IssuerNameHash.GetOctets();
 
-		public byte[] GetIssuerKeyHash() => m_id.IssuerKeyHash.GetOctets();
+        public byte[] GetIssuerKeyHash() => m_id.IssuerKeyHash.GetOctets();
 
-		/**
-		 * return the serial number for the certificate associated
-		 * with this request.
-		 */
-		public BigInteger SerialNumber => m_id.SerialNumber.Value;
+        /// <summary>Return the serial number for the certificate associated with this request.</summary>
+        public BigInteger SerialNumber => m_id.SerialNumber.Value;
 
-		public bool MatchesIssuer(X509Certificate issuerCert)
-		{
-			return CreateCertID(m_id.HashAlgorithm, issuerCert, m_id.SerialNumber).Equals(m_id);
-		}
+        public bool MatchesIssuer(X509Certificate issuerCert)
+        {
+            return CreateCertID(m_id.HashAlgorithm, issuerCert, m_id.SerialNumber).Equals(m_id);
+        }
 
         public bool MatchesIssuer(IDigestFactory digestFactory, X509Certificate issuerCert)
         {
@@ -84,42 +77,40 @@ namespace Org.BouncyCastle.Ocsp
 
         public override int GetHashCode() => m_id.GetHashCode();
 
-		/**
-		 * Create a new CertificateID for a new serial number derived from a previous one
-		 * calculated for the same CA certificate.
-		 *
-		 * @param original the previously calculated CertificateID for the CA.
-		 * @param newSerialNumber the serial number for the new certificate of interest.
-		 *
-		 * @return a new CertificateID for newSerialNumber
-		 */
-		public static CertificateID DeriveCertificateID(CertificateID original, BigInteger newSerialNumber)
-		{
+        /// <summary>
+        /// Create a new CertificateID for a new serial number derived from a previous one calculated for the same CA
+        /// certificate.
+        /// </summary>
+        /// <param name="original">The previously calculated CertificateID for the CA.</param>
+        /// <param name="newSerialNumber">The serial number for the new certificate of interest.</param>
+        /// <returns>A new CertificateID for newSerialNumber.</returns>
+        public static CertificateID DeriveCertificateID(CertificateID original, BigInteger newSerialNumber)
+        {
             CertID originalID = original.ToAsn1Object();
 
             return new CertificateID(new CertID(originalID.HashAlgorithm, originalID.IssuerNameHash,
                 originalID.IssuerKeyHash, new DerInteger(newSerialNumber)));
-		}
+        }
 
         private static CertID CreateCertID(AlgorithmIdentifier digestAlgorithm, X509Certificate issuerCert,
-			DerInteger serialNumber)
-		{
-			try
-			{
-				X509Name issuerName = issuerCert.SubjectDN;
-				byte[] issuerNameHash = X509Utilities.CalculateDigest(digestAlgorithm, issuerName);
+            DerInteger serialNumber)
+        {
+            try
+            {
+                X509Name issuerName = issuerCert.SubjectDN;
+                byte[] issuerNameHash = X509Utilities.CalculateDigest(digestAlgorithm, issuerName);
 
-				byte[] issuerKey = issuerCert.SubjectPublicKeyInfo.PublicKey.GetBytes();
-				byte[] issuerKeyHash = DigestUtilities.CalculateDigest(digestAlgorithm.Algorithm, issuerKey);
+                byte[] issuerKey = issuerCert.SubjectPublicKeyInfo.PublicKey.GetBytes();
+                byte[] issuerKeyHash = DigestUtilities.CalculateDigest(digestAlgorithm.Algorithm, issuerKey);
 
                 return new CertID(digestAlgorithm, new DerOctetString(issuerNameHash),
-					new DerOctetString(issuerKeyHash), serialNumber);
-			}
-			catch (Exception e)
-			{
-				throw new OcspException("problem creating ID: " + e, e);
-			}
-		}
+                    new DerOctetString(issuerKeyHash), serialNumber);
+            }
+            catch (Exception e)
+            {
+                throw new OcspException("problem creating ID: " + e, e);
+            }
+        }
 
         private static CertID CreateCertID(IDigestFactory digestFactory, X509Certificate issuerCert,
             DerInteger serialNumber)
@@ -133,7 +124,7 @@ namespace Org.BouncyCastle.Ocsp
                 byte[] issuerKeyHash = X509Utilities.CalculateDigest(digestFactory, issuerKey, 0, issuerKey.Length);
 
                 return new CertID((AlgorithmIdentifier)digestFactory.AlgorithmDetails,
-					new DerOctetString(issuerNameHash), new DerOctetString(issuerKeyHash), serialNumber);
+                    new DerOctetString(issuerNameHash), new DerOctetString(issuerKeyHash), serialNumber);
             }
             catch (Exception e)
             {
