@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             if (obj is Signature signature)
                 return signature;
             return new Signature(Asn1Sequence.GetInstance(obj));
-		}
+        }
 
         public static Signature GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new Signature(Asn1Sequence.GetInstance(obj, explicitly));
@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public Asn1Sequence Certs => m_certs;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * Signature       ::=     Sequence {

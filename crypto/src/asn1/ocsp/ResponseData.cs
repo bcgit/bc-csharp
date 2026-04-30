@@ -5,15 +5,15 @@ using Org.BouncyCastle.Asn1.X509;
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
     public class ResponseData
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static ResponseData GetInstance(object obj)
         {
-			if (obj == null)
-				return null;
+            if (obj == null)
+                return null;
             if (obj is ResponseData responseData)
                 return responseData;
-			return new ResponseData(Asn1Sequence.GetInstance(obj));
+            return new ResponseData(Asn1Sequence.GetInstance(obj));
         }
 
         public static ResponseData GetInstance(Asn1TaggedObject obj, bool explicitly) =>
@@ -41,15 +41,15 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             Asn1Sequence responses, X509Extensions responseExtensions)
         {
             m_version = version ?? V1;
-			m_versionPresent = false;
-			m_responderID = responderID ?? throw new ArgumentNullException(nameof(responderID));
-			m_producedAt = producedAt ?? throw new ArgumentNullException(nameof(producedAt));
-			m_responses = responses ?? throw new ArgumentNullException(nameof(responses));
-			m_responseExtensions = responseExtensions;
-		}
+            m_versionPresent = false;
+            m_responderID = responderID ?? throw new ArgumentNullException(nameof(responderID));
+            m_producedAt = producedAt ?? throw new ArgumentNullException(nameof(producedAt));
+            m_responses = responses ?? throw new ArgumentNullException(nameof(responses));
+            m_responseExtensions = responseExtensions;
+        }
 
         private ResponseData(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count;
             if (count < 3 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -74,15 +74,15 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public DerInteger Version => m_version;
 
-		public ResponderID ResponderID => m_responderID;
+        public ResponderID ResponderID => m_responderID;
 
-		public Asn1GeneralizedTime ProducedAt => m_producedAt;
+        public Asn1GeneralizedTime ProducedAt => m_producedAt;
 
-		public Asn1Sequence Responses => m_responses;
+        public Asn1Sequence Responses => m_responses;
 
-		public X509Extensions ResponseExtensions => m_responseExtensions;
+        public X509Extensions ResponseExtensions => m_responseExtensions;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * ResponseData ::= Sequence {

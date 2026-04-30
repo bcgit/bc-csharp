@@ -26,13 +26,13 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         private readonly CrlReason m_revocationReason;
 
         public RevokedInfo(Asn1GeneralizedTime revocationTime)
-			: this(revocationTime, null)
-		{
-		}
+            : this(revocationTime, null)
+        {
+        }
 
         public RevokedInfo(Asn1GeneralizedTime revocationTime, CrlReason revocationReason)
         {
-			m_revocationTime = revocationTime ?? throw new ArgumentNullException("revocationTime");
+            m_revocationTime = revocationTime ?? throw new ArgumentNullException("revocationTime");
             m_revocationReason = revocationReason;
         }
 
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public CrlReason RevocationReason => m_revocationReason;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * RevokedInfo ::= Sequence {

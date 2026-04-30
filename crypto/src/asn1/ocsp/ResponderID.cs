@@ -57,13 +57,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
-        public virtual byte[] GetKeyHash()
-        {
-            if (m_id is Asn1OctetString asn1OctetString)
-                return asn1OctetString.GetOctets();
-
-            return null;
-        }
+        public virtual byte[] GetKeyHash() => (m_id as Asn1OctetString)?.GetOctets();
 
         public virtual X509Name Name
         {

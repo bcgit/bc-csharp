@@ -27,11 +27,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public Request(CertID reqCert, X509Extensions singleRequestExtensions)
         {
-			m_reqCert = reqCert ?? throw new ArgumentNullException(nameof(reqCert));
+            m_reqCert = reqCert ?? throw new ArgumentNullException(nameof(reqCert));
             m_singleRequestExtensions = singleRequestExtensions;
         }
 
-		private Request(Asn1Sequence seq)
+        private Request(Asn1Sequence seq)
         {
             int count = seq.Count;
             if (count < 1 || count > 2)
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public X509Extensions SingleRequestExtensions => m_singleRequestExtensions;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * Request         ::=     Sequence {

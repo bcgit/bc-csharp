@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public Asn1GeneralizedTime CrlTime => m_crlTime;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * CrlID ::= Sequence {

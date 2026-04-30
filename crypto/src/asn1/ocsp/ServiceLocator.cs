@@ -12,9 +12,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             if (obj == null)
                 return null;
             if (obj is ServiceLocator serviceLocator)
-				return serviceLocator;
+                return serviceLocator;
             return new ServiceLocator(Asn1Sequence.GetInstance(obj));
-		}
+        }
 
         public static ServiceLocator GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new ServiceLocator(Asn1Sequence.GetInstance(obj, explicitly));
@@ -32,9 +32,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public ServiceLocator(X509Name issuer, Asn1Object locator)
         {
-			m_issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
-			m_locator = locator;
-		}
+            m_issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
+            m_locator = locator;
+        }
 
         private ServiceLocator(Asn1Sequence seq)
         {
@@ -53,13 +53,13 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         public X509Name Issuer => m_issuer;
 
         public Asn1Object Locator => m_locator;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * ServiceLocator ::= Sequence {

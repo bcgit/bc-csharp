@@ -10,9 +10,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             if (obj == null)
                 return null;
             if (obj is OcspRequest ocspRequest)
-				return ocspRequest;
-			return new OcspRequest(Asn1Sequence.GetInstance(obj));
-		}
+                return ocspRequest;
+            return new OcspRequest(Asn1Sequence.GetInstance(obj));
+        }
 
         public static OcspRequest GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new OcspRequest(Asn1Sequence.GetInstance(obj, explicitly));
@@ -25,11 +25,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public OcspRequest(TbsRequest tbsRequest, Signature optionalSignature)
         {
-			m_tbsRequest = tbsRequest ?? throw new ArgumentNullException(nameof(tbsRequest));
+            m_tbsRequest = tbsRequest ?? throw new ArgumentNullException(nameof(tbsRequest));
             m_optionalSignature = optionalSignature;
         }
 
-		private OcspRequest(Asn1Sequence seq)
+        private OcspRequest(Asn1Sequence seq)
         {
             int count = seq.Count;
             if (count < 1 || count > 2)
@@ -46,9 +46,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public TbsRequest TbsRequest => m_tbsRequest;
 
-		public Signature OptionalSignature => m_optionalSignature;
+        public Signature OptionalSignature => m_optionalSignature;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * OcspRequest     ::=     Sequence {

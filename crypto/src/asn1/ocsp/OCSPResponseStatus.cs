@@ -1,7 +1,3 @@
-using System;
-
-using Org.BouncyCastle.Asn1;
-
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
     public class OcspResponseStatus
@@ -14,7 +10,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         public const int SignatureRequired = 5;
         public const int Unauthorized = 6;
 
-		/**
+        /**
          * The OcspResponseStatus enumeration.
          * <pre>
          * OcspResponseStatus ::= Enumerated {
@@ -29,11 +25,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          * </pre>
          */
         public OcspResponseStatus(int value)
-			: base(value)
+            : base(value)
         {
         }
 
-		public OcspResponseStatus(DerEnumerated value)
+        public OcspResponseStatus(DerEnumerated value)
             : base(value.IntValueExact)
         {
         }

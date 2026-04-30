@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public X509Extensions SingleExtensions => m_singleExtensions;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *  SingleResponse ::= Sequence {
