@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Asn1
         internal static DerBoolean CreatePrimitive(byte[] contents)
         {
             if (contents.Length != 1)
-                throw new ArgumentException("BOOLEAN value should have 1 byte in it", "contents");
+                throw new ArgumentException("BOOLEAN value should have 1 byte in it", nameof(contents));
 
             byte b = contents[0];
 

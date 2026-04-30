@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Asn1
         internal DerGraphicString(byte[] contents, bool clone)
         {
             if (null == contents)
-                throw new ArgumentNullException("contents");
+                throw new ArgumentNullException(nameof(contents));
 
             this.m_contents = clone ? Arrays.Clone(contents) : contents;
         }

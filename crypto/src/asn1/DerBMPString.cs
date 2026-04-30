@@ -93,11 +93,11 @@ namespace Org.BouncyCastle.Asn1
         internal DerBmpString(byte[] contents)
         {
 			if (null == contents)
-				throw new ArgumentNullException("contents");
+				throw new ArgumentNullException(nameof(contents));
 
             int byteLen = contents.Length;
             if (0 != (byteLen & 1))
-                throw new ArgumentException("malformed BMPString encoding encountered", "contents");
+                throw new ArgumentException("malformed BMPString encoding encountered", nameof(contents));
 
             int charLen = byteLen / 2;
 

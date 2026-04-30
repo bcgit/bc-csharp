@@ -102,7 +102,7 @@ namespace Org.BouncyCastle.Asn1
         internal DerT61String(byte[] contents, bool clone)
         {
             if (null == contents)
-                throw new ArgumentNullException("contents");
+                throw new ArgumentNullException(nameof(contents));
 
             m_contents = clone ? Arrays.Clone(contents) : contents;
         }
