@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Asn1
         {
             internal static readonly Asn1UniversalType Instance = new Meta();
 
-            private Meta() : base(typeof(DerEnumerated), Asn1Tags.Enumerated) {}
+            private Meta() : base(typeof(DerEnumerated), Asn1Tags.Enumerated) { }
 
             internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
             {
@@ -21,11 +21,6 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        /**
-         * return an integer from the passed in object
-         *
-         * @exception ArgumentException if the object cannot be converted.
-         */
         public static DerEnumerated GetInstance(object obj)
         {
             if (obj == null)
@@ -54,13 +49,6 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
         }
 
-        /**
-         * return an Enumerated from a tagged object.
-         *
-         * @param taggedObject the tagged object holding the object we want
-         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot be converted.
-         */
         public static DerEnumerated GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerEnumerated)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
@@ -81,6 +69,8 @@ namespace Org.BouncyCastle.Asn1
         {
             return (DerEnumerated)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
         }
+
+        private static readonly DerEnumerated[] Cache = new DerEnumerated[16];
 
         private readonly byte[] m_contents;
         private readonly int m_start;
@@ -177,23 +167,42 @@ namespace Org.BouncyCastle.Asn1
 
         protected override int Asn1GetHashCode() => Arrays.GetHashCode(m_contents);
 
-        private static readonly DerEnumerated[] cache = new DerEnumerated[12];
-
-        internal static DerEnumerated CreatePrimitive(byte[] contents, bool clone)
+        private static DerEnumerated CreatePrimitive(byte[] contents, bool clone)
         {
-            if (contents.Length > 1)
+            int length = contents.Length;
+            if (length > 1)
                 return new DerEnumerated(contents, clone);
-            if (contents.Length == 0)
+            if (length == 0)
                 throw new ArgumentException("ENUMERATED has zero length", nameof(contents));
 
             int value = contents[0];
-            if (value >= cache.Length)
+            if (value >= Cache.Length)
                 return new DerEnumerated(contents, clone);
 
-            DerEnumerated possibleMatch = cache[value];
+            DerEnumerated possibleMatch = Cache[value];
             if (possibleMatch == null)
             {
-                cache[value] = possibleMatch = new DerEnumerated(contents, clone);
+                Cache[value] = possibleMatch = new DerEnumerated(contents, clone);
+            }
+            return possibleMatch;
+        }
+
+        internal static DerEnumerated CreatePrimitive(DefiniteLengthInputStream defIn)
+        {
+            int length = defIn.Remaining;
+            if (length > 1)
+                return new DerEnumerated(defIn.ToArray(), clone: false);
+            if (length == 0)
+                throw new ArgumentException("ENUMERATED has zero length", nameof(defIn));
+
+            int value = defIn.ReadByte();
+            if (value >= Cache.Length)
+                return new DerEnumerated(value);
+
+            DerEnumerated possibleMatch = Cache[value];
+            if (possibleMatch == null)
+            {
+                Cache[value] = possibleMatch = new DerEnumerated(value);
             }
             return possibleMatch;
         }

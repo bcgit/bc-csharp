@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Asn1
 
             internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
             {
-                return CreatePrimitive(octetString.GetOctets(), false);
+                return CreatePrimitive(octetString.GetOctets(), clone: false);
             }
         }
 
@@ -34,13 +34,8 @@ namespace Org.BouncyCastle.Asn1
         private const int MaxContentsLength = 4096;
         private const int MaxIdentifierLength = MaxContentsLength * 4 - 1;
 
-        public static Asn1RelativeOid FromContents(byte[] contents)
-        {
-            if (contents == null)
-                throw new ArgumentNullException(nameof(contents));
-
-            return CreatePrimitive(contents, true);
-        }
+        public static Asn1RelativeOid FromContents(byte[] contents) =>
+            CreatePrimitive(contents ?? throw new ArgumentNullException(nameof(contents)), clone: true);
 
         public static Asn1RelativeOid GetInstance(object obj)
         {
@@ -205,10 +200,11 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
-        internal static void CheckContentsLength(int contentsLength)
+        internal static int CheckContentsLength(int contentsLength)
         {
             if (contentsLength > MaxContentsLength)
                 throw new ArgumentException("exceeded relative OID contents length limit");
+            return contentsLength;
         }
 
         internal static void CheckIdentifier(string identifier)
@@ -221,11 +217,33 @@ namespace Org.BouncyCastle.Asn1
                 throw new FormatException("string " + identifier + " not a valid relative OID");
         }
 
-        internal static Asn1RelativeOid CreatePrimitive(byte[] contents, bool clone)
-        {
-            CheckContentsLength(contents.Length);
+        private static bool ContentsEquals(byte[] a, byte[] b, int bLen) => Arrays.AreEqual(a, 0, a.Length, b, 0, bLen);
 
-            uint index = (uint)Arrays.GetHashCode(contents);
+        internal static Asn1RelativeOid CreatePrimitive(DefiniteLengthInputStream defIn, byte[] tmp)
+        {
+            int contentsLength = CheckContentsLength(defIn.Remaining);
+
+            bool useTmp = contentsLength <= tmp.Length;
+            if (useTmp)
+            {
+                defIn.ReadAllIntoByteArray(tmp);
+            }
+            else
+            {
+                tmp = defIn.ToArray();
+            }
+
+            return CreatePrimitive(contents: tmp, contentsLength, clone: useTmp);
+        }
+
+        private static Asn1RelativeOid CreatePrimitive(byte[] contents, bool clone) =>
+            CreatePrimitive(contents, CheckContentsLength(contents.Length), clone);
+
+        private static Asn1RelativeOid CreatePrimitive(byte[] contents, int contentsLength, bool clone)
+        {
+            Debug.Assert(clone || contents.Length == contentsLength);
+
+            uint index = (uint)Arrays.GetHashCode(contents, 0, contentsLength);
 
             index ^= index >> 24;
             index ^= index >> 12;
@@ -233,31 +251,32 @@ namespace Org.BouncyCastle.Asn1
             index &= 63;
 
             var originalEntry = Volatile.Read(ref Cache[index]);
-            if (originalEntry != null && Arrays.AreEqual(contents, originalEntry.m_contents))
+            if (originalEntry != null && ContentsEquals(originalEntry.m_contents, contents, contentsLength))
                 return originalEntry;
 
-            if (!IsValidContents(contents))
+            if (!IsValidContents(contents, contentsLength))
                 throw new ArgumentException("invalid relative OID contents", nameof(contents));
 
-            var newEntry = new Asn1RelativeOid(clone ? Arrays.Clone(contents) : contents, identifier: null);
+            var newContents = clone ? Arrays.CopySegment(contents, 0, contentsLength) : contents;
+            var newEntry = new Asn1RelativeOid(newContents, identifier: null);
 
             var exchangedEntry = Interlocked.CompareExchange(ref Cache[index], newEntry, originalEntry);
             if (exchangedEntry != originalEntry)
             {
-                if (exchangedEntry != null && Arrays.AreEqual(contents, exchangedEntry.m_contents))
+                if (exchangedEntry != null && ContentsEquals(exchangedEntry.m_contents, contents, contentsLength))
                     return exchangedEntry;
             }
 
             return newEntry;
         }
 
-        internal static bool IsValidContents(byte[] contents)
+        internal static bool IsValidContents(byte[] contents, int contentsLength)
         {
-            if (contents.Length < 1)
+            if (contentsLength < 1)
                 return false;
 
             bool subIDStart = true;
-            for (int i = 0; i < contents.Length; ++i)
+            for (int i = 0; i < contentsLength; ++i)
             {
                 if (subIDStart && contents[i] == 0x80)
                     return false;

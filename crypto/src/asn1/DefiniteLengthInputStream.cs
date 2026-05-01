@@ -99,15 +99,14 @@ namespace Org.BouncyCastle.Asn1
 
         internal void ReadAllIntoByteArray(byte[] buf)
         {
-            if (m_remaining != buf.Length)
-                throw new ArgumentException("buffer length not right for data");
-
             if (m_remaining == 0)
                 return;
 
             Asn1InputStream.CheckLength(m_remaining, Limit);
 
-            if ((m_remaining -= Streams.ReadFully(m_in, buf, 0, buf.Length)) != 0)
+            if (m_remaining > buf.Length)
+                throw new ArgumentException("buffer length insufficient for data");
+            if ((m_remaining -= Streams.ReadFully(m_in, buf, 0, m_remaining)) != 0)
                 throw new EndOfStreamException("DEF length " + m_originalLength + " object truncated by " + m_remaining);
             EnableParentEofDetect();
         }

@@ -1,18 +1,17 @@
 using System;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-using System.Buffers;
+using System.Buffers.Binary;
 #endif
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-    /**
-     * Der BMPString object.
-     */
+    /// <summary>DER BMPString object.</summary>
     public class DerBmpString
-		: DerStringBase
+        : DerStringBase
     {
         internal class Meta : Asn1UniversalType
         {
@@ -26,12 +25,6 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-		/**
-         * return a BMP string from the given object.
-         *
-         * @param obj the object we want converted.
-         * @exception ArgumentException if the object cannot be converted.
-         */
         public static DerBmpString GetInstance(object obj)
         {
             if (obj == null)
@@ -60,13 +53,6 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
         }
 
-        /**
-         * return a BMP string from a tagged object.
-         *
-         * @param taggedObject the tagged object holding the object we want
-         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot be converted.
-         */
         public static DerBmpString GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerBmpString)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
@@ -92,8 +78,8 @@ namespace Org.BouncyCastle.Asn1
 
         internal DerBmpString(byte[] contents)
         {
-			if (null == contents)
-				throw new ArgumentNullException(nameof(contents));
+            if (null == contents)
+                throw new ArgumentNullException(nameof(contents));
 
             int byteLen = contents.Length;
             if (0 != (byteLen & 1))
@@ -124,28 +110,16 @@ namespace Org.BouncyCastle.Asn1
 #if !(NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER)
         internal DerBmpString(char[] str)
         {
-            if (str == null)
-                throw new ArgumentNullException("str");
-
-            m_str = new string(str);
+            m_str = new string(str ?? throw new ArgumentNullException(nameof(str)));
         }
 #endif
 
-        /**
-         * basic constructor
-         */
         public DerBmpString(string str)
         {
-			if (str == null)
-				throw new ArgumentNullException("str");
-
-            m_str = str;
+            m_str = str ?? throw new ArgumentNullException(nameof(str));
         }
 
-        public override string GetString()
-        {
-            return m_str;
-        }
+        public override string GetString() => m_str;
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
@@ -193,22 +167,89 @@ namespace Org.BouncyCastle.Asn1
             return b;
         }
 
-        internal static DerBmpString CreatePrimitive(byte[] contents)
+        internal static DerBmpString CreatePrimitive(DefiniteLengthInputStream defIn)
         {
-            return new DerBmpString(contents);
-        }
+            int remainingBytes = defIn.Remaining;
+            if (0 != (remainingBytes & 1))
+                throw new IOException("malformed BMPString encoding encountered");
+
+            int length = remainingBytes / 2;
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal static DerBmpString CreatePrimitive<TState>(int length, TState state, SpanAction<char, TState> action)
-        {
-            return new DerBmpString(string.Create(length, state, action));
-        }
+            return new DerBmpString(string.Create(length, defIn, (str, defIn) =>
+            {
+                int stringPos = 0;
+
+                Span<byte> buf = stackalloc byte[8];
+                while (remainingBytes >= 8)
+                {
+                    if (Streams.ReadFully(defIn, buf) != 8)
+                        throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                    str[stringPos] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[0..]);
+                    str[stringPos + 1] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[2..]);
+                    str[stringPos + 2] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[4..]);
+                    str[stringPos + 3] = (char)BinaryPrimitives.ReadUInt16BigEndian(buf[6..]);
+                    stringPos += 4;
+                    remainingBytes -= 8;
+                }
+                if (remainingBytes > 0)
+                {
+                    if (Streams.ReadFully(defIn, buf) != remainingBytes)
+                        throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                    int bufPos = 0;
+                    do
+                    {
+                        int b1 = buf[bufPos++] << 8;
+                        int b2 = buf[bufPos++] & 0xFF;
+                        str[stringPos++] = (char)(b1 | b2);
+                    }
+                    while (bufPos < remainingBytes);
+                }
+
+                if (0 != defIn.Remaining || str.Length != stringPos)
+                    throw new InvalidOperationException();
+            }));
 #else
-        internal static DerBmpString CreatePrimitive(char[] str)
-        {
-            // TODO[asn1] Asn1InputStream has a validator/converter that should be unified in this class somehow
+            char[] str = new char[length];
+            int stringPos = 0;
+
+            byte[] buf = new byte[8];
+            while (remainingBytes >= 8)
+            {
+                if (Streams.ReadFully(defIn, buf, 0, 8) != 8)
+                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                str[stringPos    ] = (char)((buf[0] << 8) | (buf[1] & 0xFF));
+                str[stringPos + 1] = (char)((buf[2] << 8) | (buf[3] & 0xFF));
+                str[stringPos + 2] = (char)((buf[4] << 8) | (buf[5] & 0xFF));
+                str[stringPos + 3] = (char)((buf[6] << 8) | (buf[7] & 0xFF));
+                stringPos += 4;
+                remainingBytes -= 8;
+            }
+            if (remainingBytes > 0)
+            {
+                if (Streams.ReadFully(defIn, buf, 0, remainingBytes) != remainingBytes)
+                    throw new EndOfStreamException("EOF encountered in middle of BMPString");
+
+                int bufPos = 0;
+                do
+                {
+                    int b1 = buf[bufPos++] << 8;
+                    int b2 = buf[bufPos++] & 0xFF;
+                    str[stringPos++] = (char)(b1 | b2);
+                }
+                while (bufPos < remainingBytes);
+            }
+
+            if (0 != defIn.Remaining || str.Length != stringPos)
+                throw new InvalidOperationException();
+
             return new DerBmpString(str);
-        }
 #endif
+        }
+
+        private static DerBmpString CreatePrimitive(byte[] contents) => new DerBmpString(contents);
     }
 }

@@ -5,14 +5,13 @@ namespace Org.BouncyCastle.Asn1
 {
     public class Asn1StreamParser
     {
-        internal static Asn1StreamParser CreateSubParser(Stream sub, int parentDepth, int limit, byte[][] tmpBuffers) =>
-            new Asn1StreamParser(sub, Asn1InputStream.DecrementDepth(parentDepth), limit, tmpBuffers);
+        internal static Asn1StreamParser CreateSubParser(Stream sub, int parentDepth, int limit, byte[] tmp) =>
+            new Asn1StreamParser(sub, Asn1InputStream.DecrementDepth(parentDepth), limit, tmp);
 
         private readonly Stream m_in;
         private readonly int m_depth;
         private readonly int m_limit;
-
-        private readonly byte[][] m_tmpBuffers;
+        private readonly byte[] m_tmp;
 
         public Asn1StreamParser(Stream input)
             : this(input, Asn1InputStream.FindLimit(input))
@@ -25,11 +24,11 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public Asn1StreamParser(Stream input, int limit)
-            : this(input, Asn1InputStream.FindDepth(), limit, new byte[16][])
+            : this(input, Asn1InputStream.FindDepth(), limit, tmp: new byte[16])
         {
         }
 
-        private Asn1StreamParser(Stream input, int depth, int limit, byte[][] tmpBuffers)
+        private Asn1StreamParser(Stream input, int depth, int limit, byte[] tmp)
         {
             if (!input.CanRead)
                 throw new ArgumentException("Expected stream to be readable", nameof(input));
@@ -37,7 +36,7 @@ namespace Org.BouncyCastle.Asn1
             m_in = input;
             m_depth = depth;
             m_limit = limit;
-            m_tmpBuffers = tmpBuffers;
+            m_tmp = tmp;
         }
 
         public int Limit => m_limit;
@@ -65,7 +64,7 @@ namespace Org.BouncyCastle.Asn1
                     throw new IOException("indefinite-length primitive encoding encountered");
 
                 IndefiniteLengthInputStream indIn = new IndefiniteLengthInputStream(m_in, m_limit);
-                Asn1StreamParser sp = CreateSubParser(indIn, m_depth, m_limit, m_tmpBuffers);
+                Asn1StreamParser sp = CreateSubParser(indIn, m_depth, m_limit, m_tmp);
 
                 int tagClass = tagHdr & Asn1Tags.Private;
                 if (0 != tagClass)
@@ -82,7 +81,7 @@ namespace Org.BouncyCastle.Asn1
                 if (0 == (tagHdr & Asn1Tags.Flags))
                     return ParseImplicitPrimitive(tagNo, defIn);
 
-                Asn1StreamParser sp = CreateSubParser(defIn, m_depth, subLimit, m_tmpBuffers);
+                Asn1StreamParser sp = CreateSubParser(defIn, m_depth, subLimit, m_tmp);
 
                 int tagClass = tagHdr & Asn1Tags.Private;
                 if (0 != tagClass)
@@ -188,7 +187,7 @@ namespace Org.BouncyCastle.Asn1
 
             try
             {
-                return Asn1InputStream.CreatePrimitiveDerObject(univTagNo, defIn, m_tmpBuffers);
+                return Asn1InputStream.CreatePrimitiveDerObject(univTagNo, defIn, m_tmp);
             }
             catch (ArgumentException e)
             {

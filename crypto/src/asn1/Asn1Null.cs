@@ -5,9 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
-    /**
-     * A Null object.
-     */
+    /// <summary>A NULL object.</summary>
     public abstract class Asn1Null
         : Asn1Object
     {
@@ -19,8 +17,7 @@ namespace Org.BouncyCastle.Asn1
 
             internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
             {
-                CheckContentsLength(octetString.GetOctetsLength());
-                return CreatePrimitive();
+                return CreatePrimitive(octetString.GetOctetsLength());
             }
         }
 
@@ -77,10 +74,7 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        public override string ToString()
-        {
-            return "NULL";
-        }
+        public override string ToString() => "NULL";
 
         internal static void CheckContentsLength(int contentsLength)
         {
@@ -88,6 +82,12 @@ namespace Org.BouncyCastle.Asn1
                 throw new InvalidOperationException("malformed NULL encoding encountered");
         }
 
-        internal static Asn1Null CreatePrimitive() => DerNull.Instance;
+        internal static Asn1Null CreatePrimitive(DefiniteLengthInputStream defIn) => CreatePrimitive(defIn.Remaining);
+
+        private static Asn1Null CreatePrimitive(int contentsLength)
+        {
+            CheckContentsLength(contentsLength);
+            return DerNull.Instance;
+        }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace Org.BouncyCastle.Asn1
 
             internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
             {
-                return CreatePrimitive(octetString.GetOctets(), false);
+                return CreatePrimitive(octetString.GetOctets(), clone: false);
             }
         }
 
@@ -33,19 +34,9 @@ namespace Org.BouncyCastle.Asn1
         private const int MaxContentsLength = 4096;
         private const int MaxIdentifierLength = MaxContentsLength * 4 + 1;
 
-        public static DerObjectIdentifier FromContents(byte[] contents)
-        {
-            if (contents == null)
-                throw new ArgumentNullException(nameof(contents));
+        public static DerObjectIdentifier FromContents(byte[] contents) =>
+            CreatePrimitive(contents ?? throw new ArgumentNullException(nameof(contents)), clone: true);
 
-            return CreatePrimitive(contents, true);
-        }
-
-        /**
-         * return an OID from the passed in object
-         *
-         * @exception ArgumentException if the object cannot be converted.
-         */
         public static DerObjectIdentifier GetInstance(object obj)
         {
             if (obj == null)
@@ -189,11 +180,9 @@ namespace Org.BouncyCastle.Asn1
         //[Obsolete("Use 'GetID' instead")]
         public string Id => GetID();
 
-        /**
-         * Return  true if this oid is an extension of the passed in branch, stem.
-         * @param stem the arc or branch that is a possible parent.
-         * @return  true if the branch is on the passed in stem, false otherwise.
-         */
+        /// <summary>Return  true if this oid is an extension of the passed in branch, stem.</summary>
+        /// <param name="stem">The arc or branch that is a possible parent.</param>
+        /// <returns>true if the branch is on the passed in stem, false otherwise.</returns>
         public virtual bool On(DerObjectIdentifier stem)
         {
             byte[] contents = m_contents, stemContents = stem.m_contents;
@@ -236,10 +225,11 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
-        internal static void CheckContentsLength(int contentsLength)
+        internal static int CheckContentsLength(int contentsLength)
         {
             if (contentsLength > MaxContentsLength)
                 throw new ArgumentException("exceeded OID contents length limit");
+            return contentsLength;
         }
 
         internal static void CheckIdentifier(string identifier)
@@ -252,29 +242,52 @@ namespace Org.BouncyCastle.Asn1
                 throw new FormatException("string " + identifier + " not a valid OID");
         }
 
-        internal static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone)
-        {
-            CheckContentsLength(contents.Length);
+        private static bool ContentsEquals(byte[] a, byte[] b, int bLen) => Arrays.AreEqual(a, 0, a.Length, b, 0, bLen);
 
-            uint index = (uint)Arrays.GetHashCode(contents);
+        internal static DerObjectIdentifier CreatePrimitive(DefiniteLengthInputStream defIn, byte[] tmp)
+        {
+            int contentsLength = CheckContentsLength(defIn.Remaining);
+
+            bool useTmp = contentsLength <= tmp.Length;
+            if (useTmp)
+            {
+                defIn.ReadAllIntoByteArray(tmp);
+            }
+            else
+            {
+                tmp = defIn.ToArray();
+            }
+
+            return CreatePrimitive(contents: tmp, contentsLength, clone: useTmp);
+        }
+
+        private static DerObjectIdentifier CreatePrimitive(byte[] contents, bool clone) =>
+            CreatePrimitive(contents, CheckContentsLength(contents.Length), clone);
+
+        private static DerObjectIdentifier CreatePrimitive(byte[] contents, int contentsLength, bool clone)
+        {
+            Debug.Assert(clone || contents.Length == contentsLength);
+
+            uint index = (uint)Arrays.GetHashCode(contents, 0, contentsLength);
 
             index ^= index >> 20;
             index ^= index >> 10;
             index &= 1023;
 
             var originalEntry = Volatile.Read(ref Cache[index]);
-            if (originalEntry != null && Arrays.AreEqual(contents, originalEntry.m_contents))
+            if (originalEntry != null && ContentsEquals(originalEntry.m_contents, contents, contentsLength))
                 return originalEntry;
 
-            if (!Asn1RelativeOid.IsValidContents(contents))
+            if (!Asn1RelativeOid.IsValidContents(contents, contentsLength))
                 throw new ArgumentException("invalid OID contents", nameof(contents));
 
-            var newEntry = new DerObjectIdentifier(clone ? Arrays.Clone(contents) : contents, identifier: null);
+            var newContents = clone ? Arrays.CopySegment(contents, 0, contentsLength) : contents;
+            var newEntry = new DerObjectIdentifier(newContents, identifier: null);
 
             var exchangedEntry = Interlocked.CompareExchange(ref Cache[index], newEntry, originalEntry);
             if (exchangedEntry != originalEntry)
             {
-                if (exchangedEntry != null && Arrays.AreEqual(contents, exchangedEntry.m_contents))
+                if (exchangedEntry != null && ContentsEquals(exchangedEntry.m_contents, contents, contentsLength))
                     return exchangedEntry;
             }
 

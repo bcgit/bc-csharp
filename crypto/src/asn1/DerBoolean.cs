@@ -127,7 +127,13 @@ namespace Org.BouncyCastle.Asn1
                 throw new ArgumentException("BOOLEAN value should have 1 byte in it", nameof(contentsLength));
         }
 
-        internal static DerBoolean CreatePrimitive(byte[] contents)
+        internal static DerBoolean CreatePrimitive(DefiniteLengthInputStream defIn)
+        {
+            CheckContentsLength(defIn.Remaining);
+            return CreatePrimitive(Convert.ToByte(defIn.ReadByte()));
+        }
+
+        private static DerBoolean CreatePrimitive(byte[] contents)
         {
             CheckContentsLength(contents.Length);
             return CreatePrimitive(contents[0]);
