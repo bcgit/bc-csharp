@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Gnu;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -437,34 +438,41 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         private long GetExpirationTimeFromSig(bool selfSigned, int signatureType)
         {
-            long expiryTime = -1;
-            long lastDate = -1;
+            long expiryTime = -1L;
+            long lastDate = -1L;
 
             foreach (PgpSignature sig in GetSignaturesOfType(signatureType))
             {
-                if (selfSigned && sig.KeyId != this.KeyId)
-                    continue;
-
-                PgpSignatureSubpacketVector hashed = sig.GetHashedSubPackets();
-                if (hashed == null)
-                    continue;
-
-                if (!hashed.HasSubpacket(SignatureSubpacketTag.KeyExpireTime))
-                    continue;
-
-                long current = hashed.GetKeyExpirationTime();
-
-                if (sig.KeyId == this.KeyId)
+                if (sig.KeyId == KeyId)
                 {
-                    if (sig.CreationTime.Ticks > lastDate)
+                    /*
+                     * RFC 4880 5.2.4.1: the most recent self-signature wins, even if it omits the Key Expiration Time
+                     * subpacket (which removes any previously asserted expiry).
+                     */
+                    var thisDate = sig.CreationTime.Ticks;
+                    if (thisDate > lastDate)
                     {
-                        lastDate = sig.CreationTime.Ticks;
-                        expiryTime = current;
+                        lastDate = thisDate;
+
+                        PgpSignatureSubpacketVector hashed = sig.GetHashedSubPackets();
+                        expiryTime = hashed == null ? 0L : hashed.GetKeyExpirationTime();
                     }
                 }
-                else if (current == 0 || current > expiryTime)
+                else if (!selfSigned)
                 {
-                    expiryTime = current;
+                    PgpSignatureSubpacketVector hashed = sig.GetHashedSubPackets();
+                    if (hashed != null)
+                    {
+                        var keyExpireTime = hashed.GetSubpacket(SignatureSubpacketTag.KeyExpireTime);
+                        if (keyExpireTime != null)
+                        {
+                            long current = ((KeyExpirationTime)keyExpireTime).Time;
+                            if (current == 0 || current > expiryTime)
+                            {
+                                expiryTime = current;
+                            }
+                        }
+                    }
                 }
             }
 

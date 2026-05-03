@@ -129,10 +129,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? 0 : ((IssuerKeyId)p).KeyId;
         }
 
-        public bool HasSignatureCreationTime()
-        {
-            return GetSubpacket(SignatureSubpacketTag.CreationTime) != null;
-        }
+        public bool HasSignatureCreationTime() => GetSubpacket(SignatureSubpacketTag.CreationTime) != null;
 
         public DateTime GetSignatureCreationTime()
         {
@@ -142,10 +139,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return ((SignatureCreationTime)p).GetTime();
         }
 
-        public bool HasSignatureExpirationTime()
-        {
-            return GetSubpacket(SignatureSubpacketTag.ExpireTime) != null;
-        }
+        public bool HasSignatureExpirationTime() => GetSubpacket(SignatureSubpacketTag.ExpireTime) != null;
 
         /// <summary>
         /// Return the number of seconds a signature is valid for after its creation date.
@@ -158,6 +152,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
             return p == null ? 0 : ((SignatureExpirationTime)p).Time;
         }
+
+        public bool HasKeyExpirationTime() => GetSubpacket(SignatureSubpacketTag.KeyExpireTime) != null;
 
         /// <summary>
         /// Return the number of seconds a key is valid for after its creation date.

@@ -1,10 +1,12 @@
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Bcpg.Attr;
+using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
@@ -538,6 +540,64 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
         }
 
+        private void RemovedExpiryTest()
+        {
+            SecureRandom random = new SecureRandom();
+
+            // RFC 4880 5.2.4.1: a more recent self-signature without a Key Expiration
+            // Time subpacket cancels an earlier self-signature's expiration.
+            char[] passPhrase = "test".ToCharArray();
+            string identity = "TEST <test@test.org>";
+            DateTime date = DateTime.UtcNow;
+
+            var kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), random, 1024, 25));
+
+            var kpSgn = kpg.GenerateKeyPair();
+
+            PgpKeyPair sgnKeyPair = new PgpKeyPair(PublicKeyAlgorithmTag.RsaSign, kpSgn, date);
+
+            PgpSignatureSubpacketGenerator svg = new PgpSignatureSubpacketGenerator();
+            svg.SetKeyExpirationTime(isCritical: true, 86400L * 366 * 2);
+            svg.SetKeyFlags(isCritical: true, KeyFlags.CertifyOther | KeyFlags.SignData);
+            PgpSignatureSubpacketVector hashedPcks = svg.Generate();
+
+            PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification, sgnKeyPair,
+                identity, SymmetricKeyAlgorithmTag.Aes256, passPhrase, useSha1: true, hashedPcks, null, random);
+
+            PgpPublicKeyRing keyRing = keyRingGen.GeneratePublicKeyRing();
+
+            // Encode/decode
+            keyRing = new PgpPublicKeyRing(keyRing.GetEncoded());
+
+            PgpPublicKey pKey = keyRing.GetPublicKey();
+
+            if (pKey.GetValidSeconds() != 86400L * 366 * 2)
+            {
+                Fail("initial key expiration time wrong");
+            }
+
+            // Add a newer self-cert that omits KeyExpireTime (intent: remove the expiry).
+            Thread.Sleep(millisecondsTimeout: 1100); // ensure later creation time at one-second granularity
+
+            // TODO[pgp] Add constructor that accepts also sgnKeyPair.PublicKey
+            PgpSignatureGenerator keySigGen = new PgpSignatureGenerator(PublicKeyAlgorithmTag.RsaGeneral,
+                HashAlgorithmTag.Sha1);
+            keySigGen.InitSign(PgpSignature.PositiveCertification, sgnKeyPair.PrivateKey);
+
+            PgpSignatureSubpacketGenerator noExpiry = new PgpSignatureSubpacketGenerator();
+            noExpiry.SetKeyFlags(isCritical: true, KeyFlags.CertifyOther | KeyFlags.SignData);
+            keySigGen.SetHashedSubpackets(noExpiry.Generate());
+
+            pKey = PgpPublicKey.AddCertification(pKey, keySigGen.GenerateCertification(identity, pKey));
+
+            if (pKey.GetValidSeconds() != 0)
+            {
+                Fail("expected getValidSeconds() == 0 after newer self-sig without KEY_EXPIRE_TIME, got "
+                    + pKey.GetValidSeconds());
+            }
+        }
+
         public override void PerformTest()
         {
             //
@@ -897,8 +957,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             //
             // use of PgpKeyPair
             //
-            PgpKeyPair pgpKp = new PgpKeyPair(PublicKeyAlgorithmTag.RsaGeneral,
-                kp.Public, kp.Private, DateTime.UtcNow);
+            PgpKeyPair pgpKp = new PgpKeyPair(PublicKeyAlgorithmTag.RsaGeneral, kp, DateTime.UtcNow);
 
             PgpPublicKey k1 = pgpKp.PublicKey;
             PgpPrivateKey k2 = pgpKp.PrivateKey;
@@ -1125,6 +1184,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             FingerPrintTest();
             ExistingEmbeddedJpegTest();
             EmbeddedJpegTest();
+            RemovedExpiryTest();
         }
 
         private void PerformTestSig(
