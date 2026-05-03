@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.Asn1
 
         public override string ToString() => IsTrue ? "TRUE" : "FALSE";
 
-        internal static void CheckContentsLength(int contentsLength)
+        private static void CheckContentsLength(int contentsLength)
         {
             if (contentsLength != 1)
                 throw new ArgumentException("BOOLEAN value should have 1 byte in it", nameof(contentsLength));

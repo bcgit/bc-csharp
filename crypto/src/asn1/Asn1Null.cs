@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Asn1
 
         public override string ToString() => "NULL";
 
-        internal static void CheckContentsLength(int contentsLength)
+        private static void CheckContentsLength(int contentsLength)
         {
             if (0 != contentsLength)
                 throw new InvalidOperationException("malformed NULL encoding encountered");

@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Asn1
         {
             internal static readonly Asn1UniversalType Instance = new Meta();
 
-            private Meta() : base(typeof(DerEnumerated), Asn1Tags.Enumerated) { }
+            private Meta() : base(typeof(DerEnumerated), Asn1Tags.Enumerated) {}
 
             internal override Asn1Object FromImplicitPrimitive(DerOctetString octetString)
             {

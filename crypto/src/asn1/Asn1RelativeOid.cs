@@ -200,7 +200,7 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
-        internal static int CheckContentsLength(int contentsLength)
+        private static int CheckContentsLength(int contentsLength)
         {
             if (contentsLength > MaxContentsLength)
                 throw new ArgumentException("exceeded relative OID contents length limit");
