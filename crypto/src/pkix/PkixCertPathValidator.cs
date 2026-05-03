@@ -94,6 +94,16 @@ namespace Org.BouncyCastle.Pkix
 
                 if (trust == null)
                     throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, -1);
+
+                // A TrustAnchor may be supplied by name + public key only, in which case no certificate to check
+                if (trust.TrustedCert != null)
+                {
+                    /*
+                     * NOTE: Unlike bc-java, only our own Org.BouncyCastle.X509.X509Certificate implementation is
+                     * supported, so no decode/import checks are needed.
+                     */
+                    //CheckCertificate(trust.TrustedCert);
+                }
             }
             catch (Exception e)
             {
