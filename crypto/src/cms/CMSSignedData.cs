@@ -44,15 +44,6 @@ namespace Org.BouncyCastle.Cms
         // Lazily constructed
         private SignerInformationStore m_signerInfoStore;
 
-        private CmsSignedData(CmsSignedData c)
-        {
-            m_contentInfo = c.m_contentInfo;
-            m_signedData = c.m_signedData;
-            m_signedContent = c.m_signedContent;
-            m_hashes = null; // TODO[cms] Check whether we should be (deep-)copying these
-            m_signerInfoStore = c.m_signerInfoStore;
-        }
-
         private CmsSignedData(DerObjectIdentifier contentType, SignedData signedData, CmsProcessable signedContent,
             SignerInformationStore signerInfoStore)
         {
@@ -433,10 +424,10 @@ namespace Org.BouncyCastle.Cms
 
             var oldContent = signedData.SignedData;
 
-            var content = new SignedData(oldContent.DigestAlgorithms, oldContent.EncapContentInfo, certSet,
+            var newContent = new SignedData(oldContent.DigestAlgorithms, oldContent.EncapContentInfo, certSet,
                 revocationSet, oldContent.SignerInfos);
 
-            return new CmsSignedData(signedData.ContentInfo.ContentType, content, signedData.m_signedContent,
+            return new CmsSignedData(signedData.ContentInfo.ContentType, newContent, signedData.m_signedContent,
                 signedData.m_signerInfoStore);
         }
 
