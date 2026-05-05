@@ -8,25 +8,38 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// X448 private key (RFC 7748). Holds the 56-byte clamped scalar used in Curve448
+    /// Diffie-Hellman.
+    /// </summary>
     public sealed class X448PrivateKeyParameters
         : AsymmetricKeyParameter
     {
+        /// <summary>Length in bytes of an X448 private-key scalar (56).</summary>
         public static readonly int KeySize = X448.ScalarSize;
+
+        /// <summary>Length in bytes of the shared secret produced by an X448 agreement (56).</summary>
         public static readonly int SecretSize = X448.PointSize;
 
         private readonly byte[] data = new byte[KeySize];
 
+        /// <summary>Generate a fresh random X448 private key using <paramref name="random"/>.</summary>
         public X448PrivateKeyParameters(SecureRandom random)
             : base(true)
         {
             X448.GeneratePrivateKey(random, data);
         }
 
+        /// <summary>Construct from a 56-byte scalar buffer.</summary>
+        /// <exception cref="ArgumentException">If <paramref name="buf"/> length differs from
+        /// <see cref="KeySize"/>.</exception>
         public X448PrivateKeyParameters(byte[] buf)
             : this(Validate(buf), 0)
         {
         }
 
+        /// <summary>Construct from <paramref name="buf"/> at <paramref name="off"/>; reads
+        /// <see cref="KeySize"/> bytes.</summary>
         public X448PrivateKeyParameters(byte[] buf, int off)
             : base(true)
         {
@@ -34,6 +47,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Construct from a span carrying the 56-byte scalar.</summary>
+        /// <exception cref="ArgumentException">If <paramref name="buf"/> length differs from
+        /// <see cref="KeySize"/>.</exception>
         public X448PrivateKeyParameters(ReadOnlySpan<byte> buf)
             : base(true)
         {
@@ -44,6 +60,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+        /// <summary>Read the 56-byte scalar from <paramref name="input"/>.</summary>
+        /// <exception cref="EndOfStreamException">If the stream ends before <see cref="KeySize"/>
+        /// bytes have been read.</exception>
         public X448PrivateKeyParameters(Stream input)
             : base(true)
         {
@@ -51,18 +70,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new EndOfStreamException("EOF encountered in middle of X448 private key");
         }
 
+        /// <summary>Write the 56-byte scalar into <paramref name="buf"/> at <paramref name="off"/>.</summary>
         public void Encode(byte[] buf, int off)
         {
             Array.Copy(data, 0, buf, off, KeySize);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Write the 56-byte scalar into the supplied span.</summary>
         public void Encode(Span<byte> buf)
         {
             data.CopyTo(buf);
         }
 #endif
 
+        /// <summary>Return a fresh copy of the 56-byte scalar.</summary>
         public byte[] GetEncoded()
         {
             return Arrays.Clone(data);
@@ -74,6 +96,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal ReadOnlyMemory<byte> DataMemory => data;
 #endif
 
+        /// <summary>Compute the public key (u-coordinate) corresponding to this scalar.</summary>
         public X448PublicKeyParameters GeneratePublicKey()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -87,6 +110,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
 #endif
         }
 
+        /// <summary>
+        /// Perform an X448 Diffie-Hellman agreement against <paramref name="publicKey"/> and write the
+        /// resulting <see cref="SecretSize"/>-byte shared secret into <paramref name="buf"/> starting at
+        /// <paramref name="off"/>.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the agreement produces an all-zero secret
+        /// (degenerate peer key).</exception>
         public void GenerateSecret(X448PublicKeyParameters publicKey, byte[] buf, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -100,6 +130,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Span-based overload of <see cref="GenerateSecret(X448PublicKeyParameters, byte[], int)"/>.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">If the agreement produces an all-zero secret.</exception>
         public void GenerateSecret(X448PublicKeyParameters publicKey, Span<byte> buf)
         {
             Span<byte> encoded = stackalloc byte[X448.PointSize];
