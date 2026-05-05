@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 }
                 catch (Exception ex)
                 {
-                    throw new InvalidOperationException("unable to encode DSAPrivateKeyParameters " + ex.Message);
+                    throw new InvalidOperationException("unable to encode DSAPrivateKeyParameters", ex);
                 }
             }
             else if (parameters is Ed25519PrivateKeyParameters ed25519PrivateKey)

@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-		/**
+        /**
          * return a UTC Time from the passed in object.
          *
          * @exception ArgumentException if the object cannot be converted.
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Asn1
                 }
                 catch (IOException e)
                 {
-                    throw new ArgumentException("failed to construct UTC time from byte[]: " + e.Message);
+                    throw new ArgumentException("failed to construct UTC time from byte[]", nameof(obj), e);
                 }
             }
 
@@ -79,28 +79,28 @@ namespace Org.BouncyCastle.Asn1
         }
 
         private readonly string m_timeString;
-		private readonly DateTime m_dateTime;
+        private readonly DateTime m_dateTime;
         private readonly bool m_dateTimeLocked;
         private readonly int m_twoDigitYearMax;
 
-		public Asn1UtcTime(string timeString)
-		{
-			m_timeString = timeString ?? throw new ArgumentNullException(nameof(timeString));
+        public Asn1UtcTime(string timeString)
+        {
+            m_timeString = timeString ?? throw new ArgumentNullException(nameof(timeString));
 
-			try
-			{
-				m_dateTime = FromString(timeString, out m_twoDigitYearMax);
+            try
+            {
+                m_dateTime = FromString(timeString, out m_twoDigitYearMax);
                 m_dateTimeLocked = false;
             }
             catch (FormatException e)
-			{
-				throw new ArgumentException("invalid date string: " + e.Message);
-			}
-		}
+            {
+                throw new ArgumentException("invalid date string", nameof(timeString), e);
+            }
+        }
 
         [Obsolete("Use `Asn1UtcTime(DateTime, int)' instead")]
-		public Asn1UtcTime(DateTime dateTime)
-		{
+        public Asn1UtcTime(DateTime dateTime)
+        {
             dateTime = DateTimeUtilities.WithPrecisionSecond(dateTime.ToUniversalTime());
 
             m_dateTime = dateTime;
@@ -122,16 +122,13 @@ namespace Org.BouncyCastle.Asn1
 
         internal Asn1UtcTime(byte[] contents)
             // NOTE: Non-ASCII characters will produce '?' characters, which will fail DateTime parsing
-			: this(Encoding.ASCII.GetString(contents))
-		{
-		}
+            : this(Encoding.ASCII.GetString(contents))
+        {
+        }
 
         public string TimeString => m_timeString;
 
-        public DateTime ToDateTime()
-		{
-			return m_dateTime;
-		}
+        public DateTime ToDateTime() => m_dateTime;
 
         public DateTime ToDateTime(int twoDigitYearMax)
         {

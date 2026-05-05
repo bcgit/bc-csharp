@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1
                 }
                 catch (IOException e)
                 {
-                    throw new ArgumentException("failed to construct OCTET STRING from byte[]: " + e.Message);
+                    throw new ArgumentException("failed to construct OCTET STRING from byte[]", nameof(obj), e);
                 }
             }
 

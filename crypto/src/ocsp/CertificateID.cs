@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Ocsp
             }
             catch (Exception e)
             {
-                throw new OcspException("problem creating ID: " + e, e);
+                throw new OcspException("problem creating ID", e);
             }
         }
 
@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Ocsp
             }
             catch (Exception e)
             {
-                throw new OcspException("problem creating ID: " + e, e);
+                throw new OcspException("problem creating ID", e);
             }
         }
     }

@@ -42,11 +42,11 @@ namespace Org.BouncyCastle.Asn1
                 }
                 catch (IOException e)
                 {
-                    throw new ArgumentException("failed to construct NULL from byte[]: " + e.Message);
+                    throw new ArgumentException("failed to construct NULL from byte[]", nameof(obj), e);
                 }
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         public static Asn1Null GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)

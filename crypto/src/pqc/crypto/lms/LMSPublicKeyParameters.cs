@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             catch (IOException e)
             {
-                throw new IOException($"cannot parse signature: {e.Message}");
+                throw new IOException("cannot parse signature", e);
             }
         }
 

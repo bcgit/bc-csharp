@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1
 
         public BerBitString(byte[] data, int padBits)
             : base(data, padBits)
-		{
+        {
             this.elements = null;
         }
 
@@ -103,7 +103,7 @@ namespace Org.BouncyCastle.Asn1
 
         public BerBitString(Asn1Encodable obj)
             : this(obj.GetDerEncoded(), 0)
-		{
+        {
         }
 
         public BerBitString(DerBitString[] elements)

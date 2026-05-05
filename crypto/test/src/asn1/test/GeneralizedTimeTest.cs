@@ -196,7 +196,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                IsTrue(e.Message.Contains("invalid format"));
+                IsTrue(e.Message.StartsWith("invalid date string"));
             }
         }
 

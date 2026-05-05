@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             catch (IOException e)
             {
-                throw new Exception($"unable to encode signature: {e.Message}");
+                throw new Exception("unable to encode signature", e);
             }
         }
 
@@ -43,11 +43,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             catch (InvalidDataException e)
             {
-                throw new Exception($"unable to decode signature: {e.Message}");
+                throw new Exception("unable to decode signature", e);
             }
             catch (IOException e)
             {
-                throw new Exception($"unable to decode signature: {e.Message}");
+                throw new Exception("unable to decode signature", e);
             }
         }
     }

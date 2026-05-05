@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Asn1
                 catch (IOException e)
                 {
                     var choiceName = Platform.GetTypeName(typeof(TChoice));
-                    throw new ArgumentException($"failed to construct {choiceName} from byte[]: " + e.Message);
+                    throw new ArgumentException($"failed to construct {choiceName} from byte[]", nameof(obj), e);
                 }
             }
 

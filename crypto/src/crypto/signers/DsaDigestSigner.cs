@@ -69,9 +69,9 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 return m_encoding.Encode(GetOrder(), sig[0], sig[1]);
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                throw new InvalidOperationException("unable to encode signature");
+                throw new InvalidOperationException("unable to encode signature", e);
             }
         }
 

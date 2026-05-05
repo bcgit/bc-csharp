@@ -352,7 +352,7 @@ namespace Org.BouncyCastle.OpenSsl
             }
             catch (Exception e)
             {
-                throw new PemException("problem creating " + type + " private key: " + e.ToString());
+                throw new PemException("problem creating " + type + " private key", e);
             }
         }
     }

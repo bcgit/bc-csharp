@@ -972,7 +972,7 @@ namespace Org.BouncyCastle.Asn1.X509
             }
             catch (IOException e)
             {
-                throw new InvalidOperationException("unknown encoding in name: " + e.Message, e);
+                throw new InvalidOperationException("unknown encoding in name", e);
             }
         }
 

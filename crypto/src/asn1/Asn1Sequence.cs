@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Asn1
                 }
                 catch (IOException e)
                 {
-                    throw new ArgumentException("failed to construct sequence from byte[]: " + e.Message);
+                    throw new ArgumentException("failed to construct sequence from byte[]", nameof(obj), e);
                 }
             }
 

@@ -73,7 +73,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (ArgumentException e)
             {
-                CheckArgumentException("test 1", e, "failed to construct sequence from byte[]: corrupted stream detected");
+                CheckArgumentException("test 1", e, "failed to construct sequence from byte[]");
             }
 
             try

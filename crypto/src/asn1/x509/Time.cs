@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Asn1.X509
             catch (FormatException e)
             {
                 // this should never happen
-                throw new InvalidOperationException("invalid date string: " + e.Message);
+                throw new InvalidOperationException("invalid date string", e);
             }
         }
 

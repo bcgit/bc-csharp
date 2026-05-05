@@ -245,7 +245,7 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             }
             catch (IOException e)
             {
-                throw new InvalidOperationException("unknown encoding in name: " + e);
+                throw new InvalidOperationException("unknown encoding in name", e);
             }
         }
 

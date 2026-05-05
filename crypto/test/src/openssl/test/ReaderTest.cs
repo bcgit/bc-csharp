@@ -259,11 +259,11 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             ImplDudPasswordTest("2fe9bb", 9, "long form definite-length more than 31 bits");
             ImplDudPasswordTest("3ee7a8", 10, "long form definite-length more than 31 bits");
             ImplDudPasswordTest("41af75", 11, "unknown tag 16 encountered");
-            ImplDudPasswordTest("1704a5", 12, "corrupted stream detected");
+            ImplDudPasswordTest("1704a5", 12, "BOOLEAN value should have 1 byte in it");
             ImplDudPasswordTest("1c5822", 13, "extra data found after object");
-            ImplDudPasswordTest("5a3d16", 14, "corrupted stream detected");
-            ImplDudPasswordTest("8d0c97", 15, "corrupted stream detected");
-            ImplDudPasswordTest("bc0daf", 16, "corrupted stream detected");
+            ImplDudPasswordTest("5a3d16", 14, "truncated BIT STRING detected");
+            ImplDudPasswordTest("8d0c97", 15, "too few objects in input sequence");
+            ImplDudPasswordTest("bc0daf", 16, "BOOLEAN value should have 1 byte in it");
             ImplDudPasswordTest("aaf9c4d", 17, "unknown DL object encountered: 0x15");
 
             ImplNoPasswordTest();
@@ -485,11 +485,16 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             }
             catch (Exception e)
             {
-                if (e.Message.IndexOf(message) < 0)
+                var uc = e;
+                while (uc.InnerException != null)
                 {
-                    Console.Error.WriteLine(message);
-                    Console.Error.WriteLine(e.Message);
-                    Fail("issue " + index + " exception thrown, but wrong message");
+                    uc = uc.InnerException;
+                }
+
+                // "StartsWith" because the parameter name will often be appended
+                if (!uc.Message.StartsWith(message))
+                {
+                    Fail("issue " + index + " exception thrown, but wrong message: " + uc.Message + " expected: " + message);
                 }
             }
         }

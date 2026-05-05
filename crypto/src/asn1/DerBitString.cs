@@ -63,11 +63,11 @@ namespace Org.BouncyCastle.Asn1
                 }
                 catch (IOException e)
                 {
-                    throw new ArgumentException("failed to construct BIT STRING from byte[]: " + e.Message);
+                    throw new ArgumentException("failed to construct BIT STRING from byte[]", nameof(obj), e);
                 }
             }
 
-            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj));
+            throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
         public static DerBitString GetInstance(Asn1TaggedObject obj, bool isExplicit)
@@ -397,7 +397,15 @@ namespace Org.BouncyCastle.Asn1
 
         public override string GetString()
         {
-            byte[] str = GetDerEncoded();
+            byte[] str;
+            try
+            {
+                str = GetEncoded(Der);
+            }
+            catch (IOException e)
+            {
+                throw new Asn1ParsingException("Internal error encoding BitString", e);
+            }
 
             StringBuilder buffer = new StringBuilder(1 + str.Length * 2);
             buffer.Append('#');

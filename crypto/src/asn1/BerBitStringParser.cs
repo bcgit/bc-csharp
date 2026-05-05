@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1
             }
             catch (IOException e)
             {
-                throw new Asn1ParsingException("IOException converting stream to byte array: " + e.Message, e);
+                throw new Asn1ParsingException("IOException converting stream to byte array", e);
             }
         }
 
