@@ -7,24 +7,26 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-    /**
-     * The AuthorityKeyIdentifier object.
-     * <pre>
-     * id-ce-authorityKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 35 }
-     *
-     *   AuthorityKeyIdentifier ::= Sequence {
-     *      keyIdentifier             [0] IMPLICIT KeyIdentifier           OPTIONAL,
-     *      authorityCertIssuer       [1] IMPLICIT GeneralNames            OPTIONAL,
-     *      authorityCertSerialNumber [2] IMPLICIT CertificateSerialNumber OPTIONAL  }
-     *
-     *   KeyIdentifier ::= OCTET STRING
-     * </pre>
-     *
-     */
+    /// <summary>The AuthorityKeyIdentifier object.</summary>
+    /// <remarks>
+    /// <code>
+    /// id-ce-authorityKeyIdentifier OBJECT IDENTIFIER ::=  { id-ce 35 }
+    ///
+    /// AuthorityKeyIdentifier ::= Sequence {
+    ///     keyIdentifier[0] IMPLICIT KeyIdentifier                         OPTIONAL,
+    ///     authorityCertIssuer[1] IMPLICIT GeneralNames                    OPTIONAL,
+    ///     authorityCertSerialNumber[2] IMPLICIT CertificateSerialNumber   OPTIONAL
+    /// }
+    ///
+    /// KeyIdentifier ::= OCTET STRING
+    /// </code>
+    /// Per RFC 5280 sec. 4.2.1.1 the authorityCertIssuer and authorityCertSerialNumber fields MUST both be present or
+    /// both be absent.
+    /// </remarks>
     public class AuthorityKeyIdentifier
         : Asn1Encodable
     {
-		public static AuthorityKeyIdentifier GetInstance(object obj)
+        public static AuthorityKeyIdentifier GetInstance(object obj)
         {
             if (obj == null)
                 return null;
@@ -66,41 +68,35 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count < 0 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_keyIdentifier = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false,
+            var keyIdentifier = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false,
                 Asn1OctetString.GetTagged);
-            m_authorityCertIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false,
+            var authorityCertIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false,
                 GeneralNames.GetTagged);
-            m_authorityCertSerialNumber = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false,
+            var authorityCertSerialNumber = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false,
                 DerInteger.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
-            // TODO[asn1] "authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent"
+            CheckIssuerAndSerial(authorityCertIssuer, authorityCertSerialNumber);
+
+            m_keyIdentifier = keyIdentifier;
+            m_authorityCertIssuer = authorityCertIssuer;
+            m_authorityCertSerialNumber = authorityCertSerialNumber;
         }
 
-        /**
-         * Calculates the keyIdentifier using a SHA1 hash over the BIT STRING
-         * from SubjectPublicKeyInfo as defined in RFC2459.
-         *
-         * Example of making a AuthorityKeyIdentifier:
-         * <pre>
-	     *   SubjectPublicKeyInfo apki = new SubjectPublicKeyInfo((ASN1Sequence)new ASN1InputStream(
-		 *       publicKey.getEncoded()).readObject());
-         *   AuthorityKeyIdentifier aki = new AuthorityKeyIdentifier(apki);
-         * </pre>
-         *
-         **/
+        /// <summary>
+        /// Calculates the keyIdentifier using a SHA1 hash over the BIT STRING from SubjectPublicKeyInfo as defined in RFC2459.
+        /// </summary>
         [Obsolete("Use 'X509ExtensionUtilities' methods instead")]
         public AuthorityKeyIdentifier(SubjectPublicKeyInfo spki)
             : this(spki, null, null)
         {
         }
 
-        /**
-         * create an AuthorityKeyIdentifier with the GeneralNames tag and
-         * the serial number provided as well.
-         */
+        /// <summary>
+        /// Create an AuthorityKeyIdentifier with the GeneralNames tag and the serial number provided as well.
+        /// </summary>
         [Obsolete("Use 'X509ExtensionUtilities' methods instead")]
         public AuthorityKeyIdentifier(SubjectPublicKeyInfo spki, GeneralNames name, BigInteger serialNumber)
             : this(
@@ -111,32 +107,36 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
-        /**
-		 * create an AuthorityKeyIdentifier with the GeneralNames tag and
-		 * the serial number provided.
-		 */
+        /// <summary>
+        /// Create an AuthorityKeyIdentifier with the GeneralNames tag and the serial number provided.
+        /// </summary>
+        // TODO[api] Rename parameters
         public AuthorityKeyIdentifier(GeneralNames name, BigInteger serialNumber)
             : this((byte[])null, name, serialNumber)
         {
         }
 
-        /**
-		 * create an AuthorityKeyIdentifier with a precomputed key identifier
-		 */
+        /// <summary>
+        /// Create an AuthorityKeyIdentifier with a precomputed key identifier
+        /// </summary>
         public AuthorityKeyIdentifier(byte[] keyIdentifier)
             : this(keyIdentifier, null, null)
         {
         }
 
-        /**
-		 * create an AuthorityKeyIdentifier with a precomupted key identifier
-		 * and the GeneralNames tag and the serial number provided as well.
-		 */
+        /// <summary>
+        /// Create an AuthorityKeyIdentifier with a precomputed key identifier and the GeneralNames tag and the serial
+        /// number provided as well.
+        /// </summary>
+        // TODO[api] Rename parameters
         public AuthorityKeyIdentifier(byte[] keyIdentifier, GeneralNames name, BigInteger serialNumber)
         {
+            var authorityCertSerialNumber = serialNumber == null ? null : new DerInteger(serialNumber);
+            CheckIssuerAndSerial(name, authorityCertSerialNumber);
+
             m_keyIdentifier = DerOctetString.FromContentsOptional(keyIdentifier);
             m_authorityCertIssuer = name;
-            m_authorityCertSerialNumber = serialNumber == null ? null : new DerInteger(serialNumber);
+            m_authorityCertSerialNumber = authorityCertSerialNumber;
         }
 
         public AuthorityKeyIdentifier(Asn1OctetString keyIdentifier)
@@ -147,6 +147,8 @@ namespace Org.BouncyCastle.Asn1.X509
         public AuthorityKeyIdentifier(Asn1OctetString keyIdentifier, GeneralNames authorityCertIssuer,
             DerInteger authorityCertSerialNumber)
         {
+            CheckIssuerAndSerial(authorityCertIssuer, authorityCertSerialNumber);
+
             m_keyIdentifier = keyIdentifier;
             m_authorityCertIssuer = authorityCertIssuer;
             m_authorityCertSerialNumber = authorityCertSerialNumber;
@@ -173,13 +175,26 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
-		public override string ToString()
+        public override string ToString()
         {
             string keyID = m_keyIdentifier == null
                 ? "null"
                 : Hex.ToHexString(m_keyIdentifier.GetOctets());
 
             return "AuthorityKeyIdentifier: KeyID(" + keyID + ")";
+        }
+
+        /// <summary>
+        /// RFC 5280 sec. 4.2.1.1: authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be
+        /// absent.
+        /// </summary>
+        private static void CheckIssuerAndSerial(GeneralNames certIssuer, DerInteger certSerial)
+        {
+            if (certIssuer == null ^ certSerial == null)
+            {
+                throw new ArgumentException(
+                    "AuthorityKeyIdentifier authorityCertIssuer and authorityCertSerialNumber MUST both be present or both be absent");
+            }
         }
     }
 }
