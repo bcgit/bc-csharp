@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Asn1
         : Asn1BitStringParser
     {
         private readonly DefiniteLengthInputStream m_stream;
+
         private int m_padBits = 0;
 
         internal DLBitStringParser(DefiniteLengthInputStream stream)
@@ -15,20 +16,11 @@ namespace Org.BouncyCastle.Asn1
             m_stream = stream;
         }
 
-        public Stream GetBitStream()
-        {
-            return GetBitStream(false);
-        }
+        public Stream GetBitStream() => GetBitStream(octetAligned: false);
 
-        public Stream GetOctetStream()
-        {
-            return GetBitStream(true);
-        }
+        public Stream GetOctetStream() => GetBitStream(octetAligned: true);
 
-        public int PadBits
-        {
-            get { return m_padBits; }
-        }
+        public int PadBits => m_padBits;
 
         public Asn1Object ToAsn1Object()
         {

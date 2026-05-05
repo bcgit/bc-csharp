@@ -2,9 +2,7 @@
 
 namespace Org.BouncyCastle.Asn1
 {
-    /**
-     * Parser for definite-length tagged objects.
-     */
+    /// <summary>Parser for definite-length tagged objects.</summary>
     internal class DLTaggedObjectParser
         : BerTaggedObjectParser
     {
@@ -36,16 +34,16 @@ namespace Org.BouncyCastle.Asn1
             new DLTaggedObjectParser(baseTagClass, baseTagNo, m_constructed, m_parser);
 
         public override Asn1Object ToAsn1Object()
-		{
-			try
-			{
+        {
+            try
+            {
                 return m_parser.LoadTaggedDL(TagClass, TagNo, m_constructed);
             }
-			catch (IOException e)
-			{
-				throw new Asn1ParsingException(e.Message);
-			}
-		}
+            catch (IOException e)
+            {
+                throw new Asn1ParsingException(e.Message);
+            }
+        }
 
         private Asn1StreamParser CheckConstructed()
         {

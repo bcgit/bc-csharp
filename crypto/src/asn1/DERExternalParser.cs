@@ -13,17 +13,11 @@ namespace Org.BouncyCastle.Asn1
             m_parser = parser;
         }
 
-        public IAsn1Convertible ReadObject()
-        {
-            return m_parser.ReadObject();
-        }
+        public IAsn1Convertible ReadObject() => m_parser.ReadObject();
 
-        public override Asn1Object ToAsn1Object()
-        {
-            return Parse(m_parser);
-        }
+        public override Asn1Object ToAsn1Object() => Parse(m_parser);
 
-        internal static DerExternal Parse(Asn1StreamParser sp)
+        internal static DLExternal Parse(Asn1StreamParser sp)
         {
             var seq = new DLSequence(sp.ReadVector());
 
