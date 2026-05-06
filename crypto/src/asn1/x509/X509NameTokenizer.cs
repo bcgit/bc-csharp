@@ -2,12 +2,9 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-    /**
-     * class for breaking up an X500 Name into it's component tokens, ala
-     * java.util.StringTokenizer. We need this class as some of the
-     * lightweight Java environment don't support classes like
-     * StringTokenizer.
-     */
+    /// <summary>
+    /// Class for breaking up an X500 Name into it's component tokens.
+    /// </summary>
     public class X509NameTokenizer
     {
         private readonly string m_value;
@@ -20,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
-		public X509NameTokenizer(string	oid, char separator)
+        public X509NameTokenizer(string oid, char separator)
         {
             if (oid == null)
                 throw new ArgumentNullException(nameof(oid));
@@ -35,16 +32,17 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public bool HasMoreTokens() => m_index < m_value.Length;
 
-		public string NextToken()
+        public string NextToken()
         {
-            if (m_index >= m_value.Length)
+            int length = m_value.Length;
+            if (m_index >= length)
                 return null;
 
             bool quoted = false;
             bool escaped = false;
 
             int beginIndex = m_index + 1;
-            while (++m_index < m_value.Length)
+            while (++m_index < length)
             {
                 char c = m_value[m_index];
 
@@ -73,6 +71,17 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("badly formatted directory string");
 
             return m_value.Substring(beginIndex, m_index - beginIndex);
+        }
+
+        public string Remaining()
+        {
+            int length = m_value.Length;
+            if (m_index >= length)
+                return null;
+
+            int beginIndex = m_index + 1;
+            m_index = length;
+            return m_value.Substring(beginIndex, length - beginIndex);
         }
     }
 }

@@ -608,9 +608,35 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         private void BogusEqualsTest()
         {
+            // RFC 4514 sec. 3 allows '=' (0x3D) in stringchar without escaping;
+            // only the FIRST '=' separates attributeType from attributeValue.
+            // (issue #2226 - matches javax.security.auth.x500.X500Principal)
+            string[] subjects =
+            {
+                "CN=foo=bar",
+                "CN==^_^=",
+                "CN=a=b=c",
+                "CN=\\=^_^\\=",
+            };
+            string[] expectedValues =
+            {
+                "foo=bar",
+                "=^_^=",
+                "a=b=c",
+                "=^_^=",
+            };
+
+            for (int i = 0; i != subjects.Length; i++)
+            {
+                X509Name name = new X509Name(subjects[i]);
+                string value = name.GetValueList()[0];
+                IsEquals("unexpected value for " + subjects[i], expectedValues[i], value);
+            }
+
+            // a token with no '=' at all is still a malformed RDN
             try
             {
-                new X509Name("CN=foo=bar");
+                new X509Name("CN");
                 Fail("no exception");
             }
             catch (ArgumentException e)

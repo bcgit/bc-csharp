@@ -869,8 +869,11 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             X509NameTokenizer tokenizer = new X509NameTokenizer(token, '=');
 
-            string typeToken = NextToken(tokenizer, true);
-            string valueToken = NextToken(tokenizer, false);
+            string typeToken = tokenizer.NextToken();
+            if (typeToken == null || !tokenizer.HasMoreTokens())
+                throw new ArgumentException("badly formatted directory string");
+
+            string valueToken = CollectValueToken(tokenizer);
 
             DerObjectIdentifier oid = DecodeOid(typeToken.Trim(), lookup);
             string value = IetfUtilities.Unescape(valueToken);
@@ -879,6 +882,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_values.Add(value);
             m_added.Add(added);
         }
+
+        /// <summary>Consume the remaining input from an '='-separated tokenizer as the attributeValue.</summary>
+        /// <remarks>
+        /// RFC 4514 sec. 3 allows unescaped '=' in stringchar, so only the FIRST '=' separates the attributeType from
+        /// the attributeValue.
+        /// </remarks>
+        private static string CollectValueToken(X509NameTokenizer tokenizer) => tokenizer.Remaining();
 
         // TODO Refactor common code between this and IetfUtilities.ValueToString
         private static void AppendValue(StringBuilder buf, IDictionary<DerObjectIdentifier, string> oidSymbols,
@@ -999,15 +1009,6 @@ namespace Org.BouncyCastle.Asn1.X509
         private static string NextToken(X509NameTokenizer tokenizer)
         {
             return tokenizer.NextToken() ?? throw new ArgumentException("badly formatted directory string");
-        }
-
-        private static string NextToken(X509NameTokenizer tokenizer, bool expectMoreTokens)
-        {
-            string token = tokenizer.NextToken();
-            if (token == null || tokenizer.HasMoreTokens() != expectMoreTokens)
-                throw new ArgumentException("badly formatted directory string");
-
-            return token;
         }
 
         private static string StripInternalSpaces(string str)
