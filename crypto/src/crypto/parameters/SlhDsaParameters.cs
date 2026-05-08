@@ -7,76 +7,111 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// Parameter selector for SLH-DSA, the stateless hash-based signature scheme standardised by NIST in
+    /// FIPS 205. Each instance binds a parameter set (security level, fast/small variant, hash family) to
+    /// its NIST OID; the <c>WITH</c> variants additionally pre-hash the message with the indicated digest
+    /// (HashSLH-DSA, FIPS 205 §10.2).
+    /// </summary>
+    /// <remarks>
+    /// Naming follows the FIPS 205 convention <c>SLH-DSA-{HASH}-{SECURITY}{S|F}</c>, where <c>S</c> selects
+    /// the small-signature variant (slower signing, smaller signatures) and <c>F</c> the fast variant
+    /// (faster signing, larger signatures).
+    /// </remarks>
     public sealed class SlhDsaParameters
     {
+        /// <summary>SLH-DSA-SHA2-128s (Category 1, small variant, SHA-2 family).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_128s = new SlhDsaParameters("SLH-DSA-SHA2-128S",
             SlhDsaParameterSet.slh_dsa_sha2_128s, NistObjectIdentifiers.id_slh_dsa_sha2_128s, preHashOid: null);
+        /// <summary>SLH-DSA-SHAKE-128s (Category 1, small variant, SHAKE family).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_128s = new SlhDsaParameters("SLH-DSA-SHAKE-128S",
             SlhDsaParameterSet.slh_dsa_shake_128s, NistObjectIdentifiers.id_slh_dsa_shake_128s, preHashOid: null);
 
+        /// <summary>SLH-DSA-SHA2-128f (Category 1, fast variant, SHA-2 family).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_128f = new SlhDsaParameters("SLH-DSA-SHA2-128F",
             SlhDsaParameterSet.slh_dsa_sha2_128f, NistObjectIdentifiers.id_slh_dsa_sha2_128f, preHashOid: null);
+        /// <summary>SLH-DSA-SHAKE-128f (Category 1, fast variant, SHAKE family).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_128f = new SlhDsaParameters("SLH-DSA-SHAKE-128F",
             SlhDsaParameterSet.slh_dsa_shake_128f, NistObjectIdentifiers.id_slh_dsa_shake_128f, preHashOid: null);
 
+        /// <summary>SLH-DSA-SHA2-192s (Category 3, small variant, SHA-2 family).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_192s = new SlhDsaParameters("SLH-DSA-SHA2-192S",
             SlhDsaParameterSet.slh_dsa_sha2_192s, NistObjectIdentifiers.id_slh_dsa_sha2_192s, preHashOid: null);
+        /// <summary>SLH-DSA-SHAKE-192s (Category 3, small variant, SHAKE family).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_192s = new SlhDsaParameters("SLH-DSA-SHAKE-192S",
             SlhDsaParameterSet.slh_dsa_shake_192s, NistObjectIdentifiers.id_slh_dsa_shake_192s, preHashOid: null);
 
+        /// <summary>SLH-DSA-SHA2-192f (Category 3, fast variant, SHA-2 family).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_192f = new SlhDsaParameters("SLH-DSA-SHA2-192F",
             SlhDsaParameterSet.slh_dsa_sha2_192f, NistObjectIdentifiers.id_slh_dsa_sha2_192f, preHashOid: null);
+        /// <summary>SLH-DSA-SHAKE-192f (Category 3, fast variant, SHAKE family).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_192f = new SlhDsaParameters("SLH-DSA-SHAKE-192F",
             SlhDsaParameterSet.slh_dsa_shake_192f, NistObjectIdentifiers.id_slh_dsa_shake_192f, preHashOid: null);
 
+        /// <summary>SLH-DSA-SHA2-256s (Category 5, small variant, SHA-2 family).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_256s = new SlhDsaParameters("SLH-DSA-SHA2-256S",
             SlhDsaParameterSet.slh_dsa_sha2_256s, NistObjectIdentifiers.id_slh_dsa_sha2_256s, preHashOid: null);
+        /// <summary>SLH-DSA-SHAKE-256s (Category 5, small variant, SHAKE family).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_256s = new SlhDsaParameters("SLH-DSA-SHAKE-256S",
             SlhDsaParameterSet.slh_dsa_shake_256s, NistObjectIdentifiers.id_slh_dsa_shake_256s, preHashOid: null);
 
+        /// <summary>SLH-DSA-SHA2-256f (Category 5, fast variant, SHA-2 family).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_256f = new SlhDsaParameters("SLH-DSA-SHA2-256F",
             SlhDsaParameterSet.slh_dsa_sha2_256f, NistObjectIdentifiers.id_slh_dsa_sha2_256f, preHashOid: null);
+        /// <summary>SLH-DSA-SHAKE-256f (Category 5, fast variant, SHAKE family).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_256f = new SlhDsaParameters("SLH-DSA-SHAKE-256F",
             SlhDsaParameterSet.slh_dsa_shake_256f, NistObjectIdentifiers.id_slh_dsa_shake_256f, preHashOid: null);
 
+        /// <summary>HashSLH-DSA-SHA2-128s with SHA-256 pre-hash (Category 1, small).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_128s_with_sha256 = new SlhDsaParameters(
             "SLH-DSA-SHA2-128S-WITH-SHA256", SlhDsaParameterSet.slh_dsa_sha2_128s,
             NistObjectIdentifiers.id_hash_slh_dsa_sha2_128s_with_sha256, NistObjectIdentifiers.IdSha256);
+        /// <summary>HashSLH-DSA-SHAKE-128s with SHAKE128 pre-hash (Category 1, small).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_128s_with_shake128 = new SlhDsaParameters(
             "SLH-DSA-SHAKE-128S-WITH-SHAKE128", SlhDsaParameterSet.slh_dsa_shake_128s,
             NistObjectIdentifiers.id_hash_slh_dsa_shake_128s_with_shake128, NistObjectIdentifiers.IdShake128);
 
+        /// <summary>HashSLH-DSA-SHA2-128f with SHA-256 pre-hash (Category 1, fast).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_128f_with_sha256 = new SlhDsaParameters(
             "SLH-DSA-SHA2-128F-WITH-SHA256", SlhDsaParameterSet.slh_dsa_sha2_128f,
             NistObjectIdentifiers.id_hash_slh_dsa_sha2_128f_with_sha256, NistObjectIdentifiers.IdSha256);
+        /// <summary>HashSLH-DSA-SHAKE-128f with SHAKE128 pre-hash (Category 1, fast).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_128f_with_shake128 = new SlhDsaParameters(
             "SLH-DSA-SHAKE-128F-WITH-SHAKE128", SlhDsaParameterSet.slh_dsa_shake_128f,
             NistObjectIdentifiers.id_hash_slh_dsa_shake_128f_with_shake128, NistObjectIdentifiers.IdShake128);
 
+        /// <summary>HashSLH-DSA-SHA2-192s with SHA-512 pre-hash (Category 3, small).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_192s_with_sha512 = new SlhDsaParameters(
             "SLH-DSA-SHA2-192S-WITH-SHA512", SlhDsaParameterSet.slh_dsa_sha2_192s,
             NistObjectIdentifiers.id_hash_slh_dsa_sha2_192s_with_sha512, NistObjectIdentifiers.IdSha512);
+        /// <summary>HashSLH-DSA-SHAKE-192s with SHAKE256 pre-hash (Category 3, small).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_192s_with_shake256 = new SlhDsaParameters(
             "SLH-DSA-SHAKE-192S-WITH-SHAKE256", SlhDsaParameterSet.slh_dsa_shake_192s,
             NistObjectIdentifiers.id_hash_slh_dsa_shake_192s_with_shake256, NistObjectIdentifiers.IdShake256);
 
+        /// <summary>HashSLH-DSA-SHA2-192f with SHA-512 pre-hash (Category 3, fast).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_192f_with_sha512 = new SlhDsaParameters(
             "SLH-DSA-SHA2-192F-WITH-SHA512", SlhDsaParameterSet.slh_dsa_sha2_192f,
             NistObjectIdentifiers.id_hash_slh_dsa_sha2_192f_with_sha512, NistObjectIdentifiers.IdSha512);
+        /// <summary>HashSLH-DSA-SHAKE-192f with SHAKE256 pre-hash (Category 3, fast).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_192f_with_shake256 = new SlhDsaParameters(
             "SLH-DSA-SHAKE-192F-WITH-SHAKE256", SlhDsaParameterSet.slh_dsa_shake_192f,
             NistObjectIdentifiers.id_hash_slh_dsa_shake_192f_with_shake256, NistObjectIdentifiers.IdShake256);
 
+        /// <summary>HashSLH-DSA-SHA2-256s with SHA-512 pre-hash (Category 5, small).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_256s_with_sha512 = new SlhDsaParameters(
             "SLH-DSA-SHA2-256S-WITH-SHA512", SlhDsaParameterSet.slh_dsa_sha2_256s,
             NistObjectIdentifiers.id_hash_slh_dsa_sha2_256s_with_sha512, NistObjectIdentifiers.IdSha512);
+        /// <summary>HashSLH-DSA-SHAKE-256s with SHAKE256 pre-hash (Category 5, small).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_256s_with_shake256 = new SlhDsaParameters(
             "SLH-DSA-SHAKE-256S-WITH-SHAKE256", SlhDsaParameterSet.slh_dsa_shake_256s,
             NistObjectIdentifiers.id_hash_slh_dsa_shake_256s_with_shake256, NistObjectIdentifiers.IdShake256);
 
+        /// <summary>HashSLH-DSA-SHA2-256f with SHA-512 pre-hash (Category 5, fast).</summary>
         public static readonly SlhDsaParameters slh_dsa_sha2_256f_with_sha512 = new SlhDsaParameters(
             "SLH-DSA-SHA2-256F-WITH-SHA512", SlhDsaParameterSet.slh_dsa_sha2_256f,
             NistObjectIdentifiers.id_hash_slh_dsa_sha2_256f_with_sha512, NistObjectIdentifiers.IdSha512);
+        /// <summary>HashSLH-DSA-SHAKE-256f with SHAKE256 pre-hash (Category 5, fast).</summary>
         public static readonly SlhDsaParameters slh_dsa_shake_256f_with_shake256 = new SlhDsaParameters(
             "SLH-DSA-SHAKE-256F-WITH-SHAKE256", SlhDsaParameterSet.slh_dsa_shake_256f,
             NistObjectIdentifiers.id_hash_slh_dsa_shake_256f_with_shake256, NistObjectIdentifiers.IdShake256);
@@ -153,16 +188,23 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_preHashOid = preHashOid;
         }
 
+        /// <summary>
+        /// <c>true</c> for the HashSLH-DSA variants (FIPS 205 §10.2) that pre-hash the message before
+        /// signing; <c>false</c> for pure SLH-DSA.
+        /// </summary>
         public bool IsPreHash => m_preHashOid != null;
 
+        /// <summary>The textual name of this parameter set (e.g. <c>"SLH-DSA-SHA2-128S"</c>).</summary>
         public string Name => m_name;
 
         internal DerObjectIdentifier Oid => m_oid;
 
         internal DerObjectIdentifier PreHashOid => m_preHashOid;
 
+        /// <summary>The underlying tree/Winternitz parameter set this entry binds to its OID.</summary>
         public SlhDsaParameterSet ParameterSet => m_parameterSet;
 
+        /// <inheritdoc/>
         public override string ToString() => Name;
     }
 }
