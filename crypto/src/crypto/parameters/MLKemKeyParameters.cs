@@ -2,6 +2,10 @@ using System;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// Common base for ML-KEM (FIPS 203) public and private key parameters; carries the
+    /// <see cref="MLKemParameters"/> selector that the key was generated for.
+    /// </summary>
     public abstract class MLKemKeyParameters
         : AsymmetricKeyParameter
     {
@@ -13,6 +17,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
+        /// <summary>The parameter set this key is bound to.</summary>
         public MLKemParameters Parameters => m_parameters;
     }
 }

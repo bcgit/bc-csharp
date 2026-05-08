@@ -7,10 +7,18 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// The three ML-DSA parameter sets defined by FIPS 204, identified by the matrix dimensions
+    /// <c>(k, ℓ)</c> embedded in the name. Each entry binds the textual name to the engine mode that
+    /// produces the standardised public-key, private-key and signature sizes.
+    /// </summary>
     public sealed class MLDsaParameterSet
     {
+        /// <summary>ML-DSA-44 (NIST Category 2, mode 2).</summary>
         public static readonly MLDsaParameterSet ml_dsa_44 = new MLDsaParameterSet("ML-DSA-44", 2);
+        /// <summary>ML-DSA-65 (NIST Category 3, mode 3).</summary>
         public static readonly MLDsaParameterSet ml_dsa_65 = new MLDsaParameterSet("ML-DSA-65", 3);
+        /// <summary>ML-DSA-87 (NIST Category 5, mode 5).</summary>
         public static readonly MLDsaParameterSet ml_dsa_87 = new MLDsaParameterSet("ML-DSA-87", 5);
 
         private static readonly Dictionary<string, MLDsaParameterSet> ByName =
@@ -34,6 +42,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal MLDsaEngine GetEngine(SecureRandom random) => new MLDsaEngine(m_mode, random);
 
+        /// <summary>The textual name of this parameter set (e.g. <c>"ML-DSA-44"</c>).</summary>
         public string Name => m_name;
 
         internal int PrivateKeyLength
@@ -68,6 +77,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal int SeedLength => MLDsaEngine.SeedBytes;
 
+        /// <inheritdoc/>
         public override string ToString() => Name;
     }
 }
