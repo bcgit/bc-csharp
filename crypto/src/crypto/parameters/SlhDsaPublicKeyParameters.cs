@@ -5,9 +5,21 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// SLH-DSA public key (FIPS 205). Wraps the (PK.seed, PK.root) tuple that anchors signature
+    /// verification.
+    /// </summary>
     public sealed class SlhDsaPublicKeyParameters
         : SlhDsaKeyParameters
     {
+        /// <summary>
+        /// Decode a public key from its concatenated <c>seed || root</c> byte representation.
+        /// The expected length is <c>2 * n</c> for the chosen parameter set.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> or
+        /// <paramref name="encoding"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="encoding"/> length does not match the
+        /// parameter set's public-key length.</exception>
         public static SlhDsaPublicKeyParameters FromEncoding(SlhDsaParameters parameters, byte[] encoding)
         {
             if (parameters == null)
@@ -30,6 +42,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_pk = pk;
         }
 
+        /// <summary>Return a fresh copy of the concatenated <c>seed || root</c> encoding.</summary>
         public byte[] GetEncoded() => Arrays.Concatenate(m_pk.Seed, m_pk.Root);
 
         internal PK PK => m_pk;

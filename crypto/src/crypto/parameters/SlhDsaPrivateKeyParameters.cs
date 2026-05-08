@@ -5,9 +5,22 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
+    /// <summary>
+    /// SLH-DSA private key (FIPS 205). Holds the (SK.seed, SK.prf, PK.seed, PK.root) tuple — the
+    /// signing seed and PRF key together with a copy of the public key needed for hypertree
+    /// verification during signing.
+    /// </summary>
     public sealed class SlhDsaPrivateKeyParameters
         : SlhDsaKeyParameters
     {
+        /// <summary>
+        /// Decode a private key from its concatenated <c>SK.seed || SK.prf || PK.seed || PK.root</c>
+        /// byte representation. The expected length is <c>4 * n</c> for the chosen parameter set.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> or
+        /// <paramref name="encoding"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">If <paramref name="encoding"/> length does not match the
+        /// parameter set's private-key length.</exception>
         public static SlhDsaPrivateKeyParameters FromEncoding(SlhDsaParameters parameters, byte[] encoding)
         {
             if (parameters == null)
@@ -33,10 +46,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_pk = pk;
         }
 
+        /// <summary>
+        /// Return a fresh copy of the concatenated <c>SK.seed || SK.prf || PK.seed || PK.root</c>
+        /// encoding.
+        /// </summary>
         public byte[] GetEncoded() => Arrays.ConcatenateAll(m_sk.Seed, m_sk.Prf, m_pk.Seed, m_pk.Root);
 
+        /// <summary>Return the public key embedded in this private key.</summary>
         public SlhDsaPublicKeyParameters GetPublicKey() => new SlhDsaPublicKeyParameters(Parameters, m_pk);
 
+        /// <summary>Return a fresh copy of the public key portion (<c>seed || root</c>).</summary>
         public byte[] GetPublicKeyEncoded() => Arrays.Concatenate(m_pk.Seed, m_pk.Root);
 
         internal PK PK => m_pk;

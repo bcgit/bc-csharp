@@ -13,35 +13,52 @@ namespace Org.BouncyCastle.Crypto.Parameters
         SlhDsaEngine Get();
     }
 
+    /// <summary>
+    /// The 12 SLH-DSA tree parameter sets defined by FIPS 205, identifying the WOTS+ (<c>w</c>),
+    /// hypertree (<c>d</c>, <c>h</c>) and FORS (<c>a</c>, <c>k</c>) shape together with the security
+    /// parameter <c>n</c> and the underlying hash family (SHA-2 or SHAKE-256).
+    /// </summary>
     public sealed class SlhDsaParameterSet
     {
+        /// <summary>SLH-DSA-SHA2-128s tree parameters (<c>n=16, h=63, d=7, k=14, a=12</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_sha2_128s = new SlhDsaParameterSet("SLH-DSA-SHA2-128s",
             new Sha2EngineProvider(n: 16, w: 16, d: 7, a: 12, k: 14, h: 63));
+        /// <summary>SLH-DSA-SHAKE-128s tree parameters (<c>n=16, h=63, d=7, k=14, a=12</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_shake_128s = new SlhDsaParameterSet("SLH-DSA-SHAKE-128s",
             new Shake256EngineProvider(n: 16, w: 16, d: 7, a: 12, k: 14, h: 63));
 
+        /// <summary>SLH-DSA-SHA2-128f tree parameters (<c>n=16, h=66, d=22, k=33, a=6</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_sha2_128f = new SlhDsaParameterSet("SLH-DSA-SHA2-128f",
             new Sha2EngineProvider(n: 16, w: 16, d: 22, a: 6, k: 33, h: 66));
+        /// <summary>SLH-DSA-SHAKE-128f tree parameters (<c>n=16, h=66, d=22, k=33, a=6</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_shake_128f = new SlhDsaParameterSet("SLH-DSA-SHAKE-128f",
             new Shake256EngineProvider(n: 16, w: 16, d: 22, a: 6, k: 33, h: 66));
 
+        /// <summary>SLH-DSA-SHA2-192s tree parameters (<c>n=24, h=63, d=7, k=17, a=14</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_sha2_192s = new SlhDsaParameterSet("SLH-DSA-SHA2-192s",
             new Sha2EngineProvider(n: 24, w: 16, d: 7, a: 14, k: 17, h: 63));
+        /// <summary>SLH-DSA-SHAKE-192s tree parameters (<c>n=24, h=63, d=7, k=17, a=14</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_shake_192s = new SlhDsaParameterSet("SLH-DSA-SHAKE-192s",
             new Shake256EngineProvider(n: 24, w: 16, d: 7, a: 14, k: 17, h: 63));
 
+        /// <summary>SLH-DSA-SHA2-192f tree parameters (<c>n=24, h=66, d=22, k=33, a=8</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_sha2_192f = new SlhDsaParameterSet("SLH-DSA-SHA2-192f",
             new Sha2EngineProvider(n: 24, w: 16, d: 22, a: 8, k: 33, h: 66));
+        /// <summary>SLH-DSA-SHAKE-192f tree parameters (<c>n=24, h=66, d=22, k=33, a=8</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_shake_192f = new SlhDsaParameterSet("SLH-DSA-SHAKE-192f",
             new Shake256EngineProvider(n: 24, w: 16, d: 22, a: 8, k: 33, h: 66));
 
+        /// <summary>SLH-DSA-SHA2-256s tree parameters (<c>n=32, h=64, d=8, k=22, a=14</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_sha2_256s = new SlhDsaParameterSet("SLH-DSA-SHA2-256s",
             new Sha2EngineProvider(n: 32, w: 16, d: 8, a: 14, k: 22, h: 64));
+        /// <summary>SLH-DSA-SHAKE-256s tree parameters (<c>n=32, h=64, d=8, k=22, a=14</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_shake_256s = new SlhDsaParameterSet("SLH-DSA-SHAKE-256s",
             new Shake256EngineProvider(n: 32, w: 16, d: 8, a: 14, k: 22, h: 64));
 
+        /// <summary>SLH-DSA-SHA2-256f tree parameters (<c>n=32, h=68, d=17, k=35, a=9</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_sha2_256f = new SlhDsaParameterSet("SLH-DSA-SHA2-256f",
             new Sha2EngineProvider(n: 32, w: 16, d: 17, a: 9, k: 35, h: 68));
+        /// <summary>SLH-DSA-SHAKE-256f tree parameters (<c>n=32, h=68, d=17, k=35, a=9</c>).</summary>
         public static readonly SlhDsaParameterSet slh_dsa_shake_256f = new SlhDsaParameterSet("SLH-DSA-SHAKE-256f",
             new Shake256EngineProvider(n: 32, w: 16, d: 17, a: 9, k: 35, h: 68));
 
@@ -73,12 +90,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_engineProvider = engineProvider;
         }
 
+        /// <summary>The textual name of this parameter set (e.g. <c>"SLH-DSA-SHA2-128s"</c>).</summary>
         public string Name => m_name;
 
         internal int PrivateKeyLength => 4 * N;
 
         internal int PublicKeyLength => 2 * N;
 
+        /// <inheritdoc/>
         public override string ToString() => Name;
 
         internal int N => m_engineProvider.N;
