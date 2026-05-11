@@ -480,6 +480,10 @@ namespace Org.BouncyCastle.Asn1.X509
                 if (!attributes.TryGetValue(oid, out var attribute))
                     throw new ArgumentException("No attribute for object id - " + oid + " - passed to distinguished name");
 
+                // TODO Migrate towards bc-java style builders and styles
+                // Inefficient but forces validation at a similar point to bc-java (X500Name)
+                converter.GetConvertedValue(oid, attribute);
+
                 m_ordering.Add(oid);
                 m_values.Add(attribute);
                 m_added.Add(false);
@@ -509,6 +513,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
             for (int i = 0; i < oids.Count; i++)
             {
+                // TODO Migrate towards bc-java style builders and styles
+                // Inefficient but forces validation at a similar point to bc-java (X500Name)
+                converter.GetConvertedValue(oids[i], values[i]);
+
                 m_ordering.Add(oids[i]);
                 m_values.Add(values[i]);
                 m_added.Add(false);
@@ -616,11 +624,11 @@ namespace Org.BouncyCastle.Asn1.X509
 
                 X509NameTokenizer rdnTokenizer = new X509NameTokenizer(rdn, '+');
 
-                AddAttribute(lookup, NextToken(rdnTokenizer), false);
+                AddAttribute(lookup, NextToken(rdnTokenizer), false, converter);
 
                 while (rdnTokenizer.HasMoreTokens())
                 {
-                    AddAttribute(lookup, NextToken(rdnTokenizer), true);
+                    AddAttribute(lookup, NextToken(rdnTokenizer), true, converter);
                 }
             }
 
@@ -865,7 +873,8 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public override string ToString() => ToString(DefaultReverse, DefaultSymbols);
 
-        private void AddAttribute(IDictionary<string, DerObjectIdentifier> lookup, string token, bool added)
+        private void AddAttribute(IDictionary<string, DerObjectIdentifier> lookup,
+            string token, bool added, X509NameEntryConverter converter)
         {
             X509NameTokenizer tokenizer = new X509NameTokenizer(token, '=');
 
@@ -877,6 +886,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
             DerObjectIdentifier oid = DecodeOid(typeToken.Trim(), lookup);
             string value = IetfUtilities.Unescape(valueToken);
+
+            // TODO Migrate towards bc-java style builders and styles
+            // Inefficient but forces validation at a similar point to bc-java (X500Name)
+            converter.GetConvertedValue(oid, value);
 
             m_ordering.Add(oid);
             m_values.Add(value);
