@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1.X500.Style;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -27,7 +28,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             "CN=*.canal-plus.com,OU=Provided by TBS INTERNET https://www.tbs-certificats.com/,OU=\\ CANAL \\+,O=CANAL\\+DISTRIBUTION,L=issy les moulineaux,ST=Hauts de Seine,C=FR",
             "O=Bouncy Castle,CN=www.bouncycastle.org\\ ",
             "O=Bouncy Castle,CN=c:\\\\fred\\\\bob",
-            "C=0,O=1,OU=2,T=3,CN=4,SERIALNUMBER=5,STREET=6,SERIALNUMBER=7,L=8,ST=9,SURNAME=10,GIVENNAME=11,INITIALS=12," +
+            "C=AU,O=1,OU=2,T=3,CN=4,SERIALNUMBER=5,STREET=6,SERIALNUMBER=7,L=8,ST=9,SURNAME=10,GIVENNAME=11,INITIALS=12," +
                 "GENERATION=13,UniqueIdentifier=14,BusinessCategory=15,PostalCode=16,DN=17,Pseudonym=18,PlaceOfBirth=19," +
                 "Gender=20,CountryOfCitizenship=21,CountryOfResidence=22,NameAtBirth=23,PostalAddress=24,2.5.4.54=25," +
                 "TelephoneNumber=26,Name=27,E=28,unstructuredName=29,unstructuredAddress=30,E=31,DC=32,UID=33",
@@ -275,9 +276,9 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("Failed subset name test");
             }
 
+            CompositeTest();
 
-            compositeTest();
-
+            CountryCodeLengthTest();
 
             //
             // getValues test
@@ -599,12 +600,16 @@ namespace Org.BouncyCastle.Asn1.Tests
             {
                 Fail("telephonenumber escaped + not reduced properly");
             }
+
+            IsTrue(X509Name.JurisdictionC.Equals(
+                CollectionUtilities.GetValueOrNull(X509Name.DefaultLookup, "jurisdictionCountry")));
+            IsTrue(X509Name.JurisdictionST.Equals(
+                CollectionUtilities.GetValueOrNull(X509Name.DefaultLookup, "jurisdictionState")));
+            IsTrue(X509Name.JurisdictionL.Equals(
+                CollectionUtilities.GetValueOrNull(X509Name.DefaultLookup, "jurisdictionLocality")));
         }
 
-        private void IetfUtilitiesTest()
-        {
-            IetfUtilities.ValueToString(new DerUtf8String(" "));
-        }
+        private static void IetfUtilitiesTest() => IetfUtilities.ValueToString(new DerUtf8String(" "));
 
         private void BogusEqualsTest()
         {
@@ -645,7 +650,57 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        private void compositeTest()
+        private void CountryCodeLengthTest()
+        {
+            var converter = new X509DefaultEntryConverter();
+
+            // Positive cases: 2-character codes are accepted.
+
+            converter.GetConvertedValue(X509Name.C, "US");
+            converter.GetConvertedValue(X509Name.JurisdictionC, "US");
+            new X509Name("C=AU");
+
+            DerObjectIdentifier[] countryOids = { X509Name.C, X509Name.JurisdictionC };
+            string[] badValues = { "USA", "U", "" };
+
+            for (int i = 0; i != countryOids.Length; ++i)
+            {
+                for (int j = 0; j != badValues.Length; ++j)
+                {
+                    try
+                    {
+                        converter.GetConvertedValue(countryOids[i], badValues[j]);
+                        Fail($"country code attribute {countryOids[i]} accepted '{badValues[j]}'");
+                    }
+                    catch (ArgumentException)
+                    {
+                        // expected
+                    }
+                }
+            }
+
+            try
+            {
+                new X509Name("C=USA");
+                Fail("X509Name(\"C=USA\") accepted 3-character country code");
+            }
+            catch (ArgumentException)
+            {
+                // expected
+            }
+
+            // Parsing existing DER with a non-conforming country code is
+            // deliberately still permitted (leniency boundary): we don't want
+            // to block reading already-issued certificates in the wild.
+            X509Name parsed = X509Name.GetInstance(
+                new DerSequence(new DerSet(new DerSequence(X509Name.C, new DerPrintableString("USA")))));
+            if (!"USA".Equals(parsed.GetValueList(X509Name.C)[0]))
+            {
+                Fail("lenient parse of 3-character C failed: " + parsed);
+            }
+        }
+
+        private void CompositeTest()
         {
             //
             // composite test
