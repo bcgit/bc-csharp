@@ -14,12 +14,12 @@ namespace Org.BouncyCastle.Asn1.X509
     {
         private static readonly string id_kp = X509ObjectIdentifiers.IdPkix.Branch("3").GetID();
 
-		private KeyPurposeID(string id)
-			: base(id)
+        private KeyPurposeID(string id)
+            : base(id)
         {
         }
 
-		public static readonly KeyPurposeID AnyExtendedKeyUsage = new KeyPurposeID(X509Extensions.ExtendedKeyUsage.Id + ".0");
+        public static readonly KeyPurposeID AnyExtendedKeyUsage = new KeyPurposeID(X509Extensions.ExtendedKeyUsage.Id + ".0");
 
         public static readonly KeyPurposeID id_kp_serverAuth = new KeyPurposeID(id_kp + ".1");
         public static readonly KeyPurposeID id_kp_clientAuth = new KeyPurposeID(id_kp + ".2");
@@ -44,6 +44,34 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly KeyPurposeID id_kp_cmcCA = new KeyPurposeID(id_kp + ".27");
         public static readonly KeyPurposeID id_kp_cmcRA = new KeyPurposeID(id_kp + ".28");
         public static readonly KeyPurposeID id_kp_cmKGA = new KeyPurposeID(id_kp + ".32");
+
+        /**
+         * RFC 9809 sec. 3 - signing general-purpose configuration files.
+         * <p>
+         * id-kp-configSigning OBJECT IDENTIFIER ::= { id-kp 41 }
+         */
+        public static readonly KeyPurposeID id_kp_configSigning = new KeyPurposeID(id_kp + ".41");
+
+        /**
+         * RFC 9809 sec. 3 - signing trust anchor configuration files.
+         * <p>
+         * id-kp-trustAnchorConfigSigning OBJECT IDENTIFIER ::= { id-kp 42 }
+         */
+        public static readonly KeyPurposeID id_kp_trustAnchorConfigSigning = new KeyPurposeID(id_kp + ".42");
+
+        /**
+         * RFC 9809 sec. 3 - signing software or firmware update packages.
+         * <p>
+         * id-kp-updatePackageSigning OBJECT IDENTIFIER ::= { id-kp 43 }
+         */
+        public static readonly KeyPurposeID id_kp_updatePackageSigning = new KeyPurposeID(id_kp + ".43");
+
+        /**
+         * RFC 9809 sec. 3 - authenticating communication peers for safety-critical communication.
+         * <p>
+         * id-kp-safetyCommunication OBJECT IDENTIFIER ::= { id-kp 44 }
+         */
+        public static readonly KeyPurposeID id_kp_safetyCommunication = new KeyPurposeID(id_kp + ".44");
 
         //
         // microsoft key purpose ids
