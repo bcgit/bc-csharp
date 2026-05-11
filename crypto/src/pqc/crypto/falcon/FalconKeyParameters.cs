@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
@@ -7,10 +9,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
     {
         private readonly FalconParameters m_parameters;
 
-        internal FalconKeyParameters(bool isprivate, FalconParameters parameters)
-            : base(isprivate)
+        internal FalconKeyParameters(bool isPrivate, FalconParameters parameters)
+            : base(isPrivate)
         {
-            m_parameters = parameters;
+            m_parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
         public FalconParameters Parameters => m_parameters;
