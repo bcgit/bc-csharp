@@ -510,9 +510,12 @@ namespace Org.BouncyCastle.Tests.Nist
             string[] certList = new string[] { "distributionPoint1CACert", "InvaliddistributionPointTest3EE" };
             string[] crlList = new string[] { TRUST_ANCHOR_ROOT_CRL, "distributionPoint1CACRL" };
 
-            DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null,
+            // Exact message ends with the conflicting DP / IDP name lists (github #800),
+            // so use the prefix-matching variant.
+            DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 0,
-                "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.",
+                "");
         }
 
         // 4.14.5
@@ -532,9 +535,10 @@ namespace Org.BouncyCastle.Tests.Nist
             string[] certList = new string[] { "distributionPoint2CACert", "InvaliddistributionPointTest8EE" };
             string[] crlList = new string[] { TRUST_ANCHOR_ROOT_CRL, "distributionPoint2CACRL" };
 
-            DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null,
+            DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 0,
-                "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.",
+                "");
         }
 
         // 4.14.9
@@ -544,9 +548,10 @@ namespace Org.BouncyCastle.Tests.Nist
             string[] certList = new string[] { "distributionPoint2CACert", "InvaliddistributionPointTest9EE" };
             string[] crlList = new string[] { TRUST_ANCHOR_ROOT_CRL, "distributionPoint2CACRL" };
 
-            DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null,
+            DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 0,
-                "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.",
+                "");
         }
 
         // 4.14.17

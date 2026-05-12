@@ -162,8 +162,12 @@ namespace Org.BouncyCastle.Pkix
                     }
                     if (!matches)
                     {
+                        // github #800: include the conflicting names so operators
+                        // can see which CRL was returned for which cert DP.
                         throw new Exception(
-                            "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                            "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point."
+                                + " cert DP names: " + new List<GeneralName>(genNames)
+                                + "; CRL IDP names: " + names);
                     }
                 }
                 // verify that one of the names in
@@ -187,8 +191,12 @@ namespace Org.BouncyCastle.Pkix
                     }
                     if (!matches)
                     {
+                        // github #800: include the conflicting names so operators
+                        // can see which CRL was returned for which cert cRLIssuer.
                         throw new Exception(
-                            "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                            "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point."
+                                + " cert cRLIssuer names: " + new List<GeneralName>(genNames)
+                                + "; CRL IDP names: " + names);
                     }
                 }
             }

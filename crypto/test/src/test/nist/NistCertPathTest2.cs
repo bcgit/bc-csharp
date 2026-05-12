@@ -3367,7 +3367,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid distributionPoint Test3 EE")
                 .WithCrls("distributionPoint1 CA CRL")
                 .WithCerts("distributionPoint1 CA Cert")
-                .DoExceptionTest(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                .DoExceptionPrefixTest(0,
+                    "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
         }
 
         /// <summary>4.14.4 Valid distributionPoint Test4</summary>
@@ -3461,7 +3462,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid distributionPoint Test8 EE")
                 .WithCrls("distributionPoint2 CA CRL")
                 .WithCerts("distributionPoint2 CA Cert")
-                .DoExceptionTest(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                .DoExceptionPrefixTest(0,
+                    "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
         }
 
         /// <summary>4.14.9 Invalid distributionPoint Test9</summary>
@@ -3477,7 +3479,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid distributionPoint Test9 EE")
                 .WithCrls("distributionPoint2 CA CRL")
                 .WithCerts("distributionPoint2 CA Cert")
-                .DoExceptionTest(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                .DoExceptionPrefixTest(0,
+                    "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
         }
 
         /// <summary>4.14.10 Valid No issuingDistributionPoint Test10</summary>
