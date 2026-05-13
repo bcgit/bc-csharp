@@ -126,6 +126,7 @@ namespace Org.BouncyCastle.Asn1.Tests
         {
             IetfUtilitiesTest();
             BogusEqualsTest();
+            dnQualifierAliasParseTest();
 
             doTestEncodingPrintableString(X509Name.C, "AU");
             doTestEncodingPrintableString(X509Name.SerialNumber, "123456");
@@ -610,6 +611,29 @@ namespace Org.BouncyCastle.Asn1.Tests
         }
 
         private static void IetfUtilitiesTest() => IetfUtilities.ValueToString(new DerUtf8String(" "));
+
+        /**
+         * BCStyle / RFC4519Style now accept "DN", "DNQ" and "dnQualifier"
+         * as parser aliases for the dnQualifier attribute (OID 2.5.4.46).
+         * The motivating case was that {@code java.security.cert.X509Certificate.getSubjectX500Principal().toString()}
+         * emits "DNQ=" on some JDKs (Amazon Corretto 17 observed) and
+         * "DNQUALIFIER=" on others, neither of which round-tripped through
+         * {@code new X500Name(principal.toString())} under BCStyle's
+         * historical "DN" form (issue #1622).
+         */
+        private void dnQualifierAliasParseTest()
+        {
+            string[] aliases = { "DN", "DNQ", "dnQualifier", "dn", "dnq", "dnqualifier" };
+            foreach (var alias in aliases)
+            {
+                X509Name name = new X509Name("CN=Foo," + alias + "=ABC123");
+
+                if (1 != name.GetValueList(X509Name.DnQualifier).Count)
+                {
+                    Fail("X509Name: alias '" + alias + "' did not parse to a single dnQualifier RDN");
+                }
+            }
+        }
 
         private void BogusEqualsTest()
         {

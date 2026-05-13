@@ -337,6 +337,8 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("unstructuredname", UnstructuredName);
             DefaultLookupInternal.Add("uniqueidentifier", UniqueIdentifier);
             DefaultLookupInternal.Add("dn", DnQualifier);
+            DefaultLookupInternal.Add("dnq", DnQualifier);
+            DefaultLookupInternal.Add("dnqualifier", DnQualifier);
             DefaultLookupInternal.Add("pseudonym", Pseudonym);
             DefaultLookupInternal.Add("postaladdress", PostalAddress);
             DefaultLookupInternal.Add("nameatbirth", NameAtBirth);
