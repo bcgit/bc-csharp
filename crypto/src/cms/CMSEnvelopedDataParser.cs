@@ -19,16 +19,16 @@ namespace Org.BouncyCastle.Cms
      *
      *      RecipientInformationStore  recipients = ep.GetRecipientInfos();
      *
-     *      Collection  c = recipients.getRecipients();
+     *      Collection  c = recipients.GetRecipients();
      *      Iterator    it = c.iterator();
      *
      *      if (it.hasNext())
      *      {
      *          RecipientInformation   recipient = (RecipientInformation)it.next();
      *
-     *          CMSTypedStream recData = recipient.getContentStream(privateKey);
+     *          CMSTypedStream recData = recipient.GetContentStream(privateKey);
      *
-     *          processDataStream(recData.getContentStream());
+     *          processDataStream(recData.GetContentStream());
      *      }
      *  </pre>
      *  Note: this class does not introduce buffering - if you are processing large files you should create
@@ -37,6 +37,20 @@ namespace Org.BouncyCastle.Cms
      *          CmsEnvelopedDataParser     ep = new CmsEnvelopedDataParser(new BufferedInputStream(inputStream, bufSize));
      *  </pre>
      *  where bufSize is a suitably large buffer size.
+     * </p>
+     * <p>
+     * <b>Stream handling note:</b>
+     * <ul>
+     *   <li>The constructor reads only enough of the supplied Stream to expose the
+     *       CMS structure metadata (originator info, recipient infos, content-encryption
+     *       algorithm). The encrypted content is drained lazily by the caller via
+     *       {@link RecipientInformation#GetContentStream} /
+     *       {@link RecipientInformation#GetContent}.</li>
+     *   <li>The supplied Stream is <b>not closed automatically</b>. Call
+     *       {@link #Close()} on this parser (inherited from
+     *       {@link CmsContentInfoParser}) to close the underlying Stream, or close
+     *       it yourself.</li>
+     * </ul>
      * </p>
      */
     public class CmsEnvelopedDataParser

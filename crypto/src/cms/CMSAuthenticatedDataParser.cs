@@ -44,6 +44,20 @@ namespace Org.BouncyCastle.Cms
      *  </pre>
      *  where bufSize is a suitably large buffer size.
      * </p>
+     * <p>
+     * <b>Stream handling note:</b>
+     * <ul>
+     *   <li>The constructor reads only enough of the supplied Stream to expose the
+     *       CMS structure metadata (originator info, recipient infos, MAC algorithm).
+     *       The encapsulated content is drained lazily by the caller via
+     *       {@link RecipientInformation#GetContentStream}; the MAC is available from
+     *       {@link #GetMac()} once the content stream has been read to EOF.</li>
+     *   <li>The supplied Stream is <b>not closed automatically</b>. Call
+     *       {@link #Close()} on this parser (inherited from
+     *       {@link CmsContentInfoParser}) to close the underlying Stream, or close
+     *       it yourself.</li>
+     * </ul>
+     * </p>
      */
     public class CmsAuthenticatedDataParser
         : CmsContentInfoParser

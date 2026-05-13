@@ -28,6 +28,18 @@ namespace Org.BouncyCastle.Cms
      *     out.Close();
      * </pre>
      * </p>
+     * <p>
+     * <b>Stream handling note:</b>
+     * <ul>
+     *   <li>The returned Stream must be closed to finalize the CMS structure.</li>
+     *   <li>Closing the returned stream <b>does not close</b> the underlying Stream
+     *       passed to {@code Open()}.</li>
+     *   <li>Callers are responsible for closing the underlying Stream separately.
+     *       If the underlying Stream is a buffering encoder whose tail state
+     *       only flushes on close (e.g. Apache Commons {@code Base64OutputStream}),
+     *       failing to close it will cause the encoded output to be truncated.</li>
+     * </ul>
+     * </p>
      */
     public class CmsEnvelopedDataStreamGenerator
         : CmsEnvelopedGenerator

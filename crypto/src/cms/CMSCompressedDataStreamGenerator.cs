@@ -22,6 +22,15 @@ namespace Org.BouncyCastle.Cms
      *
      *      cOut.Close();
      * </pre>
+     * <p>
+     * <b>Stream handling note:</b>
+     * <ul>
+     *   <li>The returned Stream must be closed to finalize the CMS structure.</li>
+     *   <li>Closing the returned stream <b>does not close</b> the underlying Stream
+     *       passed to {@code Open()}.</li>
+     *   <li>Callers are responsible for closing the underlying Stream separately.</li>
+     * </ul>
+     * </p>
      */
     public class CmsCompressedDataStreamGenerator
     {

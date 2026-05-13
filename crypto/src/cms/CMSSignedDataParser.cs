@@ -50,6 +50,20 @@ namespace Org.BouncyCastle.Cms
      *          CmsSignedDataParser     ep = new CmsSignedDataParser(new BufferedInputStream(encapSigData, bufSize));
      *  </pre>
      *  where bufSize is a suitably large buffer size.
+     * <p>
+     * <b>Stream handling note:</b>
+     * <ul>
+     *   <li>The constructor reads only enough of the supplied Stream to expose the
+     *       digest algorithms and signed-content metadata. The encapsulated content
+     *       must be drained by the caller (e.g.
+     *       {@link #GetSignedContent()}.{@link CmsTypedStream#Drain Drain()}) before
+     *       calling {@link #GetSignerInfos()} so the running digests can be finalized.</li>
+     *   <li>The supplied Stream is <b>not closed automatically</b>. Call
+     *       {@link #Close()} on this parser (inherited from
+     *       {@link CmsContentInfoParser}) to close the underlying Stream, or close
+     *       it yourself.</li>
+     * </ul>
+     * </p>
      */
     public class CmsSignedDataParser
         : CmsContentInfoParser

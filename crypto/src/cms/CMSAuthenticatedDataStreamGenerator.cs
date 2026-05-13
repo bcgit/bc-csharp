@@ -27,6 +27,16 @@ namespace Org.BouncyCastle.Cms
      *     out.close();
      * </pre>
      * </p>
+     * <p>
+     * <b>Stream handling note:</b>
+     * <ul>
+     *   <li>The returned Stream must be closed to finalize the CMS structure and
+     *       emit the MAC.</li>
+     *   <li>Closing the returned stream <b>does not close</b> the underlying Stream
+     *       passed to {@code Open()}.</li>
+     *   <li>Callers are responsible for closing the underlying Stream separately.</li>
+     * </ul>
+     * </p>
      */
     public class CmsAuthenticatedDataStreamGenerator
         : CmsAuthenticatedGenerator
