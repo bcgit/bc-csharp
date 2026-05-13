@@ -136,14 +136,14 @@ namespace Org.BouncyCastle.Asn1
             Five = SmallConstants[5];
         }
 
-        // TODO[api] Obsolete in favour of ValueOf
+        [Obsolete("Use ValueOf instead.")]
         public DerInteger(int value)
         {
             m_contents = BigInteger.ValueOf(value).ToByteArray();
             m_start = 0;
         }
 
-        // TODO[api] Obsolete in favour of ValueOf
+        [Obsolete("Use ValueOf instead.")]
         public DerInteger(long value)
         {
             m_contents = BigInteger.ValueOf(value).ToByteArray();
