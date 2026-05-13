@@ -49,6 +49,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * RFC 9809 sec. 3 - signing general-purpose configuration files.
          * <p>
          * id-kp-configSigning OBJECT IDENTIFIER ::= { id-kp 41 }
+         * </p>
          */
         public static readonly KeyPurposeID id_kp_configSigning = new KeyPurposeID(id_kp + ".41");
 
@@ -56,6 +57,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * RFC 9809 sec. 3 - signing trust anchor configuration files.
          * <p>
          * id-kp-trustAnchorConfigSigning OBJECT IDENTIFIER ::= { id-kp 42 }
+         * </p>
          */
         public static readonly KeyPurposeID id_kp_trustAnchorConfigSigning = new KeyPurposeID(id_kp + ".42");
 
@@ -63,6 +65,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * RFC 9809 sec. 3 - signing software or firmware update packages.
          * <p>
          * id-kp-updatePackageSigning OBJECT IDENTIFIER ::= { id-kp 43 }
+         * </p>
          */
         public static readonly KeyPurposeID id_kp_updatePackageSigning = new KeyPurposeID(id_kp + ".43");
 
@@ -70,6 +73,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * RFC 9809 sec. 3 - authenticating communication peers for safety-critical communication.
          * <p>
          * id-kp-safetyCommunication OBJECT IDENTIFIER ::= { id-kp 44 }
+         * </p>
          */
         public static readonly KeyPurposeID id_kp_safetyCommunication = new KeyPurposeID(id_kp + ".44");
 
