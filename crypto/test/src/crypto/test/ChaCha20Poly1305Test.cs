@@ -2,7 +2,6 @@
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -46,9 +45,29 @@ namespace Org.BouncyCastle.Crypto.Tests
             },
         };
 
+        private readonly SecureRandom Random = new SecureRandom();
+
         public override string Name
         {
             get { return "ChaCha20Poly1305"; }
+        }
+
+        [Test, Explicit]
+        public void BenchDecrypt() => ImplBenchProcess(forEncryption: false);
+
+        [Test, Explicit]
+        public void BenchEncrypt() => ImplBenchProcess(forEncryption: true);
+
+        private void ImplBenchProcess(bool forEncryption)
+        {
+            var engine = RandomEngine(forEncryption);
+            var input = SecureRandom.GetNextBytes(Random, 1024);
+            var output = new byte[1024 + 64];
+
+            for (int i = 0; i < 1024 * 1024; ++i)
+            {
+                engine.ProcessBytes(input, 0, input.Length, output, 0);
+            }
         }
 
         public override void PerformTest()
@@ -125,7 +144,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private ChaCha20Poly1305 InitCipher(bool forEncryption, AeadParameters parameters)
+        private static ChaCha20Poly1305 InitCipher(bool forEncryption, AeadParameters parameters)
         {
             ChaCha20Poly1305 c = new ChaCha20Poly1305();
             c.Init(forEncryption, parameters);
@@ -190,12 +209,11 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void RandomTests()
         {
-            SecureRandom random = new SecureRandom();
-            random.SetSeed(DateTimeUtilities.CurrentUnixMs());
+            Random.SetSeed(DateTimeUtilities.CurrentUnixMs());
 
             for (int i = 0; i < 100; ++i)
             {
-                RandomTest(random);
+                RandomTest(Random);
             }
         }
 
@@ -438,6 +456,19 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 IsTrue("wrong message", e.Message.Equals("cannot reuse nonce for ChaCha20Poly1305 encryption"));
             }
+        }
+
+        private ChaCha20Poly1305 RandomEngine(bool forEncryption)
+        {
+            byte[] K = new byte[32];
+            byte[] A = null;
+            byte[] N = new byte[12];
+
+            Random.NextBytes(K);
+            Random.NextBytes(N);
+
+            var aeadParameters = new AeadParameters(new KeyParameter(K), 16 * 8, N, A);
+            return InitCipher(forEncryption, aeadParameters);
         }
 
         [Test]
