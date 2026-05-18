@@ -30,9 +30,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 
         /// <summary>The name of the algorithm ("XChaCha20Poly1305").</summary>
-        public override string AlgorithmName
-        {
-            get { return "XChaCha20Poly1305"; }
-        }
+        public override string AlgorithmName => "XChaCha20Poly1305";
     }
 }

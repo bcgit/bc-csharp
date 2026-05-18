@@ -11,6 +11,7 @@ using System.Runtime.Intrinsics.X86;
 #endif
 
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -28,15 +29,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
         }
 
-        public override string AlgorithmName
-        {
-            get { return "ChaCha7539"; }
-        }
+        public override string AlgorithmName => "ChaCha7539";
 
-        protected override int NonceSize
-        {
-            get { return 12; }
-        }
+        protected override int NonceSize => 12;
 
         protected override void AdvanceCounter()
         {
@@ -66,60 +61,54 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.LE_To_UInt32(ivBytes, 0, engineState, 13, 3);
         }
 
-        protected override void GenerateKeyStream(byte[] output)
-        {
+        protected override void GenerateKeyStream(byte[] output) =>
             ChaChaEngine.ChaChaCore(rounds, engineState, output);
-        }
 
-		internal void DoFinal(byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
-		{
-			if (!initialised)
-				throw new InvalidOperationException(AlgorithmName + " not initialised");
-			if (index != 0)
-				throw new InvalidOperationException(AlgorithmName + " not in block-aligned state");
+        internal void DoFinal(byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
+        {
+            if (!initialised)
+                throw new InvalidOperationException(AlgorithmName + " not initialised");
+            if (index != 0)
+                throw new InvalidOperationException(AlgorithmName + " not in block-aligned state");
 
-			Check.DataLength(inBuf, inOff, inLen, "input buffer too short");
-			Check.OutputLength(outBuf, outOff, inLen, "output buffer too short");
+            Check.DataLength(inBuf, inOff, inLen, "input buffer too short");
+            Check.OutputLength(outBuf, outOff, inLen, "output buffer too short");
 
-			while (inLen >= 128)
+            while (inLen >= 128)
             {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 ProcessBlocks2(inBuf.AsSpan(inOff), outBuf.AsSpan(outOff));
 #else
-				ProcessBlocks2(inBuf, inOff, outBuf, outOff);
+                ProcessBlocks2(inBuf, inOff, outBuf, outOff);
 #endif
                 inOff += 128;
-				inLen -= 128;
-				outOff += 128;
-			}
+                inLen -= 128;
+                outOff += 128;
+            }
 
-			if (inLen >= 64)
-			{
+            if (inLen >= 64)
+            {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 ImplProcessBlock(inBuf.AsSpan(inOff), outBuf.AsSpan(outOff));
 #else
                 ImplProcessBlock(inBuf, inOff, outBuf, outOff);
 #endif
                 inOff += 64;
-				inLen -= 64;
-				outOff += 64;
-			}
+                inLen -= 64;
+                outOff += 64;
+            }
 
-			if (inLen > 0)
+            if (inLen > 0)
             {
                 GenerateKeyStream(keyStream);
                 AdvanceCounter();
+                Bytes.Xor(inLen, inBuf, inOff, keyStream, 0, outBuf, outOff);
+            }
 
-				for (int i = 0; i < inLen; ++i)
-                {
-                    outBuf[outOff + i] = (byte)(inBuf[i + inOff] ^ keyStream[i]);
-                }
-			}
+            engineState[12] = 0;
 
-			engineState[12] = 0;
-
-			// TODO Prevent re-use if encrypting
-		}
+            // TODO Prevent re-use if encrypting
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal void ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
@@ -159,24 +148,20 @@ namespace Org.BouncyCastle.Crypto.Engines
 #endif
 
             {
-				ImplProcessBlock(input, output);
-				ImplProcessBlock(input[64..], output[64..]);
-			}
-		}
+                ImplProcessBlock(input, output);
+                ImplProcessBlock(input[64..], output[64..]);
+            }
+        }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void ImplProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             ChaChaEngine.ChaChaCore(rounds, engineState, keyStream);
             AdvanceCounter();
-
-            for (int i = 0; i < 64; ++i)
-            {
-                output[i] = (byte)(keyStream[i] ^ input[i]);
-            }
+            Bytes.Xor(64, input, keyStream, output);
         }
 #else
-		internal void ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
+        internal void ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
         {
             if (!initialised)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
@@ -185,7 +170,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             Debug.Assert(index == 0);
 
-			ImplProcessBlock(inBytes, inOff, outBytes, outOff);
+            ImplProcessBlock(inBytes, inOff, outBytes, outOff);
         }
 
         internal void ProcessBlocks2(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
@@ -198,301 +183,293 @@ namespace Org.BouncyCastle.Crypto.Engines
             Debug.Assert(index == 0);
 
             {
-				ImplProcessBlock(inBytes, inOff, outBytes, outOff);
-				ImplProcessBlock(inBytes, inOff + 64, outBytes, outOff + 64);
-			}
-		}
+                ImplProcessBlock(inBytes, inOff, outBytes, outOff);
+                ImplProcessBlock(inBytes, inOff + 64, outBytes, outOff + 64);
+            }
+        }
 
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-		internal void ImplProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
+        internal void ImplProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
-			ChaChaEngine.ChaChaCore(rounds, engineState, keyStream);
-			AdvanceCounter();
-
-			for (int i = 0; i < 64; ++i)
-			{
-				outBuf[outOff + i] = (byte)(keyStream[i] ^ inBuf[inOff + i]);
-			}
-		}
+            ChaChaEngine.ChaChaCore(rounds, engineState, keyStream);
+            AdvanceCounter();
+            Bytes.Xor(64, inBuf, inOff, keyStream, 0, outBuf, outOff);
+        }
 #endif
 
 #if NETCOREAPP3_0_OR_GREATER
-		// PSHUFB masks for rotate-left-16 and rotate-left-8 on each uint32 lane.
-		// rot16: bytes [b0 b1 b2 b3] -> [b2 b3 b0 b1]; rot8: -> [b3 b0 b1 b2].
-		private static readonly Vector128<byte> Rot16Mask128 = Vector128.Create(
-			(byte)2, 3, 0, 1,  6, 7, 4, 5,  10, 11, 8, 9,  14, 15, 12, 13);
-		private static readonly Vector128<byte> Rot8Mask128 = Vector128.Create(
-			(byte)3, 0, 1, 2,  7, 4, 5, 6,  11,  8, 9, 10, 15, 12, 13, 14);
-		// AVX2 VPSHUFB operates per 128-bit lane, so the 256-bit mask is the 128-bit one duplicated.
-		private static readonly Vector256<byte> Rot16Mask256 = Vector256.Create(Rot16Mask128, Rot16Mask128);
-		private static readonly Vector256<byte> Rot8Mask256 = Vector256.Create(Rot8Mask128, Rot8Mask128);
+        // PSHUFB masks for rotate-left-16 and rotate-left-8 on each uint32 lane.
+        // rot16: bytes [b0 b1 b2 b3] -> [b2 b3 b0 b1]; rot8: -> [b3 b0 b1 b2].
+        private static readonly Vector128<byte> Rot16Mask128 = Vector128.Create(
+            (byte)2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13);
+        private static readonly Vector128<byte> Rot8Mask128 = Vector128.Create(
+            (byte)3, 0, 1, 2, 7, 4, 5, 6, 11, 8, 9, 10, 15, 12, 13, 14);
+        // AVX2 VPSHUFB operates per 128-bit lane, so the 256-bit mask is the 128-bit one duplicated.
+        private static readonly Vector256<byte> Rot16Mask256 = Vector256.Create(Rot16Mask128, Rot16Mask128);
+        private static readonly Vector256<byte> Rot8Mask256 = Vector256.Create(Rot8Mask128, Rot8Mask128);
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector128<uint> Rot16(Vector128<uint> v)
-		{
-			return Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled
-				? Ssse3.Shuffle(v.AsByte(), Rot16Mask128).AsUInt32()
-				: Sse2.Xor(Sse2.ShiftLeftLogical(v, 16), Sse2.ShiftRightLogical(v, 16));
-		}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<uint> Sse2_Rot16(Vector128<uint> v)
+        {
+            return Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled
+                ? Ssse3.Shuffle(v.AsByte(), Rot16Mask128).AsUInt32()
+                : Sse2.Xor(Sse2.ShiftLeftLogical(v, 16), Sse2.ShiftRightLogical(v, 16));
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector128<uint> Rot8(Vector128<uint> v)
-		{
-			return Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled
-				? Ssse3.Shuffle(v.AsByte(), Rot8Mask128).AsUInt32()
-				: Sse2.Xor(Sse2.ShiftLeftLogical(v, 8), Sse2.ShiftRightLogical(v, 24));
-		}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<uint> Sse2_Rot8(Vector128<uint> v)
+        {
+            return Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled
+                ? Ssse3.Shuffle(v.AsByte(), Rot8Mask128).AsUInt32()
+                : Sse2.Xor(Sse2.ShiftLeftLogical(v, 8), Sse2.ShiftRightLogical(v, 24));
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector256<uint> Rot16(Vector256<uint> v)
-		{
-			return Avx2.Shuffle(v.AsByte(), Rot16Mask256).AsUInt32();
-		}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<uint> Avx2_Rot16(Vector256<uint> v)
+        {
+            return Avx2.Shuffle(v.AsByte(), Rot16Mask256).AsUInt32();
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector256<uint> Rot8(Vector256<uint> v)
-		{
-			return Avx2.Shuffle(v.AsByte(), Rot8Mask256).AsUInt32();
-		}
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<uint> Avx2_Rot8(Vector256<uint> v)
+        {
+            return Avx2.Shuffle(v.AsByte(), Rot8Mask256).AsUInt32();
+        }
 
-		internal static void ImplProcessBlocks2_X86_Avx2(int rounds, uint[] state, ReadOnlySpan<byte> input,
-			Span<byte> output)
-		{
+        internal static void ImplProcessBlocks2_X86_Avx2(int rounds, uint[] state, ReadOnlySpan<byte> input,
+            Span<byte> output)
+        {
             if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled)
-				throw new PlatformNotSupportedException();
+                throw new PlatformNotSupportedException();
 
-			Debug.Assert(rounds % 2 == 0);
-			Debug.Assert(state.Length >= 16);
-			Debug.Assert(input.Length >= 128);
-			Debug.Assert(output.Length >= 128);
+            Debug.Assert(rounds % 2 == 0);
+            Debug.Assert(state.Length >= 16);
+            Debug.Assert(input.Length >= 128);
+            Debug.Assert(output.Length >= 128);
 
-			var t0 = Load128_UInt32(state.AsSpan());
-			var t1 = Load128_UInt32(state.AsSpan(4));
-			var t2 = Load128_UInt32(state.AsSpan(8));
-			var t3 = Load128_UInt32(state.AsSpan(12));
-			// t4 holds state[12..15] for the second block: t3 with the counter bumped by 1.
-			// Compute via SIMD add instead of reloading state[] after a scalar increment.
-			var t4 = Sse2.Add(t3, Vector128.Create(1U, 0U, 0U, 0U));
-			state[12] += 2;
+            var t0 = Load128_UInt32(state.AsSpan());
+            var t1 = Load128_UInt32(state.AsSpan(4));
+            var t2 = Load128_UInt32(state.AsSpan(8));
+            var t3 = Load128_UInt32(state.AsSpan(12));
+            state[12] += 2;
 
-			var x0 = Vector256.Create(t0, t0);
-			var x1 = Vector256.Create(t1, t1);
-			var x2 = Vector256.Create(t2, t2);
-			var x3 = Vector256.Create(t3, t4);
+            var x0 = Vector256.Create(t0, t0);
+            var x1 = Vector256.Create(t1, t1);
+            var x2 = Vector256.Create(t2, t2);
+            var x3 = Vector256.Create(t3, Sse2.Add(t3, Vector128.Create(1U, 0U, 0U, 0U)));
 
-			var v0 = x0;
-			var v1 = x1;
-			var v2 = x2;
-			var v3 = x3;
+            var v0 = x0;
+            var v1 = x1;
+            var v2 = x2;
+            var v3 = x3;
 
-			for (int i = rounds; i > 0; i -= 2)
-			{
-				v0 = Avx2.Add(v0, v1);
-				v3 = Avx2.Xor(v3, v0);
-				v3 = Rot16(v3);
-				v2 = Avx2.Add(v2, v3);
-				v1 = Avx2.Xor(v1, v2);
-				v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 12), Avx2.ShiftRightLogical(v1, 20));
-				v0 = Avx2.Add(v0, v1);
-				v3 = Avx2.Xor(v3, v0);
-				v3 = Rot8(v3);
-				v2 = Avx2.Add(v2, v3);
-				v1 = Avx2.Xor(v1, v2);
-				v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 7), Avx2.ShiftRightLogical(v1, 25));
+            for (int i = rounds; i > 0; i -= 2)
+            {
+                v0 = Avx2.Add(v0, v1);
+                v3 = Avx2.Xor(v3, v0);
+                v3 = Avx2_Rot16(v3);
+                v2 = Avx2.Add(v2, v3);
+                v1 = Avx2.Xor(v1, v2);
+                v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 12), Avx2.ShiftRightLogical(v1, 20));
+                v0 = Avx2.Add(v0, v1);
+                v3 = Avx2.Xor(v3, v0);
+                v3 = Avx2_Rot8(v3);
+                v2 = Avx2.Add(v2, v3);
+                v1 = Avx2.Xor(v1, v2);
+                v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 7), Avx2.ShiftRightLogical(v1, 25));
 
-				v1 = Avx2.Shuffle(v1, 0x39);
-				v2 = Avx2.Shuffle(v2, 0x4E);
-				v3 = Avx2.Shuffle(v3, 0x93);
+                v1 = Avx2.Shuffle(v1, 0x39);
+                v2 = Avx2.Shuffle(v2, 0x4E);
+                v3 = Avx2.Shuffle(v3, 0x93);
 
-				v0 = Avx2.Add(v0, v1);
-				v3 = Avx2.Xor(v3, v0);
-				v3 = Rot16(v3);
-				v2 = Avx2.Add(v2, v3);
-				v1 = Avx2.Xor(v1, v2);
-				v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 12), Avx2.ShiftRightLogical(v1, 20));
-				v0 = Avx2.Add(v0, v1);
-				v3 = Avx2.Xor(v3, v0);
-				v3 = Rot8(v3);
-				v2 = Avx2.Add(v2, v3);
-				v1 = Avx2.Xor(v1, v2);
-				v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 7), Avx2.ShiftRightLogical(v1, 25));
+                v0 = Avx2.Add(v0, v1);
+                v3 = Avx2.Xor(v3, v0);
+                v3 = Avx2_Rot16(v3);
+                v2 = Avx2.Add(v2, v3);
+                v1 = Avx2.Xor(v1, v2);
+                v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 12), Avx2.ShiftRightLogical(v1, 20));
+                v0 = Avx2.Add(v0, v1);
+                v3 = Avx2.Xor(v3, v0);
+                v3 = Avx2_Rot8(v3);
+                v2 = Avx2.Add(v2, v3);
+                v1 = Avx2.Xor(v1, v2);
+                v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 7), Avx2.ShiftRightLogical(v1, 25));
 
-				v1 = Avx2.Shuffle(v1, 0x93);
-				v2 = Avx2.Shuffle(v2, 0x4E);
-				v3 = Avx2.Shuffle(v3, 0x39);
-			}
+                v1 = Avx2.Shuffle(v1, 0x93);
+                v2 = Avx2.Shuffle(v2, 0x4E);
+                v3 = Avx2.Shuffle(v3, 0x39);
+            }
 
-			v0 = Avx2.Add(v0, x0);
-			v1 = Avx2.Add(v1, x1);
-			v2 = Avx2.Add(v2, x2);
-			v3 = Avx2.Add(v3, x3);
+            v0 = Avx2.Add(v0, x0);
+            v1 = Avx2.Add(v1, x1);
+            v2 = Avx2.Add(v2, x2);
+            v3 = Avx2.Add(v3, x3);
 
-			var n0 = Avx2.Permute2x128(v0, v1, 0x20).AsByte();
-			var n1 = Avx2.Permute2x128(v2, v3, 0x20).AsByte();
-			var n2 = Avx2.Permute2x128(v0, v1, 0x31).AsByte();
-			var n3 = Avx2.Permute2x128(v2, v3, 0x31).AsByte();
+            var n0 = Avx2.Permute2x128(v0, v1, 0x20).AsByte();
+            var n1 = Avx2.Permute2x128(v2, v3, 0x20).AsByte();
+            var n2 = Avx2.Permute2x128(v0, v1, 0x31).AsByte();
+            var n3 = Avx2.Permute2x128(v2, v3, 0x31).AsByte();
 
-			n0 = Avx2.Xor(n0, Load256_Byte(input));
-			n1 = Avx2.Xor(n1, Load256_Byte(input[0x20..]));
-			n2 = Avx2.Xor(n2, Load256_Byte(input[0x40..]));
-			n3 = Avx2.Xor(n3, Load256_Byte(input[0x60..]));
+            n0 = Avx2.Xor(n0, Load256_Byte(input));
+            n1 = Avx2.Xor(n1, Load256_Byte(input[0x20..]));
+            n2 = Avx2.Xor(n2, Load256_Byte(input[0x40..]));
+            n3 = Avx2.Xor(n3, Load256_Byte(input[0x60..]));
 
-			Store256_Byte(n0, output);
-			Store256_Byte(n1, output[0x20..]);
-			Store256_Byte(n2, output[0x40..]);
-			Store256_Byte(n3, output[0x60..]);
-		}
+            Store256_Byte(n0, output);
+            Store256_Byte(n1, output[0x20..]);
+            Store256_Byte(n2, output[0x40..]);
+            Store256_Byte(n3, output[0x60..]);
+        }
 
-		internal static void ImplProcessBlocks2_X86_Sse2(int rounds, uint[] state, ReadOnlySpan<byte> input,
-			Span<byte> output)
-		{
+        internal static void ImplProcessBlocks2_X86_Sse2(int rounds, uint[] state, ReadOnlySpan<byte> input,
+            Span<byte> output)
+        {
             if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled)
-				throw new PlatformNotSupportedException();
+                throw new PlatformNotSupportedException();
 
-			Debug.Assert(rounds % 2 == 0);
-			Debug.Assert(state.Length >= 16);
-			Debug.Assert(input.Length >= 128);
-			Debug.Assert(output.Length >= 128);
+            Debug.Assert(rounds % 2 == 0);
+            Debug.Assert(state.Length >= 16);
+            Debug.Assert(input.Length >= 128);
+            Debug.Assert(output.Length >= 128);
 
-			var x0 = Load128_UInt32(state.AsSpan());
-			var x1 = Load128_UInt32(state.AsSpan(4));
-			var x2 = Load128_UInt32(state.AsSpan(8));
-			var x3 = Load128_UInt32(state.AsSpan(12));
-			state[12] += 2;
+            var x0 = Load128_UInt32(state.AsSpan());
+            var x1 = Load128_UInt32(state.AsSpan(4));
+            var x2 = Load128_UInt32(state.AsSpan(8));
+            var x3 = Load128_UInt32(state.AsSpan(12));
+            state[12] += 2;
 
-			var v0 = x0;
-			var v1 = x1;
-			var v2 = x2;
-			var v3 = x3;
+            var v0 = x0;
+            var v1 = x1;
+            var v2 = x2;
+            var v3 = x3;
 
-			for (int i = rounds; i > 0; i -= 2)
-			{
-				v0 = Sse2.Add(v0, v1);
-				v3 = Sse2.Xor(v3, v0);
-				v3 = Rot16(v3);
-				v2 = Sse2.Add(v2, v3);
-				v1 = Sse2.Xor(v1, v2);
-				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
-				v0 = Sse2.Add(v0, v1);
-				v3 = Sse2.Xor(v3, v0);
-				v3 = Rot8(v3);
-				v2 = Sse2.Add(v2, v3);
-				v1 = Sse2.Xor(v1, v2);
-				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
+            for (int i = rounds; i > 0; i -= 2)
+            {
+                v0 = Sse2.Add(v0, v1);
+                v3 = Sse2.Xor(v3, v0);
+                v3 = Sse2_Rot16(v3);
+                v2 = Sse2.Add(v2, v3);
+                v1 = Sse2.Xor(v1, v2);
+                v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
+                v0 = Sse2.Add(v0, v1);
+                v3 = Sse2.Xor(v3, v0);
+                v3 = Sse2_Rot8(v3);
+                v2 = Sse2.Add(v2, v3);
+                v1 = Sse2.Xor(v1, v2);
+                v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
 
-				v1 = Sse2.Shuffle(v1, 0x39);
-				v2 = Sse2.Shuffle(v2, 0x4E);
-				v3 = Sse2.Shuffle(v3, 0x93);
+                v1 = Sse2.Shuffle(v1, 0x39);
+                v2 = Sse2.Shuffle(v2, 0x4E);
+                v3 = Sse2.Shuffle(v3, 0x93);
 
-				v0 = Sse2.Add(v0, v1);
-				v3 = Sse2.Xor(v3, v0);
-				v3 = Rot16(v3);
-				v2 = Sse2.Add(v2, v3);
-				v1 = Sse2.Xor(v1, v2);
-				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
-				v0 = Sse2.Add(v0, v1);
-				v3 = Sse2.Xor(v3, v0);
-				v3 = Rot8(v3);
-				v2 = Sse2.Add(v2, v3);
-				v1 = Sse2.Xor(v1, v2);
-				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
+                v0 = Sse2.Add(v0, v1);
+                v3 = Sse2.Xor(v3, v0);
+                v3 = Sse2_Rot16(v3);
+                v2 = Sse2.Add(v2, v3);
+                v1 = Sse2.Xor(v1, v2);
+                v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
+                v0 = Sse2.Add(v0, v1);
+                v3 = Sse2.Xor(v3, v0);
+                v3 = Sse2_Rot8(v3);
+                v2 = Sse2.Add(v2, v3);
+                v1 = Sse2.Xor(v1, v2);
+                v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
 
-				v1 = Sse2.Shuffle(v1, 0x93);
-				v2 = Sse2.Shuffle(v2, 0x4E);
-				v3 = Sse2.Shuffle(v3, 0x39);
-			}
+                v1 = Sse2.Shuffle(v1, 0x93);
+                v2 = Sse2.Shuffle(v2, 0x4E);
+                v3 = Sse2.Shuffle(v3, 0x39);
+            }
 
-			v0 = Sse2.Add(v0, x0);
-			v1 = Sse2.Add(v1, x1);
-			v2 = Sse2.Add(v2, x2);
-			v3 = Sse2.Add(v3, x3);
+            v0 = Sse2.Add(v0, x0);
+            v1 = Sse2.Add(v1, x1);
+            v2 = Sse2.Add(v2, x2);
+            v3 = Sse2.Add(v3, x3);
 
-			var n0 = Load128_Byte(input);
-			var n1 = Load128_Byte(input[0x10..]);
-			var n2 = Load128_Byte(input[0x20..]);
-			var n3 = Load128_Byte(input[0x30..]);
+            var n0 = Load128_Byte(input);
+            var n1 = Load128_Byte(input[0x10..]);
+            var n2 = Load128_Byte(input[0x20..]);
+            var n3 = Load128_Byte(input[0x30..]);
 
-			n0 = Sse2.Xor(n0, v0.AsByte());
-			n1 = Sse2.Xor(n1, v1.AsByte());
-			n2 = Sse2.Xor(n2, v2.AsByte());
-			n3 = Sse2.Xor(n3, v3.AsByte());
+            n0 = Sse2.Xor(n0, v0.AsByte());
+            n1 = Sse2.Xor(n1, v1.AsByte());
+            n2 = Sse2.Xor(n2, v2.AsByte());
+            n3 = Sse2.Xor(n3, v3.AsByte());
 
-			Store128_Byte(n0, output);
-			Store128_Byte(n1, output[0x10..]);
-			Store128_Byte(n2, output[0x20..]);
-			Store128_Byte(n3, output[0x30..]);
+            Store128_Byte(n0, output);
+            Store128_Byte(n1, output[0x10..]);
+            Store128_Byte(n2, output[0x20..]);
+            Store128_Byte(n3, output[0x30..]);
 
-			// Bump the counter in x3 for block 1 via SIMD instead of reloading state[].
-			x3 = Sse2.Add(x3, Vector128.Create(1U, 0U, 0U, 0U));
+            x3 = Sse2.Add(x3, Vector128.Create(1U, 0U, 0U, 0U));
 
-			v0 = x0;
-			v1 = x1;
-			v2 = x2;
-			v3 = x3;
+            v0 = x0;
+            v1 = x1;
+            v2 = x2;
+            v3 = x3;
 
-			for (int i = rounds; i > 0; i -= 2)
-			{
-				v0 = Sse2.Add(v0, v1);
-				v3 = Sse2.Xor(v3, v0);
-				v3 = Rot16(v3);
-				v2 = Sse2.Add(v2, v3);
-				v1 = Sse2.Xor(v1, v2);
-				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
-				v0 = Sse2.Add(v0, v1);
-				v3 = Sse2.Xor(v3, v0);
-				v3 = Rot8(v3);
-				v2 = Sse2.Add(v2, v3);
-				v1 = Sse2.Xor(v1, v2);
-				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
+            for (int i = rounds; i > 0; i -= 2)
+            {
+                v0 = Sse2.Add(v0, v1);
+                v3 = Sse2.Xor(v3, v0);
+                v3 = Sse2_Rot16(v3);
+                v2 = Sse2.Add(v2, v3);
+                v1 = Sse2.Xor(v1, v2);
+                v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
+                v0 = Sse2.Add(v0, v1);
+                v3 = Sse2.Xor(v3, v0);
+                v3 = Sse2_Rot8(v3);
+                v2 = Sse2.Add(v2, v3);
+                v1 = Sse2.Xor(v1, v2);
+                v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
 
-				v1 = Sse2.Shuffle(v1, 0x39);
-				v2 = Sse2.Shuffle(v2, 0x4E);
-				v3 = Sse2.Shuffle(v3, 0x93);
+                v1 = Sse2.Shuffle(v1, 0x39);
+                v2 = Sse2.Shuffle(v2, 0x4E);
+                v3 = Sse2.Shuffle(v3, 0x93);
 
-				v0 = Sse2.Add(v0, v1);
-				v3 = Sse2.Xor(v3, v0);
-				v3 = Rot16(v3);
-				v2 = Sse2.Add(v2, v3);
-				v1 = Sse2.Xor(v1, v2);
-				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
-				v0 = Sse2.Add(v0, v1);
-				v3 = Sse2.Xor(v3, v0);
-				v3 = Rot8(v3);
-				v2 = Sse2.Add(v2, v3);
-				v1 = Sse2.Xor(v1, v2);
-				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
+                v0 = Sse2.Add(v0, v1);
+                v3 = Sse2.Xor(v3, v0);
+                v3 = Sse2_Rot16(v3);
+                v2 = Sse2.Add(v2, v3);
+                v1 = Sse2.Xor(v1, v2);
+                v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
+                v0 = Sse2.Add(v0, v1);
+                v3 = Sse2.Xor(v3, v0);
+                v3 = Sse2_Rot8(v3);
+                v2 = Sse2.Add(v2, v3);
+                v1 = Sse2.Xor(v1, v2);
+                v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
 
-				v1 = Sse2.Shuffle(v1, 0x93);
-				v2 = Sse2.Shuffle(v2, 0x4E);
-				v3 = Sse2.Shuffle(v3, 0x39);
-			}
+                v1 = Sse2.Shuffle(v1, 0x93);
+                v2 = Sse2.Shuffle(v2, 0x4E);
+                v3 = Sse2.Shuffle(v3, 0x39);
+            }
 
-			v0 = Sse2.Add(v0, x0);
-			v1 = Sse2.Add(v1, x1);
-			v2 = Sse2.Add(v2, x2);
-			v3 = Sse2.Add(v3, x3);
+            v0 = Sse2.Add(v0, x0);
+            v1 = Sse2.Add(v1, x1);
+            v2 = Sse2.Add(v2, x2);
+            v3 = Sse2.Add(v3, x3);
 
-			n0 = Load128_Byte(input[0x40..]);
-			n1 = Load128_Byte(input[0x50..]);
-			n2 = Load128_Byte(input[0x60..]);
-			n3 = Load128_Byte(input[0x70..]);
+            n0 = Load128_Byte(input[0x40..]);
+            n1 = Load128_Byte(input[0x50..]);
+            n2 = Load128_Byte(input[0x60..]);
+            n3 = Load128_Byte(input[0x70..]);
 
-			n0 = Sse2.Xor(n0, v0.AsByte());
-			n1 = Sse2.Xor(n1, v1.AsByte());
-			n2 = Sse2.Xor(n2, v2.AsByte());
-			n3 = Sse2.Xor(n3, v3.AsByte());
+            n0 = Sse2.Xor(n0, v0.AsByte());
+            n1 = Sse2.Xor(n1, v1.AsByte());
+            n2 = Sse2.Xor(n2, v2.AsByte());
+            n3 = Sse2.Xor(n3, v3.AsByte());
 
-			Store128_Byte(n0, output[0x40..]);
-			Store128_Byte(n1, output[0x50..]);
-			Store128_Byte(n2, output[0x60..]);
-			Store128_Byte(n3, output[0x70..]);
-		}
+            Store128_Byte(n0, output[0x40..]);
+            Store128_Byte(n1, output[0x50..]);
+            Store128_Byte(n2, output[0x60..]);
+            Store128_Byte(n3, output[0x70..]);
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector128<byte> Load128_Byte(ReadOnlySpan<byte> t)
-		{
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector128<byte> Load128_Byte(ReadOnlySpan<byte> t)
+        {
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector128<byte>>(t);
 
@@ -503,23 +480,23 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector128<uint> Load128_UInt32(ReadOnlySpan<uint> t)
-		{
+        private static Vector128<uint> Load128_UInt32(ReadOnlySpan<uint> t)
+        {
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector128<uint>>(MemoryMarshal.AsBytes(t));
 
-			return Vector128.Create(t[0], t[1], t[2], t[3]);
-		}
+            return Vector128.Create(t[0], t[1], t[2], t[3]);
+        }
 
-		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		private static Vector256<byte> Load256_Byte(ReadOnlySpan<byte> t)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Vector256<byte> Load256_Byte(ReadOnlySpan<byte> t)
         {
             if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
                 return MemoryMarshal.Read<Vector256<byte>>(t);
 
             return Vector256.Create(
-                BinaryPrimitives.ReadUInt64LittleEndian(t[ 0.. 8]),
-                BinaryPrimitives.ReadUInt64LittleEndian(t[ 8..16]),
+                BinaryPrimitives.ReadUInt64LittleEndian(t[0..8]),
+                BinaryPrimitives.ReadUInt64LittleEndian(t[8..16]),
                 BinaryPrimitives.ReadUInt64LittleEndian(t[16..24]),
                 BinaryPrimitives.ReadUInt64LittleEndian(t[24..32])
             ).AsByte();

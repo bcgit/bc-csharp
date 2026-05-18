@@ -35,10 +35,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
         }
 
-        public override string AlgorithmName
-        {
-            get { return "ChaCha" + rounds; }
-        }
+        public override string AlgorithmName => "ChaCha" + rounds;
 
         protected override void AdvanceCounter()
         {
@@ -71,10 +68,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.LE_To_UInt32(ivBytes, 0, engineState, 14, 2);
         }
 
-        protected override void GenerateKeyStream(byte[] output)
-        {
-            ChaChaCore(rounds, engineState, output);
-        }
+        protected override void GenerateKeyStream(byte[] output) => ChaChaCore(rounds, engineState, output);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static void ChaChaCore(int rounds, ReadOnlySpan<uint> input, Span<byte> output)
@@ -100,13 +94,13 @@ namespace Org.BouncyCastle.Crypto.Engines
                 {
                     v0 = Sse2.Add(v0, v1);
                     v3 = Sse2.Xor(v3, v0);
-                    v3 = Rot16(v3);
+                    v3 = Sse2_Rot16(v3);
                     v2 = Sse2.Add(v2, v3);
                     v1 = Sse2.Xor(v1, v2);
                     v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
                     v0 = Sse2.Add(v0, v1);
                     v3 = Sse2.Xor(v3, v0);
-                    v3 = Rot8(v3);
+                    v3 = Sse2_Rot8(v3);
                     v2 = Sse2.Add(v2, v3);
                     v1 = Sse2.Xor(v1, v2);
                     v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
@@ -117,13 +111,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                     v0 = Sse2.Add(v0, v1);
                     v3 = Sse2.Xor(v3, v0);
-                    v3 = Rot16(v3);
+                    v3 = Sse2_Rot16(v3);
                     v2 = Sse2.Add(v2, v3);
                     v1 = Sse2.Xor(v1, v2);
                     v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
                     v0 = Sse2.Add(v0, v1);
                     v3 = Sse2.Xor(v3, v0);
-                    v3 = Rot8(v3);
+                    v3 = Sse2_Rot8(v3);
                     v2 = Sse2.Add(v2, v3);
                     v1 = Sse2.Xor(v1, v2);
                     v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
@@ -298,7 +292,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             (byte)3, 0, 1, 2,  7, 4, 5, 6,  11,  8, 9, 10, 15, 12, 13, 14);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vector128<uint> Rot16(Vector128<uint> v)
+        private static Vector128<uint> Sse2_Rot16(Vector128<uint> v)
         {
             return Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled
                 ? Ssse3.Shuffle(v.AsByte(), Rot16Mask128).AsUInt32()
@@ -306,7 +300,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static Vector128<uint> Rot8(Vector128<uint> v)
+        private static Vector128<uint> Sse2_Rot8(Vector128<uint> v)
         {
             return Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled
                 ? Ssse3.Shuffle(v.AsByte(), Rot8Mask128).AsUInt32()

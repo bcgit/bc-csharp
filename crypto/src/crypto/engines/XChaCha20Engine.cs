@@ -14,15 +14,9 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class XChaCha20Engine
         : ChaCha7539Engine
     {
-        public override string AlgorithmName
-        {
-            get { return "XChaCha20"; }
-        }
+        public override string AlgorithmName => "XChaCha20";
 
-        protected override int NonceSize
-        {
-            get { return 24; }
-        }
+        protected override int NonceSize => 24;
 
         /// <summary>
         /// XChaCha20 key generation: derive a 256 bit subkey via HChaCha20 from the input key and
@@ -111,23 +105,12 @@ namespace Org.BouncyCastle.Crypto.Engines
                 // the final-state words at positions 0..3 and 12..15.
                 ChaChaEngine.ChaChaCore(20, state, block);
 
-                uint[] subKey = new uint[8];
-                try
+                for (int i = 0; i < 4; ++i)
                 {
-                    subKey[0] = Pack.LE_To_UInt32(block,  0) - state[ 0];
-                    subKey[1] = Pack.LE_To_UInt32(block,  4) - state[ 1];
-                    subKey[2] = Pack.LE_To_UInt32(block,  8) - state[ 2];
-                    subKey[3] = Pack.LE_To_UInt32(block, 12) - state[ 3];
-                    subKey[4] = Pack.LE_To_UInt32(block, 48) - state[12];
-                    subKey[5] = Pack.LE_To_UInt32(block, 52) - state[13];
-                    subKey[6] = Pack.LE_To_UInt32(block, 56) - state[14];
-                    subKey[7] = Pack.LE_To_UInt32(block, 60) - state[15];
-
-                    Pack.UInt32_To_LE(subKey, 0, 8, subKeyBytes, subKeyOff);
-                }
-                finally
-                {
-                    Array.Clear(subKey, 0, subKey.Length);
+                    Pack.UInt32_To_LE(Pack.LE_To_UInt32(block,      i * 4) - state[     i],
+                        subKeyBytes, subKeyOff      + i * 4);
+                    Pack.UInt32_To_LE(Pack.LE_To_UInt32(block, 48 + i * 4) - state[12 + i],
+                        subKeyBytes, subKeyOff + 16 + i * 4);
                 }
             }
             finally
@@ -167,10 +150,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 for (int i = 0; i < 4; ++i)
                 {
-                    Pack.UInt32_To_LE(Pack.LE_To_UInt32(block, i * 4) - state[i], subKey, i * 4);
-                }
-                for (int i = 0; i < 4; ++i)
-                {
+                    Pack.UInt32_To_LE(Pack.LE_To_UInt32(block,      i * 4) - state[     i], subKey,      i * 4);
                     Pack.UInt32_To_LE(Pack.LE_To_UInt32(block, 48 + i * 4) - state[12 + i], subKey, 16 + i * 4);
                 }
             }
