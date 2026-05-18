@@ -1,4 +1,7 @@
 using System;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.InteropServices;
+#endif
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -134,7 +137,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         internal static void HChaCha20(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Span<byte> subKey)
         {
             Span<uint> state = stackalloc uint[16];
-            Span<byte> block = stackalloc byte[64];
+            Span<uint> block = stackalloc uint[16];
             try
             {
                 // Sigma constants ("expand 32-byte k") as four little-endian 32-bit words.
@@ -145,14 +148,27 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Pack.LE_To_UInt32(key, state.Slice(4, 8));
                 Pack.LE_To_UInt32(nonce, state.Slice(12, 4));
 
-                // ChaChaCore folds the initial state back into its output; subtract it to recover
-                // the final-state words at positions 0..3 and 12..15.
-                ChaChaEngine.ChaChaCore(20, state, block);
+                // ChaChaCore feeds the initial state forward into its output; subtract it back
+                // out to recover the post-permutation words at positions 0..3 and 12..15.
+                Span<byte> blockBytes = MemoryMarshal.AsBytes(block);
+                ChaChaEngine.ChaChaCore(20, state, blockBytes);
 
                 for (int i = 0; i < 4; ++i)
                 {
-                    Pack.UInt32_To_LE(Pack.LE_To_UInt32(block,      i * 4) - state[     i], subKey,      i * 4);
-                    Pack.UInt32_To_LE(Pack.LE_To_UInt32(block, 48 + i * 4) - state[12 + i], subKey, 16 + i * 4);
+                    uint lo, hi;
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        lo = block[     i];
+                        hi = block[12 + i];
+                    }
+                    else
+                    {
+                        lo = Pack.LE_To_UInt32(blockBytes,      i * 4);
+                        hi = Pack.LE_To_UInt32(blockBytes, 48 + i * 4);
+                    }
+
+                    Pack.UInt32_To_LE(lo - state[     i], subKey,      i * 4);
+                    Pack.UInt32_To_LE(hi - state[12 + i], subKey, 16 + i * 4);
                 }
             }
             finally
