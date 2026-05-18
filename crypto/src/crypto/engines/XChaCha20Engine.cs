@@ -36,6 +36,26 @@ namespace Org.BouncyCastle.Crypto.Engines
             if (keyBytes.Length != 32)
                 throw new ArgumentException(AlgorithmName + " requires a 256 bit key");
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> subKey = stackalloc byte[32];
+            try
+            {
+                HChaCha20(keyBytes, ivBytes.AsSpan(0, 16), subKey);
+
+                // Standard ChaCha7539 state with the derived subkey and the IETF 96-bit nonce
+                // (4 zero bytes || last 8 bytes of the original 192-bit nonce).
+                PackTauOrSigma(32, engineState, 0);
+                Pack.LE_To_UInt32(subKey, engineState.AsSpan(4, 8));
+                engineState[12] = 0U;
+                engineState[13] = 0U;
+                engineState[14] = Pack.LE_To_UInt32(ivBytes, 16);
+                engineState[15] = Pack.LE_To_UInt32(ivBytes, 20);
+            }
+            finally
+            {
+                subKey.Clear();
+            }
+#else
             byte[] subKey = new byte[32];
             try
             {
@@ -54,6 +74,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             {
                 Array.Clear(subKey, 0, subKey.Length);
             }
+#endif
         }
 
         /// <summary>
@@ -71,17 +92,24 @@ namespace Org.BouncyCastle.Crypto.Engines
         internal static void HChaCha20(byte[] keyBytes, byte[] nonceBytes, int nonceOff, byte[] subKeyBytes,
             int subKeyOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            HChaCha20(keyBytes.AsSpan(), nonceBytes.AsSpan(nonceOff, 16), subKeyBytes.AsSpan(subKeyOff, 32));
+#else
             uint[] state = new uint[16];
             byte[] block = new byte[64];
             try
             {
-                Salsa20Engine.PackTauOrSigma(32, state, 0);
+                // Sigma constants ("expand 32-byte k") as four little-endian 32-bit words.
+                state[0] = 0x61707865U;
+                state[1] = 0x3320646eU;
+                state[2] = 0x79622d32U;
+                state[3] = 0x6b206574U;
                 Pack.LE_To_UInt32(keyBytes, 0, state, 4, 8);
                 Pack.LE_To_UInt32(nonceBytes, nonceOff, state, 12, 4);
 
-                // ChachaCore folds the initial state back into its output; subtract it to recover
+                // ChaChaCore folds the initial state back into its output; subtract it to recover
                 // the final-state words at positions 0..3 and 12..15.
-                ChaChaEngine.ChachaCore(20, state, block);
+                ChaChaEngine.ChaChaCore(20, state, block);
 
                 uint[] subKey = new uint[8];
                 try
@@ -107,6 +135,51 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Array.Clear(state, 0, state.Length);
                 Array.Clear(block, 0, block.Length);
             }
+#endif
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Span-based variant of <see cref="HChaCha20(byte[], byte[], int, byte[], int)"/>. Uses
+        /// stack-allocated scratch buffers and delegates round computation to the span overload
+        /// of <see cref="ChaChaEngine.ChaChaCore(int, ReadOnlySpan{uint}, Span{byte})"/>.
+        /// </summary>
+        /// <param name="key">A 256-bit key (32 bytes).</param>
+        /// <param name="nonce">A 128-bit nonce (16 bytes).</param>
+        /// <param name="subKey">Destination for the 256-bit subkey (32 bytes).</param>
+        internal static void HChaCha20(ReadOnlySpan<byte> key, ReadOnlySpan<byte> nonce, Span<byte> subKey)
+        {
+            Span<uint> state = stackalloc uint[16];
+            Span<byte> block = stackalloc byte[64];
+            try
+            {
+                // Sigma constants ("expand 32-byte k") as four little-endian 32-bit words.
+                state[0] = 0x61707865U;
+                state[1] = 0x3320646eU;
+                state[2] = 0x79622d32U;
+                state[3] = 0x6b206574U;
+                Pack.LE_To_UInt32(key, state.Slice(4, 8));
+                Pack.LE_To_UInt32(nonce, state.Slice(12, 4));
+
+                // ChaChaCore folds the initial state back into its output; subtract it to recover
+                // the final-state words at positions 0..3 and 12..15.
+                ChaChaEngine.ChaChaCore(20, state, block);
+
+                for (int i = 0; i < 4; ++i)
+                {
+                    Pack.UInt32_To_LE(Pack.LE_To_UInt32(block, i * 4) - state[i], subKey, i * 4);
+                }
+                for (int i = 0; i < 4; ++i)
+                {
+                    Pack.UInt32_To_LE(Pack.LE_To_UInt32(block, 48 + i * 4) - state[12 + i], subKey, 16 + i * 4);
+                }
+            }
+            finally
+            {
+                state.Clear();
+                block.Clear();
+            }
+        }
+#endif
     }
 }

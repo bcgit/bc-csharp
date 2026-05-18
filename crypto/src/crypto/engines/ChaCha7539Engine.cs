@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         protected override void GenerateKeyStream(byte[] output)
         {
-            ChaChaEngine.ChachaCore(rounds, engineState, output);
+            ChaChaEngine.ChaChaCore(rounds, engineState, output);
         }
 
 		internal void DoFinal(byte[] inBuf, int inOff, int inLen, byte[] outBuf, int outOff)
@@ -134,6 +134,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             ImplProcessBlock(input, output);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void ProcessBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!initialised)
@@ -166,7 +167,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal void ImplProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            ChaChaEngine.ChachaCore(rounds, engineState, keyStream);
+            ChaChaEngine.ChaChaCore(rounds, engineState, keyStream);
             AdvanceCounter();
 
             for (int i = 0; i < 64; ++i)
@@ -207,7 +208,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 #endif
 		internal void ImplProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
-			ChaChaEngine.ChachaCore(rounds, engineState, keyStream);
+			ChaChaEngine.ChaChaCore(rounds, engineState, keyStream);
 			AdvanceCounter();
 
 			for (int i = 0; i < 64; ++i)
@@ -218,7 +219,44 @@ namespace Org.BouncyCastle.Crypto.Engines
 #endif
 
 #if NETCOREAPP3_0_OR_GREATER
+		// PSHUFB masks for rotate-left-16 and rotate-left-8 on each uint32 lane.
+		// rot16: bytes [b0 b1 b2 b3] -> [b2 b3 b0 b1]; rot8: -> [b3 b0 b1 b2].
+		private static readonly Vector128<byte> Rot16Mask128 = Vector128.Create(
+			(byte)2, 3, 0, 1,  6, 7, 4, 5,  10, 11, 8, 9,  14, 15, 12, 13);
+		private static readonly Vector128<byte> Rot8Mask128 = Vector128.Create(
+			(byte)3, 0, 1, 2,  7, 4, 5, 6,  11,  8, 9, 10, 15, 12, 13, 14);
+		// AVX2 VPSHUFB operates per 128-bit lane, so the 256-bit mask is the 128-bit one duplicated.
+		private static readonly Vector256<byte> Rot16Mask256 = Vector256.Create(Rot16Mask128, Rot16Mask128);
+		private static readonly Vector256<byte> Rot8Mask256 = Vector256.Create(Rot8Mask128, Rot8Mask128);
+
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static Vector128<uint> Rot16(Vector128<uint> v)
+		{
+			return Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled
+				? Ssse3.Shuffle(v.AsByte(), Rot16Mask128).AsUInt32()
+				: Sse2.Xor(Sse2.ShiftLeftLogical(v, 16), Sse2.ShiftRightLogical(v, 16));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static Vector128<uint> Rot8(Vector128<uint> v)
+		{
+			return Org.BouncyCastle.Runtime.Intrinsics.X86.Ssse3.IsEnabled
+				? Ssse3.Shuffle(v.AsByte(), Rot8Mask128).AsUInt32()
+				: Sse2.Xor(Sse2.ShiftLeftLogical(v, 8), Sse2.ShiftRightLogical(v, 24));
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static Vector256<uint> Rot16(Vector256<uint> v)
+		{
+			return Avx2.Shuffle(v.AsByte(), Rot16Mask256).AsUInt32();
+		}
+
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		private static Vector256<uint> Rot8(Vector256<uint> v)
+		{
+			return Avx2.Shuffle(v.AsByte(), Rot8Mask256).AsUInt32();
+		}
+
 		internal static void ImplProcessBlocks2_X86_Avx2(int rounds, uint[] state, ReadOnlySpan<byte> input,
 			Span<byte> output)
 		{
@@ -234,9 +272,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 			var t1 = Load128_UInt32(state.AsSpan(4));
 			var t2 = Load128_UInt32(state.AsSpan(8));
 			var t3 = Load128_UInt32(state.AsSpan(12));
-			++state[12];
-			var t4 = Load128_UInt32(state.AsSpan(12));
-			++state[12];
+			// t4 holds state[12..15] for the second block: t3 with the counter bumped by 1.
+			// Compute via SIMD add instead of reloading state[] after a scalar increment.
+			var t4 = Sse2.Add(t3, Vector128.Create(1U, 0U, 0U, 0U));
+			state[12] += 2;
 
 			var x0 = Vector256.Create(t0, t0);
 			var x1 = Vector256.Create(t1, t1);
@@ -252,13 +291,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 			{
 				v0 = Avx2.Add(v0, v1);
 				v3 = Avx2.Xor(v3, v0);
-				v3 = Avx2.Xor(Avx2.ShiftLeftLogical(v3, 16), Avx2.ShiftRightLogical(v3, 16));
+				v3 = Rot16(v3);
 				v2 = Avx2.Add(v2, v3);
 				v1 = Avx2.Xor(v1, v2);
 				v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 12), Avx2.ShiftRightLogical(v1, 20));
 				v0 = Avx2.Add(v0, v1);
 				v3 = Avx2.Xor(v3, v0);
-				v3 = Avx2.Xor(Avx2.ShiftLeftLogical(v3, 8), Avx2.ShiftRightLogical(v3, 24));
+				v3 = Rot8(v3);
 				v2 = Avx2.Add(v2, v3);
 				v1 = Avx2.Xor(v1, v2);
 				v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 7), Avx2.ShiftRightLogical(v1, 25));
@@ -269,13 +308,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 				v0 = Avx2.Add(v0, v1);
 				v3 = Avx2.Xor(v3, v0);
-				v3 = Avx2.Xor(Avx2.ShiftLeftLogical(v3, 16), Avx2.ShiftRightLogical(v3, 16));
+				v3 = Rot16(v3);
 				v2 = Avx2.Add(v2, v3);
 				v1 = Avx2.Xor(v1, v2);
 				v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 12), Avx2.ShiftRightLogical(v1, 20));
 				v0 = Avx2.Add(v0, v1);
 				v3 = Avx2.Xor(v3, v0);
-				v3 = Avx2.Xor(Avx2.ShiftLeftLogical(v3, 8), Avx2.ShiftRightLogical(v3, 24));
+				v3 = Rot8(v3);
 				v2 = Avx2.Add(v2, v3);
 				v1 = Avx2.Xor(v1, v2);
 				v1 = Avx2.Xor(Avx2.ShiftLeftLogical(v1, 7), Avx2.ShiftRightLogical(v1, 25));
@@ -306,7 +345,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 			Store256_Byte(n3, output[0x60..]);
 		}
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
 		internal static void ImplProcessBlocks2_X86_Sse2(int rounds, uint[] state, ReadOnlySpan<byte> input,
 			Span<byte> output)
 		{
@@ -322,7 +360,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			var x1 = Load128_UInt32(state.AsSpan(4));
 			var x2 = Load128_UInt32(state.AsSpan(8));
 			var x3 = Load128_UInt32(state.AsSpan(12));
-			++state[12];
+			state[12] += 2;
 
 			var v0 = x0;
 			var v1 = x1;
@@ -333,13 +371,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 			{
 				v0 = Sse2.Add(v0, v1);
 				v3 = Sse2.Xor(v3, v0);
-				v3 = Sse2.Xor(Sse2.ShiftLeftLogical(v3, 16), Sse2.ShiftRightLogical(v3, 16));
+				v3 = Rot16(v3);
 				v2 = Sse2.Add(v2, v3);
 				v1 = Sse2.Xor(v1, v2);
 				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
 				v0 = Sse2.Add(v0, v1);
 				v3 = Sse2.Xor(v3, v0);
-				v3 = Sse2.Xor(Sse2.ShiftLeftLogical(v3, 8), Sse2.ShiftRightLogical(v3, 24));
+				v3 = Rot8(v3);
 				v2 = Sse2.Add(v2, v3);
 				v1 = Sse2.Xor(v1, v2);
 				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
@@ -350,13 +388,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 				v0 = Sse2.Add(v0, v1);
 				v3 = Sse2.Xor(v3, v0);
-				v3 = Sse2.Xor(Sse2.ShiftLeftLogical(v3, 16), Sse2.ShiftRightLogical(v3, 16));
+				v3 = Rot16(v3);
 				v2 = Sse2.Add(v2, v3);
 				v1 = Sse2.Xor(v1, v2);
 				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
 				v0 = Sse2.Add(v0, v1);
 				v3 = Sse2.Xor(v3, v0);
-				v3 = Sse2.Xor(Sse2.ShiftLeftLogical(v3, 8), Sse2.ShiftRightLogical(v3, 24));
+				v3 = Rot8(v3);
 				v2 = Sse2.Add(v2, v3);
 				v1 = Sse2.Xor(v1, v2);
 				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
@@ -386,8 +424,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 			Store128_Byte(n2, output[0x20..]);
 			Store128_Byte(n3, output[0x30..]);
 
-			x3 = Load128_UInt32(state.AsSpan(12));
-			++state[12];
+			// Bump the counter in x3 for block 1 via SIMD instead of reloading state[].
+			x3 = Sse2.Add(x3, Vector128.Create(1U, 0U, 0U, 0U));
 
 			v0 = x0;
 			v1 = x1;
@@ -398,13 +436,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 			{
 				v0 = Sse2.Add(v0, v1);
 				v3 = Sse2.Xor(v3, v0);
-				v3 = Sse2.Xor(Sse2.ShiftLeftLogical(v3, 16), Sse2.ShiftRightLogical(v3, 16));
+				v3 = Rot16(v3);
 				v2 = Sse2.Add(v2, v3);
 				v1 = Sse2.Xor(v1, v2);
 				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
 				v0 = Sse2.Add(v0, v1);
 				v3 = Sse2.Xor(v3, v0);
-				v3 = Sse2.Xor(Sse2.ShiftLeftLogical(v3, 8), Sse2.ShiftRightLogical(v3, 24));
+				v3 = Rot8(v3);
 				v2 = Sse2.Add(v2, v3);
 				v1 = Sse2.Xor(v1, v2);
 				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
@@ -415,13 +453,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 				v0 = Sse2.Add(v0, v1);
 				v3 = Sse2.Xor(v3, v0);
-				v3 = Sse2.Xor(Sse2.ShiftLeftLogical(v3, 16), Sse2.ShiftRightLogical(v3, 16));
+				v3 = Rot16(v3);
 				v2 = Sse2.Add(v2, v3);
 				v1 = Sse2.Xor(v1, v2);
 				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 12), Sse2.ShiftRightLogical(v1, 20));
 				v0 = Sse2.Add(v0, v1);
 				v3 = Sse2.Xor(v3, v0);
-				v3 = Sse2.Xor(Sse2.ShiftLeftLogical(v3, 8), Sse2.ShiftRightLogical(v3, 24));
+				v3 = Rot8(v3);
 				v2 = Sse2.Add(v2, v3);
 				v1 = Sse2.Xor(v1, v2);
 				v1 = Sse2.Xor(Sse2.ShiftLeftLogical(v1, 7), Sse2.ShiftRightLogical(v1, 25));
