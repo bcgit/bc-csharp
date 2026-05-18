@@ -82,6 +82,8 @@ namespace Org.BouncyCastle.Security
             TWOFISH,
             VMPC,
             VMPC_KSA3,
+            XCHACHA20,
+            XCHACHA20_POLY1305,
             XTEA,
         };
 
@@ -567,6 +569,12 @@ namespace Org.BouncyCastle.Security
                 break;
             case CipherAlgorithm.VMPC_KSA3:
                 streamCipher = new VmpcKsa3Engine();
+                break;
+            case CipherAlgorithm.XCHACHA20:
+                streamCipher = new XChaCha20Engine();
+                break;
+            case CipherAlgorithm.XCHACHA20_POLY1305:
+                aeadCipher = new XChaCha20Poly1305();
                 break;
             case CipherAlgorithm.XTEA:
                 blockCipher = new XteaEngine();

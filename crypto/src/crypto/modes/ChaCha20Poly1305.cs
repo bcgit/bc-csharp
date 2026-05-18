@@ -41,7 +41,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private const int BufSize = 64;
         private const int KeySize = 32;
-        private const int NonceSize = 12;
         private const int MacSize = 16;
         private static readonly byte[] Zeroes = new byte[MacSize - 1];
 
@@ -50,9 +49,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private readonly ChaCha7539Engine mChacha20;
         private readonly IMac mPoly1305;
+        private readonly int mNonceSize;
 
         private readonly byte[] mKey = new byte[KeySize];
-        private readonly byte[] mNonce = new byte[NonceSize];
+        private readonly byte[] mNonce;
         private readonly byte[] mBuf = new byte[BufSize + MacSize];
         private readonly byte[] mMac = new byte[MacSize];
 
@@ -78,14 +78,27 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// <exception cref="ArgumentNullException">If poly1305 is null.</exception>
         /// <exception cref="ArgumentException">If poly1305 is not a 128-bit MAC.</exception>
         public ChaCha20Poly1305(IMac poly1305)
+            : this(new ChaCha7539Engine(), poly1305, 12)
         {
+        }
+
+        /// <summary>
+        /// Constructor for subclasses to inject an alternative ChaCha20 engine (e.g. XChaCha20)
+        /// and the matching nonce size.
+        /// </summary>
+        protected ChaCha20Poly1305(ChaCha7539Engine chacha20, IMac poly1305, int nonceSize)
+        {
+            if (null == chacha20)
+                throw new ArgumentNullException("chacha20");
             if (null == poly1305)
                 throw new ArgumentNullException("poly1305");
             if (MacSize != poly1305.GetMacSize())
                 throw new ArgumentException("must be a 128-bit MAC", "poly1305");
 
-            this.mChacha20 = new ChaCha7539Engine();
+            this.mChacha20 = chacha20;
             this.mPoly1305 = poly1305;
+            this.mNonceSize = nonceSize;
+            this.mNonce = new byte[nonceSize];
         }
 
         /// <summary>The name of the algorithm ("ChaCha20Poly1305").</summary>
@@ -156,8 +169,8 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
 
             // Validate nonce
-            if (NonceSize != initNonce.Length)
-                throw new ArgumentException("Nonce must be 96 bits");
+            if (mNonceSize != initNonce.Length)
+                throw new ArgumentException("Nonce must be " + (mNonceSize * 8) + " bits");
 
             // Check for encryption with reused nonce
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -178,7 +191,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             initNonce.CopyTo(mNonce);
 #else
-            Array.Copy(initNonce, 0, mNonce, 0, NonceSize);
+            Array.Copy(initNonce, 0, mNonce, 0, mNonceSize);
 #endif
 
             mChacha20.Init(true, chacha20Params);

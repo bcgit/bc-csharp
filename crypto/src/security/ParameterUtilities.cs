@@ -129,6 +129,8 @@ namespace Org.BouncyCastle.Security
                 "CHACHA20",
                 "CHACHA20-POLY1305",
                 PkcsObjectIdentifiers.IdAlgAeadChaCha20Poly1305);
+            AddAlgorithm("XCHACHA20",
+                "XCHACHA20-POLY1305");
             AddAlgorithm("DES",
                 OiwObjectIdentifiers.DesCbc,
                 OiwObjectIdentifiers.DesCfb,
@@ -182,6 +184,7 @@ namespace Org.BouncyCastle.Security
             AddBasicIVSizeEntries(12, "CHACHA7539");
             AddBasicIVSizeEntries(16, "AES", "AES128", "AES192", "AES256", "ARIA", "ARIA128", "ARIA192", "ARIA256",
                 "CAMELLIA", "CAMELLIA128", "CAMELLIA192", "CAMELLIA256", "NOEKEON", "SEED", "SM4");
+            AddBasicIVSizeEntries(24, "XCHACHA20");
 
             // TODO These algorithms support an IV
             // but JCE doesn't seem to provide an AlgorithmParametersGenerator for them
