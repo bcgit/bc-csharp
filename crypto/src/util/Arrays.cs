@@ -1,10 +1,8 @@
 using System;
-
+using System.Runtime.CompilerServices;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-#else
-using System.Runtime.CompilerServices;
 #endif
 using System.Text;
 
@@ -1287,6 +1285,18 @@ namespace Org.BouncyCastle.Utilities
             InternalZeroMemory(buf, off, len);
         }
 
+        internal static void ZeroMemory(uint[] buf)
+        {
+            ValidateBuffer(buf);
+            InternalZeroMemory(buf);
+        }
+
+        internal static void ZeroMemory(uint[] buf, int off, int len)
+        {
+            ValidateSegment(buf, off, len);
+            InternalZeroMemory(buf, off, len);
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
         {
@@ -1340,6 +1350,10 @@ namespace Org.BouncyCastle.Utilities
         internal static void InternalZeroMemory(byte[] buf, int off, int len) =>
             CryptographicOperations.ZeroMemory(buf.AsSpan(off, len));
 
+        internal static void InternalZeroMemory(uint[] buf) => ZeroMemory(buf.AsSpan());
+
+        internal static void InternalZeroMemory(uint[] buf, int off, int len) => ZeroMemory(buf.AsSpan(off, len));
+
         public static T[] Prepend<T>(ReadOnlySpan<T> a, T b)
         {
             T[] result = new T[1 + a.Length];
@@ -1349,6 +1363,12 @@ namespace Org.BouncyCastle.Utilities
         }
 
         public static void ZeroMemory(Span<byte> buffer) => CryptographicOperations.ZeroMemory(buffer);
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void ZeroMemory(Span<uint> buffer)
+        {
+            buffer.Clear();
+        }
 #else
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         internal static bool InternalFixedTimeEquals(byte[] a, byte[] b)
@@ -1402,6 +1422,24 @@ namespace Org.BouncyCastle.Utilities
             for (int i = 0; i < len; ++i)
             {
                 buf[off + i] = 0;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(uint[] buf)
+        {
+            for (int i = 0; i < buf.Length; ++i)
+            {
+                buf[i] = 0U;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(uint[] buf, int off, int len)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                buf[off + i] = 0U;
             }
         }
 #endif

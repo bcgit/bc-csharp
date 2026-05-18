@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
@@ -47,7 +48,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             finally
             {
-                subKey.Clear();
+                Arrays.ZeroMemory(subKey);
             }
 #else
             byte[] subKey = new byte[32];
@@ -66,7 +67,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             finally
             {
-                Array.Clear(subKey, 0, subKey.Length);
+                Arrays.ZeroMemory(subKey, 0, subKey.Length);
             }
 #endif
         }
@@ -115,8 +116,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             finally
             {
-                Array.Clear(state, 0, state.Length);
-                Array.Clear(block, 0, block.Length);
+                Arrays.ZeroMemory(state);
+                Arrays.ZeroMemory(block);
             }
 #endif
         }
@@ -156,8 +157,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             finally
             {
-                state.Clear();
-                block.Clear();
+                Arrays.ZeroMemory(state);
+                Arrays.ZeroMemory(block);
             }
         }
 #endif
