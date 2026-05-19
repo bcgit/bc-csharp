@@ -154,8 +154,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal void IncIndex()
         {
-            lock (this) 
+            lock (this)
+            {
                 q++;
+            }
         }
 
         public LmsContext GenerateLmsContext()
