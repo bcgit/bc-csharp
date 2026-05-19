@@ -28,3 +28,4 @@ BC_password.txt
 *.project.lock.json
 project.lock.json
 
+.claude/settings.local.json
