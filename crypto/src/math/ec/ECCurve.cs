@@ -2,9 +2,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
+using Org.BouncyCastle.Math.BinPoly;
 using Org.BouncyCastle.Math.EC.Endo;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Math.Field;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -202,7 +204,7 @@ namespace Org.BouncyCastle.Math.EC
          * Compute a <code>PreCompInfo</code> for a point on this curve, under a given name. Used by
          * <code>ECMultiplier</code>s to save the precomputation for this <code>ECPoint</code> for use
          * by subsequent multiplication.
-         * 
+         *
          * @param point
          *            The <code>ECPoint</code> to store precomputations for.
          * @param name
@@ -260,7 +262,7 @@ namespace Org.BouncyCastle.Math.EC
          * coordinates reflect those of the equivalent point in an affine coordinate system. Where more
          * than one point is to be normalized, this method will generally be more efficient than
          * normalizing each point separately.
-         * 
+         *
          * @param points
          *            An array of points that will be updated in place with their normalized versions,
          *            where necessary
@@ -277,7 +279,7 @@ namespace Org.BouncyCastle.Math.EC
          * normalizing each point separately. An (optional) z-scaling factor can be applied; effectively
          * each z coordinate is scaled by this value prior to normalization (but only one
          * actual multiplication is needed).
-         * 
+         *
          * @param points
          *            An array of points that will be updated in place with their normalized versions,
          *            where necessary
@@ -421,7 +423,7 @@ namespace Org.BouncyCastle.Math.EC
                 && B.ToBigInteger().Equals(other.B.ToBigInteger());
         }
 
-        public override bool Equals(object obj) 
+        public override bool Equals(object obj)
         {
             return Equals(obj as ECCurve);
         }
@@ -963,9 +965,13 @@ namespace Org.BouncyCastle.Math.EC
     public abstract class AbstractF2mCurve
         : ECCurve
     {
+        [Obsolete("Will be removed")]
         public static BigInteger Inverse(int m, int[] ks, BigInteger x)
         {
-            return new LongArray(x).ModInverse(m, ks).ToBigInteger();
+            ulong[] t = Nat.FromBigInteger64(m, x);
+            var f2mFieldData = F2mFieldData.From(m, ks);
+            var fe = new F2mFieldElement(f2mFieldData, t);
+            return fe.Invert().ToBigInteger();
         }
 
         private static IFiniteField BuildField(int m, int k1, int k2, int k3)
@@ -1100,7 +1106,7 @@ namespace Org.BouncyCastle.Math.EC
 
             int m = FieldSize;
 
-            // For odd m, use the half-trace 
+            // For odd m, use the half-trace
             if (0 != (m & 1))
             {
                 ECFieldElement r = betaF2m.HalfTrace();
@@ -1170,36 +1176,7 @@ namespace Org.BouncyCastle.Math.EC
     {
         private const int F2M_DEFAULT_COORDS = COORD_LAMBDA_PROJECTIVE;
 
-        /**
-         * The exponent <code>m</code> of <code>F<sub>2<sup>m</sup></sub></code>.
-         */
-        private readonly int m;
-
-        /**
-         * TPB: The integer <code>k</code> where <code>x<sup>m</sup> +
-         * x<sup>k</sup> + 1</code> represents the reduction polynomial
-         * <code>f(z)</code>.<br/>
-         * PPB: The integer <code>k1</code> where <code>x<sup>m</sup> +
-         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-         * represents the reduction polynomial <code>f(z)</code>.<br/>
-         */
-        private readonly int k1;
-
-        /**
-         * TPB: Always set to <code>0</code><br/>
-         * PPB: The integer <code>k2</code> where <code>x<sup>m</sup> +
-         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-         * represents the reduction polynomial <code>f(z)</code>.<br/>
-         */
-        private readonly int k2;
-
-        /**
-         * TPB: Always set to <code>0</code><br/>
-         * PPB: The integer <code>k3</code> where <code>x<sup>m</sup> +
-         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-         * represents the reduction polynomial <code>f(z)</code>.<br/>
-         */
-        private readonly int k3;
+        private readonly F2mFieldData m_f2mFieldData;
 
         /**
          * The point at infinity on this curve.
@@ -1248,9 +1225,9 @@ namespace Org.BouncyCastle.Math.EC
          * <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
          */
         public F2mCurve(
-            int			m, 
-            int			k, 
-            BigInteger	a, 
+            int			m,
+            int			k,
+            BigInteger	a,
             BigInteger	b,
             BigInteger	order,
             BigInteger	cofactor)
@@ -1317,10 +1294,8 @@ namespace Org.BouncyCastle.Math.EC
             BigInteger cofactor)
             : base(m, k1, k2, k3)
         {
-            this.m = m;
-            this.k1 = k1;
-            this.k2 = k2;
-            this.k3 = k3;
+            m_f2mFieldData = F2mFieldData.From(m, k1, k2, k3);
+
             this.m_order = order;
             this.m_cofactor = cofactor;
             this.m_infinity = new F2mPoint(this, null, null);
@@ -1334,10 +1309,8 @@ namespace Org.BouncyCastle.Math.EC
             BigInteger cofactor)
             : base(m, k1, k2, k3)
         {
-            this.m = m;
-            this.k1 = k1;
-            this.k2 = k2;
-            this.k3 = k3;
+            m_f2mFieldData = F2mFieldData.From(m, k1, k2, k3);
+
             this.m_order = order;
             this.m_cofactor = cofactor;
             this.m_infinity = new F2mPoint(this, null, null);
@@ -1347,10 +1320,22 @@ namespace Org.BouncyCastle.Math.EC
             this.m_coord = F2M_DEFAULT_COORDS;
         }
 
-        protected override ECCurve CloneCurve()
+        private F2mCurve(F2mFieldData f2mFieldData, ECFieldElement a, ECFieldElement b, BigInteger order,
+            BigInteger cofactor)
+            : base(f2mFieldData.m, f2mFieldData.K1, f2mFieldData.K2, f2mFieldData.K3)
         {
-            return new F2mCurve(m, k1, k2, k3, m_a, m_b, m_order, m_cofactor);
+            m_f2mFieldData = f2mFieldData;
+
+            m_order = order;
+            m_cofactor = cofactor;
+            m_infinity = new F2mPoint(this, null, null);
+
+            m_a = a;
+            m_b = b;
+            m_coord = F2M_DEFAULT_COORDS;
         }
+
+        protected override ECCurve CloneCurve() => new F2mCurve(m_f2mFieldData, m_a, m_b, m_order, m_cofactor);
 
         public override bool SupportsCoordinateSystem(int coord)
         {
@@ -1375,21 +1360,16 @@ namespace Org.BouncyCastle.Math.EC
             return base.CreateDefaultMultiplier();
         }
 
-        public override int FieldSize
-        {
-            get { return m; }
-        }
+        public override int FieldSize => M;
 
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
-            if (x == null || x.SignValue < 0 || x.BitLength > m)
-                throw new ArgumentException("value invalid for F2m field element", "x");
+            if (x == null || x.SignValue < 0 || x.BitLength > M)
+                throw new ArgumentException("value invalid for F2m field element", nameof(x));
 
-            int[] ks = (k2 | k3) == 0
-                ? new int[]{ k1 }
-                : new int[]{ k1, k2, k3 };
+            ulong[] t = Nat.FromBigInteger64(M, x);
 
-            return new F2mFieldElement(m, ks, new LongArray(x));
+            return new F2mFieldElement(m_f2mFieldData, t);
         }
 
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y)
@@ -1407,39 +1387,24 @@ namespace Org.BouncyCastle.Math.EC
             get { return m_infinity; }
         }
 
-        public int M
-        {
-            get { return m; }
-        }
+        public int M => m_f2mFieldData.m;
 
         /**
          * Return true if curve uses a Trinomial basis.
          *
          * @return true if curve Trinomial, false otherwise.
          */
-        public bool IsTrinomial()
-        {
-            return k2 == 0 && k3 == 0;
-        }
+        public bool IsTrinomial() => K2 == 0 && K3 == 0;
 
-        public int K1
-        {
-            get { return k1; }
-        }
+        public int K1 => m_f2mFieldData.K1;
 
-        public int K2
-        {
-            get { return k2; }
-        }
+        public int K2 => m_f2mFieldData.K2;
 
-        public int K3
-        {
-            get { return k3; }
-        }
+        public int K3 => m_f2mFieldData.K3;
 
         public override ECLookupTable CreateCacheSafeLookupTable(ECPoint[] points, int off, int len)
         {
-            int FE_LONGS = (m + 63) / 64;
+            int FE_LONGS = BinPolys.Size(M);
 
             ulong[] table = new ulong[len * FE_LONGS * 2];
             {
@@ -1447,8 +1412,8 @@ namespace Org.BouncyCastle.Math.EC
                 for (int i = 0; i < len; ++i)
                 {
                     ECPoint p = points[off + i];
-                    ((F2mFieldElement)p.RawXCoord).x.CopyTo(table, pos); pos += FE_LONGS;
-                    ((F2mFieldElement)p.RawYCoord).x.CopyTo(table, pos); pos += FE_LONGS;
+                    BinPolys.Copy(FE_LONGS, ((F2mFieldElement)p.RawXCoord).x, 0, table, pos); pos += FE_LONGS;
+                    BinPolys.Copy(FE_LONGS, ((F2mFieldElement)p.RawYCoord).x, 0, table, pos); pos += FE_LONGS;
                 }
             }
 
@@ -1476,7 +1441,7 @@ namespace Org.BouncyCastle.Math.EC
 
             public override ECPoint Lookup(int index)
             {
-                int FE_LONGS = (m_outer.m + 63) / 64;
+                int FE_LONGS = BinPolys.Size(m_outer.M);
                 ulong[] x = new ulong[FE_LONGS], y = new ulong[FE_LONGS];
                 int pos = 0;
 
@@ -1498,7 +1463,7 @@ namespace Org.BouncyCastle.Math.EC
 
             public override ECPoint LookupVar(int index)
             {
-                int FE_LONGS = (m_outer.m + 63) / 64;
+                int FE_LONGS = BinPolys.Size(m_outer.M);
                 ulong[] x = new ulong[FE_LONGS], y = new ulong[FE_LONGS];
                 int pos = index * FE_LONGS * 2;
 
@@ -1513,13 +1478,8 @@ namespace Org.BouncyCastle.Math.EC
 
             private ECPoint CreatePoint(ulong[] x, ulong[] y)
             {
-                int m = m_outer.m;
-                int[] ks = m_outer.IsTrinomial()
-                    ? new int[]{ m_outer.k1 }
-                    : new int[]{ m_outer.k1, m_outer.k2, m_outer.k3 }; 
-
-                ECFieldElement X = new F2mFieldElement(m, ks, new LongArray(x));
-                ECFieldElement Y = new F2mFieldElement(m, ks, new LongArray(y));
+                ECFieldElement X = new F2mFieldElement(m_outer.m_f2mFieldData, x);
+                ECFieldElement Y = new F2mFieldElement(m_outer.m_f2mFieldData, y);
                 return m_outer.CreateRawPoint(X, Y);
             }
         }

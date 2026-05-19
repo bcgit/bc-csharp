@@ -12,6 +12,7 @@ Backup/
 bin/
 dist/
 doc/
+!/doc/
 obj/
 packages/
 _Resharper.*/

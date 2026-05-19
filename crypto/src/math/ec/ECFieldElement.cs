@@ -1,6 +1,8 @@
 using System;
 using System.Diagnostics;
 
+using Org.BouncyCastle.Math.BinPoly;
+using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math.EC
@@ -347,10 +349,7 @@ namespace Org.BouncyCastle.Math.EC
             return z.Square().Equals(this) ? z : null;
         }
 
-        private BigInteger[] LucasSequence(
-            BigInteger	P,
-            BigInteger	Q,
-            BigInteger	k)
+        private BigInteger[] LucasSequence(BigInteger P, BigInteger Q, BigInteger k)
         {
             // TODO Research and apply "common-multiplicand multiplication here"
 
@@ -635,65 +634,28 @@ namespace Org.BouncyCastle.Math.EC
          */
         public const int Ppb = 3;
 
-        /**
-         * Tpb or Ppb.
-         */
-        private int representation;
+        private readonly F2mFieldData f2mFieldData;
+        internal readonly ulong[] x;
 
-        /**
-         * The exponent <code>m</code> of <code>F<sub>2<sup>m</sup></sub></code>.
-         */
-        private int m;
-
-        private int[] ks;
-
-        /**
-         * The <code>LongArray</code> holding the bits.
-         */
-        internal LongArray x;
-
-        internal F2mFieldElement(int m, int[] ks, LongArray x)
+        internal F2mFieldElement(F2mFieldData f2mFieldData, ulong[] x)
         {
-            this.m = m;
-            this.representation = (ks.Length == 1) ? Tpb : Ppb;
-            this.ks = ks;
-            this.x = x;
+            this.f2mFieldData = f2mFieldData ?? throw new ArgumentNullException(nameof(f2mFieldData));
+            this.x = x ?? throw new ArgumentNullException(nameof(x));
         }
 
-        public override int BitLength
-        {
-            get { return x.Degree(); }
-        }
+        public override int BitLength => BinPolys.BitLengthVar(x.Length, x, 0);
 
-        public override bool IsOne
-        {
-            get { return x.IsOne(); }
-        }
+        public override bool IsOne => BinPolys.EqualToOne(x.Length, x, 0) != 0UL;
 
-        public override bool IsZero
-        {
-            get { return x.IsZero(); }
-        }
+        public override bool IsZero => BinPolys.EqualToZero(x.Length, x, 0) != 0UL;
 
-        public override bool TestBitZero()
-        {
-            return x.TestBitZero();
-        }
+        public override bool TestBitZero() => (x[0] & 1UL) != 0UL;
 
-        public override BigInteger ToBigInteger()
-        {
-            return x.ToBigInteger();
-        }
+        public override BigInteger ToBigInteger() => Nat.ToBigInteger64(x.Length, x);
 
-        public override string FieldName
-        {
-            get { return "F2m"; }
-        }
+        public override string FieldName => "F2m";
 
-        public override int FieldSize
-        {
-            get { return m; }
-        }
+        public override int FieldSize => M;
 
         /**
         * Checks, if the ECFieldElements <code>a</code> and <code>b</code>
@@ -706,93 +668,46 @@ namespace Org.BouncyCastle.Math.EC
         * <code>F<sub>2<sup>m</sup></sub></code> (having the same
         * representation).
         */
-        public static void CheckFieldElements(
-            ECFieldElement	a,
-            ECFieldElement	b)
+        public static void CheckFieldElements(ECFieldElement a, ECFieldElement b)
         {
-            if (!(a is F2mFieldElement) || !(b is F2mFieldElement))
-            {
-                throw new ArgumentException("Field elements are not "
-                    + "both instances of F2mFieldElement");
-            }
+            if (!(a is F2mFieldElement aF2m) || !(b is F2mFieldElement bF2m))
+                throw new ArgumentException("Field elements are not both instances of F2mFieldElement");
 
-            F2mFieldElement aF2m = (F2mFieldElement)a;
-            F2mFieldElement bF2m = (F2mFieldElement)b;
-
-            if (aF2m.representation != bF2m.representation)
-            {
-                // Should never occur
-                throw new ArgumentException("One of the F2m field elements has incorrect representation");
-            }
-
-            if ((aF2m.m != bF2m.m) || !Arrays.AreEqual(aF2m.ks, bF2m.ks))
-            {
+            if (!F2mFieldData.Equals(aF2m.f2mFieldData, bF2m.f2mFieldData))
                 throw new ArgumentException("Field elements are not elements of the same field F2m");
-            }
         }
 
-        public override ECFieldElement Add(
-            ECFieldElement b)
+        public override ECFieldElement Add(ECFieldElement b)
         {
-            // No check performed here for performance reasons. Instead the
-            // elements involved are checked in ECPoint.F2m
-            // checkFieldElements(this, b);
-            LongArray iarrClone = this.x.Copy();
             F2mFieldElement bF2m = (F2mFieldElement)b;
-            iarrClone.AddShiftedByWords(bF2m.x, 0);
-            return new F2mFieldElement(m, ks, iarrClone);
+            int size = x.Length;
+            ulong[] z = BinPolys.Create(size);
+            BinPolys.Add(size, x, 0, bF2m.x, 0, z, 0);
+            return new F2mFieldElement(f2mFieldData, z);
         }
 
         public override ECFieldElement AddOne()
         {
-            return new F2mFieldElement(m, ks, x.AddOne());
+            ulong[] z = BinPolys.Create(x.Length);
+            BinPolys.Copy(x.Length, x, 0, z, 0);
+            z[0] ^= 1UL;
+            return new F2mFieldElement(f2mFieldData, z);
         }
 
-        public override ECFieldElement Subtract(
-            ECFieldElement b)
+        public override ECFieldElement Subtract(ECFieldElement b) => Add(b);
+
+        public override ECFieldElement Multiply(ECFieldElement b)
         {
-            // Addition and subtraction are the same in F2m
-            return Add(b);
+            F2mFieldElement bF2m = (F2mFieldElement)b;
+            ulong[] z = BinPolys.Create(x.Length);
+            f2mFieldData.mul.Multiply(x, 0, bF2m.x, 0, z, 0);
+            return new F2mFieldElement(f2mFieldData, z);
         }
 
-        public override ECFieldElement Multiply(
-            ECFieldElement b)
-        {
-            // Right-to-left comb multiplication in the LongArray
-            // Input: Binary polynomials a(z) and b(z) of degree at most m-1
-            // Output: c(z) = a(z) * b(z) mod f(z)
+        public override ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y) =>
+            MultiplyPlusProduct(b, x, y);
 
-            // No check performed here for performance reasons. Instead the
-            // elements involved are checked in ECPoint.F2m
-            // checkFieldElements(this, b);
-            return new F2mFieldElement(m, ks, x.ModMultiply(((F2mFieldElement)b).x, m, ks));
-        }
-
-        public override ECFieldElement MultiplyMinusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
-        {
-            return MultiplyPlusProduct(b, x, y);
-        }
-
-        public override ECFieldElement MultiplyPlusProduct(ECFieldElement b, ECFieldElement x, ECFieldElement y)
-        {
-            LongArray ax = this.x, bx = ((F2mFieldElement)b).x, xx = ((F2mFieldElement)x).x, yx = ((F2mFieldElement)y).x;
-
-            LongArray ab = ax.Multiply(bx, m, ks);
-            LongArray xy = xx.Multiply(yx, m, ks);
-
-            if (LongArray.AreAliased(ref ab, ref ax) || LongArray.AreAliased(ref ab, ref bx))
-            {
-                ab = ab.Copy();
-            }
-
-            ab.AddShiftedByWords(xy, 0);
-            ab.Reduce(m, ks);
-
-            return new F2mFieldElement(m, ks, ab);
-        }
-
-        public override ECFieldElement Divide(
-            ECFieldElement b)
+        public override ECFieldElement Divide(ECFieldElement b)
         {
             // There may be more efficient implementations
             ECFieldElement bInv = b.Invert();
@@ -807,7 +722,10 @@ namespace Org.BouncyCastle.Math.EC
 
         public override ECFieldElement Square()
         {
-            return new F2mFieldElement(m, ks, x.ModSquare(m, ks));
+            int size = x.Length;
+            ulong[] z = BinPolys.Create(size);
+            f2mFieldData.mul.Square(x, 0, z, 0);
+            return new F2mFieldElement(f2mFieldData, z);
         }
 
         public override ECFieldElement SquareMinusProduct(ECFieldElement x, ECFieldElement y)
@@ -815,95 +733,46 @@ namespace Org.BouncyCastle.Math.EC
             return SquarePlusProduct(x, y);
         }
 
-        public override ECFieldElement SquarePlusProduct(ECFieldElement x, ECFieldElement y)
-        {
-            LongArray ax = this.x, xx = ((F2mFieldElement)x).x, yx = ((F2mFieldElement)y).x;
-
-            LongArray aa = ax.Square(m, ks);
-            LongArray xy = xx.Multiply(yx, m, ks);
-
-            if (LongArray.AreAliased(ref aa, ref ax))
-            {
-                aa = aa.Copy();
-            }
-
-            aa.AddShiftedByWords(xy, 0);
-            aa.Reduce(m, ks);
-
-            return new F2mFieldElement(m, ks, aa);
-        }
-
         public override ECFieldElement SquarePow(int pow)
         {
-            return pow < 1 ? this : new F2mFieldElement(m, ks, x.ModSquareN(pow, m, ks));
+            if (pow < 1)
+                return this;
+
+            int size = x.Length;
+            ulong[] z = BinPolys.Create(size);
+            f2mFieldData.mul.SquareN(x, 0, pow, z, 0);
+            return new F2mFieldElement(f2mFieldData, z);
         }
 
         public override ECFieldElement Invert()
         {
-            return new F2mFieldElement(this.m, this.ks, this.x.ModInverse(m, ks));
+            // TODO Intentional fast-path in otherwise constant-time implementation (for performance) - review.
+            if (BitLength <= 1)
+                return this;
+
+            ulong[] z = BinPolys.Create(x.Length);
+            f2mFieldData.inv.Invert(x, 0, z, 0);
+            return new F2mFieldElement(f2mFieldData, z);
         }
 
         public override ECFieldElement Sqrt()
         {
-            return (x.IsZero() || x.IsOne()) ? this : SquarePow(m - 1);
+            // TODO Intentional fast-path in otherwise constant-time implementation (for performance) - review.
+            if (BitLength <= 1)
+                return this;
+
+            return SquarePow(M - 1);
         }
 
-        /**
-            * @return the representation of the field
-            * <code>F<sub>2<sup>m</sup></sub></code>, either of
-            * {@link F2mFieldElement.Tpb} (trinomial
-            * basis representation) or
-            * {@link F2mFieldElement.Ppb} (pentanomial
-            * basis representation).
-            */
-        public int Representation
-        {
-            get { return this.representation; }
-        }
+        public int Representation => f2mFieldData.ks.Length == 1 ? Tpb : Ppb;
 
-        /**
-            * @return the degree <code>m</code> of the reduction polynomial
-            * <code>f(z)</code>.
-            */
-        public int M
-        {
-            get { return this.m; }
-        }
+        public int M => f2mFieldData.m;
 
-        /**
-            * @return Tpb: The integer <code>k</code> where <code>x<sup>m</sup> +
-            * x<sup>k</sup> + 1</code> represents the reduction polynomial
-            * <code>f(z)</code>.<br/>
-            * Ppb: The integer <code>k1</code> where <code>x<sup>m</sup> +
-            * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            * represents the reduction polynomial <code>f(z)</code>.<br/>
-            */
-        public int K1
-        {
-            get { return this.ks[0]; }
-        }
+        public int K1 => f2mFieldData.K1;
 
-        /**
-            * @return Tpb: Always returns <code>0</code><br/>
-            * Ppb: The integer <code>k2</code> where <code>x<sup>m</sup> +
-            * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            * represents the reduction polynomial <code>f(z)</code>.<br/>
-            */
-        public int K2
-        {
-            get { return this.ks.Length >= 2 ? this.ks[1] : 0; }
-        }
+        public int K2 => f2mFieldData.K2;
 
-        /**
-            * @return Tpb: Always set to <code>0</code><br/>
-            * Ppb: The integer <code>k3</code> where <code>x<sup>m</sup> +
-            * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
-            * represents the reduction polynomial <code>f(z)</code>.<br/>
-            */
-        public int K3
-        {
-            get { return this.ks.Length >= 3 ? this.ks[2] : 0; }
-        }
+        public int K3 => f2mFieldData.K3;
 
         public override bool Equals(object obj) => obj is F2mFieldElement that && Equals(that);
 
@@ -912,19 +781,11 @@ namespace Org.BouncyCastle.Math.EC
             if (this == other)
                 return true;
 
-            return this.m == other.m
-                && this.representation == other.representation
-                && Arrays.AreEqual(this.ks, other.ks)
-                && this.x.Equals(other.x);
+            return F2mFieldData.Equals(this.f2mFieldData, other.f2mFieldData)
+                && this.x.Length == other.x.Length
+                && BinPolys.EqualTo(this.x.Length, this.x, 0, other.x, 0) != 0UL;
         }
 
-        public override int GetHashCode()
-        {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return HashCode.Combine(x, m, Arrays.GetHashCode(ks));
-#else
-            return x.GetHashCode() ^ m ^ Arrays.GetHashCode(ks);
-#endif
-        }
+        public override int GetHashCode() => Arrays.GetHashCode(x) ^ F2mFieldData.GetHashCode(f2mFieldData);
     }
 }

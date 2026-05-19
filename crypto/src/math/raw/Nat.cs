@@ -2455,6 +2455,96 @@ namespace Org.BouncyCastle.Math.Raw
         }
 #endif
 
+        public static ulong ShiftUpBitsXor64(int len, ulong[] x, int bits, ulong c, ulong[] y, ulong[] z)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ShiftUpBitsXor64(len, x.AsSpan(), bits, c, y.AsSpan(), z.AsSpan());
+#else
+            Debug.Assert(bits > 0 && bits < 64);
+            int i = 0;
+            while (i <= len - 4)
+            {
+                ulong x0 = x[i + 0], x1 = x[i + 1], x2 = x[i + 2], x3 = x[i + 3];
+                ulong y0 = y[i + 0], y1 = y[i + 1], y2 = y[i + 2], y3 = y[i + 3];
+                z[i + 0] = ((x0 << bits) | (c  >> -bits)) ^ y0;
+                z[i + 1] = ((x1 << bits) | (x0 >> -bits)) ^ y1;
+                z[i + 2] = ((x2 << bits) | (x1 >> -bits)) ^ y2;
+                z[i + 3] = ((x3 << bits) | (x2 >> -bits)) ^ y3;
+                c = x3;
+                i += 4;
+            }
+            while (i < len)
+            {
+                ulong x_i = x[i];
+                ulong y_i = y[i];
+                z[i] = ((x_i << bits) | (c >> -bits)) ^ y_i;
+                c = x_i;
+                ++i;
+            }
+            return c >> -bits;
+#endif
+        }
+
+        public static ulong ShiftUpBitsXor64(int len, ulong[] x, int xOff, int bits, ulong c, ulong[] y, int yOff,
+            ulong[] z, int zOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ShiftUpBitsXor64(len, x.AsSpan(xOff), bits, c, y.AsSpan(yOff), z.AsSpan(zOff));
+#else
+            Debug.Assert(bits > 0 && bits < 64);
+            int i = 0;
+            while (i <= len - 4)
+            {
+                ulong x0 = x[xOff + i + 0], x1 = x[xOff + i + 1], x2 = x[xOff + i + 2], x3 = x[xOff + i + 3];
+                ulong y0 = y[yOff + i + 0], y1 = y[yOff + i + 1], y2 = y[yOff + i + 2], y3 = y[yOff + i + 3];
+                z[zOff + i + 0] = ((x0 << bits) | (c  >> -bits)) ^ y0;
+                z[zOff + i + 1] = ((x1 << bits) | (x0 >> -bits)) ^ y1;
+                z[zOff + i + 2] = ((x2 << bits) | (x1 >> -bits)) ^ y2;
+                z[zOff + i + 3] = ((x3 << bits) | (x2 >> -bits)) ^ y3;
+                c = x3;
+                i += 4;
+            }
+            while (i < len)
+            {
+                ulong x_i = x[xOff + i];
+                ulong y_i = y[yOff + i];
+                z[zOff + i] = ((x_i << bits) | (c >> -bits)) ^ y_i;
+                c = x_i;
+                ++i;
+            }
+            return c >> -bits;
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static ulong ShiftUpBitsXor64(int len, ReadOnlySpan<ulong> x, int bits, ulong c, ReadOnlySpan<ulong> y,
+            Span<ulong> z)
+        {
+            Debug.Assert(bits > 0 && bits < 64);
+            int i = 0;
+            while (i <= len - 4)
+            {
+                ulong x0 = x[i + 0], x1 = x[i + 1], x2 = x[i + 2], x3 = x[i + 3];
+                ulong y0 = y[i + 0], y1 = y[i + 1], y2 = y[i + 2], y3 = y[i + 3];
+                z[i + 0] = ((x0 << bits) | (c  >> -bits)) ^ y0;
+                z[i + 1] = ((x1 << bits) | (x0 >> -bits)) ^ y1;
+                z[i + 2] = ((x2 << bits) | (x1 >> -bits)) ^ y2;
+                z[i + 3] = ((x3 << bits) | (x2 >> -bits)) ^ y3;
+                c = x3;
+                i += 4;
+            }
+            while (i < len)
+            {
+                ulong x_i = x[i];
+                ulong y_i = y[i];
+                z[i] = ((x_i << bits) | (c >> -bits)) ^ y_i;
+                c = x_i;
+                ++i;
+            }
+            return c >> -bits;
+        }
+#endif
+
         public static void Square(int len, uint[] x, uint[] zz)
         {
             int extLen = len << 1;
@@ -2948,6 +3038,8 @@ namespace Org.BouncyCastle.Math.Raw
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static BigInteger ToBigInteger(int len, ReadOnlySpan<uint> x)
         {
+            x = x[..len];
+
             if (BitConverter.IsLittleEndian)
                 return new BigInteger(1, MemoryMarshal.AsBytes(x), bigEndian: false);
 
@@ -2957,6 +3049,41 @@ namespace Org.BouncyCastle.Math.Raw
                 : new byte[bsLen];
 
             Pack.UInt32_To_LE(x, bs);
+
+            return new BigInteger(1, bs, bigEndian: false);
+        }
+#endif
+
+        public static BigInteger ToBigInteger64(int len, ulong[] x)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return ToBigInteger64(len, x.AsSpan());
+#else
+            byte[] bs = new byte[len << 3];
+            int xPos = len, bsPos = 0;
+            while (--xPos >= 0)
+            {
+                Pack.UInt64_To_BE(x[xPos], bs, bsPos);
+                bsPos += 8;
+            }
+            return new BigInteger(1, bs);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static BigInteger ToBigInteger64(int len, ReadOnlySpan<ulong> x)
+        {
+            x = x[..len];
+
+            if (BitConverter.IsLittleEndian)
+                return new BigInteger(1, MemoryMarshal.AsBytes(x), bigEndian: false);
+
+            int bsLen = len << 3;
+            Span<byte> bs = bsLen <= 512
+                ? stackalloc byte[bsLen]
+                : new byte[bsLen];
+
+            Pack.UInt64_To_LE(x, bs);
 
             return new BigInteger(1, bs, bigEndian: false);
         }

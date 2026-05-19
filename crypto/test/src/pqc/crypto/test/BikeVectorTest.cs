@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
         public void TV(string testVectorFile) =>
-            PqcTestUtilities.RunTestVectors("pqc/crypto/bike", testVectorFile, sampleOnly: true, RunTestVector);
+            PqcTestUtilities.RunTestVectors("pqc/crypto/bike", testVectorFile, sampleOnly: false, RunTestVector);
 
         private static void RunTestVector(string path, Dictionary<string, string> data)
         {
