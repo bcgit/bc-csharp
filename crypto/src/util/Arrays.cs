@@ -1297,6 +1297,18 @@ namespace Org.BouncyCastle.Utilities
             InternalZeroMemory(buf, off, len);
         }
 
+        internal static void ZeroMemory(ulong[] buf)
+        {
+            ValidateBuffer(buf);
+            InternalZeroMemory(buf);
+        }
+
+        internal static void ZeroMemory(ulong[] buf, int off, int len)
+        {
+            ValidateSegment(buf, off, len);
+            InternalZeroMemory(buf, off, len);
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static byte[] Concatenate(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
         {
@@ -1354,6 +1366,10 @@ namespace Org.BouncyCastle.Utilities
 
         internal static void InternalZeroMemory(uint[] buf, int off, int len) => ZeroMemory(buf.AsSpan(off, len));
 
+        internal static void InternalZeroMemory(ulong[] buf) => ZeroMemory(buf.AsSpan());
+
+        internal static void InternalZeroMemory(ulong[] buf, int off, int len) => ZeroMemory(buf.AsSpan(off, len));
+
         public static T[] Prepend<T>(ReadOnlySpan<T> a, T b)
         {
             T[] result = new T[1 + a.Length];
@@ -1364,11 +1380,11 @@ namespace Org.BouncyCastle.Utilities
 
         public static void ZeroMemory(Span<byte> buffer) => CryptographicOperations.ZeroMemory(buffer);
 
-        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        internal static void ZeroMemory(Span<uint> buffer)
-        {
-            buffer.Clear();
-        }
+        internal static void ZeroMemory(Span<uint> buffer) =>
+            CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(buffer));
+
+        internal static void ZeroMemory(Span<ulong> buffer) =>
+            CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(buffer));
 #else
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
         internal static bool InternalFixedTimeEquals(byte[] a, byte[] b)
@@ -1440,6 +1456,24 @@ namespace Org.BouncyCastle.Utilities
             for (int i = 0; i < len; ++i)
             {
                 buf[off + i] = 0U;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(ulong[] buf)
+        {
+            for (int i = 0; i < buf.Length; ++i)
+            {
+                buf[i] = 0UL;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(ulong[] buf, int off, int len)
+        {
+            for (int i = 0; i < len; ++i)
+            {
+                buf[off + i] = 0UL;
             }
         }
 #endif
