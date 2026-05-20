@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 // Standard ChaCha7539 state with the derived subkey and the IETF 96-bit nonce
                 // (4 zero bytes || last 8 bytes of the original 192-bit nonce).
-                PackTauOrSigma(32, engineState, 0);
+                PackTauOrSigma(32, engineState);
                 Pack.LE_To_UInt32(subKey, engineState.AsSpan(4, 8));
                 engineState[12] = 0U;
                 engineState[13] = 0U;
@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 // Standard ChaCha7539 state with the derived subkey and the IETF 96-bit nonce
                 // (4 zero bytes || last 8 bytes of the original 192-bit nonce).
-                PackTauOrSigma(32, engineState, 0);
+                PackTauOrSigma(32, engineState);
                 Pack.LE_To_UInt32(subKey, 0, engineState, 4, 8);
                 engineState[12] = 0U;
                 engineState[13] = 0U;
@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             finally
             {
-                Arrays.ZeroMemory(subKey, 0, subKey.Length);
+                Arrays.ZeroMemory(subKey);
             }
 #endif
         }
@@ -97,11 +97,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             byte[] block = new byte[64];
             try
             {
-                // Sigma constants ("expand 32-byte k") as four little-endian 32-bit words.
-                state[0] = 0x61707865U;
-                state[1] = 0x3320646eU;
-                state[2] = 0x79622d32U;
-                state[3] = 0x6b206574U;
+                PackTauOrSigma(32, state);
                 Pack.LE_To_UInt32(keyBytes, 0, state, 4, 8);
                 Pack.LE_To_UInt32(nonceBytes, nonceOff, state, 12, 4);
 
@@ -140,11 +136,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Span<uint> block = stackalloc uint[16];
             try
             {
-                // Sigma constants ("expand 32-byte k") as four little-endian 32-bit words.
-                state[0] = 0x61707865U;
-                state[1] = 0x3320646eU;
-                state[2] = 0x79622d32U;
-                state[3] = 0x6b206574U;
+                PackTauOrSigma(32, state);
                 Pack.LE_To_UInt32(key, state.Slice(4, 8));
                 Pack.LE_To_UInt32(nonce, state.Slice(12, 4));
 

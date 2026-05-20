@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 if (keyBytes.Length != 32)
                     throw new ArgumentException(AlgorithmName + " requires 256 bit key");
 
-                PackTauOrSigma(keyBytes.Length, engineState, 0);
+                PackTauOrSigma(32, engineState);
 
                 // Key
                 Pack.LE_To_UInt32(keyBytes, 0, engineState, 4, 8);

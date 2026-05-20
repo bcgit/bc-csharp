@@ -27,13 +27,17 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private readonly static uint[] TAU_SIGMA = Pack.LE_To_UInt32(Strings.ToAsciiByteArray("expand 16-byte k" + "expand 32-byte k"), 0, 8);
 
-        internal static void PackTauOrSigma(int keyLength, uint[] state, int stateOffset)
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal static void PackTauOrSigma(int keyLength, Span<uint> state)
+#else
+        internal static void PackTauOrSigma(int keyLength, uint[] state)
+#endif
         {
-            int tsOff = (keyLength - 16) / 4;
-            state[stateOffset] = TAU_SIGMA[tsOff];
-            state[stateOffset + 1] = TAU_SIGMA[tsOff + 1];
-            state[stateOffset + 2] = TAU_SIGMA[tsOff + 2];
-            state[stateOffset + 3] = TAU_SIGMA[tsOff + 3];
+            int tsOff = keyLength / 4 - 4;
+            state[0] = TAU_SIGMA[tsOff];
+            state[1] = TAU_SIGMA[tsOff + 1];
+            state[2] = TAU_SIGMA[tsOff + 2];
+            state[3] = TAU_SIGMA[tsOff + 3];
         }
 
 		protected int rounds;
