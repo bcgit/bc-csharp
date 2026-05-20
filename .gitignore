@@ -22,6 +22,7 @@ _Resharper*/
 .vs/
 BC_codesign.p12
 BC_password.txt
+CLAUDE.local.md
 
 *.nuget.props
 *.nuget.targets
