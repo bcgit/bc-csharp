@@ -1,46 +1,45 @@
-using System;
+using System.Diagnostics;
 
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
     public class ElGamalParametersGenerator
     {
-		private int				size;
-        private int				certainty;
-        private SecureRandom	random;
+        private int m_size;
+        private int m_certainty;
+        private SecureRandom m_random;
 
-		public void Init(
-            int				size,
-            int				certainty,
-            SecureRandom	random)
+        public void Init(int size, int certainty, SecureRandom random)
         {
-            this.size = size;
-            this.certainty = certainty;
-            this.random = random;
+            m_size = size;
+            m_certainty = certainty;
+            m_random = random;
         }
 
-		/**
-         * which Generates the p and g values from the given parameters,
-         * returning the ElGamalParameters object.
-         * <p>
-         * Note: can take a while...
-		 * </p>
-         */
+        /// <summary>Generates random ElGamal parameters of the given size, with given certainty.</summary>
         public ElGamalParameters GenerateParameters()
         {
-			//
-			// find a safe prime p where p = 2*q + 1, where p and q are prime.
-			//
-			BigInteger[] safePrimes = DHParametersHelper.GenerateSafePrimes(size, certainty, random);
+            //
+            // find a safe prime p where p = 2*q + 1, where p and q are prime.
+            //
+            //BigInteger[] safePrimes = DHParametersHelper.GenerateSafePrimes(m_size, m_certainty, m_random);
 
-			BigInteger p = safePrimes[0];
-			BigInteger q = safePrimes[1];
-			BigInteger g = DHParametersHelper.SelectGenerator(p, q, random);
+            //BigInteger p = safePrimes[0];
+            //BigInteger q = safePrimes[1];
+            //BigInteger g = DHParametersHelper.SelectGenerator(p, q, m_random);
+            // Generate a safe prime p (p == 2.q + 1) for which 2 has order q
+            BigInteger[] safePrimes = DHParametersHelper.GenerateSafePrimes(m_size, m_certainty, m_random,
+                forGenerator2: true);
+            BigInteger p = safePrimes[0];
+            //BigInteger q = safePrimes[1];
 
-			return new ElGamalParameters(p, g);
+            Debug.Assert((p.IntValue & 7) == 7);
+            BigInteger g = BigInteger.Two;
+
+            return new ElGamalParameters(p, g);
         }
     }
 }

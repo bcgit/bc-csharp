@@ -3,142 +3,147 @@ using System;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC.Multiplier;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Generators
 {
     internal class DHParametersHelper
     {
+        private static readonly BigInteger Two = BigInteger.Two;
+        private static readonly BigInteger Twelve = BigInteger.ValueOf(12);
+        private static readonly BigInteger TwentyFour = BigInteger.ValueOf(24);
+
         private static readonly int[][] primeLists = BigInteger.primeLists;
         private static readonly int[] primeProducts = BigInteger.primeProducts;
         private static readonly BigInteger[] BigPrimeProducts = Array.ConvertAll(primeProducts, BigInteger.ValueOf);
 
-        /*
-         * Finds a pair of prime BigInteger's {p, q: p = 2q + 1}
-         * 
-         * (see: Handbook of Applied Cryptography 4.86)
-         */
-        internal static BigInteger[] GenerateSafePrimes(int size, int certainty, SecureRandom random)
+        /// <summary>Finds a pair of prime BigInteger's {p, q: p = 2q + 1}.</summary>
+        /// <remarks>
+        /// See: Handbook of Applied Cryptography 4.86. If forGenerator2 is true, the returned p will also have 2 as a
+        /// quadratic residue.
+        /// </remarks>
+        internal static BigInteger[] GenerateSafePrimes(int bitLength, int certainty, SecureRandom random,
+            bool forGenerator2)
         {
-            BigInteger p, q;
-            int qLength = size - 1;
-            int minWeight = size >> 2;
+            if (bitLength < 64)
+                throw new ArgumentException("size < 64");
 
-            if (size <= 32)
+            int lowBitsSet = 0x03;
+            int inc3 = 4;
+            BigInteger step = Twelve;
+
+            if (forGenerator2)
             {
-                for (;;)
-                {
-                    q = new BigInteger(qLength, 2, random);
-
-                    p = q.ShiftLeft(1).Add(BigInteger.One);
-
-                    if (!p.IsProbablePrime(certainty, true))
-                        continue;
-
-                    if (certainty > 2 && !q.IsProbablePrime(certainty, true))
-                        continue;
-
-                    break;
-                }
+                // When selecting p,q so that g == 2 will generate the order q subgroup, we want p === 7 mod 8
+                lowBitsSet = 0x07;
+                inc3 = -8;
+                step = TwentyFour;
             }
-            else
+
+            int minWeight = bitLength >> 2;
+            int byteLength = (bitLength + 7) / 8;
+            int extraBits = byteLength * 8 - bitLength;
+
+            byte[] bytes = new byte[byteLength];
+
+            for (;;)
             {
-                // Note: Modified from Java version for speed
-                for (;;)
+                random.NextBytes(bytes);
+
+                // strip off excess bits, set MSB and LSB
+                bytes[0] = (byte)((bytes[0] & (0xFF >> extraBits)) | (0x80 >> extraBits));
+                bytes[bytes.Length - 1] |= (byte)lowBitsSet;
+
+                BigInteger p = new BigInteger(1, bytes);
+
+                // Check p mod 3
+                int pMod3 = p.Mod(BigInteger.Three).IntValueExact;
+                if (pMod3 != 2)
                 {
-                    q = new BigInteger(qLength, 0, random);
+                    // Result will be p === 11 mod 12 (forGenerator2 => p === 23 mod 24)
+                    p = p.Add(BigInteger.ValueOf((2 - pMod3) * inc3));
+                }
 
-                retry:
-                    for (int i = 0; i < primeLists.Length; ++i)
+                int count = 0;
+                while (++count <= 256 && p.BitLength == bitLength)
+                {
+                    // Check for small factors in p and q simultaneously
+                    if (!HasAnySmallFactorsSafe(p))
                     {
-                        int test = q.Remainder(BigPrimeProducts[i]).IntValue;
-
-                        if (i == 0)
+                        // NOTE: Pocklington criterion: Fermat test suffices to prove p prime given q is prime
+                        if (Two.ModPow(p, p).Equals(Two))
                         {
-                            int rem3 = test % 3;
-                            if (rem3 != 2)
+                            BigInteger q = p.ShiftRight(1);
+                            if (q.RabinMillerTest(certainty, random, randomlySelected: true))
                             {
-                                int diff = 2 * rem3 + 2;
-                                q = q.Add(BigInteger.ValueOf(diff));
-                                test = (test + diff) % primeProducts[i];
+                                /*
+                                 * Require a minimum weight of the NAF representation, since low-weight primes may
+                                 * be weak against a version of the number-field-sieve for the
+                                 * discrete-logarithm-problem.
+                                 * 
+                                 * See "The number field sieve for integers of low weight", Oliver Schirokauer.
+                                 */
+                                if (WNafUtilities.GetNafWeight(p) >= minWeight)
+                                    return new BigInteger[]{ p, q };
                             }
                         }
 
-                        int[] primeList = primeLists[i];
-                        for (int j = 0; j < primeList.Length; ++j)
-                        {
-                            int prime = primeList[j];
-                            int qRem = test % prime;
-                            if (qRem == 0 || qRem == (prime >> 1))
-                            {
-                                q = q.Add(BigInteger.Six);
-                                goto retry;
-                            }
-                        }
+                        // Start from a new random value
+                        break;
                     }
 
-                    if (q.BitLength != qLength)
-                        continue;
+                    p = p.Add(step);
+                }
+            }
+        }
 
-                    if (!q.RabinMillerTest(2, random, true))
-                        continue;
+        private static bool HasAnySmallFactorsSafe(BigInteger x)
+        {
+            for (int i = 0; i < primeLists.Length; ++i)
+            {
+                int r = x.Remainder(BigPrimeProducts[i]).IntValueExact;
 
-                    p = q.ShiftLeft(1).Add(BigInteger.One);
-
-                    if (!p.RabinMillerTest(certainty, random, true))
-                        continue;
-
-                    if (certainty > 2 && !q.RabinMillerTest(certainty - 2, random, true))
-                        continue;
-
-                    /*
-                     * Require a minimum weight of the NAF representation, since low-weight primes may be
-                     * weak against a version of the number-field-sieve for the discrete-logarithm-problem.
-                     * 
-                     * See "The number field sieve for integers of low weight", Oliver Schirokauer.
-                     */
-                    if (WNafUtilities.GetNafWeight(p) < minWeight)
-                        continue;
-
-                    break;
+                foreach (int prime in primeLists[i])
+                {
+                    if ((r % prime) < 2)
+                        return true;
                 }
             }
 
-            return new BigInteger[]{ p, q };
+            return false;
         }
 
-        /*
-         * Select a high order element of the multiplicative group Zp*
-         * 
-         * p and q must be s.t. p = 2*q + 1, where p and q are prime (see generateSafePrimes)
-         */
-        internal static BigInteger SelectGenerator(BigInteger p, BigInteger q, SecureRandom random)
-        {
-            BigInteger pMinusTwo = p.Subtract(BigInteger.Two);
-            BigInteger g;
+        ///*
+        // * Select a high order element of the multiplicative group Zp*
+        // * 
+        // * p and q must be s.t. p = 2*q + 1, where p and q are prime (see generateSafePrimes)
+        // */
+        //internal static BigInteger SelectGenerator(BigInteger p, BigInteger q, SecureRandom random)
+        //{
+        //    BigInteger pMinusTwo = p.Subtract(BigInteger.Two);
+        //    BigInteger g;
 
-            /*
-             * (see: Handbook of Applied Cryptography 4.80)
-             */
-            //do
-            //{
-            //    g = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
-            //}
-            //while (g.ModPow(BigInteger.Two, p).Equals(BigInteger.One) ||
-            //       g.ModPow(q, p).Equals(BigInteger.One));
+        //    /*
+        //     * (see: Handbook of Applied Cryptography 4.80)
+        //     */
+        //    //do
+        //    //{
+        //    //    g = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
+        //    //}
+        //    //while (g.ModPow(BigInteger.Two, p).Equals(BigInteger.One) ||
+        //    //       g.ModPow(q, p).Equals(BigInteger.One));
 
-            /*
-             * RFC 2631 2.2.1.2 (and see: Handbook of Applied Cryptography 4.81)
-             */
-            do
-            {
-                BigInteger h = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
+        //    /*
+        //     * RFC 2631 2.2.1.2 (and see: Handbook of Applied Cryptography 4.81)
+        //     */
+        //    do
+        //    {
+        //        BigInteger h = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
 
-                g = h.Square().Mod(p);
-            }
-            while (g.Equals(BigInteger.One));
+        //        g = h.Square().Mod(p);
+        //    }
+        //    while (g.Equals(BigInteger.One));
 
-            return g;
-        }
+        //    return g;
+        //}
     }
 }
