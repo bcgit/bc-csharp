@@ -206,10 +206,8 @@ namespace Org.BouncyCastle.Crypto.Generators
 				new NaccacheSternPrivateKeyParameters(g, n, sigma.BitLength, smallPrimes, phi_n));
 		}
 
-		private static BigInteger GeneratePrime(int bitLength, int certainty, SecureRandom rand)
-		{
-			return new BigInteger(bitLength, certainty, rand);
-		}
+        private static BigInteger GeneratePrime(int bitLength, int certainty, SecureRandom rand) =>
+            BigIntegers.CreateRandomPrime(bitLength, certainty, rand);
 
 		/**
 		 * Generates a permuted ArrayList from the original one. The original List

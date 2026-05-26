@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             for (;;)
             {
-                BigInteger p = new BigInteger(bitlength, 1, parameters.Random);
+                BigInteger p = BigIntegers.CreateRandomPrime(bitlength, 1, parameters.Random);
 
                 if (p.Mod(e).Equals(One))
                     continue;
