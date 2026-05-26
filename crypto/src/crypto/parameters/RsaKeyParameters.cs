@@ -1,110 +1,69 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     /// <summary>Base class for RSA key parameters.</summary>
-	public class RsaKeyParameters
-		: AsymmetricKeyParameter
+    public class RsaKeyParameters
+        : AsymmetricKeyParameter
     {
-        // Hexadecimal value of the product of the 131 smallest odd primes from 3 to 743
-        private static readonly BigInteger SmallPrimesProduct = new BigInteger(
-                  "8138e8a0fcf3a4e84a771d40fd305d7f4aa59306d7251de54d98af8fe95729a1f"
-                + "73d893fa424cd2edc8636a6c3285e022b0e3866a565ae8108eed8591cd4fe8d2"
-                + "ce86165a978d719ebf647f362d33fca29cd179fb42401cbaf3df0c614056f9c8"
-                + "f3cfd51e474afb6bc6974f78db8aba8e9e517fded658591ab7502bd41849462f",
-            16);
+        public static BigInteger ValidateModulus(BigInteger modulus) => Validate(modulus, isInternal: false);
 
-        private static bool HasAnySmallFactors(BigInteger modulus)
-        {
-            BigInteger M = modulus, X = SmallPrimesProduct;
-            if (modulus.BitLength < SmallPrimesProduct.BitLength)
-            {
-                M = SmallPrimesProduct;
-                X = modulus;
-            }
-
-            return !BigIntegers.ModOddIsCoprimeVar(M, X);
-        }
-
-        private static BigInteger Validate(BigInteger modulus)
-        {
-            if ((modulus.IntValue & 1) == 0)
-                throw new ArgumentException("RSA modulus is even", nameof(modulus));
-
-            int maxBitLength = ImplGetInteger("Org.BouncyCastle.Rsa.MaxSize", 16384);
-            if (modulus.BitLength > maxBitLength)
-                throw new ArgumentException("RSA modulus out of range", nameof(modulus));
-
-            if (HasAnySmallFactors(modulus))
-                throw new ArgumentException("RSA modulus has a small prime factor", nameof(modulus));
-
-            // TODO: add additional primePower/Composite test - expensive!!
-
-            return modulus;
-        }
-
-        private readonly BigInteger modulus;
-        private readonly BigInteger exponent;
+        private readonly BigInteger m_modulus;
+        private readonly BigInteger m_exponent;
 
         /// <summary>Initializes a new instance of <see cref="RsaKeyParameters"/>.</summary>
         /// <param name="isPrivate">Whether the key is private or not.</param>
         /// <param name="modulus">The RSA modulus.</param>
         /// <param name="exponent">The RSA exponent (public exponent for public keys, private exponent for private keys).</param>
-		public RsaKeyParameters(
-            bool		isPrivate,
-            BigInteger	modulus,
-            BigInteger	exponent)
-			: base(isPrivate)
+        public RsaKeyParameters(bool isPrivate, BigInteger modulus, BigInteger exponent)
+            : this(isPrivate, modulus, exponent, isInternal: false)
         {
-			if (modulus == null)
-				throw new ArgumentNullException("modulus");
-			if (exponent == null)
-				throw new ArgumentNullException("exponent");
-			if (modulus.SignValue <= 0)
-				throw new ArgumentException("Not a valid RSA modulus", "modulus");
-			if (exponent.SignValue <= 0)
-				throw new ArgumentException("Not a valid RSA exponent", "exponent");
-            if (!isPrivate && (exponent.IntValue & 1) == 0)
-                throw new ArgumentException("RSA publicExponent is even", "exponent");
+        }
 
-            this.modulus = Validate(modulus);
-			this.exponent = exponent;
+        internal RsaKeyParameters(bool isPrivate, BigInteger modulus, BigInteger exponent, bool isInternal)
+            : base(isPrivate)
+        {
+            if (modulus == null)
+                throw new ArgumentNullException(nameof(modulus));
+            if (exponent == null)
+                throw new ArgumentNullException(nameof(exponent));
+            if (modulus.SignValue <= 0)
+                throw new ArgumentException("Not a valid RSA modulus", nameof(modulus));
+            if (exponent.SignValue <= 0)
+                throw new ArgumentException("Not a valid RSA exponent", nameof(exponent));
+            if (!isPrivate && (exponent.IntValue & 1) == 0)
+                throw new ArgumentException("RSA publicExponent is even", nameof(exponent));
+
+            m_modulus = Validate(modulus, isInternal);
+            m_exponent = exponent;
         }
 
         /// <summary>Gets the RSA modulus.</summary>
-		public BigInteger Modulus
-        {
-            get { return modulus; }
-        }
+        public BigInteger Modulus => m_modulus;
 
         /// <summary>Gets the RSA exponent.</summary>
-		public BigInteger Exponent
+        public BigInteger Exponent => m_exponent;
+
+        public override bool Equals(object obj)
         {
-            get { return exponent; }
+            return obj is RsaKeyParameters that
+                && this.IsPrivate == that.IsPrivate
+                && this.Modulus.Equals(that.Modulus)
+                && this.Exponent.Equals(that.Exponent);
         }
 
-		public override bool Equals(
-			object obj)
+        public override int GetHashCode() => IsPrivate.GetHashCode() ^ Modulus.GetHashCode() ^ Modulus.GetHashCode();
+
+        private static int GetMRIterations(int bits)
         {
-            RsaKeyParameters kp = obj as RsaKeyParameters;
-
-			if (kp == null)
-			{
-				return false;
-			}
-
-			return kp.IsPrivate == this.IsPrivate
-				&& kp.Modulus.Equals(this.modulus)
-				&& kp.Exponent.Equals(this.exponent);
-        }
-
-		public override int GetHashCode()
-        {
-            return modulus.GetHashCode() ^ exponent.GetHashCode() ^ IsPrivate.GetHashCode();
+            int iterations = bits >= 1536 ? 3
+                : bits >= 1024 ? 4
+                : bits >= 512 ? 7
+                : 50;
+            return iterations;
         }
 
         private static int ImplGetInteger(string envVariable, int defaultValue)
@@ -112,6 +71,41 @@ namespace Org.BouncyCastle.Crypto.Parameters
             string property = Platform.GetEnvironmentVariable(envVariable);
 
             return int.TryParse(property, out int value) ? value : defaultValue;
+        }
+
+        private static BigInteger Validate(BigInteger modulus, bool isInternal)
+        {
+            // TODO Add m_validated cache
+            //if (m_validated.Contains(modulus))
+            //    return modulus;
+
+            if (!isInternal)
+            {
+                if (!modulus.TestBit(0))
+                    throw new ArgumentException("RSA modulus is even", nameof(modulus));
+
+                // TODO bc-java has a "org.bouncycastle.rsa.allow_unsafe_mod" property
+
+                int maxBitLength = ImplGetInteger("Org.BouncyCastle.Rsa.MaxSize", 16384);
+                if (modulus.BitLength > maxBitLength)
+                    throw new ArgumentException("RSA modulus out of range", nameof(modulus));
+
+                if (BigIntegers.HasAnySmallFactors(modulus))
+                    throw new ArgumentException("RSA modulus has a small prime factor", nameof(modulus));
+
+                int defaultIterations = GetMRIterations(modulus.BitLength / 2);
+                int iterations = ImplGetInteger("Org.BouncyCastle.Rsa.MaxMRTests", defaultIterations);
+                if (iterations > 0)
+                {
+                    Primes.MROutput mr = Primes.EnhancedMRProbablePrimeTest(modulus,
+                        CryptoServicesRegistrar.GetSecureRandom(), iterations);
+                    if (!mr.IsProvablyComposite)
+                        throw new ArgumentException("RSA modulus is not composite", nameof(modulus));
+                }
+            }
+
+            //m_validated.Add(modulus);
+            return modulus;
         }
     }
 }

@@ -1,8 +1,7 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
@@ -30,7 +29,34 @@ namespace Org.BouncyCastle.Crypto.Parameters
             BigInteger dP,
             BigInteger dQ,
             BigInteger qInv)
-            : base(true, modulus, privateExponent)
+            : this(modulus, publicExponent, privateExponent, p, q, dP, dQ, qInv, isInternal: false)
+        {
+        }
+
+        public RsaPrivateCrtKeyParameters(RsaPrivateKeyStructure rsaPrivateKey)
+            : this(
+                rsaPrivateKey.Modulus,
+                rsaPrivateKey.PublicExponent,
+                rsaPrivateKey.PrivateExponent,
+                rsaPrivateKey.Prime1,
+                rsaPrivateKey.Prime2,
+                rsaPrivateKey.Exponent1,
+                rsaPrivateKey.Exponent2,
+                rsaPrivateKey.Coefficient)
+        {
+        }
+
+        internal RsaPrivateCrtKeyParameters(
+            BigInteger modulus,
+            BigInteger publicExponent,
+            BigInteger privateExponent,
+            BigInteger p,
+            BigInteger q,
+            BigInteger dP,
+            BigInteger dQ,
+            BigInteger qInv,
+            bool isInternal)
+            : base(isPrivate: true, modulus, privateExponent, isInternal)
         {
             ValidateValue(publicExponent, "publicExponent", "exponent");
             ValidateValue(p, "p", "P value");
@@ -47,74 +73,35 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.qInv = qInv;
         }
 
-        public RsaPrivateCrtKeyParameters(RsaPrivateKeyStructure rsaPrivateKey)
-            : this(
-                rsaPrivateKey.Modulus,
-                rsaPrivateKey.PublicExponent,
-                rsaPrivateKey.PrivateExponent,
-                rsaPrivateKey.Prime1,
-                rsaPrivateKey.Prime2,
-                rsaPrivateKey.Exponent1,
-                rsaPrivateKey.Exponent2,
-                rsaPrivateKey.Coefficient)
-        {
-        }
-
         /// <summary>Gets the public exponent.</summary>
-        public BigInteger PublicExponent
-        {
-            get { return e; }
-        }
+        public BigInteger PublicExponent => e;
 
         /// <summary>Gets the first prime factor (p) of the modulus.</summary>
-        public BigInteger P
-        {
-            get { return p; }
-        }
+        public BigInteger P => p;
 
         /// <summary>Gets the second prime factor (q) of the modulus.</summary>
-        public BigInteger Q
-        {
-            get { return q; }
-        }
+        public BigInteger Q => q;
 
         /// <summary>Gets the CRT exponent for prime p.</summary>
-        public BigInteger DP
-        {
-            get { return dP; }
-        }
+        public BigInteger DP => dP;
 
         /// <summary>Gets the CRT exponent for prime q.</summary>
-        public BigInteger DQ
-        {
-            get { return dQ; }
-        }
+        public BigInteger DQ => dQ;
 
         /// <summary>Gets the CRT coefficient (inverse of q mod p).</summary>
-        public BigInteger QInv
+        public BigInteger QInv => qInv;
+
+        public override bool Equals(object obj)
         {
-            get { return qInv; }
-        }
-
-        public override bool Equals(
-            object obj)
-        {
-            if (obj == this)
-                return true;
-
-            RsaPrivateCrtKeyParameters kp = obj as RsaPrivateCrtKeyParameters;
-
-            if (kp == null)
-                return false;
-
-            return kp.DP.Equals(dP)
-                && kp.DQ.Equals(dQ)
-                && kp.Exponent.Equals(this.Exponent)
-                && kp.Modulus.Equals(this.Modulus)
-                && kp.P.Equals(p)
-                && kp.Q.Equals(q)
-                && kp.PublicExponent.Equals(e)
-                && kp.QInv.Equals(qInv);
+            return obj is RsaPrivateCrtKeyParameters that
+                && this.DP.Equals(that.DP)
+                && this.DQ.Equals(that.DQ)
+                && this.Exponent.Equals(that.Exponent)
+                && this.Modulus.Equals(that.Modulus)
+                && this.P.Equals(that.P)
+                && this.Q.Equals(that.Q)
+                && this.PublicExponent.Equals(that.PublicExponent)
+                && this.QInv.Equals(that.QInv);
         }
 
         public override int GetHashCode()

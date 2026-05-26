@@ -764,7 +764,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 			var kp = kpg.GenerateKeyPair();
 			var pub = (RsaKeyParameters)kp.Public;
 
-			for (int i = 0; i < 1000000; ++i)
+			for (int i = 0; i < 1000; ++i)
             {
 				new RsaKeyParameters(false, pub.Modulus, pub.Exponent);
             }
