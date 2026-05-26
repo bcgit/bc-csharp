@@ -104,7 +104,7 @@ namespace Org.BouncyCastle.Crypto.Generators
                 }
             }
 
-            return new BigInteger[] { p, q };
+            return new BigInteger[]{ p, q };
         }
 
         /*
@@ -120,12 +120,12 @@ namespace Org.BouncyCastle.Crypto.Generators
             /*
              * (see: Handbook of Applied Cryptography 4.80)
              */
-//			do
-//			{
-//				g = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
-//			}
-//			while (g.ModPow(BigInteger.Two, p).Equals(BigInteger.One)
-//				|| g.ModPow(q, p).Equals(BigInteger.One));
+            //do
+            //{
+            //    g = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
+            //}
+            //while (g.ModPow(BigInteger.Two, p).Equals(BigInteger.One) ||
+            //       g.ModPow(q, p).Equals(BigInteger.One));
 
             /*
              * RFC 2631 2.2.1.2 (and see: Handbook of Applied Cryptography 4.81)
