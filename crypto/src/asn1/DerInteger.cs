@@ -173,8 +173,11 @@ namespace Org.BouncyCastle.Asn1
             m_start = SignBytesToSkip(bytes);
         }
 
-        /// <summary>Force the ASN.1 INTEGER encoding to be interpreted as a positive value.</summary>
-        // NB: The BigInteger constructor tolerates any redundant sign bytes (per 'AllowUnsafe')
+        /// <summary>Force the ASN.1 INTEGER encoding to be interpreted as unsigned.</summary>
+        /// <remarks>
+        /// In some cases positive values get crammed into a space that's not quite big enough...
+        /// NB: The BigInteger constructor tolerates any redundant sign bytes (per 'AllowUnsafe').
+        /// </remarks>
         public BigInteger PositiveValue => new BigInteger(1, m_contents);
 
         // NB: The BigInteger constructor tolerates any redundant sign bytes (per 'AllowUnsafe')
@@ -200,46 +203,34 @@ namespace Org.BouncyCastle.Asn1
                 && Value.Equals(x);
         }
 
-        public int IntPositiveValueExact
-        {
-            get
-            {
-                int count = m_contents.Length - m_start;
-                if (count > 4 || (count == 4 && 0 != (m_contents[m_start] & 0x80)))
-                    throw new ArithmeticException("ASN.1 Integer out of positive int range");
+        /// <summary>Force the ASN.1 INTEGER encoding to be interpreted as unsigned.</summary>
+        /// <remarks>
+        /// In some cases positive values get crammed into a space that's not quite big enough...
+        /// </remarks>
+        public int IntPositiveValueExact => TryGetIntPositiveValueExact(out int result) ? result
+            : throw new ArithmeticException("ASN.1 Integer out of positive int range");
 
-                return IntValue(m_contents, m_start, SignExtUnsigned);
-            }
-        }
+        public int IntValueExact => TryGetIntValueExact(out int result) ? result
+            : throw new ArithmeticException("ASN.1 Integer out of int range");
 
-        public int IntValueExact
-        {
-            get
-            {
-                int count = m_contents.Length - m_start;
-                if (count > 4)
-                    throw new ArithmeticException("ASN.1 Integer out of int range");
+        /// <summary>Force the ASN.1 INTEGER encoding to be interpreted as unsigned.</summary>
+        /// <remarks>
+        /// In some cases positive values get crammed into a space that's not quite big enough...
+        /// </remarks>
+        public long LongPositiveValueExact => TryGetLongPositiveValueExact(out long result) ? result
+            : throw new ArithmeticException("ASN.1 Integer out of positive long range");
 
-                return IntValue(m_contents, m_start, SignExtSigned);
-            }
-        }
+        public long LongValueExact => TryGetLongValueExact(out long result) ? result
+            : throw new ArithmeticException("ASN.1 Integer out of long range");
 
-        public long LongValueExact
-        {
-            get
-            {
-                int count = m_contents.Length - m_start;
-                if (count > 8)
-                    throw new ArithmeticException("ASN.1 Integer out of long range");
-
-                return LongValue(m_contents, m_start, SignExtSigned);
-            }
-        }
-
+        /// <summary>Force the ASN.1 INTEGER encoding to be interpreted as unsigned.</summary>
+        /// <remarks>
+        /// In some cases positive values get crammed into a space that's not quite big enough...
+        /// </remarks>
         public bool TryGetIntPositiveValueExact(out int value)
         {
             int count = m_contents.Length - m_start;
-            if (count > 4 || (count == 4 && 0 != (m_contents[m_start] & 0x80)))
+            if (count > 4 || (count == 4 && IsNegative))
             {
                 value = default;
                 return false;
@@ -262,6 +253,23 @@ namespace Org.BouncyCastle.Asn1
             return true;
         }
 
+        /// <summary>Force the ASN.1 INTEGER encoding to be interpreted as unsigned.</summary>
+        /// <remarks>
+        /// In some cases positive values get crammed into a space that's not quite big enough...
+        /// </remarks>
+        public bool TryGetLongPositiveValueExact(out long value)
+        {
+            int count = m_contents.Length - m_start;
+            if (count > 8 || (count == 8 && IsNegative))
+            {
+                value = default;
+                return false;
+            }
+
+            value = LongValue(m_contents, m_start, SignExtSigned);
+            return true;
+        }
+
         public bool TryGetLongValueExact(out long value)
         {
             int count = m_contents.Length - m_start;
@@ -274,6 +282,8 @@ namespace Org.BouncyCastle.Asn1
             value = LongValue(m_contents, m_start, SignExtSigned);
             return true;
         }
+
+        public bool IsNegative => (m_contents[m_start] & 0x80) != 0;
 
         internal override IAsn1Encoding GetEncoding(int encoding) =>
             new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Integer, m_contents);
