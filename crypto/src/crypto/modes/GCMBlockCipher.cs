@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Modes
     /// <remarks>
     /// <para>
     /// GCM provides both confidentiality and data origin authentication (AEAD). 
-    /// It requires a block cipher with a 128-bit block size, typically <see cref="AesEngine"/>.
+    /// It requires a block cipher with a 128-bit block size, typically AES.
     /// </para>
     /// <para>
     /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every 
