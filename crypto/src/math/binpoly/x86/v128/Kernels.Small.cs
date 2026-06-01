@@ -127,12 +127,11 @@ namespace Org.BouncyCastle.Math.BinPoly.X86.V128
             Mul2x2(Xhi, Yhi, out var Z2W0, out var Z2W1);
             Mul2x2(Xsum, Ysum, out var ZMW0, out var ZMW1);
 
-            var ZmidW0 = Sse2.Xor(Sse2.Xor(ZMW0, Z0W0), Z2W0);
-            var ZmidW1 = Sse2.Xor(Sse2.Xor(ZMW1, Z0W1), Z2W1);
+            var T = Sse2.Xor(Z0W1, Z2W0);
 
             W0 = Z0W0;
-            W1 = Sse2.Xor(Z0W1, ZmidW0);
-            W2 = Sse2.Xor(Z2W0, ZmidW1);
+            W1 = Sse2.Xor(T, Sse2.Xor(ZMW0, Z0W0));
+            W2 = Sse2.Xor(T, Sse2.Xor(ZMW1, Z2W1));
             W3 = Z2W1;
         }
 
@@ -320,17 +319,15 @@ namespace Org.BouncyCastle.Math.BinPoly.X86.V128
             Mul3x3(x4, x5, x6, y4, y5, y6,
                 out var Z2W0, out var Z2W1, out var Z2W2);
 
-            var ZmidW0 = Sse2.Xor(Sse2.Xor(ZMW0, Z0W0), Z2W0);
-            var ZmidW1 = Sse2.Xor(Sse2.Xor(ZMW1, Z0W1), Z2W1);
-            var ZmidW2 = Sse2.Xor(Sse2.Xor(ZMW2, Z0W2), Z2W2);
-            var ZmidW3 = Sse2.Xor(ZMW3, Z0W3);
+            var T0 = Sse2.Xor(Z0W2, Z2W0);
+            var T1 = Sse2.Xor(Z0W3, Z2W1);
 
             W0 = Z0W0;
             W1 = Z0W1;
-            W2 = Sse2.Xor(Z0W2, ZmidW0);
-            W3 = Sse2.Xor(Z0W3, ZmidW1);
-            W4 = Sse2.Xor(ZmidW2, Z2W0);
-            W5 = Sse2.Xor(ZmidW3, Z2W1);
+            W2 = Sse2.Xor(T0, Sse2.Xor(ZMW0, Z0W0));
+            W3 = Sse2.Xor(T1, Sse2.Xor(ZMW1, Z0W1));
+            W4 = Sse2.Xor(T0, Sse2.Xor(ZMW2, Z2W2));
+            W5 = Sse2.Xor(T1,          ZMW3);
             W6 = Z2W2;
         }
 
@@ -372,18 +369,16 @@ namespace Org.BouncyCastle.Math.BinPoly.X86.V128
             Mul4x4(xs0, xs1, xs2, xs3, ys0, ys1, ys2, ys3,
                 out var ZMW0, out var ZMW1, out var ZMW2, out var ZMW3);
 
-            var ZmidW0 = Sse2.Xor(Sse2.Xor(ZMW0, Z0W0), Z2W0);
-            var ZmidW1 = Sse2.Xor(Sse2.Xor(ZMW1, Z0W1), Z2W1);
-            var ZmidW2 = Sse2.Xor(Sse2.Xor(ZMW2, Z0W2), Z2W2);
-            var ZmidW3 = Sse2.Xor(Sse2.Xor(ZMW3, Z0W3), Z2W3);
+            var T0 = Sse2.Xor(Z0W2, Z2W0);
+            var T1 = Sse2.Xor(Z0W3, Z2W1);
 
             var ZZ = MemoryMarshal.Cast<ulong, Vector128<ulong>>(zz);
             ZZ[0] = Z0W0;
             ZZ[1] = Z0W1;
-            ZZ[2] = Sse2.Xor(Z0W2, ZmidW0);
-            ZZ[3] = Sse2.Xor(Z0W3, ZmidW1);
-            ZZ[4] = Sse2.Xor(ZmidW2, Z2W0);
-            ZZ[5] = Sse2.Xor(ZmidW3, Z2W1);
+            ZZ[2] = Sse2.Xor(T0, Sse2.Xor(ZMW0, Z0W0));
+            ZZ[3] = Sse2.Xor(T1, Sse2.Xor(ZMW1, Z0W1));
+            ZZ[4] = Sse2.Xor(T0, Sse2.Xor(ZMW2, Z2W2));
+            ZZ[5] = Sse2.Xor(T1, Sse2.Xor(ZMW3, Z2W3));
             ZZ[6] = Z2W2;
             ZZ[7] = Z2W3;
         }
