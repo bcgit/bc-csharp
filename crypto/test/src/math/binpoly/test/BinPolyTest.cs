@@ -27,63 +27,63 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         // BIKE-3 (24659) and BIKE-5 (40973) exist but aren't exercised in correctness tests here to
         // keep test runtime small; the BIKE-class binomial benchmarks below cover all three.
         private const int BikeR1 = 12323;
+        private const int BikeR3 = 24659;
+        private const int BikeR5 = 40973;
+        private const int HqcR128 = 17669;
+        private const int HqcR192 = 35851;
+        private const int HqcR256 = 57637;
 
         // BIKE binomial ring sizes for benchmarking — the cyclic ring r-values used by the NIST
         // security level 1, 3, and 5 parameter sets. These are the typical workloads driving
         // BinPoly's Karatsuba multiply paths.
         private static readonly object[] BikeBinomials =
         {
-            new object[] { "bike1", 12323 },
-            new object[] { "bike3", 24659 },
-            new object[] { "bike5", 40973 },
+            new object[] { "bike1", BikeR1 },
+            new object[] { "bike3", BikeR3 },
+            new object[] { "bike5", BikeR5 },
         };
 
         // Small odd-n binomials sized to exercise the specialized fixed-size CLMUL kernels
         // dispatched from public Multiply (ImplMul1, ImplMul2, ...). Each entry sits at the top
-        // of its m_size bucket so any partial-limb tail also gets covered.
+        // of its size bucket so any partial-limb tail also gets covered.
         private static readonly object[] SmallBinomials =
         {
-            new object[] { "small_n63",  63 },   // m_size = 1
-            new object[] { "small_n127", 127 },  // m_size = 2
-            new object[] { "small_n191", 191 },  // m_size = 3
-            new object[] { "small_n255", 255 },  // m_size = 4
-            new object[] { "small_n319", 319 },  // m_size = 5
-            new object[] { "small_n383", 383 },  // m_size = 6
-            new object[] { "small_n447", 447 },  // m_size = 7
-            new object[] { "small_n511", 511 },  // m_size = 8
-            new object[] { "small_n575", 575 },  // m_size = 9
+            new object[] { "small_n_63",  63 },  // size = 1
+            new object[] { "small_n127", 127 },  // size = 2
+            new object[] { "small_n191", 191 },  // size = 3
+            new object[] { "small_n255", 255 },  // size = 4
+            new object[] { "small_n319", 319 },  // size = 5
+            new object[] { "small_n383", 383 },  // size = 6
+            new object[] { "small_n447", 447 },  // size = 7
+            new object[] { "small_n511", 511 },  // size = 8
+            new object[] { "small_n575", 575 },  // size = 9
+            new object[] { "small_n639", 639 },  // size = 10
         };
 
-        // Odd-n binomials sized to sweep the Karatsuba cutoff region. m_size values straddle
-        // the candidate cutoffs (PCLMUL currently 24, scalar currently 12), with step-2
-        // coverage from 10..28 to give fine resolution where the leaf-vs-Karatsuba crossover
-        // is expected, plus 32 and 40 to characterise the asymptote.
+        // Odd-n binomials sized to exercise the CLMUL Karatsuba cutoff region with size in [11, 32).
         private static readonly object[] MediumBinomials =
         {
-            new object[] { "med_n639",   639 },  // m_size = 10
-            new object[] { "med_n703",   703 },  // m_size = 11
-            new object[] { "med_n767",   767 },  // m_size = 12
-            new object[] { "med_n831",   831 },  // m_size = 13
-            new object[] { "med_n895",   895 },  // m_size = 14
-            new object[] { "med_n959",   959 },  // m_size = 15
-            new object[] { "med_n1023", 1023 },  // m_size = 16
-            new object[] { "med_n1087", 1087 },  // m_size = 17
-            new object[] { "med_n1151", 1151 },  // m_size = 18
-            new object[] { "med_n1279", 1279 },  // m_size = 20
-            new object[] { "med_n1343", 1343 },  // m_size = 21
-            new object[] { "med_n1407", 1407 },  // m_size = 22
-            new object[] { "med_n1471", 1471 },  // m_size = 23
-            new object[] { "med_n1535", 1535 },  // m_size = 24
-            new object[] { "med_n1599", 1599 },  // m_size = 25
-            new object[] { "med_n1663", 1663 },  // m_size = 26
-            new object[] { "med_n1791", 1791 },  // m_size = 28
-            new object[] { "med_n1919", 1919 },  // m_size = 30
-            new object[] { "med_n2047", 2047 },  // m_size = 32
-            new object[] { "med_n2111", 2111 },  // m_size = 33
-            new object[] { "med_n2239", 2239 },  // m_size = 35
-            new object[] { "med_n2367", 2367 },  // m_size = 37
-            new object[] { "med_n2559", 2559 },  // m_size = 40
-            new object[] { "med_n2751", 2751 },  // m_size = 43
+            new object[] { "med_n_703",  703 },  // size = 11
+            new object[] { "med_n_767",  767 },  // size = 12
+            new object[] { "med_n_831",  831 },  // size = 13
+            new object[] { "med_n_895",  895 },  // size = 14
+            new object[] { "med_n_959",  959 },  // size = 15
+            new object[] { "med_n1023", 1023 },  // size = 16
+            new object[] { "med_n1087", 1087 },  // size = 17
+            new object[] { "med_n1151", 1151 },  // size = 18
+            new object[] { "med_n1215", 1215 },  // size = 19
+            new object[] { "med_n1279", 1279 },  // size = 20
+            new object[] { "med_n1343", 1343 },  // size = 21
+            new object[] { "med_n1407", 1407 },  // size = 22
+            new object[] { "med_n1471", 1471 },  // size = 23
+            new object[] { "med_n1535", 1535 },  // size = 24
+            new object[] { "med_n1599", 1599 },  // size = 25
+            new object[] { "med_n1663", 1663 },  // size = 26
+            new object[] { "med_n1727", 1727 },  // size = 27
+            new object[] { "med_n1791", 1791 },  // size = 28
+            new object[] { "med_n1855", 1855 },  // size = 29
+            new object[] { "med_n1919", 1919 },  // size = 30
+            new object[] { "med_n1983", 1983 },  // size = 31
         };
 
         // Even-n binomials. No standardised binomial consumer has even n (BIKE/HQC rings are
@@ -92,14 +92,14 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         // n-multiple-of-64 cases route to the word-aligned BinomialReduce.Aligned (z = low ^ high).
         private static readonly object[] EvenBinomials =
         {
-            new object[] { "evenBin_n66",   66 },   // m_size = 2, s_n = 2
-            new object[] { "evenBin_n96",   96 },   // m_size = 2, s_n = 32
-            new object[] { "evenBin_n130", 130 },   // m_size = 3, s_n = 2
-            new object[] { "evenBin_n160", 160 },   // m_size = 3, s_n = 32
-            new object[] { "evenBin_n64",   64 },   // m_size = 1, word-aligned
-            new object[] { "evenBin_n128", 128 },   // m_size = 2, word-aligned
-            new object[] { "evenBin_n256", 256 },   // m_size = 4, word-aligned
-            new object[] { "evenBin_n512", 512 },   // m_size = 8, word-aligned
+            new object[] { "evenBin_n_66",  66 },   // size = 2, s_n = 2
+            new object[] { "evenBin_n_96",  96 },   // size = 2, s_n = 32
+            new object[] { "evenBin_n130", 130 },   // size = 3, s_n = 2
+            new object[] { "evenBin_n160", 160 },   // size = 3, s_n = 32
+            new object[] { "evenBin_n_64",  64 },   // size = 1, word-aligned
+            new object[] { "evenBin_n128", 128 },   // size = 2, word-aligned
+            new object[] { "evenBin_n256", 256 },   // size = 4, word-aligned
+            new object[] { "evenBin_n512", 512 },   // size = 8, word-aligned
         };
 
         // Reduction polynomials of the irreducible-trinomial SECT curves. Each entry is
@@ -126,20 +126,11 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         // small / medium / large w_n so savings can be tracked as a function of loop length
         // when used by the benchmarks. Irreducibility is not required — only the (n, k)
         // layout matters to the reducer.
-        private static readonly object[] SyntheticTrinomialsACarry =
+        private static readonly object[] SyntheticTrinomialsA =
         {
             new object[] { "trinA_n257_k1",  257,  1 },   // w_n = 4, s_n = 1
             new object[] { "trinA_n383_k29", 383, 29 },   // w_n = 5
             new object[] { "trinA_n767_k7",  767,  7 },   // w_n = 11
-        };
-
-        // Synthetic trinomials exercising TrinomialReduce.A8 (size-4 unroll, w_n == 3,
-        // n in [225, 255], k < 64, n - k >= 64). No SECT trinomial hits this branch.
-        // Cases span the s_n extremes within the A8 range.
-        private static readonly object[] SyntheticTrinomialsA8 =
-        {
-            new object[] { "trinA8_n225_k1", 225,  1 },   // smallest (w_n=3, s_n=33)
-            new object[] { "trinA8_n255_k5", 255,  5 },   // largest  (w_n=3, s_n=63)
         };
 
         // Synthetic trinomials exercising TrinomialReduce.A3 (size-2 unroll with tt[3]
@@ -167,6 +158,15 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         {
             new object[] { "trinA6_n161_k1", 161,  1 },   // smallest (w_n=2, s_n=33)
             new object[] { "trinA6_n191_k5", 191,  5 },   // largest  (w_n=2, s_n=63)
+        };
+
+        // Synthetic trinomials exercising TrinomialReduce.A8 (size-4 unroll, w_n == 3,
+        // n in [225, 255], k < 64, n - k >= 64). No SECT trinomial hits this branch.
+        // Cases span the s_n extremes within the A8 range.
+        private static readonly object[] SyntheticTrinomialsA8 =
+        {
+            new object[] { "trinA8_n225_k1", 225,  1 },   // smallest (w_n=3, s_n=33)
+            new object[] { "trinA8_n255_k5", 255,  5 },   // largest  (w_n=3, s_n=63)
         };
 
         // Synthetic trinomials exercising TrinomialReduce sub-case B (k a multiple of 64,
@@ -296,17 +296,6 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             new object[] { "pentaB_n513_k63_70_300",  513, 63, 70, 300 },
         };
 
-        // Synthetic pentanomials exercising PentanomialReduce sub-case D (k2 < 64, k3 >= 64
-        // with (k3 & 63) != 0, n - k3 >= 64). No SECT pentanomial hits this branch. The
-        // "+x^k1" and "+x^k2" taps fuse into A-style word-aligned writes; only the "+x^k3"
-        // tap uses the modular-shift splice. Minimum n in this domain is 129 (w_n >= 2).
-        private static readonly object[] SyntheticPentanomialsD =
-        {
-            new object[] { "pentaD_n129_k1_2_65",     129,  1,  2,  65 },  // smallest (w_n=2)
-            new object[] { "pentaD_n257_k3_33_130",   257,  3, 33, 130 },
-            new object[] { "pentaD_n513_k10_63_200",  513, 10, 63, 200 },
-        };
-
         // Synthetic pentanomials exercising PentanomialReduce sub-case C, the catch-all
         // (n - k3 < 64, or k3 a multiple of 64, or k2 >= 64 with some k_i a multiple of 64).
         // No SECT pentanomial hits this branch. Cases cover both dispatch flavours: the
@@ -317,6 +306,17 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             new object[] { "pentaC_n129_k1_2_66",     129,  1,  2,  66 },  // n - k3 = 63
             new object[] { "pentaC_n193_k1_2_64",     193,  1,  2,  64 },  // k3 mult of 64
             new object[] { "pentaC_n257_k64_65_130",  257, 64, 65, 130 },  // k1 mult of 64
+        };
+
+        // Synthetic pentanomials exercising PentanomialReduce sub-case D (k2 < 64, k3 >= 64
+        // with (k3 & 63) != 0, n - k3 >= 64). No SECT pentanomial hits this branch. The
+        // "+x^k1" and "+x^k2" taps fuse into A-style word-aligned writes; only the "+x^k3"
+        // tap uses the modular-shift splice. Minimum n in this domain is 129 (w_n >= 2).
+        private static readonly object[] SyntheticPentanomialsD =
+        {
+            new object[] { "pentaD_n129_k1_2_65",     129,  1,  2,  65 },  // smallest (w_n=2)
+            new object[] { "pentaD_n257_k3_33_130",   257,  3, 33, 130 },
+            new object[] { "pentaD_n513_k10_63_200",  513, 10, 63, 200 },
         };
 
         // Reduction polynomials of the standardised X9.62 c2pnb* binary curves, which have even m.
@@ -412,8 +412,8 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             }
         }
 
-        [TestCaseSource(nameof(SmallBinomials))]
         [TestCaseSource(nameof(EvenBinomials))]
+        [TestCaseSource(nameof(SmallBinomials))]
         public void Binomial_Multiply_AgainstReference_Small(string label, int n)
         {
             var binomial = BinPolys.Mul.Binomial(n);
@@ -534,18 +534,18 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => binomial.SquareN(x, 0, -1, z, 0));
         }
 
+        [TestCaseSource(nameof(EvenTrinomials))]
         [TestCaseSource(nameof(SectTrinomials))]
+        [TestCaseSource(nameof(SyntheticTrinomialsA))]
         [TestCaseSource(nameof(SyntheticTrinomialsA3))]
         [TestCaseSource(nameof(SyntheticTrinomialsA5))]
         [TestCaseSource(nameof(SyntheticTrinomialsA6))]
         [TestCaseSource(nameof(SyntheticTrinomialsA8))]
-        [TestCaseSource(nameof(SyntheticTrinomialsACarry))]
         [TestCaseSource(nameof(SyntheticTrinomialsB))]
         [TestCaseSource(nameof(SyntheticTrinomialsC5))]
         [TestCaseSource(nameof(SyntheticTrinomialsC6))]
         [TestCaseSource(nameof(SyntheticTrinomialsC7))]
         [TestCaseSource(nameof(SyntheticTrinomialsD))]
-        [TestCaseSource(nameof(EvenTrinomials))]
         public void Trinomial_Multiply_AgainstReference(string label, int n, int k)
         {
             var trinomial = BinPolys.Mul.Trinomial(n, k);
@@ -564,18 +564,18 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             }
         }
 
+        [TestCaseSource(nameof(EvenTrinomials))]
         [TestCaseSource(nameof(SectTrinomials))]
+        [TestCaseSource(nameof(SyntheticTrinomialsA))]
         [TestCaseSource(nameof(SyntheticTrinomialsA3))]
         [TestCaseSource(nameof(SyntheticTrinomialsA5))]
         [TestCaseSource(nameof(SyntheticTrinomialsA6))]
         [TestCaseSource(nameof(SyntheticTrinomialsA8))]
-        [TestCaseSource(nameof(SyntheticTrinomialsACarry))]
         [TestCaseSource(nameof(SyntheticTrinomialsB))]
         [TestCaseSource(nameof(SyntheticTrinomialsC5))]
         [TestCaseSource(nameof(SyntheticTrinomialsC6))]
         [TestCaseSource(nameof(SyntheticTrinomialsC7))]
         [TestCaseSource(nameof(SyntheticTrinomialsD))]
-        [TestCaseSource(nameof(EvenTrinomials))]
         public void Trinomial_Multiply_MultiplyByZero(string label, int n, int k)
         {
             var trinomial = BinPolys.Mul.Trinomial(n, k);
@@ -590,18 +590,18 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             Assert.AreEqual(zero, z, label);
         }
 
+        [TestCaseSource(nameof(EvenTrinomials))]
         [TestCaseSource(nameof(SectTrinomials))]
+        [TestCaseSource(nameof(SyntheticTrinomialsA))]
         [TestCaseSource(nameof(SyntheticTrinomialsA3))]
         [TestCaseSource(nameof(SyntheticTrinomialsA5))]
         [TestCaseSource(nameof(SyntheticTrinomialsA6))]
         [TestCaseSource(nameof(SyntheticTrinomialsA8))]
-        [TestCaseSource(nameof(SyntheticTrinomialsACarry))]
         [TestCaseSource(nameof(SyntheticTrinomialsB))]
         [TestCaseSource(nameof(SyntheticTrinomialsC5))]
         [TestCaseSource(nameof(SyntheticTrinomialsC6))]
         [TestCaseSource(nameof(SyntheticTrinomialsC7))]
         [TestCaseSource(nameof(SyntheticTrinomialsD))]
-        [TestCaseSource(nameof(EvenTrinomials))]
         public void Trinomial_Multiply_MultiplyByOne(string label, int n, int k)
         {
             var trinomial = BinPolys.Mul.Trinomial(n, k);
@@ -617,18 +617,18 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             Assert.AreEqual(x, z, label);
         }
 
+        [TestCaseSource(nameof(EvenTrinomials))]
         [TestCaseSource(nameof(SectTrinomials))]
+        [TestCaseSource(nameof(SyntheticTrinomialsA))]
         [TestCaseSource(nameof(SyntheticTrinomialsA3))]
         [TestCaseSource(nameof(SyntheticTrinomialsA5))]
         [TestCaseSource(nameof(SyntheticTrinomialsA6))]
         [TestCaseSource(nameof(SyntheticTrinomialsA8))]
-        [TestCaseSource(nameof(SyntheticTrinomialsACarry))]
         [TestCaseSource(nameof(SyntheticTrinomialsB))]
         [TestCaseSource(nameof(SyntheticTrinomialsC5))]
         [TestCaseSource(nameof(SyntheticTrinomialsC6))]
         [TestCaseSource(nameof(SyntheticTrinomialsC7))]
         [TestCaseSource(nameof(SyntheticTrinomialsD))]
-        [TestCaseSource(nameof(EvenTrinomials))]
         public void Trinomial_Square_AgainstReferenceMultiplyBySelf(string label, int n, int k)
         {
             var trinomial = BinPolys.Mul.Trinomial(n, k);
@@ -647,11 +647,11 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         }
 
         [TestCaseSource(nameof(SectTrinomials))]
+        [TestCaseSource(nameof(SyntheticTrinomialsA))]
         [TestCaseSource(nameof(SyntheticTrinomialsA3))]
         [TestCaseSource(nameof(SyntheticTrinomialsA5))]
         [TestCaseSource(nameof(SyntheticTrinomialsA6))]
         [TestCaseSource(nameof(SyntheticTrinomialsA8))]
-        [TestCaseSource(nameof(SyntheticTrinomialsACarry))]
         [TestCaseSource(nameof(SyntheticTrinomialsB))]
         [TestCaseSource(nameof(SyntheticTrinomialsC5))]
         [TestCaseSource(nameof(SyntheticTrinomialsC6))]
@@ -681,6 +681,7 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             }
         }
 
+        [TestCaseSource(nameof(MultOf64Pentanomials))]
         [TestCaseSource(nameof(SectPentanomials))]
         [TestCaseSource(nameof(SyntheticPentanomialsA3))]
         [TestCaseSource(nameof(SyntheticPentanomialsA4))]
@@ -690,7 +691,6 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         [TestCaseSource(nameof(SyntheticPentanomialsC))]
         [TestCaseSource(nameof(SyntheticPentanomialsD))]
         [TestCaseSource(nameof(X962EvenPentanomials))]
-        [TestCaseSource(nameof(MultOf64Pentanomials))]
         public void Pentanomial_Multiply_AgainstReference(string label, int n, int k1, int k2, int k3)
         {
             var pentanomial = BinPolys.Mul.Pentanomial(n, k1, k2, k3);
@@ -709,6 +709,7 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             }
         }
 
+        [TestCaseSource(nameof(MultOf64Pentanomials))]
         [TestCaseSource(nameof(SectPentanomials))]
         [TestCaseSource(nameof(SyntheticPentanomialsA3))]
         [TestCaseSource(nameof(SyntheticPentanomialsA4))]
@@ -718,7 +719,6 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         [TestCaseSource(nameof(SyntheticPentanomialsC))]
         [TestCaseSource(nameof(SyntheticPentanomialsD))]
         [TestCaseSource(nameof(X962EvenPentanomials))]
-        [TestCaseSource(nameof(MultOf64Pentanomials))]
         public void Pentanomial_Multiply_MultiplyByZero(string label, int n, int k1, int k2, int k3)
         {
             var pentanomial = BinPolys.Mul.Pentanomial(n, k1, k2, k3);
@@ -733,6 +733,7 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             Assert.AreEqual(zero, z, label);
         }
 
+        [TestCaseSource(nameof(MultOf64Pentanomials))]
         [TestCaseSource(nameof(SectPentanomials))]
         [TestCaseSource(nameof(SyntheticPentanomialsA3))]
         [TestCaseSource(nameof(SyntheticPentanomialsA4))]
@@ -742,7 +743,6 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         [TestCaseSource(nameof(SyntheticPentanomialsC))]
         [TestCaseSource(nameof(SyntheticPentanomialsD))]
         [TestCaseSource(nameof(X962EvenPentanomials))]
-        [TestCaseSource(nameof(MultOf64Pentanomials))]
         public void Pentanomial_Multiply_MultiplyByOne(string label, int n, int k1, int k2, int k3)
         {
             var pentanomial = BinPolys.Mul.Pentanomial(n, k1, k2, k3);
@@ -758,6 +758,7 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             Assert.AreEqual(x, z, label);
         }
 
+        [TestCaseSource(nameof(MultOf64Pentanomials))]
         [TestCaseSource(nameof(SectPentanomials))]
         [TestCaseSource(nameof(SyntheticPentanomialsA3))]
         [TestCaseSource(nameof(SyntheticPentanomialsA4))]
@@ -767,7 +768,6 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         [TestCaseSource(nameof(SyntheticPentanomialsC))]
         [TestCaseSource(nameof(SyntheticPentanomialsD))]
         [TestCaseSource(nameof(X962EvenPentanomials))]
-        [TestCaseSource(nameof(MultOf64Pentanomials))]
         public void Pentanomial_Square_AgainstReferenceMultiplyBySelf(string label, int n, int k1, int k2,
             int k3)
         {
@@ -786,6 +786,7 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             }
         }
 
+        [TestCaseSource(nameof(MultOf64Pentanomials))]
         [TestCaseSource(nameof(SectPentanomials))]
         [TestCaseSource(nameof(SyntheticPentanomialsA3))]
         [TestCaseSource(nameof(SyntheticPentanomialsA4))]
@@ -795,7 +796,6 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         [TestCaseSource(nameof(SyntheticPentanomialsC))]
         [TestCaseSource(nameof(SyntheticPentanomialsD))]
         [TestCaseSource(nameof(X962EvenPentanomials))]
-        [TestCaseSource(nameof(MultOf64Pentanomials))]
         public void Pentanomial_SquareN_AgainstRepeatedSquare(string label, int n, int k1, int k2, int k3)
         {
             var pentanomial = BinPolys.Mul.Pentanomial(n, k1, k2, k3);
@@ -830,9 +830,9 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         private const int OffZ = 7;
         private const int OffPadTail = 4;
 
-        [TestCaseSource(nameof(SmallBinomials))]
-        [TestCaseSource(nameof(MediumBinomials))]
         [TestCaseSource(nameof(EvenBinomials))]
+        [TestCaseSource(nameof(MediumBinomials))]
+        [TestCaseSource(nameof(SmallBinomials))]
         public void Binomial_AllOps_NonZeroOffsets(string label, int n)
         {
             var binomial = BinPolys.Mul.Binomial(n);
@@ -840,18 +840,18 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             RunAllOpsAtOffsets(binomial, n, random, label);
         }
 
+        [TestCaseSource(nameof(EvenTrinomials))]
         [TestCaseSource(nameof(SectTrinomials))]
+        [TestCaseSource(nameof(SyntheticTrinomialsA))]
         [TestCaseSource(nameof(SyntheticTrinomialsA3))]
         [TestCaseSource(nameof(SyntheticTrinomialsA5))]
         [TestCaseSource(nameof(SyntheticTrinomialsA6))]
         [TestCaseSource(nameof(SyntheticTrinomialsA8))]
-        [TestCaseSource(nameof(SyntheticTrinomialsACarry))]
         [TestCaseSource(nameof(SyntheticTrinomialsB))]
         [TestCaseSource(nameof(SyntheticTrinomialsC5))]
         [TestCaseSource(nameof(SyntheticTrinomialsC6))]
         [TestCaseSource(nameof(SyntheticTrinomialsC7))]
         [TestCaseSource(nameof(SyntheticTrinomialsD))]
-        [TestCaseSource(nameof(EvenTrinomials))]
         public void Trinomial_AllOps_NonZeroOffsets(string label, int n, int k)
         {
             var trinomial = BinPolys.Mul.Trinomial(n, k);
@@ -859,6 +859,7 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             RunAllOpsAtOffsets(trinomial, n, random, label);
         }
 
+        [TestCaseSource(nameof(MultOf64Pentanomials))]
         [TestCaseSource(nameof(SectPentanomials))]
         [TestCaseSource(nameof(SyntheticPentanomialsA3))]
         [TestCaseSource(nameof(SyntheticPentanomialsA4))]
@@ -868,7 +869,6 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         [TestCaseSource(nameof(SyntheticPentanomialsC))]
         [TestCaseSource(nameof(SyntheticPentanomialsD))]
         [TestCaseSource(nameof(X962EvenPentanomials))]
-        [TestCaseSource(nameof(MultOf64Pentanomials))]
         public void Pentanomial_AllOps_NonZeroOffsets(string label, int n, int k1, int k2, int k3)
         {
             var pentanomial = BinPolys.Mul.Pentanomial(n, k1, k2, k3);
@@ -1158,7 +1158,7 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
 
         [Test, Explicit]
         [TestCaseSource(nameof(SectTrinomials))]
-        [TestCaseSource(nameof(SyntheticTrinomialsACarry))]
+        [TestCaseSource(nameof(SyntheticTrinomialsA))]
         public void Bench_Trinomial_Square(string label, int n, int k)
         {
             var trinomial = BinPolys.Mul.Trinomial(n, k);
@@ -1188,7 +1188,7 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
 
         [Test, Explicit]
         [TestCaseSource(nameof(SectTrinomials))]
-        [TestCaseSource(nameof(SyntheticTrinomialsACarry))]
+        [TestCaseSource(nameof(SyntheticTrinomialsA))]
         public void Bench_Trinomial_Multiply(string label, int n, int k)
         {
             var trinomial = BinPolys.Mul.Trinomial(n, k);
@@ -1302,12 +1302,12 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         // Binomial perf-graph cases: BIKE and HQC ring sizes, ordered by n.
         private static readonly object[] PerfGraphBinomials =
         {
-            new object[] { "bike1",  12323 },
-            new object[] { "hqc128", 17669 },
-            new object[] { "bike3",  24659 },
-            new object[] { "hqc192", 35851 },
-            new object[] { "bike5",  40973 },
-            new object[] { "hqc256", 57637 },
+            new object[] { "bike1",  BikeR1 },
+            new object[] { "hqc128", HqcR128 },
+            new object[] { "bike3",  BikeR3 },
+            new object[] { "hqc192", HqcR192 },
+            new object[] { "bike5",  BikeR5 },
+            new object[] { "hqc256", HqcR256 },
         };
 
         // Trinomial-A perf-graph cases: SECT curves routing to A, plus synthetic fills
@@ -1529,11 +1529,10 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
 
         // ----- Medium-band binomial perf-graph benches -----
         //
-        // Covers m_size = 10..40 (n = 639..2559) with the same median-of-3 noise discipline
+        // Covers size in [11, 32) with the same median-of-3 noise discipline
         // as the BIKE / HQC PerfGraph benches above. Distinct from Bench_MediumBinomial_*
         // (fixed 1,000,000-iter timing) — the PerfGraph variant uses BenchMedian3 so
-        // small-effect dispatch-tuning experiments (Blocks5/7, Medium / MediumEven, etc.)
-        // have a low noise floor at small per-op cost.
+        // small-effect changes have a low noise floor at small per-op cost.
 
         [Test, Explicit]
         [TestCaseSource(nameof(MediumBinomials))]
