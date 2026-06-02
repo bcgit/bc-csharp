@@ -66,7 +66,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             // Randomly generate seeds for secret keys and public keys
             byte[] seedKem = new byte[SeedBytes];
             byte[] keyPairSeed = new byte[SeedBytes << 1];
-            ulong[] xLongBytes = m_gf2x.Create();
             ulong[] yLongBytes = m_gf2x.Create();
             ulong[] h = m_gf2x.Create(); // s
 
@@ -80,18 +79,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             HashHI(keyPairSeed, 512, seedKem, seedKem.Length, 0x02);
             ctxKem.Init(keyPairSeed, 0, SeedBytes, 0x01);
 
-            VectSampleFixedWeight1(yLongBytes, ctxKem, m_w);
-            VectSampleFixedWeight1(xLongBytes, ctxKem, m_w);
+            uint[] ySupport = SampleSupport1(ctxKem, m_w);
+            WriteSupportToVector(yLongBytes, ySupport, m_w);
+            uint[] xSupport = SampleSupport1(ctxKem, m_w);
             Array.Copy(keyPairSeed, SeedBytes, pk, 0, SeedBytes);
             ctxKem.Init(keyPairSeed, SeedBytes, SeedBytes, 0x01);
             m_gf2x.Random(ctxKem, h);
             m_gf2x.Mul(h, yLongBytes, h); // h is s as the output
-            m_gf2x.AddTo(xLongBytes, h); // h is s
+            AddSupportTo(h, xSupport, m_w); // h ^= x
             Utils.FromUInt64ArrayToByteArray(pk, SeedBytes, pk.Length - SeedBytes, h);
             Array.Copy(keyPairSeed, 0, sk, m_pkSize, SeedBytes);
             Array.Copy(pk, 0, sk, 0, m_pkSize);
             Arrays.Clear(keyPairSeed);
-            m_gf2x.Clear(xLongBytes);
+            Array.Clear(ySupport, 0, ySupport.Length);
+            Array.Clear(xSupport, 0, xSupport.Length);
             m_gf2x.Clear(yLongBytes);
             m_gf2x.Clear(h);
         }
@@ -140,7 +141,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             ulong[] u64 = m_gf2x.Create();
             ulong[] v64 = m_gf2x.Create();
             ulong[] cKemPrimeU64 = m_gf2x.Create(); // tmpLong
-            ulong[] cKemPrimeV64 = m_gf2x.Create(); // y
+            ulong[] cKemPrimeV64 = m_gf2x.Create(); // re-encryption v scratch
             byte[] hashEkKem = new byte[SeedBytes];
             byte[] kThetaPrime = new byte[32 + SeedBytes];
             byte[] mPrime = new byte[m_k];
@@ -148,7 +149,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             byte[] tmp = new byte[m_n1];
 
             Shake256RandomGenerator generator = new Shake256RandomGenerator(sk, m_pkSize, SeedBytes, 0x01);
-            VectSampleFixedWeight1(cKemPrimeV64, generator, m_w); // cKemPrimeV64 is y
+            uint[] ySupport = SampleSupport1(generator, m_w);
+            WriteSupportToVector(cKemPrimeV64, ySupport, m_w); // cKemPrimeV64 holds dense y for the multiply
 
             // Extract u, v, d from ciphertext
             Utils.FromByteArrayToUInt64Array(u64, ct, 0, N_BYTE);
@@ -166,7 +168,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             HashHI(hashEkKem, 256, sk, m_pkSize, 0x01);
             HashGJ(kThetaPrime, 512, hashEkKem, mPrime, 0, mPrime.Length, ct, N_BYTE + N1N2_BYTE, SaltBytes, 0x00);
             Array.Copy(kThetaPrime, 0, ss, 0, 32);
-            m_gf2x.Clear(cKemPrimeV64);
+            m_gf2x.Clear(cKemPrimeV64); // clear y before reusing cKemPrimeV64 for the re-encryption v
             PkeEncrypt(cKemPrimeU64, cKemPrimeV64, sk, mPrime, kThetaPrime, 32);
             HashGJ(kBar, 256, hashEkKem, sk, m_pkSize + SeedBytes, m_k, ct, 0, ct.Length, 0x03);
 
@@ -181,6 +183,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             m_gf2x.Clear(v64);
             m_gf2x.Clear(cKemPrimeU64);
             m_gf2x.Clear(cKemPrimeV64);
+            Array.Clear(ySupport, 0, ySupport.Length);
             Arrays.Clear(hashEkKem);
             Arrays.Clear(kThetaPrime);
             Arrays.Clear(mPrime);
@@ -191,7 +194,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
         private void PkeEncrypt(ulong[] u, ulong[] v, byte[] ekPke, byte[] m, byte[] theta, int thetaOff)
         {
-            ulong[] e = m_gf2x.Create(); // r2
+            ulong[] r2Dense = m_gf2x.Create();
             ulong[] tmp = m_gf2x.Create(); // s, h1, h
             byte[] res = new byte[m_n1];
 
@@ -202,18 +205,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             m_gf2x.Random(randomGenerator, tmp);
 
             randomGenerator.Init(theta, thetaOff, SeedBytes, 0x01);
-            VectSampleFixedWeights2(randomGenerator, e, m_wr); // e is r2
-            m_gf2x.Mul(tmp, e, u); // e is r2
+            uint[] r2Support = SampleSupport2(randomGenerator, m_wr);
+            WriteSupportToVector(r2Dense, r2Support, m_wr);
+            m_gf2x.Mul(tmp, r2Dense, u);
             Utils.FromByteArrayToUInt64Array(tmp, ekPke, SeedBytes, m_pkSize - SeedBytes);
-            m_gf2x.Mul(tmp, e, tmp);
-            VectSampleFixedWeights2(randomGenerator, e, m_wr);
-            m_gf2x.AddTo(e, tmp);
+            m_gf2x.Mul(tmp, r2Dense, tmp);
+            uint[] eSupport = SampleSupport2(randomGenerator, m_wr);
+            AddSupportTo(tmp, eSupport, m_wr); // tmp ^= e
             VectTruncate(tmp);
             Nat.XorTo64(N1N2_BYTE_64, tmp, v);
 
-            VectSampleFixedWeights2(randomGenerator, tmp, m_wr);// tmp is r1
-            m_gf2x.AddTo(tmp, u);
-            m_gf2x.Clear(e);
+            uint[] r1Support = SampleSupport2(randomGenerator, m_wr);
+            AddSupportTo(u, r1Support, m_wr); // u ^= r1
+            Array.Clear(r2Support, 0, r2Support.Length);
+            Array.Clear(eSupport, 0, eSupport.Length);
+            Array.Clear(r1Support, 0, r1Support.Length);
+            m_gf2x.Clear(r2Dense);
             m_gf2x.Clear(tmp);
             Arrays.Clear(res);
         }
@@ -252,6 +259,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
+        /**
+         * Constant-time materialisation of a fixed-weight sparse vector (given as its support
+         * indices) into a freshly-zeroed dense long[] target. Branchless mask-OR over every
+         * (i, j) pair, so neither timing nor cache-access patterns leak the secret support.
+         */
         private void WriteSupportToVector(ulong[] v, uint[] support, int weight)
         {
             int[] indexTab = new int[m_wr];
@@ -273,14 +285,43 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
-        private void VectSampleFixedWeight1(ulong[] output, Shake256RandomGenerator random, int weight)
+        /**
+         * Constant-time XOR of a fixed-weight sparse vector (given as its support indices) into a
+         * dense long[] target. Equivalent to materialising the sparse vector to a dense long[] and
+         * then XORing it into {@code out}, but in a single pass without the dense intermediate.
+         * The (i, j) iteration pattern matches {@link #writeSupportToVector}'s constant-time
+         * branchless mask-OR, so timing and cache-access do not leak the secret support indices.
+         */
+        private void AddSupportTo(ulong[] v, uint[] support, int weight)
+        {
+            int[] indexTab = new int[m_wr];
+            long[] bitTab = new long[m_wr];
+            for (int i = 0; i < weight; i++)
+            {
+                indexTab[i] = (int)(support[i] >> 6);
+                bitTab[i] = 1L << ((int)support[i] & 0x3F);
+            }
+            for (int i = 0; i < v.Length; i++)
+            {
+                long val = (long)v[i];
+                for (int j = 0; j < weight; j++)
+                {
+                    int tmp = i - indexTab[j];
+                    //val |= bitTab[j] & ~((tmp | -tmp) >> 31);
+                    val ^= bitTab[j] & ~((tmp | -tmp) >> 31);
+                }
+                v[i] = (ulong)val;
+            }
+        }
+
+        private uint[] SampleSupport1(Shake256RandomGenerator random, int weight)
         {
             uint[] support = new uint[m_wr];
             GenerateRandomSupport(support, weight, random);
-            WriteSupportToVector(output, support, weight);
+            return support;
         }
 
-        private void VectSampleFixedWeights2(Shake256RandomGenerator generator, ulong[] v, int weight)
+        private uint[] SampleSupport2(Shake256RandomGenerator generator, int weight)
         {
             byte[] rand = new byte[m_wr << 2];
             generator.XofGetBytes(rand, rand.Length);
@@ -299,8 +340,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
                 }
                 support[i] = (uint)((~notFound & i) ^ (notFound & support_i));
             }
-
-            WriteSupportToVector(v, support, weight);
+            return support;
         }
 
         private void VectTruncate(ulong[] v) => Arrays.Fill(v, N1N2_BYTE_64, (m_n + 63) >> 6, 0UL);
