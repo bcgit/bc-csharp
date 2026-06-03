@@ -320,6 +320,9 @@ namespace Org.BouncyCastle.Asn1.X509
             DefaultLookupInternal.Add("cn", CN);
             DefaultLookupInternal.Add("l", L);
             DefaultLookupInternal.Add("st", ST);
+            // Microsoft CertNameToStr emits "S" for stateOrProvinceName (2.5.4.8),
+            // differing from the RFC 2253/4514 short form "ST"; accept it on parse.
+            DefaultLookupInternal.Add("s", ST);
             DefaultLookupInternal.Add("sn", Surname);
             DefaultLookupInternal.Add("serialnumber", SerialNumber);
             DefaultLookupInternal.Add("street", Street);

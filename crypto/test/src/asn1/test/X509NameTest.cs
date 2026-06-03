@@ -127,6 +127,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             IetfUtilitiesTest();
             BogusEqualsTest();
             dnQualifierAliasParseTest();
+            stateOrProvinceAliasParseTest();
 
             doTestEncodingPrintableString(X509Name.C, "AU");
             doTestEncodingPrintableString(X509Name.SerialNumber, "123456");
@@ -632,6 +633,35 @@ namespace Org.BouncyCastle.Asn1.Tests
                 {
                     Fail("X509Name: alias '" + alias + "' did not parse to a single dnQualifier RDN");
                 }
+            }
+        }
+
+        /**
+         * BCStyle / RFC4519Style now accept "S" as a parser alias for the
+         * stateOrProvinceName attribute (OID 2.5.4.8), in addition to the
+         * RFC 2253/4514 short form "ST". Microsoft's CertNameToStr emits "S="
+         * for 2.5.4.8 ("This value is different from the RFC 1779 X.500 key
+         * name ('ST')."), so DN strings produced by Windows tooling did not
+         * round-trip through {@code new X500Name(...)}. Output still uses the
+         * canonical "ST" symbol (issue #1301).
+         */
+        private void stateOrProvinceAliasParseTest()
+        {
+            foreach (var alias in new string[]{ "ST", "st", "S", "s" })
+            {
+                X509Name name = new X509Name("CN=Foo," + alias + "=California");
+                var stValues = name.GetValueList(X509Name.ST);
+                if (stValues.Count != 1)
+                {
+                    Fail("Alias '" + alias + "' did not parse to a single stateOrProvinceName RDN");
+                }
+            }
+
+            // output uses the canonical "ST" symbol regardless of the input alias
+            X509Name fromS = new X509Name("CN=Foo,S=California");
+            if (fromS.ToString() != "CN=Foo,ST=California")
+            {
+                Fail("'S' alias did not normalise to ST on output, got: " + fromS);
             }
         }
 
