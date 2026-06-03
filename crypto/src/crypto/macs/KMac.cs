@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                 if (!initialised)
                     throw new InvalidOperationException("KMAC not initialized");
 
-                byte[] encOut = XofUtilities.RightEncode(GetMacSize() * 8);
+                byte[] encOut = XofUtilities.RightEncode(GetMacSize() * 8L);
 
                 cshake.BlockUpdate(encOut, 0, encOut.Length);
             }
@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                     throw new InvalidOperationException("KMAC not initialized");
 
                 Span<byte> lengthEncoding = stackalloc byte[9];
-                int count = XofUtilities.RightEncode(GetMacSize() * 8, lengthEncoding);
+                int count = XofUtilities.RightEncode(GetMacSize() * 8L, lengthEncoding);
                 cshake.BlockUpdate(lengthEncoding[..count]);
             }
 
@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                 if (!initialised)
                     throw new InvalidOperationException("KMAC not initialized");
 
-                byte[] encOut = XofUtilities.RightEncode(outLen * 8);
+                byte[] encOut = XofUtilities.RightEncode(outLen * 8L);
 
                 cshake.BlockUpdate(encOut, 0, encOut.Length);
             }
@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Crypto.Macs
                     throw new InvalidOperationException("KMAC not initialized");
 
                 Span<byte> lengthEncoding = stackalloc byte[9];
-                int count = XofUtilities.RightEncode(output.Length * 8, lengthEncoding);
+                int count = XofUtilities.RightEncode(output.Length * 8L, lengthEncoding);
                 cshake.BlockUpdate(lengthEncoding[..count]);
             }
 
@@ -211,7 +211,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         {
             byte[] bytes = XofUtilities.LeftEncode(w);
             BlockUpdate(bytes, 0, bytes.Length);
-            byte[] encX = encode(X);
+            byte[] encX = Encode(X);
             BlockUpdate(encX, 0, encX.Length);
 
             int required = w - ((bytes.Length + encX.Length) % w);
@@ -228,10 +228,8 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
-        private static byte[] encode(byte[] X)
-        {
-            return Arrays.Concatenate(XofUtilities.LeftEncode(X.Length * 8), X);
-        }
+        private static byte[] Encode(byte[] X) =>
+            Arrays.Concatenate(XofUtilities.LeftEncode(X.Length * 8L), X);
 
         public void Update(byte input)
         {

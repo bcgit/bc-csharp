@@ -286,11 +286,11 @@ namespace Org.BouncyCastle.Crypto.Signers
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> C = stackalloc byte[8];
-            Pack.UInt64_To_BE((uint)(messageLength * 8), C);
+            Pack.UInt64_To_BE((ulong)(messageLength * 8L), C);
             digest.BlockUpdate(C);
 #else
             byte[] C = new byte[8];
-            Pack.UInt64_To_BE((uint)(messageLength * 8), C);
+            Pack.UInt64_To_BE((ulong)(messageLength * 8L), C);
             digest.BlockUpdate(C, 0, C.Length);
 #endif
 
@@ -381,11 +381,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             //
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> C = stackalloc byte[8];
-            Pack.UInt64_To_BE((uint)(recoveredMessage.Length * 8), C);
+            Pack.UInt64_To_BE((ulong)(recoveredMessage.Length * 8L), C);
             digest.BlockUpdate(C);
 #else
             byte[] C = new byte[8];
-            Pack.UInt64_To_BE((uint)(recoveredMessage.Length * 8), C);
+            Pack.UInt64_To_BE((ulong)(recoveredMessage.Length * 8L), C);
             digest.BlockUpdate(C, 0, C.Length);
 #endif
 

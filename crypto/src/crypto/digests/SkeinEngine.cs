@@ -698,7 +698,7 @@ namespace Org.BouncyCastle.Crypto.Digests
                 }
 
                 // Process configuration block
-                UbiComplete(PARAM_TYPE_CONFIG, new Configuration(outputSizeBytes * 8).Bytes);
+                UbiComplete(PARAM_TYPE_CONFIG, new Configuration(outputSizeBytes * 8L).Bytes);
             }
 
             // Process additional pre-message parameters
