@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 using NUnit.Framework;
 
@@ -886,6 +887,43 @@ namespace Org.BouncyCastle.Asn1.Tests
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
+        /// <summary>
+        /// <see cref="IetfUtilities.Canonicalize"/> and <see cref="X509Name.Equivalent"/> fold case through the
+        /// culture-independent <see cref="string.ToLowerInvariant"/>, not <see cref="string.ToLower"/>. Under the
+        /// Turkish <see cref="CultureInfo"/> <c>"IT".ToLower()</c> yields "ıt" (dotless i), which would make c=IT and
+        /// c=it canonicalize differently and compare not-equivalent. This pins the behaviour to ASCII case-folding
+        /// regardless of <c>CultureInfo.CurrentCulture</c>.
+        /// </summary>
+        [Test]
+        [NonParallelizable] // Modifies CultureInfo.CurrentCulture
+        public void TurkishCultureCanonicalizeTest()
+        {
+            var originalCulture = CultureInfo.CurrentCulture;
+
+            try
+            {
+                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
+
+                // Precondition: confirm the runtime's Turkish locale really does the dotless-i fold
+                // ("IT".ToLower() -> "ıt", not "it"), otherwise the test would pass vacuously.
+                Assume.That("IT".ToLower() != "it");
+
+                Assert.AreEqual("it", IetfUtilities.Canonicalize("IT"),
+                    "canonicalize must ASCII-fold under Turkish locale");
+
+                X509Name upper = new X509Name("CN=ITALY,C=IT");
+                X509Name lower = new X509Name("CN=italy,C=it");
+
+                Assert.That(upper.Equivalent(lower), "X509Name equivalence is culture-sensitive under Turkish locale");
+
+                // NB: No hashcode method corresponding to X509Name.Equivalent
+            }
+            finally
+            {
+                CultureInfo.CurrentCulture = originalCulture;
+            }
         }
 
         private static Rdn GetFirstRdn(X509Name name) => Rdn.GetInstance(((Asn1Sequence)name.ToAsn1Object())[0]);
