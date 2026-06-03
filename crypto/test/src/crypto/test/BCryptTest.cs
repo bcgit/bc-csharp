@@ -14,7 +14,6 @@ namespace Org.BouncyCastle.Crypto.Tests
      */
     [TestFixture]
     public class BCryptTest
-        :   SimpleTest
     {
         // Raw test vectors based on crypt style test vectors
         // Cross checked with JBCrypt
@@ -38,50 +37,40 @@ namespace Org.BouncyCastle.Crypto.Tests
             new object[]{"c2a300", "144b3d691a7b4ecf39cf735c7fa7a79c", 6, "5a6c4fedb23980a7da9217e0442565ac6145b687c7313339"},
         };
 
-        public override string Name
-        {
-            get { return "BCrypt"; }
-        }
-
-        public override void PerformTest()
-        {
-            DoTestParameters();
-            DoTestShortKeys();
-            DoTestVectors();
-        }
-
-        private void DoTestShortKeys()
+        [Test]
+        public void ShortKeys()
         {
             byte[] salt = new byte[16];
 
             // Check BCrypt with empty key pads to zero byte key
-            byte[] hashEmpty = BCrypt.Generate(new byte[0], salt, 4);
-            byte[] hashZero1 = BCrypt.Generate(new byte[1], salt, 4);
+            byte[] hashEmpty = BCrypt.Generate(new byte[0], salt, 4, addTerminator: false);
+            byte[] hashZero1 = BCrypt.Generate(new byte[1], salt, 4, addTerminator: false);
 
             if (!Arrays.AreEqual(hashEmpty, hashZero1))
             {
-                Fail("Hash for empty password should equal zeroed key", Hex.ToHexString(hashEmpty),
+                Assert.Fail("Hash for empty password should equal zeroed key", Hex.ToHexString(hashEmpty),
                     Hex.ToHexString(hashZero1));
             }
 
             // Check zeroed byte key of min Blowfish length is equivalent
-            byte[] hashZero4 = BCrypt.Generate(new byte[4], salt, 4);
+            byte[] hashZero4 = BCrypt.Generate(new byte[4], salt, 4, addTerminator: false);
             if (!Arrays.AreEqual(hashEmpty, hashZero4))
             {
-                Fail("Hash for empty password should equal zeroed key[4]", Hex.ToHexString(hashEmpty),
+                Assert.Fail("Hash for empty password should equal zeroed key[4]", Hex.ToHexString(hashEmpty),
                     Hex.ToHexString(hashZero4));
             }
 
             // Check BCrypt isn't padding too small (32 bit) keys
-            byte[] hashA = BCrypt.Generate(new byte[]{(byte)'a'}, salt, 4);
-            byte[] hashA0 = BCrypt.Generate(new byte[]{(byte)'a', (byte)0}, salt, 4);
+            byte[] hashA = BCrypt.Generate(new byte[]{(byte)'a'}, salt, 4, addTerminator: false);
+            byte[] hashA0 = BCrypt.Generate(new byte[]{(byte)'a', (byte)0}, salt, 4, addTerminator: false);
             if (Arrays.AreEqual(hashA, hashA0))
             {
-                Fail("Small keys should not be 0 padded.");
+                Assert.Fail("Small keys should not be 0 padded.");
             }
         }
 
-        public void DoTestParameters()
+        [Test]
+        public void Parameters()
         {
             CheckOK("Empty key", new byte[0], new byte[16], 4);
             CheckOK("Minimal values", new byte[1], new byte[16], 4);
@@ -100,12 +89,11 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             try
             {
-                BCrypt.Generate(pass, salt, cost);
+                BCrypt.Generate(pass, salt, cost, addTerminator: false);
             }
-            catch (ArgumentException e)
+            catch (ArgumentException)
             {
-                Console.Error.WriteLine(e.StackTrace);
-                Fail(msg);
+                Assert.Fail(msg);
             }
         }
 
@@ -113,8 +101,8 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             try
             {
-                BCrypt.Generate(pass, salt, cost);
-                Fail(msg);
+                BCrypt.Generate(pass, salt, cost, addTerminator: false);
+                Assert.Fail(msg);
             }
             catch (ArgumentException)
             {
@@ -122,7 +110,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        public void DoTestVectors()
+        [Test]
+        public void TestVectors()
         {
             foreach (object[] v in TestVectorData)
             {
@@ -131,28 +120,90 @@ namespace Org.BouncyCastle.Crypto.Tests
                 int cost = (int)v[2];
                 byte[] expected = Hex.Decode((string)v[3]);
 
-                DoTest(password, salt, cost, expected);
+                ImplTestVector(password, salt, cost, expected);
             }
 
-            IsTrue(AreEqual(BCrypt.Generate(BCrypt.PasswordToByteArray("12341234".ToCharArray()), Hex.Decode("01020304050607080102030405060708"), 5), Hex.Decode("cdd19088721c50e5cb49a7b743d93b5a6e67bef0f700cd78")));
-            IsTrue(AreEqual(BCrypt.Generate(BCrypt.PasswordToByteArray("1234".ToCharArray()), Hex.Decode("01020304050607080102030405060708"), 5), Hex.Decode("02a3269aca2732484057b40c614204814cbfc2becd8e093e")));
+            Assert.True(Arrays.AreEqual(BCrypt.Generate(BCrypt.PasswordToByteArray("12341234".ToCharArray()), Hex.Decode("01020304050607080102030405060708"), 5, addTerminator: false), Hex.Decode("cdd19088721c50e5cb49a7b743d93b5a6e67bef0f700cd78")));
+            Assert.True(Arrays.AreEqual(BCrypt.Generate(BCrypt.PasswordToByteArray("1234".ToCharArray()), Hex.Decode("01020304050607080102030405060708"), 5, addTerminator: false), Hex.Decode("02a3269aca2732484057b40c614204814cbfc2becd8e093e")));
         }
 
-        private void DoTest(byte[] password, byte[] salt, int cost, byte[] expected)
+        private static void ImplTestVector(byte[] password, byte[] salt, int cost, byte[] expected)
         {
-            byte[] hash = BCrypt.Generate(password, salt, cost);
+            byte[] hash = BCrypt.Generate(password, salt, cost, addTerminator: false);
             if (!Arrays.AreEqual(hash, expected))
             {
-                Fail("Hash for " + Hex.ToHexString(password), Hex.ToHexString(expected), Hex.ToHexString(hash));
+                Assert.Fail("Hash for " + Hex.ToHexString(password), Hex.ToHexString(expected), Hex.ToHexString(hash));
             }
         }
 
         [Test]
-		public void TestFunction()
-		{
-			string resultText = Perform().ToString();
+        public void AddTerminator()
+        {
+            // Test vector from testVectors[]: "61 00" (i.e. 'a' + terminator) at cost 6 with the
+            // given salt produces a known hash. Feeding the un-terminated input "61" through the new
+            // overload with addTerminator=true must produce the same hash.
+            byte[] salt = Hex.Decode("a3612d8c9a37dac2f99d94da03bd4521");
+            byte[] expected = Hex.Decode("e6d53831f82060dc08a2e8489ce850ce48fbf976978738f3");
+            byte[] pwA = Hex.Decode("61");
 
-            Assert.AreEqual(Name + ": Okay", resultText);
-		}
+            byte[] hashWithTerm = BCrypt.Generate(pwA, salt, 6, addTerminator: true);
+            if (!Arrays.AreEqual(hashWithTerm, expected))
+            {
+                Assert.Fail("addTerminator=true should match pre-terminated test vector",
+                    Hex.ToHexString(expected), Hex.ToHexString(hashWithTerm));
+            }
+
+            // addTerminator=true is equivalent to feeding the input through passwordToByteArray first.
+            byte[] hashHelperFed = BCrypt.Generate(BCrypt.PasswordToByteArray("a".ToCharArray()), salt, 6,
+                addTerminator: false);
+            if (!Arrays.AreEqual(hashWithTerm, hashHelperFed))
+            {
+                Assert.Fail("addTerminator=true must equal passwordToByteArray-fed generate",
+                    Hex.ToHexString(hashHelperFed), Hex.ToHexString(hashWithTerm));
+            }
+
+            // addTerminator=false must be byte-equivalent to the deprecated 3-arg form.
+#pragma warning disable CS0618 // Type or member is obsolete
+            byte[] hashLegacy = BCrypt.Generate(pwA, salt, 6);
+#pragma warning restore CS0618 // Type or member is obsolete
+            byte[] hashWithoutTerm = BCrypt.Generate(pwA, salt, 6, addTerminator: false);
+            if (!Arrays.AreEqual(hashLegacy, hashWithoutTerm))
+            {
+                Assert.Fail("addTerminator=false must equal legacy 3-arg generate",
+                    Hex.ToHexString(hashLegacy), Hex.ToHexString(hashWithoutTerm));
+            }
+
+            // The flag must actually change the hash for a sub-72-byte un-terminated input.
+            if (Arrays.AreEqual(hashWithTerm, hashWithoutTerm))
+            {
+                Assert.Fail("addTerminator=true should differ from addTerminator=false for non-terminated input");
+            }
+
+            // At the 72-byte boundary the flag is ignored — no room for the terminator.
+            byte[] pw72 = new byte[72];
+            for (int i = 0; i < pw72.Length; i++)
+            {
+                pw72[i] = (byte)('a' + (i % 26));
+            }
+            byte[] hash72With = BCrypt.Generate(pw72, salt, 4, addTerminator: true);
+            byte[] hash72Without = BCrypt.Generate(pw72, salt, 4, addTerminator: false);
+            if (!Arrays.AreEqual(hash72With, hash72Without))
+            {
+                Assert.Fail("addTerminator must be ignored when pwInput.length == 72",
+                    Hex.ToHexString(hash72Without), Hex.ToHexString(hash72With));
+            }
+
+            // A 73-byte input is rejected regardless of the flag — the limit applies to pwInput, not
+            // to the post-append length.
+            try
+            {
+                BCrypt.Generate(new byte[73], salt, 4, addTerminator: true);
+                Assert.Fail("addTerminator=true must not bypass the 72-byte input limit");
+            }
+            catch (ArgumentException)
+            {
+                // expected
+            }
+        }
     }
 }
