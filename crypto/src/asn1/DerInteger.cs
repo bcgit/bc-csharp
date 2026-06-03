@@ -110,7 +110,9 @@ namespace Org.BouncyCastle.Asn1
             if (value >= 0L && value < SmallConstants.Length)
                 return SmallConstants[value];
 
+#pragma warning disable CS0618 // Type or member is obsolete
             return new DerInteger(value);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static DerInteger ValueOf(long value)
@@ -118,14 +120,18 @@ namespace Org.BouncyCastle.Asn1
             if (value >= 0L && value < SmallConstants.Length)
                 return SmallConstants[(int)value];
 
+#pragma warning disable CS0618 // Type or member is obsolete
             return new DerInteger(value);
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         static DerInteger()
         {
             for (int i = 0; i < SmallConstants.Length; ++i)
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 SmallConstants[i] = new DerInteger(i);
+#pragma warning restore CS0618 // Type or member is obsolete
             }
 
             Zero = SmallConstants[0];
