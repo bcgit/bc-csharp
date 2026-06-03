@@ -5,9 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1
 {
-    /**
-     * Der UTF8String object.
-     */
+    /// <summary>UTF8String ASN.1 type</summary>
     public class DerUtf8String
         : DerStringBase
     {
@@ -23,11 +21,6 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-		/**
-         * return an UTF8 string from the passed in object.
-         *
-         * @exception ArgumentException if the object cannot be converted.
-         */
         public static DerUtf8String GetInstance(object obj)
         {
             if (obj == null)
@@ -56,17 +49,8 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        /**
-         * return a UTF8 string from a tagged object.
-         *
-         * @param taggedObject the tagged object holding the object we want
-         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot be converted.
-         */
-        public static DerUtf8String GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return (DerUtf8String)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
-        }
+        public static DerUtf8String GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            (DerUtf8String)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
 
         public static DerUtf8String GetOptional(Asn1Encodable element)
         {
@@ -79,10 +63,8 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
-        public static DerUtf8String GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
-            return (DerUtf8String)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
-        }
+        public static DerUtf8String GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            (DerUtf8String)Meta.Instance.GetTagged(taggedObject, declaredExplicit);
 
         private readonly byte[] m_contents;
 
@@ -104,46 +86,29 @@ namespace Org.BouncyCastle.Asn1
             m_contents = clone ? Arrays.Clone(contents) : contents;
         }
 
-        public override string GetString()
-        {
-            return Strings.FromUtf8ByteArray(m_contents);
-        }
+        public override string GetString() => Strings.FromUtf8ByteArray(m_contents);
 
-		protected override bool Asn1Equals(Asn1Object asn1Object)
-		{
-			DerUtf8String that = asn1Object as DerUtf8String;
+        protected override bool Asn1Equals(Asn1Object asn1Object)
+        {
+            DerUtf8String that = asn1Object as DerUtf8String;
             return null != that
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
-        protected override int Asn1GetHashCode()
-        {
-            return Arrays.GetHashCode(m_contents);
-        }
+        protected override int Asn1GetHashCode() => Arrays.GetHashCode(m_contents);
 
-        internal override IAsn1Encoding GetEncoding(int encoding)
-        {
-            return new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Utf8String, m_contents);
-        }
+        internal override IAsn1Encoding GetEncoding(int encoding) =>
+            new PrimitiveEncoding(Asn1Tags.Universal, Asn1Tags.Utf8String, m_contents);
 
-        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo)
-        {
-            return new PrimitiveEncoding(tagClass, tagNo, m_contents);
-        }
+        internal override IAsn1Encoding GetEncodingImplicit(int encoding, int tagClass, int tagNo) =>
+            new PrimitiveEncoding(tagClass, tagNo, m_contents);
 
-        internal sealed override DerEncoding GetEncodingDer()
-        {
-            return new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.Utf8String, m_contents);
-        }
+        internal sealed override DerEncoding GetEncodingDer() =>
+            new PrimitiveDerEncoding(Asn1Tags.Universal, Asn1Tags.Utf8String, m_contents);
 
-        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo)
-        {
-            return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
-        }
+        internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo) =>
+            new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
 
-        internal static DerUtf8String CreatePrimitive(byte[] contents)
-        {
-            return new DerUtf8String(contents, false);
-        }
+        internal static DerUtf8String CreatePrimitive(byte[] contents) => new DerUtf8String(contents, false);
     }
 }
