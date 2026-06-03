@@ -72,7 +72,8 @@ namespace Org.BouncyCastle.Crypto.Generators
             if (!AllowedVersions.Contains(version))
                 throw new ArgumentException("Version " + version + " is not accepted by this implementation.", "version");
 
-            byte[] key = BCrypt.Generate(password, salt, cost);
+            // The password is already terminated by caller.
+            byte[] key = BCrypt.Generate(password, salt, cost, addTerminator: false);
 
             StringBuilder sb = new StringBuilder(60);
             sb.Append('$');
@@ -124,15 +125,18 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             byte[] psw = Strings.ToUtf8ByteArray(password);
 
-            // 0 termination:
+            // Zero-termination or truncation:
+            byte[] terminated = Arrays.CopyOf(psw, System.Math.Min(BCrypt.MaxPasswordBytes, psw.Length + 1));
 
-            int tmpLen = System.Math.Min(72, psw.Length + 1);
-            byte[] tmp = Arrays.CopyOf(psw, tmpLen);
-            Array.Clear(psw, 0, psw.Length);
-
-            string rv = CreateBcryptString(version, tmp, salt, cost);
-            Array.Clear(tmp, 0, tmp.Length);
-            return rv;
+            try
+            {
+                return CreateBcryptString(version, terminated, salt, cost);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(psw);
+                Arrays.ZeroMemory(terminated);
+            }
         }
 
         /**

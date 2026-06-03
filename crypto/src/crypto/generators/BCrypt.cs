@@ -567,24 +567,24 @@ namespace Org.BouncyCastle.Crypto.Generators
         /**
          * Size of the salt parameter in bytes
          */
-        internal const int SALT_SIZE_BYTES = 16;
+        internal const int SaltSizeBytes = 16;
 
         /**
          * Minimum value of cost parameter, equal to log2(bytes of salt)
          */
-        internal const int MIN_COST = 4;
+        internal const int MinCost = 4;
 
         /**
          * Maximum value of cost parameter (31 == 2,147,483,648)
          */
-        internal const int MAX_COST = 31;
+        internal const int MaxCost = 31;
 
         /**
          * Maximum size of password == max (unrestricted) size of Blowfish key
          */
         // Blowfish spec limits keys to 448bit/56 bytes to ensure all bits of key affect all ciphertext
         // bits, but technically algorithm handles 72 byte keys and most implementations support this.
-        internal const int MAX_PASSWORD_BYTES = 72;
+        internal const int MaxPasswordBytes = 72;
 
         /**
          * Converts a character password to bytes incorporating the required trailing zero byte.
@@ -597,32 +597,94 @@ namespace Org.BouncyCastle.Crypto.Generators
             return Arrays.Append(Strings.ToUtf8ByteArray(password), 0);
         }
 
-        /**
-         * Calculates the <b>bcrypt</b> hash of a password.
-         * <p>
-         * This implements the raw <b>bcrypt</b> function as defined in the bcrypt specification, not
-         * the crypt encoded version implemented in OpenBSD.
-         * </p>
-         * @param password the password bytes (up to 72 bytes) to use for this invocation.
-         * @param salt     the 128 bit salt to use for this invocation.
-         * @param cost     the bcrypt cost parameter. The cost of the bcrypt function grows as
-         *                 <code>2^cost</code>. Legal values are 4..31 inclusive.
-         * @return the output of the raw bcrypt operation: a 192 bit (24 byte) hash.
-         */
-        public static byte[] Generate(byte[] password, byte[] salt, int cost)
+        /// <summary>
+        /// Calculates the <b>bcrypt</b> hash of an input, passing the password bytes through to the EksBlowfishSetup
+        /// password schedule unchanged.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// The bcrypt specification requires the password input to be null-terminated; this overload does not append
+        /// the terminator so the caller must supply <paramref name="password"/> already terminated (for example via
+        /// <see cref="PasswordToByteArray(char[])"/>. Without a trailing 0x00 byte, distinct passwords whose encodings
+        /// differ only by repetition (e.g. <c>"abc"</c> and <c>"abcabc"</c>) collide and produce identical hashes.
+        /// </para>
+        /// <para>
+        /// This implements the raw <b>bcrypt</b> function as defined in the bcrypt specification, not the crypt encoded
+        /// version implemented in <see cref="OpenBsdBCrypt">OpenBSD</see>.
+        /// </para>
+        /// <para>
+        /// This method is <see cref="ObsoleteAttribute">Obsolete</see>. As a direct replacement use
+        /// <see cref="Generate(byte[],byte[],int,bool)"/> so the terminator choice is explicit at the call site - pass
+        /// <c>true</c> to have the spec-required 0x00 terminator appended (equivalent to feeding
+        /// <paramref name="password"/> through <see cref="PasswordToByteArray(char[])"/>), <c>false</c> when the
+        /// supplied bytes already include it. For general password hashing prefer <see cref="OpenBsdBCrypt"/>, which
+        /// handles termination, salt formatting and the modular crypt output line; this raw primitive remains
+        /// available for test-vector validation and interop with implementations that emit the 24-byte hash directly.
+        /// </para>
+        /// </remarks>
+        /// <param name="password">The password bytes (up to 72 bytes) to use for this invocation.</param>
+        /// <param name="salt">The 128 bit salt to use for this invocation.</param>
+        /// <param name="cost">The bcrypt cost parameter. The cost of the bcrypt function grows as <c>2^cost</c>. Legal
+        /// values are 4..31 inclusive.</param>
+        /// <returns>The output of the raw bcrypt operation: a 192 bit (24 byte) hash.</returns>
+        [Obsolete("Use version taking an explicit 'addTerminator' parameter")]
+        public static byte[] Generate(byte[] password, byte[] salt, int cost) =>
+            Generate(password, salt, cost, addTerminator: false);
+
+        /// <summary>
+        /// Calculates the <b>bcrypt</b> hash of an input, optionally appending the bcrypt password terminator (a
+        /// single 0x00 byte) to <paramref name="password"/> before the EksBlowfishSetup password schedule.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// For general password hashing use <see cref="OpenBsdBCrypt"/> rather than this primitive; this entry point is
+        /// intended for callers driving the raw bcrypt function against published test vectors or interoperating with
+        /// another implementation that produces the 24-byte raw hash directly.
+        /// </para>
+        /// <para>
+        /// Setting <paramref name="addTerminator"/> <c>true</c> is equivalent to feeding bytes produced by
+        /// <see cref="PasswordToByteArray(char[])"/> and is the right choice for any caller that has not already
+        /// terminated the input. Setting it <c>false</c> passes <paramref name="password"/> through unchanged -
+        /// appropriate when the supplied bytes are already terminated, or when reproducing a test vector that fixes the
+        /// exact input.
+        /// </para>
+        /// </remarks>
+        /// <param name="password">The password bytes (up to 72 bytes) to use for this invocation.</param>
+        /// <param name="salt">The 128 bit salt to use for this invocation.</param>
+        /// <param name="cost">The bcrypt cost parameter. The cost of the bcrypt function grows as <c>2^cost</c>. Legal
+        /// values are 4..31 inclusive.</param>
+        /// <param name="addTerminator">Whether to append the bcrypt password-terminator byte (0x00) to
+        /// <paramref name="password"/> before the password schedule. Ignored when <c>password.Length == 72</c>.</param>
+        /// <returns>The output of the raw bcrypt operation: a 192 bit (24 byte) hash.</returns>
+        public static byte[] Generate(byte[] password, byte[] salt, int cost, bool addTerminator)
         {
             if (password == null)
-                throw new ArgumentNullException("password");
-            if (password.Length > MAX_PASSWORD_BYTES)
-                throw new ArgumentException("BCrypt password must be <= 72 bytes", "password");
+                throw new ArgumentNullException(nameof(password));
+            if (password.Length > MaxPasswordBytes)
+                throw new ArgumentException("BCrypt password must be <= 72 bytes", nameof(password));
             if (salt == null)
-                throw new ArgumentNullException("salt");
-            if (salt.Length != SALT_SIZE_BYTES)
-                throw new ArgumentException("BCrypt salt must be 128 bits", "salt");
-            if (cost < MIN_COST || cost > MAX_COST)
-                throw new ArgumentException("BCrypt cost must be from 4..31", "cost");
+                throw new ArgumentNullException(nameof(salt));
+            if (salt.Length != SaltSizeBytes)
+                throw new ArgumentException("BCrypt salt must be 128 bits", nameof(salt));
+            if (cost < MinCost || cost > MaxCost)
+                throw new ArgumentOutOfRangeException(nameof(cost), "BCrypt cost must be from 4..31");
 
-            return new BCrypt().DeriveRawKey(cost, salt, password);
+            if (addTerminator && password.Length < MaxPasswordBytes)
+            {
+                byte[] effective = Arrays.Append(password, 0x00);
+                try
+                {
+                    return new BCrypt().DeriveRawKey(cost, salt, effective);
+                }
+                finally
+                {
+                    Arrays.ZeroMemory(effective);
+                }
+            }
+            else
+            {
+                return new BCrypt().DeriveRawKey(cost, salt, password);
+            }
         }
     }
 }
