@@ -1,8 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Asn1.X500.Style;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
@@ -32,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 "GENERATION=13,UniqueIdentifier=14,BusinessCategory=15,PostalCode=16,DN=17,Pseudonym=18,PlaceOfBirth=19," +
                 "Gender=20,CountryOfCitizenship=21,CountryOfResidence=22,NameAtBirth=23,PostalAddress=24,2.5.4.54=25," +
                 "TelephoneNumber=26,Name=27,E=28,unstructuredName=29,unstructuredAddress=30,E=31,DC=32,UID=33",
-            "C=DE,L=Berlin,O=Wohnungsbaugenossenschaft \\\"Humboldt-Universit�t\\\" eG,CN=transfer.wbg-hub.de",
+            "C=DE,L=Berlin,O=Wohnungsbaugenossenschaft \\\"Humboldt-Universität\\\" eG,CN=transfer.wbg-hub.de",
         };
 
         private static readonly string[] HexSubjects =
@@ -128,6 +129,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             BogusEqualsTest();
             dnQualifierAliasParseTest();
             stateOrProvinceAliasParseTest();
+            hexEscapedUtf8ParseTest();
 
             doTestEncodingPrintableString(X509Name.C, "AU");
             doTestEncodingPrintableString(X509Name.SerialNumber, "123456");
@@ -704,6 +706,53 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
+        /**
+        * RFC 4514 sec. 2.4 lets any byte be escaped as \HH, and the underlying
+        * directoryString is UTF-8 (RFC 5280 sec. 4.1.2.4). A run of consecutive
+        * \HH escapes is therefore a UTF-8 byte sequence, never one Java char per
+        * pair (issue #1061).
+        */
+        private void hexEscapedUtf8ParseTest()
+        {
+            string[] subjects =
+            {
+                "CN=Lu\\C4\\8Di\\C4\\87",        // Lučić
+                "CN=M\\C3\\B6rsky",              // Mörsky
+                "CN=\\E6\\97\\A5\\E6\\9C\\AC",   // 日本 (three-byte UTF-8)
+                "CN=Lu\\C4\\8Di\\C4\\87,O=Acme", // RDN separator flushes the run
+            };
+            string[] expectedValues =
+            {
+                "Lučić",
+                "Mörsky",
+                "日本",
+                "Lučić",
+            };
+
+            for (int i = 0; i != subjects.Length; i++)
+            {
+                var subject = subjects[i];
+                X509Name name = new X509Name(subject);
+                string val = ((IAsn1String)GetFirstRdn(name).GetFirst().Value).GetString();
+                IsEquals("unexpected value for " + subject, expectedValues[i], val);
+
+                X509Name reparsed = FromBytes(name.GetEncoded());
+                string reVal = ((IAsn1String)GetFirstRdn(reparsed).GetFirst().Value).GetString();
+                IsEquals("round-trip lost data for " + subject, expectedValues[i], reVal);
+            }
+
+            // A lone leading byte without its continuation byte is malformed UTF-8.
+            try
+            {
+                new X509Name("CN=Lu\\C4");
+                Fail("malformed UTF-8 escape sequence not rejected");
+            }
+            catch (ArgumentException)
+            {
+                // expected
+            }
+        }
+
         private void CountryCodeLengthTest()
         {
             var converter = new X509DefaultEntryConverter();
@@ -838,5 +887,7 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             Assert.AreEqual(Name + ": Okay", resultText);
         }
+
+        private static Rdn GetFirstRdn(X509Name name) => Rdn.GetInstance(((Asn1Sequence)name.ToAsn1Object())[0]);
     }
 }

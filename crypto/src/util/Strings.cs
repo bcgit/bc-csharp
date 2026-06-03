@@ -7,6 +7,9 @@ namespace Org.BouncyCastle.Utilities
     /// <summary> General string utilities.</summary>
     public static class Strings
     {
+        internal static readonly Encoding StrictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false,
+            throwOnInvalidBytes: true);
+
         internal static void AppendFromByteArray(StringBuilder sb, byte[] buf, int off, int len)
         {
             sb.EnsureCapacity(sb.Length + len);

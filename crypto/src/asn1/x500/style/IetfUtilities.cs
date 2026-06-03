@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1.X500.Style
 {
@@ -20,6 +23,11 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             bool escaped = false;
             bool quoted = false;
             StringBuilder buf = new StringBuilder(elt.Length);
+            // Accumulator for a run of consecutive \HH escapes. Per RFC 4514 sec. 2.4
+            // a \HH escape produces a single octet, and the resulting octet sequence
+            // is the UTF-8 encoding of the character — so a run of pairs must be
+            // decoded as UTF-8 (RFC 5280 sec. 4.1.2.4), not one Java char per pair.
+            MemoryStream hexBytes = new MemoryStream(capacity: 8);
             int start = 0;
 
             // if it's an escaped hash string and not an actual encoding in string form
@@ -34,8 +42,8 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             }
 
             bool nonWhiteSpaceEncountered = false;
-            int lastEscaped = 0;
-            char hex1 = Convert.ToChar(0);
+            int lastEscaped = -1;
+            int hex1 = -1;
 
             for (int i = start; i != elt.Length; i++)
             {
@@ -54,6 +62,7 @@ namespace Org.BouncyCastle.Asn1.X500.Style
                     }
                     else
                     {
+                        FlushHexBytes(buf, hexBytes, ref lastEscaped);
                         buf.Append(c);
                         escaped = false;
                     }
@@ -61,40 +70,58 @@ namespace Org.BouncyCastle.Asn1.X500.Style
                 else if (c == '\\' && !(escaped || quoted))
                 {
                     escaped = true;
+                    // In case hexBytes is not empty, lastEscaped will get updated when hexBytes is flushed
                     lastEscaped = buf.Length;
+                }
+                else if (c == ' ' && !escaped && !nonWhiteSpaceEncountered)
+                {
+                    // Skip leading spaces
+                }
+                else if (escaped && IsHexDigit(c))
+                {
+                    int hexDigit = ConvertHex(c);
+                    if (hex1 < 0)
+                    {
+                        hex1 = hexDigit;
+                    }
+                    else
+                    {
+                        hexBytes.WriteByte((byte)(hex1 * 16 + hexDigit));
+                        escaped = false;
+                        hex1 = -1;
+                    }
                 }
                 else
                 {
-                    if (c == ' ' && !escaped && !nonWhiteSpaceEncountered)
-                    {
-                        continue;
-                    }
-                    if (escaped && IsHexDigit(c))
-                    {
-                        if (hex1 != 0)
-                        {
-                            buf.Append(Convert.ToChar(ConvertHex(hex1) * 16 + ConvertHex(c)));
-                            escaped = false;
-                            hex1 = Convert.ToChar(0);
-                            continue;
-                        }
-                        hex1 = c;
-                        continue;
-                    }
+                    FlushHexBytes(buf, hexBytes, ref lastEscaped);
                     buf.Append(c);
                     escaped = false;
                 }
             }
 
+            FlushHexBytes(buf, hexBytes, ref lastEscaped);
+
             if (buf.Length > 0)
             {
-                while (buf[buf.Length - 1] == ' ' && lastEscaped != buf.Length - 1)
+                while (buf[buf.Length - 1] == ' ' && lastEscaped < buf.Length - 1)
                 {
                     buf.Length = buf.Length - 1;
                 }
             }
 
             return buf.ToString();
+        }
+
+        private static void FlushHexBytes(StringBuilder buf, MemoryStream hexBytes, ref int lastEscaped)
+        {
+            int length = Convert.ToInt32(hexBytes.Position);
+            if (length > 0)
+            {
+                string decoded = Strings.StrictUtf8.GetString(hexBytes.ToArray());
+                hexBytes.Position = 0L;
+                buf.Append(decoded);
+                lastEscaped = buf.Length - 1;
+            }
         }
 
         private static bool IsHexDigit(char c)
