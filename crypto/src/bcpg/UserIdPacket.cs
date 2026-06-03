@@ -1,5 +1,3 @@
-using System.Text;
-
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
@@ -17,7 +15,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public UserIdPacket(string id)
         {
-            m_idData = Encoding.UTF8.GetBytes(id);
+            m_idData = Strings.ToUtf8ByteArray(id);
         }
 
         public UserIdPacket(byte[] rawId)
@@ -25,7 +23,7 @@ namespace Org.BouncyCastle.Bcpg
             m_idData = Arrays.Clone(rawId);
         }
 
-        public string GetId() => Encoding.UTF8.GetString(m_idData, 0, m_idData.Length);
+        public string GetId() => Strings.FromByteArray(m_idData, 0, m_idData.Length);
 
         public byte[] GetRawId() => Arrays.Clone(m_idData);
 

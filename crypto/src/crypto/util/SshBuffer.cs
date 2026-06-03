@@ -50,9 +50,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public string ReadStringUtf8()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return Encoding.UTF8.GetString(ReadBlockSpan());
+            return Strings.FromUtf8ByteArray(ReadBlockSpan());
 #else
-            return Encoding.UTF8.GetString(ReadBlock());
+            return Strings.FromUtf8ByteArray(ReadBlock());
 #endif
         }
 

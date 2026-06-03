@@ -5,6 +5,7 @@ using System.Text;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
@@ -103,7 +104,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                 // Ref: http://stackoverflow.com/questions/2223882/whats-different-between-utf-8-and-utf-8-without-bom
 
                 Stream passwordFile = SimpleTest.GetTestDataAsStream("openpgp.unicode.passphrase_cyr.txt");
-                TextReader reader = new StreamReader(passwordFile, Encoding.UTF8);
+                TextReader reader = new StreamReader(passwordFile, Strings.UTF8);
                 string passphrase = reader.ReadLine();
                 passwordFile.Close();
 

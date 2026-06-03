@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         /// <summary>Return the decrypted input stream, using the passed in passphrase.</summary>
         /// <remarks>
-        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// The passphrase is encoded to bytes using UTF8.
         /// </remarks>
         public Stream GetDataStreamUtf8(char[] passPhrase)
         {

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 
 using Org.BouncyCastle.Asn1;
@@ -261,7 +260,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return passPhrase == null
                 ? null
                 : utf8
-                ? Encoding.UTF8.GetBytes(passPhrase)
+                ? Strings.ToUtf8ByteArray(passPhrase)
                 : Strings.ToByteArray(passPhrase);
         }
 
@@ -275,7 +274,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <remarks>
-        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// The passphrase is encoded to bytes using UTF8.
         /// </remarks>
         public static KeyParameter MakeKeyFromPassPhraseUtf8(SymmetricKeyAlgorithmTag algorithm, S2k s2k,
             char[] passPhrase)

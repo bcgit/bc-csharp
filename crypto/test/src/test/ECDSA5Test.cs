@@ -1,5 +1,3 @@
-using System.Text;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
@@ -12,6 +10,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -223,7 +222,7 @@ namespace Org.BouncyCastle.Tests
 
             var kp = kpg.GenerateKeyPair();
 
-            byte[] data = Encoding.UTF8.GetBytes("Hello World!!!");
+            byte[] data = Strings.ToUtf8ByteArray("Hello World!!!");
             string[] cvcAlgs = { "SHA1WITHCVC-ECDSA", "SHA224WITHCVC-ECDSA", "SHA256WITHCVC-ECDSA",
                 "SHA384WITHCVC-ECDSA", "SHA512WITHCVC-ECDSA" };
             DerObjectIdentifier[] cvcOids = { EacObjectIdentifiers.id_TA_ECDSA_SHA_1,

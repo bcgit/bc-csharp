@@ -226,7 +226,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 				try
 				{
 					MemoryStream bout = new MemoryStream();
-					using (var outBytes = new StreamWriter(bout, System.Text.Encoding.UTF8))
+					using (var outBytes = new StreamWriter(bout, Strings.UTF8))
 					{
                         outBytes.Write(date.ToString("YYYYMMDD", CultureInfo.InvariantCulture));
                         outBytes.Write(" ");

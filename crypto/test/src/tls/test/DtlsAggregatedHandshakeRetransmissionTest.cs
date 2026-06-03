@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 using System.Threading;
 
 using NUnit.Framework;
@@ -84,7 +83,7 @@ namespace Org.BouncyCastle.Tls.Tests
                         DtlsVerifier verifier = new DtlsVerifier(serverCrypto);
 
                         // NOTE: Test value only - would typically be the client IP address
-                        byte[] clientID = Encoding.UTF8.GetBytes("MockDtlsClient");
+                        byte[] clientID = Strings.ToUtf8ByteArray("MockDtlsClient");
 
                         int receiveLimit = m_serverTransport.GetReceiveLimit();
                         int dummyOffset = serverCrypto.SecureRandom.Next(16) + 1;

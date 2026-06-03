@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -422,7 +421,7 @@ namespace Org.BouncyCastle.Security
         private void SaveStream(Stream stream, IDigest checksumDigest)
         {
             var ds = new DigestStream(stream, null, checksumDigest);
-            using (var bw = new BinaryWriter(ds, Encoding.UTF8, leaveOpen: true))
+            using (var bw = new BinaryWriter(ds, Strings.UTF8, leaveOpen: true))
             {
                 SaveStreamContents(bw);
             }
@@ -679,7 +678,7 @@ namespace Org.BouncyCastle.Security
             // first java betas in the mid 90's, why who knows? But see
             // https://cryptosense.com/mighty-aphrodite-dark-secrets-of-the-java-keystore/
             //
-            byte[] prefix = Encoding.UTF8.GetBytes("Mighty Aphrodite");
+            byte[] prefix = Strings.ToUtf8ByteArray("Mighty Aphrodite");
             digest.BlockUpdate(prefix);
             return digest;
         }
@@ -694,7 +693,7 @@ namespace Org.BouncyCastle.Security
             // first java betas in the mid 90's, why who knows? But see
             // https://cryptosense.com/mighty-aphrodite-dark-secrets-of-the-java-keystore/
             //
-            byte[] prefix = Encoding.UTF8.GetBytes("Mighty Aphrodite");
+            byte[] prefix = Strings.ToUtf8ByteArray("Mighty Aphrodite");
             digest.BlockUpdate(prefix, 0, prefix.Length);
             return digest;
         }
@@ -814,7 +813,7 @@ namespace Org.BouncyCastle.Security
                 }
             }
 
-            return Encoding.UTF8.GetString(utfBytes.ToArray());
+            return Strings.FromByteArray(utfBytes.ToArray());
         }
 
         private static void WriteBufferWithInt32Length(BinaryWriter bw, byte[] buffer)
@@ -837,7 +836,7 @@ namespace Org.BouncyCastle.Security
 
         private static void WriteUtf(BinaryWriter bw, string s)
         {
-            byte[] utfBytes = Encoding.UTF8.GetBytes(s);
+            byte[] utfBytes = Strings.ToUtf8ByteArray(s);
 
             int i = 0;
             MemoryStream mUtfBytes = new MemoryStream();

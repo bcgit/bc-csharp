@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -162,7 +161,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
             if (!m_buffer.TryGetBuffer(out var data))
                 throw new InvalidOperationException();
 
-            string value = Encoding.UTF8.GetString(data);
+            string value = Strings.FromUtf8ByteArray(data);
 #else
             string value = Strings.FromUtf8ByteArray(m_buffer.ToArray());
 #endif

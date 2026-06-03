@@ -1,10 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Text;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Tls.Tests
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private static void WriteUtf8Line(Stream output, string line)
         {
-            byte[] buf = Encoding.UTF8.GetBytes(line + "\r\n");
+            byte[] buf = Strings.ToUtf8ByteArray(line + "\r\n");
             output.Write(buf, 0, buf.Length);
             Console.WriteLine(">>> " + line);
         }

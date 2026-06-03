@@ -1,6 +1,7 @@
 using System;
 using System.IO;
-using System.Text;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
@@ -44,10 +45,10 @@ namespace Org.BouncyCastle.Bcpg.Sig
             byte[] nameData, valueData = null;
             int nameLength, valueLength;
 
-            nameData = Encoding.UTF8.GetBytes(notationName);
+            nameData = Strings.ToUtf8ByteArray(notationName);
             nameLength = System.Math.Min(nameData.Length, 0xFF);
 
-            valueData = Encoding.UTF8.GetBytes(notationValue);
+            valueData = Strings.ToUtf8ByteArray(notationValue);
             valueLength = System.Math.Min(valueData.Length, 0xFF);
 
             // name length
@@ -75,7 +76,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
             int nameLength = ((data[HeaderFlagLength] << 8) + (data[HeaderFlagLength + 1] << 0));
             int namePos = HeaderFlagLength + HeaderNameLength + HeaderValueLength;
 
-            return Encoding.UTF8.GetString(data, namePos, nameLength);
+            return Strings.FromByteArray(data, namePos, nameLength);
         }
 
         public string GetNotationValue()
@@ -85,7 +86,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
             int valueLength = ((data[HeaderFlagLength + HeaderNameLength] << 8) + (data[HeaderFlagLength + HeaderNameLength + 1] << 0));
             int valuePos = HeaderFlagLength + HeaderNameLength + HeaderValueLength + nameLength;
 
-            return Encoding.UTF8.GetString(data, valuePos, valueLength);
+            return Strings.FromByteArray(data, valuePos, valueLength);
         }
 
         public byte[] GetNotationValueBytes()

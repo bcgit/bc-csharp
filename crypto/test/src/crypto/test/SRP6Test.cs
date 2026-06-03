@@ -1,6 +1,3 @@
-using System;
-using System.Text;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Agreement.Srp;
@@ -9,6 +6,7 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -45,8 +43,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 	    private void rfc5054AppendixBTestVectors()
 	    {
-	    	byte[] I = Encoding.UTF8.GetBytes("alice");
-	    	byte[] P = Encoding.UTF8.GetBytes("password123");
+	    	byte[] I = Strings.ToUtf8ByteArray("alice");
+	    	byte[] P = Strings.ToUtf8ByteArray("password123");
 	    	byte[] s = Hex.Decode("BEB25379D1A8581EB5A727673A2441EE");
             BigInteger N = Srp6StandardGroups.rfc5054_1024.N;
             BigInteger g = Srp6StandardGroups.rfc5054_1024.G;
@@ -145,8 +143,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void testMutualVerification(Srp6GroupParameters group)
 	    {
-	        byte[] I = Encoding.UTF8.GetBytes("username");
-	        byte[] P = Encoding.UTF8.GetBytes("password");
+	        byte[] I = Strings.ToUtf8ByteArray("username");
+	        byte[] P = Strings.ToUtf8ByteArray("password");
 	        byte[] s = new byte[16];
 	        random.NextBytes(s);
 
@@ -174,8 +172,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void testClientCatchesBadB(Srp6GroupParameters group)
 	    {
-	        byte[] I = Encoding.UTF8.GetBytes("username");
-	        byte[] P = Encoding.UTF8.GetBytes("password");
+	        byte[] I = Strings.ToUtf8ByteArray("username");
+	        byte[] P = Strings.ToUtf8ByteArray("password");
 	        byte[] s = new byte[16];
 	        random.NextBytes(s);
 
@@ -207,8 +205,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private void testServerCatchesBadA(Srp6GroupParameters group)
 	    {
-	        byte[] I = Encoding.UTF8.GetBytes("username");
-	        byte[] P = Encoding.UTF8.GetBytes("password");
+	        byte[] I = Strings.ToUtf8ByteArray("username");
+	        byte[] P = Strings.ToUtf8ByteArray("password");
 	        byte[] s = new byte[16];
 	        random.NextBytes(s);
 

@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
@@ -54,7 +55,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         public void WriteStringUtf8(string str)
         {
-            WriteBlock(Encoding.UTF8.GetBytes(str));
+            WriteBlock(Strings.ToUtf8ByteArray(str));
         }
 
         public byte[] GetBytes()

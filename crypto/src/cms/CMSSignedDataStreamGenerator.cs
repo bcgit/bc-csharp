@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Cms
      *
      *      Stream sigOut = gen.Open(bOut);
      *
-     *      sigOut.Write(Encoding.UTF8.GetBytes("Hello World!"));
+     *      sigOut.Write(Strings.ToUtf8ByteArray("Hello World!"));
      *
      *      sigOut.Close();
      * </pre>

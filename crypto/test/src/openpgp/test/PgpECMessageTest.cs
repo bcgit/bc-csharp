@@ -1,9 +1,8 @@
-﻿using System;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -69,7 +68,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             PgpSecretKey key = PgpSecretKey.ParseSecretKeyFromSExpr(new MemoryStream(sExprKeyMaster, false),
                 "test".ToCharArray());
 
-            byte[] msg = Encoding.UTF8.GetBytes("hello world!");
+            byte[] msg = Strings.ToUtf8ByteArray("hello world!");
 
             PgpSignatureGenerator signGen = new PgpSignatureGenerator(PublicKeyAlgorithmTag.ECDsa, HashAlgorithmTag.Sha256);
             signGen.InitSign(PgpSignature.BinaryDocument, key.ExtractPrivateKey(null));

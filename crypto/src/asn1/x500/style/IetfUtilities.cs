@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1.X500.Style
 {
@@ -117,7 +115,7 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             int length = Convert.ToInt32(hexBytes.Position);
             if (length > 0)
             {
-                string decoded = Strings.StrictUtf8.GetString(hexBytes.ToArray());
+                string decoded = Strings.FromUtf8ByteArray(hexBytes.ToArray());
                 hexBytes.Position = 0L;
                 buf.Append(decoded);
                 lastEscaped = buf.Length - 1;

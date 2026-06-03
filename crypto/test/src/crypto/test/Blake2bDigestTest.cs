@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 
 using NUnit.Framework;
 
@@ -126,7 +125,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             for (int i = 0; i < unkeyedTestVectors.GetLength(0); i++)
             {
                 // test update(byte b)
-                byte[] unkeyedInput = Encoding.UTF8.GetBytes(unkeyedTestVectors[i, 1]);
+                byte[] unkeyedInput = Strings.ToUtf8ByteArray(unkeyedTestVectors[i, 1]);
                 for (int j = 0; j < unkeyedInput.Length; j++)
                 {
                     blake2bunkeyed.Update(unkeyedInput[j]);

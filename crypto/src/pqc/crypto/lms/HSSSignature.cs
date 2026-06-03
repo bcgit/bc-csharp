@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
@@ -70,7 +69,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private static HssSignature Parse(int L, Stream stream, bool leaveOpen)
         {
-            using (var binaryReader = new BinaryReader(stream, Encoding.UTF8, leaveOpen))
+            using (var binaryReader = new BinaryReader(stream, Strings.UTF8, leaveOpen))
             {
                 return Parse(L, binaryReader);
             }

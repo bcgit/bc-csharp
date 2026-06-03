@@ -54,22 +54,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
-		/// <summary>
-		/// Create a new key ring generator.
-		/// </summary>
-		/// <param name="certificationLevel">The certification level for keys on this ring.</param>
-		/// <param name="masterKey">The master key pair.</param>
-		/// <param name="id">The id to be associated with the ring.</param>
-		/// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
+        /// <summary>
+        /// Create a new key ring generator.
+        /// </summary>
+        /// <param name="certificationLevel">The certification level for keys on this ring.</param>
+        /// <param name="masterKey">The master key pair.</param>
+        /// <param name="id">The id to be associated with the ring.</param>
+        /// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
         /// <param name="utf8PassPhrase">
-        /// If true, conversion of the passphrase to bytes uses Encoding.UTF8.GetBytes(), otherwise the conversion
+        /// If true, conversion of the passphrase to bytes uses UTF8, otherwise the conversion
         /// is performed using Convert.ToByte(), which is the historical behaviour of the library (1.7 and earlier).
         /// </param>
         /// <param name="passPhrase">The passPhrase to be used to protect secret keys.</param>
-		/// <param name="useSha1">Checksum the secret keys with SHA1 rather than the older 16 bit checksum.</param>
-		/// <param name="hashedPackets">Packets to be included in the certification hash.</param>
-		/// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
-		/// <param name="rand">input secured random.</param>
+        /// <param name="useSha1">Checksum the secret keys with SHA1 rather than the older 16 bit checksum.</param>
+        /// <param name="hashedPackets">Packets to be included in the certification hash.</param>
+        /// <param name="unhashedPackets">Packets to be attached unhashed to the certification.</param>
+        /// <param name="rand">input secured random.</param>
         public PgpKeyRingGenerator(
             int							certificationLevel,
             PgpKeyPair					masterKey,
@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="encAlgorithm">The algorithm to be used to protect secret keys.</param>
         /// <param name="hashAlgorithm">The hash algorithm.</param>
         /// <param name="utf8PassPhrase">
-        /// If true, conversion of the passphrase to bytes uses Encoding.UTF8.GetBytes(), otherwise the conversion
+        /// If true, conversion of the passphrase to bytes uses UTF8, otherwise the conversion
         /// is performed using Convert.ToByte(), which is the historical behaviour of the library (1.7 and earlier).
         /// </param>
         /// <param name="passPhrase">The passPhrase to be used to protect secret keys.</param>

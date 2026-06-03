@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
@@ -66,7 +65,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         public override void PerformTest()
         {
             ArmoredInputStream armorIn = new ArmoredInputStream(
-                new MemoryStream(Encoding.UTF8.GetBytes(CERT_WITH_MARKER), false));
+                new MemoryStream(Strings.ToUtf8ByteArray(CERT_WITH_MARKER), false));
             PgpObjectFactory objectFactory = new PgpObjectFactory(armorIn);
 
             PgpPublicKeyRing certificate = (PgpPublicKeyRing)objectFactory.NextPgpObject();

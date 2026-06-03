@@ -1,10 +1,9 @@
-﻿using System;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
@@ -94,7 +93,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         private void AssertInvalidSignatureVersionIsIgnored(string sig)
         {
             ArmoredInputStream armorIn = new ArmoredInputStream(
-                new MemoryStream(Encoding.UTF8.GetBytes(sig), false));
+                new MemoryStream(Strings.ToUtf8ByteArray(sig), false));
             PgpObjectFactory objectFactory = new PgpObjectFactory(armorIn);
             PgpSignatureList signatures = (PgpSignatureList)objectFactory.NextPgpObject();
             IsEquals(1, signatures.Count);

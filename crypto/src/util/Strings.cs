@@ -7,8 +7,13 @@ namespace Org.BouncyCastle.Utilities
     /// <summary> General string utilities.</summary>
     public static class Strings
     {
-        internal static readonly Encoding StrictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false,
+        private static readonly UTF8Encoding StrictUtf8 = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false,
             throwOnInvalidBytes: true);
+
+        /// <summary>
+        /// Use instead of <see cref="System.Text.Encoding.UTF8"/> to enable validation.
+        /// </summary>
+        public static Encoding UTF8 => StrictUtf8;
 
         internal static void AppendFromByteArray(StringBuilder sb, byte[] buf, int off, int len)
         {
@@ -121,33 +126,37 @@ namespace Org.BouncyCastle.Utilities
 
         public static byte[] ToAsciiByteArray(string s) => Encoding.ASCII.GetBytes(s);
 
-        public static string FromUtf8ByteArray(byte[] bytes) => Encoding.UTF8.GetString(bytes);
+        public static string FromUtf8ByteArray(byte[] bytes) => StrictUtf8.GetString(bytes);
 
         public static string FromUtf8ByteArray(byte[] bytes, int index, int count) =>
-            Encoding.UTF8.GetString(bytes, index, count);
+            StrictUtf8.GetString(bytes, index, count);
 
-        public static byte[] ToUtf8ByteArray(char[] cs) => Encoding.UTF8.GetBytes(cs);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static string FromUtf8ByteArray(ReadOnlySpan<byte> bytes) => StrictUtf8.GetString(bytes);
+#endif
+
+        public static byte[] ToUtf8ByteArray(char[] cs) => StrictUtf8.GetBytes(cs);
 
         public static byte[] ToUtf8ByteArray(char[] chars, int index, int count) =>
-            Encoding.UTF8.GetBytes(chars, index, count);
+            StrictUtf8.GetBytes(chars, index, count);
 
-        public static byte[] ToUtf8ByteArray(string s) => Encoding.UTF8.GetBytes(s);
+        public static byte[] ToUtf8ByteArray(string s) => StrictUtf8.GetBytes(s);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static byte[] ToUtf8ByteArray(ReadOnlySpan<char> cs)
         {
-            int count = Encoding.UTF8.GetByteCount(cs);
+            int count = StrictUtf8.GetByteCount(cs);
             byte[] bytes = new byte[count];
-            Encoding.UTF8.GetBytes(cs, bytes);
+            StrictUtf8.GetBytes(cs, bytes);
             return bytes;
         }
 #endif
 
         public static byte[] ToUtf8ByteArray(string s, int preAlloc, int postAlloc)
         {
-            int byteCount = Encoding.UTF8.GetByteCount(s);
+            int byteCount = StrictUtf8.GetByteCount(s);
             byte[] array = new byte[preAlloc + byteCount + postAlloc];
-            int bytes = Encoding.UTF8.GetBytes(s, 0, s.Length, array, preAlloc);
+            int bytes = StrictUtf8.GetBytes(s, 0, s.Length, array, preAlloc);
             Debug.Assert(bytes == byteCount);
             return array;
         }

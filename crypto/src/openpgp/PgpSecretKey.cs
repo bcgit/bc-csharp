@@ -181,7 +181,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <remarks>
-        /// If utf8PassPhrase is true, conversion of the passphrase to bytes uses Encoding.UTF8.GetBytes(), otherwise the conversion
+        /// If utf8PassPhrase is true, conversion of the passphrase to bytes uses UTF8, otherwise the conversion
         /// is performed using Convert.ToByte(), which is the historical behaviour of the library (1.7 and earlier).
         /// </remarks>
         public PgpSecretKey(int certificationLevel, PgpKeyPair keyPair, string id,
@@ -227,7 +227,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <remarks>
-        /// If utf8PassPhrase is true, conversion of the passphrase to bytes uses Encoding.UTF8.GetBytes(), otherwise
+        /// If utf8PassPhrase is true, conversion of the passphrase to bytes uses UTF8, otherwise
         /// the conversion is performed using Convert.ToByte(), which is the historical behaviour of the library (1.7
         /// and earlier).
         /// </remarks>
@@ -540,7 +540,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         /// <summary>Extract a <c>PgpPrivateKey</c> from this secret key's encrypted contents.</summary>
         /// <remarks>
-        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// The passphrase is encoded to bytes using UTF8.
         /// </remarks>
         public PgpPrivateKey ExtractPrivateKeyUtf8(char[] passPhrase) =>
             DoExtractPrivateKey(PgpUtilities.EncodePassPhrase(passPhrase, utf8: true), clearPassPhrase: true);
@@ -784,7 +784,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// and the passed in algorithm.
         /// </summary>
         /// <remarks>
-        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// The passphrase is encoded to bytes using UTF8.
         /// </remarks>
         /// <param name="key">The PgpSecretKey to be copied.</param>
         /// <param name="oldPassPhrase">The current password for the key.</param>
@@ -1013,7 +1013,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// Parse a secret key from one of the GPG S expression keys associating it with the passed in public key.
         /// </summary>
         /// <remarks>
-        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// The passphrase is encoded to bytes using UTF8.
         /// </remarks>
         public static PgpSecretKey ParseSecretKeyFromSExprUtf8(Stream inputStream, char[] passPhrase,
             PgpPublicKey pubKey)
@@ -1105,7 +1105,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// Parse a secret key from one of the GPG S expression keys.
         /// </summary>
         /// <remarks>
-        /// The passphrase is encoded to bytes using UTF8 (Encoding.UTF8.GetBytes).
+        /// The passphrase is encoded to bytes using UTF8.
         /// </remarks>
         public static PgpSecretKey ParseSecretKeyFromSExprUtf8(Stream inputStream, char[] passPhrase)
         {

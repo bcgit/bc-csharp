@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Text;
 
 using NUnit.Framework;
 
@@ -556,8 +555,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         [Test]
         public void TamingNonRepudiation()
         {
-            byte[] msg1 = Encoding.UTF8.GetBytes("Send 100 USD to Alice");
-            byte[] msg2 = Encoding.UTF8.GetBytes("Send 100000 USD to Alice");
+            byte[] msg1 = Strings.ToUtf8ByteArray("Send 100 USD to Alice");
+            byte[] msg2 = Strings.ToUtf8ByteArray("Send 100000 USD to Alice");
             byte[] pub = Hex.DecodeStrict("ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f");
             byte[] sig = Hex.DecodeStrict("a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dc" +
                                           "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
