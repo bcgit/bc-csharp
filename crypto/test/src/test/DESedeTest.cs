@@ -1,12 +1,11 @@
 using System;
 using System.IO;
-using System.Text;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.IO;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;

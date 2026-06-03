@@ -205,10 +205,8 @@ namespace Org.BouncyCastle.Tsp
                 throw new TspException("created badly formatted response!", e);
             }
         }
-       
 
-
-        class FailInfo
+        internal class FailInfo
             : DerBitString
         {
             internal FailInfo(int failInfoValue)

@@ -1,9 +1,7 @@
-using System;
 using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;

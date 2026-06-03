@@ -8,7 +8,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Math.EC.Tests

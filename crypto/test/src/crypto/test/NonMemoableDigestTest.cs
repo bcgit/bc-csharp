@@ -1,7 +1,4 @@
-﻿using System;
-using System.Text;
-
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Macs;

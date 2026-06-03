@@ -4,8 +4,8 @@ using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 {

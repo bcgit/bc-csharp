@@ -6,7 +6,6 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests

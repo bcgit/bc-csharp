@@ -361,8 +361,8 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             ulong[] u = zz;
             ulong[] H = new ulong[6];
 
-            ImplMulw(u, f0, g0, H, 0);              // H(0)       57/56 bits                                
-            ImplMulw(u, f1, g1, H, 2);              // H(INF)     57/54 bits                                
+            ImplMulw(u, f0, g0, H, 0);              // H(0)       57/56 bits
+            ImplMulw(u, f1, g1, H, 2);              // H(INF)     57/54 bits
             ImplMulw(u, f0 ^ f1, g0 ^ g1, H, 4);    // H(1)       57/56 bits
 
             ulong r  = H[1] ^ H[2];
