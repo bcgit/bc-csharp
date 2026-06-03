@@ -3,15 +3,22 @@ using System.Text;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-    /**
-     * The DistributionPointName object.
-     * <pre>
-     * DistributionPointName ::= CHOICE {
-     *     fullName                 [0] GeneralNames,
-     *     nameRelativeToCRLIssuer  [1] RDN
-     * }
-     * </pre>
-     */
+    /// <summary>The DistributionPointName ASN.1 type.</summary>
+    /// <remarks>
+    /// <code>
+    /// DistributionPointName ::= CHOICE {
+    ///     fullName[0] GeneralNames,
+    ///     nameRelativeToCRLIssuer[1] RelativeDistinguishedName
+    /// }
+    /// RelativeDistinguishedName::= SET SIZE(1..MAX) OF AttributeTypeAndValue
+    /// </code>
+    /// Per RFC 5280 sec. 4.2.1.13, <c>nameRelativeToCRLIssuer</c> is a single RelativeDistinguishedName (a SET of one
+    /// or more attribute-type-and-value pairs) - never a sequence of RDNs. When two attributes need to be carried here
+    /// they share one multi-valued RDN(e.g. <c>O = Bouncy + OU = Test</c>), not two adjacent RDNs (e.g.
+    /// <c>O = Bouncy, OU = Test</c>); the CHOICE branch is decoded as an <see cref="Asn1Set"/> and a sequence-shaped
+    /// input is rejected. The full DN of the distribution point is formed by appending this single RDN to the CRL
+    /// issuer's RDNSequence (RFC 5280 sec. 5.2.5).
+    /// </remarks>
     public class DistributionPointName
         : Asn1Encodable, IAsn1Choice
     {

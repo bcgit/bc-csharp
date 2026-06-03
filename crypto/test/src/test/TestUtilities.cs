@@ -12,14 +12,16 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Tests
 {
-    /**
-	 * Test Utils
-	 */
+    /// <summary>Test Utilities</summary>
     internal static class TestUtilities
     {
         private static long serialNumber = DateTime.UtcNow.Ticks;
 
         private static long NextSerialNumber() => Interlocked.Increment(ref serialNumber);
+
+        // Helper for bc-java porting
+        public static X509Certificate MakeTrustAnchor(AsymmetricCipherKeyPair keyPair, string name) =>
+            GenerateRootCert(keyPair, name);
 
         public static X509Certificate CreateSelfSignedCert(string dn, string sigName, AsymmetricCipherKeyPair keyPair) =>
             CreateSelfSignedCert(new X509Name(dn), sigName, keyPair);
@@ -86,9 +88,7 @@ namespace Org.BouncyCastle.Tests
             return crlGen.Generate(new Asn1SignatureFactory("SHA256withRSA", caKey, null));
         }
 
-        /**
-		 * Create a random 1024 bit RSA key pair
-		 */
+        /// <summary>Create a random 1024 bit RSA key pair</summary>
         public static AsymmetricCipherKeyPair GenerateRsaKeyPair()
         {
             IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
@@ -99,7 +99,10 @@ namespace Org.BouncyCastle.Tests
         }
 
         public static X509Certificate GenerateRootCert(AsymmetricCipherKeyPair keyPair) =>
-            CreateSelfSignedCert("CN=Test CA Certificate", "SHA256withRSA", keyPair);
+            GenerateRootCert(keyPair, "CN=Test CA Certificate");
+
+        public static X509Certificate GenerateRootCert(AsymmetricCipherKeyPair keyPair, string dn) =>
+            GenerateRootCert(keyPair, new X509Name(dn));
 
         public static X509Certificate GenerateRootCert(AsymmetricCipherKeyPair keyPair, X509Name dn) =>
             CreateSelfSignedCert(dn, "SHA256withRSA", keyPair);
