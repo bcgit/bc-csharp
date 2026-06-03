@@ -112,38 +112,40 @@ namespace Org.BouncyCastle.Crypto.Generators
             return false;
         }
 
-        ///*
-        // * Select a high order element of the multiplicative group Zp*
-        // * 
-        // * p and q must be s.t. p = 2*q + 1, where p and q are prime (see generateSafePrimes)
-        // */
-        //internal static BigInteger SelectGenerator(BigInteger p, BigInteger q, SecureRandom random)
-        //{
-        //    BigInteger pMinusTwo = p.Subtract(BigInteger.Two);
-        //    BigInteger g;
+#if false
+        /*
+         * Select a high order element of the multiplicative group Zp*
+         * 
+         * p and q must be s.t. p = 2*q + 1, where p and q are prime (see generateSafePrimes)
+         */
+        internal static BigInteger SelectGenerator(BigInteger p, BigInteger q, SecureRandom random)
+        {
+            BigInteger pMinusTwo = p.Subtract(BigInteger.Two);
+            BigInteger g;
 
-        //    /*
-        //     * (see: Handbook of Applied Cryptography 4.80)
-        //     */
-        //    //do
-        //    //{
-        //    //    g = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
-        //    //}
-        //    //while (g.ModPow(BigInteger.Two, p).Equals(BigInteger.One) ||
-        //    //       g.ModPow(q, p).Equals(BigInteger.One));
+            /*
+             * (see: Handbook of Applied Cryptography 4.80)
+             */
+            //do
+            //{
+            //    g = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
+            //}
+            //while (g.ModPow(BigInteger.Two, p).Equals(BigInteger.One) ||
+            //       g.ModPow(q, p).Equals(BigInteger.One));
 
-        //    /*
-        //     * RFC 2631 2.2.1.2 (and see: Handbook of Applied Cryptography 4.81)
-        //     */
-        //    do
-        //    {
-        //        BigInteger h = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
+            /*
+             * RFC 2631 2.2.1.2 (and see: Handbook of Applied Cryptography 4.81)
+             */
+            do
+            {
+                BigInteger h = BigIntegers.CreateRandomInRange(BigInteger.Two, pMinusTwo, random);
 
-        //        g = h.Square().Mod(p);
-        //    }
-        //    while (g.Equals(BigInteger.One));
+                g = h.Square().Mod(p);
+            }
+            while (g.Equals(BigInteger.One));
 
-        //    return g;
-        //}
+            return g;
+        }
+#endif
     }
 }
