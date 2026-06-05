@@ -849,6 +849,32 @@ namespace Org.BouncyCastle.Pkcs.Tests
             + "TK5wp093iTAxMCEwCQYFKw4DAhoFAAQU1SGg9xV7jfLcJh3tzd+phZTMN38E"
             + "CL6WgCtEom7kAgIIAA==");
 
+        private static byte[] rawKeyBagStore = Base64.Decode(
+              "MIIFlgIBAzCCBY8GCSqGSIb3DQEHAaCCBYAEggV8MIIFeDCCAv4GCSqGSIb3DQEHAaCCAu8EggLrMIIC"
+            + "5zCCAuMGCyqGSIb3DQEMCgEBoIICejCCAnYCAQAwDQYJKoZIhvcNAQEBBQAEggJgMIICXAIBAAKBgQCF"
+            + "4Tw78b8eDuwY+FomQazkPFuAxDbWTs//AozC4MvzBatdJeDu+s9WyK3PdU+gI7wFish0r2FP8M5dj/rA"
+            + "0ieCJ9UDTGWVKm06DB0y7zmAO3SS/3TXGQRekMmOXBtVlZa4AYVy8Tr+Ls69gfo3sgqJU8uH0ebWuoQT"
+            + "KJz/mpst0wIDAQABAoGBAIJbpu/jWylkdEV4BSd9CWCO2LYP2CliQirXC8JxaoTuf0ZKrLNlqd+htYPs"
+            + "gSS3xstKsBbV8hYJrpbxq8J2npok973j0bm9sW9RL8XmAYJbaat27IzQQkGj2j4CNWPJzQC3NsDWQJPM"
+            + "JMFHvT1ZIj5ASwvOHwKpM6haLPxX24o5AkEA/zBVPpO6Ic9Yfd8Fk+BN/DykpPbLMUNZFl/I2MavoXTh"
+            + "5Ng7J4/S5ABxkvvQdqKf1Nhal5CznakU4BjFUGr+dwJBAIZOLwlfToFgekV4SmcPnq4aNGdetDfEettR"
+            + "GJLrKf+qrZrTzW3Rj6N2cjxKHsE5/xOpyjOtgVv3cTQm0x//VoUCQAdQBUFTzmOlo22H9Ir2RIXT3wvz"
+            + "HoN84JKpkAHWP7YquUZrg9ZwYqSx9o81tBWSN25L/NyXAu6jp7t8OjtBtaUCQCILB1k0001wCw4444Mk"
+            + "LnCrK8VX+A56uzmEYNo8ybSIquCn91Zy3BnvGB24G/uWm9V8IEjhHf0Vx5gUj0d5DZECQGRs4BMYE+y2"
+            + "Tpn7/zbjhZh/iAdttDq5/b2BBMbSiosSKRIGkOyHTu0SJKoxoDnHA5ryLK8NoSwoGjID5qESjA8xVjAj"
+            + "BgkqhkiG9w0BCRUxFgQU3U3Taaj7rCAV2GyyVEnAUZvc4JkwLwYJKoZIhvcNAQkUMSIeIABPAE4AVgBJ"
+            + "AEYAXwBUAGUAcwB0AF8AQQBsAGkAYQBzMIICcgYJKoZIhvcNAQcBoIICYwSCAl8wggJbMIICVwYLKoZI"
+            + "hvcNAQwKAQOgggHuMIIB6gYKKoZIhvcNAQkWAaCCAdoEggHWMIIB0jCCATugAwIBAgIICNurBKCCK6gw"
+            + "DQYJKoZIhvcNAQEFBQAwIDERMA8GA1UEAwwIT05WSUYgVFQxCzAJBgNVBAYTAlVTMCAXDTcwMDEwMTAw"
+            + "MDAwMFoYDzk5OTkxMjMxMjM1OTU5WjAgMREwDwYDVQQDDAhPTlZJRiBUVDELMAkGA1UEBhMCVVMwgZ8w"
+            + "DQYJKoZIhvcNAQEBBQADgY0AMIGJAoGBAIXhPDvxvx4O7Bj4WiZBrOQ8W4DENtZOz/8CjMLgy/MFq10l"
+            + "4O76z1bIrc91T6AjvAWKyHSvYU/wzl2P+sDSJ4In1QNMZZUqbToMHTLvOYA7dJL/dNcZBF6QyY5cG1WV"
+            + "lrgBhXLxOv4uzr2B+jeyColTy4fR5ta6hBMonP+amy3TAgMBAAGjEzARMA8GA1UdEwEB/wQFMAMBAf8w"
+            + "DQYJKoZIhvcNAQEFBQADgYEARmnQ9q/lUycK5P4shGFlwK0Uy3dHZs4VxOBSinejSTTy1FL4+SRzwA+Y"
+            + "DMmfRrI0WHY/upUCYyugDj5kDg5K6/mSiIWGr0PDjl+8qw352fpUQgY4vnpGBaJoLQf/KRFilVhZJz0Q"
+            + "Dq5iHo16UkibDDHYQqdt6la5SHKx4U6AJwYxVjAjBgkqhkiG9w0BCRUxFgQU3U3Taaj7rCAV2GyyVEnA"
+            + "UZvc4JkwLwYJKoZIhvcNAQkUMSIeIABPAE4AVgBJAEYAXwBUAGUAcwB0AF8AQQBsAGkAYQBz");
+
         private static readonly char[] hmacSha384TestPassword = "changeit".ToCharArray();
         private static readonly byte[] hmacSha384Test = Base64.Decode(
         "MIIHqwIBAzCCB1MGCSqGSIb3DQEHAaCCB0QEggdAMIIHPDCCA8EGCSqGSIb3DQEHAaCCA7IEggOu"
@@ -1740,6 +1766,93 @@ namespace Org.BouncyCastle.Pkcs.Tests
             {
                 // expected
             }
+        }
+
+        [Test]
+        public void RawKeyBagNoAttributes()
+        {
+            // RFC 7292 sec. 4.2.1 keyBag (unencrypted PrivateKeyInfo) may carry no bagAttributes, and the localKeyId
+            // attribute is optional even when bagAttributes are present. Ensure correct handling.
+
+            var kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            kpg.Init(new KeyGenerationParameters(Random, 1024));
+
+            var kp = kpg.GenerateKeyPair();
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
+
+            // Case A: keyBag with no bagAttributes at all.
+            SafeBag noAttrBag = new SafeBag(PkcsObjectIdentifiers.KeyBag, privateKeyInfo.ToAsn1Object());
+            byte[] keyBagPfxA = CreateKeyBagPfx(noAttrBag);
+
+            var storeA = new Pkcs12StoreBuilder().Build();
+            using (var stream = new MemoryStream(keyBagPfxA, false))
+            {
+                storeA.Load(stream, password: null);
+            }
+
+            var aliasesEnum = storeA.Aliases.GetEnumerator();
+            Assert.True(aliasesEnum.MoveNext(), "no-attributes keyBag produced no entry");
+
+            var alias = aliasesEnum.Current;
+            Assert.True(storeA.IsKeyEntry(alias), "no-attributes keyBag entry not a key");
+            Assert.NotNull(storeA.GetKey(alias), "no-attributes keyBag key not recoverable");
+
+            // Case B: keyBag carrying a friendlyName but no localKeyId attribute.
+            Asn1Encodable friendlyName = new DerSequence(PkcsObjectIdentifiers.Pkcs9AtFriendlyName,
+                new DerSet(new DerBmpString("rawKeyBag")));
+            SafeBag friendlyBag = new SafeBag(PkcsObjectIdentifiers.KeyBag, privateKeyInfo.ToAsn1Object(),
+                new DerSet(friendlyName));
+            byte[] keyBagPfxB = CreateKeyBagPfx(friendlyBag);
+
+            var storeB = new Pkcs12StoreBuilder().Build();
+            using (var stream = new MemoryStream(keyBagPfxB, false))
+            {
+                storeB.Load(stream, password: null);
+            }
+
+            Assert.True(storeB.IsKeyEntry("rawKeyBag"), "friendlyName keyBag not stored under its alias");
+            Assert.NotNull(storeB.GetKey("rawKeyBag"), "friendlyName keyBag key not recoverable");
+        }
+
+        [Test]
+        public void RawKeyBagStore()
+        {
+            var store = new Pkcs12StoreBuilder().Build();
+            using (var stream = new MemoryStream(rawKeyBagStore, false))
+            {
+                store.Load(stream, password: null);
+            }
+            Assert.That(store.IsKeyEntry("ONVIF_Test_Alias"));
+        }
+
+        [Test]
+        public void WrongPassword()
+        {
+            var store = new Pkcs12StoreBuilder().Build();
+
+            using (var stream = new MemoryStream(pkcs12, false))
+            {
+                try
+                {
+                    store.Load(stream, "Goodbye World!".ToCharArray());
+                    Assert.Fail("no exception");
+                }
+                catch (IOException)
+                {
+                    // bc-java uses subclass UnrecoverableKeyException for this
+                }
+            }
+        }
+
+        // Wrap a single SafeBag in a minimal, MAC-less, unencrypted PKCS#12 PFX.
+        private static byte[] CreateKeyBagPfx(SafeBag bag)
+        {
+            ContentInfo dataInfo = new ContentInfo(PkcsObjectIdentifiers.Data,
+                new DerOctetString(new DerSequence(bag).GetEncoded()));
+            AuthenticatedSafe authSafe = new AuthenticatedSafe(new ContentInfo[] { dataInfo });
+            ContentInfo mainInfo = new ContentInfo(PkcsObjectIdentifiers.Data,
+                new DerOctetString(authSafe.GetEncoded()));
+            return new Pfx(mainInfo, null).GetEncoded();
         }
 
         private static T GetFirst<T>(IEnumerable<T> e) => CollectionUtilities.RequireNext(e.GetEnumerator());
