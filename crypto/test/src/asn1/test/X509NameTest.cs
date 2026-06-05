@@ -130,7 +130,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             BogusEqualsTest();
             dnQualifierAliasParseTest();
             stateOrProvinceAliasParseTest();
-            hexEscapedUtf8ParseTest();
 
             doTestEncodingPrintableString(X509Name.C, "AU");
             doTestEncodingPrintableString(X509Name.SerialNumber, "123456");
@@ -707,13 +706,14 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        /**
-        * RFC 4514 sec. 2.4 lets any byte be escaped as \HH, and the underlying
-        * directoryString is UTF-8 (RFC 5280 sec. 4.1.2.4). A run of consecutive
-        * \HH escapes is therefore a UTF-8 byte sequence, never one Java char per
-        * pair (issue #1061).
-        */
-        private void hexEscapedUtf8ParseTest()
+        /*
+         * RFC 4514 sec. 2.4 lets any byte be escaped as \HH, and the underlying
+         * directoryString is UTF-8 (RFC 5280 sec. 4.1.2.4). A run of consecutive
+         * \HH escapes is therefore a UTF-8 byte sequence, never one Java char per
+         * pair (issue #1061).
+         */
+        [Test]
+        public void HexEscapedUtf8Parse()
         {
             string[] subjects =
             {
@@ -734,19 +734,19 @@ namespace Org.BouncyCastle.Asn1.Tests
             {
                 var subject = subjects[i];
                 X509Name name = new X509Name(subject);
-                string val = ((IAsn1String)GetFirstRdn(name).GetFirst().Value).GetString();
-                IsEquals("unexpected value for " + subject, expectedValues[i], val);
+                string val = GetFirstRdnValueString(name);
+                Assert.AreEqual(expectedValues[i], val, "unexpected value for " + subject);
 
                 X509Name reparsed = FromBytes(name.GetEncoded());
-                string reVal = ((IAsn1String)GetFirstRdn(reparsed).GetFirst().Value).GetString();
-                IsEquals("round-trip lost data for " + subject, expectedValues[i], reVal);
+                string reVal = GetFirstRdnValueString(reparsed);
+                Assert.AreEqual(expectedValues[i], reVal, "round-trip lost data for " + subject);
             }
 
             // A lone leading byte without its continuation byte is malformed UTF-8.
             try
             {
                 new X509Name("CN=Lu\\C4");
-                Fail("malformed UTF-8 escape sequence not rejected");
+                Assert.Fail("malformed UTF-8 escape sequence not rejected");
             }
             catch (ArgumentException)
             {
@@ -889,6 +889,85 @@ namespace Org.BouncyCastle.Asn1.Tests
             Assert.AreEqual(Name + ": Okay", resultText);
         }
 
+        [Test]
+        public void EscapeRoundTrip()
+        {
+            string[,] cases =
+            {
+                // input                value (after unescape)   canonical toString
+                { "CN=a\\,b",           "a,b",                   "CN=a\\,b" },          // escaped comma (RDN separator)
+                { "CN=a\\;b",           "a;b",                   "CN=a\\;b" },          // escaped semicolon (legacy separator)
+                { "CN=a\\<b",           "a<b",                   "CN=a\\<b" },          // escaped less-than
+                { "CN=a\\>b",           "a>b",                   "CN=a\\>b" },          // escaped greater-than
+                { "CN=a\\\\b",          "a\\b",                  "CN=a\\\\b" },         // escaped backslash
+                { "CN=a\\+b",           "a+b",                   "CN=a\\+b" },          // escaped plus (multi-value separator)
+                { "CN=a\\=b",           "a=b",                   "CN=a\\=b" },          // escaped equals
+                { "CN=a\\\"b",          "a\"b",                  "CN=a\\\"b" },         // escaped quote mid-value
+                { "CN=a\\ b",           "a b",                   "CN=a b" },            // escaped interior space (kept, not trimmed)
+                { "CN=\"a,b\"",         "a,b",                   "CN=a\\,b" },          // quoting protects the comma separator
+                { "CN=\"a;b\"",         "a;b",                   "CN=a\\;b" },          // quoting protects the semicolon
+                { "CN=\"a+b\"",         "a+b",                   "CN=a\\+b" },          // quoting protects the plus
+                { "CN=\"a\\b\"",        "a\\b",                  "CN=a\\\\b" },         // backslash is literal inside quotes
+                { "CN=   a\\+b",        "a+b",                   "CN=a\\+b" },          // leading unescaped spaces are skipped
+                { "CN=\\C3\\A9\\+",     "é+",                    "CN=é\\+" },      // hex UTF-8 run flushed before escaped special
+            };
+
+            for (int i = 0; i != cases.GetLength(0); i++)
+            {
+                string input = cases[i, 0];
+
+                X509Name name = new X509Name(input);
+                string val = GetFirstRdnValueString(name);
+                Assert.AreEqual(cases[i, 1], val, "unescape value for [" + input + "]");
+
+                string str = name.ToString();
+                Assert.AreEqual(cases[i, 2], str, "ToString for [" + input + "]");
+
+                // re-parsing the canonical form must yield the same attributeValue
+                //X509Name reparsed = FromBytes(name.GetEncoded());
+                string reVal = GetFirstRdnValueString(new X509Name(str));
+                Assert.AreEqual(cases[i, 1], reVal, "round-trip value for [" + input + "]");
+            }
+
+            // An empty value still parses to an empty string.
+            Assert.AreEqual("", GetFirstRdnValueString(new X509Name("CN=")), "empty value");
+
+            // Running out of input while still escaping or quoting is malformed. The
+            // unterminated-quote and dangling-bare-backslash cases are caught by
+            // X500NameTokenizer.nextToken() (escaped/quoted unbalanced at token end);
+            // the incomplete-hexpair cases are invisible to the tokenizer (\C looks
+            // like a balanced escape) and are caught by IETFUtils.unescape itself.
+            // A '\' beginning a hexpair (RFC 4514 sec. 2.4) that isn't completed by a
+            // second hex digit used to silently drop the partial digit (and leak state
+            // into a later escape); it must throw.
+            string[] malformed =
+            {
+                "CN=a\\Cz",     // single hex digit then a letter
+                "CN=a\\C,O=x",  // single hex digit then the RDN separator
+                "CN=a\\C b",    // single hex digit then a space
+                "CN=ab\\C",     // single hex digit at end of input
+                "CN=a\\C\"b\"", // single hex digit then a quote
+                "CN=\\Cz\\AB",  // partial digit must not corrupt a following valid escape
+                "CN=abc\\",     // dangling bare backslash at end of input (tokenizer)
+                "O=x,CN=abc\\", // dangling bare backslash after a prior RDN (tokenizer)
+                "CN=\"abc",     // unterminated quote at end of input (tokenizer)
+                "CN=\"abc,O=x", // unterminated quote spanning the RDN separator (tokenizer)
+                "CN=\"",        // lone opening quote (tokenizer)
+            };
+            for (int i = 0; i != malformed.Length; i++)
+            {
+                try
+                {
+                    new X509Name(malformed[i]);
+                    Assert.Fail("malformed hex escape not rejected: " + malformed[i]);
+                }
+                catch (ArgumentException)
+                {
+                    // expected
+                }
+            }
+        }
+
         /// <summary>
         /// <see cref="IetfUtilities.Canonicalize"/> and <see cref="X509Name.Equivalent"/> fold case through the
         /// culture-independent <see cref="string.ToLowerInvariant"/>, not <see cref="string.ToLower"/>. Under the
@@ -927,5 +1006,9 @@ namespace Org.BouncyCastle.Asn1.Tests
         }
 
         private static Rdn GetFirstRdn(X509Name name) => Rdn.GetInstance(((Asn1Sequence)name.ToAsn1Object())[0]);
+
+        private static string GetFirstRdnValueString(X509Name name) => GetFirstValueString(GetFirstRdn(name));
+
+        private static string GetFirstValueString(Rdn rdn) => ((IAsn1String)rdn.GetFirst().Value).GetString();
     }
 }

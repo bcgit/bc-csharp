@@ -60,6 +60,7 @@ namespace Org.BouncyCastle.Asn1.X500.Style
                     }
                     else
                     {
+                        CheckCompleteHexPair(hex1);
                         FlushHexBytes(buf, hexBytes, ref lastEscaped);
                         buf.Append(c);
                         escaped = false;
@@ -91,12 +92,17 @@ namespace Org.BouncyCastle.Asn1.X500.Style
                 }
                 else
                 {
+                    // A '\' followed by a single hex digit and then a non-hex char is an
+                    // incomplete hexpair (RFC 4514 sec. 2.4 requires two), not a literal.
+                    CheckCompleteHexPair(hex1);
                     FlushHexBytes(buf, hexBytes, ref lastEscaped);
                     buf.Append(c);
                     escaped = false;
                 }
             }
 
+            // A '\' followed by a single hex digit at end of input is likewise incomplete.
+            CheckCompleteHexPair(hex1);
             FlushHexBytes(buf, hexBytes, ref lastEscaped);
 
             if (buf.Length > 0)
@@ -120,6 +126,12 @@ namespace Org.BouncyCastle.Asn1.X500.Style
                 buf.Append(decoded);
                 lastEscaped = buf.Length - 1;
             }
+        }
+
+        private static void CheckCompleteHexPair(int hex1)
+        {
+            if (hex1 >= 0)
+                throw new ArgumentException("invalid hex escape in directory string");
         }
 
         private static bool IsHexDigit(char c)
