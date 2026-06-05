@@ -48,8 +48,6 @@ namespace Org.BouncyCastle.Pkcs
         private readonly bool overwriteFriendlyName;
         private readonly bool enableOracleTrustedKeyUsage;
 
-        private AsymmetricKeyEntry unmarkedKeyEntry = null;
-
         private const int MinIterations = 1024;
         private const int SaltSize = 20;
 
@@ -96,7 +94,8 @@ namespace Org.BouncyCastle.Pkcs
             this.enableOracleTrustedKeyUsage = enableOracleTrustedKeyUsage;
         }
 
-        protected virtual void LoadKeyBag(PrivateKeyInfo privKeyInfo, Asn1Set bagAttributes)
+        protected virtual void LoadKeyBag(PrivateKeyInfo privKeyInfo, Asn1Set bagAttributes,
+            ref AsymmetricKeyEntry unmarkedKeyEntry)
         {
             AsymmetricKeyParameter privKey = PrivateKeyFactory.CreateKey(privKeyInfo);
 
@@ -167,11 +166,11 @@ namespace Org.BouncyCastle.Pkcs
         }
 
         protected virtual void LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo encPrivKeyInfo, Asn1Set bagAttributes,
-            char[] password, bool wrongPkcs12Zero)
+            char[] password, bool wrongPkcs12Zero, ref AsymmetricKeyEntry unmarkedKeyEntry)
         {
             var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(password, wrongPkcs12Zero, encPrivKeyInfo);
 
-            LoadKeyBag(privateKeyInfo, bagAttributes);
+            LoadKeyBag(privateKeyInfo, bagAttributes, ref unmarkedKeyEntry);
         }
 
         public void Load(Stream input, char[] password)
@@ -211,7 +210,7 @@ namespace Org.BouncyCastle.Pkcs
 
             Clear(m_keys, m_keysOrder);
             m_localIDs.Clear();
-            unmarkedKeyEntry = null;
+            AsymmetricKeyEntry unmarkedKeyEntry = null;
 
             var certBags = new List<SafeBag>();
 
@@ -258,14 +257,15 @@ namespace Org.BouncyCastle.Pkcs
                         }
                         else if (PkcsObjectIdentifiers.KeyBag.Equals(safeBagID))
                         {
-                            LoadKeyBag(PrivateKeyInfo.GetInstance(safeBag.BagValueEncodable), safeBag.BagAttributes);
+                            LoadKeyBag(PrivateKeyInfo.GetInstance(safeBag.BagValueEncodable), safeBag.BagAttributes,
+                                ref unmarkedKeyEntry);
                         }
                         else if (PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag.Equals(safeBagID))
                         {
                             passwordNeeded = true;
 
                             LoadPkcs8ShroudedKeyBag(EncryptedPrivateKeyInfo.GetInstance(safeBag.BagValueEncodable),
-                                safeBag.BagAttributes, password, wrongPkcs12Zero);
+                                safeBag.BagAttributes, password, wrongPkcs12Zero, ref unmarkedKeyEntry);
                         }
                         else
                         {
@@ -354,10 +354,7 @@ namespace Org.BouncyCastle.Pkcs
 
                         m_keyCerts[name] = certEntry;
                         Map(m_keys, m_keysOrder, name, unmarkedKeyEntry);
-                    }
-                    else
-                    {
-                        Map(m_keys, m_keysOrder, "unmarked", unmarkedKeyEntry);
+                        unmarkedKeyEntry = null;
                     }
                 }
                 else
@@ -375,6 +372,11 @@ namespace Org.BouncyCastle.Pkcs
                         Map(m_certs, m_certsOrder, alias, certEntry);
                     }
                 }
+            }
+
+            if (unmarkedKeyEntry != null)
+            {
+                Map(m_keys, m_keysOrder, "unmarked", unmarkedKeyEntry);
             }
 
             if (!passwordNeeded && password != null)
