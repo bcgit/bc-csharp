@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-		/**
+        /**
          * return a printable string from the passed in object.
          *
          * @exception ArgumentException if the object cannot be converted.
@@ -86,28 +86,28 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
-		public DerPrintableString(string str)
-			: this(str, false)
-		{
-		}
+        public DerPrintableString(string str)
+            : this(str, false)
+        {
+        }
 
-		/**
-		* Constructor with optional validation.
-		*
-		* @param string the base string to wrap.
-		* @param validate whether or not to check the string.
-		* @throws ArgumentException if validate is true and the string
-		* contains characters that should not be in a PrintableString.
-		*/
-		public DerPrintableString(string str, bool validate)
-		{
-			if (str == null)
-				throw new ArgumentNullException("str");
-			if (validate && !IsPrintableString(str))
-				throw new ArgumentException("string contains illegal characters", "str");
+        /**
+         * Constructor with optional validation.
+         *
+         * @param string the base string to wrap.
+         * @param validate whether or not to check the string.
+         * @throws ArgumentException if validate is true and the string
+         * contains characters that should not be in a PrintableString.
+         */
+        public DerPrintableString(string str, bool validate)
+        {
+            if (str == null)
+                throw new ArgumentNullException("str");
+            if (validate && !IsPrintableString(str))
+                throw new ArgumentException("string contains illegal characters", "str");
 
             m_contents = Strings.ToAsciiByteArray(str);
-		}
+        }
 
         public DerPrintableString(byte[] contents)
             : this(contents, true)
@@ -152,9 +152,8 @@ namespace Org.BouncyCastle.Asn1
             return new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
         }
 
-        protected override bool Asn1Equals(
-			Asn1Object asn1Object)
-		{
+        protected override bool Asn1Equals(Asn1Object asn1Object)
+        {
             DerPrintableString that = asn1Object as DerPrintableString;
             return null != that
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
@@ -166,46 +165,46 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-		 * return true if the passed in String can be represented without
-		 * loss as a PrintableString, false otherwise.
-		 *
-		 * @return true if in printable set, false otherwise.
-		 */
+         * return true if the passed in String can be represented without
+         * loss as a PrintableString, false otherwise.
+         *
+         * @return true if in printable set, false otherwise.
+         */
         public static bool IsPrintableString(string str)
-		{
-			foreach (char ch in str)
-			{
-				if (ch > 0x007f)
-					return false;
+        {
+            foreach (char ch in str)
+            {
+                if (ch > 0x007f)
+                    return false;
 
-				if (char.IsLetterOrDigit(ch))
-					continue;
+                if (char.IsLetterOrDigit(ch))
+                    continue;
 
-//				if (char.IsPunctuation(ch))
-//					continue;
+                //if (char.IsPunctuation(ch))
+                //    continue;
 
-				switch (ch)
-				{
-					case ' ':
-					case '\'':
-					case '(':
-					case ')':
-					case '+':
-					case '-':
-					case '.':
-					case ':':
-					case '=':
-					case '?':
-					case '/':
-					case ',':
-						continue;
-				}
+                switch (ch)
+                {
+                case ' ':
+                case '\'':
+                case '(':
+                case ')':
+                case '+':
+                case '-':
+                case '.':
+                case ':':
+                case '=':
+                case '?':
+                case '/':
+                case ',':
+                    continue;
+                }
 
-				return false;
-			}
+                return false;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
         internal static DerPrintableString CreatePrimitive(byte[] contents)
         {

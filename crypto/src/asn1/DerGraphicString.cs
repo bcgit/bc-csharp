@@ -130,11 +130,11 @@ namespace Org.BouncyCastle.Asn1
         }
 
         protected override int Asn1GetHashCode()
-		{
+        {
             return Arrays.GetHashCode(m_contents);
         }
 
-		protected override bool Asn1Equals(Asn1Object asn1Object)
+        protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             DerGraphicString that = asn1Object as DerGraphicString;
             return null != that

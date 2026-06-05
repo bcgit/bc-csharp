@@ -2,18 +2,18 @@ using System;
 
 namespace Org.BouncyCastle.Asn1
 {
-	/**
-	 * DER TaggedObject - in ASN.1 notation this is any object preceded by
-	 * a [n] where n is some number - these are assumed to follow the construction
-	 * rules (as with sequences).
-	 */
-	public class DerTaggedObject
-		: Asn1TaggedObject
-	{
+    /**
+     * DER TaggedObject - in ASN.1 notation this is any object preceded by
+     * a [n] where n is some number - these are assumed to follow the construction
+     * rules (as with sequences).
+     */
+    public class DerTaggedObject
+        : Asn1TaggedObject
+    {
         public DerTaggedObject(int tagNo, Asn1Encodable obj)
-			: base(true, tagNo, obj)
-		{
-		}
+            : base(true, tagNo, obj)
+        {
+        }
 
         public DerTaggedObject(int tagClass, int tagNo, Asn1Encodable obj)
             : base(true, tagClass, tagNo, obj)
@@ -21,14 +21,14 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-		 * @param isExplicit true if an explicitly tagged object.
-		 * @param tagNo the tag number for this object.
-		 * @param obj the tagged object.
-		 */
+         * @param isExplicit true if an explicitly tagged object.
+         * @param tagNo the tag number for this object.
+         * @param obj the tagged object.
+         */
         public DerTaggedObject(bool isExplicit, int tagNo, Asn1Encodable obj)
-			: base(isExplicit, tagNo, obj)
-		{
-		}
+            : base(isExplicit, tagNo, obj)
+        {
+        }
 
         public DerTaggedObject(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
             : base(isExplicit, tagClass, tagNo, obj)

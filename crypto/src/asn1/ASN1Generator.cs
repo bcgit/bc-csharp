@@ -6,21 +6,21 @@ namespace Org.BouncyCastle.Asn1
     public abstract class Asn1Generator
         : IDisposable
     {
-		private Stream m_outStream;
+        private Stream m_outStream;
 
-		protected Asn1Generator(Stream outStream)
+        protected Asn1Generator(Stream outStream)
         {
             m_outStream = outStream ?? throw new ArgumentNullException(nameof(outStream));
         }
 
         protected abstract void Finish();
 
-		protected Stream OutStream
-		{
-			get { return m_outStream ?? throw new InvalidOperationException(); }
-		}
+        protected Stream OutStream
+        {
+            get { return m_outStream ?? throw new InvalidOperationException(); }
+        }
 
-		public abstract void AddObject(Asn1Encodable obj);
+        public abstract void AddObject(Asn1Encodable obj);
 
         public abstract void AddObject(Asn1Object obj);
 

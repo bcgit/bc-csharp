@@ -31,9 +31,9 @@ namespace Org.BouncyCastle.Asn1
         }
 
         public override void AddObject(Asn1Encodable obj)
-		{
+        {
             obj.EncodeTo(OutStream);
-		}
+        }
 
         public override void AddObject(Asn1Object obj)
         {
@@ -77,12 +77,12 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-		protected void WriteBerBody(Stream contentStream)
+        protected void WriteBerBody(Stream contentStream)
         {
-			Streams.PipeAll(contentStream, OutStream);
+            Streams.PipeAll(contentStream, OutStream);
         }
 
-		protected void WriteBerEnd()
+        protected void WriteBerEnd()
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> data = stackalloc byte[4]{ 0x00, 0x00, 0x00, 0x00 };

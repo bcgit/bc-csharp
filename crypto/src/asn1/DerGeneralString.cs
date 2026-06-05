@@ -71,12 +71,12 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
-		public DerGeneralString(string str)
+        public DerGeneralString(string str)
         {
-			if (str == null)
-				throw new ArgumentNullException("str");
+            if (str == null)
+                throw new ArgumentNullException("str");
 
-			m_contents = Strings.ToAsciiByteArray(str);
+            m_contents = Strings.ToAsciiByteArray(str);
         }
 
         public DerGeneralString(byte[] contents)
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Asn1
             return Strings.FromAsciiByteArray(m_contents);
         }
 
-		public byte[] GetOctets()
+        public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
         }

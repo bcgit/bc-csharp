@@ -5,7 +5,7 @@ using System.IO;
 namespace Org.BouncyCastle.Asn1
 {
     public abstract class Asn1Object
-		: Asn1Encodable
+        : Asn1Encodable
     {
         public override void EncodeTo(Stream output)
         {
@@ -84,16 +84,16 @@ namespace Org.BouncyCastle.Asn1
         internal abstract DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo);
 
         protected abstract bool Asn1Equals(Asn1Object asn1Object);
-		protected abstract int Asn1GetHashCode();
+        protected abstract int Asn1GetHashCode();
 
-		internal bool CallAsn1Equals(Asn1Object obj)
-		{
-			return Asn1Equals(obj);
-		}
+        internal bool CallAsn1Equals(Asn1Object obj)
+        {
+            return Asn1Equals(obj);
+        }
 
-		internal int CallAsn1GetHashCode()
-		{
-			return Asn1GetHashCode();
-		}
-	}
+        internal int CallAsn1GetHashCode()
+        {
+            return Asn1GetHashCode();
+        }
+    }
 }

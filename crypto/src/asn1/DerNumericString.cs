@@ -92,13 +92,13 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-		* Constructor with optional validation.
-		*
-		* @param string the base string to wrap.
-		* @param validate whether or not to check the string.
-		* @throws ArgumentException if validate is true and the string
-		* contains characters that should not be in a NumericString.
-		*/
+         * Constructor with optional validation.
+         *
+         * @param string the base string to wrap.
+         * @param validate whether or not to check the string.
+         * @throws ArgumentException if validate is true and the string
+         * contains characters that should not be in a NumericString.
+         */
         public DerNumericString(string str, bool validate)
         {
             if (str == null)
@@ -111,8 +111,8 @@ namespace Org.BouncyCastle.Asn1
 
         public DerNumericString(byte[] contents)
             : this(contents, true)
-		{
-		}
+        {
+        }
 
         internal DerNumericString(byte[] contents, bool clone)
         {
@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Asn1
             return Strings.FromAsciiByteArray(m_contents);
         }
 
-		public byte[] GetOctets()
+        public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
         }
@@ -153,8 +153,8 @@ namespace Org.BouncyCastle.Asn1
         }
 
         protected override bool Asn1Equals(Asn1Object asn1Object)
-		{
-			DerNumericString that = asn1Object as DerNumericString;
+        {
+            DerNumericString that = asn1Object as DerNumericString;
             return null != that
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
@@ -165,21 +165,21 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-		 * Return true if the string can be represented as a NumericString ('0'..'9', ' ')
-		 *
-		 * @param str string to validate.
-		 * @return true if numeric, fale otherwise.
-		 */
+         * Return true if the string can be represented as a NumericString ('0'..'9', ' ')
+         *
+         * @param str string to validate.
+         * @return true if numeric, fale otherwise.
+         */
         public static bool IsNumericString(string str)
-		{
-			foreach (char ch in str)
-			{
-				if (ch > 0x007f || (ch != ' ' && !char.IsDigit(ch)))
-					return false;
-			}
+        {
+            foreach (char ch in str)
+            {
+                if (ch > 0x007f || (ch != ' ' && !char.IsDigit(ch)))
+                    return false;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
         internal static bool IsNumericString(byte[] contents)
         {

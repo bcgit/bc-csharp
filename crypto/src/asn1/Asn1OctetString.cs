@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Asn1
          */
         internal Asn1OctetString(byte[] contents)
         {
-			this.contents = contents ?? throw new ArgumentNullException(nameof(contents));
+            this.contents = contents ?? throw new ArgumentNullException(nameof(contents));
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -108,16 +108,16 @@ namespace Org.BouncyCastle.Asn1
 #endif
 
         public Stream GetOctetStream()
-		{
-			return new MemoryStream(contents, false);
-		}
+        {
+            return new MemoryStream(contents, false);
+        }
 
-		public Asn1OctetStringParser Parser
-		{
-			get { return this; }
-		}
+        public Asn1OctetStringParser Parser
+        {
+            get { return this; }
+        }
 
-		public virtual byte[] GetOctets()
+        public virtual byte[] GetOctets()
         {
             return contents;
         }
@@ -137,20 +137,20 @@ namespace Org.BouncyCastle.Asn1
 #endif
 
         protected override int Asn1GetHashCode()
-		{
-			return Arrays.GetHashCode(GetOctets());
+        {
+            return Arrays.GetHashCode(GetOctets());
         }
 
-		protected override bool Asn1Equals(Asn1Object asn1Object)
-		{
+        protected override bool Asn1Equals(Asn1Object asn1Object)
+        {
             return asn1Object is Asn1OctetString that
                 && Arrays.AreEqual(this.GetOctets(), that.GetOctets());
-		}
+        }
 
-		public override string ToString()
-		{
-			return "#" + Hex.ToHexString(contents);
-		}
+        public override string ToString()
+        {
+            return "#" + Hex.ToHexString(contents);
+        }
 
         internal static Asn1OctetString CreatePrimitive(byte[] contents) => DerOctetString.WithContents(contents);
     }

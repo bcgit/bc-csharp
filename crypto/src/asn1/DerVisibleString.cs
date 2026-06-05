@@ -88,10 +88,10 @@ namespace Org.BouncyCastle.Asn1
 
         public DerVisibleString(string str)
         {
-			if (str == null)
-				throw new ArgumentNullException("str");
+            if (str == null)
+                throw new ArgumentNullException("str");
 
-			m_contents = Strings.ToAsciiByteArray(str);
+            m_contents = Strings.ToAsciiByteArray(str);
         }
 
         public DerVisibleString(byte[] contents)
@@ -112,7 +112,7 @@ namespace Org.BouncyCastle.Asn1
             return Strings.FromAsciiByteArray(m_contents);
         }
 
-		public byte[] GetOctets()
+        public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
         }

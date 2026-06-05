@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-		/**
+        /**
          * return a T61 string from the passed in object.
          *
          * @exception ArgumentException if the object cannot be converted.
@@ -88,8 +88,8 @@ namespace Org.BouncyCastle.Asn1
 
         public DerT61String(string str)
         {
-			if (str == null)
-				throw new ArgumentNullException("str");
+            if (str == null)
+                throw new ArgumentNullException("str");
 
             m_contents = Strings.ToByteArray(str);
         }

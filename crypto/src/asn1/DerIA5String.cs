@@ -86,28 +86,28 @@ namespace Org.BouncyCastle.Asn1
 
         private readonly byte[] m_contents;
 
-		public DerIA5String(string str)
-			: this(str, false)
-		{
-		}
+        public DerIA5String(string str)
+            : this(str, false)
+        {
+        }
 
-		/**
-		* Constructor with optional validation.
-		*
-		* @param string the base string to wrap.
-		* @param validate whether or not to check the string.
-		* @throws ArgumentException if validate is true and the string
-		* contains characters that should not be in an IA5String.
-		*/
-		public DerIA5String(string str, bool validate)
-		{
-			if (str == null)
-				throw new ArgumentNullException("str");
-			if (validate && !IsIA5String(str))
-				throw new ArgumentException("string contains illegal characters", "str");
+        /**
+         * Constructor with optional validation.
+         *
+         * @param string the base string to wrap.
+         * @param validate whether or not to check the string.
+         * @throws ArgumentException if validate is true and the string
+         * contains characters that should not be in an IA5String.
+         */
+        public DerIA5String(string str, bool validate)
+        {
+            if (str == null)
+                throw new ArgumentNullException("str");
+            if (validate && !IsIA5String(str))
+                throw new ArgumentException("string contains illegal characters", "str");
 
-			m_contents = Strings.ToAsciiByteArray(str);
-		}
+            m_contents = Strings.ToAsciiByteArray(str);
+        }
 
         public DerIA5String(byte[] contents)
             : this(contents, true)
@@ -127,7 +127,7 @@ namespace Org.BouncyCastle.Asn1
             return Strings.FromAsciiByteArray(m_contents);
         }
 
-		public byte[] GetOctets()
+        public byte[] GetOctets()
         {
             return Arrays.Clone(m_contents);
         }
@@ -165,21 +165,21 @@ namespace Org.BouncyCastle.Asn1
         }
 
         /**
-		 * return true if the passed in String can be represented without
-		 * loss as an IA5String, false otherwise.
-		 *
-		 * @return true if in printable set, false otherwise.
-		 */
+         * return true if the passed in String can be represented without
+         * loss as an IA5String, false otherwise.
+         *
+         * @return true if in printable set, false otherwise.
+         */
         public static bool IsIA5String(string str)
-		{
-			foreach (char ch in str)
-			{
-				if (ch > 0x007f)
-					return false;
-			}
+        {
+            foreach (char ch in str)
+            {
+                if (ch > 0x007f)
+                    return false;
+            }
 
-			return true;
-		}
+            return true;
+        }
 
         internal static DerIA5String CreatePrimitive(byte[] contents)
         {

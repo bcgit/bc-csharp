@@ -6,13 +6,13 @@ namespace Org.BouncyCastle.Asn1
         : Asn1UtcTime
     {
         public DerUtcTime(string timeString)
-			: base(timeString)
+            : base(timeString)
         {
         }
 
         [Obsolete("Use `DerUtcTime(DateTime, int)' instead")]
         public DerUtcTime(DateTime dateTime)
-			: base(dateTime)
+            : base(dateTime)
         {
         }
 
@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1
         }
 
         internal DerUtcTime(byte[] contents)
-			: base(contents)
+            : base(contents)
         {
         }
 
