@@ -51,6 +51,12 @@ namespace Org.BouncyCastle.Asn1
             OutStream.WriteByte(0x80);
         }
 
+        private void WriteHdr(int flags, int tagNo)
+        {
+            Asn1OutputStream.WriteIdentifier(OutStream, flags, tagNo);
+            OutStream.WriteByte(0x80);
+        }
+
         protected void WriteBerHeader(int tag)
         {
             if (!_tagged)
@@ -63,7 +69,7 @@ namespace Org.BouncyCastle.Asn1
                  * X.690-0207 8.14.2. If implicit tagging [..] was not used [..], the encoding shall be constructed
                  * and the contents octets shall be the complete base encoding.
                  */
-                WriteHdr(_tagNo | Asn1Tags.ContextSpecific | Asn1Tags.Constructed);
+                WriteHdr(Asn1Tags.ContextSpecific | Asn1Tags.Constructed, _tagNo);
                 WriteHdr(tag);
             }
             else
@@ -73,10 +79,11 @@ namespace Org.BouncyCastle.Asn1
                  * if the base encoding is constructed, and shall be primitive otherwise; and b) the contents octets
                  * shall be [..] the contents octets of the base encoding.
                  */
-                WriteHdr(InheritConstructedFlag(_tagNo | Asn1Tags.ContextSpecific, tag));
+                WriteHdr(InheritConstructedFlag(Asn1Tags.ContextSpecific, tag), _tagNo);
             }
         }
 
+        // TODO[api] Remove unnecessary method
         protected void WriteBerBody(Stream contentStream)
         {
             Streams.PipeAll(contentStream, OutStream);

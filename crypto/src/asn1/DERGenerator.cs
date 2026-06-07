@@ -1,7 +1,5 @@
 using System.IO;
 
-using Org.BouncyCastle.Utilities.IO;
-
 namespace Org.BouncyCastle.Asn1
 {
     public abstract class DerGenerator
@@ -38,7 +36,7 @@ namespace Org.BouncyCastle.Asn1
                  */
                 MemoryStream buf = new MemoryStream();
                 WriteDerEncoded(buf, tag, bytes);
-                WriteDerEncoded(OutStream, _tagNo | Asn1Tags.ContextSpecific | Asn1Tags.Constructed, buf.ToArray());
+                WriteDerEncoded(OutStream, Asn1Tags.ContextSpecific | Asn1Tags.Constructed, _tagNo, buf.ToArray());
             }
             else
             {
@@ -47,45 +45,22 @@ namespace Org.BouncyCastle.Asn1
                  * if the base encoding is constructed, and shall be primitive otherwise; and b) the contents octets
                  * shall be [..] the contents octets of the base encoding.
                  */
-                WriteDerEncoded(OutStream, InheritConstructedFlag(_tagNo | Asn1Tags.ContextSpecific, tag), bytes);
+                WriteDerEncoded(OutStream, InheritConstructedFlag(Asn1Tags.ContextSpecific, tag), _tagNo, bytes);
             }
         }
 
         internal static void WriteDerEncoded(Stream outStream, int tag, byte[] bytes)
         {
             outStream.WriteByte((byte)tag);
-            WriteLength(outStream, bytes.Length);
+            Asn1OutputStream.WriteDL(outStream, bytes.Length);
             outStream.Write(bytes, 0, bytes.Length);
         }
 
-        internal static void WriteDerEncoded(Stream outStream, int tag, Stream inStream)
+        private void WriteDerEncoded(Stream outStream, int flags, int tagNo, byte[] bytes)
         {
-            WriteDerEncoded(outStream, tag, Streams.ReadAll(inStream));
-        }
-
-        private static void WriteLength(Stream outStream, int length)
-        {
-            if (length > 127)
-            {
-                int size = 1;
-                int val = length;
-
-                while ((val >>= 8) != 0)
-                {
-                    size++;
-                }
-
-                outStream.WriteByte((byte)(size | 0x80));
-
-                for (int i = (size - 1) * 8; i >= 0; i -= 8)
-                {
-                    outStream.WriteByte((byte)(length >> i));
-                }
-            }
-            else
-            {
-                outStream.WriteByte((byte)length);
-            }
+            Asn1OutputStream.WriteIdentifier(outStream, flags, tagNo);
+            Asn1OutputStream.WriteDL(outStream, bytes.Length);
+            outStream.Write(bytes, 0, bytes.Length);
         }
     }
 }

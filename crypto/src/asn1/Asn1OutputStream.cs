@@ -107,69 +107,9 @@ namespace Org.BouncyCastle.Asn1
             // Placeholder to support future internal buffering
         }
 
-        internal void WriteDL(int dl)
-        {
-            if (dl < 128)
-            {
-                Debug.Assert(dl >= 0);
-                WriteByte((byte)dl);
-                return;
-            }
+        internal void WriteDL(int dl) => WriteDL(this, dl);
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> encoding = stackalloc byte[5];
-            BinaryPrimitives.WriteUInt32BigEndian(encoding[1..], (uint)dl);
-            int leadingZeroBytes = BitOperations.LeadingZeroCount((uint)dl) / 8;
-            encoding[leadingZeroBytes] = (byte)(0x84 - leadingZeroBytes);
-            Write(encoding[leadingZeroBytes..]);
-#else
-            byte[] stack = new byte[5];
-            int pos = stack.Length;
-
-            do
-            {
-                stack[--pos] = (byte)dl;
-                dl >>= 8;
-            }
-            while (dl > 0);
-
-            int count = stack.Length - pos;
-            stack[--pos] = (byte)(0x80 | count);
-
-            Write(stack, pos, count + 1);
-#endif
-        }
-
-        internal void WriteIdentifier(int flags, int tagNo)
-        {
-            if (tagNo < 31)
-            {
-                WriteByte((byte)(flags | tagNo));
-                return;
-            }
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Span<byte> stack = stackalloc byte[6];
-#else
-            byte[] stack = new byte[6];
-#endif
-            int pos = stack.Length;
-
-            stack[--pos] = (byte)(tagNo & 0x7F);
-            while (tagNo > 127)
-            {
-                tagNo >>= 7;
-                stack[--pos] = (byte)(tagNo & 0x7F | 0x80);
-            }
-
-            stack[--pos] = (byte)(flags | 0x1F);
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            Write(stack[pos..]);
-#else
-            Write(stack, pos, stack.Length - pos);
-#endif
-        }
+        internal void WriteIdentifier(int flags, int tagNo) => WriteIdentifier(this, flags, tagNo);
 
         internal static IAsn1Encoding[] GetContentsEncodings(int encoding, Asn1Encodable[] elements)
         {
@@ -242,6 +182,70 @@ namespace Org.BouncyCastle.Asn1
                 ++length;
             }
             return length;
+        }
+
+        internal static void WriteDL(Stream output, int dl)
+        {
+            if (dl < 128)
+            {
+                Debug.Assert(dl >= 0);
+                output.WriteByte((byte)dl);
+                return;
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> encoding = stackalloc byte[5];
+            BinaryPrimitives.WriteUInt32BigEndian(encoding[1..], (uint)dl);
+            int leadingZeroBytes = BitOperations.LeadingZeroCount((uint)dl) / 8;
+            encoding[leadingZeroBytes] = (byte)(0x84 - leadingZeroBytes);
+            output.Write(encoding[leadingZeroBytes..]);
+#else
+            byte[] stack = new byte[5];
+            int pos = stack.Length;
+
+            do
+            {
+                stack[--pos] = (byte)dl;
+                dl >>= 8;
+            }
+            while (dl > 0);
+
+            int count = stack.Length - pos;
+            stack[--pos] = (byte)(0x80 | count);
+
+            output.Write(stack, pos, count + 1);
+#endif
+        }
+
+        internal static void WriteIdentifier(Stream output, int flags, int tagNo)
+        {
+            if (tagNo < 31)
+            {
+                output.WriteByte((byte)(flags | tagNo));
+                return;
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> stack = stackalloc byte[6];
+#else
+            byte[] stack = new byte[6];
+#endif
+            int pos = stack.Length;
+
+            stack[--pos] = (byte)(tagNo & 0x7F);
+            while (tagNo > 127)
+            {
+                tagNo >>= 7;
+                stack[--pos] = (byte)(tagNo & 0x7F | 0x80);
+            }
+
+            stack[--pos] = (byte)(flags | 0x1F);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            output.Write(stack[pos..]);
+#else
+            output.Write(stack, pos, stack.Length - pos);
+#endif
         }
     }
 }
