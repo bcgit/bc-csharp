@@ -46,6 +46,13 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly KeyPurposeID id_kp_cmKGA = new KeyPurposeID(id_kp + ".32");
 
         /**
+         * RFC 9336 sec. 3.1 - signing documents (e.g. PDF, XML, JSON) for human consumption.
+         * <p>
+         * id-kp-documentSigning OBJECT IDENTIFIER ::= { id-kp 36 }
+         */
+        public static readonly KeyPurposeID id_kp_documentSigning = new KeyPurposeID(id_kp + ".36");
+
+        /**
          * RFC 9809 sec. 3 - signing general-purpose configuration files.
          * <p>
          * id-kp-configSigning OBJECT IDENTIFIER ::= { id-kp 41 }
