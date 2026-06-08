@@ -18,8 +18,16 @@ using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Pkcs
 {
+    /// <summary>
+    /// In-memory PKCS#12 keystore (PFX) as defined in RFC 7292. Loads and saves password-protected bags of
+    /// private keys and X.509 certificates. Create instances via <see cref="Pkcs12StoreBuilder"/>.
+    /// </summary>
     public class Pkcs12Store
     {
+        /// <summary>
+        /// Environment variable that, when set to <c>true</c>, suppresses the error raised when
+        /// <see cref="Load"/> is called with a password but the file does not require one.
+        /// </summary>
         public const string IgnoreUselessPasswordProperty = "Org.BouncyCastle.Pkcs12.IgnoreUselessPassword";
 
         private readonly Dictionary<string, AsymmetricKeyEntry> m_keys =
@@ -174,6 +182,21 @@ namespace Org.BouncyCastle.Pkcs
             LoadKeyBag(privateKeyInfo, bagAttributes);
         }
 
+        /// <summary>
+        /// Loads a PKCS#12 file from a stream, populating this store with keys and certificates.
+        /// </summary>
+        /// <param name="input">The stream containing the PKCS#12 PFX structure.</param>
+        /// <param name="password">
+        /// The password used to verify the MAC and decrypt shrouded key bags, or <c>null</c> if none is required.
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="input"/> is <c>null</c>, or a password is required but <paramref name="password"/> is
+        /// <c>null</c>.
+        /// </exception>
+        /// <exception cref="IOException">
+        /// The MAC verification failed, a password was supplied when none is required (unless
+        /// <see cref="IgnoreUselessPasswordProperty"/> is set), or bag attributes conflict.
+        /// </exception>
         public void Load(Stream input, char[] password)
         {
             if (input == null)
@@ -387,6 +410,11 @@ namespace Org.BouncyCastle.Pkcs
             }
         }
 
+        /// <summary>
+        /// Returns the private-key entry for the given alias, or <c>null</c> if not present.
+        /// </summary>
+        /// <param name="alias">The entry alias (friendly name or local key id hex string).</param>
+        /// <exception cref="ArgumentNullException"><paramref name="alias"/> is <c>null</c>.</exception>
         public AsymmetricKeyEntry GetKey(string alias)
         {
             if (alias == null)
@@ -395,6 +423,11 @@ namespace Org.BouncyCastle.Pkcs
             return CollectionUtilities.GetValueOrNull(m_keys, alias);
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if the alias refers to a certificate-only entry (no private key).
+        /// </summary>
+        /// <param name="alias">The entry alias.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="alias"/> is <c>null</c>.</exception>
         public bool IsCertificateEntry(string alias)
         {
             if (alias == null)
@@ -403,6 +436,11 @@ namespace Org.BouncyCastle.Pkcs
             return m_certs.ContainsKey(alias) && !m_keys.ContainsKey(alias);
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if the alias refers to a private-key entry.
+        /// </summary>
+        /// <param name="alias">The entry alias.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="alias"/> is <c>null</c>.</exception>
         public bool IsKeyEntry(string alias)
         {
             if (alias == null)
@@ -411,6 +449,7 @@ namespace Org.BouncyCastle.Pkcs
             return m_keys.ContainsKey(alias);
         }
 
+        /// <summary>Gets all aliases in this store (union of certificate and key aliases).</summary>
         public IEnumerable<string> Aliases
         {
             get
@@ -421,6 +460,11 @@ namespace Org.BouncyCastle.Pkcs
             }
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if an entry exists under the given alias.
+        /// </summary>
+        /// <param name="alias">The entry alias.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="alias"/> is <c>null</c>.</exception>
         public bool ContainsAlias(string alias)
         {
             if (alias == null)
@@ -429,9 +473,13 @@ namespace Org.BouncyCastle.Pkcs
             return m_certs.ContainsKey(alias) || m_keys.ContainsKey(alias);
         }
 
-        /**
-         * simply return the cert entry for the private key
-         */
+        /// <summary>
+        /// Returns the certificate entry for the alias — either a certificate-only entry or the end-entity
+        /// certificate associated with a private-key alias.
+        /// </summary>
+        /// <param name="alias">The entry alias.</param>
+        /// <returns>The certificate entry, or <c>null</c> if not found.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="alias"/> is <c>null</c>.</exception>
         public X509CertificateEntry GetCertificate(string alias)
         {
             if (alias == null)
@@ -449,6 +497,12 @@ namespace Org.BouncyCastle.Pkcs
             return CollectionUtilities.GetValueOrNull(m_keyCerts, keyCertsKey);
         }
 
+        /// <summary>
+        /// Finds the alias of the first entry whose certificate equals <paramref name="cert"/>.
+        /// </summary>
+        /// <param name="cert">The certificate to search for.</param>
+        /// <returns>The alias, or <c>null</c> if not found.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="cert"/> is <c>null</c>.</exception>
         public string GetCertificateAlias(X509Certificate cert)
         {
             if (cert == null)
@@ -470,6 +524,13 @@ namespace Org.BouncyCastle.Pkcs
             return null;
         }
 
+        /// <summary>
+        /// Builds the certificate chain for a private-key alias by following Authority Key Identifier
+        /// or issuer/subject matching.
+        /// </summary>
+        /// <param name="alias">The private-key alias.</param>
+        /// <returns>The chain from end entity to root, or <c>null</c> if the alias is not a key entry.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="alias"/> is <c>null</c>.</exception>
         public X509CertificateEntry[] GetCertificateChain(string alias)
         {
             if (alias == null)
@@ -545,6 +606,17 @@ namespace Org.BouncyCastle.Pkcs
             return cs.ToArray();
         }
 
+        /// <summary>
+        /// Adds or replaces a certificate-only entry under the given alias.
+        /// </summary>
+        /// <param name="alias">The entry alias.</param>
+        /// <param name="certEntry">The certificate entry to store.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="alias"/> or <paramref name="certEntry"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// A private-key entry already exists under <paramref name="alias"/>.
+        /// </exception>
         public void SetCertificateEntry(string alias, X509CertificateEntry certEntry)
         {
             if (alias == null)
@@ -558,6 +630,14 @@ namespace Org.BouncyCastle.Pkcs
             Map(m_chainCerts, m_chainCertsOrder, new CertID(certEntry), certEntry);
         }
 
+        /// <summary>
+        /// Renames an entry by updating its PKCS#9 friendly name and re-keying internal maps.
+        /// </summary>
+        /// <param name="alias">The current alias.</param>
+        /// <param name="newFriendlyName">The new friendly name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="alias"/> or <paramref name="newFriendlyName"/> is <c>null</c>.
+        /// </exception>
         public void SetFriendlyName(string alias, string newFriendlyName)
         {
             if (alias == null)
@@ -601,6 +681,20 @@ namespace Org.BouncyCastle.Pkcs
             }
         }
 
+        /// <summary>
+        /// Adds or replaces a private-key entry and optional certificate chain under the given alias.
+        /// </summary>
+        /// <param name="alias">The entry alias.</param>
+        /// <param name="keyEntry">The private-key entry.</param>
+        /// <param name="chain">
+        /// The certificate chain for the key (required when <paramref name="keyEntry"/> holds a private key).
+        /// </param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="alias"/> or <paramref name="keyEntry"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// A private key was supplied without a certificate chain.
+        /// </exception>
         public void SetKeyEntry(string alias, AsymmetricKeyEntry keyEntry, X509CertificateEntry[] chain)
         {
             if (alias == null)
@@ -630,6 +724,9 @@ namespace Org.BouncyCastle.Pkcs
             }
         }
 
+        /// <summary>Removes the entry (certificate and/or key) for the given alias.</summary>
+        /// <param name="alias">The entry alias.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="alias"/> is <c>null</c>.</exception>
         public void DeleteEntry(string alias)
         {
             if (alias == null)
@@ -664,6 +761,11 @@ namespace Org.BouncyCastle.Pkcs
             }
         }
 
+        /// <summary>
+        /// Returns <c>true</c> if the alias refers to an entry assignable to <paramref name="entryType"/>.
+        /// </summary>
+        /// <param name="alias">The entry alias.</param>
+        /// <param name="entryType"><see cref="X509CertificateEntry"/> or <see cref="AsymmetricKeyEntry"/>.</param>
         public bool IsEntryOfType(string alias, Type entryType)
         {
             if (entryType == typeof(X509CertificateEntry))
@@ -675,6 +777,7 @@ namespace Org.BouncyCastle.Pkcs
             return false;
         }
 
+        /// <summary>Gets the number of distinct aliases in this store.</summary>
         public int Count
         {
             get
@@ -693,6 +796,17 @@ namespace Org.BouncyCastle.Pkcs
             }
         }
 
+        /// <summary>
+        /// Writes this store as a PKCS#12 PFX structure to a stream.
+        /// </summary>
+        /// <param name="stream">The output stream.</param>
+        /// <param name="password">
+        /// The password used to encrypt shrouded key bags and the integrity MAC, or <c>null</c> for unencrypted keys.
+        /// </param>
+        /// <param name="random">Randomness source for salts and IVs.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="stream"/> or <paramref name="random"/> is <c>null</c>.
+        /// </exception>
         public void Save(Stream stream, char[] password, SecureRandom random)
         {
             if (stream == null)
