@@ -10,7 +10,9 @@ using Org.BouncyCastle.Security.Certificates;
 namespace Org.BouncyCastle.X509
 {
     /// <summary>
-    /// A class to Generate Version 3 X509Certificates.
+    /// Generator for X.509 version 3 certificates as defined in RFC 5280.
+    /// Builds the TBSCertificate structure, optional v3 extensions, and signs the result via
+    /// <see cref="Generate(ISignatureFactory)"/>.
     /// </summary>
     public class X509V3CertificateGenerator
     {
@@ -18,18 +20,31 @@ namespace Org.BouncyCastle.X509
 
 		private V3TbsCertificateGenerator tbsGen;
 
+		/// <summary>
+		/// Creates an empty version 3 certificate generator.
+		/// </summary>
 		public X509V3CertificateGenerator()
         {
             tbsGen = new V3TbsCertificateGenerator();
         }
 
-		/// <summary>Create a generator for a version 3 certificate, initialised with another certificate.</summary>
+		/// <summary>
+		/// Creates a generator for a version 3 certificate, initialised from another certificate.
+		/// </summary>
 		/// <param name="template">Template certificate to base the new one on.</param>
 		public X509V3CertificateGenerator(X509Certificate template)
 			: this(template.CertificateStructure)
 		{
 		}
 
+		/// <summary>
+		/// Creates a generator for a version 3 certificate, initialised from a parsed
+		/// <see cref="X509CertificateStructure"/>.
+		/// </summary>
+		/// <param name="template">
+		/// Template certificate structure to copy serial number, issuer, validity, subject, public key and
+		/// extensions from (excluding alternate public key and alternate signature extensions).
+		/// </param>
 		public X509V3CertificateGenerator(X509CertificateStructure template)
 		{
 			tbsGen = new V3TbsCertificateGenerator();
@@ -67,9 +82,14 @@ namespace Org.BouncyCastle.X509
 		/// <summary>
         /// Set the certificate's serial number.
         /// </summary>
-        /// <remarks>Make serial numbers long, if you have no serial number policy make sure the number is at least 16 bytes of secure random data.
-        /// You will be surprised how ugly a serial number collision can Get.</remarks>
+        /// <remarks>
+        /// Make serial numbers long; if you have no serial number policy make sure the number is at least
+        /// 16 bytes of secure random data. You will be surprised how ugly a serial number collision can get.
+        /// </remarks>
         /// <param name="serialNumber">The serial number.</param>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="serialNumber"/> is not a positive integer.
+        /// </exception>
         public void SetSerialNumber(
 			BigInteger serialNumber)
         {
@@ -92,6 +112,10 @@ namespace Org.BouncyCastle.X509
             tbsGen.SetIssuer(issuer);
         }
 
+        /// <summary>
+        /// Sets the certificate validity period from a pre-built <see cref="Validity"/> structure.
+        /// </summary>
+        /// <param name="validity">The not-before and not-after times.</param>
         public void SetValidity(Validity validity)
         {
             tbsGen.SetValidity(validity);
@@ -220,11 +244,24 @@ namespace Org.BouncyCastle.X509
         public void AddExtension(DerObjectIdentifier oid, bool critical, byte[] extensionValue) =>
             extGenerator.AddExtension(oid, critical, DerOctetString.FromContents(extensionValue));
 
+        /// <summary>
+        /// Adds a pre-built extension value to this certificate.
+        /// </summary>
+        /// <param name="oid">The extension object identifier.</param>
+        /// <param name="x509Extension">The extension, including criticality flag and value.</param>
         public void AddExtension(DerObjectIdentifier oid, X509Extension x509Extension) =>
             extGenerator.AddExtension(oid, x509Extension);
 
+        /// <summary>
+        /// Adds a parsed ASN.1 extension to this certificate.
+        /// </summary>
+        /// <param name="extension">The extension to add.</param>
         public void AddExtension(Asn1.X509.Extension extension) => extGenerator.AddExtension(extension);
 
+        /// <summary>
+        /// Adds all extensions from an <see cref="X509Extensions"/> collection.
+        /// </summary>
+        /// <param name="extensions">The extensions to copy into this certificate.</param>
         public void AddExtensions(X509Extensions extensions) => extGenerator.AddExtensions(extensions);
 
         /// <summary>
@@ -239,6 +276,12 @@ namespace Org.BouncyCastle.X509
         /// Add a given extension field for the standard extensions tag (tag 3),
         /// copying the extension value from another certificate.
         /// </summary>
+        /// <param name="oid">The extension object identifier.</param>
+        /// <param name="critical"><c>true</c> if the copied extension should be marked critical.</param>
+        /// <param name="cert">The certificate to copy the extension value from.</param>
+        /// <exception cref="CertificateParsingException">
+        /// <paramref name="cert"/> does not contain an extension with the given OID.
+        /// </exception>
         public void CopyAndAddExtension(DerObjectIdentifier oid, bool critical, X509Certificate cert)
         {
             X509Extension ext = cert.GetExtension(oid) ??
