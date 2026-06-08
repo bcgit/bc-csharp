@@ -11,7 +11,9 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.X509
 {
 	/// <summary>
-	/// Class to Generate X509V1 Certificates.
+	/// Generator for X.509 version 1 certificates as defined in RFC 5280.
+	/// Builds the TBSCertificate structure and signs the result via
+	/// <see cref="Generate(ISignatureFactory)"/>.
 	/// </summary>
 	public class X509V1CertificateGenerator
 	{
@@ -36,9 +38,14 @@ namespace Org.BouncyCastle.X509
 		/// <summary>
 		/// Set the certificate's serial number.
 		/// </summary>
-		/// <remarks>Make serial numbers long, if you have no serial number policy make sure the number is at least 16 bytes of secure random data.
-		/// You will be surprised how ugly a serial number collision can get.</remarks>
+		/// <remarks>
+		/// Make serial numbers long; if you have no serial number policy make sure the number is at least
+		/// 16 bytes of secure random data. You will be surprised how ugly a serial number collision can get.
+		/// </remarks>
 		/// <param name="serialNumber">The serial number.</param>
+		/// <exception cref="ArgumentException">
+		/// <paramref name="serialNumber"/> is not a positive integer.
+		/// </exception>
 		public void SetSerialNumber(
 			BigInteger serialNumber)
 		{
@@ -59,8 +66,12 @@ namespace Org.BouncyCastle.X509
 			X509Name issuer)
 		{
 			tbsGen.SetIssuer(issuer);
-		}
+        }
 
+        /// <summary>
+        /// Sets the certificate validity period from a pre-built <see cref="Validity"/> structure.
+        /// </summary>
+        /// <param name="validity">The not-before and not-after times.</param>
         public void SetValidity(Validity validity)
         {
             tbsGen.SetValidity(validity);
@@ -101,6 +112,9 @@ namespace Org.BouncyCastle.X509
         /// Set the public key that this certificate identifies.
         /// </summary>
         /// <param name="publicKey"/>
+        /// <exception cref="ArgumentException">
+        /// The public key could not be encoded as <see cref="SubjectPublicKeyInfo"/>.
+        /// </exception>
 		public void SetPublicKey(
 			AsymmetricKeyParameter publicKey)
 		{
