@@ -66,7 +66,9 @@ namespace Org.BouncyCastle.Crypto.Generators
         {
             if (salt == null)
             {
-                // TODO check if hashLen is indeed same as HMAC size
+                // RFC 5869 sec. 2.2: when no salt is provided it defaults to HashLen zero octets,
+                // where HashLen is the hash output length. hashLen is exactly that length
+                // (hash.GetDigestSize()), which for an HMac also equals its GetMacSize().
                 hMacHash.Init(new KeyParameter(new byte[hashLen]));
             }
             else
