@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             Assert.True(IsValidUtcTime("5001010000Z"));         // no seconds, Z
             Assert.True(IsValidUtcTime("500101000000Z"));       // seconds, Z
             Assert.True(IsValidUtcTime("5001010000+0500"));     // no seconds, offset
+            Assert.True(IsValidUtcTime("5001010000+0530"));     // no seconds, offset
             Assert.True(IsValidUtcTime("500101000000-0830"));   // seconds, offset
             Assert.True(IsValidUtcTime("991231235959Z"));       // boundary fields
             Assert.True(IsValidUtcTime("000101120000Z"));       // year 00 is fine
@@ -35,6 +36,8 @@ namespace Org.BouncyCastle.Asn1.Tests
             Assert.False(IsValidUtcTime("240101006000Z"));      // minute 60
             Assert.False(IsValidUtcTime("240101000060Z"));      // second 60
             Assert.False(IsValidUtcTime("240101000000+2460"));  // offset minute 60
+            Assert.False(IsValidUtcTime("5001010000+05"));      // no seconds, offset (no minutes)
+            Assert.False(IsValidUtcTime("500101000000+05"));    // seconds, offset (no minutes)
         }
 
         [Test]
