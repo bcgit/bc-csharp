@@ -117,7 +117,6 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
             private byte[] msgDigestBuf;
             private IDigest sha256;
             private byte[] sha256Buf;
-            private byte[] compressedAdrs = new byte[22];
 
             private IMemoable msgMemo;
             private IMemoable sha256Memo;
@@ -163,11 +162,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
             public override void F(Adrs adrs, byte[] m1, int m1Off)
             {
-                CompressedAdrs(adrs);
-
                 ((IMemoable)sha256).Reset(sha256Memo);
 
-                sha256.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
+                UpdateCompressedAdrs(sha256, adrs);
                 sha256.BlockUpdate(m1, m1Off, N);
                 sha256.DoFinal(sha256Buf, 0);
 
@@ -176,11 +173,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
             public override void H1(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off)
             {
-                CompressedAdrs(adrs);
-
                 ((IMemoable)msgDigest).Reset(msgMemo);
 
-                msgDigest.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
+                UpdateCompressedAdrs(msgDigest, adrs);
                 msgDigest.BlockUpdate(m1, m1Off, N);
                 msgDigest.BlockUpdate(m2, m2Off, N);
                 msgDigest.DoFinal(msgDigestBuf, 0);
@@ -190,11 +185,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
             public override void H2(Adrs adrs, byte[] m1, int m1Off, byte[] m2, int m2Off)
             {
-                CompressedAdrs(adrs);
-
                 ((IMemoable)msgDigest).Reset(msgMemo);
 
-                msgDigest.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
+                UpdateCompressedAdrs(msgDigest, adrs);
                 msgDigest.BlockUpdate(m1, m1Off, N);
                 msgDigest.BlockUpdate(m2, m2Off, N);
                 msgDigest.DoFinal(msgDigestBuf, 0);
@@ -243,11 +236,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
             public override void T_l(Adrs adrs, byte[] m, byte[] output, int outputOff)
             {
-                CompressedAdrs(adrs);
-
                 ((IMemoable)msgDigest).Reset(msgMemo);
 
-                msgDigest.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
+                UpdateCompressedAdrs(msgDigest, adrs);
                 msgDigest.BlockUpdate(m, 0, m.Length);
                 msgDigest.DoFinal(msgDigestBuf, 0);
 
@@ -256,11 +247,9 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
 
             public override void Prf(Adrs adrs, byte[] skSeed, byte[] prf, int prfOff)
             {
-                CompressedAdrs(adrs);
-
                 ((IMemoable)sha256).Reset(sha256Memo);
 
-                sha256.BlockUpdate(compressedAdrs, 0, compressedAdrs.Length);
+                UpdateCompressedAdrs(sha256, adrs);
                 sha256.BlockUpdate(skSeed, 0, N);
                 sha256.DoFinal(sha256Buf, 0);
 
@@ -278,12 +267,15 @@ namespace Org.BouncyCastle.Crypto.Signers.SlhDsa
                 Array.Copy(hmacBuf, 0, r, rOff, N);
             }
 
-            private void CompressedAdrs(Adrs adrs)
+            // Absorbs the 22-byte compressed ADRS directly into the digest, instead of the byte[22] [per-instance]
+            // scratch + array copies the explicit <c>CompressedAdrs()</c> build used.
+            private static void UpdateCompressedAdrs(IDigest digest, Adrs adrs)
             {
-                Array.Copy(adrs.Value, Adrs.OffsetLayer + 3, compressedAdrs, 0, 1); // LSB layer address
-                Array.Copy(adrs.Value, Adrs.OffsetTree + 4, compressedAdrs, 1, 8); // LS 8 bytes Tree address
-                Array.Copy(adrs.Value, Adrs.OffsetType + 3, compressedAdrs, 9, 1); // LSB type
-                Array.Copy(adrs.Value, 20, compressedAdrs, 10, 12);
+                byte[] value = adrs.Value;
+                digest.Update(value[Adrs.OffsetLayer + 3]);         // LSB layer address
+                digest.BlockUpdate(value, Adrs.OffsetTree + 4, 8);  // LS 8 bytes Tree address
+                digest.Update(value[Adrs.OffsetType + 3]);          // LSB type
+                digest.BlockUpdate(value, 20, 12);
             }
         }
 
