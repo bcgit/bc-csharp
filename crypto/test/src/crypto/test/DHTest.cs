@@ -356,5 +356,22 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.AreEqual(Name + ": Okay", resultText);
         }
+
+        [Test, Explicit]
+        public void BenchGenerateParameters256() => ImplBenchGenerateParameters(256, 100);
+
+        [Test, Explicit]
+        public void BenchGenerateParameters512() => ImplBenchGenerateParameters(512, 100);
+
+        private static void ImplBenchGenerateParameters(int size, int count)
+        {
+            var generator = new DHParametersGenerator();
+            generator.Init(size, 100, new SecureRandom());
+
+            for (int i = 0; i < count; ++i)
+            {
+                generator.GenerateParameters();
+            }
+        }
     }
 }
