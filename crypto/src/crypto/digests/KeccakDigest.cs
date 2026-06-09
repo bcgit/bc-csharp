@@ -1,7 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+#endif
 
 using Org.BouncyCastle.Crypto.Utilities;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using Org.BouncyCastle.Math.Raw;
+#endif
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
@@ -339,12 +346,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 
                 if (outputLength <= availableBits)
                 {
-                    Array.Copy(dataQueue, dataQueuePos, output, offset, (int)outputLength >> 3);
+                    SqueezePartialState(dataQueuePos, (int)outputLength >> 3, output, offset);
                     bitsInQueue -= (int)outputLength;
                     return;
                 }
 
-                Array.Copy(dataQueue, dataQueuePos, output, offset, availableBits >> 3);
+                SqueezePartialState(dataQueuePos, availableBits >> 3, output, offset);
                 offset += availableBits >> 3;
                 outputLength -= availableBits;
                 bitsInQueue = 0;
@@ -353,7 +360,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             while (outputLength >= rate)
             {
                 KeccakPermutation(state);
-                Pack.UInt64_To_LE(state, 0, rate >> 6, output, offset);
+                SqueezeFullState(output, offset);
                 offset += rate >> 3;
                 outputLength -= rate;
             }
@@ -361,8 +368,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             if (outputLength > 0)
             {
                 KeccakPermutation(state);
-                Pack.UInt64_To_LE(state, 0, rate >> 6, dataQueue, 0);
-                Array.Copy(dataQueue, 0, output, offset, (int)outputLength >> 3);
+                SqueezePartialState(0, (int)outputLength >> 3, output, offset);
                 bitsInQueue = rate - (int)outputLength;
             }
         }
@@ -383,12 +389,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 
                 if (output.Length <= available)
                 {
-                    output.CopyFrom(dataQueue.AsSpan(dataQueuePos));
+                    SqueezePartialState(dataQueuePos, output.Length, output);
                     bitsInQueue -= output.Length << 3;
                     return;
                 }
 
-                output[..available].CopyFrom(dataQueue.AsSpan(dataQueuePos));
+                SqueezePartialState(dataQueuePos, available, output);
                 output = output[available..];
                 bitsInQueue = 0;
             }
@@ -396,16 +402,76 @@ namespace Org.BouncyCastle.Crypto.Digests
             while (output.Length >= rateBytes)
             {
                 KeccakPermutation(state);
-                Pack.UInt64_To_LE(state[..(rate >> 6)], output);
+                SqueezeFullState(output);
                 output = output[rateBytes..];
             }
 
             if (!output.IsEmpty)
             {
                 KeccakPermutation(state);
-                Pack.UInt64_To_LE(state, 0, rate >> 6, dataQueue, 0);
-                output.CopyFrom(dataQueue);
+                SqueezePartialState(0, output.Length, output);
                 bitsInQueue = rate - (output.Length << 3);
+            }
+        }
+#endif
+
+        private void EnsureQueuePacked(int byteOff, int byteLen)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            if (BitConverter.IsLittleEndian)
+                return;
+#endif
+
+            int from = (byteOff + 7) / 8;
+            int to = (byteOff + byteLen + 7) / 8;
+            Pack.UInt64_To_LE(state, from, to - from, dataQueue, from * 8);
+        }
+
+        private void SqueezeFullState(byte[] output, int outputOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            SqueezeFullState(output.AsSpan(outputOff));
+#else
+            Pack.UInt64_To_LE(state, 0, rate >> 6, output, outputOff);
+#endif
+        }
+
+        private void SqueezePartialState(int byteOff, int byteLen, byte[] output, int outputOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            SqueezePartialState(byteOff, byteLen, output.AsSpan(outputOff));
+#else
+            EnsureQueuePacked(byteOff, byteLen);
+            Array.Copy(dataQueue, byteOff, output, outputOff, byteLen);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SqueezeFullState(Span<byte> output)
+        {
+            var fullState = state.AsSpan(0, rate >> 6);
+            if (BitConverter.IsLittleEndian)
+            {
+                MemoryMarshal.AsBytes(fullState).CopyTo(output);
+            }
+            else
+            {
+                Pack.UInt64_To_LE(fullState, output);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SqueezePartialState(int byteOff, int byteLen, Span<byte> output)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                MemoryMarshal.AsBytes(state.AsSpan()).Slice(byteOff, byteLen).CopyTo(output);
+            }
+            else
+            {
+                EnsureQueuePacked(byteOff, byteLen);
+                dataQueue.AsSpan(byteOff, byteLen).CopyTo(output);
             }
         }
 #endif
@@ -413,11 +479,18 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void KeccakAbsorb(ReadOnlySpan<byte> data)
         {
-            int count = rate >> 6, off = 0;
-            for (int i = 0; i < count; ++i)
+            if (BitConverter.IsLittleEndian)
             {
-                state[i] ^= Pack.LE_To_UInt64(data[off..]);
-                off += 8;
+                Nat.XorTo64(rate >> 6, MemoryMarshal.Cast<byte, ulong>(data), state);
+            }
+            else
+            {
+                int count = rate >> 6, off = 0;
+                for (int i = 0; i < count; ++i)
+                {
+                    state[i] ^= Pack.LE_To_UInt64(data[off..]);
+                    off += 8;
+                }
             }
 
             KeccakPermutation(state);
