@@ -488,6 +488,24 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 #endif
 
+        private static void ExpandPrivateKey(IDigest d, byte[] sk, int skOff, byte[] h, int hOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ExpandPrivateKey(d, sk.AsSpan(skOff), h.AsSpan(hOff));
+#else
+            d.BlockUpdate(sk, skOff, SecretKeySize);
+            d.DoFinal(h, hOff);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void ExpandPrivateKey(IDigest d, ReadOnlySpan<byte> sk, Span<byte> h)
+        {
+            d.BlockUpdate(sk[..SecretKeySize]);
+            d.DoFinal(h);
+        }
+#endif
+
         private static PublicPoint ExportPoint(ref PointAffine p)
         {
             int[] data = new int[F.Size * 2];
@@ -525,8 +543,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             byte[] h = new byte[DigestSize];
 
-            d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0);
+            ExpandPrivateKey(d, sk, skOff, h, 0);
 
             byte[] s = new byte[ScalarBytes];
             PruneScalar(h, 0, s);
@@ -541,8 +558,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             Span<byte> h = stackalloc byte[DigestSize];
 
-            d.BlockUpdate(sk[..SecretKeySize]);
-            d.DoFinal(h);
+            ExpandPrivateKey(d, sk, h);
 
             Span<byte> s = stackalloc byte[ScalarBytes];
             PruneScalar(h, s);
@@ -559,11 +575,31 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             byte[] h = new byte[DigestSize];
 
-            d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0);
+            ExpandPrivateKey(d, sk, skOff, h, 0);
 
+            return GeneratePublicPoint(h, 0);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public static PublicPoint GeneratePublicKey(ReadOnlySpan<byte> sk)
+        {
+            IDigest d = CreateDigest();
+            Span<byte> h = stackalloc byte[DigestSize];
+
+            ExpandPrivateKey(d, sk, h);
+
+            return GeneratePublicPoint(h);
+        }
+#endif
+
+        private static PublicPoint GeneratePublicPoint(byte[] h, int hOff)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return GeneratePublicPoint(h.AsSpan(hOff));
+#else
             byte[] s = new byte[ScalarBytes];
-            PruneScalar(h, 0, s);
+            PruneScalar(h, hOff, s);
 
             Init(out PointAccum p);
             ScalarMultBase(s, ref p);
@@ -579,14 +615,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static PublicPoint GeneratePublicKey(ReadOnlySpan<byte> sk)
+        public static PublicPoint GeneratePublicPoint(ReadOnlySpan<byte> h)
         {
-            IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[64];
-
-            d.BlockUpdate(sk[..SecretKeySize]);
-            d.DoFinal(h);
-
             Span<byte> s = stackalloc byte[ScalarBytes];
             PruneScalar(h, s);
 
@@ -708,8 +738,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             byte[] h = new byte[DigestSize];
 
-            d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0);
+            ExpandPrivateKey(d, sk, skOff, h, 0);
 
             byte[] s = new byte[ScalarBytes];
             PruneScalar(h, 0, s);
@@ -731,8 +760,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             Span<byte> h = stackalloc byte[DigestSize];
 
-            d.BlockUpdate(sk);
-            d.DoFinal(h);
+            ExpandPrivateKey(d, sk, h);
 
             Span<byte> s = stackalloc byte[ScalarBytes];
             PruneScalar(h, s);
@@ -757,8 +785,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             byte[] h = new byte[DigestSize];
 
-            d.BlockUpdate(sk, skOff, SecretKeySize);
-            d.DoFinal(h, 0);
+            ExpandPrivateKey(d, sk, skOff, h, 0);
 
             byte[] s = new byte[ScalarBytes];
             PruneScalar(h, 0, s);
@@ -777,8 +804,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             IDigest d = CreateDigest();
             Span<byte> h = stackalloc byte[DigestSize];
 
-            d.BlockUpdate(sk);
-            d.DoFinal(h);
+            ExpandPrivateKey(d, sk, h);
 
             Span<byte> s = stackalloc byte[ScalarBytes];
             PruneScalar(h, s);
@@ -1639,23 +1665,41 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
         }
 
-        private static void PruneScalar(byte[] n, int nOff, byte[] r)
+        private static void PruneScalar(byte[] s, int sOff)
         {
-            Array.Copy(n, nOff, r, 0, ScalarBytes);
-
-            r[0] &= 0xF8;
-            r[ScalarBytes - 1] &= 0x7F;
-            r[ScalarBytes - 1] |= 0x40;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            PruneScalar(s.AsSpan(sOff));
+#else
+            s[sOff                  ] &= 0xF8;
+            s[sOff + ScalarBytes - 1] &= 0x7F;
+            s[sOff + ScalarBytes - 1] |= 0x40;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private static void PruneScalar(ReadOnlySpan<byte> n, Span<byte> r)
+        private static void PruneScalar(Span<byte> s)
         {
-            n[..ScalarBytes].CopyTo(r);
+            s[0              ] &= 0xF8;
+            s[ScalarBytes - 1] &= 0x7F;
+            s[ScalarBytes - 1] |= 0x40;
+        }
+#endif
 
-            r[0] &= 0xF8;
-            r[ScalarBytes - 1] &= 0x7F;
-            r[ScalarBytes - 1] |= 0x40;
+        private static void PruneScalar(byte[] n, int nOff, byte[] s)
+        {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            PruneScalar(n.AsSpan(nOff), s.AsSpan());
+#else
+            Array.Copy(n, nOff, s, 0, ScalarBytes);
+            PruneScalar(s, 0);
+#endif
+        }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static void PruneScalar(ReadOnlySpan<byte> n, Span<byte> s)
+        {
+            n[..ScalarBytes].CopyTo(s);
+            PruneScalar(s);
         }
 #endif
 
@@ -1784,11 +1828,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ScalarMultBaseYZ(k.AsSpan(kOff), y.AsSpan(), z.AsSpan());
 #else
-            byte[] n = new byte[ScalarBytes];
-            PruneScalar(k, kOff, n);
+            byte[] s = new byte[ScalarBytes];
+            PruneScalar(k, kOff, s);
 
             Init(out PointAccum p);
-            ScalarMultBase(n, ref p);
+            ScalarMultBase(s, ref p);
 
             if (0 == CheckPoint(p))
                 throw new InvalidOperationException();
@@ -2407,5 +2451,202 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return ImplVerify(sig, publicPoint, ctx, phflag: 0x01, m);
         }
 #endif
+
+        /// <summary>Methods that work with expanded format for private keys (xk/xkOff) i.e. SHA-512(seed).</summary>
+        public static class ExpandedKey
+        {
+            public static readonly int ExpandedKeySize = DigestSize;
+
+            public static void ExpandPrivateKey(byte[] sk, int skOff, byte[] xk, int xkOff)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                ExpandPrivateKey(sk.AsSpan(skOff, SecretKeySize), xk.AsSpan(xkOff, ExpandedKeySize));
+#else
+                IDigest d = CreateDigest();
+                Ed25519.ExpandPrivateKey(d, sk, skOff, xk, xkOff);
+#endif
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public static void ExpandPrivateKey(ReadOnlySpan<byte> sk, Span<byte> xk)
+            {
+                if (sk.Length != SecretKeySize)
+                    throw new ArgumentException(nameof(sk));
+                if (xk.Length != ExpandedKeySize)
+                    throw new ArgumentException(nameof(xk));
+
+                IDigest d = CreateDigest();
+                Ed25519.ExpandPrivateKey(d, sk, xk);
+            }
+#endif
+
+            public static void GeneratePrivateKey(SecureRandom random, byte[] xk, int xkOff)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                GeneratePrivateKey(random, xk.AsSpan(xkOff, ExpandedKeySize));
+#else
+                byte[] k = new byte[SecretKeySize];
+                Ed25519.GeneratePrivateKey(random, k);
+                ExpandPrivateKey(k, 0, xk, xkOff);
+#endif
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public static void GeneratePrivateKey(SecureRandom random, Span<byte> xk)
+            {
+                if (xk.Length != ExpandedKeySize)
+                    throw new ArgumentException(nameof(xk));
+
+                Span<byte> k = stackalloc byte[SecretKeySize];
+                Ed25519.GeneratePrivateKey(random, k);
+                ExpandPrivateKey(k, xk);
+            }
+#endif
+
+            public static void GeneratePublicKey(byte[] xk, int xkOff, byte[] pk, int pkOff)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                GeneratePublicKey(xk.AsSpan(xkOff, ExpandedKeySize), pk.AsSpan(pkOff, PublicKeySize));
+#else
+                byte[] s = new byte[ScalarBytes];
+                PruneScalar(xk, xkOff, s);
+
+                ScalarMultBaseEncoded(s, pk, pkOff);
+#endif
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public static void GeneratePublicKey(ReadOnlySpan<byte> xk, Span<byte> pk)
+            {
+                if (xk.Length != ExpandedKeySize)
+                    throw new ArgumentException(nameof(xk));
+                if (pk.Length != PublicKeySize)
+                    throw new ArgumentException(nameof(pk));
+
+                Span<byte> s = stackalloc byte[ScalarBytes];
+                PruneScalar(xk, s);
+
+                ScalarMultBaseEncoded(s, pk);
+            }
+#endif
+
+            public static PublicPoint GeneratePublicKey(byte[] xk, int xkOff)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                return GeneratePublicKey(xk.AsSpan(xkOff, ExpandedKeySize));
+#else
+                return Ed25519.GeneratePublicPoint(xk, xkOff);
+#endif
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public static PublicPoint GeneratePublicKey(ReadOnlySpan<byte> xk)
+            {
+                if (xk.Length != ExpandedKeySize)
+                    throw new ArgumentException(nameof(xk));
+
+                return Ed25519.GeneratePublicPoint(xk);
+            }
+#endif
+
+            public static void Prune(byte[] xk, int xkOff)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                PruneScalar(xk.AsSpan(xkOff, ExpandedKeySize));
+#else
+                PruneScalar(xk, xkOff);
+#endif
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public static void Prune(Span<byte> xk)
+            {
+                if (xk.Length != ExpandedKeySize)
+                    throw new ArgumentException(nameof(xk));
+
+                PruneScalar(xk);
+            }
+#endif
+
+            public static void Sign(byte[] xk, int xkOff, byte[] m, int mOff, int mLen, byte[] sig, int sigOff)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Sign(xk.AsSpan(xkOff, ExpandedKeySize), m.AsSpan(mOff, mLen), sig.AsSpan(sigOff, SignatureSize));
+#else
+                IDigest d = CreateDigest();
+                byte[] h = new byte[DigestSize];
+                Array.Copy(xk, xkOff, h, 0, DigestSize);
+
+                byte[] s = new byte[ScalarBytes];
+                PruneScalar(h, 0, s);
+
+                byte[] pk = new byte[PointBytes];
+                ScalarMultBaseEncoded(s, pk, 0);
+
+                ImplSign(d, h, s, pk, 0, ctx: null, phflag: 0x00, m, mOff, mLen, sig, sigOff);
+#endif
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public static void Sign(ReadOnlySpan<byte> xk, ReadOnlySpan<byte> m, Span<byte> sig)
+            {
+                if (xk.Length != ExpandedKeySize)
+                    throw new ArgumentException(nameof(xk));
+                if (sig.Length != SignatureSize)
+                    throw new ArgumentException(nameof(sig));
+
+                IDigest d = CreateDigest();
+                Span<byte> h = stackalloc byte[DigestSize];
+                xk.CopyTo(h);
+
+                Span<byte> s = stackalloc byte[ScalarBytes];
+                PruneScalar(h, s);
+
+                Span<byte> pk = stackalloc byte[PointBytes];
+                ScalarMultBaseEncoded(s, pk);
+
+                ImplSign(d, h, s, pk, ctx: null, phflag: 0x00, m, sig);
+            }
+#endif
+
+            public static void Sign(byte[] xk, int xkOff, byte[] pk, int pkOff, byte[] m, int mOff, int mLen,
+                byte[] sig, int sigOff)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Sign(xk.AsSpan(xkOff, ExpandedKeySize), pk.AsSpan(pkOff, PublicKeySize),
+                    m.AsSpan(mOff, mLen), sig.AsSpan(sigOff, SignatureSize));
+#else
+                IDigest d = CreateDigest();
+                byte[] h = new byte[DigestSize];
+                Array.Copy(xk, xkOff, h, 0, DigestSize);
+
+                byte[] s = new byte[ScalarBytes];
+                PruneScalar(h, 0, s);
+
+                ImplSign(d, h, s, pk, pkOff, ctx: null, phflag: 0x00, m, mOff, mLen, sig, sigOff);
+#endif
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public static void Sign(ReadOnlySpan<byte> xk, ReadOnlySpan<byte> pk, ReadOnlySpan<byte> m, Span<byte> sig)
+            {
+                if (xk.Length != ExpandedKeySize)
+                    throw new ArgumentException(nameof(xk));
+                if (pk.Length != PublicKeySize)
+                    throw new ArgumentException(nameof(pk));
+                if (sig.Length != SignatureSize)
+                    throw new ArgumentException(nameof(sig));
+
+                IDigest d = CreateDigest();
+                Span<byte> h = stackalloc byte[DigestSize];
+                xk.CopyTo(h);
+
+                Span<byte> s = stackalloc byte[ScalarBytes];
+                PruneScalar(h, s);
+
+                ImplSign(d, h, s, pk, ctx: null, phflag: 0x00, m, sig);
+            }
+#endif
+        }
     }
 }

@@ -78,6 +78,63 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         }
 
         [Test]
+        public void TestEd25519ConsistencyExpandedKey()
+        {
+            byte[] xk = new byte[Ed25519.ExpandedKey.ExpandedKeySize];
+            byte[] pk = new byte[Ed25519.PublicKeySize];
+            byte[] pk2 = new byte[Ed25519.PublicKeySize];
+            byte[] m = new byte[255];
+            byte[] sig1 = new byte[Ed25519.SignatureSize];
+            byte[] sig2 = new byte[Ed25519.SignatureSize];
+
+            Random.NextBytes(m);
+
+            for (int i = 0; i < 10; ++i)
+            {
+                Ed25519.ExpandedKey.GeneratePrivateKey(Random, xk, 0);
+                var publicPoint = Ed25519.ExpandedKey.GeneratePublicKey(xk, 0);
+                Ed25519.EncodePublicPoint(publicPoint, pk, 0);
+
+                {
+                    Ed25519.ExpandedKey.GeneratePublicKey(xk, 0, pk2, 0);
+
+                    Assert.IsTrue(Arrays.AreEqual(pk, pk2), "Ed25519.ExpandedKey consistent generation #" + i);
+                }
+
+                int mLen = Random.NextInt() & 255;
+
+                Ed25519.ExpandedKey.Sign(xk, 0, m, 0, mLen, sig1, 0);
+                Ed25519.ExpandedKey.Sign(xk, 0, pk, 0, m, 0, mLen, sig2, 0);
+
+                Assert.IsTrue(Arrays.AreEqual(sig1, sig2), "Ed25519.ExpandedKey consistent signatures #" + i);
+
+                {
+                    bool shouldVerify = Ed25519.Verify(sig1, 0, pk, 0, m, 0, mLen);
+
+                    Assert.IsTrue(shouldVerify, "Ed25519.ExpandedKey consistent sign/verify #" + i);
+                }
+                {
+                    bool shouldVerify = Ed25519.Verify(sig1, 0, publicPoint, m, 0, mLen);
+
+                    Assert.IsTrue(shouldVerify, "Ed25519.ExpandedKey consistent sign/verify #" + i);
+                }
+
+                sig1[Ed25519.PublicKeySize - 1] ^= 0x80;
+
+                {
+                    bool shouldNotVerify = Ed25519.Verify(sig1, 0, pk, 0, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed25519.ExpandedKey consistent verification failure #" + i);
+                }
+                {
+                    bool shouldNotVerify = Ed25519.Verify(sig1, 0, publicPoint, m, 0, mLen);
+
+                    Assert.IsFalse(shouldNotVerify, "Ed25519.ExpandedKey consistent verification failure #" + i);
+                }
+            }
+        }
+
+        [Test]
         public void TestEd25519ctxConsistency()
         {
             byte[] sk = new byte[Ed25519.SecretKeySize];
