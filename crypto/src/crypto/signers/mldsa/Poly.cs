@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Signers.MLDsa
         {
             for (int i = 0; i < N; ++i)
             {
-                m_coeffs[i] = Reduce.MontgomeryReduce((long)((long)v.m_coeffs[i] * (long)w.m_coeffs[i]));
+                m_coeffs[i] = Reduce.MontgomeryReduce((long)v.m_coeffs[i] * (long)w.m_coeffs[i]);
             }
         }
 
