@@ -55,7 +55,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int ScalarUints = 8;
         private const int ScalarBytes = ScalarUints * 4;
 
-        public static readonly int PrehashSize = 64;
+        private const int DigestSize = 64;
+        public static readonly int PrehashSize = DigestSize;
         public static readonly int PublicKeySize = PointBytes;
         public static readonly int SecretKeySize = 32;
         public static readonly int SignatureSize = PointBytes + ScalarBytes;
@@ -356,7 +357,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private static IDigest CreateDigest()
         {
             var d = new Sha512Digest();
-            if (d.GetDigestSize() != 64)
+            if (d.GetDigestSize() != DigestSize)
                 throw new InvalidOperationException();
             return d;
         }
@@ -522,7 +523,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             GeneratePublicKey(sk.AsSpan(skOff), pk.AsSpan(pkOff));
 #else
             IDigest d = CreateDigest();
-            byte[] h = new byte[64];
+            byte[] h = new byte[DigestSize];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
             d.DoFinal(h, 0);
@@ -538,7 +539,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static void GeneratePublicKey(ReadOnlySpan<byte> sk, Span<byte> pk)
         {
             IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[64];
+            Span<byte> h = stackalloc byte[DigestSize];
 
             d.BlockUpdate(sk[..SecretKeySize]);
             d.DoFinal(h);
@@ -556,7 +557,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return GeneratePublicKey(sk.AsSpan(skOff));
 #else
             IDigest d = CreateDigest();
-            byte[] h = new byte[64];
+            byte[] h = new byte[DigestSize];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
             d.DoFinal(h, 0);
@@ -705,7 +706,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IDigest d = CreateDigest();
-            byte[] h = new byte[64];
+            byte[] h = new byte[DigestSize];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
             d.DoFinal(h, 0);
@@ -728,7 +729,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[64];
+            Span<byte> h = stackalloc byte[DigestSize];
 
             d.BlockUpdate(sk);
             d.DoFinal(h);
@@ -754,7 +755,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IDigest d = CreateDigest();
-            byte[] h = new byte[64];
+            byte[] h = new byte[DigestSize];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
             d.DoFinal(h, 0);
@@ -774,7 +775,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[64];
+            Span<byte> h = stackalloc byte[DigestSize];
 
             d.BlockUpdate(sk);
             d.DoFinal(h);
@@ -819,7 +820,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 return false;
 
             IDigest d = CreateDigest();
-            byte[] h = new byte[64];
+            byte[] h = new byte[DigestSize];
 
             if (ctx != null)
             {
@@ -880,7 +881,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 return false;
 
             IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[64];
+            Span<byte> h = stackalloc byte[DigestSize];
 
             if (ctx != null)
             {
@@ -942,7 +943,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             EncodePublicPoint(publicPoint, A, 0);
 
             IDigest d = CreateDigest();
-            byte[] h = new byte[64];
+            byte[] h = new byte[DigestSize];
 
             if (ctx != null)
             {
@@ -1001,7 +1002,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             EncodePublicPoint(publicPoint, A);
 
             IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[64];
+            Span<byte> h = stackalloc byte[DigestSize];
 
             if (ctx != null)
             {

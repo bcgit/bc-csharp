@@ -52,6 +52,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         private const int ScalarUints = 14;
         private const int ScalarBytes = ScalarUints * 4 + 1;
 
+        private const int XofSize = ScalarBytes * 2;
         public static readonly int PrehashSize = 64;
         public static readonly int PublicKeySize = PointBytes;
         public static readonly int SecretKeySize = 57;
@@ -131,7 +132,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
             Nat.MulAddTo(ScalarUints, u, v, t);
 
-            byte[] result = new byte[ScalarBytes * 2];
+            byte[] result = new byte[XofSize];
             Codec.Encode32(t, 0, t.Length, result, 0);
             return Scalar448.Reduce912(result);
 #endif
@@ -153,7 +154,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             }
             else
             {
-                Span<byte> result = stackalloc byte[ScalarBytes * 2];
+                Span<byte> result = stackalloc byte[XofSize];
                 Codec.Encode32(t, result);
                 Scalar448.Reduce912(result, S);
             }
@@ -495,7 +496,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             GeneratePublicKey(sk.AsSpan(skOff), pk.AsSpan(pkOff));
 #else
             IXof d = CreateXof();
-            byte[] h = new byte[ScalarBytes * 2];
+            byte[] h = new byte[XofSize];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
             d.OutputFinal(h, 0, h.Length);
@@ -511,7 +512,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static void GeneratePublicKey(ReadOnlySpan<byte> sk, Span<byte> pk)
         {
             IXof d = CreateXof();
-            Span<byte> h = stackalloc byte[ScalarBytes * 2];
+            Span<byte> h = stackalloc byte[XofSize];
 
             d.BlockUpdate(sk[..SecretKeySize]);
             d.OutputFinal(h);
@@ -529,7 +530,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return GeneratePublicKey(sk.AsSpan(skOff));
 #else
             IXof d = CreateXof();
-            byte[] h = new byte[ScalarBytes * 2];
+            byte[] h = new byte[XofSize];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
             d.OutputFinal(h, 0, h.Length);
@@ -554,7 +555,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static PublicPoint GeneratePublicKey(ReadOnlySpan<byte> sk)
         {
             IXof d = CreateXof();
-            Span<byte> h = stackalloc byte[ScalarBytes * 2];
+            Span<byte> h = stackalloc byte[XofSize];
 
             d.BlockUpdate(sk[..SecretKeySize]);
             d.OutputFinal(h);
@@ -650,7 +651,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IXof d = CreateXof();
-            byte[] h = new byte[ScalarBytes * 2];
+            byte[] h = new byte[XofSize];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
             d.OutputFinal(h, 0, h.Length);
@@ -673,7 +674,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IXof d = CreateXof();
-            Span<byte> h = stackalloc byte[ScalarBytes * 2];
+            Span<byte> h = stackalloc byte[XofSize];
 
             d.BlockUpdate(sk);
             d.OutputFinal(h);
@@ -699,7 +700,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IXof d = CreateXof();
-            byte[] h = new byte[ScalarBytes * 2];
+            byte[] h = new byte[XofSize];
 
             d.BlockUpdate(sk, skOff, SecretKeySize);
             d.OutputFinal(h, 0, h.Length);
@@ -719,7 +720,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IXof d = CreateXof();
-            Span<byte> h = stackalloc byte[ScalarBytes * 2];
+            Span<byte> h = stackalloc byte[XofSize];
 
             d.BlockUpdate(sk);
             d.OutputFinal(h);
@@ -764,7 +765,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 return false;
 
             IXof d = CreateXof();
-            byte[] h = new byte[ScalarBytes * 2];
+            byte[] h = new byte[XofSize];
 
             Dom4(d, phflag, ctx);
             d.BlockUpdate(R, 0, PointBytes);
@@ -822,7 +823,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 return false;
 
             IXof d = CreateXof();
-            Span<byte> h = stackalloc byte[ScalarBytes * 2];
+            Span<byte> h = stackalloc byte[XofSize];
 
             Dom4(d, phflag, ctx);
             d.BlockUpdate(R);
@@ -881,7 +882,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             EncodePublicPoint(publicPoint, A, 0);
 
             IXof d = CreateXof();
-            byte[] h = new byte[ScalarBytes * 2];
+            byte[] h = new byte[XofSize];
 
             Dom4(d, phflag, ctx);
             d.BlockUpdate(R, 0, PointBytes);
@@ -937,7 +938,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             EncodePublicPoint(publicPoint, A);
 
             IXof d = CreateXof();
-            Span<byte> h = stackalloc byte[ScalarBytes * 2];
+            Span<byte> h = stackalloc byte[XofSize];
 
             Dom4(d, phflag, ctx);
             d.BlockUpdate(R);
