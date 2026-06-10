@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             Ed25519.Precompute();
         }
 
-		[Test]
+        [Test]
         public void TestEd25519Consistency()
         {
             byte[] sk = new byte[Ed25519.SecretKeySize];
@@ -28,9 +28,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             byte[] pk2 = new byte[Ed25519.PublicKeySize];
             byte[] m = new byte[255];
             byte[] sig1 = new byte[Ed25519.SignatureSize];
-			byte[] sig2 = new byte[Ed25519.SignatureSize];
+            byte[] sig2 = new byte[Ed25519.SignatureSize];
 
-			Random.NextBytes(m);
+            Random.NextBytes(m);
 
             for (int i = 0; i < 10; ++i)
             {
@@ -201,7 +201,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
         }
 
         [Test]
-		public void TestEd25519Vector1()
+        public void TestEd25519Vector1()
         {
             CheckEd25519Vector(
                 ("9d61b19deffd5a60ba844af492ec2cc4"
@@ -215,8 +215,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 + "d25bf5f0595bbe24655141438e7a100b"),
                 "Ed25519 Vector #1");
         }
-      
-		[Test]
+
+        [Test]
         public void TestEd25519Vector2()
         {
             CheckEd25519Vector(
@@ -231,8 +231,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
                 + "387b2eaeb4302aeeb00d291612bb0c00"),
                 "Ed25519 Vector #2");
         }
-      
-		[Test]
+
+        [Test]
         public void TestEd25519Vector3()
         {
             CheckEd25519Vector(
@@ -723,8 +723,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032.Tests
             byte[] pkGen = new byte[Ed25519.PublicKeySize];
             Ed25519.GeneratePublicKey(sk, 0, pkGen, 0);
             Assert.IsTrue(Arrays.AreEqual(pk, pkGen), text);
-         
-			byte[] m = Hex.Decode(sM);
+
+            byte[] m = Hex.Decode(sM);
             byte[] sig = Hex.Decode(sSig);
 
             byte[] badsig = Arrays.Clone(sig);
