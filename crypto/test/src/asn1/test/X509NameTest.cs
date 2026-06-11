@@ -979,15 +979,17 @@ namespace Org.BouncyCastle.Asn1.Tests
         [NonParallelizable] // Modifies CultureInfo.CurrentCulture
         public void TurkishCultureCanonicalizeTest()
         {
+            var turkish = CultureInfo.GetCultureInfo("tr-TR");
+
+            // Precondition: confirm the runtime's Turkish locale really does the dotless-i fold
+            // ("IT".ToLower() -> "ıt", not "it"), otherwise the test would pass vacuously.
+            Assume.That("IT".ToLower(turkish) != "it");
+
             var originalCulture = CultureInfo.CurrentCulture;
 
             try
             {
-                CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
-
-                // Precondition: confirm the runtime's Turkish locale really does the dotless-i fold
-                // ("IT".ToLower() -> "ıt", not "it"), otherwise the test would pass vacuously.
-                Assume.That("IT".ToLower() != "it");
+                CultureInfo.CurrentCulture = turkish;
 
                 Assert.AreEqual("it", IetfUtilities.Canonicalize("IT"),
                     "canonicalize must ASCII-fold under Turkish locale");
