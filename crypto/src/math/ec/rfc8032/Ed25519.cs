@@ -615,7 +615,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public static PublicPoint GeneratePublicPoint(ReadOnlySpan<byte> h)
+        private static PublicPoint GeneratePublicPoint(ReadOnlySpan<byte> h)
         {
             Span<byte> s = stackalloc byte[ScalarBytes];
             PruneScalar(h, s);
@@ -651,7 +651,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             /*
              * Because we are using 4 teeth and 8 spacing, each limb of n corresponds to one of the 8 blocks.
-             * Therefore we can efficiently group the bits for each comb position using a (double) shuffle. 
+             * Therefore we can efficiently group the bits for each comb position using a (double) shuffle.
              */
             for (int i = 0; i < n.Length; ++i)
             {
@@ -1867,7 +1867,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             sbyte[] ws_p = new sbyte[253];
 #endif
 
-            // NOTE: WnafWidth128 because of the special structure of the order 
+            // NOTE: WnafWidth128 because of the special structure of the order
             Scalar25519.GetOrderWnafVar(WnafWidth128, ws_p);
 
             int count = 1 << (WnafWidth128 - 2);
@@ -2488,6 +2488,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 byte[] k = new byte[SecretKeySize];
                 Ed25519.GeneratePrivateKey(random, k);
                 ExpandPrivateKey(k, 0, xk, xkOff);
+                Arrays.ZeroMemory(k);
 #endif
             }
 
@@ -2500,6 +2501,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 Span<byte> k = stackalloc byte[SecretKeySize];
                 Ed25519.GeneratePrivateKey(random, k);
                 ExpandPrivateKey(k, xk);
+                Arrays.ZeroMemory(k);
             }
 #endif
 
@@ -2508,6 +2510,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 GeneratePublicKey(xk.AsSpan(xkOff, ExpandedKeySize), pk.AsSpan(pkOff, PublicKeySize));
 #else
+                Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
+
                 byte[] s = new byte[ScalarBytes];
                 PruneScalar(xk, xkOff, s);
 
@@ -2535,6 +2539,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 return GeneratePublicKey(xk.AsSpan(xkOff, ExpandedKeySize));
 #else
+                Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
+
                 return Ed25519.GeneratePublicPoint(xk, xkOff);
 #endif
             }
@@ -2554,6 +2560,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 PruneScalar(xk.AsSpan(xkOff, ExpandedKeySize));
 #else
+                Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
+
                 PruneScalar(xk, xkOff);
 #endif
             }
