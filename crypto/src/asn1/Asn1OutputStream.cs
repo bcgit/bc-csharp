@@ -97,19 +97,16 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        internal virtual int Encoding
-        {
-            get { return EncodingBer; }
-        }
+        internal virtual int Encoding => EncodingBer;
 
         private void FlushInternal()
         {
             // Placeholder to support future internal buffering
         }
 
-        internal void WriteDL(int dl) => WriteDL(this, dl);
+        internal void WriteDL(int dl) => WriteDL(s, dl);
 
-        internal void WriteIdentifier(int flags, int tagNo) => WriteIdentifier(this, flags, tagNo);
+        internal void WriteIdentifier(int flags, int tagNo) => WriteIdentifier(s, flags, tagNo);
 
         internal static IAsn1Encoding[] GetContentsEncodings(int encoding, Asn1Encodable[] elements)
         {
@@ -156,20 +153,14 @@ namespace Org.BouncyCastle.Asn1
             return length;
         }
 
-        internal static int GetLengthOfEncodingDL(int tagNo, int contentsLength)
-        {
-            return GetLengthOfIdentifier(tagNo) + GetLengthOfDL(contentsLength) + contentsLength;
-        }
+        internal static int GetLengthOfEncodingDL(int tagNo, int contentsLength) =>
+            GetLengthOfIdentifier(tagNo) + GetLengthOfDL(contentsLength) + contentsLength;
 
-        internal static int GetLengthOfEncodingIL(int tagNo, IAsn1Encoding contentsEncoding)
-        {
-            return GetLengthOfIdentifier(tagNo) + 3 + contentsEncoding.GetLength();
-        }
+        internal static int GetLengthOfEncodingIL(int tagNo, IAsn1Encoding contentsEncoding) =>
+            GetLengthOfIdentifier(tagNo) + 3 + contentsEncoding.GetLength();
 
-        internal static int GetLengthOfEncodingIL(int tagNo, IAsn1Encoding[] contentsEncodings)
-        {
-            return GetLengthOfIdentifier(tagNo) + 3 + GetLengthOfContents(contentsEncodings);
-        }
+        internal static int GetLengthOfEncodingIL(int tagNo, IAsn1Encoding[] contentsEncodings) =>
+            GetLengthOfIdentifier(tagNo) + 3 + GetLengthOfContents(contentsEncodings);
 
         internal static int GetLengthOfIdentifier(int tagNo)
         {
