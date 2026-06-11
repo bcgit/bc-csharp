@@ -5,26 +5,26 @@ namespace Org.BouncyCastle.Security
 {
     [Serializable]
     public class InvalidParameterException
-		: KeyException
-	{
-		public InvalidParameterException()
-			: base()
-		{
-		}
+        : KeyException
+    {
+        public InvalidParameterException()
+            : base()
+        {
+        }
 
-		public InvalidParameterException(string message)
-			: base(message)
-		{
-		}
+        public InvalidParameterException(string message)
+            : base(message)
+        {
+        }
 
-		public InvalidParameterException(string message, Exception innerException)
-			: base(message, innerException)
-		{
-		}
+        public InvalidParameterException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
 
-		protected InvalidParameterException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
-	}
+        protected InvalidParameterException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
 }

@@ -8,24 +8,24 @@ namespace Org.BouncyCastle.Cms
     public class CmsStreamException
         : IOException
     {
-		public CmsStreamException()
-			: base()
-		{
-		}
+        public CmsStreamException()
+            : base()
+        {
+        }
 
-		public CmsStreamException(string message)
-			: base(message)
-		{
-		}
+        public CmsStreamException(string message)
+            : base(message)
+        {
+        }
 
-		public CmsStreamException(string message, Exception innerException)
-			: base(message, innerException)
-		{
-		}
+        public CmsStreamException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
 
-		protected CmsStreamException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
-	}
+        protected CmsStreamException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
 }

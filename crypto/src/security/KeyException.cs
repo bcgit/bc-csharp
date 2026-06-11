@@ -5,26 +5,26 @@ namespace Org.BouncyCastle.Security
 {
     [Serializable]
     public class KeyException
-		: GeneralSecurityException
-	{
-		public KeyException()
-			: base()
-		{
-		}
+        : GeneralSecurityException
+    {
+        public KeyException()
+            : base()
+        {
+        }
 
-		public KeyException(string message)
-			: base(message)
-		{
-		}
+        public KeyException(string message)
+            : base(message)
+        {
+        }
 
-		public KeyException(string message, Exception innerException)
-			: base(message, innerException)
-		{
-		}
+        public KeyException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
 
-		protected KeyException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
-	}
+        protected KeyException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
 }

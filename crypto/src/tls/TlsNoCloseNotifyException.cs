@@ -20,9 +20,9 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
-		protected TlsNoCloseNotifyException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
-	}
+        protected TlsNoCloseNotifyException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
 }

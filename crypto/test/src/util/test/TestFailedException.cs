@@ -13,9 +13,6 @@ namespace Org.BouncyCastle.Utilities.Test
             m_result = result;
         }
 
-        public ITestResult Result
-        {
-            get { return m_result; }
-        }
+        public ITestResult Result => m_result;
     }
 }

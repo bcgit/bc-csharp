@@ -5,26 +5,26 @@ namespace Org.BouncyCastle.Security
 {
     [Serializable]
     public class InvalidKeyException
-		: KeyException
-	{
-		public InvalidKeyException()
-			: base()
-		{
-		}
+        : KeyException
+    {
+        public InvalidKeyException()
+            : base()
+        {
+        }
 
-		public InvalidKeyException(string message)
-			: base(message)
-		{
-		}
+        public InvalidKeyException(string message)
+            : base(message)
+        {
+        }
 
-		public InvalidKeyException(string message, Exception innerException)
-			: base(message, innerException)
-		{
-		}
+        public InvalidKeyException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
 
-		protected InvalidKeyException(SerializationInfo info, StreamingContext context)
-			: base(info, context)
-		{
-		}
-	}
+        protected InvalidKeyException(SerializationInfo info, StreamingContext context)
+            : base(info, context)
+        {
+        }
+    }
 }
