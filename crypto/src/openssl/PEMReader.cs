@@ -281,8 +281,10 @@ namespace Org.BouncyCastle.OpenSsl
                     if (seq.Count != 6)
                         throw new PemException("malformed sequence in DSA private key");
 
-                    // TODO Create an ASN1 object somewhere for this?
-                    //DerInteger v = (DerInteger)seq[0];
+                    DerInteger v = DerInteger.GetInstance(seq[0]);
+                    if (!v.HasValue(0))
+                        throw new PemException("wrong version for DSA private key");
+
                     DerInteger p = (DerInteger)seq[1];
                     DerInteger q = (DerInteger)seq[2];
                     DerInteger g = (DerInteger)seq[3];
