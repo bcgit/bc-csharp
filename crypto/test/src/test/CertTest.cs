@@ -241,21 +241,21 @@ namespace Org.BouncyCastle.Tests
         //
         // ecdsa cert with extra octet string.
         //
-//		private static readonly byte[] oldEcdsa = Base64.Decode(
-//			"MIICljCCAkCgAwIBAgIBATALBgcqhkjOPQQBBQAwgY8xCzAJBgNVBAYTAkFVMSgwJ"
-//			+ "gYDVQQKEx9UaGUgTGVnaW9uIG9mIHRoZSBCb3VuY3kgQ2FzdGxlMRIwEAYDVQQHEw"
-//			+ "lNZWxib3VybmUxETAPBgNVBAgTCFZpY3RvcmlhMS8wLQYJKoZIhvcNAQkBFiBmZWV"
-//			+ "kYmFjay1jcnlwdG9AYm91bmN5Y2FzdGxlLm9yZzAeFw0wMTEyMDcwMTAwMDRaFw0w"
-//			+ "MTEyMDcwMTAxNDRaMIGPMQswCQYDVQQGEwJBVTEoMCYGA1UEChMfVGhlIExlZ2lvb"
-//			+ "iBvZiB0aGUgQm91bmN5IENhc3RsZTESMBAGA1UEBxMJTWVsYm91cm5lMREwDwYDVQ"
-//			+ "QIEwhWaWN0b3JpYTEvMC0GCSqGSIb3DQEJARYgZmVlZGJhY2stY3J5cHRvQGJvdW5"
-//			+ "jeWNhc3RsZS5vcmcwgeQwgb0GByqGSM49AgEwgbECAQEwKQYHKoZIzj0BAQIef///"
-//			+ "////////////f///////gAAAAAAAf///////MEAEHn///////////////3///////"
-//			+ "4AAAAAAAH///////AQeawFsO9zxiUHQ1lSSFHXKcanbL7J9HTd5YYXClCwKBB8CD/"
-//			+ "qWPNyogWzMM7hkK+35BcPTWFc9Pyf7vTs8uaqvAh5///////////////9///+eXpq"
-//			+ "fXZBx+9FSJoiQnQsDIgAEHwJbbcU7xholSP+w9nFHLebJUhqdLSU05lq/y9X+DHAw"
-//			+ "CwYHKoZIzj0EAQUAA0MAMEACHnz6t4UNoVROp74ma4XNDjjGcjaqiIWPZLK8Bdw3G"
-//			+ "QIeLZ4j3a6ividZl344UH+UPUE7xJxlYGuy7ejTsqRR");
+        //private static readonly byte[] oldEcdsa = Base64.Decode(
+        //    "MIICljCCAkCgAwIBAgIBATALBgcqhkjOPQQBBQAwgY8xCzAJBgNVBAYTAkFVMSgwJ"
+        //    + "gYDVQQKEx9UaGUgTGVnaW9uIG9mIHRoZSBCb3VuY3kgQ2FzdGxlMRIwEAYDVQQHEw"
+        //    + "lNZWxib3VybmUxETAPBgNVBAgTCFZpY3RvcmlhMS8wLQYJKoZIhvcNAQkBFiBmZWV"
+        //    + "kYmFjay1jcnlwdG9AYm91bmN5Y2FzdGxlLm9yZzAeFw0wMTEyMDcwMTAwMDRaFw0w"
+        //    + "MTEyMDcwMTAxNDRaMIGPMQswCQYDVQQGEwJBVTEoMCYGA1UEChMfVGhlIExlZ2lvb"
+        //    + "iBvZiB0aGUgQm91bmN5IENhc3RsZTESMBAGA1UEBxMJTWVsYm91cm5lMREwDwYDVQ"
+        //    + "QIEwhWaWN0b3JpYTEvMC0GCSqGSIb3DQEJARYgZmVlZGJhY2stY3J5cHRvQGJvdW5"
+        //    + "jeWNhc3RsZS5vcmcwgeQwgb0GByqGSM49AgEwgbECAQEwKQYHKoZIzj0BAQIef///"
+        //    + "////////////f///////gAAAAAAAf///////MEAEHn///////////////3///////"
+        //    + "4AAAAAAAH///////AQeawFsO9zxiUHQ1lSSFHXKcanbL7J9HTd5YYXClCwKBB8CD/"
+        //    + "qWPNyogWzMM7hkK+35BcPTWFc9Pyf7vTs8uaqvAh5///////////////9///+eXpq"
+        //    + "fXZBx+9FSJoiQnQsDIgAEHwJbbcU7xholSP+w9nFHLebJUhqdLSU05lq/y9X+DHAw"
+        //    + "CwYHKoZIzj0EAQUAA0MAMEACHnz6t4UNoVROp74ma4XNDjjGcjaqiIWPZLK8Bdw3G"
+        //    + "QIeLZ4j3a6ividZl344UH+UPUE7xJxlYGuy7ejTsqRR");
 
         private static readonly byte[] uncompressedPtEC = Base64.Decode(
             "MIIDKzCCAsGgAwIBAgICA+kwCwYHKoZIzj0EAQUAMGYxCzAJBgNVBAYTAkpQ"
@@ -985,32 +985,18 @@ namespace Org.BouncyCastle.Tests
             {
             }
 
-            public string Algorithm
-            {
-                get { return null; }
-            }
+            public string Algorithm => null;
 
-            public string Format
-            {
-                get { return null; }
-            }
+            public string Format => null;
 
-            public byte[] GetEncoded()
-            {
-                return null;
-            }
+            public byte[] GetEncoded() => null;
         }
 
-        private AsymmetricKeyParameter dudPublicKey = new DudPublicKey();
+        private readonly AsymmetricKeyParameter dudPublicKey = new DudPublicKey();
 
-        public override string Name
-        {
-            get { return "CertTest"; }
-        }
+        public override string Name => "CertTest";
 
-        internal void checkCertificate(
-            int		id,
-            byte[]	bytes)
+        internal void CheckCertificate(int id, byte[] bytes)
         {
             string dump = "";
 
@@ -1019,7 +1005,6 @@ namespace Org.BouncyCastle.Tests
                 X509Certificate cert = new X509CertificateParser().ReadCertificate(bytes);
 
                 AsymmetricKeyParameter k = cert.GetPublicKey();
-                // Console.WriteLine(cert);
             }
             catch (Exception e)
             {
@@ -1027,9 +1012,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        internal void checkNameCertificate(
-            int     id,
-            byte[]  bytes)
+        internal void CheckCertificateIssuer(int id, byte[] bytes)
         {
             string dump = "";
 
@@ -1037,49 +1020,37 @@ namespace Org.BouncyCastle.Tests
             {
                 X509Certificate cert = new X509CertificateParser().ReadCertificate(bytes);
 
-                AsymmetricKeyParameter k = cert.GetPublicKey();
                 if (!cert.IssuerDN.ToString().Equals("C=DE,O=DATEV eG,0.2.262.1.10.7.20=1+CN=CA DATEV D03 1:PN"))
                 {
                     Fail(id + " failed - name test.");
                 }
-                // Console.WriteLine(cert);
             }
             catch (Exception e)
             {
                 Fail(dump + SimpleTest.NewLine + Name + ": "+ id + " failed - exception " + e.Message, e);
             }
-
         }
 
-        internal void checkKeyUsage(
-            int		id,
-            byte[]	bytes)
+        internal void CheckCertificateKeyUsage(int id, byte[] bytes)
         {
             string dump = "";
 
             try
             {
                 X509Certificate cert = new X509CertificateParser().ReadCertificate(bytes);
-
-                AsymmetricKeyParameter k = cert.GetPublicKey();
 
                 if (cert.GetKeyUsage()[7])
                 {
                     Fail("error generating cert - key usage wrong.");
                 }
-
-                // Console.WriteLine(cert);
             }
             catch (Exception e)
             {
                 Fail(dump + SimpleTest.NewLine + Name + ": "+ id + " failed - exception " + e.Message, e);
             }
-
         }
 
-        internal void checkSelfSignedCertificate(
-            int     id,
-            byte[]  bytes)
+        internal void CheckCertificateSelfSigned(int id, byte[] bytes)
         {
             string dump = "";
 
@@ -1087,10 +1058,7 @@ namespace Org.BouncyCastle.Tests
             {
                 X509Certificate cert = new X509CertificateParser().ReadCertificate(bytes);
 
-                AsymmetricKeyParameter k = cert.GetPublicKey();
-
-                cert.Verify(k);
-                // Console.WriteLine(cert);
+                cert.Verify(cert.GetPublicKey());
             }
             catch (Exception e)
             {
@@ -1098,10 +1066,8 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        /**
-         * we Generate a self signed certificate for the sake of testing - RSA
-         */
-        internal void checkCreation1()
+        /// <summary>Generate a self signed certificate for the sake of testing - RSA.</summary>
+        internal void CheckCreation1()
         {
             //
             // a sample key pair.
@@ -1124,13 +1090,13 @@ namespace Org.BouncyCastle.Tests
             //
             // set up the keys
             //
-//			AsymmetricKeyParameter privKey;
-//			AsymmetricKeyParameter pubKey;
+            //AsymmetricKeyParameter privKey;
+            //AsymmetricKeyParameter pubKey;
 
-//			KeyFactory  fact = KeyFactory.GetInstance("RSA");
-//
-//			privKey = fact.generatePrivate(privKeySpec);
-//			pubKey = fact.generatePublic(pubKeySpec);
+            //KeyFactory fact = KeyFactory.GetInstance("RSA");
+
+            //privKey = fact.generatePrivate(privKeySpec);
+            //pubKey = fact.generatePublic(pubKeySpec);
 
             //
             // distinguished name table.
@@ -1265,10 +1231,8 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        /**
-         * we Generate a self signed certificate for the sake of testing - DSA
-         */
-        internal void checkCreation2()
+        /// <summary>Generate a self signed certificate for the sake of testing - DSA.</summary>
+        internal void CheckCreation2()
         {
             //
             // set up the keys
@@ -1278,9 +1242,6 @@ namespace Org.BouncyCastle.Tests
 
             try
             {
-//				KeyPairGenerator g = KeyPairGenerator.GetInstance("DSA", "SUN");
-//				g.initialize(512, new SecureRandom());
-//				KeyPair p = g.generateKeyPair();
                 IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("DSA");
                 DsaParametersGenerator dpg = new DsaParametersGenerator();
                 dpg.Init(512, 25, new SecureRandom());
@@ -1393,7 +1354,7 @@ namespace Org.BouncyCastle.Tests
         /**
          * we Generate a self signed certificate for the sake of testing - ECDSA
          */
-        internal void checkCreation3()
+        internal void CheckCreation3()
         {
             X9ECParameters x9 = ECNamedCurveTable.GetByName("prime239v1");
             ECCurve curve = x9.Curve;
@@ -1412,21 +1373,21 @@ namespace Org.BouncyCastle.Tests
             //
             // set up the keys
             //
-//			AsymmetricKeyParameter privKey;
-//			AsymmetricKeyParameter pubKey;
-//
-//			try
-//			{
-//				KeyFactory fact = KeyFactory.GetInstance("ECDSA");
-//
-//				privKey = fact.generatePrivate(privKeySpec);
-//				pubKey = fact.generatePublic(pubKeySpec);
-//			}
-//			catch (Exception e)
-//			{
-//				Fail("error setting up keys - " + e.ToString());
-//				return;
-//			}
+            //AsymmetricKeyParameter privKey;
+            //AsymmetricKeyParameter pubKey;
+
+            //try
+            //{
+            //    KeyFactory fact = KeyFactory.GetInstance("ECDSA");
+
+            //    privKey = fact.generatePrivate(privKeySpec);
+            //    pubKey = fact.generatePublic(pubKeySpec);
+            //}
+            //catch (Exception e)
+            //{
+            //    Fail("error setting up keys - " + e.ToString());
+            //    return;
+            //}
 
             //
             // distinguished name table.
@@ -1526,7 +1487,7 @@ namespace Org.BouncyCastle.Tests
         /**
          * we Generate a self signed certificate for the sake of testing - SHA224withECDSA
          */
-        private void createECCert(
+        private void CreateECCert(
             string				algorithm,
             DerObjectIdentifier	algOid)
         {
@@ -1640,7 +1601,7 @@ namespace Org.BouncyCastle.Tests
             // Console.WriteLine(cert);
         }
 
-        private void checkCrl(
+        private void CheckCrl(
             int     id,
             byte[]  bytes)
         {
@@ -1659,7 +1620,7 @@ namespace Org.BouncyCastle.Tests
 
         }
 
-        private void checkCrlCreation1()
+        private void CheckCrlCreation1()
         {
             IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
             kpGen.Init(
@@ -1727,7 +1688,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        private void checkCrlCreation2()
+        private void CheckCrlCreation2()
         {
             IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
             kpGen.Init(
@@ -1812,7 +1773,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        private void checkCrlCreation3()
+        private void CheckCrlCreation3()
         {
             IAsymmetricCipherKeyPairGenerator kpGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
             kpGen.Init(
@@ -1979,7 +1940,7 @@ namespace Org.BouncyCastle.Tests
         /**
          * we Generate a self signed certificate for the sake of testing - GOST3410
          */
-        internal void checkCreation4()
+        internal void CheckCreation4()
         {
             //
             // set up the keys
@@ -2055,7 +2016,7 @@ namespace Org.BouncyCastle.Tests
             byte[] bytesch = cert.GetEncoded();
         }
 
-        internal void checkCreation5()
+        internal void CheckCreation5()
         {
             //
             // a sample key pair.
@@ -2186,7 +2147,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        private void doTestForgedSignature()
+        private void ImplTestForgedSignature()
         {
             string cert = "MIIBsDCCAVoCAQYwDQYJKoZIhvcNAQEFBQAwYzELMAkGA1UEBhMCQVUxEzARBgNV"
                 + "BAgTClF1ZWVuc2xhbmQxGjAYBgNVBAoTEUNyeXB0U29mdCBQdHkgTHRkMSMwIQYD"
@@ -2213,7 +2174,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        private void pemTest()
+        private void PemTest()
         {
             X509Certificate cert = readPemCert(PemData.CERTIFICATE_1);
             if (cert == null)
@@ -2248,7 +2209,7 @@ namespace Org.BouncyCastle.Tests
             return new X509CertificateParser().ReadCertificate(Encoding.ASCII.GetBytes(pemData));
         }
 
-        private void pkcs7Test()
+        private void Pkcs7Test()
         {
             Asn1Encodable rootCert = Asn1Object.FromByteArray(CertPathTest.rootCertBin);
             Asn1Encodable rootCrl = Asn1Object.FromByteArray(CertPathTest.rootCrlBin);
@@ -2339,7 +2300,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        private void createPssCert(
+        private void CreatePssCert(
             string algorithm)
         {
             AsymmetricCipherKeyPair keyPair = GenerateLongFixedKeys();
@@ -2413,7 +2374,7 @@ namespace Org.BouncyCastle.Tests
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
 
-        private void rfc4491Test()
+        private void Rfc4491Test()
         {
             X509CertificateParser certFact = new X509CertificateParser();
 
@@ -2426,7 +2387,7 @@ namespace Org.BouncyCastle.Tests
             x509.Verify(x509.GetPublicKey());
         }
 
-        private void doTestNullDerNullCert()
+        private void ImplTestNullDerNullCert()
         {
             AsymmetricCipherKeyPair keyPair = GenerateLongFixedKeys();
 
@@ -2468,7 +2429,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        private void pemFileTest()
+        private void PemFileTest()
         {
             X509CertificateParser fact = new X509CertificateParser();
 
@@ -2495,7 +2456,7 @@ namespace Org.BouncyCastle.Tests
             IsTrue("collection not empty", certs2.Count == 0);
         }
 
-        private void invalidCrls()
+        private void InvalidCrls()
         {
             X509CrlParser crlParser = new X509CrlParser();
 
@@ -2506,7 +2467,7 @@ namespace Org.BouncyCastle.Tests
             IsTrue("single crl", crl == null);
         }
 
-        private void pemFileTestWithNl()
+        private void PemFileTestWithNewLine()
         {
             X509CertificateParser fact = new X509CertificateParser();
 
@@ -2584,65 +2545,65 @@ namespace Org.BouncyCastle.Tests
 
         public override void PerformTest()
         {
-            checkCertificate(1, cert1);
-            checkCertificate(2, cert2);
-            checkCertificate(3, cert3);
-            checkCertificate(4, cert4);
-            checkCertificate(5, cert5);
+            CheckCertificate(1, cert1);
+            CheckCertificate(2, cert2);
+            CheckCertificate(3, cert3);
+            CheckCertificate(4, cert4);
+            CheckCertificate(5, cert5);
             // This cert uses an incorrect encoding (compressed wrapped in extra octet string)
             // which the Java build supports backwards, but we choose not to for C# build
-//			checkCertificate(6, oldEcdsa);
-            checkCertificate(7, cert7);
+            //CheckCertificate(6, oldEcdsa);
+            CheckCertificate(7, cert7);
 
-            checkKeyUsage(8, keyUsage);
-            checkSelfSignedCertificate(9, uncompressedPtEC);
-            checkNameCertificate(10, nameCert);
+            CheckCertificateKeyUsage(8, keyUsage);
+            CheckCertificateSelfSigned(9, uncompressedPtEC);
+            CheckCertificateIssuer(10, nameCert);
 
-            checkSelfSignedCertificate(11, probSelfSignedCert);
-            checkSelfSignedCertificate(12, gostCA1);
-            checkSelfSignedCertificate(13, gostCA2);
-            checkSelfSignedCertificate(14, gost341094base);
-            checkSelfSignedCertificate(15, gost34102001base);
-            checkSelfSignedCertificate(16, gost341094A);
-            checkSelfSignedCertificate(17, gost341094B);
-            checkSelfSignedCertificate(17, gost34102001A);
+            CheckCertificateSelfSigned(11, probSelfSignedCert);
+            CheckCertificateSelfSigned(12, gostCA1);
+            CheckCertificateSelfSigned(13, gostCA2);
+            CheckCertificateSelfSigned(14, gost341094base);
+            CheckCertificateSelfSigned(15, gost34102001base);
+            CheckCertificateSelfSigned(16, gost341094A);
+            CheckCertificateSelfSigned(17, gost341094B);
+            CheckCertificateSelfSigned(18, gost34102001A);
 
-            checkCrl(1, crl1);
+            CheckCrl(1, crl1);
 
-            checkCreation1();
-            checkCreation2();
-            checkCreation3();
-            checkCreation4();
-            checkCreation5();
+            CheckCreation1();
+            CheckCreation2();
+            CheckCreation3();
+            CheckCreation4();
+            CheckCreation5();
 
-            createECCert("SHA1withECDSA", X9ObjectIdentifiers.ECDsaWithSha1);
-            createECCert("SHA224withECDSA", X9ObjectIdentifiers.ECDsaWithSha224);
-            createECCert("SHA256withECDSA", X9ObjectIdentifiers.ECDsaWithSha256);
-            createECCert("SHA384withECDSA", X9ObjectIdentifiers.ECDsaWithSha384);
-            createECCert("SHA512withECDSA", X9ObjectIdentifiers.ECDsaWithSha512);
+            CreateECCert("SHA1withECDSA", X9ObjectIdentifiers.ECDsaWithSha1);
+            CreateECCert("SHA224withECDSA", X9ObjectIdentifiers.ECDsaWithSha224);
+            CreateECCert("SHA256withECDSA", X9ObjectIdentifiers.ECDsaWithSha256);
+            CreateECCert("SHA384withECDSA", X9ObjectIdentifiers.ECDsaWithSha384);
+            CreateECCert("SHA512withECDSA", X9ObjectIdentifiers.ECDsaWithSha512);
 
-            createPssCert("SHA1withRSAandMGF1");
-            createPssCert("SHA224withRSAandMGF1");
-            createPssCert("SHA256withRSAandMGF1");
-            createPssCert("SHA384withRSAandMGF1");
+            CreatePssCert("SHA1withRSAandMGF1");
+            CreatePssCert("SHA224withRSAandMGF1");
+            CreatePssCert("SHA256withRSAandMGF1");
+            CreatePssCert("SHA384withRSAandMGF1");
 
-            checkCrlCreation1();
-            checkCrlCreation2();
-            checkCrlCreation3();
+            CheckCrlCreation1();
+            CheckCrlCreation2();
+            CheckCrlCreation3();
 
-            pemTest();
-            pemFileTest();
-            pemFileTestWithNl();
-            pkcs7Test();
-            rfc4491Test();
+            PemTest();
+            PemFileTest();
+            PemFileTestWithNewLine();
+            Pkcs7Test();
+            Rfc4491Test();
 
-            invalidCrls();
+            InvalidCrls();
 
-            doTestForgedSignature();
+            ImplTestForgedSignature();
 
-            doTestNullDerNullCert();
+            ImplTestNullDerNullCert();
 
-            checkCertificate(18, emptyDNCert);
+            CheckCertificate(19, emptyDNCert);
 
             ImplTestCriticalEkuIssue1796();
         }
