@@ -7,88 +7,70 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.X509
 {
-	class PemParser
-	{
-		private readonly string _header1;
-		private readonly string _header2;
-		private readonly string _footer1;
-		private readonly string _footer2;
+    internal class PemParser
+    {
+        private readonly string m_header1;
+        private readonly string m_header2;
+        private readonly string m_footer1;
+        private readonly string m_footer2;
 
-		internal PemParser(
-			string type)
-		{
-			_header1 = "-----BEGIN " + type + "-----";
-			_header2 = "-----BEGIN X509 " + type + "-----";
-			_footer1 = "-----END " + type + "-----";
-			_footer2 = "-----END X509 " + type + "-----";
-		}
+        internal PemParser(string type)
+        {
+            m_header1 = "-----BEGIN " + type + "-----";
+            m_header2 = "-----BEGIN X509 " + type + "-----";
+            m_footer1 = "-----END " + type + "-----";
+            m_footer2 = "-----END X509 " + type + "-----";
+        }
 
-		private string ReadLine(
-			Stream inStream)
-		{
-			int c;
-			StringBuilder l = new StringBuilder();
+        private string ReadLine(Stream inStream)
+        {
+            StringBuilder buf = new StringBuilder();
 
-			do
-			{
-				while (((c = inStream.ReadByte()) != '\r') && c != '\n' && (c >= 0))
-				{
-					if (c == '\r')
-					{
-						continue;
-					}
+            for (;;)
+            {
+                int c = inStream.ReadByte();
+                if (c < 0)
+                    return null;
 
-					l.Append((char)c);
-				}
-			}
-			while (c >= 0 && l.Length == 0);
+                if (c == '\n' || c == '\r')
+                {
+                    if (buf.Length > 0)
+                        return buf.ToString();
+                }
+                else
+                {
+                    buf.Append((char)c);
+                }
+            }
+        }
 
-			if (c < 0)
-			{
-				return null;
-			}
+        internal Asn1Sequence ReadPemObject(Stream inStream)
+        {
+            string line;
+            while ((line = ReadLine(inStream)) != null)
+            {
+                if (Platform.StartsWith(line, m_header1) || Platform.StartsWith(line, m_header2))
+                    break;
+            }
 
-			return l.ToString();
-		}
+            StringBuilder buf = new StringBuilder();
+            while ((line = ReadLine(inStream)) != null)
+            {
+                if (Platform.StartsWith(line, m_footer1) || Platform.StartsWith(line, m_footer2))
+                    break;
 
-		internal Asn1Sequence ReadPemObject(
-			Stream inStream)
-		{
-			string line;
-			StringBuilder pemBuf = new StringBuilder();
+                buf.Append(line);
+            }
 
-			while ((line = ReadLine(inStream)) != null)
-			{
-                if (Platform.StartsWith(line, _header1) || Platform.StartsWith(line, _header2))
-				{
-					break;
-				}
-			}
+            if (buf.Length < 1)
+                return null;
 
-			while ((line = ReadLine(inStream)) != null)
-			{
-                if (Platform.StartsWith(line, _footer1) || Platform.StartsWith(line, _footer2))
-				{
-					break;
-				}
+            Asn1Object obj = Asn1Object.FromByteArray(Base64.Decode(buf.ToString()));
 
-				pemBuf.Append(line);
-			}
+            if (!(obj is Asn1Sequence seq))
+                throw new IOException("malformed PEM data encountered");
 
-			if (pemBuf.Length != 0)
-			{
-				Asn1Object o = Asn1Object.FromByteArray(Base64.Decode(pemBuf.ToString()));
-
-				if (!(o is Asn1Sequence))
-				{
-					throw new IOException("malformed PEM data encountered");
-				}
-
-				return (Asn1Sequence) o;
-			}
-
-			return null;
-		}
-	}
+            return seq;
+        }
+    }
 }
-

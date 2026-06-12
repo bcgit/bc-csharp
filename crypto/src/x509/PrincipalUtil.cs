@@ -14,14 +14,14 @@ namespace Org.BouncyCastle.X509
     // TODO[api] Make static
     [Obsolete("Will be removed")]
     public class PrincipalUtilities
-	{
-		/// <summary>Return the issuer of the given cert as an X509Principal.</summary>
-		public static X509Name GetIssuerX509Principal(X509Certificate cert) => cert.IssuerDN;
+    {
+        /// <summary>Return the issuer of the given cert as an X509Principal.</summary>
+        public static X509Name GetIssuerX509Principal(X509Certificate cert) => cert.IssuerDN;
 
-		/// <summary>Return the subject of the given cert as an X509Principal.</summary>
-		public static X509Name GetSubjectX509Principal(X509Certificate cert) => cert.SubjectDN;
+        /// <summary>Return the subject of the given cert as an X509Principal.</summary>
+        public static X509Name GetSubjectX509Principal(X509Certificate cert) => cert.SubjectDN;
 
-		/// <summary>Return the issuer of the given CRL as an X509Principal.</summary>
-		public static X509Name GetIssuerX509Principal(X509Crl crl) => crl.IssuerDN;
-	}
+        /// <summary>Return the issuer of the given CRL as an X509Principal.</summary>
+        public static X509Name GetIssuerX509Principal(X509Crl crl) => crl.IssuerDN;
+    }
 }

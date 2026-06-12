@@ -10,13 +10,11 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.X509
 {
-    /**
-     * class for dealing with X509 certificates.
-     * <p>
-     * At the moment this will deal with "-----BEGIN CERTIFICATE-----" to "-----END CERTIFICATE-----"
-     * base 64 encoded certs, as well as the BER binaries of certificates and some classes of PKCS#7
-     * objects.</p>
-     */
+    /// <summary>Class for dealing with X509 certificates.</summary>
+    /// <remarks>
+    /// At the moment this will deal with "-----BEGIN CERTIFICATE-----" to "-----END CERTIFICATE-----" base 64 encoded
+    /// certs, as well as the BER binaries of certificates and some classes of PKCS#7 objects.
+    /// </remarks>
     public class X509CertificateParser
     {
         private static readonly PemParser PemCertParser = new PemParser("CERTIFICATE");
@@ -91,10 +89,9 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        /**
-         * Generates a certificate object and initializes it with the data
-         * read from the input stream inStream.
-         */
+        /// <summary>
+        /// Generates a certificate object and initializes it with the data read from <paramref name="inStream"/>.
+        /// </summary>
         public X509Certificate ReadCertificate(Stream inStream)
         {
             if (inStream == null)
@@ -161,10 +158,9 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        /**
-         * Returns a (possibly empty) collection view of the certificates
-         * read from the given input stream inStream.
-         */
+        /// <summary>
+        /// Returns a (possibly empty) collection view of the certificates read from the given input stream inStream.
+        /// </summary>
         public IList<X509Certificate> ReadCertificates(Stream inStream) =>
             new List<X509Certificate>(ParseCertificates(inStream));
 

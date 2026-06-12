@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.X509.Extension
 {
     // TODO[api] Make static
     public class X509ExtensionUtilities
-	{
+    {
         internal static Asn1OctetString CalculateKeyIdentifier(AsymmetricKeyParameter publicKey) =>
             CalculateKeyIdentifier(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
 

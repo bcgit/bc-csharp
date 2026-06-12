@@ -58,15 +58,12 @@ namespace Org.BouncyCastle.X509.Store
             m_subjectPublicKeyAlgID = o.m_subjectPublicKeyAlgID;
         }
 
-        public virtual object Clone()
-        {
-            return new X509CertStoreSelector(this);
-        }
+        public virtual object Clone() => new X509CertStoreSelector(this);
 
         /// <remarks>
-		/// A DER encoding of an ASN.1 AuthorityKeyIdentifier value.
+        /// A DER encoding of an ASN.1 AuthorityKeyIdentifier value.
         /// </remarks>
-		public byte[] AuthorityKeyIdentifier
+        public byte[] AuthorityKeyIdentifier
         {
             get { return Arrays.Clone(m_authorityKeyIdentifier); }
             set { m_authorityKeyIdentifier = Arrays.Clone(value); }
@@ -151,7 +148,7 @@ namespace Org.BouncyCastle.X509.Store
         }
 
         /// <remarks>
-		/// A DER encoding of an ASN.1 SubjectKeyIdentifier (OCTET STRING) value.
+        /// A DER encoding of an ASN.1 SubjectKeyIdentifier (OCTET STRING) value.
         /// </remarks>
         public byte[] SubjectKeyIdentifier
         {

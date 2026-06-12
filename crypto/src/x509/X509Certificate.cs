@@ -25,39 +25,33 @@ namespace Org.BouncyCastle.X509
     /// </summary>
     public class X509Certificate
         : X509ExtensionBase
-    //		, PKCS12BagAttributeCarrier
     {
         private class CachedEncoding
         {
-            private readonly byte[] encoding;
-            private readonly CertificateEncodingException exception;
+            private readonly byte[] m_encoding;
+            private readonly CertificateEncodingException m_exception;
 
             internal CachedEncoding(byte[] encoding, CertificateEncodingException exception)
             {
-                this.encoding = encoding;
-                this.exception = exception;
+                m_encoding = encoding;
+                m_exception = exception;
             }
 
-            internal byte[] Encoding
-            {
-                get { return encoding; }
-            }
+            internal byte[] Encoding => m_encoding;
 
             internal byte[] GetEncoded()
             {
-                if (null != exception)
-                    throw exception;
+                if (null != m_exception)
+                    throw m_exception;
 
-                if (null == encoding)
+                if (null == m_encoding)
                     throw new CertificateEncodingException();
 
-                return encoding;
+                return m_encoding;
             }
         }
 
         private readonly X509CertificateStructure c;
-        //private Dictionary<> pkcs12Attributes = new Dictionary<>();
-        //private List<> pkcs12Ordering = new List<>();
         private readonly byte[] sigAlgParams;
         private readonly BasicConstraints basicConstraints;
         private readonly bool[] keyUsage;
@@ -129,73 +123,33 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        //		internal X509Certificate(
-        //			Asn1Sequence seq)
-        //        {
-        //            this.c = X509CertificateStructure.GetInstance(seq);
-        //        }
-
-        //		/// <summary>
-        //        /// Load certificate from byte array.
-        //        /// </summary>
-        //        /// <param name="encoded">Byte array containing encoded X509Certificate.</param>
-        //        public X509Certificate(
-        //            byte[] encoded)
-        //			: this((Asn1Sequence) new Asn1InputStream(encoded).ReadObject())
-        //		{
-        //        }
-        //
-        //        /// <summary>
-        //        /// Load certificate from Stream.
-        //        /// Must be positioned at start of certificate.
-        //        /// </summary>
-        //        /// <param name="input"></param>
-        //        public X509Certificate(
-        //            Stream input)
-        //			: this((Asn1Sequence) new Asn1InputStream(input).ReadObject())
-        //        {
-        //        }
-
-        public virtual X509CertificateStructure CertificateStructure
-        {
-            get { return c; }
-        }
+        public virtual X509CertificateStructure CertificateStructure => c;
 
         /// <summary>
         /// Return true if the current time is within the start and end times nominated on the certificate.
         /// </summary>
         /// <returns>true id certificate is valid for the current time.</returns>
-        public virtual bool IsValidNow
-        {
-            get { return IsValid(DateTime.UtcNow); }
-        }
+        public virtual bool IsValidNow => IsValid(DateTime.UtcNow);
 
         /// <summary>
         /// Return true if the nominated time is within the start and end times nominated on the certificate.
         /// </summary>
         /// <param name="time">The time to test validity against.</param>
         /// <returns>True if certificate is valid for nominated time.</returns>
-        public virtual bool IsValid(
-            DateTime time)
-        {
-            return time.CompareTo(NotBefore) >= 0 && time.CompareTo(NotAfter) <= 0;
-        }
+        public virtual bool IsValid(DateTime time) =>
+            time.CompareTo(NotBefore) >= 0 && time.CompareTo(NotAfter) <= 0;
 
         /// <summary>
         /// Checks if the current date is within certificate's validity period.
         /// </summary>
-        public virtual void CheckValidity()
-        {
-            this.CheckValidity(DateTime.UtcNow);
-        }
+        public virtual void CheckValidity() => CheckValidity(DateTime.UtcNow);
 
         /// <summary>
         /// Checks if the given date is within certificate's validity period.
         /// </summary>
         /// <exception cref="CertificateExpiredException">if the certificate is expired by given date</exception>
         /// <exception cref="CertificateNotYetValidException">if the certificate is not yet valid on given date</exception>
-        public virtual void CheckValidity(
-            DateTime time)
+        public virtual void CheckValidity(DateTime time)
         {
             if (time.CompareTo(NotAfter) > 0)
                 throw new CertificateExpiredException("certificate expired on " + c.EndDate);
@@ -207,57 +161,39 @@ namespace Org.BouncyCastle.X509
         /// Return the certificate's version.
         /// </summary>
         /// <returns>An integer whose value Equals the version of the cerficate.</returns>
-        public virtual int Version
-        {
-            get { return c.Version; }
-        }
+        public virtual int Version => c.Version;
 
         /// <summary>
         /// Return a <see cref="Org.BouncyCastle.Math.BigInteger">BigInteger</see> containing the serial number.
         /// </summary>
         /// <returns>The Serial number.</returns>
-        public virtual BigInteger SerialNumber
-        {
-            get { return c.SerialNumber.Value; }
-        }
+        public virtual BigInteger SerialNumber => c.SerialNumber.Value;
 
         /// <summary>
         /// Get the Issuer Distinguished Name. (Who signed the certificate.)
         /// </summary>
         /// <returns>And X509Object containing name and value pairs.</returns>
         //        public IPrincipal IssuerDN
-        public virtual X509Name IssuerDN
-        {
-            get { return c.Issuer; }
-        }
+        public virtual X509Name IssuerDN => c.Issuer;
 
         /// <summary>
         /// Get the subject of this certificate.
         /// </summary>
         /// <returns>An X509Name object containing name and value pairs.</returns>
         //        public IPrincipal SubjectDN
-        public virtual X509Name SubjectDN
-        {
-            get { return c.Subject; }
-        }
+        public virtual X509Name SubjectDN => c.Subject;
 
         /// <summary>
         /// The time that this certificate is valid from.
         /// </summary>
         /// <returns>A DateTime object representing that time in the local time zone.</returns>
-        public virtual DateTime NotBefore
-        {
-            get { return c.StartDate.ToDateTime(); }
-        }
+        public virtual DateTime NotBefore => c.StartDate.ToDateTime();
 
         /// <summary>
         /// The time that this certificate is valid up to.
         /// </summary>
         /// <returns>A DateTime object representing that time in the local time zone.</returns>
-        public virtual DateTime NotAfter
-        {
-            get { return c.EndDate.ToDateTime(); }
-        }
+        public virtual DateTime NotAfter => c.EndDate.ToDateTime();
 
         public virtual TbsCertificateStructure TbsCertificate => c.TbsCertificate;
 
@@ -267,44 +203,32 @@ namespace Org.BouncyCastle.X509
         /// To Get the whole certificate call the GetEncoded() member.
         /// </summary>
         /// <returns>A byte array containing the Der encoded Certificate component.</returns>
-        public virtual byte[] GetTbsCertificate()
-        {
-            return c.TbsCertificate.GetDerEncoded();
-        }
+        public virtual byte[] GetTbsCertificate() => c.TbsCertificate.GetDerEncoded();
 
         /// <summary>
         /// The signature.
         /// </summary>
         /// <returns>A byte array containg the signature of the certificate.</returns>
-        public virtual byte[] GetSignature()
-        {
-            return c.GetSignatureOctets();
-        }
+        public virtual byte[] GetSignature() => c.GetSignatureOctets();
 
         /// <summary>
-		/// A meaningful version of the Signature Algorithm. (e.g. SHA1WITHRSA)
-		/// </summary>
-		/// <returns>A string representing the signature algorithm.</returns>
-		public virtual string SigAlgName => Objects.EnsureSingletonInitialized(ref m_sigAlgName, SignatureAlgorithm,
+        /// A meaningful version of the Signature Algorithm. (e.g. SHA1WITHRSA)
+        /// </summary>
+        /// <returns>A string representing the signature algorithm.</returns>
+        public virtual string SigAlgName => Objects.EnsureSingletonInitialized(ref m_sigAlgName, SignatureAlgorithm,
             X509SignatureUtilities.GetSignatureName);
 
         /// <summary>
         /// Get the Signature Algorithms Object ID.
         /// </summary>
         /// <returns>A string containg a '.' separated object id.</returns>
-        public virtual string SigAlgOid
-        {
-            get { return c.SignatureAlgorithm.Algorithm.Id; }
-        }
+        public virtual string SigAlgOid => c.SignatureAlgorithm.Algorithm.Id;
 
         /// <summary>
         /// Get the signature algorithms parameters. (EG DSA Parameters)
         /// </summary>
         /// <returns>A byte array containing the Der encoded version of the parameters or null if there are none.</returns>
-        public virtual byte[] GetSigAlgParams()
-        {
-            return Arrays.Clone(sigAlgParams);
-        }
+        public virtual byte[] GetSigAlgParams() => Arrays.Clone(sigAlgParams);
 
         /// <summary>The signature algorithm.</summary>
         public virtual AlgorithmIdentifier SignatureAlgorithm => c.SignatureAlgorithm;
@@ -313,27 +237,18 @@ namespace Org.BouncyCastle.X509
         /// Get the issuers UID.
         /// </summary>
         /// <returns>A DerBitString.</returns>
-        public virtual DerBitString IssuerUniqueID
-        {
-            get { return c.IssuerUniqueID; }
-        }
+        public virtual DerBitString IssuerUniqueID => c.IssuerUniqueID;
 
         /// <summary>
         /// Get the subjects UID.
         /// </summary>
         /// <returns>A DerBitString.</returns>
-        public virtual DerBitString SubjectUniqueID
-        {
-            get { return c.SubjectUniqueID; }
-        }
+        public virtual DerBitString SubjectUniqueID => c.SubjectUniqueID;
 
         /// <summary>
         /// Get a key usage guidlines.
         /// </summary>
-        public virtual bool[] GetKeyUsage()
-        {
-            return Arrays.Clone(keyUsage);
-        }
+        public virtual bool[] GetKeyUsage() => Arrays.Clone(keyUsage);
 
         public virtual IList<DerObjectIdentifier> GetExtendedKeyUsage()
         {
@@ -502,25 +417,6 @@ namespace Org.BouncyCastle.X509
 
             return hashValue;
         }
-
-        //		public void setBagAttribute(
-        //			DERObjectIdentifier oid,
-        //			DEREncodable        attribute)
-        //		{
-        //			pkcs12Attributes.put(oid, attribute);
-        //			pkcs12Ordering.addElement(oid);
-        //		}
-        //
-        //		public DEREncodable getBagAttribute(
-        //			DERObjectIdentifier oid)
-        //		{
-        //			return (DEREncodable)pkcs12Attributes.get(oid);
-        //		}
-        //
-        //		public Enumeration getBagAttributeKeys()
-        //		{
-        //			return pkcs12Ordering.elements();
-        //		}
 
         public override string ToString()
         {

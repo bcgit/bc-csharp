@@ -6,9 +6,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.X509.Extension
 {
-    /**
-	 * A high level subject key identifier.
-	 */
+    /// <summary>A high level subject key identifier.</summary>
     [Obsolete("Use 'X509ExtensionUtilities' methods instead")]
     public class SubjectKeyIdentifierStructure
         : SubjectKeyIdentifier

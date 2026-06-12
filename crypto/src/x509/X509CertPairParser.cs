@@ -9,54 +9,48 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.X509
 {
-	public class X509CertPairParser
-	{
-		private Stream currentStream;
+    public class X509CertPairParser
+    {
+        private Stream currentStream;
 
-		private X509CertificatePair ReadDerCrossCertificatePair(Stream inStream)
-		{
+        private X509CertificatePair ReadDerCrossCertificatePair(Stream inStream)
+        {
             using (var asn1In = new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true))
             {
                 return new X509CertificatePair(CertificatePair.GetInstance(asn1In.ReadObject()));
             }
-		}
+        }
 
-		/// <summary>
-		/// Create loading data from byte array.
-		/// </summary>
-		/// <param name="input"></param>
-		public X509CertificatePair ReadCertPair(byte[] input)
-		{
-			return ReadCertPair(new MemoryStream(input, false));
-		}
+        /// <summary>
+        /// Create loading data from byte array.
+        /// </summary>
+        /// <param name="input"></param>
+        public X509CertificatePair ReadCertPair(byte[] input) => ReadCertPair(new MemoryStream(input, false));
 
-		/// <summary>
-		/// Create loading data from byte array.
-		/// </summary>
-		/// <param name="input"></param>
-		public IList<X509CertificatePair> ReadCertPairs(byte[] input)
-		{
-			return ReadCertPairs(new MemoryStream(input, false));
-		}
+        /// <summary>
+        /// Create loading data from byte array.
+        /// </summary>
+        /// <param name="input"></param>
+        public IList<X509CertificatePair> ReadCertPairs(byte[] input) => ReadCertPairs(new MemoryStream(input, false));
 
-		public X509CertificatePair ReadCertPair(Stream inStream)
-		{
-			if (inStream == null)
-				throw new ArgumentNullException("inStream");
-			if (!inStream.CanRead)
-				throw new ArgumentException("inStream must be read-able", "inStream");
+        public X509CertificatePair ReadCertPair(Stream inStream)
+        {
+            if (inStream == null)
+                throw new ArgumentNullException(nameof(inStream));
+            if (!inStream.CanRead)
+                throw new ArgumentException("must be read-able", nameof(inStream));
 
-			if (currentStream == null)
-			{
-				currentStream = inStream;
-			}
-			else if (currentStream != inStream) // reset if input stream has changed
-			{
-				currentStream = inStream;
-			}
+            if (currentStream == null)
+            {
+                currentStream = inStream;
+            }
+            else if (currentStream != inStream) // reset if input stream has changed
+            {
+                currentStream = inStream;
+            }
 
-			try
-			{
+            try
+            {
                 int tag = inStream.ReadByte();
                 if (tag < 0)
                     return null;
@@ -73,28 +67,28 @@ namespace Org.BouncyCastle.X509
                 }
 
                 return ReadDerCrossCertificatePair(inStream);
-			}
-			catch (CertificateException)
-			{
-				throw;
-			}
-			catch (Exception e)
-			{
-				throw new CertificateException(e.ToString());
-			}
-		}
+            }
+            catch (CertificateException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CertificateException(e.ToString());
+            }
+        }
 
-		public IList<X509CertificatePair> ReadCertPairs(Stream inStream)
-		{
-			var certPairs = new List<X509CertificatePair>();
+        public IList<X509CertificatePair> ReadCertPairs(Stream inStream)
+        {
+            var certPairs = new List<X509CertificatePair>();
 
-			X509CertificatePair certPair;
-			while ((certPair = ReadCertPair(inStream)) != null)
-			{
-				certPairs.Add(certPair);
-			}
+            X509CertificatePair certPair;
+            while ((certPair = ReadCertPair(inStream)) != null)
+            {
+                certPairs.Add(certPair);
+            }
 
-			return certPairs;
-		}
-	}
+            return certPairs;
+        }
+    }
 }

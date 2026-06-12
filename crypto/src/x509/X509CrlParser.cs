@@ -87,10 +87,10 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        /**
-         * Generates a certificate revocation list (CRL) object and initializes
-         * it with the data read from the input stream inStream.
-         */
+        /// <summary>
+        /// Generates a certificate revocation list (CRL) object and initializes it with the data read from
+        /// <paramref name="inStream"/>.
+        /// </summary>
         public X509Crl ReadCrl(Stream inStream)
         {
             if (inStream == null)
@@ -157,15 +157,14 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        /**
-         * Returns a (possibly empty) collection view of the CRLs read from
-         * the given input stream inStream.
-         *
-         * The inStream may contain a sequence of DER-encoded CRLs, or
-         * a PKCS#7 CRL set.  This is a PKCS#7 SignedData object, with the
-         * only significant field being crls.  In particular the signature
-         * and the contents are ignored.
-         */
+        /// <summary>
+        /// Returns a (possibly empty) collection view of the CRLs read from the <paramref name="inStream"/>.
+        /// </summary>
+        /// <remarks>
+        /// <paramref name="inStream"/> may contain a sequence of DER-encoded CRLs, or a PKCS#7 CRL set. This is a
+        /// PKCS#7 SignedData object, with the only significant field being crls. In particular the signature and the
+        /// contents are ignored.
+        /// </remarks>
         public IList<X509Crl> ReadCrls(Stream inStream) => new List<X509Crl>(ParseCrls(inStream));
 
         public IEnumerable<X509Crl> ParseCrls(Stream inStream)

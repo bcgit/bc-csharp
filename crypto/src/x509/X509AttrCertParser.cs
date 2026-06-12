@@ -86,10 +86,9 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        /**
-         * Generates a certificate object and initializes it with the data
-         * read from the input stream inStream.
-         */
+        /// <summary>
+        /// Generates a certificate object and intiializes it with the data read from <paramref name="inStream"/>.
+        /// </summary>
         public X509V2AttributeCertificate ReadAttrCert(Stream inStream)
         {
             if (inStream == null)
@@ -156,10 +155,9 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        /**
-         * Returns a (possibly empty) collection view of the certificates
-         * read from the given input stream inStream.
-         */
+        /// <summary>
+        /// Returns a (possibly empty) collection view of the certificates read from <paramref name="inStream"/>.
+        /// </summary>
         public IList<X509V2AttributeCertificate> ReadAttrCerts(Stream inStream) =>
             new List<X509V2AttributeCertificate>(ParseAttrCerts(inStream));
 
