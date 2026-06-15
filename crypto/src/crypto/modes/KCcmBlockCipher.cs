@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Modes
@@ -115,14 +116,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             this.mac = new byte[macSize];
             this.forEncryption = forEncryption;
+
             engine.Init(true, cipherParameters);
 
-            counter[0] = 0x01; // defined in standard
-
-            if (initialAssociatedText != null)
-            {
-                ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
-            }
+            Reset();
         }
 
         public virtual string AlgorithmName => engine.AlgorithmName + "/KCCM";
@@ -161,7 +158,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             Array.Copy(nonce, 0, G1, 0, nonce.Length - Nb_ - 1);
 
-            intToBytes(dataLen, buffer, 0); // for G1
+            Pack.UInt32_To_LE((uint)dataLen, buffer, 0); // for G1
 
             Array.Copy(buffer, 0, G1, nonce.Length - Nb_ - 1, BYTES_IN_INT);
 
@@ -169,7 +166,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             engine.ProcessBlock(G1, 0, macBlock, 0);
 
-            intToBytes(assocLen, buffer, 0); // for G2
+            Pack.UInt32_To_LE((uint)assocLen, buffer, 0); // for G2
 
             if (assocLen <= engine.GetBlockSize() - Nb_)
             {
@@ -278,10 +275,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     outOff += engine.GetBlockSize();
                 }
 
-                for (int byteIndex = 0; byteIndex<counter.Length; byteIndex++)
-                {
-                    s[byteIndex] += counter[byteIndex];
-                }
+                AdvanceGamma();
 
                 engine.ProcessBlock(s, 0, buffer, 0);
 
@@ -314,10 +308,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 if (len > inOff)
                 {
-                    for (int byteIndex = 0; byteIndex<counter.Length; byteIndex++)
-                    {
-                        s[byteIndex] += counter[byteIndex];
-                    }
+                    AdvanceGamma();
 
                     engine.ProcessBlock(s, 0, buffer, 0);
 
@@ -328,10 +319,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     outOff += macSize;
                 }
 
-                for (int byteIndex = 0; byteIndex<counter.Length; byteIndex++)
-                {
-                    s[byteIndex] += counter[byteIndex];
-                }
+                AdvanceGamma();
 
                 engine.ProcessBlock(s, 0, buffer, 0);
 
@@ -389,10 +377,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     index += blockSize;
                 }
 
-                for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
-                {
-                    s[byteIndex] += counter[byteIndex];
-                }
+                AdvanceGamma();
 
                 engine.ProcessBlock(s, buffer);
 
@@ -423,10 +408,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 if (len > index)
                 {
-                    for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
-                    {
-                        s[byteIndex] += counter[byteIndex];
-                    }
+                    AdvanceGamma();
 
                     engine.ProcessBlock(s, buffer);
 
@@ -437,10 +419,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                     index += macSize;
                 }
 
-                for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
-                {
-                    s[byteIndex] += counter[byteIndex];
-                }
+                AdvanceGamma();
 
                 engine.ProcessBlock(s, buffer);
 
@@ -466,6 +445,26 @@ namespace Org.BouncyCastle.Crypto.Modes
         }
 #endif
 
+        /// <summary>
+        /// Advance the gamma counter by adding {@code counter} to {@code s} as a little-endian multi-byte integer with
+        /// carry propagation (counter[0] is the least significant byte).
+        /// </summary>
+        /// <remarks>
+        /// The carry must propagate across the whole block: without it only s[0] ever changes, so the keystream block
+        /// E(s) repeats every 256 blocks and any message longer than 255 blocks is encrypted with a repeating keystream
+        /// (a two-time pad). See github bc-java #287.
+        /// </remarks>
+        private void AdvanceGamma()
+        {
+            int carry = 0;
+            for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
+            {
+                carry += s[byteIndex] + counter[byteIndex];
+                s[byteIndex] = (byte)carry;
+                carry >>= 8;
+            }
+        }
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void CalculateMac(ReadOnlySpan<byte> authText)
         {
@@ -486,10 +485,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private void ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
-            for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
-            {
-                s[byteIndex] += counter[byteIndex];
-            }
+            AdvanceGamma();
 
             engine.ProcessBlock(s, buffer);
 
@@ -520,11 +516,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private void ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
-
-            for (int byteIndex = 0; byteIndex < counter.Length; byteIndex++)
-            {
-                s[byteIndex] += counter[byteIndex];
-            }
+            AdvanceGamma();
 
             engine.ProcessBlock(s, 0, buffer, 0);
 
@@ -587,7 +579,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             Arrays.Fill(counter, (byte)0);
             Arrays.Fill(macBlock, (byte)0);
 
-            counter[0] = 0x01;
+            counter[0] = 0x01; // defined in standard
             data.SetLength(0);
             associatedText.SetLength(0);
 
@@ -595,17 +587,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             {
                 ProcessAadBytes(initialAssociatedText, 0, initialAssociatedText.Length);
             }
-        }
-
-        private void intToBytes(
-            int num,
-            byte[] outBytes,
-            int outOff)
-        {
-            outBytes[outOff + 3] = (byte)(num >> 24);
-            outBytes[outOff + 2] = (byte)(num >> 16);
-            outBytes[outOff + 1] = (byte)(num >> 8);
-            outBytes[outOff] = (byte)num;
         }
 
         private byte getFlag(bool authTextPresents, int macSize)
