@@ -5,15 +5,15 @@ using System.Text;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 {
-	[TestFixture]
-	public class PgpCompressionTest
-		: SimpleTest
-	{
+    [TestFixture]
+    public class PgpCompressionTest
+    {
         private static readonly SecureRandom Random = new SecureRandom();
 
         private static readonly byte[] Data1 = new byte[0];
@@ -22,62 +22,54 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void TestBZip2()
         {
-            DoTestCompression(Data1, CompressionAlgorithmTag.BZip2);
-            DoTestCompression(Data2, CompressionAlgorithmTag.BZip2);
-            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.BZip2);
+            ImplTestCompression(Data1, CompressionAlgorithmTag.BZip2);
+            ImplTestCompression(Data2, CompressionAlgorithmTag.BZip2);
+            ImplTestCompression(RandomData(1000000), CompressionAlgorithmTag.BZip2);
         }
 
         [Test]
-		public void TestUncompressed()
-		{
-			DoTestCompression(Data1, CompressionAlgorithmTag.Uncompressed);
-            DoTestCompression(Data2, CompressionAlgorithmTag.Uncompressed);
-            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.Uncompressed);
+        public void TestUncompressed()
+        {
+            ImplTestCompression(Data1, CompressionAlgorithmTag.Uncompressed);
+            ImplTestCompression(Data2, CompressionAlgorithmTag.Uncompressed);
+            ImplTestCompression(RandomData(1000000), CompressionAlgorithmTag.Uncompressed);
         }
 
         [Test]
-		public void TestZip()
-		{
-			DoTestCompression(Data1, CompressionAlgorithmTag.Zip);
-            DoTestCompression(Data2, CompressionAlgorithmTag.Zip);
-            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.Zip);
+        public void TestZip()
+        {
+            ImplTestCompression(Data1, CompressionAlgorithmTag.Zip);
+            ImplTestCompression(Data2, CompressionAlgorithmTag.Zip);
+            ImplTestCompression(RandomData(1000000), CompressionAlgorithmTag.Zip);
         }
 
         [Test]
-		public void TestZLib()
-		{
-			DoTestCompression(Data1, CompressionAlgorithmTag.ZLib);
-            DoTestCompression(Data2, CompressionAlgorithmTag.ZLib);
-            DoTestCompression(RandomData(1000000), CompressionAlgorithmTag.ZLib);
+        public void TestZLib()
+        {
+            ImplTestCompression(Data1, CompressionAlgorithmTag.ZLib);
+            ImplTestCompression(Data2, CompressionAlgorithmTag.ZLib);
+            ImplTestCompression(RandomData(1000000), CompressionAlgorithmTag.ZLib);
         }
 
-        public override void PerformTest()
-		{
-            TestBZip2();
-            TestUncompressed();
-            TestZip();
-            TestZLib();
-		}
+        private static void ImplTestCompression(byte[] data, CompressionAlgorithmTag type)
+        {
+            ImplTestCompression(data, type, true);
+            ImplTestCompression(data, type, false);
+        }
 
-		private void DoTestCompression(byte[] data, CompressionAlgorithmTag type)
-		{
-			DoTestCompression(data, type, true);
-			DoTestCompression(data, type, false);
-		}
-
-		private void DoTestCompression(byte[] data, CompressionAlgorithmTag	type, bool streamClose)
-		{
-			MemoryStream bOut = new MemoryStream();
-			PgpCompressedDataGenerator cPacket = new PgpCompressedDataGenerator(type);
+        private static void ImplTestCompression(byte[] data, CompressionAlgorithmTag type, bool streamClose)
+        {
+            MemoryStream bOut = new MemoryStream();
+            PgpCompressedDataGenerator cPacket = new PgpCompressedDataGenerator(type);
             Stream os = cPacket.Open(new UncloseableStream(bOut));
-			os.Write(data, 0, data.Length);
+            os.Write(data, 0, data.Length);
 
-			if (streamClose)
-			{
-				os.Dispose();
-			}
-			else
-			{
+            if (streamClose)
+            {
+                os.Dispose();
+            }
+            else
+            {
 #pragma warning disable CS0618 // Type or member is obsolete
                 cPacket.Close();
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -85,42 +77,33 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 
             ValidateData(data, bOut.ToArray());
 
-			try
-			{
-				os.Dispose();
+            try
+            {
+                os.Dispose();
 #pragma warning disable CS0618 // Type or member is obsolete
                 cPacket.Close();
 #pragma warning restore CS0618 // Type or member is obsolete
             }
             catch (Exception)
-			{
-				Fail("Redundant Close() should be ignored");
-			}
-		}
-
-        private byte[] RandomData(int length)
-        {
-            return SecureRandom.GetNextBytes(Random, length);
+            {
+                Assert.Fail("Redundant Close() should be ignored");
+            }
         }
 
-		private void ValidateData(byte[] data, byte[] compressed)
-		{
-			PgpObjectFactory pgpFact = new PgpObjectFactory(compressed);
-			PgpCompressedData c1 = (PgpCompressedData) pgpFact.NextPgpObject();
+        private static byte[] RandomData(int length) => SecureRandom.GetNextBytes(Random, length);
 
-			Stream pIn = c1.GetDataStream();
-			byte[] bytes = Streams.ReadAll(pIn);
-			pIn.Close();
+        private static void ValidateData(byte[] data, byte[] compressed)
+        {
+            PgpObjectFactory pgpFact = new PgpObjectFactory(compressed);
+            PgpCompressedData c1 = (PgpCompressedData)pgpFact.NextPgpObject();
 
-			if (!AreEqual(bytes, data))
-			{
-				Fail("compression test failed");
-			}
-		}
+            byte[] bytes;
+            using (var pIn = c1.GetDataStream())
+            {
+                bytes = Streams.ReadAll(pIn);
+            }
 
-		public override string Name
-		{
-			get { return "PgpCompressionTest"; }
-		}
-	}
+            Assert.That(Arrays.AreEqual(data, bytes), "compression test failed");
+        }
+    }
 }
