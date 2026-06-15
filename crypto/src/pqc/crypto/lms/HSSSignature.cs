@@ -37,10 +37,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return Parse(L, binaryReader);
 
             if (src is Stream stream)
-                return Parse(L, stream, leaveOpen: true);
+                return Parse(L, stream);
 
             if (src is byte[] bytes)
-                return Parse(L, new MemoryStream(bytes, false), leaveOpen: false);
+                return Parse(L, bytes);
 
             throw new ArgumentException($"cannot parse {src}");
         }
@@ -67,11 +67,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        private static HssSignature Parse(int L, Stream stream, bool leaveOpen)
+        internal static HssSignature Parse(int L, Stream stream)
         {
-            using (var binaryReader = new BinaryReader(stream, Strings.UTF8, leaveOpen))
+            using (var binaryReader = new BinaryReader(stream, Strings.UTF8, leaveOpen: true))
             {
                 return Parse(L, binaryReader);
+            }
+        }
+
+        internal static HssSignature Parse(int L, byte[] buf) => Parse(L, buf, 0, buf.Length);
+
+        internal static HssSignature Parse(int L, byte[] buf, int off, int len)
+        {
+            using (var stream = new MemoryStream(buf, off, len, false))
+            {
+                var signature = Parse(L, stream);
+                if (stream.Position != stream.Length)
+                    throw new InvalidDataException("unexpected data found after HSS signature");
+                return signature;
             }
         }
 

@@ -38,6 +38,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static HssPublicKeyParameters Parse(BinaryReader binaryReader)
         {
             int L = BinaryReaders.ReadInt32BigEndian(binaryReader);
+            if (L < 1 || L > 8)    // RFC 8554, Section 6.
+                throw new InvalidDataException($"L value of HSS public key out of range: {L}");
+
             LmsPublicKeyParameters lmsPublicKey = LmsPublicKeyParameters.Parse(binaryReader);
             return new HssPublicKeyParameters(L, lmsPublicKey);
         }
@@ -45,11 +48,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static HssPublicKeyParameters Parse(Stream stream) =>
             BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-        internal static HssPublicKeyParameters Parse(byte[] buf) =>
-            BinaryReaders.Parse(Parse, new MemoryStream(buf, false), leaveOpen: false);
+        internal static HssPublicKeyParameters Parse(byte[] buf) => Parse(buf, 0, buf.Length);
 
-        internal static HssPublicKeyParameters Parse(byte[] buf, int off, int len) =>
-            BinaryReaders.Parse(Parse, new MemoryStream(buf, off, len, false), leaveOpen: false);
+        internal static HssPublicKeyParameters Parse(byte[] buf, int off, int len)
+        {
+            using (var stream = new MemoryStream(buf, off, len, false))
+            {
+                var hssPublicKey = Parse(stream);
+                if (stream.Position != stream.Length)
+                    throw new InvalidDataException("unexpected data found after HSS public key");
+                return hssPublicKey;
+            }
+        }
 
         [Obsolete("Use 'Level' instead")]
         public int L => m_level;

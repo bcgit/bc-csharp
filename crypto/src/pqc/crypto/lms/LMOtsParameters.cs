@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             int id = BinaryReaders.ReadInt32BigEndian(binaryReader);
             if (!ParametersByID.TryGetValue(id, out var parameters))
-                throw new InvalidDataException($"unknown LMOtsParameters {id}");
+                throw new InvalidDataException($"unknown LM-OTS type code: {id}");
             return parameters;
         }
 
