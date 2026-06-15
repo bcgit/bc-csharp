@@ -9,6 +9,12 @@ namespace Org.BouncyCastle.Bcpg
     /// <summary>Parser for signature subpackets</summary>
     public class SignatureSubpacketsParser
     {
+        // Absolute upper bound on a single signature subpacket body. A crafted long-length header
+        // could otherwise force a multi-gigabyte new byte[] (below) before any body bytes are read,
+        // a pre-auth allocation DoS. 2 MiB matches bc-java's SignaturePacket.MAX_SUBPACKET_LEN
+        // (large enough for e.g. embedded keys).
+        private const int MaxSubpacketLength = 2 * 1024 * 1024;
+
         private readonly Stream m_input;
 
         public SignatureSubpacketsParser(Stream input)
@@ -29,8 +35,7 @@ namespace Org.BouncyCastle.Bcpg
             bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
 
             // see below about miscoding...
-            // TODO Configurable upper limit
-            if (bodyLen < 1U || bodyLen > int.MaxValue)
+            if (bodyLen < 1U || bodyLen > MaxSubpacketLength)
                 throw new EndOfStreamException("out of range data found in signature subpacket");
 
             int tag = StreamUtilities.RequireByte(m_input);
