@@ -47,5 +47,88 @@ namespace Org.BouncyCastle.Asn1.Iana
 
         /** IPSEC ISAKMP-Oakley hmacRIPEMD160 OID: 1.3.6.1.5.5.8.1.4 */
         public static readonly DerObjectIdentifier HmacRipeMD160 = IsakmpOakley.Branch("4");
+
+        /** 1.3.6.1.5.5.7.6 */
+        public static readonly DerObjectIdentifier id_alg = internet.Branch("5.5.7.6");
+
+        public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE128 = id_alg.Branch("30");
+
+        public static readonly DerObjectIdentifier id_RSASSA_PSS_SHAKE256 = id_alg.Branch("31");
+
+        public static readonly DerObjectIdentifier id_ecdsa_with_shake128 = id_alg.Branch("32");
+
+        public static readonly DerObjectIdentifier id_ecdsa_with_shake256 = id_alg.Branch("33");
+
+        /** 1.3.6.1.5.5.7.6.34 id-alg-xmss-hashsig (RFC 9802) */
+        public static readonly DerObjectIdentifier id_alg_xmss_hashsig = id_alg.Branch("34");
+
+        /** 1.3.6.1.5.5.7.6.35 id-alg-xmssmt-hashsig (RFC 9802) */
+        public static readonly DerObjectIdentifier id_alg_xmssmt_hashsig = id_alg.Branch("35");
+
+        public static readonly DerObjectIdentifier id_alg_unsigned = id_alg.Branch("36");
+
+        /** 1.3.6.1.5.5.7.6.37 id-MLDSA44-RSA2048-PSS-SHA256 */
+        public static readonly DerObjectIdentifier id_MLDSA44_RSA2048_PSS_SHA256 = id_alg.Branch("37");
+        /** 1.3.6.1.5.5.7.6.38 id-MLDSA44-RSA2048-PKCS15-SHA256 */
+        public static readonly DerObjectIdentifier id_MLDSA44_RSA2048_PKCS15_SHA256 = id_alg.Branch("38");
+        /** 1.3.6.1.5.5.7.6.39 id-MLDSA44-Ed25519-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA44_Ed25519_SHA512 = id_alg.Branch("39");
+        /** 1.3.6.1.5.5.7.6.40 id-MLDSA44-ECDSA-P256-SHA256 */
+        public static readonly DerObjectIdentifier id_MLDSA44_ECDSA_P256_SHA256 = id_alg.Branch("40");
+        /** 1.3.6.1.5.5.7.6.41 id-MLDSA65-RSA3072-PSS-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA65_RSA3072_PSS_SHA512 = id_alg.Branch("41");
+        /** 1.3.6.1.5.5.7.6.42 id-MLDSA65-RSA3072-PKCS15-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA65_RSA3072_PKCS15_SHA512 = id_alg.Branch("42");
+        /** 1.3.6.1.5.5.7.6.43 id-MLDSA65-RSA4096-PSS-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA65_RSA4096_PSS_SHA512 = id_alg.Branch("43");
+        /** 1.3.6.1.5.5.7.6.44 id-MLDSA65-RSA4096-PKCS15-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA65_RSA4096_PKCS15_SHA512 = id_alg.Branch("44");
+        /** 1.3.6.1.5.5.7.6.45 id-MLDSA65-ECDSA-P256-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA65_ECDSA_P256_SHA512 = id_alg.Branch("45");
+        /** 1.3.6.1.5.5.7.6.46 id-MLDSA65-ECDSA-P384-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA65_ECDSA_P384_SHA512 = id_alg.Branch("46");
+        /** 1.3.6.1.5.5.7.6.47 id-MLDSA65-ECDSA-brainpoolP256r1-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA65_ECDSA_brainpoolP256r1_SHA512 = id_alg.Branch("47");
+        /** 1.3.6.1.5.5.7.6.48 id-MLDSA65-Ed25519-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA65_Ed25519_SHA512 = id_alg.Branch("48");
+        /** 1.3.6.1.5.5.7.6.49 id-MLDSA87-ECDSA-P384-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA87_ECDSA_P384_SHA512 = id_alg.Branch("49");
+        /** 1.3.6.1.5.5.7.6.50 id-MLDSA87-ECDSA-brainpoolP384r1-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA87_ECDSA_brainpoolP384r1_SHA512 = id_alg.Branch("50");
+        /** 1.3.6.1.5.5.7.6.51 id-MLDSA87-Ed448-SHAKE256 */
+        public static readonly DerObjectIdentifier id_MLDSA87_Ed448_SHAKE256 = id_alg.Branch("51");
+        /** 1.3.6.1.5.5.7.6.52 id-MLDSA87-RSA3072-PSS-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA87_RSA3072_PSS_SHA512 = id_alg.Branch("52");
+        /** 1.3.6.1.5.5.7.6.53 id-MLDSA87-RSA4096-PSS-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA87_RSA4096_PSS_SHA512 = id_alg.Branch("53");
+        /** 1.3.6.1.5.5.7.6.54 id-MLDSA87-ECDSA-P521-SHA512 */
+        public static readonly DerObjectIdentifier id_MLDSA87_ECDSA_P521_SHA512 = id_alg.Branch("54");
+
+
+        /** 1.3.6.1.5.5.7.6.55 id-MLKEM768-RSA2048-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM768_RSA2048_SHA3_256 = id_alg.Branch("55");
+        /** 1.3.6.1.5.5.7.6.56 id-MLKEM768-RSA3072-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM768_RSA3072_SHA3_256 = id_alg.Branch("56");
+        /** 1.3.6.1.5.5.7.6.57 id-MLKEM768-RSA4096-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM768_RSA4096_SHA3_256 = id_alg.Branch("57");
+        /** 1.3.6.1.5.5.7.6.58 id-MLKEM768-X25519-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM768_X25519_SHA3_256 = id_alg.Branch("58");
+        /** 1.3.6.1.5.5.7.6.59  id-MLKEM768-ECDH-P256-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM768_ECDH_P256_SHA3_256 = id_alg.Branch("59");
+        /** 1.3.6.1.5.5.7.6.60 id-MLKEM768-ECDH-P384-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM768_ECDH_P384_SHA3_256 = id_alg.Branch("60");
+        /** 1.3.6.1.5.5.7.6.61 id-MLKEM768-ECDH-brainpoolP256r1-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM768_ECDH_BP256_SHA3_256 = id_alg.Branch("61");
+        /** 1.3.6.1.5.5.7.6.62 id-MLKEM1024-RSA3072-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM1024_RSA3072_SHA3_256 = id_alg.Branch("62");
+        /** 1.3.6.1.5.5.7.6.63 id-MLKEM1024-ECDH-P384-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM1024_ECDH_P384_SHA3_256 = id_alg.Branch("63");
+        /** 1.3.6.1.5.5.7.6.64 id-MLKEM1024-ECDH-brainpoolP384r1-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM1024_ECDH_BP384_SHA3_256 = id_alg.Branch("64");
+        /** 1.3.6.1.5.5.7.6.65 id-MLKEM1024-X448-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM1024_X448_SHA3_256 = id_alg.Branch("65");
+        /** 1.3.6.1.5.5.7.6.66 id-MLKEM1024-ECDH-P521-SHA3-256 */
+        public static readonly DerObjectIdentifier id_MLKEM1024_ECDH_P521_SHA3_256 = id_alg.Branch("66");
+
     }
 }

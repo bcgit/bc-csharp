@@ -8,6 +8,7 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Eac;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.GM;
+using Org.BouncyCastle.Asn1.Iana;
 using Org.BouncyCastle.Asn1.Isara;
 using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
@@ -240,13 +241,13 @@ namespace Org.BouncyCastle.Operators.Utilities
 
             AddAlgorithm("LMS", PkcsObjectIdentifiers.IdAlgHssLmsHashsig);
 
-            AddAlgorithm("XMSS", IsaraObjectIdentifiers.id_alg_xmss);
+            AddAlgorithm("XMSS", IanaObjectIdentifiers.id_alg_xmss_hashsig);   // RFC 9802
             AddAlgorithm("XMSS-SHA256", BCObjectIdentifiers.xmss_SHA256);
             AddAlgorithm("XMSS-SHA512", BCObjectIdentifiers.xmss_SHA512);
             AddAlgorithm("XMSS-SHAKE128", BCObjectIdentifiers.xmss_SHAKE128);
             AddAlgorithm("XMSS-SHAKE256", BCObjectIdentifiers.xmss_SHAKE256);
 
-            AddAlgorithm("XMSSMT", IsaraObjectIdentifiers.id_alg_xmssmt);
+            AddAlgorithm("XMSSMT", IanaObjectIdentifiers.id_alg_xmssmt_hashsig);   // RFC 9802
             AddAlgorithm("XMSSMT-SHA256", BCObjectIdentifiers.xmss_mt_SHA256);
             AddAlgorithm("XMSSMT-SHA512", BCObjectIdentifiers.xmss_mt_SHA512);
             AddAlgorithm("XMSSMT-SHAKE128", BCObjectIdentifiers.xmss_mt_SHAKE128);
@@ -399,6 +400,8 @@ namespace Org.BouncyCastle.Operators.Utilities
 
             NoParams.Add(IsaraObjectIdentifiers.id_alg_xmss);
             NoParams.Add(IsaraObjectIdentifiers.id_alg_xmssmt);
+            NoParams.Add(IanaObjectIdentifiers.id_alg_xmss_hashsig);
+            NoParams.Add(IanaObjectIdentifiers.id_alg_xmssmt_hashsig);
 
             //
             // qTESLA
