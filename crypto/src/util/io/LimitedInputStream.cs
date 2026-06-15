@@ -11,14 +11,17 @@ namespace Org.BouncyCastle.Utilities.IO
 
         internal LimitedInputStream(Stream stream, long limit)
         {
-            this.m_stream = stream;
-            this.m_limit = limit;
+            m_stream = stream;
+            m_limit = limit;
         }
 
         internal long CurrentLimit => m_limit;
 
         public override int Read(byte[] buffer, int offset, int count)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            return Read(buffer.AsSpan(offset, count));
+#else
             int numRead = m_stream.Read(buffer, offset, count);
             if (numRead > 0)
             {
@@ -26,6 +29,7 @@ namespace Org.BouncyCastle.Utilities.IO
                     throw new StreamOverflowException("Data Overflow");
             }
             return numRead;
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

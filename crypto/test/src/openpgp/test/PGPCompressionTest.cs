@@ -22,42 +22,42 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void TestBZip2()
         {
-            ImplTestCompression(Data1, CompressionAlgorithmTag.BZip2);
-            ImplTestCompression(Data2, CompressionAlgorithmTag.BZip2);
-            ImplTestCompression(RandomData(1000000), CompressionAlgorithmTag.BZip2);
+            CheckCompression(Data1, CompressionAlgorithmTag.BZip2);
+            CheckCompression(Data2, CompressionAlgorithmTag.BZip2);
+            CheckCompression(RandomData(1000000), CompressionAlgorithmTag.BZip2);
         }
 
         [Test]
         public void TestUncompressed()
         {
-            ImplTestCompression(Data1, CompressionAlgorithmTag.Uncompressed);
-            ImplTestCompression(Data2, CompressionAlgorithmTag.Uncompressed);
-            ImplTestCompression(RandomData(1000000), CompressionAlgorithmTag.Uncompressed);
+            CheckCompression(Data1, CompressionAlgorithmTag.Uncompressed);
+            CheckCompression(Data2, CompressionAlgorithmTag.Uncompressed);
+            CheckCompression(RandomData(1000000), CompressionAlgorithmTag.Uncompressed);
         }
 
         [Test]
         public void TestZip()
         {
-            ImplTestCompression(Data1, CompressionAlgorithmTag.Zip);
-            ImplTestCompression(Data2, CompressionAlgorithmTag.Zip);
-            ImplTestCompression(RandomData(1000000), CompressionAlgorithmTag.Zip);
+            CheckCompression(Data1, CompressionAlgorithmTag.Zip);
+            CheckCompression(Data2, CompressionAlgorithmTag.Zip);
+            CheckCompression(RandomData(1000000), CompressionAlgorithmTag.Zip);
         }
 
         [Test]
         public void TestZLib()
         {
-            ImplTestCompression(Data1, CompressionAlgorithmTag.ZLib);
-            ImplTestCompression(Data2, CompressionAlgorithmTag.ZLib);
-            ImplTestCompression(RandomData(1000000), CompressionAlgorithmTag.ZLib);
+            CheckCompression(Data1, CompressionAlgorithmTag.ZLib);
+            CheckCompression(Data2, CompressionAlgorithmTag.ZLib);
+            CheckCompression(RandomData(1000000), CompressionAlgorithmTag.ZLib);
         }
 
-        private static void ImplTestCompression(byte[] data, CompressionAlgorithmTag type)
+        private static void CheckCompression(byte[] data, CompressionAlgorithmTag type)
         {
-            ImplTestCompression(data, type, true);
-            ImplTestCompression(data, type, false);
+            CheckCompression(data, type, streamClose: true);
+            CheckCompression(data, type, streamClose: false);
         }
 
-        private static void ImplTestCompression(byte[] data, CompressionAlgorithmTag type, bool streamClose)
+        private static void CheckCompression(byte[] data, CompressionAlgorithmTag type, bool streamClose)
         {
             MemoryStream bOut = new MemoryStream();
             PgpCompressedDataGenerator cPacket = new PgpCompressedDataGenerator(type);
@@ -104,6 +104,58 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
 
             Assert.That(Arrays.AreEqual(data, bytes), "compression test failed");
+        }
+
+        [Test]
+        public void DecompressionLimit()
+        {
+            byte[] data = RandomData(64 * 1024);
+
+            CheckDecompressionLimit(data, CompressionAlgorithmTag.Uncompressed);
+            CheckDecompressionLimit(data, CompressionAlgorithmTag.Zip);
+            CheckDecompressionLimit(data, CompressionAlgorithmTag.ZLib);
+            CheckDecompressionLimit(data, CompressionAlgorithmTag.BZip2);
+        }
+
+        private static void CheckDecompressionLimit(byte[] data, CompressionAlgorithmTag type)
+        {
+            MemoryStream bOut = new MemoryStream();
+            PgpCompressedDataGenerator cPacket = new PgpCompressedDataGenerator(type);
+
+            using (var os = cPacket.Open(new UncloseableStream(bOut)))
+            {
+                os.Write(data, 0, data.Length);
+            }
+
+            byte[] packet = bOut.ToArray();
+
+            // a limit at least the size of the data lets the full content through
+            PgpCompressedData c1 = (PgpCompressedData)new PgpObjectFactory(packet).NextPgpObject();
+
+            Assert.That(Arrays.AreEqual(data, Streams.ReadAll(c1.GetDataStream(data.Length))),
+                "limit >= data should round-trip for type " + type);
+
+            // a limit one short of the data fails with StreamOverflowException
+            PgpCompressedData c2 = (PgpCompressedData)new PgpObjectFactory(packet).NextPgpObject();
+
+            using (var limited = c2.GetDataStream(data.Length - 1))
+            {
+                try
+                {
+                    Streams.ReadAll(limited);
+                    Assert.Fail("decompressed data limit not enforced for type " + type);
+                }
+                catch (StreamOverflowException)
+                {
+                    // expected
+                }
+            }
+
+            // a negative limit is equivalent to the unbounded getDataStream()
+            PgpCompressedData c3 = (PgpCompressedData)new PgpObjectFactory(packet).NextPgpObject();
+
+            Assert.That(Arrays.AreEqual(data, Streams.ReadAll(c3.GetDataStream(-1))),
+                "negative limit should be unbounded for type " + type);
         }
     }
 }
