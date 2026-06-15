@@ -86,7 +86,8 @@ namespace Org.BouncyCastle.Tls
             SecurityParameters securityParameters = clientContext.SecurityParameters;
 
             DtlsReliableHandshake handshake = new DtlsReliableHandshake(clientContext, recordLayer,
-                client.GetHandshakeTimeoutMillis(), TlsUtilities.GetHandshakeResendTimeMillis(client), null);
+                client.GetHandshakeTimeoutMillis(), TlsUtilities.GetHandshakeResendTimeMillis(client), null,
+                System.Math.Max(1024, client.GetMaxHandshakeMessageSize()));
 
             byte[] clientHelloBody = GenerateClientHello(state);
 

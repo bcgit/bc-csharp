@@ -81,8 +81,10 @@ namespace Org.BouncyCastle.Tls
 
         private int m_next_send_seq = 0, m_next_receive_seq = 0;
 
+        private readonly int m_maxHandshakeMessageSize;
+
         internal DtlsReliableHandshake(TlsContext context, DtlsRecordLayer transport, int timeoutMillis,
-            int initialResendMillis, DtlsRequest request)
+            int initialResendMillis, DtlsRequest request, int maxHandshakeMessageSize)
         {
             long currentTimeMillis = DateTimeUtilities.CurrentUnixMs();
 
@@ -90,6 +92,7 @@ namespace Org.BouncyCastle.Tls
             m_handshakeHash = new DeferredHash(context);
             m_handshakeTimeout = Timeout.ForWaitMillis(timeoutMillis, currentTimeMillis);
             m_initialResendMillis = initialResendMillis;
+            m_maxHandshakeMessageSize = maxHandshakeMessageSize;
 
             if (null != request)
             {
@@ -362,6 +365,15 @@ namespace Org.BouncyCastle.Tls
                 if (fragment_offset + fragment_length > length)
                 {
                     // NOTE: Malformed fragment - ignore it and the rest of the record
+                    break;
+                }
+
+                if (length > m_maxHandshakeMessageSize)
+                {
+                    // NOTE: Declared message length exceeds the configured maximum - ignore it (and
+                    // the rest of the record) rather than committing a reassembly buffer of that
+                    // size. The reassembler is sized from this attacker-controlled length before any
+                    // signature/Finished verification, so an unbounded value is a memory DoS.
                     break;
                 }
 
