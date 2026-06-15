@@ -12,7 +12,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
 {
     [TestFixture]
     public class ArmoredInputStreamTest
-        : SimpleTest
     {
         private static readonly byte[] bogusData = Hex.Decode(
             "ed864b3c622d5d71d43e5bd77876e81bfaaba8522f64cb494dc897daa3494f7da598f5907b758b72394fbefea77b86a16865e7bf" +
@@ -55,7 +54,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             + "-----END PGP MESSAGE-----\n";
 
         // See https://tests.sequoia-pgp.org/#Mangled_ASCII_Armored_Key (Blank line with '\t\r\v\f')
-        public static readonly string ARMOR_WITH_BACKSLASH_T_R_V_F = "" +
+        private static readonly string ARMOR_WITH_BACKSLASH_T_R_V_F = "" +
             "-----BEGIN PGP PRIVATE KEY BLOCK-----\n" +
             "Comment: Bob's OpenPGP Transferable Secret Key\n" +
             " \t\n" +
@@ -192,7 +191,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "=FdCC\n" +
             "-----END PGP MESSAGE-----";
 
-    public static readonly string KEY_WITH_MISSING_CRC = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n" +
+        private static readonly string KEY_WITH_MISSING_CRC = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n" +
             "Comment: Bob's OpenPGP Transferable Secret Key\n" +
             "\n" +
             "lQVYBF2lnPIBDAC5cL9PQoQLTMuhjbYvb4Ncuuo0bfmgPRFywX53jPhoFf4Zg6mv\n" +
@@ -274,12 +273,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             "xqAY9Bwizt4FWgXuLm1a4+So4V9j1TRCXd12Uc2l2RNmgDE=\n" +
             "-----END PGP PRIVATE KEY BLOCK-----";
 
-        public override string Name
-        {
-            get { return "ArmoredInputStream"; }
-        }
-
-        public override void PerformTest()
+        [Test]
+        public void BogusHeaders()
         {
             try
             {
@@ -290,11 +285,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                             bogusData),
                         false)));
                 pgpObjectFactoryOfTestFile.NextPgpObject(); // <-- EXCEPTION HERE
-                Fail("no exception");
+                Assert.Fail("no exception");
             }
             catch (IOException e)
             {
-                IsTrue("invalid armor".Equals(e.Message));
+                Assert.True("invalid armor".Equals(e.Message));
             }
 
             try
@@ -303,11 +298,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                     new ArmoredInputStream(new MemoryStream(
                         Strings.ToByteArray(badHeaderData1),
                         false)));
-                Fail("no exception");
+                Assert.Fail("no exception");
             }
             catch (IOException e)
             {
-                IsTrue("invalid armor header".Equals(e.Message));
+                Assert.True("invalid armor header".Equals(e.Message));
             }
 
             try
@@ -316,19 +311,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                     new ArmoredInputStream(new MemoryStream(
                         Strings.ToByteArray(badHeaderData2),
                         false)));
-                Fail("no exception");
+                Assert.Fail("no exception");
             }
             catch (IOException e)
             {
-                IsTrue("invalid armor header".Equals(e.Message));
+                Assert.True("invalid armor header".Equals(e.Message));
             }
-
-            DoBackslashTrvfTest();
-            DoCrcErrorGetsThrownTest();
-            DoIgnoreMissingCrcTest();
         }
 
-        public void DoBackslashTrvfTest()
+        [Test]
+        public void BackslashTrvf()
         {
             MemoryStream bIn = new MemoryStream(Strings.ToByteArray(ARMOR_WITH_BACKSLASH_T_R_V_F), false);
             ArmoredInputStream armor = new ArmoredInputStream(bIn);
@@ -339,11 +331,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
             catch (IOException e)
             {
-                Fail("Cannot parse armor containing blank line with '\\t\\r\\v\\f'.", e);
+                Assert.Fail("Cannot parse armor containing blank line with '\\t\\r\\v\\f'.", e);
             }
         }
 
-        private void DoCrcErrorGetsThrownTest()
+        [Test]
+        public void CrcErrorGetsThrown()
         {
             MemoryStream bytesIn = new MemoryStream(Strings.ToByteArray(ASCII_ARMOR_CRC_MISMATCH), false);
             ArmoredInputStream armorIn = new ArmoredInputStream(bytesIn);
@@ -352,15 +345,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             try
             {
                 Streams.PipeAll(armorIn, bytesOut);
-                Fail("Expected IOException to be thrown due to CRC mismatch.");
+                Assert.Fail("Expected IOException to be thrown due to CRC mismatch.");
             }
             catch (IOException e)
             {
-                IsEquals("crc check failed in armored message.", e.Message);
+                Assert.AreEqual("crc check failed in armored message.", e.Message);
             }
         }
 
-        private void DoIgnoreMissingCrcTest()
+        [Test]
+        public void IgnoreMissingCrc()
         {
             MemoryStream data = new MemoryStream(Strings.ToByteArray(KEY_WITH_MISSING_CRC), false);
             ArmoredInputStream armorIn = new ArmoredInputStream(data);
@@ -371,7 +365,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
             catch (IOException e)
             {
-                Fail("Missing CRC sum must be ignored.", e);
+                Assert.Fail("Missing CRC sum must be ignored.", e);
             }
 
             data.Position = 0L;
@@ -384,7 +378,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
             catch (IOException e)
             {
-                Fail("Missing CRC sum must be ignored.", e);
+                Assert.Fail("Missing CRC sum must be ignored.", e);
             }
 
             data.Position = 0L;
@@ -394,21 +388,43 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             try
             {
                 Streams.Drain(armorIn);
-                Fail("Missing CRC sum MUST NOT be ignored.");
+                Assert.Fail("Missing CRC sum MUST NOT be ignored.");
             }
             catch (IOException e)
             {
-                IsEquals("crc check not found", e.Message);
+                Assert.AreEqual("crc check not found", e.Message);
                 // expected
             }
         }
 
         [Test]
-        public void TestFunction()
+        public void InvalidBase64Trailer()
         {
-            string resultText = Perform().ToString();
+            // a final base64 group ending in "==" must reject non-alphabet
+            // characters the same way the one-pad ("XXX=") and no-pad ("XXXX")
+            // groups already do.
+            string twoPad = "-----BEGIN PGP MESSAGE-----\n\n!!==\n-----END PGP MESSAGE-----\n";
+            string onePad = "-----BEGIN PGP MESSAGE-----\n\n!!!=\n-----END PGP MESSAGE-----\n";
+            string noPad = "-----BEGIN PGP MESSAGE-----\n\n!!!!\n-----END PGP MESSAGE-----\n";
 
-            Assert.AreEqual(Name + ": Okay", resultText);
+            Assert.True(ReadsAsInvalidArmor(twoPad), "XX== invalid armor not rejected");
+            Assert.True(ReadsAsInvalidArmor(onePad), "XXX= invalid armor not rejected");
+            Assert.True(ReadsAsInvalidArmor(noPad), "XXXX invalid armor not rejected");
+        }
+
+        private static bool ReadsAsInvalidArmor(string armor)
+        {
+            try
+            {
+                ArmoredInputStream aIn = new ArmoredInputStream(
+                    new MemoryStream(Strings.ToByteArray(armor)), false);
+                Streams.Drain(aIn);
+                return false;
+            }
+            catch (IOException e)
+            {
+                return "invalid armor".Equals(e.Message);
+            }
         }
     }
 }
