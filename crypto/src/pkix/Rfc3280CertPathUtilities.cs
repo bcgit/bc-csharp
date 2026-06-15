@@ -548,6 +548,8 @@ namespace Org.BouncyCastle.Pkix
                 }
             }
 
+            PkixCertPathValidatorUtilities.CheckPolicyTreeSize(policyNodes);
+
             return validPolicyTree;
         }
 

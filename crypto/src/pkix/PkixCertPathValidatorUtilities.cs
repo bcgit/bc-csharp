@@ -374,6 +374,37 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        /// <summary>
+        /// Bound the size of the valid-policy-tree to guard against a crafted certificate chain whose
+        /// policy mappings and anyPolicy expansion (RFC 5280 6.1.3/6.1.4) make the tree grow
+        /// multiplicatively per certificate -- a denial of service of the class of CVE-2023-0464.
+        /// Called once per certificate after that certificate's policy processing; the live node count
+        /// across all depth levels must not exceed the configured maximum.
+        /// </summary>
+        /// <exception cref="PkixCertPathValidatorException"/>
+        internal static void CheckPolicyTreeSize(List<PkixPolicyNode>[] policyNodes)
+        {
+            int maxNodes = ImplGetInteger("Org.BouncyCastle.X509.MaxPolicyNodes", 8192);
+
+            int total = 0;
+            for (int i = 0; i < policyNodes.Length; i++)
+            {
+                total += policyNodes[i].Count;
+                if (total > maxNodes)
+                {
+                    throw new PkixCertPathValidatorException(
+                        "certificate policy tree exceeds " + maxNodes + " nodes (Org.BouncyCastle.X509.MaxPolicyNodes)");
+                }
+            }
+        }
+
+        private static int ImplGetInteger(string envVariable, int defaultValue)
+        {
+            string property = Platform.GetEnvironmentVariable(envVariable);
+
+            return int.TryParse(property, out int value) ? value : defaultValue;
+        }
+
         internal static void GetCertStatus(DateTime validDate, X509Crl crl, object cert, CertStatus certStatus)
         {
             X509CrlEntry crl_entry = crl.GetRevokedCertificate(GetSerialNumber(cert));

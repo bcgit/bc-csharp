@@ -18,6 +18,7 @@ using Org.BouncyCastle.X509.Store;
 namespace Org.BouncyCastle.Tests
 {
 	[TestFixture]
+	[NonParallelizable] // Environment.SetEnvironmentVariable
 	public class PkixPolicyMappingTest : SimpleTest
 	{
 		private static readonly X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
@@ -365,6 +366,36 @@ namespace Org.BouncyCastle.Tests
 			requirePolicies.Add("2.16.840.1.101.3.2.1.48.1");
 			msg = TestPolicies(8, trustCert, intCert, endCert, requirePolicies, false);
 			CheckMessage(8, msg, "Path processing failed on policy.");
+
+			// test_09 - the valid-policy-tree size is bounded (CVE-2023-0464 class). With the node cap
+			// (Org.BouncyCastle.X509.MaxPolicyNodes) set very low, a chain that otherwise validates is
+			// rejected with a clear cap error rather than being allowed to grow the policy tree without
+			// bound. Without the cap the same chain validates, so this also proves the bound is enforced.
+			intPolicies = new Asn1EncodableVector();
+			intPolicies.Add(new PolicyInformation(Nist.NistCertPathTest.AnyPolicyOid));
+			map = new Dictionary<DerObjectIdentifier, DerObjectIdentifier>();
+			map.Add(Nist.NistCertPathTest.NistTestPolicyOid1, Nist.NistCertPathTest.NistTestPolicyOid2);
+			intCert = CreateIntmedCert(intPubKey, caPrivKey, caPubKey, intPolicies, map);
+
+			policies = new Asn1EncodableVector();
+			policies.Add(new PolicyInformation(Nist.NistCertPathTest.NistTestPolicyOid2));
+			endCert = CreateEndEntityCert(pubKey, intPrivKey, intPubKey, policies);
+
+			const string maxPolicyNodesProperty = "Org.BouncyCastle.X509.MaxPolicyNodes";
+			string savedMax = Environment.GetEnvironmentVariable(maxPolicyNodesProperty);
+			Environment.SetEnvironmentVariable(maxPolicyNodesProperty, "1");
+			try
+			{
+				msg = TestPolicies(9, trustCert, intCert, endCert, null, false);
+				if (msg.IndexOf("MaxPolicyNodes") < 0)
+				{
+					Fail("test 9 failed: expected policy-tree cap error, got: " + msg);
+				}
+			}
+			finally
+			{
+				Environment.SetEnvironmentVariable(maxPolicyNodesProperty, savedMax);
+			}
 		}
 
 		private void CheckMessage(int index, string msg, string expected)
