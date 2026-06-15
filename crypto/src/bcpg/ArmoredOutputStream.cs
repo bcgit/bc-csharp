@@ -426,11 +426,20 @@ namespace Org.BouncyCastle.Bcpg
             outStream.Flush();
         }
 
+        private static readonly string[] HeaderLineSeparators = new string[]{ "\r\n", "\r", "\n" };
+
         private void WriteHeaderEntry(
             string name,
             string v)
         {
-            DoWrite(name + ": " + v + NewLine);
+            // Split the value on CR, LF and CRLF and emit one header line per non-empty segment.
+            // Otherwise a bare CR embedded in a value (e.g. a parsed User-ID re-armored as a
+            // Comment) survives into a single line and forges a header or boundary for an armor
+            // reader that treats a lone CR as end-of-line.
+            foreach (string line in v.Split(HeaderLineSeparators, StringSplitOptions.RemoveEmptyEntries))
+            {
+                DoWrite(name + ": " + line + NewLine);
+            }
         }
 
         private void DoWrite(
