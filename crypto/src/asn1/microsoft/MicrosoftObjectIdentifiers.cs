@@ -16,5 +16,7 @@ namespace Org.BouncyCastle.Asn1.Microsoft
         public static readonly DerObjectIdentifier MicrosoftCrlNextPublish = Microsoft.Branch("21.4");
         public static readonly DerObjectIdentifier MicrosoftCertTemplateV2 = Microsoft.Branch("21.7");
         public static readonly DerObjectIdentifier MicrosoftAppPolicies    = Microsoft.Branch("21.10");
+
+        public static readonly DerObjectIdentifier MicrosoftTimeStampRequest = Microsoft.Branch("3.2.1");
     }
 }
