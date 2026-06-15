@@ -466,7 +466,7 @@ namespace Org.BouncyCastle.Security
                 }
 
                 salt = pbeParams.GetSalt();
-                iterationCount = pbeParams.IterationCountObject.IntValueExact;
+                iterationCount = CheckPbeIterationCount(pbeParams.IterationCountObject);
                 keyBytes = PbeParametersGenerator.Pkcs5PasswordToBytes(password);
 
                 var keyLengthObject = pbeParams.KeyLengthObject;
@@ -685,6 +685,28 @@ namespace Org.BouncyCastle.Security
         public static string GetEncodingName(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(Algorithms, oid.Id);
+        }
+
+        private static int CheckPbeIterationCount(DerInteger iterationCountObject)
+        {
+            if (!iterationCountObject.TryGetIntValueExact(out int iterationCount) || iterationCount <= 0)
+                throw new ArgumentException("invalid PBE iteration count");
+
+            // The iteration count for a PBES2 PKCS#8 / PEM key travels in the unauthenticated container,
+            // so an unbounded count is a decryption-time CPU-exhaustion DoS. Bound it before running the
+            // KDF. The default (10,000,000) is far above any legitimate cost and is configurable.
+            int maxIterations = ImplGetInteger("Org.BouncyCastle.Pbe.MaxIterationCount", 10000000);
+            if (iterationCount > maxIterations)
+                throw new ArgumentException("PBE iteration count (" + iterationCount + ") greater than " + maxIterations);
+
+            return iterationCount;
+        }
+
+        private static int ImplGetInteger(string envVariable, int defaultValue)
+        {
+            string property = Platform.GetEnvironmentVariable(envVariable);
+
+            return int.TryParse(property, out int value) ? value : defaultValue;
         }
 
         private static ICipherParameters FixDesParity(string mechanism, ICipherParameters parameters)
