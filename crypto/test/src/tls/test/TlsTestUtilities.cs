@@ -17,6 +17,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.Utilities.Test;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
@@ -379,6 +380,33 @@ namespace Org.BouncyCastle.Tls.Tests
 
             return LoadSignerCredentials(context, supportedSignatureAlgorithms, signatureAlgorithm, certResource,
                 keyResource);
+        }
+
+        /// <summary>
+        /// Build a fresh Ed25519 raw public key (RFC 7250) signer credential for the connection's crypto backend.
+        /// </summary>
+        /// <exception cref="IOException"/>
+        internal static TlsCredentialedSigner CreateRawKeyEd25519Credentials(TlsContext context)
+        {
+            TlsCrypto crypto = context.Crypto;
+            byte[] certificateRequestContext = TlsUtilities.IsTlsV13(context) ? TlsUtilities.EmptyBytes : null;
+
+            if (crypto is BcTlsCrypto bcCrypto)
+            {
+                Ed25519PrivateKeyParameters privateKey = new Ed25519PrivateKeyParameters(bcCrypto.SecureRandom);
+                TlsCertificate rawKeyCert = new BcTlsRawKeyCertificate(bcCrypto,
+                    SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(privateKey.GeneratePublicKey()));
+                Certificate certificate = new Certificate(CertificateType.RawPublicKey, certificateRequestContext,
+                    new CertificateEntry[]{ new CertificateEntry(rawKeyCert, null) });
+
+                return new BcDefaultTlsCredentialedSigner(new TlsCryptoParameters(context), bcCrypto, privateKey,
+                    certificate, SignatureAndHashAlgorithm.ed25519);
+            }
+            else
+            {
+                // bc-java supports also JcaTlsCrypto here
+                throw new InvalidOperationException();
+            }
         }
 
         internal static Certificate LoadCertificateChain(ProtocolVersion protocolVersion, TlsCrypto crypto,

@@ -6,7 +6,6 @@ using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
@@ -22,14 +21,13 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal IDictionary<int, byte[]> m_receivedClientExtensions;
 
-        internal MockRawKeysTlsServer(short serverCertType, short clientCertType, short[] allowedClientCertTypes,
-            Ed25519PrivateKeyParameters privateKey, ProtocolVersion tlsVersion)
+        internal MockRawKeysTlsServer(TlsCrypto crypto, short serverCertType, short clientCertType,
+            short[] allowedClientCertTypes, ProtocolVersion tlsVersion)
             : base(new BcTlsCrypto())
         {
             m_serverCertType = serverCertType;
             m_clientCertType = clientCertType;
             m_allowedClientCertTypes = allowedClientCertTypes;
-            m_privateKey = privateKey;
             m_tlsVersion = tlsVersion;
         }
 
@@ -68,8 +66,6 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             if (m_credentials == null)
             {
-                var crypto = (BcTlsCrypto)Crypto;
-
                 switch (m_serverCertType)
                 {
                 case CertificateType.X509:
@@ -78,13 +74,7 @@ namespace Org.BouncyCastle.Tls.Tests
                         "x509-client-ed25519.pem", "x509-client-key-ed25519.pem");
                     break;
                 case CertificateType.RawPublicKey:
-                    TlsCertificate rawKeyCert = new BcTlsRawKeyCertificate(crypto,
-                        SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(m_privateKey.GeneratePublicKey()));
-                    Certificate cert = new Certificate(CertificateType.RawPublicKey,
-                        TlsUtilities.IsTlsV13(m_context) ? TlsUtilities.EmptyBytes : null,
-                        new CertificateEntry[]{ new CertificateEntry(rawKeyCert, null) });
-                    m_credentials = new BcDefaultTlsCredentialedSigner(new TlsCryptoParameters(m_context),
-                        crypto, m_privateKey, cert, SignatureAndHashAlgorithm.ed25519);
+                    m_credentials = TlsTestUtilities.CreateRawKeyEd25519Credentials(m_context);
                     break;
                 default:
                     throw new ArgumentException("Only supports X509 and raw keys");

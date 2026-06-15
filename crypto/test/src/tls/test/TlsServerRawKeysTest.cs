@@ -6,8 +6,7 @@ using System.Threading;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls.Tests
@@ -65,9 +64,9 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 try
                 {
-                    MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.RawPublicKey,
-                        CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey },
-                        new Ed25519PrivateKeyParameters(new SecureRandom()), tlsVersion);
+                    MockRawKeysTlsServer server = new MockRawKeysTlsServer(new BcTlsCrypto(),
+                        CertificateType.RawPublicKey, CertificateType.RawPublicKey,
+                        new short[]{ CertificateType.RawPublicKey }, tlsVersion);
                     TlsServerProtocol serverProtocol = new TlsServerProtocol(s.GetStream());
                     serverProtocol.Accept(server);
 

@@ -3,8 +3,9 @@ using System.Threading;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Tls.Crypto;
+using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -13,7 +14,7 @@ namespace Org.BouncyCastle.Tls.Tests
     [TestFixture]
     public class TlsRawKeysProtocolTest
     {
-        private readonly SecureRandom Random = new SecureRandom();
+        protected readonly SecureRandom Random = new SecureRandom();
 
         [Test]
         public void TestClientSendsExtensionButServerDoesNotSupportIt()
@@ -29,10 +30,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private void TestClientSendsExtensionButServerDoesNotSupportIt(ProtocolVersion tlsVersion)
         {
-            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.X509, -1,
-                new short[]{ CertificateType.RawPublicKey, CertificateType.X509 }, null, GenerateKeyPair(),
-                tlsVersion);
-            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.X509, -1, null, GenerateKeyPair(),
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.X509, -1,
+                new short[]{ CertificateType.RawPublicKey, CertificateType.X509 }, null, tlsVersion);
+            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509, -1, null,
                 tlsVersion);
             PumpData(client, server);
         }
@@ -51,11 +51,11 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private void TestExtensionsAreOmittedIfSpecifiedButOnlyContainX509(ProtocolVersion tlsVersion)
         {
-            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.X509, CertificateType.X509,
-                new short[]{ CertificateType.X509 }, new short[]{ CertificateType.X509 }, GenerateKeyPair(),
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.X509,
+                CertificateType.X509, new short[]{ CertificateType.X509 }, new short[]{ CertificateType.X509 },
                 tlsVersion);
-            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.X509, CertificateType.X509,
-                new short[]{ CertificateType.X509 }, GenerateKeyPair(), tlsVersion);
+            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
+                CertificateType.X509, new short[]{ CertificateType.X509 }, tlsVersion);
             PumpData(client, server);
 
             Assert.IsFalse(server.m_receivedClientExtensions.ContainsKey(ExtensionType.client_certificate_type),
@@ -78,12 +78,11 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private void TestBothSidesUseRawKey(ProtocolVersion tlsVersion)
         {
-            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.RawPublicKey,
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.RawPublicKey,
                 CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey },
-                new short[]{ CertificateType.RawPublicKey }, GenerateKeyPair(), tlsVersion);
-            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.RawPublicKey,
-                CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, GenerateKeyPair(),
-                tlsVersion);
+                new short[]{ CertificateType.RawPublicKey }, tlsVersion);
+            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey,
+                CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
             PumpData(client, server);
         }
 
@@ -101,10 +100,10 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private void TestServerUsesRawKeyAndClientIsAnonymous(ProtocolVersion tlsVersion)
         {
-            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.RawPublicKey, -1,
-                new short[]{ CertificateType.RawPublicKey }, null, GenerateKeyPair(), tlsVersion);
-            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.RawPublicKey, -1, null,
-                GenerateKeyPair(), tlsVersion);
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.RawPublicKey, -1,
+                new short[]{ CertificateType.RawPublicKey }, null, tlsVersion);
+            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey, -1,
+                null, tlsVersion);
             PumpData(client, server);
         }
 
@@ -122,11 +121,10 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private void TestServerUsesRawKeyAndClientUsesX509(ProtocolVersion tlsVersion)
         {
-            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.RawPublicKey,
-                CertificateType.X509, new short[]{ CertificateType.RawPublicKey }, null, GenerateKeyPair(),
-                tlsVersion);
-            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.RawPublicKey,
-                CertificateType.X509, null, GenerateKeyPair(), tlsVersion);
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.RawPublicKey,
+                CertificateType.X509, new short[]{ CertificateType.RawPublicKey }, null, tlsVersion);
+            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey,
+                CertificateType.X509, null, tlsVersion);
             PumpData(client, server);
         }
 
@@ -144,10 +142,10 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private void TestServerUsesX509AndClientUsesRawKey(ProtocolVersion tlsVersion)
         {
-            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.X509, CertificateType.RawPublicKey,
-                null, new short[]{ CertificateType.RawPublicKey }, GenerateKeyPair(), tlsVersion);
-            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.X509, CertificateType.RawPublicKey,
-                new short[]{ CertificateType.RawPublicKey }, GenerateKeyPair(), tlsVersion);
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.X509,
+                CertificateType.RawPublicKey, null, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
+            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
+                CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
             PumpData(client, server);
         }
 
@@ -167,11 +165,10 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             try
             {
-                MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.X509,
-                    CertificateType.RawPublicKey, null, new short[]{ CertificateType.RawPublicKey }, GenerateKeyPair(),
-                    tlsVersion);
-                MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.X509, CertificateType.X509,
-                    new short[]{ CertificateType.X509 }, GenerateKeyPair(), tlsVersion);
+                MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.X509,
+                    CertificateType.RawPublicKey, null, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
+                MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
+                    CertificateType.X509, new short[]{ CertificateType.X509 }, tlsVersion);
                 PumpData(client, server);
                 Assert.Fail("Should have caused unsupported_certificate alert");
             }
@@ -198,12 +195,10 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             try
             {
-                MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.RawPublicKey,
-                    CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, null, GenerateKeyPair(),
-                    tlsVersion);
-                MockRawKeysTlsServer server = new MockRawKeysTlsServer(CertificateType.X509,
-                    CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, GenerateKeyPair(),
-                    tlsVersion);
+                MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.RawPublicKey,
+                    CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, null, tlsVersion);
+                MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
+                    CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
                 PumpData(client, server);
                 Assert.Fail("Should have caused unsupported_certificate alert");
             }
@@ -214,10 +209,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        private Ed25519PrivateKeyParameters GenerateKeyPair()
-        {
-            return new Ed25519PrivateKeyParameters(Random);
-        }
+        protected virtual TlsCrypto CreateCrypto() => new BcTlsCrypto(Random);
 
         private void PumpData(TlsClient client, TlsServer server)
         {

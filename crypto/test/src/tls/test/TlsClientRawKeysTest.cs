@@ -4,8 +4,7 @@ using System.Net.Sockets;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Tests
@@ -34,10 +33,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private static void RunTest(string host, int port, ProtocolVersion tlsVersion)
         {
-            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CertificateType.RawPublicKey,
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(new BcTlsCrypto(), CertificateType.RawPublicKey,
                 CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey },
-                new short[]{ CertificateType.RawPublicKey }, new Ed25519PrivateKeyParameters(new SecureRandom()),
-                tlsVersion);
+                new short[]{ CertificateType.RawPublicKey }, tlsVersion);
             TlsClientProtocol protocol = OpenTlsClientConnection(host, port, client);
 
             using (var s = protocol.Stream)
