@@ -18,6 +18,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             BigInteger p = dhParams.P;
 
+            // Bound the modulus size before the super-linear Legendre/ModPow below, so a crafted
+            // oversized p cannot turn key import into a CPU-exhaustion DoS (cf. RSA modulus cap).
+            int maxBitLength = ImplGetInteger("Org.BouncyCastle.DH.MaxSize", 16384);
+            if (p.BitLength > maxBitLength)
+                throw new ArgumentException("DH modulus out of range");
+
             // TLS check
             if (y.CompareTo(BigInteger.Two) < 0 || y.CompareTo(p.Subtract(BigInteger.Two)) > 0)
                 throw new ArgumentException("invalid DH public key", nameof(y));
@@ -43,6 +49,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
 
             throw new ArgumentException("value does not appear to be in correct group", nameof(y));
+        }
+
+        private static int ImplGetInteger(string envVariable, int defaultValue)
+        {
+            string property = Platform.GetEnvironmentVariable(envVariable);
+
+            return int.TryParse(property, out int value) ? value : defaultValue;
         }
 
         private readonly BigInteger m_y;

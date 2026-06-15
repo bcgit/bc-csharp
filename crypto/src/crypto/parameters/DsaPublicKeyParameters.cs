@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
@@ -13,6 +14,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
             // we can't validate without params, fortunately we can't use the key either...
             if (parameters != null)
             {
+                // Bound the modulus size before the super-linear ModPow below, so a crafted oversized
+                // p cannot turn key import into a CPU-exhaustion DoS (cf. RSA modulus cap).
+                int maxBitLength = ImplGetInteger("Org.BouncyCastle.Dsa.MaxSize", 16384);
+                if (parameters.P.BitLength > maxBitLength)
+                    throw new ArgumentException("DSA modulus out of range");
+
                 if (y.CompareTo(BigInteger.Two) < 0
                     || y.CompareTo(parameters.P.Subtract(BigInteger.Two)) > 0
                     || !y.ModPow(parameters.Q, parameters.P).Equals(BigInteger.One))
@@ -22,6 +29,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
 
             return y;
+        }
+
+        private static int ImplGetInteger(string envVariable, int defaultValue)
+        {
+            string property = Platform.GetEnvironmentVariable(envVariable);
+
+            return int.TryParse(property, out int value) ? value : defaultValue;
         }
 
         private readonly BigInteger y;

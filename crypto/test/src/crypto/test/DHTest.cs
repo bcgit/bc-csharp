@@ -347,6 +347,31 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 // expected
             }
+
+            ImplTestModulusSizeBound();
+        }
+
+        private void ImplTestModulusSizeBound()
+        {
+            // An oversized prime modulus must be rejected at import before the super-linear validation
+            // exponentiation, capping the import-time CPU-exhaustion vector. The value is not prime --
+            // only its bit length matters to the guard, which fires before any ModPow/Legendre.
+            // (bc-csharp DHParameters requires an odd p, so use 2^20000 + 1 rather than bc-java's 2^20000.)
+            BigInteger hugeP = BigInteger.One.ShiftLeft(20000).Add(BigInteger.One);
+
+            try
+            {
+                new DHPublicKeyParameters(BigInteger.Two, new DHParameters(hugeP, BigInteger.Two));
+                Fail("oversized DH modulus accepted");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue("unexpected DH message: " + e.Message, e.Message.Equals("DH modulus out of range"));
+            }
+
+            // A normally-sized modulus is still accepted (q == null, so validation returns after the
+            // cheap range check) -- the cap must not reject ordinary keys.
+            new DHPublicKeyParameters(BigInteger.Two, new DHParameters(p512, g512));
         }
 
         [Test]

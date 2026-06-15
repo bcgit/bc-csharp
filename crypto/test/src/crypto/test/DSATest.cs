@@ -572,6 +572,27 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Fail("signature not verified");
             }
+
+            ImplTestModulusSizeBound();
+        }
+
+        private void ImplTestModulusSizeBound()
+        {
+            // An oversized prime modulus must be rejected at import before the super-linear validation
+            // exponentiation, capping the import-time CPU-exhaustion vector. The value is not prime --
+            // only its bit length matters to the guard, which fires before the ModPow.
+            BigInteger hugeP = BigInteger.One.ShiftLeft(20000);
+
+            try
+            {
+                new DsaPublicKeyParameters(BigInteger.Two,
+                    new DsaParameters(hugeP, BigInteger.ValueOf(11), BigInteger.Two));
+                Fail("oversized DSA modulus accepted");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue("unexpected DSA message: " + e.Message, e.Message.Equals("DSA modulus out of range"));
+            }
         }
 
         [Test]
