@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Asn1
             }
             catch (FormatException e)
             {
-                throw new ArgumentException("invalid date string", nameof(timeString), e);
+                throw new ArgumentException("invalid GeneralizedTime format", nameof(timeString), e);
             }
         }
 

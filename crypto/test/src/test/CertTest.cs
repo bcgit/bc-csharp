@@ -238,6 +238,22 @@ namespace Org.BouncyCastle.Tests
             + "wvIEPRL2rocL0tKfAsVq1IawSJzSNgxG0lrcla3MrJBnZ4GaZDu4FutZh72MR3Gt"
             + "JaAL3iTJHJD55kK2D/VoyY1djlsPuNh6AEgdVwFAyp0v");
 
+        // github #2321: thisUpdate/nextUpdate are 13-character UTCTime-shaped
+        // values tagged as GeneralizedTime ("240123000000Z" reads as year 2401,
+        // month 23 - out of range), so the CRL must fail to parse.
+        private static readonly byte[] GentimeCrl = Base64.Decode(
+            "MIIB7DCB1QIBATANBgkqhkiG9w0BAQsFADBOMQswCQYDVQQGEwJVUzELMAkGA1UE" +
+            "CAwCVVMxCzAJBgNVBAcMAlVTMQswCQYDVQQKDAJVUzELMAkGA1UEAwwCVVMxCzAJ" +
+            "BgNVBAsMAlVTGA0yNDAxMjMwMDAwMDBaGA0zNDAxMjAwMDAwMDBaMDUwMwIUHIAC" +
+            "LvgfJAXulqYS3LYf4KxwHl4XDTI1MDMxMzAyNDQ0MFowDDAKBgNVHRUEAwoBBqAc" +
+            "MBowGAYDVR0UBBECDxnP/97adO3y9qRGDM7hQDANBgkqhkiG9w0BAQsFAAOCAQEA" +
+            "aDY9jBdAJiAujUkaLYLVtzNWF/0SxD5CB4dYIcZMqtPKLn5ykcxkXvnRbVihJ+Kn" +
+            "AAv9Fkn5iwj77EGwxNjyZktQ4gAmcMhCTBEcAHbmi92tHttot9Sr44+CN+0NaaQD" +
+            "OflIeVw7Zir90TWufjScy8/e7FkVm+aD5CicrbJWqoe21pB1Q1jS49iNrZzqZ2vw" +
+            "HLiqNAzpecxwUih/YPe5+CBk5Nq4vICeieGVC/JO9r5SkdDwWQTl0I3kSK6n4Jh7" +
+            "53FmIen80F2ZZuZu4/fhJ7C4rlr6W9i6FrK06s5mk1PeYFHKhCkwI8wp8cIudJQD" +
+            "lLsK2u4CTcuTKdbDLsszYA==");
+
         //
         // ecdsa cert with extra octet string.
         //
@@ -2465,6 +2481,21 @@ namespace Org.BouncyCastle.Tests
 
             var crl = crlParser.ReadCrl(GetTestDataAsStream("cert_chain.data"));
             IsTrue("single crl", crl == null);
+
+            // github bc-java #2321: the malformed GeneralizedTime in thisUpdate must fail
+            // the parse rather than producing a CRL with a nonsensical date.
+            try
+            {
+                crlParser.ReadCrl(GentimeCrl);
+                Fail("malformed GeneralizedTime CRL - no exception");
+            }
+            catch (CrlException e)
+            {
+                var message = e.InnerException?.InnerException?.Message;
+
+                Assert.NotNull(message);
+                Assert.That(message.StartsWith("invalid GeneralizedTime format"));
+            }
         }
 
         private void PemFileTestWithNewLine()
