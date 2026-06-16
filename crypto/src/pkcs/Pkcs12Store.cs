@@ -201,7 +201,9 @@ namespace Org.BouncyCastle.Pkcs
             if (input == null)
                 throw new ArgumentNullException(nameof(input));
 
-            Pfx pfx = Pfx.GetInstance(Asn1Object.FromStream(input));
+            Pfx pfx = Pfx.GetInstance(Asn1Object.FromStream(input))
+                ?? throw new IOException("malformed PKCS#12 data: no PFX structure found");
+
             ContentInfo info = pfx.AuthSafe;
             bool wrongPkcs12Zero = false;
 
