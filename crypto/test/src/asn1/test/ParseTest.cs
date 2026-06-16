@@ -291,6 +291,22 @@ namespace Org.BouncyCastle.Asn1.Tests
 			Assert.Throws<InvalidOperationException>(() => Asn1Sequence.GetInstance((object)new byte[0]));
 		}
 
+		[Test]
+		public void TestTruncatedOctetStringParserRejectedCleanly()
+		{
+			// Regression (G3.1): a definite-length OCTET STRING whose declared length exceeds the bytes
+			// available is parsed lazily as a DerOctetStringParser; forcing it to an object must surface
+			// the BC parse exception (Asn1ParsingException), as its sibling parsers (BER/DL octet-string,
+			// bit-string, tagged-object) all do — not a raw InvalidOperationException that a caller
+			// catching Asn1ParsingException would miss. 04 20 = OCTET STRING length 32, only 4 bytes follow.
+			byte[] truncated = Hex.Decode("042001020304");
+			Assert.Throws<Asn1ParsingException>(() =>
+			{
+				Asn1StreamParser sp = new Asn1StreamParser(truncated);
+				sp.ReadObject().ToAsn1Object();
+			});
+		}
+
 		private void ParseEnveloped(
 			byte[] data)
         {
