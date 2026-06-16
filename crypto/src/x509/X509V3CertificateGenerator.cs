@@ -90,6 +90,25 @@ namespace Org.BouncyCastle.X509
         /// <exception cref="ArgumentException">
         /// <paramref name="serialNumber"/> is not a positive integer.
         /// </exception>
+        public void SetSerialNumber(DerInteger serialNumber)
+        {
+            if (serialNumber.IsNegative || serialNumber.HasValue(0))
+                throw new ArgumentException("serial number must be a positive integer", nameof(serialNumber));
+
+            m_tbsGen.SetSerialNumber(serialNumber);
+        }
+
+        /// <summary>
+        /// Set the certificate's serial number.
+        /// </summary>
+        /// <remarks>
+        /// Make serial numbers long; if you have no serial number policy make sure the number is at least
+        /// 16 bytes of secure random data. You will be surprised how ugly a serial number collision can get.
+        /// </remarks>
+        /// <param name="serialNumber">The serial number.</param>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="serialNumber"/> is not a positive integer.
+        /// </exception>
         public void SetSerialNumber(BigInteger serialNumber)
         {
             if (serialNumber.SignValue <= 0)

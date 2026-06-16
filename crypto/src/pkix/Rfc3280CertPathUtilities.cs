@@ -689,6 +689,19 @@ namespace Org.BouncyCastle.Pkix
             try
             {
                 certSelector.Subject = crl.IssuerDN;
+
+                // RFC 5280 sec. 5.2.1: when the CRL has an AuthorityKeyIdentifier with a keyIdentifier field, narrow
+                // the candidate signer set by SubjectKeyIdentifier. With multiple trust anchors sharing the issuer DN
+                // this prevents O(N^depth) fan-out across distinct candidates (github bc-java #2291).
+                var crlAkiExt = X509ExtensionUtilities.GetAuthorityKeyIdentifier(crl);
+                if (crlAkiExt != null)
+                {
+                    var keyID = crlAkiExt.KeyIdentifier;
+                    if (keyID != null)
+                    {
+                        certSelector.SubjectKeyIdentifier = keyID.GetEncoded(Asn1Encodable.Der);
+                    }
+                }
             }
             catch (IOException e)
             {

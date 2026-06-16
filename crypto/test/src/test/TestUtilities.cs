@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Tests
     {
         private static long serialNumber = DateTime.UtcNow.Ticks;
 
-        private static long NextSerialNumber() => Interlocked.Increment(ref serialNumber);
+        internal static long NextSerialNumber() => Interlocked.Increment(ref serialNumber);
 
         // Helper for bc-java porting
         public static X509Certificate MakeTrustAnchor(AsymmetricCipherKeyPair keyPair, string name) =>

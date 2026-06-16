@@ -51,6 +51,9 @@ namespace Org.BouncyCastle.X509.Extension
             return new AuthorityKeyIdentifier(CalculateKeyIdentifier(publicKey), issuer, new DerInteger(serialNumber));
         }
 
+        public static AuthorityKeyIdentifier CreateAuthorityKeyIdentifier(SubjectKeyIdentifier ski) =>
+            new AuthorityKeyIdentifier(DerOctetString.WithContents(ski.GetKeyIdentifier()));
+
         public static AuthorityKeyIdentifier CreateAuthorityKeyIdentifier(SubjectPublicKeyInfo spki) =>
             new AuthorityKeyIdentifier(CalculateKeyIdentifier(spki));
 
