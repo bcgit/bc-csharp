@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -25,6 +26,42 @@ namespace Org.BouncyCastle.Pkix
         // key usage bits
         internal static readonly int KEY_CERT_SIGN = 5;
         internal static readonly int CRL_SIGN = 6;
+
+        /// <summary>
+        /// Per-thread set of CRL-signer certificates currently being validated by
+        /// <see cref="ProcessCrlF(X509Crl, object, X509Certificate, AsymmetricKeyParameter, PkixParameters, IList{X509Certificate})"/>.
+        /// </summary>
+        /// <remarks>
+        /// Used to break cycles when multiple candidate signers cause the recursive
+        /// <see cref="PkixCertPathBuilder.Build(PkixBuilderParameters)"/> call inside <c>ProcessCrlF</c> to re-enter
+        /// for the same signer (github bc-java #2291).
+        /// </remarks>
+        private static readonly ThreadLocal<HashSet<X509Certificate>> CrlSignersInProgress =
+            new ThreadLocal<HashSet<X509Certificate>>();
+
+        private static bool CrlSignerEnter(X509Certificate cert)
+        {
+            var crlSigners = CrlSignersInProgress.Value;
+            if (crlSigners == null)
+            {
+                crlSigners = new HashSet<X509Certificate>();
+                CrlSignersInProgress.Value = crlSigners;
+            }
+            return crlSigners.Add(cert);
+        }
+
+        private static void CrlSignerExit(X509Certificate cert)
+        {
+            var crlSigners = CrlSignersInProgress.Value;
+            if (crlSigners != null)
+            {
+                crlSigners.Remove(cert);
+                if (crlSigners.Count < 1)
+                {
+                    CrlSignersInProgress.Value = null;
+                }
+            }
+        }
 
         /**
          * If the complete CRL includes an issuing distribution point (IDP) CRL
@@ -676,6 +713,7 @@ namespace Org.BouncyCastle.Pkix
 
             var validCerts = new List<X509Certificate>();
             var validKeys = new List<AsymmetricKeyParameter>();
+            Exception signerLastException = null;
 
             foreach (X509Certificate signingCert in signingCerts)
             {
@@ -687,6 +725,19 @@ namespace Org.BouncyCastle.Pkix
                 {
                     validCerts.Add(signingCert);
                     validKeys.Add(defaultCRLSignKey);
+                    continue;
+                }
+
+                /*
+                 * Guard against infinite recursion when multiple candidate signers (often trust-anchor root CAs sharing
+                 * a Subject DN) cause the recursive Build call below to re-enter ProcessCrlF for the same signer
+                 * (github bc-java #2291). If we're already validating this cert further up the call stack, treat it as
+                 * a trust anchor / self-signed root and short circuit, otherwise the iteration would loop forever.
+                 */
+                if (!CrlSignerEnter(signingCert))
+                {
+                    validCerts.Add(signingCert);
+                    validKeys.Add(signingCert.GetPublicKey());
                     continue;
                 }
 
@@ -724,13 +775,23 @@ namespace Org.BouncyCastle.Pkix
                 }
                 catch (PkixCertPathBuilderException e)
                 {
-                    throw new Exception("CertPath for CRL signer failed to validate.", e);
+                    // Candidate signer's path could not be built - skip and try the next candidate. The post-loop
+                    // empty-check will surface a useful error if no valid signer is found at all.
+                    signerLastException = new Exception("CertPath for CRL signer failed to validate.", e);
                 }
                 catch (PkixCertPathValidatorException e)
                 {
-                    throw new Exception("Public key of issuer certificate of CRL could not be retrieved.", e);
+                    signerLastException = new Exception(
+                        "Public key of issuer certificate of CRL could not be retrieved.", e);
+                }
+                finally
+                {
+                    CrlSignerExit(signingCert);
                 }
             }
+
+            if (validCerts.Count < 1 && signerLastException != null)
+                throw signerLastException;
 
             var checkKeys = new HashSet<AsymmetricKeyParameter>();
 

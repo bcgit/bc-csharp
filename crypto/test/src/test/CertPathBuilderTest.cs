@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkix;
@@ -59,6 +60,65 @@ namespace Org.BouncyCastle.Tests
             PkixCertPath path = result.CertPath;
 
             Assert.AreEqual(2, path.Certificates.Count, "wrong number of certs in " + nameof(Basic));
+        }
+
+        [Test]
+        public void MultipleTrustAnchorsWithCrl()
+        {
+            // github bc-java #2291: with CRL revocation enabled and multiple trust anchors whose subjects match the
+            // CRL issuer name, the previous code recursed into a fresh PkixCertPathBuilder build for every candidate
+            // signer, and that recursive build re-entered CRL processing on the same CRL. The fix short-circuits when
+            // the candidate signer is itself a trust anchor.
+            var rootPair = TestUtilities.GenerateRsaKeyPair();
+            var otherRootPair = TestUtilities.GenerateRsaKeyPair();
+            var interPair = TestUtilities.GenerateRsaKeyPair();
+            var endPair = TestUtilities.GenerateRsaKeyPair();
+
+            X509Name rootDN = new X509Name("CN=Test CA Certificate");
+
+            // Two self-signed roots sharing the same Subject DN — different keys.
+            var rootCert = TestUtilities.GenerateRootCert(rootPair, rootDN);
+            var otherRootCert = TestUtilities.GenerateRootCert(otherRootPair, rootDN);
+
+            var interCert = TestUtilities.GenerateIntermediateCert(interPair.Public, rootPair.Private, rootCert);
+            var endCert = TestUtilities.GenerateEndEntityCert(endPair.Public, interPair.Private, interCert);
+
+            BigInteger revokedSerial = BigInteger.Two;
+            var rootCrl = TestUtilities.CreateCrl(rootCert, rootPair.Private, revokedSerial);
+            var interCrl = TestUtilities.CreateCrl(interCert, interPair.Private, revokedSerial);
+
+            var certList = new List<X509Certificate>();
+            certList.Add(rootCert);
+            certList.Add(otherRootCert);
+            certList.Add(interCert);
+            certList.Add(endCert);
+
+            var crlList = new List<X509Crl>();
+            crlList.Add(rootCrl);
+            crlList.Add(interCrl);
+
+            IStore<X509Certificate> x509CertStore = CollectionUtilities.CreateStore(certList);
+            IStore<X509Crl> x509CrlStore = CollectionUtilities.CreateStore(crlList);
+
+            var anchors = new HashSet<TrustAnchor>();
+            anchors.Add(new TrustAnchor(rootCert, null));
+            anchors.Add(new TrustAnchor(otherRootCert, null));
+
+            X509CertStoreSelector pathConstraints = new X509CertStoreSelector();
+            pathConstraints.Subject = endCert.SubjectDN;
+
+            PkixBuilderParameters buildParams = new PkixBuilderParameters(anchors, pathConstraints);
+            buildParams.AddStoreCert(x509CertStore);
+            buildParams.AddStoreCrl(x509CrlStore);
+            buildParams.Date = DateTime.UtcNow;
+            buildParams.IsRevocationEnabled = true;
+
+            PkixCertPathBuilder builder = new PkixCertPathBuilder();
+            PkixCertPathBuilderResult result = builder.Build(buildParams);
+            PkixCertPath path = result.CertPath;
+
+            Assert.AreEqual(2, path.Certificates.Count,
+                $"wrong number of certs in {nameof(MultipleTrustAnchorsWithCrl)}: {path.Certificates.Count}");
         }
 
         [Test]
