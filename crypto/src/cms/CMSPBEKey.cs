@@ -69,7 +69,9 @@ namespace Org.BouncyCastle.Cms
 
         ~CmsPbeKey()
 		{
-			Array.Clear(this.password, 0, this.password.Length);
+			// ZeroMemory (not Array.Clear) so the JIT cannot elide the wipe of the secret password
+			// as a dead store; see the CLAUDE.md constant-time/zeroization guidance.
+			Arrays.ZeroMemory(this.password);
 		}
 
 		public byte[] Salt
