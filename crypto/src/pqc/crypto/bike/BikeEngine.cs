@@ -254,14 +254,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             // 3. Compute K
             AlignE01From8To1(e01);
             ulong[] wlist = FunctionH(mPrime);
-            if (Arrays.FixedTimeEquals(R2_ULONG, e01, 0, wlist, 0))
+
+            // Implicit rejection (Fujisaki-Okamoto): select the real seed m' on a matching re-encryption
+            // and the secret-key seed sigma otherwise. The select must be branchless so decapsulation
+            // timing does not leak the FO oracle bit (Guo-Johansson-Nilsson, CRYPTO 2020); matches
+            // FrodoEngine. A non-decodable ciphertext reaches here too (BGFDecoder no longer returns
+            // null) and is rejected the same way.
+            int match = CtVerify(e01, wlist);
+            Bytes.CMov(L_BYTE, ~match, sigma, mPrime);
+            FunctionK(mPrime, c0, c1, k);
+        }
+
+        /// <summary>
+        /// Constant-time comparison of the first R2_ULONG words of <paramref name="a"/> and
+        /// <paramref name="b"/>: returns an all-ones mask (-1) when they are equal and 0 otherwise,
+        /// with no input-dependent branch.
+        /// </summary>
+        private int CtVerify(ulong[] a, ulong[] b)
+        {
+            ulong v = 0UL;
+            for (int i = 0; i < R2_ULONG; i++)
             {
-                FunctionK(mPrime, c0, c1, k);
+                v |= a[i] ^ b[i];
             }
-            else
-            {
-                FunctionK(sigma, c0, c1, k);
-            }
+            return (int)Nat.CZero((uint)(v | (v >> 32)));
         }
 
         private byte[] ComputeSyndrome(byte[] c0, byte[] h0)
@@ -303,10 +319,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
                 BFIter2(s, e, T, h0Compact, h1Compact, h0CompactCol, h1CompactCol, black, ctrs);
             }
 
-            if (BikeUtilities.GetHammingWeight(s) == 0)
-                return e;
-
-            return null;
+            // Always return the recovered error vector e, even when the syndrome did not clear (a
+            // decoding failure). Returning null here previously caused a NullReferenceException in
+            // Decaps before the implicit-rejection step, turning a decoding failure into an observable
+            // decryption-failure oracle (and an uncaught crash on malformed input). The FO re-encryption
+            // check in Decaps rejects a bad decode by selecting sigma instead.
+            return e;
         }
 
         private void BFIter(byte[] s, byte[] e, int T, int[] h0Compact, int[] h1Compact, int[] h0CompactCol,

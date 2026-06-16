@@ -30,6 +30,49 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.AreEqual(256, BikeParameters.bike256.DefaultKeySize);
         }
 
+        [Test]
+        public void TestDecodingFailureImplicitRejection()
+        {
+            // A ciphertext that fails to decode must be handled by Fujisaki-Okamoto implicit rejection
+            // (returning a pseudo-random shared secret), not by throwing. The decoder previously returned
+            // null on a decoding failure, which surfaced as a NullReferenceException out of decapsulation
+            // -- an uncaught crash on malformed input and a decryption-failure oracle.
+            byte[] seed = new byte[48];
+            for (int i = 0; i != seed.Length; i++)
+            {
+                seed[i] = (byte)i;
+            }
+
+            NistSecureRandom random = new NistSecureRandom(seed, null);
+            BikeParameters parameters = BikeParameters.bike128;
+
+            BikeKeyPairGenerator kpGen = new BikeKeyPairGenerator();
+            kpGen.Init(new BikeKeyGenerationParameters(random, parameters));
+            AsymmetricCipherKeyPair pair = kpGen.GenerateKeyPair();
+
+            BikeKemGenerator kemGen = new BikeKemGenerator(random);
+            ISecretWithEncapsulation enc = kemGen.GenerateEncapsulated((BikePublicKeyParameters)pair.Public);
+            byte[] goodSecret = enc.GetSecret();
+
+            // Corrupt a prefix of c0 (well within the syndrome region, away from the high-bit padding
+            // byte that DecodeBytes validates) with far more than t bit-flips, forcing a guaranteed
+            // decoding failure on a still-well-formed ciphertext. ExtractSecret must still return a
+            // session key of the correct length rather than throwing, and a different one.
+            byte[] badCt = (byte[])enc.GetEncapsulation().Clone();
+            for (int i = 0; i < 256; i++)
+            {
+                badCt[i] ^= 0xFF;
+            }
+
+            BikeKemExtractor extractor = new BikeKemExtractor((BikePrivateKeyParameters)pair.Private);
+            byte[] rejectKey = extractor.ExtractSecret(badCt);
+
+            Assert.NotNull(rejectKey, "decapsulation of a non-decodable ciphertext must not return null");
+            Assert.AreEqual(parameters.DefaultKeySize / 8, rejectKey.Length);
+            Assert.False(Arrays.AreEqual(rejectKey, goodSecret),
+                "implicit rejection key must differ from the genuine shared secret");
+        }
+
         [TestCaseSource(nameof(TestVectorFiles))]
         [Parallelizable(ParallelScope.All)]
         public void TV(string testVectorFile) =>
