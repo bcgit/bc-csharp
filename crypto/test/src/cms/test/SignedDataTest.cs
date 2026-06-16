@@ -2756,6 +2756,25 @@ namespace Org.BouncyCastle.Cms.Tests
             Assert.Throws<CmsException>(() => new CmsEnvelopedData(envelopedNoContent));
         }
 
+        [Test]
+        public void TestOversizedDeclaredLengthRejected()
+        {
+            // G5.2: CmsSignedData(byte[]) now bounds the ASN.1 read to the input length (it routes through the
+            // byte[]-bounded ReadContentInfo, like the sibling ctors) rather than the ~2 GiB MaximumMemory cap of
+            // the stream path. A tiny input declaring an enormous definite length must be rejected at the length
+            // bound -- before the would-be `new byte[declaredLength]` allocation -- not allocated then truncated.
+            // Bytes: SEQUENCE, long-form length 0x000F4240 = 1,000,000, but only 3 content octets present.
+            byte[] tiny = Hex.Decode("3084000F4240010203");
+            var ex = Assert.Throws<CmsException>(() => new CmsSignedData(tiny));
+
+            // With the fix the rejection is the length-vs-input bound; without it the read proceeds (limit ~2 GiB),
+            // allocates ~1 MiB and fails later with a "truncated" EOF instead.
+            string chain = "";
+            for (Exception e = ex; e != null; e = e.InnerException) chain += e.Message + " | ";
+            Assert.That(chain, Does.Contain("out of bounds length found"),
+                "expected length-bound rejection, got: " + chain);
+        }
+
         private class MySignerInformation
             : SignerInformation
         {

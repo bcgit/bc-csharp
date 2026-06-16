@@ -55,12 +55,12 @@ namespace Org.BouncyCastle.Cms
         }
 
         public CmsSignedData(byte[] sigBlock)
-            : this(CmsUtilities.ReadContentInfo(new MemoryStream(sigBlock, false)))
+            : this(CmsUtilities.ReadContentInfo(sigBlock))
         {
         }
 
         public CmsSignedData(CmsProcessable signedContent, byte[] sigBlock)
-            : this(signedContent, CmsUtilities.ReadContentInfo(new MemoryStream(sigBlock, false)))
+            : this(signedContent, CmsUtilities.ReadContentInfo(sigBlock))
         {
         }
 
