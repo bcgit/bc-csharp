@@ -31,7 +31,8 @@ namespace Org.BouncyCastle.Cms
         public CmsEnvelopedData(ContentInfo contentInfo)
         {
             m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
-            m_envelopedData = EnvelopedData.GetInstance(contentInfo.Content);
+            m_envelopedData = EnvelopedData.GetInstance(contentInfo.Content)
+                ?? throw new CmsException("Malformed content.");
 
             //
             // read the recipients

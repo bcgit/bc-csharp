@@ -114,7 +114,7 @@ namespace Org.BouncyCastle.Cms
         {
             try
             {
-                return ContentInfo.GetInstance(asn1In.ReadObject());
+                return ContentInfo.GetInstance(asn1In.ReadObject()) ?? throw new CmsException("No content found.");
             }
             catch (IOException e)
             {

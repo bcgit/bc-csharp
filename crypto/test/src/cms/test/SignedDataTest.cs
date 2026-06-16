@@ -2739,6 +2739,23 @@ namespace Org.BouncyCastle.Cms.Tests
             public override byte[] GetEncodedSignedAttributes() => signedAttributeSet?.GetEncoded();
         }
 
+        [Test]
+        public void TestMalformedContentRejectedCleanly()
+        {
+            // CVE-2024-0727 class (found by the deeper-pass mutational fuzzer): empty input and a
+            // content-less ContentInfo must be rejected with a CmsException, not a NullReferenceException.
+            Assert.Throws<CmsException>(() => new CmsSignedData(new byte[0]));
+            Assert.Throws<CmsException>(() => new CmsEnvelopedData(new byte[0]));
+
+            byte[] signedNoContent = new Org.BouncyCastle.Asn1.Cms.ContentInfo(
+                Org.BouncyCastle.Asn1.Pkcs.PkcsObjectIdentifiers.SignedData, null).GetEncoded();
+            Assert.Throws<CmsException>(() => new CmsSignedData(signedNoContent));
+
+            byte[] envelopedNoContent = new Org.BouncyCastle.Asn1.Cms.ContentInfo(
+                Org.BouncyCastle.Asn1.Pkcs.PkcsObjectIdentifiers.EnvelopedData, null).GetEncoded();
+            Assert.Throws<CmsException>(() => new CmsEnvelopedData(envelopedNoContent));
+        }
+
         private class MySignerInformation
             : SignerInformation
         {

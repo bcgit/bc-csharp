@@ -96,23 +96,23 @@ namespace Org.BouncyCastle.Cms
 
         public CmsSignedData(CmsProcessable signedContent, ContentInfo sigData)
         {
-            m_contentInfo = sigData;
-            m_signedData = SignedData.GetInstance(sigData.Content);
+            m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
+            m_signedData = SignedData.GetInstance(sigData.Content) ?? throw new CmsException("Malformed content.");
             m_signedContent = signedContent;
         }
 
         public CmsSignedData(IDictionary<string, byte[]> hashes, ContentInfo sigData)
         {
-            m_contentInfo = sigData;
-            m_signedData = SignedData.GetInstance(sigData.Content);
+            m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
+            m_signedData = SignedData.GetInstance(sigData.Content) ?? throw new CmsException("Malformed content.");
             m_signedContent = null;
             m_hashes = hashes;
         }
 
         public CmsSignedData(ContentInfo sigData)
         {
-            m_contentInfo = sigData;
-            m_signedData = SignedData.GetInstance(sigData.Content);
+            m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
+            m_signedData = SignedData.GetInstance(sigData.Content) ?? throw new CmsException("Malformed content.");
 
             var encapContentInfo = m_signedData.EncapContentInfo;
             var encapContent = encapContentInfo.Content;
