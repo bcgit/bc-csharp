@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
@@ -322,8 +323,7 @@ namespace Org.BouncyCastle.Pkix
                     "Subject alternative name extension could not be decoded.", e, index);
             }
 
-            var emails = X509Name.GetInstance(dns).GetValueList(X509Name.EmailAddress);
-            foreach (string email in emails)
+            foreach (string email in ExtractEmailAddressesFromSubjectDN(X509Name.GetInstance(dns)))
             {
                 try
                 {
@@ -2065,6 +2065,35 @@ namespace Org.BouncyCastle.Pkix
             "privilegeWithdrawn",
             "aACompromise"
         };
+
+        /// <summary>
+        /// Returns every <c>emailAddress</c> value present in <paramref name="dn"/>, including the values inside
+        /// multi-valued RDNs that hold other attribute types in the same RDN.
+        /// </summary>
+        private static List<string> ExtractEmailAddressesFromSubjectDN(X509Name dn)
+        {
+            var result = new List<string>();
+            foreach (var element in Asn1Sequence.GetInstance(dn.ToAsn1Object()))
+            {
+                Rdn rdn = Rdn.GetInstance(element);
+
+                // TODO Could be more efficient, but currently materializes atttributes anyway
+                //if (!rdn.ContainsAttributeType(X509Name.EmailAddress))
+                //    continue;
+
+                foreach (AttributeTypeAndValue tv in rdn.GetTypesAndValues())
+                {
+                    if (!X509Name.EmailAddress.Equals(tv.Type))
+                        continue;
+
+                    if (tv.Value.ToAsn1Object() is IAsn1String asn1String)
+                    {
+                        result.Add(asn1String.GetString());
+                    }
+                }
+            }
+            return result;
+        }
 
         private static string GetUnsupportedCriticalExtensionMessage(ISet<string> criticalExtensions)
         {
