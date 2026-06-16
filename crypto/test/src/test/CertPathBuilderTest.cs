@@ -7,7 +7,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Store;
 
@@ -15,11 +14,10 @@ namespace Org.BouncyCastle.Tests
 {
     [TestFixture]
     public class CertPathBuilderTest
-        : SimpleTest
     {
-        private void baseTest()
+        [Test]
+        public void Basic()
         {
-//			CertificateFactory cf = CertificateFactory.getInstance("X.509", "BC");
             X509CertificateParser certParser = new X509CertificateParser();
             X509CrlParser crlParser = new X509CrlParser();
 
@@ -60,13 +58,11 @@ namespace Org.BouncyCastle.Tests
             PkixCertPathBuilderResult result = cpb.Build(parameters);
             PkixCertPath path = result.CertPath;
 
-            if (path.Certificates.Count != 2)
-            {
-                Fail("wrong number of certs in baseTest path");
-            }
+            Assert.AreEqual(2, path.Certificates.Count, "wrong number of certs in " + nameof(Basic));
         }
 
-        private void v0Test()
+        [Test]
+        public void V0Test()
         {
             // create certificates and CRLs
             AsymmetricCipherKeyPair rootPair = TestUtilities.GenerateRsaKeyPair();
@@ -112,29 +108,7 @@ namespace Org.BouncyCastle.Tests
             PkixCertPathBuilderResult result = builder.Build(buildParams);
             PkixCertPath path = result.CertPath;
 
-            if (path.Certificates.Count != 2)
-            {
-                Fail("wrong number of certs in v0Test path");
-            }
-        }
-
-        public override void PerformTest()
-        {
-            baseTest();
-            v0Test();
-        }
-        
-        public override string Name
-        {
-            get { return "CertPathBuilder"; }
-        }
-
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
+            Assert.AreEqual(2, path.Certificates.Count, "wrong number of certs in " + nameof(V0Test));
         }
     }
 }
