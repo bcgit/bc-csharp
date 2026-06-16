@@ -50,6 +50,26 @@ namespace Org.BouncyCastle.Utilities.IO.Pem.Tests
             }
         }
 
+        [Test]
+        public void TestMalformedBase64()
+        {
+			// A PEM block with valid framing but a corrupt base64 body must surface as an IOException,
+			// not a raw FormatException (found by mutational fuzzing; matches bc-java's DecoderException wrap).
+			try
+			{
+				using (var rd = new PemReader(
+					new StringReader("-----BEGIN CERTIFICATE-----\n!!!not base64!!!\n-----END CERTIFICATE-----\n")))
+				{
+                    rd.ReadPemObject();
+                }
+                Assert.Fail("must fail on malformed base64");
+			}
+			catch (IOException ioex)
+            {
+				Assert.IsTrue(ioex.Message.StartsWith("malformed PEM data:"), "unexpected message: " + ioex.Message);
+            }
+        }
+
 		private void LengthTest(string type, IList<PemHeader> headers, byte[] data)
 		{
             PemObject pemObj = new PemObject(type, headers, data);

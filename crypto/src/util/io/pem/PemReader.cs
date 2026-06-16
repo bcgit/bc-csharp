@@ -150,7 +150,19 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 			// consume trailing dashes.
 			ConsumeDash();
 
-			return new PemObject(type, headers, Base64.Decode(payload));
+			byte[] data;
+			try
+			{
+				data = Base64.Decode(payload);
+			}
+			catch (FormatException e)
+			{
+				// honour the IOException parse contract: a corrupt base64 body must not surface a raw
+				// FormatException to callers parsing untrusted PEM (matches bc-java's DecoderException wrap).
+				throw new IOException("malformed PEM data: " + e.Message, e);
+			}
+
+			return new PemObject(type, headers, data);
 		}
 
 		private string BufferedString()
