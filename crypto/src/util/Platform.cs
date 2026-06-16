@@ -78,12 +78,12 @@ namespace Org.BouncyCastle.Utilities
 
         internal static string GetTypeName(object obj)
         {
-            return GetTypeName(obj.GetType());
+            return GetTypeName(obj?.GetType());
         }
 
         internal static string GetTypeName(Type t)
         {
-            return t.FullName;
+            return t?.FullName ?? "null";
         }
     }
 }

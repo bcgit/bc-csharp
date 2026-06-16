@@ -282,6 +282,15 @@ namespace Org.BouncyCastle.Asn1.Tests
             Assert.IsTrue(tagged.HasContextTag(31));
 		}
 
+		[Test]
+		public void TestEmptyInputRejectedCleanly()
+		{
+			// Regression: input that decodes to no object must not leak a NullReferenceException
+			// (Platform.GetTypeName(null) via Asn1UniversalType.CheckedCast) — it must report a clean
+			// parse error. Empty input is the minimal trigger.
+			Assert.Throws<InvalidOperationException>(() => Asn1Sequence.GetInstance((object)new byte[0]));
+		}
+
 		private void ParseEnveloped(
 			byte[] data)
         {
