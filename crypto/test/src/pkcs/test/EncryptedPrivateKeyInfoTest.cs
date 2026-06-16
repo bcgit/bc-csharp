@@ -61,6 +61,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			doOpensslTestKeys();
 
 			ImplTestPbkdf2IterationCountBound();
+			ImplTestPkcs5V1PbeIterationCountBound();
 		}
 
 		private void ImplTestPbkdf2IterationCountBound()
@@ -88,6 +89,38 @@ namespace Org.BouncyCastle.Pkcs.Tests
 			{
 				PrivateKeyInfoFactory.CreatePrivateKeyInfo(password, encInfo);
 				Fail("excessive PBKDF2 iteration count accepted");
+			}
+			catch (ArgumentException e)
+			{
+				IsTrue("unexpected message: " + e.Message, e.Message.IndexOf("greater than 1") >= 0);
+			}
+			finally
+			{
+				Environment.SetEnvironmentVariable(maxIterationCountProperty, savedMax);
+			}
+		}
+
+		private void ImplTestPkcs5V1PbeIterationCountBound()
+		{
+			IAsymmetricCipherKeyPairGenerator pGen = GeneratorUtilities.GetKeyPairGenerator("RSA");
+			pGen.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), new SecureRandom(), 512, 25));
+			PrivateKeyInfo pkInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(pGen.GenerateKeyPair().Private);
+
+			char[] password = { 'h', 'e', 'l', 'l', 'o' };
+			byte[] salt = { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+			// The PKCS#5 v1.5 PBE iteration count (sibling of the PBES2 path) is likewise read from the
+			// unauthenticated PKCS#8 container and must be bounded before the key derivation runs.
+			EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfoFactory.CreateEncryptedPrivateKeyInfo(
+				PkcsObjectIdentifiers.PbeWithSha1AndDesCbc.Id, password, salt, 2048, pkInfo);
+
+			const string maxIterationCountProperty = "Org.BouncyCastle.Pbe.MaxIterationCount";
+			string savedMax = Environment.GetEnvironmentVariable(maxIterationCountProperty);
+			Environment.SetEnvironmentVariable(maxIterationCountProperty, "1");
+			try
+			{
+				PrivateKeyInfoFactory.CreatePrivateKeyInfo(password, encInfo);
+				Fail("excessive PKCS#5 v1.5 PBE iteration count accepted");
 			}
 			catch (ArgumentException e)
 			{

@@ -438,7 +438,7 @@ namespace Org.BouncyCastle.Security
             {
                 PbeParameter pbeParams = PbeParameter.GetInstance(pbeParameters);
                 salt = pbeParams.Salt.GetOctets();
-                iterationCount = pbeParams.IterationCountObject.IntValueExact;
+                iterationCount = CheckPbeIterationCount(pbeParams.IterationCountObject);
                 keyBytes = PbeParametersGenerator.Pkcs5PasswordToBytes(password);
             }
 
