@@ -2072,8 +2072,11 @@ namespace Org.BouncyCastle.Pkix
         /// </summary>
         private static List<string> ExtractEmailAddressesFromSubjectDN(X509Name dn)
         {
+            if (dn == null)
+                return new List<string>(capacity: 0);
+
             var result = new List<string>();
-            foreach (var element in Asn1Sequence.GetInstance(dn.ToAsn1Object()))
+            foreach (var element in Asn1Sequence.GetInstance(dn))
             {
                 Rdn rdn = Rdn.GetInstance(element);
 
