@@ -52,7 +52,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
-            // TODO[crmf] Validate the "at least one" rule after parsing?
+            if (m_notBefore == null && m_notAfter == null)
+                throw new ArgumentException("at least one of notBefore/notAfter MUST be present.");
         }
 
         public OptionalValidity(Time notBefore, Time notAfter)
