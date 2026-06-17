@@ -9,160 +9,160 @@ namespace Org.BouncyCastle.Asn1.X509
     public class X509Extensions
         : Asn1Encodable
     {
-		/**
-		 * Subject Directory Attributes
-		 */
-		public static readonly DerObjectIdentifier SubjectDirectoryAttributes = new DerObjectIdentifier("2.5.29.9");
+        /**
+         * Subject Directory Attributes
+         */
+        public static readonly DerObjectIdentifier SubjectDirectoryAttributes = new DerObjectIdentifier("2.5.29.9");
 
-		/**
+        /**
          * Subject Key Identifier
          */
         public static readonly DerObjectIdentifier SubjectKeyIdentifier = new DerObjectIdentifier("2.5.29.14");
 
-		/**
+        /**
          * Key Usage
          */
         public static readonly DerObjectIdentifier KeyUsage = new DerObjectIdentifier("2.5.29.15");
 
-		/**
+        /**
          * Private Key Usage Period
          */
         public static readonly DerObjectIdentifier PrivateKeyUsagePeriod = new DerObjectIdentifier("2.5.29.16");
 
-		/**
+        /**
          * Subject Alternative Name
          */
         public static readonly DerObjectIdentifier SubjectAlternativeName = new DerObjectIdentifier("2.5.29.17");
 
-		/**
+        /**
          * Issuer Alternative Name
          */
         public static readonly DerObjectIdentifier IssuerAlternativeName = new DerObjectIdentifier("2.5.29.18");
 
-		/**
+        /**
          * Basic Constraints
          */
         public static readonly DerObjectIdentifier BasicConstraints = new DerObjectIdentifier("2.5.29.19");
 
-		/**
+        /**
          * CRL Number
          */
         public static readonly DerObjectIdentifier CrlNumber = new DerObjectIdentifier("2.5.29.20");
 
-		/**
+        /**
          * Reason code
          */
         public static readonly DerObjectIdentifier ReasonCode = new DerObjectIdentifier("2.5.29.21");
 
-		/**
+        /**
          * Hold Instruction Code
          */
         public static readonly DerObjectIdentifier InstructionCode = new DerObjectIdentifier("2.5.29.23");
 
-		/**
+        /**
          * Invalidity Date
          */
         public static readonly DerObjectIdentifier InvalidityDate = new DerObjectIdentifier("2.5.29.24");
 
-		/**
+        /**
          * Delta CRL indicator
          */
         public static readonly DerObjectIdentifier DeltaCrlIndicator = new DerObjectIdentifier("2.5.29.27");
 
-		/**
+        /**
          * Issuing Distribution Point
          */
         public static readonly DerObjectIdentifier IssuingDistributionPoint = new DerObjectIdentifier("2.5.29.28");
 
-		/**
+        /**
          * Certificate Issuer
          */
         public static readonly DerObjectIdentifier CertificateIssuer = new DerObjectIdentifier("2.5.29.29");
 
-		/**
+        /**
          * Name Constraints
          */
         public static readonly DerObjectIdentifier NameConstraints = new DerObjectIdentifier("2.5.29.30");
 
-		/**
+        /**
          * CRL Distribution Points
          */
         public static readonly DerObjectIdentifier CrlDistributionPoints = new DerObjectIdentifier("2.5.29.31");
 
-		/**
+        /**
          * Certificate Policies
          */
         public static readonly DerObjectIdentifier CertificatePolicies = new DerObjectIdentifier("2.5.29.32");
 
-		/**
+        /**
          * Policy Mappings
          */
         public static readonly DerObjectIdentifier PolicyMappings = new DerObjectIdentifier("2.5.29.33");
 
-		/**
+        /**
          * Authority Key Identifier
          */
         public static readonly DerObjectIdentifier AuthorityKeyIdentifier = new DerObjectIdentifier("2.5.29.35");
 
-		/**
+        /**
          * Policy Constraints
          */
         public static readonly DerObjectIdentifier PolicyConstraints = new DerObjectIdentifier("2.5.29.36");
 
-		/**
+        /**
          * Extended Key Usage
          */
         public static readonly DerObjectIdentifier ExtendedKeyUsage = new DerObjectIdentifier("2.5.29.37");
 
-		/**
-		 * Freshest CRL
-		 */
-		public static readonly DerObjectIdentifier FreshestCrl = new DerObjectIdentifier("2.5.29.46");
+        /**
+         * Freshest CRL
+         */
+        public static readonly DerObjectIdentifier FreshestCrl = new DerObjectIdentifier("2.5.29.46");
 
-		/**
+        /**
          * Inhibit Any Policy
          */
         public static readonly DerObjectIdentifier InhibitAnyPolicy = new DerObjectIdentifier("2.5.29.54");
 
-		/**
+        /**
          * Authority Info Access
          */
-		public static readonly DerObjectIdentifier AuthorityInfoAccess = X509ObjectIdentifiers.IdPE.Branch("1");
+        public static readonly DerObjectIdentifier AuthorityInfoAccess = X509ObjectIdentifiers.IdPE.Branch("1");
 
         /**
-		 * BiometricInfo
-		 */
+         * BiometricInfo
+         */
         public static readonly DerObjectIdentifier BiometricInfo = X509ObjectIdentifiers.IdPE.Branch("2");
 
         /**
-		 * QCStatements
-		 */
+         * QCStatements
+         */
         public static readonly DerObjectIdentifier QCStatements = X509ObjectIdentifiers.IdPE.Branch("3");
 
         /**
-		 * Audit identity extension in attribute certificates.
-		 */
+         * Audit identity extension in attribute certificates.
+         */
         public static readonly DerObjectIdentifier AuditIdentity = X509ObjectIdentifiers.IdPE.Branch("4");
 
         /**
-		 * Subject Info Access
-		 */
+         * Subject Info Access
+         */
         public static readonly DerObjectIdentifier SubjectInfoAccess = X509ObjectIdentifiers.IdPE.Branch("11");
 
         /**
-		 * Logo Type
-		 */
+         * Logo Type
+         */
         public static readonly DerObjectIdentifier LogoType = X509ObjectIdentifiers.IdPE.Branch("12");
 
         /**
-		 * NoRevAvail extension in attribute certificates.
-		 */
+         * NoRevAvail extension in attribute certificates.
+         */
         public static readonly DerObjectIdentifier NoRevAvail = new DerObjectIdentifier("2.5.29.56");
 
-		/**
-		 * TargetInformation extension in attribute certificates.
-		 */
-		public static readonly DerObjectIdentifier TargetInformation = new DerObjectIdentifier("2.5.29.55");
+        /**
+         * TargetInformation extension in attribute certificates.
+         */
+        public static readonly DerObjectIdentifier TargetInformation = new DerObjectIdentifier("2.5.29.55");
 
         /**
          * Expired Certificates on CRL extension
