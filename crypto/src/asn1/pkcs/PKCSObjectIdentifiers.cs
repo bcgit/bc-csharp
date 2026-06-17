@@ -340,6 +340,18 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /** PKCS#9: 1.2.840.113549.1.9.16.2.40   <a href="https://tools.ietf.org/html/rfc7030">RFC7030</a>*/
         public static readonly DerObjectIdentifier IdAACommunityIdentifiers = id_aa.Branch("40");
 
+        /**
+         * PKCS#9: 1.2.840.113549.1.9.16.2.60 - RFC 9763 sec. 4:
+         * {@code id-aa-relatedCertRequest} attribute identifying a previously issued certificate
+         * that should be bound to the CSR being processed (hybrid PQ migration). The attribute
+         * value is a {@code RequesterCertificate} SEQUENCE carrying the
+         * IssuerAndSerialNumber of the related certificate, a BinaryTime freshness
+         * stamp, one or more URIs from which the related certificate can be fetched,
+         * and a signature over the concatenation of the DER-encoded certID and
+         * requestTime computed with the related certificate's private key.
+         */
+        public static readonly DerObjectIdentifier IdAARelatedCertRequest = id_aa.Branch("60");
+
         // RFC 5126
         public static readonly DerObjectIdentifier IdAAEtsArchiveTimestampV2 = id_aa.Branch("48");
 

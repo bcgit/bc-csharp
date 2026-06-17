@@ -45,6 +45,22 @@ namespace Org.BouncyCastle.Asn1.X509
         //
         public static readonly DerObjectIdentifier IdPE = IdPkix.Branch("1");
 
+        /**
+         * id-pe-relatedCert OBJECT IDENTIFIER ::= { iso(1)
+         *        identified-organization(3) dod(6) internet(1)
+         *        security(5) mechanisms(5) pkix(7) pe(1) 36 }
+         * <p>
+         * Per RFC 9763 sec. 3, the {@code RelatedCertificate} certificate
+         * extension. The extension MUST
+         * appear in an end-entity certificate only, SHOULD NOT be marked critical,
+         * and carries a digest of one previously-issued certificate (the "related
+         * certificate") that the CA is asserting belongs to the same end entity —
+         * the mechanism that lets a verifier link a classical and a post-quantum
+         * certificate during hybrid PQ migration without requiring composite
+         * signature algorithms.
+         */
+        public static readonly DerObjectIdentifier id_pe_relatedCert = IdPE.Branch("36");
+
         /** 1.3.6.1.5.5.7.6 */
         public static readonly DerObjectIdentifier pkix_algorithms = IdPkix.Branch("6");
 

@@ -160,6 +160,17 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly DerObjectIdentifier NoRevAvail = new DerObjectIdentifier("2.5.29.56");
 
         /**
+         * RelatedCertificate extension - RFC 9763 sec. 3.
+         * <p>
+         * SHOULD NOT be marked critical. Carries a {@code RelatedCertificate}
+         * SEQUENCE binding the certificate to a separately-issued related
+         * certificate by hash; used during post-quantum migration to assert
+         * that a traditional and a post-quantum end-entity certificate belong
+         * to the same subject.
+         */
+        public static readonly DerObjectIdentifier RelatedCertificate = X509ObjectIdentifiers.id_pe_relatedCert;
+
+        /**
          * TargetInformation extension in attribute certificates.
          */
         public static readonly DerObjectIdentifier TargetInformation = new DerObjectIdentifier("2.5.29.55");
