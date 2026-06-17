@@ -67,6 +67,16 @@ namespace Org.BouncyCastle.Asn1.X509
                 return new DerPrintableString(value);
             }
 
+            if (oid.Equals(X509Name.CN) && value.Length > 64)
+            {
+                // RFC 5280 sec. A.1 / X.520: commonName is DirectoryString { ub-common-name } with ub-common-name = 64.
+                // OpenSSL and most validators reject longer values, so reject at build time rather than emit a cert
+                // that won't verify downstream. Existing DER-encoded names with longer CNs still parse because the
+                // parse path does not route through this method (githubbc-java #750).
+                throw new ArgumentException(
+                    $"commonName length {value.Length} exceeds RFC 5280 ub-common-name (64): '{value}'");
+            }
+
             return new DerUtf8String(value);
         }
     }

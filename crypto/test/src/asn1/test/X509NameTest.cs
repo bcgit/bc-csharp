@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Text;
 
 using NUnit.Framework;
 
@@ -890,6 +891,30 @@ namespace Org.BouncyCastle.Asn1.Tests
         }
 
         [Test]
+        public void CommonNameLength()
+        {
+            // 64 chars: at the boundary, must be accepted.
+            string cn64 = Repeat("A", 64);
+            // TODO X500NameBuilder tests per style
+            new X509Name("CN=" + cn64);
+
+            // 65 chars: just over, must be rejected by both styles + the string constructor.
+            string cn65 = Repeat("A", 65);
+
+            // TODO X500NameBuilder tests per style
+            Assert.Throws<ArgumentException>(() => new X509Name("CN=" + cn65),
+                "X509Name(\"CN=...\") accepted 65-char CN");
+
+            // Parsing existing DER with an over-length CN is deliberately
+            // still permitted: don't block reading already-issued certificates
+            // in the wild (leniency boundary, matches the country-code split).
+            var atav = new AttributeTypeAndValue(X509Name.CN, new DerUtf8String(cn65));
+            var rdn = new Rdn(atav);
+            var parsed = X509Name.GetInstance(DerSequence.FromElement(rdn));
+            Assert.AreEqual(cn65, GetFirstRdnValueString(parsed), "lenient parse of 65-char CN failed: " + parsed);
+        }
+
+        [Test]
         public void EscapeRoundTrip()
         {
             string[,] cases =
@@ -1012,5 +1037,15 @@ namespace Org.BouncyCastle.Asn1.Tests
         private static string GetFirstRdnValueString(X509Name name) => GetFirstValueString(GetFirstRdn(name));
 
         private static string GetFirstValueString(Rdn rdn) => ((IAsn1String)rdn.GetFirst().Value).GetString();
+
+        private static string Repeat(string s, int n)
+        {
+            StringBuilder sb = new StringBuilder(s.Length * n);
+            for (int i = 0; i < n; i++)
+            {
+                sb.Append(s);
+            }
+            return sb.ToString();
+        }
     }
 }
