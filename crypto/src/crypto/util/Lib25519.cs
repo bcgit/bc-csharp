@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 throw new ArgumentException(nameof(pk));
 
             RandomNumberGenerator.Fill(sk);
-            X25519.GeneratePublicKey(sk, pk);
+            X25519.ScalarMultBase(sk, pk);
         }
 
         /// <summary>Equivalent of <c>lib25519_sign</c>.</summary>
