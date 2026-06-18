@@ -349,6 +349,72 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             ImplTestModulusSizeBound();
+
+            ImplTestMaliciousMessage();
+        }
+
+        private void ImplTestMaliciousMessage()
+        {
+            // Both peer-supplied values to CalculateAgreement are raised to our (potentially static)
+            // private key, so a peer sending a small-order or out-of-range element could mount a
+            // small-subgroup confinement attack and recover our private key. Both must be validated as
+            // DH public values, even when the other value is well-formed and uses our own parameters.
+            DHKeyPairGenerator kpGen = GetDHKeyPairGenerator(g512, p512);
+            DHParameters dhParams = ((DHPublicKeyParameters)kpGen.GenerateKeyPair().Public).Parameters;
+
+            DHAgreement dh = new DHAgreement();
+            dh.Init(kpGen.GenerateKeyPair().Private);
+            dh.CalculateMessage();
+
+            DHPublicKeyParameters goodPub = (DHPublicKeyParameters)kpGen.GenerateKeyPair().Public;
+            BigInteger goodMessage = ((DHPublicKeyParameters)kpGen.GenerateKeyPair().Public).Y;
+
+            // p-1 has order 2; it is also out of the accepted (1, p-1) range.
+            BigInteger orderTwo = dhParams.P.Subtract(BigInteger.One);
+
+            // A malicious 'message' must be rejected even when 'pub' is well-formed.
+            foreach (BigInteger badMessage in new BigInteger[]{ BigInteger.One, orderTwo, dhParams.P })
+            {
+                try
+                {
+                    dh.CalculateAgreement(goodPub, badMessage);
+                    Fail("DHAgreement accepted malicious message " + badMessage);
+                }
+                catch (ArgumentException)
+                {
+                    // expected
+                }
+            }
+
+            // A malicious 'pub' must be rejected even when 'message' is well-formed. DHWeakPubKey passes
+            // construction-time validation with a dummy Y, then returns a weak value from the overridden
+            // (virtual) Y property -- so CalculateAgreement must re-validate rather than trust the type.
+            foreach (BigInteger weakY in new BigInteger[]{ BigInteger.One, orderTwo, dhParams.P })
+            {
+                try
+                {
+                    dh.CalculateAgreement(new DHWeakPubKey(weakY, dhParams), goodMessage);
+                    Fail("DHAgreement accepted malicious public key " + weakY);
+                }
+                catch (ArgumentException)
+                {
+                    // expected
+                }
+            }
+        }
+
+        private class DHWeakPubKey
+            : DHPublicKeyParameters
+        {
+            private readonly BigInteger m_weakY;
+
+            internal DHWeakPubKey(BigInteger weakY, DHParameters parameters)
+                : base(BigInteger.Two, parameters)
+            {
+                m_weakY = weakY;
+            }
+
+            public override BigInteger Y => m_weakY;
         }
 
         private void ImplTestModulusSizeBound()

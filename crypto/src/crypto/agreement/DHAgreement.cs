@@ -68,15 +68,24 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
             BigInteger p = m_dhParams.P;
 
-            BigInteger peerY = pub.Y;
-            if (peerY == null || peerY.CompareTo(BigInteger.One) <= 0 || peerY.CompareTo(p.Subtract(BigInteger.One)) >= 0)
-                throw new ArgumentException("Diffie-Hellman public key is weak");
+            // Both peer-supplied values are raised to our (potentially static) private key, so both must
+            // satisfy the DH public-value range/subgroup checks; otherwise a peer can submit a small-order
+            // or out-of-range element to mount a small-subgroup confinement attack and, when our private
+            // key is reused, recover it via CRT. The 'message' is a raw BigInteger, so validate it by
+            // construction. A normally-constructed DHPublicKeyParameters already validated its Y; but Y is
+            // virtual and a subclass can override it to return an unvalidated value, so re-validate unless
+            // pub is exactly the base type.
+            BigInteger peerMessage = new DHPublicKeyParameters(message, m_dhParams).Y;
+
+            BigInteger peerY = pub.GetType() == typeof(DHPublicKeyParameters)
+                ? pub.Y
+                : new DHPublicKeyParameters(pub.Y, m_dhParams).Y;
 
             BigInteger result = peerY.ModPow(m_privateValue, p);
             if (result.Equals(BigInteger.One))
                 throw new InvalidOperationException("Shared key can't be 1");
 
-            return message.ModPow(m_key.X, p).Multiply(result).Mod(p);
+            return peerMessage.ModPow(m_key.X, p).Multiply(result).Mod(p);
         }
     }
 }
