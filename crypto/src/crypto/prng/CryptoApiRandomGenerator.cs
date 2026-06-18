@@ -12,11 +12,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         private readonly RandomNumberGenerator m_randomNumberGenerator;
 
         public CryptoApiRandomGenerator()
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            : this(new DefaultRandomNumberGenerator())
-#else
             : this(RandomNumberGenerator.Create())
-#endif
         {
         }
 

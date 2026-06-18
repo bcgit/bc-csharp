@@ -10,11 +10,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         private readonly bool mPredictionResistant;
 
         public CryptoApiEntropySourceProvider()
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            : this(new DefaultRandomNumberGenerator(), true)
-#else
             : this(RandomNumberGenerator.Create(), true)
-#endif
         {
         }
 
