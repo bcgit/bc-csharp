@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Crypto.Utilities.Tests
                 for (int i = 0; i < 10; ++i)
                 {
                     // Flip a random bit of the signed message
-                    int bit = Random.Next(sm.Length - 1);
+                    int bit = Random.Next(sm.Length * 8);
                     sm3[bit >> 3] ^= (byte)(0x01 << (bit & 7));
 
                     // Check the signed message can no longer be opened
@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Crypto.Utilities.Tests
                 // Modifying the signed message causes verification to fail
                 {
                     // Flip a random bit of the signature part of the signed message
-                    int sigBit = Random.Next(Lib25519.SignBytes * 8 - 1);
+                    int sigBit = Random.Next(Lib25519.SignBytes * 8);
                     sm[sigBit >> 3] ^= (byte)(0x01 << (sigBit & 7));
 
                     // Check the signed message can no longer be opened
@@ -200,7 +200,7 @@ namespace Org.BouncyCastle.Crypto.Utilities.Tests
                     sm[sigBit >> 3] ^= (byte)(0x01 << (sigBit & 7));
 
                     // Flip a random bit of the message part of the signed message
-                    int msgBit = Random.Next(mLength * 8 - 1);
+                    int msgBit = Random.Next(mLength * 8);
                     sm[Lib25519.SignBytes + (msgBit >> 3)] ^= (byte)(0x01 << (msgBit & 7));
 
                     // Check the signed message can no longer be opened

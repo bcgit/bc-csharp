@@ -1,10 +1,10 @@
 ﻿#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System;
-using System.Reflection;
 using System.Security.Cryptography;
 
 using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Math.EC.Rfc8032;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
@@ -40,6 +40,11 @@ namespace Org.BouncyCastle.Crypto.Utilities
         /// <remarks>
         /// Computes the X25519 secret <paramref name="k"/> shared between Alice and Bob, given Bob's public key
         /// <paramref name="pk"/> and Alice's secret key <paramref name="sk"/>.
+        /// <para>
+        /// A lack of <i>contributory behaviour</i> may be detected by testing whether the output in
+        /// <paramref name="k"/> is all zeros (e.g. using <see cref="Arrays.AreAllZeroes(ReadOnlySpan{byte})"/>), but
+        /// this check is the caller's responsibility.
+        /// </para>
         /// </remarks>
         /// <param name="k">
         /// A <c>Span</c> of length exactly <see cref="DHBytes"/> to receive the generated shared secret.
@@ -60,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             if (k.Length != DHBytes)
                 throw new ArgumentException(nameof(k));
 
-            X25519.CalculateAgreement(sk, pk, k);
+            X25519.ScalarMult(sk, pk, k);
         }
 
         /// <summary>Equivalent of <c>lib25519_dh_keypair</c>.</summary>
