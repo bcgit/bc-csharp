@@ -1,9 +1,9 @@
 using System;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
@@ -16,13 +16,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
         public virtual void Init(ICipherParameters parameters)
         {
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                parameters = withRandom.Parameters;
-            }
+            var kParam = ParameterUtilities.IgnoreRandom(parameters);
 
-            if (!(parameters is MqvPrivateParameters mqvPrivateParameters))
-                throw new ArgumentException("ECMqvBasicAgreement expects MqvPrivateParameters");
+            if (!(kParam is MqvPrivateParameters mqvPrivateParameters))
+                throw new ArgumentException($"{nameof(ECMqvBasicAgreement)} expects {nameof(MqvPrivateParameters)}");
 
             this.privParams = mqvPrivateParameters;
         }
@@ -39,9 +36,8 @@ namespace Org.BouncyCastle.Crypto.Agreement
             if (!parameters.Equals(pubParams.StaticPublicKey.Parameters))
                 throw new InvalidOperationException("ECMQV public key components have wrong domain parameters");
 
-            ECPoint agreement = CalculateMqvAgreement(parameters, staticPrivateKey,
-                privParams.EphemeralPrivateKey, privParams.EphemeralPublicKey,
-                pubParams.StaticPublicKey, pubParams.EphemeralPublicKey).Normalize();
+            ECPoint agreement = CalculateMqvAgreement(parameters, staticPrivateKey, privParams.EphemeralPrivateKey,
+                privParams.EphemeralPublicKey, pubParams.StaticPublicKey, pubParams.EphemeralPublicKey).Normalize();
 
             if (agreement.IsInfinity)
                 throw new InvalidOperationException("Infinity is not a valid agreement value for MQV");
@@ -50,13 +46,8 @@ namespace Org.BouncyCastle.Crypto.Agreement
         }
 
         // The ECMQV Primitive as described in SEC-1, 3.4
-        private static ECPoint CalculateMqvAgreement(
-            ECDomainParameters		parameters,
-            ECPrivateKeyParameters	d1U,
-            ECPrivateKeyParameters	d2U,
-            ECPublicKeyParameters	Q2U,
-            ECPublicKeyParameters	Q1V,
-            ECPublicKeyParameters	Q2V)
+        private static ECPoint CalculateMqvAgreement(ECDomainParameters parameters, ECPrivateKeyParameters d1U,
+            ECPrivateKeyParameters d2U, ECPublicKeyParameters Q2U, ECPublicKeyParameters Q1V, ECPublicKeyParameters Q2V)
         {
             BigInteger n = parameters.N;
             int e = (n.BitLength + 1) / 2;
@@ -79,8 +70,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
             BigInteger hs = parameters.H.Multiply(s).Mod(n);
 
-            return ECAlgorithms.SumOfTwoMultiplies(
-                q1v, Q2VBar.Multiply(hs).Mod(n), q2v, hs);
+            return ECAlgorithms.SumOfTwoMultiplies(q1v, Q2VBar.Multiply(hs).Mod(n), q2v, hs);
         }
     }
 }

@@ -1,26 +1,21 @@
 using System;
 
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
-    /**
-     * P1363 7.2.1 ECSVDP-DH
-     *
-     * ECSVDP-DH is Elliptic Curve Secret Value Derivation Primitive,
-     * Diffie-Hellman version. It is based on the work of [DH76], [Mil86],
-     * and [Kob87]. This primitive derives a shared secret value from one
-     * party's private key and another party's public key, where both have
-     * the same set of EC domain parameters. If two parties correctly
-     * execute this primitive, they will produce the same output. This
-     * primitive can be invoked by a scheme to derive a shared secret key;
-     * specifically, it may be used with the schemes ECKAS-DH1 and
-     * DL/ECKAS-DH2. It assumes that the input keys are valid (see also
-     * Section 7.2.2).
-     */
+    /// <summary>P1363 7.2.1 ECSVDP-DH.</summary>
+    /// <remarks>
+    /// ECSVDP-DH is Elliptic Curve Secret Value Derivation Primitive, Diffie-Hellman version. It is based on the work
+    /// of [DH76], [Mil86], and [Kob87]. This primitive derives a shared secret value from one party's private key and
+    /// another party's public key, where both have the same set of EC domain parameters. If two parties correctly
+    /// execute this primitive, they will produce the same output. This primitive can be invoked by a scheme to derive a
+    /// shared secret key; specifically, it may be used with the schemes ECKAS-DH1 and DL/ECKAS-DH2. It assumes that the
+    /// input keys are valid (see also Section 7.2.2).
+    /// </remarks>
     // TODO[api] sealed
     public class ECDHBasicAgreement
         : IBasicAgreement
@@ -30,13 +25,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
         public virtual void Init(ICipherParameters parameters)
         {
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                parameters = withRandom.Parameters;
-            }
+            var kParam = ParameterUtilities.IgnoreRandom(parameters);
 
-            if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
-                throw new ArgumentException("ECDHBasicAgreement expects ECPrivateKeyParameters");
+            if (!(kParam is ECPrivateKeyParameters ecPrivateKeyParameters))
+                throw new ArgumentException($"{nameof(ECDHBasicAgreement)} expects {nameof(ECPrivateKeyParameters)}");
 
             this.privKey = ecPrivateKeyParameters;
         }

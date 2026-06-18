@@ -26,35 +26,32 @@ namespace Org.BouncyCastle.Crypto.Agreement
      * (if you want that just use ECDHBasicAgreement and note they both implement
      * BasicAgreement!).</p>
      */
-    // TODO[api] sealed
+    // TODO[api] sealed, rename to ECDhcBasicAgreement
     public class ECDHCBasicAgreement
         : IBasicAgreement
     {
-        private ECPrivateKeyParameters privKey;
+        private ECPrivateKeyParameters m_privKey;
 
         public virtual void Init(ICipherParameters parameters)
         {
-            if (parameters is ParametersWithRandom withRandom)
-            {
-                parameters = withRandom.Parameters;
-            }
+            var kParam = ParameterUtilities.IgnoreRandom(parameters);
 
-            if (!(parameters is ECPrivateKeyParameters ecPrivateKeyParameters))
-                throw new ArgumentException("ECDHCBasicAgreement expects ECPrivateKeyParameters");
+            if (!(kParam is ECPrivateKeyParameters ecPrivateKeyParameters))
+                throw new ArgumentException($"{nameof(ECDHCBasicAgreement)} expects {nameof(ECPrivateKeyParameters)}");
 
-            this.privKey = ecPrivateKeyParameters;
+            m_privKey = ecPrivateKeyParameters;
         }
 
-        public virtual int GetFieldSize() => privKey.Parameters.Curve.FieldElementEncodingLength;
+        public virtual int GetFieldSize() => m_privKey.Parameters.Curve.FieldElementEncodingLength;
 
         public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
         {
             ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey;
-            ECDomainParameters dp = privKey.Parameters;
+            ECDomainParameters dp = m_privKey.Parameters;
             if (!dp.Equals(pub.Parameters))
                 throw new InvalidOperationException("ECDHC public key has wrong domain parameters");
 
-            BigInteger hd = dp.H.Multiply(privKey.D).Mod(dp.N);
+            BigInteger hd = dp.H.Multiply(m_privKey.D).Mod(dp.N);
 
             // Always perform calculations on the exact curve specified by our private key's parameters
             ECPoint pubPoint = ECAlgorithms.CleanPoint(dp.Curve, pub.Q);

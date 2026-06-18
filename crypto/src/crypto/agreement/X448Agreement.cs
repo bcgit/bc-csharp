@@ -24,10 +24,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
         }
 
         /// <summary>Length in bytes of the shared secret produced by the agreement (56).</summary>
-        public int AgreementSize
-        {
-            get { return X448PrivateKeyParameters.SecretSize; }
-        }
+        public int AgreementSize => X448PrivateKeyParameters.SecretSize;
 
         /// <summary>
         /// Perform the agreement against <paramref name="publicKey"/> and write the shared secret into

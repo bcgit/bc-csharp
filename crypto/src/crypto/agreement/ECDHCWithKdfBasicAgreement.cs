@@ -1,13 +1,10 @@
 ﻿using System;
 
-using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Crypto.Agreement.Kdf;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
+    // TODO[api] Rename to ECDhcWithKdfBasicAgreement, avoid inheritance
     public sealed class ECDHCWithKdfBasicAgreement
         : ECDHCBasicAgreement
     {

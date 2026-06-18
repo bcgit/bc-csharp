@@ -4,7 +4,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
-    // TODO[api] sealed
+    // TODO[api] sealed, avoid inheritance
     public class ECDHWithKdfBasicAgreement
         : ECDHBasicAgreement
     {

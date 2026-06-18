@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -8,78 +7,76 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
-	/**
-	 * a Diffie-Hellman key exchange engine.
-	 * <p>
-	 * note: This uses MTI/A0 key agreement in order to make the key agreement
-	 * secure against passive attacks. If you're doing Diffie-Hellman and both
-	 * parties have long term public keys you should look at using this. For
-	 * further information have a look at RFC 2631.</p>
-	 * <p>
-	 * It's possible to extend this to more than two parties as well, for the moment
-	 * that is left as an exercise for the reader.</p>
-	 */
-	public class DHAgreement
-	{
-		private DHPrivateKeyParameters  key;
-		private DHParameters			dhParams;
-		private BigInteger				privateValue;
-		private SecureRandom			random;
+    /// <summary>
+    /// A Diffie-Hellman key exchange engine.
+    /// </summary>
+    /// <remarks>
+    /// This uses MTI/A0 key agreement in order to make the key agreement secure against passive attacks. If you're
+    /// doing Diffie-Hellman and both parties have long term public keys you should look at using this. For further
+    /// information have a look at RFC 2631.
+    /// <para>
+    /// It's possible to extend this to more than two parties as well, for the moment that is left as an exercise for
+    /// the reader.
+    /// </para>
+    /// </remarks>
+    // TODO[api] sealed
+    public class DHAgreement
+    {
+        private DHPrivateKeyParameters m_key;
+        private DHParameters m_dhParams;
+        private SecureRandom m_random;
+        private BigInteger m_privateValue;
 
-		public void Init(ICipherParameters parameters)
-		{
-			var kParam = ParameterUtilities.GetRandom(parameters, out var providedRandom);
+        public void Init(ICipherParameters parameters)
+        {
+            var kParam = ParameterUtilities.GetRandom(parameters, out var providedRandom);
 
-			if (!(kParam is DHPrivateKeyParameters dhPrivateKeyParameters))
-				throw new ArgumentException($"{nameof(DHAgreement)} expects {nameof(DHPrivateKeyParameters)}");
+            if (!(kParam is DHPrivateKeyParameters dhPrivateKeyParameters))
+                throw new ArgumentException($"{nameof(DHAgreement)} expects {nameof(DHPrivateKeyParameters)}");
 
-			this.key = dhPrivateKeyParameters;
-			this.dhParams = dhPrivateKeyParameters.Parameters;
-			this.random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
-		}
+            m_key = dhPrivateKeyParameters;
+            m_dhParams = dhPrivateKeyParameters.Parameters;
+            m_random = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
+            m_privateValue = null;
+        }
 
-		/**
-		 * calculate our initial message.
-		 */
-		public BigInteger CalculateMessage()
-		{
-			DHKeyPairGenerator dhGen = new DHKeyPairGenerator();
-			dhGen.Init(new DHKeyGenerationParameters(random, dhParams));
-			AsymmetricCipherKeyPair dhPair = dhGen.GenerateKeyPair();
+        /// <summary>Calculate our initial message.</summary>
+        public BigInteger CalculateMessage()
+        {
+            DHKeyPairGenerator dhGen = new DHKeyPairGenerator();
+            dhGen.Init(new DHKeyGenerationParameters(m_random, m_dhParams));
+            AsymmetricCipherKeyPair dhPair = dhGen.GenerateKeyPair();
 
-			this.privateValue = ((DHPrivateKeyParameters)dhPair.Private).X;
+            m_privateValue = ((DHPrivateKeyParameters)dhPair.Private).X;
 
-			return ((DHPublicKeyParameters)dhPair.Public).Y;
-		}
+            return ((DHPublicKeyParameters)dhPair.Public).Y;
+        }
 
-		/**
-		 * given a message from a given party and the corresponding public key
-		 * calculate the next message in the agreement sequence. In this case
-		 * this will represent the shared secret.
-		 */
-		public BigInteger CalculateAgreement(
-			DHPublicKeyParameters	pub,
-			BigInteger				message)
-		{
-			if (pub == null)
-				throw new ArgumentNullException("pub");
-			if (message == null)
-				throw new ArgumentNullException("message");
+        /// <summary>
+        /// Given a message from a given party and the corresponding public key calculate the next message in the
+        /// agreement sequence. In this case this will represent the shared secret.
+        /// </summary>
+        public BigInteger CalculateAgreement(DHPublicKeyParameters pub, BigInteger message)
+        {
+            if (pub == null)
+                throw new ArgumentNullException(nameof(pub));
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
 
-			if (!pub.Parameters.Equals(dhParams))
-				throw new ArgumentException("Diffie-Hellman public key has wrong parameters.");
+            if (!pub.Parameters.Equals(m_dhParams))
+                throw new ArgumentException("Diffie-Hellman public key has wrong parameters.");
 
-            BigInteger p = dhParams.P;
+            BigInteger p = m_dhParams.P;
 
             BigInteger peerY = pub.Y;
             if (peerY == null || peerY.CompareTo(BigInteger.One) <= 0 || peerY.CompareTo(p.Subtract(BigInteger.One)) >= 0)
                 throw new ArgumentException("Diffie-Hellman public key is weak");
 
-            BigInteger result = peerY.ModPow(privateValue, p);
+            BigInteger result = peerY.ModPow(m_privateValue, p);
             if (result.Equals(BigInteger.One))
                 throw new InvalidOperationException("Shared key can't be 1");
 
-            return message.ModPow(key.X, p).Multiply(result).Mod(p);
+            return message.ModPow(m_key.X, p).Multiply(result).Mod(p);
         }
     }
 }
