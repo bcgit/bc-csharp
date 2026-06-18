@@ -261,7 +261,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        internal static PkixCertPathValidatorResult ProcessAttrCert2(PkixCertPath certPath, PkixParameters pkixParams)
+        internal static PkixCertPathValidatorResult ProcessAttrCert2A(PkixCertPath certPath, PkixParameters pkixParams)
         {
             PkixCertPathValidator validator = new PkixCertPathValidator();
 
@@ -275,6 +275,23 @@ namespace Org.BouncyCastle.Pkix
                     "Certification path for issuer certificate of attribute certificate could not be validated.",
                     e);
             }
+        }
+
+        internal static void ProcessAttrCert2B(X509V2AttributeCertificate attrCert, X509Certificate issuerCert)
+        {
+            // the AC signature must be cryptographically correct
+            Exception innerException = null;
+            try
+            {
+                if (attrCert.IsSignatureValid(issuerCert.GetPublicKey()))
+                    return;
+            }
+            catch (Exception e)
+            {
+                innerException = e;
+            }
+            throw new PkixCertPathValidatorException("Attribute certificate signature could not be verified.",
+                innerException);
         }
 
         /**
