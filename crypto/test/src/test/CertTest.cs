@@ -1143,7 +1143,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(ord, values));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(ord, values));
             certGen.SetPublicKey(pubKey);
 
@@ -1172,7 +1172,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(ord, values));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(ord, values));
             certGen.SetPublicKey(pubKey);
             certGen.AddExtension("2.5.29.15", true,
@@ -1229,7 +1229,7 @@ namespace Org.BouncyCastle.Tests
             certGen1.SetSerialNumber(BigInteger.One);
             certGen1.SetIssuerDN(new X509Name(ord, values));
             certGen1.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen1.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen1.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen1.SetSubjectDN(new X509Name(ord, values));
             certGen1.SetPublicKey(pubKey);
             cert = certGen1.Generate(new Asn1SignatureFactory("MD5WithRSAEncryption", privKey, null));
@@ -1302,7 +1302,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(ord, values));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(ord, values));
             certGen.SetPublicKey(pubKey);
 
@@ -1331,7 +1331,7 @@ namespace Org.BouncyCastle.Tests
             certGen1.SetSerialNumber(BigInteger.One);
             certGen1.SetIssuerDN(new X509Name(ord, values));
             certGen1.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen1.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen1.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen1.SetSubjectDN(new X509Name(ord, values));
             certGen1.SetPublicKey(pubKey);
 
@@ -1443,7 +1443,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(order, attrs));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(order, attrs));
             certGen.SetPublicKey(pubKey);
 
@@ -1560,7 +1560,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(order, attrs));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(order, attrs));
             certGen.SetPublicKey(pubKey);
 
@@ -2006,7 +2006,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(order, attrs));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(order, attrs));
             certGen.SetPublicKey(pubKey);
 
@@ -2089,7 +2089,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(ord, values));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(ord, values));
             certGen.SetPublicKey(pubKey);
             certGen.AddExtension("2.5.29.15", true,
@@ -2110,7 +2110,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(ord, values));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(ord, values));
             certGen.SetPublicKey(pubKey);
 
@@ -2349,7 +2349,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name(ord, values));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name(ord, values));
             certGen.SetPublicKey(pubKey);
             certGen.AddExtension("2.5.29.15", true,
@@ -2415,7 +2415,7 @@ namespace Org.BouncyCastle.Tests
             certGen.SetSerialNumber(BigInteger.One);
             certGen.SetIssuerDN(new X509Name("CN=Test"));
             certGen.SetNotBefore(DateTime.UtcNow.AddSeconds(-50));
-            certGen.SetNotAfter(DateTime.UtcNow.AddSeconds(50));
+            certGen.SetNotAfter(DateTime.UtcNow.AddMonths(6));
             certGen.SetSubjectDN(new X509Name("CN=Test"));
             certGen.SetPublicKey(pubKey);
             X509Certificate cert = certGen.Generate(new Asn1SignatureFactory("MD5WithRSAEncryption", privKey, null));
