@@ -400,6 +400,66 @@ namespace Org.BouncyCastle.Pkcs.Tests
             + "AHoAeQB0AGsAbwB3AG4AaQBrAGEwMTAhMAkGBSsOAwIaBQAEFKJpUOIj0OtI"
             + "j2CPp38YIFBEqvjsBAi8G+yhJe3A/wICCAA=");
 
+        private static readonly byte[] certChainCycle = Base64.Decode(
+            "MIIKEAIBAzCCCcoGCSqGSIb3DQEHAaCCCbsEggm3MIIJszCCAyAGCSqGSIb3"
+            + "DQEHAaCCAxEEggMNMIIDCTCCAwUGCyqGSIb3DQEMCgECoIICsjCCAq4wKAYK"
+            + "KoZIhvcNAQwBAzAaBBQesw38x26DXisTDrMMSoAanDOAQgICBAAEggKAja8F"
+            + "U82RAAxhc36SWNXgWGV4CDSbDLFjlJuuXLTelz77KcX4dqPOQdKakm3OVl96"
+            + "cbp6mWNSOoo0F8bh/Qu51vayt7hT5NIuI8jJ/Q1FYUffMKRxGt14JwuuTQ8W"
+            + "5DO3z7422fm/rUu+Nkd6y+Sr0Q3FAE8QH/vNc9aUwusVAihr0AZCdT0/HwxK"
+            + "AKAXLtMHeTWRpdq3WPSilPEWeeZI9Gk14uKbjEeQIUsa8IujSxTE43XwNRQN"
+            + "z3Qm4oMxGOZP+DPxuKnj+Ug1OXgX5x+GD2fbwytzss9Isv/Zq8wq0gO3t1Ru"
+            + "PjpxPt/MH2PxNLe4JJTxg1tIXfNP5ZU1SivcIjGLWWcEu+xADG9uq2eDBOja"
+            + "mW2ZQ1cInSQw8mKcBbX7aEl0NVadSMfxMZxIw0unmoNEETmScoGr50G4Ha5H"
+            + "ty1iJLNtI69MUA1c2DsoOqyzlnumTTLwuqsZ/E8rFLfO4sHncMxMRdmCEUjn"
+            + "N2ZOfRqMrgtSFfBsYQ5YjxJ6CI1DLAJwIJhvx8tZgyGItgiI8pSyG8xsRliI"
+            + "WPQzocO39zHK0hG6ERGnfJyll62/MlDNl9BqjobswPu97BV9nMtPIl3yVBPa"
+            + "sZxj5LUPYt5nmBlIjIkT5K4cEOIWHKCHPOnAsk8AGW/vrugBcTsyw9nAsRx+"
+            + "PbmOmmgyo0g2SiPsUX0fGQIWOBVZNxkGP/E4qgDOFS0YavxrdUd2Bgo9q9Sc"
+            + "hENPI9wjhPztR2UNLtBviWd8utQJ7NhX+6guWEE4AN6Th/xLb/pe9c0sIsEO"
+            + "41ViDbu4wDGUz6kw3fpXjIu7i6QKniWXEUL9uuchUgZD1GJHQLhD8xgdR6YQ"
+            + "5SwfIadoWTFAMBkGCSqGSIb3DQEJFDEMHgoAYwB5AGMAbABlMCMGCSqGSIb3"
+            + "DQEJFTEWBBRoHxEy+w9gB2sa3ykN2Ok7sb3AajCCBosGCSqGSIb3DQEHBqCC"
+            + "BnwwggZ4AgEAMIIGcQYJKoZIhvcNAQcBMCgGCiqGSIb3DQEMAQYwGgQU40Mi"
+            + "gMmdUNKyHyGi8miA/3bKZO0CAgQAgIIGOIk1Ouu1n1yoHWGM7YsLpB5fqK6D"
+            + "LbhUoxsshDSxqemUX3QDJQVmPC9wQOUp1BUapkfB3uxsM15uUG/EUAPlF3iW"
+            + "0MKDpmcKTC8y1WzMtgZBmmXwRUbguH2gmn4nd6lI2SkLWQg5boQ47aHjZLO2"
+            + "MZsH1b/DUoT4m6fSrgsMnIVh03z1Gs2XO+Ky3qXqQJM9T3VtCfmeIJBIM2eP"
+            + "YqvWfnvoGZZZA+pmqVUSMu6q0U7cDA5CD9zhZ87tZvaJeQ198fVIKpMUHBdf"
+            + "WRGY/opZh4YTfqn+ZiiysEa9jjjx4hSkxS2XGkyUfwPEx4/1E2AdIBfi3KKW"
+            + "BSyx8hurMyf89YsjxqJudfCAQI2GdWLDEXwwHMi1mM3wn5NVFzZUqM/u+t2W"
+            + "f3gJGfykxwECxrn4TmerRJ3znyn7soLPEyy6Pp+JPNLyen3Z8gva5tU7Y2J4"
+            + "aW6YGbBuQ9iW6QcMA93UtWBMGRAJL1jZ9WDguaTkvH8ffSj90jfu7iTHCm/P"
+            + "4EEtEV7D4ciyLc5xVyq7gIQnIIViVRifAHyjbazrIFQ2yXYwINAk0yNmDqxu"
+            + "8W4KNxkhNTGvQP/kkk+oDpSCa7XfxMpny+2BudjEryen2q3skMp3HjU/svHQ"
+            + "+4Y9kxZ5rVYII9S8TRFmgxiRO7cQCdNEwiZndQVGahjVbLI3Jp3vmQhLg+2l"
+            + "QF07yT7Q0nxeyhbpDGUEizUyIKzs9Or0DEHbq0StU3YwLgHGLlllARLm0eAO"
+            + "SVhuxKGATS6GtCb/0jmzV+kX4GrK1Qkmit3Xxt9Lbq9b2v2eSMANqGrGpYyr"
+            + "ETfJ5Ri/UL0nF7M9+tXrrZam1dEM5nJXR04rXQXjxxIuxsrz5xhvS/I+45RY"
+            + "VKN9l1yw80wNYJlE3Un/eUxT0szk6XA7eguhB6ULGTZNDUMZdELAtwPcq+E4"
+            + "4+0oih/XLzo/losH10RZ1bBf58mFVl/SlZ0CDE3x6GnFyH/tyTb6pR3Vre1v"
+            + "TcBod/rkTyEnkPlFSztbBfCXXIRUcSUcbVXge3Vqn7Orhq1+sb6MPcr88uhU"
+            + "c9Z6g6oKf1liIhiELpMZ5qG06hTwmMlE8prE0tdReGP/eaS2eCu8MyN70adT"
+            + "IfW1PAopoZTfDYKxJYdsJUVkUojZUvmJ21sNeNREPaFBbwncHBR/y19afhqE"
+            + "yyvyzDhDJ1D81TkFUR0OwGk7FvV/5JEQCyJq0wIty9G6mJRbUi2tjCc5WpP7"
+            + "edDW5PBS/rfJPTDMGLy80LlD+obCTFc0sSaBI+dag02Xmxe31V9c96VPOsFt"
+            + "GQ532OFwZU52E9zYLQSL8L2sdNlEK+OCvTd1MNVbH6PGBYgxrmoDfNBQlYBh"
+            + "yX2R9wFClraNUBBV9Dtebb6MSqPW7m8xZWAXCmXkDqR9A9kP6qTMd4X3gSFT"
+            + "qJaezTWbHH44PTgffpK5A1ZBQj37se82QWtBKNPU14KEVvXcI+uuM/TmoAJY"
+            + "0hqMeXK/1JfzhxTuJsJl+c45LuGjq9dLY9tgTSqMLeKOqal7sLH1AVs4BCCA"
+            + "J/sHN5pgOjQNLZ1Zup5mZHXR/ynIhKnpYDADOfnAXLizn/UZZFs5huYJYQEQ"
+            + "K7zcDuzPuxcmFVqUa4AyL9Ul1N42rBx3VsKZ+pvcBTQU5mWsaYwPFox4wLx0"
+            + "HITx7v7cFYsqki7IHfgnvpJlIS8hrvqqXHl75b61T7ZfJMJNQjhf29//OZ36"
+            + "QU4mj7lXwudAe+qAJbn1De5B54dQhtLA7B6sX7/7Sy6xP42QJqXhlWngbhF1"
+            + "IsrgZZrFPJ7zeaKnjOfrLWr8bs1nthHNNoL4cqlPuYtliUGy5zxj9bpQH8xj"
+            + "oh8+PjTOT4H57IvUN/US/6R0awy8WafJ211diVjbU2IbjS/P+xa6Xlbaql4Z"
+            + "KlvXRmoMZNl6xPbJg4x6t2anadNmuS7TXHqfTpp+UxeSsr1phyPmxQZPujZY"
+            + "BADnjfNhTRi7esePheR/DPaPLwjllhetm+U7s7EZzMCdEcd5RB/jiceqRQ5b"
+            + "xoqSyvIW1ZcdTzRQEAFAhnMWRdVT0O0KYDATiSVqcBr0b70dIQ0lZvYk/TUy"
+            + "FdYhRXqC8Gzh8xQZPr3CBGoB02pWpp0Hbb5bHtpf3VnfsEmfwBtRPaEUMD0w"
+            + "ITAJBgUrDgMCGgUABBSsUQPThQeWi8r3oQZ22tcQW2dDqgQUSOpRzALP2lIV"
+            + "GOtPKKbIhe5YCbkCAgQA");
+
         private static readonly byte[] certsOnly = Base64.Decode(
             "MIICnwIBAzCCApgGCSqGSIb3DQEHAaCCAokEggKFMIICgTCCAn0GCSqGSIb3"
             + "DQEHAaCCAm4EggJqMIICZjCCAmIGCyqGSIb3DQEMCgEDoIICHDCCAhgGCiq"
@@ -1654,8 +1714,21 @@ namespace Org.BouncyCastle.Pkcs.Tests
             Assert.AreEqual(Name + ": Okay", resultText, resultText);
         }
 
+        /// <summary>
+        /// Regression test: cyclic AKI/issuer references must terminate.
+        /// </summary>
         [Test]
-        public void TestEmptyInputRejectedCleanly()
+        public void ChainCycle()
+        {
+            Pkcs12Store keyStore = new Pkcs12StoreBuilder().Build();
+            keyStore.Load(new MemoryStream(certChainCycle, false), "test".ToCharArray());
+            var chain = keyStore.GetCertificateChain("cycle");
+            Assert.NotNull(chain);
+            Assert.IsNotEmpty(chain);
+        }
+
+        [Test]
+        public void EmptyInputRejectedCleanly()
         {
             // Regression: loading an empty/EOF stream must throw IOException (the declared contract), not a
             // NullReferenceException from a null top-level Pfx (CVE-2024-0727 top-level). Empty is the trigger.
@@ -1664,7 +1737,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
         }
 
         [Test]
-        public void TestFriendlyName()
+        public void FriendlyName()
         {
             byte[] storeBytes = Base64.Decode("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");
             char[] storePassword = "Axw9eE51lKEx0IuqHbzlJ+sx".ToCharArray();

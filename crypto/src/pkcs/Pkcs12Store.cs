@@ -547,6 +547,7 @@ namespace Org.BouncyCastle.Pkcs
             if (c == null)
                 return null;
 
+            // TODO Ideally an insertion-order Set instead
             var cs = new List<X509CertificateEntry>();
 
             while (c != null)
@@ -596,14 +597,21 @@ namespace Org.BouncyCastle.Pkcs
                     }
                 }
 
-                cs.Add(c);
-                if (nextC != c) // self signed - end of the chain
+                if (cs.Contains(c))
                 {
-                    c = nextC;
+                    c = null;          // we've got a certificate chain loop time to stop
                 }
                 else
                 {
-                    c = null;
+                    cs.Add(c);
+                    if (nextC != c) // self signed - end of the chain
+                    {
+                        c = nextC;
+                    }
+                    else
+                    {
+                        c = null;
+                    }
                 }
             }
 
