@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -266,6 +267,42 @@ namespace Org.BouncyCastle.Crypto.Tests
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
+        [Test]
+        public void InvalidTagLength()
+        {
+            foreach (int macSizeBits in new int[]{ 0, 8, 24, 40, 56, 72, 88, 104, 120, 136 })
+            {
+                // Rejected on encryption...
+                Assert.Throws<ArgumentException>(() =>
+                    new CcmBlockCipher(AesUtilities.CreateEngine()).Init(forEncryption: true,
+                        new AeadParameters(new KeyParameter(K1), macSizeBits, N1, A1)));
+
+                // ...and decryption
+                Assert.Throws<ArgumentException>(() =>
+                    new CcmBlockCipher(AesUtilities.CreateEngine()).Init(forEncryption: false,
+                        new AeadParameters(new KeyParameter(K1), macSizeBits, N1, A1)));
+            }
+        }
+
+        [Test]
+        public void ValidTagLength()
+        {
+            byte[] plaintext = Hex.Decode("202122232425262728292a2b2c2d2e2f3031323334353637");
+
+            for (int macSizeBits = 32; macSizeBits <= 128; macSizeBits += 16)
+            {
+                var enc = new CcmBlockCipher(AesUtilities.CreateEngine());
+                enc.Init(forEncryption: true, new AeadParameters(new KeyParameter(K1), macSizeBits, N1, A1));
+                byte[] ct = enc.ProcessPacket(plaintext, 0, plaintext.Length);
+
+                var dec = new CcmBlockCipher(AesUtilities.CreateEngine());
+                dec.Init(forEncryption: false, new AeadParameters(new KeyParameter(K1), macSizeBits, N1, A1));
+                byte[] recovered = dec.ProcessPacket(ct, 0, ct.Length);
+
+                Assert.That(Arrays.AreEqual(plaintext, recovered));
+            }
         }
     }
 }
