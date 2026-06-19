@@ -19,15 +19,15 @@ namespace Org.BouncyCastle.Crypto.Modes
     {
         private static readonly int BlockSize = 16;
 
-        private readonly IBlockCipher	cipher;
-        private readonly byte[]			macBlock;
-        private bool					forEncryption;
-        private byte[]					nonce;
-        private byte[]					initialAssociatedText;
-        private int						macSize;
-        private ICipherParameters		keyParam;
-        private readonly MemoryStream   associatedText = new MemoryStream();
-        private readonly MemoryStream   data = new MemoryStream();
+        private readonly IBlockCipher cipher;
+        private readonly byte[] macBlock;
+        private bool forEncryption;
+        private byte[] nonce;
+        private byte[] initialAssociatedText;
+        private int macSize;
+        private ICipherParameters keyParam;
+        private readonly MemoryStream associatedText = new MemoryStream();
+        private readonly MemoryStream data = new MemoryStream();
 
         /**
         * Basic constructor.
