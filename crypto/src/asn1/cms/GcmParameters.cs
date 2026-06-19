@@ -39,13 +39,13 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
-            m_icvLen = icvLen == null ? DefaultIcvLen : icvLen.IntValueExact;
+            m_icvLen = ValidateIcvLen(icvLen == null ? DefaultIcvLen : icvLen.IntValueExact);
         }
 
         public GcmParameters(byte[] nonce, int icvLen)
         {
             m_nonce = DerOctetString.FromContents(nonce);
-            m_icvLen = icvLen;
+            m_icvLen = ValidateIcvLen(icvLen);
         }
 
         public byte[] GetNonce() => Arrays.Clone(m_nonce.GetOctets());
@@ -57,6 +57,15 @@ namespace Org.BouncyCastle.Asn1.Cms
             return m_icvLen == DefaultIcvLen
                 ?  new DerSequence(m_nonce)
                 :  new DerSequence(m_nonce, DerInteger.ValueOf(m_icvLen));
+        }
+
+        // RFC 5084: AES-GCM-ICVlen ::= INTEGER (12 | 13 | 14 | 15 | 16)
+        private static int ValidateIcvLen(int icvLen)
+        {
+            if (icvLen < 12 || icvLen > 16)
+                throw new ArgumentException("Invalid ICV length: " + icvLen);
+
+            return icvLen;
         }
     }
 }
