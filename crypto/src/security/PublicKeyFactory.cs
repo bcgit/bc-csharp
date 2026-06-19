@@ -55,28 +55,20 @@ namespace Org.BouncyCastle.Security
                 if (IsPkcsDHParam(seq))
                     return ReadPkcsDHParam(algOid, y, seq);
 
-                DHDomainParameters dhParams = DHDomainParameters.GetInstance(seq);
+                DomainParameters dp = DomainParameters.GetInstance(seq);
 
-                BigInteger p = dhParams.P.Value;
-                BigInteger g = dhParams.G.Value;
-                BigInteger q = dhParams.Q.Value;
-
-                BigInteger j = null;
-                if (dhParams.J != null)
-                {
-                    j = dhParams.J.Value;
-                }
+                BigInteger p = dp.P.Value;
+                BigInteger g = dp.G.Value;
+                BigInteger q = dp.Q.Value;
+                BigInteger j = dp.J?.Value;
 
                 DHValidationParameters validation = null;
-                DHValidationParms dhValidationParms = dhParams.ValidationParms;
-                if (dhValidationParms != null)
+                ValidationParams validationParams = dp.ValidationParams;
+                if (validationParams != null)
                 {
-                    byte[] seed = dhValidationParms.Seed.GetBytes();
-                    BigInteger pgenCounter = dhValidationParms.PgenCounter.Value;
-
-                    // TODO Check pgenCounter size?
-
-                    validation = new DHValidationParameters(seed, pgenCounter.IntValue);
+                    validation = new DHValidationParameters(validationParams.Seed.GetBytes(),
+                        // TODO Perhaps avoid forcing unsigned interpretation and add guards elsewhere
+                        validationParams.PgenCounter.IntPositiveValueExact);
                 }
 
                 return new DHPublicKeyParameters(y, new DHParameters(p, g, q, j, validation));

@@ -6,54 +6,31 @@ namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class DHValidationParameters
     {
-        private readonly byte[] seed;
-        private readonly int counter;
+        private readonly byte[] m_seed;
+        private readonly int m_counter;
 
-		public DHValidationParameters(
-            byte[]	seed,
-            int		counter)
+        public DHValidationParameters(byte[] seed, int counter)
         {
-			if (seed == null)
-				throw new ArgumentNullException("seed");
-
-			this.seed = (byte[]) seed.Clone();
-            this.counter = counter;
+            m_seed = Arrays.Clone(seed ?? throw new ArgumentNullException(nameof(seed)));
+            m_counter = counter;
         }
 
-		public byte[] GetSeed()
+        public byte[] GetSeed() => Arrays.Clone(m_seed);
+
+        public int Counter => m_counter;
+
+        public override bool Equals(object obj)
         {
-            return (byte[]) seed.Clone();
+            if (obj == this)
+                return true;
+
+            return obj is DHValidationParameters that
+                && Equals(that);
         }
 
-		public int Counter
-        {
-            get { return counter; }
-        }
+        protected bool Equals(DHValidationParameters other) =>
+            m_counter == other.m_counter && Arrays.AreEqual(this.m_seed, other.m_seed);
 
-		public override bool Equals(
-            object obj)
-        {
-			if (obj == this)
-				return true;
-
-			DHValidationParameters other = obj as DHValidationParameters;
-
-			if (other == null)
-				return false;
-
-			return Equals(other);
-		}
-
-		protected bool Equals(
-			DHValidationParameters other)
-		{
-			return counter == other.counter
-				&& Arrays.AreEqual(this.seed, other.seed);
-		}
-
-		public override int GetHashCode()
-        {
-			return counter.GetHashCode() ^ Arrays.GetHashCode(seed);
-		}
+        public override int GetHashCode() => m_counter.GetHashCode() ^ Arrays.GetHashCode(m_seed);
     }
 }
