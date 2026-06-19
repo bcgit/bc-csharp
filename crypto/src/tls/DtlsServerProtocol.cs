@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Tls
 
             DtlsReliableHandshake handshake = new DtlsReliableHandshake(serverContext, recordLayer,
                 server.GetHandshakeTimeoutMillis(), TlsUtilities.GetHandshakeResendTimeMillis(server), request,
-                System.Math.Max(1024, server.GetMaxHandshakeMessageSize()));
+                TlsUtilities.GetMaxHandshakeMessageSize(server));
 
             DtlsReliableHandshake.Message clientMessage = null;
 

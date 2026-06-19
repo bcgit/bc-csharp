@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Tls
 
             DtlsReliableHandshake handshake = new DtlsReliableHandshake(clientContext, recordLayer,
                 client.GetHandshakeTimeoutMillis(), TlsUtilities.GetHandshakeResendTimeMillis(client), null,
-                System.Math.Max(1024, client.GetMaxHandshakeMessageSize()));
+                TlsUtilities.GetMaxHandshakeMessageSize(client));
 
             byte[] clientHelloBody = GenerateClientHello(state);
 

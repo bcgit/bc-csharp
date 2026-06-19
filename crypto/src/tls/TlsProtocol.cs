@@ -369,7 +369,7 @@ namespace Org.BouncyCastle.Tls
             AbstractTlsContext context = ContextAdmin;
             TlsPeer peer = Peer;
 
-            this.m_maxHandshakeMessageSize = System.Math.Max(1024, peer.GetMaxHandshakeMessageSize());
+            this.m_maxHandshakeMessageSize = TlsUtilities.GetMaxHandshakeMessageSize(peer);
 
             this.m_handshakeHash = new DeferredHash(context);
             this.m_connectionState = CS_START;

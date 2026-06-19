@@ -5939,6 +5939,9 @@ namespace Org.BouncyCastle.Tls
             return certificateType;
         }
 
+        internal static int GetMaxHandshakeMessageSize(TlsPeer tlsPeer) =>
+            System.Math.Max(1024, tlsPeer.GetMaxHandshakeMessageSize());
+
         // TODO[api] Not needed once GetHandshakeResendTimeMillis() has been added to TlsPeer
         internal static int GetHandshakeResendTimeMillis(TlsPeer tlsPeer)
         {
