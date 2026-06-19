@@ -3,27 +3,24 @@ using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Tls.Crypto;
-using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
     internal class MockRawKeysTlsServer
         : DefaultTlsServer
     {
-        private short m_serverCertType;
-        private short m_clientCertType;
-        private short[] m_allowedClientCertTypes;
-        private Ed25519PrivateKeyParameters m_privateKey;
-        private ProtocolVersion m_tlsVersion;
-        private TlsCredentialedSigner m_credentials;
+        private readonly short m_serverCertType;
+        private readonly short m_clientCertType;
+        private readonly short[] m_allowedClientCertTypes;
+        private readonly ProtocolVersion m_tlsVersion;
 
+        private TlsCredentialedSigner m_credentials;
         internal IDictionary<int, byte[]> m_receivedClientExtensions;
 
         internal MockRawKeysTlsServer(TlsCrypto crypto, short serverCertType, short clientCertType,
             short[] allowedClientCertTypes, ProtocolVersion tlsVersion)
-            : base(new BcTlsCrypto())
+            : base(crypto)
         {
             m_serverCertType = serverCertType;
             m_clientCertType = clientCertType;
@@ -86,15 +83,11 @@ namespace Org.BouncyCastle.Tls.Tests
 
         protected override short[] GetAllowedClientCertificateTypes() => m_allowedClientCertTypes;
 
-        protected override bool AllowCertificateStatus()
-        {
-            return m_serverCertType == CertificateType.RawPublicKey ? false : base.AllowCertificateStatus();
-        }
+        protected override bool AllowCertificateStatus() =>
+            m_serverCertType != CertificateType.RawPublicKey && base.AllowCertificateStatus();
 
-        protected override bool AllowMultiCertStatus()
-        {
-            return m_serverCertType == CertificateType.RawPublicKey ? false : base.AllowMultiCertStatus();
-        }
+        protected override bool AllowMultiCertStatus() =>
+            m_serverCertType != CertificateType.RawPublicKey && base.AllowMultiCertStatus();
 
         public override CertificateRequest GetCertificateRequest()
         {

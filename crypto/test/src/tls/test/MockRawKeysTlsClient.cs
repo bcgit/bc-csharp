@@ -10,11 +10,11 @@ namespace Org.BouncyCastle.Tls.Tests
     internal class MockRawKeysTlsClient
         : DefaultTlsClient
     {
-        private short m_serverCertType;
-        private short m_clientCertType;
-        private short[] m_offerServerCertTypes;
-        private short[] m_offerClientCertTypes;
-        private ProtocolVersion m_tlsVersion;
+        private readonly short m_serverCertType;
+        private readonly short m_clientCertType;
+        private readonly short[] m_offerServerCertTypes;
+        private readonly short[] m_offerClientCertTypes;
+        private readonly ProtocolVersion m_tlsVersion;
 
         internal MockRawKeysTlsClient(TlsCrypto crypto, short serverCertType, short clientCertType,
             short[] offerServerCertTypes, short[] offerClientCertTypes, ProtocolVersion tlsVersion)
