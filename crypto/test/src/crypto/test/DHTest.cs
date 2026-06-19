@@ -12,13 +12,11 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
     public class DHTest
-        : SimpleTest
     {
         private static readonly BigInteger g512 = new BigInteger("153d5d6172adb43045b68ae8e1de1070b6137005686d29d3d73a7749199681ee5b212c9b96bfdcfa5b20cd5e3fd2044895d609cf9b410b7a0f12ca1cb9a428cc", 16);
         private static readonly BigInteger p512 = new BigInteger("9494fec095f3b85ee286542b3836fc81a5dd0a0349b4c239dd38744d488cf8e31db8bcb7d33b41abb9e5a33cca9144b1cef332c94bf0573bf047a3aca98cdf3b", 16);
@@ -28,8 +26,6 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static readonly BigInteger g1024 = new BigInteger("1db17639cdf96bc4eabba19454f0b7e5bd4e14862889a725c96eb61048dcd676ceb303d586e30f060dbafd8a571a39c4d823982117da5cc4e0f89c77388b7a08896362429b94a18a327604eb7ff227bffbc83459ade299e57b5f77b50fb045250934938efa145511166e3197373e1b5b1e52de713eb49792bedde722c6717abf", 16);
         private static readonly BigInteger p1024 = new BigInteger("a00e283b3c624e5b2b4d9fbc2653b5185d99499b00fd1bf244c6f0bb817b4d1c451b2958d62a0f8a38caef059fb5ecd25d75ed9af403f5b5bdab97a642902f824e3c13789fed95fa106ddfe0ff4a707c85e2eb77d49e68f2808bcea18ce128b178cd287c6bc00efa9a1ad2a673fe0dceace53166f75b81d6709d5f8af7c66bb7", 16);
-
-        public override string Name => "DH";
 
         private void ImplTestDH(int size, BigInteger g, BigInteger p)
         {
@@ -65,10 +61,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger k1 = e1.CalculateAgreement(pu2, m2);
             BigInteger k2 = e2.CalculateAgreement(pu1, m1);
 
-            if (!k1.Equals(k2))
-            {
-                Fail(size + " bit 2-way test failed");
-            }
+            Assert.AreEqual(k1, k2, size + " bit 2-way test failed");
         }
 
         private void ImplTestDHBasic(int size, int privateValueSize, BigInteger g, BigInteger p)
@@ -105,20 +98,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger k1 = e1.CalculateAgreement(pu2);
             BigInteger k2 = e2.CalculateAgreement(pu1);
 
-            if (!k1.Equals(k2))
-            {
-                Fail("basic " + size + " bit 2-way test failed");
-            }
+            Assert.AreEqual(k1, k2, "basic " + size + " bit 2-way test failed");
         }
 
         private void CheckKeySize(int privateValueSize, DHPrivateKeyParameters priv)
         {
             if (privateValueSize != 0)
             {
-                if (priv.X.BitLength != privateValueSize)
-                {
-                    Fail("limited key check failed for key size " + privateValueSize);
-                }
+                Assert.AreEqual(privateValueSize, priv.X.BitLength,
+                    "limited key check failed for key size " + privateValueSize);
             }
         }
 
@@ -154,10 +142,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger k1 = e1.CalculateAgreement(pu2, m2);
             BigInteger k2 = e2.CalculateAgreement(pu1, m1);
 
-            if (!k1.Equals(k2))
-            {
-                Fail("basic with random 2-way test failed");
-            }
+            Assert.AreEqual(k1, k2, "basic with random 2-way test failed");
         }
 
         private void ImplTestSimpleWithRandom(DHBasicKeyPairGenerator kpGen)
@@ -189,10 +174,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger k1 = e1.CalculateAgreement(pu2);
             BigInteger k2 = e2.CalculateAgreement(pu1);
 
-            if (!k1.Equals(k2))
-            {
-                Fail("basic with random 2-way test failed");
-            }
+            Assert.AreEqual(k1, k2, "basic with random 2-way test failed");
         }
 
         // NOTE: This test can take quiet a while
@@ -202,10 +184,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             pGen.Init(size, 10, new SecureRandom());
 
             DHParameters dhParams = pGen.GenerateParameters();
-            if (dhParams.L != 0)
-            {
-                Fail("DHParametersGenerator failed to set L to 0 in generated DHParameters");
-            }
+            Assert.AreEqual(0, dhParams.L, "DHParametersGenerator failed to set L to 0 in generated DHParameters");
 
             DHBasicKeyPairGenerator kpGen = new DHBasicKeyPairGenerator();
             kpGen.Init(new DHKeyGenerationParameters(new SecureRandom(), dhParams));
@@ -240,13 +219,102 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger k1 = e1.CalculateAgreement(pu2);
             BigInteger k2 = e2.CalculateAgreement(pu1);
 
-            if (!k1.Equals(k2))
+            Assert.AreEqual(k1, k2, "basic with " + size + " bit 2-way test failed");
+        }
+
+        [Test]
+        public void Basic()
+        {
+            ImplTestDHBasic(512, 0, g512, p512);
+            ImplTestDHBasic(768, 0, g768, p768);
+            ImplTestDHBasic(1024, 0, g1024, p1024);
+
+            ImplTestDHBasic(512, 64, g512, p512);
+            ImplTestDHBasic(768, 128, g768, p768);
+            ImplTestDHBasic(1024, 256, g1024, p1024);
+
+            ImplTestDH(512, g512, p512);
+            ImplTestDH(768, g768, p768);
+            ImplTestDH(1024, g1024, p1024);
+
+            //
+            // generation test.
+            //
+            ImplTestGeneration(256);
+
+            //
+            // with random test
+            //
+            DHBasicKeyPairGenerator kpBasicGen = GetDHBasicKeyPairGenerator(g512, p512, 0);
+
+            ImplTestSimpleWithRandom(kpBasicGen);
+
+            DHKeyPairGenerator kpGen = GetDHKeyPairGenerator(g512, p512);
+
+            ImplTestGPWithRandom(kpGen);
+
+            //
+            // parameter tests
+            //
+            DHAgreement dh = new DHAgreement();
+            AsymmetricCipherKeyPair dhPair = kpGen.GenerateKeyPair();
+
+            try
             {
-                Fail("basic with " + size + " bit 2-way test failed");
+                dh.Init(dhPair.Public);
+                Assert.Fail("DHAgreement key check failed");
+            }
+            catch (ArgumentException)
+            {
+                // ignore
+            }
+
+            DHKeyPairGenerator kpGen768 = GetDHKeyPairGenerator(g768, p768);
+
+            try
+            {
+                dh.Init(dhPair.Private);
+
+                dh.CalculateAgreement((DHPublicKeyParameters)kpGen768.GenerateKeyPair().Public, BigInteger.ValueOf(100));
+
+                Assert.Fail("DHAgreement agreement check failed");
+            }
+            catch (ArgumentException)
+            {
+                // ignore
+            }
+
+            DHBasicAgreement dhBasic = new DHBasicAgreement();
+            AsymmetricCipherKeyPair dhBasicPair = kpBasicGen.GenerateKeyPair();
+
+            try
+            {
+                dhBasic.Init(dhBasicPair.Public);
+                Assert.Fail("DHBasicAgreement key check failed");
+            }
+            catch (ArgumentException)
+            {
+                // expected
+            }
+
+            DHBasicKeyPairGenerator kpBasicGen768 = GetDHBasicKeyPairGenerator(g768, p768, 0);
+
+            try
+            {
+                dhBasic.Init(dhPair.Private);
+
+                dhBasic.CalculateAgreement((DHPublicKeyParameters)kpBasicGen768.GenerateKeyPair().Public);
+
+                Assert.Fail("DHBasicAgreement agreement check failed");
+            }
+            catch (ArgumentException)
+            {
+                // expected
             }
         }
 
-        private void ImplTestBounds()
+        [Test]
+        public void Bounds()
         {
             SecureRandom random = new SecureRandom();
 
@@ -265,7 +333,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             try
             {
                 new DHKeyGenerationParameters(random, new DHParameters(p2, g2, null, l2));
-                Fail("oversized DH 'l' value accepted");
+                Assert.Fail("oversized DH 'l' value accepted");
             }
             catch (ArgumentException)
             {
@@ -273,30 +341,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private void ImplTestModulusSizeBound()
-        {
-            // An oversized prime modulus must be rejected at import before the super-linear validation
-            // exponentiation, capping the import-time CPU-exhaustion vector. The value is not prime --
-            // only its bit length matters to the guard, which fires before any ModPow/Legendre.
-            // (bc-csharp DHParameters requires an odd p, so use 2^20000 + 1 rather than bc-java's 2^20000.)
-            BigInteger hugeP = BigInteger.One.ShiftLeft(20000).Add(BigInteger.One);
-
-            try
-            {
-                new DHPublicKeyParameters(BigInteger.Two, new DHParameters(hugeP, BigInteger.Two));
-                Fail("oversized DH modulus accepted");
-            }
-            catch (ArgumentException e)
-            {
-                IsTrue("unexpected DH message: " + e.Message, e.Message.Equals("DH modulus out of range"));
-            }
-
-            // A normally-sized modulus is still accepted (q == null, so validation returns after the
-            // cheap range check) -- the cap must not reject ordinary keys.
-            new DHPublicKeyParameters(BigInteger.Two, new DHParameters(p512, g512));
-        }
-
-        private void ImplTestPgenCounterBound()
+        [Test]
+        public void PgenCounterBound()
         {
             // X9 dhpublicnumber domain parameters with a ValidationParams pgenCounter that does not
             // fit in a signed 32-bit int. PublicKeyFactory must reject it rather than silently
@@ -327,7 +373,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 PublicKeyFactory.CreateKey(spki);
 
-                Fail("oversized DH pgenCounter accepted");
+                Assert.Fail("oversized DH pgenCounter accepted");
             }
             catch (ArithmeticException)
             {
@@ -335,7 +381,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
             catch (IOException e)
             {
-                Fail("unexpected IOException for oversized DH pgenCounter: " + e);
+                Assert.Fail("unexpected IOException for oversized DH pgenCounter: " + e);
             }
 
             // An in-range pgenCounter must still be accepted and round-trip the exact int value,
@@ -357,114 +403,17 @@ namespace Org.BouncyCastle.Crypto.Tests
                 DHValidationParameters validation = ((DHPublicKeyParameters)key).Parameters.ValidationParameters;
                 if (validation == null || validation.Counter != counter)
                 {
-                    Fail("in-range DH pgenCounter not round-tripped");
+                    Assert.Fail("in-range DH pgenCounter not round-tripped");
                 }
             }
             catch (IOException e)
             {
-                Fail("unexpected IOException for in-range DH pgenCounter: " + e);
+                Assert.Fail("unexpected IOException for in-range DH pgenCounter: " + e);
             }
         }
 
-        public override void PerformTest()
-        {
-            ImplTestDHBasic(512, 0, g512, p512);
-            ImplTestDHBasic(768, 0, g768, p768);
-            ImplTestDHBasic(1024, 0, g1024, p1024);
-
-            ImplTestDHBasic(512, 64, g512, p512);
-            ImplTestDHBasic(768, 128, g768, p768);
-            ImplTestDHBasic(1024, 256, g1024, p1024);
-
-            ImplTestDH(512, g512, p512);
-            ImplTestDH(768, g768, p768);
-            ImplTestDH(1024, g1024, p1024);
-
-            ImplTestBounds();
-
-            ImplTestModulusSizeBound();
-
-            ImplTestPgenCounterBound();
-
-            //
-            // generation test.
-            //
-            ImplTestGeneration(256);
-
-            //
-            // with random test
-            //
-            DHBasicKeyPairGenerator kpBasicGen = GetDHBasicKeyPairGenerator(g512, p512, 0);
-
-            ImplTestSimpleWithRandom(kpBasicGen);
-
-            DHKeyPairGenerator kpGen = GetDHKeyPairGenerator(g512, p512);
-
-            ImplTestGPWithRandom(kpGen);
-
-            //
-            // parameter tests
-            //
-            DHAgreement dh = new DHAgreement();
-            AsymmetricCipherKeyPair dhPair = kpGen.GenerateKeyPair();
-
-            try
-            {
-                dh.Init(dhPair.Public);
-                Fail("DHAgreement key check failed");
-            }
-            catch (ArgumentException)
-            {
-                // ignore
-            }
-
-            DHKeyPairGenerator kpGen768 = GetDHKeyPairGenerator(g768, p768);
-
-            try
-            {
-                dh.Init(dhPair.Private);
-
-                dh.CalculateAgreement((DHPublicKeyParameters)kpGen768.GenerateKeyPair().Public, BigInteger.ValueOf(100));
-
-                Fail("DHAgreement agreement check failed");
-            }
-            catch (ArgumentException)
-            {
-                // ignore
-            }
-
-            DHBasicAgreement dhBasic = new DHBasicAgreement();
-            AsymmetricCipherKeyPair dhBasicPair = kpBasicGen.GenerateKeyPair();
-
-            try
-            {
-                dhBasic.Init(dhBasicPair.Public);
-                Fail("DHBasicAgreement key check failed");
-            }
-            catch (ArgumentException)
-            {
-                // expected
-            }
-
-            DHBasicKeyPairGenerator kpBasicGen768 = GetDHBasicKeyPairGenerator(g768, p768, 0);
-
-            try
-            {
-                dhBasic.Init(dhPair.Private);
-
-                dhBasic.CalculateAgreement((DHPublicKeyParameters)kpBasicGen768.GenerateKeyPair().Public);
-
-                Fail("DHBasicAgreement agreement check failed");
-            }
-            catch (ArgumentException)
-            {
-                // expected
-            }
-
-            ImplTestMaliciousMessage();
-        }
-
-        private void ImplTestMaliciousMessage()
+        [Test]
+        public void MaliciousMessage()
         {
             // Both peer-supplied values to CalculateAgreement are raised to our (potentially static)
             // private key, so a peer sending a small-order or out-of-range element could mount a
@@ -489,7 +438,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 try
                 {
                     dh.CalculateAgreement(goodPub, badMessage);
-                    Fail("DHAgreement accepted malicious message " + badMessage);
+                    Assert.Fail("DHAgreement accepted malicious message " + badMessage);
                 }
                 catch (ArgumentException)
                 {
@@ -505,7 +454,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 try
                 {
                     dh.CalculateAgreement(new DHWeakPubKey(weakY, dhParams), goodMessage);
-                    Fail("DHAgreement accepted malicious public key " + weakY);
+                    Assert.Fail("DHAgreement accepted malicious public key " + weakY);
                 }
                 catch (ArgumentException)
                 {
@@ -514,26 +463,28 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
-        private class DHWeakPubKey
-            : DHPublicKeyParameters
+        [Test]
+        public void ModulusSizeBound()
         {
-            private readonly BigInteger m_weakY;
+            // An oversized prime modulus must be rejected at import before the super-linear validation
+            // exponentiation, capping the import-time CPU-exhaustion vector. The value is not prime --
+            // only its bit length matters to the guard, which fires before any ModPow/Legendre.
+            // (bc-csharp DHParameters requires an odd p, so use 2^20000 + 1 rather than bc-java's 2^20000.)
+            BigInteger hugeP = BigInteger.One.ShiftLeft(20000).Add(BigInteger.One);
 
-            internal DHWeakPubKey(BigInteger weakY, DHParameters parameters)
-                : base(BigInteger.Two, parameters)
+            try
             {
-                m_weakY = weakY;
+                new DHPublicKeyParameters(BigInteger.Two, new DHParameters(hugeP, BigInteger.Two));
+                Assert.Fail("oversized DH modulus accepted");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.That(e.Message.StartsWith("DH modulus out of range"), "unexpected DH message: " + e.Message);
             }
 
-            public override BigInteger Y => m_weakY;
-        }
-
-        [Test]
-        public void TestFunction()
-        {
-            string resultText = Perform().ToString();
-
-            Assert.AreEqual(Name + ": Okay", resultText);
+            // A normally-sized modulus is still accepted (q == null, so validation returns after the
+            // cheap range check) -- the cap must not reject ordinary keys.
+            new DHPublicKeyParameters(BigInteger.Two, new DHParameters(p512, g512));
         }
 
         [Test, Explicit]
@@ -569,6 +520,20 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 generator.GenerateParameters();
             }
+        }
+
+        private class DHWeakPubKey
+            : DHPublicKeyParameters
+        {
+            private readonly BigInteger m_weakY;
+
+            internal DHWeakPubKey(BigInteger weakY, DHParameters parameters)
+                : base(BigInteger.Two, parameters)
+            {
+                m_weakY = weakY;
+            }
+
+            public override BigInteger Y => m_weakY;
         }
     }
 }

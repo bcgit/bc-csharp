@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 {
     /// <summary>Diffie-Hellman public key parameters.</summary>
     public class DHPublicKeyParameters
-		: DHKeyParameters
+        : DHKeyParameters
     {
         private static BigInteger Validate(BigInteger y, DHParameters dhParams)
         {
@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             // oversized p cannot turn key import into a CPU-exhaustion DoS (cf. RSA modulus cap).
             int maxBitLength = ImplGetInteger("Org.BouncyCastle.DH.MaxSize", 16384);
             if (p.BitLength > maxBitLength)
-                throw new ArgumentException("DH modulus out of range");
+                throw new ArgumentException("DH modulus out of range", nameof(dhParams));
 
             // TLS check
             if (y.CompareTo(BigInteger.Two) < 0 || y.CompareTo(p.Subtract(BigInteger.Two)) > 0)
@@ -34,9 +34,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (q == null)
                 return y;
 
-            if (p.TestBit(0)
-                && p.BitLength - 1 == q.BitLength
-                && p.ShiftRight(1).Equals(q))
+            if (p.TestBit(0) &&
+                p.BitLength - 1 == q.BitLength &&
+                p.ShiftRight(1).Equals(q))
             {
                 // Safe prime case
                 if (1 == Legendre(y, p))
@@ -63,14 +63,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Initializes a new instance of <see cref="DHPublicKeyParameters"/>.</summary>
         /// <param name="y">The public point Y.</param>
         /// <param name="parameters">The DH domain parameters.</param>
-		public DHPublicKeyParameters(BigInteger y, DHParameters	parameters)
-			: base(false, parameters)
+        public DHPublicKeyParameters(BigInteger y, DHParameters parameters)
+            : base(false, parameters)
         {
-			m_y = Validate(y, parameters);
+            m_y = Validate(y, parameters);
         }
 
-		public DHPublicKeyParameters(BigInteger y, DHParameters parameters, DerObjectIdentifier	algorithmOid)
-			: base(false, parameters, algorithmOid)
+        public DHPublicKeyParameters(BigInteger y, DHParameters parameters, DerObjectIdentifier algorithmOid)
+            : base(false, parameters, algorithmOid)
         {
             m_y = Validate(y, parameters);
         }
@@ -78,26 +78,18 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Gets the public point Y.</summary>
         public virtual BigInteger Y => m_y;
 
-		public override bool Equals(object obj)
+        public override bool Equals(object obj)
         {
-			if (obj == this)
-				return true;
+            if (obj == this)
+                return true;
 
-            if (!(obj is DHPublicKeyParameters other))
-				return false;
-
-			return Equals(other);
+            return obj is DHPublicKeyParameters that
+                && Equals(that);
         }
 
-		protected bool Equals(DHPublicKeyParameters other)
-		{
-			return m_y.Equals(other.m_y) && base.Equals(other);
-		}
+        protected bool Equals(DHPublicKeyParameters other) => m_y.Equals(other.m_y) && base.Equals(other);
 
-		public override int GetHashCode()
-        {
-            return m_y.GetHashCode() ^ base.GetHashCode();
-        }
+        public override int GetHashCode() => m_y.GetHashCode() ^ base.GetHashCode();
 
         private static int Legendre(BigInteger a, BigInteger b)
         {
