@@ -3,9 +3,11 @@ using System.Text;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -307,6 +309,46 @@ namespace Org.BouncyCastle.Crypto.Tests
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
+        }
+
+        [Test]
+        public void InvalidTagLength()
+        {
+            foreach (int macSizeBits in new int[]{ 0, 24, 28, 36, 124, 132, 136 })
+            {
+                // Rejected on encryption...
+                Assert.Throws<ArgumentException>(() =>
+                    new EaxBlockCipher(AesUtilities.CreateEngine()).Init(forEncryption: true,
+                        new AeadParameters(new KeyParameter(K1), macSizeBits, N1, A1)));
+
+                // ...and decryption
+                Assert.Throws<ArgumentException>(() =>
+                    new EaxBlockCipher(AesUtilities.CreateEngine()).Init(forEncryption: false,
+                        new AeadParameters(new KeyParameter(K1), macSizeBits, N1, A1)));
+            }
+        }
+
+        [Test]
+        public void ValidTagLength()
+        {
+            byte[] plaintext = Hex.Decode("202122232425262728292a2b2c2d2e2f3031323334353637");
+
+            for (int macSizeBits = 32; macSizeBits <= 128; macSizeBits += 8)
+            {
+                var enc = new EaxBlockCipher(AesUtilities.CreateEngine());
+                enc.Init(forEncryption: true, new AeadParameters(new KeyParameter(K1), macSizeBits, N1, A1));
+                byte[] ct = new byte[enc.GetOutputSize(plaintext.Length)];
+                int len = enc.ProcessBytes(plaintext, 0, plaintext.Length, ct, 0);
+                len += enc.DoFinal(ct, len);
+
+                var dec = new EaxBlockCipher(AesUtilities.CreateEngine());
+                dec.Init(forEncryption: false, new AeadParameters(new KeyParameter(K1), macSizeBits, N1, A1));
+                byte[] pt = new byte[dec.GetOutputSize(len)];
+                int n = dec.ProcessBytes(ct, 0, len, pt, 0);
+                n += dec.DoFinal(pt, n);
+
+                Assert.That(Arrays.AreEqual(plaintext, Arrays.CopyOf(pt, n)));
+            }
         }
     }
 }

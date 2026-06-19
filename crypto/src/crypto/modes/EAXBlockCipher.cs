@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 nonce = aeadParameters.GetNonce();
 #endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
-                macSize = aeadParameters.MacSize / 8;
+                macSize = GetMacSize(aeadParameters.MacSize, blockSize);
                 keyParam = aeadParameters.Key;
             }
             else if (parameters is ParametersWithIV parametersWithIV)
@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Crypto.Modes
                 nonce = parametersWithIV.GetIV();
 #endif
                 initialAssociatedText = null;
-                macSize = mac.GetMacSize() / 2;
+                macSize = GetMacSize((mac.GetMacSize() / 2) * 8, blockSize);
                 keyParam = parametersWithIV.Parameters;
             }
             else
@@ -501,6 +501,14 @@ namespace Org.BouncyCastle.Crypto.Modes
         private bool VerifyMac(byte[] mac, int off)
         {
             return Arrays.FixedTimeEquals(macSize, mac, off, macBlock, 0);
+        }
+
+        private static int GetMacSize(int requestedMacBits, int blockSize)
+        {
+            if (requestedMacBits < 32 || requestedMacBits > blockSize * 8 || 0 != (requestedMacBits & 7))
+                throw new ArgumentException("Invalid value for MAC size: " + requestedMacBits);
+
+            return requestedMacBits >> 3;
         }
     }
 }
