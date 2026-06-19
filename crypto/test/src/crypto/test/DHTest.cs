@@ -433,7 +433,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             BigInteger orderTwo = dhParams.P.Subtract(BigInteger.One);
 
             // A malicious 'message' must be rejected even when 'pub' is well-formed.
-            foreach (BigInteger badMessage in new BigInteger[]{ BigInteger.One, orderTwo, dhParams.P })
+            foreach (BigInteger badMessage in new BigInteger[]{ BigInteger.Zero, BigInteger.One, orderTwo, dhParams.P })
             {
                 try
                 {
@@ -449,7 +449,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             // A malicious 'pub' must be rejected even when 'message' is well-formed. DHWeakPubKey passes
             // construction-time validation with a dummy Y, then returns a weak value from the overridden
             // (virtual) Y property -- so CalculateAgreement must re-validate rather than trust the type.
-            foreach (BigInteger weakY in new BigInteger[]{ BigInteger.One, orderTwo, dhParams.P })
+            foreach (BigInteger weakY in new BigInteger[]{ BigInteger.Zero, BigInteger.One, orderTwo, dhParams.P })
             {
                 try
                 {
