@@ -139,7 +139,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
         {
             // Extract Y and Public Keys from sk
             ulong[] u64 = m_gf2x.Create();
-            ulong[] v64 = m_gf2x.Create();
+            ulong[] v64 = new ulong[N1N2_BYTE_64]; // ciphertext v: an n1*n2-bit codeword, not a ring element
             ulong[] cKemPrimeU64 = m_gf2x.Create(); // tmpLong
             ulong[] cKemPrimeV64 = m_gf2x.Create(); // re-encryption v scratch
             byte[] hashEkKem = new byte[SeedBytes];
@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             // cKemPrimeU64 is tmpLong
             m_gf2x.Mul(cKemPrimeV64, u64, cKemPrimeU64);
             VectTruncate(cKemPrimeU64);
-            m_gf2x.AddTo(v64, cKemPrimeU64);
+            Nat.XorTo64(N1N2_BYTE_64, v64, cKemPrimeU64); // cKemPrimeU64 ^= v over the codeword limbs
 
             ReedMuller.Decode(tmp, cKemPrimeU64, m_n1, m_mulParam);
             ReedSolomon.Decode(mPrime, tmp, m_n1, m_fft, m_delta, m_k, m_generatorPoly.Length);
@@ -172,7 +172,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             PkeEncrypt(cKemPrimeU64, cKemPrimeV64, sk, mPrime, kThetaPrime, 32);
             HashGJ(kBar, 256, hashEkKem, sk, m_pkSize + SeedBytes, m_k, ct, 0, ct.Length, 0x03);
 
-            int result = (int)(m_gf2x.EqualTo(u64, cKemPrimeU64) & m_gf2x.EqualTo(v64, cKemPrimeV64));
+            // u is a full ring element; v is an n1*n2-bit codeword, so compare it over just the codeword
+            // limbs (cKemPrimeV64's higher limbs are unused re-encryption scratch).
+            int result = (int)(m_gf2x.EqualTo(u64, cKemPrimeU64) & Nat.EqualTo64(N1N2_BYTE_64, v64, cKemPrimeV64));
 
             // On re-encryption failure the implicit-rejection secret kBar must replace the *entire*
             // shared secret. Bounding this by m_k would leave ss[m_k..] holding K' = G(H(pk)||m'||salt),
@@ -184,7 +186,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
 
             m_gf2x.Clear(u64);
-            m_gf2x.Clear(v64);
+            Nat.Zero64(v64.Length, v64);
             m_gf2x.Clear(cKemPrimeU64);
             m_gf2x.Clear(cKemPrimeV64);
             Array.Clear(ySupport, 0, ySupport.Length);
