@@ -45,6 +45,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
                     var encapsulated = generator.GenerateEncapsulated(kp.Public);
                     var encapSecret = encapsulated.GetSecret();
                     var encapsulation = encapsulated.GetEncapsulation();
+                    Assert.AreEqual(parameters.SessionKeySize, encapSecret.Length * 8);
                     Assert.AreEqual(parameters.SecretLength, encapSecret.Length);
                     Assert.AreEqual(parameters.EncapsulationLength, encapsulation.Length);
 

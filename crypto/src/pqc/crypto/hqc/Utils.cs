@@ -16,9 +16,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             }
         }
 
-        internal static void FromByteArrayToUInt64Array(ulong[] output, byte[] input) =>
-            FromByteArrayToUInt64Array(output, input, 0, input.Length);
-
         internal static void FromByteArrayToUInt64Array(ulong[] output, byte[] input, int inOff, int inLen)
         {
             int nsLen = inLen >> 3;
@@ -28,15 +25,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
             if (partial != 0)
             {
                 output[nsLen] = Pack.LE_To_UInt64_Low(input, inOff + inLen - partial, partial);
-            }
-        }
-
-        internal static void FromByte32ArrayToUInt64Array(ulong[] output, int[] input)
-        {
-            for (int i = 0; i != input.Length; i += 2)
-            {
-                output[i / 2] = (uint)input[i];
-                output[i / 2] |= (ulong)input[i + 1] << 32;
             }
         }
 
