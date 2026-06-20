@@ -174,7 +174,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Hqc
 
             int result = (int)(m_gf2x.EqualTo(u64, cKemPrimeU64) & m_gf2x.EqualTo(v64, cKemPrimeV64));
 
-            for (int i = 0; i < m_k; i++)
+            // On re-encryption failure the implicit-rejection secret kBar must replace the *entire*
+            // shared secret. Bounding this by m_k would leave ss[m_k..] holding K' = G(H(pk)||m'||salt),
+            // which depends on the decrypted m' - an FO/IND-CCA break for the parameter sets with
+            // m_k < SharedSecretBytes (HQC-128: 16, HQC-192: 24).
+            for (int i = 0; i < SharedSecretBytes; i++)
             {
                 ss[i] = (byte)((ss[i] & result) ^ (kBar[i] & ~result));
             }
