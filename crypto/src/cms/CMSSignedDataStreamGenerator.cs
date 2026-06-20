@@ -16,36 +16,28 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * General class for generating a pkcs7-signature message stream.
-     * <p>
-     * A simple example of usage.
-     * </p>
-     * <pre>
-     *      IX509Store                   certs...
-     *      CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
-     *
-     *      gen.AddSigner(privateKey, cert, CmsSignedDataStreamGenerator.DIGEST_SHA1);
-     *
-     *      gen.AddCertificates(certs);
-     *
-     *      Stream sigOut = gen.Open(bOut);
-     *
-     *      sigOut.Write(Strings.ToUtf8ByteArray("Hello World!"));
-     *
-     *      sigOut.Close();
-     * </pre>
-     * <p>
-     * <b>Stream handling note:</b>
-     * <ul>
-     *   <li>The returned Stream must be closed to finalize the CMS structure
-     *       (write certificates, CRLs, signer infos).</li>
-     *   <li>Closing the returned stream <b>does not close</b> the underlying Stream
-     *       passed to {@code Open()}.</li>
-     *   <li>Callers are responsible for closing the underlying Stream separately.</li>
-     * </ul>
-     * </p>
-     */
+    /// <summary>
+    /// Streaming generator for CMS SignedData (PKCS#7 signed-data) messages. Configure signers with
+    /// <see cref="AddSigner(AsymmetricKeyParameter, X509Certificate, string)"/> (and overloads), add
+    /// certificates and CRLs via the base <see cref="CmsSignedGenerator"/> methods, then call
+    /// <see cref="Open(Stream)"/> to obtain a <see cref="Stream"/> to which the content being signed is written.
+    /// Closing that stream finalizes the CMS structure.
+    /// </summary>
+    /// <remarks>
+    /// The returned stream must be closed (disposed) to finalize the CMS structure, i.e. to write the
+    /// certificates, CRLs and signer infos. Closing the returned stream does <b>not</b> close the underlying
+    /// stream passed to <c>Open</c>; callers are responsible for closing the underlying stream separately.
+    /// <para>A simple example of usage:</para>
+    /// <code>
+    /// CmsSignedDataStreamGenerator gen = new CmsSignedDataStreamGenerator();
+    /// gen.AddSigner(privateKey, cert, CmsSignedGenerator.DigestSha1);
+    /// gen.AddCertificates(certs);
+    /// using (Stream sigOut = gen.Open(bOut))
+    /// {
+    ///     sigOut.Write(Strings.ToUtf8ByteArray("Hello World!"));
+    /// }
+    /// </code>
+    /// </remarks>
     public class CmsSignedDataStreamGenerator
         : CmsSignedGenerator
     {
@@ -226,27 +218,31 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>Creates a generator using the default randomness source.</summary>
         public CmsSignedDataStreamGenerator()
         {
         }
 
-        /// <summary>Constructor allowing specific source of randomness</summary>
-        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+        /// <summary>
+        /// Creates a generator with an explicit randomness source for signature generation.
+        /// </summary>
+        /// <param name="random">The secure random to use when signing.</param>
         public CmsSignedDataStreamGenerator(SecureRandom random)
             : base(random)
         {
         }
 
-        /**
-        * Set the underlying string size for encapsulated data
-        *
-        * @param bufferSize length of octet strings to buffer the data.
-        */
+        /// <summary>
+        /// Sets the buffer size used for the OCTET STRING segments holding the encapsulated content.
+        /// </summary>
+        /// <param name="bufferSize">The length, in bytes, of the octet strings used to buffer the data.</param>
         public void SetBufferSize(int bufferSize)
         {
             _bufferSize = bufferSize;
         }
 
+        /// <summary>Registers one or more digest algorithm OIDs to be computed over the signed content.</summary>
+        /// <param name="digestOids">The digest algorithm OIDs to add.</param>
         public void AddDigests(params string[] digestOids)
         {
             foreach (string digestOid in digestOids)
@@ -255,6 +251,8 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>Registers one or more digest algorithm OIDs to be computed over the signed content.</summary>
+        /// <param name="digestOids">The digest algorithm OIDs to add.</param>
         public void AddDigests(IEnumerable<string> digestOids)
         {
             foreach (string digestOid in digestOids)
@@ -263,33 +261,38 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /**
-        * add a signer - no attributes other than the default ones will be
-        * provided here.
-        * @throws NoSuchAlgorithmException
-        * @throws InvalidKeyException
-        */
+        /// <summary>
+        /// Adds a signer identified by certificate, inferring the signature algorithm OID from the key type.
+        /// Only default signed attributes are included.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="cert">The signer's X.509 certificate.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string digestOid) =>
             AddSigner(privateKey, cert, digestOid, new DefaultSignedAttributeTableGenerator(), null);
 
-        /**
-         * add a signer, specifying the digest encryption algorithm - no attributes other than the default ones will be
-         * provided here.
-         * @throws NoSuchProviderException
-         * @throws NoSuchAlgorithmException
-         * @throws InvalidKeyException
-         */
+        /// <summary>
+        /// Adds a signer identified by certificate with explicit digest and signature algorithm OIDs.
+        /// Only default signed attributes are included.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="cert">The signer's X.509 certificate.</param>
+        /// <param name="encryptionOid">The signature (encryption) algorithm OID.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string encryptionOid,
             string digestOid)
         {
             AddSigner(privateKey, cert, encryptionOid, digestOid, new DefaultSignedAttributeTableGenerator(), null);
         }
 
-        /**
-         * add a signer with extra signed/unsigned attributes.
-         * @throws NoSuchAlgorithmException
-         * @throws InvalidKeyException
-         */
+        /// <summary>
+        /// Adds a certificate-identified signer with caller-supplied signed and unsigned attribute tables.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="cert">The signer's X.509 certificate.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
+        /// <param name="signedAttr">Signed attributes to include (merged with defaults).</param>
+        /// <param name="unsignedAttr">Unsigned attributes to include.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string digestOid,
             Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
         {
@@ -297,13 +300,15 @@ namespace Org.BouncyCastle.Cms
                 new SimpleAttributeTableGenerator(unsignedAttr));
         }
 
-        /**
-         * add a signer with extra signed/unsigned attributes - specifying digest
-         * encryption algorithm.
-         * @throws NoSuchProviderException
-         * @throws NoSuchAlgorithmException
-         * @throws InvalidKeyException
-         */
+        /// <summary>
+        /// Adds a certificate-identified signer with explicit algorithm OIDs and attribute tables.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="cert">The signer's X.509 certificate.</param>
+        /// <param name="encryptionOid">The signature (encryption) algorithm OID.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
+        /// <param name="signedAttr">Signed attributes to include (merged with defaults).</param>
+        /// <param name="unsignedAttr">Unsigned attributes to include.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string encryptionOid,
             string digestOid, Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
         {
@@ -311,6 +316,15 @@ namespace Org.BouncyCastle.Cms
                 new SimpleAttributeTableGenerator(unsignedAttr));
         }
 
+        /// <summary>
+        /// Adds a certificate-identified signer with caller-supplied attribute table generators, inferring the
+        /// signature algorithm OID from the key type.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="cert">The signer's X.509 certificate.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
+        /// <param name="signedAttrGenerator">Generator producing the signed attribute table.</param>
+        /// <param name="unsignedAttrGenerator">Generator producing the unsigned attribute table.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string digestOid,
             CmsAttributeTableGenerator signedAttrGenerator, CmsAttributeTableGenerator unsignedAttrGenerator)
         {
@@ -318,6 +332,15 @@ namespace Org.BouncyCastle.Cms
                 signedAttrGenerator, unsignedAttrGenerator);
         }
 
+        /// <summary>
+        /// Adds a certificate-identified signer with explicit algorithm OIDs and attribute table generators.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="cert">The signer's X.509 certificate.</param>
+        /// <param name="encryptionOid">The signature (encryption) algorithm OID.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
+        /// <param name="signedAttrGenerator">Generator producing the signed attribute table.</param>
+        /// <param name="unsignedAttrGenerator">Generator producing the unsigned attribute table.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, X509Certificate cert, string encryptionOid,
             string digestOid, CmsAttributeTableGenerator signedAttrGenerator,
             CmsAttributeTableGenerator unsignedAttrGenerator)
@@ -326,22 +349,24 @@ namespace Org.BouncyCastle.Cms
                 new DerObjectIdentifier(digestOid), signedAttrGenerator, unsignedAttrGenerator);
         }
 
-        /**
-         * add a signer - no attributes other than the default ones will be
-         * provided here.
-         * @throws NoSuchAlgorithmException
-         * @throws InvalidKeyException
-         */
+        /// <summary>
+        /// Adds a signer identified by subject key identifier, inferring the signature algorithm OID from the key.
+        /// Only default signed attributes are included.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="subjectKeyID">The subject key identifier octets.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, byte[] subjectKeyID, string digestOid) =>
             AddSigner(privateKey, subjectKeyID, digestOid, new DefaultSignedAttributeTableGenerator(), null);
 
-        /**
-         * add a signer - no attributes other than the default ones will be
-         * provided here.
-         * @throws NoSuchProviderException
-         * @throws NoSuchAlgorithmException
-         * @throws InvalidKeyException
-         */
+        /// <summary>
+        /// Adds a signer identified by subject key identifier with explicit digest and signature algorithm OIDs.
+        /// Only default signed attributes are included.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="subjectKeyID">The subject key identifier octets.</param>
+        /// <param name="encryptionOid">The signature (encryption) algorithm OID.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, byte[] subjectKeyID, string encryptionOid,
             string digestOid)
         {
@@ -349,11 +374,14 @@ namespace Org.BouncyCastle.Cms
                 null);
         }
 
-        /**
-         * add a signer with extra signed/unsigned attributes.
-         * @throws NoSuchAlgorithmException
-         * @throws InvalidKeyException
-         */
+        /// <summary>
+        /// Adds a subject-key-id-identified signer with caller-supplied signed and unsigned attribute tables.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="subjectKeyID">The subject key identifier octets.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
+        /// <param name="signedAttr">Signed attributes to include (merged with defaults).</param>
+        /// <param name="unsignedAttr">Unsigned attributes to include.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, byte[] subjectKeyID, string digestOid,
             Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
         {
@@ -361,6 +389,15 @@ namespace Org.BouncyCastle.Cms
                 new SimpleAttributeTableGenerator(unsignedAttr));
         }
 
+        /// <summary>
+        /// Adds a subject-key-id-identified signer with caller-supplied attribute table generators, inferring the
+        /// signature algorithm OID from the key type.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="subjectKeyID">The subject key identifier octets.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
+        /// <param name="signedAttrGenerator">Generator producing the signed attribute table.</param>
+        /// <param name="unsignedAttrGenerator">Generator producing the unsigned attribute table.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, byte[] subjectKeyID, string digestOid,
             CmsAttributeTableGenerator signedAttrGenerator, CmsAttributeTableGenerator unsignedAttrGenerator)
         {
@@ -368,6 +405,15 @@ namespace Org.BouncyCastle.Cms
                 signedAttrGenerator, unsignedAttrGenerator);
         }
 
+        /// <summary>
+        /// Adds a subject-key-id-identified signer with explicit algorithm OIDs and attribute table generators.
+        /// </summary>
+        /// <param name="privateKey">The signing private key.</param>
+        /// <param name="subjectKeyID">The subject key identifier octets.</param>
+        /// <param name="encryptionOid">The signature (encryption) algorithm OID.</param>
+        /// <param name="digestOid">The digest algorithm OID.</param>
+        /// <param name="signedAttrGenerator">Generator producing the signed attribute table.</param>
+        /// <param name="unsignedAttrGenerator">Generator producing the unsigned attribute table.</param>
         public void AddSigner(AsymmetricKeyParameter privateKey, byte[] subjectKeyID, string encryptionOid,
             string digestOid, CmsAttributeTableGenerator signedAttrGenerator,
             CmsAttributeTableGenerator unsignedAttrGenerator)
@@ -397,51 +443,53 @@ namespace Org.BouncyCastle.Cms
             RegisterDigestOid(signerInformation.DigestAlgorithmID.Algorithm);
         }
 
-        /**
-         * generate a signed object that for a CMS Signed Data object
-         */
+        /// <summary>
+        /// Opens a stream for generating a CMS SignedData object. The content is signed but not encapsulated.
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <returns>A stream the content being signed is written to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStream) => Open(outStream, encapsulate: false);
 
-        /**
-        * generate a signed object that for a CMS Signed Data
-        * object - if encapsulate is true a copy
-        * of the message will be included in the signature with the
-        * default content type "data".
-        */
+        /// <summary>
+        /// Opens a stream for generating a CMS SignedData object using the default content type "data".
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <param name="encapsulate">If <c>true</c>, a copy of the content is encapsulated in the signature.</param>
+        /// <returns>A stream the content being signed is written to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStream, bool encapsulate) => Open(outStream, signedContentType: Data, encapsulate);
 
-        /**
-         * generate a signed object that for a CMS Signed Data
-         * object using the given provider - if encapsulate is true a copy
-         * of the message will be included in the signature with the
-         * default content type "data". If dataOutputStream is non null the data
-         * being signed will be written to the stream as it is processed.
-         * @param out stream the CMS object is to be written to.
-         * @param encapsulate true if data should be encapsulated.
-         * @param dataOutputStream output stream to copy the data being signed to.
-         */
+        /// <summary>
+        /// Opens a stream for generating a CMS SignedData object using the default content type "data", optionally
+        /// copying the content being signed to a second stream as it is processed.
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <param name="encapsulate">If <c>true</c>, a copy of the content is encapsulated in the signature.</param>
+        /// <param name="dataOutputStream">An optional stream to copy the content being signed to; may be null.</param>
+        /// <returns>A stream the content being signed is written to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStream, bool encapsulate, Stream dataOutputStream) =>
             Open(outStream, signedContentType: Data, encapsulate, dataOutputStream);
 
-        /**
-        * generate a signed object that for a CMS Signed Data
-        * object - if encapsulate is true a copy
-        * of the message will be included in the signature. The content type
-        * is set according to the OID represented by the string signedContentType.
-        */
+        /// <summary>
+        /// Opens a stream for generating a CMS SignedData object with the given encapsulated content type.
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <param name="signedContentType">The OID of the content type being signed.</param>
+        /// <param name="encapsulate">If <c>true</c>, a copy of the content is encapsulated in the signature.</param>
+        /// <returns>A stream the content being signed is written to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStream, string signedContentType, bool encapsulate) =>
             Open(outStream, signedContentType, encapsulate, dataOutputStream: null);
 
-        /**
-         * generate a signed object that for a CMS Signed Data
-         * object using the given provider - if encapsulate is true a copy
-         * of the message will be included in the signature. The content type
-         * is set according to the OID represented by the string signedContentType.
-         * @param out stream the CMS object is to be written to.
-         * @param signedContentType OID for data to be signed.
-         * @param encapsulate true if data should be encapsulated.
-         * @param dataOutputStream output stream to copy the data being signed to.
-         */
+        /// <summary>
+        /// Opens a stream for generating a CMS SignedData object with the given encapsulated content type, optionally
+        /// copying the content being signed to a second stream as it is processed.
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <param name="signedContentType">The OID of the content type being signed.</param>
+        /// <param name="encapsulate">If <c>true</c>, a copy of the content is encapsulated in the signature.</param>
+        /// <param name="dataOutputStream">An optional stream to copy the content being signed to; may be null.</param>
+        /// <returns>A stream the content being signed is written to; close it to finalize the structure.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="outStream"/> is null.</exception>
+        /// <exception cref="ArgumentException">Thrown if a supplied stream is not writeable.</exception>
         public Stream Open(Stream outStream, string signedContentType, bool encapsulate, Stream dataOutputStream)
         {
             if (outStream == null)
