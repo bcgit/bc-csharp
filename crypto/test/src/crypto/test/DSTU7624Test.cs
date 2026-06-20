@@ -66,6 +66,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             new StreamCipherVectorTest(27, new KCtrBlockCipher(new Dstu7624Engine(128)), new ParametersWithIV(new KeyParameter(Hex.Decode("000102030405060708090A0B0C0D0E0F")), Hex.Decode("101112131415161718191A1B1C1D1E1F")), "303132333435363738393A3B3C3D3E3F404142434445464748494A4B4C4D4E4F", "B91A7B8790BBCFCFE65D04E5538E98E216AC209DA33122FDA596E8928070BE51")
         };
 
+        public override string Name => "Dstu7624";
+
         public override ITestResult Perform()
         {
             ITestResult result = base.Perform();
@@ -710,6 +712,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             CcmModeLongMessageKeystreamTest();
+            CcmModeNonceBindingTest();
         }
 
         /*
@@ -756,17 +759,68 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
+        /*
+         * Regression test ensuring the G1 block is processed unconditionally; it had been previously skipped when no
+         * associated data was present. The G1 block folds the nonce, data length and MAC-size flag into the MAC. If it
+         * is absent, the underlying MAC is independent of the nonce, so a chosen-plaintext attacker could forge a valid
+         * ciphertext+tag for an un-queried nonce by cancelling the nonce-dependent data/tag keystreams across three
+         * empty-AAD encryption queries. This test assembles such a forgery and requires that the decryptor rejects it.
+         * (A plain wrong-nonce decryption does NOT catch this specific bug, since the tag is masked by a nonce-
+         * dependent keystream; so it fails even when the MAC ignores it.)
+         */
+        private void CcmModeNonceBindingTest()
+        {
+            byte[] key = Hex.Decode("000102030405060708090A0B0C0D0E0F");
+            byte[] nonce1 = Hex.Decode("101112131415161718191A1B1C1D1E1F");
+            byte[] nonce2 = Hex.Decode("202122232425262728292A2B2C2D2E2F");
+            byte[] plaintext = Hex.Decode("303132333435363738393A3B3C3D3E3F");
+            int blockSize = plaintext.Length;
+
+            // Three empty-AAD encryption-oracle queries used to build a cross-nonce forgery.
+            byte[] z1 = CcmModeNoAadEncrypt(key, nonce1, new byte[blockSize]); // enc(0, N1)
+            byte[] z2 = CcmModeNoAadEncrypt(key, nonce2, new byte[blockSize]); // enc(0, N2)
+            byte[] zp = CcmModeNoAadEncrypt(key, nonce2, plaintext);           // enc(P, N2)
+
+            // C_forge = P xor C0' (decrypts to P under N1); T_forge = TP xor T0 xor T0' cancels the
+            // nonce-2 keystream and the E_K(0) terms, which only validates if the MAC ignores the nonce.
+            byte[] forged = new byte[2 * blockSize];
+            for (int i = 0; i < blockSize; i++)
+            {
+                forged[i] = (byte)(plaintext[i] ^ z1[i]);
+                forged[blockSize + i] = (byte)(zp[blockSize + i] ^ z2[blockSize + i] ^ z1[blockSize + i]);
+            }
+
+            KCcmBlockCipher ccm = new KCcmBlockCipher(new Dstu7624Engine(128));
+            ccm.Init(false, new AeadParameters(new KeyParameter(key), 128, nonce1));
+            byte[] decrypted = new byte[ccm.GetOutputSize(forged.Length)];
+            try
+            {
+                int len = ccm.ProcessBytes(forged, 0, forged.Length, decrypted, 0);
+                ccm.DoFinal(decrypted, len);
+                Fail("Failed CCM nonce-binding test - cross-nonce forgery accepted (MAC not bound to nonce)");
+            }
+            catch (InvalidCipherTextException)
+            {
+                // expected: the G1 nonce binding makes the forged tag invalid
+            }
+        }
+
+        private static byte[] CcmModeNoAadEncrypt(byte[] key, byte[] nonce, byte[] plaintext)
+        {
+            KCcmBlockCipher ccm = new KCcmBlockCipher(new Dstu7624Engine(128));
+            ccm.Init(true, new AeadParameters(new KeyParameter(key), 128, nonce));
+            byte[] output = new byte[ccm.GetOutputSize(plaintext.Length)];
+            int len = ccm.ProcessBytes(plaintext, 0, plaintext.Length, output, 0);
+            len += ccm.DoFinal(output, len);
+            return output;
+        }
+
         [Test]
         public void Dstu7624TestFunction()
         {
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText);
-        }
-
-        public override string Name
-        {
-            get { return "Dstu7624"; }
         }
     }
 }

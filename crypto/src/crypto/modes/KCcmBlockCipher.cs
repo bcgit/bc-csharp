@@ -147,24 +147,36 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         private void ProcessAAD(byte[] assocText, int assocOff, int assocLen, int dataLen)
         {
-            if (assocLen - assocOff < engine.GetBlockSize())
+            bool hasAssocText = assocLen > 0;
+
+            if (hasAssocText)
             {
-                throw new ArgumentException("authText buffer too short");
-            }
-            if (assocLen % engine.GetBlockSize() != 0)
-            {
-                throw new ArgumentException("padding not supported");
+                if (assocLen - assocOff < engine.GetBlockSize())
+                {
+                    throw new ArgumentException("authText buffer too short");
+                }
+                if (assocLen % engine.GetBlockSize() != 0)
+                {
+                    throw new ArgumentException("padding not supported");
+                }
             }
 
+            // The G1 block binds the nonce, data length and MAC-size flag into the MAC and must be
+            // processed unconditionally. DSTU 7624 carries the associated-data-present indicator as a flag
+            // bit inside G1, so it is not a gate on computing G1: skipping G1 when no AAD is present leaves
+            // the MAC independent of the nonce and enables cross-nonce forgery.
             Array.Copy(nonce, 0, G1, 0, nonce.Length - Nb_ - 1);
 
             Pack.UInt32_To_LE((uint)dataLen, buffer, 0); // for G1
 
             Array.Copy(buffer, 0, G1, nonce.Length - Nb_ - 1, BYTES_IN_INT);
 
-            G1[G1.Length - 1] = getFlag(true, macSize);
+            G1[G1.Length - 1] = getFlag(hasAssocText, macSize);
 
             engine.ProcessBlock(G1, 0, macBlock, 0);
+
+            if (!hasAssocText)
+                return;
 
             Pack.UInt32_To_LE((uint)assocLen, buffer, 0); // for G2
 
@@ -249,15 +261,12 @@ namespace Org.BouncyCastle.Crypto.Modes
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessPacket(input.AsSpan(inOff, len), output.AsSpan(outOff));
 #else
-            if (associatedText.Length > 0)
-            {
-                byte[] aad = associatedText.GetBuffer();
-                int aadLen = Convert.ToInt32(associatedText.Length);
+            byte[] aad = associatedText.GetBuffer();
+            int aadLen = Convert.ToInt32(associatedText.Length);
 
-                int dataLen = Convert.ToInt32(data.Length) - (forEncryption ? 0 : macSize);
+            int dataLen = Convert.ToInt32(data.Length) - (forEncryption ? 0 : macSize);
 
-                ProcessAAD(aad, 0, aadLen, dataLen);
-            }
+            ProcessAAD(aad, 0, aadLen, dataLen);
 
             if (forEncryption)
             {
@@ -351,15 +360,12 @@ namespace Org.BouncyCastle.Crypto.Modes
             int len = input.Length;
             Check.OutputLength(output, len, "output buffer too short");
 
-            if (associatedText.Length > 0)
-            {
-                byte[] aad = associatedText.GetBuffer();
-                int aadLen = Convert.ToInt32(associatedText.Length);
+            byte[] aad = associatedText.GetBuffer();
+            int aadLen = Convert.ToInt32(associatedText.Length);
 
-                int dataLen = Convert.ToInt32(data.Length) - (forEncryption ? 0 : macSize);
+            int dataLen = Convert.ToInt32(data.Length) - (forEncryption ? 0 : macSize);
 
-                ProcessAAD(aad, 0, aadLen, dataLen);
-            }
+            ProcessAAD(aad, 0, aadLen, dataLen);
 
             int blockSize = engine.GetBlockSize(), index = 0;
             if (forEncryption)
