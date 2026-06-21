@@ -8,63 +8,74 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * General class for generating a compressed CMS message stream.
-     * <p>
-     * A simple example of usage.
-     * </p>
-     * <pre>
-     *      CMSCompressedDataStreamGenerator gen = new CMSCompressedDataStreamGenerator();
-     *
-     *      Stream cOut = gen.Open(outputStream, CMSCompressedDataStreamGenerator.ZLIB);
-     *
-     *      cOut.Write(data);
-     *
-     *      cOut.Close();
-     * </pre>
-     * <p>
-     * <b>Stream handling note:</b>
-     * <ul>
-     *   <li>The returned Stream must be closed to finalize the CMS structure.</li>
-     *   <li>Closing the returned stream <b>does not close</b> the underlying Stream
-     *       passed to {@code Open()}.</li>
-     *   <li>Callers are responsible for closing the underlying Stream separately.</li>
-     * </ul>
-     * </p>
-     */
+    /// <summary>
+    /// Streaming generator for CMS CompressedData messages. Call <see cref="Open(Stream)"/> to obtain a
+    /// <see cref="Stream"/> to which the content to be compressed is written; closing that stream finalizes the
+    /// CMS structure. Only ZLIB compression (<see cref="ZLib"/>) is supported.
+    /// </summary>
+    /// <remarks>
+    /// The returned stream must be closed (disposed) to finalize the CMS structure. Closing the returned stream
+    /// does <b>not</b> close the underlying stream passed to <c>Open</c>; callers are responsible for closing the
+    /// underlying stream separately.
+    /// <para>A simple example of usage:</para>
+    /// <code>
+    /// CmsCompressedDataStreamGenerator gen = new CmsCompressedDataStreamGenerator();
+    /// using (Stream cOut = gen.Open(outputStream, CmsCompressedDataStreamGenerator.ZLib))
+    /// {
+    ///     cOut.Write(data, 0, data.Length);
+    /// }
+    /// </code>
+    /// </remarks>
     public class CmsCompressedDataStreamGenerator
     {
+        /// <summary>The OID for ZLIB compression, the only algorithm supported by this generator.</summary>
         public static readonly string ZLib = CmsObjectIdentifiers.ZlibCompress.Id;
 
         private int m_bufferSize;
 
-        /**
-         * base constructor
-         */
+        /// <summary>Creates a generator instance.</summary>
         public CmsCompressedDataStreamGenerator()
         {
         }
 
-        /**
-         * Set the underlying string size for encapsulated data
-         *
-         * @param bufferSize length of octet strings to buffer the data.
-         */
+        /// <summary>
+        /// Sets the buffer size used for the OCTET STRING segments holding the encapsulated content.
+        /// </summary>
+        /// <param name="bufferSize">The length, in bytes, of the octet strings used to buffer the data.</param>
         public void SetBufferSize(int bufferSize)
         {
             m_bufferSize = bufferSize;
         }
 
+        /// <summary>
+        /// Opens a stream for generating a CMS CompressedData object using ZLIB compression and content type "data".
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <returns>A stream the content to be compressed is written to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStream)
         {
             return Open(outStream, CmsObjectIdentifiers.Data.Id, ZLib);
         }
 
+        /// <summary>
+        /// Opens a stream for generating a CMS CompressedData object with content type "data".
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <param name="compressionOid">The compression algorithm OID; must be <see cref="ZLib"/>.</param>
+        /// <returns>A stream the content to be compressed is written to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStream, string compressionOid)
         {
             return Open(outStream, CmsObjectIdentifiers.Data.Id, compressionOid);
         }
 
+        /// <summary>
+        /// Opens a stream for generating a CMS CompressedData object with the given encapsulated content type.
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <param name="contentOid">The OID of the content type being compressed.</param>
+        /// <param name="compressionOid">The compression algorithm OID; must be <see cref="ZLib"/>.</param>
+        /// <returns>A stream the content to be compressed is written to; close it to finalize the structure.</returns>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="compressionOid"/> is not ZLIB.</exception>
         public Stream Open(Stream outStream, string contentOid, string compressionOid)
         {
             if (ZLib != compressionOid)
