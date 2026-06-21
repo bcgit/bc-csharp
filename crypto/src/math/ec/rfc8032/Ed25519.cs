@@ -9,6 +9,7 @@ using System.Threading;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
+using Org.BouncyCastle.Math.EC.Rfc7748;
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -362,10 +363,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             return d;
         }
 
-        public static IDigest CreatePrehash()
-        {
-            return CreateDigest();
-        }
+        public static IDigest CreatePrehash() => CreateDigest();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private static bool DecodePointVar(ReadOnlySpan<byte> p, bool negate, ref PointAffine r)
@@ -442,16 +440,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
         public static void EncodePublicPoint(PublicPoint publicPoint, byte[] pk, int pkOff)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            EncodePublicPoint(publicPoint, pk.AsSpan(pkOff, PublicKeySize));
+#else
+            if (publicPoint == null)
+                throw new ArgumentNullException(nameof(publicPoint));
+            Arrays.ValidateSegment(pk, pkOff, PublicKeySize);
+
             F.Encode(publicPoint.m_data, F.Size, pk, pkOff);
             pk[pkOff + PointBytes - 1] |= (byte)((publicPoint.m_data[0] & 1) << 7);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void EncodePublicPoint(PublicPoint publicPoint, Span<byte> pk)
         {
-            // TODO[api] Restrict to exact length
-            //if (pk.Length != PublicKeySize)
-            //    throw new ArgumentException(nameof(pk));
+            if (publicPoint == null)
+                throw new ArgumentNullException(nameof(publicPoint));
+            // TODO[api] Exact length check
+            if (pk.Length < PublicKeySize)
+                throw new ArgumentException(nameof(pk));
 
             F.Encode(publicPoint.m_data.AsSpan(F.Size), pk);
             pk[PointBytes - 1] |= (byte)((publicPoint.m_data[0] & 1) << 7);
@@ -518,16 +526,26 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         // TODO[api] Rename k to sk
         public static void GeneratePrivateKey(SecureRandom random, byte[] k)
         {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            GeneratePrivateKey(random, k.AsSpan());
+#else
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
+            if (k == null)
+                throw new ArgumentNullException(nameof(k));
             if (k.Length != SecretKeySize)
                 throw new ArgumentException(nameof(k));
 
             random.NextBytes(k);
+#endif
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         // TODO[api] Rename k to sk
         public static void GeneratePrivateKey(SecureRandom random, Span<byte> k)
         {
+            if (random == null)
+                throw new ArgumentNullException(nameof(random));
             if (k.Length != SecretKeySize)
                 throw new ArgumentException(nameof(k));
 
@@ -538,12 +556,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static void GeneratePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            GeneratePublicKey(sk.AsSpan(skOff), pk.AsSpan(pkOff));
+            GeneratePublicKey(sk.AsSpan(skOff, SecretKeySize), pk.AsSpan(pkOff, PublicKeySize));
 #else
-            IDigest d = CreateDigest();
-            byte[] h = new byte[DigestSize];
+            Arrays.ValidateSegment(sk, skOff, SecretKeySize);
+            Arrays.ValidateSegment(pk, pkOff, PublicKeySize);
 
-            ExpandPrivateKey(d, sk, skOff, h, 0);
+            byte[] h = new byte[DigestSize];
+            ExpandPrivateKey(CreateDigest(), sk, skOff, h, 0);
 
             byte[] s = new byte[ScalarBytes];
             PruneScalar(h, 0, s);
@@ -555,10 +574,15 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static void GeneratePublicKey(ReadOnlySpan<byte> sk, Span<byte> pk)
         {
-            IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[DigestSize];
+            // TODO[api] Exact length check
+            if (sk.Length < SecretKeySize)
+                throw new ArgumentException(nameof(sk));
+            // TODO[api] Exact length check
+            if (pk.Length < PublicKeySize)
+                throw new ArgumentException(nameof(pk));
 
-            ExpandPrivateKey(d, sk, h);
+            Span<byte> h = stackalloc byte[DigestSize];
+            ExpandPrivateKey(CreateDigest(), sk, h);
 
             Span<byte> s = stackalloc byte[ScalarBytes];
             PruneScalar(h, s);
@@ -570,12 +594,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static PublicPoint GeneratePublicKey(byte[] sk, int skOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return GeneratePublicKey(sk.AsSpan(skOff));
+            return GeneratePublicKey(sk.AsSpan(skOff, SecretKeySize));
 #else
-            IDigest d = CreateDigest();
-            byte[] h = new byte[DigestSize];
+            Arrays.ValidateSegment(sk, skOff, SecretKeySize);
 
-            ExpandPrivateKey(d, sk, skOff, h, 0);
+            byte[] h = new byte[DigestSize];
+            ExpandPrivateKey(CreateDigest(), sk, skOff, h, 0);
 
             return GeneratePublicPoint(h, 0);
 #endif
@@ -584,10 +608,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static PublicPoint GeneratePublicKey(ReadOnlySpan<byte> sk)
         {
-            IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[DigestSize];
+            // TODO[api] Exact length check
+            if (sk.Length < SecretKeySize)
+                throw new ArgumentException(nameof(sk));
 
-            ExpandPrivateKey(d, sk, h);
+            Span<byte> h = stackalloc byte[DigestSize];
+            ExpandPrivateKey(CreateDigest(), sk, h);
 
             return GeneratePublicPoint(h);
         }
@@ -736,8 +762,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IDigest d = CreateDigest();
-            byte[] h = new byte[DigestSize];
 
+            byte[] h = new byte[DigestSize];
             ExpandPrivateKey(d, sk, skOff, h, 0);
 
             byte[] s = new byte[ScalarBytes];
@@ -758,8 +784,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[DigestSize];
 
+            Span<byte> h = stackalloc byte[DigestSize];
             ExpandPrivateKey(d, sk, h);
 
             Span<byte> s = stackalloc byte[ScalarBytes];
@@ -783,8 +809,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IDigest d = CreateDigest();
-            byte[] h = new byte[DigestSize];
 
+            byte[] h = new byte[DigestSize];
             ExpandPrivateKey(d, sk, skOff, h, 0);
 
             byte[] s = new byte[ScalarBytes];
@@ -802,8 +828,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 throw new ArgumentException(nameof(ctx));
 
             IDigest d = CreateDigest();
-            Span<byte> h = stackalloc byte[DigestSize];
 
+            Span<byte> h = stackalloc byte[DigestSize];
             ExpandPrivateKey(d, sk, h);
 
             Span<byte> s = stackalloc byte[ScalarBytes];
@@ -1826,8 +1852,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         internal static void ScalarMultBaseYZ(byte[] k, int kOff, int[] y, int[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            ScalarMultBaseYZ(k.AsSpan(kOff), y.AsSpan(), z.AsSpan());
+            ScalarMultBaseYZ(k.AsSpan(kOff, X25519.ScalarSize), y.AsSpan(), z.AsSpan());
 #else
+            Arrays.ValidateSegment(k, kOff, ScalarBytes);
+            if (y == null)
+                throw new ArgumentNullException(nameof(y));
+            if (y.Length != F.Size)
+                throw new ArgumentException(nameof(y));
+            if (z == null)
+                throw new ArgumentNullException(nameof(z));
+            if (z.Length != F.Size)
+                throw new ArgumentException(nameof(z));
+
             byte[] s = new byte[ScalarBytes];
             PruneScalar(k, kOff, s);
 
@@ -1845,6 +1881,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static void ScalarMultBaseYZ(ReadOnlySpan<byte> k, Span<int> y, Span<int> z)
         {
+            if (k.Length != X25519.ScalarSize)
+                throw new ArgumentException(nameof(k));
+            if (y.Length != F.Size)
+                throw new ArgumentException(nameof(y));
+            if (z.Length != F.Size)
+                throw new ArgumentException(nameof(z));
+
             Span<byte> n = stackalloc byte[ScalarBytes];
             PruneScalar(k, n);
 
@@ -2156,8 +2199,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static bool ValidatePublicKeyFull(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ValidatePublicKeyFull(pk.AsSpan(pkOff));
+            return ValidatePublicKeyFull(pk.AsSpan(pkOff, PublicKeySize));
 #else
+            Arrays.ValidateSegment(pk, pkOff, PublicKeySize);
+
             byte[] A = Copy(pk, pkOff, PublicKeySize);
 
             if (!CheckPointFullVar(A))
@@ -2174,6 +2219,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static bool ValidatePublicKeyFull(ReadOnlySpan<byte> pk)
         {
+            // TODO[api] Exact length check
+            if (pk.Length < PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+
             Span<byte> A = stackalloc byte[PublicKeySize];
             A.CopyFrom(pk);
 
@@ -2191,8 +2240,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static PublicPoint ValidatePublicKeyFullExport(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ValidatePublicKeyFullExport(pk.AsSpan(pkOff));
+            return ValidatePublicKeyFullExport(pk.AsSpan(pkOff, PublicKeySize));
 #else
+            Arrays.ValidateSegment(pk, pkOff, PublicKeySize);
+
             byte[] A = Copy(pk, pkOff, PublicKeySize);
 
             if (!CheckPointFullVar(A))
@@ -2212,6 +2263,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static PublicPoint ValidatePublicKeyFullExport(ReadOnlySpan<byte> pk)
         {
+            // TODO[api] Exact length check
+            if (pk.Length < PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+
             Span<byte> A = stackalloc byte[PublicKeySize];
             A.CopyFrom(pk);
 
@@ -2232,8 +2287,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static bool ValidatePublicKeyPartial(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ValidatePublicKeyPartial(pk.AsSpan(pkOff));
+            return ValidatePublicKeyPartial(pk.AsSpan(pkOff, PublicKeySize));
 #else
+            Arrays.ValidateSegment(pk, pkOff, PublicKeySize);
+
             byte[] A = Copy(pk, pkOff, PublicKeySize);
 
             if (!CheckPointFullVar(A))
@@ -2247,6 +2304,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static bool ValidatePublicKeyPartial(ReadOnlySpan<byte> pk)
         {
+            // TODO[api] Exact length check
+            if (pk.Length < PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+
             Span<byte> A = stackalloc byte[PublicKeySize];
             A.CopyFrom(pk);
 
@@ -2261,8 +2322,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         public static PublicPoint ValidatePublicKeyPartialExport(byte[] pk, int pkOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            return ValidatePublicKeyPartialExport(pk.AsSpan(pkOff));
+            return ValidatePublicKeyPartialExport(pk.AsSpan(pkOff, PublicKeySize));
 #else
+            Arrays.ValidateSegment(pk, pkOff, PublicKeySize);
+
             byte[] A = Copy(pk, pkOff, PublicKeySize);
 
             if (!CheckPointFullVar(A))
@@ -2279,6 +2342,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static PublicPoint ValidatePublicKeyPartialExport(ReadOnlySpan<byte> pk)
         {
+            // TODO[api] Exact length check
+            if (pk.Length < PublicKeySize)
+                throw new ArgumentException(nameof(pk));
+
             Span<byte> A = stackalloc byte[PublicKeySize];
             A.CopyFrom(pk);
 
@@ -2340,6 +2407,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             if (sig.Length != SignatureSize)
                 throw new ArgumentException(nameof(sig));
+            if (publicPoint == null)
+                throw new ArgumentNullException(nameof(publicPoint));
 
             return ImplVerify(sig, publicPoint, ctx: null, phflag: 0x00, m);
         }
@@ -2358,6 +2427,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             if (sig.Length != SignatureSize)
                 throw new ArgumentException(nameof(sig));
+            if (publicPoint == null)
+                throw new ArgumentNullException(nameof(publicPoint));
 
             return ImplVerify(sig, publicPoint, ctx, phflag: 0x00, m);
         }
@@ -2419,6 +2490,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             if (sig.Length != SignatureSize)
                 throw new ArgumentException(nameof(sig));
+            if (publicPoint == null)
+                throw new ArgumentNullException(nameof(publicPoint));
             if (ph.Length != PrehashSize)
                 throw new ArgumentException(nameof(ph));
 
@@ -2443,6 +2516,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         {
             if (sig.Length != SignatureSize)
                 throw new ArgumentException(nameof(sig));
+            if (publicPoint == null)
+                throw new ArgumentNullException(nameof(publicPoint));
 
             Span<byte> m = stackalloc byte[PrehashSize];
             if (PrehashSize != ph.DoFinal(m))
@@ -2455,7 +2530,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         /// <summary>Methods that work with expanded format for private keys (xk/xkOff) i.e. SHA-512(seed).</summary>
         public static class ExpandedKey
         {
-            public static readonly int ExpandedKeySize = DigestSize;
+            public static readonly int ExpandedKeySize = Ed25519.DigestSize;
 
             public static void ExpandPrivateKey(byte[] sk, int skOff, byte[] xk, int xkOff)
             {
