@@ -12,32 +12,26 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * General class for generating a CMS authenticated-data message stream.
-     * <p>
-     * A simple example of usage.
-     * <pre>
-     *     CMSAuthenticatedDataStreamGenerator edGen = new CMSAuthenticatedDataStreamGenerator();
-     *     edGen.addKeyTransRecipient(cert);
-     *
-     *     ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-     *
-     *     OutputStream out = edGen.open(bOut, CMSAuthenticatedDataGenerator.AES128_CBC, "BC");
-     *     out.write(data);
-     *     out.close();
-     * </pre>
-     * </p>
-     * <p>
-     * <b>Stream handling note:</b>
-     * <ul>
-     *   <li>The returned Stream must be closed to finalize the CMS structure and
-     *       emit the MAC.</li>
-     *   <li>Closing the returned stream <b>does not close</b> the underlying Stream
-     *       passed to {@code Open()}.</li>
-     *   <li>Callers are responsible for closing the underlying Stream separately.</li>
-     * </ul>
-     * </p>
-     */
+    /// <summary>
+    /// Streaming generator for CMS AuthenticatedData (MAC-protected) messages. Add recipients via the base
+    /// <see cref="CmsAuthenticatedGenerator"/> methods, then call <see cref="Open(Stream, string)"/> to obtain a
+    /// <see cref="Stream"/> to which the content to be authenticated is written; closing that stream finalizes the
+    /// CMS structure and emits the MAC.
+    /// </summary>
+    /// <remarks>
+    /// The returned stream must be closed (disposed) to finalize the CMS structure and emit the MAC. Closing the
+    /// returned stream does <b>not</b> close the underlying stream passed to <c>Open</c>; callers are responsible
+    /// for closing the underlying stream separately.
+    /// <para>A simple example of usage:</para>
+    /// <code>
+    /// CmsAuthenticatedDataStreamGenerator gen = new CmsAuthenticatedDataStreamGenerator();
+    /// gen.AddKeyTransRecipient(cert);
+    /// using (Stream auth = gen.Open(bOut, CmsAuthenticatedDataStreamGenerator.Aes128Cbc))
+    /// {
+    ///     auth.Write(data, 0, data.Length);
+    /// }
+    /// </code>
+    /// </remarks>
     public class CmsAuthenticatedDataStreamGenerator
         : CmsAuthenticatedGenerator
     {
@@ -47,30 +41,33 @@ namespace Org.BouncyCastle.Cms
         private int m_bufferSize;
         private bool m_berEncodeRecipientSet;
 
+        /// <summary>Creates a generator using the default randomness source.</summary>
         public CmsAuthenticatedDataStreamGenerator()
         {
         }
 
-        /// <summary>Constructor allowing specific source of randomness</summary>
-        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+        /// <summary>
+        /// Creates a generator with an explicit randomness source for key and MAC generation.
+        /// </summary>
+        /// <param name="random">The secure random to use.</param>
         public CmsAuthenticatedDataStreamGenerator(SecureRandom random)
             : base(random)
         {
         }
 
-        /**
-         * Set the underlying string size for encapsulated data
-         *
-         * @param bufferSize length of octet strings to buffer the data.
-         */
+        /// <summary>
+        /// Sets the buffer size used for the OCTET STRING segments holding the encapsulated content.
+        /// </summary>
+        /// <param name="bufferSize">The length, in bytes, of the octet strings used to buffer the data.</param>
         public void SetBufferSize(int bufferSize)
         {
             m_bufferSize = bufferSize;
         }
 
-        /**
-         * Use a BER Set to store the recipient information
-         */
+        /// <summary>Controls whether recipient information is stored using a BER (indefinite-length) SET.</summary>
+        /// <param name="berEncodeRecipientSet">
+        /// <c>true</c> to use a BER SET; <c>false</c> to use a DER SET (the default).
+        /// </param>
         public void SetBerEncodeRecipients(bool berEncodeRecipientSet)
         {
             m_berEncodeRecipientSet = berEncodeRecipientSet;
@@ -114,6 +111,16 @@ namespace Org.BouncyCastle.Cms
             return Open(outStr, macAlgID, encKey, recipientInfos);
         }
 
+        /// <summary>
+        /// Opens a stream for generating a CMS AuthenticatedData object using a pre-built MAC algorithm identifier,
+        /// MAC key parameters and the supplied recipient infos.
+        /// </summary>
+        /// <param name="outStr">The stream the CMS object is written to.</param>
+        /// <param name="macAlgId">The MAC algorithm identifier.</param>
+        /// <param name="cipherParameters">The MAC key parameters.</param>
+        /// <param name="recipientInfos">The encoded recipient infos to embed.</param>
+        /// <returns>A stream to write the authenticated content to; close it to finalize the structure.</returns>
+        /// <exception cref="CmsException">Thrown if the MAC cannot be created or parameters are invalid.</exception>
         // TODO[api] Presumably intended to be virtual? macAlgId -> macAlgID.
         protected Stream Open(Stream outStr, AlgorithmIdentifier macAlgId, ICipherParameters cipherParameters,
             Asn1EncodableVector recipientInfos)
@@ -171,9 +178,13 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /**
-         * generate an enveloped object that contains an CMS Enveloped Data object
-         */
+        /// <summary>
+        /// Opens a stream for generating a CMS AuthenticatedData object, deriving a MAC key of the algorithm's
+        /// default strength.
+        /// </summary>
+        /// <param name="outStr">The stream the CMS object is written to.</param>
+        /// <param name="encryptionOid">The MAC algorithm OID.</param>
+        /// <returns>A stream to write the authenticated content to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStr, string encryptionOid)
         {
             CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
@@ -183,9 +194,13 @@ namespace Org.BouncyCastle.Cms
             return Open(outStr, encryptionOid, keyGen);
         }
 
-        /**
-         * generate an enveloped object that contains an CMS Enveloped Data object
-         */
+        /// <summary>
+        /// Opens a stream for generating a CMS AuthenticatedData object, deriving a MAC key of the given size.
+        /// </summary>
+        /// <param name="outStr">The stream the CMS object is written to.</param>
+        /// <param name="encryptionOid">The MAC algorithm OID.</param>
+        /// <param name="keySize">The MAC key size, in bits.</param>
+        /// <returns>A stream to write the authenticated content to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStr, string encryptionOid, int keySize)
         {
             CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
