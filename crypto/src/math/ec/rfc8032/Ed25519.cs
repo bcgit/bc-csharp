@@ -2462,8 +2462,10 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 ExpandPrivateKey(sk.AsSpan(skOff, SecretKeySize), xk.AsSpan(xkOff, ExpandedKeySize));
 #else
-                IDigest d = CreateDigest();
-                Ed25519.ExpandPrivateKey(d, sk, skOff, xk, xkOff);
+                Arrays.ValidateSegment(sk, skOff, SecretKeySize);
+                Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
+
+                Ed25519.ExpandPrivateKey(CreateDigest(), sk, skOff, xk, xkOff);
 #endif
             }
 
@@ -2475,8 +2477,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (xk.Length != ExpandedKeySize)
                     throw new ArgumentException(nameof(xk));
 
-                IDigest d = CreateDigest();
-                Ed25519.ExpandPrivateKey(d, sk, xk);
+                Ed25519.ExpandPrivateKey(CreateDigest(), sk, xk);
             }
 #endif
 
@@ -2485,23 +2486,29 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 GeneratePrivateKey(random, xk.AsSpan(xkOff, ExpandedKeySize));
 #else
-                byte[] k = new byte[SecretKeySize];
-                Ed25519.GeneratePrivateKey(random, k);
-                ExpandPrivateKey(k, 0, xk, xkOff);
-                Arrays.ZeroMemory(k);
+                if (random == null)
+                    throw new ArgumentNullException(nameof(random));
+                Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
+
+                byte[] sk = new byte[SecretKeySize];
+                Ed25519.GeneratePrivateKey(random, sk);
+                Ed25519.ExpandPrivateKey(CreateDigest(), sk, 0, xk, xkOff);
+                Arrays.ZeroMemory(sk);
 #endif
             }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             public static void GeneratePrivateKey(SecureRandom random, Span<byte> xk)
             {
+                if (random == null)
+                    throw new ArgumentNullException(nameof(random));
                 if (xk.Length != ExpandedKeySize)
                     throw new ArgumentException(nameof(xk));
 
-                Span<byte> k = stackalloc byte[SecretKeySize];
-                Ed25519.GeneratePrivateKey(random, k);
-                ExpandPrivateKey(k, xk);
-                Arrays.ZeroMemory(k);
+                Span<byte> sk = stackalloc byte[SecretKeySize];
+                Ed25519.GeneratePrivateKey(random, sk);
+                Ed25519.ExpandPrivateKey(CreateDigest(), sk, xk);
+                Arrays.ZeroMemory(sk);
             }
 #endif
 
@@ -2511,11 +2518,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 GeneratePublicKey(xk.AsSpan(xkOff, ExpandedKeySize), pk.AsSpan(pkOff, PublicKeySize));
 #else
                 Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
+                Arrays.ValidateSegment(pk, pkOff, PublicKeySize);
 
                 byte[] s = new byte[ScalarBytes];
-                PruneScalar(xk, xkOff, s);
-
-                ScalarMultBaseEncoded(s, pk, pkOff);
+                Ed25519.PruneScalar(xk, xkOff, s);
+                Ed25519.ScalarMultBaseEncoded(s, pk, pkOff);
 #endif
             }
 
@@ -2528,9 +2535,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                     throw new ArgumentException(nameof(pk));
 
                 Span<byte> s = stackalloc byte[ScalarBytes];
-                PruneScalar(xk, s);
-
-                ScalarMultBaseEncoded(s, pk);
+                Ed25519.PruneScalar(xk, s);
+                Ed25519.ScalarMultBaseEncoded(s, pk);
             }
 #endif
 
@@ -2558,11 +2564,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             public static void Prune(byte[] xk, int xkOff)
             {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                PruneScalar(xk.AsSpan(xkOff, ExpandedKeySize));
+                Prune(xk.AsSpan(xkOff, ExpandedKeySize));
 #else
                 Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
 
-                PruneScalar(xk, xkOff);
+                Ed25519.PruneScalar(xk, xkOff);
 #endif
             }
 
@@ -2572,7 +2578,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (xk.Length != ExpandedKeySize)
                     throw new ArgumentException(nameof(xk));
 
-                PruneScalar(xk);
+                Ed25519.PruneScalar(xk);
             }
 #endif
 
@@ -2581,17 +2587,20 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 Sign(xk.AsSpan(xkOff, ExpandedKeySize), m.AsSpan(mOff, mLen), sig.AsSpan(sigOff, SignatureSize));
 #else
-                IDigest d = CreateDigest();
+                Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
+                Arrays.ValidateSegment(m, mOff, mLen);
+                Arrays.ValidateSegment(sig, sigOff, SignatureSize);
+
                 byte[] h = new byte[DigestSize];
                 Array.Copy(xk, xkOff, h, 0, DigestSize);
 
                 byte[] s = new byte[ScalarBytes];
-                PruneScalar(h, 0, s);
+                Ed25519.PruneScalar(h, 0, s);
 
                 byte[] pk = new byte[PointBytes];
-                ScalarMultBaseEncoded(s, pk, 0);
+                Ed25519.ScalarMultBaseEncoded(s, pk, 0);
 
-                ImplSign(d, h, s, pk, 0, ctx: null, phflag: 0x00, m, mOff, mLen, sig, sigOff);
+                Ed25519.ImplSign(CreateDigest(), h, s, pk, 0, ctx: null, phflag: 0x00, m, mOff, mLen, sig, sigOff);
 #endif
             }
 
@@ -2603,17 +2612,16 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (sig.Length != SignatureSize)
                     throw new ArgumentException(nameof(sig));
 
-                IDigest d = CreateDigest();
                 Span<byte> h = stackalloc byte[DigestSize];
                 xk.CopyTo(h);
 
                 Span<byte> s = stackalloc byte[ScalarBytes];
-                PruneScalar(h, s);
+                Ed25519.PruneScalar(h, s);
 
                 Span<byte> pk = stackalloc byte[PointBytes];
-                ScalarMultBaseEncoded(s, pk);
+                Ed25519.ScalarMultBaseEncoded(s, pk);
 
-                ImplSign(d, h, s, pk, ctx: null, phflag: 0x00, m, sig);
+                Ed25519.ImplSign(CreateDigest(), h, s, pk, ctx: null, phflag: 0x00, m, sig);
             }
 #endif
 
@@ -2624,14 +2632,18 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 Sign(xk.AsSpan(xkOff, ExpandedKeySize), pk.AsSpan(pkOff, PublicKeySize),
                     m.AsSpan(mOff, mLen), sig.AsSpan(sigOff, SignatureSize));
 #else
-                IDigest d = CreateDigest();
+                Arrays.ValidateSegment(xk, xkOff, ExpandedKeySize);
+                Arrays.ValidateSegment(pk, pkOff, PublicKeySize);
+                Arrays.ValidateSegment(m, mOff, mLen);
+                Arrays.ValidateSegment(sig, sigOff, SignatureSize);
+
                 byte[] h = new byte[DigestSize];
                 Array.Copy(xk, xkOff, h, 0, DigestSize);
 
                 byte[] s = new byte[ScalarBytes];
-                PruneScalar(h, 0, s);
+                Ed25519.PruneScalar(h, 0, s);
 
-                ImplSign(d, h, s, pk, pkOff, ctx: null, phflag: 0x00, m, mOff, mLen, sig, sigOff);
+                Ed25519.ImplSign(CreateDigest(), h, s, pk, pkOff, ctx: null, phflag: 0x00, m, mOff, mLen, sig, sigOff);
 #endif
             }
 
@@ -2645,14 +2657,13 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
                 if (sig.Length != SignatureSize)
                     throw new ArgumentException(nameof(sig));
 
-                IDigest d = CreateDigest();
                 Span<byte> h = stackalloc byte[DigestSize];
                 xk.CopyTo(h);
 
                 Span<byte> s = stackalloc byte[ScalarBytes];
-                PruneScalar(h, s);
+                Ed25519.PruneScalar(h, s);
 
-                ImplSign(d, h, s, pk, ctx: null, phflag: 0x00, m, sig);
+                Ed25519.ImplSign(CreateDigest(), h, s, pk, ctx: null, phflag: 0x00, m, sig);
             }
 #endif
         }
