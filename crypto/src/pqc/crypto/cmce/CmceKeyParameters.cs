@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Cmce
 {
+    /// <summary>Base class for Classic McEliece public and private keys, carrying the parameter set.</summary>
     public abstract class CmceKeyParameters
         : AsymmetricKeyParameter
     {
@@ -13,6 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Cmce
             this.parameters = parameters;
         }
 
+        /// <summary>The Classic McEliece parameter set this key belongs to.</summary>
         public CmceParameters Parameters => parameters;
     }
 }
