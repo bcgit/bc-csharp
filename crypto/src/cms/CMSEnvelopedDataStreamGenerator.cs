@@ -13,34 +13,27 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * General class for generating a CMS enveloped-data message stream.
-     * <p>
-     * A simple example of usage.
-     * <pre>
-     *     CmsEnvelopedDataStreamGenerator edGen = new CmsEnvelopedDataStreamGenerator();
-     *     edGen.AddKeyTransRecipient(cert);
-     *
-     *     MemoryStream  bOut = new MemoryStream();
-     *
-     *     Stream out = edGen.Open(bOut, CMSEnvelopedGenerator.AES128_CBC);
-     *     out.Write(data);
-     *     out.Close();
-     * </pre>
-     * </p>
-     * <p>
-     * <b>Stream handling note:</b>
-     * <ul>
-     *   <li>The returned Stream must be closed to finalize the CMS structure.</li>
-     *   <li>Closing the returned stream <b>does not close</b> the underlying Stream
-     *       passed to {@code Open()}.</li>
-     *   <li>Callers are responsible for closing the underlying Stream separately.
-     *       If the underlying Stream is a buffering encoder whose tail state
-     *       only flushes on close (e.g. Apache Commons {@code Base64OutputStream}),
-     *       failing to close it will cause the encoded output to be truncated.</li>
-     * </ul>
-     * </p>
-     */
+    /// <summary>
+    /// Streaming generator for CMS EnvelopedData (PKCS#7 enveloped-data) messages. Add recipients via the base
+    /// <see cref="CmsEnvelopedGenerator"/> methods, then call <see cref="Open(Stream, string)"/> to obtain a
+    /// <see cref="Stream"/> to which the content to be encrypted is written; closing that stream finalizes the
+    /// CMS structure.
+    /// </summary>
+    /// <remarks>
+    /// The returned stream must be closed (disposed) to finalize the CMS structure. Closing the returned stream
+    /// does <b>not</b> close the underlying stream passed to <c>Open</c>; callers are responsible for closing the
+    /// underlying stream separately. If the underlying stream is a buffering encoder whose tail state only flushes
+    /// on close (e.g. a base64 encoding stream), failing to close it will cause the encoded output to be truncated.
+    /// <para>A simple example of usage:</para>
+    /// <code>
+    /// CmsEnvelopedDataStreamGenerator gen = new CmsEnvelopedDataStreamGenerator();
+    /// gen.AddKeyTransRecipient(cert);
+    /// using (Stream envOut = gen.Open(bOut, CmsEnvelopedGenerator.Aes128Cbc))
+    /// {
+    ///     envOut.Write(data, 0, data.Length);
+    /// }
+    /// </code>
+    /// </remarks>
     public class CmsEnvelopedDataStreamGenerator
         : CmsEnvelopedGenerator
     {
@@ -49,12 +42,15 @@ namespace Org.BouncyCastle.Cms
         private int m_bufferSize;
         private bool m_berEncodeRecipientSet;
 
+        /// <summary>Creates a generator using the default randomness source.</summary>
         public CmsEnvelopedDataStreamGenerator()
         {
         }
 
-        /// <summary>Constructor allowing specific source of randomness</summary>
-        /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+        /// <summary>
+        /// Creates a generator with an explicit randomness source for key and encryption operations.
+        /// </summary>
+        /// <param name="random">The secure random to use.</param>
         public CmsEnvelopedDataStreamGenerator(SecureRandom random)
             : base(random)
         {
@@ -67,7 +63,10 @@ namespace Org.BouncyCastle.Cms
             m_bufferSize = bufferSize;
         }
 
-        /// <summary>Use a BER Set to store the recipient information.</summary>
+        /// <summary>Controls whether recipient information is stored using a BER (indefinite-length) SET.</summary>
+        /// <param name="berEncodeRecipientSet">
+        /// <c>true</c> to use a BER SET; <c>false</c> to use a DER SET (the default).
+        /// </param>
         public void SetBerEncodeRecipients(bool berEncodeRecipientSet)
         {
             m_berEncodeRecipientSet = berEncodeRecipientSet;
@@ -166,10 +165,13 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /**
-         * generate an enveloped object that contains an CMS Enveloped Data object
-         * @throws IOException
-         */
+        /// <summary>
+        /// Opens a stream for generating a CMS EnvelopedData object, deriving a content-encryption key of the
+        /// algorithm's default strength.
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <param name="encryptionOid">The content-encryption algorithm OID.</param>
+        /// <returns>A stream the content to be encrypted is written to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStream, string encryptionOid)
         {
             CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
@@ -179,10 +181,14 @@ namespace Org.BouncyCastle.Cms
             return Open(outStream, encryptionOid, keyGen);
         }
 
-        /**
-         * generate an enveloped object that contains an CMS Enveloped Data object
-         * @throws IOException
-         */
+        /// <summary>
+        /// Opens a stream for generating a CMS EnvelopedData object, deriving a content-encryption key of the
+        /// given size.
+        /// </summary>
+        /// <param name="outStream">The stream the CMS object is written to.</param>
+        /// <param name="encryptionOid">The content-encryption algorithm OID.</param>
+        /// <param name="keySize">The content-encryption key size, in bits.</param>
+        /// <returns>A stream the content to be encrypted is written to; close it to finalize the structure.</returns>
         public Stream Open(Stream outStream, string encryptionOid, int keySize)
         {
             CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
