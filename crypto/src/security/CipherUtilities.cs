@@ -735,10 +735,7 @@ namespace Org.BouncyCastle.Security
                     break;
                 case CipherMode.CFB:
                 {
-                    int bits = (di < 0)
-                        ?	8 * blockCipher.GetBlockSize()
-                        :	int.Parse(mode.Substring(di));
-    
+                    int bits = di < 0 ? 8 * blockCipher.GetBlockSize() : int.Parse(mode.Substring(di));
                     blockCipherMode = new CfbBlockCipher(blockCipher, bits);
                     break;
                 }
@@ -763,10 +760,7 @@ namespace Org.BouncyCastle.Security
                     break;
                 case CipherMode.OFB:
                 {
-                    int bits = (di < 0)
-                        ?	8 * blockCipher.GetBlockSize()
-                        :	int.Parse(mode.Substring(di));
-    
+                    int bits = di < 0 ? 8 * blockCipher.GetBlockSize() : int.Parse(mode.Substring(di));
                     blockCipherMode = new OfbBlockCipher(blockCipher, bits);
                     break;
                 }

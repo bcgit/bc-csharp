@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Security
             AlgorithmOidMap[OiwObjectIdentifiers.MD4WithRsa] = "MD4withRSA";
             AlgorithmOidMap[OiwObjectIdentifiers.MD4WithRsaEncryption] = "MD4withRSA";
 
-			AlgorithmMap["MD5WITHRSA"] = "MD5withRSA";
+            AlgorithmMap["MD5WITHRSA"] = "MD5withRSA";
             AlgorithmMap["MD5WITHRSAENCRYPTION"] = "MD5withRSA";
             AlgorithmOidMap[PkcsObjectIdentifiers.MD5WithRsaEncryption] = "MD5withRSA";
             AlgorithmOidMap[OiwObjectIdentifiers.MD5WithRsa] = "MD5withRSA";
@@ -716,8 +716,7 @@ namespace Org.BouncyCastle.Security
             return CollectionUtilities.GetValueOrNull(Oids, mechanism);
         }
 
-        private static Asn1Encodable GetPssX509Parameters(
-            string	digestName)
+        private static Asn1Encodable GetPssX509Parameters(string digestName)
         {
             AlgorithmIdentifier hashAlgorithm = new AlgorithmIdentifier(
                 DigestUtilities.GetObjectIdentifier(digestName), DerNull.Instance);

@@ -233,11 +233,8 @@ namespace Org.BouncyCastle.Security
         }
 
         /// <summary>Build a <see cref="KeyParameter"/> from a slice of <paramref name="keyBytes"/>.</summary>
-        public static KeyParameter CreateKeyParameter(
-            DerObjectIdentifier algOid,
-            byte[]				keyBytes,
-            int					offset,
-            int					length)
+        public static KeyParameter CreateKeyParameter(DerObjectIdentifier algOid, byte[] keyBytes, int offset,
+            int length)
         {
             return CreateKeyParameter(algOid.Id, keyBytes, offset, length);
         }
@@ -249,11 +246,7 @@ namespace Org.BouncyCastle.Security
         /// </summary>
         /// <exception cref="ArgumentNullException">If <paramref name="algorithm"/> is <c>null</c>.</exception>
         /// <exception cref="SecurityUtilityException">If the algorithm is not recognised.</exception>
-        public static KeyParameter CreateKeyParameter(
-            string	algorithm,
-            byte[]	keyBytes,
-            int		offset,
-            int		length)
+        public static KeyParameter CreateKeyParameter(string algorithm, byte[] keyBytes, int offset, int length)
         {
             if (algorithm == null)
                 throw new ArgumentNullException(nameof(algorithm));
@@ -266,7 +259,7 @@ namespace Org.BouncyCastle.Security
             if (canonical == "DES")
                 return new DesParameters(keyBytes, offset, length);
 
-            if (canonical == "DESEDE" || canonical =="DESEDE3")
+            if (canonical == "DESEDE" || canonical == "DESEDE3")
                 return new DesEdeParameters(keyBytes, offset, length);
 
             if (canonical == "RC2")
@@ -280,10 +273,8 @@ namespace Org.BouncyCastle.Security
         /// <see cref="ICipherParameters"/> envelope (e.g. <see cref="ParametersWithIV"/> or
         /// <see cref="AeadParameters"/> for AES-GCM/CCM).
         /// </summary>
-        public static ICipherParameters GetCipherParameters(
-            DerObjectIdentifier	algOid,
-            ICipherParameters	key,
-            Asn1Object			asn1Params)
+        public static ICipherParameters GetCipherParameters(DerObjectIdentifier algOid, ICipherParameters key,
+            Asn1Object asn1Params)
         {
             return GetCipherParameters(algOid.Id, key, asn1Params);
         }
@@ -295,10 +286,8 @@ namespace Org.BouncyCastle.Security
         /// <exception cref="ArgumentException">If <paramref name="key"/> cannot supply the data required by
         /// an AEAD mode, or the parameters block cannot be parsed.</exception>
         /// <exception cref="SecurityUtilityException">If the algorithm is not recognised.</exception>
-        public static ICipherParameters GetCipherParameters(
-            string				algorithm,
-            ICipherParameters	key,
-            Asn1Object			asn1Params)
+        public static ICipherParameters GetCipherParameters(string algorithm, ICipherParameters key,
+            Asn1Object asn1Params)
         {
             if (algorithm == null)
                 throw new ArgumentNullException("algorithm");
@@ -376,9 +365,7 @@ namespace Org.BouncyCastle.Security
         /// Generate a fresh ASN.1-encoded algorithm parameters block (typically a random IV) for the
         /// algorithm identified by <paramref name="algID"/>.
         /// </summary>
-        public static Asn1Encodable GenerateParameters(
-            DerObjectIdentifier algID,
-            SecureRandom		random)
+        public static Asn1Encodable GenerateParameters(DerObjectIdentifier algID, SecureRandom random)
         {
             return GenerateParameters(algID.Id, random);
         }
@@ -391,9 +378,7 @@ namespace Org.BouncyCastle.Security
         /// <exception cref="ArgumentNullException">If <paramref name="algorithm"/> is <c>null</c>.</exception>
         /// <exception cref="SecurityUtilityException">If the algorithm is not recognised or has no
         /// parameter generator.</exception>
-        public static Asn1Encodable GenerateParameters(
-            string			algorithm,
-            SecureRandom	random)
+        public static Asn1Encodable GenerateParameters(string algorithm, SecureRandom random)
         {
             if (algorithm == null)
                 throw new ArgumentNullException("algorithm");

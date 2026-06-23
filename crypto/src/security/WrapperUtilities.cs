@@ -143,30 +143,21 @@ namespace Org.BouncyCastle.Security
             private readonly IBufferedCipher cipher;
             private bool forWrapping;
 
-            public BufferedCipherWrapper(
-                IBufferedCipher cipher)
+            public BufferedCipherWrapper(IBufferedCipher cipher)
             {
                 this.cipher = cipher;
             }
 
-            public string AlgorithmName
-            {
-                get { return cipher.AlgorithmName; }
-            }
+            public string AlgorithmName => cipher.AlgorithmName;
 
-            public void Init(
-                bool				forWrapping,
-                ICipherParameters	parameters)
+            public void Init(bool forWrapping, ICipherParameters parameters)
             {
                 this.forWrapping = forWrapping;
 
                 cipher.Init(forWrapping, parameters);
             }
 
-            public byte[] Wrap(
-                byte[]	input,
-                int		inOff,
-                int		length)
+            public byte[] Wrap(byte[] input, int inOff, int length)
             {
                 if (!forWrapping)
                     throw new InvalidOperationException("Not initialised for wrapping");
@@ -174,10 +165,7 @@ namespace Org.BouncyCastle.Security
                 return cipher.DoFinal(input, inOff, length);
             }
 
-            public byte[] Unwrap(
-                byte[]	input,
-                int		inOff,
-                int		length)
+            public byte[] Unwrap(byte[] input, int inOff, int length)
             {
                 if (forWrapping)
                     throw new InvalidOperationException("Not initialised for unwrapping");
