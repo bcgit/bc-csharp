@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -150,7 +151,30 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             return c - 'A' + 10;
         }
 
-        public static string ValueToString(Asn1Encodable value)
+        public static void AppendTypeAndValue(StringBuilder buf, AttributeTypeAndValue typeAndValue,
+            IDictionary<DerObjectIdentifier, string> oidSymbols)
+        {
+            AppendTypeAndValue(buf, typeAndValue.Type, typeAndValue.Value, oidSymbols);
+        }
+
+        internal static void AppendTypeAndValue(StringBuilder buf, DerObjectIdentifier attrType,
+            Asn1Encodable attrValue, IDictionary<DerObjectIdentifier, string> oidSymbols)
+        {
+            if (oidSymbols.TryGetValue(attrType, out var sym))
+            {
+                buf.Append(sym);
+            }
+            else
+            {
+                buf.Append(attrType.GetID());
+            }
+
+            buf.Append('=');
+
+            AppendValue(buf, attrValue);
+        }
+
+        private static void AppendValue(StringBuilder buf, Asn1Encodable value)
         {
             StringBuilder vBuf = new StringBuilder();
 
@@ -177,59 +201,79 @@ namespace Org.BouncyCastle.Asn1.X500.Style
                 }
             }
 
-            int end = vBuf.Length;
+            // Escape in a single linear pass into a fresh builder. The previous implementation escaped by
+            // inserting a backslash into the buffer it was scanning (O(n) per insert), so a value of n
+            // RFC 4514 special characters - or n leading/trailing spaces - cost ~n^2/2 character moves: a
+            // CPU-exhaustion vector for an attacker-supplied large RDN. Output is unchanged.
+
+            int len = vBuf.Length;
+
+            // A leading "\#" (produced above when the value begins with '#') is emitted verbatim and the
+            // leading-space escaping is suppressed, matching the original phase ordering.
+            bool hashPrefix = len >= 2 && vBuf[0] == '\\' && vBuf[1] == '#';
+
+            int firstNonSpace = 0;
+            while (firstNonSpace < len && vBuf[firstNonSpace] == ' ')
+            {
+                firstNonSpace++;
+            }
+            int lastNonSpace;
+            if (firstNonSpace < len)
+            {
+                lastNonSpace = len;
+                while (vBuf[--lastNonSpace] == ' ')
+                {
+                }
+            }
+            else
+            {
+                lastNonSpace = -1;
+            }
+
             int index = 0;
-
-            if (vBuf.Length >= 2 && vBuf[0] == '\\' && vBuf[1] == '#')
+            if (hashPrefix)
             {
-                index += 2;
+                buf.Append("\\#");
+                index = 2;
             }
 
-            while (index != end)
+            for (; index < len; index++)
             {
-                switch (vBuf[index])
+                char c = vBuf[index];
+                bool escape;
+                switch (c)
                 {
-                    case ',':
-                    case '"':
-                    case '\\':
-                    case '+':
-                    case '=':
-                    case '<':
-                    case '>':
-                    case ';':
-                    {
-                        vBuf.Insert(index, "\\");
-                        index += 2;
-                        ++end;
-                        break;
-                    }
-                    default:
-                    {
-                        ++index;
-                        break;
-                    }
+                case ',':
+                case '"':
+                case '\\':
+                case '+':
+                case '=':
+                case '<':
+                case '>':
+                case ';':
+                    escape = true;
+                    break;
+                case ' ':
+                    // leading spaces escaped only without a "\#" prefix; trailing spaces always escaped.
+                    escape = (!hashPrefix && index < firstNonSpace) || index > lastNonSpace;
+                    break;
+                default:
+                    escape = false;
+                    break;
                 }
-            }
-
-            int start = 0;
-            if (vBuf.Length > 0)
-            {
-                while (vBuf.Length > start && vBuf[start] == ' ')
+                if (escape)
                 {
-                    vBuf.Insert(start, "\\");
-                    start += 2;
+                    buf.Append('\\');
                 }
+                buf.Append(c);
             }
+        }
 
-            int endBuf = vBuf.Length - 1;
-
-            while (endBuf >= 0 && vBuf[endBuf] == ' ')
-            {
-                vBuf.Insert(endBuf, "\\");
-                endBuf--;
-            }
-
-            return vBuf.ToString();
+        public static string ValueToString(Asn1Encodable value)
+        {
+            StringBuilder buf = new StringBuilder(64);
+            AppendValue(buf, value);
+            return buf.ToString();
         }
 
         public static string Canonicalize(string s)

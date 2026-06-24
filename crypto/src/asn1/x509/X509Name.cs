@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Asn1.X500.Style;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -411,30 +412,28 @@ namespace Org.BouncyCastle.Asn1.X509
             // RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
             this.seq = seq;
 
-            foreach (Asn1Encodable asn1Obj in seq)
+            foreach (Asn1Encodable rdn in seq)
             {
                 // RelativeDistinguishedName ::= SET SIZE(1..MAX) OF AttributeTypeAndValue
-                Asn1Set rdn = Asn1Set.GetInstance(asn1Obj);
+                Asn1Set attrs = Asn1Set.GetInstance(rdn);
 
                 // TODO Apply this check? (Currently "breaks" CertificateTest.CheckDudCertificate)
-                //if (rdn.Count < 1)
+                //if (attrs.Count < 1)
                 //    throw new ArgumentException("badly sized RelativeDistinguishedName");
 
-                for (int i = 0; i < rdn.Count; ++i)
+                for (int i = 0; i < attrs.Count; ++i)
                 {
-                    Asn1Sequence attributeTypeAndValue = Asn1Sequence.GetInstance(rdn[i]);
-                    if (attributeTypeAndValue.Count != 2)
-                        throw new ArgumentException("badly sized AttributeTypeAndValue");
+                    var attr = AttributeTypeAndValue.GetInstance(attrs[i]);
 
-                    var type = attributeTypeAndValue[0].ToAsn1Object();
-                    var value = attributeTypeAndValue[1].ToAsn1Object();
+                    var attrType = attr.Type;
+                    var attrValue = attr.Value.ToAsn1Object();
 
-                    m_ordering.Add(DerObjectIdentifier.GetInstance(type));
+                    m_ordering.Add(DerObjectIdentifier.GetInstance(attrType));
 
-                    if (value is IAsn1String asn1String && !(value is DerUniversalString))
+                    if (attrValue is IAsn1String asn1String && !(attrValue is DerUniversalString))
                     {
                         string v = asn1String.GetString();
-                        if (v.StartsWith("#"))
+                        if (v.Length > 0 && v[0] == '#')
                         {
                             v = "\\" + v;
                         }
@@ -443,7 +442,7 @@ namespace Org.BouncyCastle.Asn1.X509
                     }
                     else
                     {
-                        m_values.Add("#" + Hex.ToHexString(value.GetEncoded()));
+                        m_values.Add("#" + Hex.ToHexString(attrValue.GetEncoded(Asn1Encodable.Der)));
                     }
 
                     m_added.Add(i != 0);
@@ -845,12 +844,12 @@ namespace Org.BouncyCastle.Asn1.X509
                 if (m_added[i])
                 {
                     ava.Append('+');
-                    AppendValue(ava, oidSymbols, m_ordering[i], m_values[i]);
+                    AppendTypeAndValue(ava, m_ordering[i], m_values[i], oidSymbols);
                 }
                 else
                 {
                     ava = new StringBuilder();
-                    AppendValue(ava, oidSymbols, m_ordering[i], m_values[i]);
+                    AppendTypeAndValue(ava, m_ordering[i], m_values[i], oidSymbols);
                     components.Add(ava);
                 }
             }
@@ -908,34 +907,74 @@ namespace Org.BouncyCastle.Asn1.X509
         /// </remarks>
         private static string CollectValueToken(X509NameTokenizer tokenizer) => tokenizer.Remaining();
 
-        // TODO Refactor common code between this and IetfUtilities.ValueToString
-        private static void AppendValue(StringBuilder buf, IDictionary<DerObjectIdentifier, string> oidSymbols,
-            DerObjectIdentifier oid, string val)
+        /// <summary>
+        /// Does the same thing as <c>IetfUtilities.AppendTypeAndValue</c> except that the string <c>attrValue</c> is
+        /// already in <c>string</c> form.
+        /// </summary>
+        private static void AppendTypeAndValue(StringBuilder buf, DerObjectIdentifier attrType, string attrValue,
+            IDictionary<DerObjectIdentifier, string> oidSymbols)
         {
-            if (oidSymbols.TryGetValue(oid, out var sym))
+            if (oidSymbols.TryGetValue(attrType, out var sym))
             {
                 buf.Append(sym);
             }
             else
             {
-                buf.Append(oid.Id);
+                buf.Append(attrType.GetID());
             }
 
             buf.Append('=');
-            int start = buf.Length;
 
-            buf.Append(val);
-            int end = buf.Length;
+            AppendValue(buf, attrValue);
+        }
 
-            int index = start;
-            if (index + 1 < end && buf[index] == '\\' && buf[index + 1] == '#')
+        /// <summary>
+        /// Does the same thing as <c>IetfUtilities.AppendValue</c> except that the string <c>attrValue</c> is already
+        /// in <c>string</c> form.
+        /// </summary>
+        private static void AppendValue(StringBuilder buf, string attrValue)
+        {
+            // Escape in a single linear pass into a fresh builder. The previous implementation escaped by
+            // inserting a backslash into the buffer it was scanning (O(n) per insert), so a value of n
+            // RFC 4514 special characters - or n leading/trailing spaces - cost ~n^2/2 character moves: a
+            // CPU-exhaustion vector for an attacker-supplied large RDN. Output is unchanged.
+
+            int len = attrValue.Length;
+
+            // A leading "\#" (produced above when the value begins with '#') is emitted verbatim and the
+            // leading-space escaping is suppressed, matching the original phase ordering.
+            bool hashPrefix = len >= 2 && attrValue[0] == '\\' && attrValue[1] == '#';
+
+            int firstNonSpace = 0;
+            while (firstNonSpace < len && attrValue[firstNonSpace] == ' ')
             {
-                index += 2;
+                firstNonSpace++;
+            }
+            int lastNonSpace;
+            if (firstNonSpace < len)
+            {
+                lastNonSpace = len;
+                while (attrValue[--lastNonSpace] == ' ')
+                {
+                }
+            }
+            else
+            {
+                lastNonSpace = -1;
             }
 
-            while (index != end)
+            int index = 0;
+            if (hashPrefix)
             {
-                switch (buf[index])
+                buf.Append("\\#");
+                index = 2;
+            }
+
+            for (; index < len; index++)
+            {
+                char c = attrValue[index];
+                bool escape;
+                switch (c)
                 {
                 case ',':
                 case '"':
@@ -945,34 +984,21 @@ namespace Org.BouncyCastle.Asn1.X509
                 case '<':
                 case '>':
                 case ';':
-                {
-                    buf.Insert(index, "\\");
-                    index += 2;
-                    ++end;
+                    escape = true;
                     break;
-                }
+                case ' ':
+                    // leading spaces escaped only without a "\#" prefix; trailing spaces always escaped.
+                    escape = (!hashPrefix && index < firstNonSpace) || index > lastNonSpace;
+                    break;
                 default:
-                {
-                    ++index;
+                    escape = false;
                     break;
                 }
+                if (escape)
+                {
+                    buf.Append('\\');
                 }
-            }
-
-            Debug.Assert(end == buf.Length);
-
-            while (start < end && buf[start] == ' ')
-            {
-                buf.Insert(start, '\\');
-                start += 2;
-                ++end;
-            }
-
-            Debug.Assert(end == buf.Length);
-
-            while (--end > start && buf[end] == ' ')
-            {
-                buf.Insert(end, '\\');
+                buf.Append(c);
             }
         }
 

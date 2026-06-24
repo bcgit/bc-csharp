@@ -127,7 +127,6 @@ namespace Org.BouncyCastle.Asn1.Tests
 
         public override void PerformTest()
         {
-            IetfUtilitiesTest();
             BogusEqualsTest();
             dnQualifierAliasParseTest();
             stateOrProvinceAliasParseTest();
@@ -613,8 +612,6 @@ namespace Org.BouncyCastle.Asn1.Tests
             IsTrue(X509Name.JurisdictionL.Equals(
                 CollectionUtilities.GetValueOrNull(X509Name.DefaultLookup, "jurisdictionLocality")));
         }
-
-        private static void IetfUtilitiesTest() => IetfUtilities.ValueToString(new DerUtf8String(" "));
 
         /**
          * BCStyle / RFC4519Style now accept "DN", "DNQ" and "dnQualifier"
