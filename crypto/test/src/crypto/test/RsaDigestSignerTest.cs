@@ -10,6 +10,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -73,6 +74,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 IsTrue(e.Message.StartsWith("unable to encode signature: "));
             }
+
+            CheckNoNullDigestInfoTailBytesChecked(rsaPublic, rsaPrivate);
         }
 
         private void CheckDigest(RsaKeyParameters rsaPublic, RsaPrivateCrtKeyParameters rsaPrivate, IDigest digest,
@@ -124,6 +127,40 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Fail("NONE - RSA Digest Signer failed.");
             }
+        }
+
+        /// <summary>
+        /// A NULL-omitted DigestInfo must be properly verified over all bytes.
+        /// verify.
+        /// </summary>
+        private void CheckNoNullDigestInfoTailBytesChecked(RsaKeyParameters rsaPublic,
+            RsaPrivateCrtKeyParameters rsaPrivate)
+        {
+            byte[] msg = new byte[]{ 1, 6, 3, 32, 7, 43, 2, 5, 7, 78, 4, 23 };
+
+            IDigest digest = new Sha256Digest();
+            byte[] hash = DigestUtilities.DoFinal(digest, msg);
+
+            // Flip the last two hash bytes - everything else (header, OID, leading hash bytes) is unchanged.
+            byte[] tampered = Arrays.Clone(hash);
+            tampered[tampered.Length - 1] ^= 0x01;
+            tampered[tampered.Length - 2] ^= 0x80;
+
+            // Sign the tampered hash in the non-compliant no-NULL DigestInfo form.
+            DigestInfo loose = new DigestInfo(new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256), tampered);
+            byte[] looseEnc = loose.GetEncoded(Asn1Encodable.Der);
+
+            RsaDigestSigner looseSigner = CreatePrehashSigner();
+            looseSigner.Init(forSigning: true, rsaPrivate);
+            looseSigner.BlockUpdate(looseEnc, 0, looseEnc.Length);
+            byte[] forgedSig = looseSigner.GenerateSignature();
+
+            // Verifying against the real message must fail - the last two hash bytes differ.
+            RsaDigestSigner verifier = new RsaDigestSigner(new Sha256Digest(), NistObjectIdentifiers.IdSha256);
+            verifier.Init(forSigning: false, rsaPublic);
+            verifier.BlockUpdate(msg, 0, msg.Length);
+            IsTrue("no-NULL DigestInfo with wrong final hash bytes must be rejected",
+                !verifier.VerifySignature(forgedSig));
         }
 
         public override string Name => "RsaDigestSigner";
