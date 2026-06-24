@@ -29,8 +29,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static bool CalculateAgreement(ReadOnlySpan<byte> k, ReadOnlySpan<byte> u, Span<byte> r)
         {
+            r = r[..PointSize];
             ScalarMult(k, u, r);
-            return !Arrays.AreAllZeroes(r[..PointSize]);
+            return !Arrays.AreAllZeroes(r);
         }
 #endif
 
