@@ -593,8 +593,9 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
                                     case ECCurve.COORD_JACOBIAN_MODIFIED:
                                     {
                                         iso = twiceP.GetZCoord(0);
-                                        isoTwiceP = c.CreatePoint(twiceP.XCoord.ToBigInteger(),
-                                            twiceP.YCoord.ToBigInteger());
+
+                                        // TODO Perhaps a method that replaces Z with one would be better
+                                        isoTwiceP = c.CreateRawPoint(twiceP.XCoord, twiceP.YCoord);
 
                                         ECFieldElement iso2 = iso.Square(), iso3 = iso2.Multiply(iso);
                                         last = last.ScaleX(iso2).ScaleY(iso3);
