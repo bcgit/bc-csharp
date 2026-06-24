@@ -1,9 +1,9 @@
 using System;
+
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
     public class ECDHCBasicAgreement
         : IBasicAgreement
     {
-        private ECPrivateKeyParameters m_privKey;
+        private ECPrivateKeyParameters m_privateKey;
 
         public virtual void Init(ICipherParameters parameters)
         {
@@ -39,22 +39,25 @@ namespace Org.BouncyCastle.Crypto.Agreement
             if (!(kParam is ECPrivateKeyParameters ecPrivateKeyParameters))
                 throw new ArgumentException($"{nameof(ECDHCBasicAgreement)} expects {nameof(ECPrivateKeyParameters)}");
 
-            m_privKey = ecPrivateKeyParameters;
+            m_privateKey = ecPrivateKeyParameters;
         }
 
-        public virtual int GetFieldSize() => m_privKey.Parameters.Curve.FieldElementEncodingLength;
+        public virtual int GetFieldSize() => m_privateKey.Parameters.Curve.FieldElementEncodingLength;
 
-        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
+        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey) =>
+            CalculateAgreementFieldElement(m_privateKey, (ECPublicKeyParameters)pubKey).ToBigInteger();
+
+        internal static ECFieldElement CalculateAgreementFieldElement(ECPrivateKeyParameters privateKey,
+            ECPublicKeyParameters publicKey)
         {
-            ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey;
-            ECDomainParameters dp = m_privKey.Parameters;
-            if (!dp.Equals(pub.Parameters))
+            ECDomainParameters dp = privateKey.Parameters;
+            if (!dp.Equals(publicKey.Parameters))
                 throw new InvalidOperationException("ECDHC public key has wrong domain parameters");
 
-            BigInteger hd = dp.H.Multiply(m_privKey.D).Mod(dp.N);
+            BigInteger hd = dp.H.Multiply(privateKey.D).Mod(dp.N);
 
             // Always perform calculations on the exact curve specified by our private key's parameters
-            ECPoint pubPoint = ECAlgorithms.CleanPoint(dp.Curve, pub.Q);
+            ECPoint pubPoint = ECAlgorithms.CleanPoint(dp.Curve, publicKey.Q);
             if (pubPoint.IsInfinity)
                 throw new InvalidOperationException("Infinity is not a valid public key for ECDHC");
 
@@ -62,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             if (P.IsInfinity)
                 throw new InvalidOperationException("Infinity is not a valid agreement value for ECDHC");
 
-            return P.AffineXCoord.ToBigInteger();
+            return P.AffineXCoord;
         }
     }
 }
