@@ -38,8 +38,7 @@ namespace Org.BouncyCastle.Math.BinPoly
         /// automatically (no carry, no reduction). Operates on <paramref name="size"/>-limb slices
         /// starting at the given offsets.
         /// </summary>
-        public static void Add(int size, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z,
-            int zOff)
+        public static void Add(int size, ulong[] x, int xOff, ulong[] y, int yOff, ulong[] z, int zOff)
         {
             Nat.Xor64(size, x, xOff, y, yOff, z, zOff);
         }
@@ -296,7 +295,7 @@ namespace Org.BouncyCastle.Math.BinPoly
             private const int MaxN = 1 << 20;
 
             /// <summary>Reduction by <c>x^n + 1</c> (cyclic ring, used by BIKE and HQC).</summary>
-                public static IBinPolyMul Binomial(int n)
+            public static IBinPolyMul Binomial(int n)
             {
                 if (n < 1)
                     throw new ArgumentOutOfRangeException(nameof(n), "must be positive");
@@ -310,7 +309,7 @@ namespace Org.BouncyCastle.Math.BinPoly
             }
 
             /// <summary>Reduction by <c>x^n + x^k + 1</c>.</summary>
-                public static IBinPolyMul Trinomial(int n, int k)
+            public static IBinPolyMul Trinomial(int n, int k)
             {
                 if (n < 3)
                     throw new ArgumentOutOfRangeException(nameof(n), "must be at least 3");
@@ -327,7 +326,7 @@ namespace Org.BouncyCastle.Math.BinPoly
             }
 
             /// <summary>Reduction by <c>x^n + x^k3 + x^k2 + x^k1 + 1</c>.</summary>
-                public static IBinPolyMul Pentanomial(int n, int k1, int k2, int k3)
+            public static IBinPolyMul Pentanomial(int n, int k1, int k2, int k3)
             {
                 if (n < 5)
                     throw new ArgumentOutOfRangeException(nameof(n), "must be at least 5");
@@ -379,13 +378,12 @@ namespace Org.BouncyCastle.Math.BinPoly
             /// <c>n</c> (even or odd) provided <paramref name="mul"/>'s reduction polynomial is
             /// irreducible.
             /// </summary>
-                public static IBinPolyInv ItohTsujii(IBinPolyMul mul)
+            public static IBinPolyInv ItohTsujii(IBinPolyMul mul)
             {
                 if (mul == null)
                     throw new ArgumentNullException(nameof(mul));
                 if (mul.N < 2)
-                    throw new ArgumentException("inversion requires a field of degree at least 2",
-                        nameof(mul));
+                    throw new ArgumentException("inversion requires a field of degree at least 2", nameof(mul));
 
                 return new ItohTsujiiInv(mul);
             }
