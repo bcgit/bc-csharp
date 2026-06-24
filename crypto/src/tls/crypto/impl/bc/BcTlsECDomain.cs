@@ -5,9 +5,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
@@ -21,16 +19,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         public static BcTlsSecret CalculateECDHAgreement(BcTlsCrypto crypto, ECPrivateKeyParameters privateKey,
             ECPublicKeyParameters publicKey)
         {
-            ECDHBasicAgreement basicAgreement = new ECDHBasicAgreement();
-            basicAgreement.Init(privateKey);
-            BigInteger agreementValue = basicAgreement.CalculateAgreement(publicKey);
-
             /*
              * RFC 4492 5.10. Note that this octet string (Z in IEEE 1363 terminology) as output by
              * FE2OSP, the Field Element to Octet String Conversion Primitive, has constant length for
              * any given field; leading zeros found in this octet string MUST NOT be truncated.
              */
-            byte[] secret = BigIntegers.AsUnsignedByteArray(basicAgreement.GetFieldSize(), agreementValue);
+            var agreement = new ECDHRawAgreement();
+            agreement.Init(privateKey);
+            byte[] secret = new byte[agreement.AgreementSize];
+            agreement.CalculateAgreement(publicKey, secret, 0);
             return crypto.AdoptLocalSecret(secret);
         }
 

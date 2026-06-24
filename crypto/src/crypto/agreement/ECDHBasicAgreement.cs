@@ -35,20 +35,22 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
         public virtual int GetFieldSize() => privKey.Parameters.Curve.FieldElementEncodingLength;
 
-        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
+        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey) =>
+            CalculateAgreementFieldElement(privKey, (ECPublicKeyParameters)pubKey).ToBigInteger();
+
+        internal static ECFieldElement CalculateAgreementFieldElement(ECPrivateKeyParameters privateKey,
+            ECPublicKeyParameters publicKey)
         {
-            ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey;
-            ECDomainParameters dp = privKey.Parameters;
-            if (!dp.Equals(pub.Parameters))
+            ECDomainParameters dp = privateKey.Parameters;
+            if (!dp.Equals(publicKey.Parameters))
                 throw new InvalidOperationException("ECDH public key has wrong domain parameters");
 
-            BigInteger d = privKey.D;
-
             // Always perform calculations on the exact curve specified by our private key's parameters
-            ECPoint Q = ECAlgorithms.CleanPoint(dp.Curve, pub.Q);
+            ECPoint Q = ECAlgorithms.CleanPoint(dp.Curve, publicKey.Q);
             if (Q.IsInfinity)
                 throw new InvalidOperationException("Infinity is not a valid public key for ECDH");
 
+            BigInteger d = privateKey.D;
             BigInteger h = dp.H;
             if (!h.Equals(BigInteger.One))
             {
@@ -60,7 +62,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
             if (P.IsInfinity)
                 throw new InvalidOperationException("Infinity is not a valid agreement value for ECDH");
 
-            return P.AffineXCoord.ToBigInteger();
+            return P.AffineXCoord;
         }
     }
 }
