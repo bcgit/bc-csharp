@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
     public sealed class ECDHRawAgreement
         : IRawAgreement
     {
-        private ECPrivateKeyParameters m_privKey;
+        private ECPrivateKeyParameters m_privateKey;
 
         public void Init(ICipherParameters parameters)
         {
@@ -17,17 +17,17 @@ namespace Org.BouncyCastle.Crypto.Agreement
             if (!(kParam is ECPrivateKeyParameters ecPrivateKeyParameters))
                 throw new ArgumentException($"{nameof(ECDHRawAgreement)} expects {nameof(ECPrivateKeyParameters)}");
 
-            m_privKey = ecPrivateKeyParameters;
+            m_privateKey = ecPrivateKeyParameters;
         }
 
-        public int AgreementSize => m_privKey.Parameters.Curve.FieldElementEncodingLength;
+        public int AgreementSize => m_privateKey.Parameters.Curve.FieldElementEncodingLength;
 
         public void CalculateAgreement(ICipherParameters publicKey, byte[] buf, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             CalculateAgreement(publicKey, buf.AsSpan(off));
 #else
-            ECDHBasicAgreement.CalculateAgreementFieldElement(m_privKey, (ECPublicKeyParameters)publicKey)
+            ECDHBasicAgreement.CalculateAgreementFieldElement(m_privateKey, (ECPublicKeyParameters)publicKey)
                 .EncodeTo(buf, off);
 #endif
         }
@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void CalculateAgreement(ICipherParameters publicKey, Span<byte> output)
         {
-            ECDHBasicAgreement.CalculateAgreementFieldElement(m_privKey, (ECPublicKeyParameters)publicKey)
+            ECDHBasicAgreement.CalculateAgreementFieldElement(m_privateKey, (ECPublicKeyParameters)publicKey)
                 .EncodeTo(output[..AgreementSize]);
         }
 #endif
