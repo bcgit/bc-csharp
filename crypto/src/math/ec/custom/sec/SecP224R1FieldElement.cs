@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -53,15 +54,33 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             return Nat224.ToBigInteger(x);
         }
 
-        public override string FieldName
+        public override void EncodeTo(byte[] buf, int off)
         {
-            get { return "SecP224R1Field"; }
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            EncodeTo(buf.AsSpan(off));
+#else
+            for (int i = 6; i >= 0; --i)
+            {
+                Pack.UInt32_To_BE(x[i], buf, off + ((6 - i) << 2));
+            }
+#endif
         }
 
-        public override int FieldSize
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override void EncodeTo(Span<byte> buf)
         {
-            get { return Q.BitLength; }
+            for (int i = 6; i >= 0; --i)
+            {
+                Pack.UInt32_To_BE(x[i], buf.Slice((6 - i) << 2));
+            }
         }
+#endif
+
+        public override string FieldName => "SecP224R1Field";
+
+        public override int FieldSize => 224;
+
+        public override int GetEncodedLength() => 28;
 
         public override ECFieldElement Add(ECFieldElement b)
         {

@@ -98,7 +98,9 @@ namespace Org.BouncyCastle.Math.EC
 
         public virtual byte[] GetEncoded()
         {
-            return BigIntegers.AsUnsignedByteArray(GetEncodedLength(), ToBigInteger());
+            byte[] buf = new byte[GetEncodedLength()];
+            EncodeTo(buf, 0);
+            return buf;
         }
 
         public virtual int GetEncodedLength()

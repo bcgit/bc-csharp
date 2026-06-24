@@ -58,10 +58,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             get { return m_infinity; }
         }
 
-        public override int FieldSize
-        {
-            get { return q.BitLength; }
-        }
+        public override int FieldElementEncodingLength => 20;
+
+        public override int FieldSize => 160;
 
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
@@ -70,7 +69,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y)
         {
-            return new SecP160R2Point(this, x, y);
+            return new SecP160R2Point(this, x, y, SECP160R2_AFFINE_ZS);
         }
 
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
@@ -164,7 +163,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             private ECPoint CreatePoint(uint[] x, uint[] y)
             {
-                return m_outer.CreateRawPoint(new SecP160R2FieldElement(x), new SecP160R2FieldElement(y), SECP160R2_AFFINE_ZS);
+                return m_outer.CreateRawPoint(new SecP160R2FieldElement(x), new SecP160R2FieldElement(y));
             }
         }
     }

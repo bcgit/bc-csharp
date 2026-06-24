@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             this.m_b = FromBigInteger(BigInteger.Seven);
             this.m_order = new BigInteger(1, Hex.DecodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"));
             this.m_cofactor = BigInteger.One;
+
             this.m_coord = SECP256K1_DEFAULT_COORDS;
         }
 
@@ -55,10 +56,9 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
             get { return m_infinity; }
         }
 
-        public override int FieldSize
-        {
-            get { return q.BitLength; }
-        }
+        public override int FieldElementEncodingLength => 32;
+
+        public override int FieldSize => 256;
 
         public override ECFieldElement FromBigInteger(BigInteger x)
         {
@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y)
         {
-            return new SecP256K1Point(this, x, y);
+            return new SecP256K1Point(this, x, y, SECP256K1_AFFINE_ZS);
         }
 
         protected internal override ECPoint CreateRawPoint(ECFieldElement x, ECFieldElement y, ECFieldElement[] zs)
@@ -161,7 +161,7 @@ namespace Org.BouncyCastle.Math.EC.Custom.Sec
 
             private ECPoint CreatePoint(uint[] x, uint[] y)
             {
-                return m_outer.CreateRawPoint(new SecP256K1FieldElement(x), new SecP256K1FieldElement(y), SECP256K1_AFFINE_ZS);
+                return m_outer.CreateRawPoint(new SecP256K1FieldElement(x), new SecP256K1FieldElement(y));
             }
         }
     }
