@@ -8,13 +8,12 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * containing class for an CMS Authenticated Data object
-     */
+    /// <summary>Containing class for a CMS AuthenticatedData object.</summary>
     public class CmsAuthenticatedData
     {
         private readonly ContentInfo m_contentInfo;
         private readonly AuthenticatedData m_authenticatedData;
+        private readonly OriginatorInformation m_originatorInformation;
         private readonly RecipientInformationStore m_recipientInfoStore;
 
         // TODO[api] Rename parameter to contentInfo?
@@ -33,6 +32,9 @@ namespace Org.BouncyCastle.Cms
         {
             m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
             m_authenticatedData = AuthenticatedData.GetInstance(contentInfo.Content);
+
+            var originatorInfo = m_authenticatedData.OriginatorInfo;
+            m_originatorInformation = originatorInfo == null ? null : new OriginatorInformation(originatorInfo);
 
             //
             // read the recipients
@@ -56,6 +58,8 @@ namespace Org.BouncyCastle.Cms
         }
 
         public AuthenticatedData AuthenticatedData => m_authenticatedData;
+
+        public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
         public byte[] GetMac() => Arrays.Clone(m_authenticatedData.Mac.GetOctets());
 

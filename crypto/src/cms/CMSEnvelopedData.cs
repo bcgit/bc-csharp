@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Cms
     {
         private readonly ContentInfo m_contentInfo;
         private readonly EnvelopedData m_envelopedData;
+        private readonly OriginatorInformation m_originatorInformation;
         private readonly RecipientInformationStore m_recipientInfoStore;
 
         // TODO[api] Rename parameter to contentInfo?
@@ -34,6 +35,9 @@ namespace Org.BouncyCastle.Cms
             m_envelopedData = EnvelopedData.GetInstance(contentInfo.Content)
                 ?? throw new CmsException("Malformed content.");
 
+            var originatorInfo = m_envelopedData.OriginatorInfo;
+            m_originatorInformation = originatorInfo == null ? null : new OriginatorInformation(originatorInfo);
+
             //
             // read the recipients
             //
@@ -53,6 +57,8 @@ namespace Org.BouncyCastle.Cms
             //
             m_recipientInfoStore = CmsEnvelopedHelper.BuildRecipientInformationStore(recipientInfos, secureReadable);
         }
+
+        public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
         public AlgorithmIdentifier EncryptionAlgorithmID =>
             EnvelopedData.EncryptedContentInfo.ContentEncryptionAlgorithm;

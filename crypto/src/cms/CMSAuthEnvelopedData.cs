@@ -7,13 +7,12 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * containing class for an CMS AuthEnveloped Data object
-     */
+    /// <summary>Containing class for a CMS AuthEnvelopedData object.</summary>
     internal class CmsAuthEnvelopedData
     {
         private readonly ContentInfo m_contentInfo;
         private readonly AuthEnvelopedData m_authEnvelopedData;
+        private readonly OriginatorInformation m_originatorInformation;
         private readonly RecipientInformationStore m_recipientInfoStore;
 
         // TODO[api] Rename parameter to contentInfo?
@@ -33,7 +32,8 @@ namespace Org.BouncyCastle.Cms
             m_contentInfo = contentInfo;
             m_authEnvelopedData = AuthEnvelopedData.GetInstance(contentInfo.Content);
 
-            //this.originator = m_authEnvelopedData.OriginatorInfo;
+            var originatorInfo = m_authEnvelopedData.OriginatorInfo;
+            m_originatorInformation = originatorInfo == null ? null : new OriginatorInformation(originatorInfo);
 
             //
             // read the recipients
@@ -60,6 +60,8 @@ namespace Org.BouncyCastle.Cms
         }
 
         public AuthEnvelopedData AuthEnvelopedData => m_authEnvelopedData;
+
+        public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
         public AlgorithmIdentifier ContentEncryptionAlgorithm =>
             AuthEnvelopedData.AuthEncryptedContentInfo.ContentEncryptionAlgorithm;

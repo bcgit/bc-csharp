@@ -125,32 +125,27 @@ namespace Org.BouncyCastle.Cms
         protected Stream Open(Stream outStr, AlgorithmIdentifier macAlgId, ICipherParameters cipherParameters,
             Asn1EncodableVector recipientInfos)
         {
+            // TODO[cms] New method (through to API) taking this as a parameter
+            var dataType = CmsObjectIdentifiers.Data;
+
             try
             {
                 // ContentInfo
                 BerSequenceGenerator cGen = new BerSequenceGenerator(outStr);
                 cGen.AddObject(CmsObjectIdentifiers.AuthenticatedData);
 
+                var originatorInfo = m_originatorInformation?.ToAsn1Structure();
+
                 // AuthenticatedData
                 BerSequenceGenerator authGen = new BerSequenceGenerator(cGen.GetRawOutputStream(), 0, true);
-                authGen.AddObject(DerInteger.ValueOf(AuthenticatedData.CalculateVersion(null)));
-
-                Stream authRaw = authGen.GetRawOutputStream();
-                using (var recipGen = m_berEncodeRecipientSet
-                    ? (Asn1Generator)new BerSetGenerator(authRaw)
-                    : new DerSetGenerator(authRaw))
-                {
-                    foreach (Asn1Encodable ae in recipientInfos)
-                    {
-                        recipGen.AddObject(ae);
-                    }
-                }
-
+                authGen.AddObject(DerInteger.ValueOf(AuthenticatedData.CalculateVersion(originatorInfo)));
+                CmsUtilities.AddOriginatorInfoToGenerator(authGen, originatorInfo);
+                CmsUtilities.AddRecipientInfosToGenerator(authGen, recipientInfos, m_berEncodeRecipientSet);
                 authGen.AddObject(macAlgId);
 
                 // EncapsulatedContentInfo
-                BerSequenceGenerator eciGen = new BerSequenceGenerator(authRaw);
-                eciGen.AddObject(CmsObjectIdentifiers.Data);
+                BerSequenceGenerator eciGen = new BerSequenceGenerator(authGen.GetRawOutputStream());
+                eciGen.AddObject(dataType);
 
                 // eContent [0] EXPLICIT OCTET STRING OPTIONAL
                 BerOctetStringGenerator ecGen = new BerOctetStringGenerator(eciGen.GetRawOutputStream(), 0, true);

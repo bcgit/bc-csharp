@@ -6,43 +6,23 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-	public class OriginatorInformation
-	{
-		private readonly OriginatorInfo originatorInfo;
+    public class OriginatorInformation
+    {
+        private readonly OriginatorInfo m_originatorInfo;
 
         public OriginatorInformation(OriginatorInfo originatorInfo)
-		{
-			this.originatorInfo = originatorInfo;
-		}
+        {
+            m_originatorInfo = originatorInfo ?? throw new ArgumentNullException(nameof(originatorInfo));
+        }
 
-		/**
-		* Return the certificates stored in the underlying OriginatorInfo object.
-		*
-		* @return a Store of X509CertificateHolder objects.
-		*/
-		public virtual IStore<X509Certificate> GetCertificates()
-		{
-			return CmsSignedHelper.GetCertificates(originatorInfo.Certificates);
-		}
+        /// <summary>Return the certificates stored in the underlying OriginatorInfo object.</summary>
+        public virtual IStore<X509Certificate> GetCertificates() =>
+            CmsSignedHelper.GetCertificates(m_originatorInfo.Certificates);
 
-		/**
-		* Return the CRLs stored in the underlying OriginatorInfo object.
-		*
-		* @return a Store of X509CRLHolder objects.
-		*/
-		public virtual IStore<X509Crl> GetCrls()
-		{
-			return CmsSignedHelper.GetCrls(originatorInfo.Crls);
-		}
+        /// <summary>Return the CRLs stored in the underlying OriginatorInfo object.</summary>
+        public virtual IStore<X509Crl> GetCrls() => CmsSignedHelper.GetCrls(m_originatorInfo.Crls);
 
-		/**
-		* Return the underlying ASN.1 object defining this SignerInformation object.
-		*
-		* @return a OriginatorInfo.
-		*/
-		public virtual OriginatorInfo ToAsn1Structure()
-		{
-			return originatorInfo;
-		}
-	}
+        /// <summary>Return the underlying ASN.1 object defining this OriginatorInformation object.</summary>
+        public virtual OriginatorInfo ToAsn1Structure() => m_originatorInfo;
+    }
 }

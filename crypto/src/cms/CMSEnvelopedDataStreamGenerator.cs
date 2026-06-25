@@ -105,11 +105,12 @@ namespace Org.BouncyCastle.Cms
                 }
             }
 
-            return Open(outStream, encAlgID, cipherParameters, recipientInfos);
+            // TODO[cms] Add 'Open' variant(s) with 'dataType' parameter
+            return Open(CmsObjectIdentifiers.Data, outStream, encAlgID, cipherParameters, recipientInfos);
         }
 
-        private Stream Open(Stream outStream, AlgorithmIdentifier encAlgID, ICipherParameters cipherParameters,
-            Asn1EncodableVector recipientInfos)
+        private Stream Open(DerObjectIdentifier dataType, Stream outStream, AlgorithmIdentifier encAlgID,
+            ICipherParameters cipherParameters, Asn1EncodableVector recipientInfos)
         {
             try
             {
@@ -117,28 +118,17 @@ namespace Org.BouncyCastle.Cms
                 BerSequenceGenerator cGen = new BerSequenceGenerator(outStream);
                 cGen.AddObject(CmsObjectIdentifiers.EnvelopedData);
 
+                var originatorInfo = m_originatorInformation?.ToAsn1Structure();
+
                 // EnvelopedData
                 BerSequenceGenerator envGen = new BerSequenceGenerator(cGen.GetRawOutputStream(), 0, true);
-
-                bool isV2 = m_originatorInfo != null || m_unprotectedAttributes != null;
-                var version = isV2 ? DerInteger.Two : DerInteger.Zero;
-
-                envGen.AddObject(version);
-
-                Stream envRaw = envGen.GetRawOutputStream();
-                using (var recipGen = m_berEncodeRecipientSet
-                    ? (Asn1Generator)new BerSetGenerator(envRaw)
-                    : new DerSetGenerator(envRaw))
-                {
-                    foreach (Asn1Encodable ae in recipientInfos)
-                    {
-                        recipGen.AddObject(ae);
-                    }
-                }
+                envGen.AddObject(GetVersion(originatorInfo, recipientInfos));
+                CmsUtilities.AddOriginatorInfoToGenerator(envGen, originatorInfo);
+                CmsUtilities.AddRecipientInfosToGenerator(envGen, recipientInfos, m_berEncodeRecipientSet);
 
                 // EncryptedContentInfo
-                BerSequenceGenerator eciGen = new BerSequenceGenerator(envRaw);
-                eciGen.AddObject(CmsObjectIdentifiers.Data);
+                BerSequenceGenerator eciGen = new BerSequenceGenerator(envGen.GetRawOutputStream());
+                eciGen.AddObject(dataType);
                 eciGen.AddObject(encAlgID);
 
                 // encryptedContent [0] IMPLICIT EncryptedContent OPTIONAL (EncryptedContent ::= OCTET STRING)
@@ -196,6 +186,22 @@ namespace Org.BouncyCastle.Cms
             keyGen.Init(new KeyGenerationParameters(m_random, keySize));
 
             return Open(outStream, encryptionOid, keyGen);
+        }
+
+        private DerInteger GetVersion(OriginatorInfo originatorInfo, Asn1EncodableVector recipientInfos)
+        {
+            var recipientInfoSet = DLSet.FromCollection(recipientInfos);
+
+            Asn1Set unprotectedAttrs = null;
+            if (unprotectedAttributeGenerator != null)
+            {
+                // mark unprotected attributes as non-null.
+                unprotectedAttrs = DLSet.Empty;
+            }
+
+            int version = EnvelopedData.CalculateVersion(originatorInfo, recipientInfoSet, unprotectedAttrs);
+
+            return DerInteger.ValueOf(version);
         }
 
         private class CmsEnvelopedDataOutputStream

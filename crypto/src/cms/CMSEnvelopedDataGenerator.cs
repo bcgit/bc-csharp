@@ -107,7 +107,9 @@ namespace Org.BouncyCastle.Cms
                 unprotectedAttrs = BerSet.FromCollection(attrTable);
             }
 
-            var envelopedData = new EnvelopedData(originatorInfo: null, recipientInfos, encryptedContentInfo,
+            var originatorInfo = m_originatorInformation?.ToAsn1Structure();
+
+            var envelopedData = new EnvelopedData(originatorInfo, recipientInfos, encryptedContentInfo,
                 unprotectedAttrs);
 
             var contentInfo = new ContentInfo(CmsObjectIdentifiers.EnvelopedData, envelopedData);
@@ -194,7 +196,9 @@ namespace Org.BouncyCastle.Cms
                 unprotectedAttrs = BerSet.FromCollection(attrTable);
             }
 
-            var envelopedData = new EnvelopedData(originatorInfo: null, recipientInfos, encryptedContentInfo,
+            var originatorInfo = m_originatorInformation?.ToAsn1Structure();
+
+            var envelopedData = new EnvelopedData(originatorInfo, recipientInfos, encryptedContentInfo,
                 unprotectedAttrs);
 
             var contentInfo = new ContentInfo(CmsObjectIdentifiers.EnvelopedData, envelopedData);

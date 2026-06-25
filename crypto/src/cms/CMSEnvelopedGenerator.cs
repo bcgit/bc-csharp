@@ -136,6 +136,8 @@ namespace Org.BouncyCastle.Cms
 
         internal CmsAttributeTableGenerator unprotectedAttributeGenerator = null;
 
+        internal OriginatorInformation m_originatorInformation = null;
+
         protected CmsEnvelopedGenerator()
             : this(CryptoServicesRegistrar.GetSecureRandom())
         {
@@ -155,6 +157,12 @@ namespace Org.BouncyCastle.Cms
         {
             get { return this.unprotectedAttributeGenerator; }
             set { this.unprotectedAttributeGenerator = value; }
+        }
+
+        public OriginatorInformation OriginatorInformation
+        {
+            get { return m_originatorInformation; }
+            set { m_originatorInformation = value; }
         }
 
         /**

@@ -321,5 +321,20 @@ namespace Org.BouncyCastle.Cms
 
             return new CmsTypedProcessable(defaultContentType, processable);
         }
+
+        internal static void AddOriginatorInfoToGenerator(BerSequenceGenerator seqGen, OriginatorInfo originatorInfo)
+        {
+            if (originatorInfo != null)
+            {
+                seqGen.AddObject(new DerTaggedObject(false, 0, originatorInfo));
+            }
+        }
+
+        internal static void AddRecipientInfosToGenerator(BerSequenceGenerator authGen,
+            Asn1EncodableVector recipientInfos, bool berEncodeRecipientSet)
+        {
+            recipientInfos.ToAsn1Set(useDer: !berEncodeRecipientSet, useDL: false)
+                .EncodeTo(authGen.GetRawOutputStream());
+        }
     }
 }

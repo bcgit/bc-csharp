@@ -33,9 +33,27 @@ namespace Org.BouncyCastle.Cms
 
         /// <summary>Constructor allowing specific source of randomness</summary>
         /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
-	    public CmsAuthenticatedDataGenerator(SecureRandom random)
+        public CmsAuthenticatedDataGenerator(SecureRandom random)
             : base(random)
         {
+        }
+
+        /// <summary>Generate an authenticated object that contains an CMS Authenticated Data object.</summary>
+        public CmsAuthenticatedData Generate(CmsProcessable content, string encryptionOid)
+        {
+            try
+            {
+                // FIXME Will this work for macs?
+                CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
+
+                keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
+
+                return Generate(content, encryptionOid, keyGen);
+            }
+            catch (SecurityUtilityException e)
+            {
+                throw new CmsException("can't find key generation algorithm.", e);
+            }
         }
 
         /**
@@ -105,31 +123,14 @@ namespace Org.BouncyCastle.Cms
 
             var eci = new ContentInfo(CmsObjectIdentifiers.Data, encContent);
 
-            var contentInfo = new ContentInfo(
-                CmsObjectIdentifiers.AuthenticatedData,
-                new AuthenticatedData(null, recipientInfos, macAlgID, null, eci, null, macResult, null));
+            var originatorInfo = m_originatorInformation?.ToAsn1Structure();
+
+            var authenticatedData = new AuthenticatedData(originatorInfo, recipientInfos, macAlgID, null, eci, null,
+                macResult, null);
+
+            var contentInfo = new ContentInfo(CmsObjectIdentifiers.AuthenticatedData, authenticatedData);
 
             return new CmsAuthenticatedData(contentInfo);
-        }
-
-        /**
-         * generate an authenticated object that contains an CMS Authenticated Data object
-         */
-        public CmsAuthenticatedData Generate(CmsProcessable content, string encryptionOid)
-        {
-            try
-            {
-                // FIXME Will this work for macs?
-                CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
-
-                keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
-
-                return Generate(content, encryptionOid, keyGen);
-            }
-            catch (SecurityUtilityException e)
-            {
-                throw new CmsException("can't find key generation algorithm.", e);
-            }
         }
     }
 }
