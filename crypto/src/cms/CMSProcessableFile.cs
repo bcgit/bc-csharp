@@ -1,43 +1,50 @@
+using System;
 using System.IO;
 
-using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
 {
-	/**
-	* a holding class for a file of data to be processed.
-	*/
-	public class CmsProcessableFile
-		: CmsProcessable, CmsReadable
-	{
-		private const int DefaultBufSize = 32 * 1024;
+    /// <summary>A holding class for a file of data to be processed.</summary>
+    public class CmsProcessableFile
+        : CmsTypedData, CmsReadable
+    {
+        private const int DefaultBufSize = 32 * 1024;
 
-        private readonly FileInfo	_file;
-		private readonly int		_bufSize;
+        private readonly DerObjectIdentifier m_type;
+        private readonly FileInfo m_file;
+        private readonly int m_bufSize;
 
         public CmsProcessableFile(FileInfo file)
-			: this(file, DefaultBufSize)
-		{
-		}
+            : this(file, DefaultBufSize)
+        {
+        }
 
         public CmsProcessableFile(FileInfo file, int bufSize)
-		{
-			_file = file;
-			_bufSize = bufSize;
-		}
+            : this(CmsObjectIdentifiers.Data, file, bufSize)
+        {
+        }
 
-        public virtual Stream GetInputStream()
-		{
-			return new FileStream(_file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, _bufSize);
-		}
+        public CmsProcessableFile(DerObjectIdentifier type, FileInfo file, int bufSize)
+        {
+            m_type = type ?? throw new ArgumentNullException(nameof(type));
+            m_file = file;
+            m_bufSize = bufSize;
+        }
+
+        public virtual Stream GetInputStream() =>
+            new FileStream(m_file.FullName, FileMode.Open, FileAccess.Read, FileShare.Read, m_bufSize);
 
         public virtual void Write(Stream zOut)
-		{
-			using (var inStr = _file.OpenRead())
-			{
-                Streams.PipeAll(inStr, zOut, _bufSize);
+        {
+            using (var inStr = m_file.OpenRead())
+            {
+                Streams.PipeAll(inStr, zOut, m_bufSize);
             }
-		}
-	}
+        }
+
+        public DerObjectIdentifier ContentType => m_type;
+    }
 }

@@ -350,7 +350,7 @@ namespace Org.BouncyCastle.Cms
 
             CmsTypedStream signedContent = parser.GetSignedContent();
             bool encapsulate = (signedContent != null);
-            Stream contentOut = gen.Open(outStr, parser.SignedContentType.GetID(), encapsulate);
+            Stream contentOut = gen.Open(outStr, parser.SignedContentType, encapsulate);
             if (encapsulate)
             {
                 Streams.PipeAll(signedContent.ContentStream, contentOut);
@@ -390,7 +390,7 @@ namespace Org.BouncyCastle.Cms
 
             CmsTypedStream signedContent = parser.GetSignedContent();
             bool encapsulate = (signedContent != null);
-            Stream contentOut = gen.Open(outStr, parser.SignedContentType.GetID(), encapsulate);
+            Stream contentOut = gen.Open(outStr, parser.SignedContentType, encapsulate);
             if (encapsulate)
             {
                 Streams.PipeAll(signedContent.ContentStream, contentOut);

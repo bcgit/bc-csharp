@@ -1,24 +1,29 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 
 using Org.BouncyCastle.Asn1;
 
 namespace Org.BouncyCastle.Cms
 {
     public class Pkcs7ProcessableObject
-        : CmsProcessable
+        : CmsTypedData
     {
-        public DerObjectIdentifier ContentType { get; }
-        public Asn1Encodable Content { get; }
+        private readonly DerObjectIdentifier m_contentType;
+        private readonly Asn1Encodable m_content;
 
         public Pkcs7ProcessableObject(DerObjectIdentifier contentType, Asn1Encodable content)
         {
-            ContentType = contentType;
-            Content = content;
+            m_contentType = contentType;
+            m_content = content;
         }
+
+        public Asn1Encodable Content => m_content;
+
+        public DerObjectIdentifier ContentType => m_contentType;
 
         public void Write(Stream outStream)
         {
-            Asn1Sequence seq = Asn1Sequence.GetOptional(Content);
+            Asn1Sequence seq = Asn1Sequence.GetOptional(m_content);
             if (seq != null)
             {
                 foreach (var element in seq)
@@ -28,18 +33,20 @@ namespace Org.BouncyCastle.Cms
             }
             else
             {
-                byte[] encoded = Content.GetEncoded(Asn1Encodable.Der);
+                byte[] encoded = m_content.GetEncoded(Asn1Encodable.Der);
+
                 int index = 1;
                 while ((encoded[index] & 0x80) != 0)
                 {
                     index++;
                 }
-
                 index++;
+
                 outStream.Write(encoded, index, encoded.Length - index);
             }
         }
 
-        public object GetContent() => Content;
+        [Obsolete("Use 'Content' property instead")]
+        public object GetContent() => m_content;
     }
 }

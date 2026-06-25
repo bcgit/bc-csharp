@@ -106,7 +106,7 @@ namespace Org.BouncyCastle.Cms
             m_random = random ?? throw new ArgumentNullException(nameof(random));
         }
 
-        internal protected virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
+        protected internal virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
             DerObjectIdentifier contentType, AlgorithmIdentifier digAlgId, byte[] hash)
         {
             var param = new Dictionary<CmsAttributeTableParameter, object>();
@@ -123,7 +123,7 @@ namespace Org.BouncyCastle.Cms
         }
 
         // TODO[api] Make internal
-        internal protected virtual Asn1Set GetAttributeSet(Asn1.Cms.AttributeTable attr)
+        protected internal virtual Asn1Set GetAttributeSet(Asn1.Cms.AttributeTable attr)
         {
             return attr == null ? null : DerSet.FromCollection(attr);
         }

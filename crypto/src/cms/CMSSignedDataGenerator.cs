@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -22,7 +23,7 @@ namespace Org.BouncyCastle.Cms
     /// Generator for CMS SignedData (PKCS#7 signed-data) messages. Configure signers with
     /// <see cref="AddSigner(AsymmetricKeyParameter, X509Certificate, string)"/> (and overloads), add
     /// certificates and CRLs via the base <see cref="CmsSignedGenerator"/> methods, then call
-    /// <see cref="Generate(CmsProcessable)"/> to obtain a <see cref="CmsSignedData"/> instance.
+    /// <see cref="Generate(CmsTypedData, bool)"/> to obtain a <see cref="CmsSignedData"/> instance.
     /// </summary>
     public class CmsSignedDataGenerator
         : CmsSignedGenerator
@@ -522,6 +523,7 @@ namespace Org.BouncyCastle.Cms
         /// <exception cref="CmsException">
         /// An error occurred while building signer information or encapsulating content.
         /// </exception>
+        [Obsolete("Use 'Generate(CmsTypedData)' instead")]
         public CmsSignedData Generate(CmsProcessable content) => Generate(content, encapsulate: false);
 
         /// <summary>
@@ -533,8 +535,9 @@ namespace Org.BouncyCastle.Cms
         /// <exception cref="CmsException">
         /// An error occurred while building signer information or encapsulating content.
         /// </exception>
+        [Obsolete("Use 'Generate(CmsTypedData, bool)' instead")]
         public CmsSignedData Generate(CmsProcessable content, bool encapsulate) =>
-            Generate(signedContentType: Data, content, encapsulate);
+            Generate(CmsUtilities.GetTypedData(content), encapsulate);
 
         /// <summary>
         /// Generates a CMS SignedData object with an explicit encapsulated content type OID.
@@ -546,13 +549,42 @@ namespace Org.BouncyCastle.Cms
         /// <exception cref="CmsException">
         /// An error occurred while building signer information or encapsulating content.
         /// </exception>
-        // TODO[api] Rename parameters
+        [Obsolete("Use 'Generate(CmsTypedData, bool)' instead")]
+        public CmsSignedData Generate(string signedContentType, CmsProcessable content, bool encapsulate) =>
+            Generate(CmsUtilities.BindTypedData(new DerObjectIdentifier(signedContentType), content), encapsulate);
+
+        /// <summary>
+        /// Generates a CMS SignedData object for <paramref name="content"/> without encapsulating the content.
+        /// </summary>
+        /// <param name="content">The content to sign. <c>null</c> is not allowed; use a <see cref="CmsAbsentContent"/>
+        /// instead to signal no content.</param>
+        /// <returns>The signed-data structure.</returns>
+        /// <exception cref="CmsException">
+        /// An error occurred while building signer information or encapsulating content.
+        /// </exception>
+        public CmsSignedData Generate(CmsTypedData content) => Generate(content, encapsulate: false);
+
+        /// <summary>
+        /// Generate a CMS SignedData object for <paramref name="content"/>, which can be carrying a detached CMS
+        /// signature, or have encapsulated data, depending on the value of <paramref name="encapsulate"/>.
+        /// </summary>
+        /// <param name="content">The content to sign. <c>null</c> is not allowed; use a <see cref="CmsAbsentContent"/>
+        /// instead to signal no content.</param>
+        /// <param name="encapsulate">
+        /// <c>true</c> if the content should be encapsulated in the signature, <c>false</c> otherwise.
+        /// </param>
+        /// <returns>The signed-data structure.</returns>
+        /// <exception cref="CmsException">
+        /// An error occurred while building signer information or encapsulating content.
+        /// </exception>
         public CmsSignedData Generate(
-            string signedContentType,
             // FIXME Avoid accessing more than once to support CmsProcessableInputStream
-            CmsProcessable content,
+            CmsTypedData content,
             bool encapsulate)
         {
+            if (content == null)
+                throw new ArgumentNullException(nameof(content));
+
             var digestAlgorithmsBuilder = new DigestAlgorithmsBuilder(DigestAlgorithmFinder);
 
             var signerInfos = new List<SignerInfo>(_signers.Count + signerInfs.Count);
@@ -574,7 +606,7 @@ namespace Org.BouncyCastle.Cms
             //
             // add the SignerInfo objects
             //
-            DerObjectIdentifier encapContentType = new DerObjectIdentifier(signedContentType);
+            DerObjectIdentifier encapContentType = content.ContentType;
 
             foreach (var signerInf in signerInfs)
             {
@@ -610,7 +642,9 @@ namespace Org.BouncyCastle.Cms
             Asn1Set crls = _crls.ToAsn1SetOptional(_useDerForCrls, _useDefiniteLength);
 
             Asn1OctetString encapContent = null;
-            if (encapsulate)
+
+            // bc-java checks typedData.getContent() but we don't have such a method/property
+            if (encapsulate && !(content is CmsAbsentContent))
             {
                 try
                 {

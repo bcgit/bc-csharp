@@ -59,52 +59,63 @@ namespace Org.BouncyCastle.Cms
         {
         }
 
+        [Obsolete("Use 'CmsSignedData(CmsTypedData, byte[])' instead")]
         public CmsSignedData(CmsProcessable signedContent, byte[] sigBlock)
             : this(signedContent, CmsUtilities.ReadContentInfo(sigBlock))
         {
         }
 
-        /**
-         * Content with detached signature, digests precomputed
-         *
-         * @param hashes a map of precomputed digests for content indexed by name of hash.
-         * @param sigBlock the signature object.
-         */
+        public CmsSignedData(CmsTypedData signedContent, byte[] sigBlock)
+            : this(signedContent, CmsUtilities.ReadContentInfo(sigBlock))
+        {
+        }
+
         public CmsSignedData(IDictionary<string, byte[]> hashes, byte[] sigBlock)
             : this(hashes, CmsUtilities.ReadContentInfo(sigBlock))
         {
         }
 
-        /**
-         * base constructor - content with detached signature.
-         *
-         * @param signedContent the content that was signed.
-         * @param sigData the signature object.
-         */
+        [Obsolete("Use 'CmsSignedData(CmsTypedData, Stream)' instead")]
         public CmsSignedData(CmsProcessable signedContent, Stream sigData)
             : this(signedContent, CmsUtilities.ReadContentInfo(sigData))
         {
         }
 
-        /**
-         * base constructor - with encapsulated content
-         */
+        public CmsSignedData(CmsTypedData signedContent, Stream sigData)
+            : this(signedContent, CmsUtilities.ReadContentInfo(sigData))
+        {
+        }
+
         public CmsSignedData(Stream sigData)
             : this(CmsUtilities.ReadContentInfo(sigData))
         {
         }
 
+        [Obsolete("Use 'CmsSignedData(CmsTypedData, ContentInfo)' instead")]
         public CmsSignedData(CmsProcessable signedContent, ContentInfo sigData)
         {
             m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
-            m_signedData = SignedData.GetInstance(sigData.Content) ?? throw new CmsException("Malformed content.");
+            m_signedData = GetSignedData(sigData);
+            m_hashes = null;
+            m_signedContent = signedContent;
+        }
+
+        public CmsSignedData(CmsTypedData signedContent, ContentInfo sigData)
+        {
+            // Restriction follows bc-java behaviour
+            if (signedContent == null)
+                throw new ArgumentNullException(nameof(signedContent));
+
+            m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
+            m_signedData = GetSignedData(sigData);
+            m_hashes = null;
             m_signedContent = signedContent;
         }
 
         public CmsSignedData(IDictionary<string, byte[]> hashes, ContentInfo sigData)
         {
             m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
-            m_signedData = SignedData.GetInstance(sigData.Content) ?? throw new CmsException("Malformed content.");
+            m_signedData = GetSignedData(sigData);
             m_signedContent = null;
             m_hashes = hashes;
         }
@@ -112,21 +123,22 @@ namespace Org.BouncyCastle.Cms
         public CmsSignedData(ContentInfo sigData)
         {
             m_contentInfo = sigData ?? throw new ArgumentNullException(nameof(sigData));
-            m_signedData = SignedData.GetInstance(sigData.Content) ?? throw new CmsException("Malformed content.");
+            m_signedData = GetSignedData(sigData);
 
             var encapContentInfo = m_signedData.EncapContentInfo;
             var encapContent = encapContentInfo.Content;
 
-            if (encapContent != null)
+            if (encapContent == null)
             {
-                if (encapContent is Asn1OctetString octetString)
-                {
-                    m_signedContent = new CmsProcessableByteArray(octetString.GetOctets());
-                }
-                else
-                {
-                    m_signedContent = new Pkcs7ProcessableObject(encapContentInfo.ContentType, encapContent);
-                }
+                m_signedContent = null;
+            }
+            else if (encapContent is Asn1OctetString octetString)
+            {
+                m_signedContent = new CmsProcessableByteArray(encapContentInfo.ContentType, octetString.GetOctets());
+            }
+            else
+            {
+                m_signedContent = new Pkcs7ProcessableObject(encapContentInfo.ContentType, encapContent);
             }
         }
 
@@ -238,6 +250,7 @@ namespace Org.BouncyCastle.Cms
         public bool IsDetachedSignature =>
             m_signedData.EncapContentInfo.Content == null && m_signedData.SignerInfos.Count > 0;
 
+        // TODO[api] Change return type to CmsTypedData (only when dropping CmsProcessable constructors too)
         public CmsProcessable SignedContent => m_signedContent;
 
         /// <summary>
@@ -429,6 +442,26 @@ namespace Org.BouncyCastle.Cms
 
             return new CmsSignedData(signedData.ContentInfo.ContentType, newContent, signedData.m_signedContent,
                 signedData.m_signerInfoStore);
+        }
+
+        /// <exception cref="CmsException"></exception>
+        private static SignedData GetSignedData(ContentInfo contentInfo)
+        {
+            try
+            {
+                var signedData = SignedData.GetInstance(contentInfo.Content);
+                if (signedData != null)
+                    return signedData;
+            }
+            catch (CmsException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CmsException("Malformed content.", e);
+            }
+            throw new CmsException("Malformed content.");
         }
 
         private class PreserveAbsentParameters

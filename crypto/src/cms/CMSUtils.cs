@@ -296,5 +296,30 @@ namespace Org.BouncyCastle.Cms
                     throw new ArgumentException("cannot add unsuccessful OCSP response to CMS SignedData");
             }
         }
+
+        internal static CmsTypedData BindTypedData(DerObjectIdentifier contentType, CmsProcessable processable)
+        {
+            if (processable == null)
+                return new CmsAbsentContent(contentType);
+
+            if (processable is CmsTypedData cmsTypedData && cmsTypedData.ContentType.Equals(contentType))
+                return cmsTypedData;
+
+            return new CmsTypedProcessable(contentType, processable);
+        }
+
+        internal static CmsTypedData GetTypedData(CmsProcessable processable) =>
+            GetTypedData(processable, CmsObjectIdentifiers.Data);
+
+        internal static CmsTypedData GetTypedData(CmsProcessable processable, DerObjectIdentifier defaultContentType)
+        {
+            if (processable == null)
+                return new CmsAbsentContent(defaultContentType);
+
+            if (processable is CmsTypedData cmsTypedData)
+                return cmsTypedData;
+
+            return new CmsTypedProcessable(defaultContentType, processable);
+        }
     }
 }

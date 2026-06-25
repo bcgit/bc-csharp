@@ -408,7 +408,8 @@ namespace Org.BouncyCastle.Cms
         * of the message will be included in the signature with the
         * default content type "data".
         */
-        public Stream Open(Stream outStream, bool encapsulate) => Open(outStream, signedContentType: Data, encapsulate);
+        public Stream Open(Stream outStream, bool encapsulate) =>
+            Open(outStream, contentType: CmsObjectIdentifiers.Data, encapsulate);
 
         /**
          * generate a signed object that for a CMS Signed Data
@@ -421,7 +422,7 @@ namespace Org.BouncyCastle.Cms
          * @param dataOutputStream output stream to copy the data being signed to.
          */
         public Stream Open(Stream outStream, bool encapsulate, Stream dataOutputStream) =>
-            Open(outStream, signedContentType: Data, encapsulate, dataOutputStream);
+            Open(outStream, contentType: CmsObjectIdentifiers.Data, encapsulate, dataOutputStream);
 
         /**
         * generate a signed object that for a CMS Signed Data
@@ -429,8 +430,9 @@ namespace Org.BouncyCastle.Cms
         * of the message will be included in the signature. The content type
         * is set according to the OID represented by the string signedContentType.
         */
+        [Obsolete("Use version taking a DerObjectIdentifier instead")]
         public Stream Open(Stream outStream, string signedContentType, bool encapsulate) =>
-            Open(outStream, signedContentType, encapsulate, dataOutputStream: null);
+            Open(outStream, new DerObjectIdentifier(signedContentType), encapsulate);
 
         /**
          * generate a signed object that for a CMS Signed Data
@@ -442,7 +444,14 @@ namespace Org.BouncyCastle.Cms
          * @param encapsulate true if data should be encapsulated.
          * @param dataOutputStream output stream to copy the data being signed to.
          */
-        public Stream Open(Stream outStream, string signedContentType, bool encapsulate, Stream dataOutputStream)
+        [Obsolete("Use version taking a DerObjectIdentifier instead")]
+        public Stream Open(Stream outStream, string signedContentType, bool encapsulate, Stream dataOutputStream) =>
+            Open(outStream, new DerObjectIdentifier(signedContentType), encapsulate, dataOutputStream);
+
+        public Stream Open(Stream outStream, DerObjectIdentifier contentType, bool encapsulate) =>
+            Open(outStream, contentType, encapsulate, dataOutputStream: null);
+
+        public Stream Open(Stream outStream, DerObjectIdentifier contentType, bool encapsulate, Stream dataOutputStream)
         {
             if (outStream == null)
                 throw new ArgumentNullException(nameof(outStream));
@@ -452,8 +461,6 @@ namespace Org.BouncyCastle.Cms
                 throw new ArgumentException("Expected writeable stream", nameof(dataOutputStream));
 
             _messageDigestsLocked = true;
-
-            DerObjectIdentifier contentType = new DerObjectIdentifier(signedContentType);
 
             // ContentInfo
             BerSequenceGenerator sGen = new BerSequenceGenerator(outStream);
@@ -513,10 +520,10 @@ namespace Org.BouncyCastle.Cms
         }
 
         // TODO Make public?
-        internal void Generate(Stream outStream, string eContentType, bool encapsulate, Stream dataOutputStream,
-            CmsProcessable content)
+        internal void Generate(Stream outStream, DerObjectIdentifier contentType, bool encapsulate,
+            Stream dataOutputStream, CmsProcessable content)
         {
-            using (var signedOut = Open(outStream, eContentType, encapsulate, dataOutputStream))
+            using (var signedOut = Open(outStream, contentType, encapsulate, dataOutputStream))
             {
                 if (content != null)
                 {

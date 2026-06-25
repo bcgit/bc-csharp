@@ -298,8 +298,7 @@ namespace Org.BouncyCastle.Tsp
                 signedDataGenerator.AddSignerInfoGenerator(signerInfoGenerator);
 
                 CmsSignedData signedData = signedDataGenerator.Generate(
-                    PkcsObjectIdentifiers.IdCTTstInfo.Id,
-                    new CmsProcessableByteArray(derEncodedTstInfo),
+                    new CmsProcessableByteArray(PkcsObjectIdentifiers.IdCTTstInfo, derEncodedTstInfo),
                     encapsulate: true);
 
                 return new TimeStampToken(signedData);

@@ -618,7 +618,7 @@ namespace Org.BouncyCastle.Cms.Tests
         public void TestDetachedVerification()
         {
             byte[] data = Encoding.ASCII.GetBytes("Hello World!");
-            CmsProcessable msg = new CmsProcessableByteArray(data);
+            CmsTypedData msg = new CmsProcessableByteArray(data);
 
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
@@ -932,7 +932,7 @@ namespace Org.BouncyCastle.Cms.Tests
         public void TestSha1WithRsaAndAttributeTable()
         {
             byte[] testBytes = Encoding.ASCII.GetBytes("Hello world!");
-            CmsProcessable msg = new CmsProcessableByteArray(testBytes);
+            CmsTypedData msg = new CmsProcessableByteArray(testBytes);
 
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
@@ -948,7 +948,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 new Asn1.Cms.AttributeTable(v), null);
             gen.AddCertificates(x509Certs);
 
-            CmsSignedData s = gen.Generate(CmsSignedGenerator.Data, null, false);
+            CmsSignedData s = gen.Generate(new CmsAbsentContent(), encapsulate: false);
 
             //
             // the signature is detached, so need to add msg before passing on
@@ -1369,7 +1369,7 @@ namespace Org.BouncyCastle.Cms.Tests
             var sha1Null = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
             var sha1Omit = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
 
-            CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
+            CmsTypedData msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
 
             var x509Certs = CmsTestUtil.MakeCertStore(SignCert, OrigCert);
             var x509Crls = CmsTestUtil.MakeCrlStore(SignCrl);
@@ -1382,7 +1382,7 @@ namespace Org.BouncyCastle.Cms.Tests
             gen.AddCertificates(x509Certs);
             gen.AddCrls(x509Crls);
 
-            CmsSignedData s = gen.Generate(msg, true);
+            CmsSignedData s = gen.Generate(msg, encapsulate: true);
 
             var digestAlgorithms = new HashSet<AlgorithmIdentifier>(s.GetDigestAlgorithms());
             Assert.AreEqual(1, digestAlgorithms.Count);
@@ -1692,7 +1692,7 @@ namespace Org.BouncyCastle.Cms.Tests
         private static void RsaPssTest(string digestName, string digestOID)
         {
             byte[] msgBytes = Encoding.ASCII.GetBytes("Hello World!");
-            CmsProcessable msg = new CmsProcessableByteArray(msgBytes);
+            CmsTypedData msg = new CmsProcessableByteArray(msgBytes);
 
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
@@ -1700,7 +1700,7 @@ namespace Org.BouncyCastle.Cms.Tests
             gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.EncryptionRsaPss, digestOID);
             gen.AddCertificates(x509Certs);
 
-            CmsSignedData s = gen.Generate(CmsSignedGenerator.Data, msg, false);
+            CmsSignedData s = gen.Generate(msg, encapsulate: false);
 
             // compute expected content digest
             byte[] expectedDigest = DigestUtilities.CalculateDigest(digestName, msgBytes);
@@ -1711,7 +1711,7 @@ namespace Org.BouncyCastle.Cms.Tests
         private static void RsaPssDirectTest(string digestName)
         {
             byte[] msgBytes = Encoding.ASCII.GetBytes("Hello World!");
-            CmsProcessable msg = new CmsProcessableByteArray(msgBytes);
+            CmsTypedData msg = new CmsProcessableByteArray(msgBytes);
 
             var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
 
@@ -1720,7 +1720,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 new Asn1SignatureFactory(digestName + "withRSAandMGF1", OrigKP.Private), OrigCert));
             gen.AddCertificates(x509Certs);
 
-            CmsSignedData s = gen.Generate(CmsSignedGenerator.Data, msg, false);
+            CmsSignedData s = gen.Generate(msg, encapsulate: false);
 
             // compute expected content digest
             byte[] expectedDigest = DigestUtilities.CalculateDigest(digestName, msgBytes);
@@ -2041,7 +2041,7 @@ namespace Org.BouncyCastle.Cms.Tests
         private static void DetachedTest(AsymmetricCipherKeyPair signaturePair, X509Certificate signatureCert,
             string signatureAlgorithm, DerObjectIdentifier sigAlgOid, AlgorithmIdentifier expectedDigAlgID)
         {
-            CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
+            CmsTypedData msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
 
             var x509Certs = CmsTestUtil.MakeCertStore(signatureCert);
 
@@ -2211,7 +2211,7 @@ namespace Org.BouncyCastle.Cms.Tests
             gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
-            CmsSignedData s = gen.Generate(null, false);
+            CmsSignedData s = gen.Generate(new CmsAbsentContent(), encapsulate: false);
 
             s = new CmsSignedData(s.GetEncoded());
 
@@ -2221,7 +2221,7 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestWithAttributeCertificate()
         {
-            CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
+            CmsTypedData msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
 
             var x509Certs = CmsTestUtil.MakeCertStore(SignDsaCert);
 
@@ -2263,7 +2263,7 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestCertStoreReplacement()
         {
-            CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
+            CmsTypedData msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
 
             var x509Certs = CmsTestUtil.MakeCertStore(SignDsaCert);
 
@@ -2289,7 +2289,7 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestEncapsulatedCertStoreReplacement()
         {
-            CmsProcessable msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
+            CmsTypedData msg = new CmsProcessableByteArray(Encoding.ASCII.GetBytes("Hello World!"));
 
             var x509Certs = CmsTestUtil.MakeCertStore(SignDsaCert);
 
@@ -2297,7 +2297,7 @@ namespace Org.BouncyCastle.Cms.Tests
             gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
             gen.AddCertificates(x509Certs);
 
-            CmsSignedData sd = gen.Generate(msg, true);
+            CmsSignedData sd = gen.Generate(msg, encapsulate: true);
 
             //
             // create new certstore
@@ -2448,9 +2448,8 @@ namespace Org.BouncyCastle.Cms.Tests
             CmsSignedDataGenerator sGen = new CmsSignedDataGenerator();
             sGen.AddCertificates(x509Certs);
 
-            // TODO[cms] Note that in bc-java you can force absent encapContent, even with encapsulate=true
-            //CmsSignedData sData = sGen.Generate(new CmsAbsentContent(), true);
-            CmsSignedData sData = sGen.Generate(null, encapsulate: false);
+            // NOTE: Important case because it forces null content even when encapsulating
+            CmsSignedData sData = sGen.Generate(new CmsAbsentContent(), encapsulate: true);
 
             Assert.True(sData.IsCertificateManagementMessage);
             Assert.False(sData.IsDetachedSignature);
