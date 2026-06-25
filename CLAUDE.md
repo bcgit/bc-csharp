@@ -12,7 +12,7 @@ Root namespace: `Org.BouncyCastle`. NuGet package id: `BouncyCastle.Cryptography
 
 Two projects, both under [crypto/](crypto/):
 
-- [crypto/src/BouncyCastle.Crypto.csproj](crypto/src/BouncyCastle.Crypto.csproj) — main library. Multi-targets `net6.0;netstandard2.0;net461`. AOT-compatible on net7+. Signed with [BouncyCastle.NET.snk](BouncyCastle.NET.snk). Versioning is driven by Nerdbank.GitVersioning from [version.json](version.json).
+- [crypto/src/BouncyCastle.Crypto.csproj](crypto/src/BouncyCastle.Crypto.csproj) — main library. Multi-targets `net6.0;netstandard2.0;net461`. AOT-compatible on net7+. Signed with [BouncyCastle.NET.snk](BouncyCastle.NET.snk). Versioning is driven by Nerdbank.GitVersioning from [version.json](version.json) — see **API stability and versioning** for the compatibility contract this implies.
 - [crypto/test/BouncyCastle.Crypto.Tests.csproj](crypto/test/BouncyCastle.Crypto.Tests.csproj) — NUnit 3 test project. Multi-targets `net6.0;netcoreapp3.1;net472;net461`. Small/inline test data lives in [crypto/test/data/](crypto/test/data/) and is embedded as resources.
 
 **Bulk test data lives in a separate repository.** Clone https://github.com/bcgit/bc-test-data.git — the convention is to put it as a sibling of this repo (`../bc-test-data`), but `SimpleTest.FindTestDataPath` ([SimpleTest.cs](crypto/test/src/util/test/SimpleTest.cs)) walks up from the current working directory until it finds any ancestor containing a folder named `bc-test-data`, so any location on that path works. Tests that depend on it throw `DirectoryNotFoundException` if it is missing.
@@ -80,6 +80,34 @@ Tests mirror the same layout under [crypto/test/src/](crypto/test/src/).
 - **`Span<byte>` overloads for new public APIs.** On hot paths (cipher / digest / MAC `Update`/`DoFinal`, math primitives, parsing fast paths), add a `ReadOnlySpan<byte>` / `Span<byte>` overload alongside any new `byte[]`-shaped public method, guarded by the existing `#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER`. For non-hot-path APIs (configuration, builder-style methods, rarely-called helpers), ask before adding Span variants — they're worth the maintenance only when allocation/copy avoidance pays off.
 - **PQC code style.** `crypto/src/pqc/` largely follows the upstream reference C and is intentionally less idiomatic than the rest of the library — keep ports close to reference rather than refactoring for style.
 - **Relationship to Java Bouncy Castle.** [bc-java](https://github.com/bcgit/bc-java) shares heritage and many design choices, and it's worth consulting when an algorithm or API is already implemented there. But parity is **loose**: this codebase is free to diverge for idiomatic C# reasons, for performance (Spans, intrinsics, ref structs), or to take advantage of .NET features. No obligation to keep changes in lockstep with bc-java or to flag upstream parity for routine work.
+
+## API stability and versioning
+
+The library follows **Semantic Versioning 2.0.0** ([version.json](version.json) →
+`nugetPackageVersion.semVer: 2`). The current series is **v2.x**.
+
+**Backward compatibility is maintained within a major version sequence.** Within v2.x, changes must not
+break source or binary compatibility for existing public API consumers. `assemblyVersion.precision` is
+`"major"`, so the assembly version stays fixed across the whole major series — strong-named references must
+keep resolving, which makes binary compatibility a hard requirement, not a nicety.
+
+- **Allowed in a minor/patch release (additive):** new public types, members, and overloads, and new
+  opt-in behavior. Prefer **adding an overload** over changing an existing public signature.
+- **Reserved for the next major (breaking):** removing or renaming public types/members, changing
+  signatures or return types, tightening accessibility, or behavioral changes existing callers would
+  observe as a break.
+- **Deprecate, don't remove.** Mark superseded public API with `[Obsolete("Use 'Replacement' instead")]`
+  and keep it working — matching the existing convention (e.g.
+  [SignerInformation.cs](crypto/src/cms/SignerInformation.cs#L132)). Actual removal waits for a major bump.
+- **Record deferred breaks with a `// TODO[api]` comment.** When you spot a change that would improve the
+  API but can't ship until a break is permitted (a rename, making a type static, removing a legacy code
+  path, dropping an obsoleted member), leave a `// TODO[api] <what to do>` comment at the site rather than
+  doing it now. This is an established marker across the tree (e.g.
+  [SignerUtilities.cs](crypto/src/security/SignerUtilities.cs#L954),
+  [X509Utilities.cs](crypto/src/x509/X509Utilities.cs#L212)) — it's how the next major's work list is
+  accumulated in place.
+- **When a change seems to require a break, flag it** rather than proceeding — the maintainer decides
+  whether to find a compatible path or defer it (with a `// TODO[api]` note) to the next major.
 
 ## Style (from [.editorconfig](.editorconfig))
 
