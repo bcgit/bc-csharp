@@ -12,6 +12,22 @@ namespace Org.BouncyCastle.Math.Raw
         private const ulong M64 = 0x5555555555555555UL;
         private const ulong M64R = 0xAAAAAAAAAAAAAAAAUL;
 
+        internal static uint Expand4to8(byte x)
+        {
+            uint t = x;
+
+#if NETCOREAPP3_0_OR_GREATER
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Bmi2.IsEnabled)
+            {
+                return Bmi2.ParallelBitDeposit(t, 0x55U);
+            }
+#endif
+            t &= 0xF;
+            t = (t | (t << 2)) & 0x33;
+            t = (t | (t << 1)) & 0x55;
+            return t;
+        }
+
         internal static uint Expand8to16(byte x)
         {
             uint t = x;
