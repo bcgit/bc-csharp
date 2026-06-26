@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Cms
         public CmsAuthEnvelopedData(ContentInfo contentInfo)
         {
             m_contentInfo = contentInfo;
-            m_authEnvelopedData = AuthEnvelopedData.GetInstance(contentInfo.Content);
+            m_authEnvelopedData = CmsUtilities.SafeGetInstance(contentInfo, AuthEnvelopedData.GetInstance);
 
             var originatorInfo = m_authEnvelopedData.OriginatorInfo;
             m_originatorInformation = originatorInfo == null ? null : new OriginatorInformation(originatorInfo);

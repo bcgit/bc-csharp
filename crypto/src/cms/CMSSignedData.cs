@@ -444,25 +444,8 @@ namespace Org.BouncyCastle.Cms
                 signedData.m_signerInfoStore);
         }
 
-        /// <exception cref="CmsException"></exception>
-        private static SignedData GetSignedData(ContentInfo contentInfo)
-        {
-            try
-            {
-                var signedData = SignedData.GetInstance(contentInfo.Content);
-                if (signedData != null)
-                    return signedData;
-            }
-            catch (CmsException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new CmsException("Malformed content.", e);
-            }
-            throw new CmsException("Malformed content.");
-        }
+        private static SignedData GetSignedData(ContentInfo contentInfo) =>
+            CmsUtilities.SafeGetInstance(contentInfo, SignedData.GetInstance);
 
         private class PreserveAbsentParameters
             : IDigestAlgorithmFinder

@@ -336,5 +336,27 @@ namespace Org.BouncyCastle.Cms
             recipientInfos.ToAsn1Set(useDer: !berEncodeRecipientSet, useDL: false)
                 .EncodeTo(authGen.GetRawOutputStream());
         }
+
+        /// <exception cref="CmsException"></exception>
+        internal static T SafeGetInstance<T>(ContentInfo contentInfo, Func<object, T> getInstance)
+            where T : Asn1Encodable
+        {
+            Exception innerException = null;
+            try
+            {
+                var result = getInstance(contentInfo.Content);
+                if (result != null)
+                    return result;
+            }
+            catch (CmsException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                innerException = e;
+            }
+            throw new CmsException("Malformed content.", innerException);
+        }
     }
 }

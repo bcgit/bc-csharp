@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Cms
         public CmsAuthenticatedData(ContentInfo contentInfo)
         {
             m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
-            m_authenticatedData = AuthenticatedData.GetInstance(contentInfo.Content);
+            m_authenticatedData = CmsUtilities.SafeGetInstance(contentInfo, AuthenticatedData.GetInstance);
 
             var originatorInfo = m_authenticatedData.OriginatorInfo;
             m_originatorInformation = originatorInfo == null ? null : new OriginatorInformation(originatorInfo);
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Cms
             // read the authenticated content info
             //
             ContentInfo encapContentInfo = m_authenticatedData.EncapsulatedContentInfo;
-            Asn1OctetString encapContent = Asn1OctetString.GetInstance(encapContentInfo.Content);
+            Asn1OctetString encapContent = CmsUtilities.SafeGetInstance(encapContentInfo, Asn1OctetString.GetInstance);
 
             CmsReadable readable = new CmsProcessableByteArray(encapContent.GetOctets());
             CmsSecureReadable secureReadable = new CmsEnvelopedHelper.CmsAuthenticatedSecureReadable(
