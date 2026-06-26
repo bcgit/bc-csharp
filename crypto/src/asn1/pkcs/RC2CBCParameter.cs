@@ -8,14 +8,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class RC2CbcParameter
         : Asn1Encodable
     {
-		public static RC2CbcParameter GetInstance(object obj)
+        public static RC2CbcParameter GetInstance(object obj)
         {
             if (obj == null)
                 return null;
             if (obj is RC2CbcParameter rc2CbcParameter)
                 return rc2CbcParameter;
             return new RC2CbcParameter(Asn1Sequence.GetInstance(obj));
-		}
+        }
 
         public static RC2CbcParameter GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RC2CbcParameter(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_iv = DerOctetString.FromContents(iv);
         }
 
-		public RC2CbcParameter(int parameterVersion, byte[] iv)
+        public RC2CbcParameter(int parameterVersion, byte[] iv)
         {
             m_version = DerInteger.ValueOf(parameterVersion);
             m_iv = DerOctetString.FromContents(iv);
