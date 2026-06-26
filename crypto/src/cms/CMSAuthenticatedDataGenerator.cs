@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
@@ -39,16 +40,21 @@ namespace Org.BouncyCastle.Cms
         }
 
         /// <summary>Generate an authenticated object that contains an CMS Authenticated Data object.</summary>
-        public CmsAuthenticatedData Generate(CmsProcessable content, string encryptionOid)
+        [Obsolete("Use 'Generate(CmsTypedData, DerObjectIdentifier)' instead")]
+        public CmsAuthenticatedData Generate(CmsProcessable content, string encryptionOid) =>
+            Generate(CmsUtilities.GetTypedData(content), new DerObjectIdentifier(encryptionOid));
+
+        /// <summary>Generate an authenticated object that contains an CMS Authenticated Data object.</summary>
+        public CmsAuthenticatedData Generate(CmsTypedData content, DerObjectIdentifier macOid)
         {
             try
             {
                 // FIXME Will this work for macs?
-                CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOid);
+                CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(macOid);
 
                 keyGen.Init(new KeyGenerationParameters(m_random, keyGen.DefaultStrength));
 
-                return Generate(content, encryptionOid, keyGen);
+                return Generate(content, macOid, keyGen);
             }
             catch (SecurityUtilityException e)
             {
@@ -60,7 +66,7 @@ namespace Org.BouncyCastle.Cms
          * generate an enveloped object that contains an CMS Enveloped Data
          * object using the given provider and the passed in key generator.
          */
-        private CmsAuthenticatedData Generate(CmsProcessable content, string macOid, CipherKeyGenerator keyGen)
+        private CmsAuthenticatedData Generate(CmsProcessable content, DerObjectIdentifier macOid, CipherKeyGenerator keyGen)
         {
             AlgorithmIdentifier macAlgID;
             KeyParameter encKey;
@@ -73,9 +79,9 @@ namespace Org.BouncyCastle.Cms
                 byte[] encKeyBytes = keyGen.GenerateKey();
                 encKey = ParameterUtilities.CreateKeyParameter(macOid, encKeyBytes);
 
-                Asn1Encodable asn1Params = GenerateAsn1Parameters(macOid, encKeyBytes);
+                Asn1Encodable asn1Params = GenerateAsn1Parameters(macOid.GetID(), encKeyBytes);
 
-                macAlgID = GetAlgorithmIdentifier(macOid, encKey, asn1Params, out var cipherParameters);
+                macAlgID = GetAlgorithmIdentifier(macOid.GetID(), encKey, asn1Params, out var cipherParameters);
 
                 IMac mac = MacUtilities.GetMac(macOid);
                 // TODO Confirm no ParametersWithRandom needed
