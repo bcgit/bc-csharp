@@ -13,6 +13,7 @@ using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Security
@@ -30,9 +31,9 @@ namespace Org.BouncyCastle.Security
     /// </remarks>
     public static class ParameterUtilities
     {
-        private static readonly IDictionary<string, string> Algorithms =
+        private static readonly Dictionary<string, string> Algorithms =
             new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        private static readonly IDictionary<string, int> BasicIVSizes =
+        private static readonly Dictionary<string, int> BasicIVSizes =
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
         static ParameterUtilities()
@@ -290,30 +291,36 @@ namespace Org.BouncyCastle.Security
             Asn1Object asn1Params)
         {
             if (algorithm == null)
-                throw new ArgumentNullException("algorithm");
+                throw new ArgumentNullException(nameof(algorithm));
 
-            if (NistObjectIdentifiers.IdAes128Gcm.Id.Equals(algorithm) ||
-                NistObjectIdentifiers.IdAes192Gcm.Id.Equals(algorithm) ||
-                NistObjectIdentifiers.IdAes256Gcm.Id.Equals(algorithm))
+            if (DerObjectIdentifier.TryFromID(algorithm, out var algOid))
             {
-                if (!(key is KeyParameter keyParameter))
-                    throw new ArgumentException("key data must be accessible for GCM operation");
+                if (algOid.On(NistObjectIdentifiers.Aes))
+                {
+                    if (NistObjectIdentifiers.IdAes128Gcm.Equals(algOid) ||
+                        NistObjectIdentifiers.IdAes192Gcm.Equals(algOid) ||
+                        NistObjectIdentifiers.IdAes256Gcm.Equals(algOid))
+                    {
+                        if (!(key is KeyParameter keyParameter))
+                            throw new ArgumentException("key data must be accessible for GCM operation");
 
-                var gcmParameters = GcmParameters.GetInstance(asn1Params);
+                        var gcmParameters = GcmParameters.GetInstance(asn1Params);
 
-                return new AeadParameters(keyParameter, gcmParameters.IcvLen * 8, gcmParameters.GetNonce());
-            }
+                        return new AeadParameters(keyParameter, gcmParameters.IcvLen * 8, gcmParameters.GetNonce());
+                    }
+ 
+                    if (NistObjectIdentifiers.IdAes128Ccm.Equals(algOid) ||
+                        NistObjectIdentifiers.IdAes192Ccm.Equals(algOid) ||
+                        NistObjectIdentifiers.IdAes256Ccm.Equals(algOid))
+                    {
+                        if (!(key is KeyParameter keyParameter))
+                            throw new ArgumentException("key data must be accessible for CCM operation");
 
-            if (NistObjectIdentifiers.IdAes128Ccm.Id.Equals(algorithm) ||
-                NistObjectIdentifiers.IdAes192Ccm.Id.Equals(algorithm) ||
-                NistObjectIdentifiers.IdAes256Ccm.Id.Equals(algorithm))
-            {
-                if (!(key is KeyParameter keyParameter))
-                    throw new ArgumentException("key data must be accessible for CCM operation");
+                        var ccmParameters = CcmParameters.GetInstance(asn1Params);
 
-                var ccmParameters = CcmParameters.GetInstance(asn1Params);
-
-                return new AeadParameters(keyParameter, ccmParameters.IcvLen * 8, ccmParameters.GetNonce());
+                        return new AeadParameters(keyParameter, ccmParameters.IcvLen * 8, ccmParameters.GetNonce());
+                    }
+                }
             }
 
             string canonical = GetCanonicalAlgorithmName(algorithm);
