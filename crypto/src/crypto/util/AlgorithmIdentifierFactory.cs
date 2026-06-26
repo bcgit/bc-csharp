@@ -93,7 +93,17 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
                 random.NextBytes(iv);
 
-                RC2CbcParameter cbcParams = new RC2CbcParameter(rc2Table[128], iv);
+                int parameterVersion;
+                if (keySize < 256)
+                {
+                    parameterVersion = rc2Table[keySize];
+                }
+                else
+                {
+                    parameterVersion = keySize;
+                }
+
+                RC2CbcParameter cbcParams = new RC2CbcParameter(parameterVersion, iv);
 
                 return new AlgorithmIdentifier(encryptionOID, cbcParams);
             }
