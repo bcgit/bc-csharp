@@ -12,6 +12,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    [Obsolete("Use 'ParameterUtilities' instead")]
     public class AlgorithmIdentifierFactory
     {
         public static readonly DerObjectIdentifier IDEA_CBC = MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC;

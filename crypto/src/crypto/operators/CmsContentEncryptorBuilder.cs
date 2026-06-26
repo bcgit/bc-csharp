@@ -1,54 +1,43 @@
 ﻿using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
-using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Operators
 {
     public class CmsContentEncryptorBuilder
     {
-        private static readonly IDictionary<DerObjectIdentifier, int> KeySizes =
+        private static readonly Dictionary<DerObjectIdentifier, int> KeySizes =
             new Dictionary<DerObjectIdentifier, int>();
 
-        static CmsContentEncryptorBuilder()
-        {
-            KeySizes[NistObjectIdentifiers.IdAes128Cbc] = 128;
-            KeySizes[NistObjectIdentifiers.IdAes192Cbc] = 192;
-            KeySizes[NistObjectIdentifiers.IdAes256Cbc] = 256;
-
-            KeySizes[NttObjectIdentifiers.IdCamellia128Cbc] = 128;
-            KeySizes[NttObjectIdentifiers.IdCamellia192Cbc] = 192;
-            KeySizes[NttObjectIdentifiers.IdCamellia256Cbc] = 256;
-        }
-
-        private static int GetKeySize(DerObjectIdentifier oid)
-        {
-            return KeySizes.TryGetValue(oid, out var keySize) ? keySize : -1;
-        }
-
-        private readonly DerObjectIdentifier encryptionOID;
-        private readonly int keySize;
-
-        //private SecureRandom random;
+        private readonly SecureRandom m_random;
+        private readonly DerObjectIdentifier m_encryptionOid;
+        private readonly int m_keySize;
 
         public CmsContentEncryptorBuilder(DerObjectIdentifier encryptionOID)
-            : this(encryptionOID, GetKeySize(encryptionOID))
+            : this(random: null, encryptionOID)
         {
         }
 
         public CmsContentEncryptorBuilder(DerObjectIdentifier encryptionOID, int keySize)
+            : this(random: null, encryptionOID, keySize)
         {
-            this.encryptionOID = encryptionOID;
-            this.keySize = keySize;
         }
 
-        public ICipherBuilderWithKey Build()
+        public CmsContentEncryptorBuilder(SecureRandom random, DerObjectIdentifier encryptionOid)
+            : this(random, encryptionOid, -1)
         {
-            //return new Asn1CipherBuilderWithKey(encryptionOID, keySize, random);
-            return new Asn1CipherBuilderWithKey(encryptionOID, keySize, null);
         }
+
+        public CmsContentEncryptorBuilder(SecureRandom random, DerObjectIdentifier encryptionOid, int keySize)
+        {
+            m_random = random;
+            m_encryptionOid = encryptionOid;
+            m_keySize = keySize;
+        }
+
+        public ICipherBuilderWithKey Build() => new Asn1CipherBuilderWithKey(m_encryptionOid, m_keySize, m_random);
     }
 }

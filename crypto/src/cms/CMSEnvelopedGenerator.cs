@@ -15,7 +15,6 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.X509;
 
@@ -98,6 +97,7 @@ namespace Org.BouncyCastle.Cms
 
         internal OriginatorInformation m_originatorInformation = null;
 
+        // TODO[api] Restrict to internal
         protected CmsEnvelopedGenerator()
             : this(CryptoServicesRegistrar.GetSecureRandom())
         {
@@ -105,6 +105,7 @@ namespace Org.BouncyCastle.Cms
 
         /// <summary>Constructor allowing specific source of randomness</summary>
         /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+        // TODO[api] Restrict to internal
         protected CmsEnvelopedGenerator(SecureRandom random)
         {
             if (random == null)
@@ -312,57 +313,21 @@ namespace Org.BouncyCastle.Cms
         /// Add a generator to produce the recipient info required.
         /// </summary>
         /// <param name="recipientInfoGenerator">a generator of a recipient info object.</param>
-	    public void AddRecipientInfoGenerator(RecipientInfoGenerator recipientInfoGenerator)
+        public void AddRecipientInfoGenerator(RecipientInfoGenerator recipientInfoGenerator)
         {
             recipientInfoGenerators.Add(recipientInfoGenerator);
         }
 
+        [Obsolete("Will be removed")]
+        protected internal virtual Asn1Encodable GenerateAsn1Parameters(string encryptionOid, byte[] encKeyBytes) =>
+            Asn1CipherBuilderWithKey.ImplGenerateAsn1Parameters(m_random, encryptionOid, encKeyBytes);
+
+        [Obsolete("Will be removed")]
         protected internal virtual AlgorithmIdentifier GetAlgorithmIdentifier(string encryptionOid,
             KeyParameter encKey, Asn1Encodable asn1Params, out ICipherParameters cipherParameters)
         {
-            Asn1Object asn1Object;
-            if (asn1Params != null)
-            {
-                asn1Object = asn1Params.ToAsn1Object();
-                cipherParameters = ParameterUtilities.GetCipherParameters(encryptionOid, encKey, asn1Object);
-            }
-            else
-            {
-                // TODO[cms] Should this be NoParams depending on the encryption algorithm?
-                asn1Object = DerNull.Instance;
-                cipherParameters = encKey;
-            }
-
-            return new AlgorithmIdentifier(new DerObjectIdentifier(encryptionOid), asn1Object);
-        }
-
-        protected internal virtual Asn1Encodable GenerateAsn1Parameters(string encryptionOid, byte[] encKeyBytes)
-        {
-            Asn1Encodable asn1Params = null;
-
-            try
-            {
-                if (encryptionOid.Equals(RC2Cbc))
-                {
-                    byte[] iv = new byte[8];
-                    m_random.NextBytes(iv);
-
-                    int effectiveKeyBits = encKeyBytes.Length * 8;
-                    int parameterVersion = RC2CbcUtilities.GetParameterVersion(effectiveKeyBits);
-
-                    asn1Params = new RC2CbcParameter(parameterVersion, iv);
-                }
-                else
-                {
-                    asn1Params = ParameterUtilities.GenerateParameters(encryptionOid, m_random);
-                }
-            }
-            catch (SecurityUtilityException)
-            {
-                // No problem... no parameters generated
-            }
-
-            return asn1Params;
+            return Asn1CipherBuilderWithKey.ImplGetAlgorithmIdentifier(encryptionOid, encKey, asn1Params,
+                out cipherParameters);
         }
     }
 }
