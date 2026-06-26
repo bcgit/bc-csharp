@@ -551,7 +551,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			RecipientInformationStore  recipients = ed.GetRecipientInfos();
 
-			Assert.AreEqual(ed.EncryptionAlgOid, PkcsObjectIdentifiers.rc4.GetID());
+			Assert.AreEqual(PkcsObjectIdentifiers.rc4, ed.EncryptionAlgorithmID.Algorithm);
 
 			var c = recipients.GetRecipients();
 
@@ -583,7 +583,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			RecipientInformationStore recipients = ed.GetRecipientInfos();
 
-			Assert.AreEqual(ed.EncryptionAlgOid, PkcsObjectIdentifiers.rc4.GetID());
+			Assert.AreEqual(PkcsObjectIdentifiers.rc4, ed.EncryptionAlgorithmID.Algorithm);
 
 			var c = recipients.GetRecipients();
 
@@ -614,7 +614,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			RecipientInformationStore recipients = ed.GetRecipientInfos();
 
-			Assert.AreEqual(ed.EncryptionAlgOid, OiwObjectIdentifiers.DesCbc.Id);
+			Assert.AreEqual(OiwObjectIdentifiers.DesCbc, ed.EncryptionAlgorithmID.Algorithm);
 
 			var c = recipients.GetRecipients();
 
@@ -874,11 +874,11 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			RecipientInformationStore recipients = ed.GetRecipientInfos();
 
-			Assert.AreEqual(checkOID.Id, ed.EncryptionAlgOid);
+			Assert.AreEqual(checkOID, ed.EncryptionAlgorithmID.Algorithm);
 
 			if (asn1Params != null)
 			{
-				Assert.IsTrue(asn1Params.IsInstanceOfType(ed.EncryptionAlgorithmID.Parameters));
+                Assert.IsTrue(asn1Params.IsInstanceOfType(ed.EncryptionAlgorithmID.Parameters.ToAsn1Object()));
 			}
 
 			var c = recipients.GetRecipients();
