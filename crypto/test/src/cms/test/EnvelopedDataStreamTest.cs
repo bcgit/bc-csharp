@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -5,6 +6,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -18,30 +20,32 @@ namespace Org.BouncyCastle.Cms.Tests
     [TestFixture]
     [Parallelizable(ParallelScope.All)]
     public class EnvelopedDataStreamTest
-	{
-		private const int BufferSize = 4000;
+    {
+        private const int BufferSize = 4000;
 
-		private const string SignDN = "O=Bouncy Castle, C=AU";
-		private static AsymmetricCipherKeyPair signKP;
-		//private static X509Certificate signCert;
-		//signCert = CmsTestUtil.MakeCertificate(_signKP, SignDN, _signKP, SignDN);
+        private const string SignDN = "O=Bouncy Castle, C=AU";
 
-		//private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
-		//private static AsymmetricCipherKeyPair origKP;
-		//origKP   = CmsTestUtil.MakeKeyPair();
-		//private static X509Certificate origCert;
-		//origCert = CmsTestUtil.MakeCertificate(origKP, OrigDN, _signKP, SignDN);
+        private static AsymmetricCipherKeyPair signKP;
+        private static X509Certificate signCert;
 
-		private const string ReciDN = "CN=Doug, OU=Sales, O=Bouncy Castle, C=AU";
-		private static AsymmetricCipherKeyPair reciKP;
-		private static X509Certificate reciCert;
+        private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
 
-		private static AsymmetricCipherKeyPair origECKP;
-		private static AsymmetricCipherKeyPair reciECKP;
-		private static X509Certificate reciECCert;
+        private static AsymmetricCipherKeyPair origKP;
+        private static X509Certificate origCert;
+
+        private const string ReciDN = "CN=Doug, OU=Sales, O=Bouncy Castle, C=AU";
+        private static AsymmetricCipherKeyPair reciKP;
+        private static X509Certificate reciCert;
+
+        private static AsymmetricCipherKeyPair origECKP;
+        private static AsymmetricCipherKeyPair reciECKP;
+        private static X509Certificate reciECCert;
 
         private static AsymmetricCipherKeyPair OrigECKP =>
             CmsTestUtil.InitKP(ref origECKP, CmsTestUtil.MakeECDsaKeyPair);
+
+        private static AsymmetricCipherKeyPair OrigKP =>
+            CmsTestUtil.InitKP(ref origKP, CmsTestUtil.MakeKeyPair);
 
         private static AsymmetricCipherKeyPair ReciKP =>
             CmsTestUtil.InitKP(ref reciKP, CmsTestUtil.MakeKeyPair);
@@ -52,11 +56,17 @@ namespace Org.BouncyCastle.Cms.Tests
         private static AsymmetricCipherKeyPair SignKP =>
             CmsTestUtil.InitKP(ref signKP, CmsTestUtil.MakeKeyPair);
 
+        private static X509Certificate OrigCert => CmsTestUtil.InitCertificate(ref origCert,
+            () => CmsTestUtil.MakeCertificate(OrigKP, OrigDN, SignKP, SignDN));
+
         private static X509Certificate ReciCert => CmsTestUtil.InitCertificate(ref reciCert,
             () => CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN));
 
         private static X509Certificate ReciECCert => CmsTestUtil.InitCertificate(ref reciECCert,
             () => CmsTestUtil.MakeCertificate(ReciECKP, ReciDN, SignKP, SignDN));
+
+        private static X509Certificate SignCert => CmsTestUtil.InitCertificate(ref signCert,
+            () => CmsTestUtil.MakeCertificate(SignKP, SignDN, SignKP, SignDN));
 
         [Test]
 		public void TestWorkingData()
@@ -501,14 +511,20 @@ namespace Org.BouncyCastle.Cms.Tests
             }
         }
 
-		[Test]
-		public void TestOriginatorInfo()
-		{
-			CmsEnvelopedDataParser env = new CmsEnvelopedDataParser(CmsSampleMessages.originatorMessage);
+        [Test]
+        public void OriginatorInfo()
+        {
+            CmsEnvelopedDataParser env = new CmsEnvelopedDataParser(CmsSampleMessages.originatorMessage);
 
-			env.GetRecipientInfos();
+            RecipientInformationStore recipients = env.GetRecipientInfos();
 
-			Assert.AreEqual(CmsEnvelopedGenerator.DesEde3Cbc, env.EncryptionAlgOid);
-		}
-	}
+            var originatorCerts = new List<X509Certificate>(
+                env.OriginatorInformation.GetCertificates().EnumerateMatches(null));
+
+            var expectedSubject = new X509Name("C=US,O=U.S. Government,OU=HSPD12Lab,OU=Agents,CN=user1");
+            Assert.That(expectedSubject.Equivalent(originatorCerts[0].SubjectDN));
+
+            Assert.AreEqual(CmsEnvelopedGenerator.DesEde3Cbc, env.EncryptionAlgOid);
+        }
+    }
 }

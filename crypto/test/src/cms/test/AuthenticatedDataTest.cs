@@ -171,7 +171,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             RecipientInformationStore recipients = ad.GetRecipientInfos();
 
-            Assert.AreEqual(CmsAuthenticatedDataGenerator.DesEde3Cbc, ad.MacAlgOid);
+            Assert.AreEqual(CmsEnvelopedGenerator.DesEde3Cbc, ad.MacAlgOid);
 
             var c = recipients.GetRecipients();
 

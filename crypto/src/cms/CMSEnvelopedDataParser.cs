@@ -62,6 +62,7 @@ namespace Org.BouncyCastle.Cms
         private AlgorithmIdentifier _encAlg;
         private Asn1.Cms.AttributeTable _unprotectedAttributes;
         private bool _attrNotRead;
+        private OriginatorInformation m_originatorInformation;
 
         public CmsEnvelopedDataParser(byte[] envelopedData)
             : this(new MemoryStream(envelopedData, false))
@@ -77,6 +78,9 @@ namespace Org.BouncyCastle.Cms
 
             // TODO Validate version?
             //DerInteger version = this.envelopedData.Version;
+
+            var originatorInfo = this.envelopedData.GetOriginatorInfo();
+            m_originatorInformation = originatorInfo == null ? null : new OriginatorInformation(originatorInfo);
 
             //
             // read the recipients
@@ -111,6 +115,13 @@ namespace Org.BouncyCastle.Cms
          * return the ASN.1 encoded encryption algorithm parameters, or null if there aren't any.
          */
         public Asn1Object EncryptionAlgParams => _encAlg.Parameters?.ToAsn1Object();
+
+        /**
+         * Return the originator information associated with this message if present.
+         *
+         * @return OriginatorInformation, null if not present.
+         */
+        public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
         /**
          * return a store of the intended recipients for this message

@@ -72,12 +72,15 @@ namespace Org.BouncyCastle.Cms
 
         private bool authAttrNotRead;
         private bool unauthAttrNotRead;
+        private OriginatorInformation m_originatorInformation;
 
+        // TODO[api] Rename parameter to 'authenticatedData'
         public CmsAuthenticatedDataParser(byte[] envelopedData)
             : this(new MemoryStream(envelopedData, false))
         {
         }
 
+        // TODO[api] Rename parameter to 'authenticatedData'
         public CmsAuthenticatedDataParser(Stream envelopedData)
             : base(envelopedData)
         {
@@ -87,6 +90,9 @@ namespace Org.BouncyCastle.Cms
 
             // TODO Validate version?
             //DerInteger version = this.authData.getVersion();
+
+            var originatorInfo = authData.GetOriginatorInfo();
+            m_originatorInformation = originatorInfo == null ? null : new OriginatorInformation(originatorInfo);
 
             //
             // read the recipients
@@ -111,6 +117,18 @@ namespace Org.BouncyCastle.Cms
                 recipientInfos, secureReadable);
         }
 
+        /**
+         * Return the originator information associated with this message if present.
+         *
+         * @return OriginatorInformation, null if not present.
+         */
+        public OriginatorInformation OriginatorInformation => m_originatorInformation;
+
+        /**
+         * Return the MAC algorithm details for the MAC associated with the data in this object.
+         *
+         * @return AlgorithmIdentifier representing the MAC algorithm.
+         */
         public AlgorithmIdentifier MacAlgorithmID => macAlg;
 
         /**

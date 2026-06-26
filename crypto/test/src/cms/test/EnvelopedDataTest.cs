@@ -28,12 +28,12 @@ namespace Org.BouncyCastle.Cms.Tests
         private const string SignDN = "O=Bouncy Castle, C=AU";
 
         private static AsymmetricCipherKeyPair signKP;
-        //private static X509Certificate signCert = CmsTestUtil.MakeCertificate(_signKP, SignDN, _signKP, SignDN);
+        private static X509Certificate signCert;
 
-        //private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
+        private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
 
-        //private static AsymmetricCipherKeyPair origKP = CmsTestUtil.MakeKeyPair();
-        //private static X509Certificate origCert = CmsTestUtil.MakeCertificate(_origKP, OrigDN, _signKP, SignDN);
+        private static AsymmetricCipherKeyPair origKP;
+        private static X509Certificate origCert;
 
         private const string ReciDN = "CN=Doug, OU=Sales, O=Bouncy Castle, C=AU";
         private const string ReciDN2 = "CN=Fred, OU=Sales, O=Bouncy Castle, C=AU";
@@ -59,6 +59,8 @@ namespace Org.BouncyCastle.Cms.Tests
         private static AsymmetricCipherKeyPair OrigECKP =>
             CmsTestUtil.InitKP(ref origECKP, CmsTestUtil.MakeECDsaKeyPair);
 
+        private static AsymmetricCipherKeyPair OrigKP => CmsTestUtil.InitKP(ref origKP, CmsTestUtil.MakeKeyPair);
+
         private static AsymmetricCipherKeyPair ReciKP => CmsTestUtil.InitKP(ref reciKP, CmsTestUtil.MakeKeyPair);
 
         private static AsymmetricCipherKeyPair ReciKP_2048 => CmsTestUtil.InitKP(ref reciKP_2048, CmsTestUtil.MakeKeyPair_2048);
@@ -80,6 +82,9 @@ namespace Org.BouncyCastle.Cms.Tests
 
         private static AsymmetricCipherKeyPair SignKP => CmsTestUtil.InitKP(ref signKP, CmsTestUtil.MakeKeyPair);
 
+        private static X509Certificate OrigCert => CmsTestUtil.InitCertificate(ref origCert,
+            () => CmsTestUtil.MakeCertificate(OrigKP, OrigDN, SignKP, SignDN));
+
         private static X509Certificate ReciCert => CmsTestUtil.InitCertificate(ref reciCert,
             () => CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN));
 
@@ -100,6 +105,9 @@ namespace Org.BouncyCastle.Cms.Tests
 
         private static X509Certificate ReciMLKem1024Cert => CmsTestUtil.InitCertificate(ref reciMLKem1024Cert,
             () => CmsTestUtil.MakeCertificate(ReciMLKem1024KP, ReciDN, SignKP, SignDN));
+
+        private static X509Certificate SignCert => CmsTestUtil.InitCertificate(ref signCert,
+            () => CmsTestUtil.MakeCertificate(SignKP, SignDN, SignKP, SignDN));
 
         private static readonly byte[] oldKEK = Base64.Decode(
 			"MIAGCSqGSIb3DQEHA6CAMIACAQIxQaI/MD0CAQQwBwQFAQIDBAUwDQYJYIZIAWUDBAEFBQAEI"
@@ -500,6 +508,44 @@ namespace Org.BouncyCastle.Cms.Tests
 				Assert.IsTrue(Arrays.AreEqual(data, recData));
 			}
 		}
+
+        [Test]
+        public void OriginatorInfoGeneration()
+        {
+            byte[] data = Encoding.ASCII.GetBytes("WallaWallaWashington");
+
+            CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+
+            edGen.OriginatorInformation = new OriginatorInformation(new OriginatorInfoGenerator(OrigCert).Generate());
+
+            edGen.AddKeyTransRecipient(ReciCert);
+
+            CmsEnvelopedData ed = edGen.Generate(
+                new CmsProcessableByteArray(data),
+                CmsEnvelopedGenerator.DesEde3Cbc);
+
+            RecipientInformationStore recipients = ed.GetRecipientInfos();
+
+            Assert.AreEqual(ed.EncryptionAlgOid, CmsEnvelopedGenerator.DesEde3Cbc);
+
+            var originatorCerts = new List<X509Certificate>(
+                ed.OriginatorInformation.GetCertificates().EnumerateMatches(null));
+            Assert.True(originatorCerts.Contains(OrigCert));
+
+            var c = recipients.GetRecipients();
+
+            Assert.AreEqual(1, c.Count);
+
+            foreach (RecipientInformation recipient in c)
+            {
+                Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
+                Assert.True(recipient.RecipientID.Match(ReciCert));
+
+                byte[] recData = recipient.GetContent(ReciKP.Private);
+
+                Assert.IsTrue(Arrays.AreEqual(data, recData));
+            }
+        }
 
         [Test]
         public void TestKeyTransRC2bit40()
@@ -1207,15 +1253,21 @@ namespace Org.BouncyCastle.Cms.Tests
 			while (e.MoveNext());
 		}
 
-		[Test]
-		public void TestOriginatorInfo()
-		{
-			CmsEnvelopedData env = new CmsEnvelopedData(CmsSampleMessages.originatorMessage);
+        [Test]
+        public void OriginatorInfo()
+        {
+            CmsEnvelopedData env = new CmsEnvelopedData(CmsSampleMessages.originatorMessage);
 
-			RecipientInformationStore  recipients = env.GetRecipientInfos();
+            RecipientInformationStore recipients = env.GetRecipientInfos();
 
-			Assert.AreEqual(CmsEnvelopedGenerator.DesEde3Cbc, env.EncryptionAlgOid);
-		}
+            var originatorCerts = new List<X509Certificate>(
+                env.OriginatorInformation.GetCertificates().EnumerateMatches(null));
+
+            var expectedSubject = new X509Name("C=US,O=U.S. Government,OU=HSPD12Lab,OU=Agents,CN=user1");
+            Assert.That(expectedSubject.Equivalent(originatorCerts[0].SubjectDN));
+
+            Assert.AreEqual(CmsEnvelopedGenerator.DesEde3Cbc, env.EncryptionAlgOid);
+        }
 
         //[Test]
         //public void TestGost3410_2012_KeyAgree()
