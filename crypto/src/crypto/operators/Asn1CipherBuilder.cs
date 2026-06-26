@@ -20,7 +20,12 @@ namespace Org.BouncyCastle.Crypto.Operators
         {
             random = CryptoServicesRegistrar.GetSecureRandom(random);
 
-            CipherKeyGenerator keyGen = CipherKeyGeneratorFactory.CreateKeyGenerator(encryptionOID, random);
+            CipherKeyGenerator keyGen = GeneratorUtilities.GetKeyGenerator(encryptionOID);
+            if (keySize < 0)
+            {
+                keySize = keyGen.DefaultStrength;
+            }
+            keyGen.Init(new KeyGenerationParameters(random, keySize));
 
             m_encKey = keyGen.GenerateKeyParameter();
             m_algID = AlgorithmIdentifierFactory.GenerateEncryptionAlgID(encryptionOID, m_encKey.KeyLength * 8, random);

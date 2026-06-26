@@ -11,6 +11,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
+    [Obsolete("Use 'GeneratorUtilities' instead")]
     public static class CipherKeyGeneratorFactory
     {
         /**
