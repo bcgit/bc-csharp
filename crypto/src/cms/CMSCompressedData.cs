@@ -27,8 +27,8 @@ namespace Org.BouncyCastle.Cms
 
         public CmsCompressedData(ContentInfo contentInfo)
         {
-            m_contentInfo = contentInfo;
-            m_compressedData = CompressedData.GetInstance(contentInfo.Content);
+            m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
+            m_compressedData = CmsUtilities.SafeGetContent(contentInfo, CompressedData.GetInstance);
         }
 
         /**
@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Cms
         private byte[] Decompress(Func<Stream, byte[]> converter)
         {
             ContentInfo encapContentInfo = CompressedData.EncapContentInfo;
-            Asn1OctetString encapContent = Asn1OctetString.GetInstance(encapContentInfo.Content);
+            Asn1OctetString encapContent = CmsUtilities.SafeGetContent(encapContentInfo, Asn1OctetString.GetInstance);
 
             try
             {
@@ -74,7 +74,11 @@ namespace Org.BouncyCastle.Cms
                     return converter(zIn);
                 }
             }
-            catch (IOException e)
+            catch (CmsException)
+            {
+                throw;
+            }
+            catch (Exception e)
             {
                 throw new CmsException("exception reading compressed stream.", e);
             }

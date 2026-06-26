@@ -445,7 +445,7 @@ namespace Org.BouncyCastle.Cms
         }
 
         private static SignedData GetSignedData(ContentInfo contentInfo) =>
-            CmsUtilities.SafeGetInstance(contentInfo, SignedData.GetInstance);
+            CmsUtilities.SafeGetContent(contentInfo, SignedData.GetInstance);
 
         private class PreserveAbsentParameters
             : IDigestAlgorithmFinder

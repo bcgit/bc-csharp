@@ -32,8 +32,7 @@ namespace Org.BouncyCastle.Cms
         public CmsEnvelopedData(ContentInfo contentInfo)
         {
             m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
-            m_envelopedData = EnvelopedData.GetInstance(contentInfo.Content)
-                ?? throw new CmsException("Malformed content.");
+            m_envelopedData = CmsUtilities.SafeGetContent(contentInfo, EnvelopedData.GetInstance);
 
             var originatorInfo = m_envelopedData.OriginatorInfo;
             m_originatorInformation = originatorInfo == null ? null : new OriginatorInformation(originatorInfo);

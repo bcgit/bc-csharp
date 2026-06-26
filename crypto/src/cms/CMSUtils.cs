@@ -112,22 +112,9 @@ namespace Org.BouncyCastle.Cms
 
         private static ContentInfo ReadContentInfo(Asn1InputStream asn1In)
         {
-            try
-            {
-                return ContentInfo.GetInstance(asn1In.ReadObject()) ?? throw new CmsException("No content found.");
-            }
-            catch (IOException e)
-            {
-                throw new CmsException("IOException reading content.", e);
-            }
-            catch (InvalidCastException e)
-            {
-                throw new CmsException("Malformed content.", e);
-            }
-            catch (ArgumentException e)
-            {
-                throw new CmsException("Malformed content.", e);
-            }
+            Asn1Object asn1Object = SafeReadAsn1Object(asn1In) ?? throw new CmsException("No content found.");
+
+            return SafeGetInstance(asn1Object, ContentInfo.GetInstance);
         }
 
         internal static byte[] StreamToByteArray(Stream inStream) => Streams.ReadAll(inStream);
@@ -338,15 +325,20 @@ namespace Org.BouncyCastle.Cms
         }
 
         /// <exception cref="CmsException"></exception>
-        internal static T SafeGetInstance<T>(ContentInfo contentInfo, Func<object, T> getInstance)
-            where T : Asn1Encodable
+        internal static TResult SafeGetContent<TResult>(ContentInfo contentInfo,
+            Func<Asn1Encodable, TResult> getInstance)
         {
-            Exception innerException = null;
+            var content = contentInfo.Content ?? throw new CmsException("Missing content.");
+
+            return SafeGetInstance(content, getInstance);
+        }
+
+        /// <exception cref="CmsException"></exception>
+        internal static TResult SafeGetInstance<T, TResult>(T obj, Func<T, TResult> getInstance)
+        {
             try
             {
-                var result = getInstance(contentInfo.Content);
-                if (result != null)
-                    return result;
+                return getInstance(obj);
             }
             catch (CmsException)
             {
@@ -354,9 +346,25 @@ namespace Org.BouncyCastle.Cms
             }
             catch (Exception e)
             {
-                innerException = e;
+                throw new CmsException("Malformed content.", e);
             }
-            throw new CmsException("Malformed content.", innerException);
+        }
+
+        /// <exception cref="CmsException"></exception>
+        internal static Asn1Object SafeReadAsn1Object(Asn1InputStream asn1In)
+        {
+            try
+            {
+                return asn1In.ReadObject();
+            }
+            catch (CmsException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CmsException("IOException reading content.", e);
+            }
         }
     }
 }
