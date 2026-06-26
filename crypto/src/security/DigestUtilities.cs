@@ -11,10 +11,12 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.UA;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Security
 {
@@ -206,15 +208,39 @@ namespace Org.BouncyCastle.Security
 #endif
         }
 
-        /// <summary>One-shot digest of <paramref name="input"/> using the algorithm identified by
-        /// <paramref name="id"/>.</summary>
-        // TODO[api] Change parameter name to 'oid'
-        public static byte[] CalculateDigest(DerObjectIdentifier id, byte[] input)
+        /// <summary>One-shot digest of <paramref name="buf"/>, using the algorithm identified by
+        /// <paramref name="algID"/>.</summary>
+        /// <exception cref="SecurityUtilityException">If <paramref name="algID"/> is not recognised.</exception>
+        public static byte[] CalculateDigest(AlgorithmIdentifier algID, byte[] buf)
         {
-            return CalculateDigest(id.Id, input);
+            IDigest digest = GetDigest(algID);
+            return DoFinal(digest, buf);
         }
 
-        /// <summary>One-shot digest of <paramref name="input"/> using the named algorithm.</summary>
+        /// <summary>One-shot digest of <paramref name="len"/> bytes from <paramref name="buf"/>, starting at offset
+        /// <paramref name="off"/>, using the algorithm identified by <paramref name="algID"/>.</summary>
+        /// <exception cref="SecurityUtilityException">If <paramref name="algID"/> is not recognised.</exception>
+        public static byte[] CalculateDigest(AlgorithmIdentifier algID, byte[] buf, int off, int len)
+        {
+            IDigest digest = GetDigest(algID);
+            return DoFinal(digest, buf, off, len);
+        }
+
+        /// <summary>One-shot digest of <paramref name="input"/>, using the algorithm identified by
+        /// <paramref name="id"/>.</summary>
+        /// <exception cref="SecurityUtilityException">If <paramref name="is"/> is not recognised.</exception>
+        // TODO[api] Change parameter name to 'oid'
+        public static byte[] CalculateDigest(DerObjectIdentifier id, byte[] input) =>
+            CalculateDigest(id.GetID(), input);
+
+        /// <summary>One-shot digest of <paramref name="len"/> bytes from <paramref name="buf"/>, starting at
+        /// offset <paramref name="off"/>, using the algorithm identified by <paramref name="oid"/>.</summary>
+        /// <exception cref="SecurityUtilityException">If <paramref name="oid"/> is not recognised.</exception>
+        public static byte[] CalculateDigest(DerObjectIdentifier oid, byte[] buf, int off, int len) =>
+            CalculateDigest(oid.GetID(), buf, off, len);
+
+        /// <summary>One-shot digest of <paramref name="input"/>, using the algorithm identified by
+        /// <paramref name="algorithm"/>.</summary>
         /// <exception cref="SecurityUtilityException">If <paramref name="algorithm"/> is not recognised.</exception>
         public static byte[] CalculateDigest(string algorithm, byte[] input)
         {
@@ -222,8 +248,9 @@ namespace Org.BouncyCastle.Security
             return DoFinal(digest, input);
         }
 
-        /// <summary>One-shot digest of <paramref name="len"/> bytes from <paramref name="buf"/> starting at
-        /// offset <paramref name="off"/>.</summary>
+        /// <summary>One-shot digest of <paramref name="len"/> bytes from <paramref name="buf"/>, starting at
+        /// offset <paramref name="off"/>, using the algorithm identified by <paramref name="algorithm"/>.</summary>
+        /// <exception cref="SecurityUtilityException">If <paramref name="algorithm"/> is not recognised.</exception>
         public static byte[] CalculateDigest(string algorithm, byte[] buf, int off, int len)
         {
             IDigest digest = GetDigest(algorithm);
@@ -231,12 +258,24 @@ namespace Org.BouncyCastle.Security
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        /// <summary>One-shot digest of <paramref name="buffer"/> using the algorithm identified by
+        /// <summary>One-shot digest of <paramref name="buffer"/>, using the algorithm identified by
+        /// <paramref name="algID"/>.</summary>
+        /// <exception cref="SecurityUtilityException">If <paramref name="algID"/> is not recognised.</exception>
+        public static byte[] CalculateDigest(AlgorithmIdentifier algID, ReadOnlySpan<byte> buffer)
+        {
+            IDigest digest = GetDigest(algID);
+            return DoFinal(digest, buffer);
+        }
+
+        /// <summary>One-shot digest of <paramref name="buffer"/>, using the algorithm identified by
         /// <paramref name="oid"/>.</summary>
+        /// <exception cref="SecurityUtilityException">If <paramref name="oid"/> is not recognised.</exception>
         public static byte[] CalculateDigest(DerObjectIdentifier oid, ReadOnlySpan<byte> buffer) =>
             CalculateDigest(oid.GetID(), buffer);
 
-        /// <summary>One-shot digest of <paramref name="buffer"/> using the named algorithm.</summary>
+        /// <summary>One-shot digest of <paramref name="buffer"/>, using the algorithm identified by
+        /// <paramref name="algorithm"/>.</summary>
+        /// <exception cref="SecurityUtilityException">If <paramref name="algorithm"/> is not recognised.</exception>
         public static byte[] CalculateDigest(string algorithm, ReadOnlySpan<byte> buffer)
         {
             IDigest digest = GetDigest(algorithm);
@@ -285,6 +324,22 @@ namespace Org.BouncyCastle.Security
         public static string GetAlgorithmName(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(AlgorithmOidMap, oid);
+        }
+
+        /// <summary>
+        /// Resolve and instantiate an <see cref="IDigest"/> for the given ASN.1 algorithm.
+        /// </summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="algID"/> is <c>null</c>.</exception>
+        /// <exception cref="SecurityUtilityException">
+        /// If <paramref name="algID"/> does not map to a known digest.
+        /// </exception>
+        public static IDigest GetDigest(AlgorithmIdentifier algID)
+        {
+            if (algID == null)
+                throw new ArgumentNullException(nameof(algID));
+            if (!X509Utilities.HasAbsentParameters(algID))
+                throw new SecurityUtilityException("Digest algorithm not recognised.");
+            return GetDigest(algID.Algorithm);
         }
 
         /// <summary>
