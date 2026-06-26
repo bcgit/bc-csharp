@@ -7,58 +7,49 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * General class for generating a compressed CMS message.
-     * <p>
-     * A simple example of usage.</p>
-     * <p>
-     * <pre>
-     *      CMSCompressedDataGenerator fact = new CMSCompressedDataGenerator();
-     *      CMSCompressedData data = fact.Generate(content, algorithm);
-     * </pre>
-     * </p>
-     */
+    /// <summary>General class for generating a compressed CMS message.</summary>
     public class CmsCompressedDataGenerator
     {
         public static readonly string ZLib = CmsObjectIdentifiers.ZlibCompress.Id;
+
+        private static readonly AlgorithmIdentifier ZLibCompressionAlgorithm =
+            new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress);
 
         public CmsCompressedDataGenerator()
         {
         }
 
-        /**
-        * Generate an object that contains an CMS Compressed Data
-        */
-        public CmsCompressedData Generate(CmsProcessable content, string compressionOid)
+        /// <summary>Generate an object that contains an CMS CompressedData.</summary>
+        [Obsolete("Use 'Generate(CmsTypedData, string)' instead")]
+        public CmsCompressedData Generate(CmsProcessable content, string compressionOid) =>
+            Generate(CmsUtilities.GetTypedData(content), compressionOid);
+
+        public CmsCompressedData Generate(CmsTypedData content, string compressionOid)
         {
             if (ZLib != compressionOid)
                 throw new ArgumentException("Unsupported compression algorithm: " + compressionOid,
                     nameof(compressionOid));
 
-            AlgorithmIdentifier comAlgId;
-            Asn1OctetString comOcts;
-
+            Asn1OctetString encapContent;
             try
             {
                 MemoryStream bOut = new MemoryStream();
-
                 using (var zOut = Utilities.IO.Compression.ZLib.CompressOutput(bOut, -1))
                 {
                     content.Write(zOut);
                 }
-
-                comAlgId = new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress);
-                comOcts = new BerOctetString(bOut.ToArray());
+                encapContent = BerOctetString.WithContents(bOut.ToArray());
             }
             catch (IOException e)
             {
                 throw new CmsException("exception encoding data.", e);
             }
 
-            ContentInfo comContent = new ContentInfo(CmsObjectIdentifiers.Data, comOcts);
-            ContentInfo contentInfo = new ContentInfo(
-                CmsObjectIdentifiers.CompressedData,
-                new CompressedData(comAlgId, comContent));
+            var encapContentInfo = new ContentInfo(content.ContentType, encapContent);
+
+            var compressedData = new CompressedData(ZLibCompressionAlgorithm, encapContentInfo);
+
+            var contentInfo = new ContentInfo(CmsObjectIdentifiers.CompressedData, compressedData);
 
             return new CmsCompressedData(contentInfo);
         }

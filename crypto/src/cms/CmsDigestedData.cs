@@ -40,13 +40,7 @@ namespace Org.BouncyCastle.Cms
         public AlgorithmIdentifier DigestAlgorithm => m_digestedData.DigestAlgorithm;
 
         /// <exception cref="CmsException"/>
-        public CmsTypedData GetDigestedContent()
-        {
-            ContentInfo encapContentInfo = m_digestedData.EncapContentInfo;
-            Asn1OctetString encapContent = CmsUtilities.SafeGetContent(encapContentInfo, Asn1OctetString.GetInstance);
-
-            return new CmsProcessableByteArray(encapContentInfo.ContentType, encapContent.GetOctets());
-        }
+        public CmsTypedData GetDigestedContent() => CmsUtilities.ProcessContentOctetString(m_digestedData.EncapContentInfo);
 
         public byte[] GetEncoded() => m_contentInfo.GetEncoded();
 

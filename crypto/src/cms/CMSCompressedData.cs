@@ -7,9 +7,7 @@ using Org.BouncyCastle.Utilities.IO.Compression;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * containing class for an CMS Compressed Data object
-     */
+    /// <summary>Containing class for a CMS CompressedData object.</summary>
     public class CmsCompressedData
     {
         private readonly ContentInfo m_contentInfo;
@@ -30,6 +28,12 @@ namespace Org.BouncyCastle.Cms
             m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
             m_compressedData = CmsUtilities.SafeGetContent(contentInfo, CompressedData.GetInstance);
         }
+
+        public DerObjectIdentifier ContentType => m_contentInfo.ContentType;
+
+        public DerObjectIdentifier CompressedContentType => m_compressedData.EncapContentInfo.ContentType;
+
+        public CmsTypedStream GetContentStream() => new CmsTypedStream(CompressedContentType, Decompress());
 
         /**
          * Return the uncompressed content.
@@ -64,12 +68,11 @@ namespace Org.BouncyCastle.Cms
 
         private byte[] Decompress(Func<Stream, byte[]> converter)
         {
-            ContentInfo encapContentInfo = CompressedData.EncapContentInfo;
-            Asn1OctetString encapContent = CmsUtilities.SafeGetContent(encapContentInfo, Asn1OctetString.GetInstance);
+            var zIn = Decompress();
 
             try
             {
-                using (Stream zIn = ZLib.DecompressInput(encapContent.GetOctetStream()))
+                using (zIn)
                 {
                     return converter(zIn);
                 }
@@ -82,6 +85,13 @@ namespace Org.BouncyCastle.Cms
             {
                 throw new CmsException("exception reading compressed stream.", e);
             }
+        }
+
+        private Stream Decompress()
+        {
+            ContentInfo encapContentInfo = m_compressedData.EncapContentInfo;
+            Asn1OctetString encapContent = CmsUtilities.SafeGetContent(encapContentInfo, Asn1OctetString.GetInstance);
+            return ZLib.DecompressInput(encapContent.GetOctetStream());
         }
     }
 }

@@ -45,9 +45,8 @@ namespace Org.BouncyCastle.Cms
             // read the authenticated content info
             //
             ContentInfo encapContentInfo = m_authenticatedData.EncapsulatedContentInfo;
-            Asn1OctetString encapContent = CmsUtilities.SafeGetContent(encapContentInfo, Asn1OctetString.GetInstance);
 
-            CmsReadable readable = new CmsProcessableByteArray(encapContent.GetOctets());
+            CmsReadable readable = CmsUtilities.ProcessContentOctetString(encapContentInfo);
             CmsSecureReadable secureReadable = new CmsEnvelopedHelper.CmsAuthenticatedSecureReadable(
                 m_authenticatedData.MacAlgorithm, readable);
 

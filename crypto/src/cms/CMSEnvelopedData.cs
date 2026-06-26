@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Cms
             //
             var encryptedContentInfo = m_envelopedData.EncryptedContentInfo;
 
-            CmsReadable readable = new CmsProcessableByteArray(encryptedContentInfo.EncryptedContent.GetOctets());
+            CmsReadable readable = CmsUtilities.ProcessEncryptedContent(encryptedContentInfo);
             CmsSecureReadable secureReadable = new CmsEnvelopedHelper.CmsEnvelopedSecureReadable(
                 encryptedContentInfo.ContentEncryptionAlgorithm, readable);
 

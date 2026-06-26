@@ -334,6 +334,10 @@ namespace Org.BouncyCastle.Cms
         }
 
         /// <exception cref="CmsException"></exception>
+        internal static Asn1OctetString SafeGetEncryptedContent(EncryptedContentInfo encryptedContentInfo) =>
+            encryptedContentInfo.EncryptedContent ?? throw new CmsException("Missing content.");
+
+        /// <exception cref="CmsException"></exception>
         internal static TResult SafeGetInstance<T, TResult>(T obj, Func<T, TResult> getInstance)
         {
             try
@@ -365,6 +369,20 @@ namespace Org.BouncyCastle.Cms
             {
                 throw new CmsException("IOException reading content.", e);
             }
+        }
+
+        internal static CmsProcessableByteArray ProcessContentOctetString(ContentInfo contentInfo)
+        {
+            Asn1OctetString content = CmsUtilities.SafeGetContent(contentInfo, Asn1OctetString.GetInstance);
+
+            return new CmsProcessableByteArray(contentInfo.ContentType, content.GetOctets());
+        }
+
+        internal static CmsProcessableByteArray ProcessEncryptedContent(EncryptedContentInfo encryptedContentInfo)
+        {
+            Asn1OctetString content = CmsUtilities.SafeGetEncryptedContent(encryptedContentInfo);
+
+            return new CmsProcessableByteArray(encryptedContentInfo.ContentType, content.GetOctets());
         }
     }
 }

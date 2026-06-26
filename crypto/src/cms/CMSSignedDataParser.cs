@@ -141,7 +141,7 @@ namespace Org.BouncyCastle.Cms
 
                 if (octs != null)
                 {
-                    CmsTypedStream ctStr = new CmsTypedStream(cont.ContentType.GetID(), octs.GetOctetStream());
+                    CmsTypedStream ctStr = new CmsTypedStream(cont.ContentType, octs.GetOctetStream());
 
                     if (_signedContent == null)
                     {
@@ -158,7 +158,7 @@ namespace Org.BouncyCastle.Cms
 
                 _signedContentType = _signedContent == null
                     ? cont.ContentType
-                    : new DerObjectIdentifier(_signedContent.ContentType);
+                    : _signedContent.ContentTypeOid;
             }
             catch (IOException e)
             {
@@ -322,7 +322,7 @@ namespace Org.BouncyCastle.Cms
                 digStream = new DigestStream(digStream, digest, null);
             }
 
-            return new CmsTypedStream(_signedContent.ContentType, digStream);
+            return new CmsTypedStream(_signedContent.ContentTypeOid, digStream);
         }
 
         /**

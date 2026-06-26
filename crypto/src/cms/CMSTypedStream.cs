@@ -1,38 +1,77 @@
+using System;
 using System.IO;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Cms
 {
     public class CmsTypedStream
-	{
-		private readonly string	m_oid;
-		private readonly Stream	m_in;
+        : IDisposable
+    {
+        private readonly DerObjectIdentifier m_contentType;
+        private readonly Stream m_contentStream;
 
-		public CmsTypedStream(Stream inStream)
-			: this(PkcsObjectIdentifiers.Data.Id, inStream)
-		{
-		}
-
-		public CmsTypedStream(string oid, Stream inStream)
-			: this(oid, inStream, Streams.DefaultBufferSize)
-		{
-		}
-
-		public CmsTypedStream(string oid, Stream inStream, int bufSize)
-		{
-			m_oid = oid;
-            m_in = new BufferedFilterStream(inStream, bufSize);
+        public CmsTypedStream(Stream inStream)
+            : this(PkcsObjectIdentifiers.Data, inStream)
+        {
         }
 
-		public string ContentType => m_oid;
+        [Obsolete("Use 'DerObjectIdentifier' variant instead")]
+        public CmsTypedStream(string oid, Stream inStream)
+            : this(oid, inStream, Streams.DefaultBufferSize)
+        {
+        }
 
-		public Stream ContentStream => m_in;
+        [Obsolete("Use 'DerObjectIdentifier' variant instead")]
+        public CmsTypedStream(string oid, Stream inStream, int bufSize)
+            : this(new DerObjectIdentifier(oid), inStream, bufSize)
+        {
+        }
 
-		public void Drain()
-		{
-			using (m_in) Streams.Drain(m_in);
-		}
-	}
+        public CmsTypedStream(DerObjectIdentifier contentType, Stream contentStream)
+            : this(contentType, contentStream, Streams.DefaultBufferSize)
+        {
+        }
+
+        public CmsTypedStream(DerObjectIdentifier contentType, Stream contentStream, int bufSize)
+        {
+            m_contentType = contentType;
+            m_contentStream = new BufferedFilterStream(contentStream, bufSize);
+        }
+
+        [Obsolete("Use 'ContentTypeOid' instead")]
+        public string ContentType => m_contentType.GetID();
+
+        public DerObjectIdentifier ContentTypeOid => m_contentType;
+
+        public Stream ContentStream => m_contentStream;
+
+        public void Drain()
+        {
+            using (m_contentStream)
+            {
+                Streams.Drain(m_contentStream);
+            }
+        }
+
+        #region IDisposable
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                m_contentStream.Dispose();
+            }
+        }
+
+        #endregion
+    }
 }

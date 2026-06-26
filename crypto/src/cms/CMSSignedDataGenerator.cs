@@ -689,21 +689,23 @@ namespace Org.BouncyCastle.Cms
         {
             m_digests.Clear();
 
-            CmsProcessable content = new CmsProcessableByteArray(signer.GetSignature());
+            DerObjectIdentifier contentType = null;
+
+            CmsTypedData content = new CmsProcessableByteArray(contentType, signer.GetSignature());
 
             var signerInformations = new List<SignerInformation>();
 
             foreach (SignerInformation _signer in _signers)
             {
-                signerInformations.Add(new SignerInformation(_signer.SignerInfo, null, content, null));
+                signerInformations.Add(new SignerInformation(_signer.SignerInfo, contentType, content, null));
             }
 
             foreach (SignerInf signerInf in signerInfs)
             {
                 try
                 {
-                    var signerInfo = signerInf.ToSignerInfo(null, content);
-                    signerInformations.Add(new SignerInformation(signerInfo, null, content, null));
+                    var signerInfo = signerInf.ToSignerInfo(contentType, content);
+                    signerInformations.Add(new SignerInformation(signerInfo, contentType, content, null));
                 }
                 catch (IOException e)
                 {
