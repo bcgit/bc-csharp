@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 
 using NUnit.Framework;
@@ -20,15 +21,12 @@ namespace Org.BouncyCastle.Cms.Tests
         private const string SignDN = "O=Bouncy Castle, C=AU";
 
         private static AsymmetricCipherKeyPair signKP;
-        //		private static X509Certificate signCert;
-        //signCert = CmsTestUtil.MakeCertificate(_signKP, SignDN, _signKP, SignDN);
+        private static X509Certificate signCert;
 
-        //		private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
+        private const string OrigDN = "CN=Bob, OU=Sales, O=Bouncy Castle, C=AU";
 
-        //		private static AsymmetricCipherKeyPair origKP;
-        //origKP = CmsTestUtil.MakeKeyPair();
-        //		private static X509Certificate origCert;
-        //origCert = CmsTestUtil.MakeCertificate(_origKP, OrigDN, _signKP, SignDN);
+        private static AsymmetricCipherKeyPair origKP;
+        private static X509Certificate origCert;
 
         private const string ReciDN = "CN=Doug, OU=Sales, O=Bouncy Castle, C=AU";
 
@@ -42,6 +40,9 @@ namespace Org.BouncyCastle.Cms.Tests
         private static AsymmetricCipherKeyPair OrigECKP =>
             CmsTestUtil.InitKP(ref origECKP, CmsTestUtil.MakeECDsaKeyPair);
 
+        private static AsymmetricCipherKeyPair OrigKP =>
+            CmsTestUtil.InitKP(ref origKP, CmsTestUtil.MakeKeyPair);
+
         private static AsymmetricCipherKeyPair ReciECKP =>
             CmsTestUtil.InitKP(ref reciECKP, CmsTestUtil.MakeECDsaKeyPair);
 
@@ -51,11 +52,17 @@ namespace Org.BouncyCastle.Cms.Tests
         private static AsymmetricCipherKeyPair SignKP =>
             CmsTestUtil.InitKP(ref signKP, CmsTestUtil.MakeKeyPair);
 
+        private static X509Certificate OrigCert => CmsTestUtil.InitCertificate(ref origCert,
+            () => CmsTestUtil.MakeCertificate(OrigKP, OrigDN, SignKP, SignDN));
+
         private static X509Certificate ReciCert => CmsTestUtil.InitCertificate(ref reciCert,
             () => CmsTestUtil.MakeCertificate(ReciKP, ReciDN, SignKP, SignDN));
 
         private static X509Certificate ReciECCert => CmsTestUtil.InitCertificate(ref reciECCert,
             () => CmsTestUtil.MakeCertificate(ReciECKP, ReciDN, SignKP, SignDN));
+
+        private static X509Certificate SignCert => CmsTestUtil.InitCertificate(ref signCert,
+            () => CmsTestUtil.MakeCertificate(SignKP, SignDN, SignKP, SignDN));
 
         [Test]
         public void TestKeyTransDESede()
@@ -140,6 +147,45 @@ namespace Org.BouncyCastle.Cms.Tests
 
                 Assert.IsTrue(Arrays.AreEqual(data, recData));
                 Assert.IsTrue(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));
+            }
+        }
+
+        [Test]
+        public void OriginatorInfo()
+        {
+            byte[] data = Encoding.ASCII.GetBytes("Eric H. Echidna");
+
+            CmsAuthenticatedDataGenerator adGen = new CmsAuthenticatedDataGenerator();
+
+            adGen.OriginatorInformation = new OriginatorInformation(new OriginatorInfoGenerator(OrigCert).Generate());
+
+            adGen.AddKeyTransRecipient(ReciCert);
+
+            CmsAuthenticatedData ad = adGen.Generate(
+                new CmsProcessableByteArray(data),
+                CmsAuthenticatedDataGenerator.DesEde3Cbc);
+
+            var originatorCerts = new List<X509Certificate>(
+                ad.OriginatorInformation.GetCertificates().EnumerateMatches(null));
+            Assert.True(originatorCerts.Contains(OrigCert));
+
+            RecipientInformationStore recipients = ad.GetRecipientInfos();
+
+            Assert.AreEqual(CmsAuthenticatedDataGenerator.DesEde3Cbc, ad.MacAlgOid);
+
+            var c = recipients.GetRecipients();
+
+            Assert.AreEqual(1, c.Count);
+
+            foreach (RecipientInformation recipient in c)
+            {
+                Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.GetID());
+                Assert.True(recipient.RecipientID.Match(ReciCert));
+
+                byte[] recData = recipient.GetContent(ReciKP.Private);
+
+                Assert.That(Arrays.AreEqual(data, recData));
+                Assert.That(Arrays.AreEqual(ad.GetMac(), recipient.GetMac()));
             }
         }
 
