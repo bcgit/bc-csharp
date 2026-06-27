@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Cms
     /// </remarks>
     public enum CmsAttributeTableParameter
     {
-        ContentType, Digest, Signature, DigestAlgorithmIdentifier, SignatureAlgorithmIdentifier
+        ContentType, Digest, Signature, DigestAlgorithmIdentifier, SignatureAlgorithmIdentifier, MacAlgorithmIdentifier,
     }
 
     public interface CmsAttributeTableGenerator
