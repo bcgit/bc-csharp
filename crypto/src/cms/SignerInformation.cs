@@ -34,8 +34,8 @@ namespace Org.BouncyCastle.Cms
         private byte[] resultDigest;
 
         // Derived
-        private Asn1.Cms.AttributeTable signedAttributeTable;
-        private Asn1.Cms.AttributeTable unsignedAttributeTable;
+        private Asn1.Cms.AttributeTable m_signedAttributeTable;
+        private Asn1.Cms.AttributeTable m_unsignedAttributeTable;
         private readonly bool isCounterSignature;
 
         // TODO[api] Avoid having protected fields (maybe seal the class too?)
@@ -108,8 +108,8 @@ namespace Org.BouncyCastle.Cms
             this.signature = Arrays.Clone(info.Signature.GetOctets());
 
             this.calculatedDigest = baseInfo.calculatedDigest;
-            this.signedAttributeTable = baseInfo.signedAttributeTable;
-            this.unsignedAttributeTable = baseInfo.unsignedAttributeTable;
+            m_signedAttributeTable = baseInfo.m_signedAttributeTable;
+            m_unsignedAttributeTable = baseInfo.m_unsignedAttributeTable;
         }
 
         public bool IsCounterSignature => isCounterSignature;
@@ -160,19 +160,16 @@ namespace Org.BouncyCastle.Cms
 
         public AlgorithmIdentifier SignatureAlgorithm => encryptionAlgorithm;
 
-        /**
-         * return a table of the signed attributes - indexed by
-         * the OID of the attribute.
-         */
+        /// <summary>Return a table of the signed attributes - indexed by the OID of the attribute.</summary>
         public Asn1.Cms.AttributeTable SignedAttributes
         {
             get
             {
-                if (signedAttributeTable == null)
+                if (m_signedAttributeTable == null)
                 {
-                    signedAttributeTable = signedAttributeSet?.ToAttributeTable();
+                    m_signedAttributeTable = signedAttributeSet?.ToAttributeTable();
                 }
-                return signedAttributeTable;
+                return m_signedAttributeTable;
             }
         }
 
@@ -181,19 +178,16 @@ namespace Org.BouncyCastle.Cms
         [Obsolete("Use 'SignerInfo' property instead")]
         public SignerInfo ToSignerInfo() => info;
 
-        /**
-         * return a table of the unsigned attributes indexed by
-         * the OID of the attribute.
-         */
+        /// <summary>Return a table of the unsigned attributes - indexed by the OID of the attribute.</summary>
         public Asn1.Cms.AttributeTable UnsignedAttributes
         {
             get
             {
-                if (unsignedAttributeTable == null)
+                if (m_unsignedAttributeTable == null)
                 {
-                    unsignedAttributeTable = unsignedAttributeSet?.ToAttributeTable();
+                    m_unsignedAttributeTable = unsignedAttributeSet?.ToAttributeTable();
                 }
-                return unsignedAttributeTable;
+                return m_unsignedAttributeTable;
             }
         }
 
@@ -215,8 +209,8 @@ namespace Org.BouncyCastle.Cms
              * NOT be a signed attribute, an authenticated attribute, an
              * unauthenticated attribute, or an unprotected attribute.
              */
-            Asn1.Cms.AttributeTable unsignedAttributeTable = UnsignedAttributes;
-            if (unsignedAttributeTable == null)
+            Asn1.Cms.AttributeTable unsignedAttributes = UnsignedAttributes;
+            if (unsignedAttributes == null)
                 return new SignerInformationStore(new List<SignerInformation>(0));
 
             var counterSignatures = new List<SignerInformation>();
@@ -226,7 +220,7 @@ namespace Org.BouncyCastle.Cms
              * UnsignedAttributes in a signerInfo may include multiple instances of
              * the countersignature attribute.
              */
-            Asn1EncodableVector allCSAttrs = unsignedAttributeTable.GetAll(CmsAttributes.CounterSignature);
+            Asn1EncodableVector allCSAttrs = unsignedAttributes.GetAll(CmsAttributes.CounterSignature);
 
             foreach (Asn1.Cms.Attribute counterSignatureAttribute in allCSAttrs)
             {
@@ -572,7 +566,7 @@ namespace Org.BouncyCastle.Cms
         /// <summary>RFC 3852 11.1 Check the content-type attribute is correct.</summary>
         private void VerifyContentTypeAttributeValue()
         {
-            Asn1Object validContentType = GetSingleValuedSignedAttribute(CmsAttributes.ContentType, "content-type");
+            Asn1Encodable validContentType = GetSingleValuedSignedAttribute(CmsAttributes.ContentType, "content-type");
             if (validContentType == null)
             {
                 if (!isCounterSignature && signedAttributeSet != null)
@@ -594,9 +588,8 @@ namespace Org.BouncyCastle.Cms
         /// <summary>RFC 3852 11.2 Check the message-digest attribute is correct.</summary>
         private void VerifyMessageDigestAttribute()
         {
-            Asn1Object validMessageDigest = GetSingleValuedSignedAttribute(CmsAttributes.MessageDigest,
+            Asn1Encodable validMessageDigest = GetSingleValuedSignedAttribute(CmsAttributes.MessageDigest,
                 "message-digest");
-
             if (validMessageDigest == null)
             {
                 if (signedAttributeSet != null)
@@ -615,46 +608,30 @@ namespace Org.BouncyCastle.Cms
         /// <summary>RFC 6211 Validate Algorithm Protection attribute if present.</summary>
         private void VerifyAlgorithmProtectionAttribute()
         {
-            Asn1.Cms.AttributeTable unsignedAttrTable = UnsignedAttributes;
-            if (unsignedAttrTable != null && unsignedAttrTable.HasAny(CmsAttributes.CmsAlgorithmProtect))
-                throw new CmsException("A cmsAlgorithmProtect attribute MUST be a signed attribute");
-
-            Asn1.Cms.AttributeTable signedAttrTable = SignedAttributes;
-            if (signedAttrTable != null)
+            Asn1Encodable validAlgorithmProtection = GetSingleValuedSignedAttribute(CmsAttributes.CmsAlgorithmProtect,
+                "cmsAlgorithmProtect");
+            if (validAlgorithmProtection != null)
             {
-                Asn1EncodableVector protectionAttributes = signedAttrTable.GetAll(CmsAttributes.CmsAlgorithmProtect);
-                if (protectionAttributes.Count > 1)
-                    throw new CmsException("Only one instance of a cmsAlgorithmProtect attribute can be present");
+                var algorithmProtection = CmsAlgorithmProtection.GetInstance(validAlgorithmProtection);
 
-                if (protectionAttributes.Count > 0)
-                {
-                    Asn1.Cms.Attribute attr = Asn1.Cms.Attribute.GetInstance(protectionAttributes[0]);
+                if (!CmsUtilities.IsEquivalent(algorithmProtection.DigestAlgorithm, info.DigestAlgorithm))
+                    throw new CmsException("CMS Algorithm Protection check failed for digestAlgorithm");
 
-                    Asn1Set attrValues = attr.AttrValues;
-                    if (attrValues.Count != 1)
-                        throw new CmsException("A cmsAlgorithmProtect attribute MUST contain exactly one value");
-
-                    var algorithmProtection = CmsAlgorithmProtection.GetInstance(attrValues[0]);
-
-                    if (!CmsUtilities.IsEquivalent(algorithmProtection.DigestAlgorithm, info.DigestAlgorithm))
-                        throw new CmsException("CMS Algorithm Protection check failed for digestAlgorithm");
-
-                    if (!CmsUtilities.IsEquivalent(algorithmProtection.SignatureAlgorithm, info.SignatureAlgorithm))
-                        throw new CmsException("CMS Algorithm Protection check failed for signatureAlgorithm");
-                }
+                if (!CmsUtilities.IsEquivalent(algorithmProtection.SignatureAlgorithm, info.SignatureAlgorithm))
+                    throw new CmsException("CMS Algorithm Protection check failed for signatureAlgorithm");
             }
         }
 
         private void VerifyCounterSignatureAttribute()
         {
-            Asn1.Cms.AttributeTable signedAttrTable = SignedAttributes;
-            if (signedAttrTable != null && signedAttrTable.HasAny(CmsAttributes.CounterSignature))
+            Asn1.Cms.AttributeTable signedAttributes = SignedAttributes;
+            if (signedAttributes != null && signedAttributes.HasAny(CmsAttributes.CounterSignature))
                 throw new CmsException("A countersignature attribute MUST NOT be a signed attribute");
 
-            Asn1.Cms.AttributeTable unsignedAttrTable = UnsignedAttributes;
-            if (unsignedAttrTable != null)
+            Asn1.Cms.AttributeTable unsignedAttributes = UnsignedAttributes;
+            if (unsignedAttributes != null)
             {
-                foreach (Asn1.Cms.Attribute csAttr in unsignedAttrTable.GetAll(CmsAttributes.CounterSignature))
+                foreach (Asn1.Cms.Attribute csAttr in unsignedAttributes.GetAll(CmsAttributes.CounterSignature))
                 {
                     if (csAttr.AttrValues.Count < 1)
                         throw new CmsException("A countersignature attribute MUST contain at least one AttributeValue");
@@ -730,21 +707,17 @@ namespace Org.BouncyCastle.Cms
             return DoVerify(cert.GetPublicKey());
         }
 
-        private Asn1Object GetSingleValuedSignedAttribute(DerObjectIdentifier attrOid, string printableName)
+        private Asn1Encodable GetSingleValuedSignedAttribute(DerObjectIdentifier attrOid, string printableName)
         {
-            Asn1.Cms.AttributeTable unsignedAttrTable = this.UnsignedAttributes;
-            if (unsignedAttrTable != null
-                && unsignedAttrTable.GetAll(attrOid).Count > 0)
-            {
-                throw new CmsException("The " + printableName
-                    + " attribute MUST NOT be an unsigned attribute");
-            }
+            var unsignedAttributes = UnsignedAttributes;
+            if (unsignedAttributes != null && unsignedAttributes.HasAny(attrOid))
+                throw new CmsException($"The {printableName} attribute MUST NOT be an unsigned attribute");
 
-            Asn1.Cms.AttributeTable signedAttrTable = this.SignedAttributes;
-            if (signedAttrTable == null)
+            var signedAttributes = SignedAttributes;
+            if (signedAttributes == null)
                 return null;
 
-            Asn1EncodableVector v = signedAttrTable.GetAll(attrOid);
+            Asn1EncodableVector v = signedAttributes.GetAll(attrOid);
             switch (v.Count)
             {
             case 0:
@@ -755,20 +728,19 @@ namespace Org.BouncyCastle.Cms
                 Asn1Set attrValues = t.AttrValues;
 
                 if (attrValues.Count != 1)
-                    throw new CmsException("A " + printableName + " attribute MUST have a single attribute value");
+                    throw new CmsException($"A {printableName} attribute MUST have a single attribute value");
 
-                return attrValues[0].ToAsn1Object();
+                return attrValues[0];
             }
             default:
-                throw new CmsException("The SignedAttributes in a signerInfo MUST NOT include multiple instances of the "
-                    + printableName + " attribute");
+                throw new CmsException(
+                    $"The SignedAttributes in a SignerInfo MUST NOT include multiple instances of the {printableName} attribute");
             }
         }
 
         private Asn1.Cms.Time GetSigningTime()
         {
-            Asn1Object validSigningTime = GetSingleValuedSignedAttribute(CmsAttributes.SigningTime, "signing-time");
-
+            Asn1Encodable validSigningTime = GetSingleValuedSignedAttribute(CmsAttributes.SigningTime, "signing-time");
             if (validSigningTime == null)
                 return null;
 
@@ -820,15 +792,13 @@ namespace Org.BouncyCastle.Cms
 
             var attrValues = DerSet.Map(counterSigners.SignersInternal, sigInf => sigInf.SignerInfo);
 
-            var attributeTable = (signerInformation.UnsignedAttributes ?? DerSet.Empty.ToAttributeTable())
+            var unsignedAttributes = (signerInformation.UnsignedAttributes ?? DerSet.Empty.ToAttributeTable())
                 .Add(new Asn1.Cms.Attribute(CmsAttributes.CounterSignature, attrValues));
-
-            var newUnsignedAttrs = attributeTable.ToDerSet();
 
             var oldInfo = signerInformation.SignerInfo;
 
             var newInfo = new SignerInfo(oldInfo.SignerID, oldInfo.DigestAlgorithm, oldInfo.SignedAttrs,
-                oldInfo.SignatureAlgorithm, oldInfo.Signature, newUnsignedAttrs);
+                oldInfo.SignatureAlgorithm, oldInfo.Signature, unsignedAttributes.ToDerSet());
 
             return new SignerInformation(newInfo, signerInformation.contentType, signerInformation.content,
                 calculatedDigest: null);

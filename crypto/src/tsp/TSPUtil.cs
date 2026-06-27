@@ -55,15 +55,14 @@ namespace Org.BouncyCastle.Tsp
 	     * @return a collection of TimeStampToken objects
 	     * @throws TSPValidationException
 	     */
-        public static IList<TimeStampToken> GetSignatureTimestamps(
-            SignerInformation signerInfo)
+        public static IList<TimeStampToken> GetSignatureTimestamps(SignerInformation signerInfo)
         {
             var timestamps = new List<TimeStampToken>();
 
-            Asn1.Cms.AttributeTable unsignedAttrs = signerInfo.UnsignedAttributes;
-            if (unsignedAttrs != null)
+            Asn1.Cms.AttributeTable unsignedAttributes = signerInfo.UnsignedAttributes;
+            if (unsignedAttributes != null)
             {
-                foreach (Asn1.Cms.Attribute tsAttr in unsignedAttrs.GetAll(
+                foreach (Asn1.Cms.Attribute tsAttr in unsignedAttributes.GetAll(
                     PkcsObjectIdentifiers.IdAASignatureTimeStampToken))
                 {
                     foreach (Asn1Encodable asn1 in tsAttr.AttrValues)
