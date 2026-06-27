@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 return new AlgorithmIdentifier(encryptionOID, new DerOctetString(iv));
             }
             else if (encryptionOID.Equals(PkcsObjectIdentifiers.DesEde3Cbc) ||
-                     encryptionOID.Equals(IDEA_CBC) ||
+                     encryptionOID.Equals(MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC) ||
                      encryptionOID.Equals(OiwObjectIdentifiers.DesCbc))
             {
                 byte[] iv = new byte[8];
@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
                 return new AlgorithmIdentifier(encryptionOID, new DerOctetString(iv));
             }
-            else if (encryptionOID.Equals(CAST5_CBC))
+            else if (encryptionOID.Equals(MiscObjectIdentifiers.cast5CBC))
             {
                 byte[] iv = new byte[8];
                 random.NextBytes(iv);

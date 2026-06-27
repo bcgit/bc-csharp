@@ -79,9 +79,11 @@ namespace Org.BouncyCastle.Cms
                 byte[] encKeyBytes = keyGen.GenerateKey();
                 encKey = ParameterUtilities.CreateKeyParameter(macOid, encKeyBytes);
 
+#pragma warning disable CS0618 // Type or member is obsolete
                 Asn1Encodable asn1Params = GenerateAsn1Parameters(macOid.GetID(), encKeyBytes);
 
                 macAlgID = GetAlgorithmIdentifier(macOid.GetID(), encKey, asn1Params, out var cipherParameters);
+#pragma warning restore CS0618 // Type or member is obsolete
 
                 IMac mac = MacUtilities.GetMac(macOid);
                 // TODO Confirm no ParametersWithRandom needed

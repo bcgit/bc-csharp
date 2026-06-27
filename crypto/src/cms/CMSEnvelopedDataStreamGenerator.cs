@@ -81,10 +81,12 @@ namespace Org.BouncyCastle.Cms
             byte[] encKeyBytes = keyGen.GenerateKey();
             KeyParameter encKey = ParameterUtilities.CreateKeyParameter(encryptionOid, encKeyBytes);
 
+#pragma warning disable CS0618 // Type or member is obsolete
             Asn1Encodable asn1Params = GenerateAsn1Parameters(encryptionOid, encKeyBytes);
 
             AlgorithmIdentifier encAlgID = GetAlgorithmIdentifier(encryptionOid, encKey, asn1Params,
                 out var cipherParameters);
+#pragma warning restore CS0618 // Type or member is obsolete
 
             // TODO[cms] Do these later when we can write each one out immediately?
             Asn1EncodableVector recipientInfos = new Asn1EncodableVector(recipientInfoGenerators.Count);

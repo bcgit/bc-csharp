@@ -2,6 +2,7 @@
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Kisa;
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
@@ -58,7 +59,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             {
                 return CreateCipherKeyGenerator(random, 128);
             }
-            else if (AlgorithmIdentifierFactory.CAST5_CBC.Equals(algorithm))
+            else if (MiscObjectIdentifiers.cast5CBC.Equals(algorithm))
             {
                 return CreateCipherKeyGenerator(random, 128);
             }

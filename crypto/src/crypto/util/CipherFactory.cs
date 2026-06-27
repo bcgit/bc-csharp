@@ -41,8 +41,8 @@ namespace Org.BouncyCastle.Crypto.Utilities
             if (X509Utilities.IsAbsentParameters(sParams))
             {
                 if (encAlgOid.Equals(PkcsObjectIdentifiers.DesEde3Cbc) ||
-                    encAlgOid.Equals(AlgorithmIdentifierFactory.IDEA_CBC) ||
-                    encAlgOid.Equals(AlgorithmIdentifierFactory.CAST5_CBC))
+                    encAlgOid.Equals(MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC) ||
+                    encAlgOid.Equals(MiscObjectIdentifiers.cast5CBC))
                 {
                     cipher.Init(forEncryption, new ParametersWithIV(encKey, new byte[8]));
                 }
@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             else
             {
                 if (encAlgOid.Equals(PkcsObjectIdentifiers.DesEde3Cbc) ||
-                    encAlgOid.Equals(AlgorithmIdentifierFactory.IDEA_CBC) ||
+                    encAlgOid.Equals(MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC) ||
                     encAlgOid.Equals(NistObjectIdentifiers.IdAes128Cbc) ||
                     encAlgOid.Equals(NistObjectIdentifiers.IdAes192Cbc) ||
                     encAlgOid.Equals(NistObjectIdentifiers.IdAes256Cbc) ||
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 {
                     cipher.Init(forEncryption, new ParametersWithIV(encKey, Asn1OctetString.GetInstance(sParams).GetOctets()));
                 }
-                else if (encAlgOid.Equals(AlgorithmIdentifierFactory.CAST5_CBC))
+                else if (encAlgOid.Equals(MiscObjectIdentifiers.cast5CBC))
                 {
                     Cast5CbcParameters cbcParams = Cast5CbcParameters.GetInstance(sParams);
 
@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
             {
                 cipher = new CbcBlockCipher(new CamelliaEngine());
             }
-            else if (AlgorithmIdentifierFactory.IDEA_CBC.Equals(encAlgOid))
+            else if (MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC.Equals(encAlgOid))
             {
                 cipher = new CbcBlockCipher(new IdeaEngine());
             }
