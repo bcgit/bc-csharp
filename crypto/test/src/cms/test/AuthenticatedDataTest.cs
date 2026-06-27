@@ -67,8 +67,8 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestKeyTransDESede()
         {
-            TryKeyTrans(CmsAuthenticatedDataGenerator.DesEde3Cbc);
-            TryKeyTransWithOaepOverride(CmsAuthenticatedDataGenerator.DesEde3Cbc);
+            TryKeyTrans(PkcsObjectIdentifiers.DesEde3Cbc);
+            TryKeyTransWithOaepOverride(PkcsObjectIdentifiers.DesEde3Cbc);
         }
 
         [Test]
@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             RecipientInformationStore recipients = ad.GetRecipientInfos();
 
-            Assert.AreEqual(CmsAuthenticatedDataGenerator.DesEde3Cbc, ad.MacAlgOid);
+            Assert.AreEqual(PkcsObjectIdentifiers.DesEde3Cbc, ad.MacAlgorithmID.Algorithm);
 
             var c = recipients.GetRecipients();
 
@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             RecipientInformationStore recipients = ad.GetRecipientInfos();
 
-            Assert.AreEqual(CmsAuthenticatedDataGenerator.DesEde3Cbc, ad.MacAlgOid);
+            Assert.AreEqual(PkcsObjectIdentifiers.DesEde3Cbc, ad.MacAlgorithmID.Algorithm);
 
             var c = recipients.GetRecipients();
 
@@ -171,7 +171,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
             RecipientInformationStore recipients = ad.GetRecipientInfos();
 
-            Assert.AreEqual(CmsEnvelopedGenerator.DesEde3Cbc, ad.MacAlgOid);
+            Assert.AreEqual(PkcsObjectIdentifiers.DesEde3Cbc, ad.MacAlgorithmID.Algorithm);
 
             var c = recipients.GetRecipients();
 
@@ -189,7 +189,8 @@ namespace Org.BouncyCastle.Cms.Tests
             }
         }
 
-        private void TryKeyTrans(string macAlg)
+
+        private void TryKeyTrans(DerObjectIdentifier macAlgOid)
         {
             byte[] data = Encoding.ASCII.GetBytes("Eric H. Echidna");
 
@@ -199,11 +200,11 @@ namespace Org.BouncyCastle.Cms.Tests
 
             CmsAuthenticatedData ad = adGen.Generate(
                 new CmsProcessableByteArray(data),
-                macAlg);
+                macAlgOid);
 
             RecipientInformationStore recipients = ad.GetRecipientInfos();
 
-            Assert.AreEqual(ad.MacAlgOid, macAlg);
+            Assert.AreEqual(ad.MacAlgorithmID.Algorithm, macAlgOid);
 
             var c = recipients.GetRecipients();
 
@@ -221,7 +222,7 @@ namespace Org.BouncyCastle.Cms.Tests
             }
         }
 
-        private void TryKeyTransWithOaepOverride(string macAlg)
+        private void TryKeyTransWithOaepOverride(DerObjectIdentifier macAlgOid)
         {
             byte[] data = Encoding.ASCII.GetBytes("Eric H. Echidna");
 
@@ -231,11 +232,11 @@ namespace Org.BouncyCastle.Cms.Tests
 
             CmsAuthenticatedData ad = adGen.Generate(
                 new CmsProcessableByteArray(data),
-                macAlg);
+                macAlgOid);
 
             RecipientInformationStore recipients = ad.GetRecipientInfos();
 
-            Assert.AreEqual(ad.MacAlgOid, macAlg);
+            Assert.AreEqual(ad.MacAlgorithmID.Algorithm, macAlgOid);
 
             var c = recipients.GetRecipients();
 
