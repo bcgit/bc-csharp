@@ -136,6 +136,10 @@ namespace Org.BouncyCastle.Cms
                     string digestName = CmsSignedHelper.GetDigestAlgName(digAlgOid);
                     string signatureName = digestName + "with" + m_encName;
 
+                    // TODO[RSAPSS] Need the ability to specify non-default parameters
+                    Asn1Encodable sigAlgParams = SignerUtilities.GetDefaultX509Parameters(signatureName);
+                    AlgorithmIdentifier sigAlgID = CmsSignedHelper.GetSigAlgID(m_sigAlgOid, sigAlgParams);
+
                     byte[] bytesToSign = calculatedDigest;
 
                     /* RFC 3852 5.4
@@ -150,7 +154,7 @@ namespace Org.BouncyCastle.Cms
                     Asn1Set signedAttrs = null;
                     if (m_sAttrGen != null)
                     {
-                        var parameters = m_outer.GetBaseParameters(contentType, digAlgID, calculatedDigest);
+                        var parameters = m_outer.GetBaseParameters(contentType, digAlgID, sigAlgID, calculatedDigest);
 
                         Asn1.Cms.AttributeTable signed = m_sAttrGen.GetAttributes(
                             CollectionUtilities.ReadOnly(parameters));
@@ -181,7 +185,7 @@ namespace Org.BouncyCastle.Cms
                     Asn1Set unsignedAttrs = null;
                     if (m_unsAttrGen != null)
                     {
-                        var parameters = m_outer.GetBaseParameters(contentType, digAlgID, calculatedDigest);
+                        var parameters = m_outer.GetBaseParameters(contentType, digAlgID, sigAlgID, calculatedDigest);
                         parameters[CmsAttributeTableParameter.Signature] = sigBytes.Clone();
 
                         Asn1.Cms.AttributeTable unsigned = m_unsAttrGen.GetAttributes(
@@ -189,10 +193,6 @@ namespace Org.BouncyCastle.Cms
 
                         unsignedAttrs = m_outer.GetAttributeSet(unsigned);
                     }
-
-                    // TODO[RSAPSS] Need the ability to specify non-default parameters
-                    Asn1Encodable sigAlgParams = SignerUtilities.GetDefaultX509Parameters(signatureName);
-                    AlgorithmIdentifier sigAlgID = CmsSignedHelper.GetSigAlgID(m_sigAlgOid, sigAlgParams);
 
                     if (m_sAttrGen == null)
                     {

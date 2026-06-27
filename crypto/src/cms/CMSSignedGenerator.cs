@@ -92,8 +92,10 @@ namespace Org.BouncyCastle.Cms
         internal bool _useDerForCerts = false;
         internal bool _useDerForCrls = false;
 
+        // TODO[api] Restrict to internal
         protected readonly SecureRandom m_random;
 
+        // TODO[api] Restrict to internal
         protected CmsSignedGenerator()
             : this(CryptoServicesRegistrar.GetSecureRandom())
         {
@@ -101,11 +103,15 @@ namespace Org.BouncyCastle.Cms
 
         /// <summary>Constructor allowing specific source of randomness</summary>
         /// <param name="random">Instance of <c>SecureRandom</c> to use.</param>
+        // TODO[api] Restrict to internal
         protected CmsSignedGenerator(SecureRandom random)
         {
             m_random = random ?? throw new ArgumentNullException(nameof(random));
         }
 
+        // TODO[api] After removing this, SignatureAlgorithmIdentifier can be assumed present in
+        // DefaultSignedAttributeTableGenerator.AddMissingStandardAttributes
+        [Obsolete("Will be removed")]
         protected internal virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
             DerObjectIdentifier contentType, AlgorithmIdentifier digAlgId, byte[] hash)
         {
@@ -122,7 +128,24 @@ namespace Org.BouncyCastle.Cms
             return param;
         }
 
-        // TODO[api] Make internal
+        internal virtual IDictionary<CmsAttributeTableParameter, object> GetBaseParameters(
+            DerObjectIdentifier contentType, AlgorithmIdentifier digAlgID, AlgorithmIdentifier sigAlgID, byte[] hash)
+        {
+            var param = new Dictionary<CmsAttributeTableParameter, object>();
+
+            if (contentType != null)
+            {
+                param[CmsAttributeTableParameter.ContentType] = contentType;
+            }
+
+            param[CmsAttributeTableParameter.DigestAlgorithmIdentifier] = digAlgID;
+            param[CmsAttributeTableParameter.SignatureAlgorithmIdentifier] = sigAlgID;
+            param[CmsAttributeTableParameter.Digest] = hash.Clone();
+
+            return param;
+        }
+
+        // TODO[api] Restrict to internal
         protected internal virtual Asn1Set GetAttributeSet(Asn1.Cms.AttributeTable attr)
         {
             return attr == null ? null : DerSet.FromCollection(attr);

@@ -521,6 +521,9 @@ namespace Org.BouncyCastle.Cms
             // RFC 3852 11.1 Check the content-type attribute is correct
             VerifyContentTypeAttributeValue();
 
+            // RFC 6211 Validate Algorithm Protection attribute if present
+            VerifyAlgorithmProtectionAttribute();
+
             // RFC 3852 11.2 Check the message-digest attribute is correct
             VerifyMessageDigestAttribute();
 
@@ -606,6 +609,39 @@ namespace Org.BouncyCastle.Cms
 
                 if (!Arrays.FixedTimeEquals(resultDigest, signedMessageDigest.GetOctets()))
                     throw new CmsException("message-digest attribute value does not match calculated value");
+            }
+        }
+
+        /// <summary>RFC 6211 Validate Algorithm Protection attribute if present.</summary>
+        private void VerifyAlgorithmProtectionAttribute()
+        {
+            Asn1.Cms.AttributeTable unsignedAttrTable = UnsignedAttributes;
+            if (unsignedAttrTable != null && unsignedAttrTable.HasAny(CmsAttributes.CmsAlgorithmProtect))
+                throw new CmsException("A cmsAlgorithmProtect attribute MUST be a signed attribute");
+
+            Asn1.Cms.AttributeTable signedAttrTable = SignedAttributes;
+            if (signedAttrTable != null)
+            {
+                Asn1EncodableVector protectionAttributes = signedAttrTable.GetAll(CmsAttributes.CmsAlgorithmProtect);
+                if (protectionAttributes.Count > 1)
+                    throw new CmsException("Only one instance of a cmsAlgorithmProtect attribute can be present");
+
+                if (protectionAttributes.Count > 0)
+                {
+                    Asn1.Cms.Attribute attr = Asn1.Cms.Attribute.GetInstance(protectionAttributes[0]);
+
+                    Asn1Set attrValues = attr.AttrValues;
+                    if (attrValues.Count != 1)
+                        throw new CmsException("A cmsAlgorithmProtect attribute MUST contain exactly one value");
+
+                    var algorithmProtection = CmsAlgorithmProtection.GetInstance(attrValues[0]);
+
+                    if (!CmsUtilities.IsEquivalent(algorithmProtection.DigestAlgorithm, info.DigestAlgorithm))
+                        throw new CmsException("CMS Algorithm Protection check failed for digestAlgorithm");
+
+                    if (!CmsUtilities.IsEquivalent(algorithmProtection.SignatureAlgorithm, info.SignatureAlgorithm))
+                        throw new CmsException("CMS Algorithm Protection check failed for signatureAlgorithm");
+                }
             }
         }
 

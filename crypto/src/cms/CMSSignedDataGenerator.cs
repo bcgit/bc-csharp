@@ -223,53 +223,6 @@ namespace Org.BouncyCastle.Cms
                     m_outer.m_digests.Add(digAlgOid, hash);
                 }
 
-                Asn1Set signedAttrs = null;
-
-                IStreamCalculator<IBlockResult> calculator = m_signatureFactory.CreateCalculator();
-                using (Stream sigStr = calculator.Stream)
-                {
-                    if (m_sAttrGen != null)
-                    {
-                        var parameters = m_outer.GetBaseParameters(contentType, digAlgID, hash);
-
-                        Asn1.Cms.AttributeTable signed = m_sAttrGen.GetAttributes(
-                            CollectionUtilities.ReadOnly(parameters));
-
-                        if (contentType == null) //counter signature
-                        {
-                            signed = signed?.Remove(CmsAttributes.ContentType);
-                        }
-
-                        // TODO Validate proposed signed attributes
-
-                        signedAttrs = m_outer.GetAttributeSet(signed);
-
-                        // sig must be composed from the DER encoding.
-                        signedAttrs.EncodeTo(sigStr, Asn1Encodable.Der);
-                    }
-                    else if (content != null)
-                    {
-                        // TODO Use raw signature of the hash value instead (when sig alg uses external digest)
-                        content.Write(sigStr);
-                    }
-                }
-
-                byte[] sigBytes = calculator.GetResult().Collect();
-
-                Asn1Set unsignedAttrs = null;
-                if (m_unsAttrGen != null)
-                {
-                    var baseParameters = m_outer.GetBaseParameters(contentType, digAlgID, hash);
-                    baseParameters[CmsAttributeTableParameter.Signature] = sigBytes.Clone();
-
-                    Asn1.Cms.AttributeTable unsigned = m_unsAttrGen.GetAttributes(
-                        CollectionUtilities.ReadOnly(baseParameters));
-
-                    // TODO Validate proposed unsigned attributes
-
-                    unsignedAttrs = m_outer.GetAttributeSet(unsigned);
-                }
-
                 AlgorithmIdentifier sigAlgID;
                 if (EdECObjectIdentifiers.id_Ed25519.Equals(m_sigAlgOid))
                 {
@@ -297,6 +250,53 @@ namespace Org.BouncyCastle.Cms
                     // TODO[RSAPSS] Need the ability to specify non-default parameters
                     Asn1Encodable sigAlgParams = SignerUtilities.GetDefaultX509Parameters(signatureName);
                     sigAlgID = CmsSignedHelper.GetSigAlgID(m_sigAlgOid, sigAlgParams);
+                }
+
+                Asn1Set signedAttrs = null;
+
+                IStreamCalculator<IBlockResult> calculator = m_signatureFactory.CreateCalculator();
+                using (Stream sigStr = calculator.Stream)
+                {
+                    if (m_sAttrGen != null)
+                    {
+                        var parameters = m_outer.GetBaseParameters(contentType, digAlgID, sigAlgID, hash);
+
+                        Asn1.Cms.AttributeTable signed = m_sAttrGen.GetAttributes(
+                            CollectionUtilities.ReadOnly(parameters));
+
+                        if (contentType == null) //counter signature
+                        {
+                            signed = signed?.Remove(CmsAttributes.ContentType);
+                        }
+
+                        // TODO Validate proposed signed attributes
+ 
+                        signedAttrs = m_outer.GetAttributeSet(signed);
+
+                        // sig must be composed from the DER encoding.
+                        signedAttrs.EncodeTo(sigStr, Asn1Encodable.Der);
+                    }
+                    else if (content != null)
+                    {
+                        // TODO Use raw signature of the hash value instead (when sig alg uses external digest)
+                        content.Write(sigStr);
+                    }
+                }
+
+                byte[] sigBytes = calculator.GetResult().Collect();
+
+                Asn1Set unsignedAttrs = null;
+                if (m_unsAttrGen != null)
+                {
+                    var baseParameters = m_outer.GetBaseParameters(contentType, digAlgID, sigAlgID, hash);
+                    baseParameters[CmsAttributeTableParameter.Signature] = sigBytes.Clone();
+
+                    Asn1.Cms.AttributeTable unsigned = m_unsAttrGen.GetAttributes(
+                        CollectionUtilities.ReadOnly(baseParameters));
+
+                    // TODO Validate proposed unsigned attributes
+
+                    unsignedAttrs = m_outer.GetAttributeSet(unsigned);
                 }
 
                 var signature = new DerOctetString(sigBytes);

@@ -965,6 +965,40 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         [Test]
+        public void RemoveAttribute()
+        {
+            byte[] testBytes = Encoding.ASCII.GetBytes("Hello world!");
+            CmsTypedData msg = new CmsProcessableByteArray(testBytes);
+
+            var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+            byte[] hash = DigestUtilities.CalculateDigest("SHA1", testBytes);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+            gen.AddSigner(SignKP.Private, SignCert, CmsSignedGenerator.DigestSha1,
+                signedAttrGen: new RemoveProtectionGenerator(),
+                unsignedAttrGen: null);
+            gen.AddCertificates(x509Certs);
+
+            CmsSignedData s = gen.Generate(msg, encapsulate: false);
+
+            //
+            // the signature is detached, so need to add msg before passing on
+            //
+            s = new CmsSignedData(msg, s.GetEncoded());
+
+            foreach (SignerInformation signerInformation in s.GetSignerInfos())
+            {
+                Assert.Null(signerInformation.SignedAttributes[CmsAttributes.CmsAlgorithmProtect]);
+            }
+
+            //
+            // compute expected content digest
+            //
+            VerifySignatures(s, hash);
+        }
+
+        [Test]
         public void TestRawSha256MissingNull()
         {
             byte[] document = GetInput("rawsha256nonull.p7m");
@@ -2546,36 +2580,6 @@ namespace Org.BouncyCastle.Cms.Tests
             Assert.AreSame(newSignerInfoGen.SignedAttributeTableGenerator, signedAttrGen);
         }
 
-        // TODO There seems to be something reusable here; similar producers of IdAASigningCertificate(V2) elsewhere
-        private class MyGenerator
-            : CmsAttributeTableGenerator
-        {
-            private readonly CmsAttributeTableGenerator m_inner;
-            private readonly X509Certificate m_certificate;
-
-            internal MyGenerator(CmsAttributeTableGenerator inner, X509Certificate certificate)
-            {
-                m_inner = inner ?? throw new ArgumentNullException(nameof(inner));
-                m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
-            }
-
-            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
-            {
-                Asn1.Cms.AttributeTable table = m_inner.GetAttributes(parameters);
-
-                if (table[Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificateV2] != null)
-                    return table;
-
-                byte[] certHash256 = DigestUtilities.CalculateDigest("SHA256", m_certificate.GetEncoded());
-
-                var c = m_certificate.CertificateStructure;
-                var essCertIDv2 = new EssCertIDv2(certHash256, new IssuerSerial(c.Issuer, c.SerialNumber));
-                var signingCertificateV2 = new SigningCertificateV2(essCertIDv2);
-
-                return table.Add(Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificateV2, signingCertificateV2);
-            }
-        }
-
         [Test]
         public void TestMsPkcs7()
         {
@@ -2774,12 +2778,53 @@ namespace Org.BouncyCastle.Cms.Tests
                 "expected length-bound rejection, got: " + chain);
         }
 
+        // TODO There seems to be something reusable here; similar producers of IdAASigningCertificate(V2) elsewhere
+        private class MyGenerator
+            : CmsAttributeTableGenerator
+        {
+            private readonly CmsAttributeTableGenerator m_inner;
+            private readonly X509Certificate m_certificate;
+
+            internal MyGenerator(CmsAttributeTableGenerator inner, X509Certificate certificate)
+            {
+                m_inner = inner ?? throw new ArgumentNullException(nameof(inner));
+                m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
+            }
+
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
+            {
+                Asn1.Cms.AttributeTable table = m_inner.GetAttributes(parameters);
+
+                if (table[Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificateV2] != null)
+                    return table;
+
+                byte[] certHash256 = DigestUtilities.CalculateDigest("SHA256", m_certificate.GetEncoded());
+
+                var c = m_certificate.CertificateStructure;
+                var essCertIDv2 = new EssCertIDv2(certHash256, new IssuerSerial(c.Issuer, c.SerialNumber));
+                var signingCertificateV2 = new SigningCertificateV2(essCertIDv2);
+
+                return table.Add(Asn1.Pkcs.PkcsObjectIdentifiers.IdAASigningCertificateV2, signingCertificateV2);
+            }
+        }
+
         private class MySignerInformation
             : SignerInformation
         {
             public MySignerInformation(SignerInformation sigInf)
                 : base(sigInf)
             {
+            }
+        }
+
+        private class RemoveProtectionGenerator
+            : CmsAttributeTableGenerator
+        {
+            public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
+            {
+                Asn1.Cms.AttributeTable table = new DefaultSignedAttributeTableGenerator().GetAttributes(parameters);
+
+                return table.Remove(CmsAttributes.CmsAlgorithmProtect);
             }
         }
     }

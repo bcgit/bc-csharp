@@ -94,6 +94,14 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        internal static bool IsEquivalent(AlgorithmIdentifier algID1, AlgorithmIdentifier algID2)
+        {
+            if (algID1 == null || algID2 == null)
+                return false;
+
+            return X509Utilities.AreEquivalentAlgorithms(algID1, algID2);
+        }
+
         internal static ContentInfo ReadContentInfo(byte[] input)
         {
             using (var asn1In = new Asn1InputStream(input))
