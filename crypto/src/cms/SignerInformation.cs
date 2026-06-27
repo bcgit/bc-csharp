@@ -662,21 +662,25 @@ namespace Org.BouncyCastle.Cms
             // Optional, but still need to validate if present
             GetSigningTime();
 
+            // No associated certificate to check signingTime against
+
             return DoVerify(pubKey);
         }
 
-        /**
-         * verify that the given certificate successfully handles and confirms
-         * the signature associated with this signer and, if a signingTime
-         * attribute is available, that the certificate was valid at the time the
-         * signature was generated.
-         */
+        /// <summary>
+        /// Verify that the given certificate successfully handles and confirms the signature associated with this
+        /// signer.
+        /// </summary>
+        /// <remarks>
+        /// If a signingTime attribute is available, it is checked that the certificate was valid at the indicated time.
+        /// </remarks>
         public bool Verify(X509Certificate cert)
         {
             Asn1.Cms.Time signingTime = GetSigningTime();
             if (signingTime != null)
             {
-                cert.CheckValidity(signingTime.ToDateTime());
+                if (!cert.IsValid(signingTime.ToDateTime()))
+                    throw new CmsVerifierCertificateNotValidException("verifier not valid at signingTime");
             }
 
             return DoVerify(cert.GetPublicKey());
