@@ -50,11 +50,15 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("type3 attribute found when none expected.");
             }
 
+            IsTrue(table.HasAny(type1));
+
             Asn1EncodableVector vec = table.GetAll(type1);
             if (vec.Count != 1)
             {
                 Fail("wrong vector size for type1.");
             }
+
+            IsTrue(!table.HasAny(type3));
 
             vec = table.GetAll(type3);
             if (vec.Count != 0)
@@ -91,6 +95,8 @@ namespace Org.BouncyCastle.Asn1.Tests
                 Fail("wrong value retrieved for type1 multi Get!");
             }
 
+            IsTrue(table.HasAny(type1));
+
             vec = table.GetAll(type1);
             if (vec.Count != 3)
             {
@@ -114,6 +120,8 @@ namespace Org.BouncyCastle.Asn1.Tests
             {
                 Fail("wrong value retrieved for type1(2)!");
             }
+
+            IsTrue(table.HasAny(type2));
 
             vec = table.GetAll(type2);
             if (vec.Count != 1)
