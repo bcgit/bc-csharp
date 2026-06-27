@@ -519,67 +519,13 @@ namespace Org.BouncyCastle.Cms
             }
 
             // RFC 3852 11.1 Check the content-type attribute is correct
-            {
-                Asn1Object validContentType = GetSingleValuedSignedAttribute(
-                    CmsAttributes.ContentType, "content-type");
-                if (validContentType == null)
-                {
-                    if (!isCounterSignature && signedAttributeSet != null)
-                        throw new CmsException("The content-type attribute type MUST be present whenever signed attributes are present in signed-data");
-                }
-                else
-                {
-                    if (isCounterSignature)
-                        throw new CmsException("[For counter signatures,] the signedAttributes field MUST NOT contain a content-type attribute");
-
-                    if (!(validContentType is DerObjectIdentifier signedContentType))
-                        throw new CmsException("content-type attribute value not of ASN.1 type 'OBJECT IDENTIFIER'");
-
-                    if (!signedContentType.Equals(contentType))
-                        throw new CmsException("content-type attribute value does not match eContentType");
-                }
-            }
+            VerifyContentTypeAttributeValue();
 
             // RFC 3852 11.2 Check the message-digest attribute is correct
-            {
-                Asn1Object validMessageDigest = GetSingleValuedSignedAttribute(
-                    CmsAttributes.MessageDigest, "message-digest");
-                if (validMessageDigest == null)
-                {
-                    if (signedAttributeSet != null)
-                        throw new CmsException("the message-digest signed attribute type MUST be present when there are any signed attributes present");
-                }
-                else
-                {
-                    if (!(validMessageDigest is Asn1OctetString signedMessageDigest))
-                        throw new CmsException("message-digest attribute value not of ASN.1 type 'OCTET STRING'");
-
-                    if (!Arrays.AreEqual(resultDigest, signedMessageDigest.GetOctets()))
-                        throw new CmsException("message-digest attribute value does not match calculated value");
-                }
-            }
+            VerifyMessageDigestAttribute();
 
             // RFC 3852 11.4 Validate countersignature attribute(s)
-            {
-                Asn1.Cms.AttributeTable signedAttrTable = this.SignedAttributes;
-                if (signedAttrTable != null
-                    && signedAttrTable.GetAll(CmsAttributes.CounterSignature).Count > 0)
-                {
-                    throw new CmsException("A countersignature attribute MUST NOT be a signed attribute");
-                }
-
-                Asn1.Cms.AttributeTable unsignedAttrTable = this.UnsignedAttributes;
-                if (unsignedAttrTable != null)
-                {
-                    foreach (Asn1.Cms.Attribute csAttr in unsignedAttrTable.GetAll(CmsAttributes.CounterSignature))
-                    {
-                        if (csAttr.AttrValues.Count < 1)
-                            throw new CmsException("A countersignature attribute MUST contain at least one AttributeValue");
-
-                        // Note: We don't recursively validate the countersignature value
-                    }
-                }
-            }
+            VerifyCounterSignatureAttribute();
 
             try
             {
@@ -617,6 +563,68 @@ namespace Org.BouncyCastle.Cms
             catch (SignatureException e)
             {
                 throw new CmsException("invalid signature format in message: " + e.Message, e);
+            }
+        }
+
+        /// <summary>RFC 3852 11.1 Check the content-type attribute is correct.</summary>
+        private void VerifyContentTypeAttributeValue()
+        {
+            Asn1Object validContentType = GetSingleValuedSignedAttribute(CmsAttributes.ContentType, "content-type");
+            if (validContentType == null)
+            {
+                if (!isCounterSignature && signedAttributeSet != null)
+                    throw new CmsException("The content-type attribute type MUST be present whenever signed attributes are present in signed-data");
+            }
+            else
+            {
+                if (isCounterSignature)
+                    throw new CmsException("[For counter signatures,] the signedAttributes field MUST NOT contain a content-type attribute");
+
+                if (!(validContentType is DerObjectIdentifier signedContentType))
+                    throw new CmsException("content-type attribute value not of ASN.1 type 'OBJECT IDENTIFIER'");
+
+                if (!signedContentType.Equals(contentType))
+                    throw new CmsException("content-type attribute value does not match eContentType");
+            }
+        }
+
+        /// <summary>RFC 3852 11.2 Check the message-digest attribute is correct.</summary>
+        private void VerifyMessageDigestAttribute()
+        {
+            Asn1Object validMessageDigest = GetSingleValuedSignedAttribute(CmsAttributes.MessageDigest,
+                "message-digest");
+
+            if (validMessageDigest == null)
+            {
+                if (signedAttributeSet != null)
+                    throw new CmsException("the message-digest signed attribute type MUST be present when there are any signed attributes present");
+            }
+            else
+            {
+                if (!(validMessageDigest is Asn1OctetString signedMessageDigest))
+                    throw new CmsException("message-digest attribute value not of ASN.1 type 'OCTET STRING'");
+
+                if (!Arrays.FixedTimeEquals(resultDigest, signedMessageDigest.GetOctets()))
+                    throw new CmsException("message-digest attribute value does not match calculated value");
+            }
+        }
+
+        private void VerifyCounterSignatureAttribute()
+        {
+            Asn1.Cms.AttributeTable signedAttrTable = SignedAttributes;
+            if (signedAttrTable != null && signedAttrTable.HasAny(CmsAttributes.CounterSignature))
+                throw new CmsException("A countersignature attribute MUST NOT be a signed attribute");
+
+            Asn1.Cms.AttributeTable unsignedAttrTable = UnsignedAttributes;
+            if (unsignedAttrTable != null)
+            {
+                foreach (Asn1.Cms.Attribute csAttr in unsignedAttrTable.GetAll(CmsAttributes.CounterSignature))
+                {
+                    if (csAttr.AttrValues.Count < 1)
+                        throw new CmsException("A countersignature attribute MUST contain at least one AttributeValue");
+
+                    // Note: We don't recursively validate the countersignature value
+                }
             }
         }
 

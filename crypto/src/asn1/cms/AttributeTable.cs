@@ -90,6 +90,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             throw new InvalidOperationException();
         }
 
+        public bool HasAny(DerObjectIdentifier oid) => m_attributes.ContainsKey(oid);
+
         public IDictionary<DerObjectIdentifier, object> ToDictionary() => BuildAttributes(m_attributes, out var ignore);
 
         public Asn1EncodableVector ToAsn1EncodableVector() => Asn1EncodableVector.FromCollection(this);
