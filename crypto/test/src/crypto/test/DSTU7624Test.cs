@@ -2,16 +2,14 @@
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Engines;
+using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
-using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
-using Org.BouncyCastle.Crypto.Macs;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
@@ -707,6 +705,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             CcmModeLongMessageKeystreamTest();
             CcmModeNonceBindingTest();
+            KCcmNonceReuseTests();
         }
 
         /*
@@ -807,6 +806,54 @@ namespace Org.BouncyCastle.Crypto.Tests
             int len = ccm.ProcessBytes(plaintext, 0, plaintext.Length, output, 0);
             len += ccm.DoFinal(output, len);
             return output;
+        }
+
+        /*
+         * Re-initialising for encryption with the same key and nonce is rejected (a repeated key+nonce
+         * is catastrophic for the CCM construction), matching GCMBlockCipher / KGCMBlockCipher.
+         * reset()-based reuse, a fresh nonce, and re-init for decryption are all still allowed.
+         */
+        private void KCcmNonceReuseTests()
+        {
+            byte[] key = Hex.Decode("000102030405060708090A0B0C0D0E0F");
+            byte[] nonce = Hex.Decode("101112131415161718191A1B1C1D1E1F");
+            byte[] nonce2 = Hex.Decode("202122232425262728292A2B2C2D2E2F");
+
+            KCcmBlockCipher c = new KCcmBlockCipher(new Dstu7624Engine(128));
+            c.Init(true, new AeadParameters(new KeyParameter(key), 128, nonce));
+            KCcmEncryptBlock(c);
+
+            // Reset()-based reuse must still work (it does not re-init)
+            c.Reset();
+            KCcmEncryptBlock(c);
+
+            // re-init for encryption with the same key+nonce must be rejected
+            try
+            {
+                c.Init(true, new AeadParameters(new KeyParameter(key), 128, nonce));
+                Fail("KCCM nonce reuse not detected on re-init for encryption");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue("wrong KCCM nonce-reuse message: " + e.Message,
+                    "cannot reuse nonce for KCCM encryption".Equals(e.Message));
+            }
+
+            // a different nonce is fine
+            c.Init(true, new AeadParameters(new KeyParameter(key), 128, nonce2));
+
+            // re-init for decryption with the same key+nonce is allowed (the guard is encrypt-only)
+            KCcmBlockCipher d = new KCcmBlockCipher(new Dstu7624Engine(128));
+            d.Init(true, new AeadParameters(new KeyParameter(key), 128, nonce));
+            d.Init(false, new AeadParameters(new KeyParameter(key), 128, nonce));
+        }
+
+        private void KCcmEncryptBlock(KCcmBlockCipher cipher)
+        {
+            byte[] input = new byte[16];
+            byte[] output = new byte[cipher.GetOutputSize(input.Length)];
+            int len = cipher.ProcessBytes(input, 0, input.Length, output, 0);
+            cipher.DoFinal(output, len);
         }
 
         [Test]
