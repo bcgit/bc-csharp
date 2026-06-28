@@ -25,7 +25,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[] nonce;
         private byte[] initialAssociatedText;
         private int macSize;
-        private ICipherParameters keyParam;
+        private KeyParameter keyParam;
+        private byte[] lastKey;
         private readonly MemoryStream associatedText = new MemoryStream();
         private readonly MemoryStream data = new MemoryStream();
 
@@ -55,30 +56,78 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             this.forEncryption = forEncryption;
 
-            ICipherParameters cipherParameters;
+            KeyParameter keyParameter = null;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> newNonce;
+#else
+            byte[] newNonce;
+#endif
+
             if (parameters is AeadParameters aeadParameters)
             {
-                nonce = aeadParameters.GetNonce();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                newNonce = aeadParameters.Nonce;
+#else
+                newNonce = aeadParameters.GetNonce();
+#endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
                 macSize = GetMacSize(aeadParameters.MacSize);
-                cipherParameters = aeadParameters.Key;
+                keyParameter = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV parametersWithIV)
+            else if (parameters is ParametersWithIV withIV)
             {
-                nonce = parametersWithIV.GetIV();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                newNonce = withIV.InternalIV;
+#else
+                newNonce = withIV.GetIV();
+#endif
                 initialAssociatedText = null;
                 macSize = GetMacSize(64);
-                cipherParameters = parametersWithIV.Parameters;
+
+                if (withIV.Parameters != null)
+                {
+                    keyParameter = withIV.Parameters as KeyParameter
+                        ?? throw new ArgumentException("invalid parameters passed to CCM");
+                }
             }
             else
             {
                 throw new ArgumentException("invalid parameters passed to CCM");
             }
 
-            // NOTE: Very basic support for key re-use, but no performance gain from it
-            if (cipherParameters != null)
+            // RFC 5116 sec. 2.1 requires every nonce passed to an AEAD encryption operation to be
+            // distinct for a given key; sec. 5.3.1 notes CCM nonce reuse "undermines the security for
+            // the messages processed" (here CTR keystream reuse plus a forgeable CBC-MAC; see also NIST
+            // SP 800-38C / RFC 3610). That obligation is the caller's, so this guard enforces it
+            // defensively, mirroring GcmBlockCipher. A null key parameter (explicit key re-use) with a
+            // repeated nonce is also caught. A fresh nonce or key, Reset(), or Init for decryption are
+            // all unaffected.
+            if (forEncryption)
             {
-                keyParam = cipherParameters;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                if (nonce != null && newNonce.SequenceEqual(nonce))
+#else
+                if (nonce != null && Arrays.AreEqual(nonce, newNonce))
+#endif
+                {
+                    if (keyParameter == null)
+                        throw new ArgumentException("cannot reuse nonce for CCM encryption");
+
+                    if (lastKey != null && keyParameter.FixedTimeEquals(lastKey))
+                        throw new ArgumentException("cannot reuse nonce for CCM encryption");
+                }
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            nonce = newNonce.ToArray();
+#else
+            nonce = newNonce;
+#endif
+            // NOTE: Very basic support for key re-use, but no performance gain from it
+            if (keyParameter != null)
+            {
+                keyParam = keyParameter;
+                lastKey = keyParameter.GetKey();
             }
 
             if (nonce.Length < 7 || nonce.Length > 13)
@@ -343,27 +392,44 @@ namespace Org.BouncyCastle.Crypto.Modes
                     macBlock[i] = 0;
                 }
 
-                while (inIndex < (inOff + outputLen - BlockSize))
+                // Decrypt into a private buffer and verify the MAC before writing any plaintext to the
+                // caller's output: on a tag-check failure the caller's buffer must not be left holding
+                // unverified CTR plaintext (NIST SP 800-38C 6.2 returns FAIL without revealing P; this
+                // matches GCMSIVBlockCipher). CCM is non-streaming, so the whole payload is buffered here
+                // regardless.
+                byte[] plain = new byte[outputLen];
+                try
                 {
-                    ctrCipher.ProcessBlock(input, inIndex, output, outIndex);
-                    outIndex += BlockSize;
-                    inIndex += BlockSize;
+                    int plainIndex = 0;
+
+                    while (inIndex < (inOff + outputLen - BlockSize))
+                    {
+                        ctrCipher.ProcessBlock(input, inIndex, plain, plainIndex);
+                        plainIndex += BlockSize;
+                        inIndex += BlockSize;
+                    }
+
+                    byte[] block = new byte[BlockSize];
+
+                    Array.Copy(input, inIndex, block, 0, outputLen - (inIndex - inOff));
+
+                    ctrCipher.ProcessBlock(block, 0, block, 0);
+
+                    Array.Copy(block, 0, plain, plainIndex, outputLen - (inIndex - inOff));
+
+                    byte[] calculatedMacBlock = new byte[BlockSize];
+
+                    CalculateMac(plain, 0, outputLen, calculatedMacBlock);
+
+                    if (!Arrays.FixedTimeEquals(macBlock, calculatedMacBlock))
+                        throw new InvalidCipherTextException("mac check in CCM failed");
+
+                    Array.Copy(plain, 0, output, outOff, outputLen);
                 }
-
-                byte[] block = new byte[BlockSize];
-
-                Array.Copy(input, inIndex, block, 0, outputLen - (inIndex - inOff));
-
-                ctrCipher.ProcessBlock(block, 0, block, 0);
-
-                Array.Copy(block, 0, output, outIndex, outputLen - (inIndex - inOff));
-
-                byte[] calculatedMacBlock = new byte[BlockSize];
-
-                CalculateMac(output, outOff, outputLen, calculatedMacBlock);
-
-                if (!Arrays.FixedTimeEquals(macBlock, calculatedMacBlock))
-                    throw new InvalidCipherTextException("mac check in CCM failed");
+                finally
+                {
+                    Arrays.ZeroMemory(plain);
+                }
             }
 
             return outputLen;
@@ -451,24 +517,38 @@ namespace Org.BouncyCastle.Crypto.Modes
                     macBlock[i] = 0;
                 }
 
-                while (index < (outputLen - BlockSize))
+                // Decrypt into a private buffer and verify the MAC before writing any plaintext to the
+                // caller's output: on a tag-check failure the caller's buffer must not be left holding
+                // unverified CTR plaintext (NIST SP 800-38C 6.2 returns FAIL without revealing P.
+                // CCM is non-streaming, so the whole payload is buffered here regardless.
+                Span<byte> plain = new byte[outputLen];
+                try
                 {
-                    ctrCipher.ProcessBlock(input[index..], output[index..]);
-                    index += BlockSize;
+                    while (index < (outputLen - BlockSize))
+                    {
+                        ctrCipher.ProcessBlock(input[index..], plain[index..]);
+                        index += BlockSize;
+                    }
+
+                    input[index..outputLen].CopyTo(block);
+
+                    ctrCipher.ProcessBlock(block, block);
+
+                    block[..(outputLen - index)].CopyTo(plain[index..]);
+
+                    Span<byte> calculatedMacBlock = stackalloc byte[BlockSize];
+
+                    CalculateMac(plain, calculatedMacBlock);
+
+                    if (!Arrays.FixedTimeEquals(macBlock, calculatedMacBlock))
+                        throw new InvalidCipherTextException("mac check in CCM failed");
+
+                    plain.CopyTo(output);
                 }
-
-                input[index..outputLen].CopyTo(block);
-
-                ctrCipher.ProcessBlock(block, block);
-
-                block[..(outputLen - index)].CopyTo(output[index..]);
-
-                Span<byte> calculatedMacBlock = stackalloc byte[BlockSize];
-
-                CalculateMac(output[..outputLen], calculatedMacBlock);
-
-                if (!Arrays.FixedTimeEquals(macBlock, calculatedMacBlock))
-                    throw new InvalidCipherTextException("mac check in CCM failed");
+                finally
+                {
+                    Arrays.ZeroMemory(plain);
+                }
             }
 
             return outputLen;
