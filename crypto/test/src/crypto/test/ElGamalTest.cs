@@ -96,6 +96,50 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
         }
 
+        [Test]
+        public void MaliciousCiphertext()
+        {
+            // ElGamal decryption raises the first ciphertext component (gamma) to the static private key,
+            // so an out-of-range or small-order gamma -- or phi -- must be rejected before the modPow;
+            // otherwise a peer can mount a small-subgroup confinement attack against a reused decryption
+            // key (the class closed for DHAgreement). The DH analogue is DHTest.testMaliciousMessage.
+            ElGamalParameters dhParams = new ElGamalParameters(p512, g512, 0);
+            ElGamalKeyPairGenerator kpGen = new ElGamalKeyPairGenerator();
+            kpGen.Init(new ElGamalKeyGenerationParameters(new SecureRandom(), dhParams));
+
+            ElGamalPrivateKeyParameters pv = (ElGamalPrivateKeyParameters)kpGen.GenerateKeyPair().Private;
+
+            ElGamalEngine e = new ElGamalEngine();
+            e.Init(false, pv);
+
+            int half = BigIntegers.GetUnsignedByteLength(p512);
+
+            // weak / out-of-range component values: 0 and 1 (small order / below range), p-1 (order 2)
+            // and p (>= range). A well-formed gamma = g^k mod p is always in (1, p-1), so these never
+            // arise from a legitimate ciphertext.
+            BigInteger[] weakValues = new BigInteger[]
+            {
+                BigInteger.Zero,
+                BigInteger.One,
+                p512.Subtract(BigInteger.One),
+                p512
+            };
+
+            // an in-range component (2 lies in [2, p-2]) used to fill the other half, so each case
+            // isolates the component under test.
+            byte[] goodHalf = BigIntegers.AsUnsignedByteArray(half, BigInteger.Two);
+
+            foreach (var weakValue in weakValues)
+            {
+                byte[] weakHalf = BigIntegers.AsUnsignedByteArray(half, weakValue);
+
+                // weak gamma (first half), valid phi (second half)
+                CheckRejected(e, weakHalf, goodHalf, "gamma", weakValue);
+                // valid gamma (first half), weak phi (second half)
+                CheckRejected(e, goodHalf, weakHalf, "phi", weakValue);
+            }
+        }
+
         private void ImplTestEnc(int size, int privateValueSize, BigInteger g, BigInteger p)
         {
             ElGamalParameters dhParams = new ElGamalParameters(p, g, privateValueSize);
@@ -189,6 +233,23 @@ namespace Org.BouncyCastle.Crypto.Tests
                 {
                     Assert.Fail("limited key check failed for key size " + privateValueSize);
                 }
+            }
+        }
+
+        private void CheckRejected(ElGamalEngine e, byte[] firstHalf, byte[] secondHalf, string which,
+            BigInteger value)
+        {
+            byte[] cText = Arrays.Concatenate(firstHalf, secondHalf);
+
+            try
+            {
+                e.ProcessBlock(cText, 0, cText.Length);
+
+                Assert.Fail("ElGamal accepted weak " + which + " = " + value);
+            }
+            catch (ArgumentException)
+            {
+                // expected
             }
         }
 

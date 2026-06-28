@@ -83,30 +83,45 @@ namespace Org.BouncyCastle.Crypto.Engines
                 ? (bitSize - 1 + 7) / 8
                 : GetInputBlockSize();
 
-            if (length > maxLength)
-                throw new DataLengthException("input too large for ElGamal cipher.\n");
-
             BigInteger p = key.Parameters.P;
 
-            byte[] output;
             if (key is ElGamalPrivateKeyParameters priv) // decryption
             {
+                if (length != maxLength)
+                    throw new DataLengthException("input is the wrong size for ElGamal cipher.");
+
                 int halfLength = length / 2;
-                BigInteger gamma = new BigInteger(1, input, inOff, halfLength);
-                BigInteger phi = new BigInteger(1, input, inOff + halfLength, halfLength);
+                BigInteger gamma = BigIntegers.FromUnsignedByteArray(input, inOff, halfLength);
+                BigInteger phi = BigIntegers.FromUnsignedByteArray(input, inOff + halfLength, halfLength);
+
+                // Both ciphertext components are peer-supplied, and gamma is raised below to the
+                // (potentially static, reused) private-key-derived exponent, so both must be valid
+                // public values in [2, p-2]. Otherwise a peer can submit a small-order or out-of-range
+                // element to mount a small-subgroup confinement attack and, with a decryption oracle and
+                // a reused key, recover the private key.
+                BigInteger one = BigInteger.One;
+                BigInteger pSub1 = p.Subtract(one);
+                if ((gamma.CompareTo(one) <= 0 || gamma.CompareTo(pSub1) >= 0) ||
+                    (phi.CompareTo(one) <= 0 || phi.CompareTo(pSub1) >= 0))
+                {
+                    throw new ArgumentException("ElGamal ciphertext element is weak");
+                }
 
                 // a shortcut, which generally relies on p being prime amongst other things.
                 // if a problem with this shows up, check the p and g values!
-                BigInteger m = gamma.ModPow(p.Subtract(BigInteger.One).Subtract(priv.X), p).Multiply(phi).Mod(p);
+                BigInteger m = gamma.ModPow(pSub1.Subtract(priv.X), p).ModMultiply(phi, p);
 
-                output = m.ToByteArrayUnsigned();
+                return BigIntegers.AsUnsignedByteArray(m);
             }
             else if (key is ElGamalPublicKeyParameters pub) // encryption
             {
-                BigInteger tmp = new BigInteger(1, input, inOff, length);
+                if (length > maxLength)
+                    throw new DataLengthException("input too large for ElGamal cipher.");
 
-                if (tmp.BitLength >= p.BitLength)
-                    throw new DataLengthException("input too large for ElGamal cipher.\n");
+                BigInteger tmp = BigIntegers.FromUnsignedByteArray(input, inOff, length);
+
+                if (tmp.CompareTo(p) >= 0)
+                    throw new DataLengthException("input too large for ElGamal cipher.");
 
                 BigInteger pSub2 = p.Subtract(BigInteger.Two);
 
@@ -114,26 +129,24 @@ namespace Org.BouncyCastle.Crypto.Engines
                 BigInteger k;
                 do
                 {
-                    k = new BigInteger(p.BitLength, random);
+                    k = BigIntegers.CreateRandomBigInteger(p.BitLength, random);
                 }
                 while (k.SignValue == 0 || k.CompareTo(pSub2) > 0);
 
                 BigInteger g = key.Parameters.G;
                 BigInteger gamma = g.ModPow(k, p);
-                BigInteger phi = tmp.Multiply(pub.Y.ModPow(k, p)).Mod(p);
+                BigInteger phi = pub.Y.ModPow(k, p).ModMultiply(tmp, p);
 
-                output = new byte[this.GetOutputBlockSize()];
-
-                int mid = output.Length / 2;
-                BigIntegers.AsUnsignedByteArray(gamma, output, 0, mid);
-                BigIntegers.AsUnsignedByteArray(phi, output, mid, output.Length - mid);
+                int half = (bitSize + 7) / 8;
+                byte[] output = new byte[2 * half];
+                BigIntegers.AsUnsignedByteArray(gamma, output, 0, half);
+                BigIntegers.AsUnsignedByteArray(phi, output, half, half);
+                return output;
             }
             else
             {
                 throw new InvalidOperationException();
             }
-
-            return output;
         }
     }
 }
