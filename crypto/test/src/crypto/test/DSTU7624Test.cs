@@ -477,10 +477,10 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] mac;
             byte[] encrypted = new byte[expectedEncrypted.Length];
 
-            byte[] decrypted = new byte[encrypted.Length];
-            byte[] expectedDecrypted = new byte[input.Length + expectedMac.Length];
-            Array.Copy(input, 0, expectedDecrypted, 0, input.Length);
-            Array.Copy(expectedMac, 0, expectedDecrypted, input.Length, expectedMac.Length);
+            // decryption no longer appends the MAC to the recovered plaintext; the output is
+            // the plaintext only and the MAC is available via getMac() (standard AEAD contract).
+            byte[] decrypted = new byte[input.Length];
+            byte[] expectedDecrypted = Arrays.Clone(input);
             int len;
 
 
@@ -540,10 +540,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             mac = new byte[expectedMac.Length];
             encrypted = new byte[expectedEncrypted.Length];
 
-            decrypted = new byte[encrypted.Length];
-            expectedDecrypted = new byte[input.Length + expectedMac.Length];
-            Array.Copy(input, 0, expectedDecrypted, 0, input.Length);
-            Array.Copy(expectedMac, 0, expectedDecrypted, input.Length, expectedMac.Length);
+            decrypted = new byte[input.Length];
+            expectedDecrypted = Arrays.Clone(input);
 
 
             param = new AeadParameters(new KeyParameter(key), 128, iv);
@@ -601,10 +599,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             mac = new byte[expectedMac.Length];
             encrypted = new byte[expectedEncrypted.Length];
 
-            decrypted = new byte[encrypted.Length];
-            expectedDecrypted = new byte[input.Length + expectedMac.Length];
-            Array.Copy(input, 0, expectedDecrypted, 0, input.Length);
-            Array.Copy(expectedMac, 0, expectedDecrypted, input.Length, expectedMac.Length);
+            decrypted = new byte[input.Length];
+            expectedDecrypted = Arrays.Clone(input);
 
 
             param = new AeadParameters(new KeyParameter(key), 256, iv);
@@ -662,10 +658,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             mac = new byte[expectedMac.Length];
             encrypted = new byte[expectedEncrypted.Length];
 
-            decrypted = new byte[encrypted.Length];
-            expectedDecrypted = new byte[input.Length + expectedMac.Length];
-            Array.Copy(input, 0, expectedDecrypted, 0, input.Length);
-            Array.Copy(expectedMac, 0, expectedDecrypted, input.Length, expectedMac.Length);
+            decrypted = new byte[input.Length];
+            expectedDecrypted = Arrays.Clone(input);
 
 
             param = new AeadParameters(new KeyParameter(key), 512, iv);
@@ -816,7 +810,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
-        public void Dstu7624TestFunction()
+        public void TestFunction()
         {
             string resultText = Perform().ToString();
 

@@ -615,7 +615,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
-        public void Dstu7564TestFunction()
+        public void TestFunction()
         {
             string resultText = Perform().ToString();
 

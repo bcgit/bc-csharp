@@ -138,7 +138,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.macBlock = null;
             this.initialised = true;
 
-            KeyParameter keyParam;
+            KeyParameter keyParameter = null;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ReadOnlySpan<byte> newNonce;
 #else
@@ -147,6 +147,10 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (parameters is AeadParameters aeadParameters)
             {
+                int macSizeBits = aeadParameters.MacSize;
+                if (macSizeBits < 32 || macSizeBits > 128 || macSizeBits % 8 != 0)
+                    throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 newNonce = aeadParameters.Nonce;
 #else
@@ -154,12 +158,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 #endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
 
-                int macSizeBits = aeadParameters.MacSize;
-                if (macSizeBits < 32 || macSizeBits > 128 || macSizeBits % 8 != 0)
-                    throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
-
                 macSize = macSizeBits / 8;
-                keyParam = aeadParameters.Key;
+                keyParameter = aeadParameters.Key;
             }
             else if (parameters is ParametersWithIV withIV)
             {
@@ -170,7 +170,12 @@ namespace Org.BouncyCastle.Crypto.Modes
 #endif
                 initialAssociatedText = null;
                 macSize = 16;
-                keyParam = (KeyParameter)withIV.Parameters;
+
+                if (withIV.Parameters != null)
+                {
+                    keyParameter = withIV.Parameters as KeyParameter
+                        ?? throw new ArgumentException("invalid parameters passed to GCM");
+                }
             }
             else
             {
@@ -191,10 +196,10 @@ namespace Org.BouncyCastle.Crypto.Modes
                 if (nonce != null && Arrays.AreEqual(nonce, newNonce))
 #endif
                 {
-                    if (keyParam == null)
+                    if (keyParameter == null)
                         throw new ArgumentException("cannot reuse nonce for GCM encryption");
 
-                    if (lastKey != null && keyParam.FixedTimeEquals(lastKey))
+                    if (lastKey != null && keyParameter.FixedTimeEquals(lastKey))
                         throw new ArgumentException("cannot reuse nonce for GCM encryption");
                 }
             }
@@ -204,18 +209,18 @@ namespace Org.BouncyCastle.Crypto.Modes
 #else
             nonce = newNonce;
 #endif
-            if (keyParam != null)
+            if (keyParameter != null)
             {
-                lastKey = keyParam.GetKey();
+                lastKey = keyParameter.GetKey();
             }
 
             // TODO Restrict macSize to 16 if nonce length not 12?
 
             // Cipher always used in forward mode
             // if keyParam is null we're reusing the last key.
-            if (keyParam != null)
+            if (keyParameter != null)
             {
-                cipher.Init(true, keyParam);
+                cipher.Init(true, keyParameter);
 
                 this.H = new byte[BlockSize];
                 cipher.ProcessBlock(H, 0, H, 0);

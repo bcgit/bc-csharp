@@ -27,6 +27,8 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[] macBlock;
 
         private byte[] nonce;
+        // Previous key seen on Init(true, ...) - used with nonce only to reject nonce reuse for encryption.
+        private byte[] lastKey;
 
         private byte[] G1;
         private byte[] buffer;
@@ -76,48 +78,100 @@ namespace Org.BouncyCastle.Crypto.Modes
         /// <param name="Nb">Nb value to use.</param>
         public KCcmBlockCipher(IBlockCipher engine, int Nb)
         {
+            int blockSize = engine.GetBlockSize();
             this.engine = engine;
-            this.macSize = engine.GetBlockSize();
-            this.nonce = new byte[engine.GetBlockSize()];
-            this.initialAssociatedText = new byte[engine.GetBlockSize()];
-            this.mac = new byte[engine.GetBlockSize()];
-            this.macBlock = new byte[engine.GetBlockSize()];
-            this.G1 = new byte[engine.GetBlockSize()];
-            this.buffer = new byte[engine.GetBlockSize()];
-            this.s = new byte[engine.GetBlockSize()];
-            this.counter = new byte[engine.GetBlockSize()];
+            this.macSize = blockSize;
+            this.nonce = new byte[blockSize];
+            this.initialAssociatedText = new byte[blockSize];
+            this.mac = new byte[blockSize];
+            this.macBlock = new byte[blockSize];
+            this.G1 = new byte[blockSize];
+            this.buffer = new byte[blockSize];
+            this.s = new byte[blockSize];
+            this.counter = new byte[blockSize];
             SetNb(Nb);
         }
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
-            ICipherParameters cipherParameters;
-            if (parameters is AeadParameters param)
+            KeyParameter keyParameter = null;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            ReadOnlySpan<byte> newNonce;
+#else
+            byte[] newNonce;
+#endif
+
+            if (parameters is AeadParameters aeadParameters)
             {
-                if (param.MacSize > MAX_MAC_BIT_LENGTH || param.MacSize < MIN_MAC_BIT_LENGTH || param.MacSize % 8 != 0)
+                int macSizeInBits = aeadParameters.MacSize;
+                if (macSizeInBits > MAX_MAC_BIT_LENGTH || macSizeInBits < MIN_MAC_BIT_LENGTH || macSizeInBits % 8 != 0)
                     throw new ArgumentException("Invalid mac size specified");
 
-                nonce = param.GetNonce();
-                macSize = param.MacSize / BITS_IN_BYTE;
-                initialAssociatedText = param.GetAssociatedText();
-                cipherParameters = param.Key;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                newNonce = aeadParameters.Nonce;
+#else
+                newNonce = aeadParameters.GetNonce();
+#endif
+                macSize = macSizeInBits / BITS_IN_BYTE;
+                initialAssociatedText = aeadParameters.GetAssociatedText();
+                keyParameter = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV paramsWithIV)
+            else if (parameters is ParametersWithIV withIV)
             {
-                nonce = paramsWithIV.GetIV();
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                newNonce = withIV.InternalIV;
+#else
+                newNonce = withIV.GetIV();
+#endif
                 macSize = engine.GetBlockSize(); // use default blockSize for MAC if it is not specified
                 initialAssociatedText = null;
-                cipherParameters = paramsWithIV.Parameters;
+
+                if (withIV.Parameters != null)
+                {
+                    keyParameter = withIV.Parameters as KeyParameter
+                        ?? throw new ArgumentException("invalid parameters passed to KCCM");
+                }
             }
             else
             {
-                throw new ArgumentException("Invalid parameters specified");
+                throw new ArgumentException("invalid parameters passed to KCCM");
+            }
+
+            // RFC 5116 sec. 2.1 requires a distinct nonce per AEAD encryption under a given key; the
+            // DSTU 7624 CCM construction inherits this CCM rule (cf. NIST SP 800-38C), and reuse is
+            // catastrophic (CTR keystream reuse plus a forgeable CBC-MAC). That obligation is the
+            // caller's, so this guard enforces it defensively, mirroring KGCMBlockCipher /
+            // GCMBlockCipher. A fresh nonce or key, Reset(), or Init for decryption are all unaffected.
+            if (forEncryption)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                if (nonce != null && newNonce.SequenceEqual(nonce))
+#else
+                if (nonce != null && Arrays.AreEqual(nonce, newNonce))
+#endif
+                {
+                    if (keyParameter == null)
+                        throw new ArgumentException("cannot reuse nonce for KCCM encryption");
+
+                    if (lastKey != null && keyParameter.FixedTimeEquals(lastKey))
+                        throw new ArgumentException("cannot reuse nonce for KCCM encryption");
+                }
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            nonce = newNonce.ToArray();
+#else
+            nonce = newNonce;
+#endif
+            if (keyParameter != null)
+            {
+                lastKey = keyParameter.GetKey();
             }
 
             this.mac = new byte[macSize];
             this.forEncryption = forEncryption;
 
-            engine.Init(true, cipherParameters);
+            engine.Init(true, keyParameter);
 
             Reset();
         }
@@ -253,95 +307,77 @@ namespace Org.BouncyCastle.Crypto.Modes
         public int ProcessPacket(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
-            Check.OutputLength(output, outOff, len, "output buffer too short");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessPacket(input.AsSpan(inOff, len), output.AsSpan(outOff));
 #else
             ProcessAssociatedText();
 
+            int blockSize = engine.GetBlockSize(), index = 0;
             if (forEncryption)
             {
-                Check.DataLength(len % engine.GetBlockSize() != 0, "partial blocks not supported");
+                Check.DataLength(len % blockSize != 0, "partial blocks not supported");
+                Check.OutputLength(output, outOff, len + macSize, "output buffer too short");
 
                 CalculateMac(input, inOff, len);
                 engine.ProcessBlock(nonce, 0, s, 0);
 
-                int totalLength = len;
-                while (totalLength > 0)
+                while (index < len)
                 {
-                    ProcessBlock(input, inOff, output, outOff);
-                    totalLength -= engine.GetBlockSize();
-                    inOff += engine.GetBlockSize();
-                    outOff += engine.GetBlockSize();
+                    ProcessBlock(input, inOff + index, output, outOff + index);
+                    index += blockSize;
                 }
 
                 AdvanceGamma();
-
                 engine.ProcessBlock(s, 0, buffer, 0);
 
-                for (int byteIndex = 0; byteIndex<macSize; byteIndex++)
-                {
-                    output[outOff + byteIndex] = (byte)(buffer[byteIndex] ^ macBlock[byteIndex]);
-                }
-
+                Bytes.Xor(macSize, macBlock, 0, buffer, 0, output, outOff + len);
                 Array.Copy(macBlock, 0, mac, 0, macSize);
 
                 Reset();
-
                 return len + macSize;
             }
             else
             {
-                Check.DataLength((len - macSize) % engine.GetBlockSize() != 0, "partial blocks not supported");
+                if (len < macSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                int dataLen = len - macSize;
+                Check.DataLength(dataLen % blockSize != 0, "partial blocks not supported");
+                Check.OutputLength(output, outOff, dataLen, "output buffer too short");
 
                 engine.ProcessBlock(nonce, 0, s, 0);
 
-                int blocks = len / engine.GetBlockSize();
-
-                for (int blockNum = 0; blockNum<blocks; blockNum++)
+                while (index < dataLen)
                 {
-                    ProcessBlock(input, inOff, output, outOff);
-
-                    inOff += engine.GetBlockSize();
-                    outOff += engine.GetBlockSize();
-                }
-
-                if (len > inOff)
-                {
-                    AdvanceGamma();
-
-                    engine.ProcessBlock(s, 0, buffer, 0);
-
-                    for (int byteIndex = 0; byteIndex<macSize; byteIndex++)
-                    {
-                        output[outOff + byteIndex] = (byte)(buffer[byteIndex] ^ input[inOff + byteIndex]);
-                    }
-                    outOff += macSize;
+                    ProcessBlock(input, inOff + index, output, outOff + index);
+                    index += blockSize;
                 }
 
                 AdvanceGamma();
-
                 engine.ProcessBlock(s, 0, buffer, 0);
 
-                Array.Copy(output, outOff - macSize, buffer, 0, macSize);
+                byte[] recoveredMac = new byte[macSize];
+                Bytes.Xor(macSize, input, inOff + dataLen, buffer, 0, recoveredMac, 0);
 
-                CalculateMac(output, 0, outOff - macSize);
+                CalculateMac(output, outOff, dataLen);
 
                 Array.Copy(macBlock, 0, mac, 0, macSize);
 
-                byte[] calculatedMac = new byte[macSize];
-
-                Array.Copy(buffer, 0, calculatedMac, 0, macSize);
-
-                if (!Arrays.FixedTimeEquals(mac, calculatedMac))
+                if (!Arrays.FixedTimeEquals(mac, recoveredMac))
                 {
+                    Arrays.ZeroMemory(output, outOff, dataLen);
                     throw new InvalidCipherTextException("mac check failed");
                 }
 
-                Reset();
+                // TODO Follow bc-java by decrypting into a temp array, then copying after MAC verification
+                // Only now (MAC verified) expose the recovered plaintext in the caller's output. The MAC
+                // is not written to the output - it is consumed for verification and is available via
+                // GetMac() - matching the standard AEAD contract (CCM / GCM / KGCM).
+                //Array.Copy(plaintext, 0, output, outOff, dataLen);
 
-                return len - macSize;
+                Reset();
+                return dataLen;
             }
 #endif
         }
@@ -350,7 +386,6 @@ namespace Org.BouncyCastle.Crypto.Modes
         public int ProcessPacket(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int len = input.Length;
-            Check.OutputLength(output, len, "output buffer too short");
 
             ProcessAssociatedText();
 
@@ -358,82 +393,70 @@ namespace Org.BouncyCastle.Crypto.Modes
             if (forEncryption)
             {
                 Check.DataLength(len % blockSize != 0, "partial blocks not supported");
+                Check.OutputLength(output, len + macSize, "output buffer too short");
 
                 CalculateMac(input);
                 engine.ProcessBlock(nonce, s);
 
-                int totalLength = len;
-                while (totalLength > 0)
+                while (index < len)
                 {
                     ProcessBlock(input[index..], output[index..]);
-                    totalLength -= blockSize;
                     index += blockSize;
                 }
 
                 AdvanceGamma();
-
                 engine.ProcessBlock(s, buffer);
 
-                for (int byteIndex = 0; byteIndex < macSize; byteIndex++)
-                {
-                    output[index + byteIndex] = (byte)(buffer[byteIndex] ^ macBlock[byteIndex]);
-                }
-
+                Bytes.Xor(macSize, macBlock, buffer, output[len..]);
                 Array.Copy(macBlock, 0, mac, 0, macSize);
 
                 Reset();
-
                 return len + macSize;
             }
             else
             {
-                Check.DataLength((len - macSize) % blockSize != 0, "partial blocks not supported");
+                if (len < macSize)
+                    throw new InvalidCipherTextException("data too short");
+
+                int dataLen = len - macSize;
+                Check.DataLength(dataLen % blockSize != 0, "partial blocks not supported");
+                Check.OutputLength(output, dataLen, "output buffer too short");
 
                 engine.ProcessBlock(nonce, 0, s, 0);
 
-                int blocks = len / engine.GetBlockSize();
-
-                for (int blockNum = 0; blockNum < blocks; blockNum++)
+                while (index < dataLen)
                 {
                     ProcessBlock(input[index..], output[index..]);
                     index += blockSize;
                 }
 
-                if (len > index)
-                {
-                    AdvanceGamma();
-
-                    engine.ProcessBlock(s, buffer);
-
-                    for (int byteIndex = 0; byteIndex < macSize; byteIndex++)
-                    {
-                        output[index + byteIndex] = (byte)(buffer[byteIndex] ^ input[index + byteIndex]);
-                    }
-                    index += macSize;
-                }
-
                 AdvanceGamma();
-
                 engine.ProcessBlock(s, buffer);
 
-                output[(index - macSize)..index].CopyTo(buffer);
+                Span<byte> recoveredMac = macSize <= 64
+                    ? stackalloc byte[macSize]
+                    : new byte[macSize];
+                Bytes.Xor(macSize, input[dataLen..], buffer, recoveredMac);
 
-                CalculateMac(output[..(index - macSize)]);
+                Span<byte> plaintext = output[..dataLen];
+                CalculateMac(plaintext);
 
                 Array.Copy(macBlock, 0, mac, 0, macSize);
 
-                Span<byte> calculatedMac = macSize <= 64
-                    ? stackalloc byte[macSize]
-                    : new byte[macSize];
-
-                calculatedMac.CopyFrom(buffer);
-
-                if (!Arrays.FixedTimeEquals(mac.AsSpan(0, macSize), calculatedMac))
+                if (!Arrays.FixedTimeEquals(mac, recoveredMac))
+                {
+                    Arrays.ZeroMemory(plaintext);
                     throw new InvalidCipherTextException("mac check failed");
+                }
+
+                // TODO Follow bc-java by decrypting into a temp array, then copying after MAC verification
+                // Only now (MAC verified) expose the recovered plaintext in the caller's output. The MAC
+                // is not written to the output - it is consumed for verification and is available via
+                // GetMac() - matching the standard AEAD contract (CCM / GCM / KGCM).
+                //plaintext.CopyTo(output);
 
                 Reset();
-
-                return len - macSize;
+                return dataLen;
             }
         }
 #endif
