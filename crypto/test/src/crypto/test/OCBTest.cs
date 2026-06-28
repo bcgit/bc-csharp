@@ -2,7 +2,6 @@
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
@@ -160,9 +159,13 @@ namespace Org.BouncyCastle.Crypto.Tests
                 // expected
             }
 
-            // TODO
-            //AEADTestUtil.testReset(this, createOCBCipher(), createOCBCipher(), new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[15]));
-            //AEADTestUtil.testTampering(this, ocb, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[15]));
+            AeadTestUtilities.TestReset(this, CreateOcbCipher(), CreateOcbCipher(),
+                new AeadParameters(new KeyParameter(new byte[16]), 128, new byte[15]));
+            AeadTestUtilities.TestTampering(this, ocb, new AeadParameters(new KeyParameter(new byte[16]), 128, new byte[15]));
+            AeadTestUtilities.TestOutputSizes(this, CreateOcbCipher(),
+                new AeadParameters(new KeyParameter(new byte[16]), 128, new byte[15]));
+            AeadTestUtilities.TestBufferSizeChecks(this, CreateOcbCipher(),
+                new AeadParameters(new KeyParameter(new byte[16]), 128, new byte[15]));
         }
 
         private void RunTestCase(string testName, string[] testVector, int macLengthBits, byte[] K)
@@ -184,11 +187,20 @@ namespace Org.BouncyCastle.Crypto.Tests
             CheckTestCase(encCipher, decCipher, testName, macLengthBytes, P, C);
             CheckTestCase(encCipher, decCipher, testName + " (reused)", macLengthBytes, P, C);
 
-            // Key reuse
+            // Key reuse: re-initialising for encryption with the same key+nonce is now rejected (nonce
+            // reuse is catastrophic for OCB). Re-init for decryption with the reused key stays allowed.
             AeadParameters keyReuseParams = AeadTestUtilities.ReuseKey(parameters);
-            encCipher.Init(true, keyReuseParams);
+            try
+            {
+                encCipher.Init(true, keyReuseParams);
+                Fail("OCB nonce reuse not detected on re-init for encryption: " + testName);
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue("wrong OCB nonce-reuse message: " + e.Message,
+                    "cannot reuse nonce for OCB encryption".Equals(e.Message));
+            }
             decCipher.Init(false, keyReuseParams);
-            CheckTestCase(encCipher, decCipher, testName + " (key reuse)", macLengthBytes, P, C);
         }
 
         private IBlockCipher CreateUnderlyingCipher()
@@ -230,7 +242,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 if (!AreEqual(tag, encCipher.GetMac()))
                 {
-                    Fail("getMac() not the same as the appended tag: " + testName);
+                    Fail("GetMac() not the same as the appended tag: " + testName);
                 }
             }
 
@@ -251,7 +263,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 if (!AreEqual(tag, decCipher.GetMac()))
                 {
-                    Fail("getMac() not the same as the appended tag: " + testName);
+                    Fail("GetMac() not the same as the appended tag: " + testName);
                 }
             }
         }

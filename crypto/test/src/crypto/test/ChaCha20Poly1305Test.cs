@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             if (!AreEqual(T, mac))
             {
-                Fail("getMac() returned wrong mac in: " + testName);
+                Fail("GetMac() returned wrong mac in: " + testName);
             }
 
             if (!AreEqual(T, tail))

@@ -49,6 +49,10 @@ namespace Org.BouncyCastle.Crypto.Modes
         private byte[] Stretch = new byte[24];
         private byte[] OffsetMAIN_0 = new byte[16];
 
+        // Previous (nonce, key) seen on Init(true, ...) - used only to reject nonce reuse for encryption.
+        private byte[] lastN = null;
+        private byte[] lastKey = null;
+
         /*
          * PER-ENCRYPTION/DECRYPTION
          */
@@ -91,8 +95,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             this.forEncryption = forEncryption;
             this.macBlock = null;
 
-            KeyParameter keyParameter;
-
+            KeyParameter keyParameter = null;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ReadOnlySpan<byte> N;
 #else
@@ -100,30 +103,34 @@ namespace Org.BouncyCastle.Crypto.Modes
 #endif
             if (parameters is AeadParameters aeadParameters)
             {
+                int macSizeInBits = aeadParameters.MacSize;
+                if (macSizeInBits < 64 || macSizeInBits > 128 || macSizeInBits % 8 != 0)
+                    throw new ArgumentException("Invalid value for MAC size: " + macSizeInBits);
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 N = aeadParameters.Nonce;
 #else
                 N = aeadParameters.GetNonce();
 #endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
-
-                int macSizeBits = aeadParameters.MacSize;
-                if (macSizeBits < 64 || macSizeBits > 128 || macSizeBits % 8 != 0)
-                    throw new ArgumentException("Invalid value for MAC size: " + macSizeBits);
-
-                macSize = macSizeBits / 8;
+                macSize = macSizeInBits / 8;
                 keyParameter = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV parametersWithIV)
+            else if (parameters is ParametersWithIV withIV)
             {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                N = parametersWithIV.InternalIV;
+                N = withIV.InternalIV;
 #else
-                N = parametersWithIV.GetIV();
+                N = withIV.GetIV();
 #endif
                 initialAssociatedText = null;
                 macSize = 16;
-                keyParameter = (KeyParameter) parametersWithIV.Parameters;
+
+                if (withIV.Parameters != null)
+                {
+                    keyParameter = withIV.Parameters as KeyParameter
+                        ?? throw new ArgumentException("invalid parameters passed to OCB");
+                }
             }
             else
             {
@@ -135,6 +142,39 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             if (N.Length > 15)
                 throw new ArgumentException("IV must be no more than 15 bytes");
+
+            // RFC 7253 sec. 5.1 ("It is crucial that, as one encrypts, one does not repeat a nonce"),
+            // and the general AEAD rule of RFC 5116 sec. 2.1, require a distinct nonce per encryption
+            // under a given key; reuse collapses OCB's security (offset and keystream reuse, and per
+            // RFC 7253 makes forgery trivial). That obligation is the caller's, so this guard enforces
+            // it defensively, mirroring GcmBlockCipher. A null key parameter (explicit key re-use) with
+            // a repeated nonce is also caught. A fresh nonce or key, Reset(), or Init for decryption are
+            // all unaffected.
+            if (forEncryption)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                if (lastN != null && N.SequenceEqual(lastN))
+#else
+                if (lastN != null && Arrays.AreEqual(lastN, N))
+#endif
+                {
+                    if (keyParameter == null)
+                        throw new ArgumentException("cannot reuse nonce for OCB encryption");
+
+                    if (lastKey != null && keyParameter.FixedTimeEquals(lastKey))
+                        throw new ArgumentException("cannot reuse nonce for OCB encryption");
+                }
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            lastN = N.ToArray();
+#else
+            lastN = N;
+#endif
+            if (keyParameter != null)
+            {
+                lastKey = keyParameter.GetKey();
+            }
 
             /*
              * KEY-DEPENDENT INITIALISATION
@@ -359,6 +399,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
+            Check.DataLength(input, inOff, len, "input buffer too short");
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessBytes(input.AsSpan(inOff, len), Spans.FromNullable(output, outOff));
 #else
