@@ -3,7 +3,6 @@ using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Modes;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
@@ -149,6 +148,14 @@ namespace Org.BouncyCastle.Crypto.Tests
             }
 
             RandomTests();
+            AeadTestUtilities.TestReset(this, new EaxBlockCipher(AesUtilities.CreateEngine()),
+                new EaxBlockCipher(AesUtilities.CreateEngine()), new AeadParameters(new KeyParameter(K1), 32, N2));
+            AeadTestUtilities.TestTampering(this, new EaxBlockCipher(AesUtilities.CreateEngine()),
+                new AeadParameters(new KeyParameter(K1), 32, N2));
+            AeadTestUtilities.TestOutputSizes(this, new EaxBlockCipher(AesUtilities.CreateEngine()),
+                new AeadParameters(new KeyParameter(K1), 32, N2));
+            AeadTestUtilities.TestBufferSizeChecks(this, new EaxBlockCipher(AesUtilities.CreateEngine()),
+                new AeadParameters(new KeyParameter(K1), 32, N2));
         }
 
         private void CheckVectors(int count, byte[] k, int macSize, byte[] n, byte[] a, byte[] p, byte[] t, byte[] c)
@@ -176,9 +183,20 @@ namespace Org.BouncyCastle.Crypto.Tests
             RunCheckVectors(count, encEax, decEax, additionalDataType, sa, p, t, c);
             RunCheckVectors(count, encEax, decEax, additionalDataType, sa, p, t, c);
 
-            // key reuse test
+            // Key reuse: re-initialising for encryption with the same key+nonce (here via a null key,
+            // i.e. key re-use) is now rejected (nonce reuse is catastrophic for EAX). Re-init for
+            // decryption with the reused key stays allowed.
             parameters = new AeadParameters(null, macSize, n, a);
-            encEax.Init(true, parameters);
+            try
+            {
+                encEax.Init(true, parameters);
+                Fail("EAX nonce reuse not detected on re-init for encryption in test " + count);
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue("wrong EAX nonce-reuse message: " + e.Message,
+                    "cannot reuse nonce for EAX encryption".Equals(e.Message));
+            }
             decEax.Init(false, parameters);
 
             RunCheckVectors(count, encEax, decEax, additionalDataType, sa, p, t, c);

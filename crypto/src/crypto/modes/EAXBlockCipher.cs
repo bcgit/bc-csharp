@@ -43,13 +43,16 @@ namespace Org.BouncyCastle.Crypto.Modes
         private bool cipherInitialized;
         private byte[] initialAssociatedText;
 
+        // Previous (nonce, key) seen on Init(true, ...) - used only to reject nonce reuse for encryption.
+        private byte[] lastNonce;
+        private byte[] lastKey;
+
         /**
         * Constructor that accepts an instance of a block cipher engine.
         *
         * @param cipher the engine to use
         */
-        public EaxBlockCipher(
-            IBlockCipher cipher)
+        public EaxBlockCipher(IBlockCipher cipher)
         {
             blockSize = cipher.GetBlockSize();
             mac = new CMac(cipher);
@@ -72,12 +75,12 @@ namespace Org.BouncyCastle.Crypto.Modes
         {
             this.forEncryption = forEncryption;
 
+            KeyParameter keyParameter = null;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             ReadOnlySpan<byte> nonce;
 #else
             byte[] nonce;
 #endif
-            ICipherParameters keyParam;
 
             if (parameters is AeadParameters aeadParameters)
             {
@@ -88,22 +91,60 @@ namespace Org.BouncyCastle.Crypto.Modes
 #endif
                 initialAssociatedText = aeadParameters.GetAssociatedText();
                 macSize = GetMacSize(aeadParameters.MacSize, blockSize);
-                keyParam = aeadParameters.Key;
+                keyParameter = aeadParameters.Key;
             }
-            else if (parameters is ParametersWithIV parametersWithIV)
+            else if (parameters is ParametersWithIV withIV)
             {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                nonce = parametersWithIV.InternalIV;
+                nonce = withIV.InternalIV;
 #else
-                nonce = parametersWithIV.GetIV();
+                nonce = withIV.GetIV();
 #endif
                 initialAssociatedText = null;
                 macSize = GetMacSize((mac.GetMacSize() / 2) * 8, blockSize);
-                keyParam = parametersWithIV.Parameters;
+
+                if (withIV.Parameters != null)
+                {
+                    keyParameter = withIV.Parameters as KeyParameter
+                        ?? throw new ArgumentException("invalid parameters passed to EAX");
+                }
             }
             else
             {
                 throw new ArgumentException("invalid parameters passed to EAX");
+            }
+
+            // RFC 5116 sec. 2.1 requires every nonce passed to an AEAD encryption operation to be
+            // distinct for a given key; reuse is catastrophic (here CTR keystream reuse plus a forgeable
+            // OMAC). That standard places the obligation on the caller, so this guard enforces it
+            // defensively, mirroring GcmBlockCipher. A null key parameter (explicit key re-use,
+            // supported by the underlying CMac) combined with a repeated nonce is also caught. A fresh
+            // nonce or key, Reset(), or Init for decryption are all unaffected.
+            if (forEncryption)
+            {
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                if (lastNonce != null && nonce.SequenceEqual(lastNonce))
+#else
+                if (lastNonce != null && Arrays.AreEqual(lastNonce, nonce))
+#endif
+                {
+                    if (keyParameter == null)
+                        throw new ArgumentException("cannot reuse nonce for EAX encryption");
+
+                    if (lastKey != null && keyParameter.FixedTimeEquals(lastKey))
+                        throw new ArgumentException("cannot reuse nonce for EAX encryption");
+                }
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            lastNonce = nonce.ToArray();
+#else
+            lastNonce = nonce;
+#endif
+            // NOTE: Very basic support for key re-use, but no performance gain from it
+            if (keyParameter != null)
+            {
+                lastKey = keyParameter.GetKey();
             }
 
             bufBlock = new byte[forEncryption ? blockSize : (blockSize + macSize)];
@@ -111,7 +152,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             byte[] tag = new byte[blockSize];
 
             // Key reuse implemented in CBC mode of underlying CMac
-            mac.Init(keyParam);
+            mac.Init(keyParameter);
 
             tag[blockSize - 1] = (byte)Tag.N;
             mac.BlockUpdate(tag, 0, blockSize);
@@ -232,6 +273,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
+            Check.DataLength(inBytes, inOff, len, "input buffer too short");
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessBytes(inBytes.AsSpan(inOff, len), Spans.FromNullable(outBytes, outOff));
 #else
