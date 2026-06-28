@@ -49,6 +49,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * RFC 9336 sec. 3.1 - signing documents (e.g. PDF, XML, JSON) for human consumption.
          * <p>
          * id-kp-documentSigning OBJECT IDENTIFIER ::= { id-kp 36 }
+         * </p>
          */
         public static readonly KeyPurposeID id_kp_documentSigning = new KeyPurposeID(id_kp + ".36");
 

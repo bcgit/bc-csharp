@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Crypt(cipher, pretext, output);
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 Fail(test, "Init did not reset data.");
             }
@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Crypt(cipher, pretext, output);
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 Fail(test, "Init did not reset additional data.");
             }
@@ -145,7 +145,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Crypt(cipher, pretext, output);
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 Fail(test, "Init did not reset data.");
             }
@@ -162,7 +162,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             {
                 Crypt(cipher, pretext, output);
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 Fail(test, "Init did not reset data.");
             }
@@ -309,7 +309,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 cipher.ProcessBytes(new byte[maxPlaintext - 1], 0, maxPlaintext, new byte[expectedUpdateOutputSize], 0);
                 Fail(test, "ProcessBytes should validate input buffer length");
             }
-            catch (DataLengthException e)
+            catch (DataLengthException)
             {
                 // Expected
             }
@@ -337,7 +337,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                     cipher.ProcessByte(plaintext[0], new byte[cipher.GetUpdateOutputSize(1) - 1], 0);
                     Fail(test, "Encrypt ProcessByte should validate output buffer length");
                 }
-                catch (OutputLengthException e)
+                catch (OutputLengthException)
                 {
                     // Expected
                 }
@@ -350,7 +350,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                         new byte[cipher.GetUpdateOutputSize(outputTrigger) - 1], 0);
                     Fail(test, "Encrypt ProcessBytes should validate output buffer length");
                 }
-                catch (OutputLengthException e)
+                catch (OutputLengthException)
                 {
                     // Expected
                 }
@@ -369,7 +369,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 cipher.DoFinal(new byte[cipher.GetOutputSize(0) - 1], 0);
                 Fail(test, "Encrypt DoFinal should validate output buffer length");
             }
-            catch (OutputLengthException e)
+            catch (OutputLengthException)
             {
                 // Expected
             }
@@ -402,7 +402,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                     cipher.ProcessByte(ciphertext[0], new byte[cipher.GetUpdateOutputSize(1) - 1], 0);
                     Fail(test, "Decrypt ProcessByte should validate output buffer length");
                 }
-                catch (OutputLengthException e)
+                catch (OutputLengthException)
                 {
                     // Expected
                 }
@@ -430,7 +430,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 {
                     Fail(test, "AE cipher unexpectedly produced output");
                 }
-                cipher.DoFinal(new byte[0], 0);
+                cipher.DoFinal(Array.Empty<byte>(), 0);
                 Fail(test, "Decrypt DoFinal should check ciphertext length");
             }
             catch (InvalidCipherTextException)
@@ -465,7 +465,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                             cipher.DoFinal(new byte[cipher.GetOutputSize(0) - 1], 0);
                             Fail(test, "Decrypt DoFinal should check ciphertext length");
                         }
-                        catch (InvalidCipherTextException e)
+                        catch (InvalidCipherTextException)
                         {
                             // Expected
                         }

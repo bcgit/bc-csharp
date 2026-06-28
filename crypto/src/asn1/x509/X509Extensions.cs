@@ -167,6 +167,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * certificate by hash; used during post-quantum migration to assert
          * that a traditional and a post-quantum end-entity certificate belong
          * to the same subject.
+         * </p>
          */
         public static readonly DerObjectIdentifier RelatedCertificate = X509ObjectIdentifiers.id_pe_relatedCert;
 

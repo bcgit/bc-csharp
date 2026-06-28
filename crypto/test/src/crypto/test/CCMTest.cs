@@ -216,17 +216,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                 new AeadParameters(new KeyParameter(K1), 32, N2));
         }
 
-        private bool IsEqual(byte[] exp, byte[] other, int off)
-        {
-            for (int i = 0; i != exp.Length; i++)
-            {
-                if (exp[i] != other[off + i])
-                    return false;
-            }
-
-            return true;
-        }
-
         private void CheckVectors(int count, byte[] k, int macSize, byte[] n, byte[] a, byte[] p,
             byte[] t, byte[] c)
         {
@@ -389,7 +378,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 ccm.ProcessPacket(tampered, 0, tampered.Length, output, 0);
                 Fail("tampered CCM ciphertext must not verify");
             }
-            catch (InvalidCipherTextException e)
+            catch (InvalidCipherTextException)
             {
                 // On a tag-check failure the caller's output buffer must not be left holding the
                 // unverified CTR plaintext.
@@ -420,6 +409,17 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 Assert.That(Arrays.AreEqual(plaintext, recovered));
             }
+        }
+
+        private static bool IsEqual(byte[] exp, byte[] other, int off)
+        {
+            for (int i = 0; i != exp.Length; i++)
+            {
+                if (exp[i] != other[off + i])
+                    return false;
+            }
+
+            return true;
         }
     }
 }

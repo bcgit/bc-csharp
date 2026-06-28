@@ -58,6 +58,7 @@ namespace Org.BouncyCastle.Asn1.X509
          * the mechanism that lets a verifier link a classical and a post-quantum
          * certificate during hybrid PQ migration without requiring composite
          * signature algorithms.
+         * </p>
          */
         public static readonly DerObjectIdentifier id_pe_relatedCert = IdPE.Branch("36");
 

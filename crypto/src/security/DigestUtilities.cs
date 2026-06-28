@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Security
 
         /// <summary>One-shot digest of <paramref name="input"/>, using the algorithm identified by
         /// <paramref name="id"/>.</summary>
-        /// <exception cref="SecurityUtilityException">If <paramref name="is"/> is not recognised.</exception>
+        /// <exception cref="SecurityUtilityException">If <paramref name="id"/> is not recognised.</exception>
         // TODO[api] Change parameter name to 'oid'
         public static byte[] CalculateDigest(DerObjectIdentifier id, byte[] input) =>
             CalculateDigest(id.GetID(), input);
