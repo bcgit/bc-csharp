@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Bcpg
                 b1 = DecodingTable[in0];
                 b2 = DecodingTable[in1];
                 if ((b1 | b2) >= 128)
-                    throw new IOException("invalid armor");
+                    throw new ArmoredInputException("invalid armor");
 
                 result[2] = (byte)((b1 << 2) | (b2 >> 4));
                 return 2;
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Bcpg
                 b2 = DecodingTable[in1];
                 b3 = DecodingTable[in2];
                 if ((b1 | b2 | b3) >= 128)
-                    throw new IOException("invalid armor");
+                    throw new ArmoredInputException("invalid armor");
 
                 result[1] = (byte)((b1 << 2) | (b2 >> 4));
                 result[2] = (byte)((b2 << 4) | (b3 >> 2));
@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Bcpg
                 b3 = DecodingTable[in2];
                 b4 = DecodingTable[in3];
                 if ((b1 | b2 | b3 | b4) >= 128)
-                    throw new IOException("invalid armor");
+                    throw new ArmoredInputException("invalid armor");
 
                 result[0] = (byte)((b1 << 2) | (b2 >> 4));
                 result[1] = (byte)((b2 << 4) | (b3 >> 2));
@@ -95,10 +95,10 @@ namespace Org.BouncyCastle.Bcpg
         private bool m_detectMissingChecksum = false;
 
         private readonly byte[] m_outBuf = new byte[3];
-        private readonly Crc24 m_crc = new Crc24();
 
         private readonly Stream m_input;
         private readonly bool m_hasHeaders;
+        private readonly Crc24 m_crc;
 
         private int m_bufPtr = 3;
         private bool m_crcFound = false;
@@ -130,6 +130,7 @@ namespace Org.BouncyCastle.Bcpg
         {
             m_input = input;
             m_hasHeaders = hasHeaders;
+            m_crc = new Crc24();
 
             if (hasHeaders)
             {
@@ -172,13 +173,15 @@ namespace Org.BouncyCastle.Bcpg
 
             if (headerFound)
             {
-                StringBuilder buf = new StringBuilder("-");
                 bool eolReached = false;
                 bool crLf = false;
 
+                MemoryStream buf = new MemoryStream();
+                buf.WriteByte((byte)'-');
+
                 if (m_restart)    // we've had to look ahead two '-'
                 {
-                    buf.Append('-');
+                    buf.WriteByte((byte)'-');
                 }
 
                 while ((c = m_input.ReadByte()) >= 0)
@@ -197,20 +200,29 @@ namespace Org.BouncyCastle.Bcpg
                     }
                     if (c == '\r' || (last != '\r' && c == '\n'))
                     {
-                        string line = buf.ToString();
+                        string line;
+                        try
+                        {
+                            line = Strings.FromUtf8ByteArray(buf.ToArray());
+                        }
+                        catch (Exception e)
+                        {
+                            throw new ArmoredInputException(e.Message);
+                        }
+
                         if (line.Trim().Length < 1)
                             break;
 
                         if (m_headerList.Count > 0 && line.IndexOf(':') < 0)
-                            throw new IOException("invalid armor header");
+                            throw new ArmoredInputException("invalid armor header");
 
                         m_headerList.Add(line);
-                        buf.Length = 0;
+                        buf.SetLength(0);
                     }
 
                     if (c != '\n' && c != '\r')
                     {
-                        buf.Append((char)c);
+                        buf.WriteByte((byte)c);
                         eolReached = false;
                     }
                     else
@@ -226,7 +238,9 @@ namespace Org.BouncyCastle.Bcpg
 
                 if (crLf)
                 {
-                    m_input.ReadByte(); // skip last \n
+                    int nl = m_input.ReadByte(); // skip last \n
+                    if (nl != '\n')
+                        throw new ArmoredInputException("inconsistent line endings in headers");
                 }
             }
 
@@ -277,7 +291,7 @@ namespace Org.BouncyCastle.Bcpg
             while (c == ' ' || c == '\t' || c == '\f' || c == '\v');
 
             if (c >= 128)
-                throw new IOException("invalid armor");
+                throw new ArmoredInputException("invalid armor");
 
             return c;
         }
@@ -331,7 +345,7 @@ namespace Org.BouncyCastle.Bcpg
                     ParseHeaders();
                 }
 
-                m_crc.Reset();
+                m_crc?.Reset();
                 m_start = false;
             }
 
@@ -395,13 +409,16 @@ namespace Org.BouncyCastle.Bcpg
                     {
                         m_bufPtr = Decode(ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), m_outBuf);
                         if (m_bufPtr != 0)
-                            throw new IOException("malformed crc in armored message.");
+                            throw new ArmoredInputException("malformed crc in armored message.");
 
                         m_crcFound = true;
 
-                        int i = (int)Pack.BE_To_UInt24(m_outBuf);
-                        if (i != m_crc.Value)
-                            throw new IOException("crc check failed in armored message.");
+                        if (m_crc != null)
+                        {
+                            int i = (int)Pack.BE_To_UInt24(m_outBuf);
+                            if (i != m_crc.Value)
+                                throw new ArmoredInputException("crc check failed in armored message.");
+                        }
 
                         return ReadByte();
                     }
@@ -415,7 +432,7 @@ namespace Org.BouncyCastle.Bcpg
                         }
 
                         if (!m_crcFound && m_detectMissingChecksum)
-                            throw new IOException("crc check not found");
+                            throw new ArmoredInputException("crc check not found");
 
                         m_crcFound = false;
                         m_start = true;
@@ -438,15 +455,18 @@ namespace Org.BouncyCastle.Bcpg
 
                 m_bufPtr = Decode(c, ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), m_outBuf);
 
-                if (m_bufPtr == 0)
+                if (m_crc != null)
                 {
-                    m_crc.Update3(m_outBuf, 0);
-                }
-                else
-                {
-                    for (int i = m_bufPtr; i < 3; ++i)
+                    if (m_bufPtr == 0)
                     {
-                        m_crc.Update(m_outBuf[i]);
+                        m_crc.Update3(m_outBuf, 0);
+                    }
+                    else
+                    {
+                        for (int i = m_bufPtr; i < 3; ++i)
+                        {
+                            m_crc.Update(m_outBuf[i]);
+                        }
                     }
                 }
             }
