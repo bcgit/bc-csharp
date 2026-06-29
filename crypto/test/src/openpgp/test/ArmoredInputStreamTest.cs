@@ -369,8 +369,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
 
             data.Position = 0L;
-            armorIn = new ArmoredInputStream(data);
-            armorIn.SetDetectMissingCrc(false);
+            armorIn = ArmoredInputStream.Build()
+                .SetDetectMissingCrc(false)
+                .Build(data);
 
             try
             {
@@ -382,8 +383,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
 
             data.Position = 0L;
-            armorIn = new ArmoredInputStream(data);
-            armorIn.SetDetectMissingCrc(true);
+            armorIn = ArmoredInputStream.Build()
+                .SetDetectMissingCrc(true)
+                .Build(data);
 
             try
             {

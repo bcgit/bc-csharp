@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -14,7 +13,13 @@ namespace Org.BouncyCastle.Bcpg
     /// </summary>
     /// <remarks>
     /// An IOException is thrown if the CRC check is detected and fails. By default a missing CRC will not cause an
-    /// exception. To force CRC detection use <see cref="SetDetectMissingCrc(bool)"/>.
+    /// exception. To force CRC detection use <see cref="Builder.SetDetectMissingCrc(bool)"/>.
+    /// <para>
+    /// By default a cleartext-signed(CSF) message whose payload contains a malformed dash - prefixed line(a leading
+    /// dash that is neither a "-----" armor header nor a "- " dash-escape, contrary to RFC 4880 7.1) is rejected with
+    /// an <see cref="ArmoredInputException"/>. Use <see cref="Builder.SetRejectPrefixedDashesInCsfMessages(bool)"/> to
+    /// relax this.
+    /// </para>
     /// </remarks>
     public class ArmoredInputStream
         : BaseInputStream
@@ -92,7 +97,7 @@ namespace Org.BouncyCastle.Bcpg
          * Ignore missing CRC checksums.
          * https://tests.sequoia-pgp.org/#ASCII_Armor suggests that missing CRC sums do not invalidate the message.
          */
-        private bool m_detectMissingChecksum = false;
+        private bool m_detectMissingCrc = false;
 
         private readonly byte[] m_outBuf = new byte[3];
 
@@ -109,7 +114,12 @@ namespace Org.BouncyCastle.Bcpg
         private bool m_restart = false;
         private IList<string> m_headerList = new List<string>();
         private int m_lastC = 0;
+        private int m_lookAhead = -1;
         private bool m_isEndOfStream;
+
+        private readonly bool m_validateAllowedHeaders;
+        private readonly bool m_csfRejectPrefixedDashes;
+        private readonly List<string> m_allowedHeaders;
 
         /// <summary>
         /// Create a stream for reading a PGP armored message, parsing up to a header and then reading the data that
@@ -131,13 +141,70 @@ namespace Org.BouncyCastle.Bcpg
             m_input = input;
             m_hasHeaders = hasHeaders;
             m_crc = new Crc24();
+            m_validateAllowedHeaders = false;
+            m_csfRejectPrefixedDashes = true;
+            m_allowedHeaders = DefaultAllowedHeaders();
 
-            if (hasHeaders)
+            if (m_hasHeaders)
             {
                 ParseHeaders();
             }
 
             m_start = false;
+        }
+
+        private ArmoredInputStream(Stream input, Builder builder)
+        {
+            m_input = input;
+            m_hasHeaders = builder.m_hasHeaders;
+            m_detectMissingCrc = builder.m_detectMissingCrc;
+            m_crc = builder.m_ignoreCrc ? null : new Crc24();
+            m_validateAllowedHeaders = builder.m_validateAllowedHeaders;
+            m_csfRejectPrefixedDashes = builder.m_csfRejectPrefixedDashes;
+            m_allowedHeaders = builder.m_allowedHeaders;
+
+            if (m_hasHeaders)
+            {
+                ParseHeaders();
+            }
+
+            if (m_validateAllowedHeaders)
+            {
+                RejectUnknownHeadersInCsfMessages();
+            }
+
+            m_start = false;
+        }
+
+        private void RejectUnknownHeadersInCsfMessages()
+        {
+            var headerLines = m_headerList.GetEnumerator();
+            if (!headerLines.MoveNext())
+                throw new InvalidOperationException();
+
+            string header = headerLines.Current;
+
+            // Only reject unknown headers in cleartext signed messages
+            if (!header.StartsWith("-----BEGIN PGP SIGNED MESSAGE-----"))
+                return;
+
+            while (headerLines.MoveNext())
+            {
+                string headerLine = headerLines.Current;
+                if (RejectHeaderLine(m_allowedHeaders, headerLine))
+                    throw new ArmoredInputException(
+                        $"Illegal ASCII armor header line in clearsigned message encountered: {headerLine}");
+            }
+        }
+
+        private static bool RejectHeaderLine(List<string> allowedHeaders, string headerLine)
+        {
+            foreach (string allowedHeader in allowedHeaders)
+            {
+                if (Platform.StartsWith(headerLine, allowedHeader + ": "))
+                    return false;
+            }
+            return true;
         }
 
         private bool ParseHeaders()
@@ -353,7 +420,20 @@ namespace Org.BouncyCastle.Bcpg
 
             if (m_clearText)
             {
-                c = m_input.ReadByte();
+                if (m_lookAhead >= 0)
+                {
+                    // Replay a byte read past while resolving a line-leading dash (see the
+                    // malformed branch below). Fall through so it still updates newLineFound /
+                    // lastC rather than being returned blind - otherwise a pushed-back '\n'
+                    // would not be recognised as a line start and the next armor boundary
+                    // would be consumed as clear text.
+                    c = m_lookAhead;
+                    m_lookAhead = -1;
+                }
+                else
+                {
+                    c = m_input.ReadByte();
+                }
 
                 if (c == '\r' || (c == '\n' && m_lastC != '\r'))
                 {
@@ -361,16 +441,30 @@ namespace Org.BouncyCastle.Bcpg
                 }
                 else if (m_newLineFound && c == '-')
                 {
-                    c = m_input.ReadByte();
-                    if (c == '-')            // a header, not dash escaped
+                    int next = m_input.ReadByte();
+                    if (next == '-') // a header, not dash escaped
                     {
                         m_clearText = false;
                         m_start = true;
                         m_restart = true;
                     }
-                    else                   // a space - must be a dash escape
+                    else if (next == ' ') // a space - drop the "- " dash escape
                     {
                         c = m_input.ReadByte();
+                    }
+                    else
+                    {
+                        // RFC 4880 7.1: in dash-escaped text every line beginning with a dash
+                        // is prefixed with "- "; a leading dash that is neither a "--" header
+                        // nor a "- " escape means the message is malformed.
+                        if (m_csfRejectPrefixedDashes)
+                            throw new ArmoredInputException
+                                ("Prefixed dash without trailing space encountered. CSF-signed message malformed.");
+
+                        // Lenient: surface the bytes verbatim rather than silently dropping the
+                        // dash. Return the dash now and replay 'next' on the following ReadByte() so
+                        // a signature check over the recovered text fails instead of passing.
+                        m_lookAhead = next;
                     }
                     m_newLineFound = false;
                 }
@@ -431,7 +525,7 @@ namespace Org.BouncyCastle.Bcpg
                                 break;
                         }
 
-                        if (!m_crcFound && m_detectMissingChecksum)
+                        if (!m_crcFound && m_detectMissingCrc)
                             throw new ArmoredInputException("crc check not found");
 
                         m_crcFound = false;
@@ -489,9 +583,114 @@ namespace Org.BouncyCastle.Bcpg
         /// <see cref="IOException"/> will be thrown when a missing CRC checksum is encountered.
         /// </remarks>
         /// <param name="detectMissing">ignore missing CRC sums</param>
+        [Obsolete("Configure via 'Build()' instead")]
         public virtual void SetDetectMissingCrc(bool detectMissing)
         {
-            m_detectMissingChecksum = detectMissing;
+            m_detectMissingCrc = detectMissing;
+        }
+
+        private static List<string> DefaultAllowedHeaders() => new List<string>(){
+            ArmoredOutputStream.HeaderComment,
+            ArmoredOutputStream.HeaderVersion,
+            ArmoredOutputStream.HeaderCharset,
+            ArmoredOutputStream.HeaderHash,
+            ArmoredOutputStream.HeaderMessageID,
+        };
+
+        public static Builder Build() => new Builder();
+
+        public class Builder
+        {
+            internal bool m_hasHeaders = true;
+            internal bool m_detectMissingCrc = false;
+            internal bool m_ignoreCrc = false;
+            internal bool m_validateAllowedHeaders = false;
+            internal bool m_csfRejectPrefixedDashes = true;
+            internal List<string> m_allowedHeaders = DefaultAllowedHeaders();
+
+            internal Builder()
+            {
+            }
+
+            /// <summary>Enable or disable header parsing (default value <c>true</c>).</summary>
+            /// <param name="hasHeaders"><c>true</c> if headers should be expected, <c>false</c> otherwise.</param>
+            /// <returns>the current <see cref="Builder"/> instance.</returns>
+            public Builder SetParseForHeaders(bool hasHeaders)
+            {
+                m_hasHeaders = hasHeaders;
+                return this;
+            }
+
+            /// <returns>the current <see cref="Builder"/> instance.</returns>
+            public Builder SetValidateClearsignedMessageHeaders(bool validateAllowedHeaders)
+            {
+                m_validateAllowedHeaders = validateAllowedHeaders;
+                return this;
+            }
+
+            /// <summary>
+            /// Configure how a cleartext-signed (CSF) message is handled when a payload line begins with a dash that is
+            /// neither a "-----" armor header nor a "- " dash-escape.
+            /// </summary>
+            /// <remarks>
+            /// RFC 4880 7.1 requires every cleartext line beginning with a dash to be prefixed with "- " (dash, space),
+            /// so a leading dash not followed by a space signals a malformed message. Historically the two leading
+            /// characters were dropped unconditionally, so a signature over "payload" also verified against a tampered
+            /// "-Xpayload" line.
+            /// <para>
+            /// Defaults to <c>true</c> (reject with an <see cref="ArmoredInputException"/>). RFC-conformant messages -
+            /// including everything written by <see cref="ArmoredOutputStream"/> - never trigger this. When set to
+            /// <c>false</c> the offending bytes are returned verbatim instead of being dropped, so a signature check
+            /// over the recovered text fails rather than silently succeeding.
+            /// </para>
+            /// </remarks>
+            /// <param name="rejectDashes"><c>true</c> to reject malformed dsah-prefixed CSF messages, <c>false</c> to
+            /// surface their bytes verbatim.</param>
+            /// <returns>the current <see cref="Builder"/> instance.</returns>
+            public Builder SetRejectPrefixedDashesInCsfMessages(bool rejectDashes)
+            {
+                m_csfRejectPrefixedDashes = rejectDashes;
+                return this;
+            }
+
+            /// <returns>the current <see cref="Builder"/> instance.</returns>
+            public Builder AddAllowedArmorHeader(string header)
+            {
+                header = header.Trim();
+                if (header.Length > 0)
+                {
+                    m_allowedHeaders.Add(header);
+                }
+                return this;
+            }
+
+            /// <summary>Change how the stream should react if it encounters a missing CRC checksum.</summary>
+            /// <remarks>
+            /// The default value is <c>false</c> (ignore missing CRC checksums). If the behavior is set to <c>true</c>,
+            /// an <see cref="IOException"/> will be thrown when a missing CRC checksum is encountered.
+            /// </remarks>
+            /// <param name="detectMissingCrc">
+            /// <c>false</c> if ignore missing CRC sums, <c>true</c> for exception.
+            /// </param>
+            /// <returns>the current <see cref="Builder"/> instance.</returns>
+            public Builder SetDetectMissingCrc(bool detectMissingCrc)
+            {
+                m_detectMissingCrc = detectMissingCrc;
+                return this;
+            }
+
+            /// <summary>
+            /// Specifically ignore the CRC if in place (this will also avoid the cost of calculation).
+            /// </summary>
+            /// <paramref name="ignoreCrc"><c>true</c> if CRC should be ignored, false otherwise.</paramref>
+            /// <returns>the current <see cref="Builder"/> instance.</returns>
+            public Builder setIgnoreCrc(bool ignoreCrc)
+            {
+                m_ignoreCrc = ignoreCrc;
+                return this;
+            }
+
+            public ArmoredInputStream Build(Stream input) => new ArmoredInputStream(input, this);
         }
     }
 }

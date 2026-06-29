@@ -16,6 +16,10 @@ namespace Org.BouncyCastle.Bcpg
     public class ArmoredOutputStream
         : BaseOutputStream
     {
+        public static readonly string HeaderCharset = "Charset";
+        public static readonly string HeaderComment = "Comment";
+        public static readonly string HeaderHash = "Hash";
+        public static readonly string HeaderMessageID = "MessageID";
         public static readonly string HeaderVersion = "Version";
 
         private static readonly byte[] encodingTable =
