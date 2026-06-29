@@ -1,49 +1,27 @@
-using System;
-using Org.BouncyCastle.Crypto;
-
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-    /**
-     * parameters for using an integrated cipher in stream mode.
-     */
-    public class IesParameters : ICipherParameters
+    /// <summary>Parameters for using an integrated cipher in stream mode.</summary>
+    public class IesParameters
+        : ICipherParameters
     {
-        private byte[]  derivation;
-        private byte[]  encoding;
-        private int     macKeySize;
+        private readonly byte[] m_derivation;
+        private readonly byte[] m_encoding;
+        private readonly int m_macKeySize;
 
-        /**
-         * @param derivation the derivation parameter for the KDF function.
-         * @param encoding the encoding parameter for the KDF function.
-         * @param macKeySize the size of the MAC key (in bits).
-         */
-        public IesParameters(
-            byte[]  derivation,
-            byte[]  encoding,
-            int     macKeySize)
+        /// <param name="derivation">the derivation parameter for the KDF function.</param>
+        /// <param name="encoding">the encoding parameter for the KDF function.</param>
+        /// <param name="macKeySize">the size of the MAC key (in bits).</param>
+        public IesParameters(byte[] derivation, byte[] encoding, int macKeySize)
         {
-            this.derivation = derivation;
-            this.encoding = encoding;
-            this.macKeySize = macKeySize;
+            m_derivation = derivation;
+            m_encoding = encoding;
+            m_macKeySize = macKeySize;
         }
 
-        public byte[] GetDerivationV()
-        {
-            return derivation;
-        }
+        public byte[] GetDerivationV() => m_derivation;
 
-        public byte[] GetEncodingV()
-        {
-            return encoding;
-        }
+        public byte[] GetEncodingV() => m_encoding;
 
-        public int MacKeySize
-        {
-			get
-			{
-				return macKeySize;
-			}
-        }
+        public int MacKeySize => m_macKeySize;
     }
-
 }

@@ -1,6 +1,7 @@
 using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 
@@ -22,10 +23,22 @@ namespace Org.BouncyCastle.Crypto.Engines
         private ICipherParameters m_privParam, m_pubParam;
         private IesParameters m_parameters;
 
+        private byte[] m_V;
+        private byte[] m_IV;
+
         /// <summary>
         /// Set up for use with stream mode, where the key derivation function is used to provide a stream of bytes to
         /// xor with the message.
         /// </summary>
+        /// <remarks>
+        /// <b>Security note:</b> when this engine is initialised with static keys on both sides (the
+        /// <see cref="Init(bool, ICipherParameters, ICipherParameters, ICipherParameters)"/> entry point, which
+        /// supplies no ephemeral component) the key-derivation input is the same for every message, so the
+        /// stream-mode keystream is identical from message to message - encrypting more than one message under a given
+        /// key pair is a many-time pad and leaks plaintext relationships. Use the ephemeral sender-key initialisation
+        /// (the standard ECIES mode) for messages that must remain confidential; the static-static mode is effectively
+        /// deterministic encryption.
+        /// </remarks>
         /// <param name="agree">The key agreement used as the basis for the encryption.</param>
         /// <param name="kdf">The key derivation function used for byte generation.</param>
         /// <param name="mac">The message authentication code generator for the message.</param>
@@ -68,116 +81,199 @@ namespace Org.BouncyCastle.Crypto.Engines
             m_forEncryption = forEncryption;
             m_privParam = privParameters;
             m_pubParam = pubParameters;
-            m_parameters = (IesParameters)iesParameters;
+            m_V = Array.Empty<byte>();
+
+            ExtractParams(iesParameters);
         }
 
-        private byte[] DecryptBlock(byte[] in_enc, int inOff, int inLen, byte[] z)
+        private void ExtractParams(ICipherParameters parameters)
         {
-            byte[] M = null;
-            KeyParameter macKey = null;
-            KdfParameters kParam = new KdfParameters(z, m_parameters.GetDerivationV());
-            int macKeySize = m_parameters.MacKeySize;
+            if (parameters is ParametersWithIV withIV)
+            {
+                m_IV = withIV.GetIV();
+                m_parameters = (IesParameters)withIV.Parameters;
+            }
+            else
+            {
+                m_IV = null;
+                m_parameters = (IesParameters)parameters;
+            }
+        }
 
-            m_kdf.Init(kParam);
+        private byte[] DecryptBlock(byte[] in_enc, int inOff, int inLen)
+        {
+            byte[] M, K, K1, K2;
+            int len = 0;
+            int macKeySize = m_parameters.MacKeySize;
 
             // Ensure that the length of the input is greater than the MAC in bytes
-            if (inLen < m_mac.GetMacSize())
-                throw new InvalidCipherTextException("Length of input must be greater than the MAC");
+            if (inLen < m_V.Length + m_mac.GetMacSize())
+                throw new InvalidCipherTextException("Length of input must be greater than the MAC and V combined");
 
-            inLen -= m_mac.GetMacSize();
-
-            if (m_cipher == null)     // stream mode
+            // note order is important: set up keys, do simple encryptions, check mac, do final encryption.
+            if (m_cipher == null)
             {
-                byte[] Buffer = GenerateKdfBytes(kParam, inLen + (macKeySize / 8));
+                // Streaming mode.
+                K1 = new byte[inLen - m_V.Length - m_mac.GetMacSize()];
+                K2 = new byte[macKeySize / 8];
+                K = new byte[K1.Length + K2.Length];
 
-                M = new byte[inLen];
+                m_kdf.GenerateBytes(K, 0, K.Length);
 
-                for (int i = 0; i != inLen; i++)
-                {
-                    M[i] = (byte)(in_enc[inOff + i] ^ Buffer[i]);
-                }
+                // K2 (MAC key) from a fixed prefix, K1 (keystream) from the remainder - see encryptBlock.
+                Array.Copy(K, 0, K2, 0, K2.Length);
+                Array.Copy(K, K2.Length, K1, 0, K1.Length);
 
-                macKey = new KeyParameter(Buffer, inLen, (macKeySize / 8));
+                // process the message
+                M = new byte[K1.Length];
+                Bytes.Xor(K1.Length, in_enc, inOff + m_V.Length, K1, 0, M, 0);
             }
             else
             {
-                int cipherKeySize = ((IesWithCipherParameters)m_parameters).CipherKeySize;
-                byte[] Buffer = GenerateKdfBytes(kParam, (cipherKeySize / 8) + (macKeySize / 8));
+                // Block cipher mode.
+                K1 = new byte[((IesWithCipherParameters)m_parameters).CipherKeySize / 8];
+                K2 = new byte[macKeySize / 8];
+                K = new byte[K1.Length + K2.Length];
 
-                m_cipher.Init(false, new KeyParameter(Buffer, 0, (cipherKeySize / 8)));
+                m_kdf.GenerateBytes(K, 0, K.Length);
+                Array.Copy(K, 0, K1, 0, K1.Length);
+                Array.Copy(K, K1.Length, K2, 0, K2.Length);
 
-                M = m_cipher.DoFinal(in_enc, inOff, inLen);
+                ICipherParameters cp = new KeyParameter(K1);
 
-                macKey = new KeyParameter(Buffer, (cipherKeySize / 8), (macKeySize / 8));
+                // If IV provided use it to initialize the cipher
+                if (m_IV != null)
+                {
+                    cp = new ParametersWithIV(cp, m_IV);
+                }
+
+                m_cipher.Init(false, cp);
+
+                M = new byte[m_cipher.GetOutputSize(inLen - m_V.Length - m_mac.GetMacSize())];
+
+                // do initial processing
+                len = m_cipher.ProcessBytes(in_enc, inOff + m_V.Length, inLen - m_V.Length - m_mac.GetMacSize(), M, 0);
             }
 
-            byte[] macIV = m_parameters.GetEncodingV();
+            // Convert the length of the encoding vector into a byte array.
+            byte[] P2 = m_parameters.GetEncodingV();
+            byte[] L2 = null;
+            if (m_V.Length != 0)
+            {
+                L2 = GetLengthTag(P2);
+            }
 
-            m_mac.Init(macKey);
-            m_mac.BlockUpdate(in_enc, inOff, inLen);
-            m_mac.BlockUpdate(macIV, 0, macIV.Length);
-            m_mac.DoFinal(m_macBuf, 0);
+            // Verify the MAC.
+            int end = inOff + inLen;
+            byte[] T1 = Arrays.CopyOfRange(in_enc, end - m_mac.GetMacSize(), end);
 
-            inOff += inLen;
+            byte[] T2 = new byte[T1.Length];
+            m_mac.Init(new KeyParameter(K2));
+            m_mac.BlockUpdate(in_enc, inOff + m_V.Length, inLen - m_V.Length - T2.Length);
 
-            byte[] T1 = Arrays.CopyOfRange(in_enc, inOff, inOff + m_macBuf.Length);
+            if (P2 != null)
+            {
+                m_mac.BlockUpdate(P2, 0, P2.Length);
+            }
+            if (m_V.Length != 0)
+            {
+                m_mac.BlockUpdate(L2, 0, L2.Length);
+            }
+            m_mac.DoFinal(T2, 0);
 
-            if (!Arrays.FixedTimeEquals(T1, m_macBuf))
-                throw new InvalidCipherTextException("Invalid MAC.");
+            if (!Arrays.FixedTimeEquals(T1, T2))
+                throw new InvalidCipherTextException("invalid MAC");
 
-            return M;
+            if (m_cipher == null)
+                return M;
+
+            len += m_cipher.DoFinal(M, len);
+
+            return Arrays.CopyOfRange(M, 0, len);
         }
 
-        private byte[] EncryptBlock(byte[] input, int inOff, int inLen, byte[] z)
+        private byte[] EncryptBlock(byte[] input, int inOff, int inLen)
         {
-            byte[] C = null;
-            KeyParameter macKey = null;
-            KdfParameters kParam = new KdfParameters(z, m_parameters.GetDerivationV());
-            int c_text_length = 0;
+            byte[] C, K, K1, K2;
+            int len;
             int macKeySize = m_parameters.MacKeySize;
 
-            if (m_cipher == null)     // stream mode
+            if (m_cipher == null)
             {
-                byte[] Buffer = GenerateKdfBytes(kParam, inLen + (macKeySize / 8));
+                // Streaming mode.
+                K1 = new byte[inLen];
+                K2 = new byte[macKeySize / 8];
+                K = new byte[K1.Length + K2.Length];
 
-                C = new byte[inLen + m_mac.GetMacSize()];
-                c_text_length = inLen;
+                m_kdf.GenerateBytes(K, 0, K.Length);
 
-                for (int i = 0; i != inLen; i++)
-                {
-                    C[i] = (byte)(input[inOff + i] ^ Buffer[i]);
-                }
+                // Derive the MAC key K2 from a fixed prefix of the KDF output and the keystream K1 from
+                // the remainder, regardless of whether an ephemeral V is present. Placing K1 first (the
+                // legacy static-key, V-absent layout) put K2 at a message-length-dependent offset behind
+                // the keystream, so a single known-plaintext leak of K1 also exposed the MAC key of any
+                // shorter message - a cross-message forgery in the deterministic static-key mode. A fixed
+                // K2 offset is never covered by the keystream, closing that.
+                Array.Copy(K, 0, K2, 0, K2.Length);
+                Array.Copy(K, K2.Length, K1, 0, K1.Length);
 
-                macKey = new KeyParameter(Buffer, inLen, (macKeySize / 8));
+                C = new byte[inLen];
+                Bytes.Xor(inLen, input, inOff, K1, 0, C, 0);
+                len = inLen;
             }
             else
             {
-                int cipherKeySize = ((IesWithCipherParameters)m_parameters).CipherKeySize;
-                byte[] Buffer = GenerateKdfBytes(kParam, (cipherKeySize / 8) + (macKeySize / 8));
+                K1 = new byte[((IesWithCipherParameters)m_parameters).CipherKeySize / 8];
+                K2 = new byte[macKeySize / 8];
+                K = new byte[K1.Length + K2.Length];
 
-                m_cipher.Init(true, new KeyParameter(Buffer, 0, (cipherKeySize / 8)));
+                m_kdf.GenerateBytes(K, 0, K.Length);
+                Array.Copy(K, 0, K1, 0, K1.Length);
+                Array.Copy(K, K1.Length, K2, 0, K2.Length);
 
-                c_text_length = m_cipher.GetOutputSize(inLen);
-                byte[] tmp = new byte[c_text_length];
+                ICipherParameters cp = new KeyParameter(K1);
 
-                int len = m_cipher.ProcessBytes(input, inOff, inLen, tmp, 0);
-                len += m_cipher.DoFinal(tmp, len);
+                // If IV provide use it to initialize the cipher
+                if (m_IV != null)
+                {
+                    cp = new ParametersWithIV(cp, m_IV);
+                }
 
-                C = new byte[len + m_mac.GetMacSize()];
-                c_text_length = len;
+                m_cipher.Init(true, cp);
 
-                Array.Copy(tmp, 0, C, 0, len);
-
-                macKey = new KeyParameter(Buffer, (cipherKeySize / 8), (macKeySize / 8));
+                C = new byte[m_cipher.GetOutputSize(inLen)];
+                len = m_cipher.ProcessBytes(input, inOff, inLen, C, 0);
+                len += m_cipher.DoFinal(C, len);
             }
 
-            byte[] macIV = m_parameters.GetEncodingV();
+            // Convert the length of the encoding vector into a byte array.
+            byte[] P2 = m_parameters.GetEncodingV();
+            byte[] L2 = null;
+            if (m_V.Length != 0)
+            {
+                L2 = GetLengthTag(P2);
+            }
 
-            m_mac.Init(macKey);
-            m_mac.BlockUpdate(C, 0, c_text_length);
-            m_mac.BlockUpdate(macIV, 0, macIV.Length);
-            m_mac.DoFinal(C, c_text_length);
-            return C;
+            // Apply the MAC.
+            byte[] T = new byte[m_mac.GetMacSize()];
+
+            m_mac.Init(new KeyParameter(K2));
+            m_mac.BlockUpdate(C, 0, len);
+            if (P2 != null)
+            {
+                m_mac.BlockUpdate(P2, 0, P2.Length);
+            }
+            if (m_V.Length != 0)
+            {
+                m_mac.BlockUpdate(L2, 0, L2.Length);
+            }
+            m_mac.DoFinal(T, 0);
+
+            // Output the triple (V,C,T).
+            byte[] output = new byte[m_V.Length + len + T.Length];
+            Array.Copy(m_V, 0, output, 0, m_V.Length);
+            Array.Copy(C, 0, output, m_V.Length, len);
+            Array.Copy(T, 0, output, m_V.Length + len, T.Length);
+            return output;
         }
 
         private byte[] GenerateKdfBytes(KdfParameters kParam, int length)
@@ -193,19 +289,41 @@ namespace Org.BouncyCastle.Crypto.Engines
             m_agreement.Init(m_privParam);
 
             BigInteger z = m_agreement.CalculateAgreement(m_pubParam);
+            byte[] Z = BigIntegers.AsUnsignedByteArray(m_agreement.GetFieldSize(), z);
 
-            byte[] zBytes = BigIntegers.AsUnsignedByteArray(m_agreement.GetFieldSize(), z);
+            // Create input to KDF.
+            if (m_V.Length > 0)
+            {
+                byte[] VZ = Arrays.Concatenate(m_V, Z);
+                Arrays.ZeroMemory(Z);
+                Z = VZ;
+            }
 
             try
             {
+                // Initialise the KDF.
+                KdfParameters kdfParam = new KdfParameters(Z, m_parameters.GetDerivationV());
+                m_kdf.Init(kdfParam);
+
                 return m_forEncryption
-                    ? EncryptBlock(input, inOff, inLen, zBytes)
-                    : DecryptBlock(input, inOff, inLen, zBytes);
+                    ? EncryptBlock(input, inOff, inLen)
+                    : DecryptBlock(input, inOff, inLen);
             }
             finally
             {
-                Array.Clear(zBytes, 0, zBytes.Length);
+                Arrays.ZeroMemory(Z);
             }
+        }
+
+        // as described in Shroup's paper and P1363a
+        private static byte[] GetLengthTag(byte[] p2)
+        {
+            byte[] L2 = new byte[8];
+            if (p2 != null)
+            {
+                Pack.UInt64_To_BE((ulong)(p2.Length * 8L), L2, 0);
+            }
+            return L2;
         }
     }
 }
