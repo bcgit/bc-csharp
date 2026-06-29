@@ -9,15 +9,43 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpLiteralData
         : PgpObject
     {
+        /// <summary>Format tag for binary literal data.</summary>
         public const char Binary = 'b';
+        /// <summary>Format tag for textual literal data.</summary>
         public const char Text = 't';
+        /// <summary>Format tag for UTF-8 encoded textual literal data.</summary>
         public const char Utf8 = 'u';
+        /// <summary>Format tag for MIME message bodies.</summary>
+        public const char Mime = 'm';
 
         /// <summary>The special name indicating a "for your eyes only" packet.</summary>
         public const string Console = "_CONSOLE";
 
+        /// <summary>The special time for a modification time of "now" or the present time.</summary>
+        // TODO Using an actual DateTime to represent this "semantic now" feels unsatisfactory
+        public static readonly DateTime Now = DateTimeUtilities.UnixEpoch;
+
         private readonly LiteralDataPacket m_data;
 
+        /// <summary>Construct a PGP LiteralData carrier from the passed in byte array.</summary>
+        /// <param name="encData">an encoding of PGP literal data.</param>
+        /// <exception cref="IOException">if an error occurs reading from the PGP input.</exception>
+        public PgpLiteralData(byte[] encData)
+            : this(Utilities.CreateBcpgInputStream(new MemoryStream(encData, false), PacketTag.LiteralData))
+        {
+        }
+
+        /// <summary>Construct a PGP LiteralData carrier from the passed in input stream.</summary>
+        /// <param name="inStream">an input stream containing an encoding of PGP literal data.</param>
+        /// <exception cref="IOException">if an error occurs reading from the PGP input.</exception>
+        public PgpLiteralData(Stream inStream)
+            : this(Utilities.CreateBcpgInputStream(inStream, PacketTag.LiteralData))
+        {
+        }
+
+        /// <summary>Construct a PGP LiteralData carrier from the passed in BCPG input stream.</summary>
+        /// <param name="bcpgInput">a BCPG input stream containing an encoded PGP literal data structure.</param>
+        /// <exception cref="IOException">if an error occurs reading from the PGP input.</exception>
         public PgpLiteralData(BcpgInputStream bcpgInput)
         {
             Packet packet = bcpgInput.ReadPacket();

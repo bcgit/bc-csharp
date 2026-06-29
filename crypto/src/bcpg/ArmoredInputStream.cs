@@ -599,7 +599,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public static Builder Build() => new Builder();
 
-        public class Builder
+        public sealed class Builder
         {
             internal bool m_hasHeaders = true;
             internal bool m_detectMissingCrc = false;

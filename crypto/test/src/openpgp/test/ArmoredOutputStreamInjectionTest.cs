@@ -1,9 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -21,34 +21,78 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         private static readonly string[] LineSeparators = new string[]{ "\r\n", "\r", "\n" };
 
         [Test]
-        public void HeaderValueWithBareCarriageReturnCannotForgeArmorLine()
+        public void All()
         {
-            byte[] data = new byte[]{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            byte[] data = Strings.ToByteArray("the quick brown fox");
 
-            var bOut = new MemoryStream();
-            using (var aOut = new ArmoredOutputStream(bOut, addVersionHeader: false))
+            // A Comment value carrying a bare CR followed by a forged armor tail. Splitting on CR turns
+            // it into separate, well-formed "Comment:" headers, so the armor re-parses cleanly. Without
+            // the fix the CR survives into one header line and BouncyCastle's own reader -- which treats
+            // a lone CR as end-of-line -- rejects the armor as malformed (a round-trip denial of service).
+            MemoryStream bOut = new MemoryStream();
+            using (ArmoredOutputStream aOut = ArmoredOutputStream.Build()
+                .AddComment("note\r-----END PGP MESSAGE-----")
+                .Build(bOut))
             {
-                // A Comment value carrying a bare CR followed by a forged header. Without the fix the
-                // CR survives into one header line; a CR-as-EOL reader then sees "Injected: forged".
-                aOut.SetHeader("Comment", "note\rInjected: forged");
                 aOut.Write(data, 0, data.Length);
             }
 
-            string armored = Encoding.ASCII.GetString(bOut.ToArray());
-
-            // Re-split the way a lenient (CR-as-EOL) reader would: on CR, LF and CRLF. No physical
-            // line may be the forged header -- the bare CR must have been neutralised by splitting.
-            foreach (string line in armored.Split(LineSeparators, System.StringSplitOptions.None))
+            byte[] recovered;
+            using (ArmoredInputStream aIn = new ArmoredInputStream(new MemoryStream(bOut.ToArray(), false)))
             {
-                Assert.That(line.StartsWith("Injected:"), Is.False,
-                    "armor header injection: a bare CR in a header value forged a line: " + line);
+                recovered = Streams.ReadAll(aIn);
             }
 
-            // The sanitized armor must still round-trip through the real reader.
-            using (var aIn = new ArmoredInputStream(new MemoryStream(bOut.ToArray())))
+            Assert.That(Arrays.AreEqual(data, recovered), "armored round-trip with an embedded CR in a comment failed");
+
+            // A singleton header value containing a bare CR must be rejected, as one containing LF is.
+            try
             {
-                byte[] recovered = Streams.ReadAll(aIn);
-                Assert.That(Arrays.AreEqual(data, recovered), Is.True, "armored round-trip failed");
+                ArmoredOutputStream.Build()
+                    .SetVersion("v\rInjected: forged")
+                    .Build(new MemoryStream());
+                Assert.Fail("CR in singleton armor header value accepted");
+            }
+            catch (ArgumentException)
+            {
+                // expected
+            }
+
+            // The deprecated setHeader(...) stores the value raw and emits it through the same
+            // writeHeaderEntry chokepoint as the Builder. A LF in the value used to inject a second
+            // parsed armor header; it must now be rejected when the header block is flushed on first
+            // write. This is the path finding #25's proof exercised.
+            try
+            {
+                ArmoredOutputStream injected = new ArmoredOutputStream(new MemoryStream());
+#pragma warning disable CS0618 // Type or member is obsolete
+                injected.SetHeader("Comment", "hello\nInjected: smuggled-header");
+#pragma warning restore CS0618 // Type or member is obsolete
+                injected.WriteByte(0x01);
+                Assert.Fail("LF in deprecated setHeader value accepted");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.NotNull(e.Message);
+                Assert.AreEqual("armor header must not contain CR/LF", e.Message, "unexpected message: " + e.Message);
+            }
+
+            // The Hashtable constructor is the other raw, non-deprecated path through the chokepoint;
+            // a bare CR in a value must be rejected there too.
+            var rawHeaders = new Dictionary<string, string>(){
+                { ArmoredOutputStream.HeaderComment, "hello\r-----END PGP MESSAGE-----" },
+            };
+
+            try
+            {
+                ArmoredOutputStream injected = new ArmoredOutputStream(new MemoryStream(), rawHeaders);
+                injected.WriteByte(0x01);
+                Assert.Fail("CR in Hashtable-constructor header value accepted");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.NotNull(e.Message);
+                Assert.AreEqual("armor header must not contain CR/LF", e.Message, "unexpected message: " + e.Message);
             }
         }
     }
