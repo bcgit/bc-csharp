@@ -37,8 +37,6 @@ namespace Org.BouncyCastle.Cms
     public class CmsEnvelopedDataStreamGenerator
         : CmsEnvelopedGenerator
     {
-        private object m_originatorInfo = null;
-        private object m_unprotectedAttributes = null;
         private int m_bufferSize;
         private bool m_berEncodeRecipientSet;
 
