@@ -5,28 +5,21 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
-	/**
-	* A generic PEM writer, based on RFC 1421
-	*/
-	public class PemWriter
-		: IDisposable
-	{
-		private const int LineLength = 64;
+    /// <summary>A generic PEM writer, based on RFC 1421</summary>
+    public class PemWriter
+        : IDisposable
+    {
+        private const int LineLength = 64;
 
-		private readonly TextWriter m_writer;
-		private readonly int m_nlLength;
-		private readonly char[] m_buf = new char[LineLength];
+        private readonly TextWriter m_writer;
+        private readonly int m_nlLength;
+        private readonly char[] m_buf = new char[LineLength];
 
-		/**
-		 * Base constructor.
-		 *
-		 * @param out output stream to use.
-		 */
-		public PemWriter(TextWriter writer)
-		{
-			m_writer = writer ?? throw new ArgumentNullException(nameof(writer));
+        public PemWriter(TextWriter writer)
+        {
+            m_writer = writer ?? throw new ArgumentNullException(nameof(writer));
             m_nlLength = Environment.NewLine.Length;
-		}
+        }
 
         #region IDisposable
 
@@ -47,89 +40,97 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
         #endregion
 
         public TextWriter Writer
-		{
-			get { return m_writer; }
-		}
+        {
+            get { return m_writer; }
+        }
 
-		/**
-		 * Return the number of bytes or characters required to contain the
-		 * passed in object if it is PEM encoded.
-		 *
-		 * @param obj pem object to be output
-		 * @return an estimate of the number of bytes
-		 */
-		public int GetOutputSize(PemObject obj)
-		{
-			// BEGIN and END boundaries.
-			int size = (2 * (obj.Type.Length + 10 + m_nlLength)) + 6 + 4;
+        /// <summary>
+        /// Return the number of bytes or characters required to contain the passed in object if it is PEM encoded.
+        /// </summary>
+        /// <param name="obj">PEM object to be output.</param>
+        /// <returns>An estimate of the number of bytes.</returns>
+        public int GetOutputSize(PemObject obj)
+        {
+            // BEGIN and END boundaries.
+            int size = (2 * (obj.Type.Length + 10 + m_nlLength)) + 6 + 4;
 
-			if (obj.Headers.Count > 0)
-			{
-				foreach (PemHeader header in obj.Headers)
-				{
-					size += header.Name.Length + ": ".Length + header.Value.Length + m_nlLength;
-				}
+            if (obj.Headers.Count > 0)
+            {
+                foreach (PemHeader header in obj.Headers)
+                {
+                    size += header.Name.Length + ": ".Length + header.Value.Length + m_nlLength;
+                }
 
-				size += m_nlLength;
-			}
+                size += m_nlLength;
+            }
 
-			// base64 encoding
-			int dataLen = ((obj.Content.Length + 2) / 3) * 4;
+            // base64 encoding
+            int dataLen = ((obj.Content.Length + 2) / 3) * 4;
 
-			size += dataLen + (((dataLen + LineLength - 1) / LineLength) * m_nlLength);
+            size += dataLen + (((dataLen + LineLength - 1) / LineLength) * m_nlLength);
 
-			return size;
-		}
+            return size;
+        }
 
-		public void WriteObject(PemObjectGenerator objGen)
-		{
-			PemObject obj = objGen.Generate();
+        public void WriteObject(PemObjectGenerator objGen)
+        {
+            PemObject obj = objGen.Generate();
 
-			WritePreEncapsulationBoundary(obj.Type);
+            WritePreEncapsulationBoundary(obj.Type);
 
-			if (obj.Headers.Count > 0)
-			{
-				foreach (PemHeader header in obj.Headers)
-				{
-					m_writer.Write(header.Name);
-					m_writer.Write(": ");
-					m_writer.WriteLine(header.Value);
-				}
+            if (obj.Headers.Count > 0)
+            {
+                foreach (PemHeader header in obj.Headers)
+                {
+                    // A CR or LF in a header name or value would inject extra header lines, or a blank
+                    // line would terminate the header block early -- a PEM header injection. Reject it.
+                    if (HasLineBreak(header.Name) || HasLineBreak(header.Value))
+                        throw new ArgumentException("PEM header must not contain CR/LF");
 
-				m_writer.WriteLine();
-			}
+                    m_writer.Write(header.Name);
+                    m_writer.Write(": ");
+                    m_writer.WriteLine(header.Value);
+                }
 
-			WriteEncoded(obj.Content);
-			WritePostEncapsulationBoundary(obj.Type);
-		}
+                m_writer.WriteLine();
+            }
 
-		private void WriteEncoded(byte[] bytes)
-		{
-			bytes = Base64.Encode(bytes);
+            WriteEncoded(obj.Content);
+            WritePostEncapsulationBoundary(obj.Type);
+        }
 
-			for (int i = 0; i < bytes.Length; i += m_buf.Length)
-			{
-				int index = 0;
-				while (index != m_buf.Length)
-				{
-					if ((i + index) >= bytes.Length)
-						break;
+        private void WriteEncoded(byte[] bytes)
+        {
+            bytes = Base64.Encode(bytes);
 
-					m_buf[index] = (char)bytes[i + index];
-					index++;
-				}
-				m_writer.WriteLine(m_buf, 0, index);
-			}
-		}
+            for (int i = 0; i < bytes.Length; i += m_buf.Length)
+            {
+                int index = 0;
+                while (index != m_buf.Length)
+                {
+                    if ((i + index) >= bytes.Length)
+                        break;
 
-		private void WritePreEncapsulationBoundary(string type)
-		{
-			m_writer.WriteLine("-----BEGIN " + type + "-----");
-		}
+                    m_buf[index] = (char)bytes[i + index];
+                    index++;
+                }
+                m_writer.WriteLine(m_buf, 0, index);
+            }
+        }
 
-		private void WritePostEncapsulationBoundary(string type)
-		{
-			m_writer.WriteLine("-----END " + type + "-----");
-		}
+        private void WritePreEncapsulationBoundary(string type)
+        {
+            m_writer.WriteLine("-----BEGIN " + type + "-----");
+        }
+
+        private void WritePostEncapsulationBoundary(string type)
+        {
+            m_writer.WriteLine("-----END " + type + "-----");
+        }
+
+        private static bool HasLineBreak(string s)
+        {
+            return s != null && (s.IndexOf('\r') >= 0 || s.IndexOf('\n') >= 0);
+        }
     }
 }

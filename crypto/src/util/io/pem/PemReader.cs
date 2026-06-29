@@ -6,22 +6,22 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
-	public class PemReader
-		: IDisposable
-	{
+    public class PemReader
+        : IDisposable
+    {
         private const int LineLength = 64;
 
         private readonly TextReader m_reader;
-		private readonly MemoryStream m_buffer;
-		private readonly StreamWriter m_textBuffer;
-		private readonly Stack<int> m_pushback = new Stack<int>();
+        private readonly MemoryStream m_buffer;
+        private readonly StreamWriter m_textBuffer;
+        private readonly Stack<int> m_pushback = new Stack<int>();
 
-		public PemReader(TextReader reader)
-		{
-			m_reader = reader ?? throw new ArgumentNullException(nameof(reader));
+        public PemReader(TextReader reader)
+        {
+            m_reader = reader ?? throw new ArgumentNullException(nameof(reader));
             m_buffer = new MemoryStream();
             m_textBuffer = new StreamWriter(m_buffer);
-		}
+        }
 
         #region IDisposable
 
@@ -41,133 +41,129 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 
         #endregion
 
-        public TextReader Reader 
-		{
-			get { return m_reader; }
-		}
+        public TextReader Reader => m_reader;
 
-
-		/// <returns>
-		/// A <see cref="PemObject"/>
-		/// </returns>
-		/// <exception cref="IOException"></exception>	
-		public PemObject ReadPemObject()
+        /// <returns>
+        /// A <see cref="PemObject"/>
+        /// </returns>
+        /// <exception cref="IOException"></exception>	
+        public PemObject ReadPemObject()
         {
-			//
-			// Look for BEGIN
-			//
+            //
+            // Look for BEGIN
+            //
 
-			for (;;)
-			{
-				// Seek a leading dash, ignore anything up to that point.
-				if (!SeekDash())
-					return null; 
-
-				// consume dash [-----]BEGIN ...
-				if (!ConsumeDash())
-					throw new IOException("no data after consuming leading dashes");
-
-				SkipWhiteSpace();
-
-				if (Expect("BEGIN"))
-					break;
-			}
-
-			SkipWhiteSpace();
-
-			//
-			// Consume type, accepting whitespace
-			//
-
-			if (!BufferUntilStopChar('-', false))
-				throw new IOException("ran out of data before consuming type");
-
-			string type = BufferedString().Trim();
-
-			// Consume dashes after type.
-
-			if (!ConsumeDash())
-				throw new IOException("ran out of data consuming header");
-
-			SkipWhiteSpace();
-
-			//
-			// Read ahead looking for headers.
-			// Look for a colon for up to 64 characters, as an indication there might be a header.
-			//
-
-			var headers = new List<PemHeader>();
-
-			while (SeekColon(LineLength))
+            for (;;)
             {
-				if (!BufferUntilStopChar(':', false))
-					throw new IOException("ran out of data reading header key value");
+                // Seek a leading dash, ignore anything up to that point.
+                if (!SeekDash())
+                    return null;
 
-				string key = BufferedString().Trim();
+                // consume dash [-----]BEGIN ...
+                if (!ConsumeDash())
+                    throw new IOException("no data after consuming leading dashes");
 
-				int c = Read();
-				if (c != ':')
-					throw new IOException("expected colon");
+                SkipWhiteSpace();
 
-				//
-				// We are going to look for well formed headers, if they do not end with a "LF" we cannot
-				// discern where they end.
-				//
+                if (Expect("BEGIN"))
+                    break;
+            }
 
-				if (!BufferUntilStopChar('\n', false)) // Now read to the end of the line.
-					throw new IOException("ran out of data before consuming header value");
+            SkipWhiteSpace();
 
-				SkipWhiteSpace();
+            //
+            // Consume type, accepting whitespace
+            //
 
-				string value = BufferedString().Trim();
-				headers.Add(new PemHeader(key, value));
-			}
+            if (!BufferUntilStopChar('-', false))
+                throw new IOException("ran out of data before consuming type");
 
-			//
-			// Consume payload, ignoring all white space until we encounter a '-'
-			//
+            string type = BufferedString().Trim();
 
-			SkipWhiteSpace();
+            // Consume dashes after type.
 
-			if (!BufferUntilStopChar('-', true))
-				throw new IOException("ran out of data before consuming payload");
+            if (!ConsumeDash())
+                throw new IOException("ran out of data consuming header");
 
-			string payload = BufferedString();
+            SkipWhiteSpace();
 
-			// Seek the start of the end.
-			if (!SeekDash())
-				throw new IOException("did not find leading '-'");
+            //
+            // Read ahead looking for headers.
+            // Look for a colon for up to 64 characters, as an indication there might be a header.
+            //
 
-			if (!ConsumeDash())
-				throw new IOException("no data after consuming trailing dashes");
+            var headers = new List<PemHeader>();
 
-			if (!Expect("END " + type))
-				throw new IOException("END " + type + " was not found.");
+            while (SeekColon(LineLength))
+            {
+                if (!BufferUntilStopChar(':', false))
+                    throw new IOException("ran out of data reading header key value");
 
-			if (!SeekDash())
-				throw new IOException("did not find ending '-'");
+                string key = BufferedString().Trim();
 
-			// consume trailing dashes.
-			ConsumeDash();
+                int c = Read();
+                if (c != ':')
+                    throw new IOException("expected colon");
 
-			byte[] data;
-			try
-			{
-				data = Base64.Decode(payload);
-			}
-			catch (FormatException e)
-			{
-				// honour the IOException parse contract: a corrupt base64 body must not surface a raw
-				// FormatException to callers parsing untrusted PEM (matches bc-java's DecoderException wrap).
-				throw new IOException("malformed PEM data: " + e.Message, e);
-			}
+                //
+                // We are going to look for well formed headers, if they do not end with a "LF" we cannot
+                // discern where they end.
+                //
 
-			return new PemObject(type, headers, data);
-		}
+                if (!BufferUntilStopChar('\n', false)) // Now read to the end of the line.
+                    throw new IOException("ran out of data before consuming header value");
 
-		private string BufferedString()
+                SkipWhiteSpace();
+
+                string value = BufferedString().Trim();
+                headers.Add(new PemHeader(key, value));
+            }
+
+            //
+            // Consume payload, ignoring all white space until we encounter a '-'
+            //
+
+            SkipWhiteSpace();
+
+            if (!BufferUntilStopChar('-', true))
+                throw new IOException("ran out of data before consuming payload");
+
+            string payload = BufferedString();
+
+            // Seek the start of the end.
+            if (!SeekDash())
+                throw new IOException("did not find leading '-'");
+
+            if (!ConsumeDash())
+                throw new IOException("no data after consuming trailing dashes");
+
+            if (!Expect("END " + type))
+                throw new IOException("END " + type + " was not found.");
+
+            if (!SeekDash())
+                throw new IOException("did not find ending '-'");
+
+            // consume trailing dashes.
+            ConsumeDash();
+
+            byte[] data;
+            try
+            {
+                data = Base64.Decode(payload);
+            }
+            catch (FormatException e)
+            {
+                // honour the IOException parse contract: a corrupt base64 body must not surface a raw
+                // FormatException to callers parsing untrusted PEM (matches bc-java's DecoderException wrap).
+                throw new IOException("malformed PEM data: " + e.Message, e);
+            }
+
+            return new PemObject(type, headers, data);
+        }
+
+        private string BufferedString()
         {
-			m_textBuffer.Flush();
+            m_textBuffer.Flush();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             if (!m_buffer.TryGetBuffer(out var data))
@@ -179,141 +175,141 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 #endif
 
             m_buffer.Position = 0;
-			m_buffer.SetLength(0);
+            m_buffer.SetLength(0);
 
-			return value;
+            return value;
         }
 
-		private bool SeekDash()
+        private bool SeekDash()
         {
-			int c;
-			while ((c = Read()) >= 0)
+            int c;
+            while ((c = Read()) >= 0)
             {
-				if (c == '-')
-					break;
+                if (c == '-')
+                    break;
             }
 
-			PushBack(c);
+            PushBack(c);
 
-			return c >= 0;
+            return c >= 0;
         }
 
-		/// <summary>
-		/// Seek ':" up to the limit.
-		/// </summary>
-		/// <param name="upTo"></param>
-		/// <returns></returns>
-		private bool SeekColon(int upTo)
-		{
-			int c = 0;
-			bool colonFound = false;
-			var read = new List<int>();
+        /// <summary>
+        /// Seek ':" up to the limit.
+        /// </summary>
+        /// <param name="upTo"></param>
+        /// <returns></returns>
+        private bool SeekColon(int upTo)
+        {
+            int c = 0;
+            bool colonFound = false;
+            var read = new List<int>();
 
-			for (; upTo >= 0 && c >= 0; upTo--)
+            for (; upTo >= 0 && c >= 0; upTo--)
             {
-				c = Read();
-				read.Add(c);
-				if (c == ':')
+                c = Read();
+                read.Add(c);
+                if (c == ':')
                 {
-					colonFound = true;
-					break;
+                    colonFound = true;
+                    break;
                 }
             }
 
-			int readPos = read.Count;
-			while (--readPos >= 0)
-			{
-				PushBack(read[readPos]);
-			}
-
-			return colonFound;
-		}
-
-		/// <summary>
-		/// Consume the dashes
-		/// </summary>
-		/// <returns></returns>
-		private bool ConsumeDash()
-        {
-			int c;
-			while ((c = Read()) >= 0)
-			{
-				if (c != '-')
-					break;
-			}
-
-			PushBack(c);
-
-			return c >= 0;
-		}
-
-		/// <summary>
-		/// Skip white space leave char in stream.
-		/// </summary>
-		private void SkipWhiteSpace()
-        {
-			int c;
-			while ((c = Read()) >= 0)
-			{
-				if (c > ' ')
-					break;
-			}
-
-			PushBack(c);
-		}
-
-		/// <summary>
-		/// Read forward consuming the expected string.
-		/// </summary>
-		/// <param name="value">expected string</param>
-		/// <returns>false if not consumed</returns>
-		private bool Expect(string value)
-        {
-			for (int t = 0; t < value.Length; t++)
+            int readPos = read.Count;
+            while (--readPos >= 0)
             {
-				if (Read() != value[t])
-					return false;
+                PushBack(read[readPos]);
             }
 
-			return true;
+            return colonFound;
         }
 
-		/// <summary>
-		/// Consume until dash.
-		/// </summary>
-		/// <returns>true if stream end not met</returns>
-		private bool BufferUntilStopChar(char stopChar, bool skipWhiteSpace)
+        /// <summary>
+        /// Consume the dashes
+        /// </summary>
+        /// <returns></returns>
+        private bool ConsumeDash()
         {
-			int c;
-			while ((c = Read()) >= 0)
-			{	
-				if (skipWhiteSpace && c <= ' ')
-					continue;
+            int c;
+            while ((c = Read()) >= 0)
+            {
+                if (c != '-')
+                    break;
+            }
 
-				if (c == stopChar)
-				{
+            PushBack(c);
+
+            return c >= 0;
+        }
+
+        /// <summary>
+        /// Skip white space leave char in stream.
+        /// </summary>
+        private void SkipWhiteSpace()
+        {
+            int c;
+            while ((c = Read()) >= 0)
+            {
+                if (c > ' ')
+                    break;
+            }
+
+            PushBack(c);
+        }
+
+        /// <summary>
+        /// Read forward consuming the expected string.
+        /// </summary>
+        /// <param name="value">expected string</param>
+        /// <returns>false if not consumed</returns>
+        private bool Expect(string value)
+        {
+            for (int t = 0; t < value.Length; t++)
+            {
+                if (Read() != value[t])
+                    return false;
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Consume until dash.
+        /// </summary>
+        /// <returns>true if stream end not met</returns>
+        private bool BufferUntilStopChar(char stopChar, bool skipWhiteSpace)
+        {
+            int c;
+            while ((c = Read()) >= 0)
+            {
+                if (skipWhiteSpace && c <= ' ')
+                    continue;
+
+                if (c == stopChar)
+                {
                     PushBack(c);
                     break;
                 }
 
-				m_textBuffer.Write((char)c);
-				m_textBuffer.Flush();
-			}
+                m_textBuffer.Write((char)c);
+                m_textBuffer.Flush();
+            }
 
-			return c >= 0;
-		}
-
-		private void PushBack(int value)
-        {
-			m_pushback.Push(value);
+            return c >= 0;
         }
 
-		private int Read()
+        private void PushBack(int value)
         {
-			if (m_pushback.Count > 0)
-				return m_pushback.Pop();
-
-			return m_reader.Read();
+            m_pushback.Push(value);
         }
-	}
+
+        private int Read()
+        {
+            if (m_pushback.Count > 0)
+                return m_pushback.Pop();
+
+            return m_reader.Read();
+        }
+    }
 }
