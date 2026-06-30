@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal static int FindDepth()
         {
-            if (int.TryParse(Platform.GetEnvironmentVariable(MaxDepthProperty), out int maxDepth))
+            if (Properties.TryGetInt32(MaxDepthProperty, out int maxDepth))
                 return System.Math.Max(0, maxDepth);
 
             return 64;
@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1
             if (input is MemoryStream memory)
                 return GetMemoryStreamLimit(memory);
 
-            if (int.TryParse(Platform.GetEnvironmentVariable(MaxLimitProperty), out int maxLimit))
+            if (Properties.TryGetInt32(MaxLimitProperty, out int maxLimit))
                 return System.Math.Max(0, maxLimit);
 
             return Arrays.MaxLength;

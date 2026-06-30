@@ -12,17 +12,50 @@ namespace Org.BouncyCastle.Asn1.Tests
     public class StreamLimitTest
     {
         [Test]
-        public void ConfigureMaxLimit()
+        public void ConfigureMaxLimitViaEnvironment()
         {
-            SetMaxLimitProperty(1024);
-            CheckLimit(1024);
-
             // TODO bc-java supports suffixed like so:
             // 1024k => 1048576
             // 1024m => 1073741824
             // 1g => 1073741824
 
+            SetMaxLimitProperty(1024);
+            CheckLimit(1024);
+
             ClearMaxLimitProperty();
+            CheckLimit(Arrays.MaxLength);
+        }
+
+        [Test]
+        public void ConfigureMaxLimitViaProperties()
+        {
+            // TODO bc-java supports suffixed like so:
+            // 1024k => 1048576
+            // 1024m => 1073741824
+            // 1g => 1073741824
+
+            CheckLimit(Arrays.MaxLength);
+
+            Properties.WithThreadProperty(Asn1InputStream.MaxLimitProperty, "1024", () =>
+            {
+                CheckLimit(1024);
+            });
+
+            CheckLimit(Arrays.MaxLength);
+
+            Properties.SetThreadInt32(Asn1InputStream.MaxLimitProperty, 2048);
+
+            CheckLimit(2048);
+
+            Properties.WithThreadProperty(Asn1InputStream.MaxLimitProperty, "3072", () =>
+            {
+                CheckLimit(3072);
+            });
+
+            CheckLimit(2048);
+
+            Properties.RemoveThreadProperty(Asn1InputStream.MaxLimitProperty);
+
             CheckLimit(Arrays.MaxLength);
         }
 
