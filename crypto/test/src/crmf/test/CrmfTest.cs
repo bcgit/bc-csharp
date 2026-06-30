@@ -2,8 +2,12 @@
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Crmf;
+using Org.BouncyCastle.Asn1.Iana;
 using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cmp.Tests;
@@ -45,6 +49,31 @@ namespace Org.BouncyCastle.Crmf.Tests
             msg = new CertificateRequestMessage(rawMsg);
 
             Assert.That(!msg.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(pubKey)), "Pop Verified Vandalized Message!");
+        }
+
+        [Test]
+        public void PKMacIterationCountCeiling()
+        {
+            AlgorithmIdentifier owf = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
+            AlgorithmIdentifier mac = new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance);
+            byte[] salt = new byte[20];
+
+            // A PKMACBuilder with no explicit ceiling must still reject an attacker-declared iteration
+            // count (from an untrusted CMP PBMParameter) before the iterated hash runs.
+            PbmParameter hostile = new PbmParameter(salt, owf, int.MaxValue, mac);
+            try
+            {
+                new PKMacBuilder().SetParameters(hostile);
+                Assert.Fail("no exception on oversized iteration count");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.That(e.Message.StartsWith("iteration count exceeds limit"));
+            }
+
+            // A legitimate count is still accepted.
+            PbmParameter benign = new PbmParameter(salt, owf, 1000, mac);
+            new PKMacBuilder().SetParameters(benign);
         }
 
         [Test]

@@ -222,8 +222,13 @@ namespace Org.BouncyCastle.Crmf
 
         private void CheckIterationCountCeiling(int iterationCount)
         {
-            if (maxIterations > 0 && iterationCount > maxIterations)
-                throw new ArgumentException("iteration count exceeds limit (" + iterationCount + " > " + maxIterations + ")");
+            // When no explicit ceiling was configured, fall back to a generous default so that an attacker-supplied
+            // PBMParameter from an incoming CMP message cannot drive the iterated hash into a CPU-exhaustion DoS.
+            int ceiling = maxIterations > 0
+                ? maxIterations
+                : Properties.GetInt32(Properties.PKMacMaxIterationCount, 10_000_000);
+            if (iterationCount > ceiling)
+                throw new ArgumentException("iteration count exceeds limit (" + iterationCount + " > " + ceiling + ")");
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

@@ -51,6 +51,17 @@ namespace Org.BouncyCastle.Utilities
 
         public static readonly string Pkcs1NotStrict = "Org.BouncyCastle.Pkcs1.NotStrict";
 
+        /// <summary>
+        /// Upper bound on the RFC 4211 PKMAC / CMP password-based-MAC iteration count honoured when no explicit ceiling
+        /// is supplied.
+        /// </summary>
+        /// <remarks>
+        /// The count travels in the (unauthenticated) PBMParameter of an incoming CMP message and drives an iterated
+        /// hash, so an unbounded count makes verifying an attacker-supplied message a CPU-exhaustion vector. Default
+        /// 10,000,000.
+        /// </remarks>
+        public static readonly string PKMacMaxIterationCount = "Org.BouncyCastle.PKMac.MaxIterationCount";
+
         public static readonly string RsaAllowUnsafeModulus = "Org.BouncyCastle.Rsa.AllowUnsafeModulus";
 
         public static readonly string RsaMaxMRTests = "Org.BouncyCastle.Rsa.MaxMRTests";
