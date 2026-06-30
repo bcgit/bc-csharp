@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Utilities
 
         /// <summary>
         /// When set to <c>true</c>, suppresses the error raised when loading a PKCS12 store with a password, for data
-        /// that does not require a password..
+        /// that does not require a password.
         /// </summary>
         public static readonly string Pkcs12IgnoreUselessPassword = "Org.BouncyCastle.Pkcs12.IgnoreUselessPassword";
 
@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Utilities
             long.TryParse(GetProperty(propertyName), out propertyValue);
 
         public static void WithThreadProperty(string name, string value, Action action) =>
-            WithThreadProperty<object, object>(name, value, arg: 0, (object ignore) => { action(); return null; });
+            WithThreadProperty<object, object>(name, value, arg: null, (object ignore) => { action(); return null; });
 
         public static TResult WithThreadProperty<TResult>(string name, string value, Func<TResult> func) =>
             WithThreadProperty<object, TResult>(name, value, arg: null, (object ignore) => func());
