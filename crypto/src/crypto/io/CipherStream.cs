@@ -1,6 +1,9 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+using System.Buffers;
+#endif
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
 using System.Threading;
 using System.Threading.Tasks;
@@ -169,6 +172,21 @@ namespace Org.BouncyCastle.Crypto.IO
             {
                 int outputSize = m_writeCipher.GetUpdateOutputSize(count);
 
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                byte[] output = ArrayPool<byte>.Shared.Rent(outputSize);
+                try
+                {
+                    int length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
+                    if (length > 0)
+                    {
+                        m_stream.Write(output, 0, length);
+                    }
+                }
+                finally
+                {
+                    ArrayPool<byte>.Shared.Return(output, clearArray: true);
+                }
+#else
                 byte[] output = new byte[outputSize];
 
                 int length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
@@ -183,6 +201,7 @@ namespace Org.BouncyCastle.Crypto.IO
                         Array.Clear(output, 0, output.Length);
                     }
                 }
+#endif
             }
         }
 
@@ -201,6 +220,26 @@ namespace Org.BouncyCastle.Crypto.IO
 
                 int outputSize = m_writeCipher.GetUpdateOutputSize(count);
 
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                byte[] output = ArrayPool<byte>.Shared.Rent(outputSize);
+                int length = 0;
+                try
+                {
+                    length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
+                    if (length > 0)
+                    {
+                        var writeTask = m_stream.WriteAsync(output, 0, length, cancellationToken);
+                        return WriteAsyncArrayPoolCompletion(writeTask, localBuffer: output);
+                    }
+                }
+                finally
+                {
+                    if (length == 0)
+                    {
+                        ArrayPool<byte>.Shared.Return(output, clearArray: true);
+                    }
+                }
+#else
                 byte[] output = new byte[outputSize];
 
                 int length = m_writeCipher.ProcessBytes(buffer, offset, count, output, 0);
@@ -209,10 +248,25 @@ namespace Org.BouncyCastle.Crypto.IO
                     var writeTask = m_stream.WriteAsync(output, 0, length, cancellationToken);
                     return Streams.WriteAsyncCompletion(writeTask, localBuffer: output);
                 }
+#endif
             }
 
             return Task.CompletedTask;
         }
+
+#if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        private static async Task WriteAsyncArrayPoolCompletion(Task writeTask, byte[] localBuffer)
+        {
+            try
+            {
+                await writeTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(localBuffer, clearArray: true);
+            }
+        }
+#endif
 #endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -228,20 +282,24 @@ namespace Org.BouncyCastle.Crypto.IO
             {
                 int outputSize = m_writeCipher.GetUpdateOutputSize(buffer.Length);
 
-                Span<byte> output = outputSize <= Streams.DefaultBufferSize
-                    ? stackalloc byte[outputSize]
-                    : new byte[outputSize];
-
-                int length = m_writeCipher.ProcessBytes(buffer, output);
-                if (length > 0)
+                byte[] rented = null;
+                try
                 {
-                    try
+                    Span<byte> output = outputSize <= Streams.DefaultBufferSize
+                        ? stackalloc byte[outputSize]
+                        : rented = ArrayPool<byte>.Shared.Rent(outputSize);
+
+                    int length = m_writeCipher.ProcessBytes(buffer, output);
+                    if (length > 0)
                     {
                         m_stream.Write(output[..length]);
                     }
-                    finally
+                }
+                finally
+                {
+                    if (rented != null)
                     {
-                        output.Fill(0x00);
+                        ArrayPool<byte>.Shared.Return(rented, clearArray: true);
                     }
                 }
             }
@@ -259,17 +317,39 @@ namespace Org.BouncyCastle.Crypto.IO
 
                 int outputSize = m_writeCipher.GetUpdateOutputSize(buffer.Length);
 
-                byte[] output = new byte[outputSize];
-
-                int length = m_writeCipher.ProcessBytes(buffer.Span, output.AsSpan());
-                if (length > 0)
+                byte[] output = ArrayPool<byte>.Shared.Rent(outputSize);
+                int length = 0;
+                try
                 {
-                    var writeTask = m_stream.WriteAsync(output.AsMemory(0, length), cancellationToken);
-                    return Streams.WriteAsyncCompletion(writeTask, localBuffer: output);
+                    length = m_writeCipher.ProcessBytes(buffer.Span, output.AsSpan());
+                    if (length > 0)
+                    {
+                        var writeTask = m_stream.WriteAsync(output.AsMemory(0, length), cancellationToken);
+                        return WriteAsyncCompletion(writeTask, localBuffer: output);
+                    }
+                }
+                finally
+                {
+                    if (length == 0)
+                    {
+                        ArrayPool<byte>.Shared.Return(output, clearArray: true);
+                    }
                 }
             }
 
             return ValueTask.CompletedTask;
+        }
+
+        private static async ValueTask WriteAsyncCompletion(ValueTask writeTask, byte[] localBuffer)
+        {
+            try
+            {
+                await writeTask.ConfigureAwait(false);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(localBuffer, clearArray: true);
+            }
         }
 #endif
 
@@ -299,17 +379,27 @@ namespace Org.BouncyCastle.Crypto.IO
         {
             if (disposing)
             {
-			    if (m_writeCipher != null)
-			    {
+                if (m_writeCipher != null)
+                {
                     int outputSize = m_writeCipher.GetOutputSize(0);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    Span<byte> output = outputSize <= 256
-                        ? stackalloc byte[outputSize]
-                        : new byte[outputSize];
-                    int len = m_writeCipher.DoFinal(output);
-                    m_stream.Write(output[..len]);
-                    output.Fill(0x00);
+                    byte[] rented = null;
+                    try
+                    {
+                        Span<byte> output = outputSize <= 256
+                            ? stackalloc byte[outputSize]
+                            : rented = ArrayPool<byte>.Shared.Rent(outputSize);
+                        int len = m_writeCipher.DoFinal(output);
+                        m_stream.Write(output[..len]);
+                    }
+                    finally
+                    {
+                        if (rented != null)
+                        {
+                            ArrayPool<byte>.Shared.Return(rented, clearArray: true);
+                        }
+                    }
 #else
                     byte[] output = new byte[outputSize];
                     int len = m_writeCipher.DoFinal(output, 0);

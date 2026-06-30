@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>BouncyCastle.Crypto.Benchmarks.ArraysCloneBenchmarks-20260223-195225</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Windows 11 (10.0.26200.7918/25H2/2025Update/HudsonValley2)
+13th Gen Intel Core i9-13900K 3.00GHz, 1 CPU, 32 logical and 24 physical cores
+.NET SDK 10.0.200-preview.0.26103.119
+  [Host]               : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v3
+  .NET 10.0            : .NET 10.0.3 (10.0.3, 10.0.326.7603), X64 RyuJIT x86-64-v3
+  .NET Framework 4.8.1 : .NET Framework 4.8.1 (4.8.9325.0), X64 RyuJIT VectorSize=256
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Method        </th><th>Job           </th><th>Runtime       </th><th>Mean</th>
+</tr>
+</thead><tbody><tr><td>CloneSmall16Bytes</td><td>.NET 10.0</td><td>.NET 10.0</td><td>33.67 ns</td>
+</tr><tr><td>CloneMedium128Bytes</td><td>.NET 10.0</td><td>.NET 10.0</td><td>34.57 ns</td>
+</tr><tr><td>CloneLarge1024Bytes</td><td>.NET 10.0</td><td>.NET 10.0</td><td>54.17 ns</td>
+</tr><tr><td>CloneInt128Elements</td><td>.NET 10.0</td><td>.NET 10.0</td><td>43.81 ns</td>
+</tr><tr><td>CloneLong128Elements</td><td>.NET 10.0</td><td>.NET 10.0</td><td>52.19 ns</td>
+</tr><tr><td>CloneSmall16Bytes</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>19.86 ns</td>
+</tr><tr><td>CloneMedium128Bytes</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>23.58 ns</td>
+</tr><tr><td>CloneLarge1024Bytes</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>46.47 ns</td>
+</tr><tr><td>CloneInt128Elements</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>32.95 ns</td>
+</tr><tr><td>CloneLong128Elements</td><td>.NET Framework 4.8.1</td><td>.NET Framework 4.8.1</td><td>45.18 ns</td>
+</tr></tbody></table>
+</body>
+</html>
