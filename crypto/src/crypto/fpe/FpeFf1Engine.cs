@@ -16,6 +16,9 @@ namespace Org.BouncyCastle.Crypto.Fpe
         public FpeFf1Engine(IBlockCipher baseCipher)
             : base(baseCipher)
         {
+            if (baseCipher.GetBlockSize() != 16)
+                throw new ArgumentException("base cipher needs to be 128 bits", nameof(baseCipher));
+
             if (IsOverrideSet(SP80038G.FpeDisableProperty) ||
                 IsOverrideSet(SP80038G.FpeDisableFf1Property))
             {
