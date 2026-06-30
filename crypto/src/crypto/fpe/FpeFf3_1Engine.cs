@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             if (baseCipher.GetBlockSize() != 16)
                 throw new ArgumentException("base cipher needs to be 128 bits", nameof(baseCipher));
 
-            if (IsOverrideSet(SP80038G.FpeDisableProperty))
+            if (IsOverrideSet(Properties.FpeDisable))
                 throw new InvalidOperationException("FPE disabled");
         }
 

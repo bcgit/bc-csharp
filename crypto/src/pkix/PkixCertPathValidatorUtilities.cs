@@ -384,25 +384,21 @@ namespace Org.BouncyCastle.Pkix
         /// <exception cref="PkixCertPathValidatorException"/>
         internal static void CheckPolicyTreeSize(List<PkixPolicyNode>[] policyNodes)
         {
-            int maxNodes = ImplGetInteger("Org.BouncyCastle.X509.MaxPolicyNodes", 8192);
+            if (policyNodes.Length < 1)
+                return;
+
+            int maxPolicyNodes = Properties.GetInt32(Properties.X509MaxPolicyNodes, 8192);
 
             int total = 0;
             for (int i = 0; i < policyNodes.Length; i++)
             {
                 total += policyNodes[i].Count;
-                if (total > maxNodes)
+                if (total > maxPolicyNodes)
                 {
                     throw new PkixCertPathValidatorException(
-                        "certificate policy tree exceeds " + maxNodes + " nodes (Org.BouncyCastle.X509.MaxPolicyNodes)");
+                        $"certificate policy tree exceeds {maxPolicyNodes} nodes ({Properties.X509MaxPolicyNodes})");
                 }
             }
-        }
-
-        private static int ImplGetInteger(string envVariable, int defaultValue)
-        {
-            string property = Platform.GetEnvironmentVariable(envVariable);
-
-            return int.TryParse(property, out int value) ? value : defaultValue;
         }
 
         internal static void GetCertStatus(DateTime validDate, X509Crl crl, object cert, CertStatus certStatus)

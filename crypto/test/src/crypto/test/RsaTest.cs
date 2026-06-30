@@ -16,7 +16,6 @@ using Org.BouncyCastle.Utilities.Test;
 namespace Org.BouncyCastle.Crypto.Tests
 {
 	[TestFixture]
-    [NonParallelizable] // Pkcs1Encoding.StrictLengthEnabled
     public class RsaTest
 		: SimpleTest
 	{
@@ -173,25 +172,21 @@ namespace Org.BouncyCastle.Crypto.Tests
                 Fail("RSA: failed - exception " + e.ToString(), e);
             }
 
+            Properties.WithThreadProperty(Properties.Pkcs1NotStrict, bool.TrueString, () =>
+            {
+                var nonStrict = new Pkcs1Encoding(new RsaEngine());
+                nonStrict.Init(forEncryption: false, pubParameters);
 
-            // Create the encoding with StrictLengthEnabled=false (done thru environment in Java version)
-            Pkcs1Encoding.StrictLengthEnabled = false;
-
-			eng = new Pkcs1Encoding(new RsaEngine());
-
-			eng.Init(false, pubParameters);
-
-			try
-			{
-				data = eng.ProcessBlock(overSized, 0, overSized.Length);
-			}
-			catch (InvalidCipherTextException e)
-			{
-				Fail("RSA: failed - exception " + e.ToString(), e);
-			}
-
-			Pkcs1Encoding.StrictLengthEnabled = true;
-		}
+                try
+                {
+                    byte[] shouldWork = nonStrict.ProcessBlock(overSized, 0, overSized.Length);
+                }
+                catch (InvalidCipherTextException e)
+                {
+                    Fail("RSA: failed - exception " + e.ToString(), e);
+                }
+            });
+        }
 
 		private void doTestTruncatedPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{
@@ -751,6 +746,46 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText);
 		}
+
+        [Test]
+        public void UnsafeModulusAndWrongExp()
+        {
+            try
+            {
+                new RsaKeyParameters(false, mod, pubExp.ShiftLeft(1));
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue(e.Message.StartsWith("RSA publicExponent is even"));
+            }
+
+            try
+            {
+                new RsaKeyParameters(false, mod.ShiftLeft(1), pubExp);
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue(e.Message.StartsWith("RSA modulus is even"));
+            }
+
+            try
+            {
+                new RsaKeyParameters(false, mod.Multiply(BigInteger.Three), pubExp);
+                Fail("no exception");
+            }
+            catch (ArgumentException e)
+            {
+                IsTrue(e.Message.StartsWith("RSA modulus has a small prime factor"));
+            }
+
+            Properties.WithThreadProperty(Properties.RsaAllowUnsafeModulus, bool.TrueString, () =>
+            {
+                // this should now work (sigh...)
+                new RsaKeyParameters(false, mod.Multiply(BigInteger.Three), pubExp);
+            });
+        }
 
         [Test, Explicit]
         public void BenchPublicKeyModulusValidation()

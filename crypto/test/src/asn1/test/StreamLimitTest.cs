@@ -36,25 +36,25 @@ namespace Org.BouncyCastle.Asn1.Tests
 
             CheckLimit(Arrays.MaxLength);
 
-            Properties.WithThreadProperty(Asn1InputStream.MaxLimitProperty, "1024", () =>
+            Properties.WithThreadProperty(Properties.Asn1MaxLimit, "1024", () =>
             {
                 CheckLimit(1024);
             });
 
             CheckLimit(Arrays.MaxLength);
 
-            Properties.SetThreadInt32(Asn1InputStream.MaxLimitProperty, 2048);
+            Properties.SetThreadInt32(Properties.Asn1MaxLimit, 2048);
 
             CheckLimit(2048);
 
-            Properties.WithThreadProperty(Asn1InputStream.MaxLimitProperty, "3072", () =>
+            Properties.WithThreadProperty(Properties.Asn1MaxLimit, "3072", () =>
             {
                 CheckLimit(3072);
             });
 
             CheckLimit(2048);
 
-            Properties.RemoveThreadProperty(Asn1InputStream.MaxLimitProperty);
+            Properties.RemoveThreadProperty(Properties.Asn1MaxLimit);
 
             CheckLimit(Arrays.MaxLength);
         }
@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Asn1.Tests
         private static void SetMaxLimitProperty(int value) => SetMaxLimitProperty(value.ToString());
 
         private static void SetMaxLimitProperty(string value) =>
-            Environment.SetEnvironmentVariable(Asn1InputStream.MaxLimitProperty, value);
+            Environment.SetEnvironmentVariable(Properties.Asn1MaxLimit, value);
 
         private class MyStream : BaseInputStream
         {

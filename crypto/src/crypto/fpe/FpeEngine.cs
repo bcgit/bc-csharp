@@ -51,12 +51,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             }
         }
 
-        protected static bool IsOverrideSet(string propName)
-        {
-            string propValue = Platform.GetEnvironmentVariable(propName);
-
-            return propValue != null && Platform.EqualsIgnoreCase("true", propValue);
-        }
+        protected static bool IsOverrideSet(string propName) => Properties.GetBoolean(propName, false);
 
         /// <summary>
         /// Initialize the FPE engine for encryption/decryption.

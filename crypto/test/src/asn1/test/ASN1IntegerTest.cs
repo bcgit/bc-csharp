@@ -3,6 +3,7 @@
 using NUnit.Framework;
 
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
@@ -58,12 +59,23 @@ namespace Org.BouncyCastle.Asn1.Tests
                 CheckArgumentException(e, "malformed integer");
             }
 
-            // No support for thread-local override in C# version
-            //IsTrue(!Properties.SetThreadOverride("Org.BouncyCastle.Asn1.Allow_Unsafe_Integer", true));
+            {
+                Assert.Null(Properties.GetThreadProperty(Properties.Asn1AllowUnsafeInteger));
 
-            //new DerInteger(Hex.Decode("ffda47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b"));
+                Properties.SetThreadBoolean(Properties.Asn1AllowUnsafeInteger, true);
 
-            //IsTrue(Properties.RemoveThreadOverride("Org.BouncyCastle.Asn1.Allow_Unsafe_Integer"));
+                new DerInteger(Hex.Decode("ffda47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b"));
+
+                Assert.True(Properties.RemoveThreadProperty(Properties.Asn1AllowUnsafeInteger));
+            }
+
+            {
+                Properties.WithThreadProperty(Properties.Asn1AllowUnsafeInteger, bool.TrueString, () =>
+                {
+                    new DerInteger(Hex.Decode("ffda47bfc776bcd269da4832626ac332adfca6dd835e8ecd83cd1ebe7d709b"));
+                });
+                Assert.Null(Properties.GetThreadProperty(Properties.Asn1AllowUnsafeInteger));
+            }
 
             try
             {

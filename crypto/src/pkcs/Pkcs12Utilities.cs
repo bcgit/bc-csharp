@@ -11,10 +11,6 @@ namespace Org.BouncyCastle.Pkcs
     /// <summary>Utility class for re-encoding PKCS#12 files to definite length.</summary>
     public class Pkcs12Utilities
     {
-        private static readonly int DefaultMaxIterations = 5000000;
-
-        internal static readonly string MaxIterationsProperty = "Org.BouncyCastle.Pkcs12.MaxIterations";
-
         /// <summary>Just re-encode the outer layer of the PKCS#12 file to definite length encoding.</summary>
         /// <param name="berPkcs12File">original PKCS#12 file.</param>
         /// <returns>a byte array representing the DL encoding of the PFX structure.</returns>
@@ -110,14 +106,9 @@ namespace Org.BouncyCastle.Pkcs
             if (iterations < 0)
                 throw new InvalidOperationException("negative iteration count found");
 
-            int max = DefaultMaxIterations;
-            if (int.TryParse(Platform.GetEnvironmentVariable(MaxIterationsProperty), out int maxIterations))
-            {
-                max = maxIterations;
-            }
-
-            if (iterations > max)
-                throw new InvalidOperationException($"iteration count {iterations} greater than {max}");
+            int maxIterations = Properties.GetInt32(Properties.Pkcs12MaxIterationCount, 5_000_000);
+            if (iterations > maxIterations)
+                throw new InvalidOperationException($"iteration count {iterations} greater than {maxIterations}");
 
             return iterations;
         }

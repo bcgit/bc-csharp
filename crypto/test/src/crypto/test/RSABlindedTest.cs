@@ -8,13 +8,13 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
-    [NonParallelizable] // Pkcs1Encoding.StrictLengthEnabled
     public class RsaBlindedTest
 		: SimpleTest
 	{
@@ -80,25 +80,21 @@ namespace Org.BouncyCastle.Crypto.Tests
 				}
 			}
 
+            Properties.WithThreadProperty(Properties.Pkcs1NotStrict, bool.TrueString, () =>
+            {
+                var nonStrict = new Pkcs1Encoding(new RsaEngine());
+                nonStrict.Init(forEncryption: false, pubParameters);
 
-			// Create the encoding with StrictLengthEnabled=false (done thru environment in Java version)
-			Pkcs1Encoding.StrictLengthEnabled = false;
-
-			eng = new Pkcs1Encoding(new RsaBlindedEngine());
-
-			eng.Init(false, pubParameters);
-
-			try
-			{
-				data = eng.ProcessBlock(data, 0, data.Length);
-			}
-			catch (InvalidCipherTextException e)
-			{
-				Fail("RSA: failed - exception " + e.ToString(), e);
-			}
-
-			Pkcs1Encoding.StrictLengthEnabled = true;
-		}
+                try
+                {
+                    byte[] shouldWork = nonStrict.ProcessBlock(data, 0, data.Length);
+                }
+                catch (InvalidCipherTextException e)
+                {
+                    Fail("RSA: failed - exception " + e.ToString(), e);
+                }
+            });
+        }
 
 		private void doTestTruncatedPkcs1Block(RsaKeyParameters pubParameters, RsaKeyParameters privParameters)
 		{

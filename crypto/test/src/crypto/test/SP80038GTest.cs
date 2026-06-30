@@ -491,10 +491,10 @@ namespace Org.BouncyCastle.Crypto.Tests
         private static void SetFpeDisableFf1Property(bool value) => SetFpeDisableFf1Property(value ? "true" : "false");
 
         private static void SetFpeDisableProperty(string value) =>
-            Environment.SetEnvironmentVariable(SP80038G.FpeDisableProperty, value);
+            Environment.SetEnvironmentVariable(Properties.FpeDisable, value);
 
         private static void SetFpeDisableFf1Property(string value) =>
-            Environment.SetEnvironmentVariable(SP80038G.FpeDisableFf1Property, value);
+            Environment.SetEnvironmentVariable(Properties.FpeDisableFf1, value);
 #endif
 
         private class FFSample

@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
+        [Obsolete("Use 'Properties.Asn1AllowUnsafeInteger' instead")]
         public const string AllowUnsafeProperty = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
         private static readonly DerInteger[] SmallConstants = new DerInteger[17];
@@ -32,11 +33,7 @@ namespace Org.BouncyCastle.Asn1
         public static readonly DerInteger Four;
         public static readonly DerInteger Five;
 
-        internal static bool AllowUnsafe()
-        {
-            string allowUnsafeValue = Platform.GetEnvironmentVariable(AllowUnsafeProperty);
-            return allowUnsafeValue != null && Platform.EqualsIgnoreCase("true", allowUnsafeValue);
-        }
+        internal static bool AllowUnsafe() => Properties.GetBoolean(Properties.Asn1AllowUnsafeInteger, false);
 
         internal const int SignExtSigned = -1;
         internal const int SignExtUnsigned = 0xFF;

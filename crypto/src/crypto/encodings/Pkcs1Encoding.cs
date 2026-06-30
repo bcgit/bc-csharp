@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 
-using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -18,7 +17,18 @@ namespace Org.BouncyCastle.Crypto.Encodings
          * some providers fail to include the leading zero in PKCS1 encoded blocks. If you need to
          * work with one of these set the system property Org.BouncyCastle.Pkcs1.Strict to false.
          */
+        [Obsolete("Use 'Properties.Pkcs1NotStrict' instead")]
         public const string StrictLengthEnabledProperty = "Org.BouncyCastle.Pkcs1.Strict";
+
+        private static bool NotStrict()
+        {
+            //return Properties.GetBoolean(Properties.Pkcs1NotStrict, false);
+
+            if (Properties.TryGetBoolean(Properties.Pkcs1NotStrict, out var notStrict))
+                return notStrict;
+
+            return !StrictLengthEnabled;
+        }
 
         private const int HeaderLength = 10;
 
@@ -29,6 +39,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
          * true by default.
          * </p>
          */
+        [Obsolete("Use 'Properties.Pkcs1NotStrict' instead")]
         public static bool StrictLengthEnabled
         {
             get { return Convert.ToBoolean(Interlocked.Read(ref m_strictLengthEnabled)); }
@@ -50,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         private IAsymmetricBlockCipher engine;
         private bool forEncryption;
         private bool forPrivateKey;
-        private bool useStrictLength;
+        private readonly bool m_useStrictLength;
         private int pLen = -1;
         private byte[] fallback = null;
         private byte[] blockBuffer = null;
@@ -63,7 +74,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         public Pkcs1Encoding(IAsymmetricBlockCipher cipher)
         {
             this.engine = cipher;
-            this.useStrictLength = StrictLengthEnabled;
+            m_useStrictLength = !NotStrict();
         }
 
         /**
@@ -75,7 +86,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         public Pkcs1Encoding(IAsymmetricBlockCipher cipher, int pLen)
         {
             this.engine = cipher;
-            this.useStrictLength = StrictLengthEnabled;
+            m_useStrictLength = !NotStrict();
             this.pLen = pLen;
         }
 
@@ -91,7 +102,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         public Pkcs1Encoding(IAsymmetricBlockCipher cipher, byte[] fallback)
         {
             this.engine = cipher;
-            this.useStrictLength = StrictLengthEnabled;
+            m_useStrictLength = !NotStrict();
             this.fallback = fallback;
             this.pLen = fallback.Length;
         }
@@ -292,7 +303,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             byte[] data = block;
             if (block.Length != strictBlockSize)
             {
-                if (useStrictLength || block.Length < strictBlockSize)
+                if (m_useStrictLength || block.Length < strictBlockSize)
                 {
                     data = blockBuffer;
                 }
@@ -332,7 +343,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
             int strictBlockSize = engine.GetOutputBlockSize();
             byte[] block = engine.ProcessBlock(input, inOff, inLen);
 
-            bool incorrectLength = useStrictLength & (block.Length != strictBlockSize);
+            bool incorrectLength = m_useStrictLength & (block.Length != strictBlockSize);
 
             byte[] data = block;
             if (block.Length < strictBlockSize)

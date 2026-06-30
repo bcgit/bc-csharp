@@ -151,8 +151,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             if (m_seq != null)
             {
-                string property = Platform.GetEnvironmentVariable("Org.BouncyCastle.X509.Allow_Non-DER_TBSCert");
-                if (null == property || Platform.EqualsIgnoreCase("true", property))
+                if (Properties.GetBoolean(Properties.X509AllowNonDerTbsCertificate, true))
                     return m_seq;
             }
 

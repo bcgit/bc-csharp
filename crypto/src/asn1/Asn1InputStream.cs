@@ -14,9 +14,6 @@ namespace Org.BouncyCastle.Asn1
     public class Asn1InputStream
         : FilterStream
     {
-        public static readonly string MaxDepthProperty = "Org.BouncyCastle.Asn1.MaxDepth";
-        public static readonly string MaxLimitProperty = "Org.BouncyCastle.Asn1.MaxLimit";
-
         internal static void CheckLength(int length, int limit)
         {
             if (length > limit)
@@ -32,7 +29,7 @@ namespace Org.BouncyCastle.Asn1
 
         internal static int FindDepth()
         {
-            if (Properties.TryGetInt32(MaxDepthProperty, out int maxDepth))
+            if (Properties.TryGetInt32(Properties.Asn1MaxDepth, out int maxDepth))
                 return System.Math.Max(0, maxDepth);
 
             return 64;
@@ -49,7 +46,7 @@ namespace Org.BouncyCastle.Asn1
             if (input is MemoryStream memory)
                 return GetMemoryStreamLimit(memory);
 
-            if (Properties.TryGetInt32(MaxLimitProperty, out int maxLimit))
+            if (Properties.TryGetInt32(Properties.Asn1MaxLimit, out int maxLimit))
                 return System.Math.Max(0, maxLimit);
 
             return Arrays.MaxLength;

@@ -66,13 +66,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return iterations;
         }
 
-        private static int ImplGetInteger(string envVariable, int defaultValue)
-        {
-            string property = Platform.GetEnvironmentVariable(envVariable);
-
-            return int.TryParse(property, out int value) ? value : defaultValue;
-        }
-
         private static BigInteger Validate(BigInteger modulus, bool isInternal)
         {
             // TODO Add m_validated cache
@@ -84,9 +77,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 if (!modulus.TestBit(0))
                     throw new ArgumentException("RSA modulus is even", nameof(modulus));
 
-                // TODO bc-java has a "org.bouncycastle.rsa.allow_unsafe_mod" property
+                // If you need to set this you need to have a serious word to whoever is generating your keys.
+                if (Properties.GetBoolean(Properties.RsaAllowUnsafeModulus, false))
+                    return modulus;
 
-                int maxBitLength = ImplGetInteger("Org.BouncyCastle.Rsa.MaxSize", 16384);
+                int maxBitLength = Properties.GetInt32(Properties.RsaMaxSize, 16384);
                 if (modulus.BitLength > maxBitLength)
                     throw new ArgumentException("RSA modulus out of range", nameof(modulus));
 
@@ -94,7 +89,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                     throw new ArgumentException("RSA modulus has a small prime factor", nameof(modulus));
 
                 int defaultIterations = GetMRIterations(modulus.BitLength / 2);
-                int iterations = ImplGetInteger("Org.BouncyCastle.Rsa.MaxMRTests", defaultIterations);
+                int iterations = Properties.GetInt32(Properties.RsaMaxMRTests, defaultIterations);
                 if (iterations > 0)
                 {
                     Primes.MROutput mr = Primes.EnhancedMRProbablePrimeTest(modulus,

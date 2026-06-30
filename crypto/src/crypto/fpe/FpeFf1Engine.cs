@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Fpe
 {
@@ -19,8 +20,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
             if (baseCipher.GetBlockSize() != 16)
                 throw new ArgumentException("base cipher needs to be 128 bits", nameof(baseCipher));
 
-            if (IsOverrideSet(SP80038G.FpeDisableProperty) ||
-                IsOverrideSet(SP80038G.FpeDisableFf1Property))
+            if (IsOverrideSet(Properties.FpeDisable) ||
+                IsOverrideSet(Properties.FpeDisableFf1))
             {
                 throw new InvalidOperationException("FF1 encryption disabled");
             }

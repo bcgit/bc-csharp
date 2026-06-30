@@ -151,6 +151,6 @@ namespace Org.BouncyCastle.Asn1.Tests
         private static void SetAllowUnsafeProperty(bool value) => SetAllowUnsafeProperty(value ? "true" : "false");
 
         private static void SetAllowUnsafeProperty(string value) =>
-            Environment.SetEnvironmentVariable(DerInteger.AllowUnsafeProperty, value);
+            Environment.SetEnvironmentVariable(Properties.Asn1AllowUnsafeInteger, value);
     }
 }

@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             {
                 // Bound the modulus size before the super-linear ModPow below, so a crafted oversized
                 // p cannot turn key import into a CPU-exhaustion DoS (cf. RSA modulus cap).
-                int maxBitLength = ImplGetInteger("Org.BouncyCastle.Dsa.MaxSize", 16384);
+                int maxBitLength = Properties.GetInt32(Properties.DsaMaxSize, 16384);
                 if (parameters.P.BitLength > maxBitLength)
                     throw new ArgumentException("DSA modulus out of range");
 
@@ -29,13 +29,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
 
             return y;
-        }
-
-        private static int ImplGetInteger(string envVariable, int defaultValue)
-        {
-            string property = Platform.GetEnvironmentVariable(envVariable);
-
-            return int.TryParse(property, out int value) ? value : defaultValue;
         }
 
         private readonly BigInteger y;

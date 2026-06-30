@@ -17,8 +17,10 @@ namespace Org.BouncyCastle.Crypto.Fpe
      */
     public static class SP80038G
     {
-        public static readonly string FpeDisableProperty = "Org.BouncyCastle.Fpe.Disable";
-        public static readonly string FpeDisableFf1Property = "Org.BouncyCastle.Fpe.Disable_Ff1";
+        [Obsolete("Use 'Properties.FpeDisable' instead")]
+        public static readonly string FpeDisableProperty = Properties.FpeDisable;
+        [Obsolete("Use 'Properties.FpeDisableFf1' instead")]
+        public static readonly string FpeDisableFf1Property = Properties.FpeDisableFf1;
 
         private static readonly int BLOCK_SIZE = 16;
         //private static readonly double LOG2 = System.Math.Log(2.0);

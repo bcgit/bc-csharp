@@ -28,6 +28,7 @@ namespace Org.BouncyCastle.Pkcs
         /// Environment variable that, when set to <c>true</c>, suppresses the error raised when
         /// <see cref="Load"/> is called with a password but the file does not require one.
         /// </summary>
+        [Obsolete("Use 'Properties.Pkcs12IgnoreUselessPassword' instead")]
         public const string IgnoreUselessPasswordProperty = "Org.BouncyCastle.Pkcs12.IgnoreUselessPassword";
 
         private readonly Dictionary<string, AsymmetricKeyEntry> m_keys =
@@ -406,10 +407,7 @@ namespace Org.BouncyCastle.Pkcs
 
             if (!passwordNeeded && password != null)
             {
-                string ignoreProperty = Platform.GetEnvironmentVariable(IgnoreUselessPasswordProperty);
-                bool ignore = ignoreProperty != null && Platform.EqualsIgnoreCase("true", ignoreProperty);
-
-                if (!ignore)
+                if (!Properties.GetBoolean(Properties.Pkcs12IgnoreUselessPassword, false))
                     throw new IOException("password supplied for keystore that does not require one");
             }
         }
