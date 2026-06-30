@@ -27,7 +27,9 @@ namespace Org.BouncyCastle.Crypto.Encodings
             if (Properties.TryGetBoolean(Properties.Pkcs1NotStrict, out var notStrict))
                 return notStrict;
 
+#pragma warning disable CS0618 // Type or member is obsolete
             return !StrictLengthEnabled;
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         private const int HeaderLength = 10;
@@ -50,7 +52,9 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
         static Pkcs1Encoding()
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             string strictProperty = Platform.GetEnvironmentVariable(StrictLengthEnabledProperty);
+#pragma warning restore CS0618 // Type or member is obsolete
             bool strictLengthEnabled = strictProperty == null || Platform.EqualsIgnoreCase("true", strictProperty);
 
             m_strictLengthEnabled = Convert.ToInt64(strictLengthEnabled);
