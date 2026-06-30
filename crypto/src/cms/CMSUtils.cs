@@ -78,22 +78,6 @@ namespace Org.BouncyCastle.Cms
 
         internal static bool IsMqv(DerObjectIdentifier oid) => MqvAlgorithms.Contains(oid);
 
-        internal static int MaximumMemory
-        {
-            get
-            {
-                // TODO Is there a .NET equivalent to this?
-                long maxMem = int.MaxValue;//RUNTIME.maxMemory();
-
-                if (maxMem > int.MaxValue)
-                {
-                    return int.MaxValue;
-                }
-
-                return (int)maxMem;
-            }
-        }
-
         internal static bool IsEquivalent(AlgorithmIdentifier algID1, AlgorithmIdentifier algID2)
         {
             if (algID1 == null || algID2 == null)
@@ -112,7 +96,7 @@ namespace Org.BouncyCastle.Cms
 
         internal static ContentInfo ReadContentInfo(Stream input)
         {
-            using (var asn1In = new Asn1InputStream(input, MaximumMemory, leaveOpen: true))
+            using (var asn1In = new Asn1InputStream(input, leaveOpen: true))
             {
                 return ReadContentInfo(asn1In);
             }

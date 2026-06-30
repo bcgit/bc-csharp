@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.X509
 
         private X509CertificatePair ReadDerCrossCertificatePair(Stream inStream)
         {
-            using (var asn1In = new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true))
+            using (var asn1In = new Asn1InputStream(inStream, leaveOpen: true))
             {
                 return new X509CertificatePair(CertificatePair.GetInstance(asn1In.ReadObject()));
             }

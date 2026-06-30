@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.X509
                 if (tag != 0x30)  // assume ascii PEM encoded.
                     return ReadPemCertificate(inStream);
 
-                using (var asn1In = new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true))
+                using (var asn1In = new Asn1InputStream(inStream, leaveOpen: true))
                 {
                     return ReadDerCertificate(asn1In);
                 }

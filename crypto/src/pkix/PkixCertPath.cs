@@ -190,7 +190,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 if (Platform.EqualsIgnoreCase("PkiPath", encoding))
                 {
-                    using (var asn1In = new Asn1InputStream(inStream, int.MaxValue, leaveOpen: true))
+                    using (var asn1In = new Asn1InputStream(inStream, leaveOpen: true))
                     {
                         if (!(asn1In.ReadObject() is Asn1Sequence asn1Sequence))
                         {
