@@ -6,12 +6,11 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
 {
-    /**
-     * a general purpose ASN.1 decoder - note: this class differs from the
-     * others in that it returns null after it has read the last object in
-     * the stream. If an ASN.1 Null is encountered a Der/BER Null object is
-     * returned.
-     */
+    /// <summary>A general purpose ASN.1 decoder.</summary>
+    /// <remarks>
+    /// This class differs from the others in that it returns null after it has read the last object in the stream. If
+    /// an ASN.1 Null is encountered a Der / BER Null object is returned.
+    /// </remarks>
     public class Asn1InputStream
         : FilterStream
     {
@@ -63,12 +62,11 @@ namespace Org.BouncyCastle.Asn1
         private readonly bool m_leaveOpen;
         private readonly byte[] m_tmp;
 
-        /**
-         * Create an ASN1InputStream based on the input byte array. The length of DER objects in
-         * the stream is automatically limited to the length of the input array.
-         *
-         * @param input array containing ASN.1 encoded data.
-         */
+        /// <summary>Create an Asn1InputStream based on the input byte array.</summary>
+        /// <remarks>
+        /// The length of DER objects in the stream is automatically limited to the length of the input array.
+        /// </remarks>
+        /// <param name="input">Array containing ASN.1 encoded data.</param>
         public Asn1InputStream(byte[] input)
             : this(new MemoryStream(input, false), input.Length)
         {
@@ -89,12 +87,9 @@ namespace Org.BouncyCastle.Asn1
         {
         }
 
-        /**
-         * Create an ASN1InputStream where no DER object will be longer than limit.
-         *
-         * @param input stream containing ASN.1 encoded data.
-         * @param limit maximum size of a DER encoded object.
-         */
+        /// <summary>Create an Asn1InputStream where no DER object will be longer than limit.</summary>
+        /// <param name="input">Stream containing ASN.1 encoded data.</param>
+        /// <param name="limit">Maximum size of a DER encoded object.</param>
         public Asn1InputStream(Stream input, int limit)
             : this(input, limit, false)
         {
@@ -134,9 +129,7 @@ namespace Org.BouncyCastle.Asn1
             }
         }
 
-        /**
-        * build an object given its tag and the number of bytes to construct it from.
-        */
+        /// <summary>Build an object given its tag and the number of bytes to construct it from.</summary>
         private Asn1Object BuildObject(int tagHdr, int tagNo, int length)
         {
             // TODO[asn1] Special-case zero length first?
