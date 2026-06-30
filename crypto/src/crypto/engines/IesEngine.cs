@@ -105,16 +105,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             byte[] M, K, K1, K2;
             int len = 0;
             int macKeySize = m_parameters.MacKeySize;
+            int macSize = m_mac.GetMacSize();
 
             // Ensure that the length of the input is greater than the MAC in bytes
-            if (inLen < m_V.Length + m_mac.GetMacSize())
+            if (inLen < m_V.Length + macSize)
                 throw new InvalidCipherTextException("Length of input must be greater than the MAC and V combined");
 
             // note order is important: set up keys, do simple encryptions, check mac, do final encryption.
             if (m_cipher == null)
             {
                 // Streaming mode.
-                K1 = new byte[inLen - m_V.Length - m_mac.GetMacSize()];
+                K1 = new byte[inLen - m_V.Length - macSize];
                 K2 = new byte[macKeySize / 8];
                 K = new byte[K1.Length + K2.Length];
 
@@ -149,10 +150,10 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                 m_cipher.Init(false, cp);
 
-                M = new byte[m_cipher.GetOutputSize(inLen - m_V.Length - m_mac.GetMacSize())];
+                M = new byte[m_cipher.GetOutputSize(inLen - m_V.Length - macSize)];
 
                 // do initial processing
-                len = m_cipher.ProcessBytes(in_enc, inOff + m_V.Length, inLen - m_V.Length - m_mac.GetMacSize(), M, 0);
+                len = m_cipher.ProcessBytes(in_enc, inOff + m_V.Length, inLen - m_V.Length - macSize, M, 0);
             }
 
             // Convert the length of the encoding vector into a byte array.
@@ -164,8 +165,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
 
             // Verify the MAC.
-            int end = inOff + inLen;
-            byte[] T1 = Arrays.CopyOfRange(in_enc, end - m_mac.GetMacSize(), end);
+            byte[] T1 = Arrays.CopySegment(in_enc, inOff + inLen - macSize, macSize);
 
             byte[] T2 = new byte[T1.Length];
             m_mac.Init(new KeyParameter(K2));
@@ -182,14 +182,17 @@ namespace Org.BouncyCastle.Crypto.Engines
             m_mac.DoFinal(T2, 0);
 
             if (!Arrays.FixedTimeEquals(T1, T2))
-                throw new InvalidCipherTextException("invalid MAC");
+                throw new InvalidCipherTextException("Invalid MAC.");
 
             if (m_cipher == null)
                 return M;
 
+            // MAC must be verified above before this DoFinal: it removes padding (e.g. PKCS7), and a
+            // padding failure here is distinguishable from a MAC failure, which would be a CBC padding oracle.
+            // Only authenticated ciphertext reaches this point.
             len += m_cipher.DoFinal(M, len);
 
-            return Arrays.CopyOfRange(M, 0, len);
+            return Arrays.CopySegment(M, 0, len);
         }
 
         private byte[] EncryptBlock(byte[] input, int inOff, int inLen)
@@ -274,14 +277,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(C, 0, output, m_V.Length, len);
             Array.Copy(T, 0, output, m_V.Length + len, T.Length);
             return output;
-        }
-
-        private byte[] GenerateKdfBytes(KdfParameters kParam, int length)
-        {
-            byte[] buf = new byte[length];
-            m_kdf.Init(kParam);
-            m_kdf.GenerateBytes(buf, 0, buf.Length);
-            return buf;
         }
 
         public virtual byte[] ProcessBlock(byte[] input, int inOff, int inLen)
