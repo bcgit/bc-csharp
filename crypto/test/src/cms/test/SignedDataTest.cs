@@ -2548,7 +2548,7 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestPkcs7SignedContent()
         {
-            CmsSignedData sig = new CmsSignedData(GetInput("Pkcs7SignedContent.p7b"));
+            CmsSignedData sig = new CmsSignedData(GetInputStream("Pkcs7SignedContent.p7b"));
 
             VerifySignatures(sig);
         }
@@ -2583,7 +2583,7 @@ namespace Org.BouncyCastle.Cms.Tests
         [Test]
         public void TestMsPkcs7()
         {
-            var data = GetInput("Pkcs7SignedContent.p7b");
+            var data = GetInputStream("Pkcs7SignedContent.p7b");
             var sData = new CmsSignedData(data);
 
             var certStore = sData.GetCertificates();
@@ -2634,6 +2634,8 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         private static byte[] GetInput(string name) => SimpleTest.GetTestData("cms.sigs." + name);
+
+        private static Stream GetInputStream(string name) => SimpleTest.GetTestDataAsStream("cms.sigs." + name);
 
         private static void ImplVerifySignedData(byte[] signedData, SampleCredentials credentials)
         {

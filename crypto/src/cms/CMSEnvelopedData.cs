@@ -17,13 +17,11 @@ namespace Org.BouncyCastle.Cms
         private readonly OriginatorInformation m_originatorInformation;
         private readonly RecipientInformationStore m_recipientInfoStore;
 
-        // TODO[api] Rename parameter to contentInfo?
         public CmsEnvelopedData(byte[] envelopedData)
             : this(CmsUtilities.ReadContentInfo(envelopedData))
         {
         }
 
-        // TODO[api] Rename parameter to contentInfo?
         public CmsEnvelopedData(Stream envelopedData)
             : this(CmsUtilities.ReadContentInfo(envelopedData))
         {

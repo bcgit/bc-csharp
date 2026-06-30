@@ -19,9 +19,6 @@ namespace Org.BouncyCastle.Cms
 {
     internal static class CmsUtilities
     {
-        // TODO Is there a .NET equivalent to this?
-        //		private static readonly Runtime RUNTIME = Runtime.getRuntime();
-
         private static readonly HashSet<DerObjectIdentifier> DesAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> ECAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> GostAlgorithms = new HashSet<DerObjectIdentifier>();
@@ -88,23 +85,44 @@ namespace Org.BouncyCastle.Cms
 
         internal static ContentInfo ReadContentInfo(byte[] input)
         {
-            using (var asn1In = new Asn1InputStream(input))
+            Asn1Object asn1Object;
+            try
             {
-                return ReadContentInfo(asn1In);
+                asn1Object = Asn1Object.FromByteArray(input);
             }
+            catch (CmsException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CmsException("Exception reading content.", e);
+            }
+
+            if (asn1Object == null)
+                throw new CmsException("No content found.");
+
+            return SafeGetInstance(asn1Object, ContentInfo.GetInstance);
         }
 
         internal static ContentInfo ReadContentInfo(Stream input)
         {
-            using (var asn1In = new Asn1InputStream(input, leaveOpen: true))
+            Asn1Object asn1Object;
+            try
             {
-                return ReadContentInfo(asn1In);
+                asn1Object = Asn1Object.FromStream(input);
             }
-        }
+            catch (CmsException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CmsException("Exception reading content.", e);
+            }
 
-        private static ContentInfo ReadContentInfo(Asn1InputStream asn1In)
-        {
-            Asn1Object asn1Object = SafeReadAsn1Object(asn1In) ?? throw new CmsException("No content found.");
+            if (asn1Object == null)
+                throw new CmsException("No content found.");
 
             return SafeGetInstance(asn1Object, ContentInfo.GetInstance);
         }
@@ -343,23 +361,6 @@ namespace Org.BouncyCastle.Cms
             catch (Exception e)
             {
                 throw new CmsException("Malformed content.", e);
-            }
-        }
-
-        /// <exception cref="CmsException"></exception>
-        internal static Asn1Object SafeReadAsn1Object(Asn1InputStream asn1In)
-        {
-            try
-            {
-                return asn1In.ReadObject();
-            }
-            catch (CmsException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new CmsException("IOException reading content.", e);
             }
         }
 
