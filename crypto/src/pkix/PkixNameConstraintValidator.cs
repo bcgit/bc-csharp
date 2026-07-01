@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Asn1.X500.Style;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Pkix
@@ -1508,6 +1509,9 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
+        public void IntersectPermittedSubtree(GeneralSubtree permitted) =>
+            IntersectPermittedSubtree(permitted.Base.TagNo, new HashSet<GeneralSubtree>() { permitted });
+
         /**
          * Updates the permitted ISet of these name constraints with the intersection
          * with the given subtree.
@@ -1518,11 +1522,9 @@ namespace Org.BouncyCastle.Pkix
         {
             var subtreesMap = new Dictionary<int, HashSet<GeneralSubtree>>();
 
-            // group in ISets in a map ordered by tag no.
-            foreach (var element in permitted)
+            // Group in HashSets in a Dictionary ordered by TagNo.
+            foreach (var subtree in CollectionUtilities.Select(permitted, GeneralSubtree.GetInstance))
             {
-                GeneralSubtree subtree = GeneralSubtree.GetInstance(element);
-
                 int tagNo = subtree.Base.TagNo;
 
                 HashSet<GeneralSubtree> subtrees;
@@ -1535,35 +1537,37 @@ namespace Org.BouncyCastle.Pkix
                 subtrees.Add(subtree);
             }
 
+            // go through all subtree groups
             foreach (var entry in subtreesMap)
             {
-                // go through all subtree groups
-                int nameType = entry.Key;
-                var subtrees = entry.Value;
+                IntersectPermittedSubtree(nameType: entry.Key, subtrees: entry.Value);
+            }
+        }
 
-                switch (nameType)
-                {
-                case GeneralName.OtherName:
-                    permittedSubtreesOtherName = IntersectOtherName(permittedSubtreesOtherName, subtrees);
-                    break;
-                case GeneralName.Rfc822Name:
-                    permittedSubtreesEmail = IntersectEmail(permittedSubtreesEmail, subtrees);
-                    break;
-                case GeneralName.DnsName:
-                    permittedSubtreesDns = IntersectDns(permittedSubtreesDns, subtrees);
-                    break;
-                case GeneralName.DirectoryName:
-                    permittedSubtreesDN = IntersectDN(permittedSubtreesDN, subtrees);
-                    break;
-                case GeneralName.UniformResourceIdentifier:
-                    permittedSubtreesUri = IntersectUri(permittedSubtreesUri, subtrees);
-                    break;
-                case GeneralName.IPAddress:
-                    permittedSubtreesIP = IntersectIP(permittedSubtreesIP, subtrees);
-                    break;
-                default:
-                    throw new InvalidOperationException("Unknown tag encountered: " + nameType);
-                }
+        private void IntersectPermittedSubtree(int nameType, HashSet<GeneralSubtree> subtrees)
+        {
+            switch (nameType)
+            {
+            case GeneralName.OtherName:
+                permittedSubtreesOtherName = IntersectOtherName(permittedSubtreesOtherName, subtrees);
+                break;
+            case GeneralName.Rfc822Name:
+                permittedSubtreesEmail = IntersectEmail(permittedSubtreesEmail, subtrees);
+                break;
+            case GeneralName.DnsName:
+                permittedSubtreesDns = IntersectDns(permittedSubtreesDns, subtrees);
+                break;
+            case GeneralName.DirectoryName:
+                permittedSubtreesDN = IntersectDN(permittedSubtreesDN, subtrees);
+                break;
+            case GeneralName.UniformResourceIdentifier:
+                permittedSubtreesUri = IntersectUri(permittedSubtreesUri, subtrees);
+                break;
+            case GeneralName.IPAddress:
+                permittedSubtreesIP = IntersectIP(permittedSubtreesIP, subtrees);
+                break;
+            default:
+                throw new InvalidOperationException("Unknown tag encountered: " + nameType);
             }
         }
 
