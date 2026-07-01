@@ -72,6 +72,16 @@ namespace Org.BouncyCastle.Utilities
 
         public static readonly string X509MaxPolicyNodes = "Org.BouncyCastle.X509.MaxPolicyNodes";
 
+        /// <summary>
+        /// Opt in to the relaxed directoryName name-constraint matching required by GSMA SGP.22 v2.5 (Remote SIM
+        /// Provisioning), sections 4.5.2.1.0.2 / 4.5.2.1.0.3. When set, a permitted-subtree RDN is satisfied by any
+        /// matching subject RDN regardless of position, additional subject attributes beyond those named in the subtree
+        /// are tolerated, and a serialNumber RDN is matched with a <c>StartsWith</c> comparison wherever it appears.
+        /// This is deliberately looser than the contiguous-prefix DN matching mandated by RFC 5280 7.1, so it defaults
+        /// to off and must be enabled explicitly; BC's default validation remains RFC 5280 strict.
+        /// </summary>
+        public static readonly string X509Sgp22NameConstraints = "Org.BouncyCastle.X509.Sgp22NameConstraints";
+
         private static readonly ThreadLocal<Dictionary<string, string>> ThreadProperties =
             new ThreadLocal<Dictionary<string, string>>();
 

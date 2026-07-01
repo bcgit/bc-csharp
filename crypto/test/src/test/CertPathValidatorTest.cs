@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Pkix;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -424,13 +425,16 @@ namespace Org.BouncyCastle.Tests
             var trust = new HashSet<TrustAnchor>();
             trust.Add(new TrustAnchor(rootCert, null));
 
-            var certPathValidator = new PkixCertPathValidator();
+            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, () =>
+            {
+                var certPathValidator = new PkixCertPathValidator();
 
-            var pkixParams = new PkixParameters(trust);
-            pkixParams.IsRevocationEnabled = false;
+                var pkixParams = new PkixParameters(trust);
+                pkixParams.IsRevocationEnabled = false;
 
-            var result = certPathValidator.Validate(certPath, pkixParams);
-            IsTrue(result != null);
+                var result = certPathValidator.Validate(certPath, pkixParams);
+                IsTrue(result != null);
+            });
         }
 
         private class MyChecker

@@ -3,6 +3,7 @@
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Pkix;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tests
 {
@@ -221,6 +222,97 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
+        /// <summary>GSMA SGP.22 v2.5 relaxed directoryName name-constraint matching.</summary>
+        /// <remarks>
+        /// Gated behind <seealso cref="Properties.X509Sgp22NameConstraints"/>, off by default. With the flag set,
+        /// additional subject attributes are tolerated and serialNumber is matched with a StartsWith comparison
+        /// wherever it appears; with the flag clear the strict RFC 5280 matching is unchanged.
+        /// </remarks>
+        [Test]
+        public void Sgp22NameConstraints()
+        {
+            GeneralName subtreeExtra = DirectoryName("O=VALID, serialNumber=89034011");
+            GeneralName subjectExtra = DirectoryName(
+                "C=ES, O=VALID, CN=VALID EUICC CD, OU=VALID, serialNumber=89034011026140000000000000001332");
+
+            GeneralName subtreeSnFirst = DirectoryName("serialNumber=89034011, O=VALID");
+            GeneralName subjectSnFirst = DirectoryName("serialNumber=89034011026140000000000000001332, O=VALID");
+
+            // default (flag off): RFC 5280 strict prefix matching rejects both SGP.22 cases
+            Assert.False(IsPermitted(subtreeExtra, subjectExtra),
+                "SGP.22 extra-attributes should be rejected by default");
+            Assert.False(IsPermitted(subtreeSnFirst, subjectSnFirst),
+                "SGP.22 leading serialNumber should be rejected by default");
+
+            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, () =>
+            {
+                // failure 1: subject carries extra attributes around the constrained O / serialNumber
+                Assert.True(IsPermitted(subtreeExtra, subjectExtra),
+                    "SGP.22 extra-attributes should be permitted when enabled");
+
+                // failure 2: serialNumber is the leading RDN and must match via startsWith
+                Assert.True(IsPermitted(subtreeSnFirst, subjectSnFirst),
+                    "SGP.22 leading serialNumber should be permitted when enabled");
+
+                // negative: a required organization that does not match is still rejected
+                Assert.False(
+                    IsPermitted(subtreeExtra, DirectoryName("O=OTHER, serialNumber=89034011026140000000000000001332")),
+                    "mismatched organization must still be rejected");
+
+                // negative: a serialNumber that is not a prefix is still rejected
+                Assert.False(
+                    IsPermitted(subtreeExtra, DirectoryName("O=VALID, serialNumber=12340000000000000000000000000000")),
+                    "non-prefix serialNumber must still be rejected");
+
+                // negative: a required attribute missing entirely is rejected
+                Assert.False(IsPermitted(subtreeExtra, DirectoryName("C=ES, O=VALID, CN=VALID EUICC CD")),
+                    "missing required serialNumber must be rejected");
+            });
+        }
+
+        /// <summary>Regression test pinning the lone-serialNumber matching of a directoryName subtree.</summary>
+        /// <remarks>
+        /// Before github #2327 (bc-java) this GSMA SGP.22 StartsWith concession ran ungated in the strict path; it is
+        /// now gated behind <see cref="Properties.X509Sgp22NameConstraints"/>, so default validation applies the
+        /// RFC 5280 sec. 7.1 equality comparison and the StartsWith behaviour returns only with the flag.
+        /// </remarks>
+        [Test]
+        public void Sgp22LegacySerialNumber()
+        {
+            GeneralName subtree = DirectoryName("serialNumber=89034011");
+            GeneralName exact = DirectoryName("serialNumber=89034011");
+            GeneralName prefix = DirectoryName("serialNumber=89034011026140000000000000001332");
+
+            // default (flag off): RFC 5280 equality - an exact value matches, a longer value does not
+            Assert.True(IsPermitted(subtree, exact), "exact serialNumber must match by default");
+            Assert.False(IsPermitted(subtree, prefix), "prefix serialNumber must not match by default");
+
+            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, () =>
+            {
+                // flag on: the legacy GSMA SGP.22 startsWith comparison applies again
+                Assert.True(IsPermitted(subtree, exact), "exact serialNumber must match when enabled");
+                Assert.True(IsPermitted(subtree, prefix), "prefix serialNumber must match when enabled");
+            });
+        }
+
+        private static GeneralName DirectoryName(string name) =>
+            new GeneralName(GeneralName.DirectoryName, new X509Name(name));
+
+        private static bool IsPermitted(GeneralName permitted, GeneralName subject)
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.IntersectPermittedSubtree(new GeneralSubtree(permitted));
+            try
+            {
+                validator.CheckPermittedName(subject);
+                return true;
+            }
+            catch (PkixNameConstraintValidatorException)
+            {
+                return false;
+            }
+        }
+
         /// <summary>Tests string-based GeneralNames for inclusion or exclusion.</summary>
         /// <param name="nameType">The <see cref="GeneralName"/> type to test.</param>
         /// <param name="testName">The name to test.</param>
@@ -230,7 +322,7 @@ namespace Org.BouncyCastle.Tests
         /// <param name="testNames2">Operand 2 of test names to use for union and intersection testing.</param>
         /// <param name="testUnion">The union results.</param>
         /// <param name="testIntersection">The intersection results.</param>
-        private void TestConstraints(int nameType, string testName, string[] testNameIsConstraint,
+        private static void TestConstraints(int nameType, string testName, string[] testNameIsConstraint,
             string[] testNameIsNotConstraint, string[] testNames1, string[] testNames2, string[][] testUnion,
             string[] testIntersection)
         {
@@ -322,7 +414,7 @@ namespace Org.BouncyCastle.Tests
         /// <param name="testNames2">Operand 2 of test names to use for union and intersection testing.</param>
         /// <param name="testUnion">The union results.</param>
         /// <param name="testIntersection">The intersection results.</param>
-        private void TestConstraints(int nameType, byte[] testName, byte[][] testNameIsConstraint,
+        private static void TestConstraints(int nameType, byte[] testName, byte[][] testNameIsConstraint,
             byte[][] testNameIsNotConstraint, byte[][] testNames1, byte[][] testNames2, byte[][][] testUnion,
             byte[][] testInterSection)
         {
