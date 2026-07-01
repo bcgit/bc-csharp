@@ -311,7 +311,7 @@ namespace Org.BouncyCastle.Asn1
             if (!IsExplicit())
                 throw new InvalidOperationException("object implicit - explicit expected.");
 
-            return CheckedCast(m_object.ToAsn1Object());
+            return FromExplicit(m_object.ToAsn1Object());
         }
 
         public Asn1TaggedObject GetImplicitBaseTagged(int baseTagClass, int baseTagNo)
@@ -326,7 +326,7 @@ namespace Org.BouncyCastle.Asn1
 
             case DeclaredImplicit:
             {
-                Asn1TaggedObject declared = CheckedCast(m_object.ToAsn1Object());
+                Asn1TaggedObject declared = FromExplicit(m_object.ToAsn1Object());
                 return Asn1Utilities.CheckTag(declared, baseTagClass, baseTagNo);
             }
 
@@ -351,7 +351,7 @@ namespace Org.BouncyCastle.Asn1
                 if (!IsExplicit())
                     throw new InvalidOperationException("object implicit - explicit expected.");
 
-                return universalType.CheckedCast(m_object.ToAsn1Object());
+                return universalType.FromExplicit(m_object.ToAsn1Object());
             }
 
             if (DeclaredExplicit == m_explicitness)
@@ -370,7 +370,7 @@ namespace Org.BouncyCastle.Asn1
                 return universalType.FromImplicitPrimitive((DerOctetString)baseObject);
             }
             default:
-                return universalType.CheckedCast(baseObject);
+                return universalType.FromExplicit(baseObject);
             }
         }
 
@@ -441,13 +441,10 @@ namespace Org.BouncyCastle.Asn1
             return new DLTaggedObject(ParsedImplicit, tagClass, tagNo, DerOctetString.WithContents(contentsOctets));
         }
 
-        private static Asn1TaggedObject CheckedCast(Asn1Object asn1Object)
-        {
-            Asn1TaggedObject taggedObject = asn1Object as Asn1TaggedObject;
-            if (null != taggedObject)
-                return taggedObject;
+        private static Asn1TaggedObject CheckedCast(Asn1Object asn1Object) => asn1Object as Asn1TaggedObject
+            ?? throw new ArgumentException("unexpected object: " + Platform.GetTypeName(asn1Object));
 
-            throw new InvalidOperationException("unexpected object: " + Platform.GetTypeName(asn1Object));
-        }
+        private static Asn1TaggedObject FromExplicit(Asn1Object asn1Object) => asn1Object as Asn1TaggedObject
+            ?? throw new InvalidOperationException("unexpected explicit encoding");
     }
 }
