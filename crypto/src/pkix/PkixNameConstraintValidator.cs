@@ -350,22 +350,24 @@ namespace Org.BouncyCastle.Pkix
         {
             int atPos = constraint.IndexOf('@');
 
-            // a particular mailbox
+            // a particular mailbox. RFC 1034 root-label trailing dot: the dNSName path strips it (see
+            // IsDnsConstrained); apply the same canonicalisation to the rfc822Name host so a trailing dot
+            // (e.g. "user@bank.com.") cannot slip a leaf past an excluded/permitted "bank.com" constraint.
             if (atPos > 0)
-                return Platform.EqualsIgnoreCase(email, constraint);
+                return Platform.EqualsIgnoreCase(StripTrailingDot(email), StripTrailingDot(constraint));
 
-            string sub = email.Substring(email.IndexOf('@') + 1);
+            string sub = StripTrailingDot(email.Substring(email.IndexOf('@') + 1));
 
             // "@domain" style
             if (atPos == 0)
-                return Platform.EqualsIgnoreCase(sub, constraint.Substring(1));
+                return Platform.EqualsIgnoreCase(sub, StripTrailingDot(constraint.Substring(1)));
 
             // address in sub domain
             if (Platform.StartsWith(constraint, "."))
                 return WithinDomain(sub, constraint);
 
             // on particular host
-            return Platform.EqualsIgnoreCase(sub, constraint);
+            return Platform.EqualsIgnoreCase(sub, StripTrailingDot(constraint));
         }
 
         private static HashSet<string> IntersectEmail(HashSet<string> permitted, HashSet<GeneralSubtree> emails)
@@ -495,6 +497,16 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
             }
+        }
+
+        private static string StripTrailingDot(string s)
+        {
+            // length > 1 so a single bare "." (theoretically the empty-label
+            // root) is preserved rather than reduced to "".
+            if (s != null && s.Length > 1 && s[s.Length - 1] == '.')
+                return s.Substring(0, s.Length - 1);
+
+            return s;
         }
 
         private static HashSet<string> UnionEmail(HashSet<string> excluded, string email)
@@ -725,6 +737,16 @@ namespace Org.BouncyCastle.Pkix
          */
         private static bool IsIPConstrained(byte[] constraint, byte[] ip)
         {
+            // Normalise IPv4-mapped IPv6 (::ffff:0:0/96 per RFC 4291 sec. 2.5.5.2)
+            // to IPv4 on BOTH sides before the length-equality pre-filter, so a
+            // SAN that encodes the same IPv4 address using the 16-byte IPv4-
+            // mapped IPv6 form doesn't escape an 8-byte IPv4 constraint via
+            // the address-family-length mismatch. RFC 4291 makes the two forms
+            // equivalent for host identification, so the normalisation is also
+            // semantics-preserving in the permitted-subtree direction.
+            ip = NormalizeIPv4MappedIPv6Address(ip);
+            constraint = NormalizeIPv4MappedIPv6Constraint(constraint);
+
             int ipLength = ip.Length;
             if (ipLength != (constraint.Length / 2))
                 return false;
@@ -744,6 +766,71 @@ namespace Org.BouncyCastle.Pkix
             }
 
             return Arrays.AreEqual(permittedSubnetAddress, ipSubnetAddress);
+        }
+
+        /**
+         * If {@code ip} is a 16-byte IPv4-mapped IPv6 address (RFC 4291
+         * sec. 2.5.5.2: leading 80 bits zero, next 16 bits all-ones, trailing
+         * 32 bits the IPv4 address), return the 4-byte IPv4 form; otherwise
+         * return {@code ip} unchanged.
+         */
+        private static byte[] NormalizeIPv4MappedIPv6Address(byte[] ip)
+        {
+            if (!IsIPv4MappedIPv6Address(ip))
+                return ip;
+
+            byte[] ipv4 = new byte[4];
+            Array.Copy(ip, 12, ipv4, 0, 4);
+            return ipv4;
+        }
+
+        /**
+         * A Name-Constraints iPAddress constraint is encoded as
+         * {@code IP || subnet-mask}. If both halves are in IPv4-mapped IPv6
+         * form (the IP half matches the {@code ::ffff:0:0/96} prefix and the
+         * mask half is all-ones across the first 96 bits), reduce to the
+         * 8-byte (4-byte IPv4 || 4-byte mask) form. Otherwise return the
+         * constraint unchanged. The mask check matters: a mask narrower than
+         * /96 means the constraint is really an IPv6 range that happens to
+         * start at an IPv4-mapped address, and collapsing it to IPv4 would
+         * change which addresses match.
+         */
+        private static byte[] NormalizeIPv4MappedIPv6Constraint(byte[] constraint)
+        {
+            if (constraint.Length != 32)
+                return constraint;
+
+            byte[] ipHalf = new byte[16];
+            byte[] maskHalf = new byte[16];
+            Array.Copy(constraint, 0, ipHalf, 0, 16);
+            Array.Copy(constraint, 16, maskHalf, 0, 16);
+
+            if (!IsIPv4MappedIPv6Address(ipHalf))
+                return constraint;
+
+            for (int i = 0; i < 12; i++)
+            {
+                if (maskHalf[i] != (byte)0xFF)
+                    return constraint;
+            }
+
+            byte[] result = new byte[8];
+            Array.Copy(ipHalf, 12, result, 0, 4);
+            Array.Copy(maskHalf, 12, result, 4, 4);
+            return result;
+        }
+
+        private static bool IsIPv4MappedIPv6Address(byte[] ip)
+        {
+            if (ip == null || ip.Length != 16)
+                return false;
+
+            for (int i = 0; i < 10; i++)
+            {
+                if (ip[i] != 0)
+                    return false;
+            }
+            return ip[10] == (byte)0xFF && ip[11] == (byte)0xFF;
         }
 
         /**
@@ -1026,8 +1113,18 @@ namespace Org.BouncyCastle.Pkix
             return false;
         }
 
-        private static bool IsDnsConstrained(string constraint, string dns) =>
-            Platform.EqualsIgnoreCase(dns, constraint) || WithinDomain(dns, constraint);
+        private static bool IsDnsConstrained(string constraint, string dns)
+        {
+            // RFC 1034 sec. 3.1 allows a trailing dot to denote the root label of a fully-qualified domain name. A
+            // dNSName SAN such as "foo.example.com." (legal IA5String per RFC 5280 sec. 4.2.1.6) used to escape
+            // Name-Constraint matching because WithinDomain split it to ["foo", "example", "com", ""], misaligning the
+            // per-label compare against a "example.com" constraint and returning "not constrained" — bypassing the
+            // excluded subtree.  Normalise away at most one trailing dot on both sides before comparing.
+            dns = StripTrailingDot(dns);
+            constraint = StripTrailingDot(constraint);
+
+            return Platform.EqualsIgnoreCase(dns, constraint) || WithinDomain(dns, constraint);
+        }
 
         private static HashSet<string> IntersectDns(HashSet<string> permitted, HashSet<GeneralSubtree> dnss)
         {
@@ -1123,14 +1220,16 @@ namespace Org.BouncyCastle.Pkix
 
         private static bool IsUriConstrained(string constraint, string uri)
         {
-            string host = ExtractHostFromURL(uri);
+            // Strip an RFC 1034 root-label trailing dot from the host, matching the dNSName path, so a
+            // URI host such as "competitor.example." cannot slip past a "competitor.example" constraint.
+            string host = StripTrailingDot(ExtractHostFromURL(uri));
 
             // in sub domain or domain
             if (Platform.StartsWith(constraint, "."))
                 return WithinDomain(host, constraint);
 
             // a host
-            return Platform.EqualsIgnoreCase(host, constraint);
+            return Platform.EqualsIgnoreCase(host, StripTrailingDot(constraint));
         }
 
         private static HashSet<string> IntersectUri(HashSet<string> permitted, HashSet<GeneralSubtree> uris)
@@ -1413,29 +1512,47 @@ namespace Org.BouncyCastle.Pkix
 
         private static string ExtractHostFromURL(string url)
         {
-            // see RFC 1738
-            // remove ':' after protocol, e.g. http:
-            string sub = url.Substring(url.IndexOf(':') + 1);
-            // extract host from Common Internet Scheme Syntax, e.g. http://
-            int slashesPos = sub.IndexOf("//");
-            if (slashesPos != -1)
+            // RFC 3986 §3.2 authority structure:
+            //   authority = [ userinfo "@" ] host [ ":" port ]
+            // The strip order is: scheme → "//" → path/query/fragment terminator → userinfo (last '@') → host
+            // with optional bracketed IPv6 / trailing ":port".
+            string sub = url;
+            int schemeEnd = sub.IndexOf(':');
+            if (schemeEnd >= 0)
             {
-                sub = sub.Substring(slashesPos + 2);
+                sub = sub.Substring(schemeEnd + 1);
             }
-            // first remove port, e.g. http://test.com:21
-            int portColonPos = sub.LastIndexOf(':');
-            if (portColonPos != -1)
+            if (Platform.StartsWith(sub, "//"))
             {
-                sub = sub.Substring(0, portColonPos);
+                sub = sub.Substring(2);
             }
-            // remove user and password, e.g. http://john:password@test.com
-            sub = sub.Substring(sub.IndexOf(':') + 1);
-            sub = sub.Substring(sub.IndexOf('@') + 1);
-            // remove local parts, e.g. http://test.com/bla
-            int slashPos = sub.IndexOf('/');
-            if (slashPos != -1)
+            for (int i = 0; i < sub.Length; ++i)
             {
-                sub = sub.Substring(0, slashPos);
+                char c = sub[i];
+                if (c == '/' || c == '?' || c == '#')
+                {
+                    sub = sub.Substring(0, i);
+                    break;
+                }
+            }
+            int atPos = sub.LastIndexOf('@');
+            if (atPos >= 0)
+            {
+                sub = sub.Substring(atPos + 1);
+            }
+            if (Platform.StartsWith(sub, "["))
+            {
+                int closeBracket = sub.IndexOf(']');
+                if (closeBracket > 0)
+                {
+                    return sub.Substring(1, closeBracket - 1);
+                }
+                return sub.Substring(1);
+            }
+            int portColon = sub.LastIndexOf(':');
+            if (portColon >= 0)
+            {
+                sub = sub.Substring(0, portColon);
             }
             return sub;
         }
@@ -1448,6 +1565,11 @@ namespace Org.BouncyCastle.Pkix
             {
                 domain = domain.Substring(1);
             }
+
+            // Strip the RFC 1034 root-label trailing dot so the per-label
+            // compare doesn't see a phantom empty label.
+            testDomain = StripTrailingDot(testDomain);
+            domain = StripTrailingDot(domain);
 
             string[] domainParts = Strings.Split(domain, '.');
             string[] testDomainParts = Strings.Split(testDomain, '.');
