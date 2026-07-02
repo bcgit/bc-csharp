@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System;
+
+using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -269,6 +271,34 @@ namespace Org.BouncyCastle.Tests
             Assert.True(IsPermitted(permittedDN, prefixSubject), "prefix subject must be permitted");
             Assert.False(IsPermitted(permittedDN, prependedSubject),
                 "subject with an RDN prepended before the permitted sequence must NOT be permitted");
+        }
+
+        /// <summary>
+        /// A directoryName whose sequence elements are not RDN-shaped fails at the boundary parse
+        /// (fail-closed) when DN constraints are present - even where the malformed element lies beyond
+        /// the compared prefix and so was previously never examined; with no DN constraints in play it
+        /// is not examined at all.
+        /// </summary>
+        [Test]
+        public void MalformedDnRejectedWhenConstrained()
+        {
+            // A valid RDN followed by an element that is not one (RDNSequence elements must be SETs).
+            Asn1Sequence validDn = Asn1Sequence.GetInstance(new X509Name("O=Org").ToAsn1Object());
+            Asn1Sequence malformed = new DerSequence(validDn[0], new DerIA5String("junk"));
+
+            PkixNameConstraintValidator excluding = new PkixNameConstraintValidator();
+            excluding.AddExcludedSubtree(new GeneralSubtree(DirectoryName("O=Other")));
+            Assert.Throws<ArgumentException>(() => excluding.CheckExcludedDN(malformed),
+                "a malformed DN must be rejected at parse, not silently pass the excluded check");
+
+            PkixNameConstraintValidator permitting = new PkixNameConstraintValidator();
+            permitting.IntersectPermittedSubtree(new GeneralSubtree(DirectoryName("O=Other")));
+            Assert.Throws<ArgumentException>(() => permitting.CheckPermittedDN(malformed),
+                "a malformed DN must be rejected at parse in the permitted check");
+
+            PkixNameConstraintValidator fresh = new PkixNameConstraintValidator();
+            fresh.CheckPermittedDN(malformed);
+            fresh.CheckExcludedDN(malformed);
         }
 
         /// <summary>

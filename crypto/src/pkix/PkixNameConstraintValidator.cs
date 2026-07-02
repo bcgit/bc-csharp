@@ -3,10 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.X500;
-using Org.BouncyCastle.Asn1.X500.Style;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -17,7 +14,7 @@ namespace Org.BouncyCastle.Pkix
         // The excluded* fields are null until the first excluded subtree of that family is added, and never
         // empty once created (unions only grow). The permitted* fields are null while the family is
         // unconstrained, and empty when nothing of that family is permitted.
-        private HashSet<Asn1Sequence> excludedSubtreesDN;
+        private HashSet<NameConstraintDN> excludedSubtreesDN;
 
         private HashSet<NameConstraintDns> excludedSubtreesDns;
 
@@ -29,7 +26,7 @@ namespace Org.BouncyCastle.Pkix
 
         private HashSet<OtherName> excludedSubtreesOtherName;
 
-        private HashSet<Asn1Sequence> permittedSubtreesDN;
+        private HashSet<NameConstraintDN> permittedSubtreesDN;
 
         private HashSet<NameConstraintDns> permittedSubtreesDns;
 
@@ -45,95 +42,6 @@ namespace Org.BouncyCastle.Pkix
         {
         }
 
-        private static bool WithinDNSubtree(Asn1Sequence dns, Asn1Sequence subtree)
-        {
-            // An empty subtree would be a prefix of every DN; treat it as "no match" instead, so an empty permitted
-            // base can't nullify the permittedSubtrees restriction.
-            if (subtree.Count < 1)
-                return false;
-
-            // A prefix can't be longer than the DN.
-            if (subtree.Count > dns.Count)
-                return false;
-
-            // Relaxed anywhere-match needed for GSMA SGP.22, gated behind a property.
-            if (Properties.GetBoolean(Properties.X509Sgp22NameConstraints, false))
-                return WithinDNSubtreeSgp22(dns, subtree);
-
-            // RFC 5280 4.2.1.10 / 7.1: a directoryName constraint is satisfied only when the constraint's RDNSequence
-            // is an initial prefix of the subject's. Match from index 0 only - searching for the constraint's first RDN
-            // at an arbitrary offset let an attacker prepend RDNs ahead of the permitted sequence (e.g. a subject
-            // C=FR,O=Attacker,C=US,O=TrustedOrg,CN=x being judged inside permitted subtree C=US,O=TrustedOrg) and still
-            // pass the permittedSubtrees check.
-
-            for (int j = 0; j < subtree.Count; j++)
-            {
-                // both subtree and dns are a ASN.1 Name and the elements are a RDN
-                Rdn subtreeRdn = Rdn.GetInstance(subtree[j]);
-                Rdn dnsRdn = Rdn.GetInstance(dns[j]);
-
-                // Obey RFC 5280 7.1. Two relative distinguished names RDN1 and RDN2 match if they have the same number
-                // of naming attributes and for each naming attribute in RDN1 there is a matching naming attribute in
-                // RDN2. NOTE: this is now different from the RFC 3280 version, where only binary comparison was used.
-                if (!IetfUtilities.RdnAreEqual(subtreeRdn, dnsRdn))
-                    return false;
-            }
-
-            return true;
-        }
-
-        /**
-         * Relaxed directoryName subtree matching for GSMA SGP.22 v2.5 (sections 4.5.2.1.0.2 and
-         * 4.5.2.1.0.3), enabled only when {@link Properties#X509_SGP22_NAME_CONSTRAINTS} is set. Each
-         * RDN of the permitted subtree must be matched by some RDN of the subject DN regardless of
-         * position; additional subject attributes are permitted, and a serialNumber RDN is matched with
-         * a startsWith comparison wherever it occurs. This deliberately departs from the contiguous
-         * prefix matching of RFC 5280 7.1 implemented by {@link #withinDNSubtree(ASN1Sequence, ASN1Sequence)}.
-         */
-        private static bool WithinDNSubtreeSgp22(Asn1Sequence dns, Asn1Sequence subtree)
-        {
-            Rdn[] dnsRdns = dns.MapElements(Rdn.GetInstance);
-
-            foreach (Rdn subtreeRdn in CollectionUtilities.Select(subtree, Rdn.GetInstance))
-            {
-                if (!RdnMatchesSgp22Any(subtreeRdn, dnsRdns))
-                    return false;
-            }
-            return true;
-        }
-
-        private static bool RdnMatchesSgp22Any(Rdn subtreeRdn, Rdn[] dnsRdns)
-        {
-            foreach (Rdn dnsRdn in dnsRdns)
-            {
-                if (RdnMatchesSgp22(subtreeRdn, dnsRdn))
-                    return true;
-            }
-            return false;
-        }
-
-        private static bool RdnMatchesSgp22(Rdn subtreeRdn, Rdn dnsRdn)
-        {
-            if (subtreeRdn.Count != dnsRdn.Count)
-                return false;
-
-            var subtreeFirst = subtreeRdn.GetFirst();
-            var dnsFirst = dnsRdn.GetFirst();
-
-            if (!subtreeFirst.Type.Equals(dnsFirst.Type))
-                return false;
-
-            // special treatment of serialNumber for GSMA SGP.22 RSP specification
-            if (subtreeRdn.Count == 1 && subtreeFirst.Type.Equals(X509Name.SerialNumber))
-            {
-                var subtreeFirstValue = DerPrintableString.GetInstance(subtreeFirst.Value).GetString();
-                var dnsFirstValue = DerPrintableString.GetInstance(dnsFirst.Value).GetString();
-                return Platform.StartsWith(dnsFirstValue, subtreeFirstValue);
-            }
-
-            return IetfUtilities.RdnAreEqual(subtreeRdn, dnsRdn);
-        }
-
         #region DN
 
         public void CheckExcludedDN(Asn1Sequence dn)
@@ -146,96 +54,27 @@ namespace Org.BouncyCastle.Pkix
             CheckPermittedDN(permittedSubtreesDN, dn);
         }
 
-        private static void CheckExcludedDN(HashSet<Asn1Sequence> excluded, Asn1Sequence directory)
+        private static void CheckExcludedDN(HashSet<NameConstraintDN> excluded, Asn1Sequence directory)
         {
             if (excluded == null)
                 return;
 
-            if (IsDNConstrained(excluded, directory))
+            if (NameConstraintDN.IsConstrained(excluded, NameConstraintDN.Create(directory)))
             {
                 throw new PkixNameConstraintValidatorException(
                     "Subject distinguished name is from an excluded subtree");
             }
         }
 
-        private static void CheckPermittedDN(HashSet<Asn1Sequence> permitted, Asn1Sequence directory)
+        private static void CheckPermittedDN(HashSet<NameConstraintDN> permitted, Asn1Sequence directory)
         {
             if (permitted != null
                 && !(directory.Count == 0 && permitted.Count < 1)
-                && !IsDNConstrained(permitted, directory))
+                && !NameConstraintDN.IsConstrained(permitted, NameConstraintDN.Create(directory)))
             {
                 throw new PkixNameConstraintValidatorException(
                     "Subject distinguished name is not from a permitted subtree");
             }
-        }
-
-        private static bool IsDNConstrained(HashSet<Asn1Sequence> constraints, Asn1Sequence directory)
-        {
-            foreach (var constraint in constraints)
-            {
-                if (WithinDNSubtree(directory, constraint))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static HashSet<Asn1Sequence> IntersectDN(HashSet<Asn1Sequence> permitted, HashSet<GeneralSubtree> dns)
-        {
-            var intersect = new HashSet<Asn1Sequence>();
-            foreach (GeneralSubtree subtree1 in dns)
-            {
-                Asn1Sequence dn1 = Asn1Sequence.GetInstance(subtree1.Base.Name);
-                if (permitted == null)
-                {
-                    if (dn1 != null)
-                    {
-                        intersect.Add(dn1);
-                    }
-                }
-                else
-                {
-                    foreach (var dn2 in permitted)
-                    {
-                        if (WithinDNSubtree(dn1, dn2))
-                        {
-                            intersect.Add(dn1);
-                        }
-                        else if (WithinDNSubtree(dn2, dn1))
-                        {
-                            intersect.Add(dn2);
-                        }
-                    }
-                }
-            }
-            return intersect;
-        }
-
-        private static HashSet<Asn1Sequence> UnionDN(HashSet<Asn1Sequence> excluded, Asn1Sequence dn)
-        {
-            if (excluded == null)
-                return dn == null ? null : new HashSet<Asn1Sequence> { dn };
-
-            var union = new HashSet<Asn1Sequence>();
-
-            foreach (var subtree in excluded)
-            {
-                if (WithinDNSubtree(dn, subtree))
-                {
-                    union.Add(subtree);
-                }
-                else if (WithinDNSubtree(subtree, dn))
-                {
-                    union.Add(dn);
-                }
-                else
-                {
-                    union.Add(subtree);
-                    union.Add(dn);
-                }
-            }
-
-            return union;
         }
 
         #endregion
@@ -548,7 +387,7 @@ namespace Org.BouncyCastle.Pkix
                 permittedSubtreesDns = NameConstraintDns.Intersect(permittedSubtreesDns, subtrees);
                 break;
             case GeneralName.DirectoryName:
-                permittedSubtreesDN = IntersectDN(permittedSubtreesDN, subtrees);
+                permittedSubtreesDN = NameConstraintDN.Intersect(permittedSubtreesDN, subtrees);
                 break;
             case GeneralName.UniformResourceIdentifier:
                 permittedSubtreesUri = NameConstraintUri.Intersect(permittedSubtreesUri, subtrees);
@@ -575,7 +414,7 @@ namespace Org.BouncyCastle.Pkix
                 permittedSubtreesDns = new HashSet<NameConstraintDns>();
                 break;
             case GeneralName.DirectoryName:
-                permittedSubtreesDN = new HashSet<Asn1Sequence>();
+                permittedSubtreesDN = new HashSet<NameConstraintDN>();
                 break;
             case GeneralName.UniformResourceIdentifier:
                 permittedSubtreesUri = new HashSet<NameConstraintUri>();
@@ -613,7 +452,8 @@ namespace Org.BouncyCastle.Pkix
                     NameConstraintDns.Create(NameConstraintUtilities.ExtractIA5String(nameValue)));
                 break;
             case GeneralName.DirectoryName:
-                excludedSubtreesDN = UnionDN(excludedSubtreesDN, Asn1Sequence.GetInstance(nameValue));
+                excludedSubtreesDN = NameConstraintDN.Union(excludedSubtreesDN,
+                    NameConstraintDN.Create(Asn1Sequence.GetInstance(nameValue)));
                 break;
             case GeneralName.UniformResourceIdentifier:
                 excludedSubtreesUri = NameConstraintUri.Union(excludedSubtreesUri,
