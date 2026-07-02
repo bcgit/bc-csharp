@@ -44,36 +44,39 @@ namespace Org.BouncyCastle.Pkix
 
         #region DN
 
-        public void CheckExcludedDN(Asn1Sequence dn)
-        {
-            CheckExcludedDN(excludedSubtreesDN, dn);
-        }
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckDN(Asn1Sequence dn) => CheckDN(permittedSubtreesDN, excludedSubtreesDN, dn);
 
-        public void CheckPermittedDN(Asn1Sequence dn)
-        {
-            CheckPermittedDN(permittedSubtreesDN, dn);
-        }
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckDN(X509Name dn) => CheckDN(Asn1Sequence.GetInstance(dn.ToAsn1Object()));
 
-        private static void CheckExcludedDN(HashSet<NameConstraintDN> excluded, Asn1Sequence directory)
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckExcludedDN(Asn1Sequence dn) => CheckDN(null, excludedSubtreesDN, dn);
+
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckPermittedDN(Asn1Sequence dn) => CheckDN(permittedSubtreesDN, null, dn);
+
+        private static void CheckDN(HashSet<NameConstraintDN> permitted, HashSet<NameConstraintDN> excluded,
+            Asn1Sequence directory)
         {
-            if (excluded == null)
+            bool checkPermitted = permitted != null && !(directory.Count == 0 && permitted.Count < 1);
+            bool checkExcluded = excluded != null;
+            if (!checkPermitted && !checkExcluded)
                 return;
 
-            if (NameConstraintDN.IsConstrained(excluded, NameConstraintDN.Create(directory)))
-            {
-                throw new PkixNameConstraintValidatorException(
-                    "Subject distinguished name is from an excluded subtree");
-            }
-        }
+            var dn = NameConstraintDN.Create(directory);
 
-        private static void CheckPermittedDN(HashSet<NameConstraintDN> permitted, Asn1Sequence directory)
-        {
-            if (permitted != null
-                && !(directory.Count == 0 && permitted.Count < 1)
-                && !NameConstraintDN.IsConstrained(permitted, NameConstraintDN.Create(directory)))
+            // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
+            if (checkPermitted && !NameConstraintDN.IsConstrained(permitted, dn))
             {
                 throw new PkixNameConstraintValidatorException(
                     "Subject distinguished name is not from a permitted subtree");
+            }
+
+            if (checkExcluded && NameConstraintDN.IsConstrained(excluded, dn))
+            {
+                throw new PkixNameConstraintValidatorException(
+                    "Subject distinguished name is from an excluded subtree");
             }
         }
 
@@ -81,19 +84,15 @@ namespace Org.BouncyCastle.Pkix
 
         #region OtherName
 
-        private static void CheckExcludedOtherName(HashSet<OtherName> excluded, OtherName otherName)
+        private static void CheckOtherName(HashSet<OtherName> permitted, HashSet<OtherName> excluded,
+            OtherName otherName)
         {
-            if (excluded == null)
-                return;
-
-            if (IsOtherNameConstrained(excluded, otherName))
-                throw new PkixNameConstraintValidatorException("OtherName is from an excluded subtree.");
-        }
-
-        private static void CheckPermittedOtherName(HashSet<OtherName> permitted, OtherName otherName)
-        {
+            // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
             if (permitted != null && !IsOtherNameConstrained(permitted, otherName))
                 throw new PkixNameConstraintValidatorException("Subject OtherName is not from a permitted subtree.");
+
+            if (excluded != null && IsOtherNameConstrained(excluded, otherName))
+                throw new PkixNameConstraintValidatorException("OtherName is from an excluded subtree.");
         }
 
         private static bool IsOtherNameConstrained(HashSet<OtherName> constraints, OtherName otherName)
@@ -154,103 +153,107 @@ namespace Org.BouncyCastle.Pkix
 
         #region Email
 
-        public void CheckExcludedEmail(string email) => CheckExcludedEmail(excludedSubtreesEmail, email);
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckEmail(string email) => CheckEmail(permittedSubtreesEmail, excludedSubtreesEmail, email);
 
-        public void CheckPermittedEmail(string email) => CheckPermittedEmail(permittedSubtreesEmail, email);
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckExcludedEmail(string email) => CheckEmail(null, excludedSubtreesEmail, email);
 
-        private static void CheckExcludedEmail(HashSet<NameConstraintEmail> excluded, string email)
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckPermittedEmail(string email) => CheckEmail(permittedSubtreesEmail, null, email);
+
+        private static void CheckEmail(HashSet<NameConstraintEmail> permitted, HashSet<NameConstraintEmail> excluded,
+            string email)
         {
-            if (excluded == null)
+            bool checkPermitted = permitted != null && !(email.Length == 0 && permitted.Count < 1);
+            bool checkExcluded = excluded != null;
+            if (!checkPermitted && !checkExcluded)
                 return;
 
-            if (NameConstraintEmail.IsConstrained(excluded, NameConstraintEmail.Create(email)))
-                throw new PkixNameConstraintValidatorException("Email address is from an excluded subtree.");
-        }
+            var name = NameConstraintEmail.Create(email);
 
-        private static void CheckPermittedEmail(HashSet<NameConstraintEmail> permitted, string email)
-        {
-            if (permitted != null
-                && !(email.Length == 0 && permitted.Count < 1)
-                && !NameConstraintEmail.IsConstrained(permitted, NameConstraintEmail.Create(email)))
+            // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
+            if (checkPermitted && !NameConstraintEmail.IsConstrained(permitted, name))
             {
                 throw new PkixNameConstraintValidatorException(
                     "Subject email address is not from a permitted subtree.");
             }
+
+            if (checkExcluded && NameConstraintEmail.IsConstrained(excluded, name))
+                throw new PkixNameConstraintValidatorException("Email address is from an excluded subtree.");
         }
 
         #endregion
 
         #region IP
 
-        private static void CheckExcludedIP(HashSet<NameConstraintIPRange> excluded, byte[] ip)
+        private static void CheckIP(HashSet<NameConstraintIPRange> permitted, HashSet<NameConstraintIPRange> excluded,
+            byte[] ip)
         {
             // Strict-when-constrained: NameConstraintIPAddress.Create validates the name's structure
-            // (throwing, fail-closed), but only once there are constraints to check it against. An
-            // "always strict" policy would construct (and so validate) the name before this guard.
-            if (excluded == null)
+            // (throwing, fail-closed), but only once there are constraints (in either direction) to check
+            // it against. An "always strict" policy would construct (and so validate) the name before
+            // these guards. NOTE: the historical escape that allowed an EMPTY iPAddress name past an
+            // emptied permitted set is gone; Create rejects it, fail-closed.
+            bool checkPermitted = permitted != null;
+            bool checkExcluded = excluded != null;
+            if (!checkPermitted && !checkExcluded)
                 return;
 
-            if (NameConstraintIPRange.IsConstrained(excluded, NameConstraintIPAddress.Create(ip)))
-                throw new PkixNameConstraintValidatorException("IP is from an excluded subtree.");
-        }
+            var address = NameConstraintIPAddress.Create(ip);
 
-        private static void CheckPermittedIP(HashSet<NameConstraintIPRange> permitted, byte[] ip)
-        {
-            // Strict-when-constrained: see CheckExcludedIP. NOTE: the historical escape that allowed an
-            // EMPTY iPAddress name past an emptied permitted set is gone; Create rejects it, fail-closed.
-            if (permitted == null)
-                return;
-
-            if (!NameConstraintIPRange.IsConstrained(permitted, NameConstraintIPAddress.Create(ip)))
+            // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
+            if (checkPermitted && !NameConstraintIPRange.IsConstrained(permitted, address))
                 throw new PkixNameConstraintValidatorException("IP is not from a permitted subtree.");
+
+            if (checkExcluded && NameConstraintIPRange.IsConstrained(excluded, address))
+                throw new PkixNameConstraintValidatorException("IP is from an excluded subtree.");
         }
 
         #endregion
 
         #region Dns
 
-        private static void CheckExcludedDns(HashSet<NameConstraintDns> excluded, string dns)
+        private static void CheckDns(HashSet<NameConstraintDns> permitted, HashSet<NameConstraintDns> excluded,
+            string dns)
         {
-            if (excluded == null)
+            bool checkPermitted = permitted != null && !(dns.Length == 0 && permitted.Count < 1);
+            bool checkExcluded = excluded != null;
+            if (!checkPermitted && !checkExcluded)
                 return;
 
-            if (NameConstraintDns.IsConstrained(excluded, NameConstraintDns.Create(dns)))
-                throw new PkixNameConstraintValidatorException("DNS is from an excluded subtree.");
-        }
+            var name = NameConstraintDns.Create(dns);
 
-        private static void CheckPermittedDns(HashSet<NameConstraintDns> permitted, string dns)
-        {
-            if (permitted != null
-                && !(dns.Length == 0 && permitted.Count < 1)
-                && !NameConstraintDns.IsConstrained(permitted, NameConstraintDns.Create(dns)))
-            {
+            // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
+            if (checkPermitted && !NameConstraintDns.IsConstrained(permitted, name))
                 throw new PkixNameConstraintValidatorException("DNS is not from a permitted subtree.");
-            }
+
+            if (checkExcluded && NameConstraintDns.IsConstrained(excluded, name))
+                throw new PkixNameConstraintValidatorException("DNS is from an excluded subtree.");
         }
 
         #endregion
 
         #region Uri
 
-        private static void CheckExcludedUri(HashSet<NameConstraintUri> excluded, string uri)
-        {
-            if (excluded == null)
-                return;
-
-            if (NameConstraintUri.IsConstrained(excluded, NameConstraintUri.FromUri(uri)))
-                throw new PkixNameConstraintValidatorException("URI is from an excluded subtree.");
-        }
-
-        private static void CheckPermittedUri(HashSet<NameConstraintUri> permitted, string uri)
+        private static void CheckUri(HashSet<NameConstraintUri> permitted, HashSet<NameConstraintUri> excluded,
+            string uri)
         {
             // The empty-name escape must test the RAW uri: host extraction can reduce a non-empty URI
             // (e.g. "http://") to an empty host, which must not slip through an emptied permitted set.
-            if (permitted != null
-                && !(uri.Length == 0 && permitted.Count < 1)
-                && !NameConstraintUri.IsConstrained(permitted, NameConstraintUri.FromUri(uri)))
-            {
+            bool checkPermitted = permitted != null && !(uri.Length == 0 && permitted.Count < 1);
+            bool checkExcluded = excluded != null;
+            if (!checkPermitted && !checkExcluded)
+                return;
+
+            var host = NameConstraintUri.FromUri(uri);
+
+            // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
+            if (checkPermitted && !NameConstraintUri.IsConstrained(permitted, host))
                 throw new PkixNameConstraintValidatorException("URI is not from a permitted subtree.");
-            }
+
+            if (checkExcluded && NameConstraintUri.IsConstrained(excluded, host))
+                throw new PkixNameConstraintValidatorException("URI is from an excluded subtree.");
         }
 
         #endregion
@@ -260,6 +263,14 @@ namespace Org.BouncyCastle.Pkix
         public void checkPermitted(GeneralName name) => CheckPermittedName(name);
 
         /**
+         * Checks that the given GeneralName is within the permitted subtrees and not within the excluded
+         * subtrees, converting the name (once) as required. The permitted check is applied before the
+         * excluded check, so for a name violating both it is the permitted violation that is reported.
+         */
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        public void CheckName(GeneralName name) => CheckName(name, checkPermitted: true, checkExcluded: true);
+
+        /**
          * Checks if the given GeneralName is in the permitted ISet.
          *
          * @param name The GeneralName
@@ -267,33 +278,8 @@ namespace Org.BouncyCastle.Pkix
          *          If the <code>name</code>
          */
         /// <exception cref="PkixNameConstraintValidatorException"/>
-        public void CheckPermittedName(GeneralName name)
-        {
-            var nameValue = name.Name;
-
-            switch (name.TagNo)
-            {
-            case GeneralName.OtherName:
-                CheckPermittedOtherName(permittedSubtreesOtherName, OtherName.GetInstance(nameValue));
-                break;
-            case GeneralName.Rfc822Name:
-                CheckPermittedEmail(NameConstraintUtilities.ExtractIA5String(nameValue));
-                break;
-            case GeneralName.DnsName:
-                CheckPermittedDns(permittedSubtreesDns, NameConstraintUtilities.ExtractIA5String(nameValue));
-                break;
-            case GeneralName.DirectoryName:
-                CheckPermittedDN(Asn1Sequence.GetInstance(nameValue));
-                break;
-            case GeneralName.UniformResourceIdentifier:
-                CheckPermittedUri(permittedSubtreesUri, NameConstraintUtilities.ExtractIA5String(nameValue));
-                break;
-            case GeneralName.IPAddress:
-                CheckPermittedIP(permittedSubtreesIP, Asn1OctetString.GetInstance(nameValue).GetOctets());
-                break;
-                // Other tags ignored
-            }
-        }
+        public void CheckPermittedName(GeneralName name) =>
+            CheckName(name, checkPermitted: true, checkExcluded: false);
 
         /// <exception cref="PkixNameConstraintValidatorException"/>
         [Obsolete("Use 'CheckExcludedName' instead")]
@@ -308,29 +294,42 @@ namespace Org.BouncyCastle.Pkix
          *          excluded.
          */
         /// <exception cref="PkixNameConstraintValidatorException"/>
-        public void CheckExcludedName(GeneralName name)
+        public void CheckExcludedName(GeneralName name) =>
+            CheckName(name, checkPermitted: false, checkExcluded: true);
+
+        private void CheckName(GeneralName name, bool checkPermitted, bool checkExcluded)
         {
             var nameValue = name.Name;
 
             switch (name.TagNo)
             {
             case GeneralName.OtherName:
-                CheckExcludedOtherName(excludedSubtreesOtherName, OtherName.GetInstance(nameValue));
+                CheckOtherName(checkPermitted ? permittedSubtreesOtherName : null,
+                    checkExcluded ? excludedSubtreesOtherName : null, OtherName.GetInstance(nameValue));
                 break;
             case GeneralName.Rfc822Name:
-                CheckExcludedEmail(NameConstraintUtilities.ExtractIA5String(nameValue));
+                CheckEmail(checkPermitted ? permittedSubtreesEmail : null,
+                    checkExcluded ? excludedSubtreesEmail : null,
+                    NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.DnsName:
-                CheckExcludedDns(excludedSubtreesDns, NameConstraintUtilities.ExtractIA5String(nameValue));
+                CheckDns(checkPermitted ? permittedSubtreesDns : null,
+                    checkExcluded ? excludedSubtreesDns : null,
+                    NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.DirectoryName:
-                CheckExcludedDN(Asn1Sequence.GetInstance(nameValue));
+                CheckDN(checkPermitted ? permittedSubtreesDN : null,
+                    checkExcluded ? excludedSubtreesDN : null, Asn1Sequence.GetInstance(nameValue));
                 break;
             case GeneralName.UniformResourceIdentifier:
-                CheckExcludedUri(excludedSubtreesUri, NameConstraintUtilities.ExtractIA5String(nameValue));
+                CheckUri(checkPermitted ? permittedSubtreesUri : null,
+                    checkExcluded ? excludedSubtreesUri : null,
+                    NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.IPAddress:
-                CheckExcludedIP(excludedSubtreesIP, Asn1OctetString.GetInstance(nameValue).GetOctets());
+                CheckIP(checkPermitted ? permittedSubtreesIP : null,
+                    checkExcluded ? excludedSubtreesIP : null,
+                    Asn1OctetString.GetInstance(nameValue).GetOctets());
                 break;
                 // Other tags ignored
             }

@@ -290,21 +290,9 @@ namespace Org.BouncyCastle.Pkix
 
             X509Name principal = cert.SubjectDN;
 
-            Asn1Sequence dns;
             try
             {
-                dns = Asn1Sequence.GetInstance(principal.GetEncoded());
-            }
-            catch (Exception e)
-            {
-                throw new PkixCertPathValidatorException(
-                    "Exception extracting subject name when checking subtrees.", e, index);
-            }
-
-            try
-            {
-                nameConstraintValidator.CheckPermittedDN(dns);
-                nameConstraintValidator.CheckExcludedDN(dns);
+                nameConstraintValidator.CheckDN(principal);
             }
             catch (PkixNameConstraintValidatorException e)
             {
@@ -323,12 +311,11 @@ namespace Org.BouncyCastle.Pkix
                     "Subject alternative name extension could not be decoded.", e, index);
             }
 
-            foreach (string email in ExtractEmailAddressesFromSubjectDN(X509Name.GetInstance(dns)))
+            foreach (string email in ExtractEmailAddressesFromSubjectDN(principal))
             {
                 try
                 {
-                    nameConstraintValidator.CheckPermittedEmail(email);
-                    nameConstraintValidator.CheckExcludedEmail(email);
+                    nameConstraintValidator.CheckEmail(email);
                 }
                 catch (PkixNameConstraintValidatorException ex)
                 {
@@ -354,8 +341,7 @@ namespace Org.BouncyCastle.Pkix
                 {
                     try
                     {
-                        nameConstraintValidator.CheckPermittedName(genName);
-                        nameConstraintValidator.CheckExcludedName(genName);
+                        nameConstraintValidator.CheckName(genName);
                     }
                     catch (PkixNameConstraintValidatorException e)
                     {

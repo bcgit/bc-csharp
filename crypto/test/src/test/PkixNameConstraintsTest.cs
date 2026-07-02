@@ -759,6 +759,40 @@ namespace Org.BouncyCastle.Tests
                 "an empty iPAddress name must not use the empty-name escape");
         }
 
+        /// <summary>
+        /// The combined CheckName/CheckDN/CheckEmail methods apply the permitted and excluded checks
+        /// together, converting the name once.
+        /// </summary>
+        [Test]
+        public void CombinedChecks()
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.IntersectPermittedSubtree(new GeneralSubtree(DnsName("example.com")));
+            validator.AddExcludedSubtree(new GeneralSubtree(DnsName("foo.example.com")));
+
+            validator.CheckName(DnsName("bar.example.com"));
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => validator.CheckName(DnsName("foo.example.com")),
+                "an excluded name must fail the combined check");
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => validator.CheckName(DnsName("other.com")),
+                "a non-permitted name must fail the combined check");
+
+            PkixNameConstraintValidator dnValidator = new PkixNameConstraintValidator();
+            dnValidator.IntersectPermittedSubtree(new GeneralSubtree(DirectoryName("O=Org")));
+            dnValidator.CheckDN(new X509Name("O=Org, CN=x"));
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => dnValidator.CheckDN(new X509Name("O=Other, CN=x")),
+                "a non-permitted DN must fail the combined check");
+
+            PkixNameConstraintValidator emailValidator = new PkixNameConstraintValidator();
+            emailValidator.AddExcludedSubtree(new GeneralSubtree(EmailName("bank.com")));
+            emailValidator.CheckEmail("user@safe.com");
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => emailValidator.CheckEmail("ceo@bank.com"),
+                "an excluded email must fail the combined check");
+        }
+
         /// <summary>GSMA SGP.22 v2.5 relaxed directoryName name-constraint matching.</summary>
         /// <remarks>
         /// Gated behind <seealso cref="Properties.X509Sgp22NameConstraints"/>, off by default. With the flag set,
