@@ -32,9 +32,12 @@ namespace Org.BouncyCastle.Pkix
             // a particular mailbox ("local@host"), a host ("host") and a domain (".domain"). Known
             // deviations, deliberately retained (shared with bc-java; revisit only as separate decisions):
             // - "@host" (AtHost) is a legacy exact-host form not in RFC 5280; OpenSSL also honours it.
-            // - The mailbox host is split at the FIRST '@', but a quoted local part may legally contain
-            //   '@' (RFC 2821 4.1.2 Quoted-string), making the LAST '@' the grammar-correct split.
-            //   OpenSSL shares the first-'@' reading, so this is the de-facto ecosystem behaviour.
+            // - The mailbox host is split at the FIRST '@', which is unambiguous only for a single-'@'
+            //   value: a quoted local part may legally contain '@' (RFC 2821 4.1.2 Quoted-string), making
+            //   the LAST '@' the grammar-correct split. Tested names with more than one '@' are rejected
+            //   upstream (see PkixNameConstraintValidator.CheckEmail), so the first-'@' split only runs on
+            //   unambiguous tested names; a constraint may still carry a quoted '@' but is matched by
+            //   whole-string equality, so its split position is immaterial. OpenSSL also splits at first-'@'.
             // - Mailbox matching (see IsConstrained) compares the whole address ignoring case, but
             //   RFC 5280 7.5 wants a case-SENSITIVE local part. Spec-correcting it would match fewer
             //   names, i.e. fail-open for excluded subtrees - the current over-match is the safer error.

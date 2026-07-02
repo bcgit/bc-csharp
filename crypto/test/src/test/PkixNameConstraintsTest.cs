@@ -322,6 +322,11 @@ namespace Org.BouncyCastle.Tests
 
             // An '@' after the path/query/fragment terminator must NOT be read as userinfo; otherwise the
             // host would become the attacker-chosen authority after the '@' and escape the constraint.
+            // The path case is the vector reported as ANT-2026-R05HVR25.
+            Assert.True(
+                IsExcluded(UriName("evil.example"),
+                    UriName("http://evil.example/x@allowed.example")),
+                "'@' in the path must not be treated as userinfo");
             Assert.True(
                 IsExcluded(UriName("competitor.example"),
                     UriName("https://competitor.example?u=x@evil.example")),
@@ -791,6 +796,51 @@ namespace Org.BouncyCastle.Tests
             Assert.Throws<PkixNameConstraintValidatorException>(
                 () => emailValidator.CheckEmail("ceo@bank.com"),
                 "an excluded email must fail the combined check");
+        }
+
+        /// <summary>
+        /// A tested rfc822Name with more than one '@' is ambiguous - a quoted local part may legally
+        /// contain '@' (RFC 5321 sec. 4.1.2), so the domain is after the LAST '@', not the first. Rather than
+        /// split at the first '@' into a wrong host that could evade a constraint, such a name is rejected
+        /// fail-closed when email constraints are present; with none, it is tolerated (strict-when-constrained).
+        /// The <see cref="Properties.X509AllowLenientRfc822Name"/> safety valve restores the legacy parsing.
+        /// </summary>
+        [Test]
+        public void QuotedLocalPartEmailRejected()
+        {
+            // A genuine evil.com mailbox with a quoted local part; a first-'@' split yields host
+            // b"@evil.com, which would slip past the excluded evil.com subtree.
+            Assert.True(IsExcluded(EmailName("evil.com"), EmailName("\"a@b\"@evil.com")),
+                "an ambiguous multi-'@' rfc822Name must be caught (fail-closed) by an excluded constraint");
+
+            // The exact PoC vector from the feedback-crypto report: effective domain (after the last '@')
+            // is excluded.example.com, but a first-'@' split compared evil.com"@excluded.example.com and
+            // missed the excluded subtree.
+            Assert.True(
+                IsExcluded(EmailName("excluded.example.com"),
+                    EmailName("\"user@evil.com\"@excluded.example.com")),
+                "the reported quoted-local-part vector must be caught by the excluded subtree");
+
+            // Any multi-'@' tested name fails closed under a permitted constraint too.
+            Assert.False(IsPermitted(EmailName("bank.com"), EmailName("\"a@b\"@bank.com")),
+                "an ambiguous multi-'@' rfc822Name must not satisfy a permitted constraint");
+
+            // Strict-when-constrained: with no email constraints in play, the ambiguous name is tolerated.
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.CheckPermittedName(EmailName("\"a@b\"@evil.com"));
+            validator.CheckExcludedName(EmailName("\"a@b\"@evil.com"));
+
+            // A normal single-'@' address is unaffected.
+            Assert.False(IsExcluded(EmailName("evil.com"), EmailName("user@safe.com")),
+                "a normal single-'@' address must not be affected");
+
+            // The safety valve restores the legacy lenient parsing: the ambiguous name is no longer
+            // rejected (it falls back to the first-'@' split and simply fails to match, as before the fix).
+            Properties.WithThreadProperty(Properties.X509AllowLenientRfc822Name, bool.TrueString, () =>
+            {
+                Assert.False(IsExcluded(EmailName("evil.com"), EmailName("\"a@b\"@evil.com")),
+                    "the lenient valve must disable the ambiguity rejection");
+            });
         }
 
         /// <summary>GSMA SGP.22 v2.5 relaxed directoryName name-constraint matching.</summary>

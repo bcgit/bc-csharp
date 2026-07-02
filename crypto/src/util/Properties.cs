@@ -82,6 +82,17 @@ namespace Org.BouncyCastle.Utilities
         /// </summary>
         public static readonly string X509Sgp22NameConstraints = "Org.BouncyCastle.X509.Sgp22NameConstraints";
 
+        /// <summary>
+        /// Fall back to the legacy lenient parsing of rfc822Name values in X.509 name-constraint checks. By default the
+        /// validator is strict about rfc822Name conformance; today that means a tested rfc822Name with more than one
+        /// '@' is rejected as ambiguous when email constraints apply (RFC 5321 sec. 4.1.2 allows '@' inside a quoted
+        /// local part, so the domain is not simply the text after the first '@', and a wrong split could evade a
+        /// constraint). When set, that strictness (and any future rfc822Name conformance strictness) is disabled and
+        /// the historical permissive parsing is used instead. Strict is the default; set this only to restore the old
+        /// behaviour. This is a safety valve, not a recommended mode.
+        /// </summary>
+        public static readonly string X509AllowLenientRfc822Name = "Org.BouncyCastle.X509.AllowLenientRfc822Name";
+
         private static readonly ThreadLocal<Dictionary<string, string>> ThreadProperties =
             new ThreadLocal<Dictionary<string, string>>();
 

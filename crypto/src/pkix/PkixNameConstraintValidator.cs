@@ -4,6 +4,7 @@ using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -169,6 +170,16 @@ namespace Org.BouncyCastle.Pkix
             bool checkExcluded = excluded != null;
             if (!checkPermitted && !checkExcluded)
                 return;
+
+            // A tested rfc822Name must have exactly one '@': a quoted local part may legally contain '@'
+            // (RFC 5321 sec. 4.1.2), so more than one is ambiguous and could split into the wrong host, evading
+            // a constraint. Fail closed rather than guess, unless X509AllowLenientRfc822Name opts back in to the
+            // legacy permissive parsing.
+            if (email.IndexOf('@') != email.LastIndexOf('@')
+                && !Properties.GetBoolean(Properties.X509AllowLenientRfc822Name, false))
+            {
+                throw new PkixNameConstraintValidatorException("Subject email address is ambiguous (multiple '@').");
+            }
 
             var name = NameConstraintEmail.Create(email);
 
