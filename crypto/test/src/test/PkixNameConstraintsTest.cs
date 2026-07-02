@@ -348,6 +348,366 @@ namespace Org.BouncyCastle.Tests
                 "an IPv6-range constraint (mask < /96) must not be collapsed to match an IPv4 SAN");
         }
 
+        /// <summary>
+        /// Set-algebra (Intersect*/Union*) canonicalisation guards. When repeated NameConstraints
+        /// extensions along a chain are combined, the pairwise subtree intersection/union must treat
+        /// RFC 1034 trailing-dot variants and IPv4-mapped IPv6 forms (RFC 4291 sec. 2.5.5.2) as the
+        /// names they denote, not as distinct strings/bytes.
+        /// </summary>
+        [Test]
+        public void SetAlgebraTrailingDotDns()
+        {
+            // Intersecting dot and non-dot forms of the same domain must not empty the permitted set.
+            Assert.True(
+                IsPermittedAfterIntersect(DnsName("example.com."), DnsName("example.com"),
+                    DnsName("foo.example.com")),
+                "intersection of trailing-dot and plain forms must keep permitting subdomains");
+
+            // The union of both forms must still catch a subdomain.
+            Assert.True(
+                IsExcludedAfterUnion(DnsName("example.com"), DnsName("example.com."),
+                    DnsName("foo.example.com")),
+                "union of trailing-dot and plain forms must keep excluding subdomains");
+        }
+
+        /// <summary>See <see cref="SetAlgebraTrailingDotDns"/>; the rfc822Name domain form.</summary>
+        [Test]
+        public void SetAlgebraTrailingDotEmailDomainForm()
+        {
+            Assert.True(
+                IsPermittedAfterIntersect(EmailName(".test.com."), EmailName(".test.com"),
+                    EmailName("user@abc.test.com")),
+                "intersection of trailing-dot and plain domain-form email constraints must not be empty");
+        }
+
+        /// <summary>
+        /// Union outcomes must be invariant under trailing-dot variation: whatever form(s) the union
+        /// stores, matching must still catch the plain name.
+        /// </summary>
+        [Test]
+        public void SetAlgebraTrailingDotUnionOutcomes()
+        {
+            Assert.True(
+                IsExcludedAfterUnion(EmailName("test.com"), EmailName("test.com."),
+                    EmailName("user@test.com")),
+                "union of trailing-dot and plain host-form email constraints must keep excluding");
+
+            Assert.True(
+                IsExcludedAfterUnion(UriName("test.de"), UriName("test.de."),
+                    UriName("http://test.de/abc")),
+                "union of trailing-dot and plain URI host constraints must keep excluding");
+        }
+
+        /// <summary>
+        /// The empty-name escape for an emptied permitted URI set applies to the raw name, NOT the
+        /// extracted host: a non-empty URI whose authority is empty must still be rejected.
+        /// </summary>
+        [Test]
+        public void UriEmptyNameEscapeUsesRawString()
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.IntersectEmptyPermittedSubtree(GeneralName.UniformResourceIdentifier);
+
+            // An empty uniformResourceIdentifier name is tolerated against an emptied permitted set.
+            validator.CheckPermittedName(UriName(""));
+
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => validator.CheckPermittedName(UriName("http://")),
+                "a non-empty URI with an empty host must not use the empty-name escape");
+        }
+
+        /// <summary>
+        /// An IP range intersection can itself land on the IPv4-mapped ::ffff:0:0/96 block even when
+        /// neither operand does. The stored intersection must still be treated as (canonicalised to)
+        /// its IPv4 form when matching a 4-byte IPv4 SAN.
+        /// </summary>
+        [Test]
+        public void SetAlgebraIpIntersectionMappedResult()
+        {
+            // Two 32-byte (IPv6) constraints on ::ffff:192.0.2.0, each with a mask that leaves a hole
+            // in the /96 prefix (mask byte 11) so that NEITHER is itself collapsible to IPv4 form.
+            byte[] mappedHoleFE = Bytes(
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, 192, 0, 2, 0,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0x00);
+            byte[] mappedHole01 = Bytes(
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, 192, 0, 2, 0,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF, 0x00);
+
+            // Their intersection ORs the masks back to a full /96 prefix: ::ffff:192.0.2.0/120, i.e.
+            // the IPv4-mapped form of 192.0.2.0/24.
+            Assert.True(
+                IsPermittedAfterIntersect(IPName(mappedHoleFE), IPName(mappedHole01),
+                    IPName(Bytes(192, 0, 2, 5))),
+                "an intersection collapsing to an IPv4-mapped range must match the IPv4 form");
+            Assert.False(
+                IsPermittedAfterIntersect(IPName(mappedHoleFE), IPName(mappedHole01),
+                    IPName(Bytes(198, 51, 100, 5))),
+                "an IPv4 SAN outside the intersected range must not match");
+        }
+
+        /// <summary>
+        /// With no IP constraints in play, a structurally invalid iPAddress SAN passes both checks:
+        /// name-constraint processing only judges names against constraints that exist.
+        /// </summary>
+        [Test]
+        public void UnconstrainedMalformedIpNameTolerated()
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.CheckPermittedName(IPName(Bytes(1, 2, 3, 4, 5)));
+            validator.CheckExcludedName(IPName(Bytes(1, 2, 3, 4, 5)));
+            validator.CheckPermittedName(IPName(Bytes()));
+            validator.CheckExcludedName(IPName(Bytes()));
+        }
+
+        /// <summary>Host comparisons are case-insensitive across all three string-host families.</summary>
+        [Test]
+        public void CaseInsensitiveMatching()
+        {
+            Assert.True(IsExcluded(EmailName("TEST.com"), EmailName("user@test.com")),
+                "an upper-cased host-form email constraint must still catch the lower-case mailbox");
+            Assert.True(IsExcluded(DnsName("EXAMPLE.com"), DnsName("foo.example.com")),
+                "an upper-cased dNSName constraint must still catch a lower-case subdomain");
+            Assert.True(IsExcluded(UriName("HOST.example"), UriName("https://host.example/")),
+                "an upper-cased URI constraint must still catch the lower-case host");
+        }
+
+        /// <summary>
+        /// Validators whose dNSName constraint sets denote the same names (up to case and the RFC 1034
+        /// trailing dot) compare equal: constraints are stored in canonical form with value equality.
+        /// </summary>
+        [Test]
+        public void ValidatorEqualityCanonicalDns()
+        {
+            PkixNameConstraintValidator a = new PkixNameConstraintValidator();
+            a.AddExcludedSubtree(new GeneralSubtree(DnsName("Example.COM.")));
+
+            PkixNameConstraintValidator b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(DnsName("example.com")));
+
+            Assert.AreEqual(a, b, "excluded dNSName sets differing by case/trailing dot must compare equal");
+            Assert.AreEqual(a.GetHashCode(), b.GetHashCode(), "hash codes must agree for equal validators");
+        }
+
+        /// <summary>
+        /// Intersecting host-form email constraints that differ only by the RFC 1034 trailing dot must
+        /// not produce an empty permitted set (they denote the same host).
+        /// </summary>
+        [Test]
+        public void SetAlgebraTrailingDotEmailHostForm()
+        {
+            Assert.True(
+                IsPermittedAfterIntersect(EmailName("test.com."), EmailName("test.com"),
+                    EmailName("user@test.com")),
+                "intersection of trailing-dot and plain host-form email constraints must not be empty");
+        }
+
+        /// <summary>See <see cref="SetAlgebraTrailingDotEmailHostForm"/>; the particular-mailbox form.</summary>
+        [Test]
+        public void SetAlgebraTrailingDotEmailMailboxForm()
+        {
+            Assert.True(
+                IsPermittedAfterIntersect(EmailName("u@test.com."), EmailName("u@test.com"),
+                    EmailName("u@test.com")),
+                "intersection of trailing-dot and plain mailbox constraints must not be empty");
+        }
+
+        /// <summary>
+        /// As <see cref="ValidatorEqualityCanonicalDns"/> for rfc822Name, including dedup on the union
+        /// path: adding a case/dot variant of an already-excluded constraint must not grow the set.
+        /// </summary>
+        [Test]
+        public void ValidatorEqualityCanonicalEmail()
+        {
+            PkixNameConstraintValidator a = new PkixNameConstraintValidator();
+            a.AddExcludedSubtree(new GeneralSubtree(EmailName("test.com")));
+            a.AddExcludedSubtree(new GeneralSubtree(EmailName("TEST.COM.")));
+
+            PkixNameConstraintValidator b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(EmailName("test.com")));
+
+            Assert.AreEqual(a, b, "excluded email sets differing by case/trailing dot must compare equal");
+            Assert.AreEqual(a.GetHashCode(), b.GetHashCode(), "hash codes must agree for equal validators");
+        }
+
+        /// <summary>
+        /// Intersecting URI host constraints that differ only by the RFC 1034 trailing dot must not
+        /// produce an empty permitted set (they denote the same host).
+        /// </summary>
+        [Test]
+        public void SetAlgebraTrailingDotUriHostForm()
+        {
+            Assert.True(
+                IsPermittedAfterIntersect(UriName("test.de."), UriName("test.de"),
+                    UriName("http://test.de/abc")),
+                "intersection of trailing-dot and plain URI host constraints must not be empty");
+        }
+
+        /// <summary>As <see cref="ValidatorEqualityCanonicalDns"/> for uniformResourceIdentifier.</summary>
+        [Test]
+        public void ValidatorEqualityCanonicalUri()
+        {
+            PkixNameConstraintValidator a = new PkixNameConstraintValidator();
+            a.AddExcludedSubtree(new GeneralSubtree(UriName("Test.DE.")));
+
+            PkixNameConstraintValidator b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(UriName("test.de")));
+
+            Assert.AreEqual(a, b, "excluded URI sets differing by case/trailing dot must compare equal");
+            Assert.AreEqual(a.GetHashCode(), b.GetHashCode(), "hash codes must agree for equal validators");
+        }
+
+        /// <summary>
+        /// The legacy "@host" rfc822Name constraint form matches a mailbox on exactly that host - not
+        /// subdomains - and canonicalises like the other forms.
+        /// </summary>
+        [Test]
+        public void EmailAtHostConstraintForm()
+        {
+            Assert.True(IsPermitted(EmailName("@abc.test.com"), EmailName("test@abc.test.com")),
+                "an @host constraint must permit a mailbox on that exact host");
+            Assert.True(IsExcluded(EmailName("@abc.test.com"), EmailName("test@abc.test.com")),
+                "an @host constraint must exclude a mailbox on that exact host");
+            Assert.False(IsExcluded(EmailName("@test.com"), EmailName("test@abc.test.com")),
+                "an @host constraint must not match subdomain hosts");
+
+            // RFC 1034 trailing-dot canonicalisation applies to the @host form too.
+            Assert.True(IsExcluded(EmailName("@abc.test.com."), EmailName("test@abc.test.com")),
+                "a trailing-dot @host constraint must still match");
+
+            // Set algebra groups @host with the particular-address forms.
+            Assert.True(
+                IsPermittedAfterIntersect(EmailName("@test.com"), EmailName("@test.com"),
+                    EmailName("u@test.com")),
+                "intersecting identical @host constraints must not empty the permitted set");
+        }
+
+        /// <summary>
+        /// A uniformResourceIdentifier constraint containing '@' can never match: the tested name's host
+        /// is extracted with the userinfo stripped (RFC 3986 sec. 3.2), so it cannot contain '@', and the
+        /// host comparison is against the whole constraint string. Pin that such constraints stay inert
+        /// in matching (they participate only in the subtree set algebra).
+        /// </summary>
+        [Test]
+        public void UriAtConstraintFormsAreInert()
+        {
+            Assert.False(IsExcluded(UriName("user@test.de"), UriName("http://user@test.de/x")),
+                "a mailbox-shaped URI constraint must not match the host after its '@'");
+            Assert.False(IsPermitted(UriName("user@test.de"), UriName("http://test.de/x")),
+                "a mailbox-shaped URI constraint must not permit the host after its '@'");
+
+            Assert.False(IsExcluded(UriName("@test.de"), UriName("http://user@test.de/x")),
+                "an @host-shaped URI constraint must not match the host after its '@'");
+            Assert.False(IsPermitted(UriName("@test.de"), UriName("http://test.de/x")),
+                "an @host-shaped URI constraint must not permit the host after its '@'");
+        }
+
+        /// <summary>
+        /// Intersecting the same IPv4 range expressed as an 8-byte IPv4 constraint and as a 32-byte
+        /// IPv4-mapped IPv6 constraint (RFC 4291 sec. 2.5.5.2) must not produce an empty permitted set.
+        /// </summary>
+        [Test]
+        public void SetAlgebraMappedIpIntersection()
+        {
+            byte[] ipv4Cidr24 = Bytes(192, 0, 2, 0, 0xFF, 0xFF, 0xFF, 0x00);
+            byte[] mappedCidr24 = Bytes(
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, 192, 0, 2, 0,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00);
+
+            Assert.True(
+                IsPermittedAfterIntersect(IPName(mappedCidr24), IPName(ipv4Cidr24), IPName(Bytes(192, 0, 2, 5))),
+                "mapped and plain IPv4 forms of the same range must intersect");
+            Assert.False(
+                IsPermittedAfterIntersect(IPName(mappedCidr24), IPName(ipv4Cidr24),
+                    IPName(Bytes(198, 51, 100, 5))),
+                "an IPv4 SAN outside the intersected range must not match");
+        }
+
+        /// <summary>
+        /// As <see cref="ValidatorEqualityCanonicalDns"/> for iPAddress: mapped and plain forms of the
+        /// same range compare equal and dedupe within one extension.
+        /// </summary>
+        [Test]
+        public void ValidatorEqualityCanonicalIp()
+        {
+            byte[] ipv4Cidr24 = Bytes(192, 0, 2, 0, 0xFF, 0xFF, 0xFF, 0x00);
+            byte[] mappedCidr24 = Bytes(
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, 192, 0, 2, 0,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00);
+
+            PkixNameConstraintValidator a = new PkixNameConstraintValidator();
+            a.AddExcludedSubtree(new GeneralSubtree(IPName(mappedCidr24)));
+
+            PkixNameConstraintValidator b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(IPName(ipv4Cidr24)));
+
+            Assert.AreEqual(a, b, "mapped and plain forms of the same excluded range must compare equal");
+            Assert.AreEqual(a.GetHashCode(), b.GetHashCode(), "hash codes must agree for equal validators");
+
+            PkixNameConstraintValidator c = new PkixNameConstraintValidator();
+            c.IntersectPermittedSubtree(new DerSequence(
+                new GeneralSubtree(IPName(mappedCidr24)), new GeneralSubtree(IPName(ipv4Cidr24))));
+
+            PkixNameConstraintValidator d = new PkixNameConstraintValidator();
+            d.IntersectPermittedSubtree(new GeneralSubtree(IPName(ipv4Cidr24)));
+
+            Assert.AreEqual(c, d, "duplicate mapped/plain permitted constraints must dedupe");
+        }
+
+        /// <summary>Structurally invalid iPAddress constraints are rejected (fail-closed) at registration.</summary>
+        [Test]
+        public void MalformedIpConstraintRejected()
+        {
+            byte[][] malformed = {
+                Bytes(),
+                Bytes(1, 2, 3, 4, 0xFF, 0xFF, 0xFF),
+                Bytes(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16),
+            };
+            foreach (byte[] octets in malformed)
+            {
+                PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+                Assert.Throws<PkixNameConstraintValidatorException>(
+                    () => validator.AddExcludedSubtree(new GeneralSubtree(IPName(octets))),
+                    "excluding a malformed iPAddress constraint must be rejected");
+                Assert.Throws<PkixNameConstraintValidatorException>(
+                    () => validator.IntersectPermittedSubtree(new GeneralSubtree(IPName(octets))),
+                    "permitting a malformed iPAddress constraint must be rejected");
+            }
+        }
+
+        /// <summary>
+        /// With IP constraints present, a structurally invalid iPAddress SAN is rejected (fail-closed)
+        /// instead of silently failing to match - which, for an excluded subtree, was fail-open.
+        /// </summary>
+        [Test]
+        public void MalformedIpNameRejectedWhenConstrained()
+        {
+            byte[] ipv4Cidr24 = Bytes(192, 0, 2, 0, 0xFF, 0xFF, 0xFF, 0x00);
+            byte[] malformed = Bytes(1, 2, 3, 4, 5);
+
+            PkixNameConstraintValidator excluding = new PkixNameConstraintValidator();
+            excluding.AddExcludedSubtree(new GeneralSubtree(IPName(ipv4Cidr24)));
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => excluding.CheckExcludedName(IPName(malformed)),
+                "a malformed iPAddress SAN must not escape a non-empty excluded set");
+
+            PkixNameConstraintValidator permitting = new PkixNameConstraintValidator();
+            permitting.IntersectPermittedSubtree(new GeneralSubtree(IPName(ipv4Cidr24)));
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => permitting.CheckPermittedName(IPName(malformed)),
+                "a malformed iPAddress SAN must not satisfy a permitted set");
+        }
+
+        /// <summary>The empty-iPAddress escape past an emptied permitted set is gone (fail-closed).</summary>
+        [Test]
+        public void EmptyIpNameNoLongerEscapes()
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.IntersectEmptyPermittedSubtree(GeneralName.IPAddress);
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => validator.CheckPermittedName(IPName(Bytes())),
+                "an empty iPAddress name must not use the empty-name escape");
+        }
+
         /// <summary>GSMA SGP.22 v2.5 relaxed directoryName name-constraint matching.</summary>
         /// <remarks>
         /// Gated behind <seealso cref="Properties.X509Sgp22NameConstraints"/>, off by default. With the flag set,
@@ -443,6 +803,38 @@ namespace Org.BouncyCastle.Tests
         {
             PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
             validator.AddExcludedSubtree(new GeneralSubtree(excluded));
+            try
+            {
+                validator.CheckExcludedName(name);
+                return false;
+            }
+            catch (PkixNameConstraintValidatorException)
+            {
+                return true;
+            }
+        }
+
+        private static bool IsPermittedAfterIntersect(GeneralName first, GeneralName second, GeneralName subject)
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.IntersectPermittedSubtree(new GeneralSubtree(first));
+            validator.IntersectPermittedSubtree(new GeneralSubtree(second));
+            try
+            {
+                validator.CheckPermittedName(subject);
+                return true;
+            }
+            catch (PkixNameConstraintValidatorException)
+            {
+                return false;
+            }
+        }
+
+        private static bool IsExcludedAfterUnion(GeneralName first, GeneralName second, GeneralName name)
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.AddExcludedSubtree(new GeneralSubtree(first));
+            validator.AddExcludedSubtree(new GeneralSubtree(second));
             try
             {
                 validator.CheckExcludedName(name);
