@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Pkix
             var intersect = new HashSet<NameConstraintUri>();
             foreach (GeneralSubtree subtree in subtrees)
             {
-                var uri = FromConstraint(NameConstraintUtilities.ExtractNameAsString(subtree));
+                var uri = FromConstraint(NameConstraintUtilities.ExtractIA5String(subtree));
 
                 if (permitted == null)
                 {

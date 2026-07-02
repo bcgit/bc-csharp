@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Pkix
             var intersect = new HashSet<NameConstraintEmail>();
             foreach (GeneralSubtree subtree in subtrees)
             {
-                var email = Create(NameConstraintUtilities.ExtractNameAsString(subtree));
+                var email = Create(NameConstraintUtilities.ExtractIA5String(subtree));
 
                 if (permitted == null)
                 {

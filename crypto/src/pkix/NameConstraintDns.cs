@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Pkix
             var intersect = new HashSet<NameConstraintDns>();
             foreach (GeneralSubtree subtree in subtrees)
             {
-                var dns = Create(NameConstraintUtilities.ExtractNameAsString(subtree));
+                var dns = Create(NameConstraintUtilities.ExtractIA5String(subtree));
 
                 if (permitted == null)
                 {

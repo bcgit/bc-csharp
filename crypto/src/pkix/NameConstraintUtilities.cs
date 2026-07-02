@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
@@ -57,9 +58,22 @@ namespace Org.BouncyCastle.Pkix
             return sub;
         }
 
-        internal static string ExtractNameAsString(GeneralSubtree subtree) => ExtractNameAsString(subtree.Base.Name);
+        internal static string ExtractIA5String(GeneralSubtree subtree)
+        {
+            GeneralName baseName = subtree.Base;
+            Debug.Assert(baseName.TagNo == GeneralName.Rfc822Name
+                || baseName.TagNo == GeneralName.DnsName
+                || baseName.TagNo == GeneralName.UniformResourceIdentifier);
+            return ExtractIA5String(baseName.Name);
+        }
 
-        internal static string ExtractNameAsString(Asn1Encodable nameValue) =>
+        /// <summary>
+        /// Reads a GeneralName value as an IA5String. Only valid for the IA5String-valued GeneralName
+        /// choices - rfc822Name, dNSName and uniformResourceIdentifier - so callers must dispatch on the
+        /// tag first; any other value throws the same ArgumentException a malformed name would, propagating
+        /// per the call site's exception policy.
+        /// </summary>
+        internal static string ExtractIA5String(Asn1Encodable nameValue) =>
             DerIA5String.GetInstance(nameValue).GetString();
 
         /// <summary>

@@ -14,8 +14,6 @@ namespace Org.BouncyCastle.Pkix
 {
     public class PkixNameConstraintValidator
     {
-        private static readonly DerObjectIdentifier SerialNumberOid = X509Name.SerialNumber;
-
         // The excluded* fields are null until the first excluded subtree of that family is added, and never
         // empty once created (unions only grow). The permitted* fields are null while the family is
         // unconstrained, and empty when nothing of that family is permitted.
@@ -440,16 +438,16 @@ namespace Org.BouncyCastle.Pkix
                 CheckPermittedOtherName(permittedSubtreesOtherName, OtherName.GetInstance(nameValue));
                 break;
             case GeneralName.Rfc822Name:
-                CheckPermittedEmail(NameConstraintUtilities.ExtractNameAsString(nameValue));
+                CheckPermittedEmail(NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.DnsName:
-                CheckPermittedDns(permittedSubtreesDns, NameConstraintUtilities.ExtractNameAsString(nameValue));
+                CheckPermittedDns(permittedSubtreesDns, NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.DirectoryName:
                 CheckPermittedDN(Asn1Sequence.GetInstance(nameValue));
                 break;
             case GeneralName.UniformResourceIdentifier:
-                CheckPermittedUri(permittedSubtreesUri, NameConstraintUtilities.ExtractNameAsString(nameValue));
+                CheckPermittedUri(permittedSubtreesUri, NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.IPAddress:
                 CheckPermittedIP(permittedSubtreesIP, Asn1OctetString.GetInstance(nameValue).GetOctets());
@@ -481,16 +479,16 @@ namespace Org.BouncyCastle.Pkix
                 CheckExcludedOtherName(excludedSubtreesOtherName, OtherName.GetInstance(nameValue));
                 break;
             case GeneralName.Rfc822Name:
-                CheckExcludedEmail(NameConstraintUtilities.ExtractNameAsString(nameValue));
+                CheckExcludedEmail(NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.DnsName:
-                CheckExcludedDns(excludedSubtreesDns, NameConstraintUtilities.ExtractNameAsString(nameValue));
+                CheckExcludedDns(excludedSubtreesDns, NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.DirectoryName:
                 CheckExcludedDN(Asn1Sequence.GetInstance(nameValue));
                 break;
             case GeneralName.UniformResourceIdentifier:
-                CheckExcludedUri(excludedSubtreesUri, NameConstraintUtilities.ExtractNameAsString(nameValue));
+                CheckExcludedUri(excludedSubtreesUri, NameConstraintUtilities.ExtractIA5String(nameValue));
                 break;
             case GeneralName.IPAddress:
                 CheckExcludedIP(excludedSubtreesIP, Asn1OctetString.GetInstance(nameValue).GetOctets());
@@ -608,18 +606,18 @@ namespace Org.BouncyCastle.Pkix
                 break;
             case GeneralName.Rfc822Name:
                 excludedSubtreesEmail = NameConstraintEmail.Union(excludedSubtreesEmail,
-                    NameConstraintEmail.Create(NameConstraintUtilities.ExtractNameAsString(nameValue)));
+                    NameConstraintEmail.Create(NameConstraintUtilities.ExtractIA5String(nameValue)));
                 break;
             case GeneralName.DnsName:
                 excludedSubtreesDns = NameConstraintDns.Union(excludedSubtreesDns,
-                    NameConstraintDns.Create(NameConstraintUtilities.ExtractNameAsString(nameValue)));
+                    NameConstraintDns.Create(NameConstraintUtilities.ExtractIA5String(nameValue)));
                 break;
             case GeneralName.DirectoryName:
                 excludedSubtreesDN = UnionDN(excludedSubtreesDN, Asn1Sequence.GetInstance(nameValue));
                 break;
             case GeneralName.UniformResourceIdentifier:
                 excludedSubtreesUri = NameConstraintUri.Union(excludedSubtreesUri,
-                    NameConstraintUri.FromConstraint(NameConstraintUtilities.ExtractNameAsString(nameValue)));
+                    NameConstraintUri.FromConstraint(NameConstraintUtilities.ExtractIA5String(nameValue)));
                 break;
             case GeneralName.IPAddress:
                 excludedSubtreesIP = NameConstraintIPRange.Union(excludedSubtreesIP,
@@ -688,34 +686,46 @@ namespace Org.BouncyCastle.Pkix
             return true;
         }
 
-        private static string StringifyIPCollection(HashSet<NameConstraintIPRange> ips)
+        private static string StringifyCollection<T>(HashSet<T> c)
         {
-            string temp = "";
-            temp += "[";
-            foreach (var ip in ips)
+            // Unspecified HashSet enumeration order is acceptable in an informational message; avoid
+            // relying on, or trying to pin, the ordering.
+            StringBuilder sb = new StringBuilder("[");
+            var en = c.GetEnumerator();
+            if (en.MoveNext())
             {
-                temp += ip + ",";
+                for (;;)
+                {
+                    sb.Append(en.Current);
+
+                    if (!en.MoveNext())
+                        break;
+
+                    sb.Append(", ");
+                }
             }
-            if (temp.Length > 1)
-            {
-                temp = temp.Substring(0, temp.Length - 1);
-            }
-            temp += "]";
-            return temp;
+            sb.Append(']');
+            return sb.ToString();
         }
 
-        private static string StringifyOtherNameCollection(HashSet<OtherName> otherNames)
+        private static string StringifyOtherNames(HashSet<OtherName> otherNames)
         {
-            StringBuilder sb = new StringBuilder('[');
-            foreach (OtherName otherName in otherNames)
+            StringBuilder sb = new StringBuilder("[");
+            var en = otherNames.GetEnumerator();
+            if (en.MoveNext())
             {
-                if (sb.Length > 1)
+                for (;;)
                 {
-                    sb.Append(',');
+                    OtherName otherName = en.Current;
+                    sb.Append(otherName.TypeID.Id);
+                    sb.Append(':');
+                    sb.Append(Hex.ToHexString(otherName.Value.GetEncoded()));
+
+                    if (!en.MoveNext())
+                        break;
+
+                    sb.Append(", ");
                 }
-                sb.Append(otherName.TypeID.Id);
-                sb.Append(':');
-                sb.Append(Hex.ToHexString(otherName.Value.GetEncoded()));
             }
             sb.Append(']');
             return sb.ToString();
@@ -727,57 +737,57 @@ namespace Org.BouncyCastle.Pkix
             sb.AppendLine();
             if (permittedSubtreesDN != null)
             {
-                Append(sb, "DN", permittedSubtreesDN);
+                Append(sb, "DN", StringifyCollection(permittedSubtreesDN));
             }
             if (permittedSubtreesDns != null)
             {
-                Append(sb, "DNS", permittedSubtreesDns);
+                Append(sb, "DNS", StringifyCollection(permittedSubtreesDns));
             }
             if (permittedSubtreesEmail != null)
             {
-                Append(sb, "Email", permittedSubtreesEmail);
+                Append(sb, "Email", StringifyCollection(permittedSubtreesEmail));
             }
             if (permittedSubtreesUri != null)
             {
-                Append(sb, "URI", permittedSubtreesUri);
+                Append(sb, "URI", StringifyCollection(permittedSubtreesUri));
             }
             if (permittedSubtreesIP != null)
             {
-                Append(sb, "IP", StringifyIPCollection(permittedSubtreesIP));
+                Append(sb, "IP", StringifyCollection(permittedSubtreesIP));
             }
             if (permittedSubtreesOtherName != null)
             {
-                Append(sb, "OtherName", StringifyOtherNameCollection(permittedSubtreesOtherName));
+                Append(sb, "OtherName", StringifyOtherNames(permittedSubtreesOtherName));
             }
             sb.AppendLine("excluded:");
             if (excludedSubtreesDN != null)
             {
-                Append(sb, "DN", excludedSubtreesDN);
+                Append(sb, "DN", StringifyCollection(excludedSubtreesDN));
             }
             if (excludedSubtreesDns != null)
             {
-                Append(sb, "DNS", excludedSubtreesDns);
+                Append(sb, "DNS", StringifyCollection(excludedSubtreesDns));
             }
             if (excludedSubtreesEmail != null)
             {
-                Append(sb, "Email", excludedSubtreesEmail);
+                Append(sb, "Email", StringifyCollection(excludedSubtreesEmail));
             }
             if (excludedSubtreesUri != null)
             {
-                Append(sb, "URI", excludedSubtreesUri);
+                Append(sb, "URI", StringifyCollection(excludedSubtreesUri));
             }
             if (excludedSubtreesIP != null)
             {
-                Append(sb, "IP", StringifyIPCollection(excludedSubtreesIP));
+                Append(sb, "IP", StringifyCollection(excludedSubtreesIP));
             }
             if (excludedSubtreesOtherName != null)
             {
-                Append(sb, "OtherName", StringifyOtherNameCollection(excludedSubtreesOtherName));
+                Append(sb, "OtherName", StringifyOtherNames(excludedSubtreesOtherName));
             }
             return sb.ToString();
         }
 
-        private static void Append(StringBuilder sb, string name, object value)
+        private static void Append(StringBuilder sb, string name, string value)
         {
             sb.Append(name);
             sb.AppendLine(":");
