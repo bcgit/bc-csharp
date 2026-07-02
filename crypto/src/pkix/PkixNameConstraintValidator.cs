@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Pkix
 
         private HashSet<NameConstraintUri> excludedSubtreesUri;
 
-        private HashSet<NameConstraintIP> excludedSubtreesIP;
+        private HashSet<NameConstraintIPRange> excludedSubtreesIP;
 
         private HashSet<OtherName> excludedSubtreesOtherName;
 
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pkix
 
         private HashSet<NameConstraintUri> permittedSubtreesUri;
 
-        private HashSet<NameConstraintIP> permittedSubtreesIP;
+        private HashSet<NameConstraintIPRange> permittedSubtreesIP;
 
         private HashSet<OtherName> permittedSubtreesOtherName;
 
@@ -345,26 +345,26 @@ namespace Org.BouncyCastle.Pkix
 
         #region IP
 
-        private static void CheckExcludedIP(HashSet<NameConstraintIP> excluded, byte[] ip)
+        private static void CheckExcludedIP(HashSet<NameConstraintIPRange> excluded, byte[] ip)
         {
-            // Strict-when-constrained: FromName validates the name's structure (throwing, fail-closed),
-            // but only once there are constraints to check it against. An "always strict" policy would
-            // construct (and so validate) the name before this guard.
+            // Strict-when-constrained: NameConstraintIPAddress.Create validates the name's structure
+            // (throwing, fail-closed), but only once there are constraints to check it against. An
+            // "always strict" policy would construct (and so validate) the name before this guard.
             if (excluded == null)
                 return;
 
-            if (NameConstraintIP.IsConstrained(excluded, NameConstraintIP.FromName(ip)))
+            if (NameConstraintIPRange.IsConstrained(excluded, NameConstraintIPAddress.Create(ip)))
                 throw new PkixNameConstraintValidatorException("IP is from an excluded subtree.");
         }
 
-        private static void CheckPermittedIP(HashSet<NameConstraintIP> permitted, byte[] ip)
+        private static void CheckPermittedIP(HashSet<NameConstraintIPRange> permitted, byte[] ip)
         {
             // Strict-when-constrained: see CheckExcludedIP. NOTE: the historical escape that allowed an
-            // EMPTY iPAddress name past an emptied permitted set is gone; FromName rejects it, fail-closed.
+            // EMPTY iPAddress name past an emptied permitted set is gone; Create rejects it, fail-closed.
             if (permitted == null)
                 return;
 
-            if (!NameConstraintIP.IsConstrained(permitted, NameConstraintIP.FromName(ip)))
+            if (!NameConstraintIPRange.IsConstrained(permitted, NameConstraintIPAddress.Create(ip)))
                 throw new PkixNameConstraintValidatorException("IP is not from a permitted subtree.");
         }
 
@@ -556,7 +556,7 @@ namespace Org.BouncyCastle.Pkix
                 permittedSubtreesUri = NameConstraintUri.Intersect(permittedSubtreesUri, subtrees);
                 break;
             case GeneralName.IPAddress:
-                permittedSubtreesIP = NameConstraintIP.Intersect(permittedSubtreesIP, subtrees);
+                permittedSubtreesIP = NameConstraintIPRange.Intersect(permittedSubtreesIP, subtrees);
                 break;
             default:
                 throw new InvalidOperationException("Unknown tag encountered: " + nameType);
@@ -583,7 +583,7 @@ namespace Org.BouncyCastle.Pkix
                 permittedSubtreesUri = new HashSet<NameConstraintUri>();
                 break;
             case GeneralName.IPAddress:
-                permittedSubtreesIP = new HashSet<NameConstraintIP>();
+                permittedSubtreesIP = new HashSet<NameConstraintIPRange>();
                 break;
             default:
                 throw new InvalidOperationException("Unknown tag encountered: " + nameType);
@@ -622,8 +622,8 @@ namespace Org.BouncyCastle.Pkix
                     NameConstraintUri.FromConstraint(NameConstraintUtilities.ExtractNameAsString(nameValue)));
                 break;
             case GeneralName.IPAddress:
-                excludedSubtreesIP = NameConstraintIP.Union(excludedSubtreesIP,
-                    NameConstraintIP.FromConstraint(Asn1OctetString.GetInstance(nameValue).GetOctets()));
+                excludedSubtreesIP = NameConstraintIPRange.Union(excludedSubtreesIP,
+                    NameConstraintIPRange.Create(Asn1OctetString.GetInstance(nameValue).GetOctets()));
                 break;
             default:
                 throw new InvalidOperationException("Unknown tag encountered: " + subtreeBase.TagNo);
@@ -688,7 +688,7 @@ namespace Org.BouncyCastle.Pkix
             return true;
         }
 
-        private static string StringifyIPCollection(HashSet<NameConstraintIP> ips)
+        private static string StringifyIPCollection(HashSet<NameConstraintIPRange> ips)
         {
             string temp = "";
             temp += "[";

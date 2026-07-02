@@ -7,55 +7,45 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkix
 {
-    /// <summary>An iPAddress (tested address or constraint) in canonical form for name-constraint processing.</summary>
+    /// <summary>An iPAddress constraint (base address || subnet mask) in canonical form for name-constraint
+    /// processing.</summary>
     /// <remarks>
-    /// Construction is the only way in, and it both canonicalises and validates. An IPv4-mapped IPv6 address
-    /// (RFC 4291 sec. 2.5.5.2) is reduced to its 4-byte IPv4 form; a 32-byte constraint whose mask covers the
-    /// full <c>::ffff:0:0/96</c> prefix is likewise reduced to 8 bytes. A tested address must then be 4 or 16
-    /// bytes, and a constraint (address || subnet mask) 8 or 32 bytes: anything else throws
-    /// <see cref="PkixNameConstraintValidatorException"/>, so a structurally invalid iPAddress fails closed
-    /// (the certificate path is rejected) instead of silently failing to match - which, for an excluded
-    /// subtree, was fail-open. Equality and hashing are content-based.
+    /// Construction is the only way in, and it both canonicalises and validates: a 32-byte constraint whose
+    /// address half is IPv4-mapped (RFC 4291 sec. 2.5.5.2) and whose mask covers the full
+    /// <c>::ffff:0:0/96</c> prefix is reduced to the 8-byte IPv4 form, and the result must then be 8 or 32
+    /// bytes - anything else throws <see cref="PkixNameConstraintValidatorException"/>, so a structurally
+    /// invalid constraint fails closed (the certificate path is rejected) instead of being stored inert.
+    /// Equality and hashing are content-based. Tested addresses are the separate (transient)
+    /// <see cref="NameConstraintIPAddress"/> type.
     /// </remarks>
-    internal readonly struct NameConstraintIP
-        : IEquatable<NameConstraintIP>
+    internal readonly struct NameConstraintIPRange
+        : IEquatable<NameConstraintIPRange>
     {
         /// <exception cref="PkixNameConstraintValidatorException"/>
-        internal static NameConstraintIP FromName(byte[] octets)
-        {
-            byte[] canonical = NormalizeIPv4MappedIPv6Address(octets);
-            int length = canonical.Length;
-            if (length != 4 && length != 16)
-                throw new PkixNameConstraintValidatorException("iPAddress name has invalid length: " + length);
-
-            return new NameConstraintIP(canonical);
-        }
-
-        /// <exception cref="PkixNameConstraintValidatorException"/>
-        internal static NameConstraintIP FromConstraint(byte[] octets)
+        internal static NameConstraintIPRange Create(byte[] octets)
         {
             byte[] canonical = NormalizeIPv4MappedIPv6Constraint(octets);
             int length = canonical.Length;
             if (length != 8 && length != 32)
                 throw new PkixNameConstraintValidatorException("iPAddress constraint has invalid length: " + length);
 
-            return new NameConstraintIP(canonical);
+            return new NameConstraintIPRange(canonical);
         }
 
         private readonly byte[] m_bytes;
 
-        private NameConstraintIP(byte[] bytes)
+        private NameConstraintIPRange(byte[] bytes)
         {
             m_bytes = bytes;
         }
 
-        public bool Equals(NameConstraintIP other) => Arrays.AreEqual(m_bytes, other.m_bytes);
+        public bool Equals(NameConstraintIPRange other) => Arrays.AreEqual(m_bytes, other.m_bytes);
 
-        public override bool Equals(object obj) => obj is NameConstraintIP other && Equals(other);
+        public override bool Equals(object obj) => obj is NameConstraintIPRange other && Equals(other);
 
         public override int GetHashCode() => Arrays.GetHashCode(m_bytes);
 
-        /// <summary>Stringifies the constraint form: dotted address bytes, '/', dotted subnet mask bytes.</summary>
+        /// <summary>Stringifies as dotted address bytes, '/', dotted subnet mask bytes.</summary>
         public override string ToString()
         {
             string temp = "";
@@ -73,7 +63,7 @@ namespace Org.BouncyCastle.Pkix
             return temp;
         }
 
-        internal static bool IsConstrained(HashSet<NameConstraintIP> constraints, NameConstraintIP ip)
+        internal static bool IsConstrained(HashSet<NameConstraintIPRange> constraints, NameConstraintIPAddress ip)
         {
             foreach (var constraint in constraints)
             {
@@ -86,14 +76,13 @@ namespace Org.BouncyCastle.Pkix
 
         /**
          * Checks if the IP address <code>ip</code> is constrained by
-         * <code>constraint</code> (an IP address concatenated with its subnet
-         * mask). Both are canonical by construction - IPv4-mapped IPv6 forms
-         * already reduced - so the length pre-filter compares like-for-like
-         * address families.
+         * <code>constraint</code>. Both are canonical by construction -
+         * IPv4-mapped IPv6 forms already reduced - so the length pre-filter
+         * compares like-for-like address families.
          */
-        private static bool IsConstrained(NameConstraintIP constraint, NameConstraintIP ip)
+        private static bool IsConstrained(NameConstraintIPRange constraint, NameConstraintIPAddress ip)
         {
-            byte[] constraintBytes = constraint.m_bytes, ipBytes = ip.m_bytes;
+            byte[] constraintBytes = constraint.m_bytes, ipBytes = ip.Bytes;
 
             int ipLength = ipBytes.Length;
             if (ipLength != (constraintBytes.Length / 2))
@@ -116,13 +105,13 @@ namespace Org.BouncyCastle.Pkix
             return Arrays.AreEqual(permittedSubnetAddress, ipSubnetAddress);
         }
 
-        internal static HashSet<NameConstraintIP> Intersect(HashSet<NameConstraintIP> permitted,
+        internal static HashSet<NameConstraintIPRange> Intersect(HashSet<NameConstraintIPRange> permitted,
             HashSet<GeneralSubtree> subtrees)
         {
-            var intersect = new HashSet<NameConstraintIP>();
+            var intersect = new HashSet<NameConstraintIPRange>();
             foreach (GeneralSubtree subtree in subtrees)
             {
-                var ip = FromConstraint(Asn1OctetString.GetInstance(subtree.Base.Name).GetOctets());
+                var ip = Create(Asn1OctetString.GetInstance(subtree.Base.Name).GetOctets());
 
                 if (permitted == null)
                 {
@@ -137,7 +126,7 @@ namespace Org.BouncyCastle.Pkix
                         {
                             // Re-canonicalise: OR-ing the operands' masks can land the result on the
                             // IPv4-mapped /96 block even when neither operand is itself collapsible.
-                            intersect.Add(FromConstraint(intersection));
+                            intersect.Add(Create(intersection));
                         }
                     }
                 }
@@ -145,12 +134,13 @@ namespace Org.BouncyCastle.Pkix
             return intersect;
         }
 
-        internal static HashSet<NameConstraintIP> Union(HashSet<NameConstraintIP> excluded, NameConstraintIP ip)
+        internal static HashSet<NameConstraintIPRange> Union(HashSet<NameConstraintIPRange> excluded,
+            NameConstraintIPRange ip)
         {
             if (excluded == null)
-                return new HashSet<NameConstraintIP> { ip };
+                return new HashSet<NameConstraintIPRange> { ip };
 
-            var union = new HashSet<NameConstraintIP>();
+            var union = new HashSet<NameConstraintIPRange>();
             foreach (var _excluded in excluded)
             {
                 // difficult, adding always all IPs is not wrong
@@ -283,22 +273,6 @@ namespace Org.BouncyCastle.Pkix
         }
 
         /**
-         * If {@code ip} is a 16-byte IPv4-mapped IPv6 address (RFC 4291
-         * sec. 2.5.5.2: leading 80 bits zero, next 16 bits all-ones, trailing
-         * 32 bits the IPv4 address), return the 4-byte IPv4 form; otherwise
-         * return {@code ip} unchanged.
-         */
-        private static byte[] NormalizeIPv4MappedIPv6Address(byte[] ip)
-        {
-            if (!IsIPv4MappedIPv6Address(ip))
-                return ip;
-
-            byte[] ipv4 = new byte[4];
-            Array.Copy(ip, 12, ipv4, 0, 4);
-            return ipv4;
-        }
-
-        /**
          * A Name-Constraints iPAddress constraint is encoded as
          * {@code IP || subnet-mask}. If both halves are in IPv4-mapped IPv6
          * form (the IP half matches the {@code ::ffff:0:0/96} prefix and the
@@ -319,7 +293,7 @@ namespace Org.BouncyCastle.Pkix
             Array.Copy(constraint, 0, ipHalf, 0, 16);
             Array.Copy(constraint, 16, maskHalf, 0, 16);
 
-            if (!IsIPv4MappedIPv6Address(ipHalf))
+            if (!NameConstraintUtilities.IsIPv4MappedIPv6Address(ipHalf))
                 return constraint;
 
             for (int i = 0; i < 12; i++)
@@ -332,19 +306,6 @@ namespace Org.BouncyCastle.Pkix
             Array.Copy(ipHalf, 12, result, 0, 4);
             Array.Copy(maskHalf, 12, result, 4, 4);
             return result;
-        }
-
-        private static bool IsIPv4MappedIPv6Address(byte[] ip)
-        {
-            if (ip == null || ip.Length != 16)
-                return false;
-
-            for (int i = 0; i < 10; i++)
-            {
-                if (ip[i] != 0)
-                    return false;
-            }
-            return ip[10] == (byte)0xFF && ip[11] == (byte)0xFF;
         }
     }
 }

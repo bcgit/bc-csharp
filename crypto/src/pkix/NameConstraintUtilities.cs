@@ -70,6 +70,20 @@ namespace Org.BouncyCastle.Pkix
         internal static bool IsDnsMatch(string constraint, string dns) =>
             Platform.EqualsIgnoreCase(dns, constraint) || WithinDomain(dns, constraint);
 
+        /// <summary>Is <paramref name="ip"/> a 16-byte IPv4-mapped IPv6 address (RFC 4291 sec. 2.5.5.2)?</summary>
+        internal static bool IsIPv4MappedIPv6Address(byte[] ip)
+        {
+            if (ip == null || ip.Length != 16)
+                return false;
+
+            for (int i = 0; i < 10; i++)
+            {
+                if (ip[i] != 0)
+                    return false;
+            }
+            return ip[10] == (byte)0xFF && ip[11] == (byte)0xFF;
+        }
+
         internal static string StripTrailingDot(string s)
         {
             // length > 1 so a single bare "." (theoretically the empty-label
