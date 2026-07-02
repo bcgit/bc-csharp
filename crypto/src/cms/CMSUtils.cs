@@ -11,6 +11,7 @@ using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.X509;
@@ -378,6 +379,23 @@ namespace Org.BouncyCastle.Cms
             Asn1OctetString content = CmsUtilities.SafeGetEncryptedContent(encryptedContentInfo);
 
             return new CmsProcessableByteArray(encryptedContentInfo.ContentType, content.GetOctets());
+        }
+
+        /// <summary>
+        /// Return the AEAD tag length carried in AuthEnvelopedData's mac field, or -1 if the algorithm is not
+        /// recognised.
+        /// </summary>
+        internal static int GetAeadMacLength(AlgorithmIdentifier encAlgID)
+        {
+            DerObjectIdentifier algorithm = encAlgID.Algorithm;
+
+            if (OidCatalogue.IsGcm(algorithm))
+                return GcmParameters.GetInstance(encAlgID.Parameters).IcvLen;
+
+            if (OidCatalogue.IsCcm(algorithm))
+                return CcmParameters.GetInstance(encAlgID.Parameters).IcvLen;
+
+            return -1;
         }
     }
 }
