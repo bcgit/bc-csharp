@@ -147,11 +147,8 @@ namespace Org.BouncyCastle.Pkix
 
         internal static HashSet<NameConstraintIP> Union(HashSet<NameConstraintIP> excluded, NameConstraintIP ip)
         {
-            if (excluded.Count < 1)
-            {
-                excluded.Add(ip);
-                return excluded;
-            }
+            if (excluded == null)
+                return new HashSet<NameConstraintIP> { ip };
 
             var union = new HashSet<NameConstraintIP>();
             foreach (var _excluded in excluded)

@@ -85,11 +85,8 @@ namespace Org.BouncyCastle.Pkix
 
         internal static HashSet<NameConstraintDns> Union(HashSet<NameConstraintDns> excluded, NameConstraintDns dns)
         {
-            if (excluded.Count < 1)
-            {
-                excluded.Add(dns);
-                return excluded;
-            }
+            if (excluded == null)
+                return new HashSet<NameConstraintDns> { dns };
 
             var union = new HashSet<NameConstraintDns>();
             foreach (var _excluded in excluded)

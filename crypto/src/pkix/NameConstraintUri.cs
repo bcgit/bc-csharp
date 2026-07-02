@@ -127,11 +127,8 @@ namespace Org.BouncyCastle.Pkix
 
         internal static HashSet<NameConstraintUri> Union(HashSet<NameConstraintUri> excluded, NameConstraintUri uri)
         {
-            if (excluded.Count < 1)
-            {
-                excluded.Add(uri);
-                return excluded;
-            }
+            if (excluded == null)
+                return new HashSet<NameConstraintUri> { uri };
 
             var union = new HashSet<NameConstraintUri>();
             foreach (var _excluded in excluded)

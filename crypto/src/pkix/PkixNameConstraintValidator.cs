@@ -16,17 +16,20 @@ namespace Org.BouncyCastle.Pkix
     {
         private static readonly DerObjectIdentifier SerialNumberOid = X509Name.SerialNumber;
 
-        private HashSet<Asn1Sequence> excludedSubtreesDN = new HashSet<Asn1Sequence>();
+        // The excluded* fields are null until the first excluded subtree of that family is added, and never
+        // empty once created (unions only grow). The permitted* fields are null while the family is
+        // unconstrained, and empty when nothing of that family is permitted.
+        private HashSet<Asn1Sequence> excludedSubtreesDN;
 
-        private HashSet<NameConstraintDns> excludedSubtreesDns = new HashSet<NameConstraintDns>();
+        private HashSet<NameConstraintDns> excludedSubtreesDns;
 
-        private HashSet<NameConstraintEmail> excludedSubtreesEmail = new HashSet<NameConstraintEmail>();
+        private HashSet<NameConstraintEmail> excludedSubtreesEmail;
 
-        private HashSet<NameConstraintUri> excludedSubtreesUri = new HashSet<NameConstraintUri>();
+        private HashSet<NameConstraintUri> excludedSubtreesUri;
 
-        private HashSet<NameConstraintIP> excludedSubtreesIP = new HashSet<NameConstraintIP>();
+        private HashSet<NameConstraintIP> excludedSubtreesIP;
 
-        private HashSet<OtherName> excludedSubtreesOtherName = new HashSet<OtherName>();
+        private HashSet<OtherName> excludedSubtreesOtherName;
 
         private HashSet<Asn1Sequence> permittedSubtreesDN;
 
@@ -147,6 +150,9 @@ namespace Org.BouncyCastle.Pkix
 
         private static void CheckExcludedDN(HashSet<Asn1Sequence> excluded, Asn1Sequence directory)
         {
+            if (excluded == null)
+                return;
+
             if (IsDNConstrained(excluded, directory))
             {
                 throw new PkixNameConstraintValidatorException(
@@ -209,14 +215,8 @@ namespace Org.BouncyCastle.Pkix
 
         private static HashSet<Asn1Sequence> UnionDN(HashSet<Asn1Sequence> excluded, Asn1Sequence dn)
         {
-            if (excluded.Count < 1)
-            {
-                if (dn != null)
-                {
-                    excluded.Add(dn);
-                }
-                return excluded;
-            }
+            if (excluded == null)
+                return dn == null ? null : new HashSet<Asn1Sequence> { dn };
 
             var union = new HashSet<Asn1Sequence>();
 
@@ -246,6 +246,9 @@ namespace Org.BouncyCastle.Pkix
 
         private static void CheckExcludedOtherName(HashSet<OtherName> excluded, OtherName otherName)
         {
+            if (excluded == null)
+                return;
+
             if (IsOtherNameConstrained(excluded, otherName))
                 throw new PkixNameConstraintValidatorException("OtherName is from an excluded subtree.");
         }
@@ -320,6 +323,9 @@ namespace Org.BouncyCastle.Pkix
 
         private static void CheckExcludedEmail(HashSet<NameConstraintEmail> excluded, string email)
         {
+            if (excluded == null)
+                return;
+
             if (NameConstraintEmail.IsConstrained(excluded, NameConstraintEmail.Create(email)))
                 throw new PkixNameConstraintValidatorException("Email address is from an excluded subtree.");
         }
@@ -344,7 +350,7 @@ namespace Org.BouncyCastle.Pkix
             // Strict-when-constrained: FromName validates the name's structure (throwing, fail-closed),
             // but only once there are constraints to check it against. An "always strict" policy would
             // construct (and so validate) the name before this guard.
-            if (excluded.Count < 1)
+            if (excluded == null)
                 return;
 
             if (NameConstraintIP.IsConstrained(excluded, NameConstraintIP.FromName(ip)))
@@ -368,6 +374,9 @@ namespace Org.BouncyCastle.Pkix
 
         private static void CheckExcludedDns(HashSet<NameConstraintDns> excluded, string dns)
         {
+            if (excluded == null)
+                return;
+
             if (NameConstraintDns.IsConstrained(excluded, NameConstraintDns.Create(dns)))
                 throw new PkixNameConstraintValidatorException("DNS is from an excluded subtree.");
         }
@@ -388,6 +397,9 @@ namespace Org.BouncyCastle.Pkix
 
         private static void CheckExcludedUri(HashSet<NameConstraintUri> excluded, string uri)
         {
+            if (excluded == null)
+                return;
+
             if (NameConstraintUri.IsConstrained(excluded, NameConstraintUri.FromUri(uri)))
                 throw new PkixNameConstraintValidatorException("URI is from an excluded subtree.");
         }
@@ -738,27 +750,27 @@ namespace Org.BouncyCastle.Pkix
                 Append(sb, "OtherName", StringifyOtherNameCollection(permittedSubtreesOtherName));
             }
             sb.AppendLine("excluded:");
-            if (excludedSubtreesDN.Count > 0)
+            if (excludedSubtreesDN != null)
             {
                 Append(sb, "DN", excludedSubtreesDN);
             }
-            if (excludedSubtreesDns.Count > 0)
+            if (excludedSubtreesDns != null)
             {
                 Append(sb, "DNS", excludedSubtreesDns);
             }
-            if (excludedSubtreesEmail.Count > 0)
+            if (excludedSubtreesEmail != null)
             {
                 Append(sb, "Email", excludedSubtreesEmail);
             }
-            if (excludedSubtreesUri.Count > 0)
+            if (excludedSubtreesUri != null)
             {
                 Append(sb, "URI", excludedSubtreesUri);
             }
-            if (excludedSubtreesIP.Count > 0)
+            if (excludedSubtreesIP != null)
             {
                 Append(sb, "IP", StringifyIPCollection(excludedSubtreesIP));
             }
-            if (excludedSubtreesOtherName.Count > 0)
+            if (excludedSubtreesOtherName != null)
             {
                 Append(sb, "OtherName", StringifyOtherNameCollection(excludedSubtreesOtherName));
             }

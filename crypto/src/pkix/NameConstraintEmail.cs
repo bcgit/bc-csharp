@@ -136,11 +136,8 @@ namespace Org.BouncyCastle.Pkix
         internal static HashSet<NameConstraintEmail> Union(HashSet<NameConstraintEmail> excluded,
             NameConstraintEmail email)
         {
-            if (excluded.Count < 1)
-            {
-                excluded.Add(email);
-                return excluded;
-            }
+            if (excluded == null)
+                return new HashSet<NameConstraintEmail> { email };
 
             var union = new HashSet<NameConstraintEmail>();
             foreach (var _excluded in excluded)

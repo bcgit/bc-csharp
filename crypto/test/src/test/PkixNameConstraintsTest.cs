@@ -445,6 +445,27 @@ namespace Org.BouncyCastle.Tests
                 "an IPv4 SAN outside the intersected range must not match");
         }
 
+        /// <summary>A fresh validator constrains nothing: both checks pass for every name family.</summary>
+        [Test]
+        public void UnconstrainedValidatorChecksPass()
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            GeneralName[] names = {
+                EmailName("user@test.com"),
+                DnsName("foo.example.com"),
+                DirectoryName("O=test org, CN=John Doe"),
+                UriName("http://test.de/abc"),
+                IPName(Bytes(192, 0, 2, 5)),
+                new GeneralName(GeneralName.OtherName,
+                    new OtherName(new DerObjectIdentifier("1.1"), DerNull.Instance)),
+            };
+            foreach (GeneralName name in names)
+            {
+                validator.CheckPermittedName(name);
+                validator.CheckExcludedName(name);
+            }
+        }
+
         /// <summary>
         /// With no IP constraints in play, a structurally invalid iPAddress SAN passes both checks:
         /// name-constraint processing only judges names against constraints that exist.
