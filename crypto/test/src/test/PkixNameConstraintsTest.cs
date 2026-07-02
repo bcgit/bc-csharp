@@ -222,6 +222,132 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
+        /// <summary>
+        /// RFC 1034 sec. 3.1 root-label trailing dot. A trailing '.' is legal in an rfc822Name, a dNSName
+        /// (RFC 5280 sec. 4.2.1.6) and a uniformResourceIdentifier host, and must be canonicalized away
+        /// uniformly across all three so it can't misalign the per-label compare and let a name escape an
+        /// excluded subtree.
+        /// </summary>
+        [Test]
+        public void TrailingDotBypass()
+        {
+            // rfc822Name: a trailing dot on the mail host must not escape the excluded bank.com subtree.
+            Assert.True(IsExcluded(EmailName("bank.com"), EmailName("ceo@bank.com.")),
+                "trailing-dot email must be caught by the excluded bank.com subtree");
+
+            // dNSName: exact and subdomain forms, including a dot-prefixed constraint.
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName("example.com.")),
+                "exact host with a trailing dot must be caught");
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName("foo.example.com.")),
+                "subdomain with a trailing dot must be caught");
+            Assert.True(IsExcluded(DnsName(".example.com"), DnsName("foo.example.com.")),
+                "subdomain with a trailing dot must be caught by a dot-prefixed constraint");
+            Assert.False(IsExcluded(DnsName("example.com"), DnsName("notexample.com.")),
+                "a sibling domain must not be caught");
+
+            // uniformResourceIdentifier: the host trailing dot is stripped like the dNSName path.
+            Assert.True(
+                IsExcluded(UriName("competitor.example"), UriName("https://competitor.example./")),
+                "trailing-dot URI host must be caught by the excluded competitor.example subtree");
+        }
+
+        /// <summary>
+        /// directoryName constraints must match as an INITIAL PREFIX of the subject (RFC 5280 sec.
+        /// 4.2.1.10 / 7.1), not as a subsequence at an arbitrary offset. Prepending an RDN ahead of the
+        /// permitted sequence must not satisfy the constraint.
+        /// </summary>
+        [Test]
+        public void DirectoryNamePrefixBypass()
+        {
+            GeneralName permittedDN = new GeneralName(GeneralName.DirectoryName,
+                new X509Name(reverse: true, "ou=permittedSubtree1, o=Test Certificates 2011, c=US"));
+            GeneralName prefixSubject = new GeneralName(GeneralName.DirectoryName,
+                new X509Name(reverse: true, "cn=Valid DN nameConstraints EE Certificate Test1, ou=permittedSubtree1, o=Test Certificates 2011, c=US"));
+            GeneralName prependedSubject = new GeneralName(GeneralName.DirectoryName,
+                new X509Name(reverse: true, "cn=Valid DN nameConstraints EE Certificate Test1, ou=permittedSubtree1, o=Test Certificates 2011, c=US, o=Injected"));
+
+            Assert.True(IsPermitted(permittedDN, prefixSubject), "prefix subject must be permitted");
+            Assert.False(IsPermitted(permittedDN, prependedSubject),
+                "subject with an RDN prepended before the permitted sequence must NOT be permitted");
+        }
+
+        /// <summary>
+        /// uniformResourceIdentifier host-extraction edge cases (RFC 3986 sec. 3.2 authority). These
+        /// exercise <c>ExtractHostFromURL</c> indirectly: a bracketed IPv6 literal (whose ':' separators
+        /// must not be read as a port delimiter), userinfo stripping, and the path/query/fragment
+        /// terminator being applied BEFORE the userinfo '@' so an '@' in the path or fragment can't be
+        /// mistaken for a userinfo delimiter and swap in an attacker-chosen host.
+        /// </summary>
+        [Test]
+        public void UriHostExtractionBypass()
+        {
+            // Bracketed IPv6 host: the ':' inside the literal must not truncate at a phantom port, however
+            // the port/userinfo are dressed up around it.
+            Assert.True(IsExcluded(UriName("2001:db8::1"), UriName("https://[2001:db8::1]:8443/x")),
+                "bracketed IPv6 host with a port must be caught by the excluded 2001:db8::1 subtree");
+            Assert.True(IsExcluded(UriName("2001:db8::1"), UriName("https://[2001:db8::1]/x")),
+                "bracketed IPv6 host without a port must be caught");
+            Assert.True(IsExcluded(UriName("2001:db8::1"), UriName("https://user:pw@[2001:db8::1]:8443/x")),
+                "bracketed IPv6 host behind userinfo must be caught");
+
+            // An '@' after the path/query/fragment terminator must NOT be read as userinfo; otherwise the
+            // host would become the attacker-chosen authority after the '@' and escape the constraint.
+            Assert.True(
+                IsExcluded(UriName("competitor.example"),
+                    UriName("https://competitor.example?u=x@evil.example")),
+                "'@' in the query must not be treated as userinfo");
+            Assert.True(
+                IsExcluded(UriName("competitor.example"),
+                    UriName("https://competitor.example#@evil.example")),
+                "'@' in the fragment must not be treated as userinfo");
+
+            // A genuine userinfo '@' before the host is still stripped.
+            Assert.True(IsExcluded(UriName("host.example"), UriName("https://user@host.example/")),
+                "userinfo before the host must be stripped");
+
+            // Sanity: an unrelated host is not caught (extraction isn't over-matching).
+            Assert.False(IsExcluded(UriName("competitor.example"), UriName("https://safe.example/")),
+                "an unrelated URI host must not be caught");
+        }
+
+        /// <summary>
+        /// IPv4-mapped IPv6 (RFC 4291 sec. 2.5.5.2, <c>::ffff:0:0/96</c>) iPAddress normalization. A SAN
+        /// that encodes an IPv4 address in the 16-byte mapped form must not slip past an 8-byte IPv4
+        /// constraint (or vice versa) via the address-family length mismatch; and a constraint whose mask
+        /// is narrower than /96 is a genuine IPv6 range that must not be collapsed to IPv4.
+        /// </summary>
+        [Test]
+        public void IPv4MappedAddressBypass()
+        {
+            // 192.0.2.0/24 as an 8-byte IPv4 constraint (address || mask).
+            byte[] ipv4Cidr24 = Bytes(192, 0, 2, 0, 0xFF, 0xFF, 0xFF, 0x00);
+
+            // The same /24 as a 32-byte IPv4-mapped IPv6 constraint (all-ones across the /96 prefix).
+            byte[] mappedCidr24 = Bytes(
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, 192, 0, 2, 0,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00);
+
+            // mapped SAN vs IPv4 constraint: caught (16-byte SAN normalizes to 4-byte 192.0.2.5).
+            Assert.True(IsExcluded(IPName(ipv4Cidr24), IPName(IPv4Mapped(192, 0, 2, 5))),
+                "IPv4-mapped SAN must be caught by the excluded IPv4 /24 constraint");
+
+            // IPv4 SAN vs mapped constraint: caught (32-byte constraint normalizes to the /24).
+            Assert.True(IsExcluded(IPName(mappedCidr24), IPName(Bytes(192, 0, 2, 5))),
+                "IPv4 SAN must be caught by the excluded IPv4-mapped /24 constraint");
+
+            // Out-of-range mapped SAN must NOT be caught (normalization isn't over-matching).
+            Assert.False(IsExcluded(IPName(ipv4Cidr24), IPName(IPv4Mapped(198, 51, 100, 5))),
+                "a mapped SAN outside the /24 must not be caught");
+
+            // A mapped-address constraint with a mask narrower than /96 (here /64) is a genuine IPv6 range
+            // and must NOT be collapsed to IPv4, so an IPv4 SAN must not match it.
+            byte[] mappedNarrowMask = Bytes(
+                0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, 192, 0, 2, 0,
+                0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0, 0, 0, 0, 0, 0, 0, 0);
+            Assert.False(IsExcluded(IPName(mappedNarrowMask), IPName(Bytes(192, 0, 2, 5))),
+                "an IPv6-range constraint (mask < /96) must not be collapsed to match an IPv4 SAN");
+        }
+
         /// <summary>GSMA SGP.22 v2.5 relaxed directoryName name-constraint matching.</summary>
         /// <remarks>
         /// Gated behind <seealso cref="Properties.X509Sgp22NameConstraints"/>, off by default. With the flag set,
@@ -311,6 +437,45 @@ namespace Org.BouncyCastle.Tests
             {
                 return false;
             }
+        }
+
+        private static bool IsExcluded(GeneralName excluded, GeneralName name)
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.AddExcludedSubtree(new GeneralSubtree(excluded));
+            try
+            {
+                validator.CheckExcludedName(name);
+                return false;
+            }
+            catch (PkixNameConstraintValidatorException)
+            {
+                return true;
+            }
+        }
+
+        private static GeneralName UriName(string uri) =>
+            new GeneralName(GeneralName.UniformResourceIdentifier, uri);
+
+        private static GeneralName DnsName(string dns) => new GeneralName(GeneralName.DnsName, dns);
+
+        private static GeneralName EmailName(string email) => new GeneralName(GeneralName.Rfc822Name, email);
+
+        private static GeneralName IPName(byte[] ip) =>
+            new GeneralName(GeneralName.IPAddress, new DerOctetString(ip));
+
+        // ::ffff:a.b.c.d - a 16-byte IPv4-mapped IPv6 address (RFC 4291 sec. 2.5.5.2).
+        private static byte[] IPv4Mapped(int a, int b, int c, int d) =>
+            Bytes(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, a, b, c, d);
+
+        private static byte[] Bytes(params int[] values)
+        {
+            byte[] result = new byte[values.Length];
+            for (int i = 0; i < values.Length; i++)
+            {
+                result[i] = (byte)values[i];
+            }
+            return result;
         }
 
         /// <summary>Tests string-based GeneralNames for inclusion or exclusion.</summary>
