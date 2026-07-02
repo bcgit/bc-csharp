@@ -85,44 +85,14 @@ namespace Org.BouncyCastle.Cms
 
         internal static ContentInfo ReadContentInfo(byte[] input)
         {
-            Asn1Object asn1Object;
-            try
-            {
-                asn1Object = Asn1Object.FromByteArray(input);
-            }
-            catch (CmsException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new CmsException("Exception reading content.", e);
-            }
-
-            if (asn1Object == null)
-                throw new CmsException("No content found.");
+            Asn1Object asn1Object = SafeAsn1FromByteArray(input) ?? throw new CmsException("No content found.");
 
             return SafeGetInstance(asn1Object, ContentInfo.GetInstance);
         }
 
         internal static ContentInfo ReadContentInfo(Stream input)
         {
-            Asn1Object asn1Object;
-            try
-            {
-                asn1Object = Asn1Object.FromStream(input);
-            }
-            catch (CmsException)
-            {
-                throw;
-            }
-            catch (Exception e)
-            {
-                throw new CmsException("Exception reading content.", e);
-            }
-
-            if (asn1Object == null)
-                throw new CmsException("No content found.");
+            Asn1Object asn1Object = SafeAsn1FromStream(input) ?? throw new CmsException("No content found.");
 
             return SafeGetInstance(asn1Object, ContentInfo.GetInstance);
         }
@@ -332,6 +302,38 @@ namespace Org.BouncyCastle.Cms
         {
             recipientInfos.ToAsn1Set(useDer: !berEncodeRecipientSet, useDL: false)
                 .EncodeTo(authGen.GetRawOutputStream());
+        }
+
+        internal static Asn1Object SafeAsn1FromByteArray(byte[] input)
+        {
+            try
+            {
+                return Asn1Object.FromByteArray(input);
+            }
+            catch (CmsException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CmsException("Exception reading content.", e);
+            }
+        }
+
+        internal static Asn1Object SafeAsn1FromStream(Stream input)
+        {
+            try
+            {
+                return Asn1Object.FromStream(input);
+            }
+            catch (CmsException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                throw new CmsException("Exception reading content.", e);
+            }
         }
 
         /// <exception cref="CmsException"></exception>
