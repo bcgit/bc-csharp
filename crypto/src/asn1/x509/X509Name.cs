@@ -394,9 +394,9 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly List<DerObjectIdentifier> m_ordering = new List<DerObjectIdentifier>();
         private readonly X509NameEntryConverter converter;
 
-        private List<string> m_values = new List<string>();
-        private List<bool> m_added = new List<bool>();
-        private Asn1Sequence seq;
+        private readonly List<string> m_values = new List<string>();
+        private readonly List<bool> m_added = new List<bool>();
+        private Asn1Sequence m_seq;
 
         protected X509Name()
         {
@@ -410,7 +410,7 @@ namespace Org.BouncyCastle.Asn1.X509
         protected X509Name(Asn1Sequence seq)
         {
             // RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
-            this.seq = seq;
+            m_seq = seq;
 
             foreach (Asn1Encodable rdn in seq)
             {
@@ -588,20 +588,6 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
-        private DerObjectIdentifier DecodeOid(string name, IDictionary<string, DerObjectIdentifier> lookup)
-        {
-            if (name.StartsWith("OID.", StringComparison.OrdinalIgnoreCase))
-                return new DerObjectIdentifier(name.Substring("OID.".Length));
-
-            if (DerObjectIdentifier.TryFromID(name, out var oid) ||
-                lookup.TryGetValue(name, out oid))
-            {
-                return oid;
-            }
-
-            throw new ArgumentException("Unknown object id - " + name + " - passed to distinguished name");
-        }
-
         /**
         * Takes an X509 dir name as a string of the format "C=AU, ST=Victoria", or
         * some such, converting it into an ordered set of name attributes. lookUp
@@ -694,7 +680,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public override Asn1Object ToAsn1Object()
         {
-            if (seq == null)
+            if (m_seq == null)
             {
                 Asn1EncodableVector vec = new Asn1EncodableVector();
                 Asn1EncodableVector sVec = new Asn1EncodableVector();
@@ -715,10 +701,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
                 vec.Add(DerSet.FromVector(sVec));
 
-                this.seq = new DerSequence(vec);
+                m_seq = new DerSequence(vec);
             }
 
-            return seq;
+            return m_seq;
         }
 
         /// <param name="other">The X509Name object to test equivalency against.</param>
@@ -863,12 +849,12 @@ namespace Org.BouncyCastle.Asn1.X509
 
             if (components.Count > 0)
             {
-                buf.Append(components[0].ToString());
+                buf.Append(components[0]);
 
                 for (int i = 1; i < components.Count; ++i)
                 {
                     buf.Append(',');
-                    buf.Append(components[i].ToString());
+                    buf.Append(components[i]);
                 }
             }
 
@@ -1028,6 +1014,20 @@ namespace Org.BouncyCastle.Asn1.X509
             {
                 throw new InvalidOperationException("unknown encoding in name", e);
             }
+        }
+
+        private static DerObjectIdentifier DecodeOid(string name, IDictionary<string, DerObjectIdentifier> lookup)
+        {
+            if (name.StartsWith("OID.", StringComparison.OrdinalIgnoreCase))
+                return new DerObjectIdentifier(name.Substring("OID.".Length));
+
+            if (DerObjectIdentifier.TryFromID(name, out var oid) ||
+                lookup.TryGetValue(name, out oid))
+            {
+                return oid;
+            }
+
+            throw new ArgumentException("Unknown object id - " + name + " - passed to distinguished name");
         }
 
         private static bool EquivalentStrings(string s1, string s2)
