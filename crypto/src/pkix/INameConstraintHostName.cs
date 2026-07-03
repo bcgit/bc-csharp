@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Pkix
     internal interface INameConstraintHostName
     {
         /// <summary>The shape classification, fixed at construction.</summary>
-        NameConstraintKind Kind { get; }
+        NameConstraintHostNameKind Kind { get; }
 
         /// <summary>The canonical string - the identity.</summary>
         string Value { get; }

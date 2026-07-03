@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
                 // name2 specifies a domain
-                else if (name2.Kind == NameConstraintKind.Domain)
+                else if (name2.Kind == NameConstraintHostNameKind.Domain)
                 {
                     if (WithinDomain(name1.Host, name2.Value))
                     {
@@ -185,7 +185,7 @@ namespace Org.BouncyCastle.Pkix
                 }
             }
             // name1 specifies a domain
-            else if (name1.Kind == NameConstraintKind.Domain)
+            else if (name1.Kind == NameConstraintHostNameKind.Domain)
             {
                 if (IsParticularAddress(name2.Kind))
                 {
@@ -195,7 +195,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
                 // name2 specifies a domain
-                else if (name2.Kind == NameConstraintKind.Domain)
+                else if (name2.Kind == NameConstraintHostNameKind.Domain)
                 {
                     if (IsDnsMatch(name2.Value, name1.Value))
                     {
@@ -229,7 +229,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
                 // name2 specifies a domain
-                else if (name2.Kind == NameConstraintKind.Domain)
+                else if (name2.Kind == NameConstraintHostNameKind.Domain)
                 {
                     if (WithinDomain(name1.Value, name2.Value))
                     {
@@ -247,8 +247,8 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        private static bool IsParticularAddress(NameConstraintKind kind) =>
-            kind == NameConstraintKind.Mailbox || kind == NameConstraintKind.AtHost;
+        private static bool IsParticularAddress(NameConstraintHostNameKind kind) =>
+            kind == NameConstraintHostNameKind.Mailbox || kind == NameConstraintHostNameKind.AtHost;
 
         /**
          * The common part of <code>name1</code> and <code>name2</code> is
@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
                 // name2 specifies a domain
-                else if (name2.Kind == NameConstraintKind.Domain)
+                else if (name2.Kind == NameConstraintHostNameKind.Domain)
                 {
                     if (WithinDomain(name1.Host, name2.Value))
                     {
@@ -306,7 +306,7 @@ namespace Org.BouncyCastle.Pkix
                 }
             }
             // name1 specifies a domain
-            else if (name1.Kind == NameConstraintKind.Domain)
+            else if (name1.Kind == NameConstraintHostNameKind.Domain)
             {
                 if (IsParticularAddress(name2.Kind))
                 {
@@ -321,7 +321,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
                 // name2 specifies a domain
-                else if (name2.Kind == NameConstraintKind.Domain)
+                else if (name2.Kind == NameConstraintHostNameKind.Domain)
                 {
                     if (IsDnsMatch(name2.Value, name1.Value))
                     {
@@ -366,7 +366,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
                 // name2 specifies a domain
-                else if (name2.Kind == NameConstraintKind.Domain)
+                else if (name2.Kind == NameConstraintHostNameKind.Domain)
                 {
                     if (WithinDomain(name1.Value, name2.Value))
                     {

@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Pkix
     /// is the legacy exact-host form; otherwise a leading '.' is a domain (subdomains) constraint; anything
     /// else is a host.
     /// </remarks>
-    internal enum NameConstraintKind : byte
+    internal enum NameConstraintHostNameKind : byte
     {
         Mailbox,    // "local@host"
         AtHost,     // "@host"

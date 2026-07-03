@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Pkix
     /// Construction is the only way in: the RFC 1034 root-label trailing dot (of the host, which is always the
     /// string tail) is stripped once, here, and the value's shape - particular mailbox ("local@host"), legacy
     /// exact-host ("@host"), host ("host") or domain (".domain") - is classified once, here, into a
-    /// <see cref="NameConstraintKind"/>, with the host comparand cached alongside. The canonical string remains
+    /// <see cref="NameConstraintHostNameKind"/>, with the host comparand cached alongside. The canonical string remains
     /// the identity: equality and hashing are case-insensitive on it alone (kind and host are derived from it),
     /// and original case is preserved for display. A tested name classifies through the same rules; matching
     /// only ever branches on the constraint's kind.
@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Pkix
         internal static NameConstraintEmail Create(string email) =>
             new NameConstraintEmail(NameConstraintUtilities.StripTrailingDot(email));
 
-        private readonly NameConstraintKind m_kind;
+        private readonly NameConstraintHostNameKind m_kind;
         private readonly string m_value;
         private readonly string m_host;
 
@@ -46,29 +46,29 @@ namespace Org.BouncyCastle.Pkix
             m_value = value;
             if (atPos > 0)
             {
-                m_kind = NameConstraintKind.Mailbox;
+                m_kind = NameConstraintHostNameKind.Mailbox;
                 m_host = value.Substring(atPos + 1);
             }
             else if (Platform.StartsWith(value, "."))
             {
                 // No overlap with AtHost: a value with '@' at index 0 cannot start with '.'.
-                m_kind = NameConstraintKind.Domain;
+                m_kind = NameConstraintHostNameKind.Domain;
                 m_host = value;
             }
             else if (atPos < 0)
             {
-                m_kind = NameConstraintKind.Host;
+                m_kind = NameConstraintHostNameKind.Host;
                 m_host = value;
             }
             else
             {
                 // Last chance: the legacy "@host" form ('@' at index 0).
-                m_kind = NameConstraintKind.AtHost;
+                m_kind = NameConstraintHostNameKind.AtHost;
                 m_host = value.Substring(1);
             }
         }
 
-        NameConstraintKind INameConstraintHostName.Kind => m_kind;
+        NameConstraintHostNameKind INameConstraintHostName.Kind => m_kind;
 
         string INameConstraintHostName.Value => m_value;
 
@@ -99,13 +99,13 @@ namespace Org.BouncyCastle.Pkix
             switch (constraint.m_kind)
             {
             // a particular mailbox
-            case NameConstraintKind.Mailbox:
+            case NameConstraintHostNameKind.Mailbox:
                 return Platform.EqualsIgnoreCase(email.m_value, constraint.m_value);
             // "@domain" style
-            case NameConstraintKind.AtHost:
+            case NameConstraintHostNameKind.AtHost:
                 return Platform.EqualsIgnoreCase(email.m_host, constraint.m_host);
             // address in sub domain
-            case NameConstraintKind.Domain:
+            case NameConstraintHostNameKind.Domain:
                 return NameConstraintUtilities.WithinDomain(email.m_host, constraint.m_value);
             // on particular host
             default:

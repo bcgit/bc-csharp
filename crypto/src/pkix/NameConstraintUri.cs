@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Pkix
     /// Construction is the only way in. A tested name is reduced to its RFC 3986 authority host (via
     /// <see cref="NameConstraintUtilities.ExtractHostFromURL"/>) with the RFC 1034 root-label trailing dot
     /// stripped; a constraint (a host, or a ".domain") is stripped of a trailing dot only. The value's shape
-    /// is classified once, here, into a <see cref="NameConstraintKind"/> with the same precedence as
+    /// is classified once, here, into a <see cref="NameConstraintHostNameKind"/> with the same precedence as
     /// <see cref="NameConstraintEmail"/>, because the subtree intersect/union logic is a historical clone of
     /// the rfc822Name logic - including its '@' dispatch, which never fires for well-formed URI constraints -
     /// and is deliberately kept branch-for-branch identical (on canonical values). The canonical string
@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Pkix
             new NameConstraintUri(NameConstraintUtilities.StripTrailingDot(
                 NameConstraintUtilities.ExtractHostFromURL(uri)));
 
-        private readonly NameConstraintKind m_kind;
+        private readonly NameConstraintHostNameKind m_kind;
         private readonly string m_value;
         private readonly string m_host;
 
@@ -45,27 +45,27 @@ namespace Org.BouncyCastle.Pkix
             m_value = value;
             if (atPos > 0)
             {
-                m_kind = NameConstraintKind.Mailbox;
+                m_kind = NameConstraintHostNameKind.Mailbox;
                 m_host = value.Substring(atPos + 1);
             }
             else if (Platform.StartsWith(value, "."))
             {
-                m_kind = NameConstraintKind.Domain;
+                m_kind = NameConstraintHostNameKind.Domain;
                 m_host = value;
             }
             else if (atPos < 0)
             {
-                m_kind = NameConstraintKind.Host;
+                m_kind = NameConstraintHostNameKind.Host;
                 m_host = value;
             }
             else
             {
-                m_kind = NameConstraintKind.AtHost;
+                m_kind = NameConstraintHostNameKind.AtHost;
                 m_host = value.Substring(1);
             }
         }
 
-        NameConstraintKind INameConstraintHostName.Kind => m_kind;
+        NameConstraintHostNameKind INameConstraintHostName.Kind => m_kind;
 
         string INameConstraintHostName.Value => m_value;
 
@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Pkix
         private static bool IsConstrained(NameConstraintUri constraint, NameConstraintUri host)
         {
             // in sub domain or domain
-            if (constraint.m_kind == NameConstraintKind.Domain)
+            if (constraint.m_kind == NameConstraintHostNameKind.Domain)
                 return NameConstraintUtilities.WithinDomain(host.m_value, constraint.m_value);
 
             // a host (an extracted host cannot contain '@', so Mailbox/AtHost forms never match here)
