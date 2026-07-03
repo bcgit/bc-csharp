@@ -63,20 +63,25 @@ namespace Org.BouncyCastle.Pkix
                 }
                 else
                 {
+                    // dns is the intersection at most once (the narrower of an overlapping pair), so once it
+                    // is known to be added the WithinDomain subsumption test that gates it is skipped.
+                    bool addDns = false;
                     foreach (var _permitted in permitted)
                     {
                         if (IsConstrained(dns, _permitted))
                         {
+                            // dns subsumes _permitted: the intersection is the narrower _permitted.
                             intersect.Add(_permitted);
-                        }
-                        else if (NameConstraintUtilities.WithinDomain(dns.m_value, _permitted.m_value))
-                        {
-                            intersect.Add(dns);
                         }
                         else
                         {
-                            // No intersection
+                            addDns = addDns || NameConstraintUtilities.WithinDomain(dns.m_value, _permitted.m_value);
                         }
+                    }
+                    if (addDns)
+                    {
+                        // _permitted subsumes dns: the intersection is the narrower dns.
+                        intersect.Add(dns);
                     }
                 }
             }
@@ -88,22 +93,28 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintDns> { dns };
 
+            // Union with each existing constraint: drop any _excluded that dns subsumes, keep the rest, and
+            // add dns itself unless some _excluded subsumes it. dns is added at most once (at the end), and
+            // once it is known to be added the WithinDomain subsumption test is skipped (the || short-circuits).
             var union = new HashSet<NameConstraintDns>();
+            bool addDns = false;
             foreach (var _excluded in excluded)
             {
                 if (IsConstrained(dns, _excluded))
                 {
-                    union.Add(dns);
-                }
-                else if (NameConstraintUtilities.WithinDomain(dns.m_value, _excluded.m_value))
-                {
-                    union.Add(_excluded);
+                    // dns subsumes _excluded, so _excluded is dropped and dns will represent it.
+                    addDns = true;
                 }
                 else
                 {
                     union.Add(_excluded);
-                    union.Add(dns);
+
+                    addDns = addDns || !NameConstraintUtilities.WithinDomain(dns.m_value, _excluded.m_value);
                 }
+            }
+            if (addDns)
+            {
+                union.Add(dns);
             }
             return union;
         }

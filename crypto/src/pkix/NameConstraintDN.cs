@@ -174,23 +174,36 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintDN> { dn };
 
+            // Union with each existing subtree: keep every subtree that dn does not subsume, and add dn once
+            // (at the end) unless some subtree subsumes it. NOTE: the subsumption tests are mirror-imaged
+            // relative to the dNSName union - here the first test gates an existing subtree, so it can't be
+            // skipped once dn is known to be added. Reordering the tests to match dNSName would change which of
+            // two RDN-equal-but-differently-encoded values survives (matching is unaffected; the set is
+            // encoding-keyed), so the precedence is kept as-is.
             var union = new HashSet<NameConstraintDN>();
-
+            bool addDn = false;
             foreach (var subtree in excluded)
             {
                 if (WithinDNSubtree(dn, subtree))
                 {
+                    // subtree subsumes dn: keep the broader subtree.
                     union.Add(subtree);
-                }
-                else if (WithinDNSubtree(subtree, dn))
-                {
-                    union.Add(dn);
                 }
                 else
                 {
-                    union.Add(subtree);
-                    union.Add(dn);
+                    // dn is not subsumed by this subtree, so dn will be added.
+                    addDn = true;
+
+                    // Keep subtree unless dn subsumes it.
+                    if (!WithinDNSubtree(subtree, dn))
+                    {
+                        union.Add(subtree);
+                    }
                 }
+            }
+            if (addDn)
+            {
+                union.Add(dn);
             }
 
             return union;

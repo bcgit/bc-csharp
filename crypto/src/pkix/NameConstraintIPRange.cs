@@ -88,21 +88,16 @@ namespace Org.BouncyCastle.Pkix
             if (ipLength != (constraintBytes.Length / 2))
                 return false;
 
-            byte[] subnetMask = new byte[ipLength];
-            Array.Copy(constraintBytes, ipLength, subnetMask, 0, ipLength);
-
-            byte[] permittedSubnetAddress = new byte[ipLength];
-
-            byte[] ipSubnetAddress = new byte[ipLength];
-
-            // the resulting IP address by applying the subnet mask
+            // Match iff the tested address and the constraint's base address agree on every masked bit.
+            // The mask half follows the base half in the constraint, i.e. at offset ipLength.
             for (int i = 0; i < ipLength; i++)
             {
-                permittedSubnetAddress[i] = (byte)(constraintBytes[i] & subnetMask[i]);
-                ipSubnetAddress[i] = (byte)(ipBytes[i] & subnetMask[i]);
+                int mask = constraintBytes[ipLength + i];
+                if ((ipBytes[i] & mask) != (constraintBytes[i] & mask))
+                    return false;
             }
 
-            return Arrays.AreEqual(permittedSubnetAddress, ipSubnetAddress);
+            return true;
         }
 
         internal static HashSet<NameConstraintIPRange> Intersect(HashSet<NameConstraintIPRange> permitted,
@@ -140,14 +135,11 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintIPRange> { ip };
 
-            var union = new HashSet<NameConstraintIPRange>();
-            foreach (var _excluded in excluded)
-            {
-                // difficult, adding always all IPs is not wrong
-                union.Add(_excluded);
-                union.Add(ip);
-            }
-            return union;
+            // Unlike the host/DN unions, IP ranges aren't simplified by subsumption: deciding whether one
+            // range contains another is deferred, so we just keep both operands. Over-approximating an
+            // excluded set is always sound ("adding all is not wrong"), and value equality on the set
+            // dedupes any exact repeat - the work the bc-java unionIPRange did by hand.
+            return new HashSet<NameConstraintIPRange>(excluded) { ip };
         }
 
         /**
