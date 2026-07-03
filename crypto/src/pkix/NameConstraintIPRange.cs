@@ -10,24 +10,69 @@ namespace Org.BouncyCastle.Pkix
     /// <summary>An iPAddress constraint (base address || subnet mask) in canonical form for name-constraint
     /// processing.</summary>
     /// <remarks>
-    /// Construction is the only way in, and it both canonicalises and validates: a 32-byte constraint whose
-    /// address half is IPv4-mapped (RFC 4291 sec. 2.5.5.2) and whose mask covers the full
-    /// <c>::ffff:0:0/96</c> prefix is reduced to the 8-byte IPv4 form, and the result must then be 8 or 32
-    /// bytes - anything else throws <see cref="PkixNameConstraintValidatorException"/>, so a structurally
-    /// invalid constraint fails closed (the certificate path is rejected) instead of being stored inert.
-    /// Equality and hashing are content-based. Tested addresses are the separate (transient)
+    /// Construction is the only way in, and it both canonicalises and validates, so downstream matching and
+    /// set-algebra see only canonical CIDR:
+    /// <list type="bullet">
+    /// <item>The length must be 8 or 32 bytes - anything else throws
+    /// <see cref="PkixNameConstraintValidatorException"/> (fail-closed: the certificate path is rejected).</item>
+    /// <item>The subnet mask must be a contiguous CIDR prefix. A non-contiguous mask is rejected by default;
+    /// with <see cref="Properties.X509AllowLenientIPAddressMask"/> it is instead rounded to the
+    /// most-restrictive contiguous mask for the construction context - a permitted range is narrowed (fill up
+    /// to the last 1-bit), an excluded range is broadened (keep only the leading 1-bits) - so the salvage can
+    /// only tighten validation. This is what keeps <see cref="IntersectIPRange"/> from minting new ranges.</item>
+    /// <item>A 32-byte constraint whose address half is IPv4-mapped (RFC 4291 sec. 2.5.5.2) and whose mask
+    /// covers the full <c>::ffff:0:0/96</c> prefix is reduced to the 8-byte IPv4 form.</item>
+    /// <item>The base's host bits (those cleared by the mask) are zeroed, so equal networks are byte-equal and
+    /// dedupe. Matching is unaffected (it masks both operands).</item>
+    /// </list>
+    /// Equality and hashing are content-based. Use <see cref="CreatePermitted"/> for permitted subtrees and
+    /// <see cref="CreateExcluded"/> for excluded subtrees. Tested addresses are the separate (transient)
     /// <see cref="NameConstraintIPAddress"/> type.
     /// </remarks>
     internal readonly struct NameConstraintIPRange
         : IEquatable<NameConstraintIPRange>
     {
+        /// <summary>Create a permitted-subtree iPAddress range (a non-contiguous mask, if salvaged, is
+        /// narrowed).</summary>
         /// <exception cref="PkixNameConstraintValidatorException"/>
-        internal static NameConstraintIPRange Create(byte[] octets)
+        internal static NameConstraintIPRange CreatePermitted(byte[] octets) => Create(octets, excluded: false);
+
+        /// <summary>Create an excluded-subtree iPAddress range (a non-contiguous mask, if salvaged, is
+        /// broadened).</summary>
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        internal static NameConstraintIPRange CreateExcluded(byte[] octets) => Create(octets, excluded: true);
+
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        private static NameConstraintIPRange Create(byte[] octets, bool excluded)
         {
-            byte[] canonical = NormalizeIPv4MappedIPv6Constraint(octets);
-            int length = canonical.Length;
+            int length = octets.Length;
             if (length != 8 && length != 32)
                 throw new PkixNameConstraintValidatorException("iPAddress constraint has invalid length: " + length);
+
+            // Work on a copy: canonicalisation mutates in place and the caller's array may be shared (e.g. an
+            // Asn1OctetString's contents).
+            byte[] canonical = (byte[])octets.Clone();
+            int half = length / 2;
+
+            if (!IsContiguousMask(canonical, half, half))
+            {
+                // A non-contiguous subnet mask isn't valid CIDR, and OR-ing such masks in IntersectIPRange is
+                // what mints new ranges. Reject (fail-closed) unless leniency is enabled, in which case round to
+                // the most-restrictive contiguous mask for the context - permitted narrows (fill up to the last
+                // 1-bit), excluded broadens (keep only the leading 1-bits). Either way, non-contiguity is gone.
+                if (!Properties.GetBoolean(Properties.X509AllowLenientIPAddressMask, false))
+                {
+                    throw new PkixNameConstraintValidatorException(
+                        "iPAddress constraint has a non-contiguous subnet mask");
+                }
+
+                WritePrefixMask(canonical, half, half, MaskPrefixLength(canonical, half, half, excluded));
+            }
+
+            // Collapse an IPv4-mapped IPv6 constraint (now with a contiguous mask), then zero the base's host
+            // bits so equal networks are byte-equal.
+            canonical = NormalizeIPv4MappedIPv6Constraint(canonical);
+            ZeroHostBits(canonical);
 
             return new NameConstraintIPRange(canonical);
         }
@@ -106,7 +151,7 @@ namespace Org.BouncyCastle.Pkix
             var intersect = new HashSet<NameConstraintIPRange>();
             foreach (GeneralSubtree subtree in subtrees)
             {
-                var ip = Create(Asn1OctetString.GetInstance(subtree.Base.Name).GetOctets());
+                var ip = CreatePermitted(Asn1OctetString.GetInstance(subtree.Base.Name).GetOctets());
 
                 if (permitted == null)
                 {
@@ -116,12 +161,15 @@ namespace Org.BouncyCastle.Pkix
                 {
                     foreach (var _permitted in permitted)
                     {
-                        byte[] intersection = IntersectIPRange(_permitted.m_bytes, ip.m_bytes);
-                        if (intersection != null)
+                        // Canonical CIDR blocks nest or are disjoint, so the intersection is the narrower of
+                        // an overlapping pair (already canonical - added directly) or nothing.
+                        if (Contains(_permitted, ip))
                         {
-                            // Re-canonicalise: OR-ing the operands' masks can land the result on the
-                            // IPv4-mapped /96 block even when neither operand is itself collapsible.
-                            intersect.Add(Create(intersection));
+                            intersect.Add(ip);
+                        }
+                        else if (Contains(ip, _permitted))
+                        {
+                            intersect.Add(_permitted);
                         }
                     }
                 }
@@ -135,133 +183,125 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintIPRange> { ip };
 
-            // Unlike the host/DN unions, IP ranges aren't simplified by subsumption: deciding whether one
-            // range contains another is deferred, so we just keep both operands. Over-approximating an
-            // excluded set is always sound ("adding all is not wrong"), and value equality on the set
-            // dedupes any exact repeat - the work the bc-java unionIPRange did by hand.
-            return new HashSet<NameConstraintIPRange>(excluded) { ip };
-        }
-
-        /**
-         * Calculates the intersection of two IP ranges.
-         *
-         * @param ipWithSubmask1 The first IP address with its subnet mask.
-         * @param ipWithSubmask2 The second IP address with its subnet mask.
-         * @return A single IP address with its subnet mask as a byte array, or null.
-         */
-        private static byte[] IntersectIPRange(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
-        {
-            // i.e. no intersection between IPv4 and IPv6 ranges
-            if (ipWithSubmask1.Length != ipWithSubmask2.Length)
-                return null;
-
-            byte[][] temp = ExtractIPsAndSubnetMasks(ipWithSubmask1, ipWithSubmask2);
-            byte[] ip1 = temp[0];
-            byte[] subnetmask1 = temp[1];
-            byte[] ip2 = temp[2];
-            byte[] subnetmask2 = temp[3];
-
-            byte[][] minMax = MinMaxIPs(ip1, subnetmask1, ip2, subnetmask2);
-            byte[] min1 = minMax[0];
-            byte[] max1 = minMax[1];
-            byte[] min2 = minMax[2];
-            byte[] max2 = minMax[3];
-
-            byte[] max = Min(max1, max2);
-            byte[] min = Max(min1, min2);
-
-            // minimum IP address can't be bigger than max
-            if (CompareTo(min, max) > 0)
-                return null;
-
-            // OR keeps all significant bits
-            byte[] ip = Or(min1, min2);
-            byte[] subnetmask = Or(subnetmask1, subnetmask2);
-            return Arrays.Concatenate(ip, subnetmask);
-        }
-
-        /**
-         * Splits the IP addresses and their subnet mask.
-         *
-         * @param ipWithSubmask1 The first IP address with the subnet mask.
-         * @param ipWithSubmask2 The second IP address with the subnet mask.
-         * @return An array with four elements: the IP address and the subnet mask
-         *         of each operand, in this order.
-         */
-        private static byte[][] ExtractIPsAndSubnetMasks(byte[] ipWithSubmask1, byte[] ipWithSubmask2)
-        {
-            int ipLength = ipWithSubmask1.Length / 2;
-            byte[] ip1 = new byte[ipLength];
-            byte[] subnetmask1 = new byte[ipLength];
-            Array.Copy(ipWithSubmask1, 0, ip1, 0, ipLength);
-            Array.Copy(ipWithSubmask1, ipLength, subnetmask1, 0, ipLength);
-
-            byte[] ip2 = new byte[ipLength];
-            byte[] subnetmask2 = new byte[ipLength];
-            Array.Copy(ipWithSubmask2, 0, ip2, 0, ipLength);
-            Array.Copy(ipWithSubmask2, ipLength, subnetmask2, 0, ipLength);
-            return new byte[][] { ip1, subnetmask1, ip2, subnetmask2 };
-        }
-
-        /**
-         * Based on the two IP addresses and their subnet masks the IP range is
-         * computed for each IP address - subnet mask pair and returned as the
-         * minimum IP address and the maximum address of the range.
-         *
-         * @param ip1         The first IP address.
-         * @param subnetmask1 The subnet mask of the first IP address.
-         * @param ip2         The second IP address.
-         * @param subnetmask2 The subnet mask of the second IP address.
-         * @return A array with two elements. The first/second element contains the
-         *         min and max IP address of the first/second IP address and its
-         *         subnet mask.
-         */
-        private static byte[][] MinMaxIPs(byte[] ip1, byte[] subnetmask1, byte[] ip2, byte[] subnetmask2)
-        {
-            int ipLength = ip1.Length;
-            byte[] min1 = new byte[ipLength];
-            byte[] max1 = new byte[ipLength];
-
-            byte[] min2 = new byte[ipLength];
-            byte[] max2 = new byte[ipLength];
-
-            for (int i = 0; i < ipLength; i++)
+            // Ranges are canonical CIDR, so subsumption is decidable: drop any _excluded that ip contains,
+            // keep the rest, and add ip unless some _excluded contains it. ip is added at most once, and once
+            // it is known to be added the second containment test is skipped (the || short-circuits). This is
+            // precise, unlike bc-java's unionIPRange, which keeps both operands.
+            var union = new HashSet<NameConstraintIPRange>();
+            bool addIp = false;
+            foreach (var _excluded in excluded)
             {
-                min1[i] = (byte)(ip1[i] & subnetmask1[i]);
-                max1[i] = (byte)(ip1[i] & subnetmask1[i] | ~subnetmask1[i]);
+                if (Contains(ip, _excluded))
+                {
+                    // ip contains _excluded, so _excluded is dropped and ip represents it.
+                    addIp = true;
+                }
+                else
+                {
+                    union.Add(_excluded);
 
-                min2[i] = (byte)(ip2[i] & subnetmask2[i]);
-                max2[i] = (byte)(ip2[i] & subnetmask2[i] | ~subnetmask2[i]);
+                    addIp = addIp || !Contains(_excluded, ip);
+                }
+            }
+            if (addIp)
+            {
+                union.Add(ip);
+            }
+            return union;
+        }
+
+        // Does the CIDR range <paramref name="outer"/> contain every address of <paramref name="inner"/>?
+        // Both are canonical (contiguous mask, host-zeroed base); different families never contain each other.
+        private static bool Contains(NameConstraintIPRange outer, NameConstraintIPRange inner)
+        {
+            byte[] o = outer.m_bytes, n = inner.m_bytes;
+            if (o.Length != n.Length)
+                return false;
+
+            int half = o.Length / 2;
+            for (int i = 0; i < half; i++)
+            {
+                byte outerMask = o[half + i];
+                // outer must be no narrower than inner (its mask bits are a subset of inner's), and inner's
+                // base must fall inside outer's network.
+                if ((outerMask & n[half + i]) != outerMask)
+                    return false;
+                if ((n[i] & outerMask) != o[i])
+                    return false;
+            }
+            return true;
+        }
+
+        // Is the len-byte mask at off a contiguous CIDR prefix (leading 1-bits then all 0-bits)?
+        private static bool IsContiguousMask(byte[] octets, int off, int len)
+        {
+            int i = 0;
+            while (i < len && octets[off + i] == 0xFF)
+            {
+                ++i;
+            }
+            if (i < len)
+            {
+                // The partial byte must be a left-aligned run of 1s, i.e. its complement is a right-aligned run.
+                int c = ~octets[off + i] & 0xFF;
+                if ((c & (c + 1)) != 0)
+                    return false;
+
+                while (++i < len)
+                {
+                    if (octets[off + i] != 0)
+                        return false;
+                }
+            }
+            return true;
+        }
+
+        // The contiguous prefix length to round a non-contiguous mask to: for an excluded range the index of
+        // the first 0-bit (truncate at first 0 => broader); for a permitted range one past the last 1-bit
+        // (fill up to the last 1 => narrower).
+        private static int MaskPrefixLength(byte[] octets, int off, int len, bool excluded)
+        {
+            int totalBits = len * 8;
+            if (excluded)
+            {
+                for (int bit = 0; bit < totalBits; ++bit)
+                {
+                    if (!GetBit(octets, off, bit))
+                        return bit;
+                }
+                return totalBits;
             }
 
-            return new byte[][] { min1, max1, min2, max2 };
-        }
-
-        private static byte[] Max(byte[] ip1, byte[] ip2) => CompareTo(ip1, ip2) > 0 ? ip1 : ip2;
-
-        private static byte[] Min(byte[] ip1, byte[] ip2) => CompareTo(ip1, ip2) < 0 ? ip1 : ip2;
-
-        private static int CompareTo(byte[] ip1, byte[] ip2)
-        {
-            for (int i = 0; i < ip1.Length; i++)
+            for (int bit = totalBits - 1; bit >= 0; --bit)
             {
-                int t1 = ip1[i], t2 = ip2[i];
-                if (t1 < t2)
-                    return -1;
-                if (t1 > t2)
-                    return 1;
+                if (GetBit(octets, off, bit))
+                    return bit + 1;
             }
             return 0;
         }
 
-        private static byte[] Or(byte[] ip1, byte[] ip2)
+        private static bool GetBit(byte[] octets, int off, int bit) =>
+            (octets[off + (bit >> 3)] & (0x80 >> (bit & 7))) != 0;
+
+        // Overwrite the len-byte mask at off with a contiguous prefix of prefixBits 1-bits.
+        private static void WritePrefixMask(byte[] octets, int off, int len, int prefixBits)
         {
-            byte[] temp = new byte[ip1.Length];
-            for (int i = 0; i < ip1.Length; i++)
+            for (int i = 0; i < len; ++i)
             {
-                temp[i] = (byte)(ip1[i] | ip2[i]);
+                int rem = prefixBits - i * 8;
+                int ones = rem <= 0 ? 0 : (rem >= 8 ? 8 : rem);
+                octets[off + i] = ones == 0 ? (byte)0 : (byte)(0xFF << (8 - ones));
             }
-            return temp;
+        }
+
+        // Zero the base's host bits (those cleared by the mask) so equal networks are byte-equal.
+        private static void ZeroHostBits(byte[] octets)
+        {
+            int half = octets.Length / 2;
+            for (int i = 0; i < half; ++i)
+            {
+                octets[i] &= octets[half + i];
+            }
         }
 
         /**
@@ -280,23 +320,20 @@ namespace Org.BouncyCastle.Pkix
             if (constraint.Length != 32)
                 return constraint;
 
-            byte[] ipHalf = new byte[16];
-            byte[] maskHalf = new byte[16];
-            Array.Copy(constraint, 0, ipHalf, 0, 16);
-            Array.Copy(constraint, 16, maskHalf, 0, 16);
-
-            if (!NameConstraintUtilities.IsIPv4MappedIPv6Address(ipHalf))
+            // Address half (offset 0) must be IPv4-mapped, and the mask half (offset 16) must be all-ones
+            // across the first 96 bits (its leading 12 bytes).
+            if (!NameConstraintUtilities.IsIPv4MappedIPv6Address(constraint, 0))
                 return constraint;
 
-            for (int i = 0; i < 12; i++)
+            for (int i = 16; i < 28; i++)
             {
-                if (maskHalf[i] != (byte)0xFF)
+                if (constraint[i] != 0xFF)
                     return constraint;
             }
 
             byte[] result = new byte[8];
-            Array.Copy(ipHalf, 12, result, 0, 4);
-            Array.Copy(maskHalf, 12, result, 4, 4);
+            Array.Copy(constraint, 12, result, 0, 4);   // IPv4 address (low 32 bits of the mapped address)
+            Array.Copy(constraint, 28, result, 4, 4);   // IPv4 mask (low 32 bits of the mask)
             return result;
         }
     }

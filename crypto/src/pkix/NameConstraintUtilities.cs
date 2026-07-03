@@ -85,17 +85,19 @@ namespace Org.BouncyCastle.Pkix
             Platform.EqualsIgnoreCase(dns, constraint) || WithinDomain(dns, constraint);
 
         /// <summary>Is <paramref name="ip"/> a 16-byte IPv4-mapped IPv6 address (RFC 4291 sec. 2.5.5.2)?</summary>
-        internal static bool IsIPv4MappedIPv6Address(byte[] ip)
-        {
-            if (ip == null || ip.Length != 16)
-                return false;
+        internal static bool IsIPv4MappedIPv6Address(byte[] ip) =>
+            ip != null && ip.Length == 16 && IsIPv4MappedIPv6Address(ip, 0);
 
+        /// <summary>Is the 16-byte span at <paramref name="off"/> an IPv4-mapped IPv6 address (RFC 4291
+        /// sec. 2.5.5.2)? The caller must ensure 16 bytes are available from <paramref name="off"/>.</summary>
+        internal static bool IsIPv4MappedIPv6Address(byte[] ip, int off)
+        {
             for (int i = 0; i < 10; i++)
             {
-                if (ip[i] != 0)
+                if (ip[off + i] != 0)
                     return false;
             }
-            return ip[10] == (byte)0xFF && ip[11] == (byte)0xFF;
+            return ip[off + 10] == (byte)0xFF && ip[off + 11] == (byte)0xFF;
         }
 
         internal static string StripTrailingDot(string s)

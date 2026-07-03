@@ -121,52 +121,43 @@ namespace Org.BouncyCastle.Tests
             new string[] { "test1.de" },
             new string[] { ".test.de" } };
 
-        private readonly byte[] testIP = { (byte)192, (byte)168, 1, 2 };
+        private readonly byte[] testIP = { 192, 168, 1, 2 };
 
+        // Contiguous CIDR constraints (address || mask). Non-contiguous masks are rejected by default since the
+        // CIDR-enforcement change, so these vectors and the intersect/union expectations below are all CIDR.
         private readonly byte[][] testIPIsConstraint = new byte[2][] {
-            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 0 },
-            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 4 } };
+            new byte[] { 192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00 },     // 192.168.1.0/24
+            new byte[] { 192, 168, 0, 0, 0xFF, 0xFF, 0x00, 0x00 } };   // 192.168.0.0/16
 
         private readonly byte[][] testIPIsNotConstraint = new byte[2][] {
-            new byte[] { (byte) 192, (byte) 168, 3, 1, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 2 },
-            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF, (byte) 0xFF, 3 } };
+            new byte[] { 192, 168, 3, 0, 0xFF, 0xFF, 0xFF, 0x00 },     // 192.168.3.0/24
+            new byte[] { 192, 168, 1, 128, 0xFF, 0xFF, 0xFF, 0x80 } }; // 192.168.1.128/25 (excludes .2)
 
+        // i=0 nested (/24 within /16), i=1 identical, i=2 disjoint.
         private readonly byte[][] ip1 = new byte[3][] {
-            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF,
-                        (byte) 0xFE, (byte) 0xFF },
-            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF,
-                        (byte) 0xFF, (byte) 0xFF },
-            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF,
-                        (byte) 0xFF, (byte) 0x00 } };
+            new byte[] { 192, 168, 0, 0, 0xFF, 0xFF, 0x00, 0x00 },   // 192.168.0.0/16
+            new byte[] { 192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00 },   // 192.168.1.0/24
+            new byte[] { 192, 168, 0, 0, 0xFF, 0xFF, 0xFF, 0x00 } }; // 192.168.0.0/24
 
         private readonly byte[][] ip2 = new byte[3][] {
-            new byte[] { (byte) 192, (byte) 168, 0, 1, (byte) 0xFF, (byte) 0xFF,
-                        (byte) 0xFC, 3 },
-            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF,
-                        (byte) 0xFF, (byte) 0xFF },
-            new byte[] { (byte) 192, (byte) 168, 0, 1, (byte) 0xFF, (byte) 0xFF,
-                        (byte) 0xFF, (byte) 0x00 } };
+            new byte[] { 192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00 },   // 192.168.1.0/24
+            new byte[] { 192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00 },   // 192.168.1.0/24
+            new byte[] { 10, 0, 0, 0, 0xFF, 0x00, 0x00, 0x00 } };    // 10.0.0.0/8
 
+        // Intersections: nested -> narrower; identical -> same; disjoint -> empty (null).
         private readonly byte[][] ipintersect = new byte[3][] {
-            new byte[] { (byte) 192, (byte) 168, 0, 1, (byte) 0xFF, (byte) 0xFF,
-                        (byte) 0xFE, (byte) 0xFF },
-            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF,
-                        (byte) 0xFF, (byte) 0xFF }, null };
+            new byte[] { 192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00 },   // 192.168.1.0/24
+            new byte[] { 192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00 }, null };
 
+        // Unions drop a range subsumed by another (CIDR): nested -> broader only, identical -> one, disjoint -> both.
         private readonly byte[][][] ipunion = new byte[3][][] {
-            new byte[2][] {
-                            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF,
-                                            (byte) 0xFE, (byte) 0xFF },
-                            new byte[] { (byte) 192, (byte) 168, 0, 1, (byte) 0xFF, (byte) 0xFF,
-                                            (byte) 0xFC, 3 } },
             new byte[1][] {
-                            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF,
-                                            (byte) 0xFF, (byte) 0xFF } },
+                new byte[] { 192, 168, 0, 0, 0xFF, 0xFF, 0x00, 0x00 } },   // 192.168.0.0/16 (subsumes the /24)
+            new byte[1][] {
+                new byte[] { 192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00 } },   // 192.168.1.0/24
             new byte[2][] {
-                            new byte[] { (byte) 192, (byte) 168, 1, 1, (byte) 0xFF, (byte) 0xFF,
-                                            (byte) 0xFF, (byte) 0x00 },
-                            new byte[] { (byte) 192, (byte) 168, 0, 1, (byte) 0xFF, (byte) 0xFF,
-                                            (byte) 0xFF, (byte) 0x00 } } };
+                new byte[] { 192, 168, 0, 0, 0xFF, 0xFF, 0xFF, 0x00 },     // 192.168.0.0/24
+                new byte[] { 10, 0, 0, 0, 0xFF, 0x00, 0x00, 0x00 } } };    // 10.0.0.0/8
 
         [Test]
         public void Basic()
@@ -452,15 +443,18 @@ namespace Org.BouncyCastle.Tests
         }
 
         /// <summary>
-        /// An IP range intersection can itself land on the IPv4-mapped ::ffff:0:0/96 block even when
-        /// neither operand does. The stored intersection must still be treated as (canonicalised to)
-        /// its IPv4 form when matching a 4-byte IPv4 SAN.
+        /// Non-contiguous masks are rejected by default, but under the leniency valve a permitted subtree's
+        /// mask is rounded up (fill to the last 1-bit) at creation. Two IPv4-mapped ::ffff:192.0.2.0
+        /// constraints each with a hole in the /96 prefix therefore round to /120 and collapse to the IPv4
+        /// form 192.0.2.0/24; their intersection matches a 4-byte IPv4 SAN in that range. (Formerly
+        /// SetAlgebraIpIntersectionMappedResult, whose mask-OR trap relied on the now-disallowed
+        /// non-contiguity.)
         /// </summary>
         [Test]
-        public void SetAlgebraIpIntersectionMappedResult()
+        public void LenientNonContiguousMappedMaskRoundsToCidr()
         {
-            // Two 32-byte (IPv6) constraints on ::ffff:192.0.2.0, each with a mask that leaves a hole
-            // in the /96 prefix (mask byte 11) so that NEITHER is itself collapsible to IPv4 form.
+            // Two 32-byte (IPv6) constraints on ::ffff:192.0.2.0, each with a hole in the /96 prefix
+            // (mask byte 11) so the mask is non-contiguous - rejected outright unless leniency is set.
             byte[] mappedHoleFE = Bytes(
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, 192, 0, 2, 0,
                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0x00);
@@ -468,16 +462,25 @@ namespace Org.BouncyCastle.Tests
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF, 192, 0, 2, 0,
                 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF, 0x00);
 
-            // Their intersection ORs the masks back to a full /96 prefix: ::ffff:192.0.2.0/120, i.e.
-            // the IPv4-mapped form of 192.0.2.0/24.
-            Assert.True(
-                IsPermittedAfterIntersect(IPName(mappedHoleFE), IPName(mappedHole01),
-                    IPName(Bytes(192, 0, 2, 5))),
-                "an intersection collapsing to an IPv4-mapped range must match the IPv4 form");
-            Assert.False(
-                IsPermittedAfterIntersect(IPName(mappedHoleFE), IPName(mappedHole01),
-                    IPName(Bytes(198, 51, 100, 5))),
-                "an IPv4 SAN outside the intersected range must not match");
+            // Default (strict) rejects a non-contiguous mask at registration.
+            PkixNameConstraintValidator strict = new PkixNameConstraintValidator();
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => strict.IntersectPermittedSubtree(new GeneralSubtree(IPName(mappedHoleFE))),
+                "a non-contiguous mask must be rejected by default");
+
+            Properties.WithThreadProperty(Properties.X509AllowLenientIPAddressMask, bool.TrueString, () =>
+            {
+                // Each permitted mask rounds up to /120 and collapses to 192.0.2.0/24, so the intersection
+                // matches an IPv4 SAN inside the /24 and rejects one outside it.
+                Assert.True(
+                    IsPermittedAfterIntersect(IPName(mappedHoleFE), IPName(mappedHole01),
+                        IPName(Bytes(192, 0, 2, 5))),
+                    "salvaged mapped /120 masks must intersect to the IPv4 /24 and match an in-range SAN");
+                Assert.False(
+                    IsPermittedAfterIntersect(IPName(mappedHoleFE), IPName(mappedHole01),
+                        IPName(Bytes(198, 51, 100, 5))),
+                    "an IPv4 SAN outside the intersected range must not match");
+            });
         }
 
         /// <summary>A fresh validator constrains nothing: both checks pass for every name family.</summary>
@@ -762,6 +765,108 @@ namespace Org.BouncyCastle.Tests
             Assert.Throws<PkixNameConstraintValidatorException>(
                 () => validator.CheckPermittedName(IPName(Bytes())),
                 "an empty iPAddress name must not use the empty-name escape");
+        }
+
+        /// <summary>
+        /// A non-contiguous iPAddress subnet mask isn't valid CIDR; by default it is rejected (fail-closed)
+        /// at registration in both directions (RFC 4632). Salvage requires the leniency valve.
+        /// </summary>
+        [Test]
+        public void NonContiguousMaskRejectedByDefault()
+        {
+            byte[] nonContiguous = Bytes(192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x05);
+
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => validator.IntersectPermittedSubtree(new GeneralSubtree(IPName(nonContiguous))),
+                "a non-contiguous permitted mask must be rejected by default");
+            Assert.Throws<PkixNameConstraintValidatorException>(
+                () => validator.AddExcludedSubtree(new GeneralSubtree(IPName(nonContiguous))),
+                "a non-contiguous excluded mask must be rejected by default");
+        }
+
+        /// <summary>
+        /// Under the leniency valve a non-contiguous mask is salvaged to the most-restrictive contiguous mask
+        /// for its context: a permitted range is narrowed (fill up to the last 1-bit; under-permit), an
+        /// excluded range is broadened (keep only the leading 1-bits; over-exclude). Both can only tighten.
+        /// </summary>
+        [Test]
+        public void LenientNonContiguousMaskRoundingDirection()
+        {
+            // 192.168.1.0 with a non-contiguous mask 255.255.255.5 (0x05 = bits 0 and 2 of the last byte).
+            byte[] constraint = Bytes(192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x05);
+
+            Properties.WithThreadProperty(Properties.X509AllowLenientIPAddressMask, bool.TrueString, () =>
+            {
+                // Permitted -> fill up to the last 1-bit => /32 (narrower). 192.168.1.2 matches the raw mask
+                // (2 & 5 == 0) but not the rounded /32.
+                Assert.True(IsPermitted(IPName(constraint), IPName(Bytes(192, 168, 1, 0))),
+                    "the network address is still permitted after narrowing to /32");
+                Assert.False(IsPermitted(IPName(constraint), IPName(Bytes(192, 168, 1, 2))),
+                    "a permitted non-contiguous mask must narrow, rejecting a raw-mask match (under-permit)");
+
+                // Excluded -> keep only the leading 1-bits => /24 (broader). 192.168.1.1 misses the raw mask
+                // (1 & 5 == 1) but is excluded by the rounded /24.
+                Assert.True(IsExcluded(IPName(constraint), IPName(Bytes(192, 168, 1, 1))),
+                    "an excluded non-contiguous mask must broaden, catching a raw-mask miss (over-exclude)");
+            });
+        }
+
+        /// <summary>
+        /// The base's host bits (those cleared by the mask) are zeroed at construction, so constraints for the
+        /// same network compare equal / dedupe regardless of the base's host bits. Matching is unaffected.
+        /// </summary>
+        [Test]
+        public void IpConstraintHostBitsZeroed()
+        {
+            byte[] dirty = Bytes(192, 168, 1, 7, 0xFF, 0xFF, 0xFF, 0x00);   // 192.168.1.7/24 (dirty host bits)
+            byte[] clean = Bytes(192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00);   // 192.168.1.0/24
+
+            PkixNameConstraintValidator a = new PkixNameConstraintValidator();
+            a.AddExcludedSubtree(new GeneralSubtree(IPName(dirty)));
+            PkixNameConstraintValidator b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(IPName(clean)));
+
+            Assert.AreEqual(a, b, "same-network constraints must be equal regardless of base host bits");
+            Assert.AreEqual(a.GetHashCode(), b.GetHashCode(), "hash codes must agree for equal validators");
+
+            // Matching is unaffected: the dirty-base constraint still matches every address in the /24.
+            Assert.True(IsExcluded(IPName(dirty), IPName(Bytes(192, 168, 1, 200))),
+                "host bits in the base must not change which addresses match");
+        }
+
+        /// <summary>
+        /// With ranges canonicalised to CIDR, the excluded union drops a range subsumed by another (keeping
+        /// the broader) in either insertion order, instead of the former keep-both over-approximation;
+        /// disjoint ranges are both retained. Matching is unchanged either way.
+        /// </summary>
+        [Test]
+        public void IpUnionDropsSubsumedRange()
+        {
+            byte[] broad = Bytes(192, 168, 0, 0, 0xFF, 0xFF, 0x00, 0x00);   // 192.168.0.0/16
+            byte[] narrow = Bytes(192, 168, 1, 0, 0xFF, 0xFF, 0xFF, 0x00);  // 192.168.1.0/24 (within /16)
+            byte[] other = Bytes(10, 0, 0, 0, 0xFF, 0x00, 0x00, 0x00);      // 10.0.0.0/8 (disjoint)
+
+            PkixNameConstraintValidator justBroad = new PkixNameConstraintValidator();
+            justBroad.AddExcludedSubtree(new GeneralSubtree(IPName(broad)));
+
+            // narrow then broad: the broader subsumes the already-present narrow.
+            PkixNameConstraintValidator narrowFirst = new PkixNameConstraintValidator();
+            narrowFirst.AddExcludedSubtree(new GeneralSubtree(IPName(narrow)));
+            narrowFirst.AddExcludedSubtree(new GeneralSubtree(IPName(broad)));
+            Assert.AreEqual(justBroad, narrowFirst, "broad must subsume an already-present narrow range");
+
+            // broad then narrow: the new narrow is subsumed by the present broad.
+            PkixNameConstraintValidator broadFirst = new PkixNameConstraintValidator();
+            broadFirst.AddExcludedSubtree(new GeneralSubtree(IPName(broad)));
+            broadFirst.AddExcludedSubtree(new GeneralSubtree(IPName(narrow)));
+            Assert.AreEqual(justBroad, broadFirst, "a new narrow range subsumed by a present broad is dropped");
+
+            // Disjoint ranges are both kept.
+            PkixNameConstraintValidator disjoint = new PkixNameConstraintValidator();
+            disjoint.AddExcludedSubtree(new GeneralSubtree(IPName(broad)));
+            disjoint.AddExcludedSubtree(new GeneralSubtree(IPName(other)));
+            Assert.AreNotEqual(justBroad, disjoint, "a disjoint excluded range must be kept, not dropped");
         }
 
         /// <summary>

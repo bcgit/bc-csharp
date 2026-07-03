@@ -93,6 +93,19 @@ namespace Org.BouncyCastle.Utilities
         /// </summary>
         public static readonly string X509AllowLenientRfc822Name = "Org.BouncyCastle.X509.AllowLenientRfc822Name";
 
+        /// <summary>
+        /// Salvage a non-contiguous iPAddress name-constraint subnet mask instead of rejecting it. An iPAddress
+        /// name constraint carries a subnet mask expected to be CIDR (a run of leading 1-bits); a non-contiguous
+        /// mask is malformed per RFC 4632 and also lets the subtree set-algebra mint new ranges (a super-linear
+        /// blow-up on hostile input). By default such a constraint is rejected (fail-closed). When set, the mask
+        /// is instead rounded to the most-restrictive contiguous mask for its context - a permitted subtree is
+        /// narrowed (fill up to the last 1-bit; under-permit), an excluded subtree is broadened (keep only the
+        /// leading 1-bits; over-exclude) - so validation can only get stricter, never laxer. Strict rejection is
+        /// the default; this is a safety valve, not a recommended mode.
+        /// </summary>
+        public static readonly string X509AllowLenientIPAddressMask =
+            "Org.BouncyCastle.X509.AllowLenientIPAddressMask";
+
         private static readonly ThreadLocal<Dictionary<string, string>> ThreadProperties =
             new ThreadLocal<Dictionary<string, string>>();
 

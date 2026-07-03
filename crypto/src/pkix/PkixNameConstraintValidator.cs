@@ -471,7 +471,7 @@ namespace Org.BouncyCastle.Pkix
                 break;
             case GeneralName.IPAddress:
                 excludedSubtreesIP = NameConstraintIPRange.Union(excludedSubtreesIP,
-                    NameConstraintIPRange.Create(Asn1OctetString.GetInstance(nameValue).GetOctets()));
+                    NameConstraintIPRange.CreateExcluded(Asn1OctetString.GetInstance(nameValue).GetOctets()));
                 break;
             default:
                 throw new InvalidOperationException("Unknown tag encountered: " + subtreeBase.TagNo);
