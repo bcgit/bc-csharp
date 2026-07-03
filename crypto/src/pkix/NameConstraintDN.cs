@@ -220,28 +220,37 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintDN> { dn };
 
-            // Covered (subsumed-or-equal; an equal pair - RDN-equal, even if differently encoded - keeps
-            // the first-registered instance): the union is the existing set, unchanged. Covered and
-            // dropped verdicts are mutually exclusive over a pairwise-non-nested set, so on a covered
-            // verdict nothing has been dropped yet and the partial copy is simply abandoned. Otherwise dn
-            // replaces whatever it strictly subsumes. One RelateDN per subtree.
-            var union = new HashSet<NameConstraintDN>();
+            // In-place union (the caller owns the set - the stored sets are never aliased). Covered
+            // (subsumed-or-equal; an equal pair - RDN-equal, even if differently encoded - keeps the
+            // first-registered instance): the set is already the union. Otherwise dn replaces whatever it
+            // strictly subsumes - removed after the enumeration, which must not mutate the set. One
+            // RelateDN per subtree.
+            List<NameConstraintDN> dropped = null;
             foreach (var subtree in excluded)
             {
                 switch (RelateDN(subtree, dn))
                 {
                 case Equal:
                 case Subsumes:
-                    return excluded;        // dn is covered: the union is the existing set
+                    return excluded;        // dn is covered: the set is already the union
                 case SubsumedBy:
-                    break;                  // dropped: dn will represent it
+                    dropped = dropped ?? new List<NameConstraintDN>();
+                    dropped.Add(subtree);   // dn will represent it
+                    break;
                 case Disjoint:
-                    union.Add(subtree);
                     break;
                 }
             }
-            union.Add(dn);
-            return union;
+
+            if (dropped != null)
+            {
+                foreach (var d in dropped)
+                {
+                    excluded.Remove(d);
+                }
+            }
+            excluded.Add(dn);
+            return excluded;
         }
     }
 }

@@ -264,13 +264,12 @@ namespace Org.BouncyCastle.Pkix
 
         /// <summary>
         /// The union of the excluded-constraint set <paramref name="excluded"/> (null for none) with one
-        /// more constraint <paramref name="name"/>. If any existing constraint subsumes
-        /// <paramref name="name"/> (or equals it - the first-registered instance is kept), the union is
-        /// <paramref name="excluded"/> unchanged; otherwise every constraint that <paramref name="name"/>
-        /// strictly subsumes is dropped and <paramref name="name"/> is added. Keeps the stored sets
-        /// pairwise non-nested (minimal) - and relies on it: covered and dropped verdicts are mutually
-        /// exclusive over a non-nested set, so on a covered verdict nothing has been dropped yet and the
-        /// partial copy is simply abandoned. One Relate per element.
+        /// more constraint <paramref name="name"/>, updating the set IN PLACE (the caller owns it - the
+        /// stored sets are never aliased). If any existing constraint subsumes <paramref name="name"/> (or
+        /// equals it - the first-registered instance is kept), the set is already the union; otherwise
+        /// every constraint that <paramref name="name"/> strictly subsumes is removed - deferred past the
+        /// enumeration, which must not mutate the set - and <paramref name="name"/> is added. Keeps the
+        /// stored sets pairwise non-nested (minimal). One Relate per element.
         /// </summary>
         internal static HashSet<T> Union<T>(HashSet<T> excluded, T name)
             where T : struct, INameConstraintHostName, IEquatable<T>
@@ -278,23 +277,32 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<T> { name };
 
-            var union = new HashSet<T>();
+            List<T> dropped = null;
             foreach (var _excluded in excluded)
             {
                 switch (_excluded.Relate(name))
                 {
                 case Equal:
                 case Subsumes:
-                    return excluded;        // name is covered: the union is the existing set
+                    return excluded;        // name is covered: the set is already the union
                 case SubsumedBy:
-                    break;                  // dropped: name will represent it
+                    dropped = dropped ?? new List<T>();
+                    dropped.Add(_excluded); // name will represent it
+                    break;
                 case Disjoint:
-                    union.Add(_excluded);
                     break;
                 }
             }
-            union.Add(name);
-            return union;
+
+            if (dropped != null)
+            {
+                foreach (var d in dropped)
+                {
+                    excluded.Remove(d);
+                }
+            }
+            excluded.Add(name);
+            return excluded;
         }
     }
 }

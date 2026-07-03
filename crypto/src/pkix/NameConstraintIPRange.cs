@@ -222,29 +222,37 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintIPRange> { ip };
 
-            // Covered (contained-or-equal; an equal pair keeps the first-registered instance): the union
-            // is the existing set, unchanged - precise, unlike bc-java's unionIPRange, which keeps both
-            // operands of every overlapping pair. Covered and dropped verdicts are mutually exclusive over
-            // a pairwise-non-nested set, so on a covered verdict nothing has been dropped yet and the
-            // partial copy is simply abandoned. Otherwise ip replaces whatever it strictly contains. One
-            // Relate per range.
-            var union = new HashSet<NameConstraintIPRange>();
+            // In-place union (the caller owns the set - the stored sets are never aliased). Covered
+            // (contained-or-equal; an equal pair keeps the first-registered instance): the set is already
+            // the union - precise, unlike bc-java's unionIPRange, which keeps both operands of every
+            // overlapping pair. Otherwise ip replaces whatever it strictly contains - removed after the
+            // enumeration, which must not mutate the set. One Relate per range.
+            List<NameConstraintIPRange> dropped = null;
             foreach (var _excluded in excluded)
             {
                 switch (Relate(_excluded, ip))
                 {
                 case Equal:
                 case Subsumes:
-                    return excluded;        // ip is covered: the union is the existing set
+                    return excluded;        // ip is covered: the set is already the union
                 case SubsumedBy:
-                    break;                  // dropped: ip will represent it
+                    dropped = dropped ?? new List<NameConstraintIPRange>();
+                    dropped.Add(_excluded); // ip will represent it
+                    break;
                 case Disjoint:
-                    union.Add(_excluded);
                     break;
                 }
             }
-            union.Add(ip);
-            return union;
+
+            if (dropped != null)
+            {
+                foreach (var d in dropped)
+                {
+                    excluded.Remove(d);
+                }
+            }
+            excluded.Add(ip);
+            return excluded;
         }
 
         // Is the len-byte mask at off a contiguous CIDR prefix (leading 1-bits then all 0-bits)?
