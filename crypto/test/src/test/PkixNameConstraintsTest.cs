@@ -339,6 +339,82 @@ namespace Org.BouncyCastle.Tests
         }
 
         /// <summary>
+        /// An empty directoryName base would be an initial prefix of every DN. It is deliberately inert
+        /// instead: it matches no name, and in the subtree set algebra it relates to nothing - so an empty
+        /// excluded base must not absorb a real excluded subtree (that would fail open), and an empty
+        /// permitted base must not stand in for a real permitted subtree.
+        /// </summary>
+        [Test]
+        public void DirectoryNameEmptyBaseInert()
+        {
+            GeneralName emptyDn = new GeneralName(GeneralName.DirectoryName,
+                X509Name.GetInstance(new DerSequence()));
+
+            // Matching: an empty excluded base catches nothing.
+            Assert.False(IsExcluded(emptyDn, DirectoryName("O=Org")),
+                "an empty excluded base must match no name");
+
+            // Excluded union, both registration orders: the empty base must not absorb the real subtree.
+            Assert.True(IsExcludedAfterUnion(emptyDn, DirectoryName("O=Org"), DirectoryName("O=Org, CN=x")),
+                "an empty excluded base must not absorb a later real subtree");
+            Assert.True(IsExcludedAfterUnion(DirectoryName("O=Org"), emptyDn, DirectoryName("O=Org, CN=x")),
+                "an empty excluded base must not absorb an earlier real subtree");
+
+            // Permitted intersect: empty and real subtrees do not overlap, so the intersection is empty.
+            Assert.False(IsPermittedAfterIntersect(emptyDn, DirectoryName("O=Org"), DirectoryName("O=Org, CN=x")),
+                "an empty permitted base must not stand in for a real permitted subtree");
+        }
+
+        /// <summary>
+        /// The union folds decide the incoming constraint's fate against the WHOLE excluded set: a
+        /// constraint already subsumed by one existing subtree must not be added just because it is
+        /// disjoint from another. (Historically it was - a redundant, subsumed element that broke the
+        /// stored sets' pairwise-non-nested minimality and hence validator equality; matching was
+        /// unaffected.) Pinned per implementation - the shared host-name union, iPAddress and
+        /// directoryName - via validator equality against a registration order without the covered entry.
+        /// </summary>
+        [Test]
+        public void UnionDropsCoveredConstraint()
+        {
+            // dNSName (the shared host-name union): foo.example.com is inside example.com but disjoint
+            // from other.test.
+            PkixNameConstraintValidator a = new PkixNameConstraintValidator();
+            a.AddExcludedSubtree(new GeneralSubtree(DnsName("example.com")));
+            a.AddExcludedSubtree(new GeneralSubtree(DnsName("other.test")));
+            a.AddExcludedSubtree(new GeneralSubtree(DnsName("foo.example.com")));
+
+            PkixNameConstraintValidator b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(DnsName("example.com")));
+            b.AddExcludedSubtree(new GeneralSubtree(DnsName("other.test")));
+
+            Assert.AreEqual(a, b, "a covered dNSName constraint must not enter the union");
+
+            // iPAddress: 10.1.0.0/16 is inside 10.0.0.0/8 but disjoint from 192.168.0.0/16.
+            a = new PkixNameConstraintValidator();
+            a.AddExcludedSubtree(new GeneralSubtree(IPName(Bytes(10, 0, 0, 0, 255, 0, 0, 0))));
+            a.AddExcludedSubtree(new GeneralSubtree(IPName(Bytes(192, 168, 0, 0, 255, 255, 0, 0))));
+            a.AddExcludedSubtree(new GeneralSubtree(IPName(Bytes(10, 1, 0, 0, 255, 255, 0, 0))));
+
+            b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(IPName(Bytes(10, 0, 0, 0, 255, 0, 0, 0))));
+            b.AddExcludedSubtree(new GeneralSubtree(IPName(Bytes(192, 168, 0, 0, 255, 255, 0, 0))));
+
+            Assert.AreEqual(a, b, "a covered iPAddress range must not enter the union");
+
+            // directoryName: O=Org, CN=x is inside O=Org's subtree but disjoint from O=Other.
+            a = new PkixNameConstraintValidator();
+            a.AddExcludedSubtree(new GeneralSubtree(DirectoryName("O=Org")));
+            a.AddExcludedSubtree(new GeneralSubtree(DirectoryName("O=Other")));
+            a.AddExcludedSubtree(new GeneralSubtree(DirectoryName("O=Org, CN=x")));
+
+            b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(DirectoryName("O=Org")));
+            b.AddExcludedSubtree(new GeneralSubtree(DirectoryName("O=Other")));
+
+            Assert.AreEqual(a, b, "a covered directoryName subtree must not enter the union");
+        }
+
+        /// <summary>
         /// The rfc822Name/URI HOST part must be free of empty labels, mirroring the dNSName rule
         /// (see <see cref="DnsEmptyLabelOrLeadingDotRejected"/>): ".." (including repeated trailing dots)
         /// misaligns the per-label compare - historically a fail-open escape on the excluded side - and a

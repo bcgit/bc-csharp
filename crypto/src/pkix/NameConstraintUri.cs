@@ -139,18 +139,7 @@ namespace Org.BouncyCastle.Pkix
             return intersect;
         }
 
-        internal static HashSet<NameConstraintUri> Union(HashSet<NameConstraintUri> excluded, NameConstraintUri uri)
-        {
-            if (excluded == null)
-                return new HashSet<NameConstraintUri> { uri };
-
-            var union = new HashSet<NameConstraintUri>();
-            foreach (var _excluded in excluded)
-            {
-                // Existing constraint first: an equal pair keeps the first-registered instance.
-                NameConstraintUtilities.Union(_excluded, uri, union);
-            }
-            return union;
-        }
+        internal static HashSet<NameConstraintUri> Union(HashSet<NameConstraintUri> excluded, NameConstraintUri uri) =>
+            NameConstraintUtilities.Union(excluded, uri);
     }
 }

@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
+
+using static Org.BouncyCastle.Pkix.NameConstraintRelation;
 
 namespace Org.BouncyCastle.Pkix
 {
@@ -78,10 +81,16 @@ namespace Org.BouncyCastle.Pkix
         }
 
         private readonly byte[] m_bytes;
+        private readonly int m_prefixLength;
 
         private NameConstraintIPRange(byte[] bytes)
         {
+            int half = bytes.Length / 2;
+            Debug.Assert(IsContiguousMask(bytes, half, half));
+
             m_bytes = bytes;
+            // For a contiguous mask the index of the first 0-bit IS the prefix length.
+            m_prefixLength = MaskPrefixLength(bytes, half, half, excluded: true);
         }
 
         public bool Equals(NameConstraintIPRange other) => Arrays.AreEqual(m_bytes, other.m_bytes);
@@ -145,6 +154,31 @@ namespace Org.BouncyCastle.Pkix
             return true;
         }
 
+        // Classify the set relationship of range1 to range2 in one pass. Canonical CIDR ranges nest or are
+        // disjoint: the ranges overlap iff their bases agree within the shared prefix (the AND of two
+        // contiguous masks is the shorter one), and then the prefix lengths decide the direction. Equal
+        // prefixes with agreeing bases are byte-equal ranges (bases are host-zeroed).
+        private static NameConstraintRelation Relate(NameConstraintIPRange range1, NameConstraintIPRange range2)
+        {
+            byte[] b1 = range1.m_bytes, b2 = range2.m_bytes;
+            if (b1.Length != b2.Length)
+                return Disjoint;                // different address families never overlap
+
+            int half = b1.Length / 2;
+            for (int i = 0; i < half; i++)
+            {
+                int common = b1[half + i] & b2[half + i];
+                if (((b1[i] ^ b2[i]) & common) != 0)
+                    return Disjoint;            // the networks differ within the shared prefix
+            }
+
+            int prefix1 = range1.m_prefixLength, prefix2 = range2.m_prefixLength;
+            if (prefix1 == prefix2)
+                return Equal;
+
+            return prefix1 < prefix2 ? Subsumes : SubsumedBy;   // the shorter prefix is the broader range
+        }
+
         internal static HashSet<NameConstraintIPRange> Intersect(HashSet<NameConstraintIPRange> permitted,
             HashSet<GeneralSubtree> subtrees)
         {
@@ -161,16 +195,20 @@ namespace Org.BouncyCastle.Pkix
                 {
                     foreach (var _permitted in permitted)
                     {
-                        // Canonical CIDR blocks nest or are disjoint, so the intersection is the narrower of
-                        // an overlapping pair (already canonical - added directly) or nothing. Existing
-                        // constraint first: an equal pair keeps the first-registered instance.
-                        if (Contains(ip, _permitted))
+                        // The narrower of an overlapping pair is the intersection (already canonical - added
+                        // directly). Existing constraint first: an equal pair keeps the first-registered
+                        // instance.
+                        switch (Relate(_permitted, ip))
                         {
-                            intersect.Add(_permitted);
-                        }
-                        else if (Contains(_permitted, ip))
-                        {
-                            intersect.Add(ip);
+                        case Equal:
+                        case SubsumedBy:
+                            intersect.Add(_permitted);  // _permitted is the narrower (or equal)
+                            break;
+                        case Subsumes:
+                            intersect.Add(ip);          // ip is the narrower
+                            break;
+                        case Disjoint:
+                            break;                      // no intersection
                         }
                     }
                 }
@@ -184,59 +222,29 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintIPRange> { ip };
 
-            // Ranges are canonical CIDR, so subsumption is decidable: drop any _excluded that ip strictly
-            // contains, keep the rest, and add ip once (at the end) unless some _excluded contains it. The
-            // first test gates the existing range, per the convention that an equal pair keeps the
-            // first-registered instance. This is precise, unlike bc-java's unionIPRange, which keeps both
-            // operands.
+            // Covered (contained-or-equal; an equal pair keeps the first-registered instance): the union
+            // is the existing set, unchanged - precise, unlike bc-java's unionIPRange, which keeps both
+            // operands of every overlapping pair. Covered and dropped verdicts are mutually exclusive over
+            // a pairwise-non-nested set, so on a covered verdict nothing has been dropped yet and the
+            // partial copy is simply abandoned. Otherwise ip replaces whatever it strictly contains. One
+            // Relate per range.
             var union = new HashSet<NameConstraintIPRange>();
-            bool addIp = false;
             foreach (var _excluded in excluded)
             {
-                if (Contains(_excluded, ip))
+                switch (Relate(_excluded, ip))
                 {
-                    // _excluded contains ip (broader or equal): the existing range represents ip.
+                case Equal:
+                case Subsumes:
+                    return excluded;        // ip is covered: the union is the existing set
+                case SubsumedBy:
+                    break;                  // dropped: ip will represent it
+                case Disjoint:
                     union.Add(_excluded);
-                }
-                else
-                {
-                    // ip is not subsumed by this range, so ip will be added.
-                    addIp = true;
-
-                    // Keep _excluded unless ip subsumes it.
-                    if (!Contains(ip, _excluded))
-                    {
-                        union.Add(_excluded);
-                    }
+                    break;
                 }
             }
-            if (addIp)
-            {
-                union.Add(ip);
-            }
+            union.Add(ip);
             return union;
-        }
-
-        // Does the CIDR range <paramref name="outer"/> contain every address of <paramref name="inner"/>?
-        // Both are canonical (contiguous mask, host-zeroed base); different families never contain each other.
-        private static bool Contains(NameConstraintIPRange outer, NameConstraintIPRange inner)
-        {
-            byte[] o = outer.m_bytes, n = inner.m_bytes;
-            if (o.Length != n.Length)
-                return false;
-
-            int half = o.Length / 2;
-            for (int i = 0; i < half; i++)
-            {
-                byte outerMask = o[half + i];
-                // outer must be no narrower than inner (its mask bits are a subset of inner's), and inner's
-                // base must fall inside outer's network.
-                if ((outerMask & n[half + i]) != outerMask)
-                    return false;
-                if ((n[i] & outerMask) != o[i])
-                    return false;
-            }
-            return true;
         }
 
         // Is the len-byte mask at off a contiguous CIDR prefix (leading 1-bits then all 0-bits)?

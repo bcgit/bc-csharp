@@ -7,6 +7,8 @@ using Org.BouncyCastle.Asn1.X500.Style;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 
+using static Org.BouncyCastle.Pkix.NameConstraintRelation;
+
 namespace Org.BouncyCastle.Pkix
 {
     /// <summary>A directoryName (tested name or constraint) in parsed form for name-constraint processing.</summary>
@@ -139,6 +141,44 @@ namespace Org.BouncyCastle.Pkix
             return IetfUtilities.RdnAreEqual(subtreeRdn, dnsRdn);
         }
 
+        // Classify the set relationship of dn1's subtree to dn2's in one RDN prefix walk. RdnAreEqual is
+        // positional and symmetric, so a single walk over the shared prefix reproduces both WithinDNSubtree
+        // directions exactly; the length comparison then decides the direction (the shorter sequence is the
+        // broader subtree), and equal lengths with an equal prefix mean RDN-equal sequences (Equal, even if
+        // differently encoded). The SGP22 relaxed match is not a prefix relation, so that mode classifies
+        // via the bilateral tests instead.
+        private static NameConstraintRelation RelateDN(NameConstraintDN dn1, NameConstraintDN dn2)
+        {
+            if (Properties.GetBoolean(Properties.X509Sgp22NameConstraints, false))
+            {
+                if (WithinDNSubtree(dn1, dn2))
+                    return WithinDNSubtree(dn2, dn1) ? Equal : SubsumedBy;  // dn2 is the broader subtree
+
+                return WithinDNSubtree(dn2, dn1) ? Subsumes : Disjoint;
+            }
+
+            Rdn[] rdns1 = dn1.m_rdns, rdns2 = dn2.m_rdns;
+            int len1 = rdns1.Length, len2 = rdns2.Length;
+
+            // An empty RDNSequence would be a prefix of everything; it relates to nothing instead - not
+            // even another empty - mirroring WithinDNSubtree's guard, so an empty base can neither absorb
+            // real subtrees nor collapse into them.
+            if (len1 < 1 || len2 < 1)
+                return Disjoint;
+
+            int common = len1 < len2 ? len1 : len2;
+            for (int i = 0; i < common; i++)
+            {
+                if (!IetfUtilities.RdnAreEqual(rdns1[i], rdns2[i]))
+                    return Disjoint;                        // the sequences diverge within the shared prefix
+            }
+
+            if (len1 == len2)
+                return Equal;
+
+            return len1 < len2 ? Subsumes : SubsumedBy;     // the shorter prefix is the broader subtree
+        }
+
         internal static HashSet<NameConstraintDN> Intersect(HashSet<NameConstraintDN> permitted,
             HashSet<GeneralSubtree> subtrees)
         {
@@ -157,13 +197,17 @@ namespace Org.BouncyCastle.Pkix
                     {
                         // The narrower (deeper) of an overlapping pair is the intersection. Existing
                         // constraint (dn2) first: an equal pair keeps the first-registered instance.
-                        if (WithinDNSubtree(dn2, dn1))
+                        switch (RelateDN(dn2, dn1))
                         {
-                            intersect.Add(dn2);
-                        }
-                        else if (WithinDNSubtree(dn1, dn2))
-                        {
-                            intersect.Add(dn1);
+                        case Equal:
+                        case SubsumedBy:
+                            intersect.Add(dn2);     // dn2 is the narrower (or equal)
+                            break;
+                        case Subsumes:
+                            intersect.Add(dn1);     // dn1 is the narrower
+                            break;
+                        case Disjoint:
+                            break;                  // no intersection
                         }
                     }
                 }
@@ -176,36 +220,27 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintDN> { dn };
 
-            // Union with each existing subtree: keep every subtree that dn does not subsume, and add dn once
-            // (at the end) unless some subtree subsumes it. The first test gates the existing subtree, per the
-            // convention that an equal pair (here: RDN-equal, even if differently encoded) keeps the
-            // first-registered instance.
+            // Covered (subsumed-or-equal; an equal pair - RDN-equal, even if differently encoded - keeps
+            // the first-registered instance): the union is the existing set, unchanged. Covered and
+            // dropped verdicts are mutually exclusive over a pairwise-non-nested set, so on a covered
+            // verdict nothing has been dropped yet and the partial copy is simply abandoned. Otherwise dn
+            // replaces whatever it strictly subsumes. One RelateDN per subtree.
             var union = new HashSet<NameConstraintDN>();
-            bool addDn = false;
             foreach (var subtree in excluded)
             {
-                if (WithinDNSubtree(dn, subtree))
+                switch (RelateDN(subtree, dn))
                 {
-                    // subtree subsumes dn: keep the broader subtree.
+                case Equal:
+                case Subsumes:
+                    return excluded;        // dn is covered: the union is the existing set
+                case SubsumedBy:
+                    break;                  // dropped: dn will represent it
+                case Disjoint:
                     union.Add(subtree);
-                }
-                else
-                {
-                    // dn is not subsumed by this subtree, so dn will be added.
-                    addDn = true;
-
-                    // Keep subtree unless dn subsumes it.
-                    if (!WithinDNSubtree(subtree, dn))
-                    {
-                        union.Add(subtree);
-                    }
+                    break;
                 }
             }
-            if (addDn)
-            {
-                union.Add(dn);
-            }
-
+            union.Add(dn);
             return union;
         }
     }

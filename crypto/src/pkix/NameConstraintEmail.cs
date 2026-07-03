@@ -155,18 +155,7 @@ namespace Org.BouncyCastle.Pkix
         }
 
         internal static HashSet<NameConstraintEmail> Union(HashSet<NameConstraintEmail> excluded,
-            NameConstraintEmail email)
-        {
-            if (excluded == null)
-                return new HashSet<NameConstraintEmail> { email };
-
-            var union = new HashSet<NameConstraintEmail>();
-            foreach (var _excluded in excluded)
-            {
-                // Existing constraint first: an equal pair keeps the first-registered instance.
-                NameConstraintUtilities.Union(_excluded, email, union);
-            }
-            return union;
-        }
+            NameConstraintEmail email) =>
+            NameConstraintUtilities.Union(excluded, email);
     }
 }

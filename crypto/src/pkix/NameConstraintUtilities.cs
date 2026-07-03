@@ -262,27 +262,39 @@ namespace Org.BouncyCastle.Pkix
         private static bool IsParticularAddress(NameConstraintHostNameKind kind) =>
             kind == NameConstraintHostNameKind.Mailbox || kind == NameConstraintHostNameKind.AtHost;
 
-        /// <summary>Add the union of <paramref name="name1"/> and <paramref name="name2"/> - the less
-        /// restrictive of an overlapping pair, or both if disjoint - to <paramref name="union"/>.
-        /// An equal pair keeps <paramref name="name1"/>; call sites pass the existing constraint there, so
-        /// the first-registered instance survives.</summary>
-        internal static void Union<T>(T name1, T name2, HashSet<T> union)
+        /// <summary>
+        /// The union of the excluded-constraint set <paramref name="excluded"/> (null for none) with one
+        /// more constraint <paramref name="name"/>. If any existing constraint subsumes
+        /// <paramref name="name"/> (or equals it - the first-registered instance is kept), the union is
+        /// <paramref name="excluded"/> unchanged; otherwise every constraint that <paramref name="name"/>
+        /// strictly subsumes is dropped and <paramref name="name"/> is added. Keeps the stored sets
+        /// pairwise non-nested (minimal) - and relies on it: covered and dropped verdicts are mutually
+        /// exclusive over a non-nested set, so on a covered verdict nothing has been dropped yet and the
+        /// partial copy is simply abandoned. One Relate per element.
+        /// </summary>
+        internal static HashSet<T> Union<T>(HashSet<T> excluded, T name)
             where T : struct, INameConstraintHostName, IEquatable<T>
         {
-            switch (name1.Relate(name2))
+            if (excluded == null)
+                return new HashSet<T> { name };
+
+            var union = new HashSet<T>();
+            foreach (var _excluded in excluded)
             {
-            case Equal:
-            case Subsumes:
-                union.Add(name1);       // name1 is the broader (or equal)
-                break;
-            case SubsumedBy:
-                union.Add(name2);       // name2 is the broader
-                break;
-            case Disjoint:
-                union.Add(name1);
-                union.Add(name2);
-                break;
+                switch (_excluded.Relate(name))
+                {
+                case Equal:
+                case Subsumes:
+                    return excluded;        // name is covered: the union is the existing set
+                case SubsumedBy:
+                    break;                  // dropped: name will represent it
+                case Disjoint:
+                    union.Add(_excluded);
+                    break;
+                }
             }
+            union.Add(name);
+            return union;
         }
     }
 }
