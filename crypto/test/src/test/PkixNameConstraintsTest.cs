@@ -228,7 +228,7 @@ namespace Org.BouncyCastle.Tests
             Assert.True(IsExcluded(EmailName("bank.com"), EmailName("ceo@bank.com.")),
                 "trailing-dot email must be caught by the excluded bank.com subtree");
 
-            // dNSName: exact and subdomain forms, including a dot-prefixed constraint.
+            // dNSName: exact and subdomain forms, including the dot-prefixed (proper-subtree) constraint.
             Assert.True(IsExcluded(DnsName("example.com"), DnsName("example.com.")),
                 "exact host with a trailing dot must be caught");
             Assert.True(IsExcluded(DnsName("example.com"), DnsName("foo.example.com.")),
@@ -242,6 +242,121 @@ namespace Org.BouncyCastle.Tests
             Assert.True(
                 IsExcluded(UriName("competitor.example"), UriName("https://competitor.example./")),
                 "trailing-dot URI host must be caught by the excluded competitor.example subtree");
+        }
+
+        /// <summary>
+        /// RFC 1034 sec. 3.5 name syntax has no empty labels: "a..b", repeated trailing dots, or a dot
+        /// right after the constraint-form leading dot misalign the per-label compare - on the excluded
+        /// side historically a fail-open escape. Such values are rejected at construction (fail-closed),
+        /// as constraints and as tested names alike.
+        /// </summary>
+        [Test]
+        public void DnsEmptyLabelRejected()
+        {
+            string[] malformed = { "a..example.com", "a.example.com..", "..example.com" };
+
+            foreach (string bad in malformed)
+            {
+                Assert.Throws<PkixNameConstraintValidatorException>(
+                    () => new PkixNameConstraintValidator().IntersectPermittedSubtree(
+                        new GeneralSubtree(DnsName(bad))),
+                    "permitted dNSName constraint must be rejected: " + bad);
+
+                Assert.Throws<PkixNameConstraintValidatorException>(
+                    () => new PkixNameConstraintValidator().AddExcludedSubtree(new GeneralSubtree(DnsName(bad))),
+                    "excluded dNSName constraint must be rejected: " + bad);
+            }
+
+            // A malformed tested name fails closed whenever dNSName constraints are in play: under the old
+            // per-label compare an empty label escaped an excluded subtree (fail-open).
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName("foo..example.com")),
+                "an empty label in a tested name must not escape the excluded subtree");
+            Assert.False(IsPermitted(DnsName("example.com"), DnsName("foo..example.com")),
+                "an empty label in a tested name must not be permitted");
+        }
+
+        /// <summary>
+        /// A leading dot on a dNSName constraint is the de facto proper-subtree form (OpenSSL nc_dns, Go
+        /// matchDomainConstraint, bc-java): subdomains match, the apex itself does not - unlike the plain
+        /// RFC 5280 sec. 4.2.1.10 form, which includes the apex. The form is constraint-only: a leading
+        /// dot on a TESTED dNSName is an empty first label and fails closed.
+        /// </summary>
+        [Test]
+        public void DnsLeadingDotConstraintExcludesApex()
+        {
+            // Proper-subtree semantics, both directions.
+            Assert.True(IsExcluded(DnsName(".example.com"), DnsName("foo.example.com")),
+                "a subdomain must match the dot-prefixed constraint");
+            Assert.False(IsExcluded(DnsName(".example.com"), DnsName("example.com")),
+                "the apex must not match the dot-prefixed (proper-subtree) constraint");
+            Assert.True(IsPermitted(DnsName(".example.com"), DnsName("a.b.example.com")),
+                "a nested subdomain must be permitted by the dot-prefixed constraint");
+            Assert.False(IsPermitted(DnsName(".example.com"), DnsName("example.com")),
+                "the apex must not be permitted by the dot-prefixed (proper-subtree) constraint");
+
+            // Set algebra across the two spellings: the plain form is the strictly broader set.
+            Assert.True(
+                IsExcludedAfterUnion(DnsName(".example.com"), DnsName("example.com"), DnsName("example.com")),
+                "union with the plain form must keep the apex excluded");
+            Assert.False(
+                IsPermittedAfterIntersect(DnsName(".example.com"), DnsName("example.com"),
+                    DnsName("example.com")),
+                "intersection must keep the narrower proper-subtree form: the apex is not permitted");
+            Assert.True(
+                IsPermittedAfterIntersect(DnsName(".example.com"), DnsName("example.com"),
+                    DnsName("foo.example.com")),
+                "intersection must still permit subdomains");
+
+            // Constraint-only: a tested dNSName with a leading dot fails closed.
+            Assert.True(IsExcluded(DnsName("other.test"), DnsName(".example.com")),
+                "a tested dNSName with a leading dot must fail closed");
+        }
+
+        /// <summary>
+        /// The rfc822Name/URI HOST part must be free of empty labels, mirroring the dNSName rule
+        /// (see <see cref="DnsEmptyLabelOrLeadingDotRejected"/>): ".." (including repeated trailing dots)
+        /// misaligns the per-label compare - historically a fail-open escape on the excluded side - and a
+        /// leading dot on a host does the same (the ".domain" form is a constraint-only shape, RFC 5280
+        /// sec. 4.2.1.10). Rejected at construction (fail-closed) for constraints and tested names alike.
+        /// The mailbox LOCAL part stays unrestricted: a quoted local part may legally contain dots.
+        /// </summary>
+        [Test]
+        public void EmailUriEmptyLabelRejected()
+        {
+            string[] malformed = { "foo..example.com", "..example.com", ".foo..example.com",
+                "foo.example.com..", "user@foo..example.com", "user@.example.com" };
+
+            foreach (string bad in malformed)
+            {
+                foreach (var name in new[] { EmailName(bad), UriName(bad) })
+                {
+                    Assert.Throws<PkixNameConstraintValidatorException>(
+                        () => new PkixNameConstraintValidator().IntersectPermittedSubtree(
+                            new GeneralSubtree(name)),
+                        "permitted constraint must be rejected: " + name);
+
+                    Assert.Throws<PkixNameConstraintValidatorException>(
+                        () => new PkixNameConstraintValidator().AddExcludedSubtree(new GeneralSubtree(name)),
+                        "excluded constraint must be rejected: " + name);
+                }
+            }
+
+            // Tested rfc822Name: the empty label historically escaped the excluded domain subtree.
+            Assert.True(IsExcluded(EmailName(".example.com"), EmailName("user@foo..example.com")),
+                "an empty label in a tested email host must not escape the excluded subtree");
+            Assert.False(IsPermitted(EmailName(".example.com"), EmailName("user@foo..example.com")),
+                "an empty label in a tested email host must not be permitted");
+
+            // Tested URI: an extracted host with an empty label or a leading dot fails closed.
+            Assert.True(IsExcluded(UriName("example.com"), UriName("https://foo..example.com/")),
+                "an empty label in a tested URI host must not escape the excluded subtree");
+            Assert.True(IsExcluded(UriName("example.com"), UriName("https://.example.com/")),
+                "a leading dot in a tested URI host must fail closed");
+
+            // The mailbox local part is not label-validated (only the host is): a permitted match proves the
+            // value was accepted, not rejected.
+            Assert.True(IsPermitted(EmailName("example.com"), EmailName("a..b@example.com")),
+                "dots in the mailbox local part must not be rejected");
         }
 
         /// <summary>

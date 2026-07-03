@@ -181,7 +181,7 @@ namespace Org.BouncyCastle.Pkix
                 throw new PkixNameConstraintValidatorException("Subject email address is ambiguous (multiple '@').");
             }
 
-            var name = NameConstraintEmail.Create(email);
+            var name = NameConstraintEmail.FromAddress(email);
 
             // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
             if (checkPermitted && !NameConstraintEmail.IsConstrained(permitted, name))
@@ -233,7 +233,7 @@ namespace Org.BouncyCastle.Pkix
             if (!checkPermitted && !checkExcluded)
                 return;
 
-            var name = NameConstraintDns.Create(dns);
+            var name = NameConstraintDns.FromName(dns);
 
             // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
             if (checkPermitted && !NameConstraintDns.IsConstrained(permitted, name))
@@ -455,11 +455,11 @@ namespace Org.BouncyCastle.Pkix
                 break;
             case GeneralName.Rfc822Name:
                 excludedSubtreesEmail = NameConstraintEmail.Union(excludedSubtreesEmail,
-                    NameConstraintEmail.Create(NameConstraintUtilities.ExtractIA5String(nameValue)));
+                    NameConstraintEmail.FromConstraint(NameConstraintUtilities.ExtractIA5String(nameValue)));
                 break;
             case GeneralName.DnsName:
                 excludedSubtreesDns = NameConstraintDns.Union(excludedSubtreesDns,
-                    NameConstraintDns.Create(NameConstraintUtilities.ExtractIA5String(nameValue)));
+                    NameConstraintDns.FromConstraint(NameConstraintUtilities.ExtractIA5String(nameValue)));
                 break;
             case GeneralName.DirectoryName:
                 excludedSubtreesDN = NameConstraintDN.Union(excludedSubtreesDN,

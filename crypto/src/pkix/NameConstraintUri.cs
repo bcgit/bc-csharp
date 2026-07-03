@@ -11,10 +11,13 @@ namespace Org.BouncyCastle.Pkix
     /// processing.
     /// </summary>
     /// <remarks>
-    /// Construction is the only way in. A tested name is reduced to its RFC 3986 authority host (via
-    /// <see cref="NameConstraintUtilities.ExtractHostFromURL"/>) with the RFC 1034 root-label trailing dot
-    /// stripped; a constraint (a host, or a ".domain") is stripped of a trailing dot only. The value's shape
-    /// is classified once, here, into a <see cref="NameConstraintHostNameKind"/> with the same precedence as
+    /// Construction is the only way in, and it validates as well as canonicalises. A tested name is reduced
+    /// to its RFC 3986 authority host (via <see cref="NameConstraintUtilities.ExtractHostFromURL"/>) with the
+    /// single RFC 1034 root-label trailing dot stripped; a constraint (a host, or a ".domain") is stripped of
+    /// a trailing dot only. Either way the host part is then rejected if it contains an empty label
+    /// (fail-closed); the domain form's leading dot is a constraint-only shape, so an extracted host is
+    /// rejected for it too. The value's shape is classified once, here, into a
+    /// <see cref="NameConstraintHostNameKind"/> with the same precedence as
     /// <see cref="NameConstraintEmail"/>, because the subtree intersect/union logic is a historical clone of
     /// the rfc822Name logic - including its '@' dispatch, which never fires for well-formed URI constraints -
     /// and is deliberately kept branch-for-branch identical (on canonical values). The canonical string
@@ -24,18 +27,21 @@ namespace Org.BouncyCastle.Pkix
     internal readonly struct NameConstraintUri
         : IEquatable<NameConstraintUri>, INameConstraintHostName
     {
+        /// <exception cref="PkixNameConstraintValidatorException">for an empty label in the host</exception>
         internal static NameConstraintUri FromConstraint(string constraint) =>
-            new NameConstraintUri(NameConstraintUtilities.StripTrailingDot(constraint));
+            new NameConstraintUri(NameConstraintUtilities.StripTrailingDot(constraint), isConstraint: true);
 
+        /// <exception cref="PkixNameConstraintValidatorException">for an empty label in the extracted host,
+        /// or a leading dot (the domain form is a constraint-only shape)</exception>
         internal static NameConstraintUri FromUri(string uri) =>
             new NameConstraintUri(NameConstraintUtilities.StripTrailingDot(
-                NameConstraintUtilities.ExtractHostFromURL(uri)));
+                NameConstraintUtilities.ExtractHostFromURL(uri)), isConstraint: false);
 
         private readonly NameConstraintHostNameKind m_kind;
         private readonly string m_value;
         private readonly string m_host;
 
-        private NameConstraintUri(string value)
+        private NameConstraintUri(string value, bool isConstraint)
         {
             // Classified with the same precedence as NameConstraintEmail so that the set algebra keeps its
             // exact branch structure. Matching (IsConstrained) treats every non-Domain kind as a host,
@@ -63,6 +69,14 @@ namespace Org.BouncyCastle.Pkix
                 m_kind = NameConstraintHostNameKind.AtHost;
                 m_host = value.Substring(1);
             }
+
+            // The host part must be free of empty labels. The Domain form's leading dot is a constraint-only
+            // shape, so for an extracted host it is validated as part of the host - and rejected as an empty
+            // first label.
+            int hostStart = m_kind == NameConstraintHostNameKind.Domain
+                ? (isConstraint ? 1 : 0)
+                : value.Length - m_host.Length;
+            NameConstraintUtilities.CheckHostLabels(value, hostStart, "uniformResourceIdentifier");
         }
 
         NameConstraintHostNameKind INameConstraintHostName.Kind => m_kind;

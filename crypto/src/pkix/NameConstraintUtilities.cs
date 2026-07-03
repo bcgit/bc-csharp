@@ -94,88 +94,94 @@ namespace Org.BouncyCastle.Pkix
             return ip[off + 10] == (byte)0xFF && ip[off + 11] == (byte)0xFF;
         }
 
-        internal static string StripTrailingDot(string s)
-        {
-            // length > 1 so a single bare "." (theoretically the empty-label
-            // root) is preserved rather than reduced to "".
-            if (s != null && s.Length > 1 && s[s.Length - 1] == '.')
-                return s.Substring(0, s.Length - 1);
+        // Strip the single RFC 1034 root-label trailing dot, producing the canonical form callers compare on.
+        // This is the trailing-dot normalization point for the rfc822Name/URI wrappers (NameConstraintDns
+        // validates and strips in its own Create): WithinDomain/DomainLabels rely on canonical input and do
+        // not re-strip. Only ONE dot is legitimate - any dot still trailing afterwards is an empty label, left
+        // in place for CheckHostLabels to reject. The length > 1 guard preserves a bare "." rather than
+        // reducing it to "".
+        internal static string StripTrailingDot(string s) =>
+            s.Length > 1 && s[s.Length - 1] == '.' ? s.Substring(0, s.Length - 1) : s;
 
-            return s;
+        /// <summary>
+        /// Reject an empty label in the host part of a name-constraint value - a '.' at either end of the
+        /// tail of <paramref name="s"/> from <paramref name="hostStart"/>, or a ".." within it. Runs after
+        /// the single-trailing-dot strip, so a dot still trailing denotes an empty label, not the root. An
+        /// empty tail passes: it is not an empty label (such values match by equality alone).
+        /// </summary>
+        /// <exception cref="PkixNameConstraintValidatorException">for an empty label</exception>
+        internal static void CheckHostLabels(string s, int hostStart, string generalNameType)
+        {
+            int end = s.Length;
+            if (hostStart >= end)
+                return;
+
+            if (s[hostStart] == '.' || s[end - 1] == '.'
+                || s.IndexOf("..", hostStart, StringComparison.Ordinal) >= 0)
+            {
+                throw new PkixNameConstraintValidatorException(
+                    generalNameType + " has an empty label in the host: " + s);
+            }
         }
 
+        /// <summary>
+        /// Is <paramref name="testDomain"/> a PROPER subdomain of <paramref name="domain"/> - i.e. does it
+        /// extend it leftwards by at least one label? The domain may carry the domain-form leading dot
+        /// (".example.com" and "example.com" denote the same subtree here); the apex itself never matches.
+        /// </summary>
+        /// <remarks>
+        /// A single case-insensitive suffix comparison, with the '.' label boundary part of the suffix,
+        /// replaces the historical per-label walk. The two are exactly equivalent because operands are
+        /// label-clean by construction (no empty labels; see the wrapper factories) - a suffix can neither
+        /// start mid-label nor hide behind a ".." misalignment.
+        /// </remarks>
         internal static bool WithinDomain(string testDomain, string domain)
         {
-            if (Platform.StartsWith(domain, "."))
-            {
-                domain = domain.Substring(1);
-            }
+            int domOff = Platform.StartsWith(domain, ".") ? 1 : 0;
+            int domLen = domain.Length - domOff;
 
-            // Strip the RFC 1034 root-label trailing dot so the per-label
-            // compare doesn't see a phantom empty label.
-            testDomain = StripTrailingDot(testDomain);
-            domain = StripTrailingDot(domain);
-
-            string[] domainParts = Strings.Split(domain, '.');
-            string[] testDomainParts = Strings.Split(testDomain, '.');
-
-            // must have at least one subdomain
-            if (testDomainParts.Length <= domainParts.Length)
+            // At least one extra char, then the '.' label boundary, then the domain itself.
+            int boundary = testDomain.Length - domLen - 1;
+            if (boundary < 1 || testDomain[boundary] != '.')
                 return false;
 
-            int d = testDomainParts.Length - domainParts.Length;
-            if (testDomainParts[d - 1].Length < 1)
-                return false;
+            // Label-clean inputs cannot have an empty innermost extra label (the old per-label walk's
+            // guard); assert the invariant rather than re-checking it.
+            Debug.Assert(testDomain[boundary - 1] != '.');
 
-            for (int i = 0; i < domainParts.Length; i++)
-            {
-                if (!Platform.EqualsIgnoreCase(domainParts[i], testDomainParts[d + i]))
-                    return false;
-            }
-            return true;
+            return string.Compare(testDomain, boundary + 1, domain, domOff, domLen,
+                StringComparison.OrdinalIgnoreCase) == 0;
         }
 
-        // The labels of a domain-constraint value, normalized as WithinDomain normalizes its domain operand:
-        // a single leading dot and any trailing dot removed, then split on '.'.
-        private static string[] DomainLabels(string domain)
-        {
-            if (Platform.StartsWith(domain, "."))
-            {
-                domain = domain.Substring(1);
-            }
-
-            return Strings.Split(StripTrailingDot(domain), '.');
-        }
-
-        // Classify two domain-constraint values in a single pass - the effort of one WithinDomain, versus the
-        // equal-plus-WithinDomain-both-ways it replaces. Each is split into labels once; walking from the
-        // least-significant label yields Equal (both exhaust together), Subsumes/SubsumedBy (one is a proper
-        // suffix of the other) or Disjoint. The "innermost leftover label must be non-empty" check reproduces
-        // WithinDomain's proper-subdomain guard, so results match it (and EqualsIgnoreCase) exactly.
+        // Classify two domain-constraint values in a single pass - one comparison, versus the
+        // equal-plus-WithinDomain-both-ways it condenses. A leading dot excludes the apex (the proper-
+        // subtree form); without it the value's own name is in the subtree (the dNSName reading). Equal
+        // remainders are Equal only with matching apex treatment - otherwise the apex-inclusive form is the
+        // strictly broader set. Unequal-length remainders relate only if the longer is a proper subdomain
+        // of the shorter, per WithinDomain's suffix test - then every element of the narrower subtree is a
+        // proper subdomain of the broader base either way, so the apex flags cannot matter.
         private static NameConstraintRelation RelateDomains(string domain1, string domain2)
         {
-            string[] labels1 = DomainLabels(domain1);
-            string[] labels2 = DomainLabels(domain2);
+            int off1 = Platform.StartsWith(domain1, ".") ? 1 : 0;
+            int off2 = Platform.StartsWith(domain2, ".") ? 1 : 0;
+            int len1 = domain1.Length - off1;
+            int len2 = domain2.Length - off2;
 
-            int i1 = labels1.Length - 1, i2 = labels2.Length - 1;
-            while (i1 >= 0 && i2 >= 0)
+            if (len1 == len2)
             {
-                if (!Platform.EqualsIgnoreCase(labels1[i1], labels2[i2]))
+                if (string.Compare(domain1, off1, domain2, off2, len1, StringComparison.OrdinalIgnoreCase) != 0)
                     return Disjoint;
 
-                --i1;
-                --i2;
+                if (off1 == off2)
+                    return Equal;
+
+                return off1 == 0 ? Subsumes : SubsumedBy;   // the apex-inclusive (undotted) form is broader
             }
 
-            if (i1 < 0 && i2 < 0)
-                return Equal;
+            if (len1 < len2)
+                return WithinDomain(domain2, domain1) ? Subsumes : Disjoint;    // domain1 is broader
 
-            // The shorter is a suffix of the longer; the longer is a proper subdomain only if its innermost
-            // leftover label is non-empty.
-            if (i1 < 0)
-                return labels2[i2].Length > 0 ? Subsumes : Disjoint;    // domain1 is shorter -> broader
-
-            return labels1[i1].Length > 0 ? SubsumedBy : Disjoint;      // domain1 is longer -> narrower
+            return WithinDomain(domain1, domain2) ? SubsumedBy : Disjoint;      // domain1 is narrower
         }
 
         // The pairwise subtree set algebra shared by the rfc822Name and uniformResourceIdentifier wrapper

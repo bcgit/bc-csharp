@@ -8,25 +8,34 @@ namespace Org.BouncyCastle.Pkix
 {
     /// <summary>An rfc822Name (tested name or constraint) in canonical form for name-constraint processing.</summary>
     /// <remarks>
-    /// Construction is the only way in: the RFC 1034 root-label trailing dot (of the host, which is always the
-    /// string tail) is stripped once, here, and the value's shape - particular mailbox ("local@host"), legacy
-    /// exact-host ("@host"), host ("host") or domain (".domain") - is classified once, here, into a
-    /// <see cref="NameConstraintHostNameKind"/>, with the host comparand cached alongside. The canonical string remains
-    /// the identity: equality and hashing are case-insensitive on it alone (kind and host are derived from it),
-    /// and original case is preserved for display. A tested name classifies through the same rules; matching
-    /// only ever branches on the constraint's kind.
+    /// Construction is the only way in, and it validates as well as canonicalises: the single RFC 1034
+    /// root-label trailing dot (of the host, which is always the string tail) is stripped once, here; the
+    /// value's shape - particular mailbox ("local@host"), legacy exact-host ("@host"), host ("host") or
+    /// domain (".domain") - is classified once, here, into a <see cref="NameConstraintHostNameKind"/>, with
+    /// the host comparand cached alongside; and the host part is then rejected if it contains an empty label
+    /// (fail-closed). The domain form's leading dot is a constraint-only shape, so a tested name (which
+    /// classifies through the same rules) is rejected for it too; the mailbox LOCAL part is not restricted
+    /// (a quoted local part may legally contain dots). The canonical string remains the identity: equality
+    /// and hashing are case-insensitive on it alone (kind and host are derived from it), and original case
+    /// is preserved for display. Matching only ever branches on the constraint's kind.
     /// </remarks>
     internal readonly struct NameConstraintEmail
         : IEquatable<NameConstraintEmail>, INameConstraintHostName
     {
-        internal static NameConstraintEmail Create(string email) =>
-            new NameConstraintEmail(NameConstraintUtilities.StripTrailingDot(email));
+        /// <exception cref="PkixNameConstraintValidatorException">for an empty label in the host</exception>
+        internal static NameConstraintEmail FromConstraint(string constraint) =>
+            new NameConstraintEmail(NameConstraintUtilities.StripTrailingDot(constraint), isConstraint: true);
+
+        /// <exception cref="PkixNameConstraintValidatorException">for an empty label in the host, or a
+        /// leading dot (the domain form is a constraint-only shape)</exception>
+        internal static NameConstraintEmail FromAddress(string address) =>
+            new NameConstraintEmail(NameConstraintUtilities.StripTrailingDot(address), isConstraint: false);
 
         private readonly NameConstraintHostNameKind m_kind;
         private readonly string m_value;
         private readonly string m_host;
 
-        private NameConstraintEmail(string value)
+        private NameConstraintEmail(string value, bool isConstraint)
         {
             // Classification follows RFC 5280 4.2.1.10, which defines three rfc822Name constraint forms:
             // a particular mailbox ("local@host"), a host ("host") and a domain (".domain"). Known
@@ -66,6 +75,14 @@ namespace Org.BouncyCastle.Pkix
                 m_kind = NameConstraintHostNameKind.AtHost;
                 m_host = value.Substring(1);
             }
+
+            // The host part must be free of empty labels. The Domain form's leading dot is a constraint-only
+            // shape (RFC 5280 4.2.1.10), so for a tested name it is validated as part of the host - and
+            // rejected as an empty first label.
+            int hostStart = m_kind == NameConstraintHostNameKind.Domain
+                ? (isConstraint ? 1 : 0)
+                : value.Length - m_host.Length;
+            NameConstraintUtilities.CheckHostLabels(value, hostStart, "rfc822Name");
         }
 
         NameConstraintHostNameKind INameConstraintHostName.Kind => m_kind;
@@ -119,7 +136,7 @@ namespace Org.BouncyCastle.Pkix
             var intersect = new HashSet<NameConstraintEmail>();
             foreach (GeneralSubtree subtree in subtrees)
             {
-                var email = Create(NameConstraintUtilities.ExtractIA5String(subtree));
+                var email = FromConstraint(NameConstraintUtilities.ExtractIA5String(subtree));
 
                 if (permitted == null)
                 {

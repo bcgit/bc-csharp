@@ -4,27 +4,54 @@ using System.Collections.Generic;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 
+using static Org.BouncyCastle.Pkix.NameConstraintRelation;
+
 namespace Org.BouncyCastle.Pkix
 {
     /// <summary>A dNSName (tested name or constraint) in canonical form for name-constraint processing.</summary>
     /// <remarks>
-    /// Construction is the only way in: the RFC 1034 root-label trailing dot is stripped once, here, so every
-    /// downstream comparison and set operation works on canonical values by construction. Equality and hashing
-    /// are case-insensitive (original case is preserved for display). A constraint value may carry a leading
-    /// dot, restricting it to proper subdomains.
+    /// Construction is the only way in, and it validates as well as canonicalises: an empty label is
+    /// rejected and the single RFC 1034 root-label trailing dot is stripped, so every downstream comparison
+    /// and set operation works on validated, canonical values by construction. A constraint may carry a
+    /// leading dot, excluding the apex from the subtree - the de facto reading shared by OpenSSL, Go and
+    /// bc-java, alongside RFC 5280 sec. 4.2.1.10's own undotted, apex-inclusive form. A tested name may
+    /// not: there the leading dot is just an empty first label. Equality and hashing are case-insensitive
+    /// (original case is preserved for display). Matching and the subtree set algebra go through the shared
+    /// <c>Relate</c> classifier with one fixed <see cref="NameConstraintHostNameKind.Domain"/> kind: both
+    /// spellings denote subtrees, and RelateDomains reads the apex distinction from the value itself.
     /// </remarks>
     internal readonly struct NameConstraintDns
-        : IEquatable<NameConstraintDns>
+        : IEquatable<NameConstraintDns>, INameConstraintHostName
     {
-        internal static NameConstraintDns Create(string dns) =>
-            new NameConstraintDns(NameConstraintUtilities.StripTrailingDot(dns));
+        /// <exception cref="PkixNameConstraintValidatorException">for an empty label</exception>
+        internal static NameConstraintDns FromConstraint(string constraint) =>
+            new NameConstraintDns(NameConstraintUtilities.StripTrailingDot(constraint), isConstraint: true);
+
+        /// <exception cref="PkixNameConstraintValidatorException">for an empty label, or a leading dot
+        /// (the proper-subtree form is a constraint-only shape)</exception>
+        internal static NameConstraintDns FromName(string name) =>
+            new NameConstraintDns(NameConstraintUtilities.StripTrailingDot(name), isConstraint: false);
 
         private readonly string m_value;
 
-        private NameConstraintDns(string value)
+        private NameConstraintDns(string value, bool isConstraint)
         {
             m_value = value;
+
+            // A constraint may carry the proper-subtree leading dot; a tested name may not, so its leading
+            // dot is validated as part of the host - and rejected as an empty first label.
+            int hostStart = isConstraint && Platform.StartsWith(value, ".") ? 1 : 0;
+            NameConstraintUtilities.CheckHostLabels(value, hostStart, "dNSName");
         }
+
+        // Every dNSName denotes a subtree, so the shared algebra sees one fixed kind: apex-inclusive when
+        // plain, apex-exclusive with the constraint-only leading dot - a distinction RelateDomains reads
+        // from the value itself.
+        NameConstraintHostNameKind INameConstraintHostName.Kind => NameConstraintHostNameKind.Domain;
+
+        string INameConstraintHostName.Value => m_value;
+
+        string INameConstraintHostName.Host => m_value;
 
         public bool Equals(NameConstraintDns other) => Platform.EqualsIgnoreCase(m_value, other.m_value);
 
@@ -39,11 +66,9 @@ namespace Org.BouncyCastle.Pkix
         {
             foreach (var constraint in constraints)
             {
-                if (Platform.EqualsIgnoreCase(dns.m_value, constraint.m_value)
-                    || NameConstraintUtilities.WithinDomain(dns.m_value, constraint.m_value))
-                {
+                var relation = dns.Relate(constraint);
+                if (relation == Equal || relation == SubsumedBy)
                     return true;
-                }
             }
 
             return false;
@@ -55,7 +80,7 @@ namespace Org.BouncyCastle.Pkix
             var intersect = new HashSet<NameConstraintDns>();
             foreach (GeneralSubtree subtree in subtrees)
             {
-                var dns = Create(NameConstraintUtilities.ExtractIA5String(subtree));
+                var dns = FromConstraint(NameConstraintUtilities.ExtractIA5String(subtree));
 
                 if (permitted == null)
                 {
@@ -63,26 +88,11 @@ namespace Org.BouncyCastle.Pkix
                 }
                 else
                 {
-                    // dns is the intersection at most once (the narrower of an overlapping pair), so once it
-                    // is known to be added the WithinDomain subsumption test that gates it is skipped.
-                    bool addDns = false;
                     foreach (var _permitted in permitted)
                     {
-                        if (Platform.EqualsIgnoreCase(_permitted.m_value, dns.m_value)
-                            || NameConstraintUtilities.WithinDomain(_permitted.m_value, dns.m_value))
-                        {
-                            // dns subsumes _permitted: the intersection is the narrower _permitted.
-                            intersect.Add(_permitted);
-                        }
-                        else
-                        {
-                            addDns = addDns || NameConstraintUtilities.WithinDomain(dns.m_value, _permitted.m_value);
-                        }
-                    }
-                    if (addDns)
-                    {
-                        // _permitted subsumes dns: the intersection is the narrower dns.
-                        intersect.Add(dns);
+                        // NOTE: operand order preserves the historical outcome for an equal pair (the
+                        // permitted operand is kept).
+                        NameConstraintUtilities.Intersect(_permitted, dns, intersect);
                     }
                 }
             }
@@ -94,29 +104,12 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintDns> { dns };
 
-            // Union with each existing constraint: drop any _excluded that dns subsumes, keep the rest, and
-            // add dns itself unless some _excluded subsumes it. dns is added at most once (at the end), and
-            // once it is known to be added the WithinDomain subsumption test is skipped (the || short-circuits).
             var union = new HashSet<NameConstraintDns>();
-            bool addDns = false;
             foreach (var _excluded in excluded)
             {
-                if (Platform.EqualsIgnoreCase(_excluded.m_value, dns.m_value)
-                    || NameConstraintUtilities.WithinDomain(_excluded.m_value, dns.m_value))
-                {
-                    // dns subsumes _excluded, so _excluded is dropped and dns will represent it.
-                    addDns = true;
-                }
-                else
-                {
-                    union.Add(_excluded);
-
-                    addDns = addDns || !NameConstraintUtilities.WithinDomain(dns.m_value, _excluded.m_value);
-                }
-            }
-            if (addDns)
-            {
-                union.Add(dns);
+                // NOTE: operand order preserves the historical outcome for an equal pair (the incoming
+                // operand is kept).
+                NameConstraintUtilities.Union(dns, _excluded, union);
             }
             return union;
         }
