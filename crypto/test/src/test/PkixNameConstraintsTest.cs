@@ -601,6 +601,51 @@ namespace Org.BouncyCastle.Tests
                 "intersection of trailing-dot and plain URI host constraints must not be empty");
         }
 
+        /// <summary>
+        /// Nested domain constraints in the shared host-name algebra: the intersection is the narrower domain,
+        /// the union the broader. Guards the Relate classifier's Subsumes/SubsumedBy split - proper domain
+        /// subsumption that the other set-algebra tests did not exercise. Both wrapper types are covered
+        /// (rfc822Name and, with its mirrored operand order, uniformResourceIdentifier).
+        /// </summary>
+        [Test]
+        public void SetAlgebraHostNameDomainSubsumption()
+        {
+            // rfc822Name: .example.com strictly contains .sub.example.com.
+            Assert.False(
+                IsPermittedAfterIntersect(EmailName(".example.com"), EmailName(".sub.example.com"),
+                    EmailName("user@x.example.com")),
+                "email: intersection of nested domains keeps the narrower, so a name only in the broader fails");
+            Assert.True(
+                IsPermittedAfterIntersect(EmailName(".example.com"), EmailName(".sub.example.com"),
+                    EmailName("user@y.sub.example.com")),
+                "email: a name within the narrower domain survives the intersection");
+            Assert.True(
+                IsExcludedAfterUnion(EmailName(".sub.example.com"), EmailName(".example.com"),
+                    EmailName("user@x.example.com")),
+                "email: union of nested domains keeps the broader, so a name in it is excluded");
+
+            // uniformResourceIdentifier shares the algebra (mirrored operand order), exercising the other branch.
+            Assert.False(
+                IsPermittedAfterIntersect(UriName(".example.com"), UriName(".sub.example.com"),
+                    UriName("http://x.example.com/")),
+                "uri: intersection of nested domains keeps the narrower");
+            Assert.True(
+                IsExcludedAfterUnion(UriName(".sub.example.com"), UriName(".example.com"),
+                    UriName("http://x.example.com/")),
+                "uri: union of nested domains keeps the broader");
+
+            // Disjoint domains: the intersection is empty, so a name in *either* operand is not permitted
+            // (checking both operands catches a mutation that wrongly keeps one instead of emptying the set).
+            Assert.False(
+                IsPermittedAfterIntersect(EmailName(".example.com"), EmailName(".example.org"),
+                    EmailName("user@x.example.com")),
+                "email: intersection of disjoint domains is empty (name in first operand)");
+            Assert.False(
+                IsPermittedAfterIntersect(EmailName(".example.com"), EmailName(".example.org"),
+                    EmailName("user@x.example.org")),
+                "email: intersection of disjoint domains is empty (name in second operand)");
+        }
+
         /// <summary>As <see cref="ValidatorEqualityCanonicalDns"/> for uniformResourceIdentifier.</summary>
         [Test]
         public void ValidatorEqualityCanonicalUri()

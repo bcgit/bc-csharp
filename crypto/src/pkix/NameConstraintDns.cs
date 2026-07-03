@@ -39,15 +39,15 @@ namespace Org.BouncyCastle.Pkix
         {
             foreach (var constraint in constraints)
             {
-                if (IsConstrained(constraint, dns))
+                if (Platform.EqualsIgnoreCase(dns.m_value, constraint.m_value)
+                    || NameConstraintUtilities.WithinDomain(dns.m_value, constraint.m_value))
+                {
                     return true;
+                }
             }
 
             return false;
         }
-
-        private static bool IsConstrained(NameConstraintDns constraint, NameConstraintDns dns) =>
-            NameConstraintUtilities.IsDnsMatch(constraint.m_value, dns.m_value);
 
         internal static HashSet<NameConstraintDns> Intersect(HashSet<NameConstraintDns> permitted,
             HashSet<GeneralSubtree> subtrees)
@@ -68,7 +68,8 @@ namespace Org.BouncyCastle.Pkix
                     bool addDns = false;
                     foreach (var _permitted in permitted)
                     {
-                        if (IsConstrained(dns, _permitted))
+                        if (Platform.EqualsIgnoreCase(_permitted.m_value, dns.m_value)
+                            || NameConstraintUtilities.WithinDomain(_permitted.m_value, dns.m_value))
                         {
                             // dns subsumes _permitted: the intersection is the narrower _permitted.
                             intersect.Add(_permitted);
@@ -100,7 +101,8 @@ namespace Org.BouncyCastle.Pkix
             bool addDns = false;
             foreach (var _excluded in excluded)
             {
-                if (IsConstrained(dns, _excluded))
+                if (Platform.EqualsIgnoreCase(_excluded.m_value, dns.m_value)
+                    || NameConstraintUtilities.WithinDomain(_excluded.m_value, dns.m_value))
                 {
                     // dns subsumes _excluded, so _excluded is dropped and dns will represent it.
                     addDns = true;

@@ -6,6 +6,8 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 
+using static Org.BouncyCastle.Pkix.NameConstraintRelation;
+
 namespace Org.BouncyCastle.Pkix
 {
     /// <summary>Name canonicalisation and matching helpers for name-constraint processing.</summary>
@@ -76,14 +78,6 @@ namespace Org.BouncyCastle.Pkix
         internal static string ExtractIA5String(Asn1Encodable nameValue) =>
             DerIA5String.GetInstance(nameValue).GetString();
 
-        /// <summary>
-        /// Does <paramref name="constraint"/> constrain <paramref name="dns"/>, i.e. is the name equal to the
-        /// constraint or within its domain? Both arguments must already be in canonical form (RFC 1034
-        /// trailing dot stripped); a leading dot on the constraint restricts it to proper subdomains.
-        /// </summary>
-        internal static bool IsDnsMatch(string constraint, string dns) =>
-            Platform.EqualsIgnoreCase(dns, constraint) || WithinDomain(dns, constraint);
-
         /// <summary>Is <paramref name="ip"/> a 16-byte IPv4-mapped IPv6 address (RFC 4291 sec. 2.5.5.2)?</summary>
         internal static bool IsIPv4MappedIPv6Address(byte[] ip) =>
             ip != null && ip.Length == 16 && IsIPv4MappedIPv6Address(ip, 0);
@@ -141,256 +135,142 @@ namespace Org.BouncyCastle.Pkix
             return true;
         }
 
+        // The labels of a domain-constraint value, normalized as WithinDomain normalizes its domain operand:
+        // a single leading dot and any trailing dot removed, then split on '.'.
+        private static string[] DomainLabels(string domain)
+        {
+            if (Platform.StartsWith(domain, "."))
+            {
+                domain = domain.Substring(1);
+            }
+
+            return Strings.Split(StripTrailingDot(domain), '.');
+        }
+
+        // Classify two domain-constraint values in a single pass - the effort of one WithinDomain, versus the
+        // equal-plus-WithinDomain-both-ways it replaces. Each is split into labels once; walking from the
+        // least-significant label yields Equal (both exhaust together), Subsumes/SubsumedBy (one is a proper
+        // suffix of the other) or Disjoint. The "innermost leftover label must be non-empty" check reproduces
+        // WithinDomain's proper-subdomain guard, so results match it (and EqualsIgnoreCase) exactly.
+        private static NameConstraintRelation RelateDomains(string domain1, string domain2)
+        {
+            string[] labels1 = DomainLabels(domain1);
+            string[] labels2 = DomainLabels(domain2);
+
+            int i1 = labels1.Length - 1, i2 = labels2.Length - 1;
+            while (i1 >= 0 && i2 >= 0)
+            {
+                if (!Platform.EqualsIgnoreCase(labels1[i1], labels2[i2]))
+                    return Disjoint;
+
+                --i1;
+                --i2;
+            }
+
+            if (i1 < 0 && i2 < 0)
+                return Equal;
+
+            // The shorter is a suffix of the longer; the longer is a proper subdomain only if its innermost
+            // leftover label is non-empty.
+            if (i1 < 0)
+                return labels2[i2].Length > 0 ? Subsumes : Disjoint;    // domain1 is shorter -> broader
+
+            return labels1[i1].Length > 0 ? SubsumedBy : Disjoint;      // domain1 is longer -> narrower
+        }
+
         // The pairwise subtree set algebra shared by the rfc822Name and uniformResourceIdentifier wrapper
         // types (the URI logic has been a verbatim clone of the rfc822Name logic since long before those
-        // types existed). The struct constraint keeps the interface dispatch JIT-specialized: no boxing.
+        // types existed). Intersect and Union are thin consumers of the shared Relate classifier; the generic
+        // struct constraint keeps the interface dispatch JIT-specialized (no boxing).
 
-        /**
-         * The most restricting part from <code>name1</code> and
-         * <code>name2</code> is added to the intersection <code>intersect</code>.
-         *
-         * @param name1     Host-name constraint 1.
-         * @param name2     Host-name constraint 2.
-         * @param intersect The intersection.
-         */
-        internal static void Intersect<T>(T name1, T name2, HashSet<T> intersect)
-            where T : struct, INameConstraintHostName, IEquatable<T>
+        /// <summary>
+        /// Classify the set relationship of <paramref name="name1"/> to <paramref name="name2"/>. Two host-name
+        /// constraints never partially overlap (a host/mailbox is a point, a domain a subtree), so the result is
+        /// always exactly one <see cref="NameConstraintRelation"/>. The per-kind comparisons are the historical
+        /// ones verbatim, so Intersect/Union stay behaviour-identical - except that two case-differing-but-equal
+        /// values are reported <see cref="NameConstraintRelation.Equal"/> (keeping name1), a ToString-only nuance
+        /// since equality and hashing are case-insensitive.
+        /// </summary>
+        internal static NameConstraintRelation Relate<T>(this T name1, T name2)
+            where T : struct, INameConstraintHostName
         {
             // name1 is a particular address
             if (IsParticularAddress(name1.Kind))
             {
-                // both are a particular address
                 if (IsParticularAddress(name2.Kind))
-                {
-                    if (Platform.EqualsIgnoreCase(name1.Value, name2.Value))
-                    {
-                        intersect.Add(name1);
-                    }
-                }
-                // name2 specifies a domain
-                else if (name2.Kind == NameConstraintHostNameKind.Domain)
-                {
-                    if (WithinDomain(name1.Host, name2.Value))
-                    {
-                        intersect.Add(name1);
-                    }
-                }
-                // name2 specifies a particular host
-                else
-                {
-                    if (Platform.EqualsIgnoreCase(name1.Host, name2.Value))
-                    {
-                        intersect.Add(name1);
-                    }
-                }
+                    return Platform.EqualsIgnoreCase(name1.Value, name2.Value) ? Equal : Disjoint;
+
+                if (name2.Kind == NameConstraintHostNameKind.Domain)
+                    return WithinDomain(name1.Host, name2.Value) ? SubsumedBy : Disjoint;
+
+                // name2 is a particular host
+                return Platform.EqualsIgnoreCase(name1.Host, name2.Value) ? SubsumedBy : Disjoint;
             }
+
             // name1 specifies a domain
-            else if (name1.Kind == NameConstraintHostNameKind.Domain)
+            if (name1.Kind == NameConstraintHostNameKind.Domain)
             {
                 if (IsParticularAddress(name2.Kind))
-                {
-                    if (WithinDomain(name2.Host, name1.Value))
-                    {
-                        intersect.Add(name2);
-                    }
-                }
-                // name2 specifies a domain
-                else if (name2.Kind == NameConstraintHostNameKind.Domain)
-                {
-                    if (IsDnsMatch(name2.Value, name1.Value))
-                    {
-                        intersect.Add(name1);
-                    }
-                    else if (WithinDomain(name2.Value, name1.Value))
-                    {
-                        intersect.Add(name2);
-                    }
-                    else
-                    {
-                        // No intersection
-                    }
-                }
-                else
-                {
-                    if (WithinDomain(name2.Value, name1.Value))
-                    {
-                        intersect.Add(name2);
-                    }
-                }
+                    return WithinDomain(name2.Host, name1.Value) ? Subsumes : Disjoint;
+
+                if (name2.Kind == NameConstraintHostNameKind.Domain)
+                    return RelateDomains(name1.Value, name2.Value);
+
+                // name2 is a particular host
+                return WithinDomain(name2.Value, name1.Value) ? Subsumes : Disjoint;
             }
+
             // name1 specifies a host
-            else
+            if (IsParticularAddress(name2.Kind))
+                return Platform.EqualsIgnoreCase(name2.Host, name1.Value) ? Subsumes : Disjoint;
+
+            if (name2.Kind == NameConstraintHostNameKind.Domain)
+                return WithinDomain(name1.Value, name2.Value) ? SubsumedBy : Disjoint;
+
+            // name2 is a particular host
+            return Platform.EqualsIgnoreCase(name1.Value, name2.Value) ? Equal : Disjoint;
+        }
+
+        /// <summary>Add the intersection of <paramref name="name1"/> and <paramref name="name2"/> - the more
+        /// restrictive of an overlapping pair, or nothing if disjoint - to <paramref name="intersect"/>.</summary>
+        internal static void Intersect<T>(T name1, T name2, HashSet<T> intersect)
+            where T : struct, INameConstraintHostName, IEquatable<T>
+        {
+            switch (name1.Relate(name2))
             {
-                if (IsParticularAddress(name2.Kind))
-                {
-                    if (Platform.EqualsIgnoreCase(name2.Host, name1.Value))
-                    {
-                        intersect.Add(name2);
-                    }
-                }
-                // name2 specifies a domain
-                else if (name2.Kind == NameConstraintHostNameKind.Domain)
-                {
-                    if (WithinDomain(name1.Value, name2.Value))
-                    {
-                        intersect.Add(name1);
-                    }
-                }
-                // name2 specifies a particular host
-                else
-                {
-                    if (Platform.EqualsIgnoreCase(name1.Value, name2.Value))
-                    {
-                        intersect.Add(name1);
-                    }
-                }
+            case Equal:
+            case SubsumedBy:
+                intersect.Add(name1);   // name1 is the narrower (or equal)
+                break;
+            case Subsumes:
+                intersect.Add(name2);   // name2 is the narrower
+                break;
+            case Disjoint:
+                break;                  // no intersection
             }
         }
 
         private static bool IsParticularAddress(NameConstraintHostNameKind kind) =>
             kind == NameConstraintHostNameKind.Mailbox || kind == NameConstraintHostNameKind.AtHost;
 
-        /**
-         * The common part of <code>name1</code> and <code>name2</code> is
-         * added to the union <code>union</code>. If <code>name1</code> and
-         * <code>name2</code> have nothing in common they are added both.
-         *
-         * @param name1 Host-name constraint 1.
-         * @param name2 Host-name constraint 2.
-         * @param union The union.
-         */
+        /// <summary>Add the union of <paramref name="name1"/> and <paramref name="name2"/> - the less
+        /// restrictive of an overlapping pair, or both if disjoint - to <paramref name="union"/>.</summary>
         internal static void Union<T>(T name1, T name2, HashSet<T> union)
             where T : struct, INameConstraintHostName, IEquatable<T>
         {
-            // name1 is a particular address
-            if (IsParticularAddress(name1.Kind))
+            switch (name1.Relate(name2))
             {
-                // both are a particular address
-                if (IsParticularAddress(name2.Kind))
-                {
-                    if (Platform.EqualsIgnoreCase(name1.Value, name2.Value))
-                    {
-                        union.Add(name1);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
-                // name2 specifies a domain
-                else if (name2.Kind == NameConstraintHostNameKind.Domain)
-                {
-                    if (WithinDomain(name1.Host, name2.Value))
-                    {
-                        union.Add(name2);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
-                // name2 specifies a particular host
-                else
-                {
-                    if (Platform.EqualsIgnoreCase(name1.Host, name2.Value))
-                    {
-                        union.Add(name2);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
-            }
-            // name1 specifies a domain
-            else if (name1.Kind == NameConstraintHostNameKind.Domain)
-            {
-                if (IsParticularAddress(name2.Kind))
-                {
-                    if (WithinDomain(name2.Host, name1.Value))
-                    {
-                        union.Add(name1);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
-                // name2 specifies a domain
-                else if (name2.Kind == NameConstraintHostNameKind.Domain)
-                {
-                    if (IsDnsMatch(name2.Value, name1.Value))
-                    {
-                        union.Add(name2);
-                    }
-                    else if (WithinDomain(name2.Value, name1.Value))
-                    {
-                        union.Add(name1);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
-                else
-                {
-                    if (WithinDomain(name2.Value, name1.Value))
-                    {
-                        union.Add(name1);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
-            }
-            // name1 specifies a host
-            else
-            {
-                if (IsParticularAddress(name2.Kind))
-                {
-                    if (Platform.EqualsIgnoreCase(name2.Host, name1.Value))
-                    {
-                        union.Add(name1);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
-                // name2 specifies a domain
-                else if (name2.Kind == NameConstraintHostNameKind.Domain)
-                {
-                    if (WithinDomain(name1.Value, name2.Value))
-                    {
-                        union.Add(name2);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
-                // name2 specifies a particular host
-                else
-                {
-                    if (Platform.EqualsIgnoreCase(name1.Value, name2.Value))
-                    {
-                        union.Add(name1);
-                    }
-                    else
-                    {
-                        union.Add(name1);
-                        union.Add(name2);
-                    }
-                }
+            case Equal:
+            case Subsumes:
+                union.Add(name1);       // name1 is the broader (or equal)
+                break;
+            case SubsumedBy:
+                union.Add(name2);       // name2 is the broader
+                break;
+            case Disjoint:
+                union.Add(name1);
+                union.Add(name2);
+                break;
             }
         }
     }
