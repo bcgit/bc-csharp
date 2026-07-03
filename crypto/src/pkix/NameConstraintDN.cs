@@ -130,12 +130,19 @@ namespace Org.BouncyCastle.Pkix
             if (!subtreeFirst.Type.Equals(dnsFirst.Type))
                 return false;
 
-            // special treatment of serialNumber for GSMA SGP.22 RSP specification
+            // Special treatment of serialNumber for the GSMA SGP.22 RSP specification: the constraint's
+            // IIN is a prefix (EID digits 1 to 8) of the subject's EID. The subject side is held to the
+            // encoding SGP.22 explicitly mandates (the EID "as a decimal PrintableString"); the constraint
+            // side accepts any ASN.1 string form - X.520 binds serialNumber to PrintableString there too,
+            // but only by inheritance, and refusing a misencoded trust-side IIN would reject every leaf
+            // under that EUM (the historical code read it type-agnostically via ToString). Anything else
+            // falls through to ordinary RDN equality below instead of throwing from an ASN.1 accessor.
             if (subtreeRdn.Count == 1 && subtreeFirst.Type.Equals(X509Name.SerialNumber))
             {
-                var subtreeFirstValue = DerPrintableString.GetInstance(subtreeFirst.Value).GetString();
-                var dnsFirstValue = DerPrintableString.GetInstance(dnsFirst.Value).GetString();
-                return Platform.StartsWith(dnsFirstValue, subtreeFirstValue);
+                var dnsFirstValue = DerPrintableString.GetOptional(dnsFirst.Value);
+
+                if (dnsFirstValue != null && subtreeFirst.Value.ToAsn1Object() is IAsn1String subtreeFirstValue)
+                    return Platform.StartsWith(dnsFirstValue.GetString(), subtreeFirstValue.GetString());
             }
 
             return IetfUtilities.RdnAreEqual(subtreeRdn, dnsRdn);

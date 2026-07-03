@@ -1258,6 +1258,48 @@ namespace Org.BouncyCastle.Tests
             });
         }
 
+        /// <summary>
+        /// SGP.22 mandates the eUICC serialNumber (the EID) as a decimal PrintableString, so the IIN
+        /// prefix rule holds the SUBJECT side to that encoding; a subject serialNumber in any other
+        /// encoding falls back to ordinary (canonical, whole-value) RDN equality instead of throwing from
+        /// an ASN.1 accessor mid-check. The CONSTRAINT side is trust-side data and is read as any ASN.1
+        /// string form: X.520's PrintableString syntax binds it only by inheritance, and rejecting a
+        /// misencoded IIN would reject every leaf under that EUM.
+        /// </summary>
+        [Test]
+        public void Sgp22NonPrintableSerialNumber()
+        {
+            GeneralName subtree = DirectoryName("O=VALID, serialNumber=89034011");
+
+            // O=VALID with the full EID as a (nonconforming) UTF8String serialNumber.
+            GeneralName subjectUtf8Sn = new GeneralName(GeneralName.DirectoryName, new DerSequence(
+                new DerSet(new DerSequence(X509Name.O, new DerPrintableString("VALID"))),
+                new DerSet(new DerSequence(X509Name.SerialNumber,
+                    new DerUtf8String("89034011026140000000000000001332")))));
+
+            GeneralName subtreeUtf8Sn = new GeneralName(GeneralName.DirectoryName, new DerSequence(
+                new DerSet(new DerSequence(X509Name.O, new DerPrintableString("VALID"))),
+                new DerSet(new DerSequence(X509Name.SerialNumber,
+                    new DerUtf8String("89034011026140000000000000001332")))));
+
+            // The IIN as a (misencoded) UTF8String in the constraint itself.
+            GeneralName subtreeUtf8Iin = new GeneralName(GeneralName.DirectoryName, new DerSequence(
+                new DerSet(new DerSequence(X509Name.O, new DerPrintableString("VALID"))),
+                new DerSet(new DerSequence(X509Name.SerialNumber, new DerUtf8String("89034011")))));
+
+            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, () =>
+            {
+                Assert.False(IsPermitted(subtree, subjectUtf8Sn),
+                    "a non-PrintableString EID must not prefix-match the IIN (and must not throw)");
+                Assert.True(IsPermitted(subtreeUtf8Sn, subjectUtf8Sn),
+                    "identical nonconforming serialNumbers must still match by ordinary equality");
+                Assert.True(
+                    IsPermitted(subtreeUtf8Iin,
+                        DirectoryName("O=VALID, serialNumber=89034011026140000000000000001332")),
+                    "a misencoded constraint IIN must still prefix-match a conforming EID");
+            });
+        }
+
         /// <summary>Regression test pinning the lone-serialNumber matching of a directoryName subtree.</summary>
         /// <remarks>
         /// Before github #2327 (bc-java) this GSMA SGP.22 StartsWith concession ran ungated in the strict path; it is
