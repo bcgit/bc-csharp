@@ -90,8 +90,7 @@ namespace Org.BouncyCastle.Pkix
                 {
                     foreach (var _permitted in permitted)
                     {
-                        // NOTE: operand order preserves the historical outcome for an equal pair (the
-                        // permitted operand is kept).
+                        // Existing constraint first: an equal pair keeps the first-registered instance.
                         NameConstraintUtilities.Intersect(_permitted, dns, intersect);
                     }
                 }
@@ -107,9 +106,8 @@ namespace Org.BouncyCastle.Pkix
             var union = new HashSet<NameConstraintDns>();
             foreach (var _excluded in excluded)
             {
-                // NOTE: operand order preserves the historical outcome for an equal pair (the incoming
-                // operand is kept).
-                NameConstraintUtilities.Union(dns, _excluded, union);
+                // Existing constraint first: an equal pair keeps the first-registered instance.
+                NameConstraintUtilities.Union(_excluded, dns, union);
             }
             return union;
         }

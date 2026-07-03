@@ -155,13 +155,15 @@ namespace Org.BouncyCastle.Pkix
                 {
                     foreach (var dn2 in permitted)
                     {
-                        if (WithinDNSubtree(dn1, dn2))
-                        {
-                            intersect.Add(dn1);
-                        }
-                        else if (WithinDNSubtree(dn2, dn1))
+                        // The narrower (deeper) of an overlapping pair is the intersection. Existing
+                        // constraint (dn2) first: an equal pair keeps the first-registered instance.
+                        if (WithinDNSubtree(dn2, dn1))
                         {
                             intersect.Add(dn2);
+                        }
+                        else if (WithinDNSubtree(dn1, dn2))
+                        {
+                            intersect.Add(dn1);
                         }
                     }
                 }
@@ -175,11 +177,9 @@ namespace Org.BouncyCastle.Pkix
                 return new HashSet<NameConstraintDN> { dn };
 
             // Union with each existing subtree: keep every subtree that dn does not subsume, and add dn once
-            // (at the end) unless some subtree subsumes it. NOTE: the subsumption tests are mirror-imaged
-            // relative to the dNSName union - here the first test gates an existing subtree, so it can't be
-            // skipped once dn is known to be added. Reordering the tests to match dNSName would change which of
-            // two RDN-equal-but-differently-encoded values survives (matching is unaffected; the set is
-            // encoding-keyed), so the precedence is kept as-is.
+            // (at the end) unless some subtree subsumes it. The first test gates the existing subtree, per the
+            // convention that an equal pair (here: RDN-equal, even if differently encoded) keeps the
+            // first-registered instance.
             var union = new HashSet<NameConstraintDN>();
             bool addDn = false;
             foreach (var subtree in excluded)

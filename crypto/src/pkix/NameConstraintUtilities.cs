@@ -194,8 +194,9 @@ namespace Org.BouncyCastle.Pkix
         /// constraints never partially overlap (a host/mailbox is a point, a domain a subtree), so the result is
         /// always exactly one <see cref="NameConstraintRelation"/>. The per-kind comparisons are the historical
         /// ones verbatim, so Intersect/Union stay behaviour-identical - except that two case-differing-but-equal
-        /// values are reported <see cref="NameConstraintRelation.Equal"/> (keeping name1), a ToString-only nuance
-        /// since equality and hashing are case-insensitive.
+        /// values are reported <see cref="NameConstraintRelation.Equal"/>, whereupon the consumers keep name1,
+        /// the call sites' existing constraint (first-registered wins) - a ToString-only nuance since equality
+        /// and hashing are case-insensitive.
         /// </summary>
         internal static NameConstraintRelation Relate<T>(this T name1, T name2)
             where T : struct, INameConstraintHostName
@@ -238,7 +239,9 @@ namespace Org.BouncyCastle.Pkix
         }
 
         /// <summary>Add the intersection of <paramref name="name1"/> and <paramref name="name2"/> - the more
-        /// restrictive of an overlapping pair, or nothing if disjoint - to <paramref name="intersect"/>.</summary>
+        /// restrictive of an overlapping pair, or nothing if disjoint - to <paramref name="intersect"/>.
+        /// An equal pair keeps <paramref name="name1"/>; call sites pass the existing constraint there, so
+        /// the first-registered instance survives.</summary>
         internal static void Intersect<T>(T name1, T name2, HashSet<T> intersect)
             where T : struct, INameConstraintHostName, IEquatable<T>
         {
@@ -260,7 +263,9 @@ namespace Org.BouncyCastle.Pkix
             kind == NameConstraintHostNameKind.Mailbox || kind == NameConstraintHostNameKind.AtHost;
 
         /// <summary>Add the union of <paramref name="name1"/> and <paramref name="name2"/> - the less
-        /// restrictive of an overlapping pair, or both if disjoint - to <paramref name="union"/>.</summary>
+        /// restrictive of an overlapping pair, or both if disjoint - to <paramref name="union"/>.
+        /// An equal pair keeps <paramref name="name1"/>; call sites pass the existing constraint there, so
+        /// the first-registered instance survives.</summary>
         internal static void Union<T>(T name1, T name2, HashSet<T> union)
             where T : struct, INameConstraintHostName, IEquatable<T>
         {

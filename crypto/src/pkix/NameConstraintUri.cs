@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Pkix
                 {
                     foreach (var _permitted in permitted)
                     {
-                        // NOTE: historically mirrored operand order relative to the rfc822Name family.
+                        // Existing constraint first: an equal pair keeps the first-registered instance.
                         NameConstraintUtilities.Intersect(_permitted, uri, intersect);
                     }
                 }
@@ -147,6 +147,7 @@ namespace Org.BouncyCastle.Pkix
             var union = new HashSet<NameConstraintUri>();
             foreach (var _excluded in excluded)
             {
+                // Existing constraint first: an equal pair keeps the first-registered instance.
                 NameConstraintUtilities.Union(_excluded, uri, union);
             }
             return union;

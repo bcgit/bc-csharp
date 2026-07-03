@@ -162,14 +162,15 @@ namespace Org.BouncyCastle.Pkix
                     foreach (var _permitted in permitted)
                     {
                         // Canonical CIDR blocks nest or are disjoint, so the intersection is the narrower of
-                        // an overlapping pair (already canonical - added directly) or nothing.
-                        if (Contains(_permitted, ip))
-                        {
-                            intersect.Add(ip);
-                        }
-                        else if (Contains(ip, _permitted))
+                        // an overlapping pair (already canonical - added directly) or nothing. Existing
+                        // constraint first: an equal pair keeps the first-registered instance.
+                        if (Contains(ip, _permitted))
                         {
                             intersect.Add(_permitted);
+                        }
+                        else if (Contains(_permitted, ip))
+                        {
+                            intersect.Add(ip);
                         }
                     }
                 }
@@ -183,24 +184,30 @@ namespace Org.BouncyCastle.Pkix
             if (excluded == null)
                 return new HashSet<NameConstraintIPRange> { ip };
 
-            // Ranges are canonical CIDR, so subsumption is decidable: drop any _excluded that ip contains,
-            // keep the rest, and add ip unless some _excluded contains it. ip is added at most once, and once
-            // it is known to be added the second containment test is skipped (the || short-circuits). This is
-            // precise, unlike bc-java's unionIPRange, which keeps both operands.
+            // Ranges are canonical CIDR, so subsumption is decidable: drop any _excluded that ip strictly
+            // contains, keep the rest, and add ip once (at the end) unless some _excluded contains it. The
+            // first test gates the existing range, per the convention that an equal pair keeps the
+            // first-registered instance. This is precise, unlike bc-java's unionIPRange, which keeps both
+            // operands.
             var union = new HashSet<NameConstraintIPRange>();
             bool addIp = false;
             foreach (var _excluded in excluded)
             {
-                if (Contains(ip, _excluded))
+                if (Contains(_excluded, ip))
                 {
-                    // ip contains _excluded, so _excluded is dropped and ip represents it.
-                    addIp = true;
+                    // _excluded contains ip (broader or equal): the existing range represents ip.
+                    union.Add(_excluded);
                 }
                 else
                 {
-                    union.Add(_excluded);
+                    // ip is not subsumed by this range, so ip will be added.
+                    addIp = true;
 
-                    addIp = addIp || !Contains(_excluded, ip);
+                    // Keep _excluded unless ip subsumes it.
+                    if (!Contains(ip, _excluded))
+                    {
+                        union.Add(_excluded);
+                    }
                 }
             }
             if (addIp)

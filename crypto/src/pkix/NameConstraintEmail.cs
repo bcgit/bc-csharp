@@ -146,7 +146,8 @@ namespace Org.BouncyCastle.Pkix
                 {
                     foreach (var _permitted in permitted)
                     {
-                        NameConstraintUtilities.Intersect(email, _permitted, intersect);
+                        // Existing constraint first: an equal pair keeps the first-registered instance.
+                        NameConstraintUtilities.Intersect(_permitted, email, intersect);
                     }
                 }
             }
@@ -162,6 +163,7 @@ namespace Org.BouncyCastle.Pkix
             var union = new HashSet<NameConstraintEmail>();
             foreach (var _excluded in excluded)
             {
+                // Existing constraint first: an equal pair keeps the first-registered instance.
                 NameConstraintUtilities.Union(_excluded, email, union);
             }
             return union;

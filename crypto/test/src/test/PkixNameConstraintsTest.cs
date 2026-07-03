@@ -313,6 +313,32 @@ namespace Org.BouncyCastle.Tests
         }
 
         /// <summary>
+        /// When an equal pair (same names, spelled with differing case) meets in the subtree set algebra,
+        /// the FIRST-registered constraint instance survives, uniformly across the name families and both
+        /// the intersect and union directions. Purely presentational - equality, hashing and matching are
+        /// case-insensitive - but pinned so the convention stays deterministic.
+        /// </summary>
+        [Test]
+        public void EqualConstraintKeepsFirstRegisteredSpelling()
+        {
+            PkixNameConstraintValidator validator = new PkixNameConstraintValidator();
+            validator.IntersectPermittedSubtree(new GeneralSubtree(EmailName("EXAMPLE.com")));
+            validator.IntersectPermittedSubtree(new GeneralSubtree(EmailName("example.COM")));
+            validator.AddExcludedSubtree(new GeneralSubtree(DnsName("BANK.example")));
+            validator.AddExcludedSubtree(new GeneralSubtree(DnsName("bank.EXAMPLE")));
+            validator.AddExcludedSubtree(new GeneralSubtree(UriName("HOST.example")));
+            validator.AddExcludedSubtree(new GeneralSubtree(UriName("host.EXAMPLE")));
+
+            string rendered = validator.ToString();
+            Assert.True(rendered.Contains("EXAMPLE.com") && !rendered.Contains("example.COM"),
+                "an equal permitted email pair must keep the first-registered spelling");
+            Assert.True(rendered.Contains("BANK.example") && !rendered.Contains("bank.EXAMPLE"),
+                "an equal excluded dNSName pair must keep the first-registered spelling");
+            Assert.True(rendered.Contains("HOST.example") && !rendered.Contains("host.EXAMPLE"),
+                "an equal excluded URI pair must keep the first-registered spelling");
+        }
+
+        /// <summary>
         /// The rfc822Name/URI HOST part must be free of empty labels, mirroring the dNSName rule
         /// (see <see cref="DnsEmptyLabelOrLeadingDotRejected"/>): ".." (including repeated trailing dots)
         /// misaligns the per-label compare - historically a fail-open escape on the excluded side - and a
