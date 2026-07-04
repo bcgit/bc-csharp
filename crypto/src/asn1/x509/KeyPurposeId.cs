@@ -2,12 +2,12 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-    /**
-     * The KeyPurposeID object.
-     * <pre>
-     *     KeyPurposeID ::= OBJECT IDENTIFIER
-     * </pre>
-     */
+    /// <summary>The KeyPurposeID object.</summary>
+    /// <remarks>
+    /// <code>
+    /// KeyPurposeID ::= OBJECT IDENTIFIER
+    /// </code>
+    /// </remarks>
     // TODO[api] This class isn't needed, only the OID registry
     public sealed class KeyPurposeID
         : DerObjectIdentifier
@@ -45,44 +45,31 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly KeyPurposeID id_kp_cmcRA = new KeyPurposeID(id_kp + ".28");
         public static readonly KeyPurposeID id_kp_cmKGA = new KeyPurposeID(id_kp + ".32");
 
-        /**
-         * RFC 9336 sec. 3.1 - signing documents (e.g. PDF, XML, JSON) for human consumption.
-         * <p>
-         * id-kp-documentSigning OBJECT IDENTIFIER ::= { id-kp 36 }
-         * </p>
-         */
+        /// <summary>RFC 9336 sec. 3.1 - signing documents (e.g. PDF, XML, JSON) for human consumption.</summary>
+        /// <remarks><code>id-kp-documentSigning OBJECT IDENTIFIER ::= { id-kp 36 }</code></remarks>
         public static readonly KeyPurposeID id_kp_documentSigning = new KeyPurposeID(id_kp + ".36");
 
-        /**
-         * RFC 9809 sec. 3 - signing general-purpose configuration files.
-         * <p>
-         * id-kp-configSigning OBJECT IDENTIFIER ::= { id-kp 41 }
-         * </p>
-         */
+        /// <summary>
+        /// RFC 9734 sec. 3 - proving the identity of an Instant Messaging (IM) client, whose IM URI (RFC 3860) or XMPP
+        /// URI (RFC 6121) appears in the subjectAltName.
+        /// </summary>
+        /// <remarks><code>id-kp-imUri OBJECT IDENTIFIER ::= { id-kp 40 }</code></remarks>
+        public static readonly KeyPurposeID id_kp_imUri = new KeyPurposeID(id_kp + ".40");
+
+        /// <summary>RFC 9809 sec. 3 - signing general-purpose configuration files.</summary>
+        /// <remarks><code>id-kp-configSigning OBJECT IDENTIFIER ::= { id-kp 41 }</code></remarks>
         public static readonly KeyPurposeID id_kp_configSigning = new KeyPurposeID(id_kp + ".41");
 
-        /**
-         * RFC 9809 sec. 3 - signing trust anchor configuration files.
-         * <p>
-         * id-kp-trustAnchorConfigSigning OBJECT IDENTIFIER ::= { id-kp 42 }
-         * </p>
-         */
+        /// <summary>RFC 9809 sec. 3 - signing trust anchor configuration files.</summary>
+        /// <remarks><code>id-kp-trustAnchorConfigSigning OBJECT IDENTIFIER ::= { id-kp 42 }</code></remarks>
         public static readonly KeyPurposeID id_kp_trustAnchorConfigSigning = new KeyPurposeID(id_kp + ".42");
 
-        /**
-         * RFC 9809 sec. 3 - signing software or firmware update packages.
-         * <p>
-         * id-kp-updatePackageSigning OBJECT IDENTIFIER ::= { id-kp 43 }
-         * </p>
-         */
+        /// <summary>RFC 9809 sec. 3 - signing software or firmware update packages.</summary>
+        /// <remarks><code>id-kp-updatePackageSigning OBJECT IDENTIFIER ::= { id-kp 43 }</code></remarks>
         public static readonly KeyPurposeID id_kp_updatePackageSigning = new KeyPurposeID(id_kp + ".43");
 
-        /**
-         * RFC 9809 sec. 3 - authenticating communication peers for safety-critical communication.
-         * <p>
-         * id-kp-safetyCommunication OBJECT IDENTIFIER ::= { id-kp 44 }
-         * </p>
-         */
+        /// <summary>RFC 9809 sec. 3 - authenticating communication peers for safety-critical communication.</summary>
+        /// <remarks><code>id-kp-safetyCommunication OBJECT IDENTIFIER ::= { id-kp 44 }</code></remarks>
         public static readonly KeyPurposeID id_kp_safetyCommunication = new KeyPurposeID(id_kp + ".44");
 
         //
