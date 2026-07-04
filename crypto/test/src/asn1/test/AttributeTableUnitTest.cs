@@ -1,3 +1,5 @@
+using System;
+
 using NUnit.Framework;
 
 using Org.BouncyCastle.Utilities.Test;
@@ -133,6 +135,22 @@ namespace Org.BouncyCastle.Asn1.Tests
             if (vec.Count != 4 || table.Count != 4)
             {
                 Fail("wrong vector size for multiple.");
+            }
+
+            // Attribute.GetInstance must reject a structurally-valid SEQUENCE whose type element is not an
+            // OBJECT IDENTIFIER (here a tagged object) with ArgumentException, rather than leak an
+            // InvalidCastException from the (DerObjectIdentifier) cast out of the GetInstance contract.
+            DerSequence badAttr = DerSequence.FromElements(
+                new DerTaggedObject(0, new DerOctetString(new byte[]{ 1, 2, 3 })),
+                new DerSet());
+            try
+            {
+                Asn1.Cms.Attribute.GetInstance(badAttr);
+                Fail("Attribute.GetInstance accepted a non-OID type element");
+            }
+            catch (ArgumentException)
+            {
+                // expected - documented malformed reject
             }
         }
 
