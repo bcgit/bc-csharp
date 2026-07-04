@@ -11,145 +11,139 @@ using System.Threading.Tasks;
 namespace Org.BouncyCastle.Utilities.IO
 {
     public static class Streams
-	{
+    {
         private static readonly int MaxStackAlloc = Platform.Is64BitProcess ? 4096 : 1024;
 
-		public static int DefaultBufferSize => MaxStackAlloc;
+        public static int DefaultBufferSize => MaxStackAlloc;
 
-        public static void CopyTo(Stream source, Stream destination)
-        {
-			CopyTo(source, destination, DefaultBufferSize);
-        }
+        public static void CopyTo(Stream source, Stream destination) => CopyTo(source, destination, DefaultBufferSize);
 
         public static void CopyTo(Stream source, Stream destination, int bufferSize)
         {
             int bytesRead;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> buffer = bufferSize <= MaxStackAlloc
-				? stackalloc byte[bufferSize]
-				: new byte[bufferSize];
-			while ((bytesRead = source.Read(buffer)) != 0)
-			{
-				destination.Write(buffer[..bytesRead]);
-			}
+                ? stackalloc byte[bufferSize]
+                : new byte[bufferSize];
+            while ((bytesRead = source.Read(buffer)) != 0)
+            {
+                destination.Write(buffer[..bytesRead]);
+            }
 #else
-			byte[] buffer = new byte[bufferSize];
-			while ((bytesRead = source.Read(buffer, 0, buffer.Length)) != 0)
-			{
-			    destination.Write(buffer, 0, bytesRead);
-			}
+            byte[] buffer = new byte[bufferSize];
+            while ((bytesRead = source.Read(buffer, 0, buffer.Length)) != 0)
+            {
+                destination.Write(buffer, 0, bytesRead);
+            }
 #endif
-		}
+        }
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
-        public static Task CopyToAsync(Stream source, Stream destination)
-        {
-            return CopyToAsync(source, destination, DefaultBufferSize);
-        }
+        public static Task CopyToAsync(Stream source, Stream destination) =>
+            CopyToAsync(source, destination, DefaultBufferSize);
 
-        public static Task CopyToAsync(Stream source, Stream destination, int bufferSize)
-        {
-            return CopyToAsync(source, destination, bufferSize, CancellationToken.None);
-        }
+        public static Task CopyToAsync(Stream source, Stream destination, int bufferSize) =>
+            CopyToAsync(source, destination, bufferSize, CancellationToken.None);
 
-        public static Task CopyToAsync(Stream source, Stream destination, CancellationToken cancellationToken)
-        {
-            return CopyToAsync(source, destination, DefaultBufferSize, cancellationToken);
-        }
+        public static Task CopyToAsync(Stream source, Stream destination, CancellationToken cancellationToken) =>
+            CopyToAsync(source, destination, DefaultBufferSize, cancellationToken);
 
         public static async Task CopyToAsync(Stream source, Stream destination, int bufferSize,
-			CancellationToken cancellationToken)
+            CancellationToken cancellationToken)
         {
             int bytesRead;
             byte[] buffer = new byte[bufferSize];
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-            while ((bytesRead = await ReadAsync(source, new Memory<byte>(buffer), cancellationToken).ConfigureAwait(false)) != 0)
-			{
-				await WriteAsync(destination, new ReadOnlyMemory<byte>(buffer, 0, bytesRead), cancellationToken).ConfigureAwait(false);
-			}
+            while ((bytesRead = await ReadAsync(source, new Memory<byte>(buffer), cancellationToken)
+                .ConfigureAwait(false)) != 0)
+            {
+                await WriteAsync(destination, new ReadOnlyMemory<byte>(buffer, 0, bytesRead), cancellationToken)
+                    .ConfigureAwait(false);
+            }
 #else
-			while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(false)) != 0)
-			{
-				await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
-			}
+            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length, cancellationToken)
+                .ConfigureAwait(false)) != 0)
+            {
+                await destination.WriteAsync(buffer, 0, bytesRead, cancellationToken).ConfigureAwait(false);
+            }
 #endif
-		}
+        }
 #endif
 
-        public static void Drain(Stream inStr)
-		{
-			CopyTo(inStr, Stream.Null, DefaultBufferSize);
-		}
+        public static void Drain(Stream inStr) => Drain(inStr, DefaultBufferSize);
+
+        public static void Drain(Stream inStr, int bufferSize) => CopyTo(inStr, Stream.Null, bufferSize);
 
         /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
         /// <param name="inStr">Source stream.</param>
         /// <param name="outStr">Destination stream.</param>
         /// <exception cref="IOException">In case of IO failure.</exception>
-        public static void PipeAll(Stream inStr, Stream outStr)
-		{
-            PipeAll(inStr, outStr, DefaultBufferSize);
-        }
+        public static void PipeAll(Stream inStr, Stream outStr) => PipeAll(inStr, outStr, DefaultBufferSize);
 
         /// <summary>Write the full contents of inStr to the destination stream outStr.</summary>
         /// <param name="inStr">Source stream.</param>
         /// <param name="outStr">Destination stream.</param>
         /// <param name="bufferSize">The size of temporary buffer to use.</param>
         /// <exception cref="IOException">In case of IO failure.</exception>
-        public static void PipeAll(Stream inStr, Stream outStr, int bufferSize)
-        {
-            CopyTo(inStr, outStr, bufferSize);
-		}
+        public static void PipeAll(Stream inStr, Stream outStr, int bufferSize) => CopyTo(inStr, outStr, bufferSize);
 
-		/// <summary>
-		/// Pipe all bytes from <c>inStr</c> to <c>outStr</c>, throwing <c>StreamFlowException</c> if greater
-		/// than <c>limit</c> bytes in <c>inStr</c>.
-		/// </summary>
-		/// <param name="inStr">
-		/// A <see cref="Stream"/>
-		/// </param>
-		/// <param name="limit">
-		/// A <see cref="System.Int64"/>
-		/// </param>
-		/// <param name="outStr">
-		/// A <see cref="Stream"/>
-		/// </param>
-		/// <returns>The number of bytes actually transferred, if not greater than <c>limit</c></returns>
-		/// <exception cref="IOException"></exception>
-		public static long PipeAllLimited(Stream inStr, long limit, Stream outStr)
-		{
-			return PipeAllLimited(inStr, limit, outStr, DefaultBufferSize);
-		}
+        /// <summary>
+        /// Pipe all bytes from <c>inStr</c> to <c>outStr</c>, throwing <c>StreamFlowException</c> if greater
+        /// than <c>limit</c> bytes in <c>inStr</c>.
+        /// </summary>
+        /// <param name="inStr">
+        /// A <see cref="Stream"/>
+        /// </param>
+        /// <param name="limit">
+        /// A <see cref="System.Int64"/>
+        /// </param>
+        /// <param name="outStr">
+        /// A <see cref="Stream"/>
+        /// </param>
+        /// <returns>The number of bytes actually transferred, if not greater than <c>limit</c></returns>
+        /// <exception cref="IOException"></exception>
+        public static long PipeAllLimited(Stream inStr, long limit, Stream outStr) =>
+            PipeAllLimited(inStr, limit, outStr, DefaultBufferSize);
 
         public static long PipeAllLimited(Stream inStr, long limit, Stream outStr, int bufferSize)
         {
-            var limited = new LimitedInputStream(inStr, limit);
-            CopyTo(limited, outStr, bufferSize);
-            return limit - limited.CurrentLimit;
+            using (var limited = new LimitedInputStream(limit, inStr, leaveOpen: true))
+            {
+                CopyTo(limited, outStr, bufferSize);
+                return limit - limited.CurrentLimit;
+            }
         }
 
-        public static byte[] ReadAll(Stream inStr)
-		{
-			MemoryStream buf = new MemoryStream();
-			PipeAll(inStr, buf);
-			return buf.ToArray();
-		}
+        public static byte[] ReadAll(Stream inStr) => ReadAll(inStr, DefaultBufferSize);
+
+        public static byte[] ReadAll(Stream inStr, int bufferSize)
+        {
+            MemoryStream buf = new MemoryStream();
+            using (buf)
+            {
+                CopyTo(inStr, buf, bufferSize);
+            }
+            return buf.ToArray();
+        }
 
         [Obsolete("Will be removed")]
-        public static byte[] ReadAll(MemoryStream inStr)
-        {
-			return inStr.ToArray();
-        }
+        public static byte[] ReadAll(MemoryStream inStr) => inStr.ToArray();
 
-        public static byte[] ReadAllLimited(Stream inStr, int limit)
-		{
-			MemoryStream buf = new MemoryStream();
-			PipeAllLimited(inStr, limit, buf);
-			return buf.ToArray();
-		}
+        public static byte[] ReadAllLimited(Stream inStr, int limit) => ReadAllLimited(inStr, limit, DefaultBufferSize);
+
+        public static byte[] ReadAllLimited(Stream inStr, int limit, int bufferSize)
+        {
+            MemoryStream buf = new MemoryStream();
+            using (buf)
+            {
+                PipeAllLimited(inStr, limit, buf, bufferSize);
+            }
+            return buf.ToArray();
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static ValueTask<int> ReadAsync(Stream source, Memory<byte> buffer,
-			CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default)
         {
             if (MemoryMarshal.TryGetArray(buffer, out ArraySegment<byte> array))
             {
@@ -158,12 +152,12 @@ namespace Org.BouncyCastle.Utilities.IO
             }
 
             byte[] sharedBuffer = new byte[buffer.Length];
-			var readTask = source.ReadAsync(sharedBuffer, 0, buffer.Length, cancellationToken);
+            var readTask = source.ReadAsync(sharedBuffer, 0, buffer.Length, cancellationToken);
             return ReadAsyncCompletion(readTask, sharedBuffer, buffer);
         }
 
         internal static async ValueTask<int> ReadAsyncCompletion(Task<int> readTask, byte[] localBuffer,
-			Memory<byte> localDestination)
+            Memory<byte> localDestination)
         {
             try
             {
@@ -178,23 +172,20 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
-		public static int ReadFully(Stream inStr, byte[] buf)
-		{
-			return ReadFully(inStr, buf, 0, buf.Length);
-		}
+        public static int ReadFully(Stream inStr, byte[] buf) => ReadFully(inStr, buf, 0, buf.Length);
 
-		public static int ReadFully(Stream inStr, byte[] buf, int off, int len)
-		{
-			int totalRead = 0;
-			while (totalRead < len)
-			{
-				int numRead = inStr.Read(buf, off + totalRead, len - totalRead);
-				if (numRead < 1)
-					break;
-				totalRead += numRead;
-			}
-			return totalRead;
-		}
+        public static int ReadFully(Stream inStr, byte[] buf, int off, int len)
+        {
+            int totalRead = 0;
+            while (totalRead < len)
+            {
+                int numRead = inStr.Read(buf, off + totalRead, len - totalRead);
+                if (numRead < 1)
+                    break;
+                totalRead += numRead;
+            }
+            return totalRead;
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static int ReadFully(Stream inStr, Span<byte> buffer)
@@ -213,15 +204,15 @@ namespace Org.BouncyCastle.Utilities.IO
 
         public static void ValidateBufferArguments(byte[] buffer, int offset, int count)
         {
-			if (buffer == null)
-				throw new ArgumentNullException(nameof(buffer));
-			int available = buffer.Length - offset;
-			if ((offset | available) < 0)
-				throw new ArgumentOutOfRangeException(nameof(offset));
-			int remaining = available - count;
-			if ((count | remaining) < 0)
-				throw new ArgumentOutOfRangeException(nameof(count));
-		}
+            if (buffer == null)
+                throw new ArgumentNullException(nameof(buffer));
+            int available = buffer.Length - offset;
+            if ((offset | available) < 0)
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            int remaining = available - count;
+            if ((count | remaining) < 0)
+                throw new ArgumentOutOfRangeException(nameof(count));
+        }
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
         internal static async Task WriteAsyncCompletion(Task writeTask, byte[] localBuffer)
@@ -291,13 +282,16 @@ namespace Org.BouncyCastle.Utilities.IO
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             if (buf.TryGetBuffer(out var buffer))
             {
-				buffer.CopyTo(output, offset);
-				return buffer.Count;
+                buffer.CopyTo(output, offset);
+                return buffer.Count;
             }
 #endif
 
-			int size = Convert.ToInt32(buf.Length);
-            buf.WriteTo(new MemoryStream(output, offset, size));
+            int size = Convert.ToInt32(buf.Length);
+            using (var segment = new MemoryStream(output, offset, size))
+            {
+                buf.WriteTo(segment);
+            }
             return size;
         }
     }
