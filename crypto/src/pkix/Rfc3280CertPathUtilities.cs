@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Gsma;
 using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -290,9 +291,40 @@ namespace Org.BouncyCastle.Pkix
 
             X509Name principal = cert.SubjectDN;
 
+            // GSMA SGP.22 relaxes the eUICC subject DN match against the EUM's name constraints. It is
+            // triggered automatically, and only for that one check, when the chain identifies itself by its
+            // (critical) policy OIDs: the subject is an eUICC (id-rspRole-euicc) and its issuer is the EUM
+            // (id-rspRole-eum) imposing the constraints. Anchoring on the issuer's marker keeps the
+            // relaxation authorised by the CI-issued EUM; pathLen=0 on that EUM makes it the leaf's sole
+            // issuer and sole DN-constraint source, so the relaxed leaf check and the EUM's constraints
+            // coincide. certs[index+1] is that issuer (the trust anchor is not in the path, but is never an
+            // EUM). Subject marker tested first to short-circuit the issuer lookup on ordinary chains.
+            X509Certificate issuer = index + 1 < n ? certs[index + 1] : null;
+            bool sgp22 = false;
+            if (issuer != null)
+            {
+                try
+                {
+                    sgp22 = HasCertificatePolicy(cert, GsmaObjectIdentifiers.id_rspRole_euicc) &&
+                        HasCertificatePolicy(issuer, GsmaObjectIdentifiers.id_rspRole_eum);
+                }
+                catch (Exception)
+                {
+                    // Ignore: a malformed policies extension falls back to strict matching (fail-closed,
+                    // never relaxed) and is reported by the later policy-processing step instead.
+                }
+            }
+
             try
             {
-                nameConstraintValidator.CheckDN(principal);
+                if (sgp22)
+                {
+                    nameConstraintValidator.CheckDNSgp22(principal);
+                }
+                else
+                {
+                    nameConstraintValidator.CheckDN(principal);
+                }
             }
             catch (PkixNameConstraintValidatorException e)
             {
@@ -350,6 +382,13 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
             }
+        }
+
+        private static bool HasCertificatePolicy(X509Certificate cert, DerObjectIdentifier policyOid)
+        {
+            var policies = cert.GetExtension(X509Extensions.CertificatePolicies, Asn1Sequence.GetInstance);
+            return policies != null
+                && CertificatePolicies.GetInstance(policies).GetPolicyInformation(policyOid) != null;
         }
 
         /// <exception cref="PkixCertPathValidatorException"/>

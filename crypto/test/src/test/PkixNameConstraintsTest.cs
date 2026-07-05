@@ -354,6 +354,14 @@ namespace Org.BouncyCastle.Tests
             Assert.False(IsExcluded(emptyDn, DirectoryName("O=Org")),
                 "an empty excluded base must match no name");
 
+            // The SGP.22 relaxed matching duplicates the empty-base guard; without it an empty PERMITTED
+            // base would match every name (fail open).
+            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, () =>
+            {
+                Assert.False(IsPermitted(emptyDn, DirectoryName("O=Org")),
+                    "an empty permitted base must match no name in SGP.22 mode");
+            });
+
             // Excluded union, both registration orders: the empty base must not absorb the real subtree.
             Assert.True(IsExcludedAfterUnion(emptyDn, DirectoryName("O=Org"), DirectoryName("O=Org, CN=x")),
                 "an empty excluded base must not absorb a later real subtree");
@@ -1322,6 +1330,57 @@ namespace Org.BouncyCastle.Tests
                 // flag on: the legacy GSMA SGP.22 startsWith comparison applies again
                 Assert.True(IsPermitted(subtree, exact), "exact serialNumber must match when enabled");
                 Assert.True(IsPermitted(subtree, prefix), "prefix serialNumber must match when enabled");
+            });
+        }
+
+        /// <summary>The SGP.22 concession applies to subject matching only - constraint folding stays strict.</summary>
+        /// <remarks>
+        /// SGP.22 v2.6.1 section 4.5.2.2 defines the relaxed rules for one check only: the eUICC subject
+        /// against the EUM certificate's name constraints. How constraint sets fold (intersect/union) is not
+        /// its concern, and a conforming SGP.22 chain never folds DN constraint sets anyway - the EUM, a
+        /// pathLen=0 CA, is the chain's only constraint source. Pinned with permuted-RDN subtrees, which the
+        /// relaxed anywhere-match would conflate but are strictly disjoint: the excluded union must keep
+        /// both with the property on, folding exactly as it does with it off.
+        /// </remarks>
+        [Test]
+        public void Sgp22UnionFoldingStaysStrict()
+        {
+            GeneralName permuted1 = DirectoryName("O=Org, CN=x");
+            GeneralName permuted2 = DirectoryName("CN=x, O=Org");
+
+            PkixNameConstraintValidator a = new PkixNameConstraintValidator();
+            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, () =>
+            {
+                a.AddExcludedSubtree(new GeneralSubtree(permuted1));
+                a.AddExcludedSubtree(new GeneralSubtree(permuted2));
+            });
+
+            PkixNameConstraintValidator b = new PkixNameConstraintValidator();
+            b.AddExcludedSubtree(new GeneralSubtree(permuted1));
+            b.AddExcludedSubtree(new GeneralSubtree(permuted2));
+
+            PkixNameConstraintValidator single = new PkixNameConstraintValidator();
+            single.AddExcludedSubtree(new GeneralSubtree(permuted1));
+
+            Assert.AreEqual(a, b, "the excluded union must fold identically with the property on or off");
+            Assert.AreNotEqual(a, single,
+                "strictly disjoint permuted-RDN subtrees must both survive the union");
+        }
+
+        /// <summary>Companion to <see cref="Sgp22UnionFoldingStaysStrict"/> for the permitted intersect.</summary>
+        [Test]
+        public void Sgp22IntersectFoldingStaysStrict()
+        {
+            GeneralName permuted1 = DirectoryName("O=Org, CN=x");
+            GeneralName permuted2 = DirectoryName("CN=x, O=Org");
+
+            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, () =>
+            {
+                // Strictly disjoint, so the intersection is empty and nothing is permitted; the relaxed
+                // relation would have conflated the pair, keeping a subtree the subject relax-matches.
+                Assert.False(
+                    IsPermittedAfterIntersect(permuted1, permuted2, DirectoryName("O=Org, CN=x, CN=y")),
+                    "permuted-RDN permitted subtrees must intersect strictly (to nothing) in SGP.22 mode");
             });
         }
 

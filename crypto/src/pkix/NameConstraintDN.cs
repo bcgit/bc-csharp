@@ -47,9 +47,27 @@ namespace Org.BouncyCastle.Pkix
 
         internal static bool IsConstrained(HashSet<NameConstraintDN> constraints, NameConstraintDN directory)
         {
+            // Relaxed anywhere-match needed for GSMA SGP.22. The cert-path driver triggers it automatically
+            // per-chain (the eUICC/EUM policy OIDs, via IsConstrainedSgp22 - see CheckDNSgp22); this property
+            // is the manual override for callers using the validator directly, or for chains that omit those
+            // markers.
+            if (Properties.GetBoolean(Properties.X509Sgp22NameConstraints, false))
+                return IsConstrainedSgp22(constraints, directory);
+
             foreach (var constraint in constraints)
             {
                 if (WithinDNSubtree(directory, constraint))
+                    return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsConstrainedSgp22(HashSet<NameConstraintDN> constraints, NameConstraintDN directory)
+        {
+            foreach (var constraint in constraints)
+            {
+                if (WithinDNSubtreeSgp22(directory, constraint))
                     return true;
             }
 
@@ -69,10 +87,6 @@ namespace Org.BouncyCastle.Pkix
             if (subtreeRdns.Length > dnsRdns.Length)
                 return false;
 
-            // Relaxed anywhere-match needed for GSMA SGP.22, gated behind a property.
-            if (Properties.GetBoolean(Properties.X509Sgp22NameConstraints, false))
-                return WithinDNSubtreeSgp22(dnsRdns, subtreeRdns);
-
             // RFC 5280 4.2.1.10 / 7.1: a directoryName constraint is satisfied only when the constraint's RDNSequence
             // is an initial prefix of the subject's. Match from index 0 only - searching for the constraint's first RDN
             // at an arbitrary offset let an attacker prepend RDNs ahead of the permitted sequence (e.g. a subject
@@ -91,14 +105,32 @@ namespace Org.BouncyCastle.Pkix
             return true;
         }
 
-        /**
-         * Relaxed directoryName subtree matching for GSMA SGP.22 v2.5 (sections 4.5.2.1.0.2 and
-         * 4.5.2.1.0.3), enabled only when {@link Properties#X509_SGP22_NAME_CONSTRAINTS} is set. Each
-         * RDN of the permitted subtree must be matched by some RDN of the subject DN regardless of
-         * position; additional subject attributes are permitted, and a serialNumber RDN is matched with
-         * a startsWith comparison wherever it occurs. This deliberately departs from the contiguous
-         * prefix matching of RFC 5280 7.1 implemented by {@link #WithinDNSubtree}.
-         */
+        /// <summary>
+        /// Relaxed directoryName subtree matching for GSMA SGP.22 v2.5 (sections 4.5.2.1.0.2 and 4.5.2.1.0.3), enabled
+        /// only when <see cref="Properties.X509Sgp22NameConstraints"/> is <c>true</c>.
+        /// </summary>
+        /// <remarks>
+        /// Each RDN of the permitted subtree must be matched by some RDN of the subject DN regardless of position;
+        /// additional subject attributes are permitted, and a serialNumber RDN is matched with a StartsWith comparison
+        /// wherever it occurs. This deliberately departs from the contiguous prefix matching of RFC 5280 7.1
+        /// implemented by the non-SGP22 matching.
+        /// </remarks>
+        private static bool WithinDNSubtreeSgp22(NameConstraintDN dns, NameConstraintDN subtree)
+        {
+            Rdn[] dnsRdns = dns.m_rdns, subtreeRdns = subtree.m_rdns;
+
+            // An empty subtree would be a prefix of every DN; treat it as "no match" instead, so an empty permitted
+            // base can't nullify the permittedSubtrees restriction.
+            if (subtreeRdns.Length < 1)
+                return false;
+
+            // A prefix can't be longer than the DN.
+            if (subtreeRdns.Length > dnsRdns.Length)
+                return false;
+
+            return WithinDNSubtreeSgp22(dnsRdns, subtreeRdns);
+        }
+
         private static bool WithinDNSubtreeSgp22(Rdn[] dnsRdns, Rdn[] subtreeRdns)
         {
             foreach (Rdn subtreeRdn in subtreeRdns)
@@ -152,18 +184,12 @@ namespace Org.BouncyCastle.Pkix
         // positional and symmetric, so a single walk over the shared prefix reproduces both WithinDNSubtree
         // directions exactly; the length comparison then decides the direction (the shorter sequence is the
         // broader subtree), and equal lengths with an equal prefix mean RDN-equal sequences (Equal, even if
-        // differently encoded). The SGP22 relaxed match is not a prefix relation, so that mode classifies
-        // via the bilateral tests instead.
+        // differently encoded). The SGP22 relaxed match plays no part here: the spec (SGP.22 v2.6.1 section
+        // 4.5.2.2) defines it only for checking a leaf subject against the EUM's constraints (IsConstrained),
+        // never for relating constraints to each other - and a conforming SGP.22 chain cannot fold DN
+        // constraint sets anyway, its one constraint source being the EUM, a pathLen=0 CA.
         private static NameConstraintRelation RelateDN(NameConstraintDN dn1, NameConstraintDN dn2)
         {
-            if (Properties.GetBoolean(Properties.X509Sgp22NameConstraints, false))
-            {
-                if (WithinDNSubtree(dn1, dn2))
-                    return WithinDNSubtree(dn2, dn1) ? Equal : SubsumedBy;  // dn2 is the broader subtree
-
-                return WithinDNSubtree(dn2, dn1) ? Subsumes : Disjoint;
-            }
-
             Rdn[] rdns1 = dn1.m_rdns, rdns2 = dn2.m_rdns;
             int len1 = rdns1.Length, len2 = rdns2.Length;
 

@@ -51,6 +51,16 @@ namespace Org.BouncyCastle.Pkix
         /// <exception cref="PkixNameConstraintValidatorException"/>
         public void CheckDN(X509Name dn) => CheckDN(Asn1Sequence.GetInstance(dn.ToAsn1Object()));
 
+        /// <summary>Check a directoryName with the relaxed GSMA SGP.22 matching (see
+        /// <see cref="NameConstraintDN.IsConstrainedSgp22"/>). The cert-path driver calls this instead of
+        /// <see cref="CheckDN(X509Name)"/> when a chain identifies itself as SGP.22 by its policy OIDs.</summary>
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        internal void CheckDNSgp22(X509Name dn) => CheckDNSgp22(Asn1Sequence.GetInstance(dn.ToAsn1Object()));
+
+        /// <exception cref="PkixNameConstraintValidatorException"/>
+        internal void CheckDNSgp22(Asn1Sequence dn) =>
+            CheckDN(permittedSubtreesDN, excludedSubtreesDN, dn, sgp22: true);
+
         /// <exception cref="PkixNameConstraintValidatorException"/>
         public void CheckExcludedDN(Asn1Sequence dn) => CheckDN(null, excludedSubtreesDN, dn);
 
@@ -58,7 +68,7 @@ namespace Org.BouncyCastle.Pkix
         public void CheckPermittedDN(Asn1Sequence dn) => CheckDN(permittedSubtreesDN, null, dn);
 
         private static void CheckDN(HashSet<NameConstraintDN> permitted, HashSet<NameConstraintDN> excluded,
-            Asn1Sequence directory)
+            Asn1Sequence directory, bool sgp22 = false)
         {
             bool checkPermitted = permitted != null && !(directory.Count == 0 && permitted.Count < 1);
             bool checkExcluded = excluded != null;
@@ -68,18 +78,25 @@ namespace Org.BouncyCastle.Pkix
             var dn = NameConstraintDN.Create(directory);
 
             // Permitted before excluded (RFC 5280 6.1.4 (b),(c)): the order decides the reported violation.
-            if (checkPermitted && !NameConstraintDN.IsConstrained(permitted, dn))
+            if (checkPermitted && !IsConstrainedDN(permitted, dn, sgp22))
             {
                 throw new PkixNameConstraintValidatorException(
                     "Subject distinguished name is not from a permitted subtree");
             }
 
-            if (checkExcluded && NameConstraintDN.IsConstrained(excluded, dn))
+            if (checkExcluded && IsConstrainedDN(excluded, dn, sgp22))
             {
                 throw new PkixNameConstraintValidatorException(
                     "Subject distinguished name is from an excluded subtree");
             }
         }
+
+        // The non-SGP.22 path also honours the X509Sgp22NameConstraints property (the manual override); the
+        // SGP.22 path is the relaxed matching unconditionally.
+        private static bool IsConstrainedDN(HashSet<NameConstraintDN> constraints, NameConstraintDN dn, bool sgp22) =>
+            sgp22
+                ? NameConstraintDN.IsConstrainedSgp22(constraints, dn)
+                : NameConstraintDN.IsConstrained(constraints, dn);
 
         #endregion
 

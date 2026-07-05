@@ -425,7 +425,7 @@ namespace Org.BouncyCastle.Tests
             var trust = new HashSet<TrustAnchor>();
             trust.Add(new TrustAnchor(rootCert, null));
 
-            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, () =>
+            void Validate()
             {
                 var certPathValidator = new PkixCertPathValidator();
 
@@ -434,7 +434,16 @@ namespace Org.BouncyCastle.Tests
 
                 var result = certPathValidator.Validate(certPath, pkixParams);
                 IsTrue(result != null);
-            });
+            }
+
+            // The chain identifies itself as SGP.22 by its (critical) policy OIDs - the EUM carries
+            // id-rspRole-eum and the eUICC id-rspRole-euicc - so the relaxed directoryName matching is
+            // triggered automatically. Strict RFC 5280 matching would reject the eUICC (its subject DN is not
+            // an initial prefix of the EUM's permitted subtree), so this passing proves the marker drove it.
+            Validate();
+
+            // The X509Sgp22NameConstraints property is retained as a manual override and must stay compatible.
+            Properties.WithThreadProperty(Properties.X509Sgp22NameConstraints, bool.TrueString, Validate);
         }
 
         private class MyChecker
