@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X9
 {
@@ -52,16 +53,22 @@ namespace Org.BouncyCastle.Asn1.X9
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
+            int count = seq.Count, pos = 0;
+            if (count < 2 || count > 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
             m_fieldType = fieldID.FieldType;
 
             if (X9ObjectIdentifiers.PrimeField.Equals(m_fieldType))
             {
                 BigInteger p = DerInteger.GetInstance(fieldID.Parameters).Value;
-                BigInteger A = new BigInteger(1, Asn1OctetString.GetInstance(seq[0]).GetOctets());
-                BigInteger B = new BigInteger(1, Asn1OctetString.GetInstance(seq[1]).GetOctets());
+                Asn1OctetString a = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+                Asn1OctetString b = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+                BigInteger A = BigIntegers.FromUnsignedByteArray(a.GetOctets());
+                BigInteger B = BigIntegers.FromUnsignedByteArray(b.GetOctets());
                 m_curve = new FpCurve(p, A, B, order, cofactor);
             }
-            else if (X9ObjectIdentifiers.CharacteristicTwoField.Equals(m_fieldType)) 
+            else if (X9ObjectIdentifiers.CharacteristicTwoField.Equals(m_fieldType))
             {
                 // Characteristic two field
                 Asn1Sequence parameters = Asn1Sequence.GetInstance(fieldID.Parameters);
@@ -69,7 +76,7 @@ namespace Org.BouncyCastle.Asn1.X9
                 DerObjectIdentifier representation = DerObjectIdentifier.GetInstance(parameters[1]);
 
                 int k1, k2, k3;
-                if (X9ObjectIdentifiers.TPBasis.Equals(representation)) 
+                if (X9ObjectIdentifiers.TPBasis.Equals(representation))
                 {
                     // Trinomial basis representation
                     k1 = DerInteger.GetInstance(parameters[2]).IntValueExact;
@@ -89,8 +96,10 @@ namespace Org.BouncyCastle.Asn1.X9
                     throw new ArgumentException("This CharacteristicTwoField representation is not implemented");
                 }
 
-                BigInteger A = new BigInteger(1, Asn1OctetString.GetInstance(seq[0]).GetOctets());
-                BigInteger B = new BigInteger(1, Asn1OctetString.GetInstance(seq[1]).GetOctets());
+                Asn1OctetString a = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+                Asn1OctetString b = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+                BigInteger A = BigIntegers.FromUnsignedByteArray(a.GetOctets());
+                BigInteger B = BigIntegers.FromUnsignedByteArray(b.GetOctets());
                 m_curve = new F2mCurve(m, k1, k2, k3, A, B, order, cofactor);
             }
             else
@@ -98,10 +107,10 @@ namespace Org.BouncyCastle.Asn1.X9
                 throw new ArgumentException("This type of ECCurve is not implemented");
             }
 
-            if (seq.Count == 3)
-            {
-                m_seed = DerBitString.GetInstance(seq[2]);
-            }
+            m_seed = Asn1Utilities.ReadOptional(seq, ref pos, DerBitString.GetOptional);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public ECCurve Curve => m_curve;

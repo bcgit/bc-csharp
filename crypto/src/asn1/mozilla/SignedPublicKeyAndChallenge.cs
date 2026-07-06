@@ -52,12 +52,17 @@ namespace Org.BouncyCastle.Asn1.Mozilla
         {
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
-            if (seq.Count != 3)
-                throw new ArgumentException($"Expected 3 elements, but found {seq.Count}", nameof(seq));
 
-            m_publicKeyAndChallenge = PublicKeyAndChallenge.GetInstance(seq[0]);
-            m_signatureAlgorithm = AlgorithmIdentifier.GetInstance(seq[1]);
-            m_signature = DerBitString.GetInstance(seq[2]);
+            int count = seq.Count, pos = 0;
+            if (count != 3)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_publicKeyAndChallenge = Asn1Utilities.Read(seq, ref pos, PublicKeyAndChallenge.GetInstance);
+            m_signatureAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_signature = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public PublicKeyAndChallenge PublicKeyAndChallenge => m_publicKeyAndChallenge;

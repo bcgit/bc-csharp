@@ -58,11 +58,16 @@ namespace Org.BouncyCastle.Asn1.Mozilla
         {
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
-            if (seq.Count != 2)
-                throw new ArgumentException($"Expected 2 elements, but found {seq.Count}", nameof(seq));
 
-            m_spki = SubjectPublicKeyInfo.GetInstance(seq[0]);
-            m_challenge = DerIA5String.GetInstance(seq[1]);
+            int count = seq.Count, pos = 0;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+
+            m_spki = Asn1Utilities.Read(seq, ref pos, SubjectPublicKeyInfo.GetInstance);
+            m_challenge = Asn1Utilities.Read(seq, ref pos, DerIA5String.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public DerIA5String Challenge => m_challenge;
