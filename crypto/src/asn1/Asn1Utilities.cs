@@ -760,6 +760,17 @@ namespace Org.BouncyCastle.Asn1
 
         #region Sequence cursor
 
+        public static TResult Read<TResult>(Asn1Sequence sequence, ref int sequencePosition,
+            Func<Asn1Encodable, TResult> constructor)
+            where TResult : class
+        {
+            /*
+             * TODO We might want to check the position and throw a better exception, but current ASN.1 types aren't
+             * doing that, so leave it until it can be consistent.
+             */
+            return constructor(sequence[sequencePosition++]);
+        }
+
         public static TResult ReadContextTagged<TState, TResult>(Asn1Sequence sequence, ref int sequencePosition,
             int tagNo, TState state, Func<Asn1TaggedObject, TState, TResult> constructor)
         {
