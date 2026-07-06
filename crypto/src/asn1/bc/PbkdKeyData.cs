@@ -2,20 +2,21 @@
 
 namespace Org.BouncyCastle.Asn1.BC
 {
-    /**
-     * Carrier for the contents of a {@link javax.crypto.interfaces.PBEKey} stored
-     * in a BCFKS keystore.
-     * <pre>
-     *     PbkdKeyData ::= SEQUENCE {
-     *         keyAlgorithm   UTF8String,
-     *         password       OCTET STRING,
-     *         salt           [0] IMPLICIT OCTET STRING OPTIONAL,
-     *         iterationCount [1] IMPLICIT INTEGER OPTIONAL,
-     *         encoded        [2] IMPLICIT OCTET STRING OPTIONAL
-     *     }
-     * </pre>
-     */
-    public class PbkdKeyData
+    /// <summary>
+    /// Carrier for the contents of a <c>javax.crypto.interfaces.PBEKey</c> stored in a BCFKS keystore.
+    /// </summary>
+    /// <remarks>
+    /// <code>
+    /// PbkdKeyData ::= SEQUENCE {
+    ///     keyAlgorithm    UTF8String,
+    ///     password        OCTET STRING,
+    ///     salt            [0] IMPLICIT OCTET STRING OPTIONAL,
+    ///     iterationCount  [1] IMPLICIT INTEGER OPTIONAL,
+    ///     encoded         [2] IMPLICIT OCTET STRING OPTIONAL
+    /// }
+    /// </code>
+    /// </remarks>
+    public sealed class PbkdKeyData
         : Asn1Encodable
     {
         public static PbkdKeyData GetInstance(object obj)
@@ -52,8 +53,8 @@ namespace Org.BouncyCastle.Asn1.BC
             if (count < 2 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_keyAlgorithm = DerUtf8String.GetInstance(seq[pos++]);
-            m_password = Asn1OctetString.GetInstance(seq[pos++]);
+            m_keyAlgorithm = Asn1Utilities.Read(seq, ref pos, DerUtf8String.GetInstance);
+            m_password = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_salt = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1OctetString.GetTagged);
             m_iterationCount = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerInteger.GetTagged);
             m_encoded = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, Asn1OctetString.GetTagged);

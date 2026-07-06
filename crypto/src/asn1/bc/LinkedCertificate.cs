@@ -4,17 +4,18 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.BC
 {
-    /**
-     * Extension to tie an alternate certificate to the containing certificate.
-     * <pre>
-     *     LinkedCertificate := SEQUENCE {
-     *         digest        DigestInfo,                   -- digest of PQC certificate
-     *         certLocation  GeneralName,                  -- location of PQC certificate
-     *         certIssuer    [0] Name OPTIONAL,            -- issuer of PQC cert (if different from current certificate)
-     *         cACerts       [1] GeneralNames OPTIONAL,    -- CA certificates for PQC cert (one of more locations)
-     * }
-     * </pre>
-     */
+    /// <summary>Extension to tie an alternate certificate to the containing certificate.</summary>
+    /// <remarks>
+    /// <code>
+    /// LinkedCertificate := SEQUENCE {
+    ///     digest          DigestInfo,                   -- digest of PQC certificate
+    ///     certLocation    GeneralName,                  -- location of PQC certificate
+    ///     certIssuer      [0] Name OPTIONAL,            -- issuer of PQC cert(if different from current certificate)
+    ///     cACerts         [1] GeneralNames OPTIONAL,    -- CA certificates for PQC cert(one of more locations)
+    /// }
+    /// </code>
+    /// </remarks>
+    // TODO[api] Make sealed
     public class LinkedCertificate
         : Asn1Encodable
     {
@@ -57,8 +58,8 @@ namespace Org.BouncyCastle.Asn1.BC
             if (count < 2 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_digest = DigestInfo.GetInstance(seq[pos++]);
-            m_certLocation = GeneralName.GetInstance(seq[pos++]);
+            m_digest = Asn1Utilities.Read(seq, ref pos, DigestInfo.GetInstance);
+            m_certLocation = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
             m_certIssuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, X509Name.GetTagged); // CHOICE
             m_cACerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, GeneralNames.GetTagged);
 
