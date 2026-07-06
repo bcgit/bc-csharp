@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
 			m_sigPolicyQualifierId = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
 			m_sigQualifier = Asn1Utilities.Read(seq, ref pos, element => element);
 
 			if (pos != count)

@@ -45,6 +45,7 @@ namespace Org.BouncyCastle.Asn1.UA
 
             m_m = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).IntPositiveValueExact;
 
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
             var exponents = Asn1Utilities.Read(seq, ref pos, element => element);
 
             if (DerInteger.GetOptional(exponents) is DerInteger trinomial)
