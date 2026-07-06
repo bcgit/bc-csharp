@@ -72,7 +72,8 @@ namespace Org.BouncyCastle.Asn1.X9
             DerInteger version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_fieldID = Asn1Utilities.Read(seq, ref pos, X9FieldID.GetInstance);
             var x9CurveSequence = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
-            var p = seq[pos++];
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
+            var p = Asn1Utilities.Read(seq, ref pos, element => element);
             m_n = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
             m_h = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional)?.Value;
 
