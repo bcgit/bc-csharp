@@ -188,7 +188,7 @@ namespace Org.BouncyCastle.Pkix
         // 4.5.2.2) defines it only for checking a leaf subject against the EUM's constraints (IsConstrained),
         // never for relating constraints to each other - and a conforming SGP.22 chain cannot fold DN
         // constraint sets anyway, its one constraint source being the EUM, a pathLen=0 CA.
-        private static NameConstraintRelation RelateDN(NameConstraintDN dn1, NameConstraintDN dn2)
+        private static NameConstraintRelation Relate(NameConstraintDN dn1, NameConstraintDN dn2)
         {
             Rdn[] rdns1 = dn1.m_rdns, rdns2 = dn2.m_rdns;
             int len1 = rdns1.Length, len2 = rdns2.Length;
@@ -230,7 +230,7 @@ namespace Org.BouncyCastle.Pkix
                     {
                         // The narrower (deeper) of an overlapping pair is the intersection. Existing
                         // constraint (dn2) first: an equal pair keeps the first-registered instance.
-                        switch (RelateDN(dn2, dn1))
+                        switch (Relate(dn2, dn1))
                         {
                         case Equal:
                         case SubsumedBy:
@@ -257,11 +257,11 @@ namespace Org.BouncyCastle.Pkix
             // (subsumed-or-equal; an equal pair - RDN-equal, even if differently encoded - keeps the
             // first-registered instance): the set is already the union. Otherwise dn replaces whatever it
             // strictly subsumes - removed after the enumeration, which must not mutate the set. One
-            // RelateDN per subtree.
+            // Relate per subtree.
             List<NameConstraintDN> dropped = null;
             foreach (var subtree in excluded)
             {
-                switch (RelateDN(subtree, dn))
+                switch (Relate(subtree, dn))
                 {
                 case Equal:
                 case Subsumes:
