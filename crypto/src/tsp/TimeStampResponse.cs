@@ -10,16 +10,21 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tsp
 {
-    /**
-	 * Base class for an RFC 3161 Time Stamp Response object.
-	 */
+    /// <summary>Base class for an RFC 3161 Time Stamp Response.</summary>
     public class TimeStampResponse
     {
         private static TimeStampResp ParseTimeStampResp(byte[] encoding)
         {
             try
             {
-                return TimeStampResp.GetInstance(encoding);
+                var asn1Object = Asn1Object.FromByteArray(encoding)
+                    ?? throw new IOException("no ASN.1 object found in response");
+
+                return TimeStampResp.GetInstance(asn1Object);
+            }
+            catch (IOException)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -31,7 +36,14 @@ namespace Org.BouncyCastle.Tsp
         {
             try
             {
-                return TimeStampResp.GetInstance(Asn1Object.FromStream(input));
+                var asn1Object = Asn1Object.FromStream(input)
+                    ?? throw new IOException("no ASN.1 object found in response");
+
+                return TimeStampResp.GetInstance(asn1Object);
+            }
+            catch (IOException)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -44,7 +56,7 @@ namespace Org.BouncyCastle.Tsp
 
         public TimeStampResponse(TimeStampResp resp)
         {
-            m_resp = resp;
+            m_resp = resp ?? throw new ArgumentNullException();
 
             if (resp.TimeStampToken != null)
             {
@@ -52,25 +64,19 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-        /**
-         * Create a TimeStampResponse from a byte array containing an ASN.1 encoding.
-         *
-         * @param resp the byte array containing the encoded response.
-         * @throws TspException if the response is malformed.
-         * @throws IOException if the byte array doesn't represent an ASN.1 encoding.
-         */
+        /// <summary>Create a TimeStampResponse from the passed-in byte array.</summary>
+        /// <param name="resp">the byte array containing the encoded response.</param>
+        /// <exception cref="TspException">if the response is malformed.</exception>
+        /// <exception cref="IOException">if the byte array doesn't represent an ASN.1 encoding.</exception>
         public TimeStampResponse(byte[] resp)
             : this(ParseTimeStampResp(resp))
         {
         }
 
-        /**
-         * Create a TimeStampResponse from an input stream containing an ASN.1 encoding.
-         *
-         * @param input the input stream containing the encoded response.
-         * @throws TspException if the response is malformed.
-         * @throws IOException if the stream doesn't represent an ASN.1 encoding.
-         */
+        /// <summary>Create a TimeStampResponse from the passed-in stream.</summary>
+        /// <param name="input">the stream containing the encoded response.</param>
+        /// <exception cref="TspException">if the response is malformed.</exception>
+        /// <exception cref="IOException">if the stream doesn't represent an ASN.1 encoding.</exception>
         public TimeStampResponse(Stream input)
             : this(ParseTimeStampResp(input))
         {

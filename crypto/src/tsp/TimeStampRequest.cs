@@ -11,9 +11,7 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
 {
-    /**
-	 * Base class for an RFC 3161 Time Stamp Request.
-	 */
+    /// <summary>Base class for an RFC 3161 Time Stamp Request.</summary>
     public class TimeStampRequest
         : X509ExtensionBase
     {
@@ -21,7 +19,14 @@ namespace Org.BouncyCastle.Tsp
         {
             try
             {
-                return TimeStampReq.GetInstance(encoding);
+                var asn1Object = Asn1Object.FromByteArray(encoding)
+                    ?? throw new IOException("no ASN.1 object found in request");
+
+                return TimeStampReq.GetInstance(asn1Object);
+            }
+            catch (IOException)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -35,7 +40,14 @@ namespace Org.BouncyCastle.Tsp
         {
             try
             {
-                return TimeStampReq.GetInstance(Asn1Object.FromStream(input));
+                var asn1Object = Asn1Object.FromStream(input)
+                    ?? throw new IOException("no ASN.1 object found in request");
+
+                return TimeStampReq.GetInstance(asn1Object);
+            }
+            catch (IOException)
+            {
+                throw;
             }
             catch (Exception e)
             {
@@ -49,26 +61,22 @@ namespace Org.BouncyCastle.Tsp
 
         public TimeStampRequest(TimeStampReq req)
         {
-            m_req = req;
+            m_req = req ?? throw new ArgumentNullException(nameof(req));
         }
 
-        /**
-         * Create a TimeStampRequest from the passed-in byte array.
-         *
-         * @param req byte array containing the request.
-         * @throws IOException if the request is malformed.
-         */
+        /// <summary>Create a TimeStampRequest from the passed-in byte array.</summary>
+        /// <param name="req">the byte array containing the encoded request.</param>
+        /// <exception cref="IOException">if the request is malformed.</exception>
+        // TODO[api] TspException
         public TimeStampRequest(byte[] req)
             : this(ParseTimeStampReq(req))
         {
         }
 
-        /**
-         * Create a TimeStampRequest from the passed-in input stream.
-         *
-         * @param in input stream containing the request.
-         * @throws IOException if the request is malformed.
-         */
+        /// <summary>Create a TimeStampRequest from the passed-in stream.</summary>
+        /// <param name="input">the stream containing the encoded request.</param>
+        /// <exception cref="IOException">if the request is malformed.</exception>
+        // TODO[api] TspException
         public TimeStampRequest(Stream input)
             : this(ParseTimeStampReq(input))
         {
