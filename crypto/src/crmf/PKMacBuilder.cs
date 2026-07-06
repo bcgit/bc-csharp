@@ -226,7 +226,7 @@ namespace Org.BouncyCastle.Crmf
             // PBMParameter from an incoming CMP message cannot drive the iterated hash into a CPU-exhaustion DoS.
             int ceiling = maxIterations > 0
                 ? maxIterations
-                : Properties.GetInt32(Properties.PKMacMaxIterationCount, 10_000_000);
+                : Properties.GetInt32(Properties.PKMacMaxIterationCount, 1_000_000);
             if (iterationCount > ceiling)
                 throw new ArgumentException("iteration count exceeds limit (" + iterationCount + " > " + ceiling + ")");
         }
