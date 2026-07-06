@@ -22,8 +22,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public static PopoSigningKeyInput GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PopoSigningKeyInput(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-        private readonly GeneralName m_sender;
-        private readonly PKMacValue m_publicKeyMac;
+        private readonly AuthInfo m_authInfo;
         private readonly SubjectPublicKeyInfo m_publicKey;
 
         private PopoSigningKeyInput(Asn1Sequence seq)
@@ -32,42 +31,40 @@ namespace Org.BouncyCastle.Asn1.Crmf
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            Asn1Encodable authInfo = Asn1Utilities.Read(seq, ref pos, element => element);
-
-            if (authInfo is Asn1TaggedObject tagObj)
-            {
-                m_sender = GeneralName.GetInstance(Asn1Utilities.GetExplicitContextBaseObject(tagObj, 0));
-            }
-            else
-            {
-                m_publicKeyMac = PKMacValue.GetInstance(authInfo);
-            }
-
+            m_authInfo = Asn1Utilities.Read(seq, ref pos, AuthInfo.GetInstance);
             m_publicKey = Asn1Utilities.Read(seq, ref pos, SubjectPublicKeyInfo.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        public PopoSigningKeyInput(AuthInfo authInfo, SubjectPublicKeyInfo publicKey)
+        {
+            m_authInfo = authInfo ?? throw new ArgumentNullException(nameof(authInfo));
+            m_publicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
+        }
+
         /** Creates a new PopoSigningKeyInput with sender name as authInfo. */
         public PopoSigningKeyInput(GeneralName sender, SubjectPublicKeyInfo spki)
         {
-            m_sender = sender ?? throw new ArgumentNullException(nameof(sender));
+            m_authInfo = new AuthInfo(sender);
             m_publicKey = spki ?? throw new ArgumentNullException(nameof(spki));
         }
 
         /** Creates a new PopoSigningKeyInput using password-based MAC. */
         public PopoSigningKeyInput(PKMacValue pkmac, SubjectPublicKeyInfo spki)
         {
-            m_publicKeyMac = pkmac ?? throw new ArgumentNullException(nameof(pkmac));
+            m_authInfo = new AuthInfo(pkmac);
             m_publicKey = spki ?? throw new ArgumentNullException(nameof(spki));
         }
 
+        public virtual AuthInfo AuthInfoValue => m_authInfo;
+
         /** Returns the sender field, or null if authInfo is publicKeyMac */
-        public virtual GeneralName Sender => m_sender;
+        public virtual GeneralName Sender => m_authInfo.Sender;
 
         /** Returns the publicKeyMac field, or null if authInfo is sender */
-        public virtual PKMacValue PublicKeyMac => m_publicKeyMac;
+        public virtual PKMacValue PublicKeyMac => m_authInfo.PublicKeyMac;
 
         public virtual SubjectPublicKeyInfo PublicKey => m_publicKey;
 
@@ -87,22 +84,72 @@ namespace Org.BouncyCastle.Asn1.Crmf
          * </pre>
          * @return a basic ASN.1 object representation.
          */
-        public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_authInfo, m_publicKey);
+
+        public sealed class AuthInfo
+            : Asn1Encodable, IAsn1Choice
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            public static AuthInfo GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
-            if (m_sender != null)
+            public static AuthInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+                Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
+
+            public static AuthInfo GetOptional(Asn1Encodable element)
             {
-                v.Add(new DerTaggedObject(true, 0, m_sender));
+                if (element == null)
+                    throw new ArgumentNullException(nameof(element));
+
+                if (element is AuthInfo authInfo)
+                    return authInfo;
+
+                Asn1TaggedObject sender = Asn1TaggedObject.GetContextOptional(element, 0);
+                if (sender != null)
+                    return new AuthInfo(GeneralName.GetTagged(sender, true));
+
+                PKMacValue publicKeyMac = PKMacValue.GetOptional(element);
+                if (publicKeyMac != null)
+                    return new AuthInfo(publicKeyMac);
+
+                return null;
             }
-            else
+
+            public static AuthInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+                Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
+
+            private readonly GeneralName m_sender;
+            private readonly PKMacValue m_publicKeyMac;
+
+            public AuthInfo(GeneralName sender)
             {
-                v.Add(m_publicKeyMac);
+                m_sender = sender ?? throw new ArgumentNullException(nameof(sender));
+                m_publicKeyMac = null;
             }
 
-            v.Add(m_publicKey);
+            public AuthInfo(PKMacValue publicKeyMac)
+            {
+                m_sender = null;
+                m_publicKeyMac = publicKeyMac ?? throw new ArgumentNullException(nameof(publicKeyMac));
+            }
 
-            return new DerSequence(v);
+            public PKMacValue PublicKeyMac => m_publicKeyMac;
+
+            public GeneralName Sender => m_sender;
+
+            public override Asn1Object ToAsn1Object()
+            {
+                if (m_sender != null)
+                {
+                    return new DerTaggedObject(true, 0, m_sender);
+                }
+                else if (m_publicKeyMac != null)
+                {
+                    return m_publicKeyMac.ToAsn1Object();
+                }
+                else
+                {
+                    throw new InvalidOperationException();
+                }
+            }
         }
     }
 }

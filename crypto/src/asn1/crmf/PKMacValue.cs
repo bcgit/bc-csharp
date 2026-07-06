@@ -23,6 +23,21 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public static PKMacValue GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new PKMacValue(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        public static PKMacValue GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is PKMacValue pkMacValue)
+                return pkMacValue;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new PKMacValue(asn1Sequence);
+
+            return null;
+        }
+
         public static PKMacValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PKMacValue(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
