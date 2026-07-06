@@ -36,12 +36,15 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private AccessDescription(Asn1Sequence seq)
 		{
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_accessMethod = DerObjectIdentifier.GetInstance(seq[0]);
-			m_accessLocation = GeneralName.GetInstance(seq[1]);
+			m_accessMethod = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+			m_accessLocation = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
         /**

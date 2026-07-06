@@ -25,12 +25,15 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         private AttributePkcs(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_attrType = DerObjectIdentifier.GetInstance(seq[0]);
-            m_attrValues = Asn1Set.GetInstance(seq[1]);
+			m_attrType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_attrValues = Asn1Utilities.Read(seq, ref pos, Asn1Set.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
 		public AttributePkcs(DerObjectIdentifier attrType, Asn1Set attrValues)

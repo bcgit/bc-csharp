@@ -95,11 +95,15 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
          */
         private NameOrPseudonym(Asn1Sequence seq)
         {
-            if (seq.Count != 2)
-                throw new ArgumentException("Bad sequence size: " + seq.Count);
+            int count = seq.Count, pos = 0;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_surname = DirectoryString.GetInstance(seq[0]);
-            m_givenName = Asn1Sequence.GetInstance(seq[1]);
+            m_surname = Asn1Utilities.Read(seq, ref pos, DirectoryString.GetInstance);
+            m_givenName = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         /**

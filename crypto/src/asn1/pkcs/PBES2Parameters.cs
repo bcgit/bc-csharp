@@ -27,14 +27,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         private PbeS2Parameters(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            AlgorithmIdentifier func = AlgorithmIdentifier.GetInstance(seq[0]);
+            AlgorithmIdentifier func = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
             m_func = new KeyDerivationFunc(func.Algorithm, func.Parameters);
 
-            m_scheme = EncryptionScheme.GetInstance(seq[1]);
+            m_scheme = Asn1Utilities.Read(seq, ref pos, EncryptionScheme.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public PbeS2Parameters(KeyDerivationFunc keyDevFunc, EncryptionScheme encScheme)

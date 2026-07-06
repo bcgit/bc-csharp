@@ -40,12 +40,15 @@ namespace Org.BouncyCastle.Asn1.Icao
 
         private LdsVersionInfo(Asn1Sequence seq)
 		{
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_ldsVersion = DerPrintableString.GetInstance(seq[0]);
-			m_unicodeVersion = DerPrintableString.GetInstance(seq[1]);
+			m_ldsVersion = Asn1Utilities.Read(seq, ref pos, DerPrintableString.GetInstance);
+			m_unicodeVersion = Asn1Utilities.Read(seq, ref pos, DerPrintableString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
         public LdsVersionInfo(string ldsVersion, string unicodeVersion)

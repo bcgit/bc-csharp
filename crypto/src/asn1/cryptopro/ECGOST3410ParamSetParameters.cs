@@ -40,16 +40,19 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 6)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_a = DerInteger.GetInstance(seq[0]);
-            m_b = DerInteger.GetInstance(seq[1]);
-            m_p = DerInteger.GetInstance(seq[2]);
-            m_q = DerInteger.GetInstance(seq[3]);
-            m_x = DerInteger.GetInstance(seq[4]);
-            m_y = DerInteger.GetInstance(seq[5]);
+            m_a = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_b = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_q = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_x = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_y = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public ECGost3410ParamSetParameters(BigInteger a, BigInteger b, BigInteger p, BigInteger q, int x,

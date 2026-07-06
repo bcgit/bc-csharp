@@ -33,13 +33,16 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private DsaParameter(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_p = DerInteger.GetInstance(seq[0]);
-			m_q = DerInteger.GetInstance(seq[1]);
-			m_g = DerInteger.GetInstance(seq[2]);
+			m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+			m_q = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+			m_g = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
 		public BigInteger P => m_p.PositiveValue;

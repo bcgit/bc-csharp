@@ -28,11 +28,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private PopoSigningKeyInput(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            Asn1Encodable authInfo = (Asn1Encodable)seq[0];
+            Asn1Encodable authInfo = Asn1Utilities.Read(seq, ref pos, element => element);
 
             if (authInfo is Asn1TaggedObject tagObj)
             {
@@ -43,7 +43,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 m_publicKeyMac = PKMacValue.GetInstance(authInfo);
             }
 
-            m_publicKey = SubjectPublicKeyInfo.GetInstance(seq[1]);
+            m_publicKey = Asn1Utilities.Read(seq, ref pos, SubjectPublicKeyInfo.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         /** Creates a new PopoSigningKeyInput with sender name as authInfo. */

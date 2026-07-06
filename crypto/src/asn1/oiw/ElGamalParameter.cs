@@ -40,12 +40,15 @@ namespace Org.BouncyCastle.Asn1.Oiw
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_p = DerInteger.GetInstance(seq[0]);
-			m_g = DerInteger.GetInstance(seq[1]);
+			m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+			m_g = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public ElGamalParameter(BigInteger p, BigInteger g)

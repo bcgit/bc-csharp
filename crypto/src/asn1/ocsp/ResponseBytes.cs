@@ -46,12 +46,15 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         private ResponseBytes(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_responseType = DerObjectIdentifier.GetInstance(seq[0]);
-            m_response = Asn1OctetString.GetInstance(seq[1]);
+            m_responseType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_response = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public DerObjectIdentifier ResponseType => m_responseType;

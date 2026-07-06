@@ -59,16 +59,19 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private X509CertificateStructure(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             //
             // correct x509 certficate
             //
-            m_tbsCert = TbsCertificateStructure.GetInstance(seq[0]);
-            m_sigAlgID = AlgorithmIdentifier.GetInstance(seq[1]);
-            m_sig = DerBitString.GetInstance(seq[2]);
+            m_tbsCert = Asn1Utilities.Read(seq, ref pos, TbsCertificateStructure.GetInstance);
+            m_sigAlgID = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_sig = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public TbsCertificateStructure TbsCertificate => m_tbsCert;

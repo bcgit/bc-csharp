@@ -55,12 +55,15 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         private OtherHashAlgAndValue(Asn1Sequence seq)
 		{
-			int count = seq.Count;
+			int count = seq.Count, pos = 0;
 			if (count != 2)
 				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
-			m_hashValue = Asn1OctetString.GetInstance(seq[1]);
+			m_hashAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+			m_hashValue = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+
+			if (pos != count)
+				throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
 		public OtherHashAlgAndValue(AlgorithmIdentifier	hashAlgorithm, byte[] hashValue)

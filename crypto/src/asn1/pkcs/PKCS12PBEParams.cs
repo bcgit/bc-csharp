@@ -27,12 +27,15 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         private Pkcs12PbeParams(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_iv = Asn1OctetString.GetInstance(seq[0]);
-            m_iterations = DerInteger.GetInstance(seq[1]);
+            m_iv = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_iterations = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public Pkcs12PbeParams(byte[] salt, int iterations)

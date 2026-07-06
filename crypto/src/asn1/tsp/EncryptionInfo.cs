@@ -55,12 +55,15 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
         private EncryptionInfo(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_encryptionInfoType = DerObjectIdentifier.GetInstance(seq[0]);
-            m_encryptionInfoValue = seq[1];
+            m_encryptionInfoType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_encryptionInfoValue = Asn1Utilities.Read(seq, ref pos, element => element);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public EncryptionInfo(DerObjectIdentifier encryptionInfoType, Asn1Encodable encryptionInfoValue)

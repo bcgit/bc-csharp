@@ -38,13 +38,16 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 
         private MonetaryValue(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_currency = Iso4217CurrencyCode.GetInstance(seq[0]);
-            m_amount = DerInteger.GetInstance(seq[1]);
-            m_exponent = DerInteger.GetInstance(seq[2]);
+            m_currency = Asn1Utilities.Read(seq, ref pos, Iso4217CurrencyCode.GetInstance);
+            m_amount = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_exponent = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public MonetaryValue(Iso4217CurrencyCode currency, int amount, int exponent)

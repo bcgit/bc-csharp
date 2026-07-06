@@ -25,12 +25,15 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private AttCertValidityPeriod(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_notBeforeTime = Asn1GeneralizedTime.GetInstance(seq[0]);
-			m_notAfterTime = Asn1GeneralizedTime.GetInstance(seq[1]);
+			m_notBeforeTime = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
+			m_notAfterTime = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public AttCertValidityPeriod(Asn1GeneralizedTime notBeforeTime, Asn1GeneralizedTime notAfterTime)

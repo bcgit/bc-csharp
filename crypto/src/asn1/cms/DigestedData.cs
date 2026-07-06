@@ -50,14 +50,17 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private DigestedData(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[0]);
-            m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[1]);
-            m_encapContentInfo = ContentInfo.GetInstance(seq[2]);
-            m_digest = Asn1OctetString.GetInstance(seq[3]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_digestAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_encapContentInfo = Asn1Utilities.Read(seq, ref pos, ContentInfo.GetInstance);
+            m_digest = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public Asn1OctetString Digest => m_digest;

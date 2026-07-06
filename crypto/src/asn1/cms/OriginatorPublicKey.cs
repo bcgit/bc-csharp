@@ -38,12 +38,15 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private OriginatorPublicKey(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_algorithm = AlgorithmIdentifier.GetInstance(seq[0]);
-            m_publicKey = DerBitString.GetInstance(seq[1]);
+            m_algorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_publicKey = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public AlgorithmIdentifier Algorithm => m_algorithm;

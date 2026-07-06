@@ -53,22 +53,25 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         private RsaPrivateKeyStructure(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 9)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            var version = DerInteger.GetInstance(seq[0]);
-            m_modulus = DerInteger.GetInstance(seq[1]).Value;
-            m_publicExponent = DerInteger.GetInstance(seq[2]).Value;
-            m_privateExponent = DerInteger.GetInstance(seq[3]).Value;
-            m_prime1 = DerInteger.GetInstance(seq[4]).Value;
-            m_prime2 = DerInteger.GetInstance(seq[5]).Value;
-            m_exponent1 = DerInteger.GetInstance(seq[6]).Value;
-            m_exponent2 = DerInteger.GetInstance(seq[7]).Value;
-            m_coefficient = DerInteger.GetInstance(seq[8]).Value;
+            var version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_modulus = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
+            m_publicExponent = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
+            m_privateExponent = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
+            m_prime1 = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
+            m_prime2 = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
+            m_exponent1 = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
+            m_exponent2 = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
+            m_coefficient = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
 
             if (!version.HasValue(0))
                 throw new ArgumentException("wrong version for RSA private key");
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public BigInteger Modulus => m_modulus;

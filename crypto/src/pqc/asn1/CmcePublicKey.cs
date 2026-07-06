@@ -64,11 +64,14 @@ namespace Org.BouncyCastle.Pqc.Asn1
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 1)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_t = Asn1OctetString.GetInstance(seq[0]);
+            m_t = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public byte[] T => Arrays.Clone(m_t.GetOctets());

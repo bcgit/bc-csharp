@@ -25,12 +25,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
 		private CertBag(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_certID = DerObjectIdentifier.GetInstance(seq[0]);
-            m_certValue = Asn1TaggedObject.GetContextInstance(seq[1], 0).GetExplicitBaseObject();
+            m_certID = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
+            m_certValue = Asn1Utilities.ReadContextTagged(seq, ref pos, 0, true,
+                (taggedObject, declaredExplicit) => taggedObject.GetExplicitBaseObject());
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         // TODO[api] Remove as redundant

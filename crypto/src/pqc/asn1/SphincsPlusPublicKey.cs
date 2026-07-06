@@ -61,12 +61,15 @@ namespace Org.BouncyCastle.Pqc.Asn1
 
         private SphincsPlusPublicKey(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_pkseed = Asn1OctetString.GetInstance(seq[0]);
-            m_pkroot = Asn1OctetString.GetInstance(seq[1]);
+            m_pkseed = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_pkroot = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public byte[] GetPkroot() => Arrays.Clone(m_pkroot.GetOctets());

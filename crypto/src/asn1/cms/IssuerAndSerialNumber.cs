@@ -43,12 +43,15 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private IssuerAndSerialNumber(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_issuer = X509Name.GetInstance(seq[0]);
-            m_serialNumber = DerInteger.GetInstance(seq[1]);
+            m_issuer = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);
+            m_serialNumber = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         // TODO[api] 'name' => 'issuer'

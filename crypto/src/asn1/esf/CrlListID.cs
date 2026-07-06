@@ -34,12 +34,15 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         private CrlListID(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 1)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_crls = Asn1Sequence.GetInstance(seq[0]);
+            m_crls = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
             m_crls.MapElements(CrlValidatedID.GetInstance); // Validate
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public CrlListID(params CrlValidatedID[] crls)

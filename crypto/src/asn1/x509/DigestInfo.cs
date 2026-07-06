@@ -35,12 +35,15 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private DigestInfo(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[0]);
-            m_digest = Asn1OctetString.GetInstance(seq[1]);
+            m_digestAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_digest = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         // TODO[api] 'algID' => 'digestAlgorithm'

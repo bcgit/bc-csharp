@@ -25,13 +25,16 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 
         private Gost28147Parameters(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             // TODO Validate length of 8?
-			m_iv = Asn1OctetString.GetInstance(seq[0]);
-            m_encryptionParamSet = DerObjectIdentifier.GetInstance(seq[1]);
+			m_iv = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_encryptionParamSet = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public Gost28147Parameters(Asn1OctetString iv, DerObjectIdentifier encryptionParamSet)

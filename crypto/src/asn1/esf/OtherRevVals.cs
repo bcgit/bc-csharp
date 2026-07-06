@@ -37,12 +37,15 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         private OtherRevVals(Asn1Sequence seq)
 		{
-			int count = seq.Count;
+			int count = seq.Count, pos = 0;
 			if (count != 2)
 				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_otherRevValType = DerObjectIdentifier.GetInstance(seq[0]);
-			m_otherRevVals = seq[1];
+			m_otherRevValType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+			m_otherRevVals = Asn1Utilities.Read(seq, ref pos, element => element);
+
+			if (pos != count)
+				throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
         public OtherRevVals(DerObjectIdentifier otherRevValType, Asn1Encodable otherRevVals)

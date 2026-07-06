@@ -44,15 +44,18 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         private EncryptedData(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            DerInteger version = DerInteger.GetInstance(seq[0]);
+            DerInteger version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             if (!version.HasValue(0))
                 throw new ArgumentException("sequence not version 0");
 
-            m_data = Asn1Sequence.GetInstance(seq[1]);
+            m_data = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public EncryptedData(DerObjectIdentifier contentType, AlgorithmIdentifier encryptionAlgorithm,

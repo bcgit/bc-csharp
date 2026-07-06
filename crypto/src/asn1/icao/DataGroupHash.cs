@@ -52,12 +52,15 @@ namespace Org.BouncyCastle.Asn1.Icao
 
         private DataGroupHash(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_dataGroupNumber = DerInteger.GetInstance(seq[0]);
-            m_dataGroupHashValue = Asn1OctetString.GetInstance(seq[1]);
+			m_dataGroupNumber = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_dataGroupHashValue = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
 		public DataGroupHash(int dataGroupNumber, Asn1OctetString dataGroupHashValue)

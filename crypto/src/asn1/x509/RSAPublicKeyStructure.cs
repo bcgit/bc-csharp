@@ -27,13 +27,16 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private RsaPublicKeyStructure(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             // Note: we are accepting technically incorrect (i.e. negative) values here
-            m_modulus = DerInteger.GetInstance(seq[0]).PositiveValue;
-            m_publicExponent = DerInteger.GetInstance(seq[1]).PositiveValue;
+            m_modulus = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).PositiveValue;
+            m_publicExponent = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).PositiveValue;
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public RsaPublicKeyStructure(BigInteger modulus, BigInteger publicExponent)

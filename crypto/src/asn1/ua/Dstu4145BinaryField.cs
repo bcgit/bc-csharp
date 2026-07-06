@@ -39,18 +39,21 @@ namespace Org.BouncyCastle.Asn1.UA
 
         private Dstu4145BinaryField(Asn1Sequence seq)
         {
-            if (seq.Count != 2)
-                throw new ArgumentException("Bad sequence size: " + seq.Count, nameof(seq));
+            int count = seq.Count, pos = 0;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_m = DerInteger.GetInstance(seq[0]).IntPositiveValueExact;
+            m_m = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).IntPositiveValueExact;
 
-            if (DerInteger.GetOptional(seq[1]) is var trinomial)
+            var exponents = Asn1Utilities.Read(seq, ref pos, element => element);
+
+            if (DerInteger.GetOptional(exponents) is DerInteger trinomial)
             {
                 m_k = trinomial.IntPositiveValueExact;
                 m_j = 0;
                 m_l = 0;
             }
-            else if (Asn1Sequence.GetOptional(seq[1]) is var pentanomial)
+            else if (Asn1Sequence.GetOptional(exponents) is Asn1Sequence pentanomial)
             {
                 if (pentanomial.Count != 3)
                     throw new ArgumentException("Bad sequence size (Pentanomial): " + pentanomial.Count, nameof(seq));
@@ -63,6 +66,9 @@ namespace Org.BouncyCastle.Asn1.UA
             {
                 throw new ArgumentException("object parse error", nameof(seq));
             }
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public Dstu4145BinaryField(int m, int k)

@@ -38,12 +38,15 @@ namespace Org.BouncyCastle.Asn1.X509
 
             private Element(Asn1Sequence seq)
             {
-                int count = seq.Count;
+                int count = seq.Count, pos = 0;
                 if (count != 2)
                     throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-                m_issuerDomainPolicy = DerObjectIdentifier.GetInstance(seq[0]);
-                m_subjectDomainPolicy = DerObjectIdentifier.GetInstance(seq[1]);
+                m_issuerDomainPolicy = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+                m_subjectDomainPolicy = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+
+                if (pos != count)
+                    throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
             }
 
             public Element(DerObjectIdentifier issuerDomainPolicy, DerObjectIdentifier subjectDomainPolicy)

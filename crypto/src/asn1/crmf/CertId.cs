@@ -27,12 +27,15 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private CertId(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_issuer = GeneralName.GetInstance(seq[0]);
-            m_serialNumber = DerInteger.GetInstance(seq[1]);
+            m_issuer = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
+            m_serialNumber = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public CertId(GeneralName issuer, DerInteger serialNumber)

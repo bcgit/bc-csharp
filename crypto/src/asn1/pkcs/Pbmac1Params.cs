@@ -36,12 +36,15 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         private Pbmac1Params(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_keyDerivationFunc = AlgorithmIdentifier.GetInstance(seq[0]);
-            m_messageAuthScheme = AlgorithmIdentifier.GetInstance(seq[1]);
+            m_keyDerivationFunc = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_messageAuthScheme = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public Pbmac1Params(AlgorithmIdentifier keyDerivationFunc, AlgorithmIdentifier messageAuthScheme)

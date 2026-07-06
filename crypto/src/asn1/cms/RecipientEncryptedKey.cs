@@ -25,12 +25,15 @@ namespace Org.BouncyCastle.Asn1.Cms
 
 		private RecipientEncryptedKey(Asn1Sequence seq)
 		{
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_identifier = KeyAgreeRecipientIdentifier.GetInstance(seq[0]);
-			m_encryptedKey = Asn1OctetString.GetInstance(seq[1]);
+            m_identifier = Asn1Utilities.Read(seq, ref pos, KeyAgreeRecipientIdentifier.GetInstance);
+			m_encryptedKey = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
         public RecipientEncryptedKey(KeyAgreeRecipientIdentifier id, Asn1OctetString encryptedKey)

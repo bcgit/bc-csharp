@@ -45,12 +45,15 @@ namespace Org.BouncyCastle.Asn1.X9
 
         private X9FieldID(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_fieldType = DerObjectIdentifier.GetInstance(seq[0]);
-            m_parameters = seq[1].ToAsn1Object();
+            m_fieldType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_parameters = Asn1Utilities.Read(seq, ref pos, element => element.ToAsn1Object());
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         /**

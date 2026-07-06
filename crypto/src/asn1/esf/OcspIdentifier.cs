@@ -39,12 +39,15 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         private OcspIdentifier(Asn1Sequence seq)
 		{
-			int count = 2;
+			int count = seq.Count, pos = 0;
 			if (count != 2)
 				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_ocspResponderID = ResponderID.GetInstance(seq[0]);
-			m_producedAt = Asn1GeneralizedTime.GetInstance(seq[1]);
+			m_ocspResponderID = Asn1Utilities.Read(seq, ref pos, ResponderID.GetInstance);
+			m_producedAt = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
+
+			if (pos != count)
+				throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
 		public OcspIdentifier(ResponderID ocspResponderID, DateTime producedAt)

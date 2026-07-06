@@ -28,12 +28,15 @@ namespace Org.BouncyCastle.Asn1.X500
 
         private AttributeTypeAndValue(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_type = DerObjectIdentifier.GetInstance(seq[0]);
-            m_value = seq[1];
+            m_type = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_value = Asn1Utilities.Read(seq, ref pos, element => element);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public AttributeTypeAndValue(DerObjectIdentifier type, Asn1Encodable value)
