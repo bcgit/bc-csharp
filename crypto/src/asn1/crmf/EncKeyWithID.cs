@@ -37,16 +37,15 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         private EncKeyWithID(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_privKeyInfo = PrivateKeyInfo.GetInstance(seq[0]);
+            m_privKeyInfo = Asn1Utilities.Read(seq, ref pos, PrivateKeyInfo.GetInstance);
+            m_identifier = Asn1Utilities.ReadOptional(seq, ref pos, GetOptionalChoice);
 
-            if (count > 1)
-            {
-                m_identifier = GetOptionalChoice(seq[1]);
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         private EncKeyWithID(PrivateKeyInfo privKeyInfo, Asn1Encodable identifier)

@@ -31,6 +31,21 @@ namespace Org.BouncyCastle.Asn1.Esf
         public static CrlIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlIdentifier(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static CrlIdentifier GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is CrlIdentifier crlIdentifier)
+                return crlIdentifier;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new CrlIdentifier(asn1Sequence);
+
+            return null;
+        }
+
         public static CrlIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlIdentifier(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -40,20 +55,20 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         private CrlIdentifier(Asn1Sequence seq)
 		{
-			int count = seq.Count;
+			int count = seq.Count, pos = 0;
 			if (count < 2 || count > 3)
 				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_crlIssuer = X509Name.GetInstance(seq[0]);
-			m_crlIssuedTime = Asn1UtcTime.GetInstance(seq[1]);
+			m_crlIssuer = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);
+			m_crlIssuedTime = Asn1Utilities.Read(seq, ref pos, Asn1UtcTime.GetInstance);
 
             // Validate crlIssuedTime is in the appropriate year range
             m_crlIssuedTime.ToDateTime(2049);
 
-			if (count > 2)
-			{
-				m_crlNumber = DerInteger.GetInstance(seq[2]);
-			}
+			m_crlNumber = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
+
+			if (pos != count)
+				throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
         public CrlIdentifier(X509Name crlIssuer, DateTime crlIssuedTime)

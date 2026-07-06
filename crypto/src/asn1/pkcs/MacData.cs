@@ -20,6 +20,21 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public static MacData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new MacData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        public static MacData GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is MacData macData)
+                return macData;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new MacData(asn1Sequence);
+
+            return null;
+        }
+
         public static MacData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new MacData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 

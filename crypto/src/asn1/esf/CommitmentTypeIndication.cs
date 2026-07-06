@@ -39,16 +39,15 @@ namespace Org.BouncyCastle.Asn1.Esf
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
-            int count = seq.Count;
-			if (count < 1 || count > 2)
-				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+            int count = seq.Count, pos = 0;
+            if (count < 1 || count > 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_commitmentTypeId = DerObjectIdentifier.GetInstance(seq[0]);
+            m_commitmentTypeId = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_commitmentTypeQualifier = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
 
-			if (count > 1)
-            {
-                m_commitmentTypeQualifier = Asn1Sequence.GetInstance(seq[1]);
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
 		public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId)

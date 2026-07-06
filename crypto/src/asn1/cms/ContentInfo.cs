@@ -17,6 +17,21 @@ namespace Org.BouncyCastle.Asn1.Cms
         public static ContentInfo GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new ContentInfo(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        public static ContentInfo GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is ContentInfo contentInfo)
+                return contentInfo;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new ContentInfo(asn1Sequence);
+
+            return null;
+        }
+
         public static ContentInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ContentInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -27,20 +42,17 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private ContentInfo(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_contentType = DerObjectIdentifier.GetInstance(seq[0]);
+            m_contentType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
+            m_content = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true,
+                (taggedObject, declaredExplicit) => taggedObject.GetExplicitBaseObject());
 
-            if (seq.Count > 1)
-            {
-                m_content = Asn1TaggedObject.GetContextInstance(seq[1], 0).GetExplicitBaseObject();
-            }
-            else
-            {
-                m_content = null;
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
             m_isDefiniteLength = IsDLSequence(seq);
         }

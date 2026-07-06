@@ -43,12 +43,16 @@ namespace Org.BouncyCastle.Asn1.X509
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_algorithm = DerObjectIdentifier.GetInstance(seq[0]);
-            m_parameters = count < 2 ? null : seq[1];
+            m_algorithm = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
+            m_parameters = Asn1Utilities.ReadOptional(seq, ref pos, element => element);
+
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public AlgorithmIdentifier(DerObjectIdentifier algorithm)

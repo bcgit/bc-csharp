@@ -28,16 +28,15 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
         private TimeStampResp(Asn1Sequence seq)
 		{
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_pkiStatusInfo = PkiStatusInfo.GetInstance(seq[0]);
+            m_pkiStatusInfo = Asn1Utilities.Read(seq, ref pos, PkiStatusInfo.GetInstance);
+            m_timeStampToken = Asn1Utilities.ReadOptional(seq, ref pos, ContentInfo.GetOptional);
 
-			if (seq.Count > 1)
-			{
-				m_timeStampToken = ContentInfo.GetInstance(seq[1]);
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
 		public TimeStampResp(PkiStatusInfo pkiStatusInfo, ContentInfo timeStampToken)

@@ -28,17 +28,19 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
 		private Pfx(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            DerInteger version = DerInteger.GetInstance(seq[0]);
+            DerInteger version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             if (!version.HasValue(3))
                 throw new ArgumentException("wrong version for PFX PDU");
 
-            m_contentInfo = ContentInfo.GetInstance(seq[1]);
+            m_contentInfo = Asn1Utilities.Read(seq, ref pos, ContentInfo.GetInstance);
+            m_macData = Asn1Utilities.ReadOptional(seq, ref pos, MacData.GetOptional);
 
-            m_macData = count <= 2 ? null : MacData.GetInstance(seq[2]);
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
 		public Pfx(ContentInfo contentInfo, MacData macData)

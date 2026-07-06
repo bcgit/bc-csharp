@@ -70,16 +70,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private InfoTypeAndValue(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_infoType = DerObjectIdentifier.GetInstance(seq[0]);
+            m_infoType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
+            m_infoValue = Asn1Utilities.ReadOptional(seq, ref pos, element => element);
 
-            if (count > 1)
-            {
-                m_infoValue = seq[1];
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public InfoTypeAndValue(DerObjectIdentifier infoType)

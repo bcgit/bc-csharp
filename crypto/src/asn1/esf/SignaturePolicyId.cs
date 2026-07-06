@@ -55,17 +55,16 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         private SignaturePolicyId(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_sigPolicyIdentifier = DerObjectIdentifier.GetInstance(seq[0]);
-            m_sigPolicyHash = OtherHashAlgAndValue.GetInstance(seq[1]);
+            m_sigPolicyIdentifier = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_sigPolicyHash = Asn1Utilities.Read(seq, ref pos, OtherHashAlgAndValue.GetInstance);
+            m_sigPolicyQualifiers = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
 
-            if (count > 2)
-            {
-                m_sigPolicyQualifiers = Asn1Sequence.GetInstance(seq[2]);
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         public SignaturePolicyId(DerObjectIdentifier sigPolicyIdentifier, OtherHashAlgAndValue sigPolicyHash)

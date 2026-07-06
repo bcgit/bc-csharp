@@ -33,16 +33,16 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 
         private QCStatement(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_statementId = DerObjectIdentifier.GetInstance(seq[0]);
+            m_statementId = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
+            m_statementInfo = Asn1Utilities.ReadOptional(seq, ref pos, element => element);
 
-			if (seq.Count > 1)
-			{
-				m_statementInfo = seq[1];
-			}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         // TODO[api] Rename parameter

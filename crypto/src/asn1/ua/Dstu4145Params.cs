@@ -79,30 +79,31 @@ namespace Org.BouncyCastle.Asn1.UA
 
         private Dstu4145Params(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             DerObjectIdentifier namedCurve = null;
             Dstu4145ECBinary ecBinary = null;
-            Asn1OctetString dke = null;
 
-            if (DerObjectIdentifier.GetOptional(seq[0]) is var oid)
+            // TODO[asn1] Asn1Utilities helper method for this type of situation
+            var curve = Asn1Utilities.Read(seq, ref pos, element => element);
+
+            if (DerObjectIdentifier.GetOptional(curve) is DerObjectIdentifier oid)
             {
                 namedCurve = oid;
             }
             else
             {
-                ecBinary = Dstu4145ECBinary.GetInstance(seq[0]);
+                ecBinary = Dstu4145ECBinary.GetInstance(curve);
             }
 
-            if (seq.Count > 1)
-            {
-                dke = Asn1OctetString.GetInstance(seq[1]);
+            Asn1OctetString dke = Asn1Utilities.ReadOptional(seq, ref pos, Asn1OctetString.GetOptional);
+            if (dke != null && dke.GetOctetsLength() != DefaultDke.Length)
+                throw new ArgumentException("Invalid length for DKE octet string", nameof(seq));
 
-                if (dke.GetOctetsLength() != DefaultDke.Length)
-                    throw new ArgumentException("Invalid length for DKE octet string", nameof(seq));
-            }
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
             m_namedCurve = namedCurve;
             m_ecBinary = ecBinary;

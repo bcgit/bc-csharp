@@ -35,16 +35,15 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         private OtherCertID(Asn1Sequence seq)
 		{
-			int count = seq.Count;
+			int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_otherCertHash = OtherHash.GetInstance(seq[0]);
+			m_otherCertHash = Asn1Utilities.Read(seq, ref pos, OtherHash.GetInstance);
+			m_issuerSerial = Asn1Utilities.ReadOptional(seq, ref pos, IssuerSerial.GetOptional);
 
-			if (count > 1)
-			{
-				m_issuerSerial = IssuerSerial.GetInstance(seq[1]);
-			}
+			if (pos != count)
+				throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 		}
 
         public OtherCertID(OtherHash otherCertHash)
