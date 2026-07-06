@@ -51,6 +51,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         [Obsolete("Use 'GetInstance' instead")]
         public SingleResponse(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count;
             if (count < 3 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));

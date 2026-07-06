@@ -65,6 +65,9 @@ namespace Org.BouncyCastle.Asn1.X9
         [Obsolete("Use 'GetInstance' instead")]
         public X9ECParameters(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count, pos = 0;
             if (count < 5 || count > 6)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));

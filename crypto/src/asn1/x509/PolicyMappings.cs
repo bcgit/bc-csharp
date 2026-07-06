@@ -88,6 +88,9 @@ namespace Org.BouncyCastle.Asn1.X509
         [Obsolete("Use 'GetInstance' instead")]
         public PolicyMappings(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             // TODO Validate length at least 1?
             // TODO[api] Asn1Sequence virtual (or extension?) method for mapping to a new sequence
             m_elements = DLSequence.Map(seq, Element.GetInstance);

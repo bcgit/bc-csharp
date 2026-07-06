@@ -39,6 +39,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         internal PkiFreeText(Asn1Sequence seq)
 		{
+			if (seq == null)
+				throw new ArgumentNullException(nameof(seq));
+
 			foreach (var element in seq)
 			{
 				if (!(element is DerUtf8String))

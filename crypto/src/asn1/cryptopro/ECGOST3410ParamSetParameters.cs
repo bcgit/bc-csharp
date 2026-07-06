@@ -37,6 +37,9 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         [Obsolete("Use 'GetInstance' instead")]
         public ECGost3410ParamSetParameters(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count;
             if (count != 6)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));

@@ -150,6 +150,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             public Rand(Asn1Sequence seq)
             {
+                if (seq == null)
+                    throw new ArgumentNullException(nameof(seq));
+
                 if (seq.Count != 2)
                     throw new ArgumentException("expected sequence size of 2", nameof(seq));
 

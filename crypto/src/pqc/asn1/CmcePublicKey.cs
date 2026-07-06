@@ -61,6 +61,9 @@ namespace Org.BouncyCastle.Pqc.Asn1
         [Obsolete("Use 'GetInstance' instead")]
         public CmcePublicKey(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count;
             if (count != 1)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));

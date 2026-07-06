@@ -51,6 +51,9 @@ namespace Org.BouncyCastle.Asn1.Cms
         [Obsolete("Use 'GetInstance' instead")]
         public KeyAgreeRecipientInfo(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count, pos = 0;
             if (count < 4 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));

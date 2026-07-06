@@ -50,6 +50,9 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
         [Obsolete("Use 'GetInstance' instead")]
         public SemanticsInformation(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count, pos = 0;
 
             // NOTE: At least one of 'semanticsIdentifier' or 'nameRegistrationAuthorities' must be present

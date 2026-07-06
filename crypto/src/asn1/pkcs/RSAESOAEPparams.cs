@@ -46,6 +46,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         [Obsolete("Use 'GetInstance' instead")]
         public RsaesOaepParameters(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count, pos = 0;
             if (count < 0 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));

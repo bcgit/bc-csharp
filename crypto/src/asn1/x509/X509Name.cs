@@ -409,6 +409,9 @@ namespace Org.BouncyCastle.Asn1.X509
         */
         protected X509Name(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             // RDNSequence ::= SEQUENCE OF RelativeDistinguishedName
             m_seq = seq;
 

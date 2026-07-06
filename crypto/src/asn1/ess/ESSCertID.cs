@@ -39,6 +39,9 @@ namespace Org.BouncyCastle.Asn1.Ess
         [Obsolete("Use 'GetInstance' instead")]
         public EssCertID(Asn1Sequence seq)
 		{
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));

@@ -40,6 +40,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
         internal AlgorithmIdentifier(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));

@@ -26,6 +26,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         internal PkiMessages(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             m_content = seq;
         }
 

@@ -41,6 +41,9 @@ namespace Org.BouncyCastle.Asn1.X9
         [Obsolete("Use 'GetInstance' instead")]
         public OtherInfo(Asn1Sequence seq)
         {
+            if (seq == null)
+                throw new ArgumentNullException(nameof(seq));
+
             int count = seq.Count, pos = 0;
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
