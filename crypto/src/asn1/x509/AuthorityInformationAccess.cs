@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Asn1.X509
      * id-ad-ocsp OBJECT IDENTIFIER ::= { id-ad 1 }
      * </pre>
      */
+    // TODO[api] Name should really be 'AuthorityInfoAccessSyntax'
     public class AuthorityInformationAccess
         : Asn1Encodable
     {
@@ -35,6 +36,21 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public static AuthorityInformationAccess GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AuthorityInformationAccess(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
+        public static AuthorityInformationAccess GetOptional(Asn1Encodable element)
+        {
+            if (element == null)
+                throw new ArgumentNullException(nameof(element));
+
+            if (element is AuthorityInformationAccess authorityInformationAccess)
+                return authorityInformationAccess;
+
+            Asn1Sequence asn1Sequence = Asn1Sequence.GetOptional(element);
+            if (asn1Sequence != null)
+                return new AuthorityInformationAccess(asn1Sequence);
+
+            return null;
+        }
 
         public static AuthorityInformationAccess GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AuthorityInformationAccess(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));

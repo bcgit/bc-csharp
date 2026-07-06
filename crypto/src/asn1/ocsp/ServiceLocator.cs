@@ -23,14 +23,20 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             new ServiceLocator(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly X509Name m_issuer;
-        private readonly Asn1Object m_locator;
+        private readonly AuthorityInformationAccess m_locator;
 
         public ServiceLocator(X509Name issuer)
-            : this(issuer, null)
+            : this(issuer, (AuthorityInformationAccess)null)
         {
         }
 
+        [Obsolete("Use constructor from 'AuthorityInformationAccess' instead")]
         public ServiceLocator(X509Name issuer, Asn1Object locator)
+            : this(issuer, AuthorityInformationAccess.GetInstance(locator))
+        {
+        }
+
+        public ServiceLocator(X509Name issuer, AuthorityInformationAccess locator)
         {
             m_issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
             m_locator = locator;
@@ -38,18 +44,12 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         private ServiceLocator(Asn1Sequence seq)
         {
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            int pos = 0;
-
             m_issuer = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);
-
-            if (pos < count)
-            {
-                m_locator = seq[pos++].ToAsn1Object();
-            }
+            m_locator = Asn1Utilities.ReadOptional(seq, ref pos, AuthorityInformationAccess.GetOptional);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
@@ -57,7 +57,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
         public X509Name Issuer => m_issuer;
 
-        public Asn1Object Locator => m_locator;
+        // TODO[api] Return type as AuthorityInformationAccess
+        [Obsolete("Use 'LocatorValue' instead")]
+        public Asn1Object Locator => m_locator?.ToAsn1Object();
+
+        public AuthorityInformationAccess LocatorValue => m_locator;
 
         /**
          * Produce an object suitable for an Asn1OutputStream.
@@ -69,10 +73,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          */
         public override Asn1Object ToAsn1Object()
         {
-            Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.Add(m_issuer);
-            v.AddOptional(m_locator);
-            return new DerSequence(v);
+            return m_locator == null
+                ? new DerSequence(m_issuer)
+                : new DerSequence(m_issuer, m_locator);
         }
     }
 }
