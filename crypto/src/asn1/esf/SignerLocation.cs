@@ -5,17 +5,17 @@ using Org.BouncyCastle.Asn1.X500;
 namespace Org.BouncyCastle.Asn1.Esf
 {
     /**
-	* Signer-Location attribute (RFC3126).
-	*
-	* <pre>
-	*   SignerLocation ::= SEQUENCE {
-	*       countryName        [0] DirectoryString OPTIONAL,
-	*       localityName       [1] DirectoryString OPTIONAL,
-	*       postalAddress      [2] PostalAddress OPTIONAL }
-	*
-	*   PostalAddress ::= SEQUENCE SIZE(1..6) OF DirectoryString
-	* </pre>
-	*/
+     * Signer-Location attribute (RFC3126).
+     *
+     * <pre>
+     *   SignerLocation ::= SEQUENCE {
+     *       countryName        [0] DirectoryString OPTIONAL,
+     *       localityName       [1] DirectoryString OPTIONAL,
+     *       postalAddress      [2] PostalAddress OPTIONAL }
+     *
+     *   PostalAddress ::= SEQUENCE SIZE(1..6) OF DirectoryString
+     * </pre>
+     */
     public class SignerLocation
         : Asn1Encodable
     {
@@ -25,29 +25,34 @@ namespace Org.BouncyCastle.Asn1.Esf
                 return null;
             if (obj is SignerLocation signerLocation)
                 return signerLocation;
+#pragma warning disable CS0618 // Type or member is obsolete
             return new SignerLocation(Asn1Sequence.GetInstance(obj));
+#pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static SignerLocation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+#pragma warning disable CS0618 // Type or member is obsolete
             new SignerLocation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
 
         public static SignerLocation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+#pragma warning disable CS0618 // Type or member is obsolete
             new SignerLocation(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+#pragma warning restore CS0618 // Type or member is obsolete
 
         private readonly DirectoryString m_countryName;
         private readonly DirectoryString m_localityName;
         private readonly Asn1Sequence m_postalAddress;
 
+        [Obsolete("Use 'GetInstance' instead")]
         public SignerLocation(Asn1Sequence seq)
         {
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
-            int count = seq.Count;
+            int count = seq.Count, pos = 0;
             if (count < 0 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
-
-            int pos = 0;
 
             m_countryName = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DirectoryString.GetTagged);
             m_localityName = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, DirectoryString.GetTagged);
@@ -58,7 +63,7 @@ namespace Org.BouncyCastle.Asn1.Esf
                 if (m_postalAddress.Count > 6)
                     throw new ArgumentException("postal address must contain less than 6 strings");
 
-                m_postalAddress.MapElements(element => DirectoryString.GetInstance(element.ToAsn1Object()));
+                m_postalAddress.MapElements(DirectoryString.GetInstance);
             }
 
             if (pos != count)
@@ -90,27 +95,27 @@ namespace Org.BouncyCastle.Asn1.Esf
         public DirectoryString Locality => m_localityName;
 
         public DirectoryString[] GetPostal() =>
-            m_postalAddress?.MapElements(element => DirectoryString.GetInstance(element.ToAsn1Object()));
+            m_postalAddress?.MapElements(DirectoryString.GetInstance);
 
         public Asn1Sequence PostalAddress => m_postalAddress;
 
         /**
-		* <pre>
-		*   SignerLocation ::= SEQUENCE {
-		*       countryName        [0] DirectoryString OPTIONAL,
-		*       localityName       [1] DirectoryString OPTIONAL,
-		*       postalAddress      [2] PostalAddress OPTIONAL }
-		*
-		*   PostalAddress ::= SEQUENCE SIZE(1..6) OF DirectoryString
-		*
-		*   DirectoryString ::= CHOICE {
-		*         teletexString           TeletexString (SIZE (1..MAX)),
-		*         printableString         PrintableString (SIZE (1..MAX)),
-		*         universalString         UniversalString (SIZE (1..MAX)),
-		*         utf8String              UTF8String (SIZE (1.. MAX)),
-		*         bmpString               BMPString (SIZE (1..MAX)) }
-		* </pre>
-		*/
+         * <pre>
+         *   SignerLocation ::= SEQUENCE {
+         *       countryName        [0] DirectoryString OPTIONAL,
+         *       localityName       [1] DirectoryString OPTIONAL,
+         *       postalAddress      [2] PostalAddress OPTIONAL }
+         *
+         *   PostalAddress ::= SEQUENCE SIZE(1..6) OF DirectoryString
+         *
+         *   DirectoryString ::= CHOICE {
+         *         teletexString           TeletexString (SIZE (1..MAX)),
+         *         printableString         PrintableString (SIZE (1..MAX)),
+         *         universalString         UniversalString (SIZE (1..MAX)),
+         *         utf8String              UTF8String (SIZE (1.. MAX)),
+         *         bmpString               BMPString (SIZE (1..MAX)) }
+         * </pre>
+         */
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
