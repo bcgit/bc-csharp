@@ -687,12 +687,12 @@ namespace Org.BouncyCastle.Security
             return CollectionUtilities.GetValueOrNull(Algorithms, oid.Id);
         }
 
-        private static int CheckPbeIterationCount(DerInteger iterationCountObject)
+        internal static int CheckPbeIterationCount(DerInteger iterationCountObject)
         {
             if (!iterationCountObject.TryGetIntValueExact(out int iterationCount) || iterationCount <= 0)
                 throw new ArgumentException("invalid PBE iteration count");
 
-            int maxIterations = Properties.GetInt32(Properties.PbeMaxIterationCount, 10_000_000);
+            int maxIterations = Properties.GetInt32(Properties.PbeMaxIterationCount, 5_000_000);
             if (iterationCount > maxIterations)
                 throw new ArgumentException("PBE iteration count (" + iterationCount + ") greater than " + maxIterations);
 

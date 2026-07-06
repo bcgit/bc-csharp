@@ -1193,6 +1193,24 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
+		public void TestPasswordRecipientIterationCountBound()
+		{
+			// A PasswordRecipientInfo's keyDerivationAlgorithm is attacker-supplied and unauthenticated, so the
+			// PBKDF2 iteration count must be bounded before the KEK is derived (CPU-DoS guard). Build a PBKDF2
+			// algorithm identifier with a normal count, then lower the bound below it: key construction (the
+			// chokepoint) must be rejected before any derivation runs.
+			var kdfAlg = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPbkdf2, new Pbkdf2Params(new byte[20], 2048));
+
+			Properties.WithThreadProperty(Properties.PbeMaxIterationCount, "1", () =>
+			{
+				Assert.Throws<ArgumentException>(
+					() => new Pkcs5Scheme2PbeKey("password".ToCharArray(), kdfAlg));
+				Assert.Throws<ArgumentException>(
+					() => new Pkcs5Scheme2Utf8PbeKey("password".ToCharArray(), kdfAlg));
+			});
+		}
+
+		[Test]
 		public void TestRfc4134Ex5_1()
 		{
 			byte[] data = Hex.Decode("5468697320697320736f6d652073616d706c6520636f6e74656e742e");
