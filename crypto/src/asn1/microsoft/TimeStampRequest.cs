@@ -60,9 +60,9 @@ namespace Org.BouncyCastle.Asn1.Microsoft
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_countersignatureType = DerObjectIdentifier.GetInstance(seq[pos++]);
+            m_countersignatureType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
             m_attributes = Asn1Utilities.ReadOptional(seq, ref pos, Attributes.GetOptional);
-            m_content = ContentInfo.GetInstance(seq[pos++]);
+            m_content = Asn1Utilities.Read(seq, ref pos, ContentInfo.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

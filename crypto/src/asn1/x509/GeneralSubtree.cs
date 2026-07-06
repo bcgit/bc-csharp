@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count < 1 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_baseName = GeneralName.GetInstance(seq[pos++]);
+            m_baseName = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
             m_minimum = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, DerInteger.GetTagged)
                 ?? DerInteger.Zero;
             m_maximum = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerInteger.GetTagged);

@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             int pos = 0;
 
-            m_action = DerInteger.GetInstance(seq[pos++]);
+            m_action = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_pubInfos = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
 
             if (pos != count)

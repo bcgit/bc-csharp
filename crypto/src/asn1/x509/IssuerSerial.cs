@@ -45,8 +45,8 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_issuer = GeneralNames.GetInstance(seq[pos++]);
-            m_serial = DerInteger.GetInstance(seq[pos++]);
+            m_issuer = Asn1Utilities.Read(seq, ref pos, GeneralNames.GetInstance);
+            m_serial = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_issuerUid = Asn1Utilities.ReadOptional(seq, ref pos, DerBitString.GetOptional);
 
             if (pos != count)

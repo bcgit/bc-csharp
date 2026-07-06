@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_encSymmKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, DerBitString.GetTagged);
             m_keyAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, false, AlgorithmIdentifier.GetTagged);
             m_valueHint = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, false, Asn1OctetString.GetTagged);
-            m_encValue = DerBitString.GetInstance(seq[pos++]);
+            m_encValue = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_request = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, ContentInfo.GetTagged);
-            m_response = ContentInfo.GetInstance(seq[pos++]);
+            m_response = Asn1Utilities.Read(seq, ref pos, ContentInfo.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

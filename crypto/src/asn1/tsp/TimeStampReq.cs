@@ -35,8 +35,8 @@ namespace Org.BouncyCastle.Asn1.Tsp
             if (count < 2 || count > 6)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_version = DerInteger.GetInstance(seq[pos++]);
-			m_messageImprint = MessageImprint.GetInstance(seq[pos++]);
+			m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+			m_messageImprint = Asn1Utilities.Read(seq, ref pos, MessageImprint.GetInstance);
 			m_reqPolicy = Asn1Utilities.ReadOptional(seq, ref pos, DerObjectIdentifier.GetOptional);
             m_nonce = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
             m_certReq = Asn1Utilities.ReadOptional(seq, ref pos, DerBoolean.GetOptional) ?? DerBoolean.False;

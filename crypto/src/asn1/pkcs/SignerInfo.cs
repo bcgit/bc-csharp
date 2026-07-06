@@ -50,13 +50,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             if (count < 5 || count > 7)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
-            m_issuerAndSerialNumber = IssuerAndSerialNumber.GetInstance(seq[pos++]);
-            m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_issuerAndSerialNumber = Asn1Utilities.Read(seq, ref pos, IssuerAndSerialNumber.GetInstance);
+            m_digestAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
             m_authenticatedAttributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false,
                 Asn1Set.GetTagged);
-            m_digestEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_encryptedDigest = Asn1OctetString.GetInstance(seq[pos++]);
+            m_digestEncryptionAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_encryptedDigest = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_unauthenticatedAttributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false,
                 Asn1Set.GetTagged);
 

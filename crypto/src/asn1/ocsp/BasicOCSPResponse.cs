@@ -44,9 +44,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             int pos = 0;
 
-            m_tbsResponseData = ResponseData.GetInstance(seq[pos++]);
-            m_signatureAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_signature = DerBitString.GetInstance(seq[pos++]);
+            m_tbsResponseData = Asn1Utilities.Read(seq, ref pos, ResponseData.GetInstance);
+            m_signatureAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_signature = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
             m_certs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1Sequence.GetTagged);
 
             if (pos != count)

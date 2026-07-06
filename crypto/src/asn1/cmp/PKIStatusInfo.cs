@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 1 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_status = DerInteger.GetInstance(seq[pos++]);
+			m_status = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
 			m_statusString = Asn1Utilities.ReadOptional(seq, ref pos, PkiFreeText.GetOptional);
             m_failInfo = Asn1Utilities.ReadOptional(seq, ref pos, DerBitString.GetOptional);
 

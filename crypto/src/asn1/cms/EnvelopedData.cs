@@ -48,10 +48,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 3 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_originatorInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, OriginatorInfo.GetTagged);
-            m_recipientInfos = Asn1Set.GetInstance(seq[pos++]);
-            m_encryptedContentInfo = EncryptedContentInfo.GetInstance(seq[pos++]);
+            m_recipientInfos = Asn1Utilities.Read(seq, ref pos, Asn1Set.GetInstance);
+            m_encryptedContentInfo = Asn1Utilities.Read(seq, ref pos, EncryptedContentInfo.GetInstance);
             m_unprotectedAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetTagged);
 
             if (pos != count)

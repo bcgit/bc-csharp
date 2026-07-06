@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_source = CrlSource.GetInstance(seq[pos++]);
+            m_source = Asn1Utilities.Read(seq, ref pos, CrlSource.GetInstance);
             m_thisUpdate = Asn1Utilities.ReadOptional(seq, ref pos, Time.GetOptional);
 
             if (pos != count)

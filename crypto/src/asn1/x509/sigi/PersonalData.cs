@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
 			if (count < 1 || count > 6)
 				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_nameOrPseudonym = NameOrPseudonym.GetInstance(seq[pos++]);
+			m_nameOrPseudonym = Asn1Utilities.Read(seq, ref pos, NameOrPseudonym.GetInstance);
 			m_nameDistinguisher = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, DerInteger.GetTagged);
             m_dateOfBirth = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1GeneralizedTime.GetTagged);
             m_placeOfBirth = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, DirectoryString.GetTagged); //CHOICE

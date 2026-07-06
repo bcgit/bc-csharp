@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Misc
 
             m_iv = Asn1Utilities.ReadOptional(seq, ref pos, Asn1OctetString.GetOptional)
                 ?? new DerOctetString(new byte[8]);
-            m_keyLength = DerInteger.GetInstance(seq[pos++]);
+            m_keyLength = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

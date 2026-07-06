@@ -64,12 +64,12 @@ namespace Org.BouncyCastle.Pqc.Asn1
             if (count < 6 || count > 7)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            var version = DerInteger.GetInstance(seq[pos++]);
-            m_delta = Asn1OctetString.GetInstance(seq[pos++]);
-            m_c = Asn1OctetString.GetInstance(seq[pos++]);
-            m_g = Asn1OctetString.GetInstance(seq[pos++]);
-            m_alpha = Asn1OctetString.GetInstance(seq[pos++]);
-            m_s = Asn1OctetString.GetInstance(seq[pos++]);
+            var version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_delta = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_c = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_g = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_alpha = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_s = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_publicKey = Asn1Utilities.ReadOptional(seq, ref pos, CmcePublicKey.GetOptional);
 
             if (pos != count)

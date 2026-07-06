@@ -42,11 +42,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 2 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_dataUri = Asn1Utilities.ReadOptional(seq, ref pos, DerIA5String.GetOptional);
             m_metaData = Asn1Utilities.ReadOptional(seq, ref pos, MetaData.GetOptional);
             m_content = Asn1Utilities.ReadOptional(seq, ref pos, Asn1OctetString.GetOptional);
-            m_temporalEvidence = Evidence.GetInstance(seq[pos++]);
+            m_temporalEvidence = Asn1Utilities.Read(seq, ref pos, Evidence.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

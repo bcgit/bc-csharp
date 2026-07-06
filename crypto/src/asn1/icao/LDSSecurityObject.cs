@@ -51,9 +51,9 @@ namespace Org.BouncyCastle.Asn1.Icao
             if (count < 3 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_version = DerInteger.GetInstance(seq[pos++]);
-			m_hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-			m_datagroupHashValues = ConvertDataGroupHash(Asn1Sequence.GetInstance(seq[pos++]));
+			m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+			m_hashAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+			m_datagroupHashValues = ConvertDataGroupHash(Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance));
 			m_ldsVersionInfo = Asn1Utilities.ReadOptional(seq, ref pos, LdsVersionInfo.GetOptional);
 
             if (pos != count)

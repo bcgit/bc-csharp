@@ -63,9 +63,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 m_versionPresent = version != null;
             }
 
-            m_responderID = ResponderID.GetInstance(seq[pos++]);
-            m_producedAt = Asn1GeneralizedTime.GetInstance(seq[pos++]);
-            m_responses = Asn1Sequence.GetInstance(seq[pos++]);
+            m_responderID = Asn1Utilities.Read(seq, ref pos, ResponderID.GetInstance);
+            m_producedAt = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
+            m_responses = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
             m_responseExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, X509Extensions.GetTagged);
 
             if (pos != count)

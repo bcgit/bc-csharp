@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Asn1.X9
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_keyInfo = KeySpecificInfo.GetInstance(seq[pos++]);
+            m_keyInfo = Asn1Utilities.Read(seq, ref pos, KeySpecificInfo.GetInstance);
             m_partyAInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetTagged);
             m_suppPubInfo = Asn1Utilities.ReadContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetTagged);
 

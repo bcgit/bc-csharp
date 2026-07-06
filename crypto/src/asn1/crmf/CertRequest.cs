@@ -32,8 +32,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             int pos = 0;
 
-            m_certReqId = DerInteger.GetInstance(seq[pos++]);
-            m_certTemplate = CertTemplate.GetInstance(seq[pos++]);
+            m_certReqId = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_certTemplate = Asn1Utilities.Read(seq, ref pos, CertTemplate.GetInstance);
             m_controls = Asn1Utilities.ReadOptional(seq, ref pos, Controls.GetOptional);
 
             if (pos != count)

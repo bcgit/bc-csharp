@@ -37,12 +37,12 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_version = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional) ?? DerInteger.Zero;
-            m_holder = Holder.GetInstance(seq[pos++]);
-            m_issuer = AttCertIssuer.GetInstance(seq[pos++]);
-            m_signature = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_serialNumber = DerInteger.GetInstance(seq[pos++]);
-            m_attrCertValidityPeriod = AttCertValidityPeriod.GetInstance(seq[pos++]);
-            m_attributes = Asn1Sequence.GetInstance(seq[pos++]);
+            m_holder = Asn1Utilities.Read(seq, ref pos, Holder.GetInstance);
+            m_issuer = Asn1Utilities.Read(seq, ref pos, AttCertIssuer.GetInstance);
+            m_signature = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_serialNumber = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_attrCertValidityPeriod = Asn1Utilities.Read(seq, ref pos, AttCertValidityPeriod.GetInstance);
+            m_attributes = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
             m_issuerUniqueID = Asn1Utilities.ReadOptional(seq, ref pos, DerBitString.GetOptional);
             m_extensions = Asn1Utilities.ReadOptional(seq, ref pos, X509Extensions.GetOptional);
 

@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
 			m_hashAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetTagged);
             m_certId = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, CertId.GetTagged);
-			m_hashVal = DerBitString.GetInstance(seq[pos++]);
+			m_hashVal = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
 
 			if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

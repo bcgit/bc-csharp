@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 1 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_subjectKeyIdentifier = Asn1OctetString.GetInstance(seq[pos++]);
+            m_subjectKeyIdentifier = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_date = Asn1Utilities.ReadOptional(seq, ref pos, Asn1GeneralizedTime.GetOptional);
             m_other = Asn1Utilities.ReadOptional(seq, ref pos, OtherKeyAttribute.GetOptional);
 

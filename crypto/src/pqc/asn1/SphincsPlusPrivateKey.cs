@@ -61,9 +61,9 @@ namespace Org.BouncyCastle.Pqc.Asn1
             if (count < 3 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
-            m_skseed = Asn1OctetString.GetInstance(seq[pos++]);
-            m_skprf = Asn1OctetString.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_skseed = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_skprf = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_publicKey = Asn1Utilities.ReadOptional(seq, ref pos, SphincsPlusPublicKey.GetOptional);
 
             if (pos != count)

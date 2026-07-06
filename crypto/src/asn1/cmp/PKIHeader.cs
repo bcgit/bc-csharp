@@ -49,9 +49,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 3 || count > 12)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_pvno = DerInteger.GetInstance(seq[pos++]);
-            m_sender = GeneralName.GetInstance(seq[pos++]);
-            m_recipient = GeneralName.GetInstance(seq[pos++]);
+            m_pvno = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_sender = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
+            m_recipient = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
             m_messageTime = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1GeneralizedTime.GetTagged);
             m_protectionAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, AlgorithmIdentifier.GetTagged);
             m_senderKID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetTagged);

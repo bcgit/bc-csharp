@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.Ess
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_contentDescription = Asn1Utilities.ReadOptional(seq, ref pos, DerUtf8String.GetOptional);
-            m_contentType = DerObjectIdentifier.GetInstance(seq[pos++]);
+            m_contentType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

@@ -56,14 +56,14 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 5 || count > 9)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_originatorInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, OriginatorInfo.GetTagged);
-            m_recipientInfos = Asn1Set.GetInstance(seq[pos++]);
-            m_macAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_recipientInfos = Asn1Utilities.Read(seq, ref pos, Asn1Set.GetInstance);
+            m_macAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
             m_digestAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, AlgorithmIdentifier.GetTagged);
-            m_encapsulatedContentInfo = ContentInfo.GetInstance(seq[pos++]);
+            m_encapsulatedContentInfo = Asn1Utilities.Read(seq, ref pos, ContentInfo.GetInstance);
             m_authAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, Asn1Set.GetTagged);
-            m_mac = Asn1OctetString.GetInstance(seq[pos++]);
+            m_mac = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_unauthAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, false, Asn1Set.GetTagged);
 
             if (pos != count)

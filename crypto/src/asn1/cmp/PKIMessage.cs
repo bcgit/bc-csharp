@@ -31,8 +31,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 2 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_header = PkiHeader.GetInstance(seq[pos++]);
-            m_body = PkiBody.GetInstance(seq[pos++]);
+            m_header = Asn1Utilities.Read(seq, ref pos, PkiHeader.GetInstance);
+            m_body = Asn1Utilities.Read(seq, ref pos, PkiBody.GetInstance);
             m_protection = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerBitString.GetTagged);
             m_extraCerts = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1Sequence.GetTagged);
 

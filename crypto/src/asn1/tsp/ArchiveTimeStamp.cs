@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_digestAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, AlgorithmIdentifier.GetTagged);
             m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Attributes.GetTagged);
             m_reducedHashTree = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, false, Asn1Sequence.GetTagged);
-            m_timeStamp = ContentInfo.GetInstance(seq[pos++]);
+            m_timeStamp = Asn1Utilities.Read(seq, ref pos, ContentInfo.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

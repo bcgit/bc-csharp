@@ -182,7 +182,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
 			m_namingAuthority = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, NamingAuthority.GetTagged);
-			m_professionItems = Asn1Sequence.GetInstance(seq[pos++]);
+			m_professionItems = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
 			m_professionOids = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
             m_registrationNumber = Asn1Utilities.ReadOptional(seq, ref pos, DerPrintableString.GetOptional);
             m_addProfessionInfo = Asn1Utilities.ReadOptional(seq, ref pos, Asn1OctetString.GetOptional);

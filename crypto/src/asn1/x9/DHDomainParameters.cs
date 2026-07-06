@@ -30,9 +30,9 @@ namespace Org.BouncyCastle.Asn1.X9
             if (count < 3 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_p = DerInteger.GetInstance(seq[pos++]);
-            m_g = DerInteger.GetInstance(seq[pos++]);
-            m_q = DerInteger.GetInstance(seq[pos++]);
+            m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_g = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_q = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_j = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
             m_validationParams = Asn1Utilities.ReadOptional(seq, ref pos, ValidationParams.GetOptional);
 

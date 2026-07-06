@@ -67,15 +67,15 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 8 || count > 9)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_cmsVersion = DerInteger.GetInstance(seq[pos++]);
-            m_rid = RecipientIdentifier.GetInstance(seq[pos++]);
-            m_kem = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_kemct = Asn1OctetString.GetInstance(seq[pos++]);
-            m_kdf = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_kekLength = DerInteger.GetInstance(seq[pos++]);
+            m_cmsVersion = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_rid = Asn1Utilities.Read(seq, ref pos, RecipientIdentifier.GetInstance);
+            m_kem = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_kemct = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_kdf = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_kekLength = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_ukm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetTagged);
-            m_wrap = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_encryptedKey = Asn1OctetString.GetInstance(seq[pos++]);
+            m_wrap = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_encryptedKey = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

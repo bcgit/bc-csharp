@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 1 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_newWithNew = CmpCertificate.GetInstance(seq[pos++]);
+            m_newWithNew = Asn1Utilities.Read(seq, ref pos, CmpCertificate.GetInstance);
             m_newWithOld = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, CmpCertificate.GetTagged);
             m_oldWithNew = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, CmpCertificate.GetTagged);
 

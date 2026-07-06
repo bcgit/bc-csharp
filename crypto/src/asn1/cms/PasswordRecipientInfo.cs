@@ -58,11 +58,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 3 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_keyDerivationAlgorithm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false,
                 AlgorithmIdentifier.GetTagged);
-            m_keyEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_encryptedKey = Asn1OctetString.GetInstance(seq[pos++]);
+            m_keyEncryptionAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_encryptedKey = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
         }
 
         public DerInteger Version => m_version;

@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Asn1.Ess
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_certs = Asn1Sequence.GetInstance(seq[pos++]);
+            m_certs = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
             m_policies = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
 
             if (pos != count)

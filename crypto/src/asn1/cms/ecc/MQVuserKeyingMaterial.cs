@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_ephemeralPublicKey = OriginatorPublicKey.GetInstance(seq[pos++]);
+            m_ephemeralPublicKey = Asn1Utilities.Read(seq, ref pos, OriginatorPublicKey.GetInstance);
             m_addedukm = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetTagged);
 
             if (pos != count)

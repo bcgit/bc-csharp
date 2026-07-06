@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_timeStamp = ContentInfo.GetInstance(seq[pos++]);
+            m_timeStamp = Asn1Utilities.Read(seq, ref pos, ContentInfo.GetInstance);
             m_crl = Asn1Utilities.ReadOptional(seq, ref pos, CertificateList.GetOptional);
 
             if (pos != count)

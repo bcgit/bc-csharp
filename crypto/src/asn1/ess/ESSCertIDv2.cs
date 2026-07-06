@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 
             m_hashAlgorithm = Asn1Utilities.ReadOptional(seq, ref pos, AlgorithmIdentifier.GetOptional)
                 ?? DefaultHashAlgorithm;
-            m_certHash = Asn1OctetString.GetInstance(seq[pos++]);
+            m_certHash = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_issuerSerial = Asn1Utilities.ReadOptional(seq, ref pos, IssuerSerial.GetOptional);
 
             if (pos != count)

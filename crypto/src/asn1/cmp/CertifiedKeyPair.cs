@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 1 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_certOrEncCert = CertOrEncCert.GetInstance(seq[pos++]);
+            m_certOrEncCert = Asn1Utilities.Read(seq, ref pos, CertOrEncCert.GetInstance);
             m_privateKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, EncryptedKey.GetTagged);
             m_publicationInfo = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, PkiPublicationInfo.GetTagged);
 

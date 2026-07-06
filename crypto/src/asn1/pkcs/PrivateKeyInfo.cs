@@ -94,9 +94,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             if (count < 3 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
-            m_privateKeyAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_privateKey = Asn1OctetString.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_privateKeyAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_privateKey = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetTagged);
             m_publicKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, DerBitString.GetTagged);
 

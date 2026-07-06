@@ -34,8 +34,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 2 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_certHash = Asn1OctetString.GetInstance(seq[pos++]);
-            m_certReqID = DerInteger.GetInstance(seq[pos++]);
+            m_certHash = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_certReqID = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_statusInfo = Asn1Utilities.ReadOptional(seq, ref pos, PkiStatusInfo.GetOptional);
             m_hashAlg = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetTagged);
 

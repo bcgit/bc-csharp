@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_certDetails = CertTemplate.GetInstance(seq[pos++]);
+            m_certDetails = Asn1Utilities.Read(seq, ref pos, CertTemplate.GetInstance);
             m_crlEntryDetails = Asn1Utilities.ReadOptional(seq, ref pos, X509Extensions.GetOptional);
 
             if (pos != count)

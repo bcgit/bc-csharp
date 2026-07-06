@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_nonce = Asn1OctetString.GetInstance(seq[pos++]);
+            m_nonce = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             DerInteger icvLen = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
 
             if (pos != count)

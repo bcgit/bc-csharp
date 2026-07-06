@@ -57,9 +57,9 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             int pos = 0;
 
-            m_certID = CertID.GetInstance(seq[pos++]);
-            m_certStatus = CertStatus.GetInstance(seq[pos++]);
-            m_thisUpdate = Asn1GeneralizedTime.GetInstance(seq[pos++]);
+            m_certID = Asn1Utilities.Read(seq, ref pos, CertID.GetInstance);
+            m_certStatus = Asn1Utilities.Read(seq, ref pos, CertStatus.GetInstance);
+            m_thisUpdate = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
             m_nextUpdate = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1GeneralizedTime.GetTagged);
             m_singleExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, X509Extensions.GetTagged);
 

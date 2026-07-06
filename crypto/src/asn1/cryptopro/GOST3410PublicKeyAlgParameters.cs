@@ -30,8 +30,8 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_publicKeyParamSet = DerObjectIdentifier.GetInstance(seq[pos++]);
-            m_digestParamSet = DerObjectIdentifier.GetInstance(seq[pos++]);
+            m_publicKeyParamSet = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_digestParamSet = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
             m_encryptionParamSet = Asn1Utilities.ReadOptional(seq, ref pos, DerObjectIdentifier.GetOptional);
 
             if (pos != count)

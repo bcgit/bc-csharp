@@ -78,12 +78,12 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("version number not recognised");
             }
 
-            m_serialNumber = DerInteger.GetInstance(seq[pos++]);
-            m_signature = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_issuer = X509Name.GetInstance(seq[pos++]);
-            m_validity = Validity.GetInstance(seq[pos++]);
-            m_subject = X509Name.GetInstance(seq[pos++]);
-            m_subjectPublicKeyInfo = SubjectPublicKeyInfo.GetInstance(seq[pos++]);
+            m_serialNumber = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_signature = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_issuer = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);
+            m_validity = Asn1Utilities.Read(seq, ref pos, Validity.GetInstance);
+            m_subject = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);
+            m_subjectPublicKeyInfo = Asn1Utilities.Read(seq, ref pos, SubjectPublicKeyInfo.GetInstance);
 
             if (!isV1)
             {

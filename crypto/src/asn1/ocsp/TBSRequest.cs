@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             }
 
             m_requestorName = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, GeneralName.GetTagged);
-            m_requestList = Asn1Sequence.GetInstance(seq[pos++]);
+            m_requestList = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
             m_requestExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, X509Extensions.GetTagged);
 
             if (pos != count)

@@ -69,11 +69,11 @@ namespace Org.BouncyCastle.Asn1.X9
             if (count < 5 || count > 6)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            DerInteger version = DerInteger.GetInstance(seq[pos++]);
-            m_fieldID = X9FieldID.GetInstance(seq[pos++]);
-            var x9CurveSequence = Asn1Sequence.GetInstance(seq[pos++]);
+            DerInteger version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_fieldID = Asn1Utilities.Read(seq, ref pos, X9FieldID.GetInstance);
+            var x9CurveSequence = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
             var p = seq[pos++];
-            m_n = DerInteger.GetInstance(seq[pos++]).Value;
+            m_n = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).Value;
             m_h = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional)?.Value;
 
             if (pos != count)

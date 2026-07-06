@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             int pos = 0;
 
-            m_revocationTime = Asn1GeneralizedTime.GetInstance(seq[pos++]);
+            m_revocationTime = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
 
             m_revocationReason = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true,
                 (t, e) => new CrlReason(DerEnumerated.GetTagged(t, e)));

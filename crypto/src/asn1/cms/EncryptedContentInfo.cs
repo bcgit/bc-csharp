@@ -51,8 +51,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_contentType = DerObjectIdentifier.GetInstance(seq[pos++]);
-            m_contentEncryptionAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_contentType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_contentEncryptionAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
             m_encryptedContent = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1OctetString.GetTagged);
 
             if (pos != count)

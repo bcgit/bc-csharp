@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 
 			m_admissionAuthority = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, GeneralName.GetTagged);
             m_namingAuthority = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, NamingAuthority.GetTagged);
-			m_professionInfos = Asn1Sequence.GetInstance(seq[pos++]);
+			m_professionInfos = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

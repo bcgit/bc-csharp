@@ -43,9 +43,9 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             if (count < 3 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_typeOfBiometricData = TypeOfBiometricData.GetInstance(seq[pos++]);
-			m_hashAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-			m_biometricDataHash = Asn1OctetString.GetInstance(seq[pos++]);
+            m_typeOfBiometricData = Asn1Utilities.Read(seq, ref pos, TypeOfBiometricData.GetInstance);
+			m_hashAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+			m_biometricDataHash = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_sourceDataUri = Asn1Utilities.ReadOptional(seq, ref pos, DerIA5String.GetOptional);
 
             if (pos != count)

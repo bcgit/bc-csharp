@@ -44,7 +44,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             int pos = 0;
 
-            m_issuer = X509Name.GetInstance(seq[pos++]);
+            m_issuer = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);
 
             if (pos < count)
             {

@@ -135,11 +135,11 @@ namespace Org.BouncyCastle.Asn1.Tsp
             if (count < 3 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
-            m_digestAlgorithms = Asn1Sequence.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_digestAlgorithms = Asn1Utilities.Read(seq, ref pos, Asn1Sequence.GetInstance);
             m_cryptoInfos = Asn1Utilities.ReadContextTagged(seq, ref pos, 0, false, CryptoInfos.GetTagged);
             m_encryptionInfo = Asn1Utilities.ReadContextTagged(seq, ref pos, 1, false, EncryptionInfo.GetTagged);
-            m_archiveTimeStampSequence = ArchiveTimeStampSequence.GetInstance(seq[pos++]);
+            m_archiveTimeStampSequence = Asn1Utilities.Read(seq, ref pos, ArchiveTimeStampSequence.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

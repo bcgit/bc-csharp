@@ -59,9 +59,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             if (count < 3 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
-            m_subject = X509Name.GetInstance(seq[pos++]);
-            m_subjectPKInfo = SubjectPublicKeyInfo.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_subject = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);
+            m_subjectPKInfo = Asn1Utilities.Read(seq, ref pos, SubjectPublicKeyInfo.GetInstance);
 
             // NOTE: some CertificationRequestInfo objects seem to treat this field as optional.
             m_attributes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetTagged);

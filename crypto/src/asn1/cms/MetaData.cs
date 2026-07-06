@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 1 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_hashProtected = DerBoolean.GetInstance(seq[pos++]);
+            m_hashProtected = Asn1Utilities.Read(seq, ref pos, DerBoolean.GetInstance);
             m_fileName = Asn1Utilities.ReadOptional(seq, ref pos, DerUtf8String.GetOptional);
             m_mediaType = Asn1Utilities.ReadOptional(seq, ref pos, DerIA5String.GetOptional);
             m_otherMetaData = Asn1Utilities.ReadOptional(seq, ref pos, Attributes.GetOptional);

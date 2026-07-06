@@ -59,8 +59,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_owf = Asn1Utilities.ReadOptional(seq, ref pos, AlgorithmIdentifier.GetOptional);
-            m_witness = Asn1OctetString.GetInstance(seq[pos++]);
-            m_challenge = Asn1OctetString.GetInstance(seq[pos++]);
+            m_witness = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_challenge = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

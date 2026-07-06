@@ -86,11 +86,11 @@ namespace Org.BouncyCastle.Asn1.UA
             m_version = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, DerInteger.GetTagged)
                 ?? DefaultVersion;
 
-            m_f = Dstu4145BinaryField.GetInstance(seq[pos++]);
-            m_a = DerInteger.GetInstance(seq[pos++]);
-            m_b = Asn1OctetString.GetInstance(seq[pos++]);
-            m_n = DerInteger.GetInstance(seq[pos++]);
-            m_bp = Asn1OctetString.GetInstance(seq[pos++]);
+            m_f = Asn1Utilities.Read(seq, ref pos, Dstu4145BinaryField.GetInstance);
+            m_a = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_b = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_n = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_bp = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
         }
 
         public Dstu4145BinaryField Field => m_f;

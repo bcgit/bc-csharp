@@ -66,10 +66,10 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count < 3 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_digestedObjectType = DerEnumerated.GetInstance(seq[pos++]);
+            m_digestedObjectType = Asn1Utilities.Read(seq, ref pos, DerEnumerated.GetInstance);
 			m_otherObjectTypeID = Asn1Utilities.ReadOptional(seq, ref pos, DerObjectIdentifier.GetOptional);
-			m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-			m_objectDigest = DerBitString.GetInstance(seq[pos++]);
+			m_digestAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+			m_objectDigest = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

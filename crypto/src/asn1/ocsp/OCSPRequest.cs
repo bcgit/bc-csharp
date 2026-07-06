@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             int pos = 0;
 
-            m_tbsRequest = TbsRequest.GetInstance(seq[pos++]);
+            m_tbsRequest = Asn1Utilities.Read(seq, ref pos, TbsRequest.GetInstance);
             m_optionalSignature = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Signature.GetTagged);
 
             if (pos != count)

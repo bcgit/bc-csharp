@@ -44,8 +44,8 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_userCertificate = DerInteger.GetInstance(seq[pos++]);
-            m_revocationDate = Time.GetInstance(seq[pos++]);
+            m_userCertificate = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_revocationDate = Asn1Utilities.Read(seq, ref pos, Time.GetInstance);
             m_crlEntryExtensions = Asn1Utilities.ReadOptional(seq, ref pos, X509Extensions.GetOptional);
 
             if (pos != count)
@@ -160,9 +160,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
             // TODO[api] This field is not actually declared with a DEFAULT
             m_version = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional) ?? DerInteger.Zero;
-            m_signature = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_issuer = X509Name.GetInstance(seq[pos++]);
-            m_thisUpdate = Time.GetInstance(seq[pos++]);
+            m_signature = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_issuer = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);
+            m_thisUpdate = Asn1Utilities.Read(seq, ref pos, Time.GetInstance);
             m_nextUpdate = Asn1Utilities.ReadOptional(seq, ref pos, Time.GetOptional);
             m_revokedCertificates = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
             m_crlExtensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, X509Extensions.GetTagged);

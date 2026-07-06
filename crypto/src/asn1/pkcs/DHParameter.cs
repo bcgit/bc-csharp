@@ -52,8 +52,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             if (count < 2 || count > 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_p = DerInteger.GetInstance(seq[pos++]);
-            m_g = DerInteger.GetInstance(seq[pos++]);
+            m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_g = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_l = Asn1Utilities.ReadOptional(seq, ref pos, DerInteger.GetOptional);
 
             if (pos != count)

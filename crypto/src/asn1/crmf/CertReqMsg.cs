@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             int pos = 0;
 
-            m_certReq = CertRequest.GetInstance(seq[pos++]);
+            m_certReq = Asn1Utilities.Read(seq, ref pos, CertRequest.GetInstance);
             m_pop = Asn1Utilities.ReadOptional(seq, ref pos, ProofOfPossession.GetOptional);
             m_regInfo = Asn1Utilities.ReadOptional(seq, ref pos, Asn1Sequence.GetOptional);
 

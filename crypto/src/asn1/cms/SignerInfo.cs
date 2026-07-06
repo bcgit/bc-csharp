@@ -68,12 +68,12 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (count < 5 || count > 7)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
-            m_sid = SignerIdentifier.GetInstance(seq[pos++]);
-            m_digestAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_sid = Asn1Utilities.Read(seq, ref pos, SignerIdentifier.GetInstance);
+            m_digestAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
             m_signedAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Set.GetTagged);
-            m_signatureAlgorithm = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_signature = Asn1OctetString.GetInstance(seq[pos++]);
+            m_signatureAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_signature = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_unsignedAttrs = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Set.GetTagged);
 
             if (pos != count)

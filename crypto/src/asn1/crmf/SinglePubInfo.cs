@@ -33,11 +33,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
             int pos = 0;
 
-            m_pubMethod = DerInteger.GetInstance(seq[pos++]);
+            m_pubMethod = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
 
             if (pos < count)
             {
-                m_pubLocation = GeneralName.GetInstance(seq[pos++]);
+                m_pubLocation = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
             }
 
             if (pos != count)

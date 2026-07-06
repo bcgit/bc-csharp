@@ -37,8 +37,8 @@ namespace Org.BouncyCastle.Asn1.Sec
             if (count < 2 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_version = DerInteger.GetInstance(seq[pos++]);
-            m_privateKey = Asn1OctetString.GetInstance(seq[pos++]);
+            m_version = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_privateKey = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_parameters = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true,
                 (t, e) => t.GetExplicitBaseObject());
             m_publicKey = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, DerBitString.GetTagged);

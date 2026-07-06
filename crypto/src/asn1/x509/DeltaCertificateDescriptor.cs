@@ -55,14 +55,14 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count < 3 || count > 8)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_serialNumber = DerInteger.GetInstance(seq[pos++]);
+            m_serialNumber = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_signature = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, AlgorithmIdentifier.GetTagged);
             m_issuer = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, X509Name.GetTagged); // CHOICE Name
             m_validity = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Validity.GetTagged);
             m_subject = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 3, true, X509Name.GetTagged); // CHOICE Name
-            m_subjectPublicKeyInfo = SubjectPublicKeyInfo.GetInstance(seq[pos++]);
+            m_subjectPublicKeyInfo = Asn1Utilities.Read(seq, ref pos, SubjectPublicKeyInfo.GetInstance);
             m_extensions = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 4, true, X509Extensions.GetTagged);
-            m_signatureValue = DerBitString.GetInstance(seq[pos++]);
+            m_signatureValue = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));

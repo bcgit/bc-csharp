@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
 
             int pos = 0;
 
-            m_responseStatus = new OcspResponseStatus(DerEnumerated.GetInstance(seq[pos++]));
+            m_responseStatus = new OcspResponseStatus(Asn1Utilities.Read(seq, ref pos, DerEnumerated.GetInstance));
             m_responseBytes = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, ResponseBytes.GetTagged);
 
             if (pos != count)

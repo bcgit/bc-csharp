@@ -51,10 +51,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 4 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_status = PkiStatusEncodable.GetInstance(seq[pos++]);
-            m_certID = CertId.GetInstance(seq[pos++]);
-            m_willBeRevokedAt = Asn1GeneralizedTime.GetInstance(seq[pos++]);
-            m_badSinceDate = Asn1GeneralizedTime.GetInstance(seq[pos++]);
+            m_status = Asn1Utilities.Read(seq, ref pos, PkiStatusEncodable.GetInstance);
+            m_certID = Asn1Utilities.Read(seq, ref pos, CertId.GetInstance);
+            m_willBeRevokedAt = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
+            m_badSinceDate = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
             m_crlDetails = Asn1Utilities.ReadOptional(seq, ref pos, X509Extensions.GetOptional);
 
             if (pos != count)

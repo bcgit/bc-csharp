@@ -69,16 +69,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
             if (count < 4 || count > 7)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_staticString = PkiFreeText.GetInstance(seq[pos++]);
+            m_staticString = Asn1Utilities.Read(seq, ref pos, PkiFreeText.GetInstance);
             if (!DEFAULT_staticString.Equals(m_staticString))
                 throw new ArgumentException("staticString field should be " + DEFAULT_staticString);
 
             m_transactionID = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, true, Asn1OctetString.GetTagged);
             m_senderNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, true, Asn1OctetString.GetTagged);
             m_recipNonce = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 2, true, Asn1OctetString.GetTagged);
-            m_len = DerInteger.GetInstance(seq[pos++]);
-            m_mac = AlgorithmIdentifier.GetInstance(seq[pos++]);
-            m_ct = Asn1OctetString.GetInstance(seq[pos++]);
+            m_len = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_mac = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_ct = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
