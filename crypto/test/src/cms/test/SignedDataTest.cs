@@ -615,6 +615,55 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         [Test]
+        public void AsVersion()
+        {
+            // ReplaceSigners recomputes the CMS version per RFC 5652 (a non-id-data eContentType such
+            // as Authenticode's SPC_INDIRECT_DATA computes to version 3), but a producer can pin a
+            // specific version with CmsSignedData.AsVersion(int) - e.g. Authenticode requires 1.
+            // Regression test for github (bc-java) #2344.
+            DerObjectIdentifier spcIndirectData = new DerObjectIdentifier("1.3.6.1.4.1.311.2.1.4");
+
+            byte[] data = Encoding.ASCII.GetBytes("Hello World!");
+            CmsTypedData msg = new CmsProcessableByteArray(spcIndirectData, data);
+
+            var x509Certs = CmsTestUtil.MakeCertStore(OrigCert, SignCert);
+
+            CmsSignedDataGenerator gen = new CmsSignedDataGenerator();
+            gen.AddSigner(OrigKP.Private, OrigCert, CmsSignedGenerator.DigestSha1);
+            gen.AddCertificates(x509Certs);
+
+            CmsSignedData s = gen.Generate(msg, encapsulate: true);
+
+            // a non-id-data eContentType yields version 3 both on generation and after replaceSigners.
+            Assert.AreEqual(3, s.Version, "generated version");
+
+            CmsSignedData replaced = CmsSignedData.ReplaceSigners(s, s.GetSignerInfos());
+            Assert.AreEqual(3, replaced.Version, "ReplaceSigners recomputes to version 3");
+
+            // AsVersion(1) pins the Authenticode version without disturbing anything else.
+            CmsSignedData pinned = replaced.AsVersion(1);
+            Assert.AreEqual(1, pinned.Version, "AsVersion pins the version");
+
+            // the content type, certificates and signer are untouched, and the signature still verifies.
+            Assert.AreEqual(spcIndirectData, (pinned.SignedContent as CmsTypedData)?.ContentType);
+
+            var certsReplaced = new List<X509Certificate>(replaced.GetCertificates().EnumerateMatches(null));
+            var certsPinned = new List<X509Certificate>(pinned.GetCertificates().EnumerateMatches(null));
+            Assert.AreEqual(certsReplaced.Count, certsPinned.Count);
+
+            //SignerInformation signer = (SignerInformation)pinned.GetSignerInfos().GetSigners().iterator().next();
+            SignerInformation signer = CollectionUtilities.GetFirstOrNull(pinned.GetSignerInfos());
+
+            //X509CertificateHolder cert = (X509CertificateHolder)pinned.getCertificates().getMatches(signer.getSID()).iterator().next();
+            var cert = CollectionUtilities.GetFirstOrNull(pinned.GetCertificates().EnumerateMatches(signer.SignerID));
+
+            Assert.True(signer.Verify(cert), "signature valid after asVersion");
+
+            // AsVersion round-trips through an encode/decode.
+            Assert.AreEqual(1, new CmsSignedData(pinned.GetEncoded()).Version);
+        }
+
+        [Test]
         public void TestDetachedVerification()
         {
             byte[] data = Encoding.ASCII.GetBytes("Hello World!");

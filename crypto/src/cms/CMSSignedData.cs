@@ -142,6 +142,28 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>
+        /// Return a copy of this <c>CmsSignedData</c> with the <c>SignedData</c> version field forced to the given
+        /// value, leaving every other field unchanged.
+        /// </summary>
+        /// <remarks>
+        /// The version is normally recomputed from the content per RFC 5652 sec. 5.1 (for example, a non-id-data
+        /// eContentType implies version 3), including by <c>ReplaceSigners</c> and <c>AddDigestAlgorithm</c>. This
+        /// method lets a producer pin a specific version for interop with profiles that require one - notably
+        /// Microsoft Authenticode, whose signatures must carry version 1 even though their SPC_INDIRECT_DATA
+        /// eContentType would otherwise compute to 3.
+        /// </remarks>
+        /// <param name="version">The CMSVersion value to set.</param>
+        /// <returns>A new CmsSignedData carrying the supplied version.</returns>
+        public CmsSignedData AsVersion(int version)
+        {
+            SignedData current = m_signedData;
+            SignedData newContent = new SignedData(DerInteger.ValueOf(version), current.DigestAlgorithms,
+                current.EncapContentInfo, current.Certificates, current.CRLs, current.SignerInfos);
+
+            return new CmsSignedData(m_contentInfo.ContentType, newContent, m_signedContent, m_signerInfoStore);
+        }
+
         /**
          * return the ContentInfo
          */

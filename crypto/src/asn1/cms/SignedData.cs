@@ -2,9 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
-    /**
-     * a signed data object.
-     */
+    /// <summary>A signed-data object.</summary>
     public class SignedData
         : Asn1Encodable
     {
@@ -45,6 +43,31 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_crls = crls;
             m_signerInfos = signerInfos ?? throw new ArgumentNullException(nameof(signerInfos));
             m_version = CalculateVersionField(contentInfo.ContentType, certificates, crls, signerInfos);
+
+            m_certsBer = m_certificates is BerSet;
+            m_crlsBer = m_crls is BerSet;
+            m_digsBer = m_digestAlgorithms is BerSet;
+            m_sigsBer = m_signerInfos is BerSet;
+        }
+
+        /// <summary>
+        /// Construct a SignedData with an explicit, caller-supplied version rather than a recomputed one.
+        /// </summary>
+        /// <remarks>
+        /// This lets a producer pin a specific version for a profile that requires one - for example Microsoft
+        /// Authenticode signatures pin version 1 even though their eContentType is not id-data, which
+        /// <see cref="CalculateVersionField(DerObjectIdentifier, Asn1Set, Asn1Set, Asn1Set)"/> would otherwise map to
+        /// version 3.
+        /// </remarks>
+        public SignedData(DerInteger version, Asn1Set digestAlgorithms, ContentInfo encapContentInfo,
+            Asn1Set certificates, Asn1Set crls, Asn1Set signerInfos)
+        {
+            m_version = version ?? throw new ArgumentNullException(nameof(version));
+            m_digestAlgorithms = digestAlgorithms ?? throw new ArgumentNullException(nameof(digestAlgorithms));
+            m_encapContentInfo = encapContentInfo ?? throw new ArgumentNullException(nameof(encapContentInfo));
+            m_certificates = certificates;
+            m_crls = crls;
+            m_signerInfos = signerInfos ?? throw new ArgumentNullException(nameof(signerInfos));
 
             m_certsBer = m_certificates is BerSet;
             m_crlsBer = m_crls is BerSet;
