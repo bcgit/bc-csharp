@@ -9,7 +9,6 @@ namespace Org.BouncyCastle.Asn1.X509
     ///     permittedSubtrees   [0] GeneralSubtrees OPTIONAL,
     ///     excludedSubtrees    [1] GeneralSubtrees OPTIONAL
     /// }
-    /// GeneralSubtrees ::= SEQUENCE SIZE (1..MAX) OF GeneralSubtree
     /// </code>
     /// </remarks>
     public class NameConstraints
@@ -26,21 +25,17 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public static NameConstraints GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
+        public static NameConstraints GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
 #pragma warning disable CS0618 // Type or member is obsolete
-            return new NameConstraints(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+            new NameConstraints(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 #pragma warning restore CS0618 // Type or member is obsolete
-        }
 
-        public static NameConstraints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
-        {
+        public static NameConstraints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
 #pragma warning disable CS0618 // Type or member is obsolete
-            return new NameConstraints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
+            new NameConstraints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 #pragma warning restore CS0618 // Type or member is obsolete
-        }
 
-        private readonly Asn1Sequence m_permitted, m_excluded;
+        private readonly GeneralSubtrees m_permittedSubtrees, m_excludedSubtrees;
 
         [Obsolete("Use 'GetInstance' instead")]
         public NameConstraints(Asn1Sequence seq)
@@ -52,21 +47,28 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count < 0 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-            m_permitted = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false, Asn1Sequence.GetTagged);
-            m_excluded = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false, Asn1Sequence.GetTagged);
+            m_permittedSubtrees = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 0, false,
+                GeneralSubtrees.GetTagged);
+            m_excludedSubtrees = Asn1Utilities.ReadOptionalContextTagged(seq, ref pos, 1, false,
+                GeneralSubtrees.GetTagged);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-
-            Validate();
         }
 
+        /// <param name="permittedSubtrees">Permitted subtrees</param>
+        /// <param name="excludedSubtrees">Excluded subtrees</param>
+        public NameConstraints(GeneralSubtrees permittedSubtrees, GeneralSubtrees excludedSubtrees)
+        {
+            m_permittedSubtrees = permittedSubtrees;
+            m_excludedSubtrees = excludedSubtrees;
+        }
+
+        [Obsolete("Use 'GeneralSubtrees' constructor")]
         public NameConstraints(GeneralSubtree[] permitted, GeneralSubtree[] excluded)
         {
-            m_permitted = DerSequence.FromElementsOptional(permitted);
-            m_excluded = DerSequence.FromElementsOptional(excluded);
-
-            Validate();
+            m_permittedSubtrees = permitted == null ? null : new GeneralSubtrees(permitted);
+            m_excludedSubtrees = excluded == null ? null : new GeneralSubtrees(excluded);
         }
 
         /// <summary>Constructor from the given details.</summary>
@@ -75,12 +77,12 @@ namespace Org.BouncyCastle.Asn1.X509
         /// </remarks>
         /// <param name="permitted">Permitted subtrees</param>
         /// <param name="excluded">Excluded subtrees</param>
+        [Obsolete("Use 'GeneralSubtrees' constructor")]
         public NameConstraints(IList<GeneralSubtree> permitted, IList<GeneralSubtree> excluded)
         {
-            m_permitted = CreateSequence(permitted);
-            m_excluded = CreateSequence(excluded);
-
-            Validate();
+            // TODO[asn1] Passes IList as IEnumerable, so loses Count
+            m_permittedSubtrees = permitted == null ? null : new GeneralSubtrees(permitted);
+            m_excludedSubtrees = excluded == null ? null : new GeneralSubtrees(excluded);
         }
 
         /// <summary>Constructor from the given details.</summary>
@@ -89,41 +91,30 @@ namespace Org.BouncyCastle.Asn1.X509
         /// </remarks>
         /// <param name="permitted">Permitted subtrees</param>
         /// <param name="excluded">Excluded subtrees</param>
+        [Obsolete("Use 'GeneralSubtrees' constructor")]
         public NameConstraints(IReadOnlyCollection<GeneralSubtree> permitted,
             IReadOnlyCollection<GeneralSubtree> excluded)
         {
-            m_permitted = CreateSequence(permitted);
-            m_excluded = CreateSequence(excluded);
-
-            Validate();
+            m_permittedSubtrees = permitted == null ? null : new GeneralSubtrees(permitted);
+            m_excludedSubtrees = excluded == null ? null : new GeneralSubtrees(excluded);
         }
 
-        public Asn1Sequence PermittedSubtrees => m_permitted;
+        [Obsolete("Use 'PermittedSubtreesValue' instead")]
+        public Asn1Sequence PermittedSubtrees => m_permittedSubtrees?.Elements;
 
-        public Asn1Sequence ExcludedSubtrees => m_excluded;
+        public GeneralSubtrees PermittedSubtreesValue => m_permittedSubtrees;
+
+        [Obsolete("Use 'ExcludedSubtreesValue' instead")]
+        public Asn1Sequence ExcludedSubtrees => m_excludedSubtrees?.Elements;
+
+        public GeneralSubtrees ExcludedSubtreesValue => m_excludedSubtrees;
 
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
-            v.AddOptionalTagged(false, 0, m_permitted);
-            v.AddOptionalTagged(false, 1, m_excluded);
+            v.AddOptionalTagged(false, 0, m_permittedSubtrees);
+            v.AddOptionalTagged(false, 1, m_excludedSubtrees);
             return new DerSequence(v);
         }
-
-        private void Validate()
-        {
-            // GeneralSubtrees ::= SEQUENCE SIZE (1..MAX) OF GeneralSubtree
-
-            if (m_permitted != null && m_permitted.Count < 1)
-                throw new ArgumentException("GeneralSubtrees SEQUENCE has SIZE < minimum 1", "permittedSubtrees");
-            if (m_excluded != null && m_excluded.Count < 1)
-                throw new ArgumentException("GeneralSubtrees SEQUENCE has SIZE < minimum 1", "excludedSubtrees");
-        }
-
-        private static DerSequence CreateSequence(IList<GeneralSubtree> subtrees) =>
-            subtrees == null ? null : DerSequence.FromVector(Asn1EncodableVector.FromEnumerable(subtrees));
-
-        private static DerSequence CreateSequence(IReadOnlyCollection<GeneralSubtree> subtrees) =>
-            subtrees == null ? null : DerSequence.FromCollection(subtrees);
     }
 }

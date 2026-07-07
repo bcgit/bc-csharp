@@ -116,13 +116,11 @@ namespace Org.BouncyCastle.Tests
             X509Certificate root = TestUtilities.CreateCert(rootName, rootKP.Private, rootName, "SHA256withRSA",
                 CAExtensions(null), rootKP.Public);
 
-            IList<GeneralSubtree> excluded = new List<GeneralSubtree>()
-            {
-                new GeneralSubtree(new GeneralName(GeneralName.Rfc822Name, "example.com")),
-            };
+            GeneralSubtrees excludedSubtrees = new GeneralSubtrees(
+                new GeneralSubtree(new GeneralName(GeneralName.Rfc822Name, "example.com")));
 
             // intermediate excludes the example.com mail host
-            NameConstraints excludeExampleCom = new NameConstraints(permitted: null, excluded);
+            NameConstraints excludeExampleCom = new NameConstraints(permittedSubtrees: null, excludedSubtrees);
             X509Certificate intermediate = TestUtilities.CreateCert(rootName, rootKP.Private, intName, "SHA256withRSA",
                 CAExtensions(excludeExampleCom), intKP.Public);
 

@@ -1511,12 +1511,12 @@ namespace Org.BouncyCastle.Pkix
             //
             // (g) (1) permitted subtrees
             //
-            Asn1Sequence permitted = nc.PermittedSubtrees;
+            GeneralSubtrees permitted = nc.PermittedSubtreesValue;
             if (permitted != null)
             {
                 try
                 {
-                    nameConstraintValidator.IntersectPermittedSubtree(permitted);
+                    nameConstraintValidator.IntersectPermittedSubtree(permitted.Elements);
                 }
                 catch (Exception ex)
                 {
@@ -1528,14 +1528,13 @@ namespace Org.BouncyCastle.Pkix
             //
             // (g) (2) excluded subtrees
             //
-            Asn1Sequence excluded = nc.ExcludedSubtrees;
+            GeneralSubtrees excluded = nc.ExcludedSubtreesValue;
             if (excluded != null)
             {
                 try
                 {
-                    foreach (var excludedSubtree in excluded)
+                    foreach (var subtree in CollectionUtilities.Select(excluded.Elements, GeneralSubtree.GetInstance))
                     {
-                        GeneralSubtree subtree = GeneralSubtree.GetInstance(excludedSubtree);
                         nameConstraintValidator.AddExcludedSubtree(subtree);
                     }
                 }

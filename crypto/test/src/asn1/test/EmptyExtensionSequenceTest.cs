@@ -41,7 +41,12 @@ namespace Org.BouncyCastle.Asn1.Tests
             RejectEmpty(nameof(ExtendedKeyUsage), ExtendedKeyUsage.GetInstance);
         }
 
-        // TODO[asn1] Create GeneralSubtrees class and check behaviour here
+        [Test]
+        public void EmptyGeneralSubtrees()
+        {
+            // GeneralSubtrees ::= SEQUENCE SIZE (1..MAX) OF GeneralSubtree (RFC 5280 sec. 4.2.1.10)
+            RejectEmpty(nameof(GeneralSubtrees), GeneralSubtrees.GetInstance);
+        }
 
         [Test]
         public void EmptyPolicyMappings()

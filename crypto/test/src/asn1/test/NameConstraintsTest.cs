@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             catch (ArgumentException e)
             {
                 Assert.NotNull(e.Message);
-                Assert.That(e.Message.StartsWith("GeneralSubtrees SEQUENCE has SIZE < minimum 1"));
+                Assert.That(e.Message.StartsWith("Minimum sequence size "));
             }
         }
 
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             catch (ArgumentException e)
             {
                 Assert.NotNull(e.Message);
-                Assert.That(e.Message.StartsWith("GeneralSubtrees SEQUENCE has SIZE < minimum 1"));
+                Assert.That(e.Message.StartsWith("Minimum sequence size "));
             }
         }
 
@@ -66,11 +66,12 @@ namespace Org.BouncyCastle.Asn1.Tests
         {
             // a valid non-empty NameConstraints still round-trips through the parse path.
             GeneralSubtree subtree = new GeneralSubtree(new GeneralName(GeneralName.DnsName, "test.example.com"));
-            NameConstraints nc = new NameConstraints(new GeneralSubtree[]{ subtree }, null);
+            NameConstraints nc = new NameConstraints(new GeneralSubtrees(subtree), null);
 
             NameConstraints parsed = NameConstraints.GetInstance(nc.ToAsn1Object());
-            Assert.AreEqual(1, parsed.PermittedSubtrees.Count, "permitted subtree count");
-            Assert.Null(parsed.ExcludedSubtrees, "excluded subtrees absent");
+            Assert.NotNull(parsed.PermittedSubtreesValue, "permitted subtrees present");
+            Assert.AreEqual(1, parsed.PermittedSubtreesValue.Elements.Count, "permitted subtree count");
+            Assert.Null(parsed.ExcludedSubtreesValue, "excluded subtrees absent");
         }
     }
 }
