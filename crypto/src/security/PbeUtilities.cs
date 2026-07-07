@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.BC;
+using Org.BouncyCastle.Asn1.Misc;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
@@ -697,6 +698,34 @@ namespace Org.BouncyCastle.Security
                 throw new ArgumentException("PBE iteration count (" + iterationCount + ") greater than " + maxIterations);
 
             return iterationCount;
+        }
+
+        // The KDF cost parameters of a PBES2-protected key arrive in an unauthenticated container, so
+        // they are bounded before the (memory/CPU intensive) derivation to cap a decryption-time DoS.
+        // TODO Should this also be property-configurable?
+        private static readonly int MaxScryptBlockSize = 1024;
+
+        internal static void CheckScryptCost(ScryptParams scryptParams)
+        {
+            if (!scryptParams.CostParameter.TryGetIntValueExact(out int costParameter) ||
+                costParameter <= 0 ||
+                !scryptParams.BlockSize.TryGetIntValueExact(out int blockSize) ||
+                blockSize <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(scryptParams), "Invalid scrypt parameters");
+            }
+
+            if (blockSize > MaxScryptBlockSize)
+            {
+                throw new ArgumentOutOfRangeException(nameof(scryptParams),
+                    $"Scrypt block size ({blockSize}) greater than {MaxScryptBlockSize}");
+            }
+
+            int maxScryptMemory = Properties.GetInt32(Properties.PbeMaxScryptMemory, 1 << 30);
+            long scryptMemory = (long)costParameter * (blockSize * 128);
+
+            if (scryptMemory > maxScryptMemory)
+                throw new ArgumentOutOfRangeException($"Scrypt parameters require more than {maxScryptMemory} bytes");
         }
 
         private static ICipherParameters FixDesParity(string mechanism, ICipherParameters parameters)

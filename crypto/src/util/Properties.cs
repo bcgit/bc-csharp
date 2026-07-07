@@ -41,6 +41,16 @@ namespace Org.BouncyCastle.Utilities
         public static readonly string PbeMaxIterationCount = "Org.BouncyCastle.Pbe.MaxIterationCount";
 
         /// <summary>
+        /// Upper bound, in bytes, on the scrypt working memory (~128 * N * r) honoured when decrypting a
+        /// PBES2-protected PKCS#8 / PEM private key.
+        /// </summary>
+        /// <remarks>
+        /// As with <see cref="PbeMaxIterationCount"/> the scrypt cost travels in the unauthenticated container, so an
+        /// unbounded cost is a memory-exhaustion vector. Default 1073741824 (1 GiB).
+        /// </remarks>
+        public static readonly string PbeMaxScryptMemory = "Org.BouncyCastle.Pbe.MaxScryptMemory";
+
+        /// <summary>
         /// When set to <c>true</c>, suppresses the error raised when loading a PKCS12 store with a password, for data
         /// that does not require a password.
         /// </summary>
