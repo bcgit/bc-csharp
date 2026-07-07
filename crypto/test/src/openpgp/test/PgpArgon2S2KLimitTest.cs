@@ -31,8 +31,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
             catch (PgpException e)
             {
-                //assertTrue("unexpected message: " + e.getMessage(), e.getMessage().indexOf(fragment) >= 0);
-                bool debug = true;
+                Assert.True(e.Message.Contains(fragment), $"unexpected message: {e.Message}");
             }
         }
 
