@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Utilities
         /// </summary>
         /// <remarks>
         /// The key-derivation parameters travel inside the (unauthenticated) encrypted-key container, so an unbounded
-        /// count makes decrypting attacker-supplied key material a CPU-exhaustion vector. Default 10,000,000.
+        /// count makes decrypting attacker-supplied key material a CPU-exhaustion vector. Default 5,000,000.
         /// </remarks>
         public static readonly string PbeMaxIterationCount = "Org.BouncyCastle.Pbe.MaxIterationCount";
 
@@ -46,7 +46,9 @@ namespace Org.BouncyCastle.Utilities
         /// </summary>
         public static readonly string Pkcs12IgnoreUselessPassword = "Org.BouncyCastle.Pkcs12.IgnoreUselessPassword";
 
-        /// <summary>If set, a PKCS12 file with a larger iteration count on PBE processing will be rejected.</summary>
+        /// <summary>
+        /// If set, a PKCS12 file with a larger iteration count on PBE processing will be rejected. Default 5,000,000.
+        /// </summary>
         public static readonly string Pkcs12MaxIterationCount = "Org.BouncyCastle.Pkcs12.MaxIterationCount";
 
         public static readonly string Pkcs1NotStrict = "Org.BouncyCastle.Pkcs1.NotStrict";
@@ -58,7 +60,7 @@ namespace Org.BouncyCastle.Utilities
         /// <remarks>
         /// The count travels in the (unauthenticated) PBMParameter of an incoming CMP message and drives an iterated
         /// hash, so an unbounded count makes verifying an attacker-supplied message a CPU-exhaustion vector. Default
-        /// 10,000,000.
+        /// 1,000,000.
         /// </remarks>
         public static readonly string PKMacMaxIterationCount = "Org.BouncyCastle.PKMac.MaxIterationCount";
 
