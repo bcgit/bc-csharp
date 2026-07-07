@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Bcpg
             return new BcpgInputStream(inStr);
         }
 
-        private BcpgInputStream(Stream inputStream)
+        public BcpgInputStream(Stream inputStream)
         {
             m_in = inputStream;
         }

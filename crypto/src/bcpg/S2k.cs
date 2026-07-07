@@ -136,6 +136,8 @@ namespace Org.BouncyCastle.Bcpg
             m_argon2Config = argon2Config ?? throw new ArgumentNullException(nameof(argon2Config));
         }
 
+        public static S2k Argon2S2k(Argon2Params parameters) => new S2k(parameters);
+
         public virtual int Type => m_type;
 
         /// <summary>The hash algorithm.</summary>

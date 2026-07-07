@@ -718,7 +718,7 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             internal Block Clear()
             {
-                Arrays.Fill(v, 0);
+                Arrays.ZeroMemory(v);
                 return this;
             }
         }

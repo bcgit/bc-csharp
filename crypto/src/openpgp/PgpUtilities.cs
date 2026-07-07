@@ -306,6 +306,31 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             if (S2k.Argon2 == s2k.Type)
             {
                 var argon2Config = s2k.Argon2Config;
+
+                // The passes, parallelism and memory-size fields are one-byte values taken verbatim from
+                // the (unauthenticated) S2K packet, and Argon2 must run before the message can be
+                // authenticated. Clamp all three to conservative, property-overridable maxima so a single
+                // decrypt attempt cannot be driven into a huge allocation or unbounded CPU work. The clamp
+                // stays here (above the backend) so any operators/calculators cannot diverge on it.
+                // RFC 9580 sec. 3.7.1.4 + RFC 9106 sec. 3.1: memory size m = 2^memorySizeExponent
+                // KiB must satisfy m >= 8*p, i.e. memorySizeExponent >= 3 + ceil(log2(p)).
+                // For p >= 1 this is 3 + bitLen(p - 1).
+
+                int parallelism = argon2Config.Parallelism;
+                if (parallelism < 1 || parallelism > Properties.GetInt32(Properties.Argon2MaxParallelism, 16))
+                    throw new PgpException("parallelism out of range");
+
+                int memorySizeExponent = argon2Config.MemorySizeExponent;
+                if (memorySizeExponent < 3 + Integers.BitLength(parallelism - 1) ||
+                    memorySizeExponent > Properties.GetInt32(Properties.Argon2MaxMemoryExp, 24))
+                {
+                    throw new PgpException("memory size exponent out of range");
+                }
+
+                int passes = argon2Config.Passes;
+                if (passes < 1 || passes > Properties.GetInt32(Properties.Argon2MaxPasses, 10))
+                    throw new PgpException("passes out of range");
+
                 var argon2Parameters = new Argon2Parameters.Builder(Argon2Parameters.Argon2id)
                     .WithSalt(argon2Config.GetSalt())
                     .WithIterations(argon2Config.Passes)

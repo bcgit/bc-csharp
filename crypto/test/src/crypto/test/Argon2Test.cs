@@ -6,6 +6,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 
@@ -99,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static void CheckInvalidConfig(Action<Argon2Parameters.Builder> config)
         {
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<ArgumentOutOfRangeException>(() =>
             {
                 var generator = new Argon2BytesGenerator();
                 var builder = new Argon2Parameters.Builder();
@@ -341,5 +342,152 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "b64615f07789b66b645b67ee9ed3b377ae350b6bfcbb0fc95141ea8f322613c0");
         }
         #endregion
+
+        [Test]
+        public void CheckArgon2MaxMemoryExpValue()
+        {
+            Properties.WithThreadProperty(Properties.Argon2MaxMemoryExp, "10", () =>
+            {
+                byte[] salt = new byte[16];
+                new SecureRandom().NextBytes(salt);
+
+                try
+                {
+                    Argon2Parameters parameters = new Argon2Parameters.Builder(Argon2Parameters.Argon2id)
+                        .WithSalt(salt)
+                        .WithIterations(1)
+                        .WithParallelism(4)
+                        .WithMemoryPowOfTwo(30)  // 1 << 22 = 4 GiB, no guard
+                        .WithVersion(Argon2Parameters.Version13)
+                        .Build();
+                    Assert.Fail("no exception");
+                }
+                catch (ArgumentOutOfRangeException e)
+                {
+                    Assert.NotNull(e.Message);
+                    Assert.That(e.ParamName == "memory");
+                }
+
+                try
+                {
+                    Argon2Parameters parameters = new Argon2Parameters.Builder(Argon2Parameters.Argon2id)
+                        .WithSalt(salt)
+                        .WithIterations(1)
+                        .WithParallelism(4)
+                        .WithMemoryAsKB(1 << 25)
+                        .WithVersion(Argon2Parameters.Version13)
+                        .Build();
+                    Assert.Fail("no exception");
+                }
+                catch (ArgumentOutOfRangeException e)
+                {
+                    Assert.NotNull(e.Message);
+                    Assert.That(e.ParamName == "memory");
+                }
+            });
+        }
+
+        // Tests for the not-yet-implemented block pooling
+#if false
+        // A FixedBlockPool with capacity smaller than the working set must still
+        // produce correct output - excess deallocations are silently dropped.
+        [Test]
+        public void CustomBlockPoolBoundedDropsOverflow()
+        {
+            byte[] expected = HashWithPool(null);
+
+            // capacity of 1 forces all but a single deallocate to be dropped
+            byte[] result = HashWithPool(new Argon2BytesGenerator.FixedBlockPool(1));
+
+            Assert.That(Arrays.AreEqual(expected, result), "undersized pool produced wrong hash");
+        }
+
+        // A user-supplied pool must produce identical output to the default
+        // (per-call FixedBlockPool) - no leftover state from prior calls.
+        [Test]
+        public void CustomBlockPoolMatchesDefault()
+        {
+            byte[] expected = HashWithPool(null);
+
+            Argon2BytesGenerator.FixedBlockPool pool = new Argon2BytesGenerator.FixedBlockPool(64);
+            byte[] first = HashWithPool(pool);
+            byte[] second = HashWithPool(pool);
+            byte[] third = HashWithPool(pool);
+
+            Assert.That(Arrays.AreEqual(expected, first), "first hash with custom pool differs from default");
+            Assert.That(Arrays.AreEqual(expected, second), "second hash with custom pool differs from default");
+            Assert.That(Arrays.AreEqual(expected, third), "third hash with custom pool differs from default");
+        }
+
+        // A correctly-sized custom pool should never need to allocate fresh blocks
+        // after the first call - subsequent calls only recycle.
+        [Test]
+        public void CustomBlockPoolReusesBlocks()
+        {
+            CountingBlockPool pool = new CountingBlockPool();
+
+            HashWithPool(pool);
+            int afterFirst = pool.m_fresh;
+            Assert.Greater(afterFirst, 0, "pool produced no fresh blocks on first call");
+
+            HashWithPool(pool);
+            Assert.AreEqual(afterFirst, pool.m_fresh,
+                $"pool allocated extra blocks on a recycled run: fresh={pool.m_fresh} expected={afterFirst}");
+
+            HashWithPool(pool);
+            Assert.AreEqual(afterFirst, pool.m_fresh,
+                $"pool allocated extra blocks on a recycled run: fresh={pool.m_fresh} expected={afterFirst}");
+        }
+
+        private static byte[] HashWithPool(Argon2BytesGenerator.IBlockPool pool)
+        {
+            byte[] salt = Hex.Decode("02020202020202020202020202020202");
+            byte[] password = Hex.Decode("0101010101010101010101010101010101010101010101010101010101010101");
+
+            Argon2Parameters.Builder builder = new Argon2Parameters.Builder(Argon2Parameters.Argon2id)
+                .WithVersion(Argon2Parameters.Version13)
+                .WithIterations(3)
+                .WithMemoryAsKB(32)
+                .WithParallelism(4)
+                .WithSalt(salt);
+
+            if (pool != null)
+            {
+                builder.WithBlockPool(pool);
+            }
+
+            Argon2BytesGenerator gen = new Argon2BytesGenerator();
+            gen.Init(builder.Build());
+
+            byte[] output = new byte[32];
+            gen.GenerateBytes(password, output);
+            return output;
+        }
+
+        private class CountingBlockPool
+            : Argon2BytesGenerator.IBlockPool
+        {
+            private readonly ConcurrentStack<Argon2BytesGenerator.Block> m_available =
+                new ConcurrentStack<Argon2BytesGenerator.Block>();
+            internal int m_fresh;
+            internal int m_recycled;
+
+            public Argon2BytesGenerator.Block Allocate()
+            {
+                if (!m_available.TryPop(out var b))
+                {
+                    m_fresh++;
+                    return new Argon2BytesGenerator.Block();
+                }
+                m_recycled++;
+                return b;
+            }
+
+            public void Deallocate(Argon2BytesGenerator.Block block)
+            {
+                m_available.Push(block);
+            }
+        }
+#endif
     }
 }

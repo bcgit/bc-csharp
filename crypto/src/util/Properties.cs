@@ -11,6 +11,31 @@ namespace Org.BouncyCastle.Utilities
     /// </remarks>
     public static class Properties
     {
+        /// <summary>
+        /// The maximum permitted memory exponent (i.e. <c>memory &lt;= (1 &lt;&lt; MaxMemoryExp)</c>.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to 24 (16 GiB); the property may be raised up to a ceiling of 30.
+        /// </remarks>
+        public static readonly string Argon2MaxMemoryExp = "Org.BouncyCastle.Argon2.MaxMemoryExp";
+
+        /// <summary>
+        /// The maximum number of Argon2 passes (iterations) accepted when a key is derived from untrusted cost
+        /// parameters.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to 10.
+        /// </remarks>
+        public static readonly string Argon2MaxPasses = "Org.BouncyCastle.Argon2.MaxPasses";
+
+        /// <summary>
+        /// The maximum Argon2 parallelism (lanes) accepted when a key is derived from untrusted cost parameters.
+        /// </summary>
+        /// <remarks>
+        /// Defaults to 16.
+        /// </remarks>
+        public static readonly string Argon2MaxParallelism = "Org.BouncyCastle.Argon2.MaxParallelism";
+
         public static readonly string Asn1AllowUnsafeInteger = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
         public static readonly string Asn1MaxDepth = "Org.BouncyCastle.Asn1.MaxDepth";
