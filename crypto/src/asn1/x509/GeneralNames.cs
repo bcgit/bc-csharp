@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public GeneralNames(GeneralName[] names)
         {
             if (Arrays.IsNullOrContainsNull(names))
-                throw new NullReferenceException("'names' cannot be null, or contain null");
+                throw new ArgumentNullException(nameof(names), "cannot be null, or contain null");
 
             m_names = Copy(names);
         }

@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public CertificatePolicies(PolicyInformation[] policyInformation)
         {
             if (Arrays.IsNullOrContainsNull(policyInformation))
-                throw new NullReferenceException("'policyInformation' cannot be null, or contain null");
+                throw new ArgumentNullException(nameof(policyInformation), "cannot be null, or contain null");
 
             m_policyInformation = Copy(policyInformation);
         }

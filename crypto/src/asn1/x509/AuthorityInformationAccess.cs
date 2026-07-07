@@ -80,7 +80,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public AuthorityInformationAccess(AccessDescription[] descriptions)
         {
             if (Arrays.IsNullOrContainsNull(descriptions))
-                throw new NullReferenceException("'descriptions' cannot be null, or contain null");
+                throw new ArgumentNullException(nameof(descriptions), "cannot be null, or contain null");
 
             m_descriptions = Copy(descriptions);
         }

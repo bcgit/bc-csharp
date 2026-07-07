@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 		public TimeStampTokenEvidence(TimeStampAndCrl[] timeStampAndCrls)
 		{
 			if (Arrays.IsNullOrContainsNull(timeStampAndCrls))
-                throw new NullReferenceException("'timeStampAndCrls' cannot be null, or contain null");
+                throw new ArgumentNullException(nameof(timeStampAndCrls), "cannot be null, or contain null");
 
             m_timeStampAndCrls = timeStampAndCrls;
 		}

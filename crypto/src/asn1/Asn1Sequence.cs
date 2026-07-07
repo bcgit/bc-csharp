@@ -146,7 +146,7 @@ namespace Org.BouncyCastle.Asn1
         protected internal Asn1Sequence(params Asn1Encodable[] elements)
         {
             if (Arrays.IsNullOrContainsNull(elements))
-                throw new NullReferenceException("'elements' cannot be null, or contain null");
+                throw new ArgumentNullException(nameof(elements), "cannot be null, or contain null");
 
             m_elements = Asn1EncodableVector.CloneElements(elements);
         }
