@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <remarks><code>CertificatePolicies ::= SEQUENCE SIZE {1..MAX} OF PolicyInformation</code></remarks>
     public class CertificatePolicies
         : Asn1Encodable
     {
@@ -23,76 +24,63 @@ namespace Org.BouncyCastle.Asn1.X509
         public static CertificatePolicies GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificatePolicies(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-        public static CertificatePolicies FromExtensions(X509Extensions extensions)
-        {
-            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.CertificatePolicies));
-        }
+        public static CertificatePolicies FromExtensions(X509Extensions extensions) =>
+            GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.CertificatePolicies));
 
-        private readonly PolicyInformation[] m_policyInformation;
+        // TODO[asn1] Tighten to DLSequence if/when safe
+        private readonly DerSequence m_elements;
 
         private CertificatePolicies(Asn1Sequence seq)
         {
-            // TODO Enforce minimum length of 1?
-            m_policyInformation = seq.MapElements(PolicyInformation.GetInstance);
+            if (seq.Count < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(seq));
+
+            m_elements = DerSequence.Map(seq, PolicyInformation.GetInstance);
         }
 
-        /**
-         * Construct a CertificatePolicies object containing one PolicyInformation.
-         * 
-         * @param name the name to be contained.
-         */
+        /// <summary>Construct an instance containing a single <see cref="PolicyInformation"/>.</summary>
         public CertificatePolicies(PolicyInformation name)
         {
-            m_policyInformation = new PolicyInformation[]{
-                name ?? throw new ArgumentNullException(nameof(name))
-            };
+            m_elements = DerSequence.FromElement(name ?? throw new ArgumentNullException(nameof(name)));
         }
 
         public CertificatePolicies(PolicyInformation[] policyInformation)
         {
             if (Arrays.IsNullOrContainsNull(policyInformation))
                 throw new ArgumentNullException(nameof(policyInformation), "cannot be null, or contain null");
+            if (policyInformation.Length < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(policyInformation));
 
-            m_policyInformation = Copy(policyInformation);
+            m_elements = DerSequence.FromElements(policyInformation);
         }
 
-        public virtual PolicyInformation[] GetPolicyInformation() => Copy(m_policyInformation);
+        /// <summary>Return the <see cref="PolicyInformation"/>s making up the sequence.</summary>
+        public virtual PolicyInformation[] GetPolicyInformation() =>
+            m_elements.MapElements(PolicyInformation.GetInstance);
 
         public virtual PolicyInformation GetPolicyInformation(DerObjectIdentifier policyIdentifier)
         {
-            foreach (var policyInfo in m_policyInformation)
+            // Elements are known to be PolicyInformation by construction
+            foreach (PolicyInformation element in m_elements)
             {
-                if (policyInfo.PolicyIdentifier.Equals(policyIdentifier))
-                    return policyInfo;
+                if (element.PolicyIdentifier.Equals(policyIdentifier))
+                    return element;
             }
             return null;
         }
 
-        /**
-         * Produce an object suitable for an ASN1OutputStream.
-         * <pre>
-         * CertificatePolicies ::= SEQUENCE SIZE {1..MAX} OF PolicyInformation
-         * </pre>
-         */
-        public override Asn1Object ToAsn1Object() => DerSequence.FromElements(m_policyInformation);
+        public override Asn1Object ToAsn1Object() => m_elements;
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder("CertificatePolicies:");
-            if (m_policyInformation.Length > 0)
+            StringBuilder sb = new StringBuilder("CertificatePolicies: ");
+            sb.Append(m_elements[0]);
+            for (int i = 1; i < m_elements.Count; ++i)
             {
-                sb.Append(' ');
-                sb.Append(m_policyInformation[0]);
-                for (int i = 1; i < m_policyInformation.Length; ++i)
-                {
-                    sb.Append(", ");
-                    sb.Append(m_policyInformation[i]);
-                }
+                sb.Append(", ");
+                sb.Append(m_elements[i]);
             }
             return sb.ToString();
         }
-
-        private static PolicyInformation[] Copy(PolicyInformation[] policyInformation) =>
-            (PolicyInformation[])policyInformation.Clone();
     }
 }

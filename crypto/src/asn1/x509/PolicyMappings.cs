@@ -30,6 +30,9 @@ namespace Org.BouncyCastle.Asn1.X509
                 return new Element(Asn1Sequence.GetInstance(obj));
             }
 
+            public static Element GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+                new Element(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
+
             public static Element GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
                 new Element(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -80,7 +83,8 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        private readonly Asn1Sequence m_elements;
+        // TODO[asn1] Tighten to DLSequence if/when safe
+        private readonly DerSequence m_elements;
 
         /**
          * Creates a new <code>PolicyMappings</code> instance.
@@ -93,14 +97,20 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
+            if (seq.Count < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(seq));
 
-            // TODO Validate length at least 1?
             // TODO[api] Asn1Sequence virtual (or extension?) method for mapping to a new sequence
-            m_elements = DLSequence.Map(seq, Element.GetInstance);
+            m_elements = DerSequence.Map(seq, Element.GetInstance);
         }
 
         public PolicyMappings(IDictionary<string, string> mappings)
         {
+            if (mappings == null)
+                throw new ArgumentNullException(nameof(mappings));
+            if (mappings.Count < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(mappings));
+
             Asn1EncodableVector v = new Asn1EncodableVector(mappings.Count);
 
             foreach (var entry in mappings)
@@ -111,11 +121,16 @@ namespace Org.BouncyCastle.Asn1.X509
                 v.Add(new Element(issuerDomainPolicy, subjectDomainPolicy));
             }
 
-            m_elements = DLSequence.FromVector(v);
+            m_elements = DerSequence.FromVector(v);
         }
 
         public PolicyMappings(IDictionary<DerObjectIdentifier, DerObjectIdentifier> mappings)
         {
+            if (mappings == null)
+                throw new ArgumentNullException(nameof(mappings));
+            if (mappings.Count < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(mappings));
+
             Asn1EncodableVector v = new Asn1EncodableVector(mappings.Count);
 
             foreach (var entry in mappings)
@@ -123,7 +138,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 v.Add(new Element(issuerDomainPolicy: entry.Key, subjectDomainPolicy: entry.Value));
             }
 
-            m_elements = DLSequence.FromVector(v);
+            m_elements = DerSequence.FromVector(v);
         }
 
         public Asn1Sequence Elements => m_elements;

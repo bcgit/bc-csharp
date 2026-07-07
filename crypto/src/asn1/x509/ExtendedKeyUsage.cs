@@ -1,13 +1,11 @@
+using System;
 using System.Collections.Generic;
+
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-    /**
-     * The extendedKeyUsage object.
-     * <pre>
-     *      extendedKeyUsage ::= Sequence SIZE (1..MAX) OF KeyPurposeId
-     * </pre>
-     */
+    /// <remarks><code>extendedKeyUsage ::= Sequence SIZE (1..MAX) OF KeyPurposeId</code></remarks>
     public class ExtendedKeyUsage
         : Asn1Encodable
     {
@@ -23,35 +21,42 @@ namespace Org.BouncyCastle.Asn1.X509
             return new ExtendedKeyUsage(Asn1Sequence.GetInstance(obj));
         }
 
+        // TODO[api] Standardize parameter names
         public static ExtendedKeyUsage GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new ExtendedKeyUsage(Asn1Sequence.GetInstance(obj, explicitly));
 
         public static ExtendedKeyUsage GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ExtendedKeyUsage(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-        public static ExtendedKeyUsage FromExtensions(X509Extensions extensions)
-        {
-            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.ExtendedKeyUsage));
-        }
+        public static ExtendedKeyUsage FromExtensions(X509Extensions extensions) =>
+            GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.ExtendedKeyUsage));
 
         private readonly HashSet<DerObjectIdentifier> m_usageTable = new HashSet<DerObjectIdentifier>();
-        private readonly Asn1Sequence m_seq;
+
+        // TODO[asn1] Tighten to DLSequence if/when safe
+        private readonly DerSequence m_elements;
 
         private ExtendedKeyUsage(Asn1Sequence seq)
         {
-            m_seq = seq;
+            if (seq.Count < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(seq));
 
-            foreach (Asn1Encodable element in seq)
+            m_elements = DerSequence.Map(seq, DerObjectIdentifier.GetInstance);
+
+            foreach (DerObjectIdentifier element in m_elements)
             {
-                DerObjectIdentifier oid = DerObjectIdentifier.GetInstance(element);
-
-                m_usageTable.Add(oid);
+                m_usageTable.Add(element);
             }
         }
 
         public ExtendedKeyUsage(params KeyPurposeID[] usages)
         {
-            m_seq = new DerSequence(usages);
+            if (Arrays.IsNullOrContainsNull(usages))
+                throw new ArgumentNullException(nameof(usages), "cannot be null, or contain null");
+            if (usages.Length < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(usages));
+
+            m_elements = DerSequence.FromElements(usages);
 
             foreach (KeyPurposeID usage in usages)
             {
@@ -61,31 +66,34 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public ExtendedKeyUsage(IEnumerable<DerObjectIdentifier> usages)
         {
+            if (usages == null)
+                throw new ArgumentNullException(nameof(usages));
+
             Asn1EncodableVector v = new Asn1EncodableVector();
 
             foreach (var oid in usages)
             {
-                v.Add(oid);
                 m_usageTable.Add(oid);
+                // TODO[asn1] Avoid adding duplicates?
+                v.Add(oid);
             }
 
-            m_seq = new DerSequence(v);
+            if (v.Count < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(usages));
+
+            m_elements = DerSequence.FromVector(v);
         }
 
         // TODO[api] Rename 'HasKeyPurposeID(KeyPurposeID keyPurposeID)'
         public bool HasKeyPurposeId(KeyPurposeID keyPurposeId) => m_usageTable.Contains(keyPurposeId);
 
-        /**
-         * Returns all extended key usages.
-         * The returned ArrayList contains DerObjectIdentifier instances.
-         * @return An ArrayList with all key purposes.
-         */
+        /// <summary>Returns all extended key usages.</summary>
         public IList<DerObjectIdentifier> GetAllUsages() => new List<DerObjectIdentifier>(m_usageTable);
 
-        public DerObjectIdentifier[] GetAllUsagesArray() => m_seq.MapElements(DerObjectIdentifier.GetInstance);
+        public DerObjectIdentifier[] GetAllUsagesArray() => m_elements.MapElements(DerObjectIdentifier.GetInstance);
 
         public int Count => m_usageTable.Count;
 
-        public override Asn1Object ToAsn1Object() => m_seq;
+        public override Asn1Object ToAsn1Object() => m_elements;
     }
 }

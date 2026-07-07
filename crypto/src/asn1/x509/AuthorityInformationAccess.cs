@@ -55,55 +55,51 @@ namespace Org.BouncyCastle.Asn1.X509
         public static AuthorityInformationAccess GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AuthorityInformationAccess(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
-        public static AuthorityInformationAccess FromExtensions(X509Extensions extensions)
-        {
-            return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AuthorityInfoAccess));
-        }
+        public static AuthorityInformationAccess FromExtensions(X509Extensions extensions) =>
+            GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.AuthorityInfoAccess));
 
-        private readonly AccessDescription[] m_descriptions;
+        // TODO[asn1] Tighten to DLSequence if/when safe
+        private readonly DerSequence m_elements;
 
         private AuthorityInformationAccess(Asn1Sequence seq)
         {
             if (seq.Count < 1)
-                throw new ArgumentException("sequence may not be empty");
+                throw new ArgumentException("Minimum sequence size is 1", nameof(seq));
 
-            m_descriptions = seq.MapElements(AccessDescription.GetInstance);
+            m_elements = DerSequence.Map(seq, AccessDescription.GetInstance);
         }
 
         public AuthorityInformationAccess(AccessDescription description)
         {
-            m_descriptions = new AccessDescription[]{
-                description ?? throw new ArgumentNullException(nameof(description))
-            };
+            m_elements = DerSequence.FromElement(description ?? throw new ArgumentNullException(nameof(description)));
         }
 
         public AuthorityInformationAccess(AccessDescription[] descriptions)
         {
             if (Arrays.IsNullOrContainsNull(descriptions))
                 throw new ArgumentNullException(nameof(descriptions), "cannot be null, or contain null");
+            if (descriptions.Length < 1)
+                throw new ArgumentException("Minimum sequence size is 1", nameof(descriptions));
 
-            m_descriptions = Copy(descriptions);
+            m_elements = DerSequence.FromElements(descriptions);
         }
 
-        /**
-         * create an AuthorityInformationAccess with the oid and location provided.
-         */
+        /// <summary>Create an AuthorityInformationAccess with the oid and location provided.</summary>
         public AuthorityInformationAccess(DerObjectIdentifier oid, GeneralName location)
             : this(new AccessDescription(oid, location))
         {
         }
 
-        public AccessDescription[] GetAccessDescriptions() => Copy(m_descriptions);
+        public AccessDescription[] GetAccessDescriptions() => m_elements.MapElements(AccessDescription.GetInstance);
 
-        public override Asn1Object ToAsn1Object() => new DerSequence(m_descriptions);
+        public override Asn1Object ToAsn1Object() => m_elements;
 
         public override string ToString()
         {
-            //return "AuthorityInformationAccess: Oid(" + this.descriptions[0].AccessMethod.Id + ")";
-
             StringBuilder buf = new StringBuilder();
             buf.AppendLine("AuthorityInformationAccess:");
-            foreach (AccessDescription description in m_descriptions)
+            // Elements are known to be AccessDescription by construction
+            foreach (AccessDescription description in m_elements)
             {
                 buf.Append("    ")
                    .Append(description)
@@ -111,8 +107,5 @@ namespace Org.BouncyCastle.Asn1.X509
             }
             return buf.ToString();
         }
-
-        private static AccessDescription[] Copy(AccessDescription[] descriptions) =>
-            (AccessDescription[])descriptions.Clone();
     }
 }
