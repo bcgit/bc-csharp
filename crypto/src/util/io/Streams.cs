@@ -202,6 +202,25 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        public static bool TryGetAvailable(Stream stream, out long available)
+        {
+            try
+            {
+                if (stream.CanSeek)
+                {
+                    available = System.Math.Max(0L, stream.Length - stream.Position);
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                // Ignore; this method is best-effort only
+            }
+
+            available = default;
+            return false;
+        }
+
         public static void ValidateBufferArguments(byte[] buffer, int offset, int count)
         {
             if (buffer == null)

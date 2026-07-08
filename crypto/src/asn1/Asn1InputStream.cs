@@ -43,16 +43,14 @@ namespace Org.BouncyCastle.Asn1
             if (input is Asn1InputStream asn1)
                 return asn1.Limit;
 
-            if (input is MemoryStream memory)
-                return GetMemoryStreamLimit(memory);
+            if (Streams.TryGetAvailable(input, out long available))
+                return (int)System.Math.Min(Arrays.MaxLength, available);
 
             if (Properties.TryGetInt32(Properties.Asn1MaxLimit, out int maxLimit))
                 return System.Math.Max(0, maxLimit);
 
             return Arrays.MaxLength;
         }
-
-        internal static int GetMemoryStreamLimit(MemoryStream input) => Convert.ToInt32(input.Length - input.Position);
 
         private readonly int m_depth;
         private readonly int m_limit;
@@ -71,11 +69,6 @@ namespace Org.BouncyCastle.Asn1
 
         public Asn1InputStream(Stream input)
             : this(input, FindLimit(input))
-        {
-        }
-
-        internal Asn1InputStream(MemoryStream input)
-            : this(input, GetMemoryStreamLimit(input))
         {
         }
 
