@@ -2,9 +2,20 @@ using System;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
-    /**
-    * packet giving time after creation at which the key expires.
-    */
+    /// <summary>
+    /// Signature Subpacket containing the number of seconds after the key's creation date, after which the key expires.
+    /// </summary>
+    /// <remarks>
+    /// The special value of <c>0</c> means that the key never expires.
+    /// <para>
+    /// <see href="https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.6">
+    /// RFC4880 - Key Expiration Time
+    /// </see>
+    /// <see href="https://www.rfc-editor.org/rfc/rfc9580.html#name-key-expiration-time">
+    /// RFC9580 - Key Expiration Time
+    /// </see>
+    /// </para>
+    /// </remarks>
     public class KeyExpirationTime
         : SignatureSubpacket
     {

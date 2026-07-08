@@ -20,6 +20,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_keyData = keyData;
         }
 
+        public SymmetricKeyAlgorithmTag Algorithm => m_keyData.EncAlgorithm;
+
+        public int Version => m_keyData.Version;
+
+        public byte VersionByte => m_keyData.VersionByte;
+
         /// <summary>Return the decrypted input stream, using the passed in passphrase.</summary>
         /// <remarks>
         /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
@@ -99,6 +105,37 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 throw new PgpException("Exception creating cipher", e);
             }
+        }
+
+        /// <exception cref="PgpException" />
+        private KeyParameter GetSessionKey(byte[] rawPassPhrase, bool clearPassPhrase)
+        {
+            //byte[] key = dataDecryptorFactory.makeKeyFromPassPhrase(keyData.getEncAlgorithm(), keyData.getS2K());
+            KeyParameter key = PgpUtilities.DoMakeKeyFromPassPhrase(m_keyData.EncAlgorithm, m_keyData.S2k, rawPassPhrase,
+                clearPassPhrase);
+
+            throw new NotImplementedException();
+
+            //int version = Version;
+            //switch (version)
+            //{
+            //case SymmetricKeyEncSessionPacket.Version4:
+            //{
+            //    byte[] sessionData = dataDecryptorFactory.recoverSessionData(keyData.getEncAlgorithm(), key, keyData.getSecKeyData());
+            //    int sessionKeyAlg = sessionData[0] & 0xff;
+            //    byte[] sessionKey = Arrays.copyOfRange(sessionData, 1, sessionData.length);
+            //    return new PGPSessionKey(sessionKeyAlg, sessionKey);
+            //}
+            //case SymmetricKeyEncSessionPacket.Version5:
+            //case SymmetricKeyEncSessionPacket.Version6:
+            //{
+            //    int sessionKeyAlg = getSymmetricAlgorithm(dataDecryptorFactory);
+            //    byte[] sessionKey = dataDecryptorFactory.recoverAEADEncryptedSessionData(keyData, key);
+            //    return new PGPSessionKey(sessionKeyAlg, sessionKey);
+            //}
+            //default:
+            //    throw new UnsupportedPacketVersionException("Unsupported packet version: " + version);
+            //}
         }
     }
 }

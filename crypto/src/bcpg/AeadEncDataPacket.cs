@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Bcpg
     public class AeadEncDataPacket
         : InputStreamPacket
     {
+        public const byte Version1 = 1;
+
         private readonly byte m_version;
         private readonly SymmetricKeyAlgorithmTag m_algorithm;
         private readonly AeadAlgorithmTag m_aeadAlgorithm;
@@ -23,8 +25,8 @@ namespace Org.BouncyCastle.Bcpg
             : base(bcpgIn)
         {
             m_version = bcpgIn.RequireByte();
-            if (m_version != 1)
-                throw new ArgumentException("wrong AEAD packet version: " + m_version);
+            if (m_version != Version1)
+                throw new UnsupportedPacketVersionException("Unknown AEAD packet version: " + m_version);
 
             m_algorithm = (SymmetricKeyAlgorithmTag)bcpgIn.RequireByte();
             m_aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
@@ -34,7 +36,14 @@ namespace Org.BouncyCastle.Bcpg
             if (m_chunkSize < 0 || m_chunkSize > 16)
                 throw new MalformedPacketException("chunkSize out of range");
 
-            m_iv = new byte[GetIVLength(m_aeadAlgorithm)];
+            try
+            {
+                m_iv = new byte[AeadUtilities.GetIVLength(m_aeadAlgorithm)];
+            }
+            catch (ArgumentException e)
+            {
+                throw new MalformedPacketException("Unknown AEAD algorithm ID: " + m_aeadAlgorithm, e);
+            }
             bcpgIn.ReadFully(m_iv);
         }
 
@@ -46,7 +55,7 @@ namespace Org.BouncyCastle.Bcpg
             if (chunkSize < 0 || chunkSize > 16)
                 throw new ArgumentOutOfRangeException(nameof(chunkSize));
 
-            m_version = 1;
+            m_version = Version1;
             m_algorithm = algorithm;
             m_aeadAlgorithm = aeadAlgorithm;
             m_chunkSize = (byte)chunkSize;
@@ -61,21 +70,25 @@ namespace Org.BouncyCastle.Bcpg
 
         public int ChunkSize => m_chunkSize;
 
+        internal byte[] IV => m_iv;
+
         public byte[] GetIV() => m_iv;
 
-        public static int GetIVLength(AeadAlgorithmTag aeadAlgorithm)
+        public byte[] GetAAData() => CreateAAData(Version, Algorithm, AeadAlgorithm, ChunkSize);
+
+        public static byte[] CreateAAData(byte version, SymmetricKeyAlgorithmTag symAlgorithm,
+            AeadAlgorithmTag aeadAlgorithm, int chunkSize)
         {
-            switch (aeadAlgorithm)
-            {
-            case AeadAlgorithmTag.Eax:
-                return 16;
-            case AeadAlgorithmTag.Ocb:
-                return 15;
-            case AeadAlgorithmTag.Gcm:
-                return 12;
-            default:
-                throw new ArgumentException("unknown mode: " + aeadAlgorithm);
-            }
+            byte[] aaData = new byte[5];
+            aaData[0] = (byte)PacketTag.AeadEncData | 0xC0;
+            aaData[1] = version;
+            aaData[2] = (byte)symAlgorithm;
+            aaData[3] = (byte)aeadAlgorithm;
+            aaData[4] = (byte)chunkSize;
+            return aaData;
         }
+
+        [Obsolete("Use 'AeadUtilities.GetIVLength' instead")]
+        public static int GetIVLength(AeadAlgorithmTag aeadAlgorithm) => AeadUtilities.GetIVLength(aeadAlgorithm);
     }
 }

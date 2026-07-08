@@ -17,6 +17,19 @@ namespace Org.BouncyCastle.Bcpg
             Eof = 4
         }
 
+        /// <summary>Find possible longest length, capped by maximum array size.</summary>
+        internal static int FindLimit(Stream input)
+        {
+            if (Streams.TryGetAvailable(input, out long available))
+                return (int)System.Math.Min(int.MaxValue, available);
+
+            // TODO[pgp] Fallback property value?
+
+            return int.MaxValue;
+        }
+
+        internal static int GetMemoryStreamLimit(MemoryStream input) => Convert.ToInt32(input.Length - input.Position);
+
         internal static uint ReadBodyLen(Stream s, out StreamFlags flags)
         {
             flags = StreamFlags.None;

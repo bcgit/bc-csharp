@@ -9,6 +9,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.EC;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -35,9 +36,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             IBcpgKey key = publicPk.Key;
             IDigest digest;
 
-            if (publicPk.Version <= 3)
+            if (publicPk.Version <= PublicKeyPacket.Version3)
             {
-                RsaPublicBcpgKey rK = (RsaPublicBcpgKey)key;
+                if (!(key is RsaPublicBcpgKey rK))
+                    throw new PgpException("Version 3 OpenPGP keys can only use RSA. Found " + Platform.GetTypeName(key));
 
                 try
                 {
@@ -51,7 +53,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     throw new PgpException("can't encode key components: " + e.Message, e);
                 }
             }
-            else
+            else if (publicPk.Version == PublicKeyPacket.Version4)
             {
                 try
                 {
@@ -68,6 +70,31 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 {
                     throw new PgpException("can't encode key components: " + e.Message, e);
                 }
+            }
+            else if (publicPk.Version == PublicKeyPacket.LibrePgp5 || publicPk.Version == PublicKeyPacket.Version6)
+            {
+                try
+                {
+                    byte[] kBytes = publicPk.GetEncodedContents();
+
+                    digest = PgpUtilities.CreateDigest(HashAlgorithmTag.Sha256);
+
+                    digest.Update((byte)(publicPk.Version == PublicKeyPacket.Version6 ? 0x9B : 0x9A));
+
+                    digest.Update((byte)(kBytes.Length >> 24));
+                    digest.Update((byte)(kBytes.Length >> 16));
+                    digest.Update((byte)(kBytes.Length >> 8));
+                    digest.Update((byte)kBytes.Length);
+                    digest.BlockUpdate(kBytes, 0, kBytes.Length);
+                }
+                catch (Exception e)
+                {
+                    throw new PgpException("can't encode key components: " + e.Message, e);
+                }
+            }
+            else
+            {
+                throw new UnsupportedPacketVersionException("Unsupported PGP key version: " + publicPk.Version);
             }
 
             return DigestUtilities.DoFinal(digest);

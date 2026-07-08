@@ -1,6 +1,8 @@
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -32,11 +34,16 @@ namespace Org.BouncyCastle.Bcpg
                 pubKeyPacket = new PublicKeyPacket(bcpgIn);
             }
 
+            byte version = pubKeyPacket.VersionByte;
             s2kUsage = bcpgIn.RequireByte();
 
-            // TODO See bc-java for version-specific handling
-            //if (version == PublicKeyPacket.LIBREPGP_5 || 
-            //   (version == PublicKeyPacket.VERSION_6 && s2kUsage != UsageNone))
+            int conditionalParameterLength = -1;
+            if (version == PublicKeyPacket.LibrePgp5 ||
+               (version == PublicKeyPacket.Version6 && s2kUsage != UsageNone))
+            {
+                // TODO: Use length to parse unknown parameters
+                conditionalParameterLength = bcpgIn.RequireByte();
+            }
 
             if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead)
             {
@@ -52,17 +59,36 @@ namespace Org.BouncyCastle.Bcpg
                 aeadAlgorithm = (AeadAlgorithmTag)bcpgIn.RequireByte();
             }
 
-            // TODO See bc-java for version-specific handling
-            //if (version == PublicKeyPacket.VERSION_6 && (s2kUsage == UsageSha1 || s2kUsage == UsageAead))
+            if (version == PublicKeyPacket.Version6 && (s2kUsage == UsageSha1 || s2kUsage == UsageAead))
+            {
+                int s2KLen = bcpgIn.RequireByte();
+                byte[] s2kBytes = new byte[s2KLen];
+                bcpgIn.ReadFully(s2kBytes);
 
-            if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead)
+                try
+                {
+                    s2k = new S2k(new MemoryStream(s2kBytes, false));
+                }
+                catch (UnsupportedPacketVersionException e)
+                {
+                    throw new MalformedPacketException("Unsupported S2K type", e);
+                }
+            }
+            else if (s2kUsage == UsageChecksum || s2kUsage == UsageSha1 || s2kUsage == UsageAead)
             {
                 s2k = new S2k(bcpgIn);
             }
 
             if (s2kUsage == UsageAead)
             {
-                iv = new byte[AeadUtilities.GetIVLength(aeadAlgorithm)];
+                try
+                {
+                    iv = new byte[AeadUtilities.GetIVLength(aeadAlgorithm)];
+                }
+                catch (ArgumentException e)
+                {
+                    throw new MalformedPacketException("Unknown AEAD algorithm", e);
+                }
                 bcpgIn.ReadFully(iv);
             }
             else
@@ -89,10 +115,26 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-            // TODO See bc-java for version-specific handling
-            //if (version == PublicKeyPacket.LIBREPGP_5)
+            if (version == PublicKeyPacket.LibrePgp5)
+            {
+                long keyOctetCount = StreamUtilities.RequireUInt32BE(bcpgIn);
+                if (s2kUsage == UsageChecksum || s2kUsage == UsageNone)
+                {
+                    // encoded keyOctetCount does not contain checksum
+                    keyOctetCount += 2;
+                }
 
-            secKeyData = bcpgIn.ReadAll();
+                if (keyOctetCount > PublicKeyPacket.MaxLength)
+                    throw new MalformedPacketException(
+                        $"Key octet count ({keyOctetCount}) exceeds limit ({PublicKeyPacket.MaxLength}).");
+
+                secKeyData = new byte[(int)keyOctetCount];
+                bcpgIn.ReadFully(secKeyData);
+            }
+            else
+            {
+                secKeyData = bcpgIn.ReadAll();
+            }
         }
 
         public SecretKeyPacket(PublicKeyPacket pubKeyPacket, SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k, byte[] iv,

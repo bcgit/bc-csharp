@@ -2,9 +2,11 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
-    /**
-    * Packet holding the key flag values.
-    */
+    /// <summary>Signature Subpacket encoding the capabilities / intended uses of a key.</summary>
+    /// <remarks>
+    /// <see href="https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.21">RFC4880 - Key Flags</see>
+    /// <see href="https://www.rfc-editor.org/rfc/rfc9580.html#name-key-flags">RFC9580 - Key Flags</see>
+    /// </remarks>
     public class KeyFlags
         : SignatureSubpacket
     {

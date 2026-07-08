@@ -207,6 +207,10 @@ namespace Org.BouncyCastle.Bcpg
                 return new SymmetricEncIntegrityPacket(objStream);
             case PacketTag.ModificationDetectionCode:
                 return new ModDetectionCodePacket(objStream);
+            case PacketTag.AeadEncData:
+                return new AeadEncDataPacket(objStream);
+            case PacketTag.Padding:
+                return new PaddingPacket(objStream);
             case PacketTag.Experimental1:
             case PacketTag.Experimental2:
             case PacketTag.Experimental3:

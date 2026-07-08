@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Bcpg
         {
             int length = bcpgIn.RequireByte();
             if (length != 3)
-                throw new InvalidOperationException("KDF parameters size of 3 expected.");
+                throw new MalformedPacketException("KDF parameters size of 3 expected.");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> kdfParameters = stackalloc byte[3];

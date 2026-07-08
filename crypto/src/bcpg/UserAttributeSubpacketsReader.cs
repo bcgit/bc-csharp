@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 using Org.BouncyCastle.Bcpg.Attr;
@@ -9,15 +10,22 @@ namespace Org.BouncyCastle.Bcpg
     {
         // Absolute upper bound on a single user attribute subpacket body. A crafted long-length
         // header could otherwise force a multi-gigabyte new byte[] (below) before any body bytes
-        // are read, a pre-auth allocation DoS. 2 MiB matches bc-java's SignaturePacket
-        // MAX_SUBPACKET_LEN ceiling; image subpackets are not expected to approach it.
-        private const int MaxSubpacketLength = 2 * 1024 * 1024;
+        // are read, a pre-auth allocation DoS. 2 MiB matches SignaturePacket.MaxSubpacketLength;
+        // subpackets are not expected to approach it.
+        public static readonly int MaxSubpacketLength = 2 * 1024 * 1024;
 
         private readonly Stream m_input;
+        private readonly int m_limit;
 
         public UserAttributeSubpacketsParser(Stream input)
+            : this(input, StreamUtilities.FindLimit(input))
+        {
+        }
+
+        public UserAttributeSubpacketsParser(Stream input, int limit)
         {
             m_input = input;
+            m_limit = limit;
         }
 
         public virtual UserAttributeSubpacket ReadPacket()
@@ -27,12 +35,18 @@ namespace Org.BouncyCastle.Bcpg
                 return null;
 
             if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial))
-                throw new IOException("unrecognised length reading user attribute subpacket");
+                throw new MalformedPacketException("unrecognised length reading user attribute sub packet");
+
+            if (bodyLen < 1U)
+                throw new MalformedPacketException("Body length octet too small.");
+            if (bodyLen > m_limit)
+                throw new MalformedPacketException($"Body length octet ({bodyLen}) exceeds limit ({m_limit}).");
+            // Absolute cap, independent of the FindLimit() hint, so a crafted length cannot drive a huge allocation.
+            if (bodyLen > MaxSubpacketLength)
+                throw new MalformedPacketException(
+                    $"Body length octet ({bodyLen}) exceeds max user attribute subpacket length ({MaxSubpacketLength}).");
 
             bool isLongLength = streamFlags.HasFlag(StreamUtilities.StreamFlags.LongLength);
-
-            if (bodyLen < 1U || bodyLen > MaxSubpacketLength)
-                throw new EndOfStreamException("out of range data found in user attribute subpacket");
 
             int tag = StreamUtilities.RequireByte(m_input);
             byte[] data = new byte[bodyLen - 1];
@@ -40,11 +54,19 @@ namespace Org.BouncyCastle.Bcpg
             StreamUtilities.RequireBytes(m_input, data);
 
             UserAttributeSubpacketTag type = (UserAttributeSubpacketTag)tag;
-            switch (type)
+            try
             {
-            case UserAttributeSubpacketTag.ImageAttribute:
-                return new ImageAttrib(isLongLength, data);
+                switch (type)
+                {
+                case UserAttributeSubpacketTag.ImageAttribute:
+                    return new ImageAttrib(isLongLength, data);
+                }
             }
+            catch (ArgumentException e)
+            {
+                throw new MalformedPacketException("Malformed UserAttribute subpacket.", e);
+            }
+
             return new UserAttributeSubpacket(type, isLongLength, data);
         }
     }

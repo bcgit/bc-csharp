@@ -359,7 +359,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			return pcks == null ? null : new PgpSignatureSubpacketVector(pcks);
 		}
 
-		public byte[] GetSignature()
+        /// <summary>Return the salt of a v6 signature.</summary>
+        internal byte[] GetSalt() => sigPck.GetSalt();
+
+        public byte[] GetSignature()
         {
             MPInteger[] sigValues = sigPck.GetSignature();
             byte[] signature;
@@ -372,28 +375,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 				}
                 else if (KeyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy)
                 {
-					if (sigValues.Length != 2)
-						throw new InvalidOperationException();
+                    if (sigValues.Length != 2)
+                        throw new InvalidOperationException();
 
-					BigInteger v0 = sigValues[0].Value;
+                    BigInteger v0 = sigValues[0].Value;
                     BigInteger v1 = sigValues[1].Value;
 
-					if (v0.BitLength == 918 &&
+                    if (v0.BitLength == 918 &&
                         v1.Equals(BigInteger.Zero) &&
-						v0.ShiftRight(912).Equals(BigInteger.ValueOf(0x40)))
-					{
-						signature = new byte[Ed448.SignatureSize];
-						BigIntegers.AsUnsignedByteArray(v0.ClearBit(918), signature, 0, signature.Length);
-					}
-					else if (v0.BitLength <= 256 && v1.BitLength <= 256)
-					{
+                        v0.ShiftRight(912).Equals(BigInteger.ValueOf(0x40)))
+                    {
+                        signature = new byte[Ed448.SignatureSize];
+                        BigIntegers.AsUnsignedByteArray(v0.ClearBit(918), signature, 0, signature.Length);
+                    }
+                    else if (v0.BitLength <= 256 && v1.BitLength <= 256)
+                    {
                         signature = new byte[Ed25519.SignatureSize];
-                        BigIntegers.AsUnsignedByteArray(sigValues[0].Value, signature,  0, 32);
+                        BigIntegers.AsUnsignedByteArray(sigValues[0].Value, signature, 0, 32);
                         BigIntegers.AsUnsignedByteArray(sigValues[1].Value, signature, 32, 32);
                     }
                     else
-					{
-                        throw new InvalidOperationException();
+                    {
+                        throw new PgpException("Malformed EdDsa legacy signature encoding (too long).");
                     }
                 }
                 else

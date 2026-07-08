@@ -78,8 +78,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 return new PgpCompressedData(bcpgIn);
             case PacketTag.LiteralData:
                 return new PgpLiteralData(bcpgIn);
+            case PacketTag.Trust:
+                return new PgpTrust(bcpgIn);
             case PacketTag.PublicKeyEncryptedSession:
             case PacketTag.SymmetricKeyEncryptedSessionKey:
+            case PacketTag.SymmetricKeyEncrypted:
+            case PacketTag.SymmetricEncryptedIntegrityProtected:
+            case PacketTag.AeadEncData:
                 return new PgpEncryptedDataList(bcpgIn);
             case PacketTag.OnePassSignature:
             {
@@ -101,21 +106,41 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
             case PacketTag.Marker:
                 return new PgpMarker(bcpgIn);
+            case PacketTag.Padding:
+                return new PgpPadding(bcpgIn);
+            // TODO Add PgpUnknown/UnknownPacket
+            //case PacketTag.ModificationDetectionCode:
+            //case PacketTag.UserId:
+            //case PacketTag.UserAttribute:
+            //    return new UnknownPacket(tag, bcpgIn);
             case PacketTag.Experimental1:
             case PacketTag.Experimental2:
             case PacketTag.Experimental3:
             case PacketTag.Experimental4:
-				return new PgpExperimental(bcpgIn);
+                return new PgpExperimental(bcpgIn);
             }
 
-            throw new IOException("unknown object in stream " + bcpgIn.NextPacketTag());
+            // TODO Add PgpUnknown/UnknownPacket
+            //Packet packet = bcpgIn.ReadPacket();
+            //if (!(packet is UnknownPacket unknownPacket))
+            //{
+            //    // A tag not handled by the switch above but decoded into a typed Packet by
+            //    // BcpgInputStream.ReadPacket() (e.g. SecretSubkey) would otherwise throw an unchecked
+            //    // InvalidCastException here, escaping this method's throws IOException contract.
+            //    throw new IOException("unexpected packet in stream: " + packet);
+            //}
+            //if (!(throwForUnknownCriticalPackets && unknownPacket.IsCritical))
+            //    return unknownPacket;
+
+            // Leave the error message intact for backwards compatibility
+            throw new IOException("unknown object in stream: " + tag);
         }
 
-		/// <summary>
-		/// Return all available objects in a list.
-		/// </summary>
-		/// <returns>An <c>IList</c> containing all objects from this factory, in order.</returns>
-		public IList<PgpObject> AllPgpObjects()
+        /// <summary>
+        /// Return all available objects in a list.
+        /// </summary>
+        /// <returns>An <c>IList</c> containing all objects from this factory, in order.</returns>
+        public IList<PgpObject> AllPgpObjects()
 		{
             var result = new List<PgpObject>();
 			PgpObject pgpObject;

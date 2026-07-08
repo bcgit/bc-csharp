@@ -1,14 +1,16 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
-    /**
-     * Class provided a NotationData object according to
-     * RFC2440, Chapter 5.2.3.15. Notation Data
-     */
+    /// <summary>Signature Subpacket encoding custom notations. Notations are key-value pairs.</summary>
+    /// <remarks>
+    /// <see href="https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.16">RFC4880 - Notation Data</see>
+    /// <see href="https://www.rfc-editor.org/rfc/rfc9580.html#name-notation-data">RFC9580 - Notation Data</see>
+    /// </remarks>
     public class NotationData
         : SignatureSubpacket
     {
@@ -17,7 +19,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
         public const int HeaderValueLength = 2;
 
         public NotationData(bool critical, bool isLongLength, byte[] data)
-            : base(SignatureSubpacketTag.NotationData, critical, isLongLength, data)
+            : base(SignatureSubpacketTag.NotationData, critical, isLongLength, VerifyData(data))
         {
         }
 
@@ -66,6 +68,26 @@ namespace Org.BouncyCastle.Bcpg.Sig
             os.Write(valueData, 0, valueLength);
 
             return os.ToArray();
+        }
+
+        private static byte[] VerifyData(byte[] data)
+        {
+            int headerLength = HeaderFlagLength + HeaderNameLength + HeaderValueLength;
+            if (data.Length < headerLength)
+                throw new ArgumentException($"Malformed notation data encoding (too short): {data.Length}",
+                    nameof(data));
+
+            int nameOffset = HeaderFlagLength;
+            int nameLength = (int)Pack.BE_To_UInt16(data, nameOffset);
+
+            int valueOffset = nameOffset + HeaderNameLength;
+            int valueLength = (int)Pack.BE_To_UInt16(data, valueOffset);
+
+            int claimedLength = headerLength + nameLength + valueLength;
+            if (claimedLength > data.Length)
+                throw new ArgumentException("Malformed notation data encoding.", nameof(data));
+
+            return data;
         }
 
         public bool IsHumanReadable => (Data[0] & 0x80) != 0;

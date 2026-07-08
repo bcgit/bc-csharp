@@ -1,5 +1,7 @@
+using System;
 using System.IO;
 
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -68,18 +70,34 @@ namespace Org.BouncyCastle.Bcpg
 
         public override void Encode(BcpgOutputStream bcpgOut)
         {
-            MemoryStream bOut = new MemoryStream();
+            uint bodyLength = 1U + 8U + 1U;
+            foreach (var data in m_data)
+            {
+                bodyLength += (uint)data.Length;
+            }
 
-            bOut.WriteByte((byte)m_version);
-            StreamUtilities.WriteUInt64BE(bOut, m_keyID);
-            bOut.WriteByte((byte)m_algorithm);
+            bcpgOut.WritePacketHeader(PacketTag.PublicKeyEncryptedSession, bodyLength);
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> body = stackalloc byte[10];
+#else
+            byte[] body = new byte[10];
+#endif
+
+            body[0] = (byte)m_version;
+            Pack.UInt64_To_BE(m_keyID, body, 1);
+            body[9] = (byte)m_algorithm;
+
+            bcpgOut.Write(body);
 
             foreach (var data in m_data)
             {
-                bOut.Write(data, 0, data.Length);
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                bcpgOut.Write(data.AsSpan());
+#else
+                bcpgOut.Write(data, 0, data.Length);
+#endif
             }
-
-            bcpgOut.WritePacket(PacketTag.PublicKeyEncryptedSession, bOut.ToArray());
         }
     }
 }

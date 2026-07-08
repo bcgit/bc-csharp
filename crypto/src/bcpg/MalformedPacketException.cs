@@ -1,11 +1,12 @@
 ﻿using System;
+using System.IO;
 using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Bcpg
 {
     [Serializable]
     public class MalformedPacketException
-        : Exception
+        : IOException
     {
         public MalformedPacketException()
             : base()

@@ -27,6 +27,8 @@ namespace Org.BouncyCastle.Bcpg
             m_digest = Arrays.Clone(digest);
         }
 
+        internal byte[] Digest => m_digest;
+
         public byte[] GetDigest() => Arrays.Clone(m_digest);
 
         public override void Encode(BcpgOutputStream bcpgOut) =>

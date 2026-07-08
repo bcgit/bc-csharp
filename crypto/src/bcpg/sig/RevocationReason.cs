@@ -1,15 +1,23 @@
+using System;
+
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
     /// <summary>
-    /// Represents revocation reason OpenPGP signature subpacket.
+    /// Signature Subpacket for encoding the reason why a key was revoked.
     /// </summary>
+    /// <remarks>
+    /// <see href="https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.23">RFC4880 - Reason for Revocation</see>
+    /// <see href="https://www.rfc-editor.org/rfc/rfc9580.html#name-reason-for-revocation">
+    /// RFC9580 - Reason for Revocation
+    /// </see>
+    /// </remarks>
     public class RevocationReason
         : SignatureSubpacket
     {
         public RevocationReason(bool isCritical, bool isLongLength, byte[] data)
-            : base(SignatureSubpacketTag.RevocationReason, isCritical, isLongLength, data)
+            : base(SignatureSubpacketTag.RevocationReason, isCritical, isLongLength, VerifyData(data))
         {
         }
 
@@ -23,6 +31,16 @@ namespace Org.BouncyCastle.Bcpg
         {
             byte[] data = Strings.ToUtf8ByteArray(description, preAlloc: 1, postAlloc: 0);
             data[0] = (byte)reason;
+            return data;
+        }
+
+        // RFC 9580 5.2.3.31: the Reason for Revocation body is 1 octet of revocation code
+        // followed by an optional reason string, so at least one octet is required.
+        private static byte[] VerifyData(byte[] data)
+        {
+            if (data.Length < 1)
+                throw new ArgumentException("Truncated revocation reason subpacket", nameof(data));
+
             return data;
         }
 

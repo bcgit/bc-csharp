@@ -1,8 +1,14 @@
 namespace Org.BouncyCastle.Bcpg.Sig
 {
-    /**
-     * packet giving whether or not is revocable.
-     */
+    /// <summary>Signature Subpacket marking a signature as non-revocable.</summary>
+    /// <remarks>
+    /// <see href="https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.12">
+    /// RFC4880 - Revocable
+    /// </see>
+    /// <see href="https://www.rfc-editor.org/rfc/rfc9580.html#name-revocable">
+    /// RFC9580 - Revocable
+    /// </see>
+    /// </remarks>
     public class Revocable
         : SignatureSubpacket
     {

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -14,9 +15,15 @@ namespace Org.BouncyCastle.Bcpg
     public class SignaturePacket
         : ContainedPacket
     {
+        public const int Version2 = 2;
+        public const int Version3 = 3;
+        public const int Version4 = 4;  // https://datatracker.ietf.org/doc/rfc4880/
+        public const int Version5 = 5;  // https://datatracker.ietf.org/doc/draft-koch-librepgp/
+        public const int Version6 = 6;  // https://www.rfc-editor.org/rfc/rfc9580.html
+
         private int version;
         private int signatureType;
-        private long creationTime;
+        private long m_creationTime;
         private ulong m_keyID;
         private PublicKeyAlgorithmTag keyAlgorithm;
         private HashAlgorithmTag hashAlgorithm;
@@ -25,6 +32,7 @@ namespace Org.BouncyCastle.Bcpg
         private SignatureSubpacket[] hashedData;
         private SignatureSubpacket[] unhashedData;
         private byte[] signatureEncoding;
+        private byte[] m_salt; // v6 only
 
         internal SignaturePacket(BcpgInputStream bcpgIn)
         {
@@ -36,7 +44,7 @@ namespace Org.BouncyCastle.Bcpg
                 bcpgIn.RequireByte();
 
                 signatureType = bcpgIn.RequireByte();
-                creationTime = (long)StreamUtilities.RequireUInt32BE(bcpgIn) * 1000L;
+                m_creationTime = (long)StreamUtilities.RequireUInt32BE(bcpgIn) * 1000L;
                 m_keyID = StreamUtilities.RequireUInt64BE(bcpgIn);
                 keyAlgorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
                 hashAlgorithm = (HashAlgorithmTag)bcpgIn.RequireByte();
@@ -47,59 +55,32 @@ namespace Org.BouncyCastle.Bcpg
                 keyAlgorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
                 hashAlgorithm = (HashAlgorithmTag)bcpgIn.RequireByte();
 
-                int hashedLength = StreamUtilities.RequireUInt16BE(bcpgIn);
-                byte[] hashed = new byte[hashedLength];
-                bcpgIn.ReadFully(hashed);
-
-                //
-                // read the signature subpacket data.
-                //
-                SignatureSubpacketsParser sIn = new SignatureSubpacketsParser(new MemoryStream(hashed, false));
-
-                var v = new List<SignatureSubpacket>();
-
-                SignatureSubpacket sub;
-                while ((sub = sIn.ReadPacket()) != null)
-                {
-                    v.Add(sub);
-                }
-
-                hashedData = v.ToArray();
+                hashedData = ReadSignatureSubpackets(bcpgIn);
 
                 foreach (var p in hashedData)
                 {
                     if (p is IssuerKeyId issuerKeyId)
                     {
-                        m_keyID = (ulong)issuerKeyId.KeyId;
+                        m_keyID = ParseKeyIdOrThrow(issuerKeyId);
                     }
-                    else if (p is SignatureCreationTime sigCreationTime)
+                    else if (p is SignatureCreationTime signatureCreationTime)
                     {
-                        creationTime = DateTimeUtilities.DateTimeToUnixMs(sigCreationTime.GetTime());
+                        m_creationTime = ParseCreationTimeOrThrow(signatureCreationTime);
                     }
                 }
 
-                int unhashedLength = StreamUtilities.RequireUInt16BE(bcpgIn);
-                byte[] unhashed = new byte[unhashedLength];
-                bcpgIn.ReadFully(unhashed);
-
-                sIn = new SignatureSubpacketsParser(new MemoryStream(unhashed, false));
-
-                v.Clear();
-
-                while ((sub = sIn.ReadPacket()) != null)
-                {
-                    v.Add(sub);
-                }
-
-                unhashedData = v.ToArray();
+                unhashedData = ReadSignatureSubpackets(bcpgIn);
 
                 foreach (var p in unhashedData)
                 {
                     if (p is IssuerKeyId issuerKeyId)
                     {
-                        m_keyID = (ulong)issuerKeyId.KeyId;
+                        m_keyID = ParseKeyIdOrThrow(issuerKeyId);
                     }
                 }
+
+                SetIssuerKeyId();
+                SetCreationTime();
             }
             else
             {
@@ -175,7 +156,7 @@ namespace Org.BouncyCastle.Bcpg
             HashAlgorithmTag hashAlgorithm, long creationTime, byte[] fingerprint, MPInteger[] signature)
             : this(version, signatureType, keyId, keyAlgorithm, hashAlgorithm, null, null, fingerprint, signature)
         {
-            this.creationTime = creationTime;
+            m_creationTime = creationTime;
         }
 
         public SignaturePacket(int version, int signatureType, long keyId, PublicKeyAlgorithmTag keyAlgorithm,
@@ -214,6 +195,14 @@ namespace Org.BouncyCastle.Bcpg
          */
         public byte[] GetFingerprint() => Arrays.Clone(fingerprint);
 
+
+        /**
+         * Return the signature's salt.
+         * Only for v6 signatures.
+         * @return salt
+         */
+        public byte[] GetSalt() => m_salt;
+
         /**
          * return the signature trailer that must be included with the data
          * to reconstruct the signature
@@ -224,7 +213,7 @@ namespace Org.BouncyCastle.Bcpg
         {
             if (version == 3)
             {
-                long time = creationTime / 1000L;
+                long time = m_creationTime / 1000L;
 
                 byte[] trailer = new byte[5];
                 trailer[0] = (byte)signatureType;
@@ -310,7 +299,7 @@ namespace Org.BouncyCastle.Bcpg
         public SignatureSubpacket[] GetUnhashedSubPackets() => unhashedData;
 
         /// <summary>Return the creation time in milliseconds since 1 Jan., 1970 UTC.</summary>
-        public long CreationTime => creationTime;
+        public long CreationTime => m_creationTime;
 
         public override void Encode(BcpgOutputStream bcpgOut)
         {
@@ -319,15 +308,15 @@ namespace Org.BouncyCastle.Bcpg
             {
                 pOut.WriteByte((byte)version);
 
-                if (version == 3 || version == 2)
+                if (version == Version3 || version == Version2)
                 {
                     byte nextBlockLength = 5;
                     pOut.Write(nextBlockLength, (byte)signatureType);
-                    StreamUtilities.WriteUInt32BE(pOut, (uint)(creationTime / 1000L));
+                    StreamUtilities.WriteUInt32BE(pOut, (uint)(m_creationTime / 1000L));
                     StreamUtilities.WriteUInt64BE(pOut, m_keyID);
                     pOut.Write((byte)keyAlgorithm, (byte)hashAlgorithm);
                 }
-                else if (version == 4)
+                else if (version == Version4 || version == Version5 || version == Version6)
                 {
                     pOut.Write((byte)signatureType, (byte)keyAlgorithm, (byte)hashAlgorithm);
                     EncodeLengthAndData(pOut, GetEncodedSubpackets(hashedData));
@@ -340,6 +329,12 @@ namespace Org.BouncyCastle.Bcpg
 
                 pOut.Write(fingerprint);
 
+                if (version == Version6)
+                {
+                    pOut.WriteByte((byte)m_salt.Length);
+                    pOut.Write(m_salt);
+                }
+
                 if (signature != null)
                 {
                     pOut.WriteObjects(signature);
@@ -351,6 +346,73 @@ namespace Org.BouncyCastle.Bcpg
             }
 
             bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray());
+        }
+
+        private static ulong ParseKeyIdOrThrow(IssuerKeyId issuerKeyId)
+        {
+            try
+            {
+                return (ulong)issuerKeyId.GetKeyID();
+            }
+            catch (ArgumentException e)
+            {
+                throw new MalformedPacketException("Malformed IssuerKeyID subpacket.", e);
+            }
+        }
+
+        private static ulong ParseKeyIdOrThrow(IssuerFingerprint issuerFingerprint)
+        {
+            try
+            {
+                return (ulong)issuerFingerprint.GetKeyID();
+            }
+            catch (ArgumentException e)
+            {
+                throw new MalformedPacketException("Malformed IssuerFingerprint subpacket.", e);
+            }
+        }
+
+        private static long ParseCreationTimeOrThrow(SignatureCreationTime signatureCreationTime)
+        {
+            try
+            {
+                return DateTimeUtilities.DateTimeToUnixMs(signatureCreationTime.GetTime());
+            }
+            catch (Exception e)
+            {
+                throw new MalformedPacketException("Malformed SignatureCreationTime subpacket.", e);
+            }
+        }
+
+        private SignatureSubpacket[] ReadSignatureSubpackets(BcpgInputStream bcpgIn)
+        {
+            uint hashedLength;
+            if (version == 6)
+            {
+                hashedLength = StreamUtilities.RequireUInt32BE(bcpgIn);
+            }
+            else
+            {
+                hashedLength = StreamUtilities.RequireUInt16BE(bcpgIn);
+            }
+
+            // TODO[pgp] Are we really intending to apply the individual limit to the whole list?
+            if (hashedLength > SignatureSubpacketsParser.MaxSubpacketLength)
+                throw new MalformedPacketException(
+                    $"Signature subpackets encoding length ({hashedLength}) exceeds max limit ({SignatureSubpacketsParser.MaxSubpacketLength})");
+
+            byte[] hashed = new byte[hashedLength];
+            bcpgIn.ReadFully(hashed);
+
+            SignatureSubpacketsParser sIn = new SignatureSubpacketsParser(new MemoryStream(hashed, false));
+
+            var result = new List<SignatureSubpacket>();
+            SignatureSubpacket sub;
+            while ((sub = sIn.ReadPacket()) != null)
+            {
+                result.Add(sub);
+            }
+            return result.ToArray();
         }
 
         private static void EncodeLengthAndData(BcpgOutputStream pOut, byte[] data)
@@ -377,8 +439,56 @@ namespace Org.BouncyCastle.Bcpg
             {
                 if (p is SignatureCreationTime signatureCreationTime)
                 {
-                    creationTime = DateTimeUtilities.DateTimeToUnixMs(signatureCreationTime.GetTime());
+                    m_creationTime = DateTimeUtilities.DateTimeToUnixMs(signatureCreationTime.GetTime());
                     break;
+                }
+            }
+        }
+
+        /**
+         * Iterate over the hashed and unhashed signature subpackets to identify either a {@link IssuerKeyID} or
+         * {@link IssuerFingerprint} subpacket to derive the issuer key-ID from.
+         * The issuer {@link IssuerKeyID} and {@link IssuerFingerprint} subpacket information is "self-authenticating",
+         * as its authenticity can be verified by checking the signature with the corresponding key.
+         * Therefore, we can also check the unhashed signature subpacket area.
+         */
+        /// <summar
+        private void SetIssuerKeyId()
+        {
+            if (m_keyID != 0L)
+                return;
+
+            for (int idx = 0; idx != hashedData.Length; idx++)
+            {
+                SignatureSubpacket p = hashedData[idx];
+
+                if (p is IssuerKeyId issuerKeyId)
+                {
+                    m_keyID = ParseKeyIdOrThrow(issuerKeyId);
+                    return;
+                }
+
+                if (p is IssuerFingerprint issuerFingerprint)
+                {
+                    m_keyID = ParseKeyIdOrThrow(issuerFingerprint);
+                    return;
+                }
+            }
+
+            for (int idx = 0; idx != unhashedData.Length; idx++)
+            {
+                SignatureSubpacket p = unhashedData[idx];
+
+                if (p is IssuerKeyId issuerKeyId)
+                {
+                    m_keyID = ParseKeyIdOrThrow(issuerKeyId);
+                    return;
+                }
+
+                if (p is IssuerFingerprint issuerFingerprint)
+                {
+                    m_keyID = ParseKeyIdOrThrow(issuerFingerprint);
+                    return;
                 }
             }
         }

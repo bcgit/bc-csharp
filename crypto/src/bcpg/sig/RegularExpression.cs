@@ -4,16 +4,27 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.Sig
 {
-    /**
-     * Regexp Packet - RFC 4880 5.2.3.14. Note: the RFC says the byte encoding is to be null terminated.
-     */
+    /// <summary>
+    /// Signature Subpacket containing a regular expression limiting the scope of the signature.
+    /// </summary>
+    /// <remarks>
+    /// Note: the RFC says the byte encoding is to be null terminated.
+    /// <para>
+    /// <see href="https://datatracker.ietf.org/doc/html/rfc4880#section-5.2.3.14">
+    /// RFC4880 - Regular Expression
+    /// </see>
+    /// <see href="https://www.rfc-editor.org/rfc/rfc9580.html#name-regular-expression">
+    /// RFC9580 - Regular Expression
+    /// </see>
+    /// </para>
+    /// </remarks>
     public class RegularExpression
         : SignatureSubpacket
     {
         public RegularExpression(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.RegExp, critical, isLongLength, data)
         {
-            if (data[data.Length - 1] != 0)
+            if (data.Length < 1 || data[data.Length - 1] != 0)
                 throw new ArgumentException("data in regex missing null termination");
         }
 
@@ -22,10 +33,13 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
-        // last byte is null terminator
+        [Obsolete("Use 'GetRegex()' instead")]
         public string Regex => Strings.FromUtf8ByteArray(Data, 0, Data.Length - 1);
 
         public byte[] GetRawRegex() => GetData();
+
+        // last byte is null terminator
+        public string GetRegex() => Strings.FromUtf8ByteArray(Data, 0, Data.Length - 1);
 
         private static byte[] ToNullTerminatedUtf8ByteArray(string str)
         {
