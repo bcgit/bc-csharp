@@ -9,6 +9,8 @@ namespace Org.BouncyCastle.Bcpg
     public class PublicKeyPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
+        public static readonly int MaxLength = 2 * 1024 * 1024; // 2MiB; e.g. McEliece keys can get ~1MiB in size
+
         private int version;
         private long time;
         private int validDays;
