@@ -410,14 +410,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             SphincsPlusPublicKeyParameters pubParams = (SphincsPlusPublicKeyParameters)kp.Public;
             SphincsPlusPrivateKeyParameters privParams = (SphincsPlusPrivateKeyParameters)kp.Private;
 
-            // FIXME No OIDs for simple variants of SPHINCS+
-            if (!path.Contains("-simple"))
-            {
-                pubParams = (SphincsPlusPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
-                    PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams));
-                privParams = (SphincsPlusPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
-                    PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams));
-            }
+            // OID encode/decode round-trip runs for all variants including "-simple"
+            // (OIDs for simple variants were wired correctly; the former FIXME guard was stale).
+            // The Parameters assertions below catch any future OID<->parameters mapping regression.
+            pubParams = (SphincsPlusPublicKeyParameters)PqcPublicKeyFactory.CreateKey(
+                PqcSubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(pubParams));
+            privParams = (SphincsPlusPrivateKeyParameters)PqcPrivateKeyFactory.CreateKey(
+                PqcPrivateKeyInfoFactory.CreatePrivateKeyInfo(privParams));
+
+            Assert.AreSame(parameters, pubParams.Parameters, path + " " + count + ": public key parameters");
+            Assert.AreSame(parameters, privParams.Parameters, path + " " + count + ": private key parameters");
 
             Assert.True(Arrays.AreEqual(pk, pubParams.GetEncoded()), path + " " + count + ": public key");
             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), path + " " + count + ": secret key");
