@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-using Org.BouncyCastle.Asn1;
+﻿using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Security;
@@ -9,9 +7,6 @@ namespace Org.BouncyCastle.Operators
 {
     public class CmsContentEncryptorBuilder
     {
-        private static readonly Dictionary<DerObjectIdentifier, int> KeySizes =
-            new Dictionary<DerObjectIdentifier, int>();
-
         private readonly SecureRandom m_random;
         private readonly DerObjectIdentifier m_encryptionOid;
         private readonly int m_keySize;
