@@ -1,8 +1,5 @@
-using System;
-
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Encodings;
 using Org.BouncyCastle.Crypto.Engines;
@@ -13,14 +10,12 @@ using Org.BouncyCastle.Security;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
     /// <summary> test vectors from ISO 9796-1 and ISO 9796-2 edition 1.</summary>
     [TestFixture]
     public class ISO9796Test
-        : SimpleTest
     {
         static BigInteger mod1 = new BigInteger("0100000000000000000000000000000000bba2d15dbb303c8a21c5ebbcbae52b7125087920dd7cdf358ea119fd66fb064012ec8ce692f0a0b8e8321b041acd40b7", 16);
 
@@ -75,7 +70,6 @@ namespace Org.BouncyCastle.Crypto.Tests
         static BigInteger pub6 = new BigInteger("11", 16);
         static BigInteger pri6 = new BigInteger("92e08f83cc9920746989ca5034dcb384a094fb9c5a6288fcc4304424ab8f56388f72652d8fafc65a4b9020896f2cde297080f2a540e7b7ce5af0b3446e1258d1dd7f245cf54124b4c6e17da21b90a0ebd22605e6f45c9f136d7a13eaac1c0f7487de8bd6d924972408ebb58af71e76fd7b012a8d0e165f3ae2e5077a8648e619", 16);
 
-        //		static byte[] sig6 = new BigInteger("0073FEAF13EB12914A43FE635022BB4AB8188A8F3ABD8D8A9E4AD6C355EE920359C7F237AE36B1212FE947F676C68FE362247D27D1F298CA9302EB21F4A64C26CE44471EF8C0DFE1A54606F0BA8E63E87CDACA993BFA62973B567473B4D38FAE73AB228600934A9CC1D3263E632E21FD52D2B95C5F7023DA63DE9509C01F6C7BBC", 16).ModPow(pri6, mod6).ToByteArray();
         static byte[] sig6 = new BigInteger("0073FEAF13EB12914A43FE635022BB4AB8188A8F3ABD8D8A9E4AD6C355EE920359C7F237AE36B1212FE947F676C68FE362247D27D1F298CA9302EB21F4A64C26CE44471EF8C0DFE1A54606F0BA8E63E87CDACA993BFA62973B567473B4D38FAE73AB228600934A9CC1D3263E632E21FD52D2B95C5F7023DA63DE9509C01F6C7BBC", 16).ModPow(pri6, mod6).ToByteArray();
 
         static byte[] msg7 = Hex.Decode("6162636462636465636465666465666765666768666768696768696A68696A6B696A6B6C6A6B6C6D6B6C6D6E6C6D6E6F6D6E6F706E6F70716F70717270717273");
@@ -87,35 +81,21 @@ namespace Org.BouncyCastle.Crypto.Tests
         static byte[] msg9 = Hex.Decode("6162636462636465636465666465666765666768666768696768696A68696A6B696A6B6C6A6B6C6D6B6C6D6E6C6D6E6F6D6E6F706E6F70716F707172707172737172737472737475737475767475767775767778767778797778797A78797A61797A61627A6162636162636462636465");
         static byte[] sig9 = new BigInteger("6F2BB97571FE2EF205B66000E9DD06656655C1977F374E8666D636556A5FEEEEAF645555B25F45567C4EE5341F96FED86508C90A9E3F11B26E8D496139ED3E55ECE42860A6FB3A0817DAFBF13019D93E1D382DA07264FE99D9797D2F0B7779357CA7E74EE440D8855B7DDF15F000AC58EE3FFF144845E771907C0C83324A6FBC", 16).ModPow(pri6, mod6).ToByteArray();
 
-        public override string Name
-        {
-            get { return "ISO9796"; }
-        }
-
-        private bool IsSameAs(
-            byte[]	a,
-            int		off,
-            byte[]	b)
+        private bool IsSameAs(byte[] a, int off, byte[] b)
         {
             if ((a.Length - off) != b.Length)
-            {
                 return false;
-            }
 
             for (int i = 0; i != b.Length; i++)
             {
                 if (a[i + off] != b[i])
-                {
                     return false;
-                }
             }
 
             return true;
         }
 
-        private bool StartsWith(
-            byte[]	a,
-            byte[]	b)
+        private bool StartsWith(byte[] a, byte[] b)
         {
             if (a.Length < b.Length)
                 return false;
@@ -130,7 +110,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
-        public virtual void DoTest1()
+        public virtual void Test1()
         {
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod1, pub1);
             RsaKeyParameters privParameters = new RsaKeyParameters(true, mod1, pri1);
@@ -150,21 +130,15 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!AreEqual(sig1, data))
-            {
-                Fail("failed ISO9796-1 generation Test 1");
-            }
+            Assert.That(Arrays.AreEqual(sig1, data), "failed ISO9796-1 generation Test 1");
 
             data = eng.ProcessBlock(data, 0, data.Length);
 
-            if (!AreEqual(msg1, data))
-            {
-                Fail("failed ISO9796-1 retrieve Test 1");
-            }
+            Assert.That(Arrays.AreEqual(msg1, data), "failed ISO9796-1 retrieve Test 1");
         }
 
         [Test]
-        public virtual void DoTest2()
+        public virtual void Test2()
         {
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod1, pub1);
             RsaKeyParameters privParameters = new RsaKeyParameters(true, mod1, pri1);
@@ -182,21 +156,15 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!IsSameAs(data, 1, sig2))
-            {
-                Fail("failed ISO9796-1 generation Test 2");
-            }
+            Assert.That(IsSameAs(data, 1, sig2), "failed ISO9796-1 generation Test 2");
 
             data = eng.ProcessBlock(data, 0, data.Length);
 
-            if (!AreEqual(msg2, data))
-            {
-                Fail("failed ISO9796-1 retrieve Test 2");
-            }
+            Assert.That(Arrays.AreEqual(msg2, data), "failed ISO9796-1 retrieve Test 2");
         }
 
         [Test]
-        public virtual void DoTest3()
+        public virtual void Test3()
         {
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod2, pub2);
             RsaKeyParameters privParameters = new RsaKeyParameters(true, mod2, pri2);
@@ -216,21 +184,15 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!IsSameAs(sig3, 1, data))
-            {
-                Fail("failed ISO9796-1 generation Test 3");
-            }
+            Assert.That(IsSameAs(sig3, 1, data), "failed ISO9796-1 generation Test 3");
 
             data = eng.ProcessBlock(data, 0, data.Length);
 
-            if (!IsSameAs(msg3, 0, data))
-            {
-                Fail("failed ISO9796-1 retrieve Test 3");
-            }
+            Assert.That(IsSameAs(msg3, 0, data), "failed ISO9796-1 retrieve Test 3");
         }
 
         [Test]
-        public virtual void DoTest4()
+        public virtual void Test4()
         {
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod3, pub3);
             RsaKeyParameters privParameters = new RsaKeyParameters(true, mod3, pri3);
@@ -251,71 +213,46 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!IsSameAs(sig4, 0, data))
-            {
-                Fail("failed ISO9796-2 generation Test 4");
-            }
+            Assert.That(IsSameAs(sig4, 0, data), "failed ISO9796-2 generation Test 4");
 
             eng.Update(msg4[0]);
             eng.BlockUpdate(msg4, 1, msg4.Length - 1);
 
-            if (!eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 verify Test 4");
-            }
+            Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 4");
 
-            if (eng.HasFullMessage())
-            {
-                eng = new Iso9796d2Signer(rsa, new RipeMD128Digest());
+            Assert.That(eng.HasFullMessage(), "full message flag false - Test 4");
 
-                eng.Init(false, pubParameters);
+            eng = new Iso9796d2Signer(rsa, new RipeMD128Digest());
 
-                if (!eng.VerifySignature(sig4))
-                {
-                    Fail("failed ISO9796-2 verify and recover Test 4");
-                }
+            eng.Init(false, pubParameters);
 
-                if(!IsSameAs(eng.GetRecoveredMessage(), 0, msg4))
-                {
-                    Fail("failed ISO9796-2 recovered message Test 4");
-                }
+            Assert.True(eng.VerifySignature(sig4), "failed ISO9796-2 verify and recover Test 4");
 
-                // try update with recovered
-                eng.UpdateWithRecoveredMessage(sig4);
+            Assert.That(IsSameAs(eng.GetRecoveredMessage(), 0, msg4), "failed ISO9796-2 recovered message Test 4");
 
-                if(!IsSameAs(eng.GetRecoveredMessage(), 0, msg4))
-                {
-                    Fail("failed ISO9796-2 updateWithRecovered recovered message Test 4");
-                }
-                
-                if (!eng.VerifySignature(sig4))
-                {
-                    Fail("failed ISO9796-2 updateWithRecovered verify and recover Test 4");
-                }
-                
-                if(!IsSameAs(eng.GetRecoveredMessage(), 0, msg4))
-                {
-                    Fail("failed ISO9796-2 updateWithRecovered recovered verify message Test 4");
-                }
-                
-                // should fail
-                eng.UpdateWithRecoveredMessage(sig4);
-                
-                eng.BlockUpdate(msg4, 0, msg4.Length);
-                
-                if (eng.VerifySignature(sig4))
-                {
-                    Fail("failed ISO9796-2 updateWithRecovered verify and recover Test 4");
-                }
-            }
-            else
-            {
-                Fail("full message flag false - Test 4");
-            }
+            // try update with recovered
+            eng.UpdateWithRecoveredMessage(sig4);
+
+            Assert.That(IsSameAs(eng.GetRecoveredMessage(), 0, msg4),
+                "failed ISO9796-2 updateWithRecovered recovered message Test 4");
+
+            Assert.True(eng.VerifySignature(sig4),
+                "failed ISO9796-2 updateWithRecovered verify and recover Test 4");
+
+            Assert.That(IsSameAs(eng.GetRecoveredMessage(), 0, msg4),
+                "failed ISO9796-2 updateWithRecovered recovered verify message Test 4");
+
+            // should fail
+            eng.UpdateWithRecoveredMessage(sig4);
+
+            eng.BlockUpdate(msg4, 0, msg4.Length);
+
+            Assert.False(eng.VerifySignature(sig4),
+                "failed ISO9796-2 updateWithRecovered verify and recover Test 4");
         }
 
         [Test]
-        public virtual void DoTest5()
+        public virtual void Test5()
         {
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod3, pub3);
             RsaKeyParameters privParameters = new RsaKeyParameters(true, mod3, pri3);
@@ -336,34 +273,25 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!IsSameAs(sig5, 0, data))
-            {
-                Fail("failed ISO9796-2 generation Test 5");
-            }
+            Assert.That(IsSameAs(sig5, 0, data), "failed ISO9796-2 generation Test 5");
 
             eng.Update(msg5[0]);
             eng.BlockUpdate(msg5, 1, msg5.Length - 1);
 
-            if (!eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 verify Test 5");
-            }
+            Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 5");
 
-            if (eng.HasFullMessage())
-            {
-                Fail("fullMessage true - Test 5");
-            }
+            Assert.False(eng.HasFullMessage(), "fullMessage true - Test 5");
 
             if (!StartsWith(msg5, eng.GetRecoveredMessage()))
             {
-                Fail("failed ISO9796-2 partial recovered message Test 5");
+                Assert.Fail("failed ISO9796-2 partial recovered message Test 5");
             }
 
             int length = eng.GetRecoveredMessage().Length;
 
             if (length >= msg5.Length)
             {
-                Fail("Test 5 recovered message too long");
+                Assert.Fail("Test 5 recovered message too long");
             }
 
             eng = new Iso9796d2Signer(rsa, new RipeMD160Digest(), true);
@@ -374,45 +302,33 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             if (!StartsWith(msg5, eng.GetRecoveredMessage()))
             {
-                Fail("failed ISO9796-2 updateWithRecovered partial recovered message Test 5");
+                Assert.Fail("failed ISO9796-2 updateWithRecovered partial recovered message Test 5");
             }
 
-            if (eng.HasFullMessage())
-            {
-                Fail("fullMessage updateWithRecovered true - Test 5");
-            }
+            Assert.False(eng.HasFullMessage(), "fullMessage updateWithRecovered true - Test 5");
 
-            for (int i = length ; i != msg5.Length; i++)
+            for (int i = length; i != msg5.Length; i++)
             {
                 eng.Update(msg5[i]);
             }
 
-            if (!eng.VerifySignature(sig5))
-            {
-                Fail("failed ISO9796-2 verify Test 5");
-            }
+            Assert.True(eng.VerifySignature(sig5), "failed ISO9796-2 verify Test 5");
 
-            if (eng.HasFullMessage())
-            {
-                Fail("fullMessage updateWithRecovered true - Test 5");
-            }
+            Assert.False(eng.HasFullMessage(), "fullMessage updateWithRecovered true - Test 5");
 
             // should fail
             eng.UpdateWithRecoveredMessage(sig5);
 
             eng.BlockUpdate(msg5, 0, msg5.Length);
 
-            if (eng.VerifySignature(sig5))
-            {
-                Fail("failed ISO9796-2 updateWithRecovered verify fail Test 5");
-            }
+            Assert.False(eng.VerifySignature(sig5), "failed ISO9796-2 updateWithRecovered verify fail Test 5");
         }
 
         //
         // against a zero length string
         //
         [Test]
-        public virtual void DoTest6()
+        public virtual void Test6()
         {
             byte[] salt = Hex.Decode("61DF870C4890FE85D6E3DD87C3DCE3723F91DB49");
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod6, pub6);
@@ -432,19 +348,13 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!IsSameAs(sig6, 1, data))
-            {
-                Fail("failed ISO9796-2 generation Test 6");
-            }
+            Assert.That(IsSameAs(sig6, 1, data), "failed ISO9796-2 generation Test 6");
 
-            if (!eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 verify Test 6");
-            }
+            Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 6");
         }
 
         [Test]
-        public virtual void DoTest7()
+        public virtual void Test7()
         {
             byte[] salt = new byte[0];
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod6, pub6);
@@ -467,27 +377,18 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!IsSameAs(sig7, 0, data))
-            {
-                Fail("failed ISO9796-2 generation Test 7");
-            }
+            Assert.That(IsSameAs(sig7, 0, data), "failed ISO9796-2 generation Test 7");
 
             eng.Update(msg7[0]);
             eng.BlockUpdate(msg7, 1, msg7.Length - 1);
 
-            if (!eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 verify Test 7");
-            }
+            Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 7");
 
-            if (!IsSameAs(msg7, 0, eng.GetRecoveredMessage()))
-            {
-                Fail("failed ISO9796-2 recovery Test 7");
-            }
+            Assert.That(IsSameAs(msg7, 0, eng.GetRecoveredMessage()), "failed ISO9796-2 recovery Test 7");
         }
 
         [Test]
-        public virtual void DoTest8()
+        public virtual void Test8()
         {
             byte[] salt = Hex.Decode("78E293203CBA1B7F92F05F4D171FF8CA3E738FF8");
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod6, pub6);
@@ -510,22 +411,16 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!IsSameAs(sig8, 0, data))
-            {
-                Fail("failed ISO9796-2 generation Test 8");
-            }
+            Assert.That(IsSameAs(sig8, 0, data), "failed ISO9796-2 generation Test 8");
 
             eng.Update(msg8[0]);
             eng.BlockUpdate(msg8, 1, msg8.Length - 1);
 
-            if (!eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 verify Test 8");
-            }
+            Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 8");
         }
 
         [Test]
-        public virtual void DoTest9()
+        public virtual void Test9()
         {
             RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod6, pub6);
             RsaKeyParameters privParameters = new RsaKeyParameters(true, mod6, pri6);
@@ -546,36 +441,30 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.Init(false, pubParameters);
 
-            if (!IsSameAs(sig9, 0, data))
-            {
-                Fail("failed ISO9796-2 generation Test 9");
-            }
+            Assert.That(IsSameAs(sig9, 0, data), "failed ISO9796-2 generation Test 9");
 
             eng.Update(msg9[0]);
             eng.BlockUpdate(msg9, 1, msg9.Length - 1);
 
-            if (!eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 verify Test 9");
-            }
+            Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 9");
         }
 
         [Test]
-        public virtual void DoTest10()
+        public virtual void Test10()
         {
-            BigInteger          mod = new BigInteger("B3ABE6D91A4020920F8B3847764ECB34C4EB64151A96FDE7B614DC986C810FF2FD73575BDF8532C06004C8B4C8B64F700A50AEC68C0701ED10E8D211A4EA554D", 16);
-            BigInteger          pubExp = new BigInteger("65537", 10);
-            BigInteger          priExp = new BigInteger("AEE76AE4716F77C5782838F328327012C097BD67E5E892E75C1356E372CCF8EE1AA2D2CBDFB4DA19F703743F7C0BA42B2D69202BA7338C294D1F8B6A5771FF41", 16);
-            RsaKeyParameters    pubParameters = new RsaKeyParameters(false, mod, pubExp);
-            RsaKeyParameters    privParameters = new RsaKeyParameters(true, mod, priExp);
-            RsaEngine           rsa = new RsaEngine();
-            byte[]              data;
+            BigInteger mod = new BigInteger("B3ABE6D91A4020920F8B3847764ECB34C4EB64151A96FDE7B614DC986C810FF2FD73575BDF8532C06004C8B4C8B64F700A50AEC68C0701ED10E8D211A4EA554D", 16);
+            BigInteger pubExp = new BigInteger("65537", 10);
+            BigInteger priExp = new BigInteger("AEE76AE4716F77C5782838F328327012C097BD67E5E892E75C1356E372CCF8EE1AA2D2CBDFB4DA19F703743F7C0BA42B2D69202BA7338C294D1F8B6A5771FF41", 16);
+            RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod, pubExp);
+            RsaKeyParameters privParameters = new RsaKeyParameters(true, mod, priExp);
+            RsaEngine rsa = new RsaEngine();
+            byte[] data;
 
             //
             // ISO 9796-2 - PSS Signing
             //
-            IDigest              dig = new Sha1Digest();
-            Iso9796d2PssSigner  eng = new Iso9796d2PssSigner(rsa, dig, dig.GetDigestSize());
+            IDigest dig = new Sha1Digest();
+            Iso9796d2PssSigner eng = new Iso9796d2PssSigner(rsa, dig, dig.GetDigestSize());
 
             //
             // as the padding is random this test needs to repeat a few times to
@@ -595,32 +484,29 @@ namespace Org.BouncyCastle.Crypto.Tests
                 eng.Update(msg9[0]);
                 eng.BlockUpdate(msg9, 1, msg9.Length - 1);
 
-                if (!eng.VerifySignature(data))
-                {
-                    Fail("failed ISO9796-2 verify Test 10");
-                }
+                Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 10");
             }
         }
 
         [Test]
-        public virtual void DoTest11()
+        public virtual void Test11()
         {
-            BigInteger          mod = new BigInteger("B3ABE6D91A4020920F8B3847764ECB34C4EB64151A96FDE7B614DC986C810FF2FD73575BDF8532C06004C8B4C8B64F700A50AEC68C0701ED10E8D211A4EA554D", 16);
-            BigInteger          pubExp = new BigInteger("65537", 10);
-            BigInteger          priExp = new BigInteger("AEE76AE4716F77C5782838F328327012C097BD67E5E892E75C1356E372CCF8EE1AA2D2CBDFB4DA19F703743F7C0BA42B2D69202BA7338C294D1F8B6A5771FF41", 16);
-            RsaKeyParameters    pubParameters = new RsaKeyParameters(false, mod, pubExp);
-            RsaKeyParameters    privParameters = new RsaKeyParameters(true, mod, priExp);
-            RsaEngine           rsa = new RsaEngine();
-            byte[]              data;
-            byte[]              m1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            byte[]              m2 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
-            byte[]              m3 = { 1, 2, 3, 4, 5, 6, 7, 8 };
+            BigInteger mod = new BigInteger("B3ABE6D91A4020920F8B3847764ECB34C4EB64151A96FDE7B614DC986C810FF2FD73575BDF8532C06004C8B4C8B64F700A50AEC68C0701ED10E8D211A4EA554D", 16);
+            BigInteger pubExp = new BigInteger("65537", 10);
+            BigInteger priExp = new BigInteger("AEE76AE4716F77C5782838F328327012C097BD67E5E892E75C1356E372CCF8EE1AA2D2CBDFB4DA19F703743F7C0BA42B2D69202BA7338C294D1F8B6A5771FF41", 16);
+            RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod, pubExp);
+            RsaKeyParameters privParameters = new RsaKeyParameters(true, mod, priExp);
+            RsaEngine rsa = new RsaEngine();
+            byte[] data;
+            byte[] m1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            byte[] m2 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+            byte[] m3 = { 1, 2, 3, 4, 5, 6, 7, 8 };
 
             //
             // ISO 9796-2 - PSS Signing
             //
-            IDigest              dig = new Sha1Digest();
-            Iso9796d2PssSigner  eng = new Iso9796d2PssSigner(rsa, dig, dig.GetDigestSize());
+            IDigest dig = new Sha1Digest();
+            Iso9796d2PssSigner eng = new Iso9796d2PssSigner(rsa, dig, dig.GetDigestSize());
 
             //
             // check message bounds
@@ -635,49 +521,40 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.BlockUpdate(m2, 0, m2.Length);
 
-            if (eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 m2 verify Test 11");
-            }
+            Assert.False(eng.VerifySignature(data), "failed ISO9796-2 m2 verify Test 11");
 
             eng.Init(false, pubParameters);
 
             eng.BlockUpdate(m3, 0, m3.Length);
 
-            if (eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 m3 verify Test 11");
-            }
+            Assert.False(eng.VerifySignature(data), "failed ISO9796-2 m3 verify Test 11");
 
             eng.Init(false, pubParameters);
 
             eng.BlockUpdate(m1, 0, m1.Length);
 
-            if (!eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 verify Test 11");
-            }
+            Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 11");
         }
 
         [Test]
-        public virtual void DoTest12()
+        public virtual void Test12()
         {
-            BigInteger          mod = new BigInteger("B3ABE6D91A4020920F8B3847764ECB34C4EB64151A96FDE7B614DC986C810FF2FD73575BDF8532C06004C8B4C8B64F700A50AEC68C0701ED10E8D211A4EA554D", 16);
-            BigInteger          pubExp = new BigInteger("65537", 10);
-            BigInteger          priExp = new BigInteger("AEE76AE4716F77C5782838F328327012C097BD67E5E892E75C1356E372CCF8EE1AA2D2CBDFB4DA19F703743F7C0BA42B2D69202BA7338C294D1F8B6A5771FF41", 16);
-            RsaKeyParameters    pubParameters = new RsaKeyParameters(false, mod, pubExp);
-            RsaKeyParameters    privParameters = new RsaKeyParameters(true, mod, priExp);
-            RsaEngine           rsa = new RsaEngine();
-            byte[]              data;
-            byte[]              m1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-            byte[]              m2 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
-            byte[]              m3 = { 1, 2, 3, 4, 5, 6, 7, 8 };
+            BigInteger mod = new BigInteger("B3ABE6D91A4020920F8B3847764ECB34C4EB64151A96FDE7B614DC986C810FF2FD73575BDF8532C06004C8B4C8B64F700A50AEC68C0701ED10E8D211A4EA554D", 16);
+            BigInteger pubExp = new BigInteger("65537", 10);
+            BigInteger priExp = new BigInteger("AEE76AE4716F77C5782838F328327012C097BD67E5E892E75C1356E372CCF8EE1AA2D2CBDFB4DA19F703743F7C0BA42B2D69202BA7338C294D1F8B6A5771FF41", 16);
+            RsaKeyParameters pubParameters = new RsaKeyParameters(false, mod, pubExp);
+            RsaKeyParameters privParameters = new RsaKeyParameters(true, mod, priExp);
+            RsaEngine rsa = new RsaEngine();
+            byte[] data;
+            byte[] m1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            byte[] m2 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 0 };
+            byte[] m3 = { 1, 2, 3, 4, 5, 6, 7, 8 };
 
             //
             // ISO 9796-2 - Regular Signing
             //
-            IDigest           dig = new Sha1Digest();
-            Iso9796d2Signer  eng = new Iso9796d2Signer(rsa, dig);
+            IDigest dig = new Sha1Digest();
+            Iso9796d2Signer eng = new Iso9796d2Signer(rsa, dig);
 
             //
             // check message bounds
@@ -692,32 +569,23 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             eng.BlockUpdate(m2, 0, m2.Length);
 
-            if (eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 m2 verify Test 12");
-            }
+            Assert.False(eng.VerifySignature(data), "failed ISO9796-2 m2 verify Test 12");
 
             eng.Init(false, pubParameters);
 
             eng.BlockUpdate(m3, 0, m3.Length);
 
-            if (eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 m3 verify Test 12");
-            }
+            Assert.False(eng.VerifySignature(data), "failed ISO9796-2 m3 verify Test 12");
 
             eng.Init(false, pubParameters);
 
             eng.BlockUpdate(m1, 0, m1.Length);
 
-            if (!eng.VerifySignature(data))
-            {
-                Fail("failed ISO9796-2 verify Test 12");
-            }
+            Assert.True(eng.VerifySignature(data), "failed ISO9796-2 verify Test 12");
         }
 
         [Test]
-        public void DoTest13()
+        public void Test13()
         {
             BigInteger modulus = new BigInteger(1, Hex.Decode("CDCBDABBF93BE8E8294E32B055256BBD0397735189BF75816341BB0D488D05D627991221DF7D59835C76A4BB4808ADEEB779E7794504E956ADC2A661B46904CDC71337DD29DDDD454124EF79CFDD7BC2C21952573CEFBA485CC38C6BD2428809B5A31A898A6B5648CAA4ED678D9743B589134B7187478996300EDBA16271A861"));
             BigInteger pubExp = new BigInteger(1, Hex.Decode("010001"));
@@ -739,16 +607,13 @@ namespace Org.BouncyCastle.Crypto.Tests
             signer.Init(true, privParams);
             signer.BlockUpdate(challenge, 0, challenge.Length);
 
-            byte[]  sig = signer.GenerateSignature();
+            byte[] sig = signer.GenerateSignature();
 
             // verify
             signer.Init(false, pubParams);
             signer.BlockUpdate(challenge, 0, challenge.Length);
 
-            if (!signer.VerifySignature(sig))
-            {
-                Fail("basic verification failed");
-            }
+            Assert.True(signer.VerifySignature(sig), "basic verification failed");
 
             // === LETS ACTUALLY DO SOME RECOVERY, USING INPUT FROM INTERNAL AUTHENTICATE ===
 
@@ -766,10 +631,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             signer.UpdateWithRecoveredMessage(signature);
             signer.BlockUpdate(challenge, 0, challenge.Length);
 
-            if (!signer.VerifySignature(signature))
-            {
-                Fail("recovered + challenge signature failed");
-            }
+            Assert.True(signer.VerifySignature(signature), "recovered + challenge signature failed");
 
             // === FINALLY, USING SHA-256 ===
 
@@ -796,24 +658,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             signer.Init(false, pubParams);
             signer.UpdateWithRecoveredMessage(sig3);
             signer.BlockUpdate(challenge, 0, challenge.Length);
-            if (signer.VerifySignature(sig3))
-            {
-                if (signer.HasFullMessage())
-                {
-                    Fail("signer indicates full message");
-                }
-                byte[] recoverableMessage = signer.GetRecoveredMessage();
+            Assert.True(signer.VerifySignature(sig3), "recoverable + nonce failed.");
 
-                // sanity check, normally the nonce is ignored in eMRTD specs (PKI Technical Report)
-                if (!Arrays.AreEqual(nonce, recoverableMessage))
-                {
-                    Fail("Nonce compare with recoverable part of message failed");
-                }
-            }
-            else
-            {
-                Fail("recoverable + nonce failed.");
-            }
+            Assert.False(signer.HasFullMessage(), "signer indicates full message");
+
+            byte[] recoverableMessage = signer.GetRecoveredMessage();
+
+            // sanity check, normally the nonce is ignored in eMRTD specs (PKI Technical Report)
+            Assert.That(Arrays.AreEqual(nonce, recoverableMessage),
+                "Nonce compare with recoverable part of message failed");
         }
 
         private static readonly byte[] longMessage = Base64.Decode(
@@ -864,9 +717,9 @@ namespace Org.BouncyCastle.Crypto.Tests
           + "nJznaXcO8QFOxVPbrF2s4GdPIMDonEyAHdrnzoghlg==");
 
         [Test]
-        public void DoShortPartialTest()
+        public void ShortPartial()
         {
-            byte[]     recovered = Hex.Decode("5553482b312b534536383031353332393731392b322b312b362b322b312b313a3a393939393939393939393939393a3a392b323a3a373737373737373737373737373a3a392b2b353a32303133303430353a313133");
+            byte[] recovered = Hex.Decode("5553482b312b534536383031353332393731392b322b312b362b322b312b313a3a393939393939393939393939393a3a392b323a3a373737373737373737373737373a3a392b2b353a32303133303430353a313133");
             BigInteger exp = new BigInteger("10001", 16);
             BigInteger mod = new BigInteger("b9b70b083da9e37e23cde8e654855db31e21d2d3fc11a5f91d2b3c311efa8f5e28c757dd6fc798631cb1b9d051c14119749cb122ad76e8c3fd7bd93abe282c026a14fba9f8023977a7a0d8b49a24d1ad87e4379a931846a1ef9520ea57e28c998cf65722683d0caaa0da8306973e2496a25cbd3cb4adb4b284e25604fabf12f385456c75da7c3c4cde37440cfb7db8c8fe6851e2bc59767b9f7218540238ac8acef3bc7bd3dc6671320c2c1a2ac8a6799ce1eaf62b9683ab1e1341b37b9249dbd6cd987b2f27b5c4619a1eda7f0fb0b59a519afbbc3cee640261cec90a4bb8fefbc844082dca9f549e56943e758579a453a357e6ccb37fc46718a5b8c3227e5d", 16);
 
@@ -881,21 +734,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] recoveredMessage = pssSign.GetRecoveredMessage();
             pssSign.BlockUpdate(longMessage, recoveredMessage.Length, longMessage.Length - recoveredMessage.Length);
 
-            if (!pssSign.VerifySignature(shortPartialSig))
-            {
-                Fail("short partial PSS sig verification failed.");
-            }
+            Assert.True(pssSign.VerifySignature(shortPartialSig), "short partial PSS sig verification failed.");
 
             byte[] mm = pssSign.GetRecoveredMessage();
 
-            if (!Arrays.AreEqual(recovered, mm))
-            {
-                Fail("short partial PSS recovery failed");
-            }
+            Assert.That(Arrays.AreEqual(recovered, mm), "short partial PSS recovery failed");
         }
 
         [Test]
-        public void DoFullMessageTest()
+        public void FullMessage()
         {
             BigInteger modulus = new BigInteger(1, Hex.Decode("CDCBDABBF93BE8E8294E32B055256BBD0397735189BF75816341BB0D488D05D627991221DF7D59835C76A4BB4808ADEEB779E7794504E956ADC2A661B46904CDC71337DD29DDDD454124EF79CFDD7BC2C21952573CEFBA485CC38C6BD2428809B5A31A898A6B5648CAA4ED678D9743B589134B7187478996300EDBA16271A861"));
             BigInteger pubExp = new BigInteger(1, Hex.Decode("010001"));
@@ -920,36 +767,11 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             pssSign.UpdateWithRecoveredMessage(sig);
 
-            if (!pssSign.VerifySignature(sig))
-            {
-                Fail("challenge PSS sig verification failed.");
-            }
+            Assert.That(pssSign.VerifySignature(sig), "challenge PSS sig verification failed.");
 
             byte[] mm = pssSign.GetRecoveredMessage();
 
-            if (!Arrays.AreEqual(challenge, mm))
-            {
-                Fail("challenge partial PSS recovery failed");
-            }
-        }
-
-        public override void PerformTest()
-        {
-            DoTest1();
-            DoTest2();
-            DoTest3();
-            DoTest4();
-            DoTest5();
-            DoTest6();
-            DoTest7();
-            DoTest8();
-            DoTest9();
-            DoTest10();
-            DoTest11();
-            DoTest12();
-            DoTest13();
-            DoShortPartialTest();
-            DoFullMessageTest();
+            Assert.That(Arrays.AreEqual(challenge, mm), "challenge partial PSS recovery failed");
         }
     }
 }
