@@ -31,6 +31,10 @@ namespace Org.BouncyCastle.Crypto
         int Collect(Span<byte> output);
 #endif
 
+        /*
+         * TODO[api] Results should have an exact known length; add a suitably-named property to access it.
+         * This method should be obsoleted and documented as actually returning the exact value.
+         */
         /// <summary>Return an upper limit for the size of the result.</summary>
         int GetMaxResultLength();
     }
