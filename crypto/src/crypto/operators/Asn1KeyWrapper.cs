@@ -174,8 +174,8 @@ namespace Org.BouncyCastle.Crypto.Operators
 
         static KeyWrapperUtil()
         {
-            m_providerMap.Add("RSA/ECB/PKCS1PADDING", new RsaOaepWrapperProvider(OiwObjectIdentifiers.IdSha1));
-            m_providerMap.Add("RSA/NONE/PKCS1PADDING", new RsaOaepWrapperProvider(OiwObjectIdentifiers.IdSha1));
+            m_providerMap.Add("RSA/ECB/PKCS1PADDING", new RsaPkcs1WrapperProvider());
+            m_providerMap.Add("RSA/NONE/PKCS1PADDING", new RsaPkcs1WrapperProvider());
             m_providerMap.Add("RSA/NONE/OAEPWITHSHA1ANDMGF1PADDING", new RsaOaepWrapperProvider(OiwObjectIdentifiers.IdSha1));
             m_providerMap.Add("RSA/NONE/OAEPWITHSHA224ANDMGF1PADDING", new RsaOaepWrapperProvider(NistObjectIdentifiers.IdSha224));
             m_providerMap.Add("RSA/NONE/OAEPWITHSHA256ANDMGF1PADDING", new RsaOaepWrapperProvider(NistObjectIdentifiers.IdSha256));
