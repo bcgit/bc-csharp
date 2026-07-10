@@ -345,11 +345,10 @@ namespace Org.BouncyCastle.Tsp
             public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
             {
                 Asn1.Cms.AttributeTable tab = infoGen.SignedAttributeTableGenerator.GetAttributes(parameters);
-                if (tab[PkcsObjectIdentifiers.IdAASigningCertificate] == null)
-                {
-                    return tab.Add(PkcsObjectIdentifiers.IdAASigningCertificate, new SigningCertificate(essCertID));
-                }
-                return tab;
+                if (tab.HasAny(PkcsObjectIdentifiers.IdAASigningCertificate))
+                    return tab;
+
+                return tab.Add(PkcsObjectIdentifiers.IdAASigningCertificate, new SigningCertificate(essCertID));
             }
         }
 
@@ -368,11 +367,10 @@ namespace Org.BouncyCastle.Tsp
             public Asn1.Cms.AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
             {
                 Asn1.Cms.AttributeTable tab = infoGen.SignedAttributeTableGenerator.GetAttributes(parameters);
-                if (tab[PkcsObjectIdentifiers.IdAASigningCertificateV2] == null)
-                {
-                    return tab.Add(PkcsObjectIdentifiers.IdAASigningCertificateV2, new SigningCertificateV2(essCertIDv2));
-                }
-                return tab;
+                if (tab.HasAny(PkcsObjectIdentifiers.IdAASigningCertificateV2))
+                    return tab;
+
+                return tab.Add(PkcsObjectIdentifiers.IdAASigningCertificateV2, new SigningCertificateV2(essCertIDv2));
             }
         }
     }

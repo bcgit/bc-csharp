@@ -43,31 +43,33 @@ namespace Org.BouncyCastle.Tsp
 
 			m_tsaSignerInfo = signers[0];
 
-			try
-			{
-                m_tstInfo = new TimeStampTokenInfo(TstInfo.GetInstance(CmsUtilities.GetByteArray(m_tsToken.SignedContent)));
+            try
+            {
+                var tstInfo = TstInfo.GetInstance(CmsUtilities.GetByteArray(m_tsToken.SignedContent));
+                m_tstInfo = new TimeStampTokenInfo(tstInfo);
 
-                Asn1.Cms.Attribute attr = m_tsaSignerInfo.SignedAttributes[PkcsObjectIdentifiers.IdAASigningCertificate];
-
-				if (attr != null)
-				{
+                if (m_tsaSignerInfo.SignedAttributes.TryGetFirst(PkcsObjectIdentifiers.IdAASigningCertificateV2,
+                    out var attrV2))
+                {
+                    SigningCertificateV2 signCertV2 = SigningCertificateV2.GetInstance(attrV2.AttrValues[0]);
+                    m_certID = EssCertIDv2.GetInstance(signCertV2.GetCerts()[0]);
+                }
+                else if (m_tsaSignerInfo.SignedAttributes.TryGetFirst(PkcsObjectIdentifiers.IdAASigningCertificate,
+                    out var attr))
+                {
                     SigningCertificate signCert = SigningCertificate.GetInstance(attr.AttrValues[0]);
                     m_certID = EssCertIDv2.From(EssCertID.GetInstance(signCert.GetCerts()[0]));
                 }
-				else
-				{
-					attr = m_tsaSignerInfo.SignedAttributes[PkcsObjectIdentifiers.IdAASigningCertificateV2] ??
-                        throw new TspValidationException("no signing certificate attribute found, time stamp invalid.");
-
-					SigningCertificateV2 signCertV2 = SigningCertificateV2.GetInstance(attr.AttrValues[0]);
-					m_certID = EssCertIDv2.GetInstance(signCertV2.GetCerts()[0]);
-				}
-			}
-			catch (CmsException e)
-			{
-				throw new TspException(e.Message, e.InnerException);
-			}
-		}
+                else
+                {
+                    throw new TspValidationException("no signing certificate attribute found, time stamp invalid.");
+                }
+            }
+            catch (CmsException e)
+            {
+                throw new TspException(e.Message, e.InnerException);
+            }
+        }
 
 		public TimeStampTokenInfo TimeStampInfo => m_tstInfo;
 

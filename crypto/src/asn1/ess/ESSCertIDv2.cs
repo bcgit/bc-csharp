@@ -8,18 +8,27 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Ess
 {
+    /// <remarks>
+    /// <code>
+    /// EssCertIDv2 ::=  SEQUENCE {
+    ///     hashAlgorithm   AlgorithmIdentifier DEFAULT { algorithm id-sha256},
+    ///     certHash        Hash,
+    ///     issuerSerial    IssuerSerial OPTIONAL
+    /// }
+    /// 
+    /// Hash ::= OCTET STRING
+    /// </code>
+    /// </remarks>
     public class EssCertIDv2
         : Asn1Encodable
     {
         private static readonly AlgorithmIdentifier DefaultHashAlgorithm =
             DefaultDigestAlgorithmFinder.Instance.Find(NistObjectIdentifiers.IdSha256);
+        private static readonly AlgorithmIdentifier V1HashAlgorithm =
+            new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
 
-        public static EssCertIDv2 From(EssCertID essCertID)
-        {
-            AlgorithmIdentifier hashAlgorithm = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
-
-            return new EssCertIDv2(hashAlgorithm, essCertID.CertHash, essCertID.IssuerSerial);
-        }
+        public static EssCertIDv2 From(EssCertID essCertID) =>
+            new EssCertIDv2(V1HashAlgorithm, essCertID.CertHash, essCertID.IssuerSerial);
 
         public static EssCertIDv2 GetInstance(object obj)
         {
@@ -92,23 +101,6 @@ namespace Org.BouncyCastle.Asn1.Ess
 
         public IssuerSerial IssuerSerial => m_issuerSerial;
 
-        /**
-         * <pre>
-         * EssCertIDv2 ::=  SEQUENCE {
-         *     hashAlgorithm     AlgorithmIdentifier
-         *              DEFAULT {algorithm id-sha256},
-         *     certHash          Hash,
-         *     issuerSerial      IssuerSerial OPTIONAL
-         * }
-         *
-         * Hash ::= OCTET STRING
-         *
-         * IssuerSerial ::= SEQUENCE {
-         *     issuer         GeneralNames,
-         *     serialNumber   CertificateSerialNumber
-         * }
-         * </pre>
-         */
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);

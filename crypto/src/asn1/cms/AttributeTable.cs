@@ -41,23 +41,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_count = count;
         }
 
-        /// <summary>Return the first attribute matching the given OBJECT IDENTIFIER</summary>
-        public Attribute this[DerObjectIdentifier oid]
-        {
-            get
-            {
-                if (!m_attributes.TryGetValue(oid, out object existingValue))
-                    return null;
-
-                if (existingValue is List<Attribute> existingList)
-                    return existingList[0];
-
-                if (existingValue is Attribute existingAttr)
-                    return existingAttr;
-
-                throw new InvalidOperationException();
-            }
-        }
+        /// <summary>Return the first attribute matching the given OBJECT IDENTIFIER, or <c>null</c>.</summary>
+        public Attribute this[DerObjectIdentifier oid] => TryGetFirst(oid, out var first) ? first : null;
 
         public int Count => m_count;
 
@@ -129,6 +114,29 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new InvalidOperationException();
             int newCount = oldCount - countOfType;
             return new AttributeTable(newAttributes, newCount);
+        }
+
+        public bool TryGetFirst(DerObjectIdentifier oid, out Attribute attribute)
+        {
+            if (!m_attributes.TryGetValue(oid, out object existingValue))
+            {
+                attribute = default;
+                return false;
+            }
+
+            if (existingValue is Attribute existingAttribute)
+            {
+                attribute = existingAttribute;
+                return true;
+            }
+
+            if (existingValue is List<Attribute> existingList)
+            {
+                attribute = existingList[0];
+                return true;
+            }
+
+            throw new InvalidOperationException();
         }
 
         private static void AddAttribute(Dictionary<DerObjectIdentifier, object> attributes, Attribute a)
