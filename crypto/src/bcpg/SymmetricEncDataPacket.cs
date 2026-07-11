@@ -5,7 +5,17 @@ namespace Org.BouncyCastle.Bcpg
         : InputStreamPacket
     {
         public SymmetricEncDataPacket(BcpgInputStream bcpgIn)
-            : base(bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        public SymmetricEncDataPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(bcpgIn, PacketTag.SymmetricKeyEncrypted, newPacketFormat)
+        {
+        }
+
+        public SymmetricEncDataPacket()
+            : base(bcpgIn: null, PacketTag.SymmetricKeyEncrypted)
         {
         }
     }

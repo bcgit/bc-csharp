@@ -11,7 +11,12 @@ namespace Org.BouncyCastle.Bcpg
         private readonly long m_modDate;
 
         internal LiteralDataPacket(BcpgInputStream bcpgIn)
-            : base(bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        internal LiteralDataPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(bcpgIn, PacketTag.LiteralData, newPacketFormat)
         {
             m_format = bcpgIn.RequireByte();
 

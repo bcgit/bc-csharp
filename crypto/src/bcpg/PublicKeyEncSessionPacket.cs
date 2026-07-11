@@ -11,12 +11,31 @@ namespace Org.BouncyCastle.Bcpg
     public class PublicKeyEncSessionPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
+        /// <summary>Version 3 PKESK packet.</summary>
+        /// <remarks>
+        /// Used only with <see cref="SymmetricEncIntegrityPacket.Version1">V1 SEIPD</see> or
+        /// <see cref="SymmetricEncDataPacket">SED</see> packets.
+        /// </remarks>
+        public const int Version3 = 3;
+
+        /// <summary>Version 6 PKESK packet.</summary>
+        /// <remarks>
+        /// Used only with <see cref="SymmetricEncIntegrityPacket.Version2">V2 SEIPD</see> packets.
+        /// </remarks>
+        public const int Version6 = 6;
+
         private readonly int m_version;
         private readonly ulong m_keyID;
         private readonly PublicKeyAlgorithmTag m_algorithm;
         private readonly byte[][] m_data;
 
         internal PublicKeyEncSessionPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        internal PublicKeyEncSessionPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.PublicKeyEncryptedSession, newPacketFormat)
         {
             m_version = bcpgIn.RequireByte();
             m_keyID = StreamUtilities.RequireUInt64BE(bcpgIn);
@@ -46,6 +65,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         public PublicKeyEncSessionPacket(long keyId, PublicKeyAlgorithmTag algorithm, byte[][] data)
+            : base(PacketTag.PublicKeyEncryptedSession)
         {
             m_version = 3;
             m_keyID = (ulong)keyId;
@@ -76,7 +96,7 @@ namespace Org.BouncyCastle.Bcpg
                 bodyLength += (uint)data.Length;
             }
 
-            bcpgOut.WritePacketHeader(PacketTag.PublicKeyEncryptedSession, bodyLength);
+            bcpgOut.WritePacketHeader(HasNewPacketFormat, PacketTag.PublicKeyEncryptedSession, bodyLength);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> body = stackalloc byte[10];

@@ -1,22 +1,23 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>
+    /// <remarks>
     /// General class for reading a PGP object stream.
     /// <p>
     /// Note: if this class finds a PgpPublicKey or a PgpSecretKey it
     /// will create a PgpPublicKeyRing, or a PgpSecretKeyRing for each
     /// key found. If all you are trying to do is read a key ring file use
     /// either PgpPublicKeyRingBundle or PgpSecretKeyRingBundle.</p>
-	/// </remarks>
-	public class PgpObjectFactory
+    /// </remarks>
+    public class PgpObjectFactory
     {
         private readonly BcpgInputStream bcpgIn;
 
-		public PgpObjectFactory(Stream inputStream)
+        private bool m_throwForUnknownCriticalPackets = false;
+
+        public PgpObjectFactory(Stream inputStream)
         {
             this.bcpgIn = BcpgInputStream.Wrap(inputStream);
         }
@@ -26,13 +27,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
         }
 
-		/// <summary>Return the next object in the stream, or null if the end is reached.</summary>
-		/// <exception cref="IOException">On a parse error</exception>
+        /// <summary>Return the next object in the stream, or null if the end is reached.</summary>
+        /// <exception cref="IOException">On a parse error</exception>
         public PgpObject NextPgpObject()
         {
             PacketTag tag = bcpgIn.NextPacketTag();
 
-            if ((int) tag == -1)
+            if ((int)tag == -1)
                 return null;
 
             switch (tag)
@@ -72,8 +73,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
             case PacketTag.PublicKey:
                 return new PgpPublicKeyRing(bcpgIn);
-			case PacketTag.PublicSubkey:
-				return PgpPublicKeyRing.ReadSubkey(bcpgIn);
+            case PacketTag.PublicSubkey:
+                return PgpPublicKeyRing.ReadSubkey(bcpgIn);
             case PacketTag.CompressedData:
                 return new PgpCompressedData(bcpgIn);
             case PacketTag.LiteralData:
@@ -98,42 +99,28 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     }
                     catch (PgpException e)
                     {
-						throw new IOException("can't create one pass signature object: " + e);
-					}
+                        throw new IOException("can't create one pass signature object: " + e);
+                    }
                 }
 
-				return new PgpOnePassSignatureList(l.ToArray());
+                return new PgpOnePassSignatureList(l.ToArray());
             }
             case PacketTag.Marker:
                 return new PgpMarker(bcpgIn);
             case PacketTag.Padding:
                 return new PgpPadding(bcpgIn);
-            // TODO Add PgpUnknown/UnknownPacket
-            //case PacketTag.ModificationDetectionCode:
-            //case PacketTag.UserId:
-            //case PacketTag.UserAttribute:
-            //    return new UnknownPacket(tag, bcpgIn);
             case PacketTag.Experimental1:
             case PacketTag.Experimental2:
             case PacketTag.Experimental3:
             case PacketTag.Experimental4:
                 return new PgpExperimental(bcpgIn);
+            case PacketTag.ModificationDetectionCode:
+            case PacketTag.UserId:
+            case PacketTag.UserAttribute:
+                return new PgpUnknown(bcpgIn, false);
+            default:
+                return new PgpUnknown(bcpgIn, m_throwForUnknownCriticalPackets);
             }
-
-            // TODO Add PgpUnknown/UnknownPacket
-            //Packet packet = bcpgIn.ReadPacket();
-            //if (!(packet is UnknownPacket unknownPacket))
-            //{
-            //    // A tag not handled by the switch above but decoded into a typed Packet by
-            //    // BcpgInputStream.ReadPacket() (e.g. SecretSubkey) would otherwise throw an unchecked
-            //    // InvalidCastException here, escaping this method's throws IOException contract.
-            //    throw new IOException("unexpected packet in stream: " + packet);
-            //}
-            //if (!(throwForUnknownCriticalPackets && unknownPacket.IsCritical))
-            //    return unknownPacket;
-
-            // Leave the error message intact for backwards compatibility
-            throw new IOException("unknown object in stream: " + tag);
         }
 
         /// <summary>
@@ -141,15 +128,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// </summary>
         /// <returns>An <c>IList</c> containing all objects from this factory, in order.</returns>
         public IList<PgpObject> AllPgpObjects()
-		{
+        {
             var result = new List<PgpObject>();
-			PgpObject pgpObject;
-			while ((pgpObject = NextPgpObject()) != null)
-			{
-				result.Add(pgpObject);
-			}
-			return result;
-		}
+            PgpObject pgpObject;
+            while ((pgpObject = NextPgpObject()) != null)
+            {
+                result.Add(pgpObject);
+            }
+            return result;
+        }
 
         /// <summary>
         /// Read all available objects, returning only those that are assignable to the specified type.
@@ -168,6 +155,16 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
             }
             return result;
+        }
+
+        /// <summary>
+        /// If set to <c>true</c>, the object factory will throw an <see cref="IOException"/> if it encounters an
+        /// unknown packet with a packet tag within the critical range (0 - 39).
+        /// </summary>
+        public PgpObjectFactory SetThrowForUnknownCriticalPackets(bool throwException)
+        {
+            m_throwForUnknownCriticalPackets = throwException;
+            return this;
         }
     }
 }

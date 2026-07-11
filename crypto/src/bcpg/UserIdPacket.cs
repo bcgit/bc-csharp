@@ -9,16 +9,24 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_idData;
 
         public UserIdPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        public UserIdPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.UserId, newPacketFormat)
         {
             m_idData = bcpgIn.ReadAll();
         }
 
         public UserIdPacket(string id)
+            : base(PacketTag.UserId)
         {
             m_idData = Strings.ToUtf8ByteArray(id);
         }
 
         public UserIdPacket(byte[] rawId)
+            : base(PacketTag.UserId)
         {
             m_idData = Arrays.Clone(rawId);
         }
@@ -35,6 +43,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public override int GetHashCode() => Arrays.GetHashCode(m_idData);
 
-        public override void Encode(BcpgOutputStream bcpgOut) => bcpgOut.WritePacket(PacketTag.UserId, m_idData);
+        public override void Encode(BcpgOutputStream bcpgOut) =>
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.UserId, m_idData);
     }
 }

@@ -42,6 +42,12 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_authTag;                          // V5, V6
 
         public SymmetricKeyEncSessionPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        public SymmetricKeyEncSessionPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.SymmetricKeyEncryptedSessionKey, newPacketFormat)
         {
             m_version = bcpgIn.RequireByte();
 
@@ -129,6 +135,7 @@ namespace Org.BouncyCastle.Bcpg
 
         [Obsolete("Use 'CreateV4Packet' instead")]
         public SymmetricKeyEncSessionPacket(SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k, byte[] secKeyData)
+            : base(PacketTag.SymmetricKeyEncryptedSessionKey)
         {
             m_version = Version4;
             m_encAlgorithm = encAlgorithm;
@@ -142,6 +149,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <remarks>Create a v5 or v6 SKESK packet.</remarks>
         private SymmetricKeyEncSessionPacket(byte version, SymmetricKeyAlgorithmTag encAlgorithm,
             AeadAlgorithmTag aeadAlgorithm, byte[] iv, S2k s2k, byte[] secKeyData, byte[] authTag)
+            : base(PacketTag.SymmetricKeyEncryptedSessionKey)
         {
             int expectedIVLen = AeadUtilities.GetIVLength(aeadAlgorithm);
             if (expectedIVLen != iv.Length)
@@ -228,7 +236,7 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-            bcpgOut.WritePacket(PacketTag.SymmetricKeyEncryptedSessionKey, bOut.ToArray());
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.SymmetricKeyEncryptedSessionKey, bOut.ToArray());
         }
 
         public byte[] GetAAData() => CreateAAData(VersionByte, EncAlgorithm, AeadAlgorithm);

@@ -6,8 +6,13 @@ namespace Org.BouncyCastle.Bcpg
     {
         private readonly CompressionAlgorithmTag m_algorithm;
 
-		internal CompressedDataPacket(BcpgInputStream bcpgIn)
-			: base(bcpgIn)
+        internal CompressedDataPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        internal CompressedDataPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(bcpgIn, PacketTag.CompressedData, newPacketFormat)
         {
             m_algorithm = (CompressionAlgorithmTag)bcpgIn.RequireByte();
         }

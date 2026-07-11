@@ -119,13 +119,13 @@ namespace Org.BouncyCastle.Bcpg
             if ((hdr & 0x80) == 0)
                 throw new IOException("invalid header encountered");
 
-            bool newPacket = (hdr & 0x40) != 0;
+            bool newPacketFormat = (hdr & 0x40) != 0;
             PacketTag tag = 0;
 
             uint bodyLen;
             bool partial = false;
 
-            if (newPacket)
+            if (newPacketFormat)
             {
                 tag = (PacketTag)(hdr & 0x3f);
                 bodyLen = StreamUtilities.RequireBodyLen(this, out var streamFlags);
@@ -172,52 +172,52 @@ namespace Org.BouncyCastle.Bcpg
             switch (tag)
             {
             case PacketTag.Reserved:
-                return new InputStreamPacket(objStream);
+                return new ReservedPacket(objStream, newPacketFormat);
             case PacketTag.PublicKeyEncryptedSession:
-                return new PublicKeyEncSessionPacket(objStream);
+                return new PublicKeyEncSessionPacket(objStream, newPacketFormat);
             case PacketTag.Signature:
-                return new SignaturePacket(objStream);
+                return new SignaturePacket(objStream, newPacketFormat);
             case PacketTag.SymmetricKeyEncryptedSessionKey:
-                return new SymmetricKeyEncSessionPacket(objStream);
+                return new SymmetricKeyEncSessionPacket(objStream, newPacketFormat);
             case PacketTag.OnePassSignature:
-                return new OnePassSignaturePacket(objStream);
+                return new OnePassSignaturePacket(objStream, newPacketFormat);
             case PacketTag.SecretKey:
-                return new SecretKeyPacket(objStream);
+                return new SecretKeyPacket(objStream, newPacketFormat);
             case PacketTag.PublicKey:
-                return new PublicKeyPacket(objStream);
+                return new PublicKeyPacket(objStream, newPacketFormat);
             case PacketTag.SecretSubkey:
-                return new SecretSubkeyPacket(objStream);
+                return new SecretSubkeyPacket(objStream, newPacketFormat);
             case PacketTag.CompressedData:
-                return new CompressedDataPacket(objStream);
+                return new CompressedDataPacket(objStream, newPacketFormat);
             case PacketTag.SymmetricKeyEncrypted:
-                return new SymmetricEncDataPacket(objStream);
+                return new SymmetricEncDataPacket(objStream, newPacketFormat);
             case PacketTag.Marker:
-                return new MarkerPacket(objStream);
+                return new MarkerPacket(objStream, newPacketFormat);
             case PacketTag.LiteralData:
-                return new LiteralDataPacket(objStream);
+                return new LiteralDataPacket(objStream, newPacketFormat);
             case PacketTag.Trust:
-                return new TrustPacket(objStream);
+                return new TrustPacket(objStream, newPacketFormat);
             case PacketTag.UserId:
-                return new UserIdPacket(objStream);
+                return new UserIdPacket(objStream, newPacketFormat);
             case PacketTag.UserAttribute:
-                return new UserAttributePacket(objStream);
+                return new UserAttributePacket(objStream, newPacketFormat);
             case PacketTag.PublicSubkey:
-                return new PublicSubkeyPacket(objStream);
+                return new PublicSubkeyPacket(objStream, newPacketFormat);
             case PacketTag.SymmetricEncryptedIntegrityProtected:
-                return new SymmetricEncIntegrityPacket(objStream);
+                return new SymmetricEncIntegrityPacket(objStream, newPacketFormat);
             case PacketTag.ModificationDetectionCode:
-                return new ModDetectionCodePacket(objStream);
+                return new ModDetectionCodePacket(objStream, newPacketFormat);
             case PacketTag.AeadEncData:
-                return new AeadEncDataPacket(objStream);
+                return new AeadEncDataPacket(objStream, newPacketFormat);
             case PacketTag.Padding:
-                return new PaddingPacket(objStream);
+                return new PaddingPacket(objStream, newPacketFormat);
             case PacketTag.Experimental1:
             case PacketTag.Experimental2:
             case PacketTag.Experimental3:
             case PacketTag.Experimental4:
-                return new ExperimentalPacket(tag, objStream);
+                return new ExperimentalPacket(tag, objStream, newPacketFormat);
             default:
-                throw new IOException("unknown packet type encountered: " + tag);
+                return new UnknownPacket(tag, objStream, newPacketFormat);
             }
         }
 

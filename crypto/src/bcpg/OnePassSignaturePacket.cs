@@ -8,6 +8,9 @@ namespace Org.BouncyCastle.Bcpg
     public class OnePassSignaturePacket
         : ContainedPacket
     {
+        public const int Version3 = 3;
+        public const int Version6 = 6;
+
         private readonly int m_version;
         private readonly int m_sigType;
         private readonly HashAlgorithmTag m_hashAlgorithm;
@@ -16,6 +19,12 @@ namespace Org.BouncyCastle.Bcpg
         private readonly int m_nested;
 
         internal OnePassSignaturePacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        internal OnePassSignaturePacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.OnePassSignature, newPacketFormat)
         {
             m_version = bcpgIn.RequireByte();
             m_sigType = bcpgIn.RequireByte();
@@ -27,8 +36,9 @@ namespace Org.BouncyCastle.Bcpg
 
         public OnePassSignaturePacket(int sigType, HashAlgorithmTag hashAlgorithm, PublicKeyAlgorithmTag keyAlgorithm,
             long keyId, bool isNested)
+            : base(PacketTag.OnePassSignature)
         {
-            m_version = 3;
+            m_version = Version3;
             m_sigType = sigType;
             m_hashAlgorithm = hashAlgorithm;
             m_keyAlgorithm = keyAlgorithm;
@@ -64,7 +74,7 @@ namespace Org.BouncyCastle.Bcpg
             Pack.UInt64_To_BE(m_keyID, body, 4);
             body[12] = (byte)m_nested;
 
-            bcpgOut.WritePacket(PacketTag.OnePassSignature, body);
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.OnePassSignature, body);
         }
     }
 }

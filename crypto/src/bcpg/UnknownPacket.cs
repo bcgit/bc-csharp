@@ -1,28 +1,22 @@
-using System;
-
-using Org.BouncyCastle.Utilities;
+﻿using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
-    /// <remarks>Basic packet for an experimental packet.</remarks>
-    public class ExperimentalPacket
+    public sealed class UnknownPacket
         : ContainedPacket
     {
         private readonly byte[] m_contents;
 
-        internal ExperimentalPacket(PacketTag tag, BcpgInputStream bcpgIn)
+        public UnknownPacket(PacketTag tag, BcpgInputStream bcpgIn)
             : this(tag, bcpgIn, newPacketFormat: false)
         {
         }
 
-        internal ExperimentalPacket(PacketTag tag, BcpgInputStream bcpgIn, bool newPacketFormat)
+        public UnknownPacket(PacketTag tag, BcpgInputStream bcpgIn, bool newPacketFormat)
             : base(tag, newPacketFormat)
         {
             m_contents = bcpgIn.ReadAll();
         }
-
-        [Obsolete("Use 'PacketTag' instead")]
-        public PacketTag Tag => PacketTag;
 
         public byte[] GetContents() => Arrays.Clone(m_contents);
 

@@ -11,6 +11,12 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_digest;
 
         internal ModDetectionCodePacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        internal ModDetectionCodePacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.ModificationDetectionCode, newPacketFormat)
         {
             if (bcpgIn == null)
                 throw new ArgumentNullException(nameof(bcpgIn));
@@ -20,6 +26,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         public ModDetectionCodePacket(byte[] digest)
+            : base(PacketTag.ModificationDetectionCode)
         {
             if (digest == null)
                 throw new ArgumentNullException(nameof(digest));
@@ -32,6 +39,6 @@ namespace Org.BouncyCastle.Bcpg
         public byte[] GetDigest() => Arrays.Clone(m_digest);
 
         public override void Encode(BcpgOutputStream bcpgOut) =>
-            bcpgOut.WritePacket(PacketTag.ModificationDetectionCode, m_digest);
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.ModificationDetectionCode, m_digest);
     }
 }

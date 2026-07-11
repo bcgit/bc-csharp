@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Bcpg
@@ -48,6 +47,17 @@ namespace Org.BouncyCastle.Bcpg
         private readonly IBcpgKey m_key;
 
         internal PublicKeyPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        internal PublicKeyPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : this(PacketTag.PublicKey, bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        internal PublicKeyPacket(PacketTag keyTag, BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(keyTag, newPacketFormat)
         {
             m_version = bcpgIn.RequireByte();
             if (m_version < 2 || m_version > Version6)
@@ -131,9 +141,23 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /// <summary>Construct a version 4 public key packet.</summary>
+        [Obsolete("Use constructor with additional 'version' parameter instead")]
         public PublicKeyPacket(PublicKeyAlgorithmTag algorithm, DateTime time, IBcpgKey key)
+            : this(Version4, algorithm, time, key)
         {
-            m_version = Version4;
+        }
+
+        public PublicKeyPacket(byte version, PublicKeyAlgorithmTag algorithm, DateTime time,
+            IBcpgKey key)
+            : this(PacketTag.PublicKey, version, algorithm, time, key)
+        {
+        }
+
+        internal PublicKeyPacket(PacketTag keyTag, byte version, PublicKeyAlgorithmTag algorithm, DateTime time,
+            IBcpgKey key)
+            : base(keyTag)
+        {
+            m_version = version;
             m_time = DateTimeUtilities.DateTimeToUnixMs(time) / 1000L;
             m_algorithm = algorithm;
             m_key = key;
@@ -165,13 +189,23 @@ namespace Org.BouncyCastle.Bcpg
                 }
 
                 pOut.WriteByte((byte)m_algorithm);
-                ((BcpgObject)m_key).Encode(pOut);
+
+                if (m_version == Version6 || m_version == LibrePgp5)
+                {
+                    byte[] keyEncoding = ((BcpgObject)m_key).GetEncoded();
+                    StreamUtilities.WriteUInt32BE(pOut, (uint)keyEncoding.Length);
+                    pOut.Write(keyEncoding);
+                }
+                else
+                {
+                    ((BcpgObject)m_key).Encode(pOut);
+                }
             }
             return bOut.ToArray();
         }
 
         public override void Encode(BcpgOutputStream bcpgOut) =>
-            bcpgOut.WritePacket(PacketTag.PublicKey, GetEncodedContents());
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag, GetEncodedContents());
 
         public static long GetKeyID(PublicKeyPacket publicPk, byte[] fingerprint)
         {
@@ -182,15 +216,8 @@ namespace Org.BouncyCastle.Bcpg
 
                 return rK.Modulus.LongValue;
             }
-            else if (version == Version4)
-            {
-                return (long)Pack.BE_To_UInt64(fingerprint, fingerprint.Length - 8);
-            }
-            else if (version == LibrePgp5 || version == Version6)
-            {
-                return (long)Pack.BE_To_UInt64(fingerprint, 0);
-            }
-            return 0L;
+
+            return FingerprintUtilities.KeyIDFromFingerprint(version, fingerprint);
         }
     }
 }

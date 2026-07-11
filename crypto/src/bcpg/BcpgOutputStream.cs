@@ -21,8 +21,8 @@ namespace Org.BouncyCastle.Bcpg
             return new BcpgOutputStream(outStr);
         }
 
-        private readonly Stream outStr;
-        private readonly bool useOldFormat;
+        private readonly Stream m_outStr;
+        private readonly PacketFormat m_packetFormat;
         private readonly int partialBufferLength;
         private readonly int partialPower;
 
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Create a stream representing a general packet.</summary>
         /// <param name="outStr">Output stream to write to.</param>
         public BcpgOutputStream(Stream outStr)
-            : this(outStr, newFormatOnly: false)
+            : this(outStr, PacketFormat.Roundtrip)
         {
         }
 
@@ -42,9 +42,14 @@ namespace Org.BouncyCastle.Bcpg
         /// <param name="newFormatOnly"><c>true</c> if use new format packets, <c>false</c> if backwards compatible
         /// preferred.</param>
         public BcpgOutputStream(Stream outStr, bool newFormatOnly)
+            : this(outStr, newFormatOnly ? PacketFormat.Current : PacketFormat.Roundtrip)
         {
-            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
-            this.useOldFormat = !newFormatOnly;
+        }
+
+        public BcpgOutputStream(Stream outStr, PacketFormat packetFormat)
+        {
+            m_outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_packetFormat = packetFormat;
         }
 
         /// <summary>Create a stream representing an old style partial object.</summary>
@@ -52,9 +57,10 @@ namespace Org.BouncyCastle.Bcpg
         /// <param name="tag">The packet tag for the object.</param>
         public BcpgOutputStream(Stream outStr, PacketTag tag)
         {
-            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_packetFormat = PacketFormat.Legacy;
 
-            WriteHeader(tag, oldFormat: true, partial: true, 0);
+            WriteHeader(tag, oldFormat: true, partial: true, bodyLen: 0L);
         }
 
         /// <summary>Create a stream representing a general packet.</summary>
@@ -64,11 +70,12 @@ namespace Org.BouncyCastle.Bcpg
         /// <param name="oldFormat">If true, the header is written out in old format.</param>
         public BcpgOutputStream(Stream outStr, PacketTag tag, long length, bool oldFormat)
         {
-            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_packetFormat = oldFormat ? PacketFormat.Legacy : PacketFormat.Current;
 
             if (length > 0xFFFFFFFFL)
             {
-                WriteHeader(tag, oldFormat: false, partial: true, 0);
+                WriteHeader(tag, oldFormat: false, partial: true, bodyLen: 0L);
 
                 this.partialBufferLength = 1 << BufferSizePower;
                 this.partialBuffer = new byte[partialBufferLength];
@@ -87,7 +94,8 @@ namespace Org.BouncyCastle.Bcpg
         /// <param name="length">Size of chunks making up the packet.</param>
         public BcpgOutputStream(Stream outStr, PacketTag tag, long length)
         {
-            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_packetFormat = PacketFormat.Current;
 
             WriteHeader(tag, oldFormat: false, partial: false, length);
         }
@@ -98,9 +106,10 @@ namespace Org.BouncyCastle.Bcpg
         /// <param name="buffer">Buffer to use for collecting chunks.</param>
         public BcpgOutputStream(Stream outStr, PacketTag tag, byte[] buffer)
         {
-            this.outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
+            m_packetFormat = PacketFormat.Current;
 
-            WriteHeader(tag, oldFormat: false, partial: true, 0);
+            WriteHeader(tag, oldFormat: false, partial: true, bodyLen: 0L);
 
             this.partialBuffer = buffer;
 
@@ -161,8 +170,7 @@ namespace Org.BouncyCastle.Bcpg
                         Write(buf);
 #else
                         WriteByte((byte)(hdr | 0x01));
-                        WriteByte((byte)(bodyLen >> 8));
-                        WriteByte((byte)(bodyLen));
+                        StreamUtilities.WriteUInt16BE(this, (ushort)bodyLen);
 #endif
                     }
                     else
@@ -174,10 +182,7 @@ namespace Org.BouncyCastle.Bcpg
                         Write(buf);
 #else
                         WriteByte((byte)(hdr | 0x02));
-                        WriteByte((byte)(bodyLen >> 24));
-                        WriteByte((byte)(bodyLen >> 16));
-                        WriteByte((byte)(bodyLen >> 8));
-                        WriteByte((byte)bodyLen);
+                        StreamUtilities.WriteUInt32BE(this, (uint)bodyLen);
 #endif
                     }
                 }
@@ -193,31 +198,31 @@ namespace Org.BouncyCastle.Bcpg
                 }
                 else
                 {
-                    StreamUtilities.WriteNewPacketLength(outStr, bodyLen);
+                    StreamUtilities.WriteNewPacketLength(m_outStr, bodyLen);
                 }
             }
         }
 
         private void PartialFlush()
         {
-            outStr.WriteByte((byte)(0xE0 | partialPower));
-            outStr.Write(partialBuffer, 0, partialBufferLength);
+            m_outStr.WriteByte((byte)(0xE0 | partialPower));
+            m_outStr.Write(partialBuffer, 0, partialBufferLength);
             partialOffset = 0;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void PartialFlush(ref ReadOnlySpan<byte> buffer)
         {
-            outStr.WriteByte((byte)(0xE0 | partialPower));
-            outStr.Write(buffer[..partialBufferLength]);
+            m_outStr.WriteByte((byte)(0xE0 | partialPower));
+            m_outStr.Write(buffer[..partialBufferLength]);
             buffer = buffer[partialBufferLength..];
         }
 #endif
 
         private void PartialFlushLast()
         {
-            StreamUtilities.WriteNewPacketLength(outStr, partialOffset);
-            outStr.Write(partialBuffer, 0, partialOffset);
+            StreamUtilities.WriteNewPacketLength(m_outStr, partialOffset);
+            m_outStr.Write(partialBuffer, 0, partialOffset);
             partialOffset = 0;
         }
 
@@ -303,7 +308,7 @@ namespace Org.BouncyCastle.Bcpg
             }
             else
             {
-                outStr.Write(buffer, offset, count);
+                m_outStr.Write(buffer, offset, count);
             }
         }
 
@@ -316,7 +321,7 @@ namespace Org.BouncyCastle.Bcpg
             }
             else
             {
-                outStr.Write(buffer);
+                m_outStr.Write(buffer);
             }
         }
 #endif
@@ -329,24 +334,57 @@ namespace Org.BouncyCastle.Bcpg
             }
             else
             {
-                outStr.WriteByte(value);
+                m_outStr.WriteByte(value);
             }
         }
 
         public void WritePacket(ContainedPacket p) => p.Encode(this);
 
+        /// <summary>
+        /// Write a packet, with the packet format chosen primarily based on <see cref="m_packetFormat"/>.
+        /// </summary>
+        /// <remarks>
+        /// If <see cref="m_packetFormat"/> is <see cref="PacketFormat.Current"/>, the packet will be encoded using the
+        /// new format. If it is <see cref="PacketFormat.Legacy"/>, the packet will use the old encoding format. If it
+        /// is <see cref="PacketFormat.Roundtrip"/>, then the format will be determined by
+        /// <paramref name="objectPrefersNewPacketFormat">
+        /// Whether the packet prefers to be encoded using the new packet format.
+        /// </paramref>.
+        /// <paramref name="tag">The packet tag.</paramref>
+        /// <paramref name="body">The packet body.</paramref>
+        /// </remarks>
+        /// <exception cref="IOException"
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        internal void WritePacket(PacketTag tag, ReadOnlySpan<byte> body)
+        internal void WritePacket(bool objectPrefersNewPacketFormat, PacketTag tag, ReadOnlySpan<byte> body)
 #else
-        internal void WritePacket(PacketTag tag, byte[] body)
+        internal void WritePacket(bool objectPrefersNewPacketFormat, PacketTag tag, byte[] body)
 #endif
         {
-            WritePacketHeader(tag, (uint)body.Length);
+            WritePacketHeader(objectPrefersNewPacketFormat, tag, body.Length);
             Write(body);
         }
 
-        internal void WritePacketHeader(PacketTag tag, uint bodyLength) =>
-            WriteHeader(tag, useOldFormat, partial: false, bodyLength);
+        /// <summary>Write a packet, forcing the packet format to be either old or new.</summary>
+        /// <paramref name="tag">The packet tag.</paramref>
+        /// <paramref name="body">The packet body.</paramref>
+        /// <param name="oldFormat">If <c>true</c>, old format is forced, else force new format.</param>
+        /// <exception cref="IOException"
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        internal void WritePacket(PacketTag tag, ReadOnlySpan<byte> body, bool oldFormat)
+#else
+        internal void WritePacket(PacketTag tag, byte[] body, bool oldFormat)
+#endif
+        {
+            WriteHeader(tag, oldFormat, partial: false, body.Length);
+            Write(body);
+        }
+
+        internal void WritePacketHeader(bool objectPrefersNewPacketFormat, PacketTag tag, long bodyLength)
+        {
+            bool oldPacketFormat = m_packetFormat == PacketFormat.Legacy ||
+                (m_packetFormat == PacketFormat.Roundtrip && !objectPrefersNewPacketFormat);
+            WriteHeader(tag, oldPacketFormat, false, bodyLength);
+        }
 
         public void WriteObject(BcpgObject bcpgObject) => bcpgObject.Encode(this);
 
@@ -359,7 +397,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /// <summary>Flush the underlying stream.</summary>
-        public override void Flush() => outStr.Flush();
+        public override void Flush() => m_outStr.Flush();
 
         /// <summary>Finish writing out the current packet without closing the underlying stream.</summary>
         public void Finish()
@@ -377,8 +415,8 @@ namespace Org.BouncyCastle.Bcpg
             if (disposing)
             {
                 Finish();
-                outStr.Flush();
-                outStr.Dispose();
+                m_outStr.Flush();
+                m_outStr.Dispose();
             }
             base.Dispose(disposing);
         }

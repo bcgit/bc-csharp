@@ -12,6 +12,12 @@ namespace Org.BouncyCastle.Bcpg
         private readonly UserAttributeSubpacket[] m_subpackets;
 
         public UserAttributePacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        public UserAttributePacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.UserAttribute, newPacketFormat)
         {
             UserAttributeSubpacketsParser sIn = new UserAttributeSubpacketsParser(bcpgIn);
             UserAttributeSubpacket sub;
@@ -26,6 +32,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         public UserAttributePacket(UserAttributeSubpacket[] subpackets)
+            : base(PacketTag.UserAttribute)
         {
             m_subpackets = subpackets;
         }
@@ -41,7 +48,7 @@ namespace Org.BouncyCastle.Bcpg
                 m_subpackets[i].Encode(bOut);
             }
 
-            bcpgOut.WritePacket(PacketTag.UserAttribute, bOut.ToArray());
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.UserAttribute, bOut.ToArray());
         }
     }
 }

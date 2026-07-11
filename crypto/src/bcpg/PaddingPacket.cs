@@ -12,6 +12,12 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_padding;
 
         internal PaddingPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: true)
+        {
+        }
+
+        internal PaddingPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.Padding, newPacketFormat)
         {
             if (bcpgIn == null)
                 throw new ArgumentNullException(nameof(bcpgIn));
@@ -20,11 +26,13 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         public PaddingPacket(byte[] padding)
+            : base(PacketTag.Padding, newPacketFormat: true)
         {
             m_padding = Arrays.CopyBuffer(padding);
         }
 
         public PaddingPacket(int paddingLength, SecureRandom random)
+            : base(PacketTag.Padding, newPacketFormat: true)
         {
             if (paddingLength < 1)
                 throw new ArgumentOutOfRangeException(nameof(paddingLength));
@@ -34,7 +42,8 @@ namespace Org.BouncyCastle.Bcpg
             m_padding = SecureRandom.GetNextBytes(random, paddingLength);
         }
 
-        public override void Encode(BcpgOutputStream bcpgOut) => bcpgOut.WritePacket(PacketTag.Padding, m_padding);
+        public override void Encode(BcpgOutputStream bcpgOut) =>
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.Padding, m_padding);
 
         public byte[] GetPadding() => Arrays.InternalCopyBuffer(m_padding);
 

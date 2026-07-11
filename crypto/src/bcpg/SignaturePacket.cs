@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
-using Org.BouncyCastle.Bcpg;
 using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -35,6 +34,12 @@ namespace Org.BouncyCastle.Bcpg
         private byte[] m_salt; // v6 only
 
         internal SignaturePacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        internal SignaturePacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.Signature, newPacketFormat)
         {
             version = bcpgIn.RequireByte();
 
@@ -139,7 +144,8 @@ namespace Org.BouncyCastle.Bcpg
         public SignaturePacket(int signatureType, long keyId, PublicKeyAlgorithmTag keyAlgorithm,
             HashAlgorithmTag hashAlgorithm, SignatureSubpacket[] hashedData, SignatureSubpacket[] unhashedData,
             byte[] fingerprint, MPInteger[] signature)
-            : this(4, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData, unhashedData, fingerprint, signature)
+            : this(Version4, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData, unhashedData, fingerprint,
+                signature)
         {
         }
 
@@ -162,6 +168,15 @@ namespace Org.BouncyCastle.Bcpg
         public SignaturePacket(int version, int signatureType, long keyId, PublicKeyAlgorithmTag keyAlgorithm,
             HashAlgorithmTag hashAlgorithm, SignatureSubpacket[] hashedData, SignatureSubpacket[] unhashedData,
             byte[] fingerprint, MPInteger[] signature)
+            : this(version, newPacketFormat: false, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData,
+                unhashedData, fingerprint, signature)
+        {
+        }
+
+        public SignaturePacket(int version, bool newPacketFormat, int signatureType, long keyId,
+            PublicKeyAlgorithmTag keyAlgorithm, HashAlgorithmTag hashAlgorithm, SignatureSubpacket[] hashedData,
+            SignatureSubpacket[] unhashedData, byte[] fingerprint, MPInteger[] signature)
+            : base(PacketTag.Signature, newPacketFormat)
         {
             this.version = version;
             this.signatureType = signatureType;
@@ -345,7 +360,7 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-            bcpgOut.WritePacket(PacketTag.Signature, bOut.ToArray());
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.Signature, bOut.ToArray());
         }
 
         private static ulong ParseKeyIdOrThrow(IssuerKeyId issuerKeyId)

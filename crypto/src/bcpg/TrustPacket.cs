@@ -9,11 +9,18 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte[] m_levelAndTrustAmount;
 
         public TrustPacket(BcpgInputStream bcpgIn)
+            : this(bcpgIn, newPacketFormat: false)
+        {
+        }
+
+        public TrustPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
+            : base(PacketTag.Trust, newPacketFormat)
         {
             m_levelAndTrustAmount = bcpgIn.ReadAll();
         }
 
         public TrustPacket(int trustCode)
+            : base(PacketTag.Trust)
         {
             m_levelAndTrustAmount = new byte[]{ (byte)trustCode };
         }
@@ -21,6 +28,6 @@ namespace Org.BouncyCastle.Bcpg
         public byte[] GetLevelAndTrustAmount() => Arrays.Clone(m_levelAndTrustAmount);
 
         public override void Encode(BcpgOutputStream bcpgOut) =>
-            bcpgOut.WritePacket(PacketTag.Trust, m_levelAndTrustAmount);
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.Trust, m_levelAndTrustAmount);
     }
 }
