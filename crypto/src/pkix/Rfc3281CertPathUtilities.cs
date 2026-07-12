@@ -466,7 +466,7 @@ namespace Org.BouncyCastle.Pkix
                      * can update it. If this CRL does not contain new reasons it
                      * must be ignored.
                      */
-                    if (!interimReasonsMask.HasNewReasons(reasonsMask))
+                    if (!reasonsMask.HasNewReasons(interimReasonsMask))
                         continue;
 
                     // (f)

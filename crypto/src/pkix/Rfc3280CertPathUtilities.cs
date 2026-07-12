@@ -653,37 +653,10 @@ namespace Org.BouncyCastle.Pkix
                 throw new Exception("issuing distribution point extension could not be decoded.", e);
             }
 
-            // (d) (1)
-            if (idp != null && idp.OnlySomeReasons != null && dp.Reasons != null)
-                return new ReasonsMask(dp.Reasons.IntValue).Intersect(new ReasonsMask(idp.OnlySomeReasons.IntValue));
-
-            // (d) (4)
-            if ((idp == null || idp.OnlySomeReasons == null) && dp.Reasons == null)
-                return ReasonsMask.AllReasons;
-
-            // (d) (2) and (d)(3)
-
-            ReasonsMask dpReasons;
-            if (dp.Reasons == null)
-            {
-                dpReasons = ReasonsMask.AllReasons;
-            }
-            else
-            {
-                dpReasons = new ReasonsMask(dp.Reasons.IntValue);
-            }
-
-            ReasonsMask idpReasons;
-            if (idp == null)
-            {
-                idpReasons = ReasonsMask.AllReasons;
-            }
-            else
-            {
-                idpReasons = new ReasonsMask(idp.OnlySomeReasons.IntValue);
-            }
-
-            return dpReasons.Intersect(idpReasons);
+            // (d) (1..4) Intersect the IPD and DP reasons; absent reasons are interpreted as AllReasons
+            int idpFlags = idp?.OnlySomeReasons?.IntValue ?? ReasonsMask.AllReasons;
+            int dpFlags = dp.Reasons?.IntValue ?? ReasonsMask.AllReasons;
+            return new ReasonsMask(idpFlags & dpFlags);
         }
 
         /**
@@ -958,11 +931,12 @@ namespace Org.BouncyCastle.Pkix
                      * can update it. If this CRL does not contain new reasons it
                      * must be ignored.
                      */
-                    if (!interimReasonsMask.HasNewReasons(reasonsMask))
+                    if (!reasonsMask.HasNewReasons(interimReasonsMask))
                         continue;
 
                     // (f)
                     var keys = ProcessCrlF(crl, cert, defaultCRLSignCert, defaultCRLSignKey, pkixParams, certPathCerts);
+
                     // (g)
                     AsymmetricKeyParameter key = ProcessCrlG(crl, keys);
 
@@ -986,7 +960,7 @@ namespace Org.BouncyCastle.Pkix
                          * more in the CRL, so it would be regarded as valid if the
                          * first check is not done
                          */
-                        if (cert.NotAfter.Ticks < crl.ThisUpdate.Ticks)
+                        if (cert.NotAfter.CompareTo(crl.ThisUpdate) < 0)
                             throw new Exception("No valid CRL for current time found.");
                     }
 
@@ -1027,7 +1001,6 @@ namespace Org.BouncyCastle.Pkix
 
                     // update reasons mask
                     reasonsMask.AddReasons(interimReasonsMask);
-
                     validCrlFound = true;
                 }
                 catch (Exception e) when (!(e is PkixCertPathValidatorException))
@@ -1099,6 +1072,7 @@ namespace Org.BouncyCastle.Pkix
 
                 if (dps != null)
                 {
+                    // TODO[pkix] The 'validCrlFound/lastException' pattern breaks down a bit for multiple iterations.
                     for (int i = 0; i < dps.Length && certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons; i++)
                     {
                         try
