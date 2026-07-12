@@ -144,11 +144,11 @@ namespace Org.BouncyCastle.Pkix.Tests
             certs.Add(ca);
             certs.Add(ee);
 
-            var crlsx509Crls = new List<X509Crl>();
-            crlsx509Crls.Add(crl);
+            var crls = new List<X509Crl>();
+            crls.Add(crl);
 
             var certStore = CollectionUtilities.CreateStore(certs);
-            var crlStore = CollectionUtilities.CreateStore(crlsx509Crls);
+            var crlStore = CollectionUtilities.CreateStore(crls);
 
             var chain = new List<X509Certificate>();
             chain.Add(ee);
