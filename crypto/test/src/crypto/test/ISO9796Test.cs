@@ -773,5 +773,41 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             Assert.That(Arrays.AreEqual(challenge, mm), "challenge partial PSS recovery failed");
         }
+
+        // Negative-path: a malformed signature must be rejected cleanly, never crash the verifier.
+        // Guards Iso9796d2Signer against an IndexOutOfRangeException on an empty/short recovered
+        // block (e.g. an all-zero signature decrypts to 0 -> a 0-byte block -> block[0] out of bounds).
+        [Test]
+        public void MalformedSignature()
+        {
+            RsaKeyParameters pub = new RsaKeyParameters(false, mod1, pub1);
+            int modLen = BigIntegers.GetUnsignedByteLength(mod1);
+
+            byte[][] malformed = { new byte[0], new byte[1], new byte[modLen], new byte[modLen + 1] };
+            for (int i = 0; i != malformed.Length; i++)
+            {
+                Iso9796d2Signer verifier = new Iso9796d2Signer(new RsaEngine(), new Sha1Digest(), true);
+                verifier.Init(false, pub);
+                Assert.False(verifier.VerifySignature(malformed[i]),
+                    "Iso9796d2Signer accepted a malformed signature of length " + malformed[i].Length);
+            }
+
+            // UpdateWithRecoveredMessage must reject the same input with the documented
+            // InvalidCipherTextException, not an IndexOutOfRangeException.
+            // NOTE: Currently we expect and get a DataLengthException from RsaCoreEngine (see below)
+            Iso9796d2Signer recoverer = new Iso9796d2Signer(new RsaEngine(), new Sha1Digest(), true);
+            recoverer.Init(false, pub);
+            try
+            {
+                recoverer.UpdateWithRecoveredMessage(new byte[modLen]);
+                Assert.Fail("Iso9796d2Signer.UpdateWithRecoveredMessage accepted a malformed signature");
+            }
+            // TODO Compare to bc-java and see if we can get the exception to match for this case
+            //catch (InvalidCipherTextException)
+            catch (DataLengthException)
+            {
+                // expected
+            }
+        }
     }
 }
