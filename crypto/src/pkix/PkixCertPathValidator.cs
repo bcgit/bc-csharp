@@ -98,11 +98,7 @@ namespace Org.BouncyCastle.Pkix
                 // A TrustAnchor may be supplied by name + public key only, in which case no certificate to check
                 if (trust.TrustedCert != null)
                 {
-                    /*
-                     * NOTE: Unlike bc-java, only our own Org.BouncyCastle.X509.X509Certificate implementation is
-                     * supported, so no decode/import checks are needed.
-                     */
-                    //CheckCertificate(trust.TrustedCert);
+                    CheckCertificate(trust.TrustedCert);
                 }
             }
             catch (Exception e)
@@ -275,6 +271,15 @@ namespace Org.BouncyCastle.Pkix
                 cert = certs[index];
                 bool verificationAlreadyPerformed = (index == certs.Count - 1);
 
+                try
+                {
+                    CheckCertificate(cert);
+                }
+                catch (Exception e)
+                {
+                    throw new PkixCertPathValidatorException(e.Message, e.InnerException, index);
+                }
+
                 //
                 // 6.1.3
                 //
@@ -437,6 +442,14 @@ namespace Org.BouncyCastle.Pkix
                 return new PkixCertPathValidatorResult(trust, intersection, cert.GetPublicKey());
 
             throw new PkixCertPathValidatorException("Path processing failed on policy.", null, index);
+        }
+
+        private static void CheckCertificate(X509Certificate cert)
+        {
+            /*
+             * NOTE: Unlike bc-java, only our own Org.BouncyCastle.X509.X509Certificate implementation is
+             * supported, so no decode/import checks are needed.
+             */
         }
     }
 }
