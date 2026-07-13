@@ -2606,6 +2606,26 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
         }
 
+        /// <summary>
+        /// Regression: HasRevocation() on a top-level key whose algorithm is an encryption algorithm (making
+        /// IsMasterKey false, with subSigs == null) must not throw NullReferenceException.
+        /// </summary>
+        [Test]
+        public void HasRevocationOnEncryptionAlgorithmPrimary()
+        {
+            X25519KeyPairGenerator gen = new X25519KeyPairGenerator();
+            gen.Init(new X25519KeyGenerationParameters(Random));
+            AsymmetricCipherKeyPair kp = gen.GenerateKeyPair();
+
+            PgpKeyPair pgpMasterKey = new PgpKeyPair(PublicKeyAlgorithmTag.ECDH, kp, DateTime.UtcNow);
+
+            PgpPublicKey key = pgpMasterKey.PublicKey;
+
+            // Precondition: this is exactly the case that previously hit the null subSigs branch.
+            Assert.False(key.IsMasterKey);
+            Assert.False(key.HasRevocation());
+        }
+
         [Test]
         public void TestEdDsaRing()
         {

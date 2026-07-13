@@ -967,26 +967,41 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>Check whether this (sub)key has a revocation signature on it.</summary>
-        /// <returns>True, if this (sub)key has been revoked.</returns>
-        public bool IsRevoked()
+        /// <remarks>This method is poorly named (misleading); use <see cref="HasRevocation"/> instead.</remarks>
+        /// <returns><c>true</c>, if this (sub)key has had a (possibly invalid) revocation attached.</returns>
+        [Obsolete("Use 'HasRevocation' instead")]
+        public bool IsRevoked() => HasRevocation();
+
+        /// <summary>Check whether this (sub)key has a revocation signature on it.</summary>
+        /// <remarks>
+        /// WARNING: this reports only whether a revocation-type signature packet is <em>present</em>; the packet is NOT
+        /// cryptographically verified, so for a key obtained from an untrusted source neither result is an
+        /// authenticated trust signal.
+        /// </remarks>
+        /// <returns>True, if a revocation signature (verified or not) is present on this (sub)key.</returns>
+        public bool HasRevocation()
         {
             int ns = 0;
             bool revoked = false;
-            if (IsMasterKey)	// Master key
+
+            // subSigs is null for a primary key and non-null for a subkey; it is the reliable discriminator here
+            // (isMasterKey can be false for an encryption-algorithm primary, whose subSigs would be null, which
+            // previously threw a NullPointerException).
+            if (subSigs == null)    // Primary key
             {
                 while (!revoked && (ns < keySigs.Count))
                 {
-                    if (((PgpSignature)keySigs[ns++]).SignatureType == PgpSignature.KeyRevocation)
+                    if (keySigs[ns++].SignatureType == PgpSignature.KeyRevocation)
                     {
                         revoked = true;
                     }
                 }
             }
-            else	// Sub-key
+            else                    // Sub-key
             {
                 while (!revoked && (ns < subSigs.Count))
                 {
-                    if (((PgpSignature)subSigs[ns++]).SignatureType == PgpSignature.SubkeyRevocation)
+                    if (subSigs[ns++].SignatureType == PgpSignature.SubkeyRevocation)
                     {
                         revoked = true;
                     }
