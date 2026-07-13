@@ -169,19 +169,18 @@ namespace Org.BouncyCastle.Utilities.Zlib
 
         public virtual void Finish()
         {
+            int err;
             do
             {
                 z.next_out = buf;
                 z.next_out_index = 0;
                 z.avail_out = buf.Length;
 
-                int err = compress
+                err = compress
                     ? z.deflate(JZlib.Z_FINISH)
                     : z.inflate(JZlib.Z_FINISH);
 
                 if (err != JZlib.Z_STREAM_END && err != JZlib.Z_OK)
-                    // TODO
-                    //throw new ZStreamException((compress?"de":"in")+"flating: "+z.msg);
                     throw new IOException((compress ? "de" : "in") + "flating: " + z.msg);
 
                 int count = buf.Length - z.avail_out;
@@ -190,7 +189,7 @@ namespace Org.BouncyCastle.Utilities.Zlib
                     output.Write(buf, 0, count);
                 }
             }
-            while (z.avail_in > 0 || z.avail_out == 0);
+            while ((z.avail_in > 0 || z.avail_out == 0) && err == JZlib.Z_OK);
 
             Flush();
         }
@@ -227,24 +226,23 @@ namespace Org.BouncyCastle.Utilities.Zlib
             z.next_in_index = offset;
             z.avail_in = count;
 
+            int err;
             do
             {
                 z.next_out = buf;
                 z.next_out_index = 0;
                 z.avail_out = buf.Length;
 
-                int err = compress
+                err = compress
                     ? z.deflate(flushLevel)
                     : z.inflate(flushLevel);
 
-                if (err != JZlib.Z_OK)
-                    // TODO
-                    //throw new ZStreamException((compress ? "de" : "in") + "flating: " + z.msg);
+                if (err != JZlib.Z_OK && err != JZlib.Z_STREAM_END)
                     throw new IOException((compress ? "de" : "in") + "flating: " + z.msg);
 
                 output.Write(buf, 0, buf.Length - z.avail_out);
             }
-            while (z.avail_in > 0 || z.avail_out == 0);
+            while ((z.avail_in > 0 || z.avail_out == 0) && err == JZlib.Z_OK);
         }
 
         public override void WriteByte(byte value)
