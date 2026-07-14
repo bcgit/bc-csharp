@@ -96,7 +96,7 @@ namespace Org.BouncyCastle.Pkix
          * @param crl  The CRL.
          * @throws AnnotatedException if one of the conditions is not met or an error occurs.
          */
-        internal static void ProcessCrlB2(DistributionPoint dp, object cert, X509Crl crl)
+        internal static void ProcessCrlB2(DistributionPoint dp, IX509Extension cert, X509Crl crl)
         {
             IssuingDistributionPoint idp;
             try
@@ -243,7 +243,7 @@ namespace Org.BouncyCastle.Pkix
             BasicConstraints bc;
             try
             {
-                bc = ((IX509Extension)cert).GetExtension(X509Extensions.BasicConstraints, BasicConstraints.GetInstance);
+                bc = cert.GetExtension(X509Extensions.BasicConstraints, BasicConstraints.GetInstance);
             }
             catch (Exception e)
             {
@@ -1550,10 +1550,9 @@ namespace Org.BouncyCastle.Pkix
         }
 
         /// <exception cref="PkixCertPathValidatorException"/>
-        internal static void PrepareNextCertK(PkixCertPath certPath, int index)
+        internal static BasicConstraints PrepareNextCertK(PkixCertPath certPath, int index)
         {
-            var certs = certPath.Certificates;
-            X509Certificate cert = certs[index];
+            var cert = certPath.Certificates[index];
 
             //
             // (k)
@@ -1573,54 +1572,47 @@ namespace Org.BouncyCastle.Pkix
 
             if (!bc.IsCA())
                 throw new PkixCertPathValidatorException("Not a CA certificate", null, index);
+
+            return bc;
         }
 
         /// <exception cref="PkixCertPathValidatorException"/>
         internal static int PrepareNextCertL(PkixCertPath certPath, int index, int maxPathLength)
         {
-            var certs = certPath.Certificates;
-            X509Certificate cert = certs[index];
+            var cert = certPath.Certificates[index];
 
             //
             // (l)
             //
-            if (!PkixCertPathValidatorUtilities.IsSelfIssued(cert))
-            {
-                if (maxPathLength <= 0)
-                    throw new PkixCertPathValidatorException("Max path length not greater than zero", null, index);
+            if (PkixCertPathValidatorUtilities.IsSelfIssued(cert))
+                return maxPathLength;
 
-                return maxPathLength - 1;
-            }
+            if (maxPathLength <= 0)
+                throw new PkixCertPathValidatorException("Max path length not greater than zero", null, index);
 
-            return maxPathLength;
+            return maxPathLength - 1;
         }
 
         /// <exception cref="PkixCertPathValidatorException"/>
-        internal static int PrepareNextCertM(PkixCertPath certPath, int index, int maxPathLength)
+        internal static int PrepareNextCertM(PkixCertPath certPath, int index, int maxPathLength,
+            BasicConstraints caBasicConstraints)
         {
-            var certs = certPath.Certificates;
-            X509Certificate cert = certs[index];
+            Debug.Assert(caBasicConstraints != null && caBasicConstraints.IsCA());
+
+            var cert = certPath.Certificates[index];
 
             //
             // (m)
             //
-            BasicConstraints bc;
-            try
+            var pathLenConstraint = caBasicConstraints.PathLenConstraintInteger;
+            if (pathLenConstraint != null)
             {
-                bc = cert.GetExtension(X509Extensions.BasicConstraints, BasicConstraints.GetInstance);
-            }
-            catch (Exception e)
-            {
-                throw new PkixCertPathValidatorException("Basic constraints extension cannot be decoded.", e, index);
-            }
+                if (pathLenConstraint.IsNegative)
+                    throw new PkixCertPathValidatorException(
+                        "Basic constraints violated: invalid path length constraint");
 
-            if (bc != null && bc.IsCA())
-            {
-                var pathLenConstraint = bc.PathLenConstraintInteger;
-                if (pathLenConstraint != null)
-                {
-                    maxPathLength = System.Math.Min(maxPathLength, pathLenConstraint.IntPositiveValueExact);
-                }
+                if (pathLenConstraint.TryGetIntValueExact(out int newPathLength) && newPathLength < maxPathLength)
+                    return newPathLength;
             }
 
             return maxPathLength;

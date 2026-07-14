@@ -334,13 +334,14 @@ namespace Org.BouncyCastle.Pkix
                     inhibitAnyPolicy = Rfc3280CertPathUtilities.PrepareNextCertJ(certPath, index, inhibitAnyPolicy);
 
                     // (k)
-                    Rfc3280CertPathUtilities.PrepareNextCertK(certPath, index);
+                    BasicConstraints caBasicConstraints = Rfc3280CertPathUtilities.PrepareNextCertK(certPath, index);
 
                     // (l)
                     maxPathLength = Rfc3280CertPathUtilities.PrepareNextCertL(certPath, index, maxPathLength);
 
                     // (m)
-                    maxPathLength = Rfc3280CertPathUtilities.PrepareNextCertM(certPath, index, maxPathLength);
+                    maxPathLength = Rfc3280CertPathUtilities.PrepareNextCertM(certPath, index, maxPathLength,
+                        caBasicConstraints);
 
                     // (n)
                     Rfc3280CertPathUtilities.PrepareNextCertN(certPath, index);
