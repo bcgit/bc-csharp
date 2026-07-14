@@ -580,12 +580,19 @@ namespace Org.BouncyCastle.Crypto.Modes
 
         public virtual int GetUpdateOutputSize(int len)
         {
-            return len;
+            return 0;
         }
 
         public virtual int GetOutputSize(int len)
         {
-            return len + macSize;
+            int totalData = Convert.ToInt32(data.Length) + len;
+
+            if (forEncryption)
+            {
+                return totalData + macSize;
+            }
+
+            return totalData < macSize ? 0 : totalData - macSize;
         }
 
         public virtual void Reset()
