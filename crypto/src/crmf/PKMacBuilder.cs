@@ -128,7 +128,7 @@ namespace Org.BouncyCastle.Crmf
             if (iterationCount < 100)
                 throw new ArgumentException("iteration count must be at least 100");
 
-            CheckIterationCountCeiling(iterationCount);
+            CheckIterationCountValue(iterationCount);
 
             this.iterationCount = iterationCount;
 
@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Crmf
         /// <returns>this</returns>
         public PKMacBuilder SetParameters(PbmParameter parameters)
         {
-            CheckIterationCountCeiling(parameters.IterationCount.IntValueExact);
+            CheckIterationCount(parameters.IterationCount);
 
             this.parameters = parameters;
 
@@ -220,15 +220,26 @@ namespace Org.BouncyCastle.Crmf
         }
 #endif
 
-        private void CheckIterationCountCeiling(int iterationCount)
+        private void CheckIterationCount(DerInteger iterationCount)
         {
+            if (!iterationCount.TryGetIntValueExact(out int iterationCountValue))
+                throw new ArgumentException("iteration count outside Int32 range");
+
+            CheckIterationCountValue(iterationCountValue);
+        }
+
+        private void CheckIterationCountValue(int iterationCountValue)
+        {
+            if (iterationCountValue < 1)
+                throw new ArgumentException("iteration count less than 1");
+
             // When no explicit ceiling was configured, fall back to a generous default so that an attacker-supplied
             // PBMParameter from an incoming CMP message cannot drive the iterated hash into a CPU-exhaustion DoS.
             int ceiling = maxIterations > 0
                 ? maxIterations
                 : Properties.GetInt32(Properties.PKMacMaxIterationCount, 1_000_000);
-            if (iterationCount > ceiling)
-                throw new ArgumentException("iteration count exceeds limit (" + iterationCount + " > " + ceiling + ")");
+            if (iterationCountValue > ceiling)
+                throw new ArgumentException($"iteration count exceeds limit ({iterationCountValue} > {ceiling})");
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

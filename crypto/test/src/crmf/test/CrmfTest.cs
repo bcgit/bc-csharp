@@ -77,6 +77,50 @@ namespace Org.BouncyCastle.Crmf.Tests
         }
 
         [Test]
+        public void PKMacIterationCountNegative()
+        {
+            AlgorithmIdentifier owf = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
+            AlgorithmIdentifier mac = new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance);
+            byte[] salt = new byte[20];
+
+            // A negative iteration count must be rejected rather than silently accepted (a single OWF pass) or crashing
+            // IntValueExact when out of int range.
+            PbmParameter negative = new PbmParameter(new DerOctetString(salt), owf, DerInteger.ValueOf(-1), mac);
+            try
+            {
+                new PKMacBuilder().SetParameters(negative);
+                Assert.Fail("no exception on negative iteration count");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.That(e.Message.StartsWith("iteration count less than 1"));
+            }
+        }
+
+        [Test]
+        public void PKMacIterationCountOutsideInt32()
+        {
+            AlgorithmIdentifier owf = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
+            AlgorithmIdentifier mac = new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance);
+            byte[] salt = new byte[20];
+
+            // An attacker-declared iteration count larger than int.MaxValue (encoded directly as a DerInteger in an
+            // untrusted CMP PBMParameter) must be rejected with the same typed ArgumentException as an in-range
+            // oversized count - not leak an ArithmeticException from IntValueExact past the verifier's throws contract.
+            PbmParameter beyondInt = new PbmParameter(new DerOctetString(salt), owf,
+                new DerInteger(BigInteger.ValueOf(int.MaxValue).Add(BigInteger.One)), mac);
+            try
+            {
+                new PKMacBuilder().SetParameters(beyondInt);
+                Assert.Fail("no exception on out-of-int-range iteration count");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.That(e.Message.StartsWith("iteration count outside Int32 range"));
+            }
+        }
+
+        [Test]
         public void BasicMessage()
         {
             RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
