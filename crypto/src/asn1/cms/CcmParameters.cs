@@ -39,13 +39,13 @@ namespace Org.BouncyCastle.Asn1.Cms
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
-            m_icvLen = ValidateIcvLen(icvLen == null ? DefaultIcvLen : icvLen.IntValueExact);
+            m_icvLen = ValidateIcvLen(icvLen);
         }
 
         public CcmParameters(byte[] nonce, int icvLen)
         {
             m_nonce = DerOctetString.FromContents(nonce);
-            m_icvLen = ValidateIcvLen(icvLen);
+            m_icvLen = ValidateIcvLenValue(icvLen);
         }
 
         public byte[] GetNonce() => Arrays.Clone(m_nonce.GetOctets());
@@ -59,11 +59,22 @@ namespace Org.BouncyCastle.Asn1.Cms
                 :  new DerSequence(m_nonce, DerInteger.ValueOf(m_icvLen));
         }
 
+        private static int ValidateIcvLen(DerInteger icvLen)
+        {
+            if (icvLen == null)
+                return DefaultIcvLen;
+
+            if (!icvLen.TryGetIntValueExact(out int icvLenValue))
+                throw new ArgumentException("Invalid 'aes-ICVlen' (outside Int32 range)");
+
+            return ValidateIcvLenValue(icvLenValue);
+        }
+
         // RFC 5084: AES-CCM-ICVlen ::= INTEGER (4 | 6 | 8 | 10 | 12 | 14 | 16)
-        private static int ValidateIcvLen(int icvLen)
+        private static int ValidateIcvLenValue(int icvLen)
         {
             if (icvLen < 4 || icvLen > 16 || (icvLen & 1) != 0)
-                throw new ArgumentException("Invalid ICV length: " + icvLen);
+                throw new ArgumentException("Invalid 'aes-ICVlen': " + icvLen);
 
             return icvLen;
         }
