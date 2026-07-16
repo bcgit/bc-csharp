@@ -137,6 +137,19 @@ namespace Org.BouncyCastle.Crypto.Modes
                 throw new ArgumentException("invalid parameters passed to KCCM");
             }
 
+            // TODO Nonce length validation. Should it always be engineBlockSize?
+            int blockSize = engine.GetBlockSize();
+            if (newNonce.Length < blockSize)
+            {
+                byte[] tmp = new byte[blockSize];
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                newNonce.CopyTo(tmp);
+#else
+                Array.Copy(newNonce, 0, tmp, 0, newNonce.Length);
+#endif
+                newNonce = tmp;
+            }
+
             // RFC 5116 sec. 2.1 requires a distinct nonce per AEAD encryption under a given key; the
             // DSTU 7624 CCM construction inherits this CCM rule (cf. NIST SP 800-38C), and reuse is
             // catastrophic (CTR keystream reuse plus a forgeable CBC-MAC). That obligation is the
