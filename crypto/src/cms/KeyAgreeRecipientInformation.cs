@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Cms
             return GetPublicKeyFromOriginatorID(origID);
         }
 
-        private AsymmetricKeyParameter GetPublicKeyFromOriginatorPublicKey(AsymmetricKeyParameter receiverPrivateKey,
+        private static AsymmetricKeyParameter GetPublicKeyFromOriginatorPublicKey(AsymmetricKeyParameter receiverPrivateKey,
             OriginatorPublicKey originatorPublicKey)
         {
             PrivateKeyInfo privInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(receiverPrivateKey);
@@ -109,17 +109,18 @@ namespace Org.BouncyCastle.Cms
             throw new CmsException("No support for 'originator' as IssuerAndSerialNumber or SubjectKeyIdentifier");
         }
 
-        private KeyParameter CalculateAgreedWrapKey(DerObjectIdentifier wrapAlgOid,
-            AsymmetricKeyParameter senderPublicKey, AsymmetricKeyParameter receiverPrivateKey)
+        private static KeyParameter CalculateAgreedWrapKey(AlgorithmIdentifier agreeAlgID,
+            AlgorithmIdentifier wrapAlgID, AsymmetricKeyParameter senderPublicKey, Asn1OctetString userKeyingMaterial,
+            AsymmetricKeyParameter receiverPrivateKey)
         {
-            DerObjectIdentifier agreeAlgID = keyEncAlg.Algorithm;
+            DerObjectIdentifier agreeAlgOid = agreeAlgID.Algorithm;
 
             ICipherParameters senderPublicParams = senderPublicKey;
             ICipherParameters receiverPrivateParams = receiverPrivateKey;
 
-            if (agreeAlgID.Id.Equals(CmsEnvelopedGenerator.ECMqvSha1Kdf))
+            if (CmsUtilities.IsMqv(agreeAlgOid))
             {
-                MQVuserKeyingMaterial ukm = MQVuserKeyingMaterial.GetInstance(m_info.UserKeyingMaterial.GetOctets());
+                MQVuserKeyingMaterial ukm = MQVuserKeyingMaterial.GetInstance(userKeyingMaterial.GetOctets());
 
                 AsymmetricKeyParameter ephemeralKey = GetPublicKeyFromOriginatorPublicKey(
                     receiverPrivateKey, ukm.EphemeralPublicKey);
@@ -131,8 +132,19 @@ namespace Org.BouncyCastle.Cms
                     (ECPrivateKeyParameters)receiverPrivateParams,
                     (ECPrivateKeyParameters)receiverPrivateParams);
             }
+            else
+            {
+                // TODO[cms] bc-java has other consumers of userKeyingMaterial in EC, GOST, RFC2631 branches
+            }
 
-            IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgID, wrapAlgOid);
+            /*
+             * TODO[cms] This seems like the place where the original wrapAlgID.Parameters gets lost so that
+             * ECDHKekGenerator ultimately has to rebuild the AlgorithmIdentifier that it gives to ECC_CMS_SharedInfo.
+             * This leads to broken signatures (especially for AES, since it always rebuilds with ASN.1 NULL).
+             * Instead, the full wrapAlgID needs to propagate throughout.
+             */
+            DerObjectIdentifier wrapAlgOid = wrapAlgID.Algorithm;
+            IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgOid, wrapAlgOid);
             agreement.Init(receiverPrivateParams);
             BigInteger agreedValue = agreement.CalculateAgreement(senderPublicParams);
 
@@ -155,12 +167,14 @@ namespace Org.BouncyCastle.Cms
         {
             try
             {
-                var wrapAlgOid = DerObjectIdentifier.GetInstance(Asn1Sequence.GetInstance(keyEncAlg.Parameters)[0]);
+                AlgorithmIdentifier wrapAlgID = AlgorithmIdentifier.GetInstance(keyEncAlg.Parameters);
 
                 AsymmetricKeyParameter senderPublicKey = GetSenderPublicKey(receiverPrivateKey, m_info.Originator);
 
-                KeyParameter agreedWrapKey = CalculateAgreedWrapKey(wrapAlgOid, senderPublicKey, receiverPrivateKey);
+                KeyParameter agreedWrapKey = CalculateAgreedWrapKey(keyEncAlg, wrapAlgID, senderPublicKey,
+                    m_info.UserKeyingMaterial, receiverPrivateKey);
 
+                DerObjectIdentifier wrapAlgOid = wrapAlgID.Algorithm;
                 if (CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.Equals(wrapAlgOid) ||
                     CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.Equals(wrapAlgOid))
                 {
