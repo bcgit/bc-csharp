@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             Array.Copy(buffer, 0, G1, nonce.Length - Nb_ - 1, BYTES_IN_INT);
 
-            G1[G1.Length - 1] = getFlag(hasAssocText, macSize);
+            G1[G1.Length - 1] = GetFlag(hasAssocText, macSize);
 
             engine.ProcessBlock(G1, 0, macBlock, 0);
 
@@ -612,48 +612,21 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
         }
 
-        private byte getFlag(bool authTextPresents, int macSize)
+        private byte GetFlag(bool hasAssocText, int macSize)
         {
-            StringBuilder flagByte = new StringBuilder();
-
-            if (authTextPresents)
-            {
-                flagByte.Append("1");
-            }
-            else
-            {
-                flagByte.Append("0");
-            }
-
+            int result = (hasAssocText ? 0x80 : 0x00) | (Nb_ - 1);
 
             switch (macSize)
             {
-                case 8:
-                    flagByte.Append("010"); // binary 2
-                    break;
-                case 16:
-                    flagByte.Append("011"); // binary 3
-                    break;
-                case 32:
-                    flagByte.Append("100"); // binary 4
-                    break;
-                case 48:
-                    flagByte.Append("101"); // binary 5
-                    break;
-                case 64:
-                    flagByte.Append("110"); // binary 6
-                    break;
+            case  8: result |= 0x20; break;
+            case 16: result |= 0x30; break;
+            case 32: result |= 0x40; break;
+            case 48: result |= 0x50; break;
+            case 64: result |= 0x60; break;
+            default: throw new InvalidOperationException();
             }
 
-            string binaryNb = Convert.ToString(Nb_ - 1, 2);
-            while (binaryNb.Length < 4)
-            {
-                binaryNb = new StringBuilder(binaryNb).Insert(0, "0").ToString();
-            }
-
-            flagByte.Append(binaryNb);
-
-            return (byte)Convert.ToInt32(flagByte.ToString(), 2);
+            return (byte)result;
         }
     }
 }
