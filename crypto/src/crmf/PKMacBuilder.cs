@@ -53,9 +53,7 @@ namespace Org.BouncyCastle.Crmf
         /// Default, IterationCount = 1000, OIW=IdSha1, Mac=HmacSHA1
         /// </summary>
         public PKMacBuilder()
-            :   this(new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1), 1000,
-                    new AlgorithmIdentifier(IanaObjectIdentifiers.HmacSha1, DerNull.Instance),
-                    new DefaultPKMacPrimitivesProvider())
+            : this(new DefaultPKMacPrimitivesProvider())
         {
         }
 
