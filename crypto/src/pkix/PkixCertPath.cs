@@ -81,33 +81,33 @@ namespace Org.BouncyCastle.Pkix
 
         private readonly IList<X509Certificate> m_certificates;
 
-        private static IList<X509Certificate> SortCerts(IList<X509Certificate> certs)
+        private static bool IsAlreadySorted(IList<X509Certificate> certs)
         {
-            if (certs.Count < 2)
-                return certs;
-
-            X509Name issuer = certs[0].IssuerDN;
-            bool okay = true;
-
-            for (int i = 1; i != certs.Count; i++)
+            var issuer = certs[0].IssuerDN;
+            for (int i = 1; i < certs.Count; ++i)
             {
                 X509Certificate cert = certs[i];
 
-                if (issuer.Equivalent(cert.SubjectDN, true))
-                {
-                    issuer = cert.IssuerDN;
-                }
-                else
-                {
-                    okay = false;
-                    break;
-                }
-            }
+                if (!issuer.Equivalent(cert.SubjectDN, true))
+                    return false;
 
-            if (okay)
+                issuer = cert.IssuerDN;
+            }
+            return true;
+        }
+
+        private static IList<X509Certificate> SortCerts(IList<X509Certificate> certs)
+        {
+            if (certs.Count < 2 || IsAlreadySorted(certs))
                 return certs;
 
             // find end-entity cert
+            // The inner "is anyone's issuer == subject?" scan iterates orig (the unchanging snapshot) rather than certs
+            // (the working list we remove from), and --i restores the outer index after a remove. Scanning the mutating
+            // certs would misclassify an intermediary as an end-entity once its child end-entity had already been
+            // removed in an earlier iteration; advancing the outer index past a shifted-down element would skip it
+            // entirely. Either alone produces the github (bc-java) #1269 false multi-EE detection that falls back to
+            // the unsorted input.
             var retList = new List<X509Certificate>(certs.Count);
             var orig = new List<X509Certificate>(certs);
 
@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Pkix
                 bool found = false;
 
                 X509Name subject = cert.SubjectDN;
-                foreach (X509Certificate c in certs)
+                foreach (X509Certificate c in orig)
                 {
                     if (c.IssuerDN.Equivalent(subject, true))
                     {
@@ -130,6 +130,7 @@ namespace Org.BouncyCastle.Pkix
                 {
                     retList.Add(cert);
                     certs.RemoveAt(i);
+                    --i;
                 }
             }
 
@@ -139,7 +140,7 @@ namespace Org.BouncyCastle.Pkix
 
             for (int i = 0; i != retList.Count; i++)
             {
-                issuer = retList[i].IssuerDN;
+                var issuer = retList[i].IssuerDN;
 
                 for (int j = 0; j < certs.Count; j++)
                 {
