@@ -21,39 +21,39 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class V2AttributeCertificateInfoGenerator
     {
-        internal DerInteger				version;
-        internal Holder					holder;
-        internal AttCertIssuer			issuer;
-        internal AlgorithmIdentifier	signature;
-        internal DerInteger				serialNumber;
-        internal Asn1EncodableVector	attributes;
-        internal DerBitString			issuerUniqueID;
-        internal X509Extensions			extensions;
+        internal DerInteger version;
+        internal Holder holder;
+        internal AttCertIssuer issuer;
+        internal AlgorithmIdentifier signature;
+        internal DerInteger serialNumber;
+        internal Asn1EncodableVector attributes;
+        internal DerBitString issuerUniqueID;
+        internal X509Extensions extensions;
 
         // Note: validity period start/end dates stored directly
         //internal AttCertValidityPeriod attrCertValidityPeriod;
-        internal Asn1GeneralizedTime    startDate, endDate;
+        internal Asn1GeneralizedTime startDate, endDate;
 
-		public V2AttributeCertificateInfoGenerator()
+        public V2AttributeCertificateInfoGenerator()
         {
             this.version = DerInteger.One;
             attributes = new Asn1EncodableVector();
         }
 
-		public void SetHolder(
-			Holder holder)
+        public void SetHolder(
+            Holder holder)
         {
             this.holder = holder;
         }
 
-		public void AddAttribute(
-			string			oid,
-			Asn1Encodable	value)
+        public void AddAttribute(
+            string oid,
+            Asn1Encodable value)
         {
             attributes.Add(new AttributeX509(new DerObjectIdentifier(oid), new DerSet(value)));
         }
 
-		/**
+        /**
          * @param attribute
          */
         public void AddAttribute(AttributeX509 attribute)
@@ -61,49 +61,49 @@ namespace Org.BouncyCastle.Asn1.X509
             attributes.Add(attribute);
         }
 
-		public void SetSerialNumber(
+        public void SetSerialNumber(
             DerInteger serialNumber)
         {
             this.serialNumber = serialNumber;
         }
 
-		public void SetSignature(
+        public void SetSignature(
             AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
-		public void SetIssuer(
+        public void SetIssuer(
             AttCertIssuer issuer)
         {
             this.issuer = issuer;
         }
 
-		public void SetStartDate(
+        public void SetStartDate(
             Asn1GeneralizedTime startDate)
         {
             this.startDate = startDate;
         }
 
-		public void SetEndDate(
+        public void SetEndDate(
             Asn1GeneralizedTime endDate)
         {
             this.endDate = endDate;
         }
 
-		public void SetIssuerUniqueID(
+        public void SetIssuerUniqueID(
             DerBitString issuerUniqueID)
         {
             this.issuerUniqueID = issuerUniqueID;
         }
 
-		public void SetExtensions(
+        public void SetExtensions(
             X509Extensions extensions)
         {
             this.extensions = extensions;
         }
 
-		public AttributeCertificateInfo GenerateAttributeCertificateInfo()
+        public AttributeCertificateInfo GenerateAttributeCertificateInfo()
         {
             if ((serialNumber == null) || (signature == null)
                 || (issuer == null) || (startDate == null) || (endDate == null)
@@ -112,19 +112,19 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new InvalidOperationException("not all mandatory fields set in V2 AttributeCertificateInfo generator");
             }
 
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				version, holder, issuer, signature, serialNumber);
+            Asn1EncodableVector v = new Asn1EncodableVector(
+                version, holder, issuer, signature, serialNumber);
 
-			//
+            //
             // before and after dates => AttCertValidityPeriod
             //
             v.Add(new AttCertValidityPeriod(startDate, endDate));
 
-			// Attributes
+            // Attributes
             v.Add(new DerSequence(attributes));
             v.AddOptional(issuerUniqueID, extensions);
 
-			return AttributeCertificateInfo.GetInstance(new DerSequence(v));
+            return AttributeCertificateInfo.GetInstance(new DerSequence(v));
         }
     }
 }
