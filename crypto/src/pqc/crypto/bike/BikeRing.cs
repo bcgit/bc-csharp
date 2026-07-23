@@ -7,7 +7,6 @@ using System.Runtime.CompilerServices;
 
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math.BinPoly;
-using Org.BouncyCastle.Math.Raw;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
@@ -30,12 +29,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             m_bits = r;
             m_size = BinPolys.Size(r);
 
-            uint r32 = Mod.Inverse32((uint)-r);
             foreach (int n in EnumerateSquarePowersInv(r))
             {
                 if (n >= PermutationCutoff && !m_halfPowers.ContainsKey(n))
                 {
-                    m_halfPowers[n] = GenerateHalfPower((uint)r, r32, n);
+                    m_halfPowers[n] = GenerateHalfPower((uint)r, n);
                 }
             }
         }
@@ -216,27 +214,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             }
         }
 
-        private static int GenerateHalfPower(uint r, uint r32, int n)
+        private static int GenerateHalfPower(uint r, int n)
         {
+            Debug.Assert(n > 0);
+
+            // 2^(-n) mod r, as h^n mod r where h = (r + 1)/2 = 2^(-1) mod r (r odd).
+            uint h = (r + 1) >> 1;
             uint p = 1;
-            int k = n;
-            while (k >= 32)
+            for (int i = Integers.BitLength(n) - 1; i >= 0; --i)
             {
-                uint y = r32 * p;
-                ulong t = (ulong)y * r;
-                ulong u = t + p;
-                Debug.Assert((uint)u == 0U);
-                p = (uint)(u >> 32);
-                k -= 32;
-            }
-            if (k > 0)
-            {
-                uint mk = uint.MaxValue >> -k;
-                uint y = (r32 * p) & mk;
-                ulong t = (ulong)y * r;
-                ulong u = t + p;
-                Debug.Assert(((uint)u & mk) == 0U);
-                p = (uint)(u >> k);
+                p = (uint)((ulong)p * p % r);
+                if ((n & (1 << i)) != 0)
+                {
+                    p = (uint)((ulong)p * h % r);
+                }
             }
             return (int)p;
         }
