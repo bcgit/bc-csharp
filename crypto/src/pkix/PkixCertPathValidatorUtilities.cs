@@ -734,9 +734,7 @@ namespace Org.BouncyCastle.Pkix
             // 5.2.4 (a)
             try
             {
-                var deltaSelectIssuer = new List<X509Name>();
-                deltaSelectIssuer.Add(completeCrl.IssuerDN);
-                deltaSelect.Issuers = deltaSelectIssuer;
+                deltaSelect.AddIssuer(completeCrl.IssuerDN);
             }
             catch (IOException e)
             {

@@ -50,6 +50,19 @@ namespace Org.BouncyCastle.X509.Store
 
         public virtual object Clone() => new X509CrlStoreSelector(this);
 
+        public void AddIssuer(X509Name issuer)
+        {
+            if (issuer == null)
+                throw new ArgumentNullException(nameof(issuer));
+
+            if (m_issuers == null)
+            {
+                m_issuers = new List<X509Name>();
+            }
+
+            m_issuers.Add(issuer);
+        }
+
         public X509Certificate CertificateChecking
         {
             get { return m_certificateChecking; }
@@ -67,8 +80,24 @@ namespace Org.BouncyCastle.X509.Store
         /// </summary>
         public IList<X509Name> Issuers
         {
-            get { return new List<X509Name>(m_issuers); }
-            set { m_issuers = new List<X509Name>(value); }
+            get
+            {
+                if (m_issuers == null)
+                    return null;
+
+                return new List<X509Name>(m_issuers);
+            }
+            set
+            {
+                if (value == null || value.Count < 1)
+                {
+                    m_issuers = null;
+                }
+                else
+                {
+                    m_issuers = new List<X509Name>(value);
+                }
+            }
         }
 
         public BigInteger MaxCrlNumber
