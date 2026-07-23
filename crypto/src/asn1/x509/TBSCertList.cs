@@ -4,28 +4,28 @@ using System.Collections.Generic;
 namespace Org.BouncyCastle.Asn1.X509
 {
     public class CrlEntry
-		: Asn1Encodable
-	{
-		public static CrlEntry GetInstance(object obj)
-		{
-			if (obj == null)
-				return null;
-			if (obj is CrlEntry crlEntry)
-				return crlEntry;
+        : Asn1Encodable
+    {
+        public static CrlEntry GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is CrlEntry crlEntry)
+                return crlEntry;
 #pragma warning disable CS0618 // Type or member is obsolete
             return new CrlEntry(Asn1Sequence.GetInstance(obj));
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static CrlEntry GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
-		{
+        {
 #pragma warning disable CS0618 // Type or member is obsolete
             return new CrlEntry(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
         public static CrlEntry GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
-		{
+        {
 #pragma warning disable CS0618 // Type or member is obsolete
             return new CrlEntry(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 #pragma warning restore CS0618 // Type or member is obsolete
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         [Obsolete("Use 'GetInstance' instead")]
         public CrlEntry(Asn1Sequence seq)
-		{
+        {
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
@@ -54,8 +54,8 @@ namespace Org.BouncyCastle.Asn1.X509
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
-			m_seq = seq;
-		}
+            m_seq = seq;
+        }
 
         public DerInteger UserCertificate => m_userCertificate;
 
@@ -64,9 +64,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public X509Extensions Extensions => m_crlEntryExtensions;
 
         public override Asn1Object ToAsn1Object() => m_seq;
-	}
+    }
 
-	/**
+    /**
      * PKIX RFC-2459 - TbsCertList object.
      * <pre>
      * TbsCertList  ::=  Sequence  {
@@ -90,53 +90,53 @@ namespace Org.BouncyCastle.Asn1.X509
     public class TbsCertificateList
         : Asn1Encodable
     {
-		private class RevokedCertificatesEnumeration
-			: IEnumerable<CrlEntry>
-		{
-			private readonly IEnumerable<Asn1Encodable> m_en;
+        private class RevokedCertificatesEnumeration
+            : IEnumerable<CrlEntry>
+        {
+            private readonly IEnumerable<Asn1Encodable> m_en;
 
-			internal RevokedCertificatesEnumeration(IEnumerable<Asn1Encodable> en)
-			{
-				m_en = en;
-			}
+            internal RevokedCertificatesEnumeration(IEnumerable<Asn1Encodable> en)
+            {
+                m_en = en;
+            }
 
-			System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
 
-			public IEnumerator<CrlEntry> GetEnumerator() => new RevokedCertificatesEnumerator(m_en.GetEnumerator());
+            public IEnumerator<CrlEntry> GetEnumerator() => new RevokedCertificatesEnumerator(m_en.GetEnumerator());
 
-			private sealed class RevokedCertificatesEnumerator
-				: IEnumerator<CrlEntry>
-			{
-				private readonly IEnumerator<Asn1Encodable> m_e;
+            private sealed class RevokedCertificatesEnumerator
+                : IEnumerator<CrlEntry>
+            {
+                private readonly IEnumerator<Asn1Encodable> m_e;
 
-				internal RevokedCertificatesEnumerator(IEnumerator<Asn1Encodable> e)
-				{
-					m_e = e;
-				}
+                internal RevokedCertificatesEnumerator(IEnumerator<Asn1Encodable> e)
+                {
+                    m_e = e;
+                }
 
-				public void Dispose()
-				{
-					m_e.Dispose();
+                public void Dispose()
+                {
+                    m_e.Dispose();
                     GC.SuppressFinalize(this);
                 }
 
                 public bool MoveNext() => m_e.MoveNext();
 
-				public void Reset() => m_e.Reset();
+                public void Reset() => m_e.Reset();
 
-				object System.Collections.IEnumerator.Current => Current;
+                object System.Collections.IEnumerator.Current => Current;
 
-				public CrlEntry Current => CrlEntry.GetInstance(m_e.Current);
-			}
-		}
+                public CrlEntry Current => CrlEntry.GetInstance(m_e.Current);
+            }
+        }
 
-		public static TbsCertificateList GetInstance(object obj)
+        public static TbsCertificateList GetInstance(object obj)
         {
-			if (obj == null)
-				return null;
-			if (obj is TbsCertificateList tbsCertificateList)
-				return tbsCertificateList;
-			return new TbsCertificateList(Asn1Sequence.GetInstance(obj));
+            if (obj == null)
+                return null;
+            if (obj is TbsCertificateList tbsCertificateList)
+                return tbsCertificateList;
+            return new TbsCertificateList(Asn1Sequence.GetInstance(obj));
         }
 
         public static TbsCertificateList GetInstance(Asn1TaggedObject obj, bool explicitly) =>
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_seq = seq;
         }
 
-		public int Version => m_version.IntValueExact + 1;
+        public int Version => m_version.IntValueExact + 1;
 
         public DerInteger VersionNumber => m_version;
 
@@ -189,19 +189,19 @@ namespace Org.BouncyCastle.Asn1.X509
         public Time NextUpdate => m_nextUpdate;
 
         // TODO[api] Don't convert null to empty array
-		public CrlEntry[] GetRevokedCertificates() =>
+        public CrlEntry[] GetRevokedCertificates() =>
             m_revokedCertificates?.MapElements(CrlEntry.GetInstance) ?? Array.Empty<CrlEntry>();
 
-		public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration()
-		{
-			if (m_revokedCertificates == null)
-				return new List<CrlEntry>(0);
+        public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration()
+        {
+            if (m_revokedCertificates == null)
+                return new List<CrlEntry>(0);
 
-			return new RevokedCertificatesEnumeration(m_revokedCertificates);
-		}
+            return new RevokedCertificatesEnumeration(m_revokedCertificates);
+        }
 
-		public X509Extensions Extensions => m_crlExtensions;
+        public X509Extensions Extensions => m_crlExtensions;
 
-		public override Asn1Object ToAsn1Object() => m_seq;
+        public override Asn1Object ToAsn1Object() => m_seq;
     }
 }
