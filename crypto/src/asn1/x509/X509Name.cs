@@ -137,7 +137,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /**
          * ISIS-MTT NameAtBirth - DirectoryString(SIZE(1..64)
          */
-        public static readonly DerObjectIdentifier NameAtBirth =  new DerObjectIdentifier("1.3.36.8.3.14");
+        public static readonly DerObjectIdentifier NameAtBirth = new DerObjectIdentifier("1.3.36.8.3.14");
 
         /**
          * RFC 3039 PostalAddress - SEQUENCE SIZE (1..6) OF
@@ -429,7 +429,7 @@ namespace Org.BouncyCastle.Asn1.X509
                     var attr = AttributeTypeAndValue.GetInstance(attrs[i]);
 
                     var attrType = attr.Type;
-                    var attrValue = attr.Value.ToAsn1Object();
+                    var attrValue = attr.Value;
 
                     m_ordering.Add(DerObjectIdentifier.GetInstance(attrType));
 
@@ -681,30 +681,39 @@ namespace Org.BouncyCastle.Asn1.X509
             return v;
         }
 
+        public bool IsEmpty => m_seq != null ? m_seq.Count < 1 : m_ordering.Count < 1;
+
         public override Asn1Object ToAsn1Object()
         {
             if (m_seq == null)
             {
-                Asn1EncodableVector vec = new Asn1EncodableVector();
-                Asn1EncodableVector sVec = new Asn1EncodableVector();
-                DerObjectIdentifier oid = null;
-
-                for (int i = 0; i != m_ordering.Count; i++)
+                if (m_ordering.Count < 1)
                 {
-                    if (oid != null && !m_added[i])
+                    m_seq = DerSequence.Empty;
+                }
+                else
+                {
+                    Asn1EncodableVector atvVec = new Asn1EncodableVector();
+                    Asn1EncodableVector rdnVec = new Asn1EncodableVector();
+
+                    for (int i = 0; i < m_ordering.Count; ++i)
                     {
-                        vec.Add(DerSet.FromVector(sVec));
-                        sVec = new Asn1EncodableVector();
+                        if (i != 0 && !m_added[i])
+                        {
+                            rdnVec.Add(DerSet.FromVector(atvVec));
+                            atvVec = new Asn1EncodableVector();
+                        }
+
+                        var oid = m_ordering[i];
+                        var convertedValue = converter.GetConvertedValue(oid, m_values[i]);
+
+                        atvVec.Add(DerSequence.FromElements(oid, convertedValue));
                     }
 
-                    oid = m_ordering[i];
-                    var convertedValue = converter.GetConvertedValue(oid, m_values[i]);
-                    sVec.Add(new DerSequence(oid, convertedValue));
+                    rdnVec.Add(DerSet.FromVector(atvVec));
+
+                    m_seq = DerSequence.FromVector(rdnVec);
                 }
-
-                vec.Add(DerSet.FromVector(sVec));
-
-                m_seq = new DerSequence(vec);
             }
 
             return m_seq;
@@ -713,7 +722,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <param name="other">The X509Name object to test equivalency against.</param>
         /// <param name="inOrder">If true, the order of elements must be the same,
         /// as well as the values associated with each element.</param>
-        public bool Equivalent(X509Name	other, bool inOrder)
+        public bool Equivalent(X509Name other, bool inOrder)
         {
             if (!inOrder)
                 return this.Equivalent(other);
