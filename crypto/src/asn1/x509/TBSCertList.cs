@@ -173,6 +173,10 @@ namespace Org.BouncyCastle.Asn1.X509
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
+            // RFC 5280 sec. 5.1.2.3: the CRL issuer field MUST contain a non-empty distinguished name.
+            if (m_issuer.IsEmpty)
+                throw new ArgumentException("CRL issuer is an empty distinguished name");
+
             m_seq = seq;
         }
 

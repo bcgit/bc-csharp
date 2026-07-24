@@ -48,6 +48,11 @@ namespace Org.BouncyCastle.Asn1.X509
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+
+            // RFC 3281 sec. 4.2.3: the attribute certificate issuer MUST identify the issuer; an empty AttCertIssuer is
+            // not a valid identifier.
+            if (IsEmptyIssuer(m_issuer))
+                throw new ArgumentException("attribute certificate issuer is empty");
         }
 
         public DerInteger Version => m_version;
@@ -67,6 +72,30 @@ namespace Org.BouncyCastle.Asn1.X509
         public DerBitString IssuerUniqueID => m_issuerUniqueID;
 
         public X509Extensions Extensions => m_extensions;
+
+        /// <summary>
+        /// Return true when the AttCertIssuer carries no identifying information: an empty v1 GeneralNames sequence, or
+        /// a v2 V2Form whose issuerName, baseCertificateID and objectDigestInfo are all absent (or whose issuerName,
+        /// when present, is itself empty).
+        /// </summary>
+        internal static bool IsEmptyIssuer(AttCertIssuer issuer)
+        {
+            Asn1Encodable inner = issuer.Issuer;
+
+            if (inner is GeneralNames generalNames)
+                return generalNames.GetNames().Length == 0;
+
+            if (inner is V2Form v2)
+            {
+                GeneralNames issuerName = v2.IssuerName;
+                if (issuerName != null)
+                    return issuerName.GetNames().Length == 0;
+
+                return v2.BaseCertificateID == null && v2.ObjectDigestInfo == null;
+            }
+
+            return false;
+        }
 
         /**
          * Produce an object suitable for an Asn1OutputStream.

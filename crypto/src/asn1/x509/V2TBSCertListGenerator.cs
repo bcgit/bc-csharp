@@ -153,10 +153,11 @@ namespace Org.BouncyCastle.Asn1.X509
         public Asn1Sequence GeneratePreTbsCertList()
         {
             if (signature != null)
-                throw new InvalidOperationException("signature should not be set in PreTBSCertList generator");
-
+                throw new InvalidOperationException("Signature should not be set in PreTBSCertList generator");
             if ((issuer == null) || (thisUpdate == null))
                 throw new InvalidOperationException("Not all mandatory fields set in V2 PreTBSCertList generator");
+            if (issuer.IsEmpty)
+                throw new InvalidOperationException("Issuer is an empty distinguished name");
 
             return GenerateTbsCertificateStructure();
         }
@@ -165,6 +166,8 @@ namespace Org.BouncyCastle.Asn1.X509
         {
             if ((signature == null) || (issuer == null) || (thisUpdate == null))
                 throw new InvalidOperationException("Not all mandatory fields set in V2 TbsCertList generator.");
+            if (issuer.IsEmpty)
+                throw new InvalidOperationException("Issuer is an empty distinguished name");
 
             return TbsCertificateList.GetInstance(GenerateTbsCertificateStructure());
         }

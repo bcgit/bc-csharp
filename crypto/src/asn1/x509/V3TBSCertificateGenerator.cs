@@ -123,14 +123,17 @@ namespace Org.BouncyCastle.Asn1.X509
         public Asn1Sequence GeneratePreTbsCertificate()
         {
             if (signature != null)
-                throw new InvalidOperationException("signature field should not be set in PreTBSCertificate");
+                throw new InvalidOperationException("Signature field should not be set in PreTBSCertificate");
 
             if ((serialNumber == null) || (issuer == null) ||
                 (validity == null && (startDate == null || endDate == null)) ||
                 (subject == null && !altNamePresentAndCritical) || (subjectPublicKeyInfo == null))
             {
-                throw new InvalidOperationException("not all mandatory fields set in V3 TBScertificate generator");
+                throw new InvalidOperationException("Not all mandatory fields set in V3 TBScertificate generator");
             }
+
+            if (issuer.IsEmpty)
+                throw new InvalidOperationException("Issuer is an empty distinguished name");
 
             Asn1EncodableVector v = new Asn1EncodableVector(9);
             v.Add(Version);
@@ -152,8 +155,11 @@ namespace Org.BouncyCastle.Asn1.X509
                 (validity == null && (startDate == null || endDate == null)) ||
                 (subject == null && !altNamePresentAndCritical) || (subjectPublicKeyInfo == null))
             {
-                throw new InvalidOperationException("not all mandatory fields set in V3 TBScertificate generator");
+                throw new InvalidOperationException("Not all mandatory fields set in V3 TBScertificate generator");
             }
+
+            if (issuer.IsEmpty)
+                throw new InvalidOperationException("Issuer is an empty distinguished name");
 
             return new TbsCertificateStructure(version: DerInteger.Two, serialNumber, signature, issuer,
                 validity ?? new Validity(startDate, endDate), subject ?? X509Name.GetInstance(DerSequence.Empty),

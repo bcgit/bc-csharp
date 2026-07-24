@@ -109,8 +109,10 @@ namespace Org.BouncyCastle.Asn1.X509
                 || (issuer == null) || (startDate == null) || (endDate == null)
                 || (holder == null) || (attributes == null))
             {
-                throw new InvalidOperationException("not all mandatory fields set in V2 AttributeCertificateInfo generator");
+                throw new InvalidOperationException("Not all mandatory fields set in V2 AttributeCertificateInfo generator");
             }
+            if (AttributeCertificateInfo.IsEmptyIssuer(issuer))
+                throw new InvalidOperationException("Issuer is empty");
 
             Asn1EncodableVector v = new Asn1EncodableVector(
                 version, holder, issuer, signature, serialNumber);

@@ -99,8 +99,12 @@ namespace Org.BouncyCastle.Asn1.X509
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
-			m_seq = seq;
-		}
+            // RFC 5280 sec. 4.1.2.4: certificate issuer MUST be a non-empty DN.
+            if (m_issuer.IsEmpty)
+                throw new ArgumentException("certificate issuer is an empty distinguished name");
+
+            m_seq = seq;
+        }
 
         public TbsCertificateStructure(DerInteger version, DerInteger serialNumber, AlgorithmIdentifier signature,
             X509Name issuer, Validity validity, X509Name subject, SubjectPublicKeyInfo subjectPublicKeyInfo,
@@ -117,6 +121,10 @@ namespace Org.BouncyCastle.Asn1.X509
             m_issuerUniqueID = issuerUniqueID;
             m_subjectUniqueID = subjectUniqueID;
             m_extensions = extensions;
+
+            // RFC 5280 sec. 4.1.2.4: certificate issuer MUST be a non-empty DN.
+            if (m_issuer.IsEmpty)
+                throw new ArgumentException("certificate issuer is an empty distinguished name");
 
             m_seq = null;
         }

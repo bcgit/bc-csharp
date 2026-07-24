@@ -97,8 +97,11 @@ namespace Org.BouncyCastle.Asn1.X509
                 (validity == null && (startDate == null || endDate == null)) ||
                 (subject == null) || (subjectPublicKeyInfo == null))
             {
-                throw new InvalidOperationException("not all mandatory fields set in V1 TBScertificate generator");
+                throw new InvalidOperationException("Not all mandatory fields set in V1 TBScertificate generator");
             }
+
+            if (issuer.IsEmpty)
+                throw new InvalidOperationException("Issuer is an empty distinguished name");
 
             return new TbsCertificateStructure(version: DerInteger.Zero, serialNumber, signature, issuer,
                 validity ?? new Validity(startDate, endDate), subject, subjectPublicKeyInfo,

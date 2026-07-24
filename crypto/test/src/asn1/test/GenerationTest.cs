@@ -183,7 +183,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
             catch (InvalidOperationException e)
             {
-                if (!e.Message.Equals("not all mandatory fields set in V3 TBScertificate generator"))
+                if (!e.Message.Equals("Not all mandatory fields set in V3 TBScertificate generator"))
                 {
                     Fail("unexpected exception", e);
                 }
