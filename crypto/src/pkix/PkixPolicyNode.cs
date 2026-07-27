@@ -110,7 +110,6 @@ namespace Org.BouncyCastle.Pkix
             return buf.ToString();
         }
 
-        // TODO[api] Maybe remove this, the 'clone' loses its parent
         public virtual object Clone() => Copy();
 
         public virtual PkixPolicyNode Copy()
@@ -120,7 +119,9 @@ namespace Org.BouncyCastle.Pkix
 
             foreach (PkixPolicyNode child in mChildren)
             {
-                copy.AddChild(child.Copy());
+                PkixPolicyNode childCopy = child.Copy();
+                childCopy.Parent = copy;
+                copy.AddChild(childCopy);
             }
 
             return copy;
