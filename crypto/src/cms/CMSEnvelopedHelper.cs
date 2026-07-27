@@ -15,19 +15,27 @@ namespace Org.BouncyCastle.Cms
 {
     internal class CmsEnvelopedHelper
     {
-        private static readonly Dictionary<string, int> KeySizes = new Dictionary<string, int>();
+        private static readonly Dictionary<string, int> FixedKeySizes = new Dictionary<string, int>();
         private static readonly Dictionary<string, string> Rfc3211WrapperNames = new Dictionary<string, string>();
 
         static CmsEnvelopedHelper()
         {
-            KeySizes.Add(CmsEnvelopedGenerator.Aes128Cbc, 128);
-            KeySizes.Add(CmsEnvelopedGenerator.Aes192Cbc, 192);
-            KeySizes.Add(CmsEnvelopedGenerator.Aes256Cbc, 256);
-            KeySizes.Add(CmsEnvelopedGenerator.Camellia128Cbc, 128);
-            KeySizes.Add(CmsEnvelopedGenerator.Camellia192Cbc, 192);
-            KeySizes.Add(CmsEnvelopedGenerator.Camellia256Cbc, 256);
-            KeySizes.Add(CmsEnvelopedGenerator.DesCbc, 64);
-            KeySizes.Add(CmsEnvelopedGenerator.DesEde3Cbc, 192);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes128Cbc, 128);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes192Cbc, 192);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes256Cbc, 256);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes128Ccm, 128);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes192Ccm, 192);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes256Ccm, 256);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes128Gcm, 128);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes192Gcm, 192);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes256Gcm, 256);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Camellia128Cbc, 128);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Camellia192Cbc, 192);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.Camellia256Cbc, 256);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.DesCbc, 64);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.DesEde3Cbc, 192);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.IdeaCbc, 128);
+            FixedKeySizes.Add(CmsEnvelopedGenerator.SeedCbc, 128);
 
             Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Aes128Cbc, "AESRFC3211WRAP");
             Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Aes192Cbc, "AESRFC3211WRAP");
@@ -57,7 +65,7 @@ namespace Org.BouncyCastle.Cms
             if (oid == null)
                 throw new ArgumentNullException(nameof(oid));
 
-            if (!KeySizes.TryGetValue(oid, out var keySize))
+            if (!FixedKeySizes.TryGetValue(oid, out var keySize))
                 throw new ArgumentException("no key size for " + oid, nameof(oid));
 
             return keySize;
