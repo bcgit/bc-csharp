@@ -98,6 +98,23 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return CollectionUtilities.Proxy(keys);
         }
 
+        /// <summary>
+        /// The number of valid seconds from creation time for the given key - zero means no expiry.
+        /// </summary>
+        /// <remarks>
+        /// For a subkey the expiry is derived only from binding signatures that verify against this ring's
+        /// primary key, so (unlike <see cref="PgpPublicKey.GetValidSeconds()"/>) a forged, unverified
+        /// binding packet cannot alter the result. See <see cref="PgpPublicKey.GetValidSeconds(PgpPublicKey)"/>.
+        /// </remarks>
+        /// <param name="pubKey">A key from this ring.</param>
+        public virtual long GetValidSeconds(PgpPublicKey pubKey)
+        {
+            if (pubKey == null)
+                throw new ArgumentNullException(nameof(pubKey));
+
+            return pubKey.GetValidSeconds(GetPublicKey());
+        }
+
         public virtual byte[] GetEncoded()
         {
             MemoryStream bOut = new MemoryStream();

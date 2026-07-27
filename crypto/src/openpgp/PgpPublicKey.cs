@@ -427,6 +427,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>The number of valid seconds from creation time - zero means no expiry.</summary>
+        /// <remarks>
+        /// WARNING: for a subkey this value is derived from subkey binding signature packets that have
+        /// NOT been cryptographically verified against the primary key, so it must not be relied on as a
+        /// security boundary - a forged, unverified binding packet can alter the result. When the expiry
+        /// drives a trust decision, use <see cref="GetValidSeconds(PgpPublicKey)"/> (which verifies the
+        /// binding signatures against the primary key) or verify the binding signatures yourself.
+        /// </remarks>
         public long GetValidSeconds()
         {
             if (publicPk.Version <= 3)
@@ -461,6 +468,102 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
 
             return 0;
+        }
+
+        /// <summary>
+        /// The number of valid seconds from creation time - zero means no expiry - deriving a subkey's
+        /// expiry only from binding signatures that cryptographically verify against
+        /// <paramref name="masterKey"/>.
+        /// </summary>
+        /// <remarks>
+        /// Prefer this overload over <see cref="GetValidSeconds()"/> when the expiry of a subkey is used
+        /// for a security decision: any binding signature packet that does not verify against the primary
+        /// key is ignored, so an appended forged binding packet cannot influence the reported expiry.
+        /// For a (v4+) master key the expiry still comes from its own self-signatures and
+        /// <paramref name="masterKey"/> is not consulted.
+        /// </remarks>
+        /// <param name="masterKey">The primary key that binds this key; required when this is a subkey.</param>
+        /// <exception cref="ArgumentNullException">If this is a subkey and <paramref name="masterKey"/> is null.
+        /// </exception>
+        public long GetValidSeconds(PgpPublicKey masterKey)
+        {
+            if (publicPk.Version <= 3)
+            {
+                return (long)publicPk.ValidDays * (24 * 60 * 60);
+            }
+
+            if (IsMasterKey)
+            {
+                // A master key's expiry comes from its own self-signatures (see GetValidSeconds()).
+                for (int i = 0; i != MasterKeyCertificationTypes.Length; i++)
+                {
+                    long seconds = GetExpirationTimeFromSig(true, MasterKeyCertificationTypes[i]);
+                    if (seconds >= 0)
+                        return seconds;
+                }
+
+                return 0;
+            }
+
+            if (masterKey == null)
+                throw new ArgumentNullException(nameof(masterKey));
+
+            // Only subkey binding signatures that verify against the master key are trusted. The DirectKey
+            // fallback used by GetValidSeconds() is intentionally omitted here: it is not the common path
+            // and a DirectKey signature is not verifiable via VerifyCertification(masterKey, subKey).
+            long bindingSeconds = GetVerifiedBindingExpirationTime(masterKey);
+            if (bindingSeconds >= 0)
+                return bindingSeconds;
+
+            return 0;
+        }
+
+        private long GetVerifiedBindingExpirationTime(PgpPublicKey masterKey)
+        {
+            long expiryTime = -1L;
+            long lastDate = -1L;
+
+            foreach (PgpSignature sig in GetSignaturesOfType(PgpSignature.SubkeyBinding))
+            {
+                /*
+                 * Trust only binding signatures that cryptographically verify against the master key. The
+                 * signature's claimed issuer Key ID is not relied on (verification uses masterKey), so a
+                 * forged packet cannot slip through by advertising any particular issuer.
+                 */
+                if (!VerifyBindingSignature(sig, masterKey))
+                    continue;
+
+                /*
+                 * RFC 4880 5.2.4.1: the most recent binding signature wins, even if it omits the Key
+                 * Expiration Time subpacket (which removes any previously asserted expiry).
+                 */
+                long thisDate = sig.CreationTime.Ticks;
+                if (thisDate > lastDate)
+                {
+                    lastDate = thisDate;
+
+                    PgpSignatureSubpacketVector hashed = sig.GetHashedSubPackets();
+                    expiryTime = hashed == null ? 0L : hashed.GetKeyExpirationTime();
+                }
+            }
+
+            return expiryTime;
+        }
+
+        private bool VerifyBindingSignature(PgpSignature sig, PgpPublicKey masterKey)
+        {
+            try
+            {
+                sig.InitVerify(masterKey);
+
+                return sig.VerifyCertification(masterKey, this);
+            }
+            catch (Exception)
+            {
+                // Any failure (malformed packet, unsupported/invalid signature, key mismatch) is treated
+                // as "not verified" so a forged binding packet cannot influence the computed expiry.
+                return false;
+            }
         }
 
         private long GetExpirationTimeFromSig(bool selfSigned, int signatureType)

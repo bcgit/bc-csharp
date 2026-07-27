@@ -2626,6 +2626,84 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             Assert.False(key.HasRevocation());
         }
 
+        /// <summary>
+        /// A forged, unverified subkey binding packet advertising KeyExpirationTime = 0 (never expires) must not
+        /// override the genuine, verified subkey expiry.
+        /// </summary>
+        [Test]
+        public void SubkeyExpiryFromForgedBinding()
+        {
+            char[] passPhrase = "test".ToCharArray();
+            string identity = "TEST <test@test.org>";
+            DateTime date = DateTime.UtcNow;
+            const long GenuineSeconds = 86400L * 30;
+
+            var kpg = GeneratorUtilities.GetKeyPairGenerator("RSA");
+            kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), Random, 1024, 25));
+
+            PgpKeyPair masterPair = new PgpKeyPair(PublicKeyAlgorithmTag.RsaGeneral, kpg.GenerateKeyPair(), date);
+            PgpKeyPair subPair = new PgpKeyPair(PublicKeyAlgorithmTag.RsaGeneral, kpg.GenerateKeyPair(), date);
+
+            // Genuine subkey binding carries a real, non-zero expiry.
+            var subHashed = new PgpSignatureSubpacketGenerator();
+            subHashed.SetKeyExpirationTime(isCritical: true, GenuineSeconds);
+
+            PgpKeyRingGenerator keyRingGen = new PgpKeyRingGenerator(PgpSignature.PositiveCertification, masterPair,
+                identity, SymmetricKeyAlgorithmTag.Aes256, passPhrase, useSha1: true, null, null, Random);
+            keyRingGen.AddSubKey(subPair, subHashed.Generate(), null, HashAlgorithmTag.Sha256);
+
+            // Encode/decode so the subkey is parsed back as a proper public-subkey packet.
+            PgpPublicKeyRing pubRing = new PgpPublicKeyRing(keyRingGen.GeneratePublicKeyRing().GetEncoded());
+
+            PgpPublicKey masterKey = null, subKey = null;
+            foreach (PgpPublicKey pk in pubRing.GetPublicKeys())
+            {
+                if (pk.IsMasterKey)
+                {
+                    masterKey = pk;
+                }
+                else
+                {
+                    subKey = pk;
+                }
+            }
+            Assert.NotNull(masterKey);
+            Assert.NotNull(subKey);
+
+            // Baseline: with only the genuine binding present, all APIs report the genuine expiry.
+            Assert.AreEqual(GenuineSeconds, subKey.GetValidSeconds());
+            Assert.AreEqual(GenuineSeconds, subKey.GetValidSeconds(masterKey));
+            Assert.AreEqual(GenuineSeconds, pubRing.GetValidSeconds(subKey));
+
+            // Forge a subkey binding signature, signed by an unrelated "attacker" key so it cannot verify
+            // against the master, advertising KeyExpirationTime = 0.
+            PgpKeyPair attackerPair = new PgpKeyPair(PublicKeyAlgorithmTag.RsaGeneral, kpg.GenerateKeyPair(), date);
+
+            PgpSignatureGenerator forgedGen = new PgpSignatureGenerator(attackerPair.PublicKey.Algorithm,
+                HashAlgorithmTag.Sha256);
+            forgedGen.InitSign(PgpSignature.SubkeyBinding, attackerPair.PrivateKey);
+            var forgedHashed = new PgpSignatureSubpacketGenerator();
+            forgedHashed.SetKeyExpirationTime(isCritical: false, 0L);
+            forgedGen.SetHashedSubpackets(forgedHashed.Generate());
+            PgpSignature forgedBinding = forgedGen.GenerateCertification(masterKey, subKey);
+
+            // Append the forged packet to the subkey (as an attacker would to a transferable public key).
+            PgpPublicKey tamperedSubKey = PgpPublicKey.AddCertification(subKey, forgedBinding);
+
+            // Sanity: the forged binding genuinely fails verification against the master key.
+            forgedBinding.InitVerify(masterKey);
+            Assert.IsFalse(forgedBinding.VerifyCertification(masterKey, subKey));
+
+            // Legacy (unverified) path: the forged 0 wins - this is the reported vulnerability.
+            Assert.AreEqual(0L, tamperedSubKey.GetValidSeconds());
+
+            // Fixed (master-key-aware) path: the forged binding is ignored, genuine expiry preserved.
+            Assert.AreEqual(GenuineSeconds, tamperedSubKey.GetValidSeconds(masterKey));
+
+            // A subkey requires the primary key to compute a verified expiry.
+            Assert.Throws<ArgumentNullException>(() => tamperedSubKey.GetValidSeconds(null));
+        }
+
         [Test]
         public void TestEdDsaRing()
         {
