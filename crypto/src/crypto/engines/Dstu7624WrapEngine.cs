@@ -128,7 +128,13 @@ namespace Org.BouncyCastle.Crypto.Engines
                 throw new InvalidOperationException("not set for unwrapping");
 
             if (length % blockSize != 0)
-                throw new ArgumentException("Padding not supported");
+            {
+                //Partial blocks not supported
+                throw new DataLengthException("unwrap data must be a multiple of " + blockSize + " bytes");
+            }
+
+            if (length < blockSize)
+                throw new InvalidCipherTextException("unwrap data too short");
 
             int n = 2 * length / blockSize;
             int V = (n - 1) * 6;

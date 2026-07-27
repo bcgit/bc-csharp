@@ -165,7 +165,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return TEMP2;
         }
 
-		/**
+        /**
         * Method unwrap
         *
         * @param in
@@ -174,28 +174,20 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @return
         * @throws InvalidCipherTextException
         */
-        public virtual byte[] Unwrap(
-			byte[]	input,
-			int		inOff,
-			int		length)
+        public virtual byte[] Unwrap(byte[] input, int inOff, int length)
         {
             if (forWrapping)
-            {
                 throw new InvalidOperationException("Not set for unwrapping");
-            }
             if (input == null)
-            {
                 throw new InvalidCipherTextException("Null pointer as ciphertext");
-            }
 
-			int blockSize = engine.GetBlockSize();
-			
+            int blockSize = engine.GetBlockSize();
             if (length % blockSize != 0)
-            {
                 throw new InvalidCipherTextException("Ciphertext not multiple of " + blockSize);
-            }
+            if (length < 2 * blockSize)
+                throw new InvalidCipherTextException("unwrap data too short");
 
-			/*
+            /*
             // Check if the length of the cipher text is reasonable given the key
             // type. It must be 40 bytes for a 168 bit key and either 32, 40, or
             // 48 bytes for a 128, 192, or 256 bit key. If the length is not supported

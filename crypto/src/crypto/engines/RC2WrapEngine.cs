@@ -176,13 +176,17 @@ namespace Org.BouncyCastle.Crypto.Engines
 		* @throws InvalidCipherTextException
 		*/
         public virtual byte[] Unwrap(byte[] input, int inOff, int length)
-		{
-			if (forWrapping)
-				throw new InvalidOperationException("Not set for unwrapping");
-			if (input == null)
-				throw new InvalidCipherTextException("Null pointer as ciphertext");
-			if (length % engine.GetBlockSize() != 0)
-				throw new InvalidCipherTextException("Ciphertext not multiple of " + engine.GetBlockSize());
+        {
+            int blockSize = engine.GetBlockSize();
+
+            if (forWrapping)
+                throw new InvalidOperationException("Not set for unwrapping");
+            if (input == null)
+                throw new InvalidCipherTextException("Null pointer as ciphertext");
+            if (length % blockSize != 0)
+                throw new InvalidCipherTextException("Ciphertext not multiple of " + blockSize);
+            if (length < 2 * blockSize)
+                throw new InvalidCipherTextException("unwrap data too short");
 
             /*
 			// Check if the length of the cipher text is reasonable given the key
@@ -200,9 +204,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 			}
 			*/
 
-            int blockSize = engine.GetBlockSize();
-
-			byte[] TEMP = new byte[length];
+            byte[] TEMP = new byte[length];
 
             // Decrypt the cipher text with TRIPLedeS in CBC mode using the KEK
             // and an initialization vector (IV) of 0x4adda22c79e82105. Call the output TEMP.
