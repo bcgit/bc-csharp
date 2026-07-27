@@ -41,6 +41,23 @@ namespace Org.BouncyCastle.Security
         private static readonly IDictionary<string, int> DefaultKeySizes =
             new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
+        /// <summary>
+        /// Canonical algorithm names whose <see cref="DefaultKeySizes"/> entry is a single fixed key length, as opposed
+        /// to a nominal default for a variable-length cipher (RC2, RC4, CAST5, ...).
+        /// </summary>
+        /// <remarks>
+        /// Only these may be used to bound a constant-time PKCS#1 v1.5 unwrap: a wrong length would corrupt a
+        /// legitimate variable-length CEK. This is a deliberately conservative whitelist - anything absent is treated
+        /// as "size not fixed" (see <see cref="TryGetFixedKeySize(string, out int)"/>), which fails safe rather than
+        /// risking a wrong bound.
+        /// </remarks>
+        private static readonly HashSet<string> FixedKeySizeAlgorithms =
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "AES128", "AES192", "AES256", "ARIA128", "ARIA192", "ARIA256", "CAMELLIA128", "CAMELLIA192",
+                "CAMELLIA256", "DES", "DESEDE3", "IDEA", "SEED",
+            };
+
         static GeneratorUtilities()
         {
             //
@@ -478,6 +495,27 @@ namespace Org.BouncyCastle.Security
                     + " (" + canonicalName + ") not supported.");
 
             return defaultKeySize;
+        }
+
+        internal static bool TryGetFixedKeySize(DerObjectIdentifier oid, out int keySize) =>
+            TryGetFixedKeySize(oid.Id, out keySize);
+
+        /// <summary>
+        /// Return the key size in bits for the given algorithm, but only when that algorithm has a single fixed key
+        /// length (a variable-length cipher returns <c>false</c> even though it has a nominal default size).
+        /// </summary>
+        internal static bool TryGetFixedKeySize(string algorithm, out int keySize)
+        {
+            string canonicalName = GetCanonicalKeyGeneratorAlgorithm(algorithm);
+            if (canonicalName != null &&
+                FixedKeySizeAlgorithms.Contains(canonicalName) &&
+                DefaultKeySizes.TryGetValue(canonicalName, out keySize))
+            {
+                return true;
+            }
+
+            keySize = -1;
+            return false;
         }
 
         private static int FindDefaultKeySize(string canonicalName)

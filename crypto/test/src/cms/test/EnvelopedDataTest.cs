@@ -559,7 +559,7 @@ namespace Org.BouncyCastle.Cms.Tests
             CmsEnvelopedData ed = edGen.Generate(
                 new CmsProcessableByteArray(data),
                 CmsEnvelopedGenerator.RC2Cbc,
-				keySize: 40);
+                keySize: 40);
 
             RecipientInformationStore recipients = ed.GetRecipientInfos();
 
@@ -576,7 +576,8 @@ namespace Org.BouncyCastle.Cms.Tests
             {
                 Assert.True(recipient.RecipientID.Match(ReciCert));
 
-                byte[] recData = recipient.GetContent(ReciKP.Private);
+                byte[] recData = Properties.WithThreadProperty(Properties.CmsAllowLenientRsaPkcs1, bool.TrueString,
+                    () => recipient.GetContent(ReciKP.Private));
 
                 Assert.IsTrue(Arrays.AreEqual(data, recData));
             }
@@ -607,7 +608,8 @@ namespace Org.BouncyCastle.Cms.Tests
 			{
                 Assert.True(recipient.RecipientID.Match(ReciCert));
 
-                byte[] recData = recipient.GetContent(ReciKP.Private);
+                byte[] recData = Properties.WithThreadProperty(Properties.CmsAllowLenientRsaPkcs1, bool.TrueString,
+                    () => recipient.GetContent(ReciKP.Private));
 
 				Assert.IsTrue(Arrays.AreEqual(data, recData));
 			}
@@ -639,7 +641,8 @@ namespace Org.BouncyCastle.Cms.Tests
 			{
                 Assert.True(recipient.RecipientID.Match(ReciCert));
 
-                byte[] recData = recipient.GetContent(ReciKP.Private);
+                byte[] recData = Properties.WithThreadProperty(Properties.CmsAllowLenientRsaPkcs1, bool.TrueString,
+                    () => recipient.GetContent(ReciKP.Private));
 
 				Assert.IsTrue(Arrays.AreEqual(data, recData));
 			}
@@ -844,13 +847,15 @@ namespace Org.BouncyCastle.Cms.Tests
 			}
 		}
 
-		[Test]
-		public void TestKeyTransCast5()
-		{
-			TryKeyTrans(CmsEnvelopedGenerator.Cast5Cbc,
-				new DerObjectIdentifier(CmsEnvelopedGenerator.Cast5Cbc),
-				typeof(Asn1Sequence));
-		}
+        [Test]
+        public void TestKeyTransCast5()
+        {
+            Properties.WithThreadProperty(Properties.CmsAllowLenientRsaPkcs1, bool.TrueString, () =>
+            {
+                TryKeyTrans(CmsEnvelopedGenerator.Cast5Cbc, new DerObjectIdentifier(CmsEnvelopedGenerator.Cast5Cbc),
+                    typeof(Asn1Sequence));
+            });
+        }
 
 		[Test]
 		public void TestKeyTransAes128()
@@ -1263,9 +1268,10 @@ namespace Org.BouncyCastle.Cms.Tests
 
 				if (recipient is KeyTransRecipientInformation)
 				{
-					byte[] recData = recipient.GetContent(key);
+                    byte[] recData = Properties.WithThreadProperty(Properties.CmsAllowLenientRsaPkcs1, bool.TrueString,
+                        () => recipient.GetContent(key));
 
-					Assert.IsTrue(Arrays.AreEqual(data, recData));
+                    Assert.IsTrue(Arrays.AreEqual(data, recData));
 				}
 			}
 			while (e.MoveNext());
@@ -1325,6 +1331,145 @@ namespace Org.BouncyCastle.Cms.Tests
         //    //}
         //    //Assert.IsTrue(collection[0] is RecipientInformation);
         //}
+
+        private const string BadPaddingMessage = "bad padding in message.";
+
+        [Test]
+        public void TestKeyTransRsaPkcs1PaddingOracleClosed()
+        {
+            byte[] data = Encoding.ASCII.GetBytes("WallaWallaWashington");
+
+            CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+            edGen.AddKeyTransRecipient(ReciCert_2048);
+
+            CmsEnvelopedData ed = edGen.Generate(
+                new CmsProcessableByteArray(data), CmsEnvelopedGenerator.Aes256Cbc);
+
+            // Sanity: the untampered message still decrypts to the original content.
+            Assert.IsTrue(Arrays.AreEqual(data, DecryptFirst(ed, ReciKP_2048.Private)));
+
+            // (a) A CEK ciphertext with invalid PKCS#1 v1.5 padding.
+            CmsEnvelopedData badPadding = ReplaceKeyTransEncryptedKey(ed,
+                MakeBadPaddingCiphertext(ReciCert_2048.GetPublicKey()));
+
+            // (b) A CEK ciphertext with valid PKCS#1 v1.5 padding but the wrong key.
+            var rsaEncrypt = new Org.BouncyCastle.Crypto.Encodings.Pkcs1Encoding(
+                new Org.BouncyCastle.Crypto.Engines.RsaEngine());
+            rsaEncrypt.Init(true, ReciCert_2048.GetPublicKey());
+            byte[] wrongKey = new byte[32];
+            byte[] wrongKeyCiphertext = rsaEncrypt.ProcessBlock(wrongKey, 0, wrongKey.Length);
+            CmsEnvelopedData validPaddingWrongKey = ReplaceKeyTransEncryptedKey(ed, wrongKeyCiphertext);
+
+            // The fix removes the unwrap-layer padding oracle: a bad-padding CEK must no longer be distinguishable
+            // as "bad padding in message." (which used to separate it from a well-padded but wrong CEK). With a
+            // known content-key size both tampered messages now fail identically, downstream at the content layer.
+            Assert.AreNotEqual(BadPaddingMessage, TryDecryptExpectFailure(badPadding, ReciKP_2048.Private));
+            Assert.AreNotEqual(BadPaddingMessage, TryDecryptExpectFailure(validPaddingWrongKey, ReciKP_2048.Private));
+        }
+
+        [Test]
+        public void TestKeyTransRsaPkcs1UnknownContentKeySize()
+        {
+            byte[] data = Encoding.ASCII.GetBytes("WallaWallaWashington");
+
+            CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+            edGen.AddKeyTransRecipient(ReciCert_2048);
+
+            CmsEnvelopedData ed = edGen.Generate(
+                new CmsProcessableByteArray(data), CmsEnvelopedGenerator.Aes256Cbc);
+
+            // Rewrite the content-encryption algorithm to an OID with no registered key size, and give the CEK
+            // invalid PKCS#1 v1.5 padding.
+            CmsEnvelopedData tampered = ReplaceContentAlgAndEncryptedKey(
+                ed, new DerObjectIdentifier("1.2.3.4.5.6.7.8"),
+                MakeBadPaddingCiphertext(ReciCert_2048.GetPublicKey()));
+
+            // Strict default: with no known content-key length there is nothing to bound the decoding with, so the
+            // unwrap fails closed rather than falling back to the oracle-prone plain decoding.
+            string strict = TryDecryptExpectFailure(tampered, ReciKP_2048.Private);
+            Assert.AreNotEqual(BadPaddingMessage, strict);
+            StringAssert.Contains("no fixed size", strict);
+
+            // Opt in to the legacy behaviour: the plain unwrap is restored and a bad-padding CEK is once again
+            // reported as "bad padding in message." (the historical, distinguishable failure).
+            string lenient = Properties.WithThreadProperty(Properties.CmsAllowLenientRsaPkcs1, "true",
+                () => TryDecryptExpectFailure(tampered, ReciKP_2048.Private));
+            Assert.AreEqual(BadPaddingMessage, lenient);
+        }
+
+        // Raw RSA-encrypt a block that is not valid PKCS#1 v1.5 type-2 padding, producing a full modulus-length
+        // ciphertext whose decryption deterministically fails the padding check (rather than a short input that
+        // would trip the engine's block-size check before any padding logic runs).
+        private static byte[] MakeBadPaddingCiphertext(AsymmetricKeyParameter recipientPublicKey)
+        {
+            var raw = new Org.BouncyCastle.Crypto.Engines.RsaEngine();
+            raw.Init(true, recipientPublicKey);
+            byte[] block = new byte[raw.GetInputBlockSize()];
+            Arrays.Fill(block, (byte)0xFF);
+            return raw.ProcessBlock(block, 0, block.Length);
+        }
+
+        private static byte[] DecryptFirst(CmsEnvelopedData ed, ICipherParameters key)
+        {
+            foreach (RecipientInformation recipient in ed.GetRecipientInfos().GetRecipients())
+                return recipient.GetContent(key);
+
+            throw new InvalidOperationException("no recipients");
+        }
+
+        private static string TryDecryptExpectFailure(CmsEnvelopedData ed, ICipherParameters key)
+        {
+            try
+            {
+                DecryptFirst(ed, key);
+                return "<decrypted-without-error>";
+            }
+            catch (CmsException e)
+            {
+                return e.Message;
+            }
+            catch (Exception e)
+            {
+                return e.GetType().Name;
+            }
+        }
+
+        private static CmsEnvelopedData ReplaceKeyTransEncryptedKey(CmsEnvelopedData ed, byte[] newEncryptedKey) =>
+            RebuildEnvelopedData(ed, newEncryptedKey, contentEncryptionAlgorithm: null);
+
+        private static CmsEnvelopedData ReplaceContentAlgAndEncryptedKey(CmsEnvelopedData ed,
+            DerObjectIdentifier contentEncryptionOid, byte[] newEncryptedKey) =>
+            RebuildEnvelopedData(ed, newEncryptedKey, new AlgorithmIdentifier(contentEncryptionOid));
+
+        private static CmsEnvelopedData RebuildEnvelopedData(CmsEnvelopedData ed, byte[] newEncryptedKey,
+            AlgorithmIdentifier contentEncryptionAlgorithm)
+        {
+            Org.BouncyCastle.Asn1.Cms.ContentInfo contentInfo = ed.ContentInfo;
+            var envelopedData = Org.BouncyCastle.Asn1.Cms.EnvelopedData.GetInstance(contentInfo.Content);
+
+            var keyTrans = (Org.BouncyCastle.Asn1.Cms.KeyTransRecipientInfo)
+                Org.BouncyCastle.Asn1.Cms.RecipientInfo.GetInstance(envelopedData.RecipientInfos[0]).Info;
+
+            var newKeyTrans = new Org.BouncyCastle.Asn1.Cms.KeyTransRecipientInfo(
+                keyTrans.RecipientIdentifier, keyTrans.KeyEncryptionAlgorithm, new DerOctetString(newEncryptedKey));
+
+            var encryptedContentInfo = envelopedData.EncryptedContentInfo;
+            if (contentEncryptionAlgorithm != null)
+            {
+                encryptedContentInfo = new Org.BouncyCastle.Asn1.Cms.EncryptedContentInfo(
+                    encryptedContentInfo.ContentType, contentEncryptionAlgorithm,
+                    encryptedContentInfo.EncryptedContent);
+            }
+
+            var newEnvelopedData = new Org.BouncyCastle.Asn1.Cms.EnvelopedData(
+                envelopedData.OriginatorInfo,
+                new DerSet(new Org.BouncyCastle.Asn1.Cms.RecipientInfo(newKeyTrans)),
+                encryptedContentInfo,
+                envelopedData.UnprotectedAttrs);
+
+            return new CmsEnvelopedData(
+                new Org.BouncyCastle.Asn1.Cms.ContentInfo(contentInfo.ContentType, newEnvelopedData));
+        }
 
         private void PasswordTest(string algorithm)
 		{

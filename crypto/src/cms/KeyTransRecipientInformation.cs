@@ -7,7 +7,9 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -76,13 +78,42 @@ namespace Org.BouncyCastle.Cms
 
             try
             {
+                string contentAlgorithmName = GetContentAlgorithmName();
+
+                if (Asn1.Pkcs.PkcsObjectIdentifiers.RsaEncryption.Equals(keyEncAlg.Algorithm))
+                {
+                    if (GeneratorUtilities.TryGetFixedKeySize(contentAlgorithmName, out int fixedKeySizeBits) &&
+                        (fixedKeySizeBits & 7) == 0)
+                    {
+                        int fixedLength = fixedKeySizeBits / 8;
+
+                        var rsaKeyParameters = (RsaKeyParameters)ParameterUtilities.GetRandom(key, out var providedRandom);
+                        var secureRandom = CryptoServicesRegistrar.GetSecureRandom(providedRandom);
+
+                        byte[] keyBytes = RsaPkcs1Utilities.DecryptToFixedLength(fixedLength, encryptedKey, 0,
+                            encryptedKey.Length, rsaKeyParameters, secureRandom);
+
+                        return ParameterUtilities.CreateKeyParameter(contentAlgorithmName, keyBytes);
+                    }
+
+                    // The legacy unwrap provides a Bleichenbacher padding Oracle, so require user intervention to allow
+                    if (Properties.GetBoolean(Properties.CmsAllowLenientRsaPkcs1, false))
+                    {
+                        IKeyUnwrapper keyWrapper = new Asn1KeyUnwrapper(keyEncAlg.Algorithm, keyEncAlg.Parameters, key);
+                        byte[] keyBytes = keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length).Collect();
+                        return ParameterUtilities.CreateKeyParameter(contentAlgorithmName, keyBytes);
+                    }
+
+                    throw new CmsException("no fixed size for content-encryption key; constant-time RSA unwrap unavailable.");
+                }
+
                 if (Asn1.Pkcs.PkcsObjectIdentifiers.IdRsaesOaep.Equals(keyEncAlg.Algorithm))
                 {
                     IKeyUnwrapper keyWrapper = new Asn1KeyUnwrapper(keyEncAlg.Algorithm, keyEncAlg.Parameters, key);
                     byte[] keyBytes = keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length).Collect();
-                    return ParameterUtilities.CreateKeyParameter(GetContentAlgorithmName(), keyBytes);
+                    return ParameterUtilities.CreateKeyParameter(contentAlgorithmName, keyBytes);
                 }
-                else
+
                 {
                     string keyExchangeAlgorithm = GetExchangeEncryptionAlgorithmName(keyEncAlg);
                     IWrapper keyWrapper = WrapperUtilities.GetWrapper(keyExchangeAlgorithm);
@@ -90,7 +121,7 @@ namespace Org.BouncyCastle.Cms
                     byte[] keyBytes = keyWrapper.Unwrap(encryptedKey, 0, encryptedKey.Length);
 
                     // FIXME Support for MAC algorithm parameters similar to cipher parameters
-                    return ParameterUtilities.CreateKeyParameter(GetContentAlgorithmName(), keyBytes);
+                    return ParameterUtilities.CreateKeyParameter(contentAlgorithmName, keyBytes);
                 }
             }
             catch (SecurityUtilityException e)

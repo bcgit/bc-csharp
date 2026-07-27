@@ -42,6 +42,16 @@ namespace Org.BouncyCastle.Utilities
 
         public static readonly string Asn1MaxLimit = "Org.BouncyCastle.Asn1.MaxLimit";
 
+        /// <summary>
+        /// Allow legacy RSA PKCS#1 v1.5 key-transport unwrap in CMS when the content-encryption key has no fixed size.
+        /// </summary>
+        /// <remarks>
+        /// Without a fixed key size to target, the standard constant-time defense against the Bleichenbacher padding
+        /// Oracle cannot be applied. Setting this property to 'true' allows the unwrap to proceed anyway, which is not
+        /// recommended, since it leaves the padding oracle intact.
+        /// </remarks>
+        public static readonly string CmsAllowLenientRsaPkcs1 = "Org.BouncyCastle.Cms.AllowLenientRsaPkcs1";
+
         public static readonly string DHMaxSize = "Org.BouncyCastle.DH.MaxSize";
 
         public static readonly string DsaMaxSize = "Org.BouncyCastle.Dsa.MaxSize";

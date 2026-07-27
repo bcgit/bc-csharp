@@ -131,18 +131,20 @@ namespace Org.BouncyCastle.Cms.Tests
 			VerifyEnvelopedData(envelopedParser, CmsEnvelopedGenerator.DesEde3Cbc);
 		}
 
-		[Test]
-		public void Test5_2()
-		{
-			byte[] data = GetRfc4134Data("5.2.bin");
-			CmsEnvelopedData envelopedData = new CmsEnvelopedData(data);
+        [Test]
+        public void Test5_2()
+        {
+            Properties.WithThreadProperty(Properties.CmsAllowLenientRsaPkcs1, bool.TrueString, () => {
+                byte[] data = GetRfc4134Data("5.2.bin");
+                CmsEnvelopedData envelopedData = new CmsEnvelopedData(data);
 
-			VerifyEnvelopedData(envelopedData, CmsEnvelopedGenerator.RC2Cbc);
+                VerifyEnvelopedData(envelopedData, CmsEnvelopedGenerator.RC2Cbc);
 
-			CmsEnvelopedDataParser envelopedParser = new CmsEnvelopedDataParser(data);
+                CmsEnvelopedDataParser envelopedParser = new CmsEnvelopedDataParser(data);
 
-			VerifyEnvelopedData(envelopedParser, CmsEnvelopedGenerator.RC2Cbc);
-		}
+                VerifyEnvelopedData(envelopedParser, CmsEnvelopedGenerator.RC2Cbc);
+            });
+        }
 
 		private void VerifyEnvelopedData(CmsEnvelopedData envelopedData, string symAlgorithmOID)
 		{
