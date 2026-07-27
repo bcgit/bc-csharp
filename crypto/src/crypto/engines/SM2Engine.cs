@@ -112,10 +112,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
-        protected virtual ECMultiplier CreateBasePointMultiplier()
-        {
-            return new FixedPointCombMultiplier();
-        }
+        public virtual int GetOutputSize(int inputLen) => (1 + 2 * mCurveLength) + inputLen + mDigest.GetDigestSize();
+
+        protected virtual ECMultiplier CreateBasePointMultiplier() => new FixedPointCombMultiplier();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private byte[] Encrypt(ReadOnlySpan<byte> input)
@@ -164,7 +163,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private byte[] Decrypt(ReadOnlySpan<byte> input)
         {
+            int digestSize = mDigest.GetDigestSize();
+
+            // The SM2 ciphertext is C1 (an encoded point, curveLength*2+1 bytes) || C3 (a digest) || C2;
+            // reject an input too short to hold C1 and C3 rather than over-read or underflow.
             int c1Length = mCurveLength * 2 + 1;
+            if (input.Length < c1Length + digestSize)
+                throw new InvalidCipherTextException("data too short");
+
             ECPoint c1P = mECParams.Curve.DecodePoint(input[..c1Length]);
 
             ECPoint s = c1P.Multiply(mECParams.H);
@@ -173,7 +179,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             c1P = c1P.Multiply(((ECPrivateKeyParameters)mECKey).D).Normalize();
 
-            int digestSize = mDigest.GetDigestSize();
             int c2Length = input.Length - c1Length - digestSize;
             byte[] c2 = new byte[c2Length];
 
@@ -275,7 +280,15 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private byte[] Decrypt(byte[] input, int inOff, int inLen)
         {
-            byte[] c1 = new byte[mCurveLength * 2 + 1];
+            int digestSize = mDigest.GetDigestSize();
+
+            // The SM2 ciphertext is C1 (an encoded point, curveLength*2+1 bytes) || C3 (a digest) || C2;
+            // reject an input too short to hold C1 and C3 rather than over-read or underflow.
+            int c1Length = mCurveLength * 2 + 1;
+            if (input.Length < c1Length + digestSize)
+                throw new InvalidCipherTextException("data too short");
+
+            byte[] c1 = new byte[c1Length];
 
             Array.Copy(input, inOff, c1, 0, c1.Length);
 
@@ -287,7 +300,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             c1P = c1P.Multiply(((ECPrivateKeyParameters)mECKey).D).Normalize();
 
-            int digestSize = mDigest.GetDigestSize();
             byte[] c2 = new byte[inLen - c1.Length - digestSize];
 
             if (mMode == Mode.C1C3C2)
@@ -408,7 +420,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             BigInteger k;
             do
             {
-                k = new BigInteger(qBitLength, mRandom);
+                k = BigIntegers.CreateRandomBigInteger(qBitLength, mRandom);
             }
             while (k.SignValue == 0 || k.CompareTo(mECParams.N) >= 0);
 
