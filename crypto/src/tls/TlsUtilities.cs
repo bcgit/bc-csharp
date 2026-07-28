@@ -4578,7 +4578,12 @@ namespace Org.BouncyCastle.Tls
             if (tlsFeatures != null)
             {
                 // TODO[tls] Proper ASN.1 type class for this extension?
-                Asn1Sequence tlsFeaturesSeq = ReadDerEncoding(derEncoding: tlsFeatures, Asn1Sequence.GetOptional);
+                Asn1Object tlsFeaturesObj = ReadAsn1Object(tlsFeatures);
+                if (!(tlsFeaturesObj is Asn1Sequence tlsFeaturesSeq))
+                {
+                    throw new TlsFatalAlert(AlertDescription.bad_certificate,
+                        "Server certificate has invalid TLS Features extension");
+                }
 
                 for (int i = 0; i < tlsFeaturesSeq.Count; ++i)
                 {
@@ -4586,6 +4591,8 @@ namespace Org.BouncyCastle.Tls
                         throw new TlsFatalAlert(AlertDescription.bad_certificate,
                             "Server certificate has invalid TLS Features extension");
                 }
+
+                RequireDerEncoding(tlsFeaturesSeq, tlsFeatures);
 
                 foreach (DerInteger tlsFeature in tlsFeaturesSeq)
                 {
