@@ -56,7 +56,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
             else
             {
-                // TODO Throw an exception for bad parameters?
+                throw new ArgumentException("invalid parameter passed to " + AlgorithmName + " Init - "
+                    + Platform.GetTypeName(parameters));
             }
         }
 
