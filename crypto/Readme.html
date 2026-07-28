@@ -348,20 +348,151 @@
         <h4><a class="mozTocH4" name="mozTocId9020700"></a>Release 2.7.0, TBD</h4>
         <h5>Defects Fixed</h5>
         <ul>
+            <li>ASN.1: Fixed tagging of LinkedCertificate.certIssuer field (CHOICE type).</li>
+            <li>
+                ASN.1: Grow definite-length contents incrementally; avoid allocating the full declared length up front, so a short crafted header over a raw
+                stream cannot drive a heap-sized allocation before any data is read.
+            </li>
+            <li>ASN.1: Rework sequence-parsing pattern to avoid throwing IndexOutOfRangeException.</li>
+            <li>ASN.1: Apply sequence minimum size restriction in X.509 extension types.</li>
+            <li>BigInteger: Fix IndexOutOfRangeException for some (negative) signed array inputs.</li>
+            <li>BIKE: Make decapsulation Fujisaki-Okamoto-robust and constant-time; avoid a null return/NRE out of Decaps. and a conditional branch.</li>
+            <li>CCM: Validate tag length on decryption as well as encryption (CcmBlockCipher).</li>
+            <li>CCM: Don't release plaintext on failed decryption (CcmBlockCipher).</li>
+            <li>CMS: Fix generation of certs-only signed-data (regression in 2.6.0).</li>
+            <li>CMS: Make OriginatorIdentifierOrKey IssuerAndSerialNumber property correctly optional.</li>
+            <li>CMS: Reject malformed/empty CMS content (or content-less ContentInfo) with CmsException instead of NullReferenceException.</li>
+            <li>CMS: Validate RFC 5084 ICV length in CcmParameters/GcmParameters.</li>
+            <li>CMS: Cap the PasswordRecipient PBKDF2 iteration count (CPU-DoS guard).</li>
+            <li>
+                CMS: constant-time RSA PKCS#1 v1.5 key-transport unwrap. Avoid a Bleichenbacher padding oracle when unwrapping content keys using RSA/PKCS1.
+                A random-key fallback is used when the padding is invalid, instead of raising a bad padding error. Only possible for fixed size CEK; others
+                are rejected by default (configurable; see CmsAllowLenientRsaPkcs1 in Properties).
+            </li>
+            <li>DH: Add proper validation of peer ephemeral values in DHAgreement (small subgroup checks).</li>
+            <li>
+                DTLS: Bound handshake reassembly buffer by peer max message size. Without this bound, the reassembly buffer was sized from the attacker-controlled
+                uint24 handshake message length, a memory exhaustion DoS.
+            </li>
+            <li>EAX: Validate tag length on init (EaxBlockCipher).</li>
+            <li>ElGamal: validate ciphertext components on decryption (small-subgroup confinement).</li>
+            <li>Frodo: Fix error sampling to be constant-time.</li>
+            <li>
+                HQC: Fix implicit rejection to cover the full 32-byte secret. The conditional move in Decaps was incorrectly bounded by the message length k,
+                instead of SharedSecretBytes. For HQC-128/192 this gave a plaintext-checking oracle on the underlying PKE (HQC-256 unaffected).
+            </li>
+            <li>IES: Derive MAC key from a fixed KDF prefix in stream mode to close static-key cross-message forgery (IesEngine).</li>
+            <li>IES: When decrypting, verify MAC before DoFinal call to avoid padding oracle (IesEngine).</li>
+            <li>JKS: Handle `keytool` ASN.1 format change for key entries as of `v20`.</li>
+            <li>KCCM: Propagate carry in gamma counter to stop keystream repeating every 256 blocks (KCcmBlockCipher).</li>
+            <li>KCCM: Process G1 nonce-binding block even when no AAD is present (KCcmBlockCipher).</li>
+            <li>KCCM: Fix decryption to only output plaintext (i.e. without the MAC); clear plaintext output if MAC verification fails (KCcmBlockCipher).</li>
+            <li>KCCM: Fix GetOutputSize, GetUpdateOutputSize methods (KCcmBlockCipher).</li>
+            <li>KCCM: Fix nonce expansion (KCcmBlockCipher).</li>
+            <li>LMS: public key parsing (including HSS) now enforces the RFC 8554 well-formedness rules.</li>
+            <li>ML-KEM: Fix MLKemPrivateKeyParameters.WithPreferredFormat.</li>
+            <li>OpenPGP: Fix the issue that bodyLen may exceed int.MaxValue.</li>
+            <li>OpenPgp: Fix NPE when encoding signature without hashed area.</li>
+            <li>OpenPgp: Fix expiry time calc when later packets increase or remove it.</li>
+            <li>OpenPgp: Cap signature and user-attribute subpacket body lengths to avoid potential ~2GB allocation before any read; a pre-auth DoS.</li>
+            <li>OpenPgp: Reject bare CR in ASCII-armor header values to stop armor injection.</li>
+            <li>OpenPgp: Add Argon2 parameter limits; S2K Argon2 parameters used with only the RFC memory cap and no policy ceiling can force OOM/hang.</li>
+            <li>OpenPgp: Obsolete PgpPublicKey.IsRevoked as a misleading name. Replace with HasRevocation and fix NPE for encryption algorithm primary keys.</li>
+            <li>OpenPgp: Fix ArmoredInputStream handling of dash-escaping in cleartext-signed (CSF) messages.</li>
+            <li>PKCS12: Validate iteration counts.</li>
+            <li>PKCS12: Reject empty Pkcs12Store.Load input with IOException instead of NullReferenceException.</li>
+            <li>PKCS12: Fix out of memory on looping certificate chain during Pkcs12Store.Load.</li>
+            <li>
+                Pkix: Fix potential unbounded recursion in PkixCertPathBuilder when CRL revocation enabled and a CRL had multiple candidate signers, e.g.
+                several trust-anchor roots sharing the issuer DN.
+            </li>
+            <li>Pkix: Handle emailAddress values in multi-valued RDNs.</li>
+            <li>Pkix: PkixAttrCertPathValidator validates the AC path but never verifies the attribute certificate's own signature, so a forged AC is accepted. Fixed.</li>
+            <li>
+                Pkix: Bound the valid-policy-tree size during path validation. RFC 5280 policy-mapping x anyPolicy expansion (6.1.3/6.1.4) grows the valid-policy-tree
+                multiplicatively per certificate with no node cap. Call CheckPolicyTreeSize() during ProcessCertD to guard against excessive growth.
+            </li>
+            <li>
+                Pkix: Fix various name-constraint bypasses: matching a directoryName subtree as a substring instead of a prefix; mis-parsing '@' in URI SANs, thus extracting
+                the wrong host; deriving the mailbox host of an rfc822Name by splitting at the first '@'; failure to normalize trailing dots for URI/rfc822Name; failure to
+                match an IPv4-mapped IPv6 address.
+            </li>
+            <li>Pkix: Reject ambiguous multi-'@' rfc822Name tested names.</li>
+            <li>Pkix: Enforce CIDR masks for iPAddress name constraints.</li>
+            <li>Pkix: Fix ReasonsMask implementation/usage and simplify IDP/DP intersection. HasNewReasons now correctly checks whether a CRL could contribute any new reasons.</li>
+            <li>Pkix: Fix the SortCerts convenience CertPath reorder, which was failing for some inputs due to mutating a collection while iterating.</li>
+            <li>Pkix: Enforce minimum size of 1 for NameConstraints permittedSubtrees, excludedSubtrees, and create GeneralSubtrees class for working with them.</li>
             <li>TLS: Server now selects a key_share group before checking for an early key_share.</li>
             <li>TLS: Throw fatal decrypt_error for invalid TLS 1.3 PSK binder (instead of just skipping).</li>
+            <li>TLS: Reject non-SEQUENCE TLS Features with a fatal bad_certificate alert.</li>
+            <li>TSP: reject empty/truncated input in the request/response parsers.</li>
+            <li>X509Name: Allow unescaped '=' in RDN attribute value.</li>
+            <li>X509Name: Validate generation of 2 character country codes (still permits parsing non-conforming names).</li>
+            <li>X509Name: Fix handling of hex-escaped UTF8 (avoid quadratic buffer inserts).</li>
+            <li>X509Name: Reject commonName (CN) attribute values longer than 64 characters when constructing (still permits parsing non-conforming names).</li>
+            <li>Restore old raw RSA behaviour (RSA, NONEwithRSA, etc.) in SignerUtilities (regression in 2.6.0).</li>
             <li>Fix CmcePrivateKeyParameters.ReconstructPublicKey method.</li>
+            <li>Fix ECGOST3410 keys format.</li>
+            <li>SM2 user ID length checks.</li>
+            <li>Fix hash size in HashMLDsaSigner.FinishPreHash (in span branch).</li>
+            <li>Check that AuthorityKeyIdentifier issuer, serial number are both present, or both absent.</li>
+            <li>Bound the DH/DSA modulus size at import to cap a validation ModPow DoS through CPU exhaustion (configurable; see DHMaxSize, DsaMaxSize in Properties).</li>
+            <li>Bound PBES2 PBKDF2 iteration count when decrypting PKCS#8 private keys, to avoid CPU-exhaustion DoS decrypting an attacker-supplied container.</li>
+            <li>Bound PKCS#5 v1.5 PBE iteration count when decrypting PKCS#8 private keys, to avoid CPU-exhaustion DoS decrypting an attacker-supplied container.</li>
+            <li>Bound the PKMAC/CMP password-based-MAC iteration count, to avoid CPU-exhaustion DoS.</li>
+            <li>Rfc3394WrapEngine and Rfc5649WrapEngine Init methods now throw on unrecognized parameters.</li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>
+            <li>ASN.1: Add Org.BouncyCastle.Asn1.MaxLimit property (Properties.Asn1MaxLimit) to use when specific Stream limit cannot be determined.</li>
+            <li>ASN.1: Add Org.BouncyCastle.Asn1.MaxDepth property (Properties.Asn1MaxDepth) to limit recursion depth of constructed tags (default 64).</li>
+            <li>ASN.1: Reduce tmp buffers used by Asn1InputStream.</li>
+            <li>ASN.1: High-tag support in streaming generators.</li>
+            <li>CCM: Add nonce reuse guard on encryption (CcmBlockCipher).</li>
+            <li>EAX: Add nonce reuse guard on encryption (EaxBlockCipher).</li>
+            <li>CMS: OriginatorInfo support in parsers.</li>
+            <li>CMS: Algorithm Protection attribute support in signed-data classes.</li>
+            <li>DotNetUtilities: Add X509Certificate2 interop.</li>
+            <li>DTLS: Now throws TlsFatalAlertReceived when fatal alert received, as for TLS.</li>
+            <li>DTLS: Set server record layer version(s) earlier, allowing for earlier handshake alerts.</li>
+            <li>Ed25519: Add low-level expanded private key support (Org.BouncyCastle.Math.EC.Rfc8032.Ed25519.ExpandedKey).</li>
+            <li>HQC: Update to v5.</li>
+            <li>ML-KEM: Move public key validation into MLKemPublicKeyParameters.</li>
+            <li>ML-KEM: Add private key validation.</li>
+            <li>OCB: Add nonce reuse guard on encryption (OcbBlockCipher).</li>
+            <li>OpenPgp: Add capped decompression method to PgpCompressedData.</li>
+            <li>
+                OpenPgp: Add GetValidSeconds variant that checks subkey bindings. The existing GetValidSeconds() computes a subkey's expiry from SubkeyBinding
+                signature packets without verifying them against the primary key; this is subject to tampering, which could make an expired subkey appear valid.
+            </li>
+            <li>OpenSsl: Add support for "EC PARAMETERS" via Asn1.X9.X962Parameters.</li>
+            <li>PKCS12: Improve handling of unmarked keys in Pkcs12Store.</li>
+            <li>Pkix: Auto-detect SGP.22 certificates and apply special rules during name-constraint validation.</li>
+            <li>RSA: Improved modulus validation (configurable; see RsaAllowUnsafeModulus, RsaMaxMRTests, RsaMaxSize in Properties).</li>
             <li>TLS: Expand SrtpProtectionProfile constants.</li>
             <li>TLS: Hybrid ECDHE-MLKEM key shares in TLS 1.3 per draft-ietf-tls-ecdhe-mlkem-00.</li>
             <li>TLS: Server may send supported_groups in TLS 1.3.</li>
             <li>TLS: Server optionally prefers its supported_groups order in TLS 1.3.</li>
             <li>TLS: Support for integrity-only cipher suites in TLS 1.3 per RFC 9150.</li>
-            <li>DTLS: Now throws TlsFatalAlertReceived when fatal alert received, as for TLS.</li>
-            <li>DTLS: Set server record layer version(s) earlier, allowing for earlier handshake alerts.</li>
-            <li>Added ECGOST3410 (ECVKO) key agreement.</li>
+            <li>TLS: ML-DSA support in TLS 1.3 per draft-ietf-tls-mldsa-00.</li>
+            <li>TLS: SLH-DSA support in TLS 1.3 per draft-reddy-tls-slhdsa-01.</li>
+            <li>TLS: Add NegotiatedGroup property to SecurityParameters (TLS 1.3+).</li>
+            <li>TLS: Add curveSM2MLKEM768 hybrid group per draft-yang-tls-hybrid-sm2-mlkem-03.</li>
+            <li>TLS: (Experimental) ShangMi suites for TLS 1.3 (RFC 8998).</li>
+            <li>X509Name: Eager validation of RDN values.</li>
+            <li>X509Name: Support "DN", "DNQ" and "dnQualifier" as parsing aliases for the dnQualifier attribute.</li>
+            <li>X509Name: Support "S" as a parsing alias for "ST".</li>
+            <li>Add ECGOST3410 (ECVKO) key agreement.</li>
+            <li>Add ZeroMemory methods to Arrays utility, for unelidable clearing.</li>
+            <li>Arrays.Clone now uses explicit allocation, copy; GC.AllocateUninitializedArray when available.</li>
+            <li>Add XChaCha20 and XChaCha20-Poly1305 implementations.</li>
+            <li>Speed up safe prime generation for DH/ElGamal parameters.</li>
+            <li>Unify binary polynomial code, replacing that in F2mCurve, BIKE and HQC. Significant performance improvements and constant-time behaviour.</li>
+            <li>Add Lib25519 utility class (in Org.BouncyCastle.Crypto.Utilities), for interop with <a href="https://lib25519.cr.yp.to">lib25519</a>.</li>
+            <li>
+                Add Properties utility (Org.BouncyCastle.Utilities) to allow thread-local settings influencing library behaviour
+                (will also read through to environment variables).
+            </li>
         </ul>
         <h5>Additional Notes</h5>
         <ul>
