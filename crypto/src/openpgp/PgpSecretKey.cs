@@ -1172,8 +1172,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     throw new PgpException("no q value found");
                 }
 
-                PublicKeyPacket pubPacket = new PublicKeyPacket(PublicKeyAlgorithmTag.ECDsa, DateTime.UtcNow,
-                    new ECDsaPublicBcpgKey(ECNamedCurveTable.GetOid(curveName), new BigInteger(1, qVal)));
+                IBcpgKey key = new ECDsaPublicBcpgKey(ECNamedCurveTable.GetOid(curveName), new BigInteger(1, qVal));
+
+                PublicKeyPacket pubPacket = new PublicKeyPacket(PublicKeyPacket.Version4, PublicKeyAlgorithmTag.ECDsa,
+                    DateTime.UtcNow, key);
 
                 SXprUtilities.SkipCloseParenthesis(inputStream);
 

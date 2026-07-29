@@ -11,11 +11,11 @@ namespace Org.BouncyCastle.Crypto.Utilities
 {
     internal static class RsaPkcs1Utilities
     {
-        /// <summary>Caller-specific early check on the plaintext.<summary>
+        /// <summary>Caller-specific early check on the plaintext.</summary>
         /// <remarks>
         /// This method MUST be constant-time in the plaintext bytes and NOT throw. The input segment will be the
         /// prospective plaintext. Return <c>0</c> if the plaintext is valid, or any other value for invalid.
-        /// <remarks>
+        /// </remarks>
         internal delegate int ValidityCheck(byte[] buf, int off, int len);
 
         internal static byte[] DecryptToFixedLength(int fixedLength, byte[] buf, int off, int len,

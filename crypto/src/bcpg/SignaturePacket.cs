@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Bcpg
         private SignatureSubpacket[] hashedData;
         private SignatureSubpacket[] unhashedData;
         private byte[] signatureEncoding;
-        private byte[] m_salt; // v6 only
+        private readonly byte[] m_salt = null; // v6 only
 
         internal SignaturePacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
@@ -467,7 +467,6 @@ namespace Org.BouncyCastle.Bcpg
          * as its authenticity can be verified by checking the signature with the corresponding key.
          * Therefore, we can also check the unhashed signature subpacket area.
          */
-        /// <summar
         private void SetIssuerKeyId()
         {
             if (m_keyID != 0L)

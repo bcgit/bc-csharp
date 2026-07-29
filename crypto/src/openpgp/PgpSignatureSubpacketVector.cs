@@ -9,10 +9,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     /// <remarks>Container for a list of signature subpackets.</remarks>
     public class PgpSignatureSubpacketVector
     {
-        public static PgpSignatureSubpacketVector FromSubpackets(SignatureSubpacket[] packets)
-        {
-            return new PgpSignatureSubpacketVector(packets ?? new SignatureSubpacket[0]);
-        }
+        public static PgpSignatureSubpacketVector FromSubpackets(SignatureSubpacket[] packets) =>
+            new PgpSignatureSubpacketVector(packets ?? Array.Empty<SignatureSubpacket>());
 
         private readonly SignatureSubpacket[] m_packets;
 
@@ -126,7 +124,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.IssuerKeyId);
 
-            return p == null ? 0 : ((IssuerKeyId)p).KeyId;
+            return p == null ? 0 : ((IssuerKeyId)p).GetKeyID();
         }
 
         public bool HasSignatureCreationTime() => GetSubpacket(SignatureSubpacketTag.CreationTime) != null;

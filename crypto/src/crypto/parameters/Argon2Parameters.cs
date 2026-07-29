@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             /// <summary>Set the parallelism (number of lanes).</summary>
             /// <param name="parallelism">
-            /// The degree of parallelism, must be at least 1, and less than <c>1 << 24</c>.
+            /// The degree of parallelism, must be at least 1, and less than <c>1 &lt;&lt; 24</c>.
             /// </param>
             /// <returns>This builder.</returns>
             public Builder WithParallelism(int parallelism)

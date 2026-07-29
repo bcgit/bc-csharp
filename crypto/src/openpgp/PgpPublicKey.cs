@@ -283,7 +283,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 throw new PgpException("unknown key class");
             }
 
-            this.publicPk = new PublicKeyPacket(algorithm, time, bcpgKey);
+            this.publicPk = new PublicKeyPacket(PublicKeyPacket.Version4, algorithm, time, bcpgKey);
             this.ids = new List<IUserDataPacket>();
             this.idSigs = new List<IList<PgpSignature>>();
 

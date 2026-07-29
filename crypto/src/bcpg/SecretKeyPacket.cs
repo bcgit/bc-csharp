@@ -185,6 +185,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <param name="encAlgorithm">Algorithm ID of the symmetric key algorithm that was used to encrypt the secret
         /// key material.</param>
         /// <param name="aeadAlgorithm">AEAD algorithm scheme used to protect the secret key material.</param>
+        /// <param name="s2kUsage">octet indicating how the secret key material was encrypted.</param>
         /// <param name="s2k">S2k identifier for deriving a key from a passphrase.</param>
         /// <param name="iv">IV that was used to encrypt the secret key material.</param>
         /// <param name="secKeyData">Encrypted/checksum'd secret key material.</param>

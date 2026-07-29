@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Pkix
     /// with <see cref="Properties.X509AllowLenientIPAddressMask"/> it is instead rounded to the
     /// most-restrictive contiguous mask for the construction context - a permitted range is narrowed (fill up
     /// to the last 1-bit), an excluded range is broadened (keep only the leading 1-bits) - so the salvage can
-    /// only tighten validation. This is what keeps <see cref="IntersectIPRange"/> from minting new ranges.</item>
+    /// only tighten validation. This is what keeps intersection from minting new ranges.</item>
     /// <item>A 32-byte constraint whose address half is IPv4-mapped (RFC 4291 sec. 2.5.5.2) and whose mask
     /// covers the full <c>::ffff:0:0/96</c> prefix is reduced to the 8-byte IPv4 form.</item>
     /// <item>The base's host bits (those cleared by the mask) are zeroed, so equal networks are byte-equal and
@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Pkix
 
             if (!IsContiguousMask(canonical, half, half))
             {
-                // A non-contiguous subnet mask isn't valid CIDR, and OR-ing such masks in IntersectIPRange is
+                // A non-contiguous subnet mask isn't valid CIDR, and OR-ing such masks in intersection is
                 // what mints new ranges. Reject (fail-closed) unless leniency is enabled, in which case round to
                 // the most-restrictive contiguous mask for the context - permitted narrows (fill up to the last
                 // 1-bit), excluded broadens (keep only the leading 1-bits). Either way, non-contiguity is gone.

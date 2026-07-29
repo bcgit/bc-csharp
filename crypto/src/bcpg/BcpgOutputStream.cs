@@ -347,13 +347,13 @@ namespace Org.BouncyCastle.Bcpg
         /// If <see cref="m_packetFormat"/> is <see cref="PacketFormat.Current"/>, the packet will be encoded using the
         /// new format. If it is <see cref="PacketFormat.Legacy"/>, the packet will use the old encoding format. If it
         /// is <see cref="PacketFormat.Roundtrip"/>, then the format will be determined by
-        /// <paramref name="objectPrefersNewPacketFormat">
+        /// <param name="objectPrefersNewPacketFormat">
         /// Whether the packet prefers to be encoded using the new packet format.
-        /// </paramref>.
-        /// <paramref name="tag">The packet tag.</paramref>
-        /// <paramref name="body">The packet body.</paramref>
+        /// </param>.
+        /// <param name="tag">The packet tag.</param>
+        /// <param name="body">The packet body.</param>
         /// </remarks>
-        /// <exception cref="IOException"
+        /// <exception cref="IOException"/>
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal void WritePacket(bool objectPrefersNewPacketFormat, PacketTag tag, ReadOnlySpan<byte> body)
 #else
@@ -365,10 +365,10 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         /// <summary>Write a packet, forcing the packet format to be either old or new.</summary>
-        /// <paramref name="tag">The packet tag.</paramref>
-        /// <paramref name="body">The packet body.</paramref>
+        /// <param name="tag">The packet tag.</param>
+        /// <param name="body">The packet body.</param>
         /// <param name="oldFormat">If <c>true</c>, old format is forced, else force new format.</param>
-        /// <exception cref="IOException"
+        /// <exception cref="IOException"/>
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal void WritePacket(PacketTag tag, ReadOnlySpan<byte> body, bool oldFormat)
 #else

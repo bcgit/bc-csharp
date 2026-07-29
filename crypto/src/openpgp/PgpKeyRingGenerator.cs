@@ -399,7 +399,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 pgpSecretKey = enumerator.Current;
 
 				PgpPublicKey k = new PgpPublicKey(pgpSecretKey.PublicKey);
-				k.publicPk = new PublicSubkeyPacket(k.Algorithm, k.CreationTime, k.publicPk.Key);
+				k.publicPk = new PublicSubkeyPacket(PublicKeyPacket.Version4, k.Algorithm, k.CreationTime, k.publicPk.Key);
 
 				pubKeys.Add(k);
 			}

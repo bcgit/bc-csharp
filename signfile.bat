@@ -14,7 +14,7 @@ set SignToolDir=C:\Program Files (x86)\Windows Kits\10\bin\10.0.22621.0\x64\
 set SignTool=%SignToolDir%signtool.exe
 
 echo Preparing to sign %Target%
-echo "%SignTool%" sign /f "%CodesignFile%" /fd sha256 /tr "%TimestampUrl%" /td sha256 /p PASSWORD %Target
+echo "%SignTool%" sign /f "%CodesignFile%" /fd sha256 /tr "%TimestampUrl%" /td sha256 /p PASSWORD %Target%
 
 rem Timestamp server requires 15 seconds or more between signing requests
 rem When publishing need to limit parallel build tasks to 1 in Tools|Options|Projects and Solutions|Build and Run

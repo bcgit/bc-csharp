@@ -30,6 +30,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private abstract class EncMethod
             : ContainedPacket
         {
+            internal EncMethod()
+#pragma warning disable CS0618 // Type or member is obsolete
+                : base()
+#pragma warning restore CS0618 // Type or member is obsolete
+            {
+            }
+
             protected byte[] sessionInfo;
             protected SymmetricKeyAlgorithmTag encAlgorithm;
             protected KeyParameter key;
@@ -404,7 +411,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             methods.Add(new PubMethod(key, sessionKeyObfuscation));
         }
 
-        private void AddCheckSum(byte[] sessionInfo)
+        private static void AddCheckSum(byte[] sessionInfo)
         {
             Debug.Assert(sessionInfo != null);
             Debug.Assert(sessionInfo.Length >= 3);
@@ -420,7 +427,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             sessionInfo[sessionInfo.Length - 1] = (byte)(check);
         }
 
-        private byte[] CreateSessionInfo(SymmetricKeyAlgorithmTag algorithm, KeyParameter key)
+        private static byte[] CreateSessionInfo(SymmetricKeyAlgorithmTag algorithm, KeyParameter key)
         {
             int keyLength = key.KeyLength;
             byte[] sessionInfo = new byte[keyLength + 3];
@@ -502,9 +509,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
             }
 
-            string cName = PgpUtilities.GetSymmetricCipherName(defAlgorithm);
-            if (cName == null)
-                throw new PgpException("null cipher specified");
+            string cName = PgpUtilities.GetSymmetricCipherName(defAlgorithm)
+                ?? throw new PgpException("null cipher specified");
 
             try
             {
