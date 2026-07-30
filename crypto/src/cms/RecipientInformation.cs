@@ -10,6 +10,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>
+    /// Base class for CMS recipient information. Use <see cref="RecipientID"/> to select a recipient, then supply
+    /// the matching key material to <see cref="GetContentStream(ICipherParameters)"/> or <see cref="GetContent"/>.
+    /// </summary>
     public abstract class RecipientInformation
     {
         internal RecipientID rid = new RecipientID();
@@ -31,8 +35,10 @@ namespace Org.BouncyCastle.Cms
             return algorithm.Algorithm.Id;
         }
 
+        /// <summary>Gets the identifier used to match this recipient.</summary>
         public RecipientID RecipientID => rid;
 
+        /// <summary>Gets the algorithm identifier used to encrypt or wrap the content-encryption key.</summary>
         public AlgorithmIdentifier KeyEncryptionAlgorithmID => keyEncAlg;
 
         /// <summary>Return the object identifier for the key encryption algorithm.</summary>
@@ -57,6 +63,9 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>Decrypts the content using <paramref name="key"/> and returns all of its bytes.</summary>
+        /// <param name="key">The recipient key material needed to recover the content-encryption key.</param>
+        /// <returns>The decrypted or authenticated content.</returns>
         public byte[] GetContent(ICipherParameters key)
         {
             try
@@ -87,6 +96,9 @@ namespace Org.BouncyCastle.Cms
             return Arrays.Clone(resultMac);
         }
 
+        /// <summary>Returns a stream that exposes the recovered content.</summary>
+        /// <param name="key">The recipient key material needed to recover the content-encryption key.</param>
+        /// <returns>A typed stream over the recovered content.</returns>
         public abstract CmsTypedStream GetContentStream(ICipherParameters key);
     }
 }
