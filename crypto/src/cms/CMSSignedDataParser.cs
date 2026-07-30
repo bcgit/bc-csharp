@@ -13,58 +13,32 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * Parsing class for an CMS Signed Data object from an input stream.
-     * <p>
-     * Note: that because we are in a streaming mode only one signer can be tried and it is important
-     * that the methods on the parser are called in the appropriate order.
-     * </p>
-     * <p>
-     * A simple example of usage for an encapsulated signature.
-     * </p>
-     * <p>
-     * Two notes: first, in the example below the validity of
-     * the certificate isn't verified, just the fact that one of the certs
-     * matches the given signer, and, second, because we are in a streaming
-     * mode the order of the operations is important.
-     * </p>
-     * <pre>
-     *      CmsSignedDataParser     sp = new CmsSignedDataParser(encapSigData);
-     *
-     *      sp.GetSignedContent().Drain();
-     *
-     *      IX509Store              certs = sp.GetCertificates();
-     *      SignerInformationStore  signers = sp.GetSignerInfos();
-     *
-     *      foreach (SignerInformation signer in signers.GetSigners())
-     *      {
-     *          ArrayList       certList = new ArrayList(certs.GetMatches(signer.SignerID));
-     *          X509Certificate cert = (X509Certificate) certList[0];
-     *
-     *          Console.WriteLine("verify returns: " + signer.Verify(cert));
-     *      }
-     * </pre>
-     *  Note also: this class does not introduce buffering - if you are processing large files you should create
-     *  the parser with:
-     *  <pre>
-     *          CmsSignedDataParser     ep = new CmsSignedDataParser(new BufferedInputStream(encapSigData, bufSize));
-     *  </pre>
-     *  where bufSize is a suitably large buffer size.
-     * <p>
-     * <b>Stream handling note:</b>
-     * <ul>
-     *   <li>The constructor reads only enough of the supplied Stream to expose the
-     *       digest algorithms and signed-content metadata. The encapsulated content
-     *       must be drained by the caller (e.g.
-     *       {@link #GetSignedContent()}.{@link CmsTypedStream#Drain Drain()}) before
-     *       calling {@link #GetSignerInfos()} so the running digests can be finalized.</li>
-     *   <li>The supplied Stream is <b>not closed automatically</b>. Call
-     *       {@link #Close()} on this parser (inherited from
-     *       {@link CmsContentInfoParser}) to close the underlying Stream, or close
-     *       it yourself.</li>
-     * </ul>
-     * </p>
-     */
+    /// <summary>
+    /// Streaming parser for CMS SignedData messages, the counterpart to <see cref="CmsSignedData"/>. In streaming
+    /// mode only one signer can be verified per pass and parser methods must be called in order.
+    /// </summary>
+    /// <remarks>
+    /// The constructor reads only enough of the supplied stream to expose digest algorithms and signed-content
+    /// metadata. Encapsulated content must be drained (for example via <see cref="GetSignedContent()"/> and
+    /// <see cref="CmsTypedStream.Drain"/>) before calling <see cref="GetSignerInfos"/> so running digests can be
+    /// finalized.
+    /// <para>The supplied stream is not closed automatically. Dispose this parser to close the underlying stream,
+    /// or close it yourself.</para>
+    /// <para>This class does not introduce buffering. For large inputs, pass a buffered stream with a suitably
+    /// large buffer size.</para>
+    /// <para>Example (encapsulated content):</para>
+    /// <code>
+    /// CmsSignedDataParser sp = new CmsSignedDataParser(sigData);
+    /// sp.GetSignedContent().Drain();
+    /// IStore&lt;X509Certificate&gt; certs = sp.GetCertificates();
+    /// SignerInformationStore signers = sp.GetSignerInfos();
+    /// foreach (SignerInformation signer in signers.GetSigners())
+    /// {
+    ///     X509Certificate cert = certs.GetMatches(signer.SignerID).First();
+    ///     signer.Verify(cert);
+    /// }
+    /// </code>
+    /// </remarks>
     public class CmsSignedDataParser
         : CmsContentInfoParser
     {
@@ -79,30 +53,35 @@ namespace Org.BouncyCastle.Cms
         private Asn1Set _certSet, _crlSet;
         private bool _isCertCrlParsed;
 
+        /// <summary>Creates a parser from an encoded SignedData message with encapsulated content.</summary>
+        /// <param name="sigBlock">The DER-encoded CMS ContentInfo bytes.</param>
         public CmsSignedDataParser(byte[] sigBlock)
             : this(new MemoryStream(sigBlock, false))
         {
         }
 
+        /// <summary>
+        /// Creates a parser from detached content and an encoded SignedData message without encapsulated content.
+        /// </summary>
+        /// <param name="signedContent">The content that was signed.</param>
+        /// <param name="sigBlock">The DER-encoded CMS ContentInfo bytes.</param>
         public CmsSignedDataParser(CmsTypedStream signedContent, byte[] sigBlock)
             : this(signedContent, new MemoryStream(sigBlock, false))
         {
         }
 
-        /**
-         * base constructor - with encapsulated content
-         */
+        /// <summary>Creates a parser from an encoded SignedData message with encapsulated content.</summary>
+        /// <param name="sigData">The stream containing the DER-encoded CMS ContentInfo.</param>
         public CmsSignedDataParser(Stream sigData)
             : this(null, sigData)
         {
         }
 
-        /**
-         * base constructor
-         *
-         * @param signedContent the content that was signed.
-         * @param sigData the signature object.
-         */
+        /// <summary>Creates a parser from optional detached content and an encoded SignedData message.</summary>
+        /// <param name="signedContent">The detached signed content, or null when content is encapsulated.</param>
+        /// <param name="sigData">The stream containing the DER-encoded CMS ContentInfo.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="sigData"/> is null.</exception>
+        /// <exception cref="CmsException">The stream cannot be parsed as CMS SignedData.</exception>
         public CmsSignedDataParser(CmsTypedStream signedContent, Stream sigData)
             : base(sigData)
         {
@@ -166,13 +145,10 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /**
-         * Return the version number for the SignedData object
-         *
-         * @return the version number
-         */
+        /// <summary>Gets the SignedData version number.</summary>
         public int Version => _signedData.Version.IntValueExact;
 
+        /// <summary>Gets the digest algorithm OIDs for which running digests are maintained.</summary>
         public ISet<string> DigestOids
         {
             get
@@ -186,11 +162,8 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /**
-         * return the collection of signers that are associated with the
-         * signatures for the message.
-         * @throws CmsException
-         */
+        /// <summary>Returns a store of signers associated with the message signatures.</summary>
+        /// <exception cref="CmsException">The signer information cannot be parsed.</exception>
         public SignerInformationStore GetSignerInfos()
         {
             if (_signerInfoStore == null)
@@ -230,15 +203,8 @@ namespace Org.BouncyCastle.Cms
             return _signerInfoStore;
         }
 
-        /**
-         * return a X509Store containing the attribute certificates, if any, contained
-         * in this message.
-         *
-         * @param type type of store to create
-         * @return a store of attribute certificates
-         * @exception Org.BouncyCastle.X509.NoSuchStoreException if the store type isn't available.
-         * @exception CmsException if a general exception prevents creation of the X509Store
-         */
+        /// <summary>Returns a store of attribute certificates carried in the message, if any.</summary>
+        /// <exception cref="CmsException">The certificate set cannot be parsed.</exception>
         public IStore<X509V2AttributeCertificate> GetAttributeCertificates()
         {
             PopulateCertCrlSets();
@@ -246,15 +212,8 @@ namespace Org.BouncyCastle.Cms
             return CmsSignedHelper.GetAttributeCertificates(_certSet);
         }
 
-        /**
-         * return a X509Store containing the public key certificates, if any, contained
-         * in this message.
-         *
-         * @param type type of store to create
-         * @return a store of public key certificates
-         * @exception NoSuchStoreException if the store type isn't available.
-         * @exception CmsException if a general exception prevents creation of the X509Store
-         */
+        /// <summary>Returns a store of public-key certificates carried in the message, if any.</summary>
+        /// <exception cref="CmsException">The certificate set cannot be parsed.</exception>
         public IStore<X509Certificate> GetCertificates()
         {
             PopulateCertCrlSets();
@@ -262,15 +221,8 @@ namespace Org.BouncyCastle.Cms
             return CmsSignedHelper.GetCertificates(_certSet);
         }
 
-        /**
-         * return a X509Store containing CRLs, if any, contained
-         * in this message.
-         *
-         * @param type type of store to create
-         * @return a store of CRLs
-         * @exception NoSuchStoreException if the store type isn't available.
-         * @exception CmsException if a general exception prevents creation of the X509Store
-         */
+        /// <summary>Returns a store of CRLs carried in the message, if any.</summary>
+        /// <exception cref="CmsException">The CRL set cannot be parsed.</exception>
         public IStore<X509Crl> GetCrls()
         {
             PopulateCertCrlSets();
@@ -278,6 +230,9 @@ namespace Org.BouncyCastle.Cms
             return CmsSignedHelper.GetCrls(_crlSet);
         }
 
+        /// <summary>Returns a store of other revocation information entries of the given format, if any.</summary>
+        /// <param name="otherRevInfoFormat">The other revocation information format OID to select.</param>
+        /// <exception cref="CmsException">The revocation set cannot be parsed.</exception>
         public IStore<Asn1Encodable> GetOtherRevInfos(DerObjectIdentifier otherRevInfoFormat)
         {
             PopulateCertCrlSets();
@@ -285,31 +240,14 @@ namespace Org.BouncyCastle.Cms
             return CmsSignedHelper.GetOtherRevInfos(_crlSet, otherRevInfoFormat);
         }
 
-        private void PopulateCertCrlSets()
-        {
-            if (_isCertCrlParsed)
-                return;
-
-            _isCertCrlParsed = true;
-
-            try
-            {
-                // care! Streaming - Must process the GetCertificates() result before calling GetCrls()
-                _certSet = GetAsn1Set(_signedData.GetCertificates());
-                _crlSet = GetAsn1Set(_signedData.GetCrls());
-            }
-            catch (IOException e)
-            {
-                throw new CmsException("problem parsing cert/crl sets", e);
-            }
-        }
-
-        /// <summary>
-        /// Return the <c>DerObjectIdentifier</c> associated with the encapsulated
-        /// content info structure carried in the signed data.
-        /// </summary>
+        /// <summary>Gets the content type OID of the signed encapsulated content.</summary>
         public DerObjectIdentifier SignedContentType => _signedContentType;
 
+        /// <summary>
+        /// Returns a stream over the signed content with digest calculators attached, or null if no content is
+        /// present.
+        /// </summary>
+        /// <returns>A typed stream over the signed content, or null.</returns>
         public CmsTypedStream GetSignedContent()
         {
             if (_signedContent == null)
@@ -325,19 +263,14 @@ namespace Org.BouncyCastle.Cms
             return new CmsTypedStream(_signedContent.ContentTypeOid, digStream);
         }
 
-        /**
-         * Replace the signerinformation store associated with the passed
-         * in message contained in the stream original with the new one passed in.
-         * You would probably only want to do this if you wanted to change the unsigned
-         * attributes associated with a signer, or perhaps delete one.
-         * <p>
-         * The output stream is returned unclosed.
-         * </p>
-         * @param original the signed data stream to be used as a base.
-         * @param signerInformationStore the new signer information store to use.
-         * @param out the stream to Write the new signed data object to.
-         * @return out.
-         */
+        /// <summary>
+        /// Writes a copy of <paramref name="original"/> SignedData to <paramref name="outStr"/> with signers replaced
+        /// by <paramref name="signerInformationStore"/>. The output stream is returned unclosed.
+        /// </summary>
+        /// <param name="original">The signed-data stream to use as a base.</param>
+        /// <param name="signerInformationStore">The replacement signer information.</param>
+        /// <param name="outStr">The stream to receive the new SignedData object.</param>
+        /// <returns><paramref name="outStr"/>.</returns>
         public static Stream ReplaceSigners(Stream original, SignerInformationStore signerInformationStore,
             Stream outStr)
         {
@@ -367,18 +300,17 @@ namespace Org.BouncyCastle.Cms
             return outStr;
         }
 
-        /**
-         * Replace the certificate and CRL information associated with this
-         * CMSSignedData object with the new one passed in.
-         * <p>
-         * The output stream is returned unclosed.
-         * </p>
-         * @param original the signed data stream to be used as a base.
-         * @param certsAndCrls the new certificates and CRLs to be used.
-         * @param out the stream to Write the new signed data object to.
-         * @return out.
-         * @exception CmsException if there is an error processing the CertStore
-         */
+        /// <summary>
+        /// Writes a copy of <paramref name="original"/> SignedData to <paramref name="outStr"/> with certificates and
+        /// CRLs replaced. The output stream is returned unclosed.
+        /// </summary>
+        /// <param name="original">The signed-data stream to use as a base.</param>
+        /// <param name="x509Certs">Replacement public-key certificates, or null to omit.</param>
+        /// <param name="x509Crls">Replacement CRLs, or null to omit.</param>
+        /// <param name="x509AttrCerts">Replacement attribute certificates, or null to omit.</param>
+        /// <param name="outStr">The stream to receive the new SignedData object.</param>
+        /// <returns><paramref name="outStr"/>.</returns>
+        /// <exception cref="CmsException">The signed-data stream cannot be processed.</exception>
         public static Stream ReplaceCertificatesAndCrls(Stream original, IStore<X509Certificate> x509Certs,
             IStore<X509Crl> x509Crls, IStore<X509V2AttributeCertificate> x509AttrCerts, Stream outStr)
         {
@@ -414,6 +346,25 @@ namespace Org.BouncyCastle.Cms
             contentOut.Dispose();
 
             return outStr;
+        }
+
+        private void PopulateCertCrlSets()
+        {
+            if (_isCertCrlParsed)
+                return;
+
+            _isCertCrlParsed = true;
+
+            try
+            {
+                // care! Streaming - Must process the GetCertificates() result before calling GetCrls()
+                _certSet = GetAsn1Set(_signedData.GetCertificates());
+                _crlSet = GetAsn1Set(_signedData.GetCrls());
+            }
+            catch (IOException e)
+            {
+                throw new CmsException("problem parsing cert/crl sets", e);
+            }
         }
 
         private static Asn1Set GetAsn1Set(Asn1SetParser asn1SetParser)
