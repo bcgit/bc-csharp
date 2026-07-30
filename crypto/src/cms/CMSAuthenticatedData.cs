@@ -8,7 +8,11 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-    /// <summary>Containing class for a CMS AuthenticatedData object.</summary>
+    /// <summary>
+    /// Represents a CMS AuthenticatedData (MAC-protected) message. Parse an encoded message, obtain recipients from
+    /// <see cref="GetRecipientInfos"/>, match one with <see cref="RecipientID"/>, recover content via
+    /// <see cref="RecipientInformation"/>, and verify integrity with <see cref="GetMac"/>.
+    /// </summary>
     public class CmsAuthenticatedData
     {
         private readonly ContentInfo m_contentInfo;
@@ -20,16 +24,25 @@ namespace Org.BouncyCastle.Cms
         private Asn1.Cms.AttributeTable m_authAttributeTable;
         private Asn1.Cms.AttributeTable m_unauthAttributeTable;
 
+        /// <summary>Creates an instance from an encoded AuthenticatedData message.</summary>
+        /// <param name="authData">The DER-encoded CMS ContentInfo bytes.</param>
         public CmsAuthenticatedData(byte[] authData)
             : this(CmsUtilities.ReadContentInfo(authData))
         {
         }
 
+        /// <summary>Creates an instance from an encoded AuthenticatedData message.</summary>
+        /// <param name="authData">A stream containing the DER-encoded CMS ContentInfo.</param>
         public CmsAuthenticatedData(Stream authData)
             : this(CmsUtilities.ReadContentInfo(authData))
         {
         }
 
+        /// <summary>Creates an instance from a parsed CMS ContentInfo structure.</summary>
+        /// <param name="contentInfo">The CMS ContentInfo wrapping an AuthenticatedData object.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="contentInfo"/> is null.</exception>
+        /// <exception cref="CmsException">Authenticated attributes cannot be validated.</exception>
+        /// <exception cref="NotImplementedException">Authenticated attributes are present in the message.</exception>
         public CmsAuthenticatedData(ContentInfo contentInfo)
         {
             m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
@@ -82,32 +95,34 @@ namespace Org.BouncyCastle.Cms
             //}
         }
 
+        /// <summary>Gets the underlying ASN.1 AuthenticatedData structure.</summary>
         public AuthenticatedData AuthenticatedData => m_authenticatedData;
 
+        /// <summary>Gets originator certificates and CRLs carried in the message, or null if absent.</summary>
         public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
+        /// <summary>Returns a copy of the message authentication code (MAC) value.</summary>
         public byte[] GetMac() => Arrays.Clone(m_authenticatedData.Mac.GetOctets());
 
+        /// <summary>Gets the MAC algorithm identifier.</summary>
         public AlgorithmIdentifier MacAlgorithmID => m_authenticatedData.MacAlgorithm;
 
-        /**
-         * return the object identifier for the content MAC algorithm.
-         */
+        /// <summary>Return the object identifier for the MAC algorithm.</summary>
         // TODO[api] Return the OID itself
         public string MacAlgOid => MacAlgorithmID.Algorithm.GetID();
 
-        /**
-         * return a store of the intended recipients for this message
-         */
+        /// <summary>Returns a store of the intended recipients for this message.</summary>
         public RecipientInformationStore GetRecipientInfos() => m_recipientInfoStore;
 
+        /// <summary>Gets the CMS ContentInfo wrapper for this message.</summary>
         public ContentInfo ContentInfo => m_contentInfo;
 
-        /// <summary>Return a table of the digested attributes indexed by the OID of the attribute.</summary>
+        /// <summary>Return a table of the authenticated attributes. Use <see cref="AuthAttributes"/> instead.
+        /// </summary>
         [Obsolete("Use 'AuthAttributes' property instead")]
         public Asn1.Cms.AttributeTable GetAuthAttrs() => AuthAttributes;
 
-        /// <summary>Return a table of the authenticated attributes - indexed by the OID of the attribute.</summary>
+        /// <summary>Gets a table of authenticated attributes indexed by attribute OID.</summary>
         public Asn1.Cms.AttributeTable AuthAttributes
         {
             get
@@ -120,11 +135,12 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /// <summary>Return a table of the undigested attributes indexed by the OID of the attribute.</summary>
-        [Obsolete("Use 'AuthAttributes' property instead")]
+        /// <summary>Return a table of the unauthenticated attributes. Use <see cref="UnauthAttributes"/> instead.
+        /// </summary>
+        [Obsolete("Use 'UnauthAttributes' property instead")]
         public Asn1.Cms.AttributeTable GetUnauthAttrs() => UnauthAttributes;
 
-        /// <summary>Return a table of the unauthenticated attributes - indexed by the OID of the attribute.</summary>
+        /// <summary>Gets a table of unauthenticated attributes indexed by attribute OID.</summary>
         public Asn1.Cms.AttributeTable UnauthAttributes
         {
             get
@@ -137,9 +153,14 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /// <summary>Return the ASN.1 encoded representation of this object.</summary>
+        /// <summary>Returns the DER encoding of this message.</summary>
         public byte[] GetEncoded() => m_contentInfo.GetEncoded();
 
+        /// <summary>
+        /// Returns the message-digest value carried in authenticated attributes, or null if none is present.
+        /// </summary>
+        /// <returns>A copy of the message-digest octets, or null when the attribute is absent.</returns>
+        /// <exception cref="CmsException">Authenticated attributes are present but invalid.</exception>
         public byte[] GetContentDigest()
         {
             // TODO Full validation; this is syntactic validation on access only; the actual digest is not checked 
