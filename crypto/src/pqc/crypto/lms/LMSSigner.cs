@@ -15,11 +15,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             if (forSigning)
             {
-                m_privateKey = (LmsPrivateKeyParameters)param;
+                if (param is HssPrivateKeyParameters hssPriv)
+                {
+                    if (hssPriv.Level != 1)
+                        throw new ArgumentException("only a single level HSS key can be used with LMS");
+
+                    m_privateKey = hssPriv.GetRootKey();
+                }
+                else
+                {
+                    m_privateKey = (LmsPrivateKeyParameters)param;
+                }
+
+                m_publicKey = null;
             }
             else
             {
-                m_publicKey = (LmsPublicKeyParameters)param;
+                if (param is HssPublicKeyParameters hssPub)
+                {
+                    if (hssPub.Level != 1)
+                        throw new ArgumentException("only a single level HSS key can be used with LMS");
+
+                    m_publicKey = hssPub.LmsPublicKey;
+                }
+                else
+                {
+                    m_publicKey = (LmsPublicKeyParameters)param;
+                }
+
+                m_privateKey = null;
             }
         }
 
@@ -31,7 +55,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             catch (IOException e)
             {
-                throw new Exception("unable to encode signature", e);
+                throw new InvalidOperationException("unable to encode signature", e);
             }
         }
 
@@ -41,13 +65,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 return Lms.VerifySignature(m_publicKey, LmsSignature.GetInstance(signature), message);
             }
-            catch (InvalidDataException e)
+            catch (Exception)
             {
-                throw new Exception("unable to decode signature", e);
-            }
-            catch (IOException e)
-            {
-                throw new Exception("unable to decode signature", e);
+                return false;
             }
         }
     }

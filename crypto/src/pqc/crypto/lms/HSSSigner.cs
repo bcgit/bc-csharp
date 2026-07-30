@@ -8,18 +8,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     public sealed class HssSigner 
         : IMessageSigner
     {
-        private HssPrivateKeyParameters privKey;
-        private HssPublicKeyParameters pubKey;
+        private HssPrivateKeyParameters m_privateKey;
+        private HssPublicKeyParameters m_publicKey;
 
         public void Init(bool forSigning, ICipherParameters param)
         {
             if (forSigning)
             {
-                this.privKey = (HssPrivateKeyParameters) param;
+                m_privateKey = (HssPrivateKeyParameters)param;
+                m_publicKey = null;
             }
             else
             {
-                this.pubKey = (HssPublicKeyParameters) param;
+                m_publicKey = (HssPublicKeyParameters)param;
+                m_privateKey = null;
             }
         }
 
@@ -27,11 +29,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return Hss.GenerateSignature(privKey, message).GetEncoded();
+                return Hss.GenerateSignature(m_privateKey, message).GetEncoded();
             }
             catch (IOException e)
             {
-                throw new Exception("unable to encode signature", e);
+                throw new InvalidOperationException("unable to encode signature", e);
             }
         }
 
@@ -39,15 +41,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return Hss.VerifySignature(pubKey, HssSignature.GetInstance(signature, pubKey.Level), message);
+                return Hss.VerifySignature(m_publicKey, HssSignature.GetInstance(signature, m_publicKey.Level), message);
             }
-            catch (InvalidDataException e)
+            catch (Exception)
             {
-                throw new Exception("unable to decode signature", e);
-            }
-            catch (IOException e)
-            {
-                throw new Exception("unable to decode signature", e);
+                return false;
             }
         }
     }

@@ -121,6 +121,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             Assert.True(signer.VerifySignature(msg2, sig));
 
+            signer.Init(true, privKey);
             try
             {
                 sig = signer.GenerateSignature(msg2);
