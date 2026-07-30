@@ -11,11 +11,11 @@ namespace Org.BouncyCastle.Cms
     {
         private byte[] m_keyIdentifier;
 
-		public byte[] KeyIdentifier
-		{
-			get { return Arrays.Clone(m_keyIdentifier); }
-			set { m_keyIdentifier = Arrays.Clone(value); }
-		}
+        public byte[] KeyIdentifier
+        {
+            get { return Arrays.Clone(m_keyIdentifier); }
+            set { m_keyIdentifier = Arrays.Clone(value); }
+        }
 
         public virtual bool Equals(RecipientID other)
         {
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Cms
         public override int GetHashCode()
         {
             return Arrays.GetHashCode(m_keyIdentifier)
-				^  GetHashCodeOfSubjectKeyIdentifier()
+                ^  GetHashCodeOfSubjectKeyIdentifier()
                 ^  Objects.GetHashCode(SerialNumber)
                 ^  Objects.GetHashCode(Issuer);
         }
