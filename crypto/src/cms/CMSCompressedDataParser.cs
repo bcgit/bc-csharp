@@ -6,46 +6,45 @@ using Org.BouncyCastle.Utilities.IO.Compression;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * Class for reading a CMS Compressed Data stream.
-     * <pre>
-     *     CMSCompressedDataParser cp = new CMSCompressedDataParser(inputStream);
-     *
-     *     process(cp.GetContent().GetContentStream());
-     * </pre>
-     *  Note: this class does not introduce buffering - if you are processing large files you should create
-     *  the parser with:
-     *  <pre>
-     *      CMSCompressedDataParser     ep = new CMSCompressedDataParser(new BufferedStream(inputStream, bufSize));
-     *  </pre>
-     *  where bufSize is a suitably large buffer size.
-     * <p>
-     * <b>Stream handling note:</b>
-     * <ul>
-     *   <li>The constructor reads only the outer CMS ContentInfo header from the
-     *       supplied Stream. The compressed content is drained lazily by the
-     *       caller via {@link #GetContent()} and reading from the
-     *       returned {@link CmsTypedStream}.</li>
-     *   <li>The supplied Stream is <b>not closed automatically</b>. Call
-     *       {@link #Close()} on this parser (inherited from
-     *       {@link CmsContentInfoParser}) to close the underlying Stream, or close
-     *       it yourself.</li>
-     * </ul>
-     * </p>
-     */
+    /// <summary>
+    /// Streaming parser for CMS CompressedData messages, the counterpart to <see cref="CmsCompressedData"/>.
+    /// </summary>
+    /// <remarks>
+    /// The constructor reads only the outer CMS ContentInfo header from the supplied stream. Compressed content is
+    /// drained lazily via <see cref="GetContent()"/> and reading from the returned <see cref="CmsTypedStream"/>.
+    /// <para>The supplied stream is not closed automatically. Dispose this parser to close the underlying stream,
+    /// or close it yourself.</para>
+    /// <para>This class does not introduce buffering. For large inputs, pass a buffered stream with a suitably
+    /// large buffer size.</para>
+    /// <para>Example:</para>
+    /// <code>
+    /// CmsCompressedDataParser cp = new CmsCompressedDataParser(inputStream);
+    /// using CmsTypedStream content = cp.GetContent();
+    /// Process(content.ContentStream);
+    /// </code>
+    /// </remarks>
     public class CmsCompressedDataParser
         : CmsContentInfoParser
     {
+        /// <summary>Creates a parser from an encoded CompressedData message.</summary>
+        /// <param name="compressedData">The DER-encoded CMS ContentInfo bytes.</param>
         public CmsCompressedDataParser(byte[] compressedData)
             : this(new MemoryStream(compressedData, false))
         {
         }
 
+        /// <summary>Creates a parser from an encoded CompressedData message.</summary>
+        /// <param name="compressedData">The stream containing the DER-encoded CMS ContentInfo.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="compressedData"/> is null.</exception>
+        /// <exception cref="CmsException">The stream cannot be parsed as CMS ContentInfo.</exception>
         public CmsCompressedDataParser(Stream compressedData)
             : base(compressedData)
         {
         }
 
+        /// <summary>Returns a typed stream over the decompressed content.</summary>
+        /// <returns>A stream over the uncompressed content.</returns>
+        /// <exception cref="CmsException">Thrown if the compressed content cannot be read.</exception>
         public CmsTypedStream GetContent()
         {
             try
