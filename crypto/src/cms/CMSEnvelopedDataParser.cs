@@ -6,53 +6,30 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * Parsing class for an CMS Enveloped Data object from an input stream.
-     * <p>
-     * Note: that because we are in a streaming mode only one recipient can be tried and it is important
-     * that the methods on the parser are called in the appropriate order.
-     * </p>
-     * <p>
-     * Example of use - assuming the first recipient matches the private key we have.
-     * <pre>
-     *      CmsEnvelopedDataParser     ep = new CmsEnvelopedDataParser(inputStream);
-     *
-     *      RecipientInformationStore  recipients = ep.GetRecipientInfos();
-     *
-     *      Collection  c = recipients.GetRecipients();
-     *      Iterator    it = c.iterator();
-     *
-     *      if (it.hasNext())
-     *      {
-     *          RecipientInformation   recipient = (RecipientInformation)it.next();
-     *
-     *          CMSTypedStream recData = recipient.GetContentStream(privateKey);
-     *
-     *          processDataStream(recData.GetContentStream());
-     *      }
-     *  </pre>
-     *  Note: this class does not introduce buffering - if you are processing large files you should create
-     *  the parser with:
-     *  <pre>
-     *          CmsEnvelopedDataParser     ep = new CmsEnvelopedDataParser(new BufferedInputStream(inputStream, bufSize));
-     *  </pre>
-     *  where bufSize is a suitably large buffer size.
-     * </p>
-     * <p>
-     * <b>Stream handling note:</b>
-     * <ul>
-     *   <li>The constructor reads only enough of the supplied Stream to expose the
-     *       CMS structure metadata (originator info, recipient infos, content-encryption
-     *       algorithm). The encrypted content is drained lazily by the caller via
-     *       {@link RecipientInformation#GetContentStream} /
-     *       {@link RecipientInformation#GetContent}.</li>
-     *   <li>The supplied Stream is <b>not closed automatically</b>. Call
-     *       {@link #Close()} on this parser (inherited from
-     *       {@link CmsContentInfoParser}) to close the underlying Stream, or close
-     *       it yourself.</li>
-     * </ul>
-     * </p>
-     */
+    /// <summary>
+    /// Streaming parser for CMS EnvelopedData messages, the counterpart to <see cref="CmsEnvelopedData"/>.
+    /// In streaming mode only one recipient can be tried and parser methods must be called in order.
+    /// </summary>
+    /// <remarks>
+    /// The constructor reads only enough of the supplied stream to expose CMS structure metadata (originator
+    /// info, recipient infos, content-encryption algorithm). Encrypted content is drained lazily via
+    /// <see cref="RecipientInformation.GetContentStream(Org.BouncyCastle.Crypto.ICipherParameters)"/> or
+    /// <see cref="RecipientInformation.GetContent(Org.BouncyCastle.Crypto.ICipherParameters)"/>.
+    /// <para>The supplied stream is not closed automatically. Dispose this parser to close the underlying stream,
+    /// or close it yourself.</para>
+    /// <para>This class does not introduce buffering. For large inputs, pass a buffered stream with a suitably
+    /// large buffer size.</para>
+    /// <para>Example:</para>
+    /// <code>
+    /// CmsEnvelopedDataParser ep = new CmsEnvelopedDataParser(inputStream);
+    /// RecipientInformationStore recipients = ep.GetRecipientInfos();
+    /// foreach (RecipientInformation recipient in recipients)
+    /// {
+    ///     using CmsTypedStream recData = recipient.GetContentStream(privateKey);
+    ///     ProcessDataStream(recData.ContentStream);
+    /// }
+    /// </code>
+    /// </remarks>
     public class CmsEnvelopedDataParser
         : CmsContentInfoParser
     {
@@ -64,11 +41,17 @@ namespace Org.BouncyCastle.Cms
         private bool _attrNotRead;
         private OriginatorInformation m_originatorInformation;
 
+        /// <summary>Creates a parser from an encoded EnvelopedData message.</summary>
+        /// <param name="envelopedData">The DER-encoded CMS ContentInfo bytes.</param>
         public CmsEnvelopedDataParser(byte[] envelopedData)
             : this(new MemoryStream(envelopedData, false))
         {
         }
 
+        /// <summary>Creates a parser from an encoded EnvelopedData message.</summary>
+        /// <param name="envelopedData">The stream containing the DER-encoded CMS ContentInfo.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="envelopedData"/> is null.</exception>
+        /// <exception cref="CmsException">The stream cannot be parsed as CMS ContentInfo.</exception>
         public CmsEnvelopedDataParser(Stream envelopedData)
             : base(envelopedData)
         {
@@ -104,34 +87,24 @@ namespace Org.BouncyCastle.Cms
                 recipientInfos, secureReadable);
         }
 
+        /// <summary>Gets the content-encryption algorithm identifier.</summary>
         public AlgorithmIdentifier EncryptionAlgorithmID => _encAlg;
 
-        /**
-         * return the object identifier for the content encryption algorithm.
-         */
+        /// <summary>Return the object identifier for the content-encryption algorithm.</summary>
         public string EncryptionAlgOid => _encAlg.Algorithm.GetID();
 
-        /**
-         * return the ASN.1 encoded encryption algorithm parameters, or null if there aren't any.
-         */
+        /// <summary>
+        /// Return the ASN.1 encoded content-encryption algorithm parameters, or null if there aren't any.
+        /// </summary>
         public Asn1Object EncryptionAlgParams => _encAlg.Parameters?.ToAsn1Object();
 
-        /**
-         * Return the originator information associated with this message if present.
-         *
-         * @return OriginatorInformation, null if not present.
-         */
+        /// <summary>Gets originator certificates and CRLs carried in the message, or null if absent.</summary>
         public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
-        /**
-         * return a store of the intended recipients for this message
-         */
+        /// <summary>Returns a store of the intended recipients for this message.</summary>
         public RecipientInformationStore GetRecipientInfos() => this.recipientInfoStore;
 
-        /**
-         * return a table of the unprotected attributes indexed by the OID of the attribute.
-         * @throws IOException
-         */
+        /// <summary>Returns a table of unprotected attributes indexed by attribute OID, or null if absent.</summary>
         public Asn1.Cms.AttributeTable GetUnprotectedAttributes()
         {
             if (_unprotectedAttributes == null && _attrNotRead)
