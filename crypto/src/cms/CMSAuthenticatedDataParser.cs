@@ -7,58 +7,34 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * Parsing class for an CMS Authenticated Data object from an input stream.
-     * <p>
-     * Note: that because we are in a streaming mode only one recipient can be tried and it is important
-     * that the methods on the parser are called in the appropriate order.
-     * </p>
-     * <p>
-     * Example of use - assuming the first recipient matches the private key we have.
-     * <pre>
-     *      CMSAuthenticatedDataParser     ad = new CMSAuthenticatedDataParser(inputStream);
-     *
-     *      RecipientInformationStore  recipients = ad.getRecipientInfos();
-     *
-     *      Collection  c = recipients.getRecipients();
-     *      Iterator    it = c.iterator();
-     *
-     *      if (it.hasNext())
-     *      {
-     *          RecipientInformation   recipient = (RecipientInformation)it.next();
-     *
-     *          CMSTypedStream recData = recipient.getContentStream(privateKey, "BC");
-     *
-     *          processDataStream(recData.getContentStream());
-     *
-     *          if (!Arrays.equals(ad.getMac(), recipient.getMac())
-     *          {
-     *              System.err.println("Data corrupted!!!!");
-     *          }
-     *      }
-     *  </pre>
-     *  Note: this class does not introduce buffering - if you are processing large files you should create
-     *  the parser with:
-     *  <pre>
-     *          CMSAuthenticatedDataParser     ep = new CMSAuthenticatedDataParser(new BufferedInputStream(inputStream, bufSize));
-     *  </pre>
-     *  where bufSize is a suitably large buffer size.
-     * </p>
-     * <p>
-     * <b>Stream handling note:</b>
-     * <ul>
-     *   <li>The constructor reads only enough of the supplied Stream to expose the
-     *       CMS structure metadata (originator info, recipient infos, MAC algorithm).
-     *       The encapsulated content is drained lazily by the caller via
-     *       {@link RecipientInformation#GetContentStream}; the MAC is available from
-     *       {@link #GetMac()} once the content stream has been read to EOF.</li>
-     *   <li>The supplied Stream is <b>not closed automatically</b>. Call
-     *       {@link #Close()} on this parser (inherited from
-     *       {@link CmsContentInfoParser}) to close the underlying Stream, or close
-     *       it yourself.</li>
-     * </ul>
-     * </p>
-     */
+    /// <summary>
+    /// Streaming parser for CMS AuthenticatedData messages, the counterpart to <see cref="CmsAuthenticatedData"/>.
+    /// In streaming mode only one recipient can be tried and parser methods must be called in order.
+    /// </summary>
+    /// <remarks>
+    /// The constructor reads only enough of the supplied stream to expose CMS structure metadata (originator
+    /// info, recipient infos, MAC algorithm). Encapsulated content is drained lazily via
+    /// <see cref="RecipientInformation.GetContentStream(Org.BouncyCastle.Crypto.ICipherParameters)"/>.
+    /// The MAC is available from <see cref="GetMac()"/> once the content stream has been read to end-of-file.
+    /// <para>The supplied stream is not closed automatically. Dispose this parser to close the underlying stream,
+    /// or close it yourself.</para>
+    /// <para>This class does not introduce buffering. For large inputs, pass a buffered stream with a suitably
+    /// large buffer size.</para>
+    /// <para>Example:</para>
+    /// <code>
+    /// CmsAuthenticatedDataParser ad = new CmsAuthenticatedDataParser(inputStream);
+    /// RecipientInformationStore recipients = ad.GetRecipientInfos();
+    /// foreach (RecipientInformation recipient in recipients)
+    /// {
+    ///     using CmsTypedStream recData = recipient.GetContentStream(privateKey);
+    ///     ProcessDataStream(recData.ContentStream);
+    ///     if (!Arrays.FixedTimeEquals(ad.GetMac(), recipient.GetMac()))
+    ///     {
+    ///         // MAC mismatch
+    ///     }
+    /// }
+    /// </code>
+    /// </remarks>
     public class CmsAuthenticatedDataParser
         : CmsContentInfoParser
     {
@@ -74,12 +50,18 @@ namespace Org.BouncyCastle.Cms
         private bool unauthAttrNotRead;
         private OriginatorInformation m_originatorInformation;
 
+        /// <summary>Creates a parser from an encoded AuthenticatedData message.</summary>
+        /// <param name="envelopedData">The DER-encoded CMS ContentInfo bytes.</param>
         // TODO[api] Rename parameter to 'authenticatedData'
         public CmsAuthenticatedDataParser(byte[] envelopedData)
             : this(new MemoryStream(envelopedData, false))
         {
         }
 
+        /// <summary>Creates a parser from an encoded AuthenticatedData message.</summary>
+        /// <param name="envelopedData">The stream containing the DER-encoded CMS ContentInfo.</param>
+        /// <exception cref="System.ArgumentNullException"><paramref name="envelopedData"/> is null.</exception>
+        /// <exception cref="CmsException">The stream cannot be parsed as CMS ContentInfo.</exception>
         // TODO[api] Rename parameter to 'authenticatedData'
         public CmsAuthenticatedDataParser(Stream envelopedData)
             : base(envelopedData)
@@ -117,36 +99,25 @@ namespace Org.BouncyCastle.Cms
                 recipientInfos, secureReadable);
         }
 
-        /**
-         * Return the originator information associated with this message if present.
-         *
-         * @return OriginatorInformation, null if not present.
-         */
+        /// <summary>Gets originator certificates and CRLs carried in the message, or null if absent.</summary>
         public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
-        /**
-         * Return the MAC algorithm details for the MAC associated with the data in this object.
-         *
-         * @return AlgorithmIdentifier representing the MAC algorithm.
-         */
+        /// <summary>Gets the MAC algorithm identifier.</summary>
         public AlgorithmIdentifier MacAlgorithmID => macAlg;
 
-        /**
-         * return the object identifier for the mac algorithm.
-         */
+        /// <summary>Return the object identifier for the MAC algorithm.</summary>
         public string MacAlgOid => macAlg.Algorithm.GetID();
 
-        /**
-         * return the ASN.1 encoded encryption algorithm parameters, or null if
-         * there aren't any.
-         */
+        /// <summary>Return the ASN.1 encoded MAC algorithm parameters, or null if there aren't any.</summary>
         public Asn1Object MacAlgParams => macAlg.Parameters?.ToAsn1Object();
 
-        /**
-         * return a store of the intended recipients for this message
-         */
+        /// <summary>Returns a store of the intended recipients for this message.</summary>
         public RecipientInformationStore GetRecipientInfos() => _recipientInfoStore;
 
+        /// <summary>
+        /// Returns a copy of the message authentication code. Call after the encapsulated content stream has been
+        /// read to end-of-file.
+        /// </summary>
         public byte[] GetMac()
         {
             if (mac == null)
@@ -157,11 +128,7 @@ namespace Org.BouncyCastle.Cms
             return Arrays.Clone(mac);
         }
 
-        /**
-         * return a table of the unauthenticated attributes indexed by
-         * the OID of the attribute.
-         * @exception java.io.IOException
-         */
+        /// <summary>Returns a table of authenticated attributes indexed by attribute OID, or null if absent.</summary>
         public Asn1.Cms.AttributeTable GetAuthAttrs()
         {
             if (authAttrs == null && authAttrNotRead)
@@ -179,11 +146,9 @@ namespace Org.BouncyCastle.Cms
             return authAttrs;
         }
 
-        /**
-         * return a table of the unauthenticated attributes indexed by
-         * the OID of the attribute.
-         * @exception java.io.IOException
-         */
+        /// <summary>
+        /// Returns a table of unauthenticated attributes indexed by attribute OID, or null if absent.
+        /// </summary>
         public Asn1.Cms.AttributeTable GetUnauthAttrs()
         {
             if (unauthAttrs == null && unauthAttrNotRead)
