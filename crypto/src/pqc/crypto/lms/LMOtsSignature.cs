@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
             if (src is byte[] bytes)
-                return BinaryReaders.Parse(Parse, new MemoryStream(bytes, false), leaveOpen: false);
+                return BinaryReaders.Parse(Parse, bytes, 0, bytes.Length, "LM-OTS signature");
 
             throw new ArgumentException($"cannot parse {src}");
         }

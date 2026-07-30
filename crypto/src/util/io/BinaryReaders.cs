@@ -13,6 +13,17 @@ namespace Org.BouncyCastle.Utilities.IO
             }
         }
 
+        internal static T Parse<T>(Func<BinaryReader, T> parse, byte[] buf, int off, int len, string description)
+        {
+            using (var stream = new MemoryStream(buf, off, len, false))
+            {
+                T t = Parse(parse, stream, leaveOpen: true);
+                if (stream.Position != stream.Length)
+                    throw new InvalidDataException($"unexpected data found after {description}");
+                return t;
+            }
+        }
+
         public static byte[] ReadBytesFully(BinaryReader binaryReader, int count)
         {
             byte[] bytes = binaryReader.ReadBytes(count);

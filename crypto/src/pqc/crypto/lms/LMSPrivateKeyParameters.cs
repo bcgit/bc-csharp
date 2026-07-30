@@ -116,11 +116,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static LmsPrivateKeyParameters Parse(Stream stream) =>
             BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-        internal static LmsPrivateKeyParameters Parse(byte[] buf) =>
-            BinaryReaders.Parse(Parse, new MemoryStream(buf, false), leaveOpen: false);
+        internal static LmsPrivateKeyParameters Parse(byte[] buf) => Parse(buf, 0, buf.Length);
 
         internal static LmsPrivateKeyParameters Parse(byte[] buf, int off, int len) =>
-            BinaryReaders.Parse(Parse, new MemoryStream(buf, off, len, false), leaveOpen: false);
+            BinaryReaders.Parse(Parse, buf, off, len, "LMS private key");
 
         internal static LmsPrivateKeyParameters Parse(byte[] buf, int off, int len, LmsPublicKeyParameters publicKey)
         {

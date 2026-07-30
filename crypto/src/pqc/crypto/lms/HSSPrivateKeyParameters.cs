@@ -102,11 +102,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static HssPrivateKeyParameters Parse(Stream stream) =>
             BinaryReaders.Parse(Parse, stream, leaveOpen: true);
 
-        internal static HssPrivateKeyParameters Parse(byte[] buf) =>
-            BinaryReaders.Parse(Parse, new MemoryStream(buf, false), leaveOpen: false);
+        internal static HssPrivateKeyParameters Parse(byte[] buf) => Parse(buf, 0, buf.Length);
 
         internal static HssPrivateKeyParameters Parse(byte[] buf, int off, int len) =>
-            BinaryReaders.Parse(Parse, new MemoryStream(buf, off, len, false), leaveOpen: false);
+            BinaryReaders.Parse(Parse, buf, off, len, "HSS private key");
 
         internal static HssPrivateKeyParameters Parse(byte[] buf, int off, int len, HssPublicKeyParameters publicKey)
         {

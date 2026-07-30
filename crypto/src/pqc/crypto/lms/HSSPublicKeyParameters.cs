@@ -50,16 +50,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal static HssPublicKeyParameters Parse(byte[] buf) => Parse(buf, 0, buf.Length);
 
-        internal static HssPublicKeyParameters Parse(byte[] buf, int off, int len)
-        {
-            using (var stream = new MemoryStream(buf, off, len, false))
-            {
-                var hssPublicKey = Parse(stream);
-                if (stream.Position != stream.Length)
-                    throw new InvalidDataException("unexpected data found after HSS public key");
-                return hssPublicKey;
-            }
-        }
+        internal static HssPublicKeyParameters Parse(byte[] buf, int off, int len) =>
+            BinaryReaders.Parse(Parse, buf, off, len, "HSS public key");
 
         [Obsolete("Use 'Level' instead")]
         public int L => m_level;

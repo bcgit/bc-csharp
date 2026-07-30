@@ -57,16 +57,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal static LmsPublicKeyParameters Parse(byte[] buf) => Parse(buf, 0, buf.Length);
 
-        internal static LmsPublicKeyParameters Parse(byte[] buf, int off, int len)
-        {
-            using (var stream = new MemoryStream(buf, off, len, false))
-            {
-                var lmsPublicKey = Parse(stream);
-                if (stream.Position != stream.Length)
-                    throw new InvalidDataException("unexpected data found after LMS public key");
-                return lmsPublicKey;
-            }
-        }
+        internal static LmsPublicKeyParameters Parse(byte[] buf, int off, int len) =>
+            BinaryReaders.Parse(Parse, buf, off, len, "LMS public key");
 
         public override byte[] GetEncoded() => ToByteArray();
 
