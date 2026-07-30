@@ -7,9 +7,11 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * containing class for an CMS Enveloped Data object
-     */
+    /// <summary>
+    /// Represents a CMS EnvelopedData message. Parse an encoded message, obtain recipients from
+    /// <see cref="GetRecipientInfos"/>, match one with <see cref="RecipientID"/>, then decrypt via
+    /// <see cref="RecipientInformation"/>.
+    /// </summary>
     public class CmsEnvelopedData
     {
         private readonly ContentInfo m_contentInfo;
@@ -17,16 +19,23 @@ namespace Org.BouncyCastle.Cms
         private readonly OriginatorInformation m_originatorInformation;
         private readonly RecipientInformationStore m_recipientInfoStore;
 
+        /// <summary>Creates an instance from an encoded EnvelopedData message.</summary>
+        /// <param name="envelopedData">The DER-encoded CMS ContentInfo bytes.</param>
         public CmsEnvelopedData(byte[] envelopedData)
             : this(CmsUtilities.ReadContentInfo(envelopedData))
         {
         }
 
+        /// <summary>Creates an instance from an encoded EnvelopedData message.</summary>
+        /// <param name="envelopedData">A stream containing the DER-encoded CMS ContentInfo.</param>
         public CmsEnvelopedData(Stream envelopedData)
             : this(CmsUtilities.ReadContentInfo(envelopedData))
         {
         }
 
+        /// <summary>Creates an instance from a parsed CMS ContentInfo structure.</summary>
+        /// <param name="contentInfo">The CMS ContentInfo wrapping an EnvelopedData object.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="contentInfo"/> is null.</exception>
         public CmsEnvelopedData(ContentInfo contentInfo)
         {
             m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
@@ -55,35 +64,30 @@ namespace Org.BouncyCastle.Cms
             m_recipientInfoStore = CmsEnvelopedHelper.BuildRecipientInformationStore(recipientInfos, secureReadable);
         }
 
+        /// <summary>Gets originator certificates and CRLs carried in the message, or null if absent.</summary>
         public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
+        /// <summary>Gets the content-encryption algorithm identifier.</summary>
         public AlgorithmIdentifier EncryptionAlgorithmID =>
             EnvelopedData.EncryptedContentInfo.ContentEncryptionAlgorithm;
 
-        /**
-         * return the object identifier for the content encryption algorithm.
-         */
+        /// <summary>Return the object identifier for the content-encryption algorithm.</summary>
         // TODO[api] Return the OID itself
         public string EncryptionAlgOid => EncryptionAlgorithmID.Algorithm.GetID();
 
-        /**
-         * return a store of the intended recipients for this message
-         */
+        /// <summary>Returns a store of the intended recipients for this message.</summary>
         public RecipientInformationStore GetRecipientInfos() => m_recipientInfoStore;
 
+        /// <summary>Gets the CMS ContentInfo wrapper for this message.</summary>
         public ContentInfo ContentInfo => m_contentInfo;
 
+        /// <summary>Gets the underlying ASN.1 EnvelopedData structure.</summary>
         public EnvelopedData EnvelopedData => m_envelopedData;
 
-        /**
-         * return a table of the unprotected attributes indexed by
-         * the OID of the attribute.
-         */
+        /// <summary>Returns a table of unprotected attributes indexed by attribute OID, or null if absent.</summary>
         public Asn1.Cms.AttributeTable GetUnprotectedAttributes() => EnvelopedData.UnprotectedAttrs?.ToAttributeTable();
 
-        /**
-         * return the ASN.1 encoded representation of this object.
-         */
+        /// <summary>Returns the DER encoding of this message.</summary>
         public byte[] GetEncoded() => m_contentInfo.GetEncoded();
     }
 }
