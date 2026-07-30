@@ -146,6 +146,10 @@ namespace Org.BouncyCastle.Crypto.Signers
         {
             byte[] block = cipher.ProcessBlock(signature, 0, signature.Length);
 
+            // a recovered block shorter than the header/trailer bytes read below is malformed
+            if (block.Length < 2)
+                throw new InvalidCipherTextException("malformed signature");
+
             if (((block[0] & 0xC0) ^ 0x40) != 0)
                 throw new InvalidCipherTextException("malformed signature");
 
@@ -369,6 +373,10 @@ namespace Org.BouncyCastle.Crypto.Signers
                 preSig = null;
                 preBlock = null;
             }
+
+            // a recovered block shorter than the header/trailer bytes read below is malformed
+            if (block.Length < 2)
+                return ReturnFalse(block);
 
             if (((block[0] & 0xC0) ^ 0x40) != 0)
                 return ReturnFalse(block);
