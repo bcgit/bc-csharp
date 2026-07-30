@@ -353,6 +353,7 @@
                 ASN.1: Grow definite-length contents incrementally; avoid allocating the full declared length up front, so a short crafted header over a raw
                 stream cannot drive a heap-sized allocation before any data is read.
             </li>
+            <li>ASN.1: Read BMPString through DefiniteLengthInputStream.ToArray for short-header/large-allocation protection.</li>
             <li>ASN.1: Rework sequence-parsing pattern to avoid throwing IndexOutOfRangeException.</li>
             <li>ASN.1: Apply sequence minimum size restriction in X.509 extension types.</li>
             <li>BigInteger: Fix IndexOutOfRangeException for some (negative) signed array inputs.</li>
