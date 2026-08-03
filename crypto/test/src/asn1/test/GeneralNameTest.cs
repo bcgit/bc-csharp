@@ -1,5 +1,8 @@
+using System;
+
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -24,6 +27,61 @@ namespace Org.BouncyCastle.Asn1.Tests
         private static readonly byte[] ipv6h = Hex.Decode("872020010db885a300000000000000000000ffffffffffff00000000000000000000");
         private static readonly byte[] ipv6i = Hex.Decode("872020010db885a300000000000000000000fffffffffffe00000000000000000000");
         private static readonly byte[] ipv6j = Hex.Decode("872020010db885a300000000000000000000ffffffffffff80000000000000000000");
+
+        /// <summary>Regression test for the EdiPartyName ASN.1 type.</summary>
+        /// <remarks>
+        /// RFC 5280 sec. 4.2.1.6:
+        /// <code>
+        /// EDIPartyName::= SEQUENCE {
+        ///      nameAssigner   [0] DirectoryString OPTIONAL,
+        ///      partyName      [1] DirectoryString }
+        /// </code>
+        /// Both tags are explicit, despite the module's IMPLICIT TAGS, because DirectoryString is a CHOICE and X.680
+        /// does not permit implicitly tagging one. The decoder had this right but ToAsn1Object emitted the
+        /// DirectoryStrings bare, so an EDIPartyName built through the constructor could not parse its own encoding,
+        /// and neither could GeneralName - which since the type was added validates the ediPartyName alternative
+        /// through it (github bc-java #2380).
+        /// </remarks>
+        [Test]
+        public void EdiPartyNameType()
+        {
+            // SEQUENCE { [0] { UTF8String "assigner" }, [1] { UTF8String "party" } }
+            byte[] expected = Hex.Decode("3015a00a0c0861737369676e6572a1070c057061727479");
+
+            EdiPartyName both = new EdiPartyName(new DirectoryString("assigner"), new DirectoryString("party"));
+            Assert.That(Arrays.AreEqual(expected, both.GetEncoded(Asn1Encodable.Der)),
+                "EDIPartyName encoding not as RFC 5280");
+
+            EdiPartyName decoded = EdiPartyName.GetInstance(both.GetEncoded(Asn1Encodable.Der));
+            Assert.AreEqual("assigner", decoded.NameAssigner.GetString());
+            Assert.AreEqual("party", decoded.PartyName.GetString());
+
+            // nameAssigner is OPTIONAL; partyName keeps its [1] tag either way
+            byte[] partyOnly = Hex.Decode("3009a1070c057061727479");
+            EdiPartyName one = new EdiPartyName(null, new DirectoryString("party"));
+            Assert.That(Arrays.AreEqual(partyOnly, one.GetEncoded(Asn1Encodable.Der)),
+                "optional nameAssigner encoding wrong");
+
+            EdiPartyName decodedOne = EdiPartyName.GetInstance(one.GetEncoded(Asn1Encodable.Der));
+            Assert.Null(decodedOne.NameAssigner, "nameAssigner should be absent");
+            Assert.AreEqual("party", decodedOne.PartyName.GetString());
+
+            // and the GeneralName path that validates the alternative
+            GeneralName gn = GeneralName.GetInstance(
+                new DerTaggedObject(false, GeneralName.EdiPartyName, Asn1Object.FromByteArray(expected)));
+            Assert.AreEqual(GeneralName.EdiPartyName, gn.TagNo);
+
+            // an untagged sequence remains a decode failure - the type is not read leniently
+            try
+            {
+                EdiPartyName.GetInstance(Hex.Decode("30110c0861737369676e65720c057061727479"));
+                Assert.Fail("untagged EDIPartyName accepted");
+            }
+            catch (ArgumentException)
+            {
+                // expected
+            }
+        }
 
         [Test]
         public void IPv4()

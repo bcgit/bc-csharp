@@ -4,13 +4,13 @@ using Org.BouncyCastle.Asn1.X500;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-    /**
-     * <pre>
-     * EDIPartyName ::= Sequence {
-     *      nameAssigner            [0]     DirectoryString OPTIONAL,
-     *      partyName               [1]     DirectoryString }
-     * </pre>
-     */
+    /// <remarks>
+    /// <code>
+    /// EDIPartyName ::= Sequence {
+    ///     nameAssigner    [0] DirectoryString OPTIONAL,
+    ///     partyName       [1] DirectoryString }
+    /// </code>
+    /// </remarks>
     public class EdiPartyName
         : Asn1Encodable
     {
@@ -55,9 +55,11 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public override Asn1Object ToAsn1Object()
         {
-            return m_nameAssigner == null
-                ?  new DerSequence(m_partyName)
-                :  new DerSequence(m_nameAssigner, m_partyName);
+            // DirectoryString is a CHOICE type, so use explicit tagging despite IMPLICIT TAGS
+            Asn1EncodableVector v = new Asn1EncodableVector(2);
+            v.AddOptionalTagged(true, 0, m_nameAssigner);
+            v.AddTagged(true, 1, m_partyName);
+            return new DerSequence(v);
         }
     }
 }
