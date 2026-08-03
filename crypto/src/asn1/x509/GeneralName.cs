@@ -420,7 +420,7 @@ namespace Org.BouncyCastle.Asn1.X509
             }
             if (bits > 0)
             {
-                res[resPos] = ushort.MaxValue >> (16 - bits);
+                res[resPos] = (ushort.MaxValue >> bits) ^ 0xFFFF;
             }
 
             return res;
