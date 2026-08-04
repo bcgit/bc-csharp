@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Tsp
 
         public TimeStampTokenInfo(TstInfo tstInfo)
         {
-            m_tstInfo = tstInfo;
+            m_tstInfo = tstInfo ?? throw new ArgumentNullException(nameof(tstInfo));
 
             try
             {
@@ -59,13 +59,16 @@ namespace Org.BouncyCastle.Tsp
 
         public BigInteger Nonce => m_tstInfo.Nonce?.Value;
 
-        public AlgorithmIdentifier HashAlgorithm => m_tstInfo.MessageImprint.HashAlgorithm;
+        public MessageImprint MessageImprint => m_tstInfo.MessageImprint;
 
-        public string MessageImprintAlgOid => m_tstInfo.MessageImprint.HashAlgorithm.Algorithm.GetID();
+        public AlgorithmIdentifier HashAlgorithm => MessageImprint.HashAlgorithm;
 
-        public Asn1OctetString MessageImprintDigest => m_tstInfo.MessageImprint.HashedMessage;
+        [Obsolete("Will be removed")]
+        public string MessageImprintAlgOid => HashAlgorithm.Algorithm.GetID();
 
-        public byte[] GetMessageImprintDigest() => m_tstInfo.MessageImprint.GetHashedMessage();
+        public Asn1OctetString MessageImprintDigest => MessageImprint.HashedMessage;
+
+        public byte[] GetMessageImprintDigest() => MessageImprint.GetHashedMessage();
 
         public byte[] GetEncoded() => m_tstInfo.GetEncoded();
 

@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1.Cmp;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Tsp;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
 {
@@ -108,21 +109,22 @@ namespace Org.BouncyCastle.Tsp
 
         public TimeStampToken TimeStampToken => m_timeStampToken;
 
-        /**
-         * Check this response against to see if it a well formed response for
-         * the passed in request. Validation will include checking the time stamp
-         * token if the response status is GRANTED or GRANTED_WITH_MODS.
-         *
-         * @param request the request to be checked against
-         * @throws TspException if the request can not match this response.
-         */
+        /// <summary>
+        /// Check this response against to see if it a well formed response for the passed in request.
+        /// </summary>
+        /// <remarks>
+        /// Validation will include checking the time stamp token if the response status is 'Granted' or
+        /// 'GrantedWithMods'.
+        /// </remarks>
+        /// <param name="request">The request to be checked against.</param>
+        /// <exception cref="TspValidationException">If the request can not match this response.</exception>
         public void Validate(TimeStampRequest request)
         {
-            TimeStampToken tok = this.TimeStampToken;
+            TimeStampToken tsToken = TimeStampToken;
 
-            if (tok != null)
+            if (tsToken != null)
             {
-                TimeStampTokenInfo tstInfo = tok.TimeStampInfo;
+                TimeStampTokenInfo tstInfo = tsToken.TimeStampInfo;
 
                 if (request.Nonce != null && !request.Nonce.Equals(tstInfo.Nonce))
                     throw new TspValidationException("response contains wrong nonce value.");
@@ -130,25 +132,21 @@ namespace Org.BouncyCastle.Tsp
                 if (this.Status != (int)PkiStatus.Granted && this.Status != (int)PkiStatus.GrantedWithMods)
                     throw new TspValidationException("time stamp token found in failed request.");
 
-                // TODO Should be (absent-parameters-flexible) equality of the whole AlgorithmIdentifier?
-                if (!tstInfo.MessageImprintAlgOid.Equals(request.MessageImprintAlgOid))
+                if (!X509Utilities.AreEquivalentAlgorithms(tstInfo.HashAlgorithm, request.MessageImprintAlgID))
                     throw new TspValidationException("response for different message imprint algorithm.");
 
                 if (!Arrays.FixedTimeEquals(request.MessageImprintDigest.GetOctets(), tstInfo.MessageImprintDigest.GetOctets()))
                     throw new TspValidationException("response for different message imprint digest.");
 
-                Asn1.Cms.Attribute scV1 = tok.SignedAttributes[PkcsObjectIdentifiers.IdAASigningCertificate];
-                Asn1.Cms.Attribute scV2 = tok.SignedAttributes[PkcsObjectIdentifiers.IdAASigningCertificateV2];
+                Asn1.Cms.Attribute scV1 = tsToken.SignedAttributes[PkcsObjectIdentifiers.IdAASigningCertificate];
+                Asn1.Cms.Attribute scV2 = tsToken.SignedAttributes[PkcsObjectIdentifiers.IdAASigningCertificateV2];
 
                 if (scV1 == null && scV2 == null)
                     throw new TspValidationException("no signing certificate attribute present.");
 
                 if (scV1 != null && scV2 != null)
                 {
-                    /*
-					 * RFC 5035 5.4. If both attributes exist in a single message,
-					 * they are independently evaluated. 
-					 */
+                    // RFC 5035 5.4. If both attributes exist in a single message, they are independently evaluated.
                 }
 
                 var reqPolicy = request.TimeStampReq.ReqPolicy;
@@ -161,16 +159,11 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-        /**
-		 * return the ASN.1 encoded representation of this object.
-		 */
+        /// <summary>Return the ASN.1 encoded representation of this object.</summary>
         public byte[] GetEncoded() => m_resp.GetEncoded();
 
-        /**
-         * return the ASN.1 encoded representation of this object for the specific encoding type.
-         *
-         * @param encoding encoding style ("DER", "DL", "BER")
-         */
+        /// <summary>Return the ASN.1 encoded representation of this object for the specific encoding type.</summary>
+        /// <param name="encoding">Encoding style ("DER", "DL", "BER").</param>
         public byte[] GetEncoded(string encoding)
         {
             Asn1Encodable asn1Encodable = m_resp;

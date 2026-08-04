@@ -1,5 +1,6 @@
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
@@ -48,7 +49,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			Assert.IsNull(tstInfo.Nonce);
 
-			Assert.AreEqual(TspAlgorithms.Sha1, tstInfo.MessageImprintAlgOid);
+			Assert.AreEqual(OiwObjectIdentifiers.IdSha1, tstInfo.HashAlgorithm.Algorithm);
 
 			Assert.IsTrue(Arrays.AreEqual(new byte[20], tstInfo.GetMessageImprintDigest()));
 
@@ -110,7 +111,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
 			Assert.AreEqual(tstInfo.Nonce, BigInteger.ValueOf(100));
 
-			Assert.AreEqual(TspAlgorithms.Sha1, tstInfo.MessageImprintAlgOid);
+			Assert.AreEqual(OiwObjectIdentifiers.IdSha1, tstInfo.HashAlgorithm.Algorithm);
 
 			Assert.IsTrue(Arrays.AreEqual(new byte[20], tstInfo.GetMessageImprintDigest()));
 

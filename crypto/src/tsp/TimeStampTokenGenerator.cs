@@ -14,16 +14,10 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Collections;
-using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
 {
-    public enum Resolution
-    {
-        R_SECONDS, R_TENTHS_OF_SECONDS, R_HUNDREDTHS_OF_SECONDS, R_MILLISECONDS
-    }
-
     public class TimeStampTokenGenerator
     {
         private int accuracySeconds = -1;
@@ -268,7 +262,7 @@ namespace Org.BouncyCastle.Tsp
              * the restrictions from RFC 2459 Section 4.1.2.5.2, where GeneralizedTime is limited to represent the
              * time with a granularity of one second, may be used here.
              */
-            var timeStampTime = new DerGeneralizedTime(WithResolution(genTime, resolution));
+            var timeStampTime = new DerGeneralizedTime(TspUtil.WithResolution(genTime, resolution));
 
             TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
                 new DerInteger(serialNumber), timeStampTime, accuracy,
@@ -310,23 +304,6 @@ namespace Org.BouncyCastle.Tsp
             catch (IOException e)
             {
                 throw new TspException("Exception encoding info", e);
-            }
-        }
-
-        private static DateTime WithResolution(DateTime dateTime, Resolution resolution)
-        {
-            switch (resolution)
-            {
-            case Resolution.R_SECONDS:
-                return DateTimeUtilities.WithPrecisionSecond(dateTime);
-            case Resolution.R_TENTHS_OF_SECONDS:
-                return DateTimeUtilities.WithPrecisionDecisecond(dateTime);
-            case Resolution.R_HUNDREDTHS_OF_SECONDS:
-                return DateTimeUtilities.WithPrecisionCentisecond(dateTime);
-            case Resolution.R_MILLISECONDS:
-                return DateTimeUtilities.WithPrecisionMillisecond(dateTime);
-            default:
-                throw new ArgumentException("Invalid enum value", nameof(resolution));
             }
         }
 

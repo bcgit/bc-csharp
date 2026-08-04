@@ -88,14 +88,14 @@ namespace Org.BouncyCastle.Tsp
 
         public MessageImprint MessageImprint => m_req.MessageImprint;
 
-        public AlgorithmIdentifier MessageImprintAlgID => m_req.MessageImprint.HashAlgorithm;
+        public AlgorithmIdentifier MessageImprintAlgID => MessageImprint.HashAlgorithm;
 
-        // TODO[api] Change this to return just the OID itself
-        public string MessageImprintAlgOid => m_req.MessageImprint.HashAlgorithm.Algorithm.Id;
+        [Obsolete("Will be removed")]
+        public string MessageImprintAlgOid => MessageImprintAlgID.Algorithm.Id;
 
-        public Asn1OctetString MessageImprintDigest => m_req.MessageImprint.HashedMessage;
+        public Asn1OctetString MessageImprintDigest => MessageImprint.HashedMessage;
 
-        public byte[] GetMessageImprintDigest() => m_req.MessageImprint.GetHashedMessage();
+        public byte[] GetMessageImprintDigest() => MessageImprint.GetHashedMessage();
 
         // TODO[api] Change this to return just the OID itself
         public string ReqPolicy => m_req.ReqPolicy?.Id;
@@ -149,9 +149,7 @@ namespace Org.BouncyCastle.Tsp
                 throw new TspValidationException("imprint digest the wrong length", PkiFailureInfo.BadDataFormat);
         }
 
-        /**
-		 * return the ASN.1 encoded representation of this object.
-		 */
+        /// <summary>Return the ASN.1 encoded representation of this object.</summary>
         public byte[] GetEncoded() => m_req.GetEncoded();
 
         internal X509Extensions Extensions => m_req.Extensions;

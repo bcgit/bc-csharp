@@ -4,7 +4,11 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cmp;
+using Org.BouncyCastle.Asn1.Oiw;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509;
@@ -319,23 +323,23 @@ namespace Org.BouncyCastle.Tsp.Tests
         [Test]
         public void MD5()
         {
-            ParseRequest(md5Request, TspAlgorithms.MD5);
-            ParseResponse(md5Request, md5Response, TspAlgorithms.MD5);
+            ParseRequest(md5Request, PkcsObjectIdentifiers.MD5);
+            ParseResponse(md5Request, md5Response);
         }
 
         [Test]
         public void RipeMD160()
         {
-            ParseRequest(ripemd160Request, TspAlgorithms.RipeMD160);
+            ParseRequest(ripemd160Request, TeleTrusTObjectIdentifiers.RipeMD160);
         }
 
         [Test]
         public void Sha1()
         {
-            ParseRequest(sha1Request, TspAlgorithms.Sha1);
-            ParseRequest(sha1noNonse, TspAlgorithms.Sha1);
-            ParseResponse(sha1Request, sha1Response, TspAlgorithms.Sha1);
-            ParseResponse(sha1noNonse, sha1noNonseResponse, TspAlgorithms.Sha1);
+            ParseRequest(sha1Request, OiwObjectIdentifiers.IdSha1);
+            ParseRequest(sha1noNonse, OiwObjectIdentifiers.IdSha1);
+            ParseResponse(sha1Request, sha1Response);
+            ParseResponse(sha1noNonse, sha1noNonseResponse);
         }
 
         [Test]
@@ -365,14 +369,14 @@ namespace Org.BouncyCastle.Tsp.Tests
             response.TimeStampToken.Validate(cert);
         }
 
-        private static void ParseRequest(byte[] request, string algorithm)
+        private static void ParseRequest(byte[] request, DerObjectIdentifier algorithm)
         {
             TimeStampRequest req = new TimeStampRequest(request);
 
-            if (!req.MessageImprintAlgOid.Equals(algorithm))
+            var reqAlgOid = req.MessageImprintAlgID.Algorithm;
+            if (!reqAlgOid.Equals(algorithm))
             {
-                Assert.Fail("failed to get expected algorithm - got "
-                    + req.MessageImprintAlgOid + " not " + algorithm);
+                Assert.Fail("failed to get expected algorithm - got " + reqAlgOid + " not " + algorithm);
             }
 
             if (request != sha1Request && request != sha1noNonse)
@@ -427,7 +431,7 @@ namespace Org.BouncyCastle.Tsp.Tests
             }
         }
 
-        private static void ParseResponse(byte[] request, byte[] response, string algorithm)
+        private static void ParseResponse(byte[] request, byte[] response)
         {
             TimeStampRequest req = new TimeStampRequest(request);
             TimeStampResponse resp = new TimeStampResponse(response);

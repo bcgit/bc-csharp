@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -14,11 +13,17 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cms;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Date;
 using Org.BouncyCastle.X509;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.Tsp
 {
+    public enum Resolution
+    {
+        R_SECONDS, R_TENTHS_OF_SECONDS, R_HUNDREDTHS_OF_SECONDS, R_MILLISECONDS
+    }
+
     public class TspUtil
     {
         // TODO Migrate this information to DigestUtilities
@@ -46,15 +51,15 @@ namespace Org.BouncyCastle.Tsp
             DigestLengths.Add(GMObjectIdentifiers.sm3, 32);
         }
 
-        /**
-	     * Fetches the signature time-stamp attributes from a SignerInformation object.
-	     * Checks that the MessageImprint for each time-stamp matches the signature field.
-	     * (see RFC 3161 Appendix A).
-	     *
-	     * @param signerInfo a SignerInformation to search for time-stamps
-	     * @return a collection of TimeStampToken objects
-	     * @throws TSPValidationException
-	     */
+        /// <summary>
+        /// Fetches the signature time-stamp attributes from a SignerInformation object.
+        /// </summary>
+        /// <remarks>
+        /// Checks that the MessageImprint for each time-stamp matches the signature field. (see RFC 3161 Appendix A).
+        /// </remarks>
+        /// <param name="signerInfo">A <see cref="SignerInformation"/> to search for time-stamps.</param>
+        /// <returns>A list of <see cref="TimeStampToken"/> objects.</returns>
+        /// <exception cref="TspValidationException"/>
         public static IList<TimeStampToken> GetSignatureTimestamps(SignerInformation signerInfo)
         {
             var timestamps = new List<TimeStampToken>();
@@ -74,7 +79,7 @@ namespace Org.BouncyCastle.Tsp
                             TimeStampToken timeStampToken = new TimeStampToken(contentInfo);
                             TimeStampTokenInfo tstInfo = timeStampToken.TimeStampInfo;
 
-                            byte[] expectedDigest = DigestUtilities.CalculateDigest(tstInfo.MessageImprintAlgOid,
+                            byte[] expectedDigest = DigestUtilities.CalculateDigest(tstInfo.HashAlgorithm,
                                 signerInfo.GetSignature());
 
                             if (!Arrays.FixedTimeEquals(expectedDigest, tstInfo.GetMessageImprintDigest()))
@@ -97,14 +102,17 @@ namespace Org.BouncyCastle.Tsp
             return timestamps;
         }
 
-        /**
-		 * Validate the passed in certificate as being of the correct type to be used
-		 * for time stamping. To be valid it must have an ExtendedKeyUsage extension
-		 * which has a key purpose identifier of id-kp-timeStamping.
-		 *
-		 * @param cert the certificate of interest.
-		 * @throws TspValidationException if the certicate fails on one of the check points.
-		 */
+        /// <summary>
+        /// Validate the passed in certificate as being of the correct type to be used for time stamping.
+        /// </summary>
+        /// <remarks>
+        /// To be valid it must have an ExtendedKeyUsage extension which has a key purpose identifier of
+        /// id-kp-timeStamping.
+        /// </remarks>
+        /// <param name="cert">The certificate of interest.</param>
+        /// <exception cref="TspValidationException">
+        /// If the certicate fails on one of the check points.
+        /// </exception>
         public static void ValidateCertificate(X509Certificate cert)
         {
             if (cert.Version != 3)
@@ -115,7 +123,7 @@ namespace Org.BouncyCastle.Tsp
             {
                 eku = cert.GetExtension(X509Extensions.ExtendedKeyUsage, ExtendedKeyUsage.GetInstance);
             }
-            catch (IOException)
+            catch (Exception)
             {
                 throw new TspValidationException("cannot process ExtendedKeyUsage extension");
             }
@@ -143,6 +151,23 @@ namespace Org.BouncyCastle.Tsp
             return extensions == null
                 ? new List<DerObjectIdentifier>()
                 : new List<DerObjectIdentifier>(extensions.GetExtensionOids());
+        }
+
+        internal static DateTime WithResolution(DateTime dateTime, Resolution resolution)
+        {
+            switch (resolution)
+            {
+            case Resolution.R_SECONDS:
+                return DateTimeUtilities.WithPrecisionSecond(dateTime);
+            case Resolution.R_TENTHS_OF_SECONDS:
+                return DateTimeUtilities.WithPrecisionDecisecond(dateTime);
+            case Resolution.R_HUNDREDTHS_OF_SECONDS:
+                return DateTimeUtilities.WithPrecisionCentisecond(dateTime);
+            case Resolution.R_MILLISECONDS:
+                return DateTimeUtilities.WithPrecisionMillisecond(dateTime);
+            default:
+                throw new ArgumentException("Invalid enum value", nameof(resolution));
+            }
         }
     }
 }

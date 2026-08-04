@@ -1,3 +1,5 @@
+using System;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Tsp;
 
@@ -9,7 +11,7 @@ namespace Org.BouncyCastle.Tsp
 
         public GenTimeAccuracy(Accuracy accuracy)
         {
-            m_accuracy = accuracy;
+            m_accuracy = accuracy ?? throw new ArgumentNullException(nameof(accuracy));
         }
 
         public int Seconds => GetTimeComponent(m_accuracy.Seconds);
@@ -20,6 +22,6 @@ namespace Org.BouncyCastle.Tsp
 
         public override string ToString() => Seconds + "." + Millis.ToString("000") + Micros.ToString("000");
 
-        private static int GetTimeComponent(DerInteger time) => time == null ? 0 : time.IntValueExact;
+        private static int GetTimeComponent(DerInteger time) => time?.IntValueExact ?? 0;
     }
 }
