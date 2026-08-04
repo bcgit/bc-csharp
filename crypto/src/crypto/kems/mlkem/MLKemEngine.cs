@@ -197,7 +197,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static int FixedTimeEquals(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
+        private static int FixedTimeEquals(ReadOnlySpan<byte> a, ReadOnlySpan<byte> b)
         {
             int d = 0;
             for (int i = 0, len = a.Length; i < len; ++i)
@@ -288,7 +288,7 @@ namespace Org.BouncyCastle.Crypto.Kems.MLKem
         }
 
         [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
-        public static int FixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
+        private static int FixedTimeEquals(int len, byte[] a, int aOff, byte[] b, int bOff)
         {
             int d = 0;
             for (int i = 0; i < len; ++i)
