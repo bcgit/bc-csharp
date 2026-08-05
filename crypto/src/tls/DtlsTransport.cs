@@ -3,6 +3,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Tls
 {
     [Flags]
@@ -56,12 +58,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual int Receive(byte[] buf, int off, int len, int waitMillis, DtlsRecordCallback recordCallback)
         {
-            if (null == buf)
-                throw new ArgumentNullException("buf");
-            if (off < 0 || off >= buf.Length)
-                throw new ArgumentException("invalid offset: " + off, "off");
-            if (len < 0 || len > buf.Length - off)
-                throw new ArgumentException("invalid length: " + len, "len");
+            Arrays.ValidateSegment(buf, off, len);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return Receive(buf.AsSpan(off, len), waitMillis, recordCallback);
@@ -120,12 +117,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual int ReceivePending(byte[] buf, int off, int len, DtlsRecordCallback recordCallback = null)
         {
-            if (null == buf)
-                throw new ArgumentNullException("buf");
-            if (off < 0 || off >= buf.Length)
-                throw new ArgumentException("invalid offset: " + off, "off");
-            if (len < 0 || len > buf.Length - off)
-                throw new ArgumentException("invalid length: " + len, "len");
+            Arrays.ValidateSegment(buf, off, len);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ReceivePending(buf.AsSpan(off, len), recordCallback);
@@ -294,12 +286,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual void Send(byte[] buf, int off, int len)
         {
-            if (null == buf)
-                throw new ArgumentNullException("buf");
-            if (off < 0 || off >= buf.Length)
-                throw new ArgumentException("invalid offset: " + off, "off");
-            if (len < 0 || len > buf.Length - off)
-                throw new ArgumentException("invalid length: " + len, "len");
+            Arrays.ValidateSegment(buf, off, len);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Send(buf.AsSpan(off, len));
