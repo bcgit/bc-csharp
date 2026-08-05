@@ -350,6 +350,7 @@
         <h4><a class="mozTocH4" name="mozTocId9020800"></a>Release 2.8.0, TBD</h4>
         <h5>Defects Fixed</h5>
         <ul>
+            <li>OpenPgp: Reject a second ASCII-armor checksum line to avoid possible unbounded recursion.</li>
             <li>Fix IPv6 prefix length parsing in GeneralName iPAddress. Affects prefix lengths that are not a multiple of 16.</li>
             <li>Fix EdiPartyName.ToAsn1Object to use tagging correctly (existing internal usage of this class is unaffected).</li>
         </ul>

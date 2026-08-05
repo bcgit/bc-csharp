@@ -501,6 +501,13 @@ namespace Org.BouncyCastle.Bcpg
 
                     if (c == '=')            // crc reached
                     {
+                        // RFC 9580 6.2: the checksum appears once, immediately before the armor tail.
+                        // A second one is malformed, and because the running crc is not reset between
+                        // lines the same four characters keep matching - and each match recursed into
+                        // ReadByte() below, so repeating one line drove the stack down until it overflowed.
+                        if (m_crcFound)
+                            throw new ArmoredInputException("multiple crc values found in armored message");
+
                         m_bufPtr = Decode(ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), ReadIgnoreSpace(), m_outBuf);
                         if (m_bufPtr != 0)
                             throw new ArmoredInputException("malformed crc in armored message.");
