@@ -5,8 +5,8 @@ using Org.BouncyCastle.Asn1.X509;
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class AuthenticatedData
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static AuthenticatedData GetInstance(object obj)
         {
             if (obj == null)
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1Set m_unauthAttrs;
 
         public AuthenticatedData(OriginatorInfo originatorInfo, Asn1Set recipientInfos,
-			AlgorithmIdentifier macAlgorithm, AlgorithmIdentifier digestAlgorithm, ContentInfo encapsulatedContent,
+            AlgorithmIdentifier macAlgorithm, AlgorithmIdentifier digestAlgorithm, ContentInfo encapsulatedContent,
             Asn1Set authAttrs, Asn1OctetString mac, Asn1Set unauthAttrs)
         {
             if ((digestAlgorithm == null) != (authAttrs == null))
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         }
 
         private AuthenticatedData(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 5 || count > 9)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         public DerInteger Version => m_version;
 
@@ -88,27 +88,27 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1Set UnauthAttrs => m_unauthAttrs;
 
-        /**
-		 * Produce an object suitable for an Asn1OutputStream.
-		 * <pre>
-		 * AuthenticatedData ::= SEQUENCE {
-		 *       version CMSVersion,
-		 *       originatorInfo [0] IMPLICIT OriginatorInfo OPTIONAL,
-		 *       recipientInfos RecipientInfos,
-		 *       macAlgorithm MessageAuthenticationCodeAlgorithm,
-		 *       digestAlgorithm [1] DigestAlgorithmIdentifier OPTIONAL,
-		 *       encapContentInfo EncapsulatedContentInfo,
-		 *       authAttrs [2] IMPLICIT AuthAttributes OPTIONAL,
-		 *       mac MessageAuthenticationCode,
-		 *       unauthAttrs [3] IMPLICIT UnauthAttributes OPTIONAL }
-		 *
-		 * AuthAttributes ::= SET SIZE (1..MAX) OF Attribute
-		 *
-		 * UnauthAttributes ::= SET SIZE (1..MAX) OF Attribute
-		 *
-		 * MessageAuthenticationCode ::= OCTET STRING
-		 * </pre>
-		 */
+        /// <summary>Produce an object suitable for an <see cref="Asn1OutputStream"/>.</summary>
+        /// <remarks>
+        /// <code>
+        /// AuthenticatedData::= SEQUENCE {
+        ///     version CMSVersion,
+        ///     originatorInfo [0] IMPLICIT OriginatorInfo OPTIONAL,
+        ///     recipientInfos RecipientInfos,
+        ///     macAlgorithm MessageAuthenticationCodeAlgorithm,
+        ///     digestAlgorithm[1] DigestAlgorithmIdentifier OPTIONAL,
+        ///     encapContentInfo EncapsulatedContentInfo,
+        ///     authAttrs[2] IMPLICIT AuthAttributes OPTIONAL,
+        ///     mac MessageAuthenticationCode,
+        ///     unauthAttrs[3] IMPLICIT UnauthAttributes OPTIONAL }
+        ///
+        /// AuthAttributes ::= SET SIZE (1..MAX) OF Attribute
+        ///
+        /// UnauthAttributes ::= SET SIZE (1..MAX) OF Attribute
+        ///
+        /// MessageAuthenticationCode ::= OCTET STRING
+        /// </code>
+        /// </remarks>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(9);
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         public static int CalculateVersion(OriginatorInfo origInfo) => CalculateVersionField(origInfo).IntValueExact;
 
         private static DerInteger CalculateVersionField(OriginatorInfo originatorInfo)
-		{
+        {
             /*
              * IF (originatorInfo is present) AND
              *    ((any certificates with a type of other are present) OR
@@ -139,47 +139,16 @@ namespace Org.BouncyCastle.Asn1.Cms
              *    ELSE version is 0
              */
 
-            if (originatorInfo != null)
+            int contents = OriginatorInfoContents.Classify(originatorInfo);
+            switch (contents)
             {
-                var crls = originatorInfo.Crls;
-                if (crls != null)
-                {
-                    foreach (var element in crls)
-                    {
-                        var tagged = Asn1TaggedObject.GetOptional(element);
-                        if (tagged != null)
-                        {
-                            // RevocationInfoChoice.other
-                            if (tagged.HasContextTag(1))
-                                return DerInteger.Three;
-                        }
-                    }
-                }
-
-                var certs = originatorInfo.Certificates;
-                if (certs != null)
-                {
-                    bool anyV2AttrCerts = false;
-
-                    foreach (var element in certs)
-                    {
-                        var tagged = Asn1TaggedObject.GetOptional(element);
-                        if (tagged != null)
-                        {
-                            // CertificateChoices.other
-                            if (tagged.HasContextTag(3))
-                                return DerInteger.Three;
-
-                            // CertificateChoices.v2AttrCert
-                            anyV2AttrCerts = anyV2AttrCerts || tagged.HasContextTag(2);
-                        }
-                    }
-
-                    if (anyV2AttrCerts)
-                        return DerInteger.One;
-                }
+            case OriginatorInfoContents.Other:
+                return DerInteger.Three;
+            case OriginatorInfoContents.V2AttributeCertificate:
+                return DerInteger.One;
+            default:
+                return DerInteger.Zero;
             }
-            return DerInteger.Zero;
-		}
-	}
+        }
+    }
 }

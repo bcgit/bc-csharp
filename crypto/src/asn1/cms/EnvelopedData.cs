@@ -68,18 +68,18 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1Set UnprotectedAttrs => m_unprotectedAttrs;
 
-        /**
-         * Produce an object suitable for an Asn1OutputStream.
-         * <pre>
-         * EnvelopedData ::= Sequence {
-         *     version CMSVersion,
-         *     originatorInfo [0] IMPLICIT OriginatorInfo OPTIONAL,
-         *     recipientInfos RecipientInfos,
-         *     encryptedContentInfo EncryptedContentInfo,
-         *     unprotectedAttrs [1] IMPLICIT UnprotectedAttributes OPTIONAL
-         * }
-         * </pre>
-         */
+        /// <summary>Produce an object suitable for an <see cref="Asn1OutputStream"/>.</summary>
+        /// <remarks>
+        /// <code>
+        /// EnvelopedData::= Sequence {
+        ///     version CMSVersion,
+        ///     originatorInfo [0] IMPLICIT OriginatorInfo OPTIONAL,
+        ///     recipientInfos RecipientInfos,
+        ///     encryptedContentInfo EncryptedContentInfo,
+        ///     unprotectedAttrs[1] IMPLICIT UnprotectedAttributes OPTIONAL
+        /// }
+        /// </code>
+        /// </remarks>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(5);
@@ -118,45 +118,15 @@ namespace Org.BouncyCastle.Asn1.Cms
              *       ELSE version is 2
              */
 
-            if (originatorInfo != null)
+            int contents = OriginatorInfoContents.Classify(originatorInfo);
+            switch (contents)
             {
-                var crls = originatorInfo.Crls;
-                if (crls != null)
-                {
-                    foreach (var element in crls)
-                    {
-                        var tagged = Asn1TaggedObject.GetOptional(element);
-                        if (tagged != null)
-                        {
-                            // RevocationInfoChoice.other
-                            if (tagged.HasContextTag(1))
-                                return DerInteger.Four;
-                        }
-                    }
-                }
-
-                var certs = originatorInfo.Certificates;
-                if (certs != null)
-                {
-                    bool anyV2AttrCerts = false;
-
-                    foreach (var element in certs)
-                    {
-                        var tagged = Asn1TaggedObject.GetOptional(element);
-                        if (tagged != null)
-                        {
-                            // CertificateChoices.other
-                            if (tagged.HasContextTag(3))
-                                return DerInteger.Four;
-
-                            // CertificateChoices.v2AttrCert
-                            anyV2AttrCerts = anyV2AttrCerts || tagged.HasContextTag(2);
-                        }
-                    }
-
-                    if (anyV2AttrCerts)
-                        return DerInteger.Three;
-                }
+            case OriginatorInfoContents.Other:
+                return DerInteger.Four;
+            case OriginatorInfoContents.V2AttributeCertificate:
+                return DerInteger.Three;
+            default:
+                break;
             }
 
             bool allV0Recipients = true;
