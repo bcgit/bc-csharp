@@ -7,6 +7,7 @@ using NUnit.Framework;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
@@ -1712,6 +1713,58 @@ namespace Org.BouncyCastle.Pkcs.Tests
             string resultText = Perform().ToString();
 
             Assert.AreEqual(Name + ": Okay", resultText, resultText);
+        }
+
+        [Test]
+        public void CertificateAliasConsistency()
+        {
+            var kpGen = GeneratorUtilities.GetKeyPairGenerator("ECDSA");
+            kpGen.Init(new ECKeyGenerationParameters(SecObjectIdentifiers.SecP256r1, Random));
+
+            var kp = kpGen.GenerateKeyPair();
+
+            // Enough entries to cause problems if matching a Dictionary's Keys and Values collections positionally.
+            X509Certificate[] certs = new X509Certificate[16];
+            for (int i = 0; i != certs.Length; i++)
+            {
+                certs[i] = TestUtilities.CreateSelfSignedCert(new X509Name("CN=alias-cert-" + i), "SHA256withECDSA", kp);
+            }
+
+            X509Certificate absent = TestUtilities.CreateSelfSignedCert(new X509Name("CN=alias-cert-absent"), "SHA256withECDSA", kp);
+
+            Pkcs12Store store = new Pkcs12StoreBuilder().Build();
+
+            for (int i = 0; i != certs.Length; i++)
+            {
+                store.SetCertificateEntry("cert-" + i, new X509CertificateEntry(certs[i]));
+            }
+
+            for (int i = 0; i != certs.Length; i++)
+            {
+                Assert.AreEqual("cert-" + i, store.GetCertificateAlias(certs[i]), "Alias mismatch");
+            }
+
+            Assert.Null(store.GetCertificateAlias(absent), "Alias found for absent certificate");
+
+            MemoryStream bOut = new MemoryStream();
+            using (bOut)
+            {
+                store.Save(bOut, passwd, Random);
+            }
+
+            Pkcs12Store inStore = new Pkcs12StoreBuilder().Build();
+
+            using (var input = new MemoryStream(bOut.ToArray()))
+            {
+                inStore.Load(input, passwd);
+            }
+
+            for (int i = 0; i != certs.Length; i++)
+            {
+                Assert.AreEqual("cert-" + i, inStore.GetCertificateAlias(certs[i]), "Alias mismatch after reload");
+            }
+
+            Assert.Null(inStore.GetCertificateAlias(absent), "Alias found for absent certificate after reload");
         }
 
         /// <summary>
