@@ -26,21 +26,21 @@ namespace Org.BouncyCastle.Asn1.Esf
         private readonly AttributeCertificate m_certifiedAttributes;
 
         private SignerAttribute(Asn1Sequence seq, bool dummy)
-		{
-			Asn1TaggedObject taggedObject = Asn1TaggedObject.GetContextInstance(seq[0]);
-			if (taggedObject.TagNo == 0)
-			{
-				m_claimedAttributes = Asn1Sequence.GetTagged(taggedObject, true);
-			}
-			else if (taggedObject.TagNo == 1)
-			{
-				m_certifiedAttributes = AttributeCertificate.GetTagged(taggedObject, true);
-			}
-			else
-			{
-				throw new ArgumentException("illegal tag.", nameof(seq));
-			}
-		}
+        {
+            Asn1TaggedObject taggedObject = Asn1TaggedObject.GetContextInstance(seq[0]);
+            if (taggedObject.HasTagNo(0))
+            {
+                m_claimedAttributes = Asn1Sequence.GetTagged(taggedObject, true);
+            }
+            else if (taggedObject.HasTagNo(1))
+            {
+                m_certifiedAttributes = AttributeCertificate.GetTagged(taggedObject, true);
+            }
+            else
+            {
+                throw new ArgumentException("illegal tag.", nameof(seq));
+            }
+        }
 
 		public SignerAttribute(Asn1Sequence claimedAttributes)
 		{

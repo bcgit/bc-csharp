@@ -19,6 +19,9 @@ namespace Org.BouncyCastle.Asn1
         // TODO[api]
         //bool HasTagClass(int tagClass);
 
+        // TODO[api]
+        //bool HasTagNo(int tagNo);
+
         /// <exception cref="IOException"/>
         IAsn1Convertible ParseBaseUniversal(bool declaredExplicit, int baseTagNo);
 

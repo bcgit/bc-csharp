@@ -69,8 +69,8 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
             Asn1TaggedObject taggedObject = Asn1TaggedObject.GetContextOptional(element);
             if (taggedObject != null)
             {
-                if (taggedObject.TagNo == (int)Choice.PublicKeyCertificate ||
-                    taggedObject.TagNo == (int)Choice.AttributeCertificate)
+                if (taggedObject.HasTagNo((int)Choice.PublicKeyCertificate) ||
+                    taggedObject.HasTagNo((int)Choice.AttributeCertificate))
                 {
                     return new RequestedCertificate(taggedObject);
                 }

@@ -234,6 +234,11 @@ namespace Org.BouncyCastle.Asn1
             return m_tagClass == tagClass;
         }
 
+        public bool HasTagNo(int tagNo)
+        {
+            return m_tagNo == tagNo;
+        }
+
         /**
          * return whether or not the object may be explicitly tagged.
          * <p>
