@@ -618,60 +618,44 @@ namespace Org.BouncyCastle.Cms
         //
         private DerInteger CalculateVersion(DerObjectIdentifier contentOid)
         {
-            bool otherCert = false;
-            bool otherCrl = false;
             bool attrCertV1Found = false;
             bool attrCertV2Found = false;
 
             if (_certs != null)
             {
-                foreach (object obj in _certs)
+                foreach (var element in _certs)
                 {
-                    if (obj is Asn1TaggedObject tagged)
+                    var tagged = Asn1TaggedObject.GetContextOptional(element);
+                    if (tagged != null)
                     {
-                        if (tagged.TagNo == 1)
+                        if (tagged.HasTagNo(1))
                         {
                             attrCertV1Found = true;
                         }
-                        else if (tagged.TagNo == 2)
+                        else if (tagged.HasTagNo(2))
                         {
                             attrCertV2Found = true;
                         }
-                        else if (tagged.TagNo == 3)
+                        else if (tagged.HasTagNo(3))
                         {
-                            otherCert = true;
-                            break;
+                            return DerInteger.Five;
                         }
                     }
                 }
-            }
-
-            if (otherCert)
-            {
-                return DerInteger.Five;
             }
 
             if (_crls != null)
             {
-                foreach (object obj in _crls)
+                foreach (var element in _crls)
                 {
-                    if (obj is Asn1TaggedObject)
-                    {
-                        otherCrl = true;
-                        break;
-                    }
+                    var tagged = Asn1TaggedObject.GetContextOptional(element, 1);
+                    if (tagged != null)
+                        return DerInteger.Five;
                 }
             }
 
-            if (otherCrl)
-            {
-                return DerInteger.Five;
-            }
-
             if (attrCertV2Found)
-            {
                 return DerInteger.Four;
-            }
 
             if (attrCertV1Found || !CmsObjectIdentifiers.Data.Equals(contentOid) ||
                 CheckForVersion3(_signers, m_signerInfoGens))
