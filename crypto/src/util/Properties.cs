@@ -141,6 +141,16 @@ namespace Org.BouncyCastle.Utilities
         public static readonly string X509AllowLenientRfc822Name = "Org.BouncyCastle.X509.AllowLenientRfc822Name";
 
         /// <summary>
+        /// If set to "true", certificate parsers will accept a certificate whose issuer is an empty distinguished
+        /// name. RFC 5280 sec. 4.1.2.4 requires the issuer field to contain a non-empty DN and the parser rejects an
+        /// empty one by default, but some non-PKIX certificate profiles - notably the libp2p TLS profile, which uses a
+        /// self-signed certificate purely as a peer-identity carrier - place no requirements on the issuer and such
+        /// certificates are in circulation. This is a read-side concession only: certificate generation still requires
+        /// a non-empty issuer unconditionally.
+        /// </summary>
+        public static readonly string X509AllowEmptyIssuerCert = "Org.BouncyCastle.X509.AllowEmptyIssuerCert";
+
+        /// <summary>
         /// Salvage a non-contiguous iPAddress name-constraint subnet mask instead of rejecting it. An iPAddress
         /// name constraint carries a subnet mask expected to be CIDR (a run of leading 1-bits); a non-contiguous
         /// mask is malformed per RFC 4632 and also lets the subtree set-algebra mint new ranges (a super-linear

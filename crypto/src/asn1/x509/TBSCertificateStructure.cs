@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
 
             // RFC 5280 sec. 4.1.2.4: certificate issuer MUST be a non-empty DN.
-            if (m_issuer.IsEmpty)
+            if (m_issuer.IsEmpty && !Properties.GetBoolean(Properties.X509AllowEmptyIssuerCert, false))
                 throw new ArgumentException("certificate issuer is an empty distinguished name");
 
             m_seq = seq;

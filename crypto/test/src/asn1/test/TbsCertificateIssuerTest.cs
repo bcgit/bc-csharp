@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.X500;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Tests
 {
@@ -11,17 +12,30 @@ namespace Org.BouncyCastle.Asn1.Tests
     public class TbsCertificateIssuerTest
     {
         [Test]
+        public void EmptyIssuerProperty()
+        {
+            byte[] encoded = CreateEmptyIssuerTbs();
+
+            Properties.WithThreadProperty(Properties.X509AllowEmptyIssuerCert, bool.TrueString, () =>
+            {
+                // the read-side concession for non-PKIX profiles (github bc-java #2387): the parse
+                // accepts the empty issuer and round-trips the original encoding...
+                TbsCertificateStructure cert = TbsCertificateStructure.GetInstance(encoded);
+
+                Assert.True(cert.Issuer.IsEmpty, "issuer not empty");
+                Assert.That(Arrays.AreEqual(encoded, cert.GetEncoded(Asn1Encodable.Der)), "encoding not preserved");
+
+                // ...and generation stays strict.
+                ImplPublicConstructorRejectsEmptyIssuer();
+                ImplV1GeneratorRejectsEmptyIssuer();
+                ImplV3GeneratorRejectsEmptyIssuer();
+            });
+        }
+
+        [Test]
         public void ParseRejectsEmptyIssuer()
         {
-            // Build a v1 TBSCertificate with an empty issuer DN.
-            Asn1EncodableVector v = new Asn1EncodableVector();
-            v.Add(DerInteger.One);
-            v.Add(new AlgorithmIdentifier(new DerObjectIdentifier("1.2.840.113549.1.1.11")));
-            v.Add(X509Name.GetInstance(DerSequence.Empty));
-            v.Add(Validity());
-            v.Add(SubjectName());
-            v.Add(Spki());
-            byte[] encoded = new DerSequence(v).GetEncoded(Asn1Encodable.Der);
+            byte[] encoded = CreateEmptyIssuerTbs();
 
             try
             {
@@ -35,7 +49,28 @@ namespace Org.BouncyCastle.Asn1.Tests
         }
 
         [Test]
-        public void PublicConstructorRejectsEmptyIssuer()
+        public void PublicConstructorRejectsEmptyIssuer() => ImplPublicConstructorRejectsEmptyIssuer();
+
+        [Test]
+        public void V1GeneratorRejectsEmptyIssuer() => ImplV1GeneratorRejectsEmptyIssuer();
+
+        [Test]
+        public void V3GeneratorRejectsEmptyIssuer() => ImplV3GeneratorRejectsEmptyIssuer();
+
+        private static byte[] CreateEmptyIssuerTbs()
+        {
+            // Build a v1 TBSCertificate with an empty issuer DN.
+            Asn1EncodableVector v = new Asn1EncodableVector();
+            v.Add(DerInteger.One);
+            v.Add(new AlgorithmIdentifier(new DerObjectIdentifier("1.2.840.113549.1.1.11")));
+            v.Add(X509Name.GetInstance(DerSequence.Empty));
+            v.Add(Validity());
+            v.Add(SubjectName());
+            v.Add(Spki());
+            return new DerSequence(v).GetEncoded(Asn1Encodable.Der);
+        }
+  
+        private static void ImplPublicConstructorRejectsEmptyIssuer()
         {
             try
             {
@@ -56,8 +91,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        [Test]
-        public void V1GeneratorRejectsEmptyIssuer()
+        private static void ImplV1GeneratorRejectsEmptyIssuer()
         {
             V1TbsCertificateGenerator gen = new V1TbsCertificateGenerator();
             gen.SetSerialNumber(DerInteger.One);
@@ -79,8 +113,7 @@ namespace Org.BouncyCastle.Asn1.Tests
             }
         }
 
-        [Test]
-        public void V3GeneratorRejectsEmptyIssuer()
+        private static void ImplV3GeneratorRejectsEmptyIssuer()
         {
             V3TbsCertificateGenerator gen = new V3TbsCertificateGenerator();
             gen.SetSerialNumber(DerInteger.One);
