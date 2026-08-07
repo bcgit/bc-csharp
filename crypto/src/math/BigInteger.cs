@@ -3765,11 +3765,11 @@ namespace Org.BouncyCastle.Math
             return GetLowestSetBitMaskFirst(uint.MaxValue);
         }
 
-        private int GetLowestSetBitMaskFirst(uint firstWordMaskX)
+        private int GetLowestSetBitMaskFirst(uint firstWordMask)
         {
             int w = magnitude.Length, offset = 0;
 
-            uint word = magnitude[--w] & firstWordMaskX;
+            uint word = magnitude[--w] & firstWordMask;
             Debug.Assert(magnitude[0] != 0U);
 
             while (word == 0)

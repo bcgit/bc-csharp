@@ -2,15 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class MetaData
-		: Asn1Encodable
-	{
+    public class MetaData
+        : Asn1Encodable
+    {
         public static MetaData GetInstance(object obj)
         {
-			if (obj == null)
-				return null;
-			if (obj is MetaData metaData)
-				return metaData;
+            if (obj == null)
+                return null;
+            if (obj is MetaData metaData)
+                return metaData;
             return new MetaData(Asn1Sequence.GetInstance(obj));
         }
 
@@ -72,23 +72,22 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public virtual Attributes OtherMetaData => m_otherMetaData;
 
-        /**
-		 * <pre>
-		 * MetaData ::= SEQUENCE {
-		 *   hashProtected        BOOLEAN,
-		 *   fileName             UTF8String OPTIONAL,
-		 *   mediaType            IA5String OPTIONAL,
-		 *   otherMetaData        Attributes OPTIONAL
-		 * }
-		 * </pre>
-		 * @return
-		 */
+        /// <remarks>
+        /// <code>
+        /// MetaData::= SEQUENCE {
+        ///     hashProtected   BOOLEAN,
+        ///     fileName        UTF8String OPTIONAL,
+        ///     mediaType       IA5String OPTIONAL,
+        ///     otherMetaData   Attributes OPTIONAL
+        /// }
+        /// </code>
+        /// </remarks>
         public override Asn1Object ToAsn1Object()
-		{
+        {
             Asn1EncodableVector v = new Asn1EncodableVector(4);
             v.Add(m_hashProtected);
-			v.AddOptional(m_fileName, m_mediaType, m_otherMetaData);
-			return new DerSequence(v);
-		}
-	}
+            v.AddOptional(m_fileName, m_mediaType, m_otherMetaData);
+            return new DerSequence(v);
+        }
+    }
 }

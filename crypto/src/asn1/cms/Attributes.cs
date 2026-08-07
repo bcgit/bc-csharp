@@ -18,9 +18,6 @@ namespace Org.BouncyCastle.Asn1.Cms
         public static Attributes GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Attributes(Asn1Set.GetInstance(taggedObject, declaredExplicit));
 
-        public static Attributes GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
-            new Attributes(Asn1Set.GetTagged(taggedObject, declaredExplicit));
-
         public static Attributes GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -35,6 +32,9 @@ namespace Org.BouncyCastle.Asn1.Cms
 
             return null;
         }
+
+        public static Attributes GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+            new Attributes(Asn1Set.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1Set m_attributes;
 
@@ -57,13 +57,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public virtual Attribute[] GetAttributes() => m_attributes.MapElements(Attribute.GetInstance);
 
-        /**
-         * <pre>
-         * Attributes ::=
-         *   SET SIZE(1..MAX) OF Attribute -- according to RFC 5652
-         * </pre>
-         * @return
-         */
+        /// <remarks>
+        /// <code>
+        /// Attributes ::= SET SIZE(1..MAX) OF Attribute --according to RFC 5652
+        /// </code>
+        /// </remarks>
         public override Asn1Object ToAsn1Object() => m_attributes;
     }
 }

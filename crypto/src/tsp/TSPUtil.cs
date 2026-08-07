@@ -82,7 +82,7 @@ namespace Org.BouncyCastle.Tsp
                             byte[] expectedDigest = DigestUtilities.CalculateDigest(tstInfo.HashAlgorithm,
                                 signerInfo.GetSignature());
 
-                            if (!Arrays.FixedTimeEquals(expectedDigest, tstInfo.GetMessageImprintDigest()))
+                            if (!Arrays.FixedTimeEquals(expectedDigest, tstInfo.MessageImprintDigest.GetOctets()))
                                 throw new TspValidationException("Incorrect digest in message imprint");
 
                             timestamps.Add(timeStampToken);

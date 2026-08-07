@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Tsp
         private int accuracyMicros = -1;
         private bool ordering = false;
         private GeneralName tsa = null;
-        private DerObjectIdentifier m_tsaPolicyOid;
+        private DerObjectIdentifier m_policy;
 
         private IStore<X509Certificate> x509Certs;
         private IStore<X509Crl> x509Crls;
@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Tsp
             DerObjectIdentifier tsaPolicy, bool isIssuerSerialIncluded)
         {
             this.signerInfoGenerator = signerInfoGen;
-            m_tsaPolicyOid = tsaPolicy;
+            m_policy = tsaPolicy;
 
             X509Certificate assocCert = signerInfoGen.Certificate ??
                 throw new ArgumentException("SignerInfoGenerator must have an associated certificate");
@@ -197,10 +197,6 @@ namespace Org.BouncyCastle.Tsp
         public TimeStampToken Generate(TimeStampRequest request, BigInteger serialNumber, DateTime genTime,
             X509Extensions additionalExtensions)
         {
-            var timeStampReq = request.TimeStampReq;
-
-            var messageImprint = timeStampReq.MessageImprint;
-
             Accuracy accuracy = null;
             if (accuracySeconds > 0 || accuracyMillis > 0 || accuracyMicros > 0)
             {
@@ -231,10 +227,14 @@ namespace Org.BouncyCastle.Tsp
                 derOrdering = DerBoolean.GetInstance(ordering);
             }
 
+            var timeStampReq = request.TimeStampReq;
+
+            MessageImprint messageImprint = timeStampReq.MessageImprint;
+
             DerInteger nonce = timeStampReq.Nonce;
 
-            DerObjectIdentifier tsaPolicy = timeStampReq.ReqPolicy ?? m_tsaPolicyOid ??
-                throw new TspValidationException("request contains no policy", PkiFailureInfo.UnacceptedPolicy);
+            DerObjectIdentifier policy = timeStampReq.ReqPolicy ?? m_policy
+                ?? throw new TspValidationException("request contains no policy", PkiFailureInfo.UnacceptedPolicy);
 
             X509Extensions respExtensions = request.Extensions;
             if (additionalExtensions != null)
@@ -264,7 +264,7 @@ namespace Org.BouncyCastle.Tsp
              */
             var timeStampTime = new DerGeneralizedTime(TspUtil.WithResolution(genTime, resolution));
 
-            TstInfo tstInfo = new TstInfo(tsaPolicy, messageImprint,
+            TstInfo tstInfo = new TstInfo(policy, messageImprint,
                 new DerInteger(serialNumber), timeStampTime, accuracy,
                 derOrdering, nonce, tsa, respExtensions);
 

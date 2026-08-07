@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Tsp
 
         public TimeStampResponse(TimeStampResp resp)
         {
-            m_resp = resp ?? throw new ArgumentNullException();
+            m_resp = resp ?? throw new ArgumentNullException(nameof(resp));
 
             if (resp.TimeStampToken != null)
             {
@@ -83,7 +83,9 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
-        public int Status => m_resp.Status.StatusObject.IntValueExact;
+        public PkiStatusInfo StatusInfo => m_resp.Status;
+
+        public int Status => StatusInfo.StatusObject.IntValueExact;
 
         public string GetStatusString()
         {
@@ -107,17 +109,19 @@ namespace Org.BouncyCastle.Tsp
             return new PkiFailureInfo(m_resp.Status.FailInfo);
         }
 
+        public TimeStampResp TimeStampResp => m_resp;
+
         public TimeStampToken TimeStampToken => m_timeStampToken;
 
         /// <summary>
-        /// Check this response against to see if it a well formed response for the passed in request.
+        /// Check that this response is a well formed response for the passed in request.
         /// </summary>
         /// <remarks>
-        /// Validation will include checking the time stamp token if the response status is 'Granted' or
+        /// Validation includes checking the time stamp token when the response status is 'Granted' or
         /// 'GrantedWithMods'.
         /// </remarks>
         /// <param name="request">The request to be checked against.</param>
-        /// <exception cref="TspValidationException">If the request can not match this response.</exception>
+        /// <exception cref="TspValidationException">If the request cannot match this response.</exception>
         public void Validate(TimeStampRequest request)
         {
             TimeStampToken tsToken = TimeStampToken;

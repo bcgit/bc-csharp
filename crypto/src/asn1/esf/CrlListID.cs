@@ -6,9 +6,8 @@ namespace Org.BouncyCastle.Asn1.Esf
     /// <remarks>
     /// RFC 3126: 4.2.2 Complete Revocation Refs Attribute Definition
     /// <code>
-    /// CRLListID ::= SEQUENCE 
-    /// {
-    ///		crls	SEQUENCE OF CrlValidatedID
+    /// CRLListID ::= SEQUENCE {
+    ///     crls    SEQUENCE OF CrlValidatedID
     /// }
     /// </code>
     /// </remarks>

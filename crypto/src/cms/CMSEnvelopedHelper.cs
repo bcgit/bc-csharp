@@ -4,12 +4,15 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.Misc;
+using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.IO;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -133,35 +136,36 @@ namespace Org.BouncyCastle.Cms
                     // FIXME Support for MAC algorithm parameters similar to cipher parameters
                     //ASN1Object sParams = (ASN1Object)macAlg.getParameters();
 
-                    //if (sParams != null && !(sParams instanceof ASN1Null))
-                    //{
-                    //    AlgorithmParameters params = CMSEnvelopedHelper.INSTANCE.createAlgorithmParameters(macAlg.getObjectId().getId(), provider);
-                    //    params.init(sParams.getEncoded(), "ASN.1");
-                    //    mac.init(sKey, params.getParameterSpec(IvParameterSpec.class));
-                    //}
-                    //else
+                    //if (X509Utilities.IsAbsentParameters(sParams))
                     {
                         mac.Init(sKey);
                     }
+                    //else
+                    //{
+                    //    AlgorithmParameters params = CMSEnvelopedHelper.INSTANCE.createAlgorithmParameters(macAlg.getObjectId().getId(), provider);
+                    //        params.init(sParams.getEncoded(), "ASN.1");
+                    //    mac.init(sKey, params.getParameterSpec(IvParameterSpec.class));
+                    //}
 
-                    //Asn1Object asn1Params = asn1Enc == null ? null : asn1Enc.ToAsn1Object();
+                    //Asn1Object asn1Params = asn1Enc?.ToAsn1Object();
 
                     //ICipherParameters cipherParameters = sKey;
 
-                    //if (asn1Params != null && !(asn1Params is Asn1Null))
+                    //if (X509Utilities.IsAbsentParameters(asn1Params))
                     //{
-                    //    cipherParameters = ParameterUtilities.GetCipherParameters(
-                    //    macAlg.Algorithm, cipherParameters, asn1Params);
-                    //}
-                    //else
-                    //{
-                    //    string alg = macAlg.Algorithm.GetID();
-                    //    if (alg.Equals(CmsEnvelopedGenerator.DesEde3Cbc)
-                    //        || alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
-                    //        || alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
+                    //    var algOid = macAlg.Algorithm;
+
+                    //    if (PkcsObjectIdentifiers.DesEde3Cbc.Equals(algOid) ||
+                    //        MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC.Equals(algOid) ||
+                    //        MiscObjectIdentifiers.cast5CBC.Equals(algOid))
                     //    {
                     //        cipherParameters = new ParametersWithIV(cipherParameters, new byte[8]);
                     //    }
+                    //}
+                    //else
+                    //{
+                    //    cipherParameters = ParameterUtilities.GetCipherParameters(macAlg.Algorithm, cipherParameters,
+                    //        asn1Params);
                     //}
 
                     //mac.Init(cipherParameters);
@@ -196,42 +200,38 @@ namespace Org.BouncyCastle.Cms
         internal class CmsEnvelopedSecureReadable
             : CmsSecureReadable
         {
-            private AlgorithmIdentifier algorithm;
-            private IBufferedCipher cipher;
-            private CmsReadable readable;
+            private readonly AlgorithmIdentifier m_algorithm;
+            private readonly CmsReadable m_readable;
+
+            private IBufferedCipher m_cipher;
 
             internal CmsEnvelopedSecureReadable(AlgorithmIdentifier algorithm, CmsReadable readable)
             {
-                this.algorithm = algorithm;
-                this.readable = readable;
+                m_algorithm = algorithm;
+                m_readable = readable;
             }
 
-            public AlgorithmIdentifier Algorithm => this.algorithm;
+            public AlgorithmIdentifier Algorithm => m_algorithm;
 
-            public object CryptoObject => this.cipher;
+            public object CryptoObject => m_cipher;
 
             public CmsReadable GetReadable(KeyParameter sKey)
             {
                 try
                 {
-                    this.cipher = CipherUtilities.GetCipher(this.algorithm.Algorithm);
+                    m_cipher = CipherUtilities.GetCipher(m_algorithm.Algorithm);
 
-                    Asn1Encodable asn1Enc = this.algorithm.Parameters;
-                    Asn1Object asn1Params = asn1Enc == null ? null : asn1Enc.ToAsn1Object();
+                    Asn1Object asn1Params = m_algorithm.Parameters?.ToAsn1Object();
 
                     ICipherParameters cipherParameters = sKey;
 
-                    if (asn1Params != null && !(asn1Params is Asn1Null))
+                    if (X509Utilities.IsAbsentParameters(asn1Params))
                     {
-                        cipherParameters = ParameterUtilities.GetCipherParameters(
-                            this.algorithm.Algorithm, cipherParameters, asn1Params);
-                    }
-                    else
-                    {
-                        string alg = this.algorithm.Algorithm.Id;
-                        if (alg.Equals(CmsEnvelopedGenerator.DesEde3Cbc)
-                            || alg.Equals(CmsEnvelopedGenerator.IdeaCbc)
-                            || alg.Equals(CmsEnvelopedGenerator.Cast5Cbc))
+                        var algOid = m_algorithm.Algorithm;
+
+                        if (PkcsObjectIdentifiers.DesEde3Cbc.Equals(algOid) ||
+                            MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC.Equals(algOid) ||
+                            MiscObjectIdentifiers.cast5CBC.Equals(algOid))
                         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                             cipherParameters = ParametersWithIV.Create<byte>(cipherParameters, 8, 0,
@@ -241,8 +241,13 @@ namespace Org.BouncyCastle.Cms
 #endif
                         }
                     }
+                    else
+                    {
+                        cipherParameters = ParameterUtilities.GetCipherParameters(m_algorithm.Algorithm,
+                            cipherParameters, asn1Params);
+                    }
 
-                    cipher.Init(false, cipherParameters);
+                    m_cipher.Init(forEncryption: false, cipherParameters);
                 }
                 catch (SecurityUtilityException e)
                 {
@@ -260,7 +265,7 @@ namespace Org.BouncyCastle.Cms
                 try
                 {
                     return new CmsProcessableInputStream(
-                        new CipherStream(readable.GetInputStream(), cipher, null));
+                        new CipherStream(m_readable.GetInputStream(), m_cipher, null));
                 }
                 catch (IOException e)
                 {

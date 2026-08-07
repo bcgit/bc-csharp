@@ -1,76 +1,67 @@
-using System;
-
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class TimeStampedDataParser
-	{
-		private DerInteger version;
-		private DerIA5String dataUri;
-		private MetaData metaData;
-		private Asn1OctetStringParser content;
-		private Evidence temporalEvidence;
-		private Asn1SequenceParser parser;
-		
-		private TimeStampedDataParser(Asn1SequenceParser parser)
-		{
-			this.parser = parser;
-			this.version = DerInteger.GetInstance(parser.ReadObject());
+    public class TimeStampedDataParser
+    {
+        public static TimeStampedDataParser GetInstance(object obj)
+        {
+            if (obj is Asn1SequenceParser parser)
+                return new TimeStampedDataParser(parser);
 
-			Asn1Object obj = parser.ReadObject().ToAsn1Object();
+            if (obj is Asn1Sequence seq)
+                return new TimeStampedDataParser(seq.Parser);
 
-			if (obj is DerIA5String)
-			{
-				this.dataUri = DerIA5String.GetInstance(obj);
-				obj = parser.ReadObject().ToAsn1Object();
-			}
+            return null;
+        }
+
+        private readonly Asn1SequenceParser m_parser;
+
+        private DerInteger m_version;
+        private DerIA5String m_dataUri;
+        private MetaData m_metaData;
+        private Asn1OctetStringParser m_content;
+        private Evidence m_temporalEvidence;
+
+        private TimeStampedDataParser(Asn1SequenceParser parser)
+        {
+            m_parser = parser;
+
+            m_version = DerInteger.GetInstance(parser.ReadObject());
+
+            Asn1Object obj = parser.ReadObject().ToAsn1Object();
+
+            if (obj is DerIA5String dataUri)
+            {
+                m_dataUri = dataUri;
+                obj = parser.ReadObject().ToAsn1Object();
+            }
 
             if (//obj is MetaData ||
-                obj is Asn1SequenceParser)
-			{
-				this.metaData = MetaData.GetInstance(obj.ToAsn1Object());
-				obj = parser.ReadObject().ToAsn1Object();
-			}
+                obj is Asn1SequenceParser metaDataParser)
+            {
+                m_metaData = MetaData.GetInstance(metaDataParser);
+                obj = parser.ReadObject().ToAsn1Object();
+            }
 
-			if (obj is Asn1OctetStringParser)
-			{
-				this.content = (Asn1OctetStringParser)obj;
-			}
-		}
+            if (obj is Asn1OctetStringParser content)
+            {
+                m_content = content;
+            }
+        }
 
-		public static TimeStampedDataParser GetInstance(object obj)
-		{
-			if (obj is Asn1Sequence)
-				return new TimeStampedDataParser(((Asn1Sequence)obj).Parser);
+        public virtual DerIA5String DataUri => m_dataUri;
 
-			if (obj is Asn1SequenceParser)
-				return new TimeStampedDataParser((Asn1SequenceParser)obj);
+        public virtual MetaData MetaData => m_metaData;
 
-			return null;
-		}
-		
-		public virtual DerIA5String DataUri
-		{
-			get { return dataUri; }
-		}
+        public virtual Asn1OctetStringParser Content => m_content;
 
-		public virtual MetaData MetaData
-		{
-			get { return metaData; }
-		}
+        public virtual Evidence GetTemporalEvidence()
+        {
+            if (m_temporalEvidence == null)
+            {
+                m_temporalEvidence = Evidence.GetInstance(m_parser.ReadObject().ToAsn1Object());
+            }
 
-		public virtual Asn1OctetStringParser Content
-		{
-			get { return content; }
-		}
-
-		public virtual Evidence GetTemporalEvidence()
-		{
-			if (temporalEvidence == null)
-			{
-				temporalEvidence = Evidence.GetInstance(parser.ReadObject().ToAsn1Object());
-			}
-
-			return temporalEvidence;
-		}
-	}
+            return m_temporalEvidence;
+        }
+    }
 }

@@ -381,7 +381,7 @@ namespace Org.BouncyCastle.Tsp.Tests
 
             if (request != sha1Request && request != sha1noNonse)
             {
-                if (!req.ReqPolicy.Equals(TspTestUtil.EuroPkiTsaTestPolicy.Id))
+                if (!TspTestUtil.EuroPkiTsaTestPolicy.Equals(req.TimeStampReq.ReqPolicy))
                 {
                     Assert.Fail("" + algorithm + " failed policy check.");
                 }

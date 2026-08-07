@@ -4,6 +4,9 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>
+    /// A store collection class for SignerInformation objects.
+    /// </summary>
     public class SignerInformationStore
         : IEnumerable<SignerInformation>
     {
@@ -11,22 +14,20 @@ namespace Org.BouncyCastle.Cms
         private readonly Dictionary<SignerID, List<SignerInformation>> m_table =
             new Dictionary<SignerID, List<SignerInformation>>();
 
-        /**
-         * Create a store containing a single SignerInformation object.
-         *
-         * @param signerInfo the signer information to contain.
-         */
+        /// <summary>
+        /// Create a store containing a single SignerInformation object.
+        /// </summary>
+        /// <param name="signerInfo">The signer information to contain.</param>
         public SignerInformationStore(SignerInformation signerInfo)
         {
             m_all = new List<SignerInformation>(1){ signerInfo };
             m_table[signerInfo.SignerID] = m_all;
         }
 
-        /**
-         * Create a store containing a collection of SignerInformation objects.
-         *
-         * @param signerInfos a collection of signer information objects to contain.
-         */
+        /// <summary>
+        /// Create a store containing a collection of SignerInformation objects.
+        /// </summary>
+        /// <param name="signerInfos">A collection of signer information objects to contain.</param>
         public SignerInformationStore(IEnumerable<SignerInformation> signerInfos)
         {
             m_all = new List<SignerInformation>(signerInfos);

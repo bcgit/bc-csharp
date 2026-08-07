@@ -46,14 +46,15 @@ namespace Org.BouncyCastle.Asn1.Cms.Ecc
 
         public Asn1OctetString AddedUkm => m_addedukm;
 
-        /**
-         * Produce an object suitable for an Asn1OutputStream.
-         * <pre>
-         * MQVuserKeyingMaterial ::= SEQUENCE {
-         *   ephemeralPublicKey OriginatorPublicKey,
-         *   addedukm [0] EXPLICIT UserKeyingMaterial OPTIONAL  }
-         * </pre>
-         */
+        /// <summary>Produce an object suitable for an <see cref="Asn1OutputStream"/>.</summary>
+        /// <remarks>
+        /// <code>
+        /// MQVuserKeyingMaterial::= SEQUENCE {
+        ///     ephemeralPublicKey  OriginatorPublicKey,
+        ///     addedukm            [0] EXPLICIT UserKeyingMaterial OPTIONAL
+        /// }
+        /// </code>
+        /// </remarks>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);

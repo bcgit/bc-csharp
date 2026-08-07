@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Tsp
 
         public byte[] GetMessageImprintDigest() => MessageImprint.GetHashedMessage();
 
-        // TODO[api] Change this to return just the OID itself
+        [Obsolete("Will be removed")]
         public string ReqPolicy => m_req.ReqPolicy?.Id;
 
         // TODO[api] Change this to return the DerInteger?

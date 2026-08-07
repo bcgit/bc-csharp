@@ -2,15 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cms
 {
-	public class TimeStampedData
-		: Asn1Encodable
-	{
+    public class TimeStampedData
+        : Asn1Encodable
+    {
         public static TimeStampedData GetInstance(object obj)
         {
-			if (obj == null)
-				return null;
-			if (obj is TimeStampedData timeStampedData)
-				return timeStampedData;
+            if (obj == null)
+                return null;
+            if (obj is TimeStampedData timeStampedData)
+                return timeStampedData;
             return new TimeStampedData(Asn1Sequence.GetInstance(obj));
         }
 
@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         }
 
         private TimeStampedData(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 2 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -60,25 +60,24 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Evidence TemporalEvidence => m_temporalEvidence;
 
-		/**
-		 * <pre>
-		 * TimeStampedData ::= SEQUENCE {
-		 *   version              INTEGER { v1(1) },
-		 *   dataUri              IA5String OPTIONAL,
-		 *   metaData             MetaData OPTIONAL,
-		 *   content              OCTET STRING OPTIONAL,
-		 *   temporalEvidence     Evidence
-		 * }
-		 * </pre>
-		 * @return
-		 */
-		public override Asn1Object ToAsn1Object()
-		{
+        /// <remarks>
+        /// <code>
+        /// TimeStampedData::= SEQUENCE {
+        ///     version             INTEGER { v1(1) },
+        ///     dataUri             IA5String OPTIONAL,
+        ///     metaData            MetaData OPTIONAL,
+        ///     content             OCTET STRING OPTIONAL,
+        ///     temporalEvidence    Evidence
+        /// }
+        /// </code>
+        /// </remarks>
+        public override Asn1Object ToAsn1Object()
+        {
             Asn1EncodableVector v = new Asn1EncodableVector(5);
             v.Add(m_version);
-			v.AddOptional(m_dataUri, m_metaData, m_content);
-			v.Add(m_temporalEvidence);
-			return new BerSequence(v);
-		}
-	}
+            v.AddOptional(m_dataUri, m_metaData, m_content);
+            v.Add(m_temporalEvidence);
+            return new BerSequence(v);
+        }
+    }
 }

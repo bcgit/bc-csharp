@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly DerObjectIdentifier m_certID;
         private readonly Asn1Encodable m_certValue;
 
-		private CertBag(Asn1Sequence seq)
+        private CertBag(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
             if (count != 2)
