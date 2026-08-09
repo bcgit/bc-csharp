@@ -22,7 +22,90 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             { "falcon1024-KAT.rsp", FalconParameters.falcon_1024 },
         };
 
+        private static readonly IEnumerable<FalconParameters> ParametersValues = Parameters.Values;
+
         private static readonly IEnumerable<string> TestVectorFiles = Parameters.Keys;
+
+        /// <summary>
+        /// <see cref="FalconPrivateKeyParameters.GetPublicKeyParameters"/> should return a
+        /// <see cref="FalconPublicKeyParameters"/> whose encoded form matches the original public key, and a signature
+        /// produced under the private key must verify under the recovered public key.
+        /// </summary>
+        [TestCaseSource(nameof(ParametersValues))]
+        [Parallelizable(ParallelScope.All)]
+        public void PublicKeyRecovery(FalconParameters parameters)
+        {
+            SecureRandom random = new SecureRandom();
+            byte[] msg = Strings.ToByteArray("recover me");
+
+            FalconKeyPairGenerator keyGen = new FalconKeyPairGenerator();
+            keyGen.Init(new FalconKeyGenerationParameters(random, parameters));
+            AsymmetricCipherKeyPair kp = keyGen.GenerateKeyPair();
+
+            FalconPrivateKeyParameters priv = (FalconPrivateKeyParameters)kp.Private;
+            FalconPublicKeyParameters pubFromKpg = (FalconPublicKeyParameters)kp.Public;
+
+            FalconPublicKeyParameters recovered = priv.GetPublicKeyParameters();
+
+            Assert.AreEqual(priv.Parameters, recovered.Parameters, "parameter set mismatch on recovered public key");
+            Assert.That(Arrays.AreEqual(pubFromKpg.GetEncoded(), recovered.GetEncoded()),
+                "recovered public-key bytes don't match keypair output for " + parameters.Name);
+
+            FalconSigner signer = new FalconSigner();
+            signer.Init(true, new ParametersWithRandom(priv, random));
+            byte[] signature = signer.GenerateSignature(msg);
+
+            FalconSigner verifier = new FalconSigner();
+            verifier.Init(false, recovered);
+            Assert.True(verifier.VerifySignature(msg, signature),
+                "signature did not verify under recovered public key for " + parameters.Name);
+        }
+
+        /// <summary>
+        /// When only the private encoding (f &#8214; g &#8214; F) was persisted — no public key bytes, no
+        /// key-generation seed — the public key h must be recomputed from the private polynomials
+        /// (h = g * f ^ -1 mod q) /// by the <see cref="FalconPrivateKeyParameters.GetPublicKeyParameters"/> fall-back.
+        /// The recovered h must match the keypair's original public key and verify a signature made under the
+        /// reconstructed private key.
+        /// </summary>
+        [TestCaseSource(nameof(ParametersValues))]
+        [Parallelizable(ParallelScope.All)]
+        public void PublicKeyRederivation(FalconParameters parameters)
+        {
+            SecureRandom random = new SecureRandom();
+            byte[] msg = Strings.ToByteArray("no public key retained");
+
+            FalconKeyPairGenerator keyGen = new FalconKeyPairGenerator();
+            keyGen.Init(new FalconKeyGenerationParameters(random, parameters));
+            AsymmetricCipherKeyPair kp = keyGen.GenerateKeyPair();
+
+            FalconPrivateKeyParameters orig = (FalconPrivateKeyParameters)kp.Private;
+            FalconPublicKeyParameters pubFromKpg = (FalconPublicKeyParameters)kp.Public;
+
+            // Rebuild the private key from only its private encoding, as a
+            // consumer that stored f || g || F and nothing else would.
+            FalconPrivateKeyParameters stripped = new FalconPrivateKeyParameters(parameters, orig.GetSpolyLittleF(),
+                orig.GetG(), orig.GetSpolyBigF(), Array.Empty<byte>());
+
+            // GetPublicKey() recomputes h from (f, g) when no public bytes are present
+            Assert.That(Arrays.AreEqual(pubFromKpg.GetEncoded(), stripped.GetPublicKey()),
+                "GetPublicKey() did not recompute h for " + parameters.Name);
+
+            // GetPublicKeyParameters() exposes the same recovered key
+            FalconPublicKeyParameters recovered = stripped.GetPublicKeyParameters();
+            Assert.That(Arrays.AreEqual(pubFromKpg.GetEncoded(), recovered.GetEncoded()),
+                "GetPublicKeyParameters() did not recompute h for " + parameters.Name);
+
+            // The reconstructed private key still signs, and the recomputed public key verifies that signature
+            FalconSigner signer = new FalconSigner();
+            signer.Init(true, new ParametersWithRandom(stripped, random));
+            byte[] signature = signer.GenerateSignature(msg);
+
+            FalconSigner verifier = new FalconSigner();
+            verifier.Init(false, recovered);
+            Assert.True(verifier.VerifySignature(msg, signature),
+                "signature did not verify under recomputed public key for " + parameters.Name);
+        }
 
         [Test]
         public void TestParameters()
