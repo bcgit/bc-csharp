@@ -2,7 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconCommon
+    internal static class FalconCommon
     {
         /* 
         * License from the reference C code (the code was copied then modified
@@ -32,9 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * ===========================(LICENSE END)=============================
         */
-        internal void hash_to_point_vartime(
-            SHAKE256 sc,
-            ushort[] xsrc, int x, uint logn)
+        internal static void hash_to_point_vartime(SHAKE256 sc, ushort[] xsrc, int x, uint logn)
         {
             /*
             * This is the straightforward per-the-spec implementation. It
@@ -49,14 +47,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             int n;
 
             n = (int)1 << (int)logn;
-            while (n > 0) {
+            while (n > 0)
+            {
                 byte[] buf = new byte[2];
                 uint w;
                 sc.i_shake256_extract(buf, 0, 2);
                 // inner_shake256_extract(sc, (void *)buf, sizeof buf);
                 w = ((uint)buf[0] << 8) | (uint)buf[1];
-                if (w < 61445) {
-                    while (w >= 12289) {
+                if (w < 61445)
+                {
+                    while (w >= 12289)
+                    {
                         w -= 12289;
                     }
                     xsrc[x ++] = (ushort)w;
@@ -238,7 +239,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * on the degree. This array is indexed by logn (1 to 10). These bounds
         * are _inclusive_ (they are equal to floor(beta^2)).
         */
-        internal uint[] l2bound = {
+        internal static readonly uint[] l2bound =
+        {
             0,    /* unused */
             101498,
             208714,
@@ -252,8 +254,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             70265242
         };
 
-        internal bool is_short(
-            short[] s1src, int s1, short[] s2src, int s2, uint logn)
+        internal static bool is_short(short[] s1src, int s1, short[] s2src, int s2, uint logn)
         {
             /*
             * We use the l2-norm. Code below uses only 32-bit operations to
@@ -281,8 +282,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return s <= l2bound[logn];
         }
 
-        internal bool is_short_half(
-            uint sqn, short[] s2src, int s2, uint logn)
+        internal static bool is_short_half(uint sqn, short[] s2src, int s2, uint logn)
         {
             int n, u;
             uint ng;

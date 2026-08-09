@@ -2,13 +2,12 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconFFT
+    internal class FalconFFT
     {
-        FprEngine fpre;
-        internal FalconFFT() {
-            fpre = new FprEngine();
-        }
-        internal FalconFFT(FprEngine fprengine) {
+        private readonly FprEngine fpre;
+
+        internal FalconFFT(FprEngine fprengine)
+        {
             this.fpre = fprengine;
         }
 

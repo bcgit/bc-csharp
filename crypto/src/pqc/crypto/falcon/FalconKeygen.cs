@@ -7,25 +7,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         private readonly FprEngine fpre;
         private readonly FalconFFT ffte;
         private readonly FalconSmallPrime[] PRIMES;
-        private readonly FalconCodec codec;
-        private readonly FalconVrfy vrfy;
 
         internal FalconKeygen()
         {
             this.fpre = new FprEngine();
             this.PRIMES = new FalconSmallPrimes().PRIMES;
             this.ffte = new FalconFFT(this.fpre);
-            this.codec = new FalconCodec();
-            this.vrfy = new FalconVrfy();
-        }
-
-        internal FalconKeygen(FalconCodec codec, FalconVrfy vrfy)
-        {
-            this.fpre = new FprEngine();
-            this.PRIMES = new FalconSmallPrimes().PRIMES;
-            this.ffte = new FalconFFT();
-            this.codec = codec;
-            this.vrfy = vrfy;
         }
 
         /* 
@@ -3577,7 +3564,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * overwhelming probability; this guarantees that the
                 * key will be encodable with FALCON_COMP_TRIM.
                 */
-                lim = 1 << (this.codec.max_fg_bits[logn] - 1);
+                lim = 1 << (FalconCodec.max_fg_bits[logn] - 1);
                 for (u = 0; u < n; u ++) {
                     /*
                     * We can use non-CT tests since on any failure
@@ -3654,18 +3641,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     h2src = hsrc;
                     tmp2 = 0;
                 }
-                if (vrfy.compute_public(h2src, h2, fsrc, f, gsrc, g, logn, htmp, tmp2) == 0) {
+
+                if (FalconVrfy.compute_public(h2src, h2, fsrc, f, gsrc, g, logn, htmp, tmp2) == 0)
                     continue;
-                }
 
                 /*
                 * Solve the NTRU equation to get F and G.
                 */
                 uint[] itmp = logn > 2 ? new uint[28 * n] : new uint[28 * n * 3];
-                lim = (1 << (this.codec.max_FG_bits[logn] - 1)) - 1;
-                if (solve_NTRU(logn, Fsrc, F, Gsrc, G, fsrc, f, gsrc, g, lim, itmp, 0) == 0) {
+                lim = (1 << (FalconCodec.max_FG_bits[logn] - 1)) - 1;
+
+                if (solve_NTRU(logn, Fsrc, F, Gsrc, G, fsrc, f, gsrc, g, lim, itmp, 0) == 0)
                     continue;
-                }
 
                 /*
                 * Key pair is generated.

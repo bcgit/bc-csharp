@@ -7,15 +7,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal class FalconNist
     {
-        private FalconCodec codec;
-        private FalconVrfy vrfy;
-        private FalconCommon common;
-        private SecureRandom random;
-        private uint logn;
-        private uint noncelen;
-        private int CRYPTO_BYTES;
-        private int CRYPTO_PUBLICKEYBYTES;
-        private int CRYPTO_SECRETKEYBYTES;
+        private readonly SecureRandom random;
+        private readonly uint logn;
+        private readonly uint noncelen;
+        private readonly int CRYPTO_BYTES;
+        private readonly int CRYPTO_PUBLICKEYBYTES;
+        private readonly int CRYPTO_SECRETKEYBYTES;
 
         internal uint NonceLength => this.noncelen;
         internal uint LogN => this.logn;
@@ -24,9 +21,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         internal FalconNist(SecureRandom random, uint logn, uint noncelen)
         {
             this.logn = logn;
-            this.codec = new FalconCodec();
-            this.common = new FalconCommon();
-            this.vrfy = new FalconVrfy(this.common);
             this.random = random;
             this.noncelen = noncelen;
             int n = (int)1 << (int)logn;
@@ -63,7 +57,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             ushort[] h = new ushort[n];
             byte[] seed = new byte[48];
             int u, v;
-            FalconKeygen keygen = new FalconKeygen(this.codec, this.vrfy);
+            FalconKeygen keygen = new FalconKeygen();
 
             /*
             * Generate key pair.
@@ -79,23 +73,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             */
             sk[0] = (byte)(0x50 + this.logn);
             u = 1;
-            v = this.codec.trim_i8_encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
-                f, 0, this.logn, this.codec.max_fg_bits[this.logn]);
+            v = FalconCodec.trim_i8_encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
+                f, 0, this.logn, FalconCodec.max_fg_bits[this.logn]);
             if (v == 0) {
                 // TODO check which exception types to use here
                 throw new InvalidOperationException("f encode failed");
             }
             fEnc = Arrays.CopyOfRange(sk, u, u + v);
             u += v;
-            v = this.codec.trim_i8_encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
-                g, 0, this.logn, this.codec.max_fg_bits[this.logn]);
+            v = FalconCodec.trim_i8_encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
+                g, 0, this.logn, FalconCodec.max_fg_bits[this.logn]);
             if (v == 0) {
                 throw new InvalidOperationException("g encode failed");
             }
             gEnc = Arrays.CopyOfRange(sk, u, u + v);
             u += v;
-            v = this.codec.trim_i8_encode(sk,  u, CRYPTO_SECRETKEYBYTES - u,
-                F, 0, this.logn, this.codec.max_FG_bits[this.logn]);
+            v = FalconCodec.trim_i8_encode(sk,  u, CRYPTO_SECRETKEYBYTES - u,
+                F, 0, this.logn, FalconCodec.max_FG_bits[this.logn]);
             if (v == 0) {
                  throw new InvalidOperationException("F encode failed");
             }
@@ -109,7 +103,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Encode public key.
             */
             pk[0] = (byte)(0x00 + this.logn);
-            v = this.codec.modq_encode(pk, 1, CRYPTO_PUBLICKEYBYTES - 1, h, 0, this.logn);
+            v = FalconCodec.modq_encode(pk, 1, CRYPTO_PUBLICKEYBYTES - 1, h, 0, this.logn);
             if (v != CRYPTO_PUBLICKEYBYTES - 1) {
                  throw new InvalidOperationException("public key encoding failed");
             }
@@ -143,7 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             
             byte[] esig = new byte[this.CRYPTO_BYTES - 2 - this.noncelen];
             SHAKE256 sc = new SHAKE256();
-            FalconSign signer = new FalconSign(this.common);
+            FalconSign signer = new FalconSign();
 
             // /*
             // * Decode the private key.
@@ -152,21 +146,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             //     throw new ArgumentException("private key header incorrect");
             // }
             u = 0;
-            v = this.codec.trim_i8_decode(f, 0, this.logn, this.codec.max_fg_bits[this.logn],
+            v = FalconCodec.trim_i8_decode(f, 0, this.logn, FalconCodec.max_fg_bits[this.logn],
                 sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u);
             if (v == 0)
             {
                 throw new InvalidOperationException("f decode failed");
             }
             u += v;
-            v = this.codec.trim_i8_decode(g, 0, this.logn, this.codec.max_fg_bits[this.logn],
+            v = FalconCodec.trim_i8_decode(g, 0, this.logn, FalconCodec.max_fg_bits[this.logn],
                 sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u);
             if (v == 0)
             {
                 throw new InvalidOperationException("g decode failed");
             }
             u += v;
-            v = this.codec.trim_i8_decode(F, 0, this.logn, this.codec.max_FG_bits[this.logn],
+            v = FalconCodec.trim_i8_decode(F, 0, this.logn, FalconCodec.max_FG_bits[this.logn],
                 sksrc, sk + u, CRYPTO_SECRETKEYBYTES - u);
             if (v == 0) 
             {
@@ -177,7 +171,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             {
                 throw new InvalidOperationException("full Key not used");
             }
-            if (this.vrfy.complete_private(G, 0, f, 0, g, 0, F, 0, this.logn, new ushort[2 * n],0) == 0) 
+            if (FalconVrfy.complete_private(G, 0, f, 0, g, 0, F, 0, this.logn, new ushort[2 * n],0) == 0) 
             {
                 throw new InvalidOperationException("complete private failed");
             }
@@ -194,7 +188,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             sc.i_shake256_inject(nonce,0,nonce.Length);
             sc.i_shake256_inject(msrc,m, (int)mlen);
             sc.i_shake256_flip();
-            this.common.hash_to_point_vartime(sc, hm, 0, this.logn);
+            FalconCommon.hash_to_point_vartime(sc, hm, 0, this.logn);
 
             /*
             * Initialize a RNG.
@@ -218,20 +212,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                  *   signature            slen bytes
                  */
                 esig[0] = (byte)(0x20 + logn);
-                sig_len = codec.comp_encode(esig, 1, esig.Length - 1, sig, 0, logn);
+                sig_len = FalconCodec.comp_encode(esig, 1, esig.Length - 1, sig, 0, logn);
                 if (sig_len == 0)
-                {
                     throw new InvalidOperationException("signature failed to generate");
-                }
+
                 sig_len++;
             }
             else
             {
-                sig_len = codec.comp_encode(esig, 0, esig.Length, sig, 0, logn);
+                sig_len = FalconCodec.comp_encode(esig, 0, esig.Length, sig, 0, logn);
                 if (sig_len == 0)
-                {
                     throw new InvalidOperationException("signature failed to generate");
-                }
             }
 
             // header
@@ -261,12 +252,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             // if (pksrc[pk+0] != 0x00 + this.logn) {
             //     return -1;
             // }
-            if (this.codec.modq_decode(h, 0, this.logn, pksrc, pk, CRYPTO_PUBLICKEYBYTES - 1)
+            if (FalconCodec.modq_decode(h, 0, this.logn, pksrc, pk, CRYPTO_PUBLICKEYBYTES - 1)
                 != CRYPTO_PUBLICKEYBYTES - 1)
             {
                 return -1;
             }
-            this.vrfy.to_ntt_monty(h, 0, this.logn);
+            FalconVrfy.to_ntt_monty(h, 0, this.logn);
 
             /*
             * Find nonce, signature, message length.
@@ -289,24 +280,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             if (attached)
             {
                 if (sig_len < 1 || sig_encoded[0] != (byte)(0x20 + this.logn))
-                {
                     return -1;
-                }
-                if (this.codec.comp_decode(sig, 0, this.logn, sig_encoded,
-                    1, sig_len - 1) != sig_len - 1)
-                {
+
+                if (FalconCodec.comp_decode(sig, 0, this.logn, sig_encoded, 1, sig_len - 1) != sig_len - 1)
                     return -1;
-                }
             }
             else
             {
-                if (sig_len < 1 || this.codec.comp_decode(sig, 0, this.logn, sig_encoded,
-    0, sig_len) != sig_len)
-                {
+                if (sig_len < 1 || FalconCodec.comp_decode(sig, 0, this.logn, sig_encoded, 0, sig_len) != sig_len)
                     return -1;
-                }
             }
-        
 
             /*
             * Hash nonce + message into a vector.
@@ -316,14 +299,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             sc.i_shake256_inject(nonce, 0, (int)this.noncelen);
             sc.i_shake256_inject(m, 0, m.Length);
             sc.i_shake256_flip();
-            this.common.hash_to_point_vartime(sc, hm, 0, this.logn);
+            FalconCommon.hash_to_point_vartime(sc, hm, 0, this.logn);
 
             /*
             * Verify signature.
             */
-            if (!this.vrfy.verify_raw(hm, 0, sig, 0, h, 0, this.logn, new ushort[n], 0)) {
+            if (!FalconVrfy.verify_raw(hm, 0, sig, 0, h, 0, this.logn, new ushort[n], 0))
                 return -1;
-            }
 
             /*
             * Return plaintext. - not in use

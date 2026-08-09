@@ -2,16 +2,8 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconVrfy
+    internal static class FalconVrfy
     {
-        FalconCommon common;
-        internal FalconVrfy() {
-            this.common = new FalconCommon();
-        }
-        internal FalconVrfy(FalconCommon common) {
-            this.common = common;
-        }
-
         /* 
         * License from the reference C code (the code was copied then modified
         * to function in C#):
@@ -52,10 +44,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *   R2 = 2^32 mod q
         */
 
-        const int Q = 12289;
-        const int Q0I = 12287;
-        const int R = 4091;
-        const int R2 = 10952;
+        internal const int Q = 12289;
+        internal const int Q0I = 12287;
+        internal const int R = 4091;
+        internal const int R2 = 10952;
 
         /*
         * Table for NTT, binary case:
@@ -63,7 +55,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * where g = 7 (it is a 2048-th primitive root of 1 modulo q)
         * and rev() is the bit-reversal function over 10 bits.
         */
-        internal ushort[] GMb = {
+        internal static readonly ushort[] GMb = {
             4091,  7888, 11060, 11208,  6960,  4342,  6275,  9759,
             1591,  6399,  9477,  5266,   586,  5825,  7538,  9710,
             1134,  6407,  1711,   965,  7099,  7674,  3743,  6442,
@@ -199,7 +191,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *   iGMb[x] = R*((1/g)^rev(x)) mod q
         * Since g = 7, 1/g = 8778 mod 12289.
         */
-        internal ushort[] iGMb = {
+        internal static readonly ushort[] iGMb = {
             4091,  4401,  1081,  1229,  2530,  6014,  7947,  5329,
             2579,  4751,  6464, 11703,  7023,  2812,  5890, 10698,
             3109,  2125,  1960, 10925, 10601, 10404,  4189,  1875,
@@ -334,7 +326,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Reduce a small signed integer modulo q. The source integer MUST
         * be between -q/2 and +q/2.
         */
-        internal uint mq_conv_small(int x)
+        internal static uint mq_conv_small(int x)
         {
             /*
             * If x < 0, the cast to uint will set the high bit to 1.
@@ -349,7 +341,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Addition modulo q. Operands must be in the 0..q-1 range.
         */
-        internal uint mq_add(uint x, uint y)
+        internal static uint mq_add(uint x, uint y)
         {
             /*
             * We compute x + y - q. If the result is negative, then the
@@ -368,7 +360,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Subtraction modulo q. Operands must be in the 0..q-1 range.
         */
-        internal uint mq_sub(uint x, uint y)
+        internal static uint mq_sub(uint x, uint y)
         {
             /*
             * As in mq_add(), we use a conditional addition to ensure the
@@ -384,7 +376,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Division by 2 modulo q. Operand must be in the 0..q-1 range.
         */
-        internal uint mq_rshift1(uint x)
+        internal static uint mq_rshift1(uint x)
         {
             x += (uint)(Q & -(x & 1));
             return (x >> 1);
@@ -395,7 +387,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * this function computes: x * y / R mod q
         * Operands must be in the 0..q-1 range.
         */
-        internal uint mq_montymul(uint x, uint y)
+        internal static uint mq_montymul(uint x, uint y)
         {
             uint z, w;
 
@@ -430,15 +422,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Montgomery squaring (computes (x^2)/R).
         */
-        internal uint mq_montysqr(uint x)
-        {
-            return mq_montymul(x, x);
-        }
+        internal static uint mq_montysqr(uint x) => mq_montymul(x, x);
 
         /*
         * Divide x by y modulo q = 12289.
         */
-        internal uint mq_div_12289(uint x, uint y)
+        internal static uint mq_div_12289(uint x, uint y)
         {
             /*
             * We invert y by computing y^(q-2) mod q.
@@ -503,7 +492,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute NTT on a ring element.
         */
-        internal void mq_NTT(ushort[] asrc, int a, uint logn)
+        internal static void mq_NTT(ushort[] asrc, int a, uint logn)
         {
             int n, t, m;
 
@@ -535,7 +524,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute the inverse NTT on a ring element, binary case.
         */
-        internal void mq_iNTT(ushort[] asrc, int a, uint logn)
+        internal static void mq_iNTT(ushort[] asrc, int a, uint logn)
         {
             int n, t, m;
             uint ni;
@@ -590,7 +579,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Convert a polynomial (mod q) to Montgomery representation.
         */
-        internal void mq_poly_tomonty(ushort[] fsrc, int f, uint logn)
+        internal static void mq_poly_tomonty(ushort[] fsrc, int f, uint logn)
         {
             int u, n;
 
@@ -604,7 +593,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Multiply two polynomials together (NTT representation, and using
         * a Montgomery multiplication). Result f*g is written over f.
         */
-        internal void mq_poly_montymul_ntt(ushort[] fsrc, int f, ushort[] gsrc, int g, uint logn)
+        internal static void mq_poly_montymul_ntt(ushort[] fsrc, int f, ushort[] gsrc, int g, uint logn)
         {
             int u, n;
 
@@ -617,7 +606,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Subtract polynomial g from polynomial f.
         */
-        internal void mq_poly_sub(ushort[] fsrc, int f, ushort[] gsrc, int g, uint logn)
+        internal static void mq_poly_sub(ushort[] fsrc, int f, ushort[] gsrc, int g, uint logn)
         {
             int u, n;
 
@@ -629,13 +618,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
         /* ===================================================================== */
 
-        internal void to_ntt_monty(ushort[] hsrc, int h, uint logn)
+        internal static void to_ntt_monty(ushort[] hsrc, int h, uint logn)
         {
             mq_NTT(hsrc, h, logn);
             mq_poly_tomonty(hsrc, h, logn);
         }
 
-        internal bool verify_raw(ushort[] c0src, int c0, short[] s2src, int s2,
+        internal static bool verify_raw(ushort[] c0src, int c0, short[] s2src, int s2,
             ushort[] hsrc, int h, uint logn, ushort[] tmpsrc, int tmp)
         {
             int u, n;
@@ -681,10 +670,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Signature is valid if and only if the aggregate (-s1,s2) vector
             * is short enough.
             */
-            return this.common.is_short(shorttmp, 0, s2src, s2, logn);
+            return FalconCommon.is_short(shorttmp, 0, s2src, s2, logn);
         }
 
-        internal int compute_public(ushort[] hsrc, int h,
+        internal static int compute_public(ushort[] hsrc, int h,
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint logn, ushort[] tmpsrc, int tmp)
         {
             int u, n;
@@ -708,7 +697,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return 1;
         }
 
-        internal int complete_private(sbyte[] Gsrc, int G,
+        internal static int complete_private(sbyte[] Gsrc, int G,
             sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc, int F,
             uint logn, ushort[] tmpsrc, int tmp)
         {
@@ -747,7 +736,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return (success >> 31) & 1;
         }
 
-        internal int is_invertible(
+        internal static int is_invertible(
             short[] s2src, int s2, uint logn, ushort[] tmpsrc, int tmp)
         {
             int u, n;
@@ -771,7 +760,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return (int)(1u - (r >> 31));
         }
 
-        internal int verify_recover(ushort[] hsrc, int h,
+        internal static int verify_recover(ushort[] hsrc, int h,
             ushort[] c0src, int c0, short[] s1src, int s1, short[] s2src, int s2,
             uint logn, ushort[] tmpsrc, int tmp)
         {
@@ -821,11 +810,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * check that the rebuilt public key matches the expected
             * value (e.g. through a hash).
             */
-            r = ~r & (uint)-(this.common.is_short(s1src, s1, s2src, s2, logn) ? 1 : 0);
+            r = ~r & (uint)-(FalconCommon.is_short(s1src, s1, s2src, s2, logn) ? 1 : 0);
             return (int)(r >> 31);
         }
 
-        internal int count_nttzero(short[] sigsrc, int sig, uint logn, ushort[] tmpsrc, int tmp)
+        internal static int count_nttzero(short[] sigsrc, int sig, uint logn, ushort[] tmpsrc, int tmp)
         {
             int s2;
             int u, n;

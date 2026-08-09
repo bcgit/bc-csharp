@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         public static readonly FalconParameters falcon_1024 = new FalconParameters("falcon1024", 10, 40);
 
         private readonly string name;
-        private readonly uint logn;
+        internal readonly uint logn;
         private readonly uint nonce_length;
 
         private FalconParameters(string name, uint logn, uint nonce_length)
@@ -26,5 +26,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         public int NonceLength => Convert.ToInt32(nonce_length);
 
         public string Name => name;
+
+        public override string ToString() => Name;
     }
 }

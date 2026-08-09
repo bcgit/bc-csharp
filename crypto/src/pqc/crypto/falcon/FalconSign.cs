@@ -2,17 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconSign
+    internal class FalconSign
     {
+        private readonly FalconFFT ffte;
+        private readonly FprEngine fpre;
 
-        FalconFFT ffte;
-        FprEngine fpre;
-        FalconCommon common;
-
-        internal FalconSign(FalconCommon common) {
-            this.ffte = new FalconFFT();
+        internal FalconSign()
+        {
             this.fpre = new FprEngine();
-            this.common = common;
+            this.ffte = new FalconFFT(this.fpre);
         }
 
         /* 
@@ -75,17 +73,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * tmp[] must have room for at least one polynomial.
         */
-        internal void ffLDL_fft_inner(FalconFPR[] treesrc, int tree,
-            FalconFPR[] g0src, int g0, FalconFPR[] g1src, int g1, uint logn, FalconFPR[] tmpsrc, int tmp)
+        internal void ffLDL_fft_inner(FalconFPR[] treesrc, int tree, FalconFPR[] g0src, int g0, FalconFPR[] g1src,
+            int g1, uint logn, FalconFPR[] tmpsrc, int tmp)
         {
-            int n, hn;
-
-            n = (int)1 << (int)logn;
-            if (n == 1) {
+            int n = (int)1 << (int)logn;
+            if (n == 1)
+            {
                 treesrc[tree+0] = g0src[g0 + 0];
                 return;
             }
-            hn = n >> 1;
+            int hn = n >> 1;
 
             /*
             * The LDL decomposition yields L (which is written in the tree)
@@ -107,10 +104,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Each split result is the first row of a new auto-adjoint
             * quasicyclic matrix for the next recursive step.
             */
-            ffLDL_fft_inner(treesrc, tree + n,
-                g1src, g1, g1src, g1 + hn, logn - 1, tmpsrc, tmp);
-            ffLDL_fft_inner(treesrc, tree + n + (int)ffLDL_treesize(logn - 1),
-                g0src, g0, g0src, g0 + hn, logn - 1, tmpsrc, tmp);
+            ffLDL_fft_inner(treesrc, tree + n, g1src, g1, g1src, g1 + hn, logn - 1, tmpsrc, tmp);
+            ffLDL_fft_inner(treesrc, tree + n + (int)ffLDL_treesize(logn - 1), g0src, g0, g0src, g0 + hn, logn - 1,
+                tmpsrc, tmp);
         }
 
         /*
@@ -124,21 +120,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * arrays g00, g01 and g11. tmp[] should have room for at least three
         * polynomials of 2^logn elements each.
         */
-        internal void ffLDL_fft(FalconFPR[] treesrc, int tree, FalconFPR[] g00src, int g00,
-            FalconFPR[] g01src, int g01, FalconFPR[] g11src, int g11,
-            uint logn, FalconFPR[] tmpsrc, int tmp)
+        internal void ffLDL_fft(FalconFPR[] treesrc, int tree, FalconFPR[] g00src, int g00, FalconFPR[] g01src, int g01,
+            FalconFPR[] g11src, int g11, uint logn, FalconFPR[] tmpsrc, int tmp)
         {
-            int n, hn;
-            int d00, d11;
-
-            n = (int)1 << (int)logn;
-            if (n == 1) {
+            int n = (int)1 << (int)logn;
+            if (n == 1)
+            {
                 treesrc[tree+0] = g00src[g00+0];
                 return;
             }
-            hn = n >> 1;
-            d00 = tmp;
-            d11 = tmp + n;
+            int hn = n >> 1;
+            int d00 = tmp;
+            int d11 = tmp + n;
             tmp += n << 1;
 
             // memcpy(d00, g00, n * sizeof *g00);
@@ -149,10 +142,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             this.ffte.poly_split_fft(tmpsrc, d00, tmpsrc, d00 + hn, tmpsrc, d11, logn);
             // memcpy(d11, tmp, n * sizeof *tmp);
             Array.Copy(tmpsrc, tmp, tmpsrc, d11, n);
-            ffLDL_fft_inner(treesrc, tree + n,
-                tmpsrc, d11, tmpsrc, d11 + hn, logn - 1, tmpsrc, tmp);
-            ffLDL_fft_inner(treesrc, tree + n + (int)ffLDL_treesize(logn - 1),
-                tmpsrc, d00, tmpsrc, d00 + hn, logn - 1, tmpsrc, tmp);
+            ffLDL_fft_inner(treesrc, tree + n, tmpsrc, d11, tmpsrc, d11 + hn, logn - 1, tmpsrc, tmp);
+            ffLDL_fft_inner(treesrc, tree + n + (int)ffLDL_treesize(logn - 1), tmpsrc, d00, tmpsrc, d00 + hn, logn - 1,
+                tmpsrc, tmp);
         }
 
         /*
@@ -164,20 +156,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * TODO: make an iterative version.
             */
-            int n;
 
-            n = (int)1 << (int)logn;
-            if (n == 1) {
+            int n = (int)1 << (int)logn;
+            if (n == 1)
+            {
                 /*
                 * We actually store in the tree leaf the inverse of
                 * the value mandated by the specification: this
                 * saves a division both here and in the sampler.
                 */
                 treesrc[tree+0] = this.fpre.fpr_mul(this.fpre.fpr_sqrt(treesrc[tree+0]), this.fpre.fpr_inv_sigma[orig_logn]);
-            } else {
+            }
+            else
+            {
                 ffLDL_binary_normalize(treesrc, tree + n, orig_logn, logn - 1);
-                ffLDL_binary_normalize(treesrc, tree + n + (int)ffLDL_treesize(logn - 1),
-                    orig_logn, logn - 1);
+                ffLDL_binary_normalize(treesrc, tree + n + (int)ffLDL_treesize(logn - 1), orig_logn, logn - 1);
             }
         }
 
@@ -189,11 +182,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         */
         internal void smallints_to_fpr(FalconFPR[] rsrc, int r, sbyte[] tsrc, int t, uint logn)
         {
-            int n, u;
-
-            n = (int)1 << (int)logn;
-            for (u = 0; u < n; u ++) {
-                rsrc[r+u] = this.fpre.fpr_of(tsrc[t+u]);
+            int n = (int)1 << (int)logn;
+            for (int u = 0; u < n; ++u)
+            {
+                rsrc[r + u] = this.fpre.fpr_of(tsrc[t + u]);
             }
         }
 
@@ -202,31 +194,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *  - The B0 matrix (four elements)
         *  - The ffLDL tree
         */
+        int skoff_b00(uint logn) => 0;
 
-        int skoff_b00(uint logn)
-        {
-            return 0;
-        }
+        int skoff_b01(uint logn) => (int)1 << (int)logn;
 
-        int skoff_b01(uint logn)
-        {
-            return (int)1 << (int)logn;
-        }
+        int skoff_b10(uint logn) => 2 * (int)1 << (int)logn;
 
-        int skoff_b10(uint logn)
-        {
-            return 2 * (int)1 << (int)logn;
-        }
+        int skoff_b11(uint logn) => 3 * (int)1 << (int)logn;
 
-        int skoff_b11(uint logn)
-        {
-            return 3 * (int)1 << (int)logn;
-        }
-
-        int skoff_tree(uint logn)
-        {
-            return 4 * (int)1 << (int)logn;
-        }
+        int skoff_tree(uint logn) => 4 * (int)1 << (int)logn;
 
         /*
         * Perform Fast Fourier Sampling for target vector t. The Gram matrix
@@ -239,26 +215,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             FalconFPR[] g00src, int g00, FalconFPR[] g01src, int g01, FalconFPR[] g11src, int g11,
             uint orig_logn, uint logn, FalconFPR[] tmpsrc, int tmp)
         {
-            int n, hn;
-            int z0, z1;
-
             /*
             * Deepest level: the LDL tree leaf value is just g00 (the
             * array has length only 1 at this point); we normalize it
             * with regards to sigma, then use it for sampling.
             */
-            if (logn == 0) {
-                FalconFPR leaf;
-
-                leaf = g00src[g00+0];
+            if (logn == 0)
+            {
+                FalconFPR leaf = g00src[g00+0];
                 leaf = this.fpre.fpr_mul(this.fpre.fpr_sqrt(leaf), this.fpre.fpr_inv_sigma[orig_logn]);
                 t0src[t0+0] = this.fpre.fpr_of(samp.Sample(t0src[t0+0], leaf));
                 t1src[t1+0] = this.fpre.fpr_of(samp.Sample(t1src[t1+0], leaf));
                 return;
             }
 
-            n = (int)1 << (int)logn;
-            hn = n >> 1;
+            int n = (int)1 << (int)logn;
+            int hn = n >> 1;
 
             /*
             * Decompose G into LDL. We only need d00 (identical to g00),
@@ -295,7 +267,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * halves, using the right sub-tree. The result is merged
             * back into tmp + 2*n.
             */
-            z1 = tmp + n;
+            int z1 = tmp + n;
             this.ffte.poly_split_fft(tmpsrc, z1, tmpsrc, z1 + hn, tmpsrc, t1, logn);
             ffSampling_fft_dyntree(samp, tmpsrc, z1, tmpsrc, z1 + hn,
                 g11src, g11, g11src, g11 + hn, g01src, g01 + hn, orig_logn, logn - 1, tmpsrc, z1 + n);
@@ -320,7 +292,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Second recursive invocation, on the split tb0 (currently in t0)
             * and the left sub-tree.
             */
-            z0 = tmp;
+            int z0 = tmp;
             this.ffte.poly_split_fft(tmpsrc, z0, tmpsrc, z0 + hn, tmpsrc, t0, logn);
             ffSampling_fft_dyntree(samp, tmpsrc, z0, tmpsrc, z0 + hn,
                 g00src, g00, g00src, g00 + hn, g01src, g01, orig_logn, logn - 1, tmpsrc, z0 + n);
@@ -343,7 +315,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * When logn == 2, we inline the last two recursion levels.
             */
-            if (logn == 2) {
+            if (logn == 2)
+            {
                 FalconFPR x0, x1, y0, y1, w0, w1, w2, w3, sigma;
                 FalconFPR a_re, a_im, b_re, b_im, c_re, c_im;
 
@@ -473,7 +446,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * smallest size for which Falcon is mathematically defined, but
             * of course way too insecure to be of any use).
             */
-            if (logn == 1) {
+            if (logn == 1)
+            {
                 FalconFPR x0, x1, y0, y1, sigma;
                 FalconFPR a_re, a_im, b_re, b_im, c_re, c_im;
 
@@ -563,31 +537,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * tmp[] must have room for at least six polynomials.
         */
-        internal int do_sign_tree(SamplerZ samp, short[] s2src, int s2,
-            FalconFPR[] ex_keysrc, int expanded_key,
-            ushort[] hmsrc, int hm,
-            uint logn, FalconFPR[] tmpsrc, int tmp)
+        internal int do_sign_tree(SamplerZ samp, short[] s2src, int s2, FalconFPR[] ex_keysrc, int expanded_key,
+            ushort[] hmsrc, int hm, uint logn, FalconFPR[] tmpsrc, int tmp)
         {
-            int n, u;
-            int t0, t1, tx, ty;
-            int b00, b01, b10, b11, tree;
-            FalconFPR ni;
-            uint sqn, ng;
-            short[] s1tmp, s2tmp;
+            int u;
 
-            n = (int)1 << (int)logn;
-            t0 = tmp;
-            t1 = t0 + n;
-            b00 = expanded_key + skoff_b00(logn);
-            b01 = expanded_key + skoff_b01(logn);
-            b10 = expanded_key + skoff_b10(logn);
-            b11 = expanded_key + skoff_b11(logn);
-            tree = expanded_key + skoff_tree(logn);
+            int n = (int)1 << (int)logn;
+            int t0 = tmp;
+            int t1 = t0 + n;
+            int b00 = expanded_key + skoff_b00(logn);
+            int b01 = expanded_key + skoff_b01(logn);
+            int b10 = expanded_key + skoff_b10(logn);
+            int b11 = expanded_key + skoff_b11(logn);
+            int tree = expanded_key + skoff_tree(logn);
 
             /*
             * Set the target vector to [hm, 0] (hm is the hashed message).
             */
-            for (u = 0; u < n; u ++) {
+            for (u = 0; u < n; u ++)
+            {
                 tmpsrc[t0+u] = this.fpre.fpr_of(hmsrc[hm + u]);
                 /* This is implicit.
                 t1src[t1 + u] = fpr_zero;
@@ -599,7 +567,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * vector (after normalization with regards to modulus).
             */
             this.ffte.FFT(tmpsrc, t0, logn);
-            ni = this.fpre.fpr_inverse_of_q;
+            FalconFPR ni = this.fpre.fpr_inverse_of_q;
             // memcpy(t1, t0, n * sizeof *t0);
             Array.Copy(tmpsrc, t0, tmpsrc, t1, n);
             this.ffte.poly_mul_fft(tmpsrc, t1, ex_keysrc, b01, logn);
@@ -607,8 +575,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             this.ffte.poly_mul_fft(tmpsrc, t0, ex_keysrc, b11, logn);
             this.ffte.poly_mulconst(tmpsrc, t0, ni, logn);
 
-            tx = t1 + n;
-            ty = tx + n;
+            int tx = t1 + n;
+            int ty = tx + n;
 
             /*
             * Apply sampling. Output is written back in [tx, ty].
@@ -640,14 +608,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Compute the signature.
             */
-            s1tmp = new short[n];
-            s2tmp = new short[n];
-            sqn = 0;
-            ng = 0;
-            for (u = 0; u < n; u ++) {
-                int z;
-
-                z = (int)hmsrc[hm + u] - (int)this.fpre.fpr_rint(tmpsrc[t0+u]);
+            short[] s1tmp = new short[n];
+            short[] s2tmp = new short[n];
+            uint sqn = 0;
+            uint ng = 0;
+            for (u = 0; u < n; u ++)
+            {
+                int z = (int)hmsrc[hm + u] - (int)this.fpre.fpr_rint(tmpsrc[t0+u]);
                 sqn += (uint)(z * z);
                 ng |= sqn;
                 s1tmp[u] = (short)z;
@@ -663,10 +630,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * s2[] may overlap with the hashed message hm[] and we need
             * hm[] for the next iteration.
             */
-            for (u = 0; u < n; u ++) {
+            for (u = 0; u < n; u ++)
+            {
                 s2tmp[u] = (short)-this.fpre.fpr_rint(tmpsrc[t1 + u]);
             }
-            if (this.common.is_short_half(sqn, s2tmp, 0, logn)) {
+            if (FalconCommon.is_short_half(sqn, s2tmp, 0, logn))
+            {
                 // memcpy(s2, s2tmp, n * sizeof *s2);
                 Array.Copy(s2tmp, 0, s2src, s2, n);
                 // memcpy(tmp, s1tmp, n * sizeof *s1tmp);
@@ -685,28 +654,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * tmp[] must have room for at least nine polynomials.
         */
-        internal int do_sign_dyn(SamplerZ samp, short[] s2src, int s2,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g,
-            sbyte[] Fsrc, int F, sbyte[] Gsrc, int G,
-            ushort[] hmsrc, int hm, uint logn, FalconFPR[] tmpsrc, int tmp)
+        internal int do_sign_dyn(SamplerZ samp, short[] s2src, int s2, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
+            sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hmsrc, int hm, uint logn, FalconFPR[] tmpsrc, int tmp)
         {
-            int n, u;
-            int t0, t1, tx, ty;
-            int b00, b01, b10, b11;
-            int g00, g01, g11;
-            FalconFPR ni;
-            uint sqn, ng;
-            short[] s1tmp, s2tmp;
-
-            n = (int)1 << (int)logn;
+            int u;
+            int n = (int)1 << (int)logn;
 
             /*
             * Lattice basis is B = [[g, -f], [G, -F]]. We convert it to FFT.
             */
-            b00 = tmp;
-            b01 = b00 + n;
-            b10 = b01 + n;
-            b11 = b10 + n;
+            int b00 = tmp;
+            int b01 = b00 + n;
+            int b10 = b01 + n;
+            int b11 = b10 + n;
             smallints_to_fpr(tmpsrc, b01, fsrc, f, logn);
             smallints_to_fpr(tmpsrc, b00, gsrc, g, logn);
             smallints_to_fpr(tmpsrc, b11, Fsrc, F, logn);
@@ -732,8 +692,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * We _replace_ the matrix B with the Gram matrix, but we
             * must keep b01 and b11 for computing the target vector.
             */
-            t0 = b11 + n;
-            t1 = t0 + n;
+            int t0 = b11 + n;
+            int t1 = t0 + n;
 
             // memcpy(t0, b01, n * sizeof *b01);
             Array.Copy(tmpsrc, b01, tmpsrc, t0, n);
@@ -760,9 +720,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * of the Gram matrix uses the first 3*n slots of tmp[], followed
             * by b11 and b01 (in that order).
             */
-            g00 = b00;
-            g01 = b01;
-            g11 = b10;
+            int g00 = b00;
+            int g01 = b01;
+            int g11 = b10;
             b01 = t0;
             t0 = b01 + n;
             t1 = t0 + n;
@@ -787,7 +747,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * vector (after normalization with regards to modulus).
             */
             this.ffte.FFT(tmpsrc, t0, logn);
-            ni = this.fpre.fpr_inverse_of_q;
+            FalconFPR ni = this.fpre.fpr_inverse_of_q;
             // memcpy(t1, t0, n * sizeof *t0);
             Array.Copy(tmpsrc, t0, tmpsrc, t1, n);
             this.ffte.poly_mul_fft(tmpsrc, t1, tmpsrc, b01, logn);
@@ -836,8 +796,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             this.ffte.FFT(tmpsrc, b10, logn);
             this.ffte.poly_neg(tmpsrc, b01, logn);
             this.ffte.poly_neg(tmpsrc, b11, logn);
-            tx = t1 + n;
-            ty = tx + n;
+            int tx = t1 + n;
+            int ty = tx + n;
 
             /*
             * Get the lattice point corresponding to that tiny vector.
@@ -860,13 +820,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             this.ffte.iFFT(tmpsrc, t0, logn);
             this.ffte.iFFT(tmpsrc, t1, logn);
 
-            s1tmp = new short[n];
-            sqn = 0;
-            ng = 0;
-            for (u = 0; u < n; u ++) {
-                int z;
-
-                z = (int)hmsrc[hm + u] - (int)this.fpre.fpr_rint(tmpsrc[t0+u]);
+            short[] s1tmp = new short[n];
+            uint sqn = 0;
+            uint ng = 0;
+            for (u = 0; u < n; u ++)
+            {
+                int z = (int)hmsrc[hm + u] - (int)this.fpre.fpr_rint(tmpsrc[t0+u]);
                 sqn += (uint)(z * z);
                 ng |= sqn;
                 s1tmp[u] = (short)z;
@@ -882,11 +841,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * s2[] may overlap with the hashed message hm[] and we need
             * hm[] for the next iteration.
             */
-            s2tmp = new short[n];
-            for (u = 0; u < n; u ++) {
+            short[] s2tmp = new short[n];
+            for (u = 0; u < n; u ++)
+            {
                 s2tmp[u] = (short)-this.fpre.fpr_rint(tmpsrc[t1 + u]);
             }
-            if (this.common.is_short_half(sqn, s2tmp, 0, logn)) {
+            if (FalconCommon.is_short_half(sqn, s2tmp, 0, logn))
+            {
                 // memcpy(s2, s2tmp, n * sizeof *s2);
                 Array.Copy(s2tmp, 0, s2src, s2, n);
                 // memcpy(tmp, s1tmp, n * sizeof *s1tmp);
@@ -896,13 +857,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return 0;
         }
 
-        internal void sign_tree(short[] sigsrc, int sig, SHAKE256 rng,
-            FalconFPR[] ex_keysrc, int expanded_key,
+        internal void sign_tree(short[] sigsrc, int sig, SHAKE256 rng, FalconFPR[] ex_keysrc, int expanded_key,
             ushort[] hmsrc, int hm, uint logn, FalconFPR[] tmpsrc, int tmp)
         {
-
             int ftmp = tmp;
-            for (;;) {
+            for (;;)
+            {
                 /*
                 * Signature produces short vectors s1 and s2. The
                 * signature is acceptable only if the aggregate vector
@@ -922,24 +882,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 prng.prng_init(rng);
                 SamplerZ samp = new SamplerZ(prng, this.fpre.fpr_sigma_min[logn], this.fpre);
 
-
                 /*
                 * Do the actual signature.
                 */
-                if (do_sign_tree(samp, sigsrc, sig,
-                    ex_keysrc, expanded_key, hmsrc, hm, logn, tmpsrc, ftmp) != 0)
-                {
+                if (do_sign_tree(samp, sigsrc, sig, ex_keysrc, expanded_key, hmsrc, hm, logn, tmpsrc, ftmp) != 0)
                     break;
-                }
             }
         }
 
-        internal void sign_dyn(short[] sigsrc, int sig, SHAKE256 rng,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g,
-            sbyte[] Fsrc, int F, sbyte[] Gsrc, int G,
-            ushort[] hmsrc, int hm, uint logn, FalconFPR[] tmpsrc, int tmp)
+        internal void sign_dyn(short[] sigsrc, int sig, SHAKE256 rng, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
+            sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hmsrc, int hm, uint logn, FalconFPR[] tmpsrc, int tmp)
         {
-            for (;;) {
+            for (;;)
+            {
                 /*
                 * Signature produces short vectors s1 and s2. The
                 * signature is acceptable only if the aggregate vector
@@ -963,8 +918,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 /*
                 * Do the actual signature.
                 */
-                if (do_sign_dyn(samp, sigsrc, sig,
-                    fsrc, f, gsrc,  g, Fsrc,  F, Gsrc,  G, hmsrc, hm, logn, tmpsrc, tmp) != 0)
+                if (do_sign_dyn(samp, sigsrc, sig, fsrc, f, gsrc,  g, Fsrc,  F, Gsrc,  G, hmsrc, hm, logn, tmpsrc, tmp)
+                    != 0)
                 {
                     break;
                 }
