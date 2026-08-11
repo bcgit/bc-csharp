@@ -1,13 +1,8 @@
-using System;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    internal class FprEngine
+    internal static class FprEngine
     {
-        internal FalconFPR Fpr(double v)
-        {
-            return new FalconFPR(v);
-        }
+        private static FalconFPR Fpr(double v) => new FalconFPR(v);
 
         /* 
         * License from the reference C code (the code was copied then modified
@@ -38,12 +33,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * ===========================(LICENSE END)=============================
         */
 
-        internal FalconFPR fpr_of(long i)
-        {
-            return Fpr((double)i);
-        }
+        internal static FalconFPR fpr_of(long i) => Fpr((double)i);
 
-        internal long fpr_rint(FalconFPR x)
+        internal static long fpr_rint(FalconFPR x)
         {
             /*
             * We do not want to use llrint() since it might be not
@@ -59,13 +51,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * cast to an integer to access the sign and select the proper
             * value. Such casts also allow us to find out if |x| < 2^52.
             */
-            long sx, tx, rp, rn, m;
-            uint ub;
-
-            sx = (long)(x.v - 1.0);
-            tx = (long)x.v;
-            rp = (long)(x.v + 4503599627370496.0) - 4503599627370496;
-            rn = (long)(x.v - 4503599627370496.0) + 4503599627370496;
+            long sx = (long)(x.v - 1.0);
+            long tx = (long)x.v;
+            long rp = (long)(x.v + 4503599627370496.0) - 4503599627370496;
+            long rn = (long)(x.v - 4503599627370496.0) + 4503599627370496;
 
             /*
             * If tx >= 2^52 or tx < -2^52, then result is tx.
@@ -80,7 +69,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Clamp rp to zero if tx < 0.
             * Clamp rn to zero if tx >= 0.
             */
-            m = sx >> 63;
+            long m = sx >> 63;
             rn &= m;
             rp &= ~m;
 
@@ -89,7 +78,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * all ones, then tx >= 2^52 or tx < -2^52, and we clamp both
             * rp and rn to zero. Otherwise, we clamp tx to zero.
             */
-            ub = (uint)((ulong)tx >> 52);
+            uint ub = (uint)((ulong)tx >> 52);
             m = -(long)((((ub + 1) & 0xFFF) - 2) >> 31);
             rp &= m;
             rn &= m;
@@ -102,10 +91,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return tx | rn | rp;
         }
 
-        internal long fpr_floor(FalconFPR x)
+        internal static long fpr_floor(FalconFPR x)
         {
-            long r;
-
             /*
             * The cast performs a trunc() (rounding toward 0) and thus is
             * wrong by 1 for most negative values. The correction below is
@@ -116,72 +103,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * if it is false on a given arch, then chances are that the FPU
             * itself is not constant-time, making the point moot).
             */
-            r = (long)x.v;
+            long r = (long)x.v;
             return r - ((x.v < (double)r) ? 1 : 0);
         }
 
-        internal long fpr_trunc(FalconFPR x)
-        {
-            return (long)x.v;
-        }
+        internal static long fpr_trunc(FalconFPR x) => (long)x.v;
 
-        internal FalconFPR fpr_add(FalconFPR x, FalconFPR y)
-        {
-            return Fpr(x.v + y.v);
-        }
+        internal static FalconFPR fpr_add(FalconFPR x, FalconFPR y) => Fpr(x.v + y.v);
 
-        internal FalconFPR fpr_sub(FalconFPR x, FalconFPR y)
-        {
-            return Fpr(x.v - y.v);
-        }
+        internal static FalconFPR fpr_sub(FalconFPR x, FalconFPR y) => Fpr(x.v - y.v);
 
-        internal FalconFPR fpr_neg(FalconFPR x)
-        {
-            return Fpr(-x.v);
-        }
+        internal static FalconFPR fpr_neg(FalconFPR x) => Fpr(-x.v);
 
-        internal FalconFPR fpr_half(FalconFPR x)
-        {
-            return Fpr(x.v * 0.5);
-        }
+        internal static FalconFPR fpr_half(FalconFPR x) => Fpr(x.v * 0.5);
 
-        internal FalconFPR fpr_double(FalconFPR x)
-        {
-            return Fpr(x.v + x.v);
-        }
+        internal static FalconFPR fpr_double(FalconFPR x) => Fpr(x.v + x.v);
 
-        internal FalconFPR fpr_mul(FalconFPR x, FalconFPR y)
-        {
-            return Fpr(x.v * y.v);
-        }
+        internal static FalconFPR fpr_mul(FalconFPR x, FalconFPR y) => Fpr(x.v * y.v);
 
-        internal FalconFPR fpr_sqr(FalconFPR x)
-        {
-            return Fpr(x.v * x.v);
-        }
+        internal static FalconFPR fpr_sqr(FalconFPR x) => Fpr(x.v * x.v);
 
-        internal FalconFPR fpr_inv(FalconFPR x)
-        {
-            return Fpr(1.0 / x.v);
-        }
+        internal static FalconFPR fpr_inv(FalconFPR x) => Fpr(1.0 / x.v);
 
-        internal FalconFPR fpr_div(FalconFPR x, FalconFPR y)
-        {
-            return Fpr(x.v / y.v);
-        }
+        internal static FalconFPR fpr_div(FalconFPR x, FalconFPR y) => Fpr(x.v / y.v);
 
+        internal static FalconFPR fpr_sqrt(FalconFPR x) => Fpr(System.Math.Sqrt(x.v));
 
-        internal FalconFPR fpr_sqrt(FalconFPR x)
-        {
-            return Fpr(System.Math.Sqrt(x.v));
-        }
+        internal static bool fpr_lt(FalconFPR x, FalconFPR y) => x.v < y.v;
 
-        internal bool fpr_lt(FalconFPR x, FalconFPR y)
-        {
-            return x.v < y.v;
-        }
-
-        internal ulong fpr_expm_p63(FalconFPR x, FalconFPR ccs)
+        internal static ulong fpr_expm_p63(FalconFPR x, FalconFPR ccs)
         {
             /*
             * Polynomial approximation of exp(-x) is taken from FACCT:
@@ -194,15 +144,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * 2^(-50) from the true mathematical value.
             */
 
-
             /*
             * Normal implementation uses Horner's method, which minimizes
             * the number of operations.
             */
 
-            double d, y;
-
-            d = x.v;
+            double d = x.v, y;
             y = 0.000000002073772366009083061987;
             y = 0.000000025299506379442070029551 - y * d;
             y = 0.000000275607356160477811864927 - y * d;
@@ -218,10 +165,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             y = 1.000000000000000000000000000000 - y * d;
             y *= ccs.v;
             return (ulong)(y * fpr_ptwo63.v);
-
         }
 
-        internal FalconFPR[] fpr_gm_tab = {
+        internal static readonly FalconFPR[] fpr_gm_tab = {
                 new FalconFPR(0), new FalconFPR(0), /* unused */
                 new FalconFPR(-0.000000000000000000000000000), new FalconFPR( 1.000000000000000000000000000),
                 new FalconFPR( 0.707106781186547524400844362), new FalconFPR( 0.707106781186547524400844362),
@@ -1248,7 +1194,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 new FalconFPR(-0.999995293809576171511580126), new FalconFPR( 0.003067956762965976270145365)
         };
 
-        internal FalconFPR[] fpr_p2_tab = {
+        internal static readonly FalconFPR[] fpr_p2_tab = {
                 new FalconFPR( 2.00000000000 ),
                 new FalconFPR( 1.00000000000 ),
                 new FalconFPR( 0.50000000000 ),
@@ -1261,25 +1207,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 new FalconFPR( 0.00390625000 ),
                 new FalconFPR( 0.00195312500 )
         };
-        internal FalconFPR fpr_log2 = new FalconFPR(0.69314718055994530941723212146);
-        internal FalconFPR fpr_inv_log2 = new FalconFPR(1.4426950408889634073599246810);
-        internal FalconFPR fpr_bnorm_max = new FalconFPR(16822.4121);
-        internal FalconFPR fpr_zero = new FalconFPR(0.0);
-        internal FalconFPR fpr_one = new FalconFPR(1.0);
-        internal FalconFPR fpr_two = new FalconFPR(2.0);
-        internal FalconFPR fpr_onehalf = new FalconFPR(0.5);
-        internal FalconFPR fpr_invsqrt2 = new FalconFPR(0.707106781186547524400844362105);
-        internal FalconFPR fpr_invsqrt8 = new FalconFPR(0.353553390593273762200422181052);
-        internal FalconFPR fpr_ptwo31 = new FalconFPR(2147483648.0);
-        internal FalconFPR fpr_ptwo31m1 = new FalconFPR(2147483647.0);
-        internal FalconFPR fpr_mtwo31m1 = new FalconFPR(-2147483647.0);
-        internal FalconFPR fpr_ptwo63m1 = new FalconFPR(9223372036854775807.0);
-        internal FalconFPR fpr_mtwo63m1 = new FalconFPR(-9223372036854775807.0);
-        internal FalconFPR fpr_ptwo63 = new FalconFPR(9223372036854775808.0);
-        internal FalconFPR fpr_q = new FalconFPR(12289.0);
-        internal FalconFPR fpr_inverse_of_q = new FalconFPR(1.0 / 12289.0);
-        internal FalconFPR fpr_inv_2sqrsigma0 = new FalconFPR(0.150865048875372721532312163019);
-        internal FalconFPR[] fpr_inv_sigma = {
+        internal static readonly FalconFPR fpr_log2 = new FalconFPR(0.69314718055994530941723212146);
+        internal static readonly FalconFPR fpr_inv_log2 = new FalconFPR(1.4426950408889634073599246810);
+        internal static readonly FalconFPR fpr_bnorm_max = new FalconFPR(16822.4121);
+        internal static readonly FalconFPR fpr_zero = new FalconFPR(0.0);
+        internal static readonly FalconFPR fpr_one = new FalconFPR(1.0);
+        internal static readonly FalconFPR fpr_two = new FalconFPR(2.0);
+        internal static readonly FalconFPR fpr_onehalf = new FalconFPR(0.5);
+        internal static readonly FalconFPR fpr_invsqrt2 = new FalconFPR(0.707106781186547524400844362105);
+        internal static readonly FalconFPR fpr_invsqrt8 = new FalconFPR(0.353553390593273762200422181052);
+        internal static readonly FalconFPR fpr_ptwo31 = new FalconFPR(2147483648.0);
+        internal static readonly FalconFPR fpr_ptwo31m1 = new FalconFPR(2147483647.0);
+        internal static readonly FalconFPR fpr_mtwo31m1 = new FalconFPR(-2147483647.0);
+        internal static readonly FalconFPR fpr_ptwo63m1 = new FalconFPR(9223372036854775807.0);
+        internal static readonly FalconFPR fpr_mtwo63m1 = new FalconFPR(-9223372036854775807.0);
+        internal static readonly FalconFPR fpr_ptwo63 = new FalconFPR(9223372036854775808.0);
+        internal static readonly FalconFPR fpr_q = new FalconFPR(12289.0);
+        internal static readonly FalconFPR fpr_inverse_of_q = new FalconFPR(1.0 / 12289.0);
+        internal static readonly FalconFPR fpr_inv_2sqrsigma0 = new FalconFPR(0.150865048875372721532312163019);
+        internal static readonly FalconFPR[] fpr_inv_sigma = {
             new FalconFPR( 0.0 ), /* unused */
             new FalconFPR( 0.0069054793295940891952143765991630516 ),
             new FalconFPR( 0.0068102267767177975961393730687908629 ),
@@ -1292,7 +1238,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             new FalconFPR( 0.0060336696681577241031668062510953022 ),
             new FalconFPR( 0.0059386453095331159950250124336477482 )
         };
-        internal FalconFPR[] fpr_sigma_min = {
+        internal static readonly FalconFPR[] fpr_sigma_min = {
             new FalconFPR( 0.0 ), /* unused */
             new FalconFPR( 1.1165085072329102588881898380334015 ),
             new FalconFPR( 1.1321247692325272405718031785357108 ),

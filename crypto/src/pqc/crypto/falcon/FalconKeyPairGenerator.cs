@@ -6,22 +6,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
     public class FalconKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
-        private FalconKeyGenerationParameters parameters;
-        private SecureRandom random;
-        private FalconNist nist;
-        private uint logn;
-        private uint noncelen;
-
-        private int pk_size;
+        private FalconKeyGenerationParameters m_parameters;
+        private SecureRandom m_random;
+        private FalconNist m_nist;
+        //private int m_pkSize;
 
         public void Init(KeyGenerationParameters param)
         {
-            this.parameters = (FalconKeyGenerationParameters)param;
-            this.random = param.Random;
-            this.logn = (uint)((FalconKeyGenerationParameters)param).Parameters.LogN;
-            this.noncelen = (uint)((FalconKeyGenerationParameters)param).Parameters.NonceLength;
-            this.nist = new FalconNist(random, logn, noncelen);
-            int n = 1 << (int)this.logn;
+            m_parameters = (FalconKeyGenerationParameters)param;
+            m_random = param.Random;
+
+            var falconParameters = m_parameters.Parameters;
+            m_nist = new FalconNist(m_random, falconParameters.LogN, falconParameters.NonceLength);
+
+            //int n = 1 << falconParameters.LogN;
             //int sk_coeff_size = 8;
             //if (n == 1024)
             //{
@@ -36,15 +34,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             //    sk_coeff_size = 7;
             //}
 
-            this.pk_size = 1 + (14 * n / 8);
+            //m_pkSize = 1 + (14 * n / 8);
         }
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            nist.crypto_sign_keypair(out byte[] pk, out byte[] f, out byte[] g, out byte[] F);
-            FalconParameters p = this.parameters.Parameters;
-            FalconPrivateKeyParameters privk = new FalconPrivateKeyParameters(p, f, g, F, pk);
-            FalconPublicKeyParameters pubk = new FalconPublicKeyParameters(p, pk);
+            m_nist.crypto_sign_keypair(out byte[] pk, out byte[] f, out byte[] g, out byte[] F);
+            var falconParameters = m_parameters.Parameters;
+            FalconPrivateKeyParameters privk = new FalconPrivateKeyParameters(falconParameters, f, g, F, pk);
+            FalconPublicKeyParameters pubk = new FalconPublicKeyParameters(falconParameters, pk);
             return new AsymmetricCipherKeyPair(pubk, privk);
         }
     }

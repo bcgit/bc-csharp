@@ -2,7 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconSmallPrime
+    internal class FalconSmallPrime
     {
         /* 
         * License from the reference C code (the code was copied then modified
@@ -33,11 +33,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * ===========================(LICENSE END)=============================
         */
-        internal uint p;
-        internal uint g;
-        internal uint s;
+        internal readonly uint p;
+        internal readonly uint g;
+        internal readonly uint s;
 
-        internal FalconSmallPrime(uint p, uint g, uint s) {
+        internal FalconSmallPrime(uint p, uint g, uint s)
+        {
             this.p = p;
             this.g = g;
             this.s = s;

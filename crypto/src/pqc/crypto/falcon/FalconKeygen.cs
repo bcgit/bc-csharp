@@ -1,20 +1,11 @@
 using System;
 
+using Org.BouncyCastle.Crypto.Utilities;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    internal class FalconKeygen
+    internal static class FalconKeyGen
     {
-        private readonly FprEngine fpre;
-        private readonly FalconFFT ffte;
-        private readonly FalconSmallPrime[] PRIMES;
-
-        internal FalconKeygen()
-        {
-            this.fpre = new FprEngine();
-            this.PRIMES = new FalconSmallPrimes().PRIMES;
-            this.ffte = new FalconFFT(this.fpre);
-        }
-
         /* 
         * License from the reference C code (the code was copied then modified
         * to function in C#):
@@ -48,11 +39,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Reduce a small signed integer modulo a small prime. The source
         * value x MUST be such that -p < x < p.
         */
-        internal uint modp_set(int x, uint p)
+        internal static uint modp_set(int x, uint p)
         {
-            uint w;
-
-            w = (uint)x;
+            uint w = (uint)x;
             w += (uint)(p & -(w >> 31));
             return w;
         }
@@ -60,7 +49,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Normalize a modular integer around 0.
         */
-        internal int modp_norm(uint x, uint p)
+        internal static int modp_norm(uint x, uint p)
         {
             return (int)(x - (p & (((x - ((p + 1) >> 1)) >> 31) - 1)));
         }
@@ -69,11 +58,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Compute -1/p mod 2^31. This works for all odd integers p that fit
         * on 31 bits.
         */
-        internal uint modp_ninv31(uint p)
+        internal static uint modp_ninv31(uint p)
         {
-            uint y;
-
-            y = 2 - p;
+            uint y = 2 - p;
             y *= 2 - p * y;
             y *= 2 - p * y;
             y *= 2 - p * y;
@@ -84,23 +71,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute R = 2^31 mod p.
         */
-        internal uint modp_R(uint p)
+        internal static uint modp_R(uint p)
         {
             /*
             * Since 2^30 < p < 2^31, we know that 2^31 mod p is simply
             * 2^31 - p.
             */
-            return ((uint)1 << 31) - p;
+            return (1U << 31) - p;
         }
 
         /*
         * Addition modulo p.
         */
-        internal uint modp_add(uint a, uint b, uint p)
+        internal static uint modp_add(uint a, uint b, uint p)
         {
-            uint d;
-
-            d = a + b - p;
+            uint d = a + b - p;
             d += (uint)(p & -(d >> 31));
             return d;
         }
@@ -108,11 +93,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Subtraction modulo p.
         */
-        internal uint modp_sub(uint a, uint b, uint p)
+        internal static uint modp_sub(uint a, uint b, uint p)
         {
-            uint d;
-
-            d = a - b;
+            uint d = a - b;
             d += (uint)(p & -(d >> 31));
             return d;
         }
@@ -121,7 +104,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Halving modulo p.
         */
         /* unused
-        uint modp_half(uint a, uint p)
+        internal static uint modp_half(uint a, uint p)
         {
             a += p & -(a & 1);
             return a >> 1;
@@ -132,7 +115,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Montgomery multiplication modulo p. The 'p0i' value is -1/p mod 2^31.
         * It is required that p is an odd integer.
         */
-        internal uint modp_montymul(uint a, uint b, uint p, uint p0i)
+        internal static uint modp_montymul(uint a, uint b, uint p, uint p0i)
         {
             ulong z, w;
             uint d;
@@ -147,15 +130,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute R2 = 2^62 mod p.
         */
-        internal uint modp_R2(uint p, uint p0i)
+        internal static uint modp_R2(uint p, uint p0i)
         {
-            uint z;
-
             /*
             * Compute z = 2^31 mod p (this is the value 1 in Montgomery
             * representation), then double it with an addition.
             */
-            z = modp_R(p);
+            uint z = modp_R(p);
             z = modp_add(z, z, p);
 
             /*
@@ -180,21 +161,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * p must be prime such that 2^30 < p < 2^31; p0i must be equal to
         * -1/p mod 2^31; R2 must be equal to 2^62 mod p.
         */
-        internal uint modp_Rx(uint x, uint p, uint p0i, uint R2)
+        internal static uint modp_Rx(uint x, uint p, uint p0i, uint R2)
         {
-            int i;
-            uint r, z;
-
             /*
             * 2^(31*x) = (2^31)*(2^(31*(x-1))); i.e. we want the Montgomery
             * representation of (2^31)^e mod p, where e = x-1.
             * R2 is 2^31 in Montgomery representation.
             */
-            x --;
-            r = R2;
-            z = modp_R(p);
-            for (i = 0; (1U << i) <= x; i ++) {
-                if ((x & (1U << i)) != 0) {
+            --x;
+            uint r = R2;
+            uint z = modp_R(p);
+            for (int i = 0; (1U << i) <= x; ++i)
+            {
+                if ((x & (1U << i)) != 0)
+                {
                     z = modp_montymul(z, r, p, p0i);
                 }
                 r = modp_montymul(r, r, p, p0i);
@@ -212,18 +192,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *   p0i   -1/p mod 2^31
         *   R     2^31 mod R
         */
-        internal uint modp_div(uint a, uint b, uint p, uint p0i, uint R)
+        internal static uint modp_div(uint a, uint b, uint p, uint p0i, uint R)
         {
-            uint z, e;
-            int i;
-
-            e = p - 2;
-            z = R;
-            for (i = 30; i >= 0; i --) {
-                uint z2;
-
+            uint e = p - 2;
+            uint z = R;
+            for (int i = 30; i >= 0; --i)
+            {
                 z = modp_montymul(z, z, p, p0i);
-                z2 = modp_montymul(z, b, p, p0i);
+                uint z2 = modp_montymul(z, b, p, p0i);
                 z ^= (uint)((z ^ z2) & -(uint)((e >> i) & 1));
             }
 
@@ -245,7 +221,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Bit-reversal index table.
         */
-        internal ushort[] REV10 = {
+        internal static readonly ushort[] REV10 = {
             0,  512,  256,  768,  128,  640,  384,  896,   64,  576,  320,  832,
             192,  704,  448,  960,   32,  544,  288,  800,  160,  672,  416,  928,
             96,  608,  352,  864,  224,  736,  480,  992,   16,  528,  272,  784,
@@ -347,34 +323,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * p must be a prime such that p = 1 mod 2048.
         */
-        internal void modp_mkgm2(uint[] gmsrc, int gm, uint[] igmsrc, int igm, uint logn,
-            uint g, uint p, uint p0i)
+        internal static void modp_mkgm2(uint[] gmsrc, int gm, uint[] igmsrc, int igm, int logN, uint g, uint p,
+            uint p0i)
         {
-            int u, n;
-            uint k;
-            uint ig, x1, x2, R2;
-
-            n = (int)1 << (int)logn;
+            int n = 1 << logN;
 
             /*
             * We want g such that g^(2N) = 1 mod p, but the provided
             * generator has order 2048. We must square it a few times.
             */
-            R2 = modp_R2(p, p0i);
+            uint R2 = modp_R2(p, p0i);
             g = modp_montymul(g, R2, p, p0i);
-            for (k = logn; k < 10; k ++) {
+            int k;
+            for (k = logN; k < 10; ++k)
+            {
                 g = modp_montymul(g, g, p, p0i);
             }
 
-            ig = modp_div(R2, g, p, p0i, modp_R(p));
-            k = 10 - logn;
-            x1 = x2 = modp_R(p);
-            for (u = 0; u < n; u ++) {
-                int v;
-
-                v = REV10[u << (int)k];
-                gmsrc[gm+v] = x1;
-                igmsrc[igm+v] = x2;
+            uint ig = modp_div(R2, g, p, p0i, modp_R(p));
+            k = 10 - logN;
+            uint x1 = modp_R(p);
+            uint x2 = x1;
+            for (int u = 0; u < n; ++u)
+            {
+                int v = REV10[u << k];
+                gmsrc[gm + v] = x1;
+                igmsrc[igm + v] = x2;
                 x1 = modp_montymul(x1, g, p, p0i);
                 x2 = modp_montymul(x2, ig, p, p0i);
             }
@@ -384,34 +358,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Compute the NTT over a polynomial (binary case). Polynomial elements
         * are a[0], a[stride], a[2 * stride]...
         */
-        internal void modp_NTT2_ext(uint[] asrc, int a, int stride, uint[] gmsrc, int gm, uint logn,
-            uint p, uint p0i)
+        internal static void modp_NTT2_ext(uint[] asrc, int a, int stride, uint[] gmsrc, int gm, int logN, uint p,
+            uint p0i)
         {
-            int t, m, n;
-
-            if (logn == 0) {
+            if (logN == 0)
                 return;
-            }
-            n = (int)1 << (int)logn;
-            t = n;
-            for (m = 1; m < n; m <<= 1) {
-                int ht, u, v1;
 
-                ht = t >> 1;
-                for (u = 0, v1 = 0; u < m; u ++, v1 += t) {
-                    uint s;
-                    int v;
-                    int r1;
-                    int r2;
-
-                    s = gmsrc[gm+m + u];
-                    r1 = a + v1 * stride;
-                    r2 = r1 + ht * stride;
-                    for (v = 0; v < ht; v ++, r1 += stride, r2 += stride) {
-                        uint x, y;
-
-                        x = asrc[r1];
-                        y = modp_montymul(asrc[r2], s, p, p0i);
+            int n = 1 << logN;
+            int t = n;
+            for (int m = 1; m < n; m <<= 1)
+            {
+                int ht = t >> 1;
+                for (int u = 0, v1 = 0; u < m; ++u, v1 += t)
+                {
+                    uint s = gmsrc[gm + m + u];
+                    int r1 = a + v1 * stride;
+                    int r2 = r1 + ht * stride;
+                    for (int v = 0; v < ht; ++v, r1 += stride, r2 += stride)
+                    {
+                        uint x = asrc[r1];
+                        uint y = modp_montymul(asrc[r2], s, p, p0i);
                         asrc[r1] = modp_add(x, y, p);
                         asrc[r2] = modp_sub(x, y, p);
                     }
@@ -423,40 +389,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute the inverse NTT over a polynomial (binary case).
         */
-        internal void modp_iNTT2_ext(uint[] asrc, int a, int stride, uint[] igmsrc, int igm, uint logn,
-            uint p, uint p0i)
+        internal static void modp_iNTT2_ext(uint[] asrc, int a, int stride, uint[] igmsrc, int igm, int logN, uint p,
+            uint p0i)
         {
-            int t, m, n, k;
-            uint ni;
-            int r;
-
-            if (logn == 0) {
+            if (logN == 0)
                 return;
-            }
-            n = (int)1 << (int)logn;
-            t = 1;
-            for (m = n; m > 1; m >>= 1) {
-                int hm, dt, u, v1;
 
-                hm = m >> 1;
-                dt = t << 1;
-                for (u = 0, v1 = 0; u < hm; u ++, v1 += dt) {
-                    uint s;
-                    int v;
-                    int r1;
-                    int r2;
-
-                    s = igmsrc[igm+hm + u];
-                    r1 = a + v1 * stride;
-                    r2 = r1 + t * stride;
-                    for (v = 0; v < t; v ++, r1 += stride, r2 += stride) {
-                        uint x, y;
-
-                        x = asrc[r1];
-                        y = asrc[r2];
+            int n = 1 << logN;
+            int t = 1;
+            for (int m = n; m > 1; m >>= 1)
+            {
+                int hm = m >> 1;
+                int dt = t << 1;
+                for (int u = 0, v1 = 0; u < hm; ++u, v1 += dt)
+                {
+                    uint s = igmsrc[igm+hm + u];
+                    int r1 = a + v1 * stride;
+                    int r2 = r1 + t * stride;
+                    for (int v = 0; v < t; ++v, r1 += stride, r2 += stride)
+                    {
+                        uint x = asrc[r1];
+                        uint y = asrc[r2];
                         asrc[r1] = modp_add(x, y, p);
-                        asrc[r2] = modp_montymul(
-                            modp_sub(x, y, p), s, p, p0i);;
+                        asrc[r2] = modp_montymul(modp_sub(x, y, p), s, p, p0i);
                     }
                 }
                 t = dt;
@@ -467,8 +422,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * 1 <= logn <= 10, R/n is an integer; morever, R/n <= 2^30 < p,
             * thus a simple shift will do.
             */
-            ni = (uint)1 << (int)(31 - logn);
-            for (k = 0, r = a; k < n; k ++, r += stride) {
+            uint ni = 1U << (31 - logN);
+            for (int k = 0, r = a; k < n; ++k, r += stride)
+            {
                 asrc[r] = modp_montymul(asrc[r], ni, p, p0i);
             }
         }
@@ -477,12 +433,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Simplified macros for NTT and iNTT (binary case) when the elements
         * are consecutive in RAM.
         */
-        internal void modp_NTT2(uint[] asrc, int a, uint[] gmsrc, int gm, uint logn, uint p, uint p0i) {
-            this.modp_NTT2_ext(asrc, a, 1, gmsrc, gm, logn, p, p0i);
-        }
-        internal void modp_iNTT2(uint[] asrc, int a, uint[] igmsrc, int igm, uint logn, uint p, uint p0i) {
-            this.modp_iNTT2_ext(asrc, a, 1, igmsrc, igm, logn, p, p0i);
-        }
+        internal static void modp_NTT2(uint[] asrc, int a, uint[] gmsrc, int gm, int logN, uint p, uint p0i) =>
+            modp_NTT2_ext(asrc, a, 1, gmsrc, gm, logN, p, p0i);
+
+        internal static void modp_iNTT2(uint[] asrc, int a, uint[] igmsrc, int igm, int logN, uint p, uint p0i) =>
+            modp_iNTT2_ext(asrc, a, 1, igmsrc, igm, logN, p, p0i);
 
         /*
         * Given polynomial f in NTT representation modulo p, compute f' of degree
@@ -498,17 +453,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * This function applies only to the binary case; it is invoked from
         * solve_NTRU_binary_depth1().
         */
-        internal void modp_poly_rec_res(uint[] fsrc, int f, uint logn,
-            uint p, uint p0i, uint R2)
+        internal static void modp_poly_rec_res(uint[] fsrc, int f, int logN, uint p, uint p0i, uint R2)
         {
-            int hn, u;
-
-            hn = (int)1 << (int)(logn - 1);
-            for (u = 0; u < hn; u ++) {
-                uint w0, w1;
-
-                w0 = fsrc[f + (u << 1) + 0];
-                w1 = fsrc[f + (u << 1) + 1];
+            int hn = 1 << (logN - 1);
+            for (int u = 0; u < hn; ++u)
+            {
+                uint w0 = fsrc[f + (u << 1) + 0];
+                uint w1 = fsrc[f + (u << 1) + 1];
                 fsrc[f + u] = modp_montymul(modp_montymul(w0, w1, p, p0i), R2, p, p0i);
             }
         }
@@ -554,19 +505,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * ctl = 0, the value a[] is unmodified, but all memory accesses are
         * still performed, and the carry is computed and returned.
         */
-        internal uint zint_sub(uint[] asrc, int a, uint[] bsrc, int b, int len,
-            uint ctl)
+        internal static uint zint_sub(uint[] asrc, int a, uint[] bsrc, int b, int len, uint ctl)
         {
-            int u;
-            uint cc, m;
-
-            cc = 0;
-            m = (uint)(-ctl);
-            for (u = 0; u < len; u ++) {
-                uint aw, w;
-
-                aw = asrc[a + u];
-                w = aw - bsrc[b + u] - cc;
+            uint cc = 0;
+            uint m = (uint)(-ctl);
+            for (int u = 0; u < len; ++u)
+            {
+                uint aw = asrc[a + u];
+                uint w = aw - bsrc[b + u] - cc;
                 cc = w >> 31;
                 aw ^= ((w & 0x7FFFFFFF) ^ aw) & m;
                 asrc[a + u] = aw;
@@ -578,17 +524,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Mutiply the provided big integer m with a small value x.
         * This function assumes that x < 2^31. The carry word is returned.
         */
-        internal uint zint_mul_small(uint[] msrc, int m, int mlen, uint x)
+        internal static uint zint_mul_small(uint[] msrc, int m, int mlen, uint x)
         {
-            int u;
-            uint cc;
-
-            cc = 0;
-            for (u = 0; u < mlen; u ++) {
-                ulong z;
-
-                z = (ulong)msrc[m+u] * (ulong)x + cc;
-                msrc[m+u] = (uint)z & 0x7FFFFFFF;
+            uint cc = 0;
+            for (int u = 0; u < mlen; ++u)
+            {
+                ulong z = (ulong)msrc[m + u] * (ulong)x + cc;
+                msrc[m + u] = (uint)z & 0x7FFFFFFF;
                 cc = (uint)(z >> 31);
             }
             return cc;
@@ -603,25 +545,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *  p0i = -(1/p) mod 2^31
         *  R2 = 2^62 mod p
         */
-        internal uint zint_mod_small_uint(uint[] dsrc, int d, int dlen,
-            uint p, uint p0i, uint R2)
+        internal static uint zint_mod_small_uint(uint[] dsrc, int d, int dlen, uint p, uint p0i, uint R2)
         {
-            uint x;
-            int u;
-
             /*
             * Algorithm: we inject words one by one, starting with the high
             * word. Each step is:
             *  - multiply x by 2^31
             *  - add new word
             */
-            x = 0;
-            u = dlen;
-            while (u -- > 0) {
-                uint w;
-
+            uint x = 0;
+            int u = dlen;
+            while (u -- > 0)
+            {
                 x = modp_montymul(x, R2, p, p0i);
-                w = dsrc[d+u] - p;
+                uint w = dsrc[d+u] - p;
                 w += (uint)(p & -(w >> 31));
                 x = modp_add(x, w, p);
             }
@@ -632,15 +569,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Similar to zint_mod_small_uint(), except that d may be signed.
         * Extra parameter is Rx = 2^(31*dlen) mod p.
         */
-        internal uint zint_mod_small_signed(uint[] dsrc, int d, int dlen,
-            uint p, uint p0i, uint R2, uint Rx)
+        internal static uint zint_mod_small_signed(uint[] dsrc, int d, int dlen, uint p, uint p0i, uint R2, uint Rx)
         {
-            uint z;
-
-            if (dlen == 0) {
+            if (dlen == 0)
                 return 0;
-            }
-            z = zint_mod_small_uint(dsrc, d, dlen, p, p0i, R2);
+
+            uint z = zint_mod_small_uint(dsrc, d, dlen, p, p0i, R2);
             z = modp_sub(z, (uint)(Rx & -(dsrc[d + dlen - 1] >> 30)), p);
             return z;
         }
@@ -650,24 +584,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * has length 'len+1' words. 's' must fit on 31 bits. x[] and y[] must
         * not overlap.
         */
-        internal void zint_add_mul_small(uint[] xsrc, int x,
-            uint[] ysrc, int y, int len, uint s)
+        internal static void zint_add_mul_small(uint[] xsrc, int x, uint[] ysrc, int y, int len, uint s)
         {
-            int u;
-            uint cc;
-
-            cc = 0;
-            for (u = 0; u < len; u ++) {
-                uint xw, yw;
-                ulong z;
-
-                xw = xsrc[x+u];
-                yw = ysrc[y+u];
-                z = (ulong)yw * (ulong)s + (ulong)xw + (ulong)cc;
-                xsrc[x+u] = (uint)z & 0x7FFFFFFF;
+            uint cc = 0U;
+            for (int u = 0; u < len; ++u)
+            {
+                uint xw = xsrc[x + u];
+                uint yw = ysrc[y + u];
+                ulong z = (ulong)yw * (ulong)s + (ulong)xw + (ulong)cc;
+                xsrc[x + u] = (uint)z & 0x7FFFFFFF;
                 cc = (uint)(z >> 31);
             }
-            xsrc[x+len] = cc;
+            xsrc[x + len] = cc;
         }
 
         /*
@@ -675,35 +603,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * with x - p (signed encoding with two's complement); otherwise, x is
         * untouched. The two integers x and p are encoded over the same length.
         */
-        internal void zint_norm_zero(uint[] xsrc, int x, uint[] psrc, int p, int len)
+        internal static void zint_norm_zero(uint[] xsrc, int x, uint[] psrc, int p, int len)
         {
-            int u;
-            uint r, bb;
-
             /*
             * Compare x with p/2. We use the shifted version of p, and p
             * is odd, so we really compare with (p-1)/2; we want to perform
             * the subtraction if and only if x > (p-1)/2.
             */
-            r = 0;
-            bb = 0;
-            u = len;
-            while (u -- > 0) {
-                uint wx, wp, cc;
-
+            uint r = 0;
+            uint bb = 0;
+            int u = len;
+            while (u-- > 0)
+            {
                 /*
                 * Get the two words to compare in wx and wp (both over
                 * 31 bits exactly).
                 */
-                wx = xsrc[x+u];
-                wp = (psrc[p+u] >> 1) | (bb << 30);
+                uint wx = xsrc[x+u];
+                uint wp = (psrc[p+u] >> 1) | (bb << 30);
                 bb = psrc[p+u] & 1;
 
                 /*
                 * We set cc to -1, 0 or 1, depending on whether wp is
                 * lower than, equal to, or greater than wx.
                 */
-                cc = wp - wx;
+                uint cc = wp - wx;
                 cc = (uint)(((uint)(-cc) >> 31) | (uint)-(cc >> 31));
 
                 /*
@@ -735,15 +659,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * normalized to the -m/2..m/2 interval (where m is the product of all
         * small prime moduli); two's complement is used for negative values.
         */
-        internal void zint_rebuild_CRT(uint[] xxsrc, int xx, int xlen, int xstride,
-            int num, FalconSmallPrime[] primes, int normalize_signed,
-            uint[] tmpsrc, int tmp)
+        internal static void zint_rebuild_CRT(uint[] xxsrc, int xx, int xlen, int xstride, int num,
+            FalconSmallPrime[] primes, int normalize_signed, uint[] tmpsrc, int tmp)
         {
-            int u;
-            int x;
-
             tmpsrc[tmp + 0] = primes[0].p;
-            for (u = 1; u < xlen; u ++) {
+
+            int u, x;
+            for (u = 1; u < xlen; ++u)
+            {
                 /*
                 * At the entry of each loop iteration:
                 *  - the first u words of each array have been
@@ -753,28 +676,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 *
                 * We call 'q' the product of all previous primes.
                 */
-                uint p, p0i, s, R2;
+                uint p = primes[u].p;
+                uint s = primes[u].s;
+                uint p0i = modp_ninv31(p);
+                uint R2 = modp_R2(p, p0i);
+
                 int v;
-
-                p = primes[u].p;
-                s = primes[u].s;
-                p0i = modp_ninv31(p);
-                R2 = modp_R2(p, p0i);
-
-                for (v = 0, x = xx; v < num; v ++, x += xstride) {
-                    uint xp, xq, xr;
+                for (v = 0, x = xx; v < num; ++v, x += xstride)
+                {
                     /*
-                    * xp = the integer x modulo the prime p for this
-                    *      iteration
+                    * xp = the integer x modulo the prime p for this iteration
                     * xq = (x mod q) mod p
                     */
-                    xp = xxsrc[x + u];
-                    xq = zint_mod_small_uint(xxsrc, x, u, p, p0i, R2);
+                    uint xp = xxsrc[x + u];
+                    uint xq = zint_mod_small_uint(xxsrc, x, u, p, p0i, R2);
 
                     /*
                     * New value is (x mod q) + q * (s * (xp - xq) mod p)
                     */
-                    xr = modp_montymul(s, modp_sub(xp, xq, p), p, p0i);
+                    uint xr = modp_montymul(s, modp_sub(xp, xq, p), p, p0i);
                     zint_add_mul_small(xxsrc, x, tmpsrc, tmp, u, xr);
                 }
 
@@ -787,8 +707,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Normalize the reconstructed values around 0.
             */
-            if (normalize_signed != 0) {
-                for (u = 0, x = xx; u < num; u ++, x += xstride) {
+            if (normalize_signed != 0)
+            {
+                for (u = 0, x = xx; u < num; ++u, x += xstride)
+                {
                     zint_norm_zero(xxsrc, x, tmpsrc, tmp, xlen);
                 }
             }
@@ -798,24 +720,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Negate a big integer conditionally: value a is replaced with -a if
         * and only if ctl = 1. Control value ctl must be 0 or 1.
         */
-        internal void zint_negate(uint[] asrc, int a, int len, uint ctl)
+        internal static void zint_negate(uint[] asrc, int a, int len, uint ctl)
         {
-            int u;
-            uint cc, m;
-
             /*
             * If ctl = 1 then we flip the bits of a by XORing with
             * 0x7FFFFFFF, and we add 1 to the value. If ctl = 0 then we XOR
             * with 0 and add 0, which leaves the value unchanged.
             */
-            cc = ctl;
-            m = ((uint)-ctl >> 1);
-            for (u = 0; u < len; u ++) {
-                uint aw;
-
-                aw = asrc[a+u];
+            uint cc = ctl;
+            uint m = ((uint)-ctl >> 1);
+            for (int u = 0; u < len; ++u)
+            {
+                uint aw = asrc[a + u];
                 aw = (aw ^ m) + cc;
-                asrc[a+u] = aw & 0x7FFFFFFF;
+                asrc[a + u] = aw & 0x7FFFFFFF;
                 cc = aw >> 31;
             }
         }
@@ -834,37 +752,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Coefficients xa, xb, ya and yb may use the full signed 32-bit range.
         */
-        internal uint zint_co_reduce(uint[] asrc, int a, uint[] bsrc, int b, int len,
-            long xa, long xb, long ya, long yb)
+        internal static uint zint_co_reduce(uint[] asrc, int a, uint[] bsrc, int b, int len, long xa, long xb, long ya,
+            long yb)
         {
-            int u;
-            long cca, ccb;
-            uint nega, negb;
-
-            cca = 0;
-            ccb = 0;
-            for (u = 0; u < len; u ++) {
-                uint wa, wb;
-                ulong za, zb;
-
-                wa = asrc[a + u];
-                wb = bsrc[b + u];
-                za = (ulong)((long)wa * xa + (long)wb * xb + cca);
-                zb = (ulong)((long)wa * ya + (long)wb * yb + ccb);
-                if (u > 0) {
+            long cca = 0;
+            long ccb = 0;
+            for (int u = 0; u < len; ++u)
+            {
+                uint wa = asrc[a + u];
+                uint wb = bsrc[b + u];
+                ulong za = (ulong)((long)wa * xa + (long)wb * xb + cca);
+                ulong zb = (ulong)((long)wa * ya + (long)wb * yb + ccb);
+                if (u > 0)
+                {
                     asrc[a + u - 1] = (uint)za & 0x7FFFFFFF;
                     bsrc[b + u - 1] = (uint)zb & 0x7FFFFFFF;
                 }
-                //cca = *(long *)&za >> 31;
                 cca = (long)za >> 31;
                 ccb = (long)zb >> 31;
-                //ccb = *(long *)&zb >> 31;
             }
             asrc[a + len - 1] = (uint)cca;
             bsrc[b + len - 1] = (uint)ccb;
 
-            nega = (uint)((ulong)cca >> 63);
-            negb = (uint)((ulong)ccb >> 63);
+            uint nega = (uint)((ulong)cca >> 63);
+            uint negb = (uint)((ulong)ccb >> 63);
             zint_negate(asrc, a, len, nega);
             zint_negate(bsrc, b, len, negb);
             return nega | (negb << 1);
@@ -880,19 +791,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Modulus m must be odd.
         */
-        internal void zint_finish_mod(uint[] asrc, int a, int len, uint[] msrc, int m, uint neg)
+        internal static void zint_finish_mod(uint[] asrc, int a, int len, uint[] msrc, int m, uint neg)
         {
-            int u;
-            uint cc, xm, ym;
-
             /*
             * First pass: compare a (assumed nonnegative) with m. Note that
             * if the top word uses 32 bits, subtracting m must yield a
             * value less than 2^31 since a < 2*m.
             */
-            cc = 0;
-            for (u = 0; u < len; u ++) {
-                cc = (asrc[a+u] - msrc[m+u] - cc) >> 31;
+            uint cc = 0;
+            for (int u = 0; u < len; ++u)
+            {
+                cc = (asrc[a + u] - msrc[m + u] - cc) >> 31;
             }
 
             /*
@@ -904,16 +813,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * from a. Word xm is a word of m (if neg = 0) or -m (if neg = 1);
             * but if neg = 0 and cc = 1, then ym = 0 and it forces mw to 0.
             */
-            xm = ((uint)-neg >> 1);
-            ym = (uint)(-(neg | (1 - cc)));
+            uint xm = ((uint)-neg >> 1);
+            uint ym = (uint)(-(neg | (1 - cc)));
             cc = neg;
-            for (u = 0; u < len; u ++) {
-                uint aw, mw;
-
-                aw = asrc[a+u];
-                mw = (msrc[m+u] ^ xm) & ym;
+            for (int u = 0; u < len; ++u)
+            {
+                uint aw = asrc[a + u];
+                uint mw = (msrc[m + u] ^ xm) & ym;
                 aw = aw - mw - cc;
-                asrc[a+u] = aw & 0x7FFFFFFF;
+                asrc[a + u] = aw & 0x7FFFFFFF;
                 cc = aw >> 31;
             }
         }
@@ -922,40 +830,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Replace a with (a*xa+b*xb)/(2^31) mod m, and b with
         * (a*ya+b*yb)/(2^31) mod m. Modulus m must be odd; m0i = -1/m[0] mod 2^31.
         */
-        internal void zint_co_reduce_mod(uint[] asrc, int a, uint[] bsrc, int b, uint[] msrc, int m, int len,
+        internal static void zint_co_reduce_mod(uint[] asrc, int a, uint[] bsrc, int b, uint[] msrc, int m, int len,
             uint m0i, long xa, long xb, long ya, long yb)
         {
-            int u;
-            long cca, ccb;
-            uint fa, fb;
-
             /*
             * These are actually four combined Montgomery multiplications.
             */
-            cca = 0;
-            ccb = 0;
-            fa = ((asrc[a + 0] * (uint)xa + bsrc[b + 0] * (uint)xb) * m0i) & 0x7FFFFFFF;
-            fb = ((asrc[a + 0] * (uint)ya + bsrc[b + 0] * (uint)yb) * m0i) & 0x7FFFFFFF;
-            for (u = 0; u < len; u ++) {
-                uint wa, wb;
-                ulong za, zb;
-
-                wa = asrc[a + u];
-                wb = bsrc[b + u];
-                //za = wa * (ulong)xa + wb * (ulong)xb
-                //    + msrc[m + u] * (ulong)fa + (ulong)cca;
-                //zb = wa * (ulong)ya + wb * (ulong)yb
-                //    + msrc[m + u] * (ulong)fb + (ulong)ccb;
-                za = (ulong)((long)wa * xa + (long)wb * xb
-                        + (long)msrc[m + u] * fa + cca);
-                zb = (ulong)((long)wa * ya + (long)wb * yb
-                        + (long)msrc[m + u] * fb + ccb);
-                if (u > 0) {
+            long cca = 0;
+            long ccb = 0;
+            uint fa = ((asrc[a + 0] * (uint)xa + bsrc[b + 0] * (uint)xb) * m0i) & 0x7FFFFFFF;
+            uint fb = ((asrc[a + 0] * (uint)ya + bsrc[b + 0] * (uint)yb) * m0i) & 0x7FFFFFFF;
+            for (int u = 0; u < len; ++u)
+            {
+                uint wa = asrc[a + u];
+                uint wb = bsrc[b + u];
+                ulong za = (ulong)((long)wa * xa + (long)wb * xb + (long)msrc[m + u] * fa + cca);
+                ulong zb = (ulong)((long)wa * ya + (long)wb * yb + (long)msrc[m + u] * fb + ccb);
+                if (u > 0)
+                {
                     asrc[a + u - 1] = (uint)za & 0x7FFFFFFF;
                     bsrc[b + u - 1] = (uint)zb & 0x7FFFFFFF;
                 }
-                //cca = *(long *)&za >> 31;
-                //ccb = *(long *)&zb >> 31;
                 cca = (long)za >> 31;
                 ccb = (long)zb >> 31;
             }
@@ -987,8 +882,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * extra values of that length. Arrays u, v and tmp may not overlap with
         * each other, or with either x or y.
         */
-        internal int zint_bezout(uint[] usrc, int u, uint[] vsrc, int v,
-            uint[] xsrc, int x, uint[] ysrc, int y,
+        internal static int zint_bezout(uint[] usrc, int u, uint[] vsrc, int v, uint[] xsrc, int x, uint[] ysrc, int y,
             int len, uint[] tmpsrc, int tmp)
         {
             /*
@@ -1100,31 +994,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * (sum of lengths of a and b) by at least 30 bits at each
             * iteration.
             */
-            int u0, u1, v0, v1, a, b;
-            uint x0i, y0i;
-            uint num, rc;
-            int j;
-
-            if (len == 0) {
+            if (len == 0)
                 return 0;
-            }
 
             /*
             * u0 and v0 are the u and v result buffers; the four other
             * values (u1, v1, a and b) are taken from tmp[].
             */
-            u0 = u; // usrc
-            v0 = v; // vsrc
-            u1 = tmp; // tmpsrc
-            v1 = u1 + len; // tmpsrc
-            a = v1 + len; // tmpsrc
-            b = a + len; // tmpsrc
+            int u0 = u; // usrc
+            int v0 = v; // vsrc
+            int u1 = tmp; // tmpsrc
+            int v1 = u1 + len; // tmpsrc
+            int a = v1 + len; // tmpsrc
+            int b = a + len; // tmpsrc
 
             /*
             * We'll need the Montgomery reduction coefficients.
             */
-            x0i = modp_ninv31(xsrc[x + 0]);
-            y0i = modp_ninv31(ysrc[y + 0]);
+            uint x0i = modp_ninv31(xsrc[x + 0]);
+            uint y0i = modp_ninv31(ysrc[y + 0]);
 
             /*
             * Initialize a, b, u0, u1, v0 and v1.
@@ -1132,37 +1020,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             *  b = y   u1 = y   v1 = x-1
             * Note that x is odd, so computing x-1 is easy.
             */
-            // memcpy(a, x, len * sizeof *x);
             Array.Copy(xsrc, x, tmpsrc, a, len);
-            // memcpy(b, y, len * sizeof *y);
             Array.Copy(ysrc, y, tmpsrc, b, len);
-            usrc[u0+0] = 1;
-            // memset(u0 + 1, 0, (len - 1) * sizeof *u0);
-            // memset(v0, 0, len * sizeof *v0);
-            for (int i = 1; i < len; i++) {
-                usrc[u0+i] = 0;
-                vsrc[v0+i] = 0;
+            usrc[u0 + 0] = 1;
+            for (int i = 1; i < len; ++i)
+            {
+                usrc[u0 + i] = 0;
+                vsrc[v0 + i] = 0;
             }
-            vsrc[v0+0] = 0;
-            // memcpy(u1, y, len * sizeof *u1);
+            vsrc[v0 + 0] = 0;
             Array.Copy(ysrc, y, tmpsrc, u1, len);
-            // memcpy(v1, x, len * sizeof *v1);
             Array.Copy(xsrc, x, tmpsrc, v1, len);
-            tmpsrc[v1+0] --;
+            --tmpsrc[v1 + 0];
+
+            int j;
 
             /*
             * Each input operand may be as large as 31*len bits, and we
             * reduce the total length by at least 30 bits at each iteration.
             */
-            for (num = 62 * (uint)len + 30; num >= 30; num -= 30) {
-                uint c0, c1;
-                uint a0, a1, b0, b1;
-                ulong a_hi, b_hi;
-                uint a_lo, b_lo;
-                long pa, pb, qa, qb;
-                int i;
-                uint r;
-
+            for (uint num = 62 * (uint)len + 30; num >= 30; num -= 30)
+            {
                 /*
                 * Extract the top words of a and b. If j is the highest
                 * index >= 1 such that a[j] != 0 or b[j] != 0, then we
@@ -1170,20 +1048,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * If a and b are down to one word each, then we use
                 * a[0] and b[0].
                 */
-                //c0 = (uint)-1;
-                //c1 = (uint)-1;
-                c0 = uint.MaxValue;
-                c1 = uint.MaxValue;
-                a0 = 0;
-                a1 = 0;
-                b0 = 0;
-                b1 = 0;
+                uint c0 = uint.MaxValue;
+                uint c1 = uint.MaxValue;
+                uint a0 = 0U;
+                uint a1 = 0U;
+                uint b0 = 0U;
+                uint b1 = 0U;
                 j = len;
-                while (j -- > 0) {
-                    uint aw, bw;
-
-                    aw = tmpsrc[a+j];
-                    bw = tmpsrc[b+j];
+                while (j-- > 0)
+                {
+                    uint aw = tmpsrc[a + j];
+                    uint bw = tmpsrc[b + j];
                     a0 ^= (a0 ^ aw) & c0;
                     a1 ^= (a1 ^ aw) & c1;
                     b0 ^= (b0 ^ bw) & c0;
@@ -1202,10 +1077,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 a0 &= ~c1;
                 b1 |= b0 & c1;
                 b0 &= ~c1;
-                a_hi = ((ulong)a0 << 31) + a1;
-                b_hi = ((ulong)b0 << 31) + b1;
-                a_lo = tmpsrc[a+0];
-                b_lo = tmpsrc[b+0];
+                ulong a_hi = ((ulong)a0 << 31) + a1;
+                ulong b_hi = ((ulong)b0 << 31) + b1;
+                uint a_lo = tmpsrc[a + 0];
+                uint b_lo = tmpsrc[b + 0];
 
                 /*
                 * Compute reduction factors:
@@ -1216,11 +1091,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * such that a' and b' are both multiple of 2^31, but are
                 * only marginally larger than a and b.
                 */
-                pa = 1;
-                pb = 0;
-                qa = 0;
-                qb = 1;
-                for (i = 0; i < 31; i ++) {
+                long pa = 1L;
+                long pb = 0L;
+                long qa = 0L;
+                long qb = 1L;
+                for (int i = 0; i < 31; ++i)
+                {
                     /*
                     * At each iteration:
                     *
@@ -1233,15 +1109,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     * iteration, thus a division by 2 really is a
                     * non-multiplication by 2.
                     */
-                    uint rt, oa, ob, cAB, cBA, cA;
-                    ulong rz;
 
                     /*
                     * rt = 1 if a_hi > b_hi, 0 otherwise.
                     */
-                    rz = b_hi - a_hi;
-                    rt = (uint)((rz ^ ((a_hi ^ b_hi)
-                        & (a_hi ^ rz))) >> 63);
+                    ulong rz = b_hi - a_hi;
+                    uint rt = (uint)((rz ^ ((a_hi ^ b_hi) & (a_hi ^ rz))) >> 63);
 
                     /*
                     * cAB = 1 if b must be subtracted from a
@@ -1253,11 +1126,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     *   cAB and cBA cannot both be 1.
                     *   If a is not divided by 2, b is.
                     */
-                    oa = (a_lo >> i) & 1;
-                    ob = (b_lo >> i) & 1;
-                    cAB = oa & ob & rt;
-                    cBA = (uint)(oa & ob & ~(int)rt);
-                    cA = cAB | (oa ^ 1);
+                    uint oa = (a_lo >> i) & 1;
+                    uint ob = (b_lo >> i) & 1;
+                    uint cAB = oa & ob & rt;
+                    uint cBA = (uint)(oa & ob & ~(int)rt);
+                    uint cA = cAB | (oa ^ 1);
 
                     /*
                     * Conditional subtractions.
@@ -1290,7 +1163,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * returned value of zint_co_reduce() (when a and/or b
                 * had to be negated).
                 */
-                r = zint_co_reduce(tmpsrc, a, tmpsrc, b, len, pa, pb, qa, qb);
+                uint r = zint_co_reduce(tmpsrc, a, tmpsrc, b, len, pa, pb, qa, qb);
                 pa -= (pa + pa) & -(long)(r & 1);
                 pb -= (pb + pb) & -(long)(r & 1);
                 qa -= (qa + qa) & -(long)(r >> 1);
@@ -1305,11 +1178,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * is indeed 1. We also check that the two operands x and y
             * are odd.
             */
-            rc = tmpsrc[a+0] ^ 1;
-            for (j = 1; j < len; j ++) {
-                rc |= tmpsrc[a+j];
+            uint rc = tmpsrc[a + 0] ^ 1;
+            for (j = 1; j < len; ++j)
+            {
+                rc |= tmpsrc[a + j];
             }
-            return (int)((1 - ((rc | -rc) >> 31)) & xsrc[x+0] & ysrc[y+0]);
+            return (int)((1 - ((rc | -rc) >> 31)) & xsrc[x + 0] & ysrc[y + 0]);
         }
 
         /*
@@ -1323,39 +1197,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * x[] and y[] are both signed integers, using two's complement for
         * negative values.
         */
-        internal void zint_add_scaled_mul_small(uint[] xsrc, int x, int xlen,
-            uint[] ysrc, int y, int ylen, int k,
-            uint sch, uint scl)
+        internal static void zint_add_scaled_mul_small(uint[] xsrc, int x, int xlen, uint[] ysrc, int y, int ylen,
+            int k, uint sch, uint scl)
         {
-            int u;
-            uint ysign, tw;
-            int cc;
-
-            if (ylen == 0) {
+            if (ylen == 0)
                 return;
-            }
 
-            ysign = ((uint)-(ysrc[y + ylen - 1] >> 30) >> 1);
-            tw = 0;
-            cc = 0;
-            for (u = (int)sch; u < xlen; u ++) {
-                int v;
-                uint wy, wys, ccu;
-                ulong z;
-
+            uint ysign = ((uint)-(ysrc[y + ylen - 1] >> 30) >> 1);
+            uint tw = 0U;
+            int cc = 0;
+            for (int u = (int)sch; u < xlen; ++u)
+            {
                 /*
                 * Get the next word of y (scaled).
                 */
-                v = u - (int)sch;
-                wy = v < ylen ? ysrc[y + v] : ysign;
-                wys = ((wy << (int)scl) & 0x7FFFFFFF) | tw;
+                int v = u - (int)sch;
+                uint wy = v < ylen ? ysrc[y + v] : ysign;
+                uint wys = ((wy << (int)scl) & 0x7FFFFFFF) | tw;
                 tw = wy >> (31 - (int)scl);
 
                 /*
                 * The expression below does not overflow.
                 */
-                z = (ulong)((long)wys * (long)k + (long)xsrc[x+u] + cc);
-                xsrc[x+u] = (uint)z & 0x7FFFFFFF;
+                ulong z = (ulong)((long)wys * (long)k + (long)xsrc[x + u] + cc);
+                xsrc[x + u] = (uint)z & 0x7FFFFFFF;
 
                 /*
                 * Right-shifting the signed value z would yield
@@ -1367,8 +1232,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * trap representation or padding bit, and with a layout
                 * compatible with that of 'uint'.
                 */
-                ccu = (uint)(z >> 31);
-                //cc = *(int *)&ccu;
+                uint ccu = (uint)(z >> 31);
                 cc = (int)ccu;
             }
         }
@@ -1384,34 +1248,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * x[] and y[] are both signed integers, using two's complement for
         * negative values.
         */
-        internal void zint_sub_scaled(uint[] xsrc, int x, int xlen,
-            uint[] ysrc, int y, int ylen, uint sch, uint scl)
+        internal static void zint_sub_scaled(uint[] xsrc, int x, int xlen, uint[] ysrc, int y, int ylen, uint sch,
+            uint scl)
         {
-            int u;
-            uint ysign, tw;
-            uint cc;
-
-            if (ylen == 0) {
+            if (ylen == 0)
                 return;
-            }
 
-            ysign = (uint)(-(ysrc[y + ylen - 1] >> 30) >> 1);
-            tw = 0;
-            cc = 0;
-            for (u = (int)sch; u < xlen; u ++) {
-                int v;
-                uint w, wy, wys;
-
+            uint ysign = (uint)(-(ysrc[y + ylen - 1] >> 30) >> 1);
+            uint tw = 0U;
+            uint cc = 0U;
+            for (int u = (int)sch; u < xlen; ++u)
+            {
                 /*
                 * Get the next word of y (scaled).
                 */
-                v = u - (int)sch;
-                wy = v < ylen ? ysrc[y + v] : ysign;
-                wys = ((wy << (int)scl) & 0x7FFFFFFF) | tw;
+                int v = u - (int)sch;
+                uint wy = v < ylen ? ysrc[y + v] : ysign;
+                uint wys = ((wy << (int)scl) & 0x7FFFFFFF) | tw;
                 tw = wy >> (int)(31 - scl);
 
-                w = xsrc[x+u] - wys - cc;
-                xsrc[x+u] = w & 0x7FFFFFFF;
+                uint w = xsrc[x + u] - wys - cc;
+                xsrc[x + u] = w & 0x7FFFFFFF;
                 cc = w >> 31;
             }
         }
@@ -1419,13 +1276,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Convert a one-word signed big integer into a signed value.
         */
-        internal int zint_one_to_plain(uint[] xsrc, int x)
+        internal static int zint_one_to_plain(uint[] xsrc, int x)
         {
-            uint w;
-
-            w = xsrc[x+0];
+            uint w = xsrc[x + 0];
             w |= (w & 0x40000000) << 1;
-            //return *(int *)&w;
             return (int)w;
         }
 
@@ -1442,42 +1296,37 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * they should be "trimmed" by pointing not to the lowest word of each,
         * but upper.
         */
-        internal void poly_big_to_fp(FalconFPR[] dsrc, int d, uint[] fsrc, int f, int flen, int fstride,
-            uint logn)
+        internal static void poly_big_to_fp(FalconFPR[] dsrc, int d, uint[] fsrc, int f, int flen, int fstride,
+            int logN)
         {
-            int n, u;
-
-            n = (int)1 << (int)logn;
-            if (flen == 0) {
-                for (u = 0; u < n; u ++) {
-                    dsrc[d + u] = this.fpre.fpr_zero;
+            int n = 1 << logN;
+            if (flen == 0)
+            {
+                for (int u = 0; u < n; ++u)
+                {
+                    dsrc[d + u] = FprEngine.fpr_zero;
                 }
                 return;
             }
-            for (u = 0; u < n; u ++, f += fstride) {
-                int v;
-                uint neg, cc, xm;
-                FalconFPR x, fsc;
-
+            for (int u = 0; u < n; ++u, f += fstride)
+            {
                 /*
                 * Get sign of the integer; if it is negative, then we
                 * will load its absolute value instead, and negate the
                 * result.
                 */
-                neg = (uint)(-(fsrc[f + flen - 1] >> 30));
-                xm = neg >> 1;
-                cc = neg & 1;
-                x = this.fpre.fpr_zero;
-                fsc = this.fpre.fpr_one;
-                for (v = 0; v < flen; v ++, fsc = this.fpre.fpr_mul(fsc, this.fpre.fpr_ptwo31)) {
-                    uint w;
-
-                    w = (fsrc[f + v] ^ xm) + cc;
+                uint neg = (uint)(-(fsrc[f + flen - 1] >> 30));
+                uint xm = neg >> 1;
+                uint cc = neg & 1;
+                FalconFPR x = FprEngine.fpr_zero;
+                FalconFPR fsc = FprEngine.fpr_one;
+                for (int v = 0; v < flen; ++v, fsc = FprEngine.fpr_mul(fsc, FprEngine.fpr_ptwo31))
+                {
+                    uint w = (fsrc[f + v] ^ xm) + cc;
                     cc = w >> 31;
                     w &= 0x7FFFFFFF;
                     w -= (w << 1) & neg;
-                    //x = this.fpre.fpr_add(x, this.fpre.fpr_mul(this.fpre.fpr_of(*(int*)&w), fsc));
-                    x = this.fpre.fpr_add(x, this.fpre.fpr_mul(this.fpre.fpr_of((int)w), fsc));
+                    x = FprEngine.fpr_add(x, FprEngine.fpr_mul(FprEngine.fpr_of((int)w), fsc));
                 }
                 dsrc[d + u] = x;
             }
@@ -1493,18 +1342,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * any failure, the NTRU-solving process will be deemed to have failed
         * and the (f,g) polynomials will be discarded.
         */
-        internal int poly_big_to_small(sbyte[] dsrc, int d, uint[] ssrc, int s, int lim, uint logn)
+        internal static int poly_big_to_small(sbyte[] dsrc, int d, uint[] ssrc, int s, int lim, int logN)
         {
-            int n, u;
-
-            n = (int)1 << (int)logn;
-            for (u = 0; u < n; u ++) {
-                int z;
-
-                z = zint_one_to_plain(ssrc, s + u);
-                if (z < -lim || z > lim) {
+            int n = 1 << logN;
+            for (int u = 0; u < n; ++u)
+            {
+                int z = zint_one_to_plain(ssrc, s + u);
+                if (z < -lim || z > lim)
                     return 0;
-                }
+
                 dsrc[d+u] = (sbyte)z;
             }
             return 1;
@@ -1520,29 +1366,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * which is efficient in space (no extra buffer needed) but slow at
         * high degree.
         */
-        internal void poly_sub_scaled(uint[] Fsrc, int F, int Flen, int Fstride,
-            uint[] fsrc, int f, int flen, int fstride,
-            int[] ksrc, int k, uint sch, uint scl, uint logn)
+        internal static void poly_sub_scaled(uint[] Fsrc, int F, int Flen, int Fstride, uint[] fsrc, int f, int flen,
+            int fstride, int[] ksrc, int k, uint sch, uint scl, int logN)
         {
-            int n, u;
-
-            n = (int)1 << (int)logn;
-            for (u = 0; u < n; u ++) {
-                int kf;
-                int v;
-                int x;
-                int y;
-
-                kf = -ksrc[k+u];
-                x = F + u * Fstride;
-                y = f;
-                for (v = 0; v < n; v ++) {
-                    zint_add_scaled_mul_small(
-                        Fsrc, x, Flen, fsrc, y, flen, kf, sch, scl);
-                    if (u + v == n - 1) {
+            int n = 1 << logN;
+            for (int u = 0; u < n; ++u)
+            {
+                int kf = -ksrc[k+u];
+                int x = F + u * Fstride;
+                int y = f;
+                for (int v = 0; v < n; ++v)
+                {
+                    zint_add_scaled_mul_small(Fsrc, x, Flen, fsrc, y, flen, kf, sch, scl);
+                    if (u + v == n - 1)
+                    {
                         x = F;
                         kf = -kf;
-                    } else {
+                    }
+                    else
+                    {
                         x += Fstride;
                     }
                     y += fstride;
@@ -1556,53 +1398,46 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * assumes that the degree is large, and integers relatively small.
         * The value sc is provided as sch = sc / 31 and scl = sc % 31.
         */
-        internal void poly_sub_scaled_ntt(uint[] Fsrc, int F, int Flen, int Fstride,
-            uint[] fsrc, int f, int flen, int fstride,
-            int[] ksrc, int k, uint sch, uint scl, uint logn,
-            uint[] tmpsrc, int tmp)
+        internal static void poly_sub_scaled_ntt(uint[] Fsrc, int F, int Flen, int Fstride, uint[] fsrc, int f,
+            int flen, int fstride, int[] ksrc, int k, uint sch, uint scl, int logN, uint[] tmpsrc, int tmp)
         {
-            int gm, igm, fk, t1, x;
-            int y;
-            int n, u, tlen;
-            FalconSmallPrime[] primes;
+            int n = 1 << logN;
+            int tlen = flen + 1;
+            int gm = tmp;
+            int igm = gm + n;
+            int fk = igm + n;
+            int t1 = fk + n * tlen;
 
-            n = (int)1 << (int)logn;
-            tlen = flen + 1;
-            gm = tmp;
-            igm = gm + n;
-            fk = igm + n;
-            t1 = fk + n * tlen;
-
-            primes = this.PRIMES;
+            FalconSmallPrime[] primes = FalconSmallPrimes.Primes;
 
             /*
             * Compute k*f in fk[], in RNS notation.
             */
-            for (u = 0; u < tlen; u ++) {
-                uint p, p0i, R2, Rx;
+            int u, x, y;
+            for (u = 0; u < tlen; ++u)
+            {
                 int v;
+                uint p = primes[u].p;
+                uint p0i = modp_ninv31(p);
+                uint R2 = modp_R2(p, p0i);
+                uint Rx = modp_Rx((uint)flen, p, p0i, R2);
+                modp_mkgm2(tmpsrc, gm, tmpsrc, igm, logN, primes[u].g, p, p0i);
 
-                p = primes[u].p;
-                p0i = modp_ninv31(p);
-                R2 = modp_R2(p, p0i);
-                Rx = modp_Rx((uint)flen, p, p0i, R2);
-                modp_mkgm2(tmpsrc, gm, tmpsrc, igm, logn, primes[u].g, p, p0i);
-
-                for (v = 0; v < n; v ++) {
-                    tmpsrc[t1+v] = modp_set(ksrc[k+v], p);
+                for (v = 0; v < n; ++v)
+                {
+                    tmpsrc[t1 + v] = modp_set(ksrc[k + v], p);
                 }
-                modp_NTT2(tmpsrc, t1, tmpsrc, gm, logn, p, p0i);
-                for (v = 0, y = f, x = fk + u;
-                    v < n; v ++, y += fstride, x += tlen)
+                modp_NTT2(tmpsrc, t1, tmpsrc, gm, logN, p, p0i);
+                for (v = 0, y = f, x = fk + u; v < n; ++v, y += fstride, x += tlen)
                 {
                     tmpsrc[x] = zint_mod_small_signed(tmpsrc, y, flen, p, p0i, R2, Rx);
                 }
-                modp_NTT2_ext(tmpsrc, fk + u, tlen, tmpsrc, gm, logn, p, p0i);
-                for (v = 0, x = fk + u; v < n; v ++, x += tlen) {
-                    tmpsrc[x] = modp_montymul(
-                        modp_montymul(tmpsrc[t1+v], tmpsrc[x], p, p0i), R2, p, p0i);
+                modp_NTT2_ext(tmpsrc, fk + u, tlen, tmpsrc, gm, logN, p, p0i);
+                for (v = 0, x = fk + u; v < n; ++v, x += tlen)
+                {
+                    tmpsrc[x] = modp_montymul(modp_montymul(tmpsrc[t1 + v], tmpsrc[x], p, p0i), R2, p, p0i);
                 }
-                modp_iNTT2_ext(tmpsrc, fk + u, tlen, tmpsrc, igm, logn, p, p0i);
+                modp_iNTT2_ext(tmpsrc, fk + u, tlen, tmpsrc, igm, logN, p, p0i);
             }
 
             /*
@@ -1613,7 +1448,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Subtract k*f, scaled, from F.
             */
-            for (u = 0, x = F, y = fk; u < n; u ++, x += Fstride, y += tlen) {
+            for (u = 0, x = F, y = fk; u < n; ++u, x += Fstride, y += tlen)
+            {
                 zint_sub_scaled(tmpsrc, x, Flen, tmpsrc, y, tlen, sch, scl);
             }
         }
@@ -1626,25 +1462,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * the same values will be obtained over different platforms, in case
         * a known seed is used.
         */
-        internal ulong get_rng_u64(SHAKE256 rng)
+        internal static ulong get_rng_u64(SHAKE256 rng)
         {
             /*
             * We enforce little-endian representation.
             */
 
             byte[] tmp = new byte[8];
-
             rng.i_shake256_extract(tmp, 0, 8);
-            return (ulong)tmp[0]
-                | ((ulong)tmp[1] << 8)
-                | ((ulong)tmp[2] << 16)
-                | ((ulong)tmp[3] << 24)
-                | ((ulong)tmp[4] << 32)
-                | ((ulong)tmp[5] << 40)
-                | ((ulong)tmp[6] << 48)
-                | ((ulong)tmp[7] << 56);
+            return Pack.LE_To_UInt64(tmp);
         }
-
 
         /*
         * Table below incarnates a discrete Gaussian distribution:
@@ -1654,7 +1481,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * For k > 0, element k is P(x >= k+1 | x > 0).
         * Probabilities are scaled up by 2^63.
         */
-        internal ulong[] gauss_1024_12289 = {
+        private static readonly ulong[] gauss_1024_12289 = {
             1283868770400643928u,  6416574995475331444u,  4078260278032692663u,
             2353523259288686585u,  1227179971273316331u,   575931623374121527u,
             242543240509105209u,    91437049221049666u,    30799446349977173u,
@@ -1676,14 +1503,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * sigma*sqrt(2), then we can just generate more values and add them
         * together for lower dimensions.
         */
-        internal int mkgauss(SHAKE256 rng, uint logn)
+        internal static int mkgauss(SHAKE256 rng, int logN)
         {
-            uint u, g;
-            int val;
-
-            g = 1U << (int)(10 - logn);
-            val = 0;
-            for (u = 0; u < g; u ++) {
+            uint g = 1U << (10 - logN);
+            int val = 0;
+            for (uint u = 0U; u < g; ++u)
+            {
                 /*
                 * Each iteration generates one value with the
                 * Gaussian distribution for N = 1024.
@@ -1698,8 +1523,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * remainder of the keygen process (solving the NTRU
                 * equation).
                 */
-                ulong r;
-                uint f, v, k, neg;
 
                 /*
                 * First value:
@@ -1707,10 +1530,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 *  - flag 'f' is set to 1 if the generated value is zero,
                 *    or set to 0 otherwise.
                 */
-                r = get_rng_u64(rng);
-                neg = (uint)(r >> 63);
-                r &= ~((ulong)1 << 63);
-                f = (uint)((r - gauss_1024_12289[0]) >> 63);
+                ulong r = get_rng_u64(rng);
+                uint neg = (uint)(r >> 63);
+                r &= ~(1UL << 63);
+                uint f = (uint)((r - gauss_1024_12289[0]) >> 63);
 
                 /*
                 * We produce a new random 63-bit integer r, and go over
@@ -1718,14 +1541,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * index of the first array element which is not greater
                 * than r, unless the flag f was already 1.
                 */
-                v = 0;
+                uint v = 0U;
                 r = get_rng_u64(rng);
-                r &= ~((ulong)1 << 63);
-                for (k = 1; k < gauss_1024_12289.Length; k ++)
+                r &= ~(1UL << 63);
+                for (uint k = 1U; k < gauss_1024_12289.Length; ++k)
                 {
-                    uint t;
-
-                    t = (uint)((r - gauss_1024_12289[k]) >> 63) ^ 1;
+                    uint t = (uint)((r - gauss_1024_12289[k]) >> 63) ^ 1;
                     v |= (uint)(k & -(t & (f ^ 1)));
                     f |= t;
                 }
@@ -1801,11 +1622,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * accordingly.
         */
 
-        internal int[] MAX_BL_SMALL = {
+        internal static readonly int[] MAX_BL_SMALL = {
             1, 1, 2, 2, 4, 7, 14, 27, 53, 106, 209
         };
 
-        internal int[] MAX_BL_LARGE = {
+        internal static readonly int[] MAX_BL_LARGE = {
             2, 2, 5, 7, 12, 21, 40, 78, 157, 308
         };
 
@@ -1814,55 +1635,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * coefficients of (f,g), depending on depth. These values are used
         * to compute bounds for Babai's reduction.
         */
-        internal int[] BITLENGTH_avg = { // BITLENGTH[i][0] = avg, [i][1] = std
-                4,
-               11,
-               24,
-               50,
-              102,
-              202,
-              401,
-              794,
-             1577,
-             3138,
-             6308,
+        internal static readonly int[] BITLENGTH_avg = { // BITLENGTH[i][0] = avg, [i][1] = std
+                4, 11, 24, 50, 102, 202, 401, 794, 1577, 3138, 6308
         };
-        internal int[] BITLENGTH_std = { // BITLENGTH[i][0] = avg, [i][1] = std
-              0,
-              1,
-              1,
-              1,
-              1,
-              2,
-              4,
-              5,
-              8,
-             13,
-             25
+
+        internal static readonly int[] BITLENGTH_std = { // BITLENGTH[i][0] = avg, [i][1] = std
+              0, 1, 1, 1, 1, 2, 4, 5, 8, 13, 25
         };
 
         /*
         * Minimal recursion depth at which we rebuild intermediate values
         * when reconstructing f and g.
         */
-        internal const int DEPTH_INT_FG = 4;
+        private const int DEPTH_INT_FG = 4;
 
         /*
         * Compute squared norm of a short vector. Returned value is saturated to
         * 2^32-1 if it is not lower than 2^31.
         */
-        internal uint poly_small_sqnorm(sbyte[] fsrc, int f, uint logn)
+        internal static uint poly_small_sqnorm(sbyte[] fsrc, int f, int logN)
         {
-            int n, u;
-            uint s, ng;
-
-            n = (int)1 << (int)logn;
-            s = 0;
-            ng = 0;
-            for (u = 0; u < n; u ++) {
-                int z;
-
-                z = fsrc[f+u];
+            int n = 1 << logN;
+            uint s = 0;
+            uint ng = 0;
+            for (int u = 0; u < n; ++u)
+            {
+                int z = fsrc[f + u];
                 s += (uint)(z * z);
                 ng |= s;
             }
@@ -1872,13 +1670,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Convert a small vector to floating point.
         */
-        internal void poly_small_to_fp(FalconFPR[] xsrc, int x, sbyte[] fsrc, int f, uint logn)
+        internal static void poly_small_to_fp(FalconFPR[] xsrc, int x, sbyte[] fsrc, int f, int logN)
         {
-            int n, u;
-
-            n = (int)1 << (int)logn;
-            for (u = 0; u < n; u ++) {
-                xsrc[x + u] = this.fpre.fpr_of(fsrc[f + u]);
+            int n = 1 << logN;
+            for (int u = 0; u < n; ++u)
+            {
+                xsrc[x + u] = FprEngine.fpr_of(fsrc[f + u]);
             }
         }
 
@@ -1890,88 +1687,81 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Values are in RNS; input and/or output may also be in NTT.
         */
-        internal void make_fg_step(uint[] datasrc, int data, uint logn, uint depth,
-            int in_ntt, int out_ntt)
+        internal static void make_fg_step(uint[] datasrc, int data, int logN, int depth, int in_ntt, int out_ntt)
         {
-            int n, hn, u;
-            int slen, tlen;
-            int fd, gd;
-            int fs, gs;
-            int gm, igm, t1;
-            FalconSmallPrime[] primes;
-
-            n = (int)1 << (int)logn;
-            hn = n >> 1;
-            slen = MAX_BL_SMALL[depth];
-            tlen = MAX_BL_SMALL[depth + 1];
-            primes = this.PRIMES;
+            int u;
+            int n = 1 << logN;
+            int hn = n >> 1;
+            int slen = MAX_BL_SMALL[depth];
+            int tlen = MAX_BL_SMALL[depth + 1];
+            FalconSmallPrime[] primes = FalconSmallPrimes.Primes;
 
             /*
             * Prepare room for the result.
             */
-            fd = data;
-            gd = fd + hn * tlen;
-            fs = gd + hn * tlen;
-            gs = fs + n * slen;
-            gm = gs + n * slen;
-            igm = gm + n;
-            t1 = igm + n;
-            // memmove(fs, data, 2 * n * slen * sizeof *data);
+            int fd = data;
+            int gd = fd + hn * tlen;
+            int fs = gd + hn * tlen;
+            int gs = fs + n * slen;
+            int gm = gs + n * slen;
+            int igm = gm + n;
+            int t1 = igm + n;
             Array.Copy(datasrc, data, datasrc, fs, 2 * n * slen);
 
             /*
             * First slen words: we use the input values directly, and apply
             * inverse NTT as we go.
             */
-            for (u = 0; u < slen; u ++) {
-                uint p, p0i, R2;
-                int v;
-                int x;
+            for (u = 0; u < slen; ++u)
+            {
+                int v, x;
+                uint p = primes[u].p;
+                uint p0i = modp_ninv31(p);
+                uint R2 = modp_R2(p, p0i);
+                modp_mkgm2(datasrc, gm, datasrc, igm, logN, primes[u].g, p, p0i);
 
-                p = primes[u].p;
-                p0i = modp_ninv31(p);
-                R2 = modp_R2(p, p0i);
-                modp_mkgm2(datasrc, gm, datasrc, igm, logn, primes[u].g, p, p0i);
-
-                for (v = 0, x = fs + u; v < n; v ++, x += slen) {
+                for (v = 0, x = fs + u; v < n; ++v, x += slen)
+                {
                     datasrc[t1 + v] = datasrc[x];
                 }
-                if (in_ntt == 0) {
-                    modp_NTT2(datasrc, t1, datasrc, gm, logn, p, p0i);
+                if (in_ntt == 0)
+                {
+                    modp_NTT2(datasrc, t1, datasrc, gm, logN, p, p0i);
                 }
-                for (v = 0, x = fd + u; v < hn; v ++, x += tlen) {
-                    uint w0, w1;
+                for (v = 0, x = fd + u; v < hn; ++v, x += tlen)
+                {
+                    uint w0 = datasrc[t1 + (v << 1) + 0];
+                    uint w1 = datasrc[t1 + (v << 1) + 1];
+                    datasrc[x] = modp_montymul(modp_montymul(w0, w1, p, p0i), R2, p, p0i);
+                }
+                if (in_ntt != 0)
+                {
+                    modp_iNTT2_ext(datasrc, fs + u, slen, datasrc, igm, logN, p, p0i);
+                }
 
-                    w0 = datasrc[t1 + (v << 1) + 0];
-                    w1 = datasrc[t1 + (v << 1) + 1];
-                    datasrc[x] = modp_montymul(
-                        modp_montymul(w0, w1, p, p0i), R2, p, p0i);
-                }
-                if (in_ntt != 0) {
-                    modp_iNTT2_ext(datasrc, fs + u, slen, datasrc, igm, logn, p, p0i);
-                }
-
-                for (v = 0, x = gs + u; v < n; v ++, x += slen) {
+                for (v = 0, x = gs + u; v < n; ++v, x += slen)
+                {
                     datasrc[t1 + v] = datasrc[x];
                 }
-                if (in_ntt == 0) {
-                    modp_NTT2(datasrc, t1, datasrc, gm, logn, p, p0i);
+                if (in_ntt == 0)
+                {
+                    modp_NTT2(datasrc, t1, datasrc, gm, logN, p, p0i);
                 }
-                for (v = 0, x = gd + u; v < hn; v ++, x += tlen) {
-                    uint w0, w1;
+                for (v = 0, x = gd + u; v < hn; ++v, x += tlen)
+                {
+                    uint w0 = datasrc[t1 + (v << 1) + 0];
+                    uint w1 = datasrc[t1 + (v << 1) + 1];
+                    datasrc[x] = modp_montymul(modp_montymul(w0, w1, p, p0i), R2, p, p0i);
+                }
+                if (in_ntt != 0)
+                {
+                    modp_iNTT2_ext(datasrc, gs + u, slen, datasrc, igm, logN, p, p0i);
+                }
 
-                    w0 = datasrc[t1 + (v << 1) + 0];
-                    w1 = datasrc[t1 + (v << 1) + 1];
-                    datasrc[x] = modp_montymul(
-                        modp_montymul(w0, w1, p, p0i), R2, p, p0i);
-                }
-                if (in_ntt != 0) {
-                    modp_iNTT2_ext(datasrc, gs + u, slen, datasrc, igm, logn, p, p0i);
-                }
-
-                if (out_ntt == 0) {
-                    modp_iNTT2_ext(datasrc, fd + u, tlen, datasrc, igm, logn - 1, p, p0i);
-                    modp_iNTT2_ext(datasrc, gd + u, tlen, datasrc, igm, logn - 1, p, p0i);
+                if (out_ntt == 0)
+                {
+                    modp_iNTT2_ext(datasrc, fd + u, tlen, datasrc, igm, logN - 1, p, p0i);
+                    modp_iNTT2_ext(datasrc, gd + u, tlen, datasrc, igm, logN - 1, p, p0i);
                 }
             }
 
@@ -1985,44 +1775,41 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Remaining words: use modular reductions to extract the values.
             */
-            for (u = slen; u < tlen; u ++) {
-                uint p, p0i, R2, Rx;
-                int v;
-                int x;
-
-                p = primes[u].p;
-                p0i = modp_ninv31(p);
-                R2 = modp_R2(p, p0i);
-                Rx = modp_Rx((uint)slen, p, p0i, R2);
-                modp_mkgm2(datasrc, gm, datasrc, igm, logn, primes[u].g, p, p0i);
-                for (v = 0, x = fs; v < n; v ++, x += slen) {
+            for (u = slen; u < tlen; ++u)
+            {
+                int v, x;
+                uint p = primes[u].p;
+                uint p0i = modp_ninv31(p);
+                uint R2 = modp_R2(p, p0i);
+                uint Rx = modp_Rx((uint)slen, p, p0i, R2);
+                modp_mkgm2(datasrc, gm, datasrc, igm, logN, primes[u].g, p, p0i);
+                for (v = 0, x = fs; v < n; ++v, x += slen)
+                {
                     datasrc[t1 + v] = zint_mod_small_signed(datasrc, x, slen, p, p0i, R2, Rx);
                 }
-                modp_NTT2(datasrc, t1, datasrc, gm, logn, p, p0i);
-                for (v = 0, x = fd + u; v < hn; v ++, x += tlen) {
-                    uint w0, w1;
-
-                    w0 = datasrc[t1 + (v << 1) + 0];
-                    w1 = datasrc[t1 + (v << 1) + 1];
-                    datasrc[x] = modp_montymul(
-                        modp_montymul(w0, w1, p, p0i), R2, p, p0i);
+                modp_NTT2(datasrc, t1, datasrc, gm, logN, p, p0i);
+                for (v = 0, x = fd + u; v < hn; ++v, x += tlen)
+                {
+                    uint w0 = datasrc[t1 + (v << 1) + 0];
+                    uint w1 = datasrc[t1 + (v << 1) + 1];
+                    datasrc[x] = modp_montymul(modp_montymul(w0, w1, p, p0i), R2, p, p0i);
                 }
-                for (v = 0, x = gs; v < n; v ++, x += slen) {
+                for (v = 0, x = gs; v < n; ++v, x += slen)
+                {
                     datasrc[t1 + v] = zint_mod_small_signed(datasrc, x, slen, p, p0i, R2, Rx);
                 }
-                modp_NTT2(datasrc, t1, datasrc, gm, logn, p, p0i);
-                for (v = 0, x = gd + u; v < hn; v ++, x += tlen) {
-                    uint w0, w1;
-
-                    w0 = datasrc[t1 + (v << 1) + 0];
-                    w1 = datasrc[t1 + (v << 1) + 1];
-                    datasrc[x] = modp_montymul(
-                        modp_montymul(w0, w1, p, p0i), R2, p, p0i);
+                modp_NTT2(datasrc, t1, datasrc, gm, logN, p, p0i);
+                for (v = 0, x = gd + u; v < hn; ++v, x += tlen)
+                {
+                    uint w0 = datasrc[t1 + (v << 1) + 0];
+                    uint w1 = datasrc[t1 + (v << 1) + 1];
+                    datasrc[x] = modp_montymul(modp_montymul(w0, w1, p, p0i), R2, p, p0i);
                 }
 
-                if (out_ntt == 0) {
-                    modp_iNTT2_ext(datasrc, fd + u, tlen, datasrc, igm, logn - 1, p, p0i);
-                    modp_iNTT2_ext(datasrc, gd + u, tlen, datasrc, igm, logn - 1, p, p0i);
+                if (out_ntt == 0)
+                {
+                    modp_iNTT2_ext(datasrc, fd + u, tlen, datasrc, igm, logN - 1, p, p0i);
+                    modp_iNTT2_ext(datasrc, gd + u, tlen, datasrc, igm, logN - 1, p, p0i);
                 }
             }
         }
@@ -2038,42 +1825,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Space use in data[]: enough room for any two successive values (f', g',
         * f and g).
         */
-        internal void make_fg(uint[] datasrc, int data, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
-            uint logn, uint depth, int out_ntt)
+        internal static void make_fg(uint[] datasrc, int data, sbyte[] fsrc, int f, sbyte[] gsrc, int g, int logN,
+            int depth, int out_ntt)
         {
-            int n, u;
-            int ft, gt; 
-            uint p0;
-            uint d;
-            FalconSmallPrime[] primes;
-
-            n = (int)1 << (int)logn;
-            ft = data;
-            gt = ft + n;
-            primes = this.PRIMES;
-            p0 = primes[0].p;
-            for (u = 0; u < n; u ++) {
-                datasrc[ft + u] = modp_set(fsrc[f+u], p0);
-                datasrc[gt + u] = modp_set(gsrc[g+u], p0);
+            int n = 1 << logN;
+            int ft = data;
+            int gt = ft + n;
+            FalconSmallPrime[] primes = FalconSmallPrimes.Primes;
+            uint p0 = primes[0].p;
+            for (int u = 0; u < n; ++u)
+            {
+                datasrc[ft + u] = modp_set(fsrc[f + u], p0);
+                datasrc[gt + u] = modp_set(gsrc[g + u], p0);
             }
 
-            if (depth == 0 && out_ntt != 0) {
-                int gm, igm;
-                uint p, p0i;
-
-                p = primes[0].p;
-                p0i = modp_ninv31(p);
-                gm = gt + n;
-                igm = gm + n;
-                modp_mkgm2(datasrc, gm, datasrc, igm, logn, primes[0].g, p, p0i);
-                modp_NTT2(datasrc, ft, datasrc, gm, logn, p, p0i);
-                modp_NTT2(datasrc, gt, datasrc, gm, logn, p, p0i);
+            if (depth == 0 && out_ntt != 0)
+            {
+                uint p = primes[0].p;
+                uint p0i = modp_ninv31(p);
+                int gm = gt + n;
+                int igm = gm + n;
+                modp_mkgm2(datasrc, gm, datasrc, igm, logN, primes[0].g, p, p0i);
+                modp_NTT2(datasrc, ft, datasrc, gm, logN, p, p0i);
+                modp_NTT2(datasrc, gt, datasrc, gm, logN, p, p0i);
                 return;
             }
 
-            for (d = 0; d < depth; d ++) {
-                make_fg_step(datasrc, data, logn - d, d,
-                    d != 0 ? 1 : 0, ((d + 1) < depth || out_ntt != 0)? 1 : 0);
+            for (int d = 0; d < depth; ++d)
+            {
+                make_fg_step(datasrc, data, logN - d, d, d != 0 ? 1 : 0, ((d + 1) < depth || out_ntt != 0)? 1 : 0);
             }
         }
 
@@ -2084,26 +1864,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Returned value: 1 on success, 0 on error.
         */
-        internal int solve_NTRU_deepest(uint logn_top,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint[] tmpsrc, int tmp)
+        internal static int solve_NTRU_deepest(int logNTop, sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint[] tmpsrc,
+            int tmp)
         {
-            int len;
-            int Fp, Gp; 
-            int fp, gp; 
-            int t1; 
-            uint q;
-            FalconSmallPrime[] primes;
+            int len = MAX_BL_SMALL[logNTop];
+            FalconSmallPrime[] primes = FalconSmallPrimes.Primes;
 
-            len = MAX_BL_SMALL[logn_top];
-            primes = this.PRIMES;
+            int Fp = tmp;
+            int Gp = Fp + len;
+            int fp = Gp + len;
+            int gp = fp + len;
+            int t1 = gp + len;
 
-            Fp = tmp;
-            Gp = Fp + len;
-            fp = Gp + len;
-            gp = fp + len;
-            t1 = gp + len;
-
-            make_fg(tmpsrc, fp, fsrc, f, gsrc, g, logn_top, logn_top, 0);
+            make_fg(tmpsrc, fp, fsrc, f, gsrc, g, logNTop, logNTop, 0);
 
             /*
             * We use the CRT to rebuild the resultants as big integers.
@@ -2120,9 +1893,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * imply failure of the NTRU solving equation, and the (f,g)
             * values will be abandoned in that case.
             */
-            if (zint_bezout(tmpsrc, Gp, tmpsrc, Fp, tmpsrc, fp, tmpsrc, gp, len, tmpsrc, t1) == 0) {
+            if (zint_bezout(tmpsrc, Gp, tmpsrc, Fp, tmpsrc, fp, tmpsrc, gp, len, tmpsrc, t1) == 0)
                 return 0;
-            }
 
             /*
             * Multiply the two values by the target value q. Values must
@@ -2131,9 +1903,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * of zint_mul_small() means that we exceeded our array
             * capacity, and that implies failure and rejection of (f,g).
             */
-            q = 12289;
-            if (zint_mul_small(tmpsrc, Fp, len, q) != 0
-                || zint_mul_small(tmpsrc, Gp, len, q) != 0)
+            uint q = 12289;
+            if (zint_mul_small(tmpsrc, Fp, len, q) != 0 ||
+                zint_mul_small(tmpsrc, Gp, len, q) != 0)
             {
                 return 0;
             }
@@ -2148,8 +1920,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Returned value: 1 on success, 0 on error.
         */
-        internal int solve_NTRU_intermediate(uint logn_top,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint depth, uint[] tmpsrc, int tmp)
+        internal static int solve_NTRU_intermediate(int logNTop, sbyte[] fsrc, int f, sbyte[] gsrc, int g, int depth,
+            uint[] tmpsrc, int tmp)
         {
             /*
             * In this function, 'logn' is the log2 of the degree for
@@ -2158,21 +1930,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             *    levels) have degree N/2;
             *  - this function should return F and G of degree N.
             */
-            uint logn;
-            int n, hn, slen, dlen, llen, rlen, FGlen, u;
-            int Fd, Gd;
-            int Ft, Gt;
-            int ft, gt, t1;
-            FalconFPR[] rt1; FalconFPR[] rt2; 
-            FalconFPR[] rt3; FalconFPR[] rt4; FalconFPR[] rt5;
-            int scale_fg, minbl_fg, maxbl_fg, maxbl_FG, scale_k;
-            int x, y;
-            int[] k;
-            FalconSmallPrime[] primes;
-
-            logn = logn_top - depth;
-            n = (int)1 << (int)logn;
-            hn = n >> 1;
+            int logN = logNTop - depth;
+            int n = 1 << logN;
+            int hn = n >> 1;
 
             /*
             * slen = size for our input f and g; also size of the reduced
@@ -2186,35 +1946,34 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * We build our non-reduced F and G as two independent halves each,
             * of degree N/2 (F = F0 + X*F1, G = G0 + X*G1).
             */
-            slen = MAX_BL_SMALL[depth];
-            dlen = MAX_BL_SMALL[depth + 1];
-            llen = MAX_BL_LARGE[depth];
-            primes = this.PRIMES;
+            int slen = MAX_BL_SMALL[depth];
+            int dlen = MAX_BL_SMALL[depth + 1];
+            int llen = MAX_BL_LARGE[depth];
+            FalconSmallPrime[] primes = FalconSmallPrimes.Primes;
 
             /*
             * Fd and Gd are the F and G from the deeper level.
             */
-            Fd = tmp;
-            Gd = Fd + dlen * hn;
+            int Fd = tmp;
+            int Gd = Fd + dlen * hn;
 
             /*
             * Compute the input f and g for this level. Note that we get f
             * and g in RNS + NTT representation.
             */
-            ft = Gd + dlen * hn;
-            make_fg(tmpsrc, ft, fsrc, f, gsrc, g, logn_top, depth, 1);
+            int ft = Gd + dlen * hn;
+            make_fg(tmpsrc, ft, fsrc, f, gsrc, g, logNTop, depth, 1);
 
             /*
             * Move the newly computed f and g to make room for our candidate
             * F and G (unreduced).
             */
-            Ft = tmp;
-            Gt = Ft + n * llen;
-            t1 = Gt + n * llen;
-            // memmove(t1, ft, 2 * n * slen * sizeof *ft);
+            int Ft = tmp;
+            int Gt = Ft + n * llen;
+            int t1 = Gt + n * llen;
             Array.Copy(tmpsrc, ft, tmpsrc, t1, 2 * n * slen);
             ft = t1;
-            gt = ft + slen * n;
+            int gt = ft + slen * n;
             t1 = gt + slen * n;
 
             /*
@@ -2229,18 +1988,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * We reduce Fd and Gd modulo all the small primes we will need,
             * and store the values in Ft and Gt (only n/2 values in each).
             */
-            for (u = 0; u < llen; u ++) {
-                uint p, p0i, R2, Rx;
-                int v;
-                int xs, ys, xd, yd;
+            int u;
+            for (u = 0; u < llen; ++u)
+            {
+                uint p = primes[u].p;
+                uint p0i = modp_ninv31(p);
+                uint R2 = modp_R2(p, p0i);
+                uint Rx = modp_Rx((uint)dlen, p, p0i, R2);
 
-                p = primes[u].p;
-                p0i = modp_ninv31(p);
-                R2 = modp_R2(p, p0i);
-                Rx = modp_Rx((uint)dlen, p, p0i, R2);
+                int v, xs, ys, xd, yd;
                 for (v = 0, xs = Fd, ys = Gd, xd = Ft + u, yd = Gt + u;
                     v < hn;
-                    v ++, xs += dlen, ys += dlen, xd += llen, yd += llen)
+                    ++v, xs += dlen, ys += dlen, xd += llen, yd += llen)
                 {
                     tmpsrc[xd] = zint_mod_small_signed(tmpsrc, xs, dlen, p, p0i, R2, Rx);
                     tmpsrc[yd] = zint_mod_small_signed(tmpsrc, ys, dlen, p, p0i, R2, Rx);
@@ -2251,62 +2010,59 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * We do not need Fd and Gd after that point.
             */
 
+            int x, y;
+
             /*
             * Compute our F and G modulo sufficiently many small primes.
             */
-            for (u = 0; u < llen; u ++) {
-                uint p, p0i, R2;
-                int gm, igm;
-                int fx, gx;
-                int Fp, Gp;
-                int v;
-
+            for (u = 0; u < llen; ++u)
+            {
                 /*
                 * All computations are done modulo p.
                 */
-                p = primes[u].p;
-                p0i = modp_ninv31(p);
-                R2 = modp_R2(p, p0i);
+                uint p = primes[u].p;
+                uint p0i = modp_ninv31(p);
+                uint R2 = modp_R2(p, p0i);
 
                 /*
                 * If we processed slen words, then f and g have been
                 * de-NTTized, and are in RNS; we can rebuild them.
                 */
-                if (u == slen) {
+                if (u == slen)
+                {
                     zint_rebuild_CRT(tmpsrc, ft, slen, slen, n, primes, 1, tmpsrc, t1);
                     zint_rebuild_CRT(tmpsrc, gt, slen, slen, n, primes, 1, tmpsrc, t1);
                 }
 
-                gm = t1;
-                igm = gm + n;
-                fx = igm + n;
-                gx = fx + n;
+                int gm = t1;
+                int igm = gm + n;
+                int fx = igm + n;
+                int gx = fx + n;
 
-                modp_mkgm2(tmpsrc, gm, tmpsrc, igm, logn, primes[u].g, p, p0i);
+                modp_mkgm2(tmpsrc, gm, tmpsrc, igm, logN, primes[u].g, p, p0i);
 
-                if (u < slen) {
-                    for (v = 0, x = ft + u, y = gt + u;
-                        v < n; v ++, x += slen, y += slen)
+                int v;
+
+                if (u < slen)
+                {
+                    for (v = 0, x = ft + u, y = gt + u; v < n; ++v, x += slen, y += slen)
                     {
                         tmpsrc[fx+v] = tmpsrc[x];
                         tmpsrc[gx+v] = tmpsrc[y];
                     }
-                    modp_iNTT2_ext(tmpsrc, ft + u, slen, tmpsrc, igm, logn, p, p0i);
-                    modp_iNTT2_ext(tmpsrc, gt + u, slen, tmpsrc, igm, logn, p, p0i);
-                } else {
-                    uint Rx;
-
-                    Rx = modp_Rx((uint)slen, p, p0i, R2);
-                    for (v = 0, x = ft, y = gt;
-                        v < n; v ++, x += slen, y += slen)
+                    modp_iNTT2_ext(tmpsrc, ft + u, slen, tmpsrc, igm, logN, p, p0i);
+                    modp_iNTT2_ext(tmpsrc, gt + u, slen, tmpsrc, igm, logN, p, p0i);
+                }
+                else
+                {
+                    uint Rx = modp_Rx((uint)slen, p, p0i, R2);
+                    for (v = 0, x = ft, y = gt; v < n; ++v, x += slen, y += slen)
                     {
-                        tmpsrc[fx+v] = zint_mod_small_signed(tmpsrc, x, slen,
-                            p, p0i, R2, Rx);
-                        tmpsrc[gx+v] = zint_mod_small_signed(tmpsrc, y, slen,
-                            p, p0i, R2, Rx);
+                        tmpsrc[fx+v] = zint_mod_small_signed(tmpsrc, x, slen, p, p0i, R2, Rx);
+                        tmpsrc[gx+v] = zint_mod_small_signed(tmpsrc, y, slen, p, p0i, R2, Rx);
                     }
-                    modp_NTT2(tmpsrc, fx, tmpsrc, gm, logn, p, p0i);
-                    modp_NTT2(tmpsrc, gx, tmpsrc, gm, logn, p, p0i);
+                    modp_NTT2(tmpsrc, fx, tmpsrc, gm, logN, p, p0i);
+                    modp_NTT2(tmpsrc, gx, tmpsrc, gm, logN, p, p0i);
                 }
 
                 /*
@@ -2314,16 +2070,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * (they have degree n/2). These values were computed in
                 * a previous step, and stored in Ft and Gt.
                 */
-                Fp = gx + n;
-                Gp = Fp + hn;
-                for (v = 0, x = Ft + u, y = Gt + u;
-                    v < hn; v ++, x += llen, y += llen)
+                int Fp = gx + n;
+                int Gp = Fp + hn;
+                for (v = 0, x = Ft + u, y = Gt + u; v < hn; ++v, x += llen, y += llen)
                 {
                     tmpsrc[Fp+v] = tmpsrc[x];
                     tmpsrc[Gp+v] = tmpsrc[y];
                 }
-                modp_NTT2(tmpsrc, Fp, tmpsrc, gm, logn - 1, p, p0i);
-                modp_NTT2(tmpsrc, Gp, tmpsrc, gm, logn - 1, p, p0i);
+                modp_NTT2(tmpsrc, Fp, tmpsrc, gm, logN - 1, p, p0i);
+                modp_NTT2(tmpsrc, Gp, tmpsrc, gm, logN - 1, p, p0i);
 
                 /*
                 * Compute our F and G modulo p.
@@ -2355,25 +2110,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * Moreover, in our chosen NTT representation, roots
                 * from the same group are consecutive in RAM.
                 */
-                for (v = 0, x = Ft + u, y = Gt + u; v < hn;
-                    v ++, x += (llen << 1), y += (llen << 1))
+                for (v = 0, x = Ft + u, y = Gt + u; v < hn; ++v, x += (llen << 1), y += (llen << 1))
                 {
-                    uint ftA, ftB, gtA, gtB;
-                    uint mFp, mGp;
-
-                    ftA = tmpsrc[fx + (v << 1) + 0];
-                    ftB = tmpsrc[fx + (v << 1) + 1];
-                    gtA = tmpsrc[gx + (v << 1) + 0];
-                    gtB = tmpsrc[gx + (v << 1) + 1];
-                    mFp = modp_montymul(tmpsrc[Fp+v], R2, p, p0i);
-                    mGp = modp_montymul(tmpsrc[Gp+v], R2, p, p0i);
-                    tmpsrc[x+0] = modp_montymul(gtB, mFp, p, p0i);
-                    tmpsrc[x+llen] = modp_montymul(gtA, mFp, p, p0i);
-                    tmpsrc[y+0] = modp_montymul(ftB, mGp, p, p0i);
-                    tmpsrc[y+llen] = modp_montymul(ftA, mGp, p, p0i);
+                    uint ftA = tmpsrc[fx + (v << 1) + 0];
+                    uint ftB = tmpsrc[fx + (v << 1) + 1];
+                    uint gtA = tmpsrc[gx + (v << 1) + 0];
+                    uint gtB = tmpsrc[gx + (v << 1) + 1];
+                    uint mFp = modp_montymul(tmpsrc[Fp + v], R2, p, p0i);
+                    uint mGp = modp_montymul(tmpsrc[Gp + v], R2, p, p0i);
+                    tmpsrc[x + 0] = modp_montymul(gtB, mFp, p, p0i);
+                    tmpsrc[x + llen] = modp_montymul(gtA, mFp, p, p0i);
+                    tmpsrc[y + 0] = modp_montymul(ftB, mGp, p, p0i);
+                    tmpsrc[y + llen] = modp_montymul(ftA, mGp, p, p0i);
                 }
-                modp_iNTT2_ext(tmpsrc, Ft + u, llen, tmpsrc, igm, logn, p, p0i);
-                modp_iNTT2_ext(tmpsrc, Gt + u, llen, tmpsrc, igm, logn, p, p0i);
+                modp_iNTT2_ext(tmpsrc, Ft + u, llen, tmpsrc, igm, logN, p, p0i);
+                modp_iNTT2_ext(tmpsrc, Gt + u, llen, tmpsrc, igm, logN, p, p0i);
             }
 
             /*
@@ -2447,12 +2198,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             */
 
             // rt3 = align_fpr(tmp, t1);
-            rt1 = new FalconFPR[n];
-            rt2 = new FalconFPR[n];
-            rt3 = new FalconFPR[n];
-            rt4 = new FalconFPR[n];
-            rt5 = new FalconFPR[n >> 1];
-            k = new int[n];
+            FalconFPR[] rt1 = new FalconFPR[n];
+            FalconFPR[] rt2 = new FalconFPR[n];
+            FalconFPR[] rt3 = new FalconFPR[n];
+            FalconFPR[] rt4 = new FalconFPR[n];
+            FalconFPR[] rt5 = new FalconFPR[n >> 1];
+            int[] k = new int[n];
+
             /*
             * Get f and g into rt3 and rt4 as floating-point approximations.
             *
@@ -2463,14 +2215,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * computed so that average maximum length will fall in the
             * middle or the upper half of these top 10 words.
             */
-            rlen = (slen > 10) ? 10 : slen;
-            poly_big_to_fp(rt3, 0, tmpsrc, ft + slen - rlen, rlen, slen, logn);
-            poly_big_to_fp(rt4, 0, tmpsrc, gt + slen - rlen, rlen, slen, logn);
+            int rlen = (slen > 10) ? 10 : slen;
+            poly_big_to_fp(rt3, 0, tmpsrc, ft + slen - rlen, rlen, slen, logN);
+            poly_big_to_fp(rt4, 0, tmpsrc, gt + slen - rlen, rlen, slen, logN);
 
             /*
             * Values in rt3 and rt4 are downscaled by 2^(scale_fg).
             */
-            scale_fg = 31 * (int)(slen - rlen);
+            int scale_fg = 31 * (int)(slen - rlen);
 
             /*
             * Estimated boundaries for the maximum size (in bits) of the
@@ -2478,18 +2230,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * allow for a deviation of at most six times the standard
             * deviation.
             */
-            minbl_fg = BITLENGTH_avg[depth] - 6 * BITLENGTH_std[depth];
-            maxbl_fg = BITLENGTH_avg[depth] + 6 * BITLENGTH_std[depth];
+            int minbl_fg = BITLENGTH_avg[depth] - 6 * BITLENGTH_std[depth];
+            int maxbl_fg = BITLENGTH_avg[depth] + 6 * BITLENGTH_std[depth];
 
             /*
             * Compute 1/(f*adj(f)+g*adj(g)) in rt5. We also keep adj(f)
             * and adj(g) in rt3 and rt4, respectively.
             */
-            this.ffte.FFT(rt3, 0, logn);
-            this.ffte.FFT(rt4, 0, logn);
-            this.ffte.poly_invnorm2_fft(rt5, 0, rt3, 0, rt4, 0, logn);
-            this.ffte.poly_adj_fft(rt3, 0, logn);
-            this.ffte.poly_adj_fft(rt4, 0, logn);
+            FalconFft.FFT(rt3, 0, logN);
+            FalconFft.FFT(rt4, 0, logN);
+            FalconFft.poly_invnorm2_fft(rt5, 0, rt3, 0, rt4, 0, logN);
+            FalconFft.poly_adj_fft(rt3, 0, logN);
+            FalconFft.poly_adj_fft(rt4, 0, logN);
 
             /*
             * Reduce F and G repeatedly.
@@ -2498,8 +2250,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * is kept in maxbl_FG, with the corresponding word length in
             * FGlen.
             */
-            FGlen = llen;
-            maxbl_FG = 31 * (int)llen;
+            int FGlen = llen;
+            int maxbl_FG = 31 * (int)llen;
 
             /*
             * Each reduction operation computes the reduction polynomial
@@ -2526,32 +2278,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * The size of (f,g) is not known exactly, but maxbl_fg is an
             * upper bound.
             */
-            scale_k = maxbl_FG - minbl_fg;
+            int scale_k = maxbl_FG - minbl_fg;
 
-            for (;;) {
-                int scale_FG, dc, new_maxbl_FG;
-                uint scl, sch;
-                FalconFPR pdc, pt;
-
+            for (;;)
+            {
                 /*
                 * Convert current F and G into floating-point. We apply
                 * scaling if the current length is more than 10 words.
                 */
                 rlen = (FGlen > 10) ? 10 : FGlen;
-                scale_FG = 31 * (int)(FGlen - rlen);
-                poly_big_to_fp(rt1, 0, tmpsrc, Ft + FGlen - rlen, rlen, llen, logn);
-                poly_big_to_fp(rt2, 0, tmpsrc, Gt + FGlen - rlen, rlen, llen, logn);
+                int scale_FG = 31 * (int)(FGlen - rlen);
+                poly_big_to_fp(rt1, 0, tmpsrc, Ft + FGlen - rlen, rlen, llen, logN);
+                poly_big_to_fp(rt2, 0, tmpsrc, Gt + FGlen - rlen, rlen, llen, logN);
 
                 /*
                 * Compute (F*adj(f)+G*adj(g))/(f*adj(f)+g*adj(g)) in rt2.
                 */
-                this.ffte.FFT(rt1, 0, logn);
-                this.ffte.FFT(rt2, 0, logn);
-                this.ffte.poly_mul_fft(rt1, 0, rt3, 0, logn);
-                this.ffte.poly_mul_fft(rt2, 0, rt4, 0, logn);
-                this.ffte.poly_add(rt2, 0, rt1, 0, logn);
-                this.ffte.poly_mul_autoadj_fft(rt2, 0, rt5, 0, logn);
-                this.ffte.iFFT(rt2, 0, logn);
+                FalconFft.FFT(rt1, 0, logN);
+                FalconFft.FFT(rt2, 0, logN);
+                FalconFft.poly_mul_fft(rt1, 0, rt3, 0, logN);
+                FalconFft.poly_mul_fft(rt2, 0, rt4, 0, logN);
+                FalconFft.poly_add(rt2, 0, rt1, 0, logN);
+                FalconFft.poly_mul_autoadj_fft(rt2, 0, rt5, 0, logN);
+                FalconFft.iFFT(rt2, 0, logN);
 
                 /*
                 * (f,g) are scaled by 'scale_fg', meaning that the
@@ -2566,7 +2315,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * apply a corrective scaling. After scaling, the values
                 * should fit in -2^31-1..+2^31-1.
                 */
-                dc = scale_k - scale_FG + scale_fg;
+                int dc = scale_k - scale_FG + scale_fg;
 
                 /*
                 * We will need to multiply values by 2^(-dc). The value
@@ -2576,25 +2325,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * dependency on libm. When using FP emulation, we could
                 * use our this.fpre.fpr_ldexp(), which is constant-time.)
                 */
-                if (dc < 0) {
+                FalconFPR pt;
+                if (dc < 0)
+                {
                     dc = -dc;
-                    pt = this.fpre.fpr_two;
-                } else {
-                    pt = this.fpre.fpr_onehalf;
+                    pt = FprEngine.fpr_two;
                 }
-                pdc = this.fpre.fpr_one;
-                while (dc != 0) {
-                    if ((dc & 1) != 0) {
-                        pdc = this.fpre.fpr_mul(pdc, pt);
+                else
+                {
+                    pt = FprEngine.fpr_onehalf;
+                }
+                FalconFPR pdc = FprEngine.fpr_one;
+                while (dc != 0)
+                {
+                    if ((dc & 1) != 0)
+                    {
+                        pdc = FprEngine.fpr_mul(pdc, pt);
                     }
                     dc >>= 1;
-                    pt = this.fpre.fpr_sqr(pt);
+                    pt = FprEngine.fpr_sqr(pt);
                 }
 
-                for (u = 0; u < n; u ++) {
-                    FalconFPR xv;
-
-                    xv = this.fpre.fpr_mul(rt2[u], pdc);
+                for (u = 0; u < n; ++u)
+                {
+                    FalconFPR xv = FprEngine.fpr_mul(rt2[u], pdc);
 
                     /*
                     * Sometimes the values can be out-of-bounds if
@@ -2605,12 +2359,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     * failure here implies that we discard the current
                     * secret key (f,g).
                     */
-                    if (!this.fpre.fpr_lt(this.fpre.fpr_mtwo31m1, xv)
-                        || !this.fpre.fpr_lt(xv, this.fpre.fpr_ptwo31m1))
+                    if (!FprEngine.fpr_lt(FprEngine.fpr_mtwo31m1, xv) ||
+                        !FprEngine.fpr_lt(xv, FprEngine.fpr_ptwo31m1))
                     {
                         return 0;
                     }
-                    k[u] = (int)this.fpre.fpr_rint(xv);
+
+                    k[u] = (int)FprEngine.fpr_rint(xv);
                 }
 
                 /*
@@ -2620,18 +2375,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * If we are at low depth, then we use the NTT to
                 * compute k*f and k*g.
                 */
-                sch = (uint)(scale_k / 31);
-                scl = (uint)(scale_k % 31);
-                if (depth <= DEPTH_INT_FG) {
-                    poly_sub_scaled_ntt(tmpsrc, Ft, FGlen, llen, tmpsrc, ft, slen, slen,
-                        k, 0, sch, scl, logn, tmpsrc, t1);
-                    poly_sub_scaled_ntt(tmpsrc, Gt, FGlen, llen, tmpsrc, gt, slen, slen,
-                        k, 0, sch, scl, logn, tmpsrc, t1);
-                } else {
-                    poly_sub_scaled(tmpsrc, Ft, FGlen, llen, tmpsrc, ft, slen, slen,
-                        k, 0, sch, scl, logn);
-                    poly_sub_scaled(tmpsrc, Gt, FGlen, llen, tmpsrc, gt, slen, slen,
-                        k, 0, sch, scl, logn);
+                uint sch = (uint)(scale_k / 31);
+                uint scl = (uint)(scale_k % 31);
+                if (depth <= DEPTH_INT_FG)
+                {
+                    poly_sub_scaled_ntt(tmpsrc, Ft, FGlen, llen, tmpsrc, ft, slen, slen, k, 0, sch, scl, logN, tmpsrc,
+                        t1);
+                    poly_sub_scaled_ntt(tmpsrc, Gt, FGlen, llen, tmpsrc, gt, slen, slen, k, 0, sch, scl, logN, tmpsrc,
+                        t1);
+                }
+                else
+                {
+                    poly_sub_scaled(tmpsrc, Ft, FGlen, llen, tmpsrc, ft, slen, slen, k, 0, sch, scl, logN);
+                    poly_sub_scaled(tmpsrc, Gt, FGlen, llen, tmpsrc, gt, slen, slen, k, 0, sch, scl, logN);
                 }
 
                 /*
@@ -2640,11 +2396,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * "late" instead of "early". We also adjust FGlen
                 * accordingly.
                 */
-                new_maxbl_FG = scale_k + maxbl_fg + 10;
-                if (new_maxbl_FG < maxbl_FG) {
+                int new_maxbl_FG = scale_k + maxbl_fg + 10;
+                if (new_maxbl_FG < maxbl_FG)
+                {
                     maxbl_FG = new_maxbl_FG;
-                    if ((int)FGlen * 31 >= maxbl_FG + 31) {
-                        FGlen --;
+                    if ((int)FGlen * 31 >= maxbl_FG + 31)
+                    {
+                        --FGlen;
                     }
                 }
 
@@ -2653,11 +2411,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * at least 25 bits per iteration. We stop when we have
                 * done the loop with an unscaled k.
                 */
-                if (scale_k <= 0) {
+                if (scale_k <= 0)
                     break;
-                }
+
                 scale_k -= 25;
-                if (scale_k < 0) {
+                if (scale_k < 0)
+                {
                     scale_k = 0;
                 }
             }
@@ -2666,18 +2425,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * If (F,G) length was lowered below 'slen', then we must take
             * care to re-extend the sign.
             */
-            if (FGlen < slen) {
-                for (u = 0; u < n; u ++, Ft += llen, Gt += llen) {
+            if (FGlen < slen)
+            {
+                for (u = 0; u < n; ++u, Ft += llen, Gt += llen)
+                {
                     int v;
-                    uint sw;
-
-                    sw = ((uint)-(tmpsrc[Ft+FGlen - 1] >> 30) >> 1);
-                    for (v = FGlen; v < slen; v ++) {
-                        tmpsrc[Ft+v] = sw;
+                    uint sw = ((uint)-(tmpsrc[Ft+FGlen - 1] >> 30) >> 1);
+                    for (v = FGlen; v < slen; ++v)
+                    {
+                        tmpsrc[Ft + v] = sw;
                     }
-                    sw = ((uint)-(tmpsrc[Gt+FGlen - 1] >> 30) >> 1);
-                    for (v = FGlen; v < slen; v ++) {
-                        tmpsrc[Gt+v] = sw;
+                    sw = ((uint)-(tmpsrc[Gt + FGlen - 1] >> 30) >> 1);
+                    for (v = FGlen; v < slen; ++v)
+                    {
+                        tmpsrc[Gt + v] = sw;
                     }
                 }
             }
@@ -2686,10 +2447,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Compress encoding of all values to 'slen' words (this is the
             * expected output format).
             */
-            for (u = 0, x = tmp, y = tmp;
-                u < (n << 1); u ++, x += slen, y += llen)
+            for (u = 0, x = tmp, y = tmp; u < (n << 1); ++u, x += slen, y += llen)
             {
-                // memmove(x, y, slen * sizeof *y);
                 Array.Copy(tmpsrc, y, tmpsrc, x, slen);
             }
             return 1;
@@ -2701,8 +2460,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Returned value: 1 on success, 0 on error.
         */
-        internal int solve_NTRU_binary_depth1(uint logn_top,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint[] tmpsrc, int tmp)
+        internal static int solve_NTRU_binary_depth1(int logNTop, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
+            uint[] tmpsrc, int tmp)
         {
             /*
             * The first half of this function is a copy of the corresponding
@@ -2712,19 +2471,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * of precision, allowing a much simpler process with lower RAM
             * usage.
             */
-            uint depth, logn;
-            int n_top, n, hn, slen, dlen, llen, u;
-            int Fd, Gd, Ft, Gt;
-            int ft, gt, t1;
-            FalconFPR[] rt1; FalconFPR[] rt2; FalconFPR[] rt3; 
-            FalconFPR[] rt4; FalconFPR[] rt5; FalconFPR[] rt6;
-            int x, y;
-
-            depth = 1;
-            n_top = (int)1 << (int)logn_top;
-            logn = logn_top - depth;
-            n = (int)1 << (int)logn;
-            hn = n >> 1;
+            int depth = 1;
+            int n_top = 1 << logNTop;
+            int logN = logNTop - depth;
+            int n = 1 << logN;
+            int hn = n >> 1;
 
             /*
             * Equations are:
@@ -2751,36 +2502,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * We build our non-reduced F and G as two independent halves each,
             * of degree N/2 (F = F0 + X*F1, G = G0 + X*G1).
             */
-            slen = MAX_BL_SMALL[depth];
-            dlen = MAX_BL_SMALL[depth + 1];
-            llen = MAX_BL_LARGE[depth];
+            int slen = MAX_BL_SMALL[depth];
+            int dlen = MAX_BL_SMALL[depth + 1];
+            int llen = MAX_BL_LARGE[depth];
 
             /*
             * Fd and Gd are the F and G from the deeper level. Ft and Gt
             * are the destination arrays for the unreduced F and G.
             */
-            Fd = tmp;
-            Gd = Fd + dlen * hn;
-            Ft = Gd + dlen * hn;
-            Gt = Ft + llen * n;
+            int Fd = tmp;
+            int Gd = Fd + dlen * hn;
+            int Ft = Gd + dlen * hn;
+            int Gt = Ft + llen * n;
+            int u;
 
             /*
             * We reduce Fd and Gd modulo all the small primes we will need,
             * and store the values in Ft and Gt.
             */
-            for (u = 0; u < llen; u ++) {
-                uint p, p0i, R2, Rx;
-                int v;
-                int xs, ys;
-                int xd, yd;
+            for (u = 0; u < llen; ++u)
+            {
+                uint p = FalconSmallPrimes.Primes[u].p;
+                uint p0i = modp_ninv31(p);
+                uint R2 = modp_R2(p, p0i);
+                uint Rx = modp_Rx((uint)dlen, p, p0i, R2);
 
-                p = this.PRIMES[u].p;
-                p0i = modp_ninv31(p);
-                R2 = modp_R2(p, p0i);
-                Rx = modp_Rx((uint)dlen, p, p0i, R2);
+                int v, xs, ys, xd, yd;
                 for (v = 0, xs = Fd, ys = Gd, xd = Ft + u, yd = Gt + u;
                     v < hn;
-                    v ++, xs += dlen, ys += dlen, xd += llen, yd += llen)
+                    ++v, xs += dlen, ys += dlen, xd += llen, yd += llen)
                 {
                     tmpsrc[xd] = zint_mod_small_signed(tmpsrc, xs, dlen, p, p0i, R2, Rx);
                     tmpsrc[yd] = zint_mod_small_signed(tmpsrc, ys, dlen, p, p0i, R2, Rx);
@@ -2796,28 +2546,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             // memmove(Ft + llen * n, Gt, llen * n * sizeof(uint));
             Array.Copy(tmpsrc, Gt, tmpsrc, Ft + llen * n, llen * n);
             Gt = Ft + llen * n;
-            ft = Gt + llen * n;
-            gt = ft + slen * n;
-
-            t1 = gt + slen * n;
+            int ft = Gt + llen * n;
+            int gt = ft + slen * n;
+            int t1 = gt + slen * n;
 
             /*
             * Compute our F and G modulo sufficiently many small primes.
             */
-            for (u = 0; u < llen; u ++) {
-                uint p, p0i, R2;
-                int gm, igm;
-                int fx, gx;
-                int Fp, Gp;
-                uint e;
-                int v;
-
+            for (u = 0; u < llen; ++u)
+            {
                 /*
                 * All computations are done modulo p.
                 */
-                p = this.PRIMES[u].p;
-                p0i = modp_ninv31(p);
-                R2 = modp_R2(p, p0i);
+                uint p = FalconSmallPrimes.Primes[u].p;
+                uint p0i = modp_ninv31(p);
+                uint R2 = modp_R2(p, p0i);
 
                 /*
                 * We recompute things from the source f and g, of full
@@ -2827,16 +2570,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * into fx[]) but later code will overwrite these extra
                 * elements.
                 */
-                gm = t1;
-                igm = gm + n_top;
-                fx = igm + n;
-                gx = fx + n_top;
-                modp_mkgm2(tmpsrc, gm, tmpsrc, igm, logn_top, this.PRIMES[u].g, p, p0i);
+                int gm = t1;
+                int igm = gm + n_top;
+                int fx = igm + n;
+                int gx = fx + n_top;
+                modp_mkgm2(tmpsrc, gm, tmpsrc, igm, logNTop, FalconSmallPrimes.Primes[u].g, p, p0i);
+
+                int v, x, y;
 
                 /*
                 * Set ft and gt to f and g modulo p, respectively.
                 */
-                for (v = 0; v < n_top; v ++) {
+                for (v = 0; v < n_top; ++v)
+                {
                     tmpsrc[fx+v] = modp_set(fsrc[f+v], p);
                     tmpsrc[gx+v] = modp_set(gsrc[g+v], p);
                 }
@@ -2844,9 +2590,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 /*
                 * Convert to NTT and compute our f and g.
                 */
-                modp_NTT2(tmpsrc, fx, tmpsrc, gm, logn_top, p, p0i);
-                modp_NTT2(tmpsrc, gx, tmpsrc, gm, logn_top, p, p0i);
-                for (e = logn_top; e > logn; e --) {
+                modp_NTT2(tmpsrc, fx, tmpsrc, gm, logNTop, p, p0i);
+                modp_NTT2(tmpsrc, gx, tmpsrc, gm, logNTop, p, p0i);
+
+                for (int e = logNTop; e > logN; --e)
+                {
                     modp_poly_rec_res(tmpsrc, fx, e, p, p0i, R2);
                     modp_poly_rec_res(tmpsrc, gx, e, p, p0i, R2);
                 }
@@ -2855,14 +2603,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * From that point onward, we only need tables for
                 * degree n, so we can save some space.
                 */
-                if (depth > 0) { /* always true */
-                    // memmove(gm + n, igm, n * sizeof *igm);
+                if (depth > 0) /* always true */
+                {
                     Array.Copy(tmpsrc, igm, tmpsrc, gm + n, n);
                     igm = gm + n;
-                    // memmove(igm + n, fx, n * sizeof *ft);
                     Array.Copy(tmpsrc, fx, tmpsrc, igm + n, n);
                     fx = igm + n;
-                    // memmove(fx + n, gx, n * sizeof *gt);
                     Array.Copy(tmpsrc, gx, tmpsrc, fx + n, n);
                     gx = fx + n;
                 }
@@ -2872,16 +2618,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * (they have degree n/2). These values were computed
                 * in a previous step, and stored in Ft and Gt.
                 */
-                Fp = gx + n;
-                Gp = Fp + hn;
-                for (v = 0, x = Ft + u, y = Gt + u;
-                    v < hn; v ++, x += llen, y += llen)
+                int Fp = gx + n;
+                int Gp = Fp + hn;
+                for (v = 0, x = Ft + u, y = Gt + u; v < hn; ++v, x += llen, y += llen)
                 {
                     tmpsrc[Fp+v] = tmpsrc[x];
                     tmpsrc[Gp+v] = tmpsrc[y];
                 }
-                modp_NTT2(tmpsrc, Fp, tmpsrc, gm, logn - 1, p, p0i);
-                modp_NTT2(tmpsrc, Gp, tmpsrc, gm, logn - 1, p, p0i);
+                modp_NTT2(tmpsrc, Fp, tmpsrc, gm, logN - 1, p, p0i);
+                modp_NTT2(tmpsrc, Gp, tmpsrc, gm, logN - 1, p, p0i);
 
                 /*
                 * Compute our F and G modulo p.
@@ -2920,37 +2665,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * Moreover, the two roots for each pair are consecutive
                 * in our bit-reversal encoding.
                 */
-                for (v = 0, x = Ft + u, y = Gt + u;
-                    v < hn; v ++, x += (llen << 1), y += (llen << 1))
+                for (v = 0, x = Ft + u, y = Gt + u; v < hn; ++v, x += (llen << 1), y += (llen << 1))
                 {
-                    uint ftA, ftB, gtA, gtB;
-                    uint mFp, mGp;
-
-                    ftA = tmpsrc[fx + (v << 1) + 0];
-                    ftB = tmpsrc[fx + (v << 1) + 1];
-                    gtA = tmpsrc[gx + (v << 1) + 0];
-                    gtB = tmpsrc[gx + (v << 1) + 1];
-                    mFp = modp_montymul(tmpsrc[Fp+v], R2, p, p0i);
-                    mGp = modp_montymul(tmpsrc[Gp+v], R2, p, p0i);
-                    tmpsrc[x+0] = modp_montymul(gtB, mFp, p, p0i);
-                    tmpsrc[x+llen] = modp_montymul(gtA, mFp, p, p0i);
-                    tmpsrc[y+0] = modp_montymul(ftB, mGp, p, p0i);
-                    tmpsrc[y+llen] = modp_montymul(ftA, mGp, p, p0i);
+                    uint ftA = tmpsrc[fx + (v << 1) + 0];
+                    uint ftB = tmpsrc[fx + (v << 1) + 1];
+                    uint gtA = tmpsrc[gx + (v << 1) + 0];
+                    uint gtB = tmpsrc[gx + (v << 1) + 1];
+                    uint mFp = modp_montymul(tmpsrc[Fp + v], R2, p, p0i);
+                    uint mGp = modp_montymul(tmpsrc[Gp + v], R2, p, p0i);
+                    tmpsrc[x + 0] = modp_montymul(gtB, mFp, p, p0i);
+                    tmpsrc[x + llen] = modp_montymul(gtA, mFp, p, p0i);
+                    tmpsrc[y + 0] = modp_montymul(ftB, mGp, p, p0i);
+                    tmpsrc[y + llen] = modp_montymul(ftA, mGp, p, p0i);
                 }
-                modp_iNTT2_ext(tmpsrc, Ft + u, llen, tmpsrc, igm, logn, p, p0i);
-                modp_iNTT2_ext(tmpsrc, Gt + u, llen, tmpsrc, igm, logn, p, p0i);
+                modp_iNTT2_ext(tmpsrc, Ft + u, llen, tmpsrc, igm, logN, p, p0i);
+                modp_iNTT2_ext(tmpsrc, Gt + u, llen, tmpsrc, igm, logN, p, p0i);
 
                 /*
                 * Also save ft and gt (only up to size slen).
                 */
-                if (u < slen) {
-                    modp_iNTT2(tmpsrc, fx, tmpsrc, igm, logn, p, p0i);
-                    modp_iNTT2(tmpsrc, gx, tmpsrc, igm, logn, p, p0i);
-                    for (v = 0, x = ft + u, y = gt + u;
-                        v < n; v ++, x += slen, y += slen)
+                if (u < slen)
+                {
+                    modp_iNTT2(tmpsrc, fx, tmpsrc, igm, logN, p, p0i);
+                    modp_iNTT2(tmpsrc, gx, tmpsrc, igm, logN, p, p0i);
+                    for (v = 0, x = ft + u, y = gt + u; v < n; ++v, x += slen, y += slen)
                     {
-                        tmpsrc[x] = tmpsrc[fx+v];
-                        tmpsrc[y] = tmpsrc[gx+v];
+                        tmpsrc[x] = tmpsrc[fx + v];
+                        tmpsrc[y] = tmpsrc[gx + v];
                     }
                 }
             }
@@ -2960,8 +2701,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * and G are consecutive, and thus can be rebuilt in a single
             * loop; similarly, the elements of f and g are consecutive.
             */
-            zint_rebuild_CRT(tmpsrc, Ft, llen, llen, n << 1, this.PRIMES, 1, tmpsrc, t1);
-            zint_rebuild_CRT(tmpsrc, ft, slen, slen, n << 1, this.PRIMES, 1, tmpsrc, t1);
+            zint_rebuild_CRT(tmpsrc, Ft, llen, llen, n << 1, FalconSmallPrimes.Primes, 1, tmpsrc, t1);
+            zint_rebuild_CRT(tmpsrc, ft, slen, slen, n << 1, FalconSmallPrimes.Primes, 1, tmpsrc, t1);
 
             /*
             * Here starts the Babai reduction, specialized for depth = 1.
@@ -2974,10 +2715,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Convert F and G into floating point (rt1 and rt2).
             */
-            rt1 = new FalconFPR[n];
-            rt2 = new FalconFPR[n];
-            poly_big_to_fp(rt1, 0, tmpsrc, Ft, llen, llen, logn);
-            poly_big_to_fp(rt2, 0, tmpsrc, Gt, llen, llen, logn);
+            FalconFPR[] rt1 = new FalconFPR[n];
+            FalconFPR[] rt2 = new FalconFPR[n];
+            poly_big_to_fp(rt1, 0, tmpsrc, Ft, llen, llen, logN);
+            poly_big_to_fp(rt2, 0, tmpsrc, Gt, llen, llen, logN);
 
             /*
             * Integer representation of F and G is no longer needed, we
@@ -2987,14 +2728,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             Array.Copy(tmpsrc, ft, tmpsrc, tmp, 2 * slen * n);
             ft = tmp;
             gt = ft + slen * n;
-            rt3 = new FalconFPR[n];
-            rt4 = new FalconFPR[n];
+            FalconFPR[] rt3 = new FalconFPR[n];
+            FalconFPR[] rt4 = new FalconFPR[n];
 
             /*
             * Convert f and g into floating point (rt3 and rt4).
             */
-            poly_big_to_fp(rt3, 0, tmpsrc, ft, slen, slen, logn);
-            poly_big_to_fp(rt4, 0, tmpsrc, gt, slen, slen, logn);
+            poly_big_to_fp(rt3, 0, tmpsrc, ft, slen, slen, logN);
+            poly_big_to_fp(rt4, 0, tmpsrc, gt, slen, slen, logN);
 
             /*
             * We now have:
@@ -3004,10 +2745,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             *   rt4 = g
             * in that order in RAM. We convert all of them to FFT.
             */
-            this.ffte.FFT(rt1, 0, logn);
-            this.ffte.FFT(rt2, 0, logn);
-            this.ffte.FFT(rt3, 0, logn);
-            this.ffte.FFT(rt4, 0, logn);
+            FalconFft.FFT(rt1, 0, logN);
+            FalconFft.FFT(rt2, 0, logN);
+            FalconFft.FFT(rt3, 0, logN);
+            FalconFft.FFT(rt4, 0, logN);
 
             /*
             * Compute:
@@ -3015,16 +2756,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             *   rt6 = 1 / (f*adj(f) + g*adj(g))
             * (Note that rt6 is half-length.)
             */
-            rt5 = new FalconFPR[n];
-            rt6 = new FalconFPR[n];
-            this.ffte.poly_add_muladj_fft(rt5, 0, rt1, 0, rt2, 0, rt3, 0, rt4, 0, logn);
-            this.ffte.poly_invnorm2_fft(rt6, 0, rt3, 0, rt4, 0, logn);
+            FalconFPR[] rt5 = new FalconFPR[n];
+            FalconFPR[] rt6 = new FalconFPR[n];
+            FalconFft.poly_add_muladj_fft(rt5, 0, rt1, 0, rt2, 0, rt3, 0, rt4, 0, logN);
+            FalconFft.poly_invnorm2_fft(rt6, 0, rt3, 0, rt4, 0, logN);
 
             /*
             * Compute:
             *   rt5 = (F*adj(f)+G*adj(g)) / (f*adj(f)+g*adj(g))
             */
-            this.ffte.poly_mul_autoadj_fft(rt5, 0, rt6, 0, logn);
+            FalconFft.poly_mul_autoadj_fft(rt5, 0, rt6, 0, logN);
 
             /*
             * Compute k as the rounded version of rt5. Check that none of
@@ -3033,36 +2774,38 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * note that any out-of-bounds value here implies a failure and
             * (f,g) will be discarded, so we can make a simple test.
             */
-            this.ffte.iFFT(rt5, 0, logn);
-            for (u = 0; u < n; u ++) {
-                FalconFPR z;
-
-                z = rt5[u];
-                if (!this.fpre.fpr_lt(z, this.fpre.fpr_ptwo63m1) || !this.fpre.fpr_lt(this.fpre.fpr_mtwo63m1, z)) {
+            FalconFft.iFFT(rt5, 0, logN);
+            for (u = 0; u < n; ++u)
+            {
+                FalconFPR z = rt5[u];
+                if (!FprEngine.fpr_lt(z, FprEngine.fpr_ptwo63m1) ||
+                    !FprEngine.fpr_lt(FprEngine.fpr_mtwo63m1, z))
+                {
                     return 0;
                 }
-                rt5[u] = this.fpre.fpr_of(this.fpre.fpr_rint(z));
+                rt5[u] = FprEngine.fpr_of(FprEngine.fpr_rint(z));
             }
-            this.ffte.FFT(rt5, 0, logn);
+            FalconFft.FFT(rt5, 0, logN);
 
             /*
             * Subtract k*f from F, and k*g from G.
             */
-            this.ffte.poly_mul_fft(rt3, 0, rt5, 0, logn);
-            this.ffte.poly_mul_fft(rt4, 0, rt5, 0, logn);
-            this.ffte.poly_sub(rt1, 0, rt3, 0, logn);
-            this.ffte.poly_sub(rt2, 0, rt4, 0, logn);
-            this.ffte.iFFT(rt1, 0, logn);
-            this.ffte.iFFT(rt2, 0, logn);
+            FalconFft.poly_mul_fft(rt3, 0, rt5, 0, logN);
+            FalconFft.poly_mul_fft(rt4, 0, rt5, 0, logN);
+            FalconFft.poly_sub(rt1, 0, rt3, 0, logN);
+            FalconFft.poly_sub(rt2, 0, rt4, 0, logN);
+            FalconFft.iFFT(rt1, 0, logN);
+            FalconFft.iFFT(rt2, 0, logN);
 
             /*
             * Convert back F and G to integers, and return.
             */
             Ft = tmp;
             Gt = Ft + n;
-            for (u = 0; u < n; u ++) {
-                tmpsrc[Ft+u] = (uint)this.fpre.fpr_rint(rt1[u]);
-                tmpsrc[Gt+u] = (uint)this.fpre.fpr_rint(rt2[u]);
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[Ft + u] = (uint)FprEngine.fpr_rint(rt1[u]);
+                tmpsrc[Gt + u] = (uint)FprEngine.fpr_rint(rt2[u]);
             }
 
             return 1;
@@ -3074,18 +2817,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * Returned value: 1 on success, 0 on error.
         */
-        internal int solve_NTRU_binary_depth0(uint logn,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint[] tmpsrc, int tmp)
+        internal static int solve_NTRU_binary_depth0(int logN, sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint[] tmpsrc,
+            int tmp)
         {
-            int n, hn, u;
-            uint p, p0i, R2;
-            int Fp, Gp; 
-            int t1, t2, t3, t4, t5;
-            int gm, igm, ft, gt;
-            int rt2,  rt3;
-
-            n = (int)1 << (int)logn;
-            hn = n >> 1;
+            int n = 1 << logN;
+            int hn = n >> 1;
 
             /*
             * Equations are:
@@ -3102,63 +2838,64 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Everything should fit in 31-bit integers, hence we can just use
             * the first small prime p = 2147473409.
             */
-            p = this.PRIMES[0].p;
-            p0i = modp_ninv31(p);
-            R2 = modp_R2(p, p0i);
+            uint p = FalconSmallPrimes.Primes[0].p;
+            uint p0i = modp_ninv31(p);
+            uint R2 = modp_R2(p, p0i);
 
-            Fp = tmp;
-            Gp = Fp + hn;
-            ft = Gp + hn;
-            gt = ft + n;
-            gm = gt + n;
-            igm = gm + n;
+            int Fp = tmp;
+            int Gp = Fp + hn;
+            int ft = Gp + hn;
+            int gt = ft + n;
+            int gm = gt + n;
+            int igm = gm + n;
 
-            modp_mkgm2(tmpsrc, gm, tmpsrc, igm, logn, PRIMES[0].g, p, p0i);
+            modp_mkgm2(tmpsrc, gm, tmpsrc, igm, logN, FalconSmallPrimes.Primes[0].g, p, p0i);
+
+            int u;
 
             /*
             * Convert F' anf G' in NTT representation.
             */
-            for (u = 0; u < hn; u ++) {
-                tmpsrc[Fp+u] = modp_set(zint_one_to_plain(tmpsrc, Fp + u), p);
-                tmpsrc[Gp+u] = modp_set(zint_one_to_plain(tmpsrc, Gp + u), p);
+            for (u = 0; u < hn; ++u)
+            {
+                tmpsrc[Fp + u] = modp_set(zint_one_to_plain(tmpsrc, Fp + u), p);
+                tmpsrc[Gp + u] = modp_set(zint_one_to_plain(tmpsrc, Gp + u), p);
             }
-            modp_NTT2(tmpsrc, Fp, tmpsrc, gm, logn - 1, p, p0i);
-            modp_NTT2(tmpsrc, Gp, tmpsrc, gm, logn - 1, p, p0i);
+            modp_NTT2(tmpsrc, Fp, tmpsrc, gm, logN - 1, p, p0i);
+            modp_NTT2(tmpsrc, Gp, tmpsrc, gm, logN - 1, p, p0i);
 
             /*
             * Load f and g and convert them to NTT representation.
             */
-            for (u = 0; u < n; u ++) {
-                tmpsrc[ft+u] = modp_set(fsrc[f+u], p);
-                tmpsrc[gt+u] = modp_set(gsrc[g+u], p);
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[ft + u] = modp_set(fsrc[f + u], p);
+                tmpsrc[gt + u] = modp_set(gsrc[g + u], p);
             }
-            modp_NTT2(tmpsrc, ft, tmpsrc, gm, logn, p, p0i);
-            modp_NTT2(tmpsrc, gt, tmpsrc, gm, logn, p, p0i);
+            modp_NTT2(tmpsrc, ft, tmpsrc, gm, logN, p, p0i);
+            modp_NTT2(tmpsrc, gt, tmpsrc, gm, logN, p, p0i);
 
             /*
             * Build the unreduced F,G in ft and gt.
             */
-            for (u = 0; u < n; u += 2) {
-                uint ftA, ftB, gtA, gtB;
-                uint mFp, mGp;
-
-                ftA = tmpsrc[ft + u + 0];
-                ftB = tmpsrc[ft + u + 1];
-                gtA = tmpsrc[gt + u + 0];
-                gtB = tmpsrc[gt + u + 1];
-                mFp = modp_montymul(tmpsrc[Fp + (u >> 1)], R2, p, p0i);
-                mGp = modp_montymul(tmpsrc[Gp + (u >> 1)], R2, p, p0i);
+            for (u = 0; u < n; u += 2)
+            {
+                uint ftA = tmpsrc[ft + u + 0];
+                uint ftB = tmpsrc[ft + u + 1];
+                uint gtA = tmpsrc[gt + u + 0];
+                uint gtB = tmpsrc[gt + u + 1];
+                uint mFp = modp_montymul(tmpsrc[Fp + (u >> 1)], R2, p, p0i);
+                uint mGp = modp_montymul(tmpsrc[Gp + (u >> 1)], R2, p, p0i);
                 tmpsrc[ft + u + 0] = modp_montymul(gtB, mFp, p, p0i);
                 tmpsrc[ft + u + 1] = modp_montymul(gtA, mFp, p, p0i);
                 tmpsrc[gt + u + 0] = modp_montymul(ftB, mGp, p, p0i);
                 tmpsrc[gt + u + 1] = modp_montymul(ftA, mGp, p, p0i);
             }
-            modp_iNTT2(tmpsrc, ft, tmpsrc, igm, logn, p, p0i);
-            modp_iNTT2(tmpsrc, gt, tmpsrc, igm, logn, p, p0i);
+            modp_iNTT2(tmpsrc, ft, tmpsrc, igm, logN, p, p0i);
+            modp_iNTT2(tmpsrc, gt, tmpsrc, igm, logN, p, p0i);
 
             Gp = Fp + n;
-            t1 = Gp + n;
-            // memmove(Fp, ft, 2 * n * sizeof *ft);
+            int t1 = Gp + n;
             Array.Copy(tmpsrc, ft, tmpsrc, Fp, 2 * n);
 
             /*
@@ -3169,69 +2906,67 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * modulo p, using the NTT. We still move memory around in
             * order to save RAM.
             */
-            t2 = t1 + n;
-            t3 = t2 + n;
-            t4 = t3 + n;
-            t5 = t4 + n;
+            int t2 = t1 + n;
+            int t3 = t2 + n;
+            int t4 = t3 + n;
+            int t5 = t4 + n;
 
             /*
             * Compute the NTT tables in t1 and t2. We do not keep t2
             * (we'll recompute it later on).
             */
-            modp_mkgm2(tmpsrc, t1, tmpsrc, t2, logn, PRIMES[0].g, p, p0i);
+            modp_mkgm2(tmpsrc, t1, tmpsrc, t2, logN, FalconSmallPrimes.Primes[0].g, p, p0i);
 
             /*
             * Convert F and G to NTT.
             */
-            modp_NTT2(tmpsrc, Fp, tmpsrc, t1, logn, p, p0i);
-            modp_NTT2(tmpsrc, Gp, tmpsrc, t1, logn, p, p0i);
+            modp_NTT2(tmpsrc, Fp, tmpsrc, t1, logN, p, p0i);
+            modp_NTT2(tmpsrc, Gp, tmpsrc, t1, logN, p, p0i);
 
             /*
             * Load f and adj(f) in t4 and t5, and convert them to NTT
             * representation.
             */
-            tmpsrc[t4+0] = tmpsrc[t5+0] = modp_set(fsrc[f + 0], p);
-            for (u = 1; u < n; u ++) {
-                tmpsrc[t4+u] = modp_set(fsrc[f + u], p);
-                tmpsrc[t5+n - u] = modp_set(-fsrc[f + u], p);
+            tmpsrc[t4 + 0] = tmpsrc[t5 + 0] = modp_set(fsrc[f + 0], p);
+            for (u = 1; u < n; ++u)
+            {
+                tmpsrc[t4 + u] = modp_set(fsrc[f + u], p);
+                tmpsrc[t5 + n - u] = modp_set(-fsrc[f + u], p);
             }
-            modp_NTT2(tmpsrc, t4, tmpsrc, t1, logn, p, p0i);
-            modp_NTT2(tmpsrc, t5, tmpsrc, t1, logn, p, p0i);
+            modp_NTT2(tmpsrc, t4, tmpsrc, t1, logN, p, p0i);
+            modp_NTT2(tmpsrc, t5, tmpsrc, t1, logN, p, p0i);
 
             /*
             * Compute F*adj(f) in t2, and f*adj(f) in t3.
             */
-            for (u = 0; u < n; u ++) {
-                uint w;
-
-                w = modp_montymul(tmpsrc[t5+u], R2, p, p0i);
-                tmpsrc[t2+u] = modp_montymul(w, tmpsrc[Fp+u], p, p0i);
-                tmpsrc[t3+u] = modp_montymul(w, tmpsrc[t4+u], p, p0i);
+            for (u = 0; u < n; ++u)
+            {
+                uint w = modp_montymul(tmpsrc[t5 + u], R2, p, p0i);
+                tmpsrc[t2 + u] = modp_montymul(w, tmpsrc[Fp + u], p, p0i);
+                tmpsrc[t3 + u] = modp_montymul(w, tmpsrc[t4 + u], p, p0i);
             }
 
             /*
             * Load g and adj(g) in t4 and t5, and convert them to NTT
             * representation.
             */
-            tmpsrc[t4+0] = tmpsrc[t5+0] = modp_set(gsrc[g + 0], p);
-            for (u = 1; u < n; u ++) {
-                tmpsrc[t4+u] = modp_set(gsrc[g + u], p);
-                tmpsrc[t5+n - u] = modp_set(-gsrc[g + u], p);
+            tmpsrc[t4 + 0] = tmpsrc[t5 + 0] = modp_set(gsrc[g + 0], p);
+            for (u = 1; u < n; ++u)
+            {
+                tmpsrc[t4 + u] = modp_set(gsrc[g + u], p);
+                tmpsrc[t5 + n - u] = modp_set(-gsrc[g + u], p);
             }
-            modp_NTT2(tmpsrc, t4, tmpsrc, t1, logn, p, p0i);
-            modp_NTT2(tmpsrc, t5, tmpsrc, t1, logn, p, p0i);
+            modp_NTT2(tmpsrc, t4, tmpsrc, t1, logN, p, p0i);
+            modp_NTT2(tmpsrc, t5, tmpsrc, t1, logN, p, p0i);
 
             /*
             * Add G*adj(g) to t2, and g*adj(g) to t3.
             */
-            for (u = 0; u < n; u ++) {
-                uint w;
-
-                w = modp_montymul(tmpsrc[t5+u], R2, p, p0i);
-                tmpsrc[t2+u] = modp_add(tmpsrc[t2+u],
-                    modp_montymul(w, tmpsrc[Gp+u], p, p0i), p);
-                tmpsrc[t3+u] = modp_add(tmpsrc[t3+u],
-                    modp_montymul(w, tmpsrc[t4+u], p, p0i), p);
+            for (u = 0; u < n; ++u)
+            {
+                uint w = modp_montymul(tmpsrc[t5+u], R2, p, p0i);
+                tmpsrc[t2+u] = modp_add(tmpsrc[t2+u], modp_montymul(w, tmpsrc[Gp+u], p, p0i), p);
+                tmpsrc[t3+u] = modp_add(tmpsrc[t3+u], modp_montymul(w, tmpsrc[t4+u], p, p0i), p);
             }
 
             /*
@@ -3240,12 +2975,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * move them to t1 and t2. We first need to recompute the
             * inverse table for NTT.
             */
-            modp_mkgm2(tmpsrc, t1, tmpsrc, t4, logn, this.PRIMES[0].g, p, p0i);
-            modp_iNTT2(tmpsrc, t2, tmpsrc, t4, logn, p, p0i);
-            modp_iNTT2(tmpsrc, t3, tmpsrc, t4, logn, p, p0i);
-            for (u = 0; u < n; u ++) {
-                tmpsrc[t1+u] = (uint)modp_norm(tmpsrc[t2+u], p);
-                tmpsrc[t2+u] = (uint)modp_norm(tmpsrc[t3+u], p);
+            modp_mkgm2(tmpsrc, t1, tmpsrc, t4, logN, FalconSmallPrimes.Primes[0].g, p, p0i);
+            modp_iNTT2(tmpsrc, t2, tmpsrc, t4, logN, p, p0i);
+            modp_iNTT2(tmpsrc, t3, tmpsrc, t4, logN, p, p0i);
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[t1 + u] = (uint)modp_norm(tmpsrc[t2 + u], p);
+                tmpsrc[t2 + u] = (uint)modp_norm(tmpsrc[t3 + u], p);
             }
 
             /*
@@ -3267,32 +3003,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * the imaginary parts.
             */
             FalconFPR[] rtmp = new FalconFPR[2 * n];
-            rt3 = n;
-            for (u = 0; u < n; u ++) {
-                rtmp[rt3+u] = this.fpre.fpr_of((int)tmpsrc[t2+u]);
+
+            int rt3 = n;
+            for (u = 0; u < n; ++u)
+            {
+                rtmp[rt3 + u] = FprEngine.fpr_of((int)tmpsrc[t2 + u]);
             }
-            this.ffte.FFT(rtmp, rt3, logn);
-            rt2 = 0;
-            // memmove(rt2, rt3, hn * sizeof *rt3);
+            FalconFft.FFT(rtmp, rt3, logN);
+            int rt2 = 0;
             Array.Copy(rtmp, rt3, rtmp, rt2, hn);
 
             /*
             * Convert F*adj(f)+G*adj(g) in FFT representation.
             */
             rt3 = rt2 + hn;
-            for (u = 0; u < n; u ++) {
-                rtmp[rt3+u] = this.fpre.fpr_of((int)tmpsrc[t1 + u]);
+            for (u = 0; u < n; ++u)
+            {
+                rtmp[rt3 + u] = FprEngine.fpr_of((int)tmpsrc[t1 + u]);
             }
-            this.ffte.FFT(rtmp, rt3, logn);
+            FalconFft.FFT(rtmp, rt3, logN);
 
             /*
             * Compute (F*adj(f)+G*adj(g))/(f*adj(f)+g*adj(g)) and get
             * its rounded normal representation in t1.
             */
-            this.ffte.poly_div_autoadj_fft(rtmp, rt3, rtmp, rt2, logn);
-            this.ffte.iFFT(rtmp, rt3, logn);
-            for (u = 0; u < n; u ++) {
-                tmpsrc[t1+u] = modp_set((int)this.fpre.fpr_rint(rtmp[rt3+u]), p);
+            FalconFft.poly_div_autoadj_fft(rtmp, rt3, rtmp, rt2, logN);
+            FalconFft.iFFT(rtmp, rt3, logN);
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[t1 + u] = modp_set((int)FprEngine.fpr_rint(rtmp[rt3 + u]), p);
             }
 
             /*
@@ -3308,28 +3047,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             t3 = t2 + n;
             t4 = t3 + n;
             t5 = t4 + n;
-            modp_mkgm2(tmpsrc, t2, tmpsrc, t3, logn, this.PRIMES[0].g, p, p0i);
-            for (u = 0; u < n; u ++) {
-                tmpsrc[t4+u] = modp_set(fsrc[f+u], p);
-                tmpsrc[t5+u] = modp_set(gsrc[g+u], p);
+            modp_mkgm2(tmpsrc, t2, tmpsrc, t3, logN, FalconSmallPrimes.Primes[0].g, p, p0i);
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[t4 + u] = modp_set(fsrc[f + u], p);
+                tmpsrc[t5 + u] = modp_set(gsrc[g + u], p);
             }
-            modp_NTT2(tmpsrc, t1, tmpsrc, t2, logn, p, p0i);
-            modp_NTT2(tmpsrc, t4, tmpsrc, t2, logn, p, p0i);
-            modp_NTT2(tmpsrc, t5, tmpsrc, t2, logn, p, p0i);
-            for (u = 0; u < n; u ++) {
-                uint kw;
-
-                kw = modp_montymul(tmpsrc[t1+u], R2, p, p0i);
-                tmpsrc[Fp+u] = modp_sub(tmpsrc[Fp+u],
-                    modp_montymul(kw, tmpsrc[t4+u], p, p0i), p);
-                tmpsrc[Gp+u] = modp_sub(tmpsrc[Gp+u],
-                    modp_montymul(kw, tmpsrc[t5+u], p, p0i), p);
+            modp_NTT2(tmpsrc, t1, tmpsrc, t2, logN, p, p0i);
+            modp_NTT2(tmpsrc, t4, tmpsrc, t2, logN, p, p0i);
+            modp_NTT2(tmpsrc, t5, tmpsrc, t2, logN, p, p0i);
+            for (u = 0; u < n; ++u)
+            {
+                uint kw = modp_montymul(tmpsrc[t1+u], R2, p, p0i);
+                tmpsrc[Fp+u] = modp_sub(tmpsrc[Fp+u], modp_montymul(kw, tmpsrc[t4+u], p, p0i), p);
+                tmpsrc[Gp+u] = modp_sub(tmpsrc[Gp+u], modp_montymul(kw, tmpsrc[t5+u], p, p0i), p);
             }
-            modp_iNTT2(tmpsrc, Fp, tmpsrc, t3, logn, p, p0i);
-            modp_iNTT2(tmpsrc, Gp, tmpsrc, t3, logn, p, p0i);
-            for (u = 0; u < n; u ++) {
-                tmpsrc[Fp+u] = (uint)modp_norm(tmpsrc[Fp+u], p);
-                tmpsrc[Gp+u] = (uint)modp_norm(tmpsrc[Gp+u], p);
+            modp_iNTT2(tmpsrc, Fp, tmpsrc, t3, logN, p, p0i);
+            modp_iNTT2(tmpsrc, Gp, tmpsrc, t3, logN, p, p0i);
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[Fp + u] = (uint)modp_norm(tmpsrc[Fp + u], p);
+                tmpsrc[Gp + u] = (uint)modp_norm(tmpsrc[Gp + u], p);
             }
 
             return 1;
@@ -3341,56 +3079,48 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * If any of the coefficients of F and G exceeds lim (in absolute value),
         * then 0 is returned.
         */
-        internal int solve_NTRU(uint logn, sbyte[] Fsrc, int F, sbyte[] Gsrc, int G,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g, int lim, uint[] tmpsrc, int tmp)
+        internal static int solve_NTRU(int logN, sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, sbyte[] fsrc, int f,
+            sbyte[] gsrc, int g, int lim, uint[] tmpsrc, int tmp)
         {
-            int n, u;
-            int ft, gt, Ft, Gt, gm;
-            uint p, p0i, r;
-            FalconSmallPrime[] primes;
+            int n = 1 << logN;
 
-            n = (int)1 << (int)logn;
-
-            if (solve_NTRU_deepest(logn, fsrc, f, gsrc, g, tmpsrc, tmp) == 0) {
+            if (solve_NTRU_deepest(logN, fsrc, f, gsrc, g, tmpsrc, tmp) == 0)
                 return 0;
-            }
 
             /*
             * For logn <= 2, we need to use solve_NTRU_intermediate()
             * directly, because coefficients are a bit too large and
             * do not fit the hypotheses in solve_NTRU_binary_depth0().
             */
-            if (logn <= 2) {
-                uint depth;
-
-                depth = logn;
-                while (depth -- > 0) {
-                    if (solve_NTRU_intermediate(logn, fsrc, f, gsrc, g, depth, tmpsrc, tmp) == 0) {
+            if (logN <= 2)
+            {
+                int depth = logN;
+                while (depth-- > 0)
+                {
+                    if (solve_NTRU_intermediate(logN, fsrc, f, gsrc, g, depth, tmpsrc, tmp) == 0)
                         return 0;
-                    }
                 }
-            } else {
-                uint depth;
-
-                depth = logn;
-                while (depth -- > 2) {
+            }
+            else
+            {
+                int depth = logN;
+                while (depth-- > 2)
+                {
                     // TODO check what causes this to fail
-                    if (solve_NTRU_intermediate(logn, fsrc, f, gsrc, g, depth, tmpsrc, tmp) == 0) {
+                    if (solve_NTRU_intermediate(logN, fsrc, f, gsrc, g, depth, tmpsrc, tmp) == 0)
                         return 0;
-                    }
                 }
-                if (solve_NTRU_binary_depth1(logn, fsrc, f, gsrc, g, tmpsrc, tmp) == 0) {
+                if (solve_NTRU_binary_depth1(logN, fsrc, f, gsrc, g, tmpsrc, tmp) == 0)
                     return 0;
-                }
-                if (solve_NTRU_binary_depth0(logn, fsrc, f, gsrc, g, tmpsrc, tmp) == 0) {
+                if (solve_NTRU_binary_depth0(logN, fsrc, f, gsrc, g, tmpsrc, tmp) == 0)
                     return 0;
-                }
             }
 
             /*
             * If no buffer has been provided for G, use a temporary one.
             */
-            if (Gsrc == null) {
+            if (Gsrc == null)
+            {
                 G = 0;
                 Gsrc = new sbyte[n];
             }
@@ -3399,8 +3129,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Final F and G are in fk->tmp, one word per coefficient
             * (signed value over 31 bits).
             */
-            if (poly_big_to_small(Fsrc, F, tmpsrc, tmp, lim, logn) == 0
-                || poly_big_to_small(Gsrc, G, tmpsrc, tmp + n, lim, logn) == 0)
+            if (poly_big_to_small(Fsrc, F, tmpsrc, tmp, lim, logN) == 0 ||
+                poly_big_to_small(Gsrc, G, tmpsrc, tmp + n, lim, logN) == 0)
             {
                 return 0;
             }
@@ -3413,37 +3143,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * We put Gt[] first in tmp[], and process it first, so that it does
             * not overlap with G[] in case we allocated it ourselves.
             */
-            Gt = tmp;
-            ft = Gt + n;
-            gt = ft + n;
-            Ft = gt + n;
-            gm = Ft + n;
+            int Gt = tmp;
+            int ft = Gt + n;
+            int gt = ft + n;
+            int Ft = gt + n;
+            int gm = Ft + n;
+            FalconSmallPrime[] primes = FalconSmallPrimes.Primes;
 
-            primes = this.PRIMES;
-            p = primes[0].p;
-            p0i = modp_ninv31(p);
-            modp_mkgm2(tmpsrc, gm, tmpsrc, tmp, logn, primes[0].g, p, p0i);
-            for (u = 0; u < n; u ++) {
+            uint p = primes[0].p;
+            uint p0i = modp_ninv31(p);
+            modp_mkgm2(tmpsrc, gm, tmpsrc, tmp, logN, primes[0].g, p, p0i);
+
+            int u;
+            for (u = 0; u < n; ++u)
+            {
                 tmpsrc[Gt+u] = modp_set(Gsrc[G+u], p);
             }
-            for (u = 0; u < n; u ++) {
-                tmpsrc[ft+u] = modp_set(fsrc[f+u], p);
-                tmpsrc[gt+u] = modp_set(gsrc[g+u], p);
-                tmpsrc[Ft+u] = modp_set(Fsrc[F+u], p);
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[ft + u] = modp_set(fsrc[f + u], p);
+                tmpsrc[gt + u] = modp_set(gsrc[g + u], p);
+                tmpsrc[Ft + u] = modp_set(Fsrc[F + u], p);
             }
-            modp_NTT2(tmpsrc, ft, tmpsrc, gm, logn, p, p0i);
-            modp_NTT2(tmpsrc, gt, tmpsrc, gm, logn, p, p0i);
-            modp_NTT2(tmpsrc, Ft, tmpsrc, gm, logn, p, p0i);
-            modp_NTT2(tmpsrc, Gt, tmpsrc, gm, logn, p, p0i);
-            r = modp_montymul(12289, 1, p, p0i);
-            for (u = 0; u < n; u ++) {
-                uint z;
-
-                z = modp_sub(modp_montymul(tmpsrc[ft+u], tmpsrc[Gt+u], p, p0i),
-                    modp_montymul(tmpsrc[gt+u], tmpsrc[Ft+u], p, p0i), p);
-                if (z != r) {
+            modp_NTT2(tmpsrc, ft, tmpsrc, gm, logN, p, p0i);
+            modp_NTT2(tmpsrc, gt, tmpsrc, gm, logN, p, p0i);
+            modp_NTT2(tmpsrc, Ft, tmpsrc, gm, logN, p, p0i);
+            modp_NTT2(tmpsrc, Gt, tmpsrc, gm, logN, p, p0i);
+            uint r = modp_montymul(12289, 1, p, p0i);
+            for (u = 0; u < n; ++u)
+            {
+                uint z = modp_sub(modp_montymul(tmpsrc[ft + u], tmpsrc[Gt + u], p, p0i),
+                    modp_montymul(tmpsrc[gt + u], tmpsrc[Ft + u], p, p0i), p);
+                if (z != r)
                     return 0;
-                }
             }
 
             return 1;
@@ -3453,18 +3185,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Generate a random polynomial with a Gaussian distribution. This function
         * also makes sure that the resultant of the polynomial with phi is odd.
         */
-        internal void poly_small_mkgauss(SHAKE256 rng, sbyte[] fsrc, int f, uint logn)
+        internal static void poly_small_mkgauss(SHAKE256 rng, sbyte[] fsrc, int f, int logN)
         {
-            int n, u;
-            uint mod2;
+            int n = 1 << logN;
+            uint mod2 = 0;
 
-            n = (int)1 << (int)logn;
-            mod2 = 0;
-            for (u = 0; u < n; u ++) {
-                int s;
-
-                for(;;) {
-                    s = mkgauss(rng, logn);
+            for (int u = 0; u < n; ++u)
+            {
+                for (;;)
+                {
+                    int s = mkgauss(rng, logN);
 
                     /*
                     * We need the coefficient to fit within -127..+127;
@@ -3472,31 +3202,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     * the very low degrees (N = 2 or 4), for which there
                     * is no real security anyway.
                     */
-                    if (s < -127 || s > 127) {
+                    if (s < -127 || s > 127)
                         continue; // restart
-                    }
 
                     /*
                     * We need the sum of all coefficients to be 1; otherwise,
                     * the resultant of the polynomial with X^N+1 will be even,
                     * and the binary GCD will fail.
                     */
-                    if (u == n - 1) {
-                        if ((mod2 ^ (uint)(s & 1)) == 0) {
+                    if (u == n - 1)
+                    {
+                        if ((mod2 ^ (uint)(s & 1)) == 0)
                             continue; // restart
-                        }
-                    } else {
+                    }
+                    else
+                    {
                         mod2 ^= (uint)(s & 1);
                     }
-                    fsrc[f+u] = (sbyte)s;
+                    fsrc[f + u] = (sbyte)s;
                     break; // end
                 }
             }
         }
 
-        internal void keygen(SHAKE256 rng,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hsrc, int h,
-            uint logn)
+        internal static void KeyGen(SHAKE256 rng, sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc, int F,
+            sbyte[] Gsrc, int G, ushort[] hsrc, int h, int logN)
         {
             /*
             * Algorithm is the following:
@@ -3517,12 +3247,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             *    try again. Usual failure condition is when Res(f,phi)
             *    and Res(g,phi) are not prime to each other.
             */
-            int n, u;
-            int h2, tmp2;
-            SHAKE256 rc;
-
-            n = (int)1 << (int)logn;
-            rc = rng;
+            int n = 1 << logN;
+            SHAKE256 rc = rng;
 
             /*
             * We need to generate f and g randomly, until we find values
@@ -3543,20 +3269,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * We require that Res(f,phi) and Res(g,phi) are both odd (the
             * NTRU equation solver requires it).
             */
-            for (;;) {
-                int rt1, rt2, rt3;
-                FalconFPR bnorm;
-                uint normf, normg, norm;
-                int lim;
-
+            for (;;)
+            {
                 /*
                 * The poly_small_mkgauss() function makes sure
                 * that the sum of coefficients is 1 modulo 2
                 * (i.e. the resultant of the polynomial with phi
                 * will be odd).
                 */
-                poly_small_mkgauss(rc, fsrc, f, logn);
-                poly_small_mkgauss(rc, gsrc, g, logn);
+                poly_small_mkgauss(rc, fsrc, f, logN);
+                poly_small_mkgauss(rc, gsrc, g, logN);
 
                 /*
                 * Verify that all coefficients are within the bounds
@@ -3564,22 +3286,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * overwhelming probability; this guarantees that the
                 * key will be encodable with FALCON_COMP_TRIM.
                 */
-                lim = 1 << (FalconCodec.max_fg_bits[logn] - 1);
-                for (u = 0; u < n; u ++) {
+                int lim = 1 << (FalconCodec.max_fg_bits[logN] - 1);
+
+                for (int u = 0; u < n; ++u)
+                {
                     /*
                     * We can use non-CT tests since on any failure
                     * we will discard f and g.
                     */
-                    if (fsrc[f+u] >= lim || fsrc[f+u] <= -lim
-                        || gsrc[g+u] >= lim || gsrc[g+u] <= -lim)
+                    if (fsrc[f + u] >= lim || fsrc[f + u] <= -lim ||
+                        gsrc[g + u] >= lim || gsrc[g + u] <= -lim)
                     {
                         lim = -1;
                         break;
                     }
                 }
-                if (lim < 0) {
+                if (lim < 0)
                     continue;
-                }
 
                 /*
                 * Bound is 1.17*sqrt(q). We compute the squared
@@ -3588,41 +3311,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * Since f and g are integral, the squared norm
                 * of (g,-f) is an integer.
                 */
-                normf = poly_small_sqnorm(fsrc, f, logn);
-                normg = poly_small_sqnorm(gsrc, g, logn);
-                norm = (uint)((normf + normg) | -((normf | normg) >> 31));
-                if (norm >= 16823) {
+                uint normf = poly_small_sqnorm(fsrc, f, logN);
+                uint normg = poly_small_sqnorm(gsrc, g, logN);
+                uint norm = (uint)((normf + normg) | -((normf | normg) >> 31));
+                if (norm >= 16823)
                     continue;
-                }
 
                 /*
                 * We compute the orthogonalized vector norm.
                 */
                 FalconFPR[] rtmp = new FalconFPR[3 * n];
-                rt1 = 0;
-                rt2 = rt1 + n;
-                rt3 = rt2 + n;
-                poly_small_to_fp(rtmp, rt1, fsrc, f, logn);
-                poly_small_to_fp(rtmp, rt2, gsrc, g, logn);
-                this.ffte.FFT(rtmp, rt1, logn);
-                this.ffte.FFT(rtmp, rt2, logn);
-                this.ffte.poly_invnorm2_fft(rtmp, rt3, rtmp, rt1, rtmp, rt2, logn);
-                this.ffte.poly_adj_fft(rtmp, rt1, logn);
-                this.ffte.poly_adj_fft(rtmp, rt2, logn);
-                this.ffte.poly_mulconst(rtmp, rt1, this.fpre.fpr_q, logn);
-                this.ffte.poly_mulconst(rtmp, rt2, this.fpre.fpr_q, logn);
-                this.ffte.poly_mul_autoadj_fft(rtmp, rt1, rtmp, rt3, logn);
-                this.ffte.poly_mul_autoadj_fft(rtmp, rt2, rtmp, rt3, logn);
-                this.ffte.iFFT(rtmp, rt1, logn);
-                this.ffte.iFFT(rtmp, rt2, logn);
-                bnorm = this.fpre.fpr_zero;
-                for (u = 0; u < n; u ++) {
-                    bnorm = this.fpre.fpr_add(bnorm, this.fpre.fpr_sqr(rtmp[rt1+u]));
-                    bnorm = this.fpre.fpr_add(bnorm, this.fpre.fpr_sqr(rtmp[rt2+u]));
+                int rt1 = 0;
+                int rt2 = rt1 + n;
+                int rt3 = rt2 + n;
+                poly_small_to_fp(rtmp, rt1, fsrc, f, logN);
+                poly_small_to_fp(rtmp, rt2, gsrc, g, logN);
+                FalconFft.FFT(rtmp, rt1, logN);
+                FalconFft.FFT(rtmp, rt2, logN);
+                FalconFft.poly_invnorm2_fft(rtmp, rt3, rtmp, rt1, rtmp, rt2, logN);
+                FalconFft.poly_adj_fft(rtmp, rt1, logN);
+                FalconFft.poly_adj_fft(rtmp, rt2, logN);
+                FalconFft.poly_mulconst(rtmp, rt1, FprEngine.fpr_q, logN);
+                FalconFft.poly_mulconst(rtmp, rt2, FprEngine.fpr_q, logN);
+                FalconFft.poly_mul_autoadj_fft(rtmp, rt1, rtmp, rt3, logN);
+                FalconFft.poly_mul_autoadj_fft(rtmp, rt2, rtmp, rt3, logN);
+                FalconFft.iFFT(rtmp, rt1, logN);
+                FalconFft.iFFT(rtmp, rt2, logN);
+                FalconFPR bnorm = FprEngine.fpr_zero;
+                for (int u = 0; u < n; ++u)
+                {
+                    bnorm = FprEngine.fpr_add(bnorm, FprEngine.fpr_sqr(rtmp[rt1 + u]));
+                    bnorm = FprEngine.fpr_add(bnorm, FprEngine.fpr_sqr(rtmp[rt2 + u]));
                 }
-                if (!this.fpre.fpr_lt(bnorm, this.fpre.fpr_bnorm_max)) {
+                if (!FprEngine.fpr_lt(bnorm, FprEngine.fpr_bnorm_max))
                     continue;
-                }
 
                 /*
                 * Compute public key h = g/f mod X^N+1 mod q. If this
@@ -3630,28 +3352,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 */
                 ushort[] htmp;
                 ushort[] h2src;
-                if (hsrc == null) {
+                int h2, tmp2;
+                if (hsrc == null)
+                {
                     htmp = new ushort[2 * n];
                     h2 = 0;
                     h2src = htmp;
                     tmp2 = h2 + n;
-                } else {
+                }
+                else
+                {
                     htmp = new ushort[n];
                     h2 = h;
                     h2src = hsrc;
                     tmp2 = 0;
                 }
 
-                if (FalconVrfy.compute_public(h2src, h2, fsrc, f, gsrc, g, logn, htmp, tmp2) == 0)
+                if (FalconVrfy.compute_public(h2src, h2, fsrc, f, gsrc, g, logN, htmp, tmp2) == 0)
                     continue;
 
                 /*
                 * Solve the NTRU equation to get F and G.
                 */
-                uint[] itmp = logn > 2 ? new uint[28 * n] : new uint[28 * n * 3];
-                lim = (1 << (FalconCodec.max_FG_bits[logn] - 1)) - 1;
+                uint[] itmp = logN > 2 ? new uint[28 * n] : new uint[28 * n * 3];
+                lim = (1 << (FalconCodec.max_FG_bits[logN] - 1)) - 1;
 
-                if (solve_NTRU(logn, Fsrc, F, Gsrc, G, fsrc, f, gsrc, g, lim, itmp, 0) == 0)
+                if (solve_NTRU(logN, Fsrc, F, Gsrc, G, fsrc, f, gsrc, g, lim, itmp, 0) == 0)
                     continue;
 
                 /*

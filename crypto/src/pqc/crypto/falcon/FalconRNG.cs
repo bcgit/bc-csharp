@@ -4,16 +4,13 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconRNG
+    internal class FalconRng
     {
-        byte[] bd;
-        //ulong bdummy_u64;
-        byte[] sd;
-        //ulong sdummy_u64;
-        //int type;
-        int ptr;
+        private readonly byte[] bd;
+        private readonly byte[] sd;
+        private int ptr;
 
-        internal FalconRNG()
+        internal FalconRng()
         {
             this.bd = new byte[512];
             this.sd = new byte[256];
@@ -56,18 +53,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             byte[] tmp = new byte[56];
 
             src.i_shake256_extract(tmp,0, 56);
-            for (int i = 0; i < 14; i ++)
+            for (int i = 0; i < 14; ++i)
             {
-                uint w =  (uint)tmp[(i << 2) + 0]
-                       | ((uint)tmp[(i << 2) + 1] << 8)
-                       | ((uint)tmp[(i << 2) + 2] << 16)
-                       | ((uint)tmp[(i << 2) + 3] << 24);
-                //*(uint *)(this.sd + (i << 2)) = w;
+                uint w = Pack.LE_To_UInt32(tmp, i << 2);
                 Pack.UInt32_To_LE(w, this.sd, i << 2);
             }
-            //tl = *(uint32_t *)(p->state.d + 48);
             ulong tl = Pack.LE_To_UInt32(this.sd, 48);
-            //th = *(uint32_t *)(p->state.d + 52);
             ulong th = Pack.LE_To_UInt32(this.sd, 52);
             Pack.UInt64_To_LE(tl + (th << 32), this.sd, 48);
             this.prng_refill();
@@ -87,7 +78,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * The block counter is XORed into the first 8 bytes of the IV.
         */
-        private void QROUND(uint[] state, int a, int b, int c, int d)
+        private static void QROUND(uint[] state, int a, int b, int c, int d)
         {
             state[a] += state[b];
             state[d] ^= state[a];
@@ -115,14 +106,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             ulong cc = Pack.LE_To_UInt64(this.sd, 48);
             uint[] state = new uint[16];
 
-            for (int u = 0; u < 8; u ++)
+            for (int u = 0; u < 8; ++u)
             {
                 Array.Copy(CW, 0, state, 0, 4);
                 Pack.LE_To_UInt32(this.sd, 0, state, 4, 12);
                 state[14] ^= (uint)cc;
                 state[15] ^= (uint)(cc >> 32);
 
-                for (int i = 0; i < 10; i ++)
+                for (int i = 0; i < 10; ++i)
                 {
                     QROUND(state, 0,  4,  8, 12);
                     QROUND(state, 1,  5,  9, 13);
@@ -150,7 +141,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 ++cc;
 
                 // Mimic the interleaving that is used in the AVX2 implementation.
-                for (v = 0; v < 16; v ++)
+                for (v = 0; v < 16; ++v)
                 {
                     Pack.UInt32_To_LE(state[v], bd, (u << 2) + (v << 5));
                 }
@@ -186,33 +177,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
          */
         internal ulong prng_get_u64()
         {
-            int u;
-
             /*
             * If there are less than 9 bytes in the buffer, we refill it.
             * This means that we may drop the last few bytes, but this allows
             * for faster extraction code. Also, it means that we never leave
             * an empty buffer.
             */
-            u = this.ptr;
-            if (u >= (this.bd.Length) - 9) {
+            int u = this.ptr;
+            if (u >= (this.bd.Length) - 9)
+            {
                 this.prng_refill();
                 u = 0;
             }
             this.ptr = u + 8;
 
-            /*
-            * On systems that use little-endian encoding and allow
-            * unaligned accesses, we can simply read the data where it is.
-            */
-            return (ulong)this.bd[u + 0]
-                | ((ulong)this.bd[u + 1] << 8)
-                | ((ulong)this.bd[u + 2] << 16)
-                | ((ulong)this.bd[u + 3] << 24)
-                | ((ulong)this.bd[u + 4] << 32)
-                | ((ulong)this.bd[u + 5] << 40)
-                | ((ulong)this.bd[u + 6] << 48)
-                | ((ulong)this.bd[u + 7] << 56);
+            return Pack.LE_To_UInt64(this.bd, u);
         }
 
         /*
@@ -220,10 +199,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         */
         internal uint prng_get_u8()
         {
-            uint v;
-
-            v = this.bd[this.ptr ++];
-            if (this.ptr == this.bd.Length) {
+            uint v = this.bd[this.ptr ++];
+            if (this.ptr == this.bd.Length)
+            {
                 this.prng_refill();
             }
             return v;

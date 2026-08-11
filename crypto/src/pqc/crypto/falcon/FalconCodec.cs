@@ -31,37 +31,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * ===========================(LICENSE END)=============================
         */
 
-        internal static int modq_encode(byte[] outarrsrc, int outarr, int max_out_len, ushort[] xsrc, int x, uint logn)
+        internal static int modq_encode(byte[] outarrsrc, int outarr, int max_out_len, ushort[] xsrc, int x, int logN)
         {
-            int n, out_len, u;
-            int buf;
-            uint acc;
-            int acc_len;
+            int n = 1 << logN;
 
-            n = (int)1 << (int)logn;
-            for (u = 0; u < n; u ++)
+            for (int u = 0; u < n; ++u)
             {
-                if (xsrc[x+u] >= 12289)
+                if (xsrc[x + u] >= 12289)
                     return 0;
             }
-            out_len = ((n * 14) + 7) >> 3;
+            int out_len = ((n * 14) + 7) >> 3;
 
             if (outarrsrc == null)
                 return out_len;
             if (out_len > max_out_len)
                 return 0;
 
-            buf = outarr;
-            acc = 0;
-            acc_len = 0;
-            for (u = 0; u < n; u ++)
+            int buf = outarr;
+            uint acc = 0U;
+            int acc_len = 0;
+            for (int u = 0; u < n; ++u)
             {
-                acc = (acc << 14) | xsrc[x+u];
+                acc = (acc << 14) | xsrc[x + u];
                 acc_len += 14;
                 while (acc_len >= 8)
                 {
                     acc_len -= 8;
-                    outarrsrc[buf ++] = (byte)(acc >> acc_len);
+                    outarrsrc[buf++] = (byte)(acc >> acc_len);
                 }
             }
             if (acc_len > 0)
@@ -71,22 +67,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return out_len;
         }
 
-        internal static int modq_decode(ushort[] xsrc, int x, uint logn, byte[] inarrsrc, int inarr, int max_in_len)
+        internal static int modq_decode(ushort[] xsrc, int x, int logN, byte[] inarrsrc, int inarr, int max_in_len)
         {
-            int n, in_len, u;
-            int buf;
-            uint acc;
-            int acc_len;
+            int n = 1 << logN;
 
-            n = (int)1 << (int)logn;
-            in_len = ((n * 14) + 7) >> 3;
+            int in_len = ((n * 14) + 7) >> 3;
             if (in_len > max_in_len)
                 return 0;
 
-            buf = inarr;
-            acc = 0;
-            acc_len = 0;
-            u = 0;
+            int buf = inarr;
+            uint acc = 0U;
+            int acc_len = 0;
+            int u = 0;
             while (u < n)
             {
                 acc = (acc << 8) | (inarrsrc[buf ++]);
@@ -102,99 +94,89 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     u++;
                 }
             }
-            if ((acc & (((uint)1 << acc_len) - 1)) != 0)
+            if ((acc & ((1U << acc_len) - 1)) != 0)
                 return 0;
 
             return in_len;
         }
 
-        //internal static int trim_i16_encode(
-        //    byte[] outarrsrc, int outarr, int max_out_len,
-        //    short[] xsrc, int x, uint logn, uint bits)
+        //internal static int trim_i16_encode(byte[] outarrsrc, int outarr, int max_out_len, short[] xsrc, int x,
+        //    int logN, int bits)
         //{
-        //    int n, u, out_len;
-        //    int minv, maxv;
-        //    int buf;
-        //    uint acc, mask;
-        //    uint acc_len;
-
-        //    n = (int)1 << (int)logn;
-        //    maxv = (1 << (int)(bits - 1)) - 1;
-        //    minv = -maxv;
-        //    for (u = 0; u < n; u ++) {
-        //        if (xsrc[x+u] < minv || xsrc[x+u] > maxv) {
+        //    int u;
+        //    int n = 1 << logN;
+        //    int maxv = (1 << (bits - 1)) - 1;
+        //    int minv = -maxv;
+        //    for (u = 0; u < n; ++u)
+        //    {
+        //        if (xsrc[x + u] < minv || xsrc[x + u] > maxv)
         //            return 0;
-        //        }
         //    }
-        //    out_len = (int)((n * bits) + 7) >> 3;
-        //    if (outarrsrc == null) {
+        //    int out_len = ((n * bits) + 7) >> 3;
+        //    if (outarrsrc == null)
         //        return out_len;
-        //    }
-        //    if (out_len > max_out_len) {
+        //    if (out_len > max_out_len)
         //        return 0;
-        //    }
-        //    buf = outarr;
-        //    acc = 0;
-        //    acc_len = 0;
-        //    mask = ((uint)1 << (int)bits) - 1;
-        //    for (u = 0; u < n; u ++) {
-        //        acc = (acc << (int)bits) | ((ushort)xsrc[x+u] & mask);
+
+        //    int buf = outarr;
+        //    uint acc = 0U;
+        //    int acc_len = 0;
+        //    uint mask = (1U << bits) - 1;
+        //    for (u = 0; u < n; ++u)
+        //    {
+        //        acc = (acc << bits) | ((ushort)xsrc[x + u] & mask);
         //        acc_len += bits;
-        //        while (acc_len >= 8) {
+        //        while (acc_len >= 8)
+        //        {
         //            acc_len -= 8;
-        //            outarrsrc[buf ++] = (byte)(acc >> (int)acc_len);
+        //            outarrsrc[buf++] = (byte)(acc >> acc_len);
         //        }
         //    }
-        //    if (acc_len > 0) {
-        //        outarrsrc[buf ++] = (byte)(acc << (int)(8 - acc_len));
+        //    if (acc_len > 0)
+        //    {
+        //        outarrsrc[buf++] = (byte)(acc << (8 - acc_len));
         //    }
         //    return out_len;
         //}
 
-        //internal static int trim_i16_decode(
-        //    short[] xsrc, int x, uint logn, uint bits,
-        //    byte[] inarrsrc, int inarr, int max_in_len)
+        //internal static int trim_i16_decode(short[] xsrc, int x, int logN, int bits, byte[] inarrsrc, int inarr,
+        //    int max_in_len)
         //{
-        //    int n, in_len;
-        //    int buf;
-        //    int u;
-        //    uint acc, mask1, mask2;
-        //    uint acc_len;
-
-        //    n = (int)1 << (int)logn;
-        //    in_len = (int)((n * bits) + 7) >> 3;
-        //    if (in_len > max_in_len) {
+        //    int n = 1 << logN;
+        //    int in_len = ((n * bits) + 7) >> 3;
+        //    if (in_len > max_in_len)
         //        return 0;
-        //    }
-        //    buf = inarr;
-        //    u = 0;
-        //    acc = 0;
-        //    acc_len = 0;
-        //    mask1 = ((uint)1 << (int)bits) - 1;
-        //    mask2 = (uint)1 << (int)(bits - 1);
-        //    while (u < n) {
-        //        acc = (acc << 8) | inarrsrc[buf ++];
-        //        acc_len += 8;
-        //        while (acc_len >= bits && u < n) {
-        //            uint w;
 
+        //    int buf = inarr;
+        //    int u = 0;
+        //    uint acc = 0U;
+        //    int acc_len = 0;
+        //    uint mask1 = (1U << bits) - 1;
+        //    uint mask2 = 1U << (bits - 1);
+        //    while (u < n)
+        //    {
+        //        acc = (acc << 8) | inarrsrc[buf++];
+        //        acc_len += 8;
+        //        while (acc_len >= bits && u < n)
+        //        {
         //            acc_len -= bits;
-        //            w = (acc >> (int)acc_len) & mask1;
+        //            uint w = (acc >> acc_len) & mask1;
         //            w = (uint)(w | -(w & mask2));
         //            w |= (uint)(-(w & mask2));
-        //            if (w == -mask2) {
+        //            if (w == -mask2)
+        //            {
         //                /*
         //                * The -2^(bits-1) value is forbidden.
         //                */
         //                return 0;
         //            }
         //            w |= (uint)(-(w & mask2));
-        //            //xsrc[x + u] = (short)*(int *)&w;
         //            xsrc[x + u] = (short)(int)w;
         //            u++;
         //        }
         //    }
-        //    if ((acc & (((uint)1 << (int)acc_len) - 1)) != 0) {
+        //    if ((acc & ((1U << acc_len) - 1)) != 0)
+        //    {
         //        /*
         //        * Extra bits in the last byte must be zero.
         //        */
@@ -204,70 +186,61 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //}
 
         internal static int trim_i8_encode(byte[] outarrsrc, int outarr, int max_out_len, sbyte[] xsrc, int x,
-            uint logn, uint bits)
+            int logN, int bits)
         {
-            int n, u, out_len;
-            int minv, maxv;
-            int buf;
-            uint acc, mask;
-            uint acc_len;
+            int u;
+            int n = 1 << logN;
+            int maxv = (1 << (bits - 1)) - 1;
+            int minv = -maxv;
 
-            n = (int)1 << (int)logn;
-            maxv = (1 << (int)(bits - 1)) - 1;
-            minv = -maxv;
-            for (u = 0; u < n; u ++)
+            for (u = 0; u < n; ++u)
             {
                 if (xsrc[x+u] < minv || xsrc[x+u] > maxv)
                     return 0;
             }
-            out_len = (int)((n * bits) + 7) >> 3;
+            int out_len = ((n * bits) + 7) >> 3;
 
             if (outarrsrc == null)
                 return out_len;
             if (out_len > max_out_len)
                 return 0;
 
-            buf = outarr;
-            acc = 0;
-            acc_len = 0;
-            mask = ((uint)1 << (int)bits) - 1;
-            for (u = 0; u < n; u ++)
+            int buf = outarr;
+            uint acc = 0U;
+            int acc_len = 0;
+            uint mask = (1U << bits) - 1U;
+            for (u = 0; u < n; ++u)
             {
-                acc = (acc << (int)bits) | ((byte)xsrc[x+u] & mask);
+                acc = (acc << bits) | ((byte)xsrc[x + u] & mask);
                 acc_len += bits;
                 while (acc_len >= 8)
                 {
                     acc_len -= 8;
-                    outarrsrc[buf ++] = (byte)(acc >> (int)acc_len);
+                    outarrsrc[buf ++] = (byte)(acc >> acc_len);
                 }
             }
             if (acc_len > 0)
             {
-                outarrsrc[buf ++] = (byte)(acc << (int)(8 - acc_len));
+                outarrsrc[buf++] = (byte)(acc << (8 - acc_len));
             }
             return out_len;
         }
 
-        internal static int trim_i8_decode(sbyte[] xsrc, int x, uint logn, uint bits, byte[] inarrsrc, int inarr,
+        internal static int trim_i8_decode(sbyte[] xsrc, int x, int logN, int bits, byte[] inarrsrc, int inarr,
             int max_in_len)
         {
-            int n, in_len;
-            int buf;
-            int u;
-            uint acc, mask1, mask2;
-            uint acc_len;
+            int n = 1 << logN;
 
-            n = (int)1 << (int)logn;
-            in_len = (int)((n * bits) + 7) >> 3;
+            int in_len = ((n * bits) + 7) >> 3;
             if (in_len > max_in_len)
                 return 0;
 
-            buf = inarr;
-            u = 0;
-            acc = 0;
-            acc_len = 0;
-            mask1 = ((uint)1 << (int)bits) - 1;
-            mask2 = (uint)1 << (int)(bits - 1);
+            int buf = inarr;
+            int u = 0;
+            uint acc = 0U;
+            int acc_len = 0;
+            uint mask1 = (1U << bits) - 1;
+            uint mask2 = 1U << (bits - 1);
             while (u < n)
             {
                 acc = (acc << 8) | inarrsrc[buf ++];
@@ -275,7 +248,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 while (acc_len >= bits && u < n)
                 {
                     acc_len -= bits;
-                    uint w = (acc >> (int)acc_len) & mask1;
+                    uint w = (acc >> acc_len) & mask1;
                     w |= (uint)(-(w & mask2));
                     if (w == -mask2) {
                         /*
@@ -287,7 +260,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     u++;
                 }
             }
-            if ((acc & (((uint)1 << (int)acc_len) - 1)) != 0)
+            if ((acc & ((1U << acc_len) - 1)) != 0)
             {
                 /*
                 * Extra bits in the last byte must be zero.
@@ -297,32 +270,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return in_len;
         }
 
-        internal static int comp_encode(byte[] outarrsrc, int outarr, int max_out_len, short[] xsrc, int x, uint logn)
+        internal static int comp_encode(byte[] outarrsrc, int outarr, int max_out_len, short[] x, int xOff, int logN)
         {
             int u;
-            int n = (int)1 << (int)logn;
+            int n = 1 << logN;
             int buf = outarr;
 
             /*
             * Make sure that all values are within the -2047..+2047 range.
             */
-            for (u = 0; u < n; u ++)
+            for (u = 0; u < n; ++u)
             {
-                if (xsrc[x+u] < -2047 || xsrc[x+u] > +2047)
+                if (x[xOff + u] < -2047 || x[xOff + u] > +2047)
                     return 0;
             }
 
             uint acc = 0;
-            uint acc_len = 0;
+            int acc_len = 0;
             int v = 0;
-            for (u = 0; u < n; u ++)
+            for (u = 0; u < n; ++u)
             {
                 /*
                 * Get sign and absolute value of next integer; push the
                 * sign bit.
                 */
                 acc <<= 1;
-                int t = xsrc[x+u];
+                int t = x[xOff+u];
                 if (t < 0)
                 {
                     t = -t;
@@ -352,7 +325,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 */
                 acc <<= (int)(w + 1);
                 acc |= 1;
-                acc_len += w + 1;
+                acc_len += (int)(w + 1);
 
                 /*
                 * Produce all full bytes.
@@ -365,7 +338,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                         if (v >= max_out_len)
                             return 0;
 
-                        outarrsrc[buf+v] = (byte)(acc >> (int)acc_len);
+                        outarrsrc[buf + v] = (byte)(acc >> acc_len);
                     }
                     ++v;
                 }
@@ -381,7 +354,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     if (v >= max_out_len)
                         return 0;
 
-                    outarrsrc[buf+v] = (byte)(acc << (int)(8 - acc_len));
+                    outarrsrc[buf + v] = (byte)(acc << (8 - acc_len));
                 }
                 ++v;
             }
@@ -389,16 +362,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return v;
         }
 
-        internal static int comp_decode(short[] xsrc, int x, uint logn, byte[] inarrsrc, int inarr, int max_in_len)
+        internal static int comp_decode(short[] xsrc, int x, int logN, byte[] inarrsrc, int inarr, int max_in_len)
         {
-            int u;
-            int n = (int)1 << (int)logn;
+            int n = 1 << logN;
             int buf = inarr;
             uint acc = 0;
-            uint acc_len = 0;
+            int acc_len = 0;
             int v = 0;
 
-            for (u = 0; u < n; u ++)
+            for (int u = 0; u < n; ++u)
             {
                 /*
                 * Get next eight bits: sign and low seven bits of the
@@ -409,7 +381,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
                 acc = (acc << 8) | (uint)inarrsrc[buf + v];
                 ++v;
-                uint b = acc >> (int)acc_len;
+                uint b = acc >> acc_len;
                 uint s = b & 128;
                 uint m = b & 127;
 
@@ -427,8 +399,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                         ++v;
                         acc_len = 8;
                     }
-                    acc_len --;
-                    if (((acc >> (int)acc_len) & 1) != 0)
+                    --acc_len;
+                    if (((acc >> acc_len) & 1) != 0)
                         break;
 
                     m += 128;
@@ -448,7 +420,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * Unused bits in the last byte must be zero.
             */
-            if ((acc & ((1u << (int)acc_len) - 1u)) != 0)
+            if ((acc & ((1U << acc_len) - 1U)) != 0)
                 return 0;
 
             return v;
@@ -486,32 +458,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * of max_fg_bits[] and max_FG_bits[] shall be greater than 8.
         */
 
-        internal static readonly byte[] max_fg_bits = {
-            0, /* unused */
-            8,
-            8,
-            8,
-            8,
-            8,
-            7,
-            7,
-            6,
-            6,
-            5
+        internal static readonly byte[] max_fg_bits = { 0, /* unused */
+            8, 8, 8, 8, 8, 7, 7, 6, 6, 5
         };
 
-        internal static readonly byte[] max_FG_bits = {
-            0, /* unused */
-            8,
-            8,
-            8,
-            8,
-            8,
-            8,
-            8,
-            8,
-            8,
-            8
+        internal static readonly byte[] max_FG_bits = { 0, /* unused */
+            8, 8, 8, 8, 8, 8, 8, 8, 8, 8
         };
 
         /*
@@ -542,18 +494,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * in -2047..2047, i.e. 12 bits.
         */
 
-        internal static readonly byte[] max_sig_bits = {
-            0, /* unused */
-            10,
-            11,
-            11,
-            12,
-            12,
-            12,
-            12,
-            12,
-            12,
-            12
+        internal static readonly byte[] max_sig_bits = { 0, /* unused */
+            10, 11, 11, 12, 12, 12, 12, 12, 12, 12
         };
     }
 }

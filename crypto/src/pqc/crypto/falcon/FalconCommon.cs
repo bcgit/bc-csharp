@@ -1,4 +1,4 @@
-using System;
+using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * ===========================(LICENSE END)=============================
         */
-        internal static void hash_to_point_vartime(SHAKE256 sc, ushort[] xsrc, int x, uint logn)
+        internal static void hash_to_point_vartime(SHAKE256 sc, ushort[] xsrc, int x, int logN)
         {
             /*
             * This is the straightforward per-the-spec implementation. It
@@ -44,31 +44,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * nonce, the hashed output cannot be matched against potential
             * plaintexts).
             */
-            int n;
-
-            n = (int)1 << (int)logn;
+            int n = 1 << logN;
             while (n > 0)
             {
                 byte[] buf = new byte[2];
-                uint w;
                 sc.i_shake256_extract(buf, 0, 2);
-                // inner_shake256_extract(sc, (void *)buf, sizeof buf);
-                w = ((uint)buf[0] << 8) | (uint)buf[1];
+                uint w = Pack.BE_To_UInt16(buf);
                 if (w < 61445)
                 {
                     while (w >= 12289)
                     {
                         w -= 12289;
                     }
-                    xsrc[x ++] = (ushort)w;
+                    xsrc[x++] = (ushort)w;
                     n --;
                 }
             }
         }
 
-        // void hash_to_point_ct(
-        //     SHAKE256 sc,
-        //     ushort[] xsrc, int x, uint logn, byte *tmp)
+        // void hash_to_point_ct(SHAKE256 sc, ushort[] xsrc, int x, int logN, byte *tmp)
         // {
         //     /*
         //     * Each 16-bit sample is a value in 0..65535. The value is
@@ -98,22 +92,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //     * (i.e. 126 bytes) for the values that do not fit in tmp[].
         //     */
 
-        //     const ushort[] overtab = {
-        //         0, /* unused */
-        //         65,
-        //         67,
-        //         71,
-        //         77,
-        //         86,
-        //         100,
-        //         122,
-        //         154,
-        //         205,
-        //         287
+        //     const ushort[] overtab = { 0, /* unused */
+        //         65, 67, 71, 77, 86, 100, 122, 154, 205, 287
         //     };
 
-        //     uint n, n2, u, m, p, over;
-        //     int tt1;
+        //     uint u, p;
         //     ushort[] tt2 = new ushort[63];
 
         //     /*
@@ -122,19 +105,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //     * We also reduce modulo q the values; rejected values are set
         //     * to 0xFFFF.
         //     */
-        //     n = 1U << logn;
-        //     n2 = n << 1;
-        //     over = overtab[logn];
-        //     m = n + over;
-        //     tt1 = tmp;
-        //     for (u = 0; u < m; u ++) {
+        //     uint n = 1U << logN;
+        //     uint n2 = n << 1;
+        //     uint over = overtab[logN];
+        //     uint m = n + over;
+        //     int tt1 = tmp;
+        //     for (u = 0; u < m; ++u)
+        //     {
         //         byte[] buf = new byte[2];
-        //         uint w, wr;
 
         //         // inner_shake256_extract(sc, buf, sizeof buf);
         //         sc.i_shake256_extract(buf, 2);
-        //         w = ((uint)buf[0] << 8) | (uint)buf[1];
-        //         wr = w - ((uint)24578 & (((w - 24578) >> 31) - 1));
+        //         uint w = ((uint)buf[0] << 8) | (uint)buf[1];
+        //         uint wr = w - ((uint)24578 & (((w - 24578) >> 31) - 1));
         //         wr = wr - ((uint)24578 & (((wr - 24578) >> 31) - 1));
         //         wr = wr - ((uint)12289 & (((wr - 12289) >> 31) - 1));
         //         wr |= ((w - 61445) >> 31) - 1;
@@ -156,9 +139,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //     * has to be moved down by p slots, the destination slot is
         //     * "free" (i.e. contains an invalid value).
         //     */
-        //     for (p = 1; p <= over; p <<= 1) {
-        //         uint v;
-
+        //     for (p = 1; p <= over; p <<= 1)
+        //     {
         //         /*
         //         * In the loop below:
         //         *
@@ -172,8 +154,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //         *   - The loop may swap the value with the one at index
         //         *     u-p. The address of the swap destination is d.
         //         */
-        //         v = 0;
-        //         for (u = 0; u < m; u ++) {
+        //         uint v = 0;
+        //         for (u = 0; u < m; ++u)
+        //         {
         //             ushort *s;
         //             ushort *d;
         //             uint j, sv, dv, mk;
@@ -239,66 +222,48 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * on the degree. This array is indexed by logn (1 to 10). These bounds
         * are _inclusive_ (they are equal to floor(beta^2)).
         */
-        internal static readonly uint[] l2bound =
-        {
-            0,    /* unused */
-            101498,
-            208714,
-            428865,
-            892039,
-            1852696,
-            3842630,
-            7959734,
-            16468416,
-            34034726,
-            70265242
+        internal static readonly uint[] l2bound = { 0,    /* unused */
+            101498, 208714, 428865, 892039, 1852696, 3842630, 7959734, 16468416, 34034726, 70265242
         };
 
-        internal static bool is_short(short[] s1src, int s1, short[] s2src, int s2, uint logn)
+        internal static bool is_short(short[] s1src, int s1, short[] s2src, int s2, int logN)
         {
             /*
             * We use the l2-norm. Code below uses only 32-bit operations to
             * compute the square of the norm with saturation to 2^32-1 if
             * the value exceeds 2^31-1.
             */
-            int n, u;
-            uint s, ng;
 
-            n = (int)1 << (int)logn;
-            s = 0;
-            ng = 0;
-            for (u = 0; u < n; u ++) {
-                int z;
-
-                z = s1src[s1+u];
+            int n = 1 << logN;
+            uint s = 0;
+            uint ng = 0;
+            for (int u = 0; u < n; ++u)
+            {
+                int z = s1src[s1 + u];
                 s += (uint)(z * z);
                 ng |= s;
-                z = s2src[s2+u];
+                z = s2src[s2 + u];
                 s += (uint)(z * z);
                 ng |= s;
             }
             s |= (uint)(-(ng >> 31));
 
-            return s <= l2bound[logn];
+            return s <= l2bound[logN];
         }
 
-        internal static bool is_short_half(uint sqn, short[] s2src, int s2, uint logn)
+        internal static bool is_short_half(uint sqn, short[] s2src, int s2, int logN)
         {
-            int n, u;
-            uint ng;
-
-            n = (int)1 << (int)logn;
-            ng = (uint)(-(sqn >> 31));
-            for (u = 0; u < n; u ++) {
-                int z;
-
-                z = s2src[s2 + u];
+            int n = 1 << logN;
+            uint ng = (uint)(-(sqn >> 31));
+            for (int u = 0; u < n; ++u)
+            {
+                int z = s2src[s2 + u];
                 sqn += (uint)(z * z);
                 ng |= sqn;
             }
             sqn |= (uint)(-(ng >> 31));
 
-            return sqn <= l2bound[logn];
+            return sqn <= l2bound[logN];
         }
     }
 }

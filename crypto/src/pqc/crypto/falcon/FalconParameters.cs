@@ -1,5 +1,3 @@
-using System;
-
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
@@ -10,22 +8,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         public static readonly FalconParameters falcon_512 = new FalconParameters("falcon512", 9, 40);
         public static readonly FalconParameters falcon_1024 = new FalconParameters("falcon1024", 10, 40);
 
-        private readonly string name;
-        internal readonly uint logn;
-        private readonly uint nonce_length;
+        private readonly string m_name;
+        private readonly int m_logN;
+        private readonly int m_nonceLength;
 
-        private FalconParameters(string name, uint logn, uint nonce_length)
+        private FalconParameters(string name, int logn, int nonceLength)
         {
-            this.name = name;
-            this.logn = logn;
-            this.nonce_length = nonce_length;
+            m_name = name;
+            m_logN = logn;
+            m_nonceLength = nonceLength;
         }
 
-        public int LogN => Convert.ToInt32(logn);
+        public int LogN => m_logN;
 
-        public int NonceLength => Convert.ToInt32(nonce_length);
+        public int NonceLength => m_nonceLength;
 
-        public string Name => name;
+        public string Name => m_name;
 
         public override string ToString() => Name;
     }

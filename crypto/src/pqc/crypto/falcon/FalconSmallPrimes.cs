@@ -1,9 +1,8 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    class FalconSmallPrimes
+    internal static class FalconSmallPrimes
     {
-        internal FalconSmallPrimes() {}
-        internal FalconSmallPrime[] PRIMES = {
+        internal static readonly FalconSmallPrime[] Primes = {
             new FalconSmallPrime( 2147473409,  383167813,      10239 ),
             new FalconSmallPrime( 2147389441,  211808905,  471403745 ),
             new FalconSmallPrime( 2147387393,   37672282, 1329335065 ),
@@ -526,6 +525,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             new FalconSmallPrime( 2135996417,  297459940, 1132158924 ),
             new FalconSmallPrime( 2135955457,  538755304, 1688831340 ),
             new FalconSmallPrime( 0, 0, 0 )
-            };
+        };
     }
 }

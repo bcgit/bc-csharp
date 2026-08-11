@@ -1,10 +1,7 @@
-using System;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
-{   
-    class SHAKE256
+{
+    internal class SHAKE256
     {
-
         /* 
         * License from the reference C code (the code was copied then modified
         * to function in C#):
@@ -498,26 +495,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
         internal void i_shake256_inject(byte[] insrc, int inarray, int len)
         {
-            ulong dptr;
-
-            dptr = this.dptr;
-            while (len > 0) {
-                int clen, u;
-
-                clen = 136 - (int)dptr;
-                if (clen > len) {
+            ulong dptr = this.dptr;
+            while (len > 0)
+            {
+                int clen = 136 - (int)dptr;
+                if (clen > len)
+                {
                     clen = len;
                 }
-                for (u = 0; u < clen; u ++) {
-                    int v;
-
-                    v = u + (int)dptr;
+                for (int u = 0; u < clen; ++u)
+                {
+                    int v = u + (int)dptr;
                     this.A[v >> 3] ^= (ulong)insrc[inarray + u] << ((v & 7) << 3);
                 }
                 dptr += (ulong)clen;
                 inarray += clen;
                 len -= clen;
-                if (dptr == 136) {
+                if (dptr == 136)
+                {
                     process_block(this.A);
                     dptr = 0;
                 }

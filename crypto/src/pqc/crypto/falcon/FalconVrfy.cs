@@ -1,5 +1,3 @@
-using System;
-
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal static class FalconVrfy
@@ -331,9 +329,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             /*
             * If x < 0, the cast to uint will set the high bit to 1.
             */
-            uint y;
-
-            y = (uint)x;
+            uint y = (uint)x;
             y += (uint)(Q & -(y >> 31));
             return y;
         }
@@ -350,9 +346,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * it will be an all-zero pattern. In other words, this
             * implements a conditional addition of q.
             */
-            uint d;
-
-            d = x + y - Q;
+            uint d = x + y - Q;
             d += (uint)(Q & -(d >> 31));
             return d;
         }
@@ -366,9 +360,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * As in mq_add(), we use a conditional addition to ensure the
             * result is in the 0..q-1 range.
             */
-            uint d;
-
-            d = x - y;
+            uint d = x - y;
             d += (uint)(Q & -(d >> 31));
             return d;
         }
@@ -389,17 +381,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         */
         internal static uint mq_montymul(uint x, uint y)
         {
-            uint z, w;
-
             /*
             * We compute x*y + k*q with a value of k chosen so that the 16
             * low bits of the result are 0. We can then shift the value.
             * After the shift, result may still be larger than q, but it
             * will be lower than 2*q, so a conditional subtraction works.
             */
-
-            z = x * y;
-            w = ((z * Q0I) & 0xFFFF) * Q;
+            uint z = x * y;
+            uint w = ((z * Q0I) & 0xFFFF) * Q;
 
             /*
             * When adding z and w, the result will have its low 16 bits
@@ -492,27 +481,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute NTT on a ring element.
         */
-        internal static void mq_NTT(ushort[] asrc, int a, uint logn)
+        internal static void mq_NTT(ushort[] asrc, int a, int logN)
         {
-            int n, t, m;
-
-            n = (int)1 << (int)logn;
-            t = n;
-            for (m = 1; m < n; m <<= 1) {
-                int ht, i, j1;
-
-                ht = t >> 1;
-                for (i = 0, j1 = 0; i < m; i ++, j1 += t) {
-                    int j, j2;
-                    uint s;
-
-                    s = GMb[m + i];
-                    j2 = j1 + ht;
-                    for (j = j1; j < j2; j ++) {
-                        uint u, v;
-
-                        u = asrc[a + j];
-                        v = mq_montymul(asrc[a + j + ht], s);
+            int n = 1 << logN;
+            int t = n;
+            for (int m = 1; m < n; m <<= 1)
+            {
+                int ht = t >> 1;
+                for (int i = 0, j1 = 0; i < m; ++i, j1 += t)
+                {
+                    uint s = GMb[m + i];
+                    int j2 = j1 + ht;
+                    for (int j = j1; j < j2; ++j)
+                    {
+                        uint u = asrc[a + j];
+                        uint v = mq_montymul(asrc[a + j + ht], s);
                         asrc[a + j] = (ushort)mq_add(u, v);
                         asrc[a + j + ht] = (ushort)mq_sub(u, v);
                     }
@@ -524,34 +507,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Compute the inverse NTT on a ring element, binary case.
         */
-        internal static void mq_iNTT(ushort[] asrc, int a, uint logn)
+        internal static void mq_iNTT(ushort[] asrc, int a, int logN)
         {
-            int n, t, m;
-            uint ni;
-
-            n = (int)1 << (int)logn;
-            t = 1;
-            m = n;
-            while (m > 1) {
-                int hm, dt, i, j1;
-
-                hm = m >> 1;
-                dt = t << 1;
-                for (i = 0, j1 = 0; i < hm; i ++, j1 += dt) {
-                    int j, j2;
-                    uint s;
-
-                    j2 = j1 + t;
-                    s = iGMb[hm + i];
-                    for (j = j1; j < j2; j ++) {
-                        uint u, v, w;
-
-                        u = asrc[a + j];
-                        v = asrc[a + j + t];
+            int n = 1 << logN;
+            int t = 1;
+            int m = n;
+            while (m > 1)
+            {
+                int hm = m >> 1;
+                int dt = t << 1;
+                for (int i = 0, j1 = 0; i < hm; ++i, j1 += dt)
+                {
+                    int j2 = j1 + t;
+                    uint s = iGMb[hm + i];
+                    for (int j = j1; j < j2; ++j)
+                    {
+                        uint u = asrc[a + j];
+                        uint v = asrc[a + j + t];
                         asrc[a + j] = (ushort)mq_add(u, v);
-                        w = mq_sub(u, v);
-                        asrc[a + j + t] = (ushort)
-                            mq_montymul(w, s);
+                        uint w = mq_sub(u, v);
+                        asrc[a + j + t] = (ushort)mq_montymul(w, s);
                     }
                 }
                 t = dt;
@@ -567,11 +542,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * shift. The loop below is generic and works also in corner cases;
             * its computation time is negligible.
             */
-            ni = R;
-            for (m = n; m > 1; m >>= 1) {
+            uint ni = R;
+            for (m = n; m > 1; m >>= 1)
+            {
                 ni = mq_rshift1(ni);
             }
-            for (m = 0; m < n; m ++) {
+            for (m = 0; m < n; ++m)
+            {
                 asrc[a + m] = (ushort)mq_montymul(asrc[a + m], ni);
             }
         }
@@ -579,12 +556,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Convert a polynomial (mod q) to Montgomery representation.
         */
-        internal static void mq_poly_tomonty(ushort[] fsrc, int f, uint logn)
+        internal static void mq_poly_tomonty(ushort[] fsrc, int f, int logN)
         {
-            int u, n;
-
-            n = (int)1 << (int)logn;
-            for (u = 0; u < n; u ++) {
+            int n = 1 << logN;
+            for (int u = 0; u < n; ++u)
+            {
                 fsrc[f + u] = (ushort)mq_montymul(fsrc[f + u], R2);
             }
         }
@@ -593,12 +569,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * Multiply two polynomials together (NTT representation, and using
         * a Montgomery multiplication). Result f*g is written over f.
         */
-        internal static void mq_poly_montymul_ntt(ushort[] fsrc, int f, ushort[] gsrc, int g, uint logn)
+        internal static void mq_poly_montymul_ntt(ushort[] fsrc, int f, ushort[] gsrc, int g, int logN)
         {
-            int u, n;
-
-            n = (int)1 << (int)logn;
-            for (u = 0; u < n; u ++) {
+            int n = 1 << logN;
+            for (int u = 0; u < n; ++u)
+            {
                 fsrc[f + u] = (ushort)mq_montymul(fsrc[f + u], gsrc[g + u]);
             }
         }
@@ -606,238 +581,217 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /*
         * Subtract polynomial g from polynomial f.
         */
-        internal static void mq_poly_sub(ushort[] fsrc, int f, ushort[] gsrc, int g, uint logn)
+        internal static void mq_poly_sub(ushort[] fsrc, int f, ushort[] gsrc, int g, int logN)
         {
-            int u, n;
-
-            n = (int)1 << (int)logn;
-            for (u = 0; u < n; u ++) {
+            int n = 1 << logN;
+            for (int u = 0; u < n; ++u)
+            {
                 fsrc[f + u] = (ushort)mq_sub(fsrc[f + u], gsrc[g + u]);
             }
         }
 
         /* ===================================================================== */
 
-        internal static void to_ntt_monty(ushort[] hsrc, int h, uint logn)
+        internal static void to_ntt_monty(ushort[] hsrc, int h, int logN)
         {
-            mq_NTT(hsrc, h, logn);
-            mq_poly_tomonty(hsrc, h, logn);
+            mq_NTT(hsrc, h, logN);
+            mq_poly_tomonty(hsrc, h, logN);
         }
 
-        internal static bool verify_raw(ushort[] c0src, int c0, short[] s2src, int s2,
-            ushort[] hsrc, int h, uint logn, ushort[] tmpsrc, int tmp)
+        internal static bool verify_raw(ushort[] c0src, int c0, short[] s2src, int s2, ushort[] hsrc, int h, int logN,
+            ushort[] tmpsrc, int tmp)
         {
-            int u, n;
-            int tt;
-
-            n = (int)1 << (int)logn;
-            tt = tmp;
+            int n = 1 << logN;
+            int tt = tmp;
 
             /*
             * Reduce s2 elements modulo q ([0..q-1] range).
             */
-            for (u = 0; u < n; u ++) {
-                uint w;
-
-                w = (uint)s2src[s2 + u];
+            for (int u = 0; u < n; ++u)
+            {
+                uint w = (uint)s2src[s2 + u];
                 w += (uint)(Q & -(w >> 31));
-                tmpsrc[tt+u] = (ushort)w;
+                tmpsrc[tt + u] = (ushort)w;
             }
 
             /*
             * Compute -s1 = s2*h - c0 mod phi mod q (in tt[]).
             */
-            mq_NTT(tmpsrc, tt, logn);
-            mq_poly_montymul_ntt(tmpsrc, tt, hsrc, h, logn);
-            mq_iNTT(tmpsrc, tt, logn);
-            mq_poly_sub(tmpsrc, tt, c0src, c0, logn);
+            mq_NTT(tmpsrc, tt, logN);
+            mq_poly_montymul_ntt(tmpsrc, tt, hsrc, h, logN);
+            mq_iNTT(tmpsrc, tt, logN);
+            mq_poly_sub(tmpsrc, tt, c0src, c0, logN);
 
             /*
             * Normalize -s1 elements into the [-q/2..q/2] range.
             */
             short[] shorttmp = new short[n];
-            for (u = 0; u < n; u ++) {
-                int w;
-
-                w = (int)tmpsrc[tt+u];
+            for (int u = 0; u < n; ++u)
+            {
+                int w = (int)tmpsrc[tt + u];
                 w -= (int)(Q & -(((Q >> 1) - (uint)w) >> 31));
                 tmpsrc[tt + u] = (ushort)w;
                 shorttmp[u] = (short)tmpsrc[tt + u];
             }
 
-
             /*
             * Signature is valid if and only if the aggregate (-s1,s2) vector
             * is short enough.
             */
-            return FalconCommon.is_short(shorttmp, 0, s2src, s2, logn);
+            return FalconCommon.is_short(shorttmp, 0, s2src, s2, logN);
         }
 
-        internal static int compute_public(ushort[] hsrc, int h,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g, uint logn, ushort[] tmpsrc, int tmp)
+        internal static int compute_public(ushort[] hsrc, int h, sbyte[] fsrc, int f, sbyte[] gsrc, int g, int logN,
+            ushort[] tmpsrc, int tmp)
         {
-            int u, n;
-            int tt;
-
-            n = (int)1 << (int)logn;
-            tt = tmp;
-            for (u = 0; u < n; u ++) {
-                tmpsrc[tt+u] = (ushort)mq_conv_small(fsrc[f+u]);
-                hsrc[h+u] = (ushort)mq_conv_small(gsrc[g+u]);
+            int n = 1 << logN;
+            int tt = tmp;
+            for (int u = 0; u < n; ++u)
+            {
+                tmpsrc[tt + u] = (ushort)mq_conv_small(fsrc[f + u]);
+                hsrc[h + u] = (ushort)mq_conv_small(gsrc[g + u]);
             }
-            mq_NTT(hsrc, h, logn);
-            mq_NTT(tmpsrc, tt, logn);
-            for (u = 0; u < n; u ++) {
-                if (tmpsrc[tt+u] == 0) {
+            mq_NTT(hsrc, h, logN);
+            mq_NTT(tmpsrc, tt, logN);
+            for (int u = 0; u < n; ++u)
+            {
+                if (tmpsrc[tt + u] == 0)
                     return 0;
-                }
-                hsrc[h+u] = (ushort)mq_div_12289(hsrc[h+u], tmpsrc[tt+u]);
+
+                hsrc[h + u] = (ushort)mq_div_12289(hsrc[h + u], tmpsrc[tt + u]);
             }
-            mq_iNTT(hsrc, h, logn);
+            mq_iNTT(hsrc, h, logN);
             return 1;
         }
 
-        internal static int complete_private(sbyte[] Gsrc, int G,
-            sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc, int F,
-            uint logn, ushort[] tmpsrc, int tmp)
+        internal static int complete_private(sbyte[] Gsrc, int G, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
+            sbyte[] Fsrc, int F, int logN, ushort[] tmpsrc, int tmp)
         {
             int success = -1;
-            int u, n;
-            int t1, t2;
-
-            n = (int)1 << (int)logn;
-            t1 = tmp;
-            t2 = t1 + n;
-            for (u = 0; u < n; u ++) {
-                tmpsrc[t1+u] = (ushort)mq_conv_small(gsrc[g+u]);
-                tmpsrc[t2+u] = (ushort)mq_conv_small(Fsrc[F+u]);
+            int u;
+            int n = 1 << logN;
+            int t1 = tmp;
+            int t2 = t1 + n;
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[t1 + u] = (ushort)mq_conv_small(gsrc[g + u]);
+                tmpsrc[t2 + u] = (ushort)mq_conv_small(Fsrc[F + u]);
             }
-            mq_NTT(tmpsrc, t1, logn);
-            mq_NTT(tmpsrc, t2, logn);
-            mq_poly_tomonty(tmpsrc, t1, logn);
-            mq_poly_montymul_ntt(tmpsrc, t1, tmpsrc, t2, logn);
-            for (u = 0; u < n; u ++) {
-                tmpsrc[t2+u] = (ushort)mq_conv_small(fsrc[f+u]);
+            mq_NTT(tmpsrc, t1, logN);
+            mq_NTT(tmpsrc, t2, logN);
+            mq_poly_tomonty(tmpsrc, t1, logN);
+            mq_poly_montymul_ntt(tmpsrc, t1, tmpsrc, t2, logN);
+            for (u = 0; u < n; ++u)
+            {
+                tmpsrc[t2 + u] = (ushort)mq_conv_small(fsrc[f + u]);
             }
-            mq_NTT(tmpsrc, t2, logn);
-            for (u = 0; u < n; u ++) {
+            mq_NTT(tmpsrc, t2, logN);
+            for (u = 0; u < n; ++u)
+            {
                 uint tmp2 = tmpsrc[t2 + u];
                 success &= -(int)tmp2; // check tmp2 != 0
-                tmpsrc[t1+u] = (ushort)mq_div_12289(tmpsrc[t1+u], tmp2);
+                tmpsrc[t1 + u] = (ushort)mq_div_12289(tmpsrc[t1 + u], tmp2);
             }
-            mq_iNTT(tmpsrc, t1, logn);
-            for (u = 0; u < n; u ++) {
+            mq_iNTT(tmpsrc, t1, logN);
+            for (u = 0; u < n; ++u)
+            {
                 int w = tmpsrc[t1 + u];
                 int gi = w - (Q & (((Q >> 1) - w) >> 31));
                 success &= +gi - 128; // check +gi < 128
                 success &= -gi - 128; // check -gi < 128
-                Gsrc[G+u] = (sbyte)gi;
+                Gsrc[G + u] = (sbyte)gi;
             }
             return (success >> 31) & 1;
         }
 
-        internal static int is_invertible(
-            short[] s2src, int s2, uint logn, ushort[] tmpsrc, int tmp)
-        {
-            int u, n;
-            int tt;
-            uint r;
+        //internal static int is_invertible(short[] s2src, int s2, int logN, ushort[] tmpsrc, int tmp)
+        //{
+        //    int n = 1 << logN;
+        //    int tt = tmp;
+        //    for (int u = 0; u < n; ++u)
+        //    {
+        //        uint w = (uint)s2src[s2 + u];
+        //        w += (uint)(Q & -(w >> 31));
+        //        tmpsrc[tt + u] = (ushort)w;
+        //    }
+        //    mq_NTT(tmpsrc, tt, logN);
+        //    uint r = 0U;
+        //    for (int u = 0; u < n; ++u)
+        //    {
+        //        r |= (uint)(tmpsrc[tt + u] - 1);
+        //    }
+        //    return (int)(1U - (r >> 31));
+        //}
 
-            n = (int)1 << (int)logn;
-            tt = tmp;
-            for (u = 0; u < n; u ++) {
-                uint w;
+        //internal static int verify_recover(ushort[] hsrc, int h, ushort[] c0src, int c0, short[] s1src, int s1,
+        //    short[] s2src, int s2, int logN, ushort[] tmpsrc, int tmp)
+        //{
+        //    int u;
+        //    int n = 1 << logN;
 
-                w = (uint)s2src[s2 + u];
-                w += (uint)(Q & -(w >> 31));
-                tmpsrc[tt+u] = (ushort)w;
-            }
-            mq_NTT(tmpsrc, tt, logn);
-            r = 0;
-            for (u = 0; u < n; u ++) {
-                r |= (uint)(tmpsrc[tt+u] - 1);
-            }
-            return (int)(1u - (r >> 31));
-        }
+        //    /*
+        //    * Reduce elements of s1 and s2 modulo q; then write s2 into tt[]
+        //    * and c0 - s1 into h[].
+        //    */
+        //    int tt = tmp;
+        //    for (u = 0; u < n; ++u)
+        //    {
+        //        uint w = (uint)s2src[s2 + u];
+        //        w += (uint)(Q & -(w >> 31));
+        //        tmpsrc[tt + u] = (ushort)w;
 
-        internal static int verify_recover(ushort[] hsrc, int h,
-            ushort[] c0src, int c0, short[] s1src, int s1, short[] s2src, int s2,
-            uint logn, ushort[] tmpsrc, int tmp)
-        {
-            int u, n;
-            int tt;
-            uint r;
+        //        w = (uint)s1src[s1 + u];
+        //        w += (uint)(Q & -(w >> 31));
+        //        w = mq_sub(c0src[c0 + u], w);
+        //        hsrc[h + u] = (ushort)w;
+        //    }
 
-            n = (int)1 << (int)logn;
+        //    /*
+        //    * Compute h = (c0 - s1) / s2. If one of the coefficients of s2
+        //    * is zero (in NTT representation) then the operation fails. We
+        //    * keep that information into a flag so that we do not deviate
+        //    * from strict constant-time processing; if all coefficients of
+        //    * s2 are non-zero, then the high bit of r will be zero.
+        //    */
+        //    mq_NTT(tmpsrc, tt, logN);
+        //    mq_NTT(hsrc, h, logN);
+        //    uint r = 0U;
+        //    for (u = 0; u < n; ++u)
+        //    {
+        //        r |= (uint)(tmpsrc[tt + u] - 1);
+        //        hsrc[h + u] = (ushort)mq_div_12289(hsrc[h + u], tmpsrc[tt + u]);
+        //    }
+        //    mq_iNTT(hsrc, h, logN);
 
-            /*
-            * Reduce elements of s1 and s2 modulo q; then write s2 into tt[]
-            * and c0 - s1 into h[].
-            */
-            tt = tmp;
-            for (u = 0; u < n; u ++) {
-                uint w;
+        //    /*
+        //    * Signature is acceptable if and only if it is short enough,
+        //    * and s2 was invertible mod phi mod q. The caller must still
+        //    * check that the rebuilt public key matches the expected
+        //    * value (e.g. through a hash).
+        //    */
+        //    r = ~r & (uint)-(FalconCommon.is_short(s1src, s1, s2src, s2, logN) ? 1 : 0);
+        //    return (int)(r >> 31);
+        //}
 
-                w = (uint)s2src[s2 + u];
-                w += (uint)(Q & -(w >> 31));
-                tmpsrc[tt+u] = (ushort)w;
-
-                w = (uint)s1src[s1+u];
-                w += (uint)(Q & -(w >> 31));
-                w = mq_sub(c0src[c0 + u], w);
-                hsrc[h+u] = (ushort)w;
-            }
-
-            /*
-            * Compute h = (c0 - s1) / s2. If one of the coefficients of s2
-            * is zero (in NTT representation) then the operation fails. We
-            * keep that information into a flag so that we do not deviate
-            * from strict constant-time processing; if all coefficients of
-            * s2 are non-zero, then the high bit of r will be zero.
-            */
-            mq_NTT(tmpsrc, tt, logn);
-            mq_NTT(hsrc, h, logn);
-            r = 0;
-            for (u = 0; u < n; u ++) {
-                r |= (uint)(tmpsrc[tt+u] - 1);
-                hsrc[h+u] = (ushort)mq_div_12289(hsrc[h+u], tmpsrc[tt+u]);
-            }
-            mq_iNTT(hsrc, h, logn);
-
-            /*
-            * Signature is acceptable if and only if it is short enough,
-            * and s2 was invertible mod phi mod q. The caller must still
-            * check that the rebuilt public key matches the expected
-            * value (e.g. through a hash).
-            */
-            r = ~r & (uint)-(FalconCommon.is_short(s1src, s1, s2src, s2, logn) ? 1 : 0);
-            return (int)(r >> 31);
-        }
-
-        internal static int count_nttzero(short[] sigsrc, int sig, uint logn, ushort[] tmpsrc, int tmp)
-        {
-            int s2;
-            int u, n;
-            uint r;
-
-            n = (int)1 << (int)logn;
-            s2 = tmp;
-            for (u = 0; u < n; u ++) {
-                uint w;
-
-                w = (uint)sigsrc[sig + u];
-                w += (uint)(Q & -(w >> 31));
-                tmpsrc[s2 + u] = (ushort)w;
-            }
-            mq_NTT(tmpsrc, s2, logn);
-            r = 0;
-            for (u = 0; u < n; u ++) {
-                uint w;
-
-                w = (uint)tmpsrc[s2 + u] - 1u;
-                r += (w >> 31);
-            }
-            return (int)r;
-        }
+        //internal static int count_nttzero(short[] sigsrc, int sig, int logN, ushort[] tmpsrc, int tmp)
+        //{
+        //    int u;
+        //    int n = 1 << logN;
+        //    int s2 = tmp;
+        //    for (u = 0; u < n; ++u)
+        //    {
+        //        uint w = (uint)sigsrc[sig + u];
+        //        w += (uint)(Q & -(w >> 31));
+        //        tmpsrc[s2 + u] = (ushort)w;
+        //    }
+        //    mq_NTT(tmpsrc, s2, logN);
+        //    uint r = 0U;
+        //    for (u = 0; u < n; ++u)
+        //    {
+        //        uint w = (uint)tmpsrc[s2 + u] - 1U;
+        //        r += (w >> 31);
+        //    }
+        //    return (int)r;
+        //}
     }
 }
