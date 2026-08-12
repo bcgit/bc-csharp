@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
@@ -45,19 +46,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * ===========================(LICENSE END)=============================
         */
 
-        internal void Init(Shake256 src)
+        internal void Init(ShakeDigest src)
         {
-            // For reproducibility, enforce little-endian interpretation of the state words.
-            byte[] tmp = new byte[56];
-            src.Squeeze(tmp,0, 56);
-            for (int i = 0; i < 14; ++i)
-            {
-                uint w = Pack.LE_To_UInt32(tmp, i << 2);
-                Pack.UInt32_To_LE(w, this.sd, i << 2);
-            }
-            ulong tl = Pack.LE_To_UInt32(this.sd, 48);
-            ulong th = Pack.LE_To_UInt32(this.sd, 52);
-            Pack.UInt64_To_LE(tl + (th << 32), this.sd, 48);
+            src.Output(sd, 0, 56);
             Refill();
         }
 

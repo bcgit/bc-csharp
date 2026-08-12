@@ -1,3 +1,4 @@
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
@@ -32,7 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * ===========================(LICENSE END)=============================
         */
-        internal static void HashToPointVar(Shake256 sc, ushort[] xsrc, int x, int logN)
+        internal static void HashToPointVar(ShakeDigest sc, ushort[] xsrc, int x, int logN)
         {
             /*
             * This is the straightforward per-the-spec implementation. It
@@ -45,17 +46,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * plaintexts).
             */
             int n = 1 << logN;
+            byte[] buf = new byte[2];
             while (n > 0)
             {
-                byte[] buf = new byte[2];
-                sc.Squeeze(buf, 0, 2);
+                sc.Output(buf, 0, 2);
                 uint w = Pack.BE_To_UInt16(buf);
                 if (w < 61445)
                 {
-                    while (w >= 12289)
-                    {
-                        w -= 12289;
-                    }
+                    //while (w >= 12289)
+                    //{
+                    //    w -= 12289;
+                    //}
+                    w %= 12289;
                     xsrc[x++] = (ushort)w;
                     --n;
                 }

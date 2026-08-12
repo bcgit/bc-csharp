@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 
@@ -60,10 +61,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 byte[] seed = new byte[48];
                 m_random.NextBytes(seed);
 
-                Shake256 rng = new Shake256();
-                rng.Init();
-                rng.Absorb(seed, 0, seed.Length);
-                rng.Flip();
+                ShakeDigest rng = new ShakeDigest(256);
+                rng.BlockUpdate(seed, 0, seed.Length);
 
                 FalconKeyGen.KeyGen(rng, f, 0, g, 0, F, 0, null, 0, h, 0, m_logN);
             }
@@ -129,7 +128,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                    nonce = new byte[m_nonceLength];
 
             byte[] esig = new byte[this.CRYPTO_BYTES - 2 - m_nonceLength];
-            Shake256 sc = new Shake256();
+            ShakeDigest sc = new ShakeDigest(256);
 
             // /*
             // * Decode the private key.
@@ -166,17 +165,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             m_random.NextBytes(nonce);
 
             // Hash message nonce + message into a vector.
-            sc.Init();
-            sc.Absorb(nonce,0,nonce.Length);
-            sc.Absorb(m, mOff, mLen);
-            sc.Flip();
+            sc.BlockUpdate(nonce, 0, nonce.Length);
+            sc.BlockUpdate(m, mOff, mLen);
+
             FalconCommon.HashToPointVar(sc, hm, 0, m_logN);
 
             // Initialize a RNG.
             m_random.NextBytes(seed);
-            sc.Init();
-            sc.Absorb(seed, 0, seed.Length);
-            sc.Flip();
+            sc.Reset();
+            sc.BlockUpdate(seed, 0, seed.Length);
 
             // Compute the signature.
             FalconSign.SignDyn(sig, 0, sc, f, 0, g, 0, F, 0, G, 0, hm, 0, m_logN, new FalconFpr[10 * n], 0);
@@ -222,7 +219,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             ushort[] h = new ushort[n],
                      hm = new ushort[n];
             short[] sig = new short[n];
-            Shake256 sc = new Shake256();
+            ShakeDigest sc = new ShakeDigest(256);
 
             // Decode public key.
             // if (pksrc[pk+0] != 0x00 + this.logn) {
@@ -264,11 +261,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
 
             // Hash nonce + message into a vector.
-            sc.Init();
-            // sc.i_shake256_inject(sm + 2, this.noncelen + msg_len);
-            sc.Absorb(nonce, 0, m_nonceLength);
-            sc.Absorb(m, 0, m.Length);
-            sc.Flip();
+            sc.BlockUpdate(nonce, 0, m_nonceLength);
+            sc.BlockUpdate(m, 0, m.Length);
+
             FalconCommon.HashToPointVar(sc, hm, 0, m_logN);
 
             // Verify signature.

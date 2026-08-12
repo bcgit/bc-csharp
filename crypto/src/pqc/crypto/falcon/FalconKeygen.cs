@@ -1,9 +1,7 @@
 using System;
 
+using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
-using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Math.Raw;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
@@ -1429,15 +1427,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * the same values will be obtained over different platforms, in case
         * a known seed is used.
         */
-        private static ulong get_rng_u64(Shake256 rng)
+        private static ulong get_rng_u64(ShakeDigest rng, byte[] tmp8)
         {
-            /*
-            * We enforce little-endian representation.
-            */
-
-            byte[] tmp = new byte[8];
-            rng.Squeeze(tmp, 0, 8);
-            return Pack.LE_To_UInt64(tmp);
+            rng.Output(tmp8, 0, 8);
+            return Pack.LE_To_UInt64(tmp8);
         }
 
         /*
@@ -1470,7 +1463,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * sigma*sqrt(2), then we can just generate more values and add them
         * together for lower dimensions.
         */
-        private static int mkgauss(Shake256 rng, int logN)
+        private static int mkgauss(ShakeDigest rng, int logN, byte[] rngBuf8)
         {
             uint g = 1U << (10 - logN);
             int val = 0;
@@ -1497,7 +1490,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 *  - flag 'f' is set to 1 if the generated value is zero,
                 *    or set to 0 otherwise.
                 */
-                ulong r = get_rng_u64(rng);
+                ulong r = get_rng_u64(rng, rngBuf8);
                 uint neg = (uint)(r >> 63);
                 r &= ~(1UL << 63);
                 uint f = (uint)((r - gauss_1024_12289[0]) >> 63);
@@ -1509,7 +1502,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 * than r, unless the flag f was already 1.
                 */
                 uint v = 0U;
-                r = get_rng_u64(rng);
+                r = get_rng_u64(rng, rngBuf8);
                 r &= ~(1UL << 63);
                 for (uint k = 1U; k < gauss_1024_12289.Length; ++k)
                 {
@@ -3072,7 +3065,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         /// <remarks>
         /// This function also makes sure that the resultant of the polynomial with phi is odd.
         /// </remarks>
-        private static void poly_small_mkgauss(Shake256 rng, sbyte[] fsrc, int f, int logN)
+        private static void poly_small_mkgauss(ShakeDigest rng, sbyte[] fsrc, int f, int logN, byte[] rngBuf8)
         {
             int n = 1 << logN;
             uint mod2 = 0;
@@ -3081,7 +3074,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             {
                 for (;;)
                 {
-                    int s = mkgauss(rng, logN);
+                    int s = mkgauss(rng, logN, rngBuf8);
 
                     /*
                      * We need the coefficient to fit within -127..+127; realistically, this is always the case except
@@ -3109,7 +3102,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
         }
 
-        internal static void KeyGen(Shake256 rng, sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc, int F,
+        internal static void KeyGen(ShakeDigest rc, sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc, int F,
             sbyte[] Gsrc, int G, ushort[] hsrc, int h, int logN)
         {
             /*
@@ -3131,7 +3124,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
              *    Res(f,phi) and Res(g,phi) are not prime to each other.
              */
             int n = 1 << logN;
-            Shake256 rc = rng;
+
+            byte[] rngBuf8 = new byte[8];
 
             /*
              * We need to generate f and g randomly, until we find values such that the norm of (g,-f), and of the
@@ -3153,8 +3147,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                  * The poly_small_mkgauss() function makes sure that the sum of coefficients is 1 modulo 2 (i.e. the
                  * resultant of the polynomial with phi will be odd).
                  */
-                poly_small_mkgauss(rc, fsrc, f, logN);
-                poly_small_mkgauss(rc, gsrc, g, logN);
+                poly_small_mkgauss(rc, fsrc, f, logN, rngBuf8);
+                poly_small_mkgauss(rc, gsrc, g, logN, rngBuf8);
 
                 /*
                  * Verify that all coefficients are within the bounds defined in max_fg_bits. This is the case with

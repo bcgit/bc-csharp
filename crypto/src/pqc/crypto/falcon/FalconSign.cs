@@ -1,5 +1,7 @@
 using System;
 
+using Org.BouncyCastle.Crypto.Digests;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal static class FalconSign
@@ -810,7 +812,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //    }
         //}
 
-        internal static void SignDyn(short[] sigsrc, int sig, Shake256 rng, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
+        internal static void SignDyn(short[] sigsrc, int sig, ShakeDigest rng, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
             sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hmsrc, int hm, int logN, FalconFpr[] tmpsrc, int tmp)
         {
             for (;;)
