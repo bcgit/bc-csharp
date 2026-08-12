@@ -36,10 +36,31 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
+        /// <summary>
+        /// Whether to echo a client's "status_request" extension (<i>RFC 6066 sec. 8</i>) in the extended server hello,
+        /// so that a stapled OCSP response can be sent.
+        /// </summary>
+        /// <remarks>
+        /// Echoing it makes <see cref="GetCertificateStatus"/> be called with
+        /// <see cref="SecurityParameters.StatusRequestVersion"/> of 1; it does not oblige the server to actually supply
+        /// a response.
+        /// </remarks>
+        /// <returns><c>true</c> (the default) to echo "status_request" when the client offered it.</returns>
         protected virtual bool AllowCertificateStatus() => true;
 
         protected virtual bool AllowEncryptThenMac() => true;
 
+        /// <summary>
+        /// Whether to echo a client's "status_request_v2" extension (<i>RFC 6961 sec. 2.2</i>) in the extended server
+        /// hello.
+        /// </summary>
+        /// <remarks>
+        /// When the client offered both, echoing this one takes precedence over "status_request", and
+        /// <see cref="GetCertificateStatus"/> is then called with <see cref="SecurityParameters.StatusRequestVersion"/>
+        /// of 2 - so a server overriding this must be prepared to return a
+        /// <see cref="CertificateStatusType.ocsp_multi"/> status.
+        /// /// </remarks>
+        /// <returns><c>false</c> (the default) to leave "status_request_v2" unanswered.</returns>
         protected virtual bool AllowMultiCertStatus() => false;
 
         protected virtual bool AllowTruncatedHmac() => false;

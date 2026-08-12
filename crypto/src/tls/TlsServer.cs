@@ -83,11 +83,37 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         TlsCredentials GetCredentials();
 
+        /// <summary>
+        /// This method will be called (only) if the server included an extension of type "status_request" (<i>RFC 6066
+        /// sec. 8. Certificate Status Request</i>) or "status_request_v2" (<i>RFC 6961 sec. 2.2. Multiple Certificate
+        /// Status Request Record</i>) with empty "extension_data" in the extended server hello, i.e. if
+        /// <see cref="SecurityParameters.StatusRequestVersion"/> is non-zero.
+        /// </summary>
         /// <remarks>
-        /// This method will be called (only) if the server included an extension of type "status_request" with empty
-        /// "extension_data" in the extended server hello. See <i>RFC 3546 3.6. Certificate Status Request</i>. If a
-        /// non-null <see cref="CertificateStatus"/> is returned, it is sent to the client as a handshake message of
-        /// type "certificate_status".
+        /// If a non-null <see cref="CertificateStatus"/> is returned, it is sent to the client as a handshake message
+        /// of type "certificate_status".
+        /// <para>
+        /// The status request version says which of the two shapes the client will accept; returning the other one is a
+        /// fatal alert at the client:
+        /// <list type="number">
+        /// <item>"status_request" was echoed. Return a <see cref="CertificateStatusType.ocsp"/> status carrying a
+        /// single response, for the end-entity certificate.</item>
+        /// <item>"status_request_v2" was echoed. Return a <see cref="CertificateStatusType.ocsp_multi"/> status
+        /// carrying one entry per certificate in the chain that was sent, in the same order, with a null entry wherever
+        /// no response is available.</item>
+        /// </list>
+        /// </para>
+        /// <para>
+        /// Whether either extension is echoed at all is decided by
+        /// <see cref="AbstractTlsServer.AllowCertificateStatus"/> (defaults to <c>true</c>) and
+        /// <see cref="AbstractTlsServer.AllowMultiCertStatus"/> (defaults to <c>false</c>).
+        /// </para>
+        /// <para>
+        /// This callback applies up to (D)TLS 1.2 only. TLS 1.3 has no "certificate_status" handshake message and
+        /// carries the response in a per-<see cref="CertificateEntry"/> "status_request" extension instead (<i>RFC 8446
+        /// sec. 4.4.2.1</i>), which for now a <see cref="TlsServer"/> implementation has to attach to the
+        /// <see cref="Certificate"/> its credentials supply.
+        /// </para>
         /// </remarks>
         /// <returns>A <see cref="CertificateStatus"/> to be sent to the client (or null for none).</returns>
         /// <exception cref="IOException"/>
