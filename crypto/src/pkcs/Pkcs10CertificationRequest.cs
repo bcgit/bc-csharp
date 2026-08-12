@@ -94,11 +94,18 @@ namespace Org.BouncyCastle.Pkcs
             m_algorithms.Add("SHA-512(256)WITHRSAENCRYPTION", PkcsObjectIdentifiers.Sha512_256WithRSAEncryption);
             m_algorithms.Add("SHA512(256)WITHRSA", PkcsObjectIdentifiers.Sha512_256WithRSAEncryption);
             m_algorithms.Add("SHA-512(256)WITHRSA", PkcsObjectIdentifiers.Sha512_256WithRSAEncryption);
+            m_algorithms.Add("RIPEMD128WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("RIPEMD160WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("RIPEMD256WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
             m_algorithms.Add("SHA1WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
             m_algorithms.Add("SHA224WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
             m_algorithms.Add("SHA256WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
             m_algorithms.Add("SHA384WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
             m_algorithms.Add("SHA512WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("SHA3-224WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("SHA3-256WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("SHA3-384WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
+            m_algorithms.Add("SHA3-512WITHRSAANDMGF1", PkcsObjectIdentifiers.IdRsassaPss);
             m_algorithms.Add("RSAWITHSHA1", PkcsObjectIdentifiers.Sha1WithRsaEncryption);
             m_algorithms.Add("RIPEMD128WITHRSAENCRYPTION", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
             m_algorithms.Add("RIPEMD128WITHRSA", TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128);
@@ -245,29 +252,48 @@ namespace Org.BouncyCastle.Pkcs
             //
             // explicit params
             //
-            AlgorithmIdentifier sha1AlgId = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
-            m_exParams.Add("SHA1WITHRSAANDMGF1", CreatePssParams(sha1AlgId, 20));
+            var ripeMD128AlgID = new AlgorithmIdentifier(TeleTrusTObjectIdentifiers.RipeMD128, DerNull.Instance);
+            m_exParams.Add("RIPEMD128WITHRSAANDMGF1", CreatePssParams(ripeMD128AlgID, 16));
 
-            AlgorithmIdentifier sha224AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha224, DerNull.Instance);
-            m_exParams.Add("SHA224WITHRSAANDMGF1", CreatePssParams(sha224AlgId, 28));
+            var ripeMD160AlgID = new AlgorithmIdentifier(TeleTrusTObjectIdentifiers.RipeMD160, DerNull.Instance);
+            m_exParams.Add("RIPEMD160WITHRSAANDMGF1", CreatePssParams(ripeMD160AlgID, 20));
 
-            AlgorithmIdentifier sha256AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256, DerNull.Instance);
-            m_exParams.Add("SHA256WITHRSAANDMGF1", CreatePssParams(sha256AlgId, 32));
+            var ripeMD256AlgID = new AlgorithmIdentifier(TeleTrusTObjectIdentifiers.RipeMD256, DerNull.Instance);
+            m_exParams.Add("RIPEMD256WITHRSAANDMGF1", CreatePssParams(ripeMD256AlgID, 32));
 
-            AlgorithmIdentifier sha384AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha384, DerNull.Instance);
-            m_exParams.Add("SHA384WITHRSAANDMGF1", CreatePssParams(sha384AlgId, 48));
+            var sha1AlgID = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+            m_exParams.Add("SHA1WITHRSAANDMGF1", CreatePssParams(sha1AlgID, 20));
 
-            AlgorithmIdentifier sha512AlgId = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, DerNull.Instance);
-            m_exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgId, 64));
+            var sha224AlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha224, DerNull.Instance);
+            m_exParams.Add("SHA224WITHRSAANDMGF1", CreatePssParams(sha224AlgID, 28));
+
+            var sha256AlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha256, DerNull.Instance);
+            m_exParams.Add("SHA256WITHRSAANDMGF1", CreatePssParams(sha256AlgID, 32));
+
+            var sha384AlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha384, DerNull.Instance);
+            m_exParams.Add("SHA384WITHRSAANDMGF1", CreatePssParams(sha384AlgID, 48));
+
+            var sha512AlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512, DerNull.Instance);
+            m_exParams.Add("SHA512WITHRSAANDMGF1", CreatePssParams(sha512AlgID, 64));
+
+            var sha3_224AlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha3_224, DerNull.Instance);
+            m_exParams.Add("SHA3-224WITHRSAANDMGF1", CreatePssParams(sha3_224AlgID, 28));
+
+            var sha3_256AlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha3_256, DerNull.Instance);
+            m_exParams.Add("SHA3-256WITHRSAANDMGF1", CreatePssParams(sha3_256AlgID, 32));
+
+            var sha3_384AlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha3_384, DerNull.Instance);
+            m_exParams.Add("SHA3-384WITHRSAANDMGF1", CreatePssParams(sha3_384AlgID, 48));
+
+            var sha3_512AlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha3_512, DerNull.Instance);
+            m_exParams.Add("SHA3-512WITHRSAANDMGF1", CreatePssParams(sha3_512AlgID, 64));
         }
 
-        private static RsassaPssParameters CreatePssParams(
-            AlgorithmIdentifier hashAlgId,
-            int saltSize)
+        private static RsassaPssParameters CreatePssParams(AlgorithmIdentifier digAlgID, int saltSize)
         {
             return new RsassaPssParameters(
-                hashAlgId,
-                new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, hashAlgId),
+                digAlgID,
+                new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, digAlgID),
                 DerInteger.ValueOf(saltSize),
                 RsassaPssParameters.DefaultTrailerField);
         }

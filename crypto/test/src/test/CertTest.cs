@@ -1461,7 +1461,7 @@ namespace Org.BouncyCastle.Tests
                 //
                 // try with point compression turned off
                 //
-//				((ECPointEncoder)pubKey).setPointFormat("UNCOMPRESSED");
+                //((ECPointEncoder)pubKey).setPointFormat("UNCOMPRESSED");
                 ECPoint q = pubKey.Q.Normalize();
                 pubKey = new ECPublicKeyParameters(
                     pubKey.AlgorithmName,
@@ -1503,9 +1503,7 @@ namespace Org.BouncyCastle.Tests
         /**
          * we Generate a self signed certificate for the sake of testing - SHA224withECDSA
          */
-        private void CreateECCert(
-            string				algorithm,
-            DerObjectIdentifier	algOid)
+        private void CreateECCert(string algorithm, DerObjectIdentifier algOid)
         {
             X9ECParameters x9 = ECNamedCurveTable.GetByName("secp521r1");
             ECCurve curve = x9.Curve;
@@ -1518,21 +1516,8 @@ namespace Org.BouncyCastle.Tests
 
             ECPublicKeyParameters pubKey = new ECPublicKeyParameters(
                 "ECDSA",
-//				curve.DecodePoint(Hex.Decode("026BFDD2C9278B63C92D6624F151C9D7A822CC75BD983B17D25D74C26740380022D3D8FAF304781E416175EADF4ED6E2B47142D2454A7AC7801DD803CF44A4D1F0AC")), // Q
                 curve.DecodePoint(Hex.Decode("02006BFDD2C9278B63C92D6624F151C9D7A822CC75BD983B17D25D74C26740380022D3D8FAF304781E416175EADF4ED6E2B47142D2454A7AC7801DD803CF44A4D1F0AC")), // Q
                 spec);
-
-//			//
-//			// set up the keys
-//			//
-//			AsymmetricKeyParameter privKey;
-//			AsymmetricKeyParameter pubKey;
-//
-//			KeyFactory fact = KeyFactory.GetInstance("ECDSA");
-//
-//			privKey = fact.generatePrivate(privKeySpec);
-//			pubKey = fact.generatePublic(pubKeySpec);
-
 
             //
             // distinguished name table.
@@ -1576,7 +1561,7 @@ namespace Org.BouncyCastle.Tests
             //
             // try with point compression turned off
             //
-//			((ECPointEncoder)pubKey).setPointFormat("UNCOMPRESSED");
+            //((ECPointEncoder)pubKey).setPointFormat("UNCOMPRESSED");
             ECPoint q = pubKey.Q.Normalize();
             pubKey = new ECPublicKeyParameters(
                 pubKey.AlgorithmName,
@@ -1964,8 +1949,8 @@ namespace Org.BouncyCastle.Tests
             AsymmetricKeyParameter privKey;
             AsymmetricKeyParameter pubKey;
 
-//			GOST3410ParameterSpec gost3410P = new GOST3410ParameterSpec("GostR3410-94-CryptoPro-A");
-//			g.initialize(gost3410P, new SecureRandom());
+            //GOST3410ParameterSpec gost3410P = new GOST3410ParameterSpec("GostR3410-94-CryptoPro-A");
+            //g.initialize(gost3410P, new SecureRandom());
             IAsymmetricCipherKeyPairGenerator g = GeneratorUtilities.GetKeyPairGenerator("GOST3410");
             g.Init(
                 new Gost3410KeyGenerationParameters(
@@ -2056,13 +2041,6 @@ namespace Org.BouncyCastle.Tests
             // set up the keys
             //
             SecureRandom rand = new SecureRandom();
-//			AsymmetricKeyParameter privKey;
-//			AsymmetricKeyParameter pubKey;
-//
-//			KeyFactory  fact = KeyFactory.GetInstance("RSA");
-//
-//			privKey = fact.generatePrivate(privKeySpec);
-//			pubKey = fact.generatePublic(pubKeySpec);
 
             //
             // distinguished name table.
@@ -2316,8 +2294,7 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
-        private void CreatePssCert(
-            string algorithm)
+        private void CreatePssCert(string algorithm)
         {
             AsymmetricCipherKeyPair keyPair = GenerateLongFixedKeys();
 
@@ -2366,12 +2343,10 @@ namespace Org.BouncyCastle.Tests
 
         private static AsymmetricCipherKeyPair GenerateLongFixedKeys()
         {
-//			RSAPublicKeySpec pubKeySpec = new RSAPublicKeySpec(
             RsaKeyParameters pubKey = new RsaKeyParameters(false,
                 new BigInteger("a56e4a0e701017589a5187dc7ea841d156f2ec0e36ad52a44dfeb1e61f7ad991d8c51056ffedb162b4c0f283a12a88a394dff526ab7291cbb307ceabfce0b1dfd5cd9508096d5b2b8b6df5d671ef6377c0921cb23c270a70e2598e6ff89d19f105acc2d3f0cb35f29280e1386b6f64c4ef22e1e1f20d0ce8cffb2249bd9a2137",16),
                 new BigInteger("010001",16));
 
-//			RSAPrivateCrtKeySpec privKeySpec = new RSAPrivateCrtKeySpec(
             RsaPrivateCrtKeyParameters privKey = new RsaPrivateCrtKeyParameters(
                 new BigInteger("a56e4a0e701017589a5187dc7ea841d156f2ec0e36ad52a44dfeb1e61f7ad991d8c51056ffedb162b4c0f283a12a88a394dff526ab7291cbb307ceabfce0b1dfd5cd9508096d5b2b8b6df5d671ef6377c0921cb23c270a70e2598e6ff89d19f105acc2d3f0cb35f29280e1386b6f64c4ef22e1e1f20d0ce8cffb2249bd9a2137",16),
                 new BigInteger("010001",16),
@@ -2381,11 +2356,6 @@ namespace Org.BouncyCastle.Tests
                 new BigInteger("28fa13938655be1f8a159cbaca5a72ea190c30089e19cd274a556f36c4f6e19f554b34c077790427bbdd8dd3ede2448328f385d81b30e8e43b2fffa027861979",16),
                 new BigInteger("1a8b38f398fa712049898d7fb79ee0a77668791299cdfa09efc0e507acb21ed74301ef5bfd48be455eaeb6e1678255827580a8e4e8e14151d1510a82a3f2e729",16),
                 new BigInteger("27156aba4126d24a81f3a528cbfb27f56886f840a9f6e86e17a44b94fe9319584b8e22fdde1e5a2e3bd8aa5ba8d8584194eb2190acf832b847f13a3d24a79f4d",16));
-
-//			KeyFactory  fact = KeyFactory.getInstance("RSA", "BC");
-//
-//			PrivateKey privKey = fact.generatePrivate(privKeySpec);
-//			PublicKey pubKey = fact.generatePublic(pubKeySpec);
 
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
@@ -2613,10 +2583,18 @@ namespace Org.BouncyCastle.Tests
             CreateECCert("SHA384withECDSA", X9ObjectIdentifiers.ECDsaWithSha384);
             CreateECCert("SHA512withECDSA", X9ObjectIdentifiers.ECDsaWithSha512);
 
+            CreatePssCert("RIPEMD128withRSAandMGF1");
+            CreatePssCert("RIPEMD160withRSAandMGF1");
+            CreatePssCert("RIPEMD256withRSAandMGF1");
             CreatePssCert("SHA1withRSAandMGF1");
             CreatePssCert("SHA224withRSAandMGF1");
             CreatePssCert("SHA256withRSAandMGF1");
             CreatePssCert("SHA384withRSAandMGF1");
+            //CreatePssCert("SHA512withRSAandMGF1");    // RSA key only 1024 bits
+            CreatePssCert("SHA3-224withRSAandMGF1");
+            CreatePssCert("SHA3-256withRSAandMGF1");
+            CreatePssCert("SHA3-384withRSAandMGF1");
+            //CreatePssCert("SHA3-512withRSAandMGF1");  // RSA key only 1024 bits
 
             CheckCrlCreation1();
             CheckCrlCreation2();

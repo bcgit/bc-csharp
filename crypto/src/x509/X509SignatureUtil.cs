@@ -48,6 +48,18 @@ namespace Org.BouncyCastle.X509
             if (NistObjectIdentifiers.IdSha512_256.Equals(digestAlgOid))
                 return "SHA512(256)";
 
+            if (NistObjectIdentifiers.IdSha3_224.Equals(digestAlgOid))
+                return "SHA3-224";
+
+            if (NistObjectIdentifiers.IdSha3_256.Equals(digestAlgOid))
+                return "SHA3-256";
+
+            if (NistObjectIdentifiers.IdSha3_384.Equals(digestAlgOid))
+                return "SHA3-384";
+
+            if (NistObjectIdentifiers.IdSha3_512.Equals(digestAlgOid))
+                return "SHA3-512";
+
             if (TeleTrusTObjectIdentifiers.RipeMD128.Equals(digestAlgOid))
                 return "RIPEMD128";
 

@@ -164,6 +164,11 @@ namespace Org.BouncyCastle.Security
             AlgorithmMap["SHA512WITHRSASSA-PSS"] = "SHA-512withRSAandMGF1";
             AlgorithmMap["SHA-512WITHRSASSA-PSS"] = "SHA-512withRSAandMGF1";
 
+            AlgorithmMap["SHA3-224WITHRSAANDMGF1"] = "SHA3-224withRSAandMGF1";
+            AlgorithmMap["SHA3-256WITHRSAANDMGF1"] = "SHA3-256withRSAandMGF1";
+            AlgorithmMap["SHA3-384WITHRSAANDMGF1"] = "SHA3-384withRSAandMGF1";
+            AlgorithmMap["SHA3-512WITHRSAANDMGF1"] = "SHA3-512withRSAandMGF1";
+
             AlgorithmMap["RIPEMD128WITHRSA"] = "RIPEMD128withRSA";
             AlgorithmMap["RIPEMD128WITHRSAENCRYPTION"] = "RIPEMD128withRSA";
             AlgorithmOidMap[TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128] = "RIPEMD128withRSA";
@@ -175,6 +180,10 @@ namespace Org.BouncyCastle.Security
             AlgorithmMap["RIPEMD256WITHRSA"] = "RIPEMD256withRSA";
             AlgorithmMap["RIPEMD256WITHRSAENCRYPTION"] = "RIPEMD256withRSA";
             AlgorithmOidMap[TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256] = "RIPEMD256withRSA";
+
+            AlgorithmMap["RIPEMD128WITHRSAANDMGF1"] = "RIPEMD128withRSAandMGF1";
+            AlgorithmMap["RIPEMD160WITHRSAANDMGF1"] = "RIPEMD160withRSAandMGF1";
+            AlgorithmMap["RIPEMD256WITHRSAANDMGF1"] = "RIPEMD256withRSAandMGF1";
 
             AlgorithmMap["NONEWITHRSA"] = "RSA";
             AlgorithmMap["RSAWITHNONE"] = "RSA";
@@ -489,10 +498,6 @@ namespace Org.BouncyCastle.Security
             Oids["SHA-512withRSA"] = PkcsObjectIdentifiers.Sha512WithRsaEncryption;
             Oids["SHA-512(224)withRSA"] = PkcsObjectIdentifiers.Sha512_224WithRSAEncryption;
             Oids["SHA-512(256)withRSA"] = PkcsObjectIdentifiers.Sha512_256WithRSAEncryption;
-            Oids["SHA3-224withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224;
-            Oids["SHA3-256withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256;
-            Oids["SHA3-384withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384;
-            Oids["SHA3-512withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512;
 
             Oids["PSSwithRSA"] = PkcsObjectIdentifiers.IdRsassaPss;
             Oids["SHA-1withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
@@ -501,9 +506,23 @@ namespace Org.BouncyCastle.Security
             Oids["SHA-384withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
             Oids["SHA-512withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
 
+            Oids["SHA3-224withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_224;
+            Oids["SHA3-256withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_256;
+            Oids["SHA3-384withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_384;
+            Oids["SHA3-512withRSA"] = NistObjectIdentifiers.IdRsassaPkcs1V15WithSha3_512;
+
+            Oids["SHA3-224withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            Oids["SHA3-256withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            Oids["SHA3-384withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            Oids["SHA3-512withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+
             Oids["RIPEMD128withRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD128;
             Oids["RIPEMD160withRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD160;
             Oids["RIPEMD256withRSA"] = TeleTrusTObjectIdentifiers.RsaSignatureWithRipeMD256;
+
+            Oids["RIPEMD128withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            Oids["RIPEMD160withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
+            Oids["RIPEMD256withRSAandMGF1"] = PkcsObjectIdentifiers.IdRsassaPss;
 
             Oids["SHA-1withDSA"] = X9ObjectIdentifiers.IdDsaWithSha1;
             Oids["SHA-224withDSA"] = NistObjectIdentifiers.DsaWithSha224;
