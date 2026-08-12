@@ -1,12 +1,13 @@
-using System;
-
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal class FalconRng
     {
+        private static readonly uint[] CW = { 0x61707865, 0x3320646e, 0x79622d32, 0x6b206574 };
+
         private readonly byte[] bd;
         private readonly byte[] sd;
         private int ptr;
@@ -49,140 +50,159 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         internal void Init(ShakeDigest src)
         {
             src.Output(sd, 0, 56);
-            Refill();
+            this.ptr = this.bd.Length;
         }
 
         /*
         * PRNG based on ChaCha20.
         *
-        * State consists in key (32 bytes) then IV (16 bytes) and block counter
-        * (8 bytes). Normally, we should not care about local endianness (this
-        * is for a PRNG), but for the NIST competition we need reproducible KAT
-        * vectors that work across architectures, so we enforce little-endian
-        * interpretation where applicable. Moreover, output words are "spread
-        * out" over the output buffer with the interleaving pattern that is
-        * naturally obtained from the AVX2 implementation that runs eight
-        * ChaCha20 instances in parallel.
+        * State consists in key (32 bytes) then IV (16 bytes) and block counter (8 bytes). Normally, we should not care
+        * about local endianness (this is for a PRNG), but for the NIST competition we need reproducible KAT vectors
+        * that work across architectures, so we enforce little-endian interpretation where applicable. Moreover, output
+        * words are "spread out" over the output buffer with the interleaving pattern that is naturally obtained from
+        * the AVX2 implementation that runs eight ChaCha20 instances in parallel.
         *
         * The block counter is XORed into the first 8 bytes of the IV.
         */
-        private static void QuarterRound(uint[] state, int a, int b, int c, int d)
-        {
-            state[a] += state[b];
-            state[d] ^= state[a];
-            state[d] = (state[d] << 16) | (state[d] >> 16);
-            state[c] += state[d];
-            state[b] ^= state[c];
-            state[b] = (state[b] << 12) | (state[b] >> 20);
-            state[a] += state[b];
-            state[d] ^= state[a];
-            state[d] = (state[d] <<  8) | (state[d] >> 24);
-            state[c] += state[d];
-            state[b] ^= state[c];
-            state[b] = (state[b] <<  7) | (state[b] >> 25);
-        }
 
         private void Refill()
         {
-            uint[] CW = { 0x61707865, 0x3320646e, 0x79622d32, 0x6b206574 };
-
-            // State uses local endianness. Only the output bytes might need endian conversion.
             ulong cc = Pack.LE_To_UInt64(this.sd, 48);
-            uint[] state = new uint[16];
 
             for (int u = 0; u < 8; ++u)
             {
-                Array.Copy(CW, 0, state, 0, 4);
-                Pack.LE_To_UInt32(this.sd, 0, state, 4, 12);
-                state[14] ^= (uint)cc;
-                state[15] ^= (uint)(cc >> 32);
+                uint x00 = CW[0];
+                uint x01 = CW[1];
+                uint x02 = CW[2];
+                uint x03 = CW[3];
+                uint x04 = Pack.LE_To_UInt32(sd,  0);
+                uint x05 = Pack.LE_To_UInt32(sd,  4);
+                uint x06 = Pack.LE_To_UInt32(sd,  8);
+                uint x07 = Pack.LE_To_UInt32(sd, 12);
+                uint x08 = Pack.LE_To_UInt32(sd, 16);
+                uint x09 = Pack.LE_To_UInt32(sd, 20);
+                uint x10 = Pack.LE_To_UInt32(sd, 24);
+                uint x11 = Pack.LE_To_UInt32(sd, 28);
+                uint x12 = Pack.LE_To_UInt32(sd, 32);
+                uint x13 = Pack.LE_To_UInt32(sd, 36);
+                uint x14 = Pack.LE_To_UInt32(sd, 40) ^ (uint)cc;
+                uint x15 = Pack.LE_To_UInt32(sd, 44) ^ (uint)(cc >> 32);
 
-                for (int i = 0; i < 10; ++i)
+                for (int i = 20; i > 0; i -= 2)
                 {
-                    QuarterRound(state, 0,  4,  8, 12);
-                    QuarterRound(state, 1,  5,  9, 13);
-                    QuarterRound(state, 2,  6, 10, 14);
-                    QuarterRound(state, 3,  7, 11, 15);
-                    QuarterRound(state, 0,  5, 10, 15);
-                    QuarterRound(state, 1,  6, 11, 12);
-                    QuarterRound(state, 2,  7,  8, 13);
-                    QuarterRound(state, 3,  4,  9, 14);
+                    x00 += x04; x12 = Integers.RotateLeft(x12 ^ x00, 16);
+                    x01 += x05; x13 = Integers.RotateLeft(x13 ^ x01, 16);
+                    x02 += x06; x14 = Integers.RotateLeft(x14 ^ x02, 16);
+                    x03 += x07; x15 = Integers.RotateLeft(x15 ^ x03, 16);
+
+                    x08 += x12; x04 = Integers.RotateLeft(x04 ^ x08, 12);
+                    x09 += x13; x05 = Integers.RotateLeft(x05 ^ x09, 12);
+                    x10 += x14; x06 = Integers.RotateLeft(x06 ^ x10, 12);
+                    x11 += x15; x07 = Integers.RotateLeft(x07 ^ x11, 12);
+
+                    x00 += x04; x12 = Integers.RotateLeft(x12 ^ x00,  8);
+                    x01 += x05; x13 = Integers.RotateLeft(x13 ^ x01,  8);
+                    x02 += x06; x14 = Integers.RotateLeft(x14 ^ x02,  8);
+                    x03 += x07; x15 = Integers.RotateLeft(x15 ^ x03,  8);
+
+                    x08 += x12; x04 = Integers.RotateLeft(x04 ^ x08,  7);
+                    x09 += x13; x05 = Integers.RotateLeft(x05 ^ x09,  7);
+                    x10 += x14; x06 = Integers.RotateLeft(x06 ^ x10,  7);
+                    x11 += x15; x07 = Integers.RotateLeft(x07 ^ x11,  7);
+
+                    x00 += x05; x15 = Integers.RotateLeft(x15 ^ x00, 16);
+                    x01 += x06; x12 = Integers.RotateLeft(x12 ^ x01, 16);
+                    x02 += x07; x13 = Integers.RotateLeft(x13 ^ x02, 16);
+                    x03 += x04; x14 = Integers.RotateLeft(x14 ^ x03, 16);
+
+                    x10 += x15; x05 = Integers.RotateLeft(x05 ^ x10, 12);
+                    x11 += x12; x06 = Integers.RotateLeft(x06 ^ x11, 12);
+                    x08 += x13; x07 = Integers.RotateLeft(x07 ^ x08, 12);
+                    x09 += x14; x04 = Integers.RotateLeft(x04 ^ x09, 12);
+
+                    x00 += x05; x15 = Integers.RotateLeft(x15 ^ x00,  8);
+                    x01 += x06; x12 = Integers.RotateLeft(x12 ^ x01,  8);
+                    x02 += x07; x13 = Integers.RotateLeft(x13 ^ x02,  8);
+                    x03 += x04; x14 = Integers.RotateLeft(x14 ^ x03,  8);
+
+                    x10 += x15; x05 = Integers.RotateLeft(x05 ^ x10,  7);
+                    x11 += x12; x06 = Integers.RotateLeft(x06 ^ x11,  7);
+                    x08 += x13; x07 = Integers.RotateLeft(x07 ^ x08,  7);
+                    x09 += x14; x04 = Integers.RotateLeft(x04 ^ x09,  7);
                 }
 
-                int v;
-                for (v = 0; v < 4; v++)
-                {
-                    state[v] += CW[v];
-                }
-                for (v = 4; v < 14; v++)
-                {
-                    // we multiply the -4 by 4 to account for 4 bytes per int
-                    state[v] += Pack.LE_To_UInt32(sd, (4 * v) - 16);
-                }
+                x00 += CW[0];
+                x01 += CW[1];
+                x02 += CW[2];
+                x03 += CW[3];
+                x04 += Pack.LE_To_UInt32(sd,  0);
+                x05 += Pack.LE_To_UInt32(sd,  4);
+                x06 += Pack.LE_To_UInt32(sd,  8);
+                x07 += Pack.LE_To_UInt32(sd, 12);
+                x08 += Pack.LE_To_UInt32(sd, 16);
+                x09 += Pack.LE_To_UInt32(sd, 20);
+                x10 += Pack.LE_To_UInt32(sd, 24);
+                x11 += Pack.LE_To_UInt32(sd, 28);
+                x12 += Pack.LE_To_UInt32(sd, 32);
+                x13 += Pack.LE_To_UInt32(sd, 36);
+                x14 += Pack.LE_To_UInt32(sd, 40) ^ (uint)cc;
+                x15 += Pack.LE_To_UInt32(sd, 44) ^ (uint)(cc >> 32);
 
-                state[14] += Pack.LE_To_UInt32(sd, 40) ^ (uint)cc;
-                state[15] += Pack.LE_To_UInt32(sd, 44) ^ (uint)(cc >> 32);
                 ++cc;
 
-                // Mimic the interleaving that is used in the AVX2 implementation.
-                for (v = 0; v < 16; ++v)
-                {
-                    Pack.UInt32_To_LE(state[v], bd, (u << 2) + (v << 5));
-                }
+                Pack.UInt32_To_LE(x00, bd, (u << 2) + ( 0 << 5));
+                Pack.UInt32_To_LE(x01, bd, (u << 2) + ( 1 << 5));
+                Pack.UInt32_To_LE(x02, bd, (u << 2) + ( 2 << 5));
+                Pack.UInt32_To_LE(x03, bd, (u << 2) + ( 3 << 5));
+                Pack.UInt32_To_LE(x04, bd, (u << 2) + ( 4 << 5));
+                Pack.UInt32_To_LE(x05, bd, (u << 2) + ( 5 << 5));
+                Pack.UInt32_To_LE(x06, bd, (u << 2) + ( 6 << 5));
+                Pack.UInt32_To_LE(x07, bd, (u << 2) + ( 7 << 5));
+                Pack.UInt32_To_LE(x08, bd, (u << 2) + ( 8 << 5));
+                Pack.UInt32_To_LE(x09, bd, (u << 2) + ( 9 << 5));
+                Pack.UInt32_To_LE(x10, bd, (u << 2) + (10 << 5));
+                Pack.UInt32_To_LE(x11, bd, (u << 2) + (11 << 5));
+                Pack.UInt32_To_LE(x12, bd, (u << 2) + (12 << 5));
+                Pack.UInt32_To_LE(x13, bd, (u << 2) + (13 << 5));
+                Pack.UInt32_To_LE(x14, bd, (u << 2) + (14 << 5));
+                Pack.UInt32_To_LE(x15, bd, (u << 2) + (15 << 5));
             }
 
             Pack.UInt64_To_LE(cc, sd, 48);
             this.ptr = 0;
         }
 
-        //internal void prng_get_bytes( byte[] dstsrc, int dst, int len)
-        //{
-        //    int buf = dst;
-        //    while (len > 0)
-        //    {
-        //        int clen = this.bd.Length - this.ptr;
-        //        if (clen > len)
-        //        {
-        //            clen = len;
-        //        }
-        //        // memcpy(buf, this.bd, clen);
-        //        Array.Copy(this.bd, 0, dstsrc, buf, clen);
-        //        buf += clen;
-        //        len -= clen;
-        //        this.ptr += clen;
-        //        if (this.ptr == this.bd.Length) {
-        //            this.prng_refill();
-        //        }
-        //    }
-        //}
-
-        /// <summary>Get a 64-bit random value from a PRNG.</summary>
-        internal ulong GetUInt64()
-        {
-            /*
-             * If there are less than 9 bytes in the buffer, we refill it. This means that we may drop the last few
-             * bytes, but this allows for faster extraction code. Also, it means that we never leave an empty buffer.
-             */
-            int u = this.ptr;
-            if (u >= (this.bd.Length) - 9)
-            {
-                Refill();
-                u = 0;
-            }
-            this.ptr = u + 8;
-
-            return Pack.LE_To_UInt64(this.bd, u);
-        }
-
         /// <summary>Get an 8-bit random value from a PRNG.</summary>
         internal byte GetByte()
         {
-            byte v = this.bd[this.ptr++];
-            if (this.ptr == this.bd.Length)
+            if (this.ptr > this.bd.Length - 1)
             {
                 Refill();
             }
-            return v;
+
+            return this.bd[this.ptr++];
+        }
+
+        internal void GetUInt24x3(out uint v0, out uint v1, out uint v2)
+        {
+            /*
+             * If there are less than 9 bytes in the buffer, we refill it. This means that we may drop the last few
+             * bytes, but this allows for faster extraction code.
+             */
+            if (this.ptr > this.bd.Length - 9)
+            {
+                Refill();
+            }
+
+            uint t0 = Pack.LE_To_UInt32(this.bd, this.ptr);
+            uint t1 = Pack.LE_To_UInt32(this.bd, this.ptr + 4);
+            uint t2 = this.bd[this.ptr + 8];
+
+            v0 = t0 & 0xFFFFFFU;
+            v1 = (t0 >> 24 | t1 << 8) & 0xFFFFFFU;
+            v2 = t1 >> 16 | t2 << 16;
+
+            this.ptr += 9;
         }
     }
 }

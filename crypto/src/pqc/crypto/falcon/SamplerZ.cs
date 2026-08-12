@@ -2,40 +2,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal static class SamplerZ
     {
+        private static readonly uint[] dist = {
+            10745844U,  3068844U,  3741698U,
+             5559083U,  1580863U,  8248194U,
+             2260429U, 13669192U,  2736639U,
+              708981U,  4421575U, 10046180U,
+              169348U,  7122675U,  4136815U,
+               30538U, 13063405U,  7650655U,
+                4132U, 14505003U,  7826148U,
+                 417U, 16768101U, 11363290U,
+                  31U,  8444042U,  8086568U,
+                   1U, 12844466U,   265321U,
+                   0U,  1232676U, 13644283U,
+                   0U,    38047U,  9111839U,
+                   0U,      870U,  6138264U,
+                   0U,       14U, 12545723U,
+                   0U,        0U,  3104126U,
+                   0U,        0U,    28824U,
+                   0U,        0U,      198U,
+                   0U,        0U,        1U,
+        };
+
         /// <summary>
         /// Sample an integer value along a half-gaussian distribution centered on zero and standard deviation 1.8205,
         /// with a precision of 72 bits.
         /// </summary>
         private static int Gaussian0Sampler(FalconRng p)
         {
-            uint[] dist = {
-                10745844u,  3068844u,  3741698u,
-                5559083u,  1580863u,  8248194u,
-                2260429u, 13669192u,  2736639u,
-                708981u,  4421575u, 10046180u,
-                169348u,  7122675u,  4136815u,
-                30538u, 13063405u,  7650655u,
-                    4132u, 14505003u,  7826148u,
-                    417u, 16768101u, 11363290u,
-                    31u,  8444042u,  8086568u,
-                    1u, 12844466u,   265321u,
-                    0u,  1232676u, 13644283u,
-                    0u,    38047u,  9111839u,
-                    0u,      870u,  6138264u,
-                    0u,       14u, 12545723u,
-                    0u,        0u,  3104126u,
-                    0u,        0u,    28824u,
-                    0u,        0u,      198u,
-                    0u,        0u,        1u
-            };
-
             // Get a random 72-bit value, into three 24-bit limbs v0..v2.
-
-            ulong lo = p.GetUInt64();
-            uint hi = p.GetByte();
-            uint v0 = (uint)lo & 0xFFFFFF;
-            uint v1 = (uint)(lo >> 24) & 0xFFFFFF;
-            uint v2 = (uint)(lo >> 48) | (hi << 16);
+            p.GetUInt24x3(out var v0, out var v1, out var v2);
 
             // Sampled value is z, such that v0..v2 is lower than the first z elements of the table.
 
@@ -130,7 +125,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                  *  - b = 0: z <= 0 and sampled against a Gaussian centered on 0.
                  */
                 int z0 = Gaussian0Sampler(spc.p);
-                int b = (int)spc.p.GetByte() & 1;
+                int b = spc.p.GetByte() & 1;
                 int z = b + ((b << 1) - 1) * z0;
 
                 /*
