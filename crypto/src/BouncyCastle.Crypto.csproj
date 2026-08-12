@@ -30,7 +30,7 @@
 
   <!-- CI systems other than GitLab might need different conditions -->
   <PropertyGroup Condition="'$(CI)' != ''">
-    <!-- Deterministic build. -->
+    <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
@@ -78,7 +78,7 @@
   <PropertyGroup Condition="'$(Configuration)'=='Publish'">
     <DefineConstants />
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Deterministic build. -->
+    <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <Optimize>True</Optimize>
   </PropertyGroup>
