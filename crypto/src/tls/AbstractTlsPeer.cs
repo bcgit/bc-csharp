@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Tls
 
         protected AbstractTlsPeer(TlsCrypto crypto)
         {
-            this.m_crypto = crypto;
+            m_crypto = crypto;
         }
 
         /// <summary>Get the <see cref="ProtocolVersion"/> values that are supported by this peer.</summary>
@@ -24,31 +24,19 @@ namespace Org.BouncyCastle.Tls
         /// (sub-)class for each case.
         /// </remarks>
         /// <returns>an array of supported <see cref="ProtocolVersion"/> values.</returns>
-        protected virtual ProtocolVersion[] GetSupportedVersions()
-        {
-            return ProtocolVersion.TLSv13.DownTo(ProtocolVersion.TLSv12);
-        }
+        protected virtual ProtocolVersion[] GetSupportedVersions() =>
+            ProtocolVersion.TLSv13.DownTo(ProtocolVersion.TLSv12);
 
         protected abstract int[] GetSupportedCipherSuites();
 
         /// <exception cref="IOException"/>
-        public virtual void Cancel()
-        {
-            TlsCloseable closeHandle = this.m_closeHandle;
-            if (null != closeHandle)
-            {
-                closeHandle.Close();
-            }
-        }
+        public virtual void Cancel() => m_closeHandle?.Close();
 
-        public virtual TlsCrypto Crypto
-        {
-            get { return m_crypto; }
-        }
+        public virtual TlsCrypto Crypto => m_crypto;
 
         public virtual void NotifyCloseHandle(TlsCloseable closeHandle)
         {
-            this.m_closeHandle = closeHandle;
+            m_closeHandle = closeHandle;
         }
 
         public abstract ProtocolVersion[] GetProtocolVersions();
@@ -60,71 +48,34 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
-        public virtual int GetHandshakeTimeoutMillis()
-        {
-            return 0;
-        }
+        public virtual int GetHandshakeTimeoutMillis() => 0;
 
-        public virtual int GetHandshakeResendTimeMillis()
-        {
-            return 1000;
-        }
+        public virtual int GetHandshakeResendTimeMillis() => 1000;
 
-        public virtual bool AllowLegacyResumption()
-        {
-            return false;
-        }
+        public virtual bool AllowLegacyResumption() => false;
 
-        public virtual int GetMaxCertificateChainLength()
-        {
-            return 10;
-        }
+        public virtual int GetMaxCertificateChainLength() => 10;
 
-        public virtual int GetMaxHandshakeMessageSize()
-        {
-            return 32768;
-        }
+        public virtual int GetMaxHandshakeMessageSize() => 32768;
 
-        public virtual short[] GetPskKeyExchangeModes()
-        {
-            return new short[]{ PskKeyExchangeMode.psk_dhe_ke };
-        }
+        public virtual short[] GetPskKeyExchangeModes() => new short[]{ PskKeyExchangeMode.psk_dhe_ke };
 
-        public virtual bool RequiresCloseNotify()
-        {
-            return true;
-        }
+        public virtual bool RequiresCloseNotify() => true;
 
-        public virtual bool RequiresExtendedMasterSecret()
-        {
-            return false;
-        }
+        public virtual bool RequiresExtendedMasterSecret() => false;
 
-        public virtual bool ShouldCheckSigAlgOfPeerCerts()
-        {
-            return true;
-        }
+        public virtual bool ShouldCheckSigAlgOfPeerCerts() => true;
 
-        public virtual bool ShouldUseExtendedMasterSecret()
-        {
-            return true;
-        }
+        public virtual bool ShouldUseExtendedMasterSecret() => true;
 
-        public virtual bool ShouldUseExtendedPadding()
-        {
-            return false;
-        }
+        public virtual bool ShouldUseExtendedPadding() => false;
 
-        public virtual bool ShouldUseGmtUnixTime()
-        {
-            /*
-             * draft-mathewson-no-gmtunixtime-00 2. For the reasons we discuss above, we recommend that
-             * TLS implementors MUST by default set the entire value the ClientHello.Random and
-             * ServerHello.Random fields, including gmt_unix_time, to a cryptographically random
-             * sequence.
-             */
-            return false;
-        }
+        /*
+         * draft-mathewson-no-gmtunixtime-00 2. For the reasons we discuss above, we recommend that TLS implementors
+         * MUST by default set the entire value the ClientHello.Random and ServerHello.Random fields, including
+         * gmt_unix_time, to a cryptographically random sequence.
+         */
+        public virtual bool ShouldUseGmtUnixTime() => false;
 
         /// <exception cref="IOException"/>
         public virtual void NotifySecureRenegotiation(bool secureRenegotiation)
@@ -134,13 +85,9 @@ namespace Org.BouncyCastle.Tls
         }
 
         /// <exception cref="IOException"/>
-        public virtual TlsKeyExchangeFactory GetKeyExchangeFactory()
-        {
-            return new DefaultTlsKeyExchangeFactory();
-        }
+        public virtual TlsKeyExchangeFactory GetKeyExchangeFactory() => new DefaultTlsKeyExchangeFactory();
 
-        public virtual void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
-            Exception cause)
+        public virtual void NotifyAlertRaised(short alertLevel, short alertDescription, string message, Exception cause)
         {
         }
 
@@ -157,15 +104,9 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
-        public virtual TlsHeartbeat GetHeartbeat()
-        {
-            return null;
-        }
+        public virtual TlsHeartbeat GetHeartbeat() => null;
 
-        public virtual short GetHeartbeatPolicy()
-        {
-            return HeartbeatMode.peer_not_allowed_to_send;
-        }
+        public virtual short GetHeartbeatPolicy() => HeartbeatMode.peer_not_allowed_to_send;
 
         public virtual bool IgnoreCorruptDtlsRecords => false;
     }
