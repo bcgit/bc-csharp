@@ -3,9 +3,9 @@
     internal class SamplerCtx
     {
         internal readonly FalconRng p = new FalconRng();
-        internal readonly FalconFPR sigma_min;
+        internal readonly FalconFpr sigma_min;
 
-        internal SamplerCtx(FalconFPR sigma_min)
+        internal SamplerCtx(FalconFpr sigma_min)
         {
             this.sigma_min = sigma_min;
         }

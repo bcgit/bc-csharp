@@ -1,8 +1,10 @@
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    internal class SHAKE256
+    internal class Shake256
     {
-        /* 
+        /*
         * License from the reference C code (the code was copied then modified
         * to function in C#):
         * ==========================(LICENSE BEGIN)============================
@@ -30,12 +32,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * ===========================(LICENSE END)=============================
         */
-        
+
         ulong[] A;
         byte[] dubf;
         ulong dptr;
 
-        ulong[] RC = {
+        private static readonly ulong[] RC = {
             0x0000000000000001, 0x0000000000008082,
             0x800000000000808A, 0x8000000080008000,
             0x000000000000808B, 0x0000000080000001,
@@ -50,7 +52,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             0x0000000080000001, 0x8000000080008008
         };
 
-        void process_block(ulong[] A) {
+        internal void ProcessBlock(ulong[] A)
+        {
             ulong t0, t1, t2, t3, t4;
             ulong tt0, tt1, tt2, tt3;
             ulong t, kt;
@@ -72,8 +75,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             * Compute the 24 rounds. This loop is partially unrolled (each
             * iteration computes two rounds).
             */
-            for (j = 0; j < 24; j += 2) {
-
+            for (j = 0; j < 24; j += 2)
+            {
                 tt0 = A[ 1] ^ A[ 6];
                 tt1 = A[11] ^ A[16];
                 tt0 ^= A[21] ^ tt1;
@@ -465,35 +468,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 A[ 7] = t;
             }
 
-                /*
-                * Invert some words back to normal representation.
-                */
-                A[ 1] = ~A[ 1];
-                A[ 2] = ~A[ 2];
-                A[ 8] = ~A[ 8];
-                A[12] = ~A[12];
-                A[17] = ~A[17];
-                A[20] = ~A[20];
+            /*
+            * Invert some words back to normal representation.
+            */
+            A[ 1] = ~A[ 1];
+            A[ 2] = ~A[ 2];
+            A[ 8] = ~A[ 8];
+            A[12] = ~A[12];
+            A[17] = ~A[17];
+            A[20] = ~A[20];
         }
-        
-        internal void i_shake256_init()
+
+        internal void Init()
         {
             this.dptr = 0;
-
-            /*
-            * Representation of an all-ones uint64_t is the same regardless
-            * of local endianness.
-            */
-            // memset(this.A, 0, sizeof this.A);
             this.A = new ulong[25];
             this.dubf = new byte[200];
 
-            for (int i = 0; i < this.A.Length; i++) {
-                this.A[i] = 0;
-            }
+            //Arrays.Fill(A, 0x00);
         }
 
-        internal void i_shake256_inject(byte[] insrc, int inarray, int len)
+        internal void Absorb(byte[] insrc, int inarray, int len)
         {
             ulong dptr = this.dptr;
             while (len > 0)
@@ -513,52 +508,49 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 len -= clen;
                 if (dptr == 136)
                 {
-                    process_block(this.A);
+                    ProcessBlock(this.A);
                     dptr = 0;
                 }
             }
             this.dptr = dptr;
         }
 
-        internal void i_shake256_flip()
+        internal void Flip()
         {
             /*
-            * We apply padding and pre-XOR the value into the state. We
-            * set dptr to the end of the buffer, so that first call to
-            * shake_extract() will process the block.
+            * We apply padding and pre-XOR the value into the state. We set dptr to the end of the buffer, so that
+            * first call to shake_extract() will process the block.
             */
-            uint v;
 
-            v = (uint)this.dptr;
+            uint v = (uint)this.dptr;
             this.A[v >> 3] ^= (ulong)0x1F << (int)((v & 7) << 3);
             this.A[16] ^= (ulong)0x80 << 56;
             this.dptr = 136;
         }
 
-        internal void i_shake256_extract(byte[] outsrc, int outarray, int len)
+        internal void Squeeze(byte[] outsrc, int outarray, int len)
         {
-            ulong dptr;
-
-            dptr = this.dptr;
-            while (len > 0) {
-                int clen;
-
-                if (dptr == 136) {
-                    process_block(this.A);
+            ulong dptr = this.dptr;
+            while (len > 0)
+            {
+                if (dptr == 136)
+                {
+                    ProcessBlock(this.A);
                     dptr = 0;
                 }
-                clen = 136 - (int)dptr;
-                if (clen > len) {
+                int clen = 136 - (int)dptr;
+                if (clen > len)
+                {
                     clen = len;
                 }
                 len -= clen;
-                while (clen -- > 0) {
-                    outsrc[outarray ++] = (byte)(this.A[dptr >> 3] >> (int)((dptr & 7) << 3));
-                    dptr ++;
+                while (clen-- > 0)
+                {
+                    outsrc[outarray++] = (byte)(this.A[dptr >> 3] >> (int)((dptr & 7) << 3));
+                    ++dptr;
                 }
             }
             this.dptr = dptr;
         }
-        
     }
 }

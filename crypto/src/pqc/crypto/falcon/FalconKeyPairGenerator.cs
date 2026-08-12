@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            m_nist.crypto_sign_keypair(out byte[] pk, out byte[] f, out byte[] g, out byte[] F);
+            m_nist.CryptoSignKeyPair(out byte[] pk, out byte[] f, out byte[] g, out byte[] F);
             var falconParameters = m_parameters.Parameters;
             FalconPrivateKeyParameters privk = new FalconPrivateKeyParameters(falconParameters, f, g, F, pk);
             FalconPublicKeyParameters pubk = new FalconPublicKeyParameters(falconParameters, pk);

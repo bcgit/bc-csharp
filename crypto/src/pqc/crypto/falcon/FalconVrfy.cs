@@ -1,8 +1,10 @@
+using Org.BouncyCastle.Math.Raw;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal static class FalconVrfy
     {
-        /* 
+        /*
         * License from the reference C code (the code was copied then modified
         * to function in C#):
         * ==========================(LICENSE BEGIN)============================
@@ -31,29 +33,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * ===========================(LICENSE END)=============================
         */
         /* ===================================================================== */
-        /*
-        * Constants for NTT.
-        *
-        *   n = 2^logn  (2 <= n <= 1024)
-        *   phi = X^n + 1
-        *   q = 12289
-        *   q0i = -1/q mod 2^16
-        *   R = 2^16 mod q
-        *   R2 = 2^32 mod q
-        */
-
-        internal const int Q = 12289;
-        internal const int Q0I = 12287;
-        internal const int R = 4091;
-        internal const int R2 = 10952;
 
         /*
-        * Table for NTT, binary case:
-        *   GMb[x] = R*(g^rev(x)) mod q
-        * where g = 7 (it is a 2048-th primitive root of 1 modulo q)
-        * and rev() is the bit-reversal function over 10 bits.
-        */
-        internal static readonly ushort[] GMb = {
+         * Constants for NTT.
+         *
+         *   n = 2^logn  (2 <= n <= 1024)
+         *   phi = X^n + 1
+         *   q = 12289
+         *   q0i = -1/q mod 2^16
+         *   R = 2^16 mod q
+         *   R2 = 2^32 mod q
+         */
+        private const int Q = 12289;
+        private const int Q0I = 12287;
+        private const int R = 4091;
+        private const int R2 = 10952;
+
+        /*
+         * Table for NTT, binary case:
+         *   GMb[x] = R*(g^rev(x)) mod q
+         * where g = 7 (it is a 2048-th primitive root of 1 modulo q)
+         * and rev() is the bit-reversal function over 10 bits.
+         */
+        private static readonly ushort[] GMb = {
             4091,  7888, 11060, 11208,  6960,  4342,  6275,  9759,
             1591,  6399,  9477,  5266,   586,  5825,  7538,  9710,
             1134,  6407,  1711,   965,  7099,  7674,  3743,  6442,
@@ -185,11 +187,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         };
 
         /*
-        * Table for inverse NTT, binary case:
-        *   iGMb[x] = R*((1/g)^rev(x)) mod q
-        * Since g = 7, 1/g = 8778 mod 12289.
-        */
-        internal static readonly ushort[] iGMb = {
+         * Table for inverse NTT, binary case:
+         *   iGMb[x] = R*((1/g)^rev(x)) mod q
+         * Since g = 7, 1/g = 8778 mod 12289.
+         */
+        private static readonly ushort[] InvGMb = {
             4091,  4401,  1081,  1229,  2530,  6014,  7947,  5329,
             2579,  4751,  6464, 11703,  7023,  2812,  5890, 10698,
             3109,  2125,  1960, 10925, 10601, 10404,  4189,  1875,
@@ -320,168 +322,123 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             5421,  5231,  6473,   436,  7567,  8603,  6229,  8230
         };
 
-        /*
-        * Reduce a small signed integer modulo q. The source integer MUST
-        * be between -q/2 and +q/2.
-        */
-        internal static uint mq_conv_small(int x)
+        /// <summary>Reduce a small signed integer modulo q. The source integer MUST be between -q/2 and +q/2.</summary>
+        private static uint MQConvSmall(int x) => (uint)(x + (Q & (x >> 31)));
+
+        /// <summary>Addition modulo q. Operands must be in the 0..q-1 range.</summary>
+        private static uint MQAdd(uint x, uint y)
         {
-            /*
-            * If x < 0, the cast to uint will set the high bit to 1.
-            */
-            uint y = (uint)x;
-            y += (uint)(Q & -(y >> 31));
-            return y;
+            int d = (int)(x + y - Q);
+            d += Q & (d >> 31);
+            return (uint)d;
         }
 
-        /*
-        * Addition modulo q. Operands must be in the 0..q-1 range.
-        */
-        internal static uint mq_add(uint x, uint y)
+        /// <summary>Subtraction modulo q. Operands must be in the 0..q-1 range.</summary>
+        private static uint MQSub(uint x, uint y)
         {
-            /*
-            * We compute x + y - q. If the result is negative, then the
-            * high bit will be set, and 'd >> 31' will be equal to 1;
-            * thus '-(d >> 31)' will be an all-one pattern. Otherwise,
-            * it will be an all-zero pattern. In other words, this
-            * implements a conditional addition of q.
-            */
-            uint d = x + y - Q;
-            d += (uint)(Q & -(d >> 31));
-            return d;
+            int d = (int)(x - y);
+            d += Q & (d >> 31);
+            return (uint)d;
         }
 
-        /*
-        * Subtraction modulo q. Operands must be in the 0..q-1 range.
-        */
-        internal static uint mq_sub(uint x, uint y)
-        {
-            /*
-            * As in mq_add(), we use a conditional addition to ensure the
-            * result is in the 0..q-1 range.
-            */
-            uint d = x - y;
-            d += (uint)(Q & -(d >> 31));
-            return d;
-        }
-
-        /*
-        * Division by 2 modulo q. Operand must be in the 0..q-1 range.
-        */
-        internal static uint mq_rshift1(uint x)
+        /// <summary>Division by 2 modulo q. Operand must be in the 0..q-1 range.</summary>
+        private static uint MQRShift1(uint x)
         {
             x += (uint)(Q & -(x & 1));
-            return (x >> 1);
+            return x >> 1;
         }
 
-        /*
-        * Montgomery multiplication modulo q. If we set R = 2^16 mod q, then
-        * this function computes: x * y / R mod q
-        * Operands must be in the 0..q-1 range.
-        */
-        internal static uint mq_montymul(uint x, uint y)
+        /// <summary>Montgomery multiplication modulo q.</summary>
+        /// <remarks>
+        /// If we set R = 2 ^ 16 mod q, then this function computes: x* y / R mod q.
+        /// Operands must be in the 0..q-1 range.
+        /// </remarks>
+        private static uint MQMontyMul(uint x, uint y)
         {
             /*
-            * We compute x*y + k*q with a value of k chosen so that the 16
-            * low bits of the result are 0. We can then shift the value.
-            * After the shift, result may still be larger than q, but it
-            * will be lower than 2*q, so a conditional subtraction works.
-            */
+             * We compute x*y + k*q with a value of k chosen so that the 16 low bits of the result are 0. We can then
+             * shift the value. After the shift, result may still be larger than q, but it will be lower than 2*q, so a
+             * conditional subtraction works.
+             */
             uint z = x * y;
             uint w = ((z * Q0I) & 0xFFFF) * Q;
 
             /*
-            * When adding z and w, the result will have its low 16 bits
-            * equal to 0. Since x, y and z are lower than q, the sum will
-            * be no more than (2^15 - 1) * q + (q - 1)^2, which will
-            * fit on 29 bits.
+            * When adding z and w, the result will have its low 16 bits equal to 0. Since x, y and z are lower than q,
+            * the sum will be no more than (2^15 - 1) * q + (q - 1)^2, which will fit on 29 bits.
             */
             z = (z + w) >> 16;
 
             /*
-            * After the shift, analysis shows that the value will be less
-            * than 2q. We do a subtraction then conditional subtraction to
-            * ensure the result is in the expected range.
+            * After the shift, analysis shows that the value will be less than 2q. We do a subtraction then conditional
+            * subtraction to ensure the result is in the expected range.
             */
             z -= Q;
             z += (uint)(Q & -(z >> 31));
             return z;
         }
 
-        /*
-        * Montgomery squaring (computes (x^2)/R).
-        */
-        internal static uint mq_montysqr(uint x) => mq_montymul(x, x);
+        /// <summary>Montgomery squaring (computes (x^2)/R).</summary>
+        private static uint MQMontySqr(uint x) => MQMontyMul(x, x);
 
-        /*
-        * Divide x by y modulo q = 12289.
-        */
-        internal static uint mq_div_12289(uint x, uint y)
+        /// <summary>Divide x by y modulo q = 12289.</summary>
+        private static uint MQDiv12289(uint x, uint y)
         {
             /*
-            * We invert y by computing y^(q-2) mod q.
-            *
-            * We use the following addition chain for exponent e = 12287:
-            *
-            *   e0 = 1
-            *   e1 = 2 * e0 = 2
-            *   e2 = e1 + e0 = 3
-            *   e3 = e2 + e1 = 5
-            *   e4 = 2 * e3 = 10
-            *   e5 = 2 * e4 = 20
-            *   e6 = 2 * e5 = 40
-            *   e7 = 2 * e6 = 80
-            *   e8 = 2 * e7 = 160
-            *   e9 = e8 + e2 = 163
-            *   e10 = e9 + e8 = 323
-            *   e11 = 2 * e10 = 646
-            *   e12 = 2 * e11 = 1292
-            *   e13 = e12 + e9 = 1455
-            *   e14 = 2 * e13 = 2910
-            *   e15 = 2 * e14 = 5820
-            *   e16 = e15 + e10 = 6143
-            *   e17 = 2 * e16 = 12286
-            *   e18 = e17 + e0 = 12287
-            *
-            * Additions on exponents are converted to Montgomery
-            * multiplications. We define all intermediate results as so
-            * many local variables, and let the C compiler work out which
-            * must be kept around.
-            */
-            uint y0, y1, y2, y3, y4, y5, y6, y7, y8, y9;
-            uint y10, y11, y12, y13, y14, y15, y16, y17, y18;
+             * We invert y by computing y^(q-2) mod q.
+             *
+             * We use the following addition chain for exponent e = 12287:
+             *
+             *   e0 = 1
+             *   e1 = 2 * e0 = 2
+             *   e2 = e1 + e0 = 3
+             *   e3 = e2 + e1 = 5
+             *   e4 = 2 * e3 = 10
+             *   e5 = 2 * e4 = 20
+             *   e6 = 2 * e5 = 40
+             *   e7 = 2 * e6 = 80
+             *   e8 = 2 * e7 = 160
+             *   e9 = e8 + e2 = 163
+             *   e10 = e9 + e8 = 323
+             *   e11 = 2 * e10 = 646
+             *   e12 = 2 * e11 = 1292
+             *   e13 = e12 + e9 = 1455
+             *   e14 = 2 * e13 = 2910
+             *   e15 = 2 * e14 = 5820
+             *   e16 = e15 + e10 = 6143
+             *   e17 = 2 * e16 = 12286
+             *   e18 = e17 + e0 = 12287
+             *
+             * Additions on exponents are converted to Montgomery multiplications. We define all intermediate results as
+             * so many local variables, and let the C compiler work out which must be kept around.
+             */
 
-            y0 = mq_montymul(y, R2);
-            y1 = mq_montysqr(y0);
-            y2 = mq_montymul(y1, y0);
-            y3 = mq_montymul(y2, y1);
-            y4 = mq_montysqr(y3);
-            y5 = mq_montysqr(y4);
-            y6 = mq_montysqr(y5);
-            y7 = mq_montysqr(y6);
-            y8 = mq_montysqr(y7);
-            y9 = mq_montymul(y8, y2);
-            y10 = mq_montymul(y9, y8);
-            y11 = mq_montysqr(y10);
-            y12 = mq_montysqr(y11);
-            y13 = mq_montymul(y12, y9);
-            y14 = mq_montysqr(y13);
-            y15 = mq_montysqr(y14);
-            y16 = mq_montymul(y15, y10);
-            y17 = mq_montysqr(y16);
-            y18 = mq_montymul(y17, y0);
+            uint y0 = MQMontyMul(y, R2);
+            uint y1 = MQMontySqr(y0);
+            uint y2 = MQMontyMul(y1, y0);
+            uint y3 = MQMontyMul(y2, y1);
+            uint y4 = MQMontySqr(y3);
+            uint y5 = MQMontySqr(y4);
+            uint y6 = MQMontySqr(y5);
+            uint y7 = MQMontySqr(y6);
+            uint y8 = MQMontySqr(y7);
+            uint y9 = MQMontyMul(y8, y2);
+            uint y10 = MQMontyMul(y9, y8);
+            uint y11 = MQMontySqr(y10);
+            uint y12 = MQMontySqr(y11);
+            uint y13 = MQMontyMul(y12, y9);
+            uint y14 = MQMontySqr(y13);
+            uint y15 = MQMontySqr(y14);
+            uint y16 = MQMontyMul(y15, y10);
+            uint y17 = MQMontySqr(y16);
+            uint y18 = MQMontyMul(y17, y0);
 
-            /*
-            * Final multiplication with x, which is not in Montgomery
-            * representation, computes the correct division result.
-            */
-            return mq_montymul(y18, x);
+            // Final multiplication with x (not in Montgomery representation) computes the correct division result.
+            return MQMontyMul(y18, x);
         }
 
-        /*
-        * Compute NTT on a ring element.
-        */
-        internal static void mq_NTT(ushort[] asrc, int a, int logN)
+        /// <summary>Compute NTT on a ring element.</summary>
+        private static void MQNtt(ushort[] asrc, int a, int logN)
         {
             int n = 1 << logN;
             int t = n;
@@ -495,19 +452,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     for (int j = j1; j < j2; ++j)
                     {
                         uint u = asrc[a + j];
-                        uint v = mq_montymul(asrc[a + j + ht], s);
-                        asrc[a + j] = (ushort)mq_add(u, v);
-                        asrc[a + j + ht] = (ushort)mq_sub(u, v);
+                        uint v = MQMontyMul(asrc[a + j + ht], s);
+                        asrc[a + j] = (ushort)MQAdd(u, v);
+                        asrc[a + j + ht] = (ushort)MQSub(u, v);
                     }
                 }
                 t = ht;
             }
         }
 
-        /*
-        * Compute the inverse NTT on a ring element, binary case.
-        */
-        internal static void mq_iNTT(ushort[] asrc, int a, int logN)
+        /// <summary>Compute the inverse NTT on a ring element, binary case.</summary>
+        private static void MQInvNtt(ushort[] asrc, int a, int logN)
         {
             int n = 1 << logN;
             int t = 1;
@@ -519,14 +474,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 for (int i = 0, j1 = 0; i < hm; ++i, j1 += dt)
                 {
                     int j2 = j1 + t;
-                    uint s = iGMb[hm + i];
+                    uint s = InvGMb[hm + i];
                     for (int j = j1; j < j2; ++j)
                     {
                         uint u = asrc[a + j];
                         uint v = asrc[a + j + t];
-                        asrc[a + j] = (ushort)mq_add(u, v);
-                        uint w = mq_sub(u, v);
-                        asrc[a + j + t] = (ushort)mq_montymul(w, s);
+                        asrc[a + j] = (ushort)MQAdd(u, v);
+                        uint w = MQSub(u, v);
+                        asrc[a + j + t] = (ushort)MQMontyMul(w, s);
                     }
                 }
                 t = dt;
@@ -534,79 +489,70 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
 
             /*
-            * To complete the inverse NTT, we must now divide all values by
-            * n (the vector size). We thus need the inverse of n, i.e. we
-            * need to divide 1 by 2 logn times. But we also want it in
-            * Montgomery representation, i.e. we also want to multiply it
-            * by R = 2^16. In the common case, this should be a simple right
-            * shift. The loop below is generic and works also in corner cases;
-            * its computation time is negligible.
-            */
+             * To complete the inverse NTT, we must now divide all values by n (the vector size). We thus need the
+             * inverse of n, i.e. we need to divide 1 by 2 logn times. But we also want it in Montgomery representation,
+             * i.e. we also want to multiply it by R = 2^16. In the common case, this should be a simple right shift.
+             * The loop below is generic and works also in corner cases; its computation time is negligible.
+             */
             uint ni = R;
             for (m = n; m > 1; m >>= 1)
             {
-                ni = mq_rshift1(ni);
+                ni = MQRShift1(ni);
             }
             for (m = 0; m < n; ++m)
             {
-                asrc[a + m] = (ushort)mq_montymul(asrc[a + m], ni);
+                asrc[a + m] = (ushort)MQMontyMul(asrc[a + m], ni);
             }
         }
 
-        /*
-        * Convert a polynomial (mod q) to Montgomery representation.
-        */
-        internal static void mq_poly_tomonty(ushort[] fsrc, int f, int logN)
+        /// <summary>Convert a polynomial (mod q) to Montgomery representation.</summary>
+        private static void MQPolyToMonty(ushort[] fsrc, int f, int logN)
         {
             int n = 1 << logN;
             for (int u = 0; u < n; ++u)
             {
-                fsrc[f + u] = (ushort)mq_montymul(fsrc[f + u], R2);
+                fsrc[f + u] = (ushort)MQMontyMul(fsrc[f + u], R2);
             }
         }
 
-        /*
-        * Multiply two polynomials together (NTT representation, and using
-        * a Montgomery multiplication). Result f*g is written over f.
-        */
-        internal static void mq_poly_montymul_ntt(ushort[] fsrc, int f, ushort[] gsrc, int g, int logN)
+        /// <summary>
+        /// Multiply two polynomials together (NTT representation, and using a Montgomery multiplication). Result f*g is
+        /// written over f.
+        /// </summary>
+        private static void MQPolyMontyMulNtt(ushort[] fsrc, int f, ushort[] gsrc, int g, int logN)
         {
             int n = 1 << logN;
             for (int u = 0; u < n; ++u)
             {
-                fsrc[f + u] = (ushort)mq_montymul(fsrc[f + u], gsrc[g + u]);
+                fsrc[f + u] = (ushort)MQMontyMul(fsrc[f + u], gsrc[g + u]);
             }
         }
 
-        /*
-        * Subtract polynomial g from polynomial f.
-        */
-        internal static void mq_poly_sub(ushort[] fsrc, int f, ushort[] gsrc, int g, int logN)
+        /// <summary>Subtract polynomial g from polynomial f.</summary>
+        private static void MQPolySub(ushort[] fsrc, int f, ushort[] gsrc, int g, int logN)
         {
             int n = 1 << logN;
             for (int u = 0; u < n; ++u)
             {
-                fsrc[f + u] = (ushort)mq_sub(fsrc[f + u], gsrc[g + u]);
+                fsrc[f + u] = (ushort)MQSub(fsrc[f + u], gsrc[g + u]);
             }
         }
 
         /* ===================================================================== */
 
-        internal static void to_ntt_monty(ushort[] hsrc, int h, int logN)
+        internal static void ToNttMonty(ushort[] hsrc, int h, int logN)
         {
-            mq_NTT(hsrc, h, logN);
-            mq_poly_tomonty(hsrc, h, logN);
+            MQNtt(hsrc, h, logN);
+            MQPolyToMonty(hsrc, h, logN);
         }
 
-        internal static bool verify_raw(ushort[] c0src, int c0, short[] s2src, int s2, ushort[] hsrc, int h, int logN,
+        internal static bool VerifyRaw(ushort[] c0src, int c0, short[] s2src, int s2, ushort[] hsrc, int h, int logN,
             ushort[] tmpsrc, int tmp)
         {
             int n = 1 << logN;
             int tt = tmp;
 
-            /*
-            * Reduce s2 elements modulo q ([0..q-1] range).
-            */
+            // Reduce s2 elements modulo q ([0..q-1] range).
             for (int u = 0; u < n; ++u)
             {
                 uint w = (uint)s2src[s2 + u];
@@ -614,17 +560,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 tmpsrc[tt + u] = (ushort)w;
             }
 
-            /*
-            * Compute -s1 = s2*h - c0 mod phi mod q (in tt[]).
-            */
-            mq_NTT(tmpsrc, tt, logN);
-            mq_poly_montymul_ntt(tmpsrc, tt, hsrc, h, logN);
-            mq_iNTT(tmpsrc, tt, logN);
-            mq_poly_sub(tmpsrc, tt, c0src, c0, logN);
+            // Compute -s1 = s2*h - c0 mod phi mod q (in tt[]).
+            MQNtt(tmpsrc, tt, logN);
+            MQPolyMontyMulNtt(tmpsrc, tt, hsrc, h, logN);
+            MQInvNtt(tmpsrc, tt, logN);
+            MQPolySub(tmpsrc, tt, c0src, c0, logN);
 
-            /*
-            * Normalize -s1 elements into the [-q/2..q/2] range.
-            */
+            // Normalize -s1 elements into the [-q/2..q/2] range.
             short[] shorttmp = new short[n];
             for (int u = 0; u < n; ++u)
             {
@@ -634,38 +576,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 shorttmp[u] = (short)tmpsrc[tt + u];
             }
 
-            /*
-            * Signature is valid if and only if the aggregate (-s1,s2) vector
-            * is short enough.
-            */
-            return FalconCommon.is_short(shorttmp, 0, s2src, s2, logN);
+            // Signature is valid if and only if the aggregate (-s1,s2) vector is short enough.
+            return FalconCommon.IsShort(shorttmp, 0, s2src, s2, logN);
         }
 
-        internal static int compute_public(ushort[] hsrc, int h, sbyte[] fsrc, int f, sbyte[] gsrc, int g, int logN,
+        internal static int ComputePublic(ushort[] hsrc, int h, sbyte[] fsrc, int f, sbyte[] gsrc, int g, int logN,
             ushort[] tmpsrc, int tmp)
         {
             int n = 1 << logN;
             int tt = tmp;
             for (int u = 0; u < n; ++u)
             {
-                tmpsrc[tt + u] = (ushort)mq_conv_small(fsrc[f + u]);
-                hsrc[h + u] = (ushort)mq_conv_small(gsrc[g + u]);
+                tmpsrc[tt + u] = (ushort)MQConvSmall(fsrc[f + u]);
+                hsrc[h + u] = (ushort)MQConvSmall(gsrc[g + u]);
             }
-            mq_NTT(hsrc, h, logN);
-            mq_NTT(tmpsrc, tt, logN);
+            MQNtt(hsrc, h, logN);
+            MQNtt(tmpsrc, tt, logN);
             for (int u = 0; u < n; ++u)
             {
                 if (tmpsrc[tt + u] == 0)
                     return 0;
 
-                hsrc[h + u] = (ushort)mq_div_12289(hsrc[h + u], tmpsrc[tt + u]);
+                hsrc[h + u] = (ushort)MQDiv12289(hsrc[h + u], tmpsrc[tt + u]);
             }
-            mq_iNTT(hsrc, h, logN);
+            MQInvNtt(hsrc, h, logN);
             return 1;
         }
 
-        internal static int complete_private(sbyte[] Gsrc, int G, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
-            sbyte[] Fsrc, int F, int logN, ushort[] tmpsrc, int tmp)
+        internal static int CompletePrivate(sbyte[] Gsrc, int G, sbyte[] fsrc, int f, sbyte[] gsrc, int g, sbyte[] Fsrc,
+            int F, int logN, ushort[] tmpsrc, int tmp)
         {
             int success = -1;
             int u;
@@ -674,25 +613,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             int t2 = t1 + n;
             for (u = 0; u < n; ++u)
             {
-                tmpsrc[t1 + u] = (ushort)mq_conv_small(gsrc[g + u]);
-                tmpsrc[t2 + u] = (ushort)mq_conv_small(Fsrc[F + u]);
+                tmpsrc[t1 + u] = (ushort)MQConvSmall(gsrc[g + u]);
+                tmpsrc[t2 + u] = (ushort)MQConvSmall(Fsrc[F + u]);
             }
-            mq_NTT(tmpsrc, t1, logN);
-            mq_NTT(tmpsrc, t2, logN);
-            mq_poly_tomonty(tmpsrc, t1, logN);
-            mq_poly_montymul_ntt(tmpsrc, t1, tmpsrc, t2, logN);
+            MQNtt(tmpsrc, t1, logN);
+            MQNtt(tmpsrc, t2, logN);
+            MQPolyToMonty(tmpsrc, t1, logN);
+            MQPolyMontyMulNtt(tmpsrc, t1, tmpsrc, t2, logN);
             for (u = 0; u < n; ++u)
             {
-                tmpsrc[t2 + u] = (ushort)mq_conv_small(fsrc[f + u]);
+                tmpsrc[t2 + u] = (ushort)MQConvSmall(fsrc[f + u]);
             }
-            mq_NTT(tmpsrc, t2, logN);
+            MQNtt(tmpsrc, t2, logN);
             for (u = 0; u < n; ++u)
             {
                 uint tmp2 = tmpsrc[t2 + u];
                 success &= -(int)tmp2; // check tmp2 != 0
-                tmpsrc[t1 + u] = (ushort)mq_div_12289(tmpsrc[t1 + u], tmp2);
+                tmpsrc[t1 + u] = (ushort)MQDiv12289(tmpsrc[t1 + u], tmp2);
             }
-            mq_iNTT(tmpsrc, t1, logN);
+            MQInvNtt(tmpsrc, t1, logN);
             for (u = 0; u < n; ++u)
             {
                 int w = tmpsrc[t1 + u];
@@ -761,7 +700,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //        r |= (uint)(tmpsrc[tt + u] - 1);
         //        hsrc[h + u] = (ushort)mq_div_12289(hsrc[h + u], tmpsrc[tt + u]);
         //    }
-        //    mq_iNTT(hsrc, h, logN);
+        //    MQInvNtt(hsrc, h, logN);
 
         //    /*
         //    * Signature is acceptable if and only if it is short enough,

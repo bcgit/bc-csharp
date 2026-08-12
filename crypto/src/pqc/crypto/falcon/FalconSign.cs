@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal static class FalconSign
     {
-        /* 
+        /*
         * License from the reference C code (the code was copied then modified
         * to function in C#):
         * ==========================(LICENSE BEGIN)============================
@@ -39,10 +39,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *   phi = X^N+1
         */
 
-        ///*
-        //* Get the size of the LDL tree for an input with polynomials of size
-        //* 2^logn. The size is expressed in the number of elements.
-        //*/
+        /*
+        * Get the size of the LDL tree for an input with polynomials of size
+        * 2^logn. The size is expressed in the number of elements.
+        */
         //internal static uint ffLDL_treesize(int logN)
         //{
         //    /*
@@ -57,13 +57,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //    return (logN + 1) << logN;
         //}
 
-        ///*
-        //* Inner function for ffLDL_fft(). It expects the matrix to be both
-        //* auto-adjoint and quasicyclic; also, it uses the source operands
-        //* as modifiable temporaries.
-        //*
-        //* tmp[] must have room for at least one polynomial.
-        //*/
+        /*
+        * Inner function for ffLDL_fft(). It expects the matrix to be both
+        * auto-adjoint and quasicyclic; also, it uses the source operands
+        * as modifiable temporaries.
+        *
+        * tmp[] must have room for at least one polynomial.
+        */
         //internal static void ffLDL_fft_inner(FalconFPR[] treesrc, int tree, FalconFPR[] g0src, int g0,
         //    FalconFPR[] g1src, int g1, int logN, FalconFPR[] tmpsrc, int tmp)
         //{
@@ -100,17 +100,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //        tmpsrc, tmp);
         //}
 
-        ///*
-        //* Compute the ffLDL tree of an auto-adjoint matrix G. The matrix
-        //* is provided as three polynomials (FFT representation).
-        //*
-        //* The "tree" array is filled with the computed tree, of size
-        //* (logn+1)*(2^logn) elements (see ffLDL_treesize()).
-        //*
-        //* Input arrays MUST NOT overlap, except possibly the three unmodified
-        //* arrays g00, g01 and g11. tmp[] should have room for at least three
-        //* polynomials of 2^logn elements each.
-        //*/
+        /*
+        * Compute the ffLDL tree of an auto-adjoint matrix G. The matrix
+        * is provided as three polynomials (FFT representation).
+        *
+        * The "tree" array is filled with the computed tree, of size
+        * (logn+1)*(2^logn) elements (see ffLDL_treesize()).
+        *
+        * Input arrays MUST NOT overlap, except possibly the three unmodified
+        * arrays g00, g01 and g11. tmp[] should have room for at least three
+        * polynomials of 2^logn elements each.
+        */
         //internal static void ffLDL_fft(FalconFPR[] treesrc, int tree, FalconFPR[] g00src, int g00, FalconFPR[] g01src,
         //    int g01, FalconFPR[] g11src, int g11, int logN, FalconFPR[] tmpsrc, int tmp)
         //{
@@ -136,10 +136,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //        tmpsrc, tmp);
         //}
 
-        ///*
-        //* Normalize an ffLDL tree: each leaf of value x is replaced with
-        //* sigma / sqrt(x).
-        //*/
+        /*
+        * Normalize an ffLDL tree: each leaf of value x is replaced with
+        * sigma / sqrt(x).
+        */
         //internal static void ffLDL_binary_normalize(FalconFPR[] treesrc, int tree, int origLogN, int logN)
         //{
         //    /*
@@ -166,24 +166,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
         /* =================================================================== */
 
-        /*
-        * Convert an integer polynomial (with small values) into the
-        * representation with complex numbers.
-        */
-        internal static void smallints_to_fpr(FalconFPR[] rsrc, int r, sbyte[] tsrc, int t, int logN)
+        /// <summary>
+        /// Convert an integer polynomial (with small values) into the representation with complex numbers.
+        /// </summary>
+        private static void SmallIntsToFpr(FalconFpr[] rsrc, int r, sbyte[] tsrc, int t, int logN)
         {
             int n = 1 << logN;
             for (int u = 0; u < n; ++u)
             {
-                rsrc[r + u] = FprEngine.fpr_of(tsrc[t + u]);
+                rsrc[r + u] = FprEngine.FprOf(tsrc[t + u]);
             }
         }
 
-        ///*
-        //* The expanded private key contains:
-        //*  - The B0 matrix (four elements)
-        //*  - The ffLDL tree
-        //*/
+        /*
+        * The expanded private key contains:
+        *  - The B0 matrix (four elements)
+        *  - The ffLDL tree
+        */
         //internal static int skoff_b00(int logN) => 0;
 
         //internal static int skoff_b01(int logN) => 1 << logN;
@@ -194,104 +193,84 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
         //internal static int skoff_tree(int logN) => 4 * 1 << logN;
 
-        /*
-        * Perform Fast Fourier Sampling for target vector t. The Gram matrix
-        * is provided (G = [[g00, g01], [adj(g01), g11]]). The sampled vector
-        * is written over (t0,t1). The Gram matrix is modified as well. The
-        * tmp[] buffer must have room for four polynomials.
-        */
-        internal static void ffSampling_fft_dyntree(SamplerCtx samp_ctx, FalconFPR[] t0src, int t0, FalconFPR[] t1src,
-            int t1, FalconFPR[] g00src, int g00, FalconFPR[] g01src, int g01, FalconFPR[] g11src, int g11,
-            int origLogN, int logN, FalconFPR[] tmpsrc, int tmp)
+        /// <summary>Perform Fast Fourier Sampling for target vector t.</summary>
+        /// <remarks>
+        /// The Gram matrix is provided (G = [[g00, g01], [adj(g01), g11]]). The sampled vector is written over(t0, t1).
+        /// The Gram matrix is modified as well. The tmp[] buffer must have room for four polynomials.
+        /// </remarks>
+        private static void FFSamplingFftDynTree(SamplerCtx samp_ctx, FalconFpr[] t0src, int t0, FalconFpr[] t1src,
+            int t1, FalconFpr[] g00src, int g00, FalconFpr[] g01src, int g01, FalconFpr[] g11src, int g11, int origLogN,
+            int logN, FalconFpr[] tmpsrc, int tmp)
         {
             /*
-            * Deepest level: the LDL tree leaf value is just g00 (the
-            * array has length only 1 at this point); we normalize it
-            * with regards to sigma, then use it for sampling.
-            */
+             * Deepest level: the LDL tree leaf value is just g00 (the array has length only 1 at this point); we
+             * normalize it with regards to sigma, then use it for sampling.
+             */
             if (logN == 0)
             {
-                FalconFPR leaf = g00src[g00 + 0];
-                leaf = FprEngine.fpr_mul(FprEngine.fpr_sqrt(leaf), FprEngine.fpr_inv_sigma[origLogN]);
-                t0src[t0 + 0] = FprEngine.fpr_of(SamplerZ.Sample(samp_ctx, t0src[t0 + 0], leaf));
-                t1src[t1 + 0] = FprEngine.fpr_of(SamplerZ.Sample(samp_ctx, t1src[t1 + 0], leaf));
+                FalconFpr leaf = g00src[g00 + 0];
+                leaf = FprEngine.FprMul(FprEngine.FprSqrt(leaf), FprEngine.FprInvSigma[origLogN]);
+                t0src[t0 + 0] = FprEngine.FprOf(SamplerZ.Sample(samp_ctx, t0src[t0 + 0], leaf));
+                t1src[t1 + 0] = FprEngine.FprOf(SamplerZ.Sample(samp_ctx, t1src[t1 + 0], leaf));
                 return;
             }
 
             int n = 1 << logN;
             int hn = n >> 1;
 
-            /*
-            * Decompose G into LDL. We only need d00 (identical to g00),
-            * d11, and l10; we do that in place.
-            */
-            FalconFft.poly_LDL_fft(g00src, g00, g01src, g01, g11src, g11, logN);
+            // Decompose G into LDL. We only need d00 (identical to g00), d11, and l10; we do that in place.
+            FalconFft.PolyLdlFft(g00src, g00, g01src, g01, g11src, g11, logN);
 
-            /*
-            * Split d00 and d11 and expand them into half-size quasi-cyclic
-            * Gram matrices. We also save l10 in tmp[].
-            */
-            FalconFft.poly_split_fft(tmpsrc, tmp, tmpsrc, tmp + hn, g00src, g00, logN);
-            // memcpy(g00, tmp, n * sizeof *tmp);
+            // Split d00 and d11 and expand them into half-size quasi-cyclic Gram matrices. We also save l10 in tmp[].
+            FalconFft.PolySplitFft(tmpsrc, tmp, tmpsrc, tmp + hn, g00src, g00, logN);
             Array.Copy(tmpsrc, tmp, g00src, g00, n);
-            FalconFft.poly_split_fft(tmpsrc, tmp, tmpsrc, tmp + hn, g11src, g11, logN);
-            // memcpy(g11, tmp, n * sizeof *tmp);
-            // memcpy(tmp, g01, n * sizeof *g01);
-            // memcpy(g01, g00, hn * sizeof *g00);
-            // memcpy(g01 + hn, g11, hn * sizeof *g00);
+            FalconFft.PolySplitFft(tmpsrc, tmp, tmpsrc, tmp + hn, g11src, g11, logN);
             Array.Copy(tmpsrc, tmp, g11src, g11, n);
             Array.Copy(g01src, g01, tmpsrc, tmp, n);
             Array.Copy(g00src, g00,g01src, g01, hn);
             Array.Copy(g11src, g11, g01src, g01 + hn, hn);
-            /*
-            * The half-size Gram matrices for the recursive LDL tree
-            * building are now:
-            *   - left sub-tree: g00, g00+hn, g01
-            *   - right sub-tree: g11, g11+hn, g01+hn
-            * l10 is in tmp[].
-            */
 
             /*
-            * We split t1 and use the first recursive call on the two
-            * halves, using the right sub-tree. The result is merged
-            * back into tmp + 2*n.
-            */
+             * The half-size Gram matrices for the recursive LDL tree building are now:
+             *   - left sub-tree: g00, g00+hn, g01
+             *   - right sub-tree: g11, g11+hn, g01+hn
+             * l10 is in tmp[].
+             */
+
+            /*
+             * We split t1 and use the first recursive call on the two halves, using the right sub-tree. The result is
+             * merged back into tmp + 2*n.
+             */
             int z1 = tmp + n;
-            FalconFft.poly_split_fft(tmpsrc, z1, tmpsrc, z1 + hn, tmpsrc, t1, logN);
-            ffSampling_fft_dyntree(samp_ctx, tmpsrc, z1, tmpsrc, z1 + hn, g11src, g11, g11src, g11 + hn, g01src,
+            FalconFft.PolySplitFft(tmpsrc, z1, tmpsrc, z1 + hn, tmpsrc, t1, logN);
+            FFSamplingFftDynTree(samp_ctx, tmpsrc, z1, tmpsrc, z1 + hn, g11src, g11, g11src, g11 + hn, g01src,
                 g01 + hn, origLogN, logN - 1, tmpsrc, z1 + n);
-            FalconFft.poly_merge_fft(tmpsrc, tmp + (n << 1), tmpsrc, z1, tmpsrc, z1 + hn, logN);
+            FalconFft.PolyMergeFft(tmpsrc, tmp + (n << 1), tmpsrc, z1, tmpsrc, z1 + hn, logN);
 
             /*
-            * Compute tb0 = t0 + (t1 - z1) * l10.
-            * At that point, l10 is in tmp, t1 is unmodified, and z1 is
-            * in tmp + (n << 1). The buffer in z1 is free.
-            *
-            * In the end, z1 is written over t1, and tb0 is in t0.
-            */
-            // memcpy(z1, t1, n * sizeof *t1);
+             * Compute tb0 = t0 + (t1 - z1) * l10.
+             * At that point, l10 is in tmp, t1 is unmodified, and z1 is in tmp + (n << 1). The buffer in z1 is free.
+             *
+             * In the end, z1 is written over t1, and tb0 is in t0.
+             */
             Array.Copy(tmpsrc, t1, tmpsrc, z1, n);
-            FalconFft.poly_sub(tmpsrc, z1, tmpsrc, tmp + (n << 1), logN);
-            // memcpy(t1, tmp + (n << 1), n * sizeof *tmp);
+            FalconFft.PolySub(tmpsrc, z1, tmpsrc, tmp + (n << 1), logN);
             Array.Copy(tmpsrc, tmp + (n << 1), tmpsrc, t1, n);
-            FalconFft.poly_mul_fft(tmpsrc, tmp, tmpsrc, z1, logN);
-            FalconFft.poly_add(tmpsrc, t0, tmpsrc, tmp, logN);
+            FalconFft.PolyMulFft(tmpsrc, tmp, tmpsrc, z1, logN);
+            FalconFft.PolyAdd(tmpsrc, t0, tmpsrc, tmp, logN);
 
-            /*
-            * Second recursive invocation, on the split tb0 (currently in t0)
-            * and the left sub-tree.
-            */
+            // Second recursive invocation, on the split tb0 (currently in t0) and the left sub-tree.
             int z0 = tmp;
-            FalconFft.poly_split_fft(tmpsrc, z0, tmpsrc, z0 + hn, tmpsrc, t0, logN);
-            ffSampling_fft_dyntree(samp_ctx, tmpsrc, z0, tmpsrc, z0 + hn, g00src, g00, g00src, g00 + hn, g01src, g01,
+            FalconFft.PolySplitFft(tmpsrc, z0, tmpsrc, z0 + hn, tmpsrc, t0, logN);
+            FFSamplingFftDynTree(samp_ctx, tmpsrc, z0, tmpsrc, z0 + hn, g00src, g00, g00src, g00 + hn, g01src, g01,
                 origLogN, logN - 1, tmpsrc, z0 + n);
-            FalconFft.poly_merge_fft(tmpsrc, t0, tmpsrc, z0, tmpsrc, z0 + hn, logN);
+            FalconFft.PolyMergeFft(tmpsrc, t0, tmpsrc, z0, tmpsrc, z0 + hn, logN);
         }
 
-        ///*
-        //* Perform Fast Fourier Sampling for target vector t and LDL tree T.
-        //* tmp[] must have size for at least two polynomials of size 2^logn.
-        //*/
+        /*
+        * Perform Fast Fourier Sampling for target vector t and LDL tree T.
+        * tmp[] must have size for at least two polynomials of size 2^logn.
+        */
         //internal static void ffSampling_fft(SamplerZ samp,
         //    FalconFPR[] z0src, int z0, FalconFPR[] z1src, int z1,
         //    FalconFPR[] treesrc, int tree,
@@ -514,16 +493,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //    this.ffte.poly_merge_fft(z0src, z0, tmpsrc, tmp, tmpsrc, tmp + hn, logN);
         //}
 
-        ///*
-        //* Compute a signature: the signature contains two vectors, s1 and s2.
-        //* The s1 vector is not returned. The squared norm of (s1,s2) is
-        //* computed, and if it is short enough, then s2 is returned into the
-        //* s2[] buffer, and 1 is returned; otherwise, s2[] is untouched and 0 is
-        //* returned; the caller should then try again. This function uses an
-        //* expanded key.
-        //*
-        //* tmp[] must have room for at least six polynomials.
-        //*/
+        /*
+        * Compute a signature: the signature contains two vectors, s1 and s2.
+        * The s1 vector is not returned. The squared norm of (s1,s2) is
+        * computed, and if it is short enough, then s2 is returned into the
+        * s2[] buffer, and 1 is returned; otherwise, s2[] is untouched and 0 is
+        * returned; the caller should then try again. This function uses an
+        * expanded key.
+        *
+        * tmp[] must have room for at least six polynomials.
+        */
         //internal static int do_sign_tree(SamplerZ samp, short[] s2src, int s2, FalconFPR[] ex_keysrc, int expanded_key,
         //    ushort[] hmsrc, int hm, int logN, FalconFPR[] tmpsrc, int tmp)
         //{
@@ -624,78 +603,69 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //    return 0;
         //}
 
-        /*
-        * Compute a signature: the signature contains two vectors, s1 and s2.
-        * The s1 vector is not returned. The squared norm of (s1,s2) is
-        * computed, and if it is short enough, then s2 is returned into the
-        * s2[] buffer, and 1 is returned; otherwise, s2[] is untouched and 0 is
-        * returned; the caller should then try again.
-        *
-        * tmp[] must have room for at least nine polynomials.
-        */
-        internal static int do_sign_dyn(SamplerCtx samp_ctx, short[] s2src, int s2, sbyte[] fsrc, int f,
-            sbyte[] gsrc, int g, sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hmsrc, int hm, int logN,
-            FalconFPR[] tmpsrc, int tmp)
+        /// <summary>Compute a signature: the signature contains two vectors, s1 and s2.</summary>
+        /// <remarks>
+        /// The s1 vector is not returned. The squared norm of (s1, s2) is computed, and if it is short enough, then s2
+        /// is returned into the s2[] buffer, and 1 is returned; otherwise, s2[] is untouched and 0 is returned; the
+        /// caller should then try again. tmp[] must have room for at least nine polynomials.
+        /// </remarks>
+        private static int DoSignDyn(SamplerCtx samp_ctx, short[] s2src, int s2, sbyte[] fsrc, int f, sbyte[] gsrc,
+            int g, sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hmsrc, int hm, int logN, FalconFpr[] tmpsrc,
+            int tmp)
         {
             int u;
             int n = 1 << logN;
 
-            /*
-            * Lattice basis is B = [[g, -f], [G, -F]]. We convert it to FFT.
-            */
+            // Lattice basis is B = [[g, -f], [G, -F]]. We convert it to FFT.
             int b00 = tmp;
             int b01 = b00 + n;
             int b10 = b01 + n;
             int b11 = b10 + n;
-            smallints_to_fpr(tmpsrc, b01, fsrc, f, logN);
-            smallints_to_fpr(tmpsrc, b00, gsrc, g, logN);
-            smallints_to_fpr(tmpsrc, b11, Fsrc, F, logN);
-            smallints_to_fpr(tmpsrc, b10, Gsrc, G, logN);
-            FalconFft.FFT(tmpsrc, b01, logN);
-            FalconFft.FFT(tmpsrc, b00, logN);
-            FalconFft.FFT(tmpsrc, b11, logN);
-            FalconFft.FFT(tmpsrc, b10, logN);
-            FalconFft.poly_neg(tmpsrc, b01, logN);
-            FalconFft.poly_neg(tmpsrc, b11, logN);
+            SmallIntsToFpr(tmpsrc, b01, fsrc, f, logN);
+            SmallIntsToFpr(tmpsrc, b00, gsrc, g, logN);
+            SmallIntsToFpr(tmpsrc, b11, Fsrc, F, logN);
+            SmallIntsToFpr(tmpsrc, b10, Gsrc, G, logN);
+            FalconFft.Fft(tmpsrc, b01, logN);
+            FalconFft.Fft(tmpsrc, b00, logN);
+            FalconFft.Fft(tmpsrc, b11, logN);
+            FalconFft.Fft(tmpsrc, b10, logN);
+            FalconFft.PolyNeg(tmpsrc, b01, logN);
+            FalconFft.PolyNeg(tmpsrc, b11, logN);
 
             /*
-            * Compute the Gram matrix G = B·B*. Formulas are:
-            *   g00 = b00*adj(b00) + b01*adj(b01)
-            *   g01 = b00*adj(b10) + b01*adj(b11)
-            *   g10 = b10*adj(b00) + b11*adj(b01)
-            *   g11 = b10*adj(b10) + b11*adj(b11)
-            *
-            * For historical reasons, this implementation uses
-            * g00, g01 and g11 (upper triangle). g10 is not kept
-            * since it is equal to adj(g01).
-            *
-            * We _replace_ the matrix B with the Gram matrix, but we
-            * must keep b01 and b11 for computing the target vector.
-            */
+             * Compute the Gram matrix G = B·B*. Formulas are:
+             *   g00 = b00*adj(b00) + b01*adj(b01)
+             *   g01 = b00*adj(b10) + b01*adj(b11)
+             *   g10 = b10*adj(b00) + b11*adj(b01)
+             *   g11 = b10*adj(b10) + b11*adj(b11)
+             *
+             * For historical reasons, this implementation uses g00, g01 and g11 (upper triangle). g10 is not kept since
+             * it is equal to adj(g01). We _replace_ the matrix B with the Gram matrix, but we must keep b01 and b11 for
+             * computing the target vector.
+             */
             int t0 = b11 + n;
             int t1 = t0 + n;
 
             Array.Copy(tmpsrc, b01, tmpsrc, t0, n);
-            FalconFft.poly_mulselfadj_fft(tmpsrc, t0, logN);    // t0 <- b01*adj(b01)
+            FalconFft.PolyMulSelfAdjFft(tmpsrc, t0, logN);              // t0 <- b01*adj(b01)
 
             Array.Copy(tmpsrc, b00, tmpsrc, t1, n);
-            FalconFft.poly_muladj_fft(tmpsrc, t1, tmpsrc, b10, logN);   // t1 <- b00*adj(b10)
-            FalconFft.poly_mulselfadj_fft(tmpsrc, b00, logN);   // b00 <- b00*adj(b00)
-            FalconFft.poly_add(tmpsrc, b00, tmpsrc, t0, logN);      // b00 <- g00
+            FalconFft.PolyMulAdjFft(tmpsrc, t1, tmpsrc, b10, logN);     // t1 <- b00*adj(b10)
+            FalconFft.PolyMulSelfAdjFft(tmpsrc, b00, logN);             // b00 <- b00*adj(b00)
+            FalconFft.PolyAdd(tmpsrc, b00, tmpsrc, t0, logN);           // b00 <- g00
             Array.Copy(tmpsrc, b01, tmpsrc, t0, n);
-            FalconFft.poly_muladj_fft(tmpsrc, b01, tmpsrc, b11, logN);  // b01 <- b01*adj(b11)
-            FalconFft.poly_add(tmpsrc, b01, tmpsrc, t1, logN);      // b01 <- g01
+            FalconFft.PolyMulAdjFft(tmpsrc, b01, tmpsrc, b11, logN);    // b01 <- b01*adj(b11)
+            FalconFft.PolyAdd(tmpsrc, b01, tmpsrc, t1, logN);           // b01 <- g01
 
-            FalconFft.poly_mulselfadj_fft(tmpsrc, b10, logN);   // b10 <- b10*adj(b10)
+            FalconFft.PolyMulSelfAdjFft(tmpsrc, b10, logN);             // b10 <- b10*adj(b10)
             Array.Copy(tmpsrc, b11, tmpsrc, t1, n);
-            FalconFft.poly_mulselfadj_fft(tmpsrc, t1, logN);    // t1 <- b11*adj(b11)
-            FalconFft.poly_add(tmpsrc, b10, tmpsrc, t1, logN);      // b10 <- g11
+            FalconFft.PolyMulSelfAdjFft(tmpsrc, t1, logN);              // t1 <- b11*adj(b11)
+            FalconFft.PolyAdd(tmpsrc, b10, tmpsrc, t1, logN);           // b10 <- g11
 
             /*
-            * We rename variables to make things clearer. The three elements
-            * of the Gram matrix uses the first 3*n slots of tmp[], followed
-            * by b11 and b01 (in that order).
-            */
+             * We rename variables to make things clearer. The three elements of the Gram matrix uses the first 3*n
+             * slots of tmp[], followed by b11 and b01 (in that order).
+             */
             int g00 = b00;
             int g01 = b01;
             int g11 = b10;
@@ -703,57 +673,43 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             t0 = b01 + n;
             t1 = t0 + n;
 
-            /*
-            * Memory layout at that point:
-            *   g00 g01 g11 b11 b01 t0 t1
-            */
+            // Memory layout at this point: g00 g01 g11 b11 b01 t0 t1
 
-            /*
-            * Set the target vector to [hm, 0] (hm is the hashed message).
-            */
+            // Set the target vector to [hm, 0] (hm is the hashed message).
             for (u = 0; u < n; ++u)
             {
-                tmpsrc[t0 + u] = FprEngine.fpr_of((short)hmsrc[hm + u]);
+                tmpsrc[t0 + u] = FprEngine.FprOf((short)hmsrc[hm + u]);
                 /* This is implicit.
-                t1src[t1 + u] = fpr_zero;
+                t1src[t1 + u] = FprEngine.fpr_zero;
                 */
             }
 
-            /*
-            * Apply the lattice basis to obtain the real target
-            * vector (after normalization with regards to modulus).
-            */
-            FalconFft.FFT(tmpsrc, t0, logN);
-            FalconFPR ni = FprEngine.fpr_inverse_of_q;
+            // Apply the lattice basis to obtain the real target vector (after normalization with regards to modulus).
+            FalconFft.Fft(tmpsrc, t0, logN);
+            FalconFpr ni = FprEngine.FprInvQ;
             Array.Copy(tmpsrc, t0, tmpsrc, t1, n);
-            FalconFft.poly_mul_fft(tmpsrc, t1, tmpsrc, b01, logN);
-            FalconFft.poly_mulconst(tmpsrc, t1, FprEngine.fpr_neg(ni), logN);
-            FalconFft.poly_mul_fft(tmpsrc, t0, tmpsrc, b11, logN);
-            FalconFft.poly_mulconst(tmpsrc, t0, ni, logN);
+            FalconFft.PolyMulFft(tmpsrc, t1, tmpsrc, b01, logN);
+            FalconFft.PolyMulConst(tmpsrc, t1, FprEngine.FprNeg(ni), logN);
+            FalconFft.PolyMulFft(tmpsrc, t0, tmpsrc, b11, logN);
+            FalconFft.PolyMulConst(tmpsrc, t0, ni, logN);
 
             /*
-            * b01 and b11 can be discarded, so we move back (t0,t1).
-            * Memory layout is now:
-            *      g00 g01 g11 t0 t1
-            */
-            // memcpy(b11, t0, n * 2 * sizeof *t0);
+             * b01 and b11 can be discarded, so we move back (t0,t1).
+             * Memory layout is now: g00 g01 g11 t0 t1
+             */
             Array.Copy(tmpsrc, t0, tmpsrc, b11, n * 2);
             t0 = g11 + n;
             t1 = t0 + n;
 
-            /*
-            * Apply sampling; result is written over (t0,t1).
-            */
-            ffSampling_fft_dyntree(samp_ctx, tmpsrc, t0, tmpsrc, t1, tmpsrc, g00, tmpsrc, g01, tmpsrc, g11, logN, logN,
+            // Apply sampling; result is written over (t0,t1).
+            FFSamplingFftDynTree(samp_ctx, tmpsrc, t0, tmpsrc, t1, tmpsrc, g00, tmpsrc, g01, tmpsrc, g11, logN, logN,
                 tmpsrc, t1 + n);
 
             /*
-            * We arrange the layout back to:
-            *     b00 b01 b10 b11 t0 t1
-            *
-            * We did not conserve the matrix basis, so we must recompute
-            * it now.
-            */
+             * We arrange the layout back to: b00 b01 b10 b11 t0 t1
+             *
+             * We did not conserve the matrix basis, so we must recompute it now.
+             */
             b00 = tmp;
             b01 = b00 + n;
             b10 = b01 + n;
@@ -761,42 +717,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             Array.Copy(tmpsrc, t0, tmpsrc, b11 + n, n * 2);
             t0 = b11 + n;
             t1 = t0 + n;
-            smallints_to_fpr(tmpsrc, b01, fsrc, f, logN);
-            smallints_to_fpr(tmpsrc, b00, gsrc, g, logN);
-            smallints_to_fpr(tmpsrc, b11, Fsrc, F, logN);
-            smallints_to_fpr(tmpsrc, b10, Gsrc, G, logN);
-            FalconFft.FFT(tmpsrc, b01, logN);
-            FalconFft.FFT(tmpsrc, b00, logN);
-            FalconFft.FFT(tmpsrc, b11, logN);
-            FalconFft.FFT(tmpsrc, b10, logN);
-            FalconFft.poly_neg(tmpsrc, b01, logN);
-            FalconFft.poly_neg(tmpsrc, b11, logN);
+            SmallIntsToFpr(tmpsrc, b01, fsrc, f, logN);
+            SmallIntsToFpr(tmpsrc, b00, gsrc, g, logN);
+            SmallIntsToFpr(tmpsrc, b11, Fsrc, F, logN);
+            SmallIntsToFpr(tmpsrc, b10, Gsrc, G, logN);
+            FalconFft.Fft(tmpsrc, b01, logN);
+            FalconFft.Fft(tmpsrc, b00, logN);
+            FalconFft.Fft(tmpsrc, b11, logN);
+            FalconFft.Fft(tmpsrc, b10, logN);
+            FalconFft.PolyNeg(tmpsrc, b01, logN);
+            FalconFft.PolyNeg(tmpsrc, b11, logN);
             int tx = t1 + n;
             int ty = tx + n;
 
-            /*
-            * Get the lattice point corresponding to that tiny vector.
-            */
+            // Get the lattice point corresponding to that tiny vector.
             Array.Copy(tmpsrc, t0, tmpsrc, tx, n);
             Array.Copy(tmpsrc, t1, tmpsrc, ty, n);
-            FalconFft.poly_mul_fft(tmpsrc, tx, tmpsrc, b00, logN);
-            FalconFft.poly_mul_fft(tmpsrc, ty, tmpsrc, b10, logN);
-            FalconFft.poly_add(tmpsrc, tx, tmpsrc, ty, logN);
+            FalconFft.PolyMulFft(tmpsrc, tx, tmpsrc, b00, logN);
+            FalconFft.PolyMulFft(tmpsrc, ty, tmpsrc, b10, logN);
+            FalconFft.PolyAdd(tmpsrc, tx, tmpsrc, ty, logN);
             Array.Copy(tmpsrc, t0, tmpsrc, ty, n);
-            FalconFft.poly_mul_fft(tmpsrc, ty, tmpsrc, b01, logN);
+            FalconFft.PolyMulFft(tmpsrc, ty, tmpsrc, b01, logN);
 
             Array.Copy(tmpsrc, tx, tmpsrc, t0, n);
-            FalconFft.poly_mul_fft(tmpsrc, t1, tmpsrc, b11, logN);
-            FalconFft.poly_add(tmpsrc, t1, tmpsrc, ty, logN);
-            FalconFft.iFFT(tmpsrc, t0, logN);
-            FalconFft.iFFT(tmpsrc, t1, logN);
+            FalconFft.PolyMulFft(tmpsrc, t1, tmpsrc, b11, logN);
+            FalconFft.PolyAdd(tmpsrc, t1, tmpsrc, ty, logN);
+            FalconFft.InvFft(tmpsrc, t0, logN);
+            FalconFft.InvFft(tmpsrc, t1, logN);
 
             short[] s1tmp = new short[n];
             uint sqn = 0;
             uint ng = 0;
             for (u = 0; u < n; ++u)
             {
-                int z = (int)hmsrc[hm + u] - (int)FprEngine.fpr_rint(tmpsrc[t0 + u]);
+                int z = (int)hmsrc[hm + u] - (int)FprEngine.FprRInt(tmpsrc[t0 + u]);
                 sqn += (uint)(z * z);
                 ng |= sqn;
                 s1tmp[u] = (short)z;
@@ -804,20 +758,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             sqn |= (uint)(-(ng >> 31));
 
             /*
-            * With "normal" degrees (e.g. 512 or 1024), it is very
-            * improbable that the computed vector is not short enough;
-            * however, it may happen in practice for the very reduced
-            * versions (e.g. degree 16 or below). In that case, the caller
-            * will loop, and we must not write anything into s2[] because
-            * s2[] may overlap with the hashed message hm[] and we need
-            * hm[] for the next iteration.
-            */
+             * With "normal" degrees (e.g. 512 or 1024), it is very improbable that the computed vector is not short
+             * enough; however, it may happen in practice for the very reduced versions (e.g. degree 16 or below). In
+             * that case, the caller will loop, and we must not write anything into s2[] because s2[] may overlap with
+             * the hashed message hm[] and we need hm[] for the next iteration.
+             */
             short[] s2tmp = new short[n];
             for (u = 0; u < n; ++u)
             {
-                s2tmp[u] = (short)-FprEngine.fpr_rint(tmpsrc[t1 + u]);
+                s2tmp[u] = (short)-FprEngine.FprRInt(tmpsrc[t1 + u]);
             }
-            if (FalconCommon.is_short_half(sqn, s2tmp, 0, logN))
+            if (FalconCommon.IsShortHalf(sqn, s2tmp, 0, logN))
             {
                 Array.Copy(s2tmp, 0, s2src, s2, n);
                 //Array.Copy(s1tmp, 0, tmpsrc, tmp, n);
@@ -859,34 +810,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //    }
         //}
 
-        internal static void sign_dyn(short[] sigsrc, int sig, SHAKE256 rng, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
-            sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hmsrc, int hm, int logN, FalconFPR[] tmpsrc, int tmp)
+        internal static void SignDyn(short[] sigsrc, int sig, Shake256 rng, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
+            sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hmsrc, int hm, int logN, FalconFpr[] tmpsrc, int tmp)
         {
             for (;;)
             {
                 /*
-                * Signature produces short vectors s1 and s2. The
-                * signature is acceptable only if the aggregate vector
-                * s1,s2 is short; we must use the same bound as the
-                * verifier.
+                * Normal sampling. We use a fast PRNG seeded from our SHAKE context ('rng').
+                */
+                SamplerCtx samp_ctx = new SamplerCtx(FprEngine.FprSigmaMin[logN]);
+                samp_ctx.p.Init(rng);
+
+                /*
+                * Signature produces short vectors s1 and s2. The signature is acceptable only if the aggregate vector
+                * s1,s2 is short; we must use the same bound as the verifier.
                 *
-                * If the signature is acceptable, then we return only s2
-                * (the verifier recomputes s1 from s2, the hashed message,
-                * and the public key).
+                * If the signature is acceptable, then we return only s2 (the verifier recomputes s1 from s2, the hashed
+                * message, and the public key).
                 */
-
-                /*
-                * Normal sampling. We use a fast PRNG seeded from our
-                * SHAKE context ('rng').
-                */
-
-                SamplerCtx samp_ctx = new SamplerCtx(FprEngine.fpr_sigma_min[logN]);
-                samp_ctx.p.prng_init(rng);
-
-                /*
-                * Do the actual signature.
-                */
-                int result = do_sign_dyn(samp_ctx, sigsrc, sig, fsrc, f, gsrc, g, Fsrc, F, Gsrc, G, hmsrc, hm,
+                int result = DoSignDyn(samp_ctx, sigsrc, sig, fsrc, f, gsrc, g, Fsrc, F, Gsrc, G, hmsrc, hm,
                     logN, tmpsrc, tmp);
 
                 if (result != 0)

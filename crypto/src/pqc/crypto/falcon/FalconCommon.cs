@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal static class FalconCommon
     {
-        /* 
+        /*
         * License from the reference C code (the code was copied then modified
         * to function in C#):
         * ==========================(LICENSE BEGIN)============================
@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * ===========================(LICENSE END)=============================
         */
-        internal static void hash_to_point_vartime(SHAKE256 sc, ushort[] xsrc, int x, int logN)
+        internal static void HashToPointVar(Shake256 sc, ushort[] xsrc, int x, int logN)
         {
             /*
             * This is the straightforward per-the-spec implementation. It
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             while (n > 0)
             {
                 byte[] buf = new byte[2];
-                sc.i_shake256_extract(buf, 0, 2);
+                sc.Squeeze(buf, 0, 2);
                 uint w = Pack.BE_To_UInt16(buf);
                 if (w < 61445)
                 {
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                         w -= 12289;
                     }
                     xsrc[x++] = (ushort)w;
-                    n --;
+                    --n;
                 }
             }
         }
@@ -217,22 +217,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //     }
         // }
 
-        /*
-        * Acceptance bound for the (squared) l2-norm of the signature depends
-        * on the degree. This array is indexed by logn (1 to 10). These bounds
-        * are _inclusive_ (they are equal to floor(beta^2)).
-        */
-        internal static readonly uint[] l2bound = { 0,    /* unused */
+        /// <summary>
+        /// Acceptance bound for the (squared) l2-norm of the signature depends on the degree.
+        /// </summary>
+        /// <remarks>
+        /// This array is indexed by logN (1 to 10). These bounds are _inclusive_ (they are equal to floor(beta^2)).
+        /// </remarks>
+        private static readonly uint[] L2Bound = { 0,    /* unused */
             101498, 208714, 428865, 892039, 1852696, 3842630, 7959734, 16468416, 34034726, 70265242
         };
 
-        internal static bool is_short(short[] s1src, int s1, short[] s2src, int s2, int logN)
+        internal static bool IsShort(short[] s1src, int s1, short[] s2src, int s2, int logN)
         {
             /*
-            * We use the l2-norm. Code below uses only 32-bit operations to
-            * compute the square of the norm with saturation to 2^32-1 if
-            * the value exceeds 2^31-1.
-            */
+             * We use the l2-norm. Code below uses only 32-bit operations to compute the square of the norm with
+             * saturation to 2^32-1 if the value exceeds 2^31-1.
+             */
 
             int n = 1 << logN;
             uint s = 0;
@@ -248,10 +248,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
             s |= (uint)(-(ng >> 31));
 
-            return s <= l2bound[logN];
+            return s <= L2Bound[logN];
         }
 
-        internal static bool is_short_half(uint sqn, short[] s2src, int s2, int logN)
+        internal static bool IsShortHalf(uint sqn, short[] s2src, int s2, int logN)
         {
             int n = 1 << logN;
             uint ng = (uint)(-(sqn >> 31));
@@ -263,7 +263,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
             sqn |= (uint)(-(ng >> 31));
 
-            return sqn <= l2bound[logN];
+            return sqn <= L2Bound[logN];
         }
     }
 }

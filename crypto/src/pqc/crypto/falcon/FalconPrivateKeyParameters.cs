@@ -50,24 +50,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         {
             int logN = Parameters.LogN;
             int n = 1 << logN;
-            byte bits = FalconCodec.max_fg_bits[logN];
+            byte bits = FalconCodec.MaxBits_fg[logN];
 
             sbyte[] fc = new sbyte[n];
             sbyte[] gc = new sbyte[n];
 
-            if (FalconCodec.trim_i8_decode(fc, 0, logN, bits, m_f, 0, m_f.Length) == 0)
+            if (FalconCodec.TrimI8Decode(fc, 0, logN, bits, m_f, 0, m_f.Length) == 0)
                 throw new InvalidOperationException("unable to decode f");
 
-            if (FalconCodec.trim_i8_decode(gc, 0, logN, bits, m_g, 0, m_g.Length) == 0)
+            if (FalconCodec.TrimI8Decode(gc, 0, logN, bits, m_g, 0, m_g.Length) == 0)
                 throw new InvalidOperationException("unable to decode g");
 
             ushort[] h = new ushort[n];
             ushort[] tmp = new ushort[n];
-            if (FalconVrfy.compute_public(h, 0, fc, 0, gc, 0, logN, tmp, 0) == 0)
+            if (FalconVrfy.ComputePublic(h, 0, fc, 0, gc, 0, logN, tmp, 0) == 0)
                 throw new InvalidOperationException("unable to recover public key: f not invertible mod q");
 
             byte[] enc = new byte[1 + (14 * n / 8)];
-            if (FalconCodec.modq_encode(enc, 1, enc.Length - 1, h, 0, logN) != enc.Length - 1)
+            if (FalconCodec.ModQEncode(enc, 1, enc.Length - 1, h, 0, logN) != enc.Length - 1)
                 throw new InvalidOperationException("public key encoding failed");
 
             return Arrays.CopyOfRange(enc, 1, enc.Length);

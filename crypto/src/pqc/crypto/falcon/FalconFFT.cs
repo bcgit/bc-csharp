@@ -2,7 +2,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
     internal static class FalconFft
     {
-        /* 
+        /*
         * License from the reference C code (the code was copied then modified
         * to function in C#):
         * ==========================(LICENSE BEGIN)============================
@@ -30,158 +30,136 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * ===========================(LICENSE END)=============================
         */
-        /*
-        * Addition of two complex numbers (d = a + b).
-        */
-        internal static FalconFPR[] FPC_ADD(FalconFPR a_re, FalconFPR a_im, FalconFPR b_re, FalconFPR b_im)
+
+        /// <summary>Addition of two complex numbers (d = a + b).</summary>
+        private static FalconFpr[] FpcAdd(FalconFpr a_re, FalconFpr a_im, FalconFpr b_re, FalconFpr b_im)
         {
-            FalconFPR fpct_re = FprEngine.fpr_add(a_re, b_re);
-            FalconFPR fpct_im = FprEngine.fpr_add(a_im, b_im);
-            return new FalconFPR[]{ fpct_re, fpct_im };
+            FalconFpr fpct_re = FprEngine.FprAdd(a_re, b_re);
+            FalconFpr fpct_im = FprEngine.FprAdd(a_im, b_im);
+            return new FalconFpr[]{ fpct_re, fpct_im };
+        }
+
+        /// <summary>Subtraction of two complex numbers (d = a - b).</summary>
+        private static FalconFpr[] FpcSub(FalconFpr a_re, FalconFpr a_im, FalconFpr b_re, FalconFpr b_im)
+        {
+            FalconFpr fpct_re = FprEngine.FprSub(a_re, b_re);
+            FalconFpr fpct_im = FprEngine.FprSub(a_im, b_im);
+            return new FalconFpr[]{ fpct_re, fpct_im };
+        }
+
+        /// <summary>Multplication of two complex numbers (d = a * b).</summary>
+        internal static FalconFpr[] FpcMul(FalconFpr a_re, FalconFpr a_im, FalconFpr b_re, FalconFpr b_im)
+        {
+            FalconFpr fpct_a_re = a_re;
+            FalconFpr fpct_a_im = a_im;
+            FalconFpr fpct_b_re = b_re;
+            FalconFpr fpct_b_im = b_im;
+            FalconFpr fpct_d_re = FprEngine.FprSub(
+                FprEngine.FprMul(fpct_a_re, fpct_b_re),
+                FprEngine.FprMul(fpct_a_im, fpct_b_im));
+            FalconFpr fpct_d_im = FprEngine.FprAdd(
+                FprEngine.FprMul(fpct_a_re, fpct_b_im),
+                FprEngine.FprMul(fpct_a_im, fpct_b_re));
+            return new FalconFpr[]{fpct_d_re, fpct_d_im};
+        }
+
+        /// <summary>Squaring of a complex number (d = a * a).</summary>
+        private static FalconFpr[] FpcSqr(FalconFpr d_re, FalconFpr d_im, FalconFpr a_re, FalconFpr a_im)
+        {
+            FalconFpr fpct_a_re = a_re;
+            FalconFpr fpct_a_im = a_im;
+            FalconFpr fpct_d_re = FprEngine.FprSub(FprEngine.FprSqr(fpct_a_re), FprEngine.FprSqr(fpct_a_im));
+            FalconFpr fpct_d_im = FprEngine.FprDouble(FprEngine.FprMul(fpct_a_re, fpct_a_im));
+            return new FalconFpr[]{ fpct_d_re, fpct_d_im };
+        }
+
+        /// <summary>Inversion of a complex number (d = 1 / a).</summary>
+        private static FalconFpr[] FpcInv(FalconFpr a_re, FalconFpr a_im)
+        {
+            FalconFpr fpct_a_re = a_re;
+            FalconFpr fpct_a_im = a_im;
+            FalconFpr fpct_m = FprEngine.FprAdd(FprEngine.FprSqr(fpct_a_re), FprEngine.FprSqr(fpct_a_im));
+            fpct_m = FprEngine.FprInv(fpct_m);
+            FalconFpr fpct_d_re = FprEngine.FprMul(fpct_a_re, fpct_m);
+            FalconFpr fpct_d_im = FprEngine.FprMul(FprEngine.FprNeg(fpct_a_im), fpct_m);
+            return new FalconFpr[]{ fpct_d_re, fpct_d_im };
+        }
+
+        /// <summary>Division of complex numbers (d = a / b).</summary>
+        private static FalconFpr[] FpcDiv(FalconFpr a_re, FalconFpr a_im, FalconFpr b_re, FalconFpr b_im)
+        {
+            FalconFpr fpct_a_re = (a_re);
+            FalconFpr fpct_a_im = (a_im);
+            FalconFpr fpct_b_re = (b_re);
+            FalconFpr fpct_b_im = (b_im);
+            FalconFpr fpct_m = FprEngine.FprAdd(FprEngine.FprSqr(fpct_b_re), FprEngine.FprSqr(fpct_b_im));
+            fpct_m = FprEngine.FprInv(fpct_m);
+            fpct_b_re = FprEngine.FprMul(fpct_b_re, fpct_m);
+            fpct_b_im = FprEngine.FprMul(FprEngine.FprNeg(fpct_b_im), fpct_m);
+            FalconFpr fpct_d_re = FprEngine.FprSub(
+                FprEngine.FprMul(fpct_a_re, fpct_b_re),
+                FprEngine.FprMul(fpct_a_im, fpct_b_im));
+            FalconFpr fpct_d_im = FprEngine.FprAdd(
+                FprEngine.FprMul(fpct_a_re, fpct_b_im),
+                FprEngine.FprMul(fpct_a_im, fpct_b_re));
+            return new FalconFpr[]{ fpct_d_re, fpct_d_im };
         }
 
         /*
-        * Subtraction of two complex numbers (d = a - b).
-        */
-        internal static FalconFPR[] FPC_SUB(FalconFPR a_re, FalconFPR a_im, FalconFPR b_re, FalconFPR b_im)
-        {
-            FalconFPR fpct_re = FprEngine.fpr_sub(a_re, b_re);
-            FalconFPR fpct_im = FprEngine.fpr_sub(a_im, b_im);
-            return new FalconFPR[]{ fpct_re, fpct_im };
-        }
-
-        /*
-        * Multplication of two complex numbers (d = a * b).
-        */
-        internal static FalconFPR[] FPC_MUL(FalconFPR a_re, FalconFPR a_im, FalconFPR b_re, FalconFPR b_im)
-        {
-            FalconFPR fpct_a_re = a_re; 
-            FalconFPR fpct_a_im = a_im; 
-            FalconFPR fpct_b_re = b_re; 
-            FalconFPR fpct_b_im = b_im;
-            FalconFPR fpct_d_re = FprEngine.fpr_sub( 
-                FprEngine.fpr_mul(fpct_a_re, fpct_b_re),
-                FprEngine.fpr_mul(fpct_a_im, fpct_b_im));
-            FalconFPR fpct_d_im = FprEngine.fpr_add( 
-                FprEngine.fpr_mul(fpct_a_re, fpct_b_im),
-                FprEngine.fpr_mul(fpct_a_im, fpct_b_re)); 
-            return new FalconFPR[] {fpct_d_re, fpct_d_im};
-        }
-
-        /*
-        * Squaring of a complex number (d = a * a).
-        */
-        internal static FalconFPR[] FPC_SQR(FalconFPR d_re, FalconFPR d_im, FalconFPR a_re, FalconFPR a_im)
-        {
-            FalconFPR fpct_a_re = a_re; 
-            FalconFPR fpct_a_im = a_im; 
-            FalconFPR fpct_d_re = FprEngine.fpr_sub(FprEngine.fpr_sqr(fpct_a_re), FprEngine.fpr_sqr(fpct_a_im));
-            FalconFPR fpct_d_im = FprEngine.fpr_double(FprEngine.fpr_mul(fpct_a_re, fpct_a_im)); 
-            return new FalconFPR[]{ fpct_d_re, fpct_d_im };
-        }
-
-        /*
-        * Inversion of a complex number (d = 1 / a).
-        */
-        internal static FalconFPR[] FPC_INV(FalconFPR a_re, FalconFPR a_im)
-        {
-            FalconFPR fpct_a_re = a_re;
-            FalconFPR fpct_a_im = a_im;
-            FalconFPR fpct_m = FprEngine.fpr_add(FprEngine.fpr_sqr(fpct_a_re), FprEngine.fpr_sqr(fpct_a_im));
-            fpct_m = FprEngine.fpr_inv(fpct_m); 
-            FalconFPR fpct_d_re = FprEngine.fpr_mul(fpct_a_re, fpct_m);
-            FalconFPR fpct_d_im = FprEngine.fpr_mul(FprEngine.fpr_neg(fpct_a_im), fpct_m);
-            return new FalconFPR[]{ fpct_d_re, fpct_d_im };
-        }
-
-        /*
-        * Division of complex numbers (d = a / b).
-        */
-        internal static FalconFPR[] FPC_DIV(FalconFPR a_re, FalconFPR a_im, FalconFPR b_re, FalconFPR b_im)
-        {
-            FalconFPR fpct_a_re = (a_re);
-            FalconFPR fpct_a_im = (a_im);
-            FalconFPR fpct_b_re = (b_re);
-            FalconFPR fpct_b_im = (b_im);
-            FalconFPR fpct_m = FprEngine.fpr_add(FprEngine.fpr_sqr(fpct_b_re), FprEngine.fpr_sqr(fpct_b_im)); 
-            fpct_m = FprEngine.fpr_inv(fpct_m); 
-            fpct_b_re = FprEngine.fpr_mul(fpct_b_re, fpct_m); 
-            fpct_b_im = FprEngine.fpr_mul(FprEngine.fpr_neg(fpct_b_im), fpct_m);
-            FalconFPR fpct_d_re = FprEngine.fpr_sub( 
-                FprEngine.fpr_mul(fpct_a_re, fpct_b_re),
-                FprEngine.fpr_mul(fpct_a_im, fpct_b_im));
-            FalconFPR fpct_d_im = FprEngine.fpr_add( 
-                FprEngine.fpr_mul(fpct_a_re, fpct_b_im),
-                FprEngine.fpr_mul(fpct_a_im, fpct_b_re));
-            return new FalconFPR[] { fpct_d_re, fpct_d_im };
-        }
-
-        /*
-        * Let w = exp(i*pi/N); w is a primitive 2N-th root of 1. We define the
-        * values w_j = w^(2j+1) for all j from 0 to N-1: these are the roots
-        * of X^N+1 in the field of complex numbers. A crucial property is that
-        * w_{N-1-j} = conj(w_j) = 1/w_j for all j.
-        *
-        * FFT representation of a polynomial f (taken modulo X^N+1) is the
-        * set of values f(w_j). Since f is real, conj(f(w_j)) = f(conj(w_j)),
-        * thus f(w_{N-1-j}) = conj(f(w_j)). We thus store only half the values,
-        * for j = 0 to N/2-1; the other half can be recomputed easily when (if)
-        * needed. A consequence is that FFT representation has the same size
-        * as normal representation: N/2 complex numbers use N real numbers (each
-        * complex number is the combination of a real and an imaginary part).
-        *
-        * We use a specific ordering which makes computations easier. Let rev()
-        * be the bit-reversal function over log(N) bits. For j in 0..N/2-1, we
-        * store the real and imaginary parts of f(w_j) in slots:
-        *
-        *    Re(f(w_j)) -> slot rev(j)/2
-        *    Im(f(w_j)) -> slot rev(j)/2+N/2
-        *
-        * (Note that rev(j) is even for j < N/2.)
-        */
-
-        internal static void FFT(FalconFPR[] fsrc, int f, int logN)
+         * Let w = exp(i*pi/N); w is a primitive 2N-th root of 1. We define the values w_j = w^(2j+1) for all j from 0
+         * to N-1: these are the roots of X^N+1 in the field of complex numbers. A crucial property is that
+         * w_{N-1-j} = conj(w_j) = 1/w_j for all j.
+         *
+         * FFT representation of a polynomial f (taken modulo X^N+1) is the set of values f(w_j). Since f is real,
+         * conj(f(w_j)) = f(conj(w_j)), thus f(w_{N-1-j}) = conj(f(w_j)). We thus store only half the values,
+         * for j = 0 to N/2-1; the other half can be recomputed easily when (if) needed. A consequence is that FFT
+         * representation has the same size as normal representation: N/2 complex numbers use N real numbers (each
+         * complex number is the combination of a real and an imaginary part).
+         *
+         * We use a specific ordering which makes computations easier. Let rev() be the bit-reversal function over logN
+         * bits. For j in 0..N/2-1, we store the real and imaginary parts of f(w_j) in slots:
+         *
+         *    Re(f(w_j)) -> slot rev(j)/2
+         *    Im(f(w_j)) -> slot rev(j)/2+N/2
+         *
+         * (Note that rev(j) is even for j < N/2.)
+         */
+        internal static void Fft(FalconFpr[] fsrc, int f, int logN)
         {
             /*
-            * FFT algorithm in bit-reversal order uses the following
-            * iterative algorithm:
-            *
-            *   t = N
-            *   for m = 1; m < N; m *= 2:
-            *       ht = t/2
-            *       for i1 = 0; i1 < m; i1 ++:
-            *           j1 = i1 * t
-            *           s = GM[m + i1]
-            *           for j = j1; j < (j1 + ht); j ++:
-            *               x = fsrc[f + j]
-            *               y = s * fsrc[f + j + ht]
-            *               fsrc[f + j] = x + y
-            *               fsrc[f + j + ht] = x - y
-            *       t = ht
-            *
-            * GM[k] contains w^rev(k) for primitive root w = exp(i*pi/N).
-            *
-            * In the description above, fsrc[f + ] is supposed to contain complex
-            * numbers. In our in-memory representation, the real and
-            * imaginary parts of fsrc[f + k] are in array slots k and k+N/2.
-            *
-            * We only keep the first half of the complex numbers. We can
-            * see that after the first iteration, the first and second halves
-            * of the array of complex numbers have separate lives, so we
-            * simply ignore the second part.
-            */
+             * FFT algorithm in bit-reversal order uses the following iterative algorithm:
+             *
+             *   t = N
+             *   for m = 1; m < N; m *= 2:
+             *       ht = t/2
+             *       for i1 = 0; i1 < m; i1 ++:
+             *           j1 = i1 * t
+             *           s = GM[m + i1]
+             *           for j = j1; j < (j1 + ht); j ++:
+             *               x = fsrc[f + j]
+             *               y = s * fsrc[f + j + ht]
+             *               fsrc[f + j] = x + y
+             *               fsrc[f + j + ht] = x - y
+             *       t = ht
+             *
+             * GM[k] contains w^rev(k) for primitive root w = exp(i*pi/N).
+             *
+             * In the description above, fsrc[f + ] is supposed to contain complex numbers. In our in-memory
+             * representation, the real and imaginary parts of fsrc[f + k] are in array slots k and k+N/2.
+             *
+             * We only keep the first half of the complex numbers. We can see that after the first iteration, the first
+             * and second halves of the array of complex numbers have separate lives, so we simply ignore the second
+             * part.
+             */
 
             /*
-            * First iteration: compute fsrc[f + j] + i * fsrc[f + j+N/2] for all j < N/2
-            * (because GM[1] = w^rev(1) = w^(N/2) = i).
-            * In our chosen representation, this is a no-op: everything is
-            * already where it should be.
-            */
+             * First iteration: compute fsrc[f + j] + i * fsrc[f + j+N/2] for all j < N/2
+             * (because GM[1] = w^rev(1) = w^(N/2) = i).
+             * In our chosen representation, this is a no-op: everything is already where it should be.
+             */
 
-            /*
-            * Subsequent iterations are truncated to use only the first
-            * half of values.
-            */
+            // Subsequent iterations are truncated to use only the first half of values.
+
             int n = 1 << logN;
             int hn = n >> 1;
             int t = hn;
@@ -193,19 +171,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 for (int i1 = 0, j1 = 0; i1 < hm; ++i1, j1 += t)
                 {
                     int j2 = j1 + ht;
-                    FalconFPR s_re = FprEngine.fpr_gm_tab[((m + i1) << 1) + 0];
-                    FalconFPR s_im = FprEngine.fpr_gm_tab[((m + i1) << 1) + 1];
+                    FalconFpr s_re = FprEngine.FprGMTab[((m + i1) << 1) + 0];
+                    FalconFpr s_im = FprEngine.FprGMTab[((m + i1) << 1) + 1];
                     for (int j = j1; j < j2; ++j)
                     {
-                        FalconFPR x_re = fsrc[f + j];
-                        FalconFPR x_im = fsrc[f + j + hn];
-                        FalconFPR y_re = fsrc[f + j + ht];
-                        FalconFPR y_im = fsrc[f + j + ht + hn];
-                        FalconFPR[] res = FPC_MUL(y_re, y_im, s_re, s_im);
+                        FalconFpr x_re = fsrc[f + j];
+                        FalconFpr x_im = fsrc[f + j + hn];
+                        FalconFpr y_re = fsrc[f + j + ht];
+                        FalconFpr y_im = fsrc[f + j + ht + hn];
+                        FalconFpr[] res = FpcMul(y_re, y_im, s_re, s_im);
                         y_re = res[0]; y_im = res[1];
-                        res = FPC_ADD(x_re, x_im, y_re, y_im);
+                        res = FpcAdd(x_re, x_im, y_re, y_im);
                         fsrc[f + j] = res[0]; fsrc[f + j + hn] = res[1];
-                        res = FPC_SUB(x_re, x_im, y_re, y_im);
+                        res = FpcSub(x_re, x_im, y_re, y_im);
                         fsrc[f + j + ht] = res[0]; fsrc[f + j + ht + hn] = res[1];
                     }
                 }
@@ -213,50 +191,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
         }
 
-        internal static void iFFT(FalconFPR[] fsrc, int f, int logN)
+        internal static void InvFft(FalconFpr[] fsrc, int f, int logN)
         {
             /*
-            * Inverse FFT algorithm in bit-reversal order uses the following
-            * iterative algorithm:
-            *
-            *   t = 1
-            *   for m = N; m > 1; m /= 2:
-            *       hm = m/2
-            *       dt = t*2
-            *       for i1 = 0; i1 < hm; i1 ++:
-            *           j1 = i1 * dt
-            *           s = iGM[hm + i1]
-            *           for j = j1; j < (j1 + t); j ++:
-            *               x = fsrc[f + j]
-            *               y = fsrc[f + j + t]
-            *               fsrc[f + j] = x + y
-            *               fsrc[f + j + t] = s * (x - y)
-            *       t = dt
-            *   for i1 = 0; i1 < N; i1 ++:
-            *       fsrc[f + i1] = fsrc[f + i1] / N
-            *
-            * iGM[k] contains (1/w)^rev(k) for primitive root w = exp(i*pi/N)
-            * (actually, iGM[k] = 1/GM[k] = conj(GM[k])).
-            *
-            * In the main loop (not counting the final division loop), in
-            * all iterations except the last, the first and second half of fsrc[f + ]
-            * (as an array of complex numbers) are separate. In our chosen
-            * representation, we do not keep the second half.
-            *
-            * The last iteration recombines the recomputed half with the
-            * implicit half, and should yield only real numbers since the
-            * target polynomial is real; moreover, s = i at that step.
-            * Thus, when considering x and y:
-            *    y = conj(x) since the final fsrc[f + j] must be real
-            *    Therefore, fsrc[f + j] is filled with 2*Re(x), and fsrc[f + j + t] is
-            *    filled with 2*Im(x).
-            * But we already have Re(x) and Im(x) in array slots j and j+t
-            * in our chosen representation. That last iteration is thus a
-            * simple doubling of the values in all the array.
-            *
-            * We make the last iteration a no-op by tweaking the final
-            * division into a division by N/2, not N.
-            */
+             * Inverse FFT algorithm in bit-reversal order uses the following iterative algorithm:
+             *
+             *   t = 1
+             *   for m = N; m > 1; m /= 2:
+             *       hm = m/2
+             *       dt = t*2
+             *       for i1 = 0; i1 < hm; i1 ++:
+             *           j1 = i1 * dt
+             *           s = iGM[hm + i1]
+             *           for j = j1; j < (j1 + t); j ++:
+             *               x = fsrc[f + j]
+             *               y = fsrc[f + j + t]
+             *               fsrc[f + j] = x + y
+             *               fsrc[f + j + t] = s * (x - y)
+             *       t = dt
+             *   for i1 = 0; i1 < N; i1 ++:
+             *       fsrc[f + i1] = fsrc[f + i1] / N
+             *
+             * iGM[k] contains (1/w)^rev(k) for primitive root w = exp(i*pi/N)
+             * (actually, iGM[k] = 1/GM[k] = conj(GM[k])).
+             *
+             * In the main loop (not counting the final division loop), in all iterations except the last, the first and
+             * second half of fsrc[f + ] (as an array of complex numbers) are separate. In our chosen representation, we
+             * do not keep the second half.
+             *
+             * The last iteration recombines the recomputed half with the implicit half, and should yield only real
+             * numbers since the target polynomial is real; moreover, s = i at that step.
+             * Thus, when considering x and y:
+             *    y = conj(x) since the final fsrc[f + j] must be real
+             * Therefore, fsrc[f + j] is filled with 2*Re(x), and fsrc[f + j + t] is filled with 2*Im(x).
+             *
+             * But we already have Re(x) and Im(x) in array slots j and j + t in our chosen representation. That last
+             * iteration is thus a simple doubling of the values in all the array.
+             *
+             * We make the last iteration a no-op by tweaking the final division into a division by N/2, not N.
+             */
             int n = 1 << logN;
             int t = 1;
             int m = n;
@@ -268,20 +241,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 for (int i1 = 0, j1 = 0; j1 < hn; ++i1, j1 += dt)
                 {
                     int j2 = j1 + t;
-                    FalconFPR s_re = FprEngine.fpr_gm_tab[((hm + i1) << 1) + 0];
-                    FalconFPR s_im = FprEngine.fpr_neg(FprEngine.fpr_gm_tab[((hm + i1) << 1) + 1]);
+                    FalconFpr s_re = FprEngine.FprGMTab[((hm + i1) << 1) + 0];
+                    FalconFpr s_im = FprEngine.FprNeg(FprEngine.FprGMTab[((hm + i1) << 1) + 1]);
                     for (int j = j1; j < j2; ++j)
                     {
-                        FalconFPR x_re = fsrc[f + j];
-                        FalconFPR x_im = fsrc[f + j + hn];
-                        FalconFPR y_re = fsrc[f + j + t];
-                        FalconFPR y_im = fsrc[f + j + t + hn];
-                        FalconFPR[] res = FPC_ADD(x_re, x_im, y_re, y_im);
+                        FalconFpr x_re = fsrc[f + j];
+                        FalconFpr x_im = fsrc[f + j + hn];
+                        FalconFpr y_re = fsrc[f + j + t];
+                        FalconFpr y_im = fsrc[f + j + t + hn];
+                        FalconFpr[] res = FpcAdd(x_re, x_im, y_re, y_im);
                         fsrc[f + j] = res[0]; fsrc[f + j + hn] = res[1];
 
-                        res = FPC_SUB(x_re, x_im, y_re, y_im);
+                        res = FpcSub(x_re, x_im, y_re, y_im);
                         x_re = res[0]; x_im = res[1];
-                        res = FPC_MUL(x_re, x_im, s_re, s_im);
+                        res = FpcMul(x_re, x_im, s_re, s_im);
                         fsrc[f + j + t] = res[0]; fsrc[f + j + t + hn] = res[1];
                     }
                 }
@@ -290,108 +263,106 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
 
             /*
-            * Last iteration is a no-op, provided that we divide by N/2
-            * instead of N. We need to make a special case for logn = 0.
-            */
+             * Last iteration is a no-op, provided that we divide by N/2 instead of N.
+             * We need to make a special case for logN = 0.
+             */
             if (logN > 0)
             {
-                FalconFPR ni = FprEngine.fpr_p2_tab[logN];
+                FalconFpr ni = FprEngine.FprP2Tab[logN];
                 for (int u = 0; u < n; ++u)
                 {
-                    fsrc[f + u] = FprEngine.fpr_mul(fsrc[f + u], ni);
+                    fsrc[f + u] = FprEngine.FprMul(fsrc[f + u], ni);
                 }
             }
         }
 
-        internal static void poly_add(FalconFPR[] asrc, int a, FalconFPR[] bsrc, int b, int logN)
+        internal static void PolyAdd(FalconFpr[] asrc, int a, FalconFpr[] bsrc, int b, int logN)
         {
             int n = 1 << logN;
             for (int u = 0; u < n; ++u)
             {
-                asrc[a + u] = FprEngine.fpr_add(asrc[a + u], bsrc[b + u]);
+                asrc[a + u] = FprEngine.FprAdd(asrc[a + u], bsrc[b + u]);
             }
         }
 
-        internal static void poly_sub(FalconFPR[] asrc, int a, FalconFPR[] bsrc, int b, int logN)
+        internal static void PolySub(FalconFpr[] asrc, int a, FalconFpr[] bsrc, int b, int logN)
         {
             int n = 1 << logN;
             for (int u = 0; u < n; ++u)
             {
-                asrc[a + u] = FprEngine.fpr_sub(asrc[a + u], bsrc[b + u]);
+                asrc[a + u] = FprEngine.FprSub(asrc[a + u], bsrc[b + u]);
             }
         }
 
-        internal static void poly_neg(FalconFPR[] asrc, int a, int logN)
+        internal static void PolyNeg(FalconFpr[] asrc, int a, int logN)
         {
             int n = 1 << logN;
             for (int u = 0; u < n; ++u)
             {
-                asrc[a + u] = FprEngine.fpr_neg(asrc[a + u]);
+                asrc[a + u] = FprEngine.FprNeg(asrc[a + u]);
             }
         }
 
-        internal static void poly_adj_fft(FalconFPR[] asrc, int a, int logN)
+        internal static void PolyAdjFft(FalconFpr[] asrc, int a, int logN)
         {
             int n = 1 << logN;
             for (int u = (n >> 1); u < n; ++u)
             {
-                asrc[a + u] = FprEngine.fpr_neg(asrc[a + u]);
+                asrc[a + u] = FprEngine.FprNeg(asrc[a + u]);
             }
         }
 
-        internal static void poly_mul_fft(FalconFPR[] asrc, int a, FalconFPR[] bsrc, int b, int logN)
+        internal static void PolyMulFft(FalconFpr[] asrc, int a, FalconFpr[] bsrc, int b, int logN)
         {
             int n = 1 << logN;
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFPR a_re = asrc[a + u];
-                FalconFPR a_im = asrc[a + u + hn];
-                FalconFPR b_re = bsrc[b + u];
-                FalconFPR b_im = bsrc[b + u + hn];
-                FalconFPR[] res = FPC_MUL(a_re, a_im, b_re, b_im);
+                FalconFpr a_re = asrc[a + u];
+                FalconFpr a_im = asrc[a + u + hn];
+                FalconFpr b_re = bsrc[b + u];
+                FalconFpr b_im = bsrc[b + u + hn];
+                FalconFpr[] res = FpcMul(a_re, a_im, b_re, b_im);
                 asrc[a + u] = res[0]; asrc[a + u + hn] = res[1];
             }
         }
 
-        internal static void poly_muladj_fft(FalconFPR[] asrc, int a, FalconFPR[] bsrc, int b, int logN)
+        internal static void PolyMulAdjFft(FalconFpr[] asrc, int a, FalconFpr[] bsrc, int b, int logN)
         {
             int n = 1 << logN;
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFPR a_re = asrc[a + u];
-                FalconFPR a_im = asrc[a + u + hn];
-                FalconFPR b_re = bsrc[b + u];
-                FalconFPR b_im = FprEngine.fpr_neg(bsrc[b + u + hn]);
-                FalconFPR[] res = FPC_MUL(a_re, a_im, b_re, b_im);
+                FalconFpr a_re = asrc[a + u];
+                FalconFpr a_im = asrc[a + u + hn];
+                FalconFpr b_re = bsrc[b + u];
+                FalconFpr b_im = FprEngine.FprNeg(bsrc[b + u + hn]);
+                FalconFpr[] res = FpcMul(a_re, a_im, b_re, b_im);
                 asrc[a + u] = res[0]; asrc[a + u + hn] = res[1];
             }
         }
 
-        internal static void poly_mulselfadj_fft(FalconFPR[] asrc, int a, int logN)
+        internal static void PolyMulSelfAdjFft(FalconFpr[] asrc, int a, int logN)
         {
-            /*
-            * Since each coefficient is multiplied with its own conjugate,
-            * the result contains only real values.
-            */
+            // Since each coefficient is multiplied with its own conjugate, the result contains only real values.
+
             int n = 1 << logN;
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFPR a_re = asrc[a + u];
-                FalconFPR a_im = asrc[a + u + hn];
-                asrc[a + u] = FprEngine.fpr_add(FprEngine.fpr_sqr(a_re), FprEngine.fpr_sqr(a_im));
-                asrc[a + u + hn] = FprEngine.fpr_zero;
+                FalconFpr a_re = asrc[a + u];
+                FalconFpr a_im = asrc[a + u + hn];
+                asrc[a + u] = FprEngine.FprAdd(FprEngine.FprSqr(a_re), FprEngine.FprSqr(a_im));
+                asrc[a + u + hn] = FprEngine.FprZero;
             }
         }
 
-        internal static void poly_mulconst(FalconFPR[] asrc, int a, FalconFPR x, int logN)
+        internal static void PolyMulConst(FalconFpr[] asrc, int a, FalconFpr x, int logN)
         {
             int n = 1 << logN;
             for (int u = 0; u < n; ++u)
             {
-                asrc[a + u] = FprEngine.fpr_mul(asrc[a + u], x);
+                asrc[a + u] = FprEngine.FprMul(asrc[a + u], x);
             }
         }
 
@@ -410,92 +381,92 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //    }
         //}
 
-        internal static void poly_invnorm2_fft(FalconFPR[] dsrc, int d, FalconFPR[] asrc, int a, FalconFPR[] bsrc,
+        internal static void PolyInvNorm2Fft(FalconFpr[] dsrc, int d, FalconFpr[] asrc, int a, FalconFpr[] bsrc,
             int b, int logN)
         {
             int n = 1 << logN;
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFPR a_re = asrc[a + u];
-                FalconFPR a_im = asrc[a + u + hn];
-                FalconFPR b_re = bsrc[b + u];
-                FalconFPR b_im = bsrc[b + u + hn];
-                dsrc[d + u] = FprEngine.fpr_inv(FprEngine.fpr_add(
-                    FprEngine.fpr_add(FprEngine.fpr_sqr(a_re), FprEngine.fpr_sqr(a_im)),
-                    FprEngine.fpr_add(FprEngine.fpr_sqr(b_re), FprEngine.fpr_sqr(b_im))));
+                FalconFpr a_re = asrc[a + u];
+                FalconFpr a_im = asrc[a + u + hn];
+                FalconFpr b_re = bsrc[b + u];
+                FalconFpr b_im = bsrc[b + u + hn];
+                dsrc[d + u] = FprEngine.FprInv(FprEngine.FprAdd(
+                    FprEngine.FprAdd(FprEngine.FprSqr(a_re), FprEngine.FprSqr(a_im)),
+                    FprEngine.FprAdd(FprEngine.FprSqr(b_re), FprEngine.FprSqr(b_im))));
             }
         }
 
-        internal static void poly_add_muladj_fft(FalconFPR[] dsrc, int d, FalconFPR[] Fsrc, int F, FalconFPR[] Gsrc,
-            int G, FalconFPR[] fsrc, int f, FalconFPR[] gsrc, int g, int logN)
+        internal static void PolyAddMulAdjFft(FalconFpr[] dsrc, int d, FalconFpr[] Fsrc, int F, FalconFpr[] Gsrc,
+            int G, FalconFpr[] fsrc, int f, FalconFpr[] gsrc, int g, int logN)
         {
             int n = 1 << logN;
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFPR F_re = Fsrc[F + u];
-                FalconFPR F_im = Fsrc[F + u + hn];
-                FalconFPR G_re = Gsrc[G + u];
-                FalconFPR G_im = Gsrc[G + u + hn];
-                FalconFPR f_re = fsrc[f + u];
-                FalconFPR f_im = fsrc[f + u + hn];
-                FalconFPR g_re = gsrc[g + u];
-                FalconFPR g_im = gsrc[g + u + hn];
+                FalconFpr F_re = Fsrc[F + u];
+                FalconFpr F_im = Fsrc[F + u + hn];
+                FalconFpr G_re = Gsrc[G + u];
+                FalconFpr G_im = Gsrc[G + u + hn];
+                FalconFpr f_re = fsrc[f + u];
+                FalconFpr f_im = fsrc[f + u + hn];
+                FalconFpr g_re = gsrc[g + u];
+                FalconFpr g_im = gsrc[g + u + hn];
 
-                FalconFPR[] res = FPC_MUL(F_re, F_im, f_re, FprEngine.fpr_neg(f_im));
-                FalconFPR a_re = res[0], a_im = res[1];
-                res = FPC_MUL(G_re, G_im, g_re, FprEngine.fpr_neg(g_im));
-                FalconFPR b_re = res[0], b_im = res[1];
-                dsrc[d + u] = FprEngine.fpr_add(a_re, b_re);
-                dsrc[d + u + hn] = FprEngine.fpr_add(a_im, b_im);
+                FalconFpr[] res = FpcMul(F_re, F_im, f_re, FprEngine.FprNeg(f_im));
+                FalconFpr a_re = res[0], a_im = res[1];
+                res = FpcMul(G_re, G_im, g_re, FprEngine.FprNeg(g_im));
+                FalconFpr b_re = res[0], b_im = res[1];
+                dsrc[d + u] = FprEngine.FprAdd(a_re, b_re);
+                dsrc[d + u + hn] = FprEngine.FprAdd(a_im, b_im);
             }
         }
 
-        internal static void poly_mul_autoadj_fft(FalconFPR[] asrc, int a, FalconFPR[] bsrc, int b, int logN)
+        internal static void PolyMulAutoAdjFft(FalconFpr[] asrc, int a, FalconFpr[] bsrc, int b, int logN)
         {
             int n = 1 << logN;
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                asrc[a + u] = FprEngine.fpr_mul(asrc[a + u], bsrc[b + u]);
-                asrc[a + u + hn] = FprEngine.fpr_mul(asrc[a + u + hn], bsrc[b + u]);
+                asrc[a + u] = FprEngine.FprMul(asrc[a + u], bsrc[b + u]);
+                asrc[a + u + hn] = FprEngine.FprMul(asrc[a + u + hn], bsrc[b + u]);
             }
         }
 
-        internal static void poly_div_autoadj_fft(FalconFPR[] asrc, int a, FalconFPR[] bsrc, int b, int logN)
+        internal static void PolyDivAutoAdjFft(FalconFpr[] asrc, int a, FalconFpr[] bsrc, int b, int logN)
         {
             int n = 1 << logN;
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFPR ib = FprEngine.fpr_inv(bsrc[b + u]);
-                asrc[a + u] = FprEngine.fpr_mul(asrc[a + u], ib);
-                asrc[a + u + hn] = FprEngine.fpr_mul(asrc[a + u + hn], ib);
+                FalconFpr ib = FprEngine.FprInv(bsrc[b + u]);
+                asrc[a + u] = FprEngine.FprMul(asrc[a + u], ib);
+                asrc[a + u + hn] = FprEngine.FprMul(asrc[a + u + hn], ib);
             }
         }
 
-        internal static void poly_LDL_fft(FalconFPR[] g00src, int g00, FalconFPR[] g01src, int g01, FalconFPR[] g11src,
+        internal static void PolyLdlFft(FalconFpr[] g00src, int g00, FalconFpr[] g01src, int g01, FalconFpr[] g11src,
             int g11, int logN)
         {
             int n = 1 << logN;
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFPR g00_re = g00src[g00 + u];
-                FalconFPR g00_im = g00src[g00 + u + hn];
-                FalconFPR g01_re = g01src[g01 + u];
-                FalconFPR g01_im = g01src[g01 + u + hn];
-                FalconFPR g11_re = g11src[g11 + u];
-                FalconFPR g11_im = g11src[g11 + u + hn];
-                FalconFPR[] res = FPC_DIV(g01_re, g01_im, g00_re, g00_im);
-                FalconFPR mu_re = res[0], mu_im = res[1];
-                res = FPC_MUL(mu_re, mu_im, g01_re, FprEngine.fpr_neg(g01_im));
+                FalconFpr g00_re = g00src[g00 + u];
+                FalconFpr g00_im = g00src[g00 + u + hn];
+                FalconFpr g01_re = g01src[g01 + u];
+                FalconFpr g01_im = g01src[g01 + u + hn];
+                FalconFpr g11_re = g11src[g11 + u];
+                FalconFpr g11_im = g11src[g11 + u + hn];
+                FalconFpr[] res = FpcDiv(g01_re, g01_im, g00_re, g00_im);
+                FalconFpr mu_re = res[0], mu_im = res[1];
+                res = FpcMul(mu_re, mu_im, g01_re, FprEngine.FprNeg(g01_im));
                 g01_re = res[0]; g01_im = res[1];
-                res = FPC_SUB(g11_re, g11_im, g01_re, g01_im);
+                res = FpcSub(g11_re, g11_im, g01_re, g01_im);
                 g11src[g11 + u] = res[0]; g11src[g11 + u + hn] = res[1];
                 g01src[g01 + u] = mu_re;
-                g01src[g01 + u + hn] = FprEngine.fpr_neg(mu_im);
+                g01src[g01 + u + hn] = FprEngine.FprNeg(mu_im);
             }
         }
 
@@ -523,77 +494,73 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //    }
         //}
 
-        internal static void poly_split_fft(FalconFPR[] f0src, int f0, FalconFPR[] f1src, int f1, FalconFPR[] fsrc,
+        internal static void PolySplitFft(FalconFpr[] f0src, int f0, FalconFpr[] f1src, int f1, FalconFpr[] fsrc,
             int f, int logN)
         {
             /*
-            * The FFT representation we use is in bit-reversed order
-            * (element i contains f(w^(rev(i))), where rev() is the
-            * bit-reversal function over the ring degree. This changes
-            * indexes with regards to the Falcon specification.
-            */
+             * The FFT representation we use is in bit-reversed order (element i contains f(w^(rev(i))), where rev() is
+             * the bit-reversal function over the ring degree. This changes indexes with regards to the Falcon
+             * specification.
+             */
             int n = 1 << logN;
             int hn = n >> 1;
             int qn = hn >> 1;
 
             /*
-            * We process complex values by pairs. For logn = 1, there is only
-            * one complex value (the other one is the implicit conjugate),
-            * so we add the two lines below because the loop will be
-            * skipped.
-            */
+             * We process complex values by pairs. For logN = 1, there is only one complex value (the other one is the
+             * implicit conjugate), so we add the two lines below because the loop will be skipped.
+             */
             f0src[f0 + 0] = fsrc[f + 0];
             f1src[f1 + 0] = fsrc[f + hn];
 
             for (int u = 0; u < qn; ++u)
             {
-                FalconFPR a_re = fsrc[f + (u << 1) + 0];
-                FalconFPR a_im = fsrc[f + (u << 1) + 0 + hn];
-                FalconFPR b_re = fsrc[f + (u << 1) + 1];
-                FalconFPR b_im = fsrc[f + (u << 1) + 1 + hn];
+                FalconFpr a_re = fsrc[f + (u << 1) + 0];
+                FalconFpr a_im = fsrc[f + (u << 1) + 0 + hn];
+                FalconFpr b_re = fsrc[f + (u << 1) + 1];
+                FalconFpr b_im = fsrc[f + (u << 1) + 1 + hn];
 
-                FalconFPR[] res = FPC_ADD(a_re, a_im, b_re, b_im);
-                FalconFPR t_re = res[0], t_im = res[1];
-                f0src[f0 + u] = FprEngine.fpr_half(t_re);
-                f0src[f0 + u + qn] = FprEngine.fpr_half(t_im);
+                FalconFpr[] res = FpcAdd(a_re, a_im, b_re, b_im);
+                FalconFpr t_re = res[0], t_im = res[1];
+                f0src[f0 + u] = FprEngine.FprHalf(t_re);
+                f0src[f0 + u + qn] = FprEngine.FprHalf(t_im);
 
-                res = FPC_SUB(a_re, a_im, b_re, b_im);
+                res = FpcSub(a_re, a_im, b_re, b_im);
                 t_re = res[0]; t_im = res[1];
-                res = FPC_MUL(t_re, t_im,
-                    FprEngine.fpr_gm_tab[((u + hn) << 1) + 0],
-                    FprEngine.fpr_neg(FprEngine.fpr_gm_tab[((u + hn) << 1) + 1]));
+                res = FpcMul(t_re, t_im,
+                    FprEngine.FprGMTab[((u + hn) << 1) + 0],
+                    FprEngine.FprNeg(FprEngine.FprGMTab[((u + hn) << 1) + 1]));
                 t_re = res[0]; t_im = res[1];
-                f1src[f1 + u] = FprEngine.fpr_half(t_re);
-                f1src[f1 + u + qn] = FprEngine.fpr_half(t_im);
+                f1src[f1 + u] = FprEngine.FprHalf(t_re);
+                f1src[f1 + u + qn] = FprEngine.FprHalf(t_im);
             }
         }
 
-        internal static void poly_merge_fft(FalconFPR[] fsrc, int f, FalconFPR[] f0src, int f0, FalconFPR[] f1src,
-            int f1, int logN)
+        internal static void PolyMergeFft(FalconFpr[] fsrc, int f, FalconFpr[] f0src, int f0, FalconFpr[] f1src, int f1,
+            int logN)
         {
             int n = 1 << logN;
             int hn = n >> 1;
             int qn = hn >> 1;
 
-            /*
-            * An extra copy to handle the special case logn = 1.
-            */
+            // An extra copy to handle the special case logN = 1.
+
             fsrc[f + 0] = f0src[f0 + 0];
             fsrc[f + hn] = f1src[f1 + 0];
 
             for (int u = 0; u < qn; ++u)
             {
-                FalconFPR a_re = f0src[f0 + u];
-                FalconFPR a_im = f0src[f0 + u + qn];
-                FalconFPR[] res = FPC_MUL(f1src[f1 + u], f1src[f1 + u + qn],
-                    FprEngine.fpr_gm_tab[((u + hn) << 1) + 0],
-                    FprEngine.fpr_gm_tab[((u + hn) << 1) + 1]);
-                FalconFPR b_re = res[0], b_im = res[1];
-                res = FPC_ADD(a_re, a_im, b_re, b_im);
-                FalconFPR t_re = res[0], t_im = res[1];
+                FalconFpr a_re = f0src[f0 + u];
+                FalconFpr a_im = f0src[f0 + u + qn];
+                FalconFpr[] res = FpcMul(f1src[f1 + u], f1src[f1 + u + qn],
+                    FprEngine.FprGMTab[((u + hn) << 1) + 0],
+                    FprEngine.FprGMTab[((u + hn) << 1) + 1]);
+                FalconFpr b_re = res[0], b_im = res[1];
+                res = FpcAdd(a_re, a_im, b_re, b_im);
+                FalconFpr t_re = res[0], t_im = res[1];
                 fsrc[f + (u << 1) + 0] = t_re;
                 fsrc[f + (u << 1) + 0 + hn] = t_im;
-                res = FPC_SUB(a_re, a_im, b_re, b_im);
+                res = FpcSub(a_re, a_im, b_re, b_im);
                 t_re = res[0]; t_im = res[1];
                 fsrc[f + (u << 1) + 1] = t_re;
                 fsrc[f + (u << 1) + 1 + hn] = t_im;

@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         {
             byte[] sm = new byte[nist.CryptoBytes];
 
-            return nist.crypto_sign(false, sm, message, 0, message.Length, encodedkey, 0);
+            return nist.CryptoSign(false, sm, message, 0, message.Length, encodedkey, 0);
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             byte[] sig = new byte[signature.Length - nonceLength - 1];
             Array.Copy(signature, 1, nonce, 0, nonceLength);
             Array.Copy(signature, nonceLength + 1, sig, 0, signature.Length - nonceLength - 1);
-            return nist.crypto_sign_open(false, sig, nonce, message, encodedkey, 0) == 0;
+            return nist.CryptoSignOpen(false, sig, nonce, message, encodedkey, 0) == 0;
         }
     }
 }

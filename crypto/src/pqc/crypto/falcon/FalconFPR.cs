@@ -1,10 +1,10 @@
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
-    internal struct FalconFPR
+    internal struct FalconFpr
     {
         internal readonly double v;
 
-        internal FalconFPR(double v)
+        internal FalconFpr(double v)
         {
             this.v = v;
         }

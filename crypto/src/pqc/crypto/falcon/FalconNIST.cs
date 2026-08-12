@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
         }
 
-        internal int crypto_sign_keypair(out byte[] pk, out byte[] fEnc, out byte[] gEnc, out byte[] FEnc)
+        internal int CryptoSignKeyPair(out byte[] pk, out byte[] fEnc, out byte[] gEnc, out byte[] FEnc)
         {
             byte[] sk = new byte[CRYPTO_SECRETKEYBYTES];
             pk = new byte[CRYPTO_PUBLICKEYBYTES];
@@ -55,44 +55,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             sbyte[] f = new sbyte[n], g = new sbyte[n], F = new sbyte[n];
             ushort[] h = new ushort[n];
 
-            /*
-            * Generate key pair.
-            */
+            // Generate key pair.
             {
                 byte[] seed = new byte[48];
                 m_random.NextBytes(seed);
 
-                SHAKE256 rng = new SHAKE256();
-                rng.i_shake256_init();
-                rng.i_shake256_inject(seed, 0, seed.Length);
-                rng.i_shake256_flip();
+                Shake256 rng = new Shake256();
+                rng.Init();
+                rng.Absorb(seed, 0, seed.Length);
+                rng.Flip();
 
                 FalconKeyGen.KeyGen(rng, f, 0, g, 0, F, 0, null, 0, h, 0, m_logN);
             }
 
             // TODO check which exception types to use here
 
-            /*
-            * Encode private key.
-            */
+            // Encode private key.
             sk[0] = (byte)(0x50 + m_logN);
             int u = 1;
-            int v = FalconCodec.trim_i8_encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
-                f, 0, m_logN, FalconCodec.max_fg_bits[m_logN]);
+            int v = FalconCodec.TrimI8Encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
+                f, 0, m_logN, FalconCodec.MaxBits_fg[m_logN]);
             if (v == 0)
                 throw new InvalidOperationException("f encode failed");
 
             fEnc = Arrays.CopyOfRange(sk, u, u + v);
             u += v;
-            v = FalconCodec.trim_i8_encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
-                g, 0, m_logN, FalconCodec.max_fg_bits[m_logN]);
+            v = FalconCodec.TrimI8Encode(sk, u, CRYPTO_SECRETKEYBYTES - u,
+                g, 0, m_logN, FalconCodec.MaxBits_fg[m_logN]);
             if (v == 0)
                 throw new InvalidOperationException("g encode failed");
 
             gEnc = Arrays.CopyOfRange(sk, u, u + v);
             u += v;
-            v = FalconCodec.trim_i8_encode(sk,  u, CRYPTO_SECRETKEYBYTES - u,
-                F, 0, m_logN, FalconCodec.max_FG_bits[m_logN]);
+            v = FalconCodec.TrimI8Encode(sk,  u, CRYPTO_SECRETKEYBYTES - u,
+                F, 0, m_logN, FalconCodec.MaxBits_FG[m_logN]);
             if (v == 0)
                 throw new InvalidOperationException("F encode failed");
 
@@ -101,11 +97,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             if (u != CRYPTO_SECRETKEYBYTES)
                  throw new InvalidOperationException("secret key encoding failed");
 
-            /*
-            * Encode public key.
-            */
+            // Encode public key.
             pk[0] = (byte)(0x00 + m_logN);
-            v = FalconCodec.modq_encode(pk, 1, CRYPTO_PUBLICKEYBYTES - 1, h, 0, m_logN);
+            v = FalconCodec.ModQEncode(pk, 1, CRYPTO_PUBLICKEYBYTES - 1, h, 0, m_logN);
             if (v != CRYPTO_PUBLICKEYBYTES - 1)
                  throw new InvalidOperationException("public key encoding failed");
 
@@ -114,7 +108,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return 0;
         }
 
-        internal byte[] crypto_sign(bool attached, byte[] sm, byte[] m, int mOff, int mLen, byte[] sk, int skOff)
+        internal byte[] CryptoSign(bool attached, byte[] sm, byte[] m, int mOff, int mLen, byte[] sk, int skOff)
         {
             // TEMPALLOC union {
             //     uint8_t b[72 * 1024];
@@ -127,15 +121,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                     g = new sbyte[n],
                     F = new sbyte[n],
                     G = new sbyte[n];
-            
+
             short[] sig = new short[n];
             ushort[] hm = new ushort[n];
-            
+
             byte[] seed = new byte[48],
                    nonce = new byte[m_nonceLength];
 
             byte[] esig = new byte[this.CRYPTO_BYTES - 2 - m_nonceLength];
-            SHAKE256 sc = new SHAKE256();
+            Shake256 sc = new Shake256();
 
             // /*
             // * Decode the private key.
@@ -144,56 +138,48 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             //     throw new ArgumentException("private key header incorrect");
             // }
             int u = 0;
-            int v = FalconCodec.trim_i8_decode(f, 0, m_logN, FalconCodec.max_fg_bits[m_logN], sk, skOff + u,
+            int v = FalconCodec.TrimI8Decode(f, 0, m_logN, FalconCodec.MaxBits_fg[m_logN], sk, skOff + u,
                 CRYPTO_SECRETKEYBYTES - u);
             if (v == 0)
                 throw new InvalidOperationException("f decode failed");
 
             u += v;
-            v = FalconCodec.trim_i8_decode(g, 0, m_logN, FalconCodec.max_fg_bits[m_logN], sk, skOff + u,
+            v = FalconCodec.TrimI8Decode(g, 0, m_logN, FalconCodec.MaxBits_fg[m_logN], sk, skOff + u,
                 CRYPTO_SECRETKEYBYTES - u);
             if (v == 0)
                 throw new InvalidOperationException("g decode failed");
 
             u += v;
-            v = FalconCodec.trim_i8_decode(F, 0, m_logN, FalconCodec.max_FG_bits[m_logN], sk, skOff + u,
+            v = FalconCodec.TrimI8Decode(F, 0, m_logN, FalconCodec.MaxBits_FG[m_logN], sk, skOff + u,
                 CRYPTO_SECRETKEYBYTES - u);
-            if (v == 0) 
+            if (v == 0)
                 throw new InvalidOperationException("F decode failed");
 
             u += v;
-            if (u != CRYPTO_SECRETKEYBYTES - 1) 
+            if (u != CRYPTO_SECRETKEYBYTES - 1)
                 throw new InvalidOperationException("full Key not used");
 
-            if (FalconVrfy.complete_private(G, 0, f, 0, g, 0, F, 0, m_logN, new ushort[2 * n], 0) == 0)
+            if (FalconVrfy.CompletePrivate(G, 0, f, 0, g, 0, F, 0, m_logN, new ushort[2 * n], 0) == 0)
                 throw new InvalidOperationException("complete private failed");
 
-            /*
-            * Create a random nonce (40 bytes).
-            */
+            // Create a random nonce (40 bytes).
             m_random.NextBytes(nonce);
 
-            /*
-            * Hash message nonce + message into a vector.
-            */
-            sc.i_shake256_init();
-            sc.i_shake256_inject(nonce,0,nonce.Length);
-            sc.i_shake256_inject(m, mOff, mLen);
-            sc.i_shake256_flip();
-            FalconCommon.hash_to_point_vartime(sc, hm, 0, m_logN);
+            // Hash message nonce + message into a vector.
+            sc.Init();
+            sc.Absorb(nonce,0,nonce.Length);
+            sc.Absorb(m, mOff, mLen);
+            sc.Flip();
+            FalconCommon.HashToPointVar(sc, hm, 0, m_logN);
 
-            /*
-            * Initialize a RNG.
-            */
+            // Initialize a RNG.
             m_random.NextBytes(seed);
-            sc.i_shake256_init();
-            sc.i_shake256_inject(seed, 0, seed.Length);
-            sc.i_shake256_flip();
+            sc.Init();
+            sc.Absorb(seed, 0, seed.Length);
+            sc.Flip();
 
-            /*
-            * Compute the signature.
-            */
-            FalconSign.sign_dyn(sig, 0, sc, f, 0, g, 0, F, 0, G, 0, hm, 0, m_logN, new FalconFPR[10 * n], 0);
+            // Compute the signature.
+            FalconSign.SignDyn(sig, 0, sc, f, 0, g, 0, F, 0, G, 0, hm, 0, m_logN, new FalconFpr[10 * n], 0);
 
             int sig_len;
             if (attached)
@@ -205,7 +191,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                  *   signature            slen bytes
                  */
                 esig[0] = (byte)(0x20 + m_logN);
-                sig_len = FalconCodec.comp_encode(esig, 1, esig.Length - 1, sig, 0, m_logN);
+                sig_len = FalconCodec.CompEncode(esig, 1, esig.Length - 1, sig, 0, m_logN);
                 if (sig_len == 0)
                     throw new InvalidOperationException("signature failed to generate");
 
@@ -213,7 +199,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             }
             else
             {
-                sig_len = FalconCodec.comp_encode(esig, 0, esig.Length, sig, 0, m_logN);
+                sig_len = FalconCodec.CompEncode(esig, 0, esig.Length, sig, 0, m_logN);
                 if (sig_len == 0)
                     throw new InvalidOperationException("signature failed to generate");
             }
@@ -229,31 +215,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return Arrays.CopyOfRange(sm, 0, 1 + m_nonceLength + sig_len);
         }
 
-        internal int crypto_sign_open(bool attached, byte[] sig_encoded, byte[] nonce, byte[] m, byte[] pksrc, int pk)
+        internal int CryptoSignOpen(bool attached, byte[] sig_encoded, byte[] nonce, byte[] m, byte[] pksrc, int pk)
         {
             int sig_len, msg_len;
             int n = 1 << m_logN;
             ushort[] h = new ushort[n],
                      hm = new ushort[n];
             short[] sig = new short[n];
-            SHAKE256 sc = new SHAKE256();
+            Shake256 sc = new Shake256();
 
-            /*
-            * Decode public key.
-            */
+            // Decode public key.
             // if (pksrc[pk+0] != 0x00 + this.logn) {
             //     return -1;
             // }
-            if (FalconCodec.modq_decode(h, 0, m_logN, pksrc, pk, CRYPTO_PUBLICKEYBYTES - 1)
+            if (FalconCodec.ModQDecode(h, 0, m_logN, pksrc, pk, CRYPTO_PUBLICKEYBYTES - 1)
                 != CRYPTO_PUBLICKEYBYTES - 1)
             {
                 return -1;
             }
-            FalconVrfy.to_ntt_monty(h, 0, m_logN);
+            FalconVrfy.ToNttMonty(h, 0, m_logN);
 
-            /*
-            * Find nonce, signature, message length.
-            */
+            // Find nonce, signature, message length.
             // if (smlen < 2 + this.noncelen) {
             //     return -1;
             // }
@@ -265,43 +247,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             // msg_len = smlen - 2 - this.noncelen - sig_len;
             msg_len = m.Length;
 
-            /*
-            * Decode signature.
-            */
+            // Decode signature.
             // esig = sm + 2 + this.noncelen + msg_len;
             if (attached)
             {
                 if (sig_len < 1 || sig_encoded[0] != (byte)(0x20 + m_logN))
                     return -1;
 
-                if (FalconCodec.comp_decode(sig, 0, m_logN, sig_encoded, 1, sig_len - 1) != sig_len - 1)
+                if (FalconCodec.CompDecode(sig, 0, m_logN, sig_encoded, 1, sig_len - 1) != sig_len - 1)
                     return -1;
             }
             else
             {
-                if (sig_len < 1 || FalconCodec.comp_decode(sig, 0, m_logN, sig_encoded, 0, sig_len) != sig_len)
+                if (sig_len < 1 || FalconCodec.CompDecode(sig, 0, m_logN, sig_encoded, 0, sig_len) != sig_len)
                     return -1;
             }
 
-            /*
-            * Hash nonce + message into a vector.
-            */
-            sc.i_shake256_init();
+            // Hash nonce + message into a vector.
+            sc.Init();
             // sc.i_shake256_inject(sm + 2, this.noncelen + msg_len);
-            sc.i_shake256_inject(nonce, 0, m_nonceLength);
-            sc.i_shake256_inject(m, 0, m.Length);
-            sc.i_shake256_flip();
-            FalconCommon.hash_to_point_vartime(sc, hm, 0, m_logN);
+            sc.Absorb(nonce, 0, m_nonceLength);
+            sc.Absorb(m, 0, m.Length);
+            sc.Flip();
+            FalconCommon.HashToPointVar(sc, hm, 0, m_logN);
 
-            /*
-            * Verify signature.
-            */
-            if (!FalconVrfy.verify_raw(hm, 0, sig, 0, h, 0, m_logN, new ushort[n], 0))
+            // Verify signature.
+            if (!FalconVrfy.VerifyRaw(hm, 0, sig, 0, h, 0, m_logN, new ushort[n], 0))
                 return -1;
 
-            /*
-            * Return plaintext. - not in use
-            */
+            // Return plaintext. - not in use
             // Array.Copy(sm + 2 + this.noncelen, m, msg_len);
             // *mlen = msg_len;
             return 0;

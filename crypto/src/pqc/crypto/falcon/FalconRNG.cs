@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             this.sd = new byte[256];
         }
 
-        /* 
+        /*
         * License from the reference C code (the code was copied then modified
         * to function in C#):
         * ==========================(LICENSE BEGIN)============================
@@ -45,14 +45,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * ===========================(LICENSE END)=============================
         */
 
-        internal void prng_init(SHAKE256 src)
+        internal void Init(Shake256 src)
         {
-            /*
-            * For reproducibility, enforce little-endian interpretation of the state words.
-            */
+            // For reproducibility, enforce little-endian interpretation of the state words.
             byte[] tmp = new byte[56];
-
-            src.i_shake256_extract(tmp,0, 56);
+            src.Squeeze(tmp,0, 56);
             for (int i = 0; i < 14; ++i)
             {
                 uint w = Pack.LE_To_UInt32(tmp, i << 2);
@@ -61,7 +58,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             ulong tl = Pack.LE_To_UInt32(this.sd, 48);
             ulong th = Pack.LE_To_UInt32(this.sd, 52);
             Pack.UInt64_To_LE(tl + (th << 32), this.sd, 48);
-            this.prng_refill();
+            Refill();
         }
 
         /*
@@ -78,7 +75,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         *
         * The block counter is XORed into the first 8 bytes of the IV.
         */
-        private static void QROUND(uint[] state, int a, int b, int c, int d)
+        private static void QuarterRound(uint[] state, int a, int b, int c, int d)
         {
             state[a] += state[b];
             state[d] ^= state[a];
@@ -94,15 +91,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             state[b] = (state[b] <<  7) | (state[b] >> 25);
         }
 
-        private void prng_refill()
+        private void Refill()
         {
             uint[] CW = { 0x61707865, 0x3320646e, 0x79622d32, 0x6b206574 };
 
-            /*
-            * State uses local endianness. Only the output bytes must be
-            * converted to little endian (if used on a big-endian machine).
-            */
-
+            // State uses local endianness. Only the output bytes might need endian conversion.
             ulong cc = Pack.LE_To_UInt64(this.sd, 48);
             uint[] state = new uint[16];
 
@@ -115,14 +108,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
                 for (int i = 0; i < 10; ++i)
                 {
-                    QROUND(state, 0,  4,  8, 12);
-                    QROUND(state, 1,  5,  9, 13);
-                    QROUND(state, 2,  6, 10, 14);
-                    QROUND(state, 3,  7, 11, 15);
-                    QROUND(state, 0,  5, 10, 15);
-                    QROUND(state, 1,  6, 11, 12);
-                    QROUND(state, 2,  7,  8, 13);
-                    QROUND(state, 3,  4,  9, 14);
+                    QuarterRound(state, 0,  4,  8, 12);
+                    QuarterRound(state, 1,  5,  9, 13);
+                    QuarterRound(state, 2,  6, 10, 14);
+                    QuarterRound(state, 3,  7, 11, 15);
+                    QuarterRound(state, 0,  5, 10, 15);
+                    QuarterRound(state, 1,  6, 11, 12);
+                    QuarterRound(state, 2,  7,  8, 13);
+                    QuarterRound(state, 3,  4,  9, 14);
                 }
 
                 int v;
@@ -172,21 +165,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         //    }
         //}
 
-        /*
-         * Get a 64-bit random value from a PRNG.
-         */
-        internal ulong prng_get_u64()
+        /// <summary>Get a 64-bit random value from a PRNG.</summary>
+        internal ulong GetUInt64()
         {
             /*
-            * If there are less than 9 bytes in the buffer, we refill it.
-            * This means that we may drop the last few bytes, but this allows
-            * for faster extraction code. Also, it means that we never leave
-            * an empty buffer.
-            */
+             * If there are less than 9 bytes in the buffer, we refill it. This means that we may drop the last few
+             * bytes, but this allows for faster extraction code. Also, it means that we never leave an empty buffer.
+             */
             int u = this.ptr;
             if (u >= (this.bd.Length) - 9)
             {
-                this.prng_refill();
+                Refill();
                 u = 0;
             }
             this.ptr = u + 8;
@@ -194,15 +183,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return Pack.LE_To_UInt64(this.bd, u);
         }
 
-        /*
-        * Get an 8-bit random value from a PRNG.
-        */
-        internal uint prng_get_u8()
+        /// <summary>Get an 8-bit random value from a PRNG.</summary>
+        internal byte GetByte()
         {
-            uint v = this.bd[this.ptr ++];
+            byte v = this.bd[this.ptr++];
             if (this.ptr == this.bd.Length)
             {
-                this.prng_refill();
+                Refill();
             }
             return v;
         }
