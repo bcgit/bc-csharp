@@ -114,14 +114,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             Assert.AreEqual(10, FalconParameters.falcon_1024.LogN);
         }
 
-        [Test]
-        public void TestRandom()
+        [TestCaseSource(nameof(ParametersValues))]
+        [Parallelizable(ParallelScope.All)]
+        public void Consistency(FalconParameters parameters)
         {
             SecureRandom random = new SecureRandom();
             byte[] msg = Strings.ToByteArray("Hello World!");
 
             FalconKeyPairGenerator keyGen = new FalconKeyPairGenerator();
-            keyGen.Init(new FalconKeyGenerationParameters(random, FalconParameters.falcon_512));
+            keyGen.Init(new FalconKeyGenerationParameters(random, parameters));
 
             for (int i = 0; i < 10; ++i)
             {
