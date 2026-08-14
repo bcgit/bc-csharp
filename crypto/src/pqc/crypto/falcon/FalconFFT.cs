@@ -31,80 +31,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         * ===========================(LICENSE END)=============================
         */
 
-        /// <summary>Addition of two complex numbers (d = a + b).</summary>
-        private static FalconFpr[] FpcAdd(FalconFpr a_re, FalconFpr a_im, FalconFpr b_re, FalconFpr b_im)
-        {
-            FalconFpr fpct_re = FprEngine.FprAdd(a_re, b_re);
-            FalconFpr fpct_im = FprEngine.FprAdd(a_im, b_im);
-            return new FalconFpr[]{ fpct_re, fpct_im };
-        }
-
-        /// <summary>Subtraction of two complex numbers (d = a - b).</summary>
-        private static FalconFpr[] FpcSub(FalconFpr a_re, FalconFpr a_im, FalconFpr b_re, FalconFpr b_im)
-        {
-            FalconFpr fpct_re = FprEngine.FprSub(a_re, b_re);
-            FalconFpr fpct_im = FprEngine.FprSub(a_im, b_im);
-            return new FalconFpr[]{ fpct_re, fpct_im };
-        }
-
-        /// <summary>Multplication of two complex numbers (d = a * b).</summary>
-        internal static FalconFpr[] FpcMul(FalconFpr a_re, FalconFpr a_im, FalconFpr b_re, FalconFpr b_im)
-        {
-            FalconFpr fpct_a_re = a_re;
-            FalconFpr fpct_a_im = a_im;
-            FalconFpr fpct_b_re = b_re;
-            FalconFpr fpct_b_im = b_im;
-            FalconFpr fpct_d_re = FprEngine.FprSub(
-                FprEngine.FprMul(fpct_a_re, fpct_b_re),
-                FprEngine.FprMul(fpct_a_im, fpct_b_im));
-            FalconFpr fpct_d_im = FprEngine.FprAdd(
-                FprEngine.FprMul(fpct_a_re, fpct_b_im),
-                FprEngine.FprMul(fpct_a_im, fpct_b_re));
-            return new FalconFpr[]{fpct_d_re, fpct_d_im};
-        }
-
-        /// <summary>Squaring of a complex number (d = a * a).</summary>
-        private static FalconFpr[] FpcSqr(FalconFpr d_re, FalconFpr d_im, FalconFpr a_re, FalconFpr a_im)
-        {
-            FalconFpr fpct_a_re = a_re;
-            FalconFpr fpct_a_im = a_im;
-            FalconFpr fpct_d_re = FprEngine.FprSub(FprEngine.FprSqr(fpct_a_re), FprEngine.FprSqr(fpct_a_im));
-            FalconFpr fpct_d_im = FprEngine.FprDouble(FprEngine.FprMul(fpct_a_re, fpct_a_im));
-            return new FalconFpr[]{ fpct_d_re, fpct_d_im };
-        }
-
-        /// <summary>Inversion of a complex number (d = 1 / a).</summary>
-        private static FalconFpr[] FpcInv(FalconFpr a_re, FalconFpr a_im)
-        {
-            FalconFpr fpct_a_re = a_re;
-            FalconFpr fpct_a_im = a_im;
-            FalconFpr fpct_m = FprEngine.FprAdd(FprEngine.FprSqr(fpct_a_re), FprEngine.FprSqr(fpct_a_im));
-            fpct_m = FprEngine.FprInv(fpct_m);
-            FalconFpr fpct_d_re = FprEngine.FprMul(fpct_a_re, fpct_m);
-            FalconFpr fpct_d_im = FprEngine.FprMul(FprEngine.FprNeg(fpct_a_im), fpct_m);
-            return new FalconFpr[]{ fpct_d_re, fpct_d_im };
-        }
-
-        /// <summary>Division of complex numbers (d = a / b).</summary>
-        private static FalconFpr[] FpcDiv(FalconFpr a_re, FalconFpr a_im, FalconFpr b_re, FalconFpr b_im)
-        {
-            FalconFpr fpct_a_re = (a_re);
-            FalconFpr fpct_a_im = (a_im);
-            FalconFpr fpct_b_re = (b_re);
-            FalconFpr fpct_b_im = (b_im);
-            FalconFpr fpct_m = FprEngine.FprAdd(FprEngine.FprSqr(fpct_b_re), FprEngine.FprSqr(fpct_b_im));
-            fpct_m = FprEngine.FprInv(fpct_m);
-            fpct_b_re = FprEngine.FprMul(fpct_b_re, fpct_m);
-            fpct_b_im = FprEngine.FprMul(FprEngine.FprNeg(fpct_b_im), fpct_m);
-            FalconFpr fpct_d_re = FprEngine.FprSub(
-                FprEngine.FprMul(fpct_a_re, fpct_b_re),
-                FprEngine.FprMul(fpct_a_im, fpct_b_im));
-            FalconFpr fpct_d_im = FprEngine.FprAdd(
-                FprEngine.FprMul(fpct_a_re, fpct_b_im),
-                FprEngine.FprMul(fpct_a_im, fpct_b_re));
-            return new FalconFpr[]{ fpct_d_re, fpct_d_im };
-        }
-
         /*
          * Let w = exp(i*pi/N); w is a primitive 2N-th root of 1. We define the values w_j = w^(2j+1) for all j from 0
          * to N-1: these are the roots of X^N+1 in the field of complex numbers. A crucial property is that
@@ -171,20 +97,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 for (int i1 = 0, j1 = 0; i1 < hm; ++i1, j1 += t)
                 {
                     int j2 = j1 + ht;
-                    FalconFpr s_re = FprEngine.FprGMTab[((m + i1) << 1) + 0];
-                    FalconFpr s_im = FprEngine.FprGMTab[((m + i1) << 1) + 1];
+                    var s = new FalconFpc(
+                        FprEngine.FprGMTab[((m + i1) << 1) + 0],
+                        FprEngine.FprGMTab[((m + i1) << 1) + 1]);
                     for (int j = j1; j < j2; ++j)
                     {
-                        FalconFpr x_re = fsrc[f + j];
-                        FalconFpr x_im = fsrc[f + j + hn];
-                        FalconFpr y_re = fsrc[f + j + ht];
-                        FalconFpr y_im = fsrc[f + j + ht + hn];
-                        FalconFpr[] res = FpcMul(y_re, y_im, s_re, s_im);
-                        y_re = res[0]; y_im = res[1];
-                        res = FpcAdd(x_re, x_im, y_re, y_im);
-                        fsrc[f + j] = res[0]; fsrc[f + j + hn] = res[1];
-                        res = FpcSub(x_re, x_im, y_re, y_im);
-                        fsrc[f + j + ht] = res[0]; fsrc[f + j + ht + hn] = res[1];
+                        var x = new FalconFpc(fsrc[f + j], fsrc[f + j + hn]);
+                        var y = FalconFpc.Mul(new FalconFpc(fsrc[f + j + ht], fsrc[f + j + ht + hn]), s);
+                        var z = FalconFpc.Add(x, y);
+                        fsrc[f + j] = z.Re; fsrc[f + j + hn] = z.Im;
+                        z = FalconFpc.Sub(x, y);
+                        fsrc[f + j + ht] = z.Re; fsrc[f + j + ht + hn] = z.Im;
                     }
                 }
                 t = ht;
@@ -241,21 +164,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
                 for (int i1 = 0, j1 = 0; j1 < hn; ++i1, j1 += dt)
                 {
                     int j2 = j1 + t;
-                    FalconFpr s_re = FprEngine.FprGMTab[((hm + i1) << 1) + 0];
-                    FalconFpr s_im = FprEngine.FprNeg(FprEngine.FprGMTab[((hm + i1) << 1) + 1]);
+                    var s = FalconFpc.Conj(new FalconFpc(
+                        FprEngine.FprGMTab[((hm + i1) << 1) + 0],
+                        FprEngine.FprGMTab[((hm + i1) << 1) + 1]));
                     for (int j = j1; j < j2; ++j)
                     {
-                        FalconFpr x_re = fsrc[f + j];
-                        FalconFpr x_im = fsrc[f + j + hn];
-                        FalconFpr y_re = fsrc[f + j + t];
-                        FalconFpr y_im = fsrc[f + j + t + hn];
-                        FalconFpr[] res = FpcAdd(x_re, x_im, y_re, y_im);
-                        fsrc[f + j] = res[0]; fsrc[f + j + hn] = res[1];
+                        var x = new FalconFpc(fsrc[f + j], fsrc[f + j + hn]);
+                        var y = new FalconFpc(fsrc[f + j + t], fsrc[f + j + t + hn]);
+                        var z = FalconFpc.Add(x, y);
+                        fsrc[f + j] = z.Re; fsrc[f + j + hn] = z.Im;
 
-                        res = FpcSub(x_re, x_im, y_re, y_im);
-                        x_re = res[0]; x_im = res[1];
-                        res = FpcMul(x_re, x_im, s_re, s_im);
-                        fsrc[f + j + t] = res[0]; fsrc[f + j + t + hn] = res[1];
+                        z = FalconFpc.Mul(FalconFpc.Sub(x, y), s);
+                        fsrc[f + j + t] = z.Re; fsrc[f + j + t + hn] = z.Im;
                     }
                 }
                 t = dt;
@@ -318,12 +238,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFpr a_re = asrc[a + u];
-                FalconFpr a_im = asrc[a + u + hn];
-                FalconFpr b_re = bsrc[b + u];
-                FalconFpr b_im = bsrc[b + u + hn];
-                FalconFpr[] res = FpcMul(a_re, a_im, b_re, b_im);
-                asrc[a + u] = res[0]; asrc[a + u + hn] = res[1];
+                var x = new FalconFpc(asrc[a + u], asrc[a + u + hn]);
+                var y = new FalconFpc(bsrc[b + u], bsrc[b + u + hn]);
+                var z = FalconFpc.Mul(x, y);
+                asrc[a + u] = z.Re; asrc[a + u + hn] = z.Im;
             }
         }
 
@@ -333,12 +251,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFpr a_re = asrc[a + u];
-                FalconFpr a_im = asrc[a + u + hn];
-                FalconFpr b_re = bsrc[b + u];
-                FalconFpr b_im = FprEngine.FprNeg(bsrc[b + u + hn]);
-                FalconFpr[] res = FpcMul(a_re, a_im, b_re, b_im);
-                asrc[a + u] = res[0]; asrc[a + u + hn] = res[1];
+                var x = new FalconFpc(asrc[a + u], asrc[a + u + hn]);
+                var y = FalconFpc.Conj(new FalconFpc(bsrc[b + u], bsrc[b + u + hn]));
+                var z = FalconFpc.Mul(x, y);
+                asrc[a + u] = z.Re; asrc[a + u + hn] = z.Im;
             }
         }
 
@@ -405,21 +321,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFpr F_re = Fsrc[F + u];
-                FalconFpr F_im = Fsrc[F + u + hn];
-                FalconFpr G_re = Gsrc[G + u];
-                FalconFpr G_im = Gsrc[G + u + hn];
-                FalconFpr f_re = fsrc[f + u];
-                FalconFpr f_im = fsrc[f + u + hn];
-                FalconFpr g_re = gsrc[g + u];
-                FalconFpr g_im = gsrc[g + u + hn];
-
-                FalconFpr[] res = FpcMul(F_re, F_im, f_re, FprEngine.FprNeg(f_im));
-                FalconFpr a_re = res[0], a_im = res[1];
-                res = FpcMul(G_re, G_im, g_re, FprEngine.FprNeg(g_im));
-                FalconFpr b_re = res[0], b_im = res[1];
-                dsrc[d + u] = FprEngine.FprAdd(a_re, b_re);
-                dsrc[d + u + hn] = FprEngine.FprAdd(a_im, b_im);
+                var zF = FalconFpc.Mul(
+                    new FalconFpc(Fsrc[F + u], Fsrc[F + u + hn]),
+                    FalconFpc.Conj(new FalconFpc(fsrc[f + u], fsrc[f + u + hn])));
+                var zG = FalconFpc.Mul(
+                    new FalconFpc(Gsrc[G + u], Gsrc[G + u + hn]),
+                    FalconFpc.Conj(new FalconFpc(gsrc[g + u], gsrc[g + u + hn])));
+                var z = FalconFpc.Add(zF, zG);
+                dsrc[d + u] = z.Re;
+                dsrc[d + u + hn] = z.Im;
             }
         }
 
@@ -453,20 +363,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             int hn = n >> 1;
             for (int u = 0; u < hn; ++u)
             {
-                FalconFpr g00_re = g00src[g00 + u];
-                FalconFpr g00_im = g00src[g00 + u + hn];
-                FalconFpr g01_re = g01src[g01 + u];
-                FalconFpr g01_im = g01src[g01 + u + hn];
-                FalconFpr g11_re = g11src[g11 + u];
-                FalconFpr g11_im = g11src[g11 + u + hn];
-                FalconFpr[] res = FpcDiv(g01_re, g01_im, g00_re, g00_im);
-                FalconFpr mu_re = res[0], mu_im = res[1];
-                res = FpcMul(mu_re, mu_im, g01_re, FprEngine.FprNeg(g01_im));
-                g01_re = res[0]; g01_im = res[1];
-                res = FpcSub(g11_re, g11_im, g01_re, g01_im);
-                g11src[g11 + u] = res[0]; g11src[g11 + u + hn] = res[1];
-                g01src[g01 + u] = mu_re;
-                g01src[g01 + u + hn] = FprEngine.FprNeg(mu_im);
+                var c00 = new FalconFpc(g00src[g00 + u], g00src[g00 + u + hn]);
+                var c01 = new FalconFpc(g01src[g01 + u], g01src[g01 + u + hn]);
+                var c11 = new FalconFpc(g11src[g11 + u], g11src[g11 + u + hn]);
+                var mu = FalconFpc.Div(c01, c00);
+                var z = FalconFpc.Sub(c11, FalconFpc.Mul(mu, FalconFpc.Conj(c01)));
+                g11src[g11 + u] = z.Re; g11src[g11 + u + hn] = z.Im;
+                g01src[g01 + u] = mu.Re;
+                g01src[g01 + u + hn] = FprEngine.FprNeg(mu.Im);
             }
         }
 
@@ -515,24 +419,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
             for (int u = 0; u < qn; ++u)
             {
-                FalconFpr a_re = fsrc[f + (u << 1) + 0];
-                FalconFpr a_im = fsrc[f + (u << 1) + 0 + hn];
-                FalconFpr b_re = fsrc[f + (u << 1) + 1];
-                FalconFpr b_im = fsrc[f + (u << 1) + 1 + hn];
+                var a = new FalconFpc(fsrc[f + (u << 1) + 0], fsrc[f + (u << 1) + 0 + hn]);
+                var b = new FalconFpc(fsrc[f + (u << 1) + 1], fsrc[f + (u << 1) + 1 + hn]);
 
-                FalconFpr[] res = FpcAdd(a_re, a_im, b_re, b_im);
-                FalconFpr t_re = res[0], t_im = res[1];
-                f0src[f0 + u] = FprEngine.FprHalf(t_re);
-                f0src[f0 + u + qn] = FprEngine.FprHalf(t_im);
+                var t = FalconFpc.Add(a, b);
+                f0src[f0 + u] = FprEngine.FprHalf(t.Re);
+                f0src[f0 + u + qn] = FprEngine.FprHalf(t.Im);
 
-                res = FpcSub(a_re, a_im, b_re, b_im);
-                t_re = res[0]; t_im = res[1];
-                res = FpcMul(t_re, t_im,
+                t = FalconFpc.Mul(FalconFpc.Sub(a, b), FalconFpc.Conj(new FalconFpc(
                     FprEngine.FprGMTab[((u + hn) << 1) + 0],
-                    FprEngine.FprNeg(FprEngine.FprGMTab[((u + hn) << 1) + 1]));
-                t_re = res[0]; t_im = res[1];
-                f1src[f1 + u] = FprEngine.FprHalf(t_re);
-                f1src[f1 + u + qn] = FprEngine.FprHalf(t_im);
+                    FprEngine.FprGMTab[((u + hn) << 1) + 1])));
+                f1src[f1 + u] = FprEngine.FprHalf(t.Re);
+                f1src[f1 + u + qn] = FprEngine.FprHalf(t.Im);
             }
         }
 
@@ -550,20 +448,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
             for (int u = 0; u < qn; ++u)
             {
-                FalconFpr a_re = f0src[f0 + u];
-                FalconFpr a_im = f0src[f0 + u + qn];
-                FalconFpr[] res = FpcMul(f1src[f1 + u], f1src[f1 + u + qn],
+                var a = new FalconFpc(f0src[f0 + u], f0src[f0 + u + qn]);
+                var b = FalconFpc.Mul(new FalconFpc(f1src[f1 + u], f1src[f1 + u + qn]), new FalconFpc(
                     FprEngine.FprGMTab[((u + hn) << 1) + 0],
-                    FprEngine.FprGMTab[((u + hn) << 1) + 1]);
-                FalconFpr b_re = res[0], b_im = res[1];
-                res = FpcAdd(a_re, a_im, b_re, b_im);
-                FalconFpr t_re = res[0], t_im = res[1];
-                fsrc[f + (u << 1) + 0] = t_re;
-                fsrc[f + (u << 1) + 0 + hn] = t_im;
-                res = FpcSub(a_re, a_im, b_re, b_im);
-                t_re = res[0]; t_im = res[1];
-                fsrc[f + (u << 1) + 1] = t_re;
-                fsrc[f + (u << 1) + 1 + hn] = t_im;
+                    FprEngine.FprGMTab[((u + hn) << 1) + 1]));
+                var t = FalconFpc.Add(a, b);
+                fsrc[f + (u << 1) + 0] = t.Re;
+                fsrc[f + (u << 1) + 0 + hn] = t.Im;
+                t = FalconFpc.Sub(a, b);
+                fsrc[f + (u << 1) + 1] = t.Re;
+                fsrc[f + (u << 1) + 1 + hn] = t.Im;
             }
         }
     }
