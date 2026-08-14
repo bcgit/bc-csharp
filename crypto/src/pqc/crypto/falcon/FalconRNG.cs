@@ -1,3 +1,11 @@
+#if NETCOREAPP3_0_OR_GREATER
+using System;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics;
+using System.Runtime.Intrinsics.X86;
+#endif
+
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
@@ -67,6 +75,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 
         private void Refill()
         {
+#if NETCOREAPP3_0_OR_GREATER
+            if (Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled)
+            {
+                Refill_X86_Avx2();
+                return;
+            }
+#endif
+
             ulong cc = Pack.LE_To_UInt64(this.sd, 48);
 
             for (int u = 0; u < 8; ++u)
@@ -171,6 +187,137 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             Pack.UInt64_To_LE(cc, sd, 48);
             this.ptr = 0;
         }
+
+#if NETCOREAPP3_0_OR_GREATER
+        // PSHUFB masks for rotate-left-16 and rotate-left-8 on each uint32 lane.
+        // rot16: bytes [b0 b1 b2 b3] -> [b2 b3 b0 b1]; rot8: -> [b3 b0 b1 b2].
+        private static readonly Vector128<byte> Rot16Mask128 = Vector128.Create(
+            (byte)2, 3, 0, 1, 6, 7, 4, 5, 10, 11, 8, 9, 14, 15, 12, 13);
+        private static readonly Vector128<byte> Rot8Mask128 = Vector128.Create(
+            (byte)3, 0, 1, 2, 7, 4, 5, 6, 11, 8, 9, 10, 15, 12, 13, 14);
+        // AVX2 VPSHUFB operates per 128-bit lane, so the 256-bit mask is the 128-bit one duplicated.
+        private static readonly Vector256<byte> Rot16Mask256 = Vector256.Create(Rot16Mask128, Rot16Mask128);
+        private static readonly Vector256<byte> Rot8Mask256 = Vector256.Create(Rot8Mask128, Rot8Mask128);
+
+        private void Refill_X86_Avx2()
+        {
+            if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled)
+                throw new PlatformNotSupportedException();
+
+            ulong cc = Pack.LE_To_UInt64(sd, 48);
+
+            // Eight ChaCha20 instances in parallel, one per 32-bit lane, with block counters cc..cc+7.
+            var ccLo = Vector256.Create((uint)cc, (uint)(cc + 1), (uint)(cc + 2), (uint)(cc + 3),
+                (uint)(cc + 4), (uint)(cc + 5), (uint)(cc + 6), (uint)(cc + 7));
+            var ccHi = Vector256.Create((uint)(cc >> 32), (uint)((cc + 1) >> 32), (uint)((cc + 2) >> 32),
+                (uint)((cc + 3) >> 32), (uint)((cc + 4) >> 32), (uint)((cc + 5) >> 32), (uint)((cc + 6) >> 32),
+                (uint)((cc + 7) >> 32));
+
+            var x00 = Vector256.Create(CW[0]);
+            var x01 = Vector256.Create(CW[1]);
+            var x02 = Vector256.Create(CW[2]);
+            var x03 = Vector256.Create(CW[3]);
+            var x04 = Vector256.Create(Pack.LE_To_UInt32(sd,  0));
+            var x05 = Vector256.Create(Pack.LE_To_UInt32(sd,  4));
+            var x06 = Vector256.Create(Pack.LE_To_UInt32(sd,  8));
+            var x07 = Vector256.Create(Pack.LE_To_UInt32(sd, 12));
+            var x08 = Vector256.Create(Pack.LE_To_UInt32(sd, 16));
+            var x09 = Vector256.Create(Pack.LE_To_UInt32(sd, 20));
+            var x10 = Vector256.Create(Pack.LE_To_UInt32(sd, 24));
+            var x11 = Vector256.Create(Pack.LE_To_UInt32(sd, 28));
+            var x12 = Vector256.Create(Pack.LE_To_UInt32(sd, 32));
+            var x13 = Vector256.Create(Pack.LE_To_UInt32(sd, 36));
+            var x14 = Avx2.Xor(Vector256.Create(Pack.LE_To_UInt32(sd, 40)), ccLo);
+            var x15 = Avx2.Xor(Vector256.Create(Pack.LE_To_UInt32(sd, 44)), ccHi);
+
+            var v00 = x00;
+            var v01 = x01;
+            var v02 = x02;
+            var v03 = x03;
+            var v04 = x04;
+            var v05 = x05;
+            var v06 = x06;
+            var v07 = x07;
+            var v08 = x08;
+            var v09 = x09;
+            var v10 = x10;
+            var v11 = x11;
+            var v12 = x12;
+            var v13 = x13;
+            var v14 = x14;
+            var v15 = x15;
+
+            for (int i = 20; i > 0; i -= 2)
+            {
+                QuarterRound(ref v00, ref v04, ref v08, ref v12);
+                QuarterRound(ref v01, ref v05, ref v09, ref v13);
+                QuarterRound(ref v02, ref v06, ref v10, ref v14);
+                QuarterRound(ref v03, ref v07, ref v11, ref v15);
+
+                QuarterRound(ref v00, ref v05, ref v10, ref v15);
+                QuarterRound(ref v01, ref v06, ref v11, ref v12);
+                QuarterRound(ref v02, ref v07, ref v08, ref v13);
+                QuarterRound(ref v03, ref v04, ref v09, ref v14);
+            }
+
+            // Lane-contiguous stores reproduce the interleaved output layout of the scalar code.
+            Store256_UInt32(Avx2.Add(v00, x00), bd,  0 << 5);
+            Store256_UInt32(Avx2.Add(v01, x01), bd,  1 << 5);
+            Store256_UInt32(Avx2.Add(v02, x02), bd,  2 << 5);
+            Store256_UInt32(Avx2.Add(v03, x03), bd,  3 << 5);
+            Store256_UInt32(Avx2.Add(v04, x04), bd,  4 << 5);
+            Store256_UInt32(Avx2.Add(v05, x05), bd,  5 << 5);
+            Store256_UInt32(Avx2.Add(v06, x06), bd,  6 << 5);
+            Store256_UInt32(Avx2.Add(v07, x07), bd,  7 << 5);
+            Store256_UInt32(Avx2.Add(v08, x08), bd,  8 << 5);
+            Store256_UInt32(Avx2.Add(v09, x09), bd,  9 << 5);
+            Store256_UInt32(Avx2.Add(v10, x10), bd, 10 << 5);
+            Store256_UInt32(Avx2.Add(v11, x11), bd, 11 << 5);
+            Store256_UInt32(Avx2.Add(v12, x12), bd, 12 << 5);
+            Store256_UInt32(Avx2.Add(v13, x13), bd, 13 << 5);
+            Store256_UInt32(Avx2.Add(v14, x14), bd, 14 << 5);
+            Store256_UInt32(Avx2.Add(v15, x15), bd, 15 << 5);
+
+            Pack.UInt64_To_LE(cc + 8, sd, 48);
+            this.ptr = 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void QuarterRound(ref Vector256<uint> a, ref Vector256<uint> b, ref Vector256<uint> c,
+            ref Vector256<uint> d)
+        {
+            a = Avx2.Add(a, b);
+            d = Avx2.Shuffle(Avx2.Xor(d, a).AsByte(), Rot16Mask256).AsUInt32();
+            c = Avx2.Add(c, d);
+            b = Avx2.Xor(b, c);
+            b = Avx2.Xor(Avx2.ShiftLeftLogical(b, 12), Avx2.ShiftRightLogical(b, 20));
+            a = Avx2.Add(a, b);
+            d = Avx2.Shuffle(Avx2.Xor(d, a).AsByte(), Rot8Mask256).AsUInt32();
+            c = Avx2.Add(c, d);
+            b = Avx2.Xor(b, c);
+            b = Avx2.Xor(Avx2.ShiftLeftLogical(b, 7), Avx2.ShiftRightLogical(b, 25));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void Store256_UInt32(Vector256<uint> s, byte[] buf, int off)
+        {
+            if (Org.BouncyCastle.Runtime.Intrinsics.Vector.IsPackedLittleEndian)
+            {
+                var t = buf.AsSpan(off);
+#if NET8_0_OR_GREATER
+                MemoryMarshal.Write(t, in s);
+#else
+                MemoryMarshal.Write(t, ref s);
+#endif
+                return;
+            }
+
+            for (int i = 0; i < 8; ++i)
+            {
+                Pack.UInt32_To_LE(s.GetElement(i), buf, off + (i << 2));
+            }
+        }
+#endif
 
         /// <summary>Get an 8-bit random value from a PRNG.</summary>
         internal byte GetByte()
