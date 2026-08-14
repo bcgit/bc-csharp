@@ -23,7 +23,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         internal FalconRng()
         {
             this.bd = new byte[512];
-            this.sd = new byte[256];
+
+            /*
+             * ChaCha20 state: 32-byte key, 16-byte IV, 8-byte block counter. The reference C sizes this
+             * at 256 bytes ("contents depend on the selected algorithm") for alternative PRNG algorithms
+             * that were never implemented; only the 56 bytes are ever used.
+             */
+            this.sd = new byte[56];
         }
 
         /*
