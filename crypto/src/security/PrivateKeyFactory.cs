@@ -366,13 +366,6 @@ namespace Org.BouncyCastle.Security
 
                 throw new ArgumentException("invalid " + mlDsaParameters.Name + " private key");
             }
-            else if (CompositeMLDsaParameters.ByOid.TryGetValue(algOid,
-                out CompositeMLDsaParameters compositeMLDsaParameters))
-            {
-                // NOTE: We ignore the publicKey field since both components are recoverable from the private key
-                return CompositeMLDsaPrivateKeyParameters.FromEncoding(compositeMLDsaParameters,
-                    keyInfo.PrivateKey.GetOctets());
-            }
             else if (MLKemParameters.ByOid.TryGetValue(algOid, out MLKemParameters mlKemParameters))
             {
                 // NOTE: We ignore the publicKey field since the private key already includes the public key

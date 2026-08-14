@@ -256,17 +256,6 @@ namespace Org.BouncyCastle.Pkcs
                 return new PrivateKeyInfo(algID, privateKeyAsn1, attributes, publicKey);
             }
 
-            if (privateKey is CompositeMLDsaPrivateKeyParameters compositeMLDsaKey)
-            {
-                var algID = new AlgorithmIdentifier(compositeMLDsaKey.Parameters.Oid);
-
-                // NOTE: Both components are recoverable from the private key
-                DerBitString publicKey = null;
-
-                return PrivateKeyInfo.Create(algID, new DerOctetString(compositeMLDsaKey.GetEncoded()), attributes,
-                    publicKey);
-            }
-
             if (privateKey is MLKemPrivateKeyParameters mlKemKey)
             {
                 var algID = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);

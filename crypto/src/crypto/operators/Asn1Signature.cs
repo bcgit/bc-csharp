@@ -248,14 +248,6 @@ namespace Org.BouncyCastle.Crypto.Operators
             {
                 AddAlgorithm(slhDsa.Name, slhDsa.Oid, isNoParams: true);
             }
-
-            /*
-             * Composite ML-DSA
-             */
-            foreach (CompositeMLDsaParameters compositeMLDsa in CompositeMLDsaParameters.ByName.Values)
-            {
-                AddAlgorithm(compositeMLDsa.Name, compositeMLDsa.Oid, isNoParams: true);
-            }
         }
 
         private static void AddAlgorithm(string name, DerObjectIdentifier oid, bool isNoParams)
