@@ -815,26 +815,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         internal static void SignDyn(short[] sigsrc, int sig, ShakeDigest rng, sbyte[] fsrc, int f, sbyte[] gsrc, int g,
             sbyte[] Fsrc, int F, sbyte[] Gsrc, int G, ushort[] hmsrc, int hm, int logN, FalconFpr[] tmpsrc, int tmp)
         {
-            for (;;)
+            SamplerCtx samp_ctx = new SamplerCtx(FprEngine.FprSigmaMin[logN]);
+            try
             {
-                /*
-                * Normal sampling. We use a fast PRNG seeded from our SHAKE context ('rng').
-                */
-                SamplerCtx samp_ctx = new SamplerCtx(FprEngine.FprSigmaMin[logN]);
-                samp_ctx.p.Init(rng);
+                for (;;)
+                {
+                    /*
+                    * Normal sampling. We use a fast PRNG seeded from our SHAKE context ('rng').
+                    */
+                    samp_ctx.p.Init(rng);
 
-                /*
-                * Signature produces short vectors s1 and s2. The signature is acceptable only if the aggregate vector
-                * s1,s2 is short; we must use the same bound as the verifier.
-                *
-                * If the signature is acceptable, then we return only s2 (the verifier recomputes s1 from s2, the hashed
-                * message, and the public key).
-                */
-                int result = DoSignDyn(samp_ctx, sigsrc, sig, fsrc, f, gsrc, g, Fsrc, F, Gsrc, G, hmsrc, hm,
-                    logN, tmpsrc, tmp);
+                    /*
+                    * Signature produces short vectors s1 and s2. The signature is acceptable only if the aggregate
+                    * vector s1,s2 is short; we must use the same bound as the verifier.
+                    *
+                    * If the signature is acceptable, then we return only s2 (the verifier recomputes s1 from s2, the
+                    * hashed message, and the public key).
+                    */
+                    int result = DoSignDyn(samp_ctx, sigsrc, sig, fsrc, f, gsrc, g, Fsrc, F, Gsrc, G, hmsrc, hm,
+                        logN, tmpsrc, tmp);
 
-                if (result != 0)
-                    break;
+                    if (result != 0)
+                        break;
+                }
+            }
+            finally
+            {
+                samp_ctx.p.Clear();
             }
         }
     }

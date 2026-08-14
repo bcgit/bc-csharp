@@ -61,6 +61,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             this.ptr = this.bd.Length;
         }
 
+        /// <summary>Wipe the PRNG state and any buffered, not-yet-consumed output.</summary>
+        internal void Clear()
+        {
+            Arrays.ZeroMemory(bd);
+            Arrays.ZeroMemory(sd);
+            this.ptr = this.bd.Length;
+        }
+
         /*
         * PRNG based on ChaCha20.
         *

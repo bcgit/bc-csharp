@@ -1291,6 +1291,12 @@ namespace Org.BouncyCastle.Utilities
             InternalZeroMemory(buf);
         }
 
+        internal static void ZeroMemory(sbyte[] buf)
+        {
+            ValidateBuffer(buf);
+            InternalZeroMemory(buf);
+        }
+
         internal static void ZeroMemory(uint[] buf)
         {
             ValidateBuffer(buf);
@@ -1313,6 +1319,12 @@ namespace Org.BouncyCastle.Utilities
         {
             ValidateSegment(buf, off, len);
             InternalZeroMemory(buf, off, len);
+        }
+
+        internal static void ZeroMemory(ushort[] buf)
+        {
+            ValidateBuffer(buf);
+            InternalZeroMemory(buf);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -1369,6 +1381,12 @@ namespace Org.BouncyCastle.Utilities
             CryptographicOperations.ZeroMemory(buf.AsSpan(off, len));
 
         internal static void InternalZeroMemory(char[] buf) =>
+            CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(buf.AsSpan()));
+
+        internal static void InternalZeroMemory(sbyte[] buf) =>
+            CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(buf.AsSpan()));
+
+        internal static void InternalZeroMemory(ushort[] buf) =>
             CryptographicOperations.ZeroMemory(MemoryMarshal.AsBytes(buf.AsSpan()));
 
         internal static void InternalZeroMemory(uint[] buf) => ZeroMemory(buf.AsSpan());
@@ -1456,6 +1474,24 @@ namespace Org.BouncyCastle.Utilities
             for (int i = 0; i < len; ++i)
             {
                 buf[off + i] = 0;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(sbyte[] buf)
+        {
+            for (int i = 0; i < buf.Length; ++i)
+            {
+                buf[i] = 0;
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining | MethodImplOptions.NoOptimization)]
+        internal static void InternalZeroMemory(ushort[] buf)
+        {
+            for (int i = 0; i < buf.Length; ++i)
+            {
+                buf[i] = 0;
             }
         }
 
