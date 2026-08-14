@@ -296,6 +296,7 @@ namespace Org.BouncyCastle.Security
             AddKpgAlgorithm("GOST3410",
                 "GOST-3410",
                 "GOST-3410-94");
+            AddKpgAlgorithm("COMPOSITE-ML-DSA");
             AddKpgAlgorithm("ML-DSA");
             AddKpgAlgorithm("ML-KEM");
             AddKpgAlgorithm("RSA",
@@ -454,6 +455,9 @@ namespace Org.BouncyCastle.Security
 
             if (canonicalName == "GOST3410")
                 return new Gost3410KeyPairGenerator();
+
+            if (canonicalName == "COMPOSITE-ML-DSA")
+                return new CompositeMLDsaKeyPairGenerator();
 
             if (canonicalName == "ML-DSA")
                 return new MLDsaKeyPairGenerator();

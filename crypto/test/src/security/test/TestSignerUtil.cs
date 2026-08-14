@@ -134,7 +134,9 @@ namespace Org.BouncyCastle.Security.Tests
             foreach (string algorithm in SignerUtilities.Algorithms)
             {
                 if (algorithm.StartsWith("ML-DSA-", StringComparison.OrdinalIgnoreCase) ||
-                    algorithm.StartsWith("SLH-DSA-", StringComparison.OrdinalIgnoreCase))
+                    algorithm.StartsWith("SLH-DSA-", StringComparison.OrdinalIgnoreCase) ||
+                    // Composite ML-DSA (e.g. MLDSA44-ECDSA-P256-SHA256); covered by CompositeMLDsaTest
+                    algorithm.StartsWith("MLDSA", StringComparison.OrdinalIgnoreCase))
                 {
                     // TODO[pqc]
                     continue;

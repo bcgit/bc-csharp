@@ -597,6 +597,14 @@ namespace Org.BouncyCastle.Operators.Utilities
             {
                 AddAlgorithm(slhDsa.Name, slhDsa.Oid, slhDsa.PreHashOid, isNoParams: true);
             }
+
+            /*
+             * Composite ML-DSA
+             */
+            foreach (CompositeMLDsaParameters compositeMLDsa in CompositeMLDsaParameters.ByName.Values)
+            {
+                AddAlgorithm(compositeMLDsa.Name, compositeMLDsa.Oid, digestOid: null, isNoParams: true);
+            }
         }
 
         protected DefaultSignatureAlgorithmFinder()
