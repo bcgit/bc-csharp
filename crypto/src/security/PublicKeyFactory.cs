@@ -243,6 +243,12 @@ namespace Org.BouncyCastle.Security
             {
                 return GetMLDsaPublicKey(mlDsaParameters, keyInfo.PublicKey);
             }
+            else if (CompositeMLDsaParameters.ByOid.TryGetValue(algOid,
+                out CompositeMLDsaParameters compositeMLDsaParameters))
+            {
+                return CompositeMLDsaPublicKeyParameters.FromEncoding(compositeMLDsaParameters,
+                    keyInfo.PublicKey.GetOctets());
+            }
             else if (MLKemParameters.ByOid.TryGetValue(algOid, out MLKemParameters mlKemParameters))
             {
                 return GetMLKemPublicKey(mlKemParameters, keyInfo.PublicKey);

@@ -599,6 +599,14 @@ namespace Org.BouncyCastle.Security
                 AddAlgorithm(slhDsa.Name, slhDsa.Oid, isNoRandom: false);
             }
 
+            /*
+             * Composite ML-DSA
+             */
+            foreach (CompositeMLDsaParameters compositeMLDsa in CompositeMLDsaParameters.ByName.Values)
+            {
+                AddAlgorithm(compositeMLDsa.Name, compositeMLDsa.Oid, isNoRandom: false);
+            }
+
 #if DEBUG
             foreach (var key in AlgorithmMap.Keys)
             {
@@ -954,6 +962,12 @@ namespace Org.BouncyCastle.Security
                     return new SlhDsaSigner(slhDsaParameters, deterministic: false);
 
                 return new HashSlhDsaSigner(slhDsaParameters, deterministic: false);
+            }
+
+            if (CompositeMLDsaParameters.ByName.TryGetValue(mechanism,
+                out CompositeMLDsaParameters compositeMLDsaParameters))
+            {
+                return new CompositeMLDsaSigner(compositeMLDsaParameters);
             }
 
             return null;

@@ -77,6 +77,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal int SeedLength => MLDsaEngine.SeedBytes;
 
+        internal int SignatureLength
+        {
+            get
+            {
+                switch (m_mode)
+                {
+                case 2: return 2420;
+                case 3: return 3309;
+                case 5: return 4627;
+                default:
+                    throw new InvalidOperationException();
+                }
+            }
+        }
+
         /// <inheritdoc/>
         public override string ToString() => Name;
     }

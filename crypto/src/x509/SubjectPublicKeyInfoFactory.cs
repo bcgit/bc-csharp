@@ -199,6 +199,13 @@ namespace Org.BouncyCastle.X509
                 return new SubjectPublicKeyInfo(algID, publicKey: mlDsaKey.GetEncoded());
             }
 
+            if (publicKey is CompositeMLDsaPublicKeyParameters compositeMLDsaKey)
+            {
+                var algID = new AlgorithmIdentifier(compositeMLDsaKey.Parameters.Oid);
+
+                return new SubjectPublicKeyInfo(algID, publicKey: compositeMLDsaKey.GetEncoded());
+            }
+
             if (publicKey is MLKemPublicKeyParameters mlKemKey)
             {
                 var algID = new AlgorithmIdentifier(mlKemKey.Parameters.Oid);
