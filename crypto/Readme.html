@@ -354,6 +354,7 @@
             <li>Fix IPv6 prefix length parsing in GeneralName iPAddress. Affects prefix lengths that are not a multiple of 16.</li>
             <li>Fix EdiPartyName.ToAsn1Object to use tagging correctly (existing internal usage of this class is unaffected).</li>
             <li>DTLS: Bound the range tracking when reassembling handshake messages to avoid malicious fragmentation DoS.</li>
+            <li>TLS: TlsUtilities.ReadFully now reads incrementally to avoid allocating the full declared length up front.</li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>

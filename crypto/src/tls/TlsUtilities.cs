@@ -23,6 +23,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    // TODO[api] Make static
     public abstract class TlsUtilities
     {
         private static readonly byte[] DowngradeTlsV11 = Hex.DecodeStrict("444F574E47524400");
@@ -851,6 +852,7 @@ namespace Org.BouncyCastle.Tls
             return ((long)(hi & 0xffffffffL) << 24) | (long)(lo & 0xffffffffL);
         }
 
+        [Obsolete("Will be removed")]
         public static byte[] ReadAllOrNothing(int length, Stream input)
         {
             if (length < 1)
@@ -868,10 +870,11 @@ namespace Org.BouncyCastle.Tls
         {
             if (length < 1)
                 return EmptyBytes;
-            byte[] buf = new byte[length];
-            if (length != Streams.ReadFully(input, buf))
-                throw new EndOfStreamException();
-            return buf;
+
+            if (Streams.TryReadExactIncremental(input, length, out var bytes))
+                return bytes;
+
+            throw new EndOfStreamException();
         }
 
         public static void ReadFully(byte[] buf, Stream input)
