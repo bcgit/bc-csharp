@@ -221,6 +221,53 @@ namespace Org.BouncyCastle.Utilities.IO
             return false;
         }
 
+        /// <summary>
+        /// Read exactly <paramref name="exactLength"/> bytes from <paramref name="stream"/>, allocated incrementally.
+        /// </summary>
+        /// <remarks>
+        /// The resulting <paramref name="bytes"/> array (if any) is grown incrementally as data arrives rather than
+        /// allocated at the full length up front. A caller passing an untrusted (possibly hostile) length therefore
+        /// cannot drive an extremely large allocation from a short input.
+        /// </remarks>
+        internal static bool TryReadExactIncremental(Stream stream, int exactLength, out byte[] bytes)
+        {
+            if (stream == null)
+                throw new ArgumentNullException(nameof(stream));
+            if (exactLength < 0)
+                throw new ArgumentOutOfRangeException("cannot be negative", nameof(exactLength));
+            if (exactLength > Arrays.MaxLength)
+                throw new ArgumentOutOfRangeException("exceeds maximum length for an array", nameof(exactLength));
+
+            int initialAlloc = exactLength;
+            while (initialAlloc > DefaultBufferSize)
+            {
+                initialAlloc = (int)(((uint)initialAlloc + 3U) >> 2);
+            }
+
+            byte[] buf = new byte[initialAlloc];
+            int totalRead = 0;
+            while (totalRead < exactLength)
+            {
+                if (totalRead == buf.Length)
+                {
+                    int expandedAlloc = (int)System.Math.Min(exactLength, 4L * buf.Length);
+                    buf = Arrays.CopyOf(buf, expandedAlloc);
+                }
+
+                int numRead = stream.Read(buf, totalRead, buf.Length - totalRead);
+                if (numRead < 1)
+                {
+                    bytes = default;
+                    return false;
+                }
+
+                totalRead += numRead;
+            }
+
+            bytes = buf;
+            return true;
+        }
+
         public static void ValidateBufferArguments(byte[] buffer, int offset, int count)
         {
             if (buffer == null)

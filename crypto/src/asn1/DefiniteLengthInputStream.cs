@@ -118,38 +118,11 @@ namespace Org.BouncyCastle.Asn1
 
             Asn1InputStream.CheckLength(m_remaining, Limit);
 
-            if (m_remaining > Streams.DefaultBufferSize * 8)
-            {
-                var buf = new LimitedMemoryStream(m_remaining);
-                using (buf)
-                {
-                    Streams.CopyTo(this, buf);
-                }
-                return buf.GetBuffer();
-            }
+            if (Streams.TryReadExactIncremental(this, m_remaining, out var bytes))
+                return bytes;
 
-            byte[] bytes = new byte[m_remaining];
-            if ((m_remaining -= Streams.ReadFully(m_in, bytes, 0, bytes.Length)) != 0)
-                throw new EndOfStreamException("DEF length " + m_originalLength + " object truncated by " + m_remaining);
-            EnableParentEofDetect();
-            return bytes;
-        }
-
-        private sealed class LimitedMemoryStream
-            : MemoryStream
-        {
-            private readonly int m_limitedCapacity;
-
-            internal LimitedMemoryStream(int limitedCapacity)
-            {
-                m_limitedCapacity = limitedCapacity;
-            }
-
-            public override int Capacity
-            {
-                get => base.Capacity;
-                set => base.Capacity = (int)System.Math.Min(value * 2L, m_limitedCapacity);
-            }
+            // Unreachable since we passed 'this' above so incomplete reads throw in our Read(Byte) methods.
+            throw new EndOfStreamException();
         }
     }
 }
