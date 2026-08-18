@@ -13,11 +13,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-    * the KeyTransRecipientInformation class for a recipient who has been sent a secret
-    * key encrypted using their public key that needs to be used to
-    * extract the message.
-    */
+    /// <summary>
+    /// CMS recipient information for key transport, where the content-encryption key is encrypted for a recipient's
+    /// public key.
+    /// </summary>
     public class KeyTransRecipientInformation
         : RecipientInformation
     {
@@ -142,7 +141,10 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /// <summary>Decrypt the content and return it as a byte array.</summary>
+        /// <summary>Decrypts the content using the recipient's private key and returns a stream over it.</summary>
+        /// <param name="key">The recipient's private key.</param>
+        /// <returns>A typed stream over the decrypted content.</returns>
+        /// <exception cref="CmsException">Thrown if the content-encryption key cannot be recovered.</exception>
         public override CmsTypedStream GetContentStream(ICipherParameters key) => GetContentFromSessionKey(UnwrapKey(key));
     }
 }

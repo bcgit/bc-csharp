@@ -9,18 +9,17 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-    * the RecipientInfo class for a recipient who has been sent a message
-    * encrypted using a secret key known to the other side.
-    */
+    /// <summary>
+    /// CMS recipient information for key-encryption-key (KEK) recipients that share a symmetric wrapping key.
+    /// </summary>
     public class KekRecipientInformation
         : RecipientInformation
     {
         private KekRecipientInfo info;
 
 		internal KekRecipientInformation(
-			KekRecipientInfo	info,
-			CmsSecureReadable	secureReadable)
+			KekRecipientInfo info,
+			CmsSecureReadable secureReadable)
 			: base(info.KeyEncryptionAlgorithm, secureReadable)
 		{
             this.info = info;
@@ -31,9 +30,10 @@ namespace Org.BouncyCastle.Cms
 			rid.KeyIdentifier = kekId.KeyIdentifier.GetOctets();
         }
 
-		/**
-        * decrypt the content and return an input stream.
-        */
+        /// <summary>Decrypts the content using the recipient's shared key-encryption key.</summary>
+        /// <param name="key">The shared key-encryption key.</param>
+        /// <returns>A typed stream over the decrypted content.</returns>
+        /// <exception cref="CmsException">Thrown if the content-encryption key cannot be recovered.</exception>
         public override CmsTypedStream GetContentStream(
             ICipherParameters key)
         {

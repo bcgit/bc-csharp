@@ -17,10 +17,9 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-    * the RecipientInfo class for a recipient who has been sent a message
-    * encrypted using key agreement.
-    */
+    /// <summary>
+    /// CMS recipient information for key agreement, where a sender and recipient derive the key-encryption key.
+    /// </summary>
     public class KeyAgreeRecipientInformation
         : RecipientInformation
     {
@@ -197,9 +196,12 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /**
-        * decrypt the content and return an input stream.
-        */
+        /// <summary>Decrypts the content using the recipient's key-agreement private key.</summary>
+        /// <param name="key">The recipient's private asymmetric key.</param>
+        /// <returns>A typed stream over the decrypted content.</returns>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="key"/> is not a private asymmetric key.
+        /// </exception>
+        /// <exception cref="CmsException">Thrown if key agreement or content-key recovery fails.</exception>
         public override CmsTypedStream GetContentStream(
             ICipherParameters key)
         {

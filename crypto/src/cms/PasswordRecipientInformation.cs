@@ -9,7 +9,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Cms
 {
-    /// <summary>The RecipientInfo class for a recipient who has been sent a message encrypted using a password.</summary>
+    /// <summary>CMS recipient information for a recipient that recovers content using a password-derived key.</summary>
     public class PasswordRecipientInformation
         : RecipientInformation
     {
@@ -22,12 +22,13 @@ namespace Org.BouncyCastle.Cms
             this.rid = new RecipientID();
         }
 
-        /// <summary>
-        /// Return the object identifier for the key derivation algorithm, or null if there is none present.
-        /// </summary>
+        /// <summary>Gets the key-derivation algorithm, or <c>null</c> when the message does not include one.</summary>
         public virtual AlgorithmIdentifier KeyDerivationAlgorithm => m_info.KeyDerivationAlgorithm;
 
-        /// <summary>Decrypt the content and return an input stream.</summary>
+        /// <summary>Decrypts the content using a password-based recipient key.</summary>
+        /// <param name="key">The password-based recipient key.</param>
+        /// <returns>A typed stream over the decrypted content.</returns>
+        /// <exception cref="CmsException">Thrown if the content-encryption key cannot be recovered.</exception>
         public override CmsTypedStream GetContentStream(ICipherParameters key)
         {
             try
