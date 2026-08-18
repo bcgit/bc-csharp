@@ -117,6 +117,13 @@ namespace Org.BouncyCastle.Utilities
 
         public static readonly string X509AllowNonDerTbsCertificate = "Org.BouncyCastle.X509.Allow_Non-DER_TBSCert";
 
+        /// <summary>
+        /// Upper bound on the total number of valid-policy-tree nodes retained (across all depth levels) during PKIX
+        /// CertPath validation. Certificate policy mapping combined with the anyPolicy expansion of RFC 5280
+        /// 6.1.3/6.1.4 can grow the tree multiplicatively per certificate, so a crafted chain that still chains to a
+        /// trust anchor could drive the validator into exponential memory/CPU consumption - a denial of service.
+        /// The tree size is checked once per certificate and validation is aborted once it exceeds this bound.
+        /// </summary>
         public static readonly string X509MaxPolicyNodes = "Org.BouncyCastle.X509.MaxPolicyNodes";
 
         /// <summary>
