@@ -42,6 +42,22 @@ namespace Org.BouncyCastle.Tests
             return certGen.Generate(new Asn1SignatureFactory(sigName, keyPair.Private, null));
         }
 
+        public static X509Certificate CreateNoSigCert(X509Name dn, AsymmetricCipherKeyPair keyPair)
+        {
+            DateTime utcNow = DateTime.UtcNow;
+
+            var certGen = new X509V1CertificateGenerator();
+
+            certGen.SetSerialNumber(BigInteger.ValueOf(NextSerialNumber()));
+            certGen.SetIssuerDN(dn);
+            certGen.SetNotBefore(utcNow.AddSeconds(-5));
+            certGen.SetNotAfter(utcNow.AddMinutes(30));
+            certGen.SetSubjectDN(dn);
+            certGen.SetPublicKey(keyPair.Public);
+
+            return certGen.GenerateUnsigned();
+        }
+
         public static X509Certificate CreateCert(X509Name signerName, AsymmetricKeyParameter signerKey, string dn,
             string sigName, X509Extensions extensions, AsymmetricKeyParameter pubKey)
         {
@@ -97,6 +113,15 @@ namespace Org.BouncyCastle.Tests
 
             return kpGen.GenerateKeyPair();
         }
+
+        public static X509Certificate GenerateNoSigRootCert(AsymmetricCipherKeyPair keyPair) =>
+            GenerateNoSigRootCert(keyPair, "CN=Test CA Certificate");
+
+        public static X509Certificate GenerateNoSigRootCert(AsymmetricCipherKeyPair keyPair, string dn) =>
+            GenerateNoSigRootCert(keyPair, new X509Name(dn));
+
+        public static X509Certificate GenerateNoSigRootCert(AsymmetricCipherKeyPair keyPair, X509Name dn) =>
+            CreateNoSigCert(dn, keyPair);
 
         public static X509Certificate GenerateRootCert(AsymmetricCipherKeyPair keyPair) =>
             GenerateRootCert(keyPair, "CN=Test CA Certificate");

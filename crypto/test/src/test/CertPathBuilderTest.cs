@@ -219,6 +219,56 @@ namespace Org.BouncyCastle.Tests
         }
 
         [Test]
+        public void NoSigV0Test()
+        {
+            // create certificates and CRLs
+            AsymmetricCipherKeyPair rootPair = TestUtilities.GenerateRsaKeyPair();
+            AsymmetricCipherKeyPair interPair = TestUtilities.GenerateRsaKeyPair();
+            AsymmetricCipherKeyPair endPair = TestUtilities.GenerateRsaKeyPair();
+
+            X509Certificate rootCert = TestUtilities.GenerateNoSigRootCert(rootPair);
+            X509Certificate interCert = TestUtilities.GenerateIntermediateCert(interPair.Public, rootPair.Private, rootCert);
+            X509Certificate endCert = TestUtilities.GenerateEndEntityCert(endPair.Public, interPair.Private, interCert);
+
+            BigInteger revokedSerialNumber = BigInteger.Two;
+            X509Crl rootCRL = TestUtilities.CreateCrl(rootCert, rootPair.Private, revokedSerialNumber);
+            X509Crl interCRL = TestUtilities.CreateCrl(interCert, interPair.Private, revokedSerialNumber);
+
+            // create CertStore to support path building
+            var certList = new List<X509Certificate>();
+            certList.Add(rootCert);
+            certList.Add(interCert);
+            certList.Add(endCert);
+
+            var crlList = new List<X509Crl>();
+            crlList.Add(rootCRL);
+            crlList.Add(interCRL);
+
+            IStore<X509Certificate> x509CertStore = CollectionUtilities.CreateStore(certList);
+            IStore<X509Crl> x509CrlStore = CollectionUtilities.CreateStore(crlList);
+
+            var trust = new HashSet<TrustAnchor>();
+            trust.Add(new TrustAnchor(rootCert, null));
+
+            // build the path
+            PkixCertPathBuilder builder = new PkixCertPathBuilder();
+            X509CertStoreSelector pathConstraints = new X509CertStoreSelector();
+
+            pathConstraints.Subject = endCert.SubjectDN;
+
+            PkixBuilderParameters buildParams = new PkixBuilderParameters(trust, pathConstraints);
+            buildParams.AddStoreCert(x509CertStore);
+            buildParams.AddStoreCrl(x509CrlStore);
+
+            buildParams.Date = DateTime.UtcNow;
+
+            PkixCertPathBuilderResult result = builder.Build(buildParams);
+            PkixCertPath path = result.CertPath;
+
+            Assert.AreEqual(2, path.Certificates.Count, $"wrong number of certs in {nameof(NoSigV0Test)} path");
+        }
+
+        [Test]
         public void V0Test()
         {
             // create certificates and CRLs
@@ -265,7 +315,7 @@ namespace Org.BouncyCastle.Tests
             PkixCertPathBuilderResult result = builder.Build(buildParams);
             PkixCertPath path = result.CertPath;
 
-            Assert.AreEqual(2, path.Certificates.Count, "wrong number of certs in " + nameof(V0Test));
+            Assert.AreEqual(2, path.Certificates.Count, $"wrong number of certs in {nameof(V0Test)} path");
         }
 
         private static SubjectKeyIdentifier ComputeSki(AsymmetricKeyParameter publicKey) =>
