@@ -13,27 +13,14 @@ using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.X509.Tests
 {
     [TestFixture]
-    public class TestCertificateGen: SimpleTest
+    public class TestCertificateGen
     {
-        public override string Name
-        {
-            get
-            {
-                return "X.509 Cert Gen";
-            }
-        }
-
-        public TestCertificateGen()
-        {
-        }
-
-		[Test]
-        public void TestRsaDigestSigner()
+        [Test]
+        public void RsaDigestSigner()
         {
             BigInteger rsaPubMod = new BigInteger(Base64.Decode("AIASoe2PQb1IP7bTyC9usjHP7FvnUMVpKW49iuFtrw/dMpYlsMMoIU2jupfifDpdFxIktSB4P+6Ymg5WjvHKTIrvQ7SR4zV4jaPTu56Ys0pZ9EDA6gb3HLjtU+8Bb1mfWM+yjKxcPDuFjwEtjGlPHg1Vq+CA9HNcMSKNn2+tW6qt"));
             BigInteger rsaPubExp = new BigInteger(Base64.Decode("EQ=="));
@@ -45,9 +32,9 @@ namespace Org.BouncyCastle.X509.Tests
             BigInteger rsaPrivQ = new BigInteger(Base64.Decode("AM3JfD79dNJ5A3beScSzPtWxx/tSLi0QHFtkuhtSizeXdkv5FSba7lVzwEOGKHmW829bRoNxThDy4ds1IihW1w0="));
             BigInteger rsaPrivQinv = new BigInteger(Base64.Decode("Lt0g7wrsNsQxuDdB8q/rH8fSFeBXMGLtCIqfOec1j7FEIuYA/ACiRDgXkHa0WgN7nLXSjHoy630wC5Toq8vvUg=="));
             RsaKeyParameters rsaPublic = new RsaKeyParameters(false, rsaPubMod, rsaPubExp);
-			RsaPrivateCrtKeyParameters rsaPrivate = new RsaPrivateCrtKeyParameters(rsaPrivMod, rsaPubExp, rsaPrivExp, rsaPrivP, rsaPrivQ, rsaPrivDP, rsaPrivDQ, rsaPrivQinv);
+            RsaPrivateCrtKeyParameters rsaPrivate = new RsaPrivateCrtKeyParameters(rsaPrivMod, rsaPubExp, rsaPrivExp, rsaPrivP, rsaPrivQ, rsaPrivDP, rsaPrivDQ, rsaPrivQinv);
 
-            byte[] msg = new byte[] { 1, 6, 3, 32, 7, 43, 2, 5, 7, 78, 4, 23 };
+            byte[] msg = new byte[]{ 1, 6, 3, 32, 7, 43, 2, 5, 7, 78, 4, 23 };
 
             RsaDigestSigner signer = new RsaDigestSigner(new Sha1Digest());
             signer.Init(true, rsaPrivate);
@@ -60,7 +47,7 @@ namespace Org.BouncyCastle.X509.Tests
         }
 
         [Test]
-        public void TestCreationRSA()
+        public void CreationRSA()
         {
             BigInteger rsaPubMod = new BigInteger(Base64.Decode("AIASoe2PQb1IP7bTyC9usjHP7FvnUMVpKW49iuFtrw/dMpYlsMMoIU2jupfifDpdFxIktSB4P+6Ymg5WjvHKTIrvQ7SR4zV4jaPTu56Ys0pZ9EDA6gb3HLjtU+8Bb1mfWM+yjKxcPDuFjwEtjGlPHg1Vq+CA9HNcMSKNn2+tW6qt"));
             BigInteger rsaPubExp = new BigInteger(Base64.Decode("EQ=="));
@@ -72,9 +59,9 @@ namespace Org.BouncyCastle.X509.Tests
             BigInteger rsaPrivQ = new BigInteger(Base64.Decode("AM3JfD79dNJ5A3beScSzPtWxx/tSLi0QHFtkuhtSizeXdkv5FSba7lVzwEOGKHmW829bRoNxThDy4ds1IihW1w0="));
             BigInteger rsaPrivQinv = new BigInteger(Base64.Decode("Lt0g7wrsNsQxuDdB8q/rH8fSFeBXMGLtCIqfOec1j7FEIuYA/ACiRDgXkHa0WgN7nLXSjHoy630wC5Toq8vvUg=="));
             RsaKeyParameters rsaPublic = new RsaKeyParameters(false, rsaPubMod, rsaPubExp);
-			RsaPrivateCrtKeyParameters rsaPrivate = new RsaPrivateCrtKeyParameters(rsaPrivMod, rsaPubExp, rsaPrivExp, rsaPrivP, rsaPrivQ, rsaPrivDP, rsaPrivDQ, rsaPrivQinv);
+            RsaPrivateCrtKeyParameters rsaPrivate = new RsaPrivateCrtKeyParameters(rsaPrivMod, rsaPubExp, rsaPrivExp, rsaPrivP, rsaPrivQ, rsaPrivDP, rsaPrivDQ, rsaPrivQinv);
 
-			var attrs = new Dictionary<DerObjectIdentifier, string>();
+            var attrs = new Dictionary<DerObjectIdentifier, string>();
             attrs[X509Name.C] = "AU";
             attrs[X509Name.O] = "The Legion of the Bouncy Castle";
             attrs[X509Name.L] = "Melbourne";
@@ -88,8 +75,8 @@ namespace Org.BouncyCastle.X509.Tests
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-			var values = new List<string>();
-			values.Add("AU");
+            var values = new List<string>();
+            values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
             values.Add("Victoria");
@@ -100,8 +87,8 @@ namespace Org.BouncyCastle.X509.Tests
             certGen.SetSerialNumber(BigInteger.One);
 
             certGen.SetIssuerDN(new X509Name(ord, attrs));
-			certGen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
-			certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
+            certGen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
+            certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(rsaPublic);
 
@@ -109,9 +96,9 @@ namespace Org.BouncyCastle.X509.Tests
 
             //Assert.IsTrue((cert.IsValidNow && cert.Verify(rsaPublic)),"Certificate failed to be valid (RSA)");
             cert.CheckValidity();
-			cert.Verify(rsaPublic);
+            cert.Verify(rsaPublic);
 
-			//Console.WriteLine(ASN1Dump.DumpAsString(cert.ToAsn1Object()));
+            //Console.WriteLine(ASN1Dump.DumpAsString(cert.ToAsn1Object()));
 
             //ISet dummySet = cert.GetNonCriticalExtensionOids();
 
@@ -137,8 +124,8 @@ namespace Org.BouncyCastle.X509.Tests
             //Console.WriteLine();
         }
 
-		[Test]
-        public void TestCreationDSA()
+        [Test]
+        public void CreationDSA()
         {
             BigInteger DSAParaG = new BigInteger(Base64.Decode("AL0fxOTq10OHFbCf8YldyGembqEu08EDVzxyLL29Zn/t4It661YNol1rnhPIs+cirw+yf9zeCe+KL1IbZ/qIMZM="));
             BigInteger DSAParaP = new BigInteger(Base64.Decode("AM2b/UeQA+ovv3dL05wlDHEKJ+qhnJBsRT5OB9WuyRC830G79y0R8wuq8jyIYWCYcTn1TeqVPWqiTv6oAoiEeOs="));
@@ -165,7 +152,7 @@ namespace Org.BouncyCastle.X509.Tests
             ord.Add(X509Name.E);
 
             var values = new List<string>();
-			values.Add("AU");
+            values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
             values.Add("Victoria");
@@ -173,11 +160,11 @@ namespace Org.BouncyCastle.X509.Tests
 
             X509V3CertificateGenerator certGen = new X509V3CertificateGenerator();
 
-			certGen.SetSerialNumber(BigInteger.One);
+            certGen.SetSerialNumber(BigInteger.One);
 
             certGen.SetIssuerDN(new X509Name(ord, attrs));
-			certGen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
-			certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
+            certGen.SetNotBefore(DateTime.UtcNow.AddDays(-1));
+            certGen.SetNotAfter(DateTime.UtcNow.AddDays(1));
             certGen.SetSubjectDN(new X509Name(ord, attrs));
             certGen.SetPublicKey(dsaPub);
 
@@ -185,7 +172,7 @@ namespace Org.BouncyCastle.X509.Tests
 
             //Assert.IsTrue((cert.IsValidNow && cert.Verify(dsaPub)), "Certificate failed to be valid (DSA Test)");
             cert.CheckValidity();
-			cert.Verify(dsaPub);
+            cert.Verify(dsaPub);
 
             //ISet dummySet = cert.GetNonCriticalExtensionOids();
 
@@ -211,8 +198,8 @@ namespace Org.BouncyCastle.X509.Tests
             //Console.WriteLine();
         }
 
-		[Test]
-        public void TestCreationECDSA()
+        [Test]
+        public void CreationECDSA()
         {
             BigInteger ECParraGX = new BigInteger(Base64.Decode("D/qWPNyogWzMM7hkK+35BcPTWFc9Pyf7vTs8uaqv"));
             BigInteger ECParraGY = new BigInteger(Base64.Decode("AhQXGxb1olGRv6s1LPRfuatMF+cx3ZTGgzSE/Q5R"));
@@ -231,7 +218,7 @@ namespace Org.BouncyCastle.X509.Tests
             ECPrivateKeyParameters ecPriv = new ECPrivateKeyParameters("ECDSA", ECPrivD, ecDomain);
 
             var attrs = new Dictionary<DerObjectIdentifier, string>();
-			attrs[X509Name.C] = "AU";
+            attrs[X509Name.C] = "AU";
             attrs[X509Name.O] = "The Legion of the Bouncy Castle";
             attrs[X509Name.L] = "Melbourne";
             attrs[X509Name.ST] = "Victoria";
@@ -244,8 +231,8 @@ namespace Org.BouncyCastle.X509.Tests
             ord.Add(X509Name.ST);
             ord.Add(X509Name.E);
 
-			var values = new List<string>();
-			values.Add("AU");
+            var values = new List<string>();
+            values.Add("AU");
             values.Add("The Legion of the Bouncy Castle");
             values.Add("Melbourne");
             values.Add("Victoria");
@@ -267,14 +254,12 @@ namespace Org.BouncyCastle.X509.Tests
 
             //Assert.IsTrue((cert.IsValidNow && cert.Verify(ecPub)), "Certificate failed to be valid (ECDSA)");
             cert.CheckValidity();
-			cert.Verify(ecPub);
+            cert.Verify(ecPub);
 
             var extOidSet = cert.GetCriticalExtensionOids();
 
-            if (extOidSet.Count != 1)
-            {
-                Fail("wrong number of oids");
-            }
+            Assert.AreEqual(1, extOidSet.Count, "wrong number of oids");
+
             //if (dummySet != null)
             //{
             //    foreach (string key in dummySet)
@@ -298,8 +283,8 @@ namespace Org.BouncyCastle.X509.Tests
             //Console.WriteLine();
         }
 
-		[Test]
-		public void TestCertLoading()
+        [Test]
+        public void CertLoading()
         {
             byte[] cert1 = Base64.Decode(
                    "MIIDXjCCAsegAwIBAgIBBzANBgkqhkiG9w0BAQQFADCBtzELMAkGA1UEBhMCQVUx"
@@ -322,17 +307,17 @@ namespace Org.BouncyCastle.X509.Tests
                  + "yQf33vOiYQbpv4rTwzU8AmRlBG45WdjyNIigGV+oRc61aKCTnLq7zB8N3z1TF/bF"
                  + "5/8=");
 
-			try
-			{
+            try
+            {
                 Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert1));
             }
-			catch (Exception)
+            catch (Exception)
             {
                 Assert.Fail("Reading first test certificate.");
             }
 
 
-			// ca.crt
+            // ca.crt
             //
             byte[] cert2 = Base64.Decode(
                    "MIIDbDCCAtWgAwIBAgIBADANBgkqhkiG9w0BAQQFADCBtzELMAkGA1UEBhMCQVUx"
@@ -355,14 +340,14 @@ namespace Org.BouncyCastle.X509.Tests
                  + "soTwNUpE0SLHvWf/SlKdFWlzXA+vOZbzEv4UmjeelekTm7lc01EEa5QRVzOxHFtQ"
                  + "DhkaJ8VqOMajkQFma2r9iA==");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert2));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading second test certificate.");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert2));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading second test certificate.");
+            }
 
 
             //
@@ -378,17 +363,17 @@ namespace Org.BouncyCastle.X509.Tests
                  + "Wc7EcF8po2/ZO6kNCwK/ICH6DobgLekA5lSLr5EvuioZniZp5lFzAw4+YzPQ7XKJ"
                  + "zl9HYIMxATFyqSiD9jsx");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert3));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading third test certificate. (X509.pem)");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert3));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading third test certificate. (X509.pem)");
+            }
 
 
-			//
+            //
             // v3-cert1.pem
             //
             byte[] cert4 = Base64.Decode(
@@ -407,17 +392,17 @@ namespace Org.BouncyCastle.X509.Tests
                  + "X82tZXd/0JtG0g1T9usFFBDvYK8O0ebgz/P5ELJnBL2+atObEuJy1ZZ0pBDWINR3"
                  + "WkDNLCGiTkCKp0F5EWIrVDwh54NNevkCQRZita+z4IBO");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert4));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading fourth test certificate. (X509 V3 Pem)");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert4));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading fourth test certificate. (X509 V3 Pem)");
+            }
 
 
-			//
+            //
             // v3-cert2.pem
             //
             byte[] cert5 = Base64.Decode(
@@ -436,14 +421,14 @@ namespace Org.BouncyCastle.X509.Tests
                  + "lexKeIkAZXCesqGbs6z6nCt16P6tmdfbZF3I3AWzLquPcOXjPf4HgstkyvVBn0Ap"
                  + "jAFN418KF/Cx4qyHB4cjdvLrRjjQLnb2+ibo7QU=");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert5));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading fifth test certificate. (X509 V3 Pem)");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert5));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading fifth test certificate. (X509 V3 Pem)");
+            }
 
 
             //
@@ -505,14 +490,14 @@ namespace Org.BouncyCastle.X509.Tests
                 + "HreQ9Nop/JdJv1DQMBK6weNBBDoP0EEkRm1XCC144XhXZC82jBZohYmi2WvDbbC//YN58kRMYMyy"
                 + "srrfn4Z9I+6kTriGXkrpGk9Q0LSGjmG2BIsqiF0dvwAAAAAAAA==");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert6));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading sixth test certificate. (Pkcs7)");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert6));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading sixth test certificate. (Pkcs7)");
+            }
 
 
             //
@@ -546,14 +531,14 @@ namespace Org.BouncyCastle.X509.Tests
                 + "dt+MHwawrDrwsO1Z6sXBaaJsAhRaKssrpevmLkbygKPV07XiAKBG02Zvb2Jh"
                 + "cg==");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert7));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading seventh test certificate. (DSAWITHSHA1)");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(cert7));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading seventh test certificate. (DSAWITHSHA1)");
+            }
 
 
             //
@@ -575,14 +560,14 @@ namespace Org.BouncyCastle.X509.Tests
                 + "CwYHKoZIzj0EAQUAA0MAMEACHnz6t4UNoVROp74ma4XNDjjGcjaqiIWPZLK8Bdw3G"
                 + "QIeLZ4j3a6ividZl344UH+UPUE7xJxlYGuy7ejTsqRR");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(oldEcdsa));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading old ECDSA Certificate.");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(oldEcdsa));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading old ECDSA Certificate.");
+            }
 
 
             byte[] uncompressedPtEC = Base64.Decode(
@@ -606,17 +591,17 @@ namespace Org.BouncyCastle.X509.Tests
                 + "Ycl9Y2zfRPUCKAK2ccOQXByAWfsasDu8zKHxkZv7LVDTFjAIffz3HaCQeVhD"
                 + "z+fauEg=");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(uncompressedPtEC));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading uncompressed ECPoint Certificate.");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(uncompressedPtEC));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading uncompressed ECPoint Certificate.");
+            }
 
 
-			byte[] keyUsage = Base64.Decode(
+            byte[] keyUsage = Base64.Decode(
                   "MIIE7TCCBFagAwIBAgIEOAOR7jANBgkqhkiG9w0BAQQFADCByTELMAkGA1UE"
                 + "BhMCVVMxFDASBgNVBAoTC0VudHJ1c3QubmV0MUgwRgYDVQQLFD93d3cuZW50"
                 + "cnVzdC5uZXQvQ2xpZW50X0NBX0luZm8vQ1BTIGluY29ycC4gYnkgcmVmLiBs"
@@ -647,14 +632,14 @@ namespace Org.BouncyCastle.X509.Tests
                 + "ODDV4qIxJS7x7EU47fgGWANzYrAQMY9Av2TgXD7FTx/aEkP/TOYGJqibGapE"
                 + "PHayXOw=");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(keyUsage));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading Cert with Key Usage.");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(keyUsage));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading Cert with Key Usage.");
+            }
 
 
             byte[] nameCert = Base64.Decode(
@@ -681,17 +666,17 @@ namespace Org.BouncyCastle.X509.Tests
                 "pnQcDNlm5AIbS6pO8jTCLfCd5TZ5biQksBErqmesIl3QD+VqtB+RNghxectZ3VEs" +
                 "nCUtcE7tJ8O14qwCb3TxS9dvIUFiVi4DjbxX46TdcTbTaK8/qr6AIf+l");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(nameCert));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading Named Certificate.");
-			}
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(nameCert));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading Named Certificate.");
+            }
 
 
-			byte[] probSelfSignedCert = Base64.Decode(
+            byte[] probSelfSignedCert = Base64.Decode(
                    "MIICxTCCAi6gAwIBAgIQAQAAAAAAAAAAAAAAAAAAATANBgkqhkiG9w0BAQUFADBF"
                  + "MScwJQYDVQQKEx4gRElSRUNUSU9OIEdFTkVSQUxFIERFUyBJTVBPVFMxGjAYBgNV"
                  + "BAMTESBBQyBNSU5FRkkgQiBURVNUMB4XDTA0MDUwNzEyMDAwMFoXDTE0MDUwNzEy"
@@ -708,21 +693,14 @@ namespace Org.BouncyCastle.X509.Tests
                  + "LUTBvfs1jdjo9fGmQLvOG+Sm51Rbjglb8bcikVI5gLbclOlvqLkm77otjl4U4Z2/"
                  + "Y0vP14Aov3Sn3k+17EfReYUZI4liuB95ncobC4e8ZM++LjQcIM0s+Vs=");
 
-			try
-			{
-				Assert.IsNotNull(new X509CertificateParser().ReadCertificate(probSelfSignedCert));
-			}
-			catch (Exception)
-			{
-				Assert.Fail("Reading busted Certificate.");
-			}
-		}
-
-        public override void PerformTest()
-        {
-            TestCreationRSA();
-            TestCreationDSA();
-            TestCreationECDSA();
+            try
+            {
+                Assert.IsNotNull(new X509CertificateParser().ReadCertificate(probSelfSignedCert));
+            }
+            catch (Exception)
+            {
+                Assert.Fail("Reading busted Certificate.");
+            }
         }
     }
 }
