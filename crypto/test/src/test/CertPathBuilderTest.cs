@@ -67,6 +67,86 @@ namespace Org.BouncyCastle.Tests
         }
 
         [Test]
+        public void EEInSelectorTest()
+        {
+            // create certificates and CRLs
+            AsymmetricCipherKeyPair rootPair = TestUtilities.GenerateRsaKeyPair();
+            AsymmetricCipherKeyPair interPair = TestUtilities.GenerateRsaKeyPair();
+            AsymmetricCipherKeyPair endPair = TestUtilities.GenerateRsaKeyPair();
+
+            X509Certificate rootCert = TestUtilities.GenerateRootCert(rootPair);
+            X509Certificate interCert = TestUtilities.GenerateIntermediateCert(interPair.Public, rootPair.Private, rootCert);
+            X509Certificate endCert = TestUtilities.GenerateEndEntityCert(endPair.Public, interPair.Private, interCert);
+
+            // create CertStore to support path building
+            var certList = new List<X509Certificate>();
+            certList.Add(interCert);
+            certList.Add(endCert);
+
+            IStore<X509Certificate> x509CertStore = CollectionUtilities.CreateStore(certList);
+
+            var trust = new HashSet<TrustAnchor>();
+            trust.Add(new TrustAnchor(rootCert, null));
+
+            // build the path
+            PkixCertPathBuilder builder = new PkixCertPathBuilder();
+            X509CertStoreSelector pathConstraints = new X509CertStoreSelector();
+
+            pathConstraints.Certificate = endCert;
+
+            PkixBuilderParameters buildParams = new PkixBuilderParameters(trust, pathConstraints);
+            buildParams.AddStoreCert(x509CertStore);
+            buildParams.Date = DateTime.UtcNow;
+            buildParams.IsRevocationEnabled = false;
+
+            PkixCertPathBuilderResult result = builder.Build(buildParams);
+            PkixCertPath path = result.CertPath;
+
+            Assert.AreEqual(2, path.Certificates.Count, $"wrong number of certs in {nameof(EEInSelectorTest)} path");
+        }
+
+        [Test]
+        public void EEOnlyInSelectorTest()
+        {
+            // create certificates and CRLs
+            AsymmetricCipherKeyPair rootPair = TestUtilities.GenerateRsaKeyPair();
+            AsymmetricCipherKeyPair interPair = TestUtilities.GenerateRsaKeyPair();
+            AsymmetricCipherKeyPair endPair = TestUtilities.GenerateRsaKeyPair();
+            AsymmetricCipherKeyPair miscPair = TestUtilities.GenerateRsaKeyPair();
+
+            X509Certificate rootCert = TestUtilities.GenerateRootCert(rootPair);
+            X509Certificate interCert = TestUtilities.GenerateIntermediateCert(interPair.Public, rootPair.Private, rootCert);
+            X509Certificate endCert = TestUtilities.GenerateEndEntityCert(endPair.Public, interPair.Private, interCert);
+            X509Certificate miscCert = TestUtilities.GenerateEndEntityCert(miscPair.Public, interPair.Private, interCert);
+
+            // create CertStore to support path building
+            var certList = new List<X509Certificate>();
+            certList.Add(interCert);
+            certList.Add(miscCert);
+
+            IStore<X509Certificate> x509CertStore = CollectionUtilities.CreateStore(certList);
+
+            var trust = new HashSet<TrustAnchor>();
+            trust.Add(new TrustAnchor(rootCert, null));
+
+            // build the path
+            PkixCertPathBuilder builder = new PkixCertPathBuilder();
+            X509CertStoreSelector pathConstraints = new X509CertStoreSelector();
+
+            pathConstraints.Certificate = endCert;
+
+            PkixBuilderParameters buildParams = new PkixBuilderParameters(trust, pathConstraints);
+            buildParams.AddStoreCert(x509CertStore);
+            buildParams.Date = DateTime.UtcNow;
+            buildParams.IsRevocationEnabled = false;
+
+            PkixCertPathBuilderResult result = builder.Build(buildParams);
+            PkixCertPath path = result.CertPath;
+
+            Assert.AreEqual(2, path.Certificates.Count, $"wrong number of certs in {nameof(EEOnlyInSelectorTest)} path");
+        }
+
+        [Test]
         public void ManyTrustAnchorsAkiNarrowingPerfTest()
         {
             /*

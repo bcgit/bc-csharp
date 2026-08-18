@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Security.Certificates;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
@@ -36,20 +35,8 @@ namespace Org.BouncyCastle.Pkix
         {
             // search target certificates
 
-            var certSelector = pkixParams.GetTargetConstraintsCert();
+            var targets = PkixCertPathValidatorUtilities.FindTargets(pkixParams);
 
-            var targets = new HashSet<X509Certificate>();
-            try
-            {
-                CollectionUtilities.CollectMatches(targets, certSelector, pkixParams.GetStoresCert());
-            }
-            catch (Exception e)
-            {
-                throw new PkixCertPathBuilderException("Error finding target certificate.", e);
-            }
-
-            if (targets.Count < 1)
-                throw new PkixCertPathBuilderException("No certificate found matching targetConstraints.");
 
             PkixCertPathBuilderResult result = null;
             var certPathList = new List<X509Certificate>();

@@ -46,6 +46,32 @@ namespace Org.BouncyCastle.Pkix
         //    "aACompromise"
         //};
 
+        /// <exception cref="PkixCertPathBuilderException"/>
+        internal static HashSet<X509Certificate> FindTargets(PkixBuilderParameters pkixParams)
+        {
+            var certSelector = pkixParams.GetTargetConstraintsCert();
+
+            var targets = new HashSet<X509Certificate>();
+            try
+            {
+                CollectionUtilities.CollectMatches(targets, certSelector, pkixParams.GetStoresCert());
+            }
+            catch (Exception e)
+            {
+                throw new PkixCertPathBuilderException("Error finding target certificate.", e);
+            }
+
+            if (targets.Count < 1)
+            {
+                var target = (certSelector as ISpecificCertificate)?.Certificate
+                    ?? throw new PkixCertPathBuilderException("No certificate found matching targetConstraints.");
+
+                targets.Add(target);
+            }
+
+            return targets;
+        }
+
         /// <summary>
         /// Search the given Set of TrustAnchor's for one that is the
         /// issuer of the given X509 certificate.
