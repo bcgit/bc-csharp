@@ -394,6 +394,34 @@ namespace Org.BouncyCastle.X509
             return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
         }
 
+        public X509Certificate GenerateUnsigned()
+        {
+            var sigAlgID = new AlgorithmIdentifier(X509ObjectIdentifiers.id_alg_unsigned);
+
+            m_tbsGen.SetSignature(sigAlgID);
+
+            if (!m_extGenerator.IsEmpty)
+            {
+                var deltaExtension = m_extGenerator.GetExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor);
+                if (deltaExtension != null)
+                {
+                    var descriptor = DeltaCertificateTool.TrimDeltaCertificateDescriptor(
+                        DeltaCertificateDescriptor.GetInstance(deltaExtension.GetParsedValue()),
+                        m_tbsGen.GenerateTbsCertificate(),
+                        m_extGenerator.Generate());
+
+                    m_extGenerator.ReplaceExtension(X509Extensions.DRAFT_DeltaCertificateDescriptor,
+                        deltaExtension.IsCritical, descriptor);
+                }
+
+                m_tbsGen.SetExtensions(m_extGenerator.Generate());
+            }
+
+            var tbsCertificate = m_tbsGen.GenerateTbsCertificate();
+            var signature = new DerBitString(Array.Empty<byte>());
+            return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
+        }
+
         /// <summary>
         /// Allows enumeration of the signature names supported by the generator.
         /// </summary>

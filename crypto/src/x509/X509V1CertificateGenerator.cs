@@ -137,6 +137,19 @@ namespace Org.BouncyCastle.X509
             return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
         }
 
+        public X509Certificate GenerateUnsigned()
+        {
+            var sigAlgID = new AlgorithmIdentifier(X509ObjectIdentifiers.id_alg_unsigned);
+
+            m_tbsGen.SetSignature(sigAlgID);
+
+            var tbsCertificate = m_tbsGen.GenerateTbsCertificate();
+
+            var signature = new DerBitString(Array.Empty<byte>());
+
+            return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
+        }
+
         /// <summary>
         /// Allows enumeration of the signature names supported by the generator.
         /// </summary>

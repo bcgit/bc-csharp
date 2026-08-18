@@ -93,6 +93,10 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static readonly DerObjectIdentifier id_ecdsa_with_shake256 = pkix_algorithms.Branch("33");
 
+        public static readonly DerObjectIdentifier id_alg_noSignature = pkix_algorithms.Branch("2");
+
+        public static readonly DerObjectIdentifier id_alg_unsigned = pkix_algorithms.Branch("36");
+
         public static readonly DerObjectIdentifier id_pda = IdPkix.Branch("9");
 
         //
@@ -109,5 +113,14 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly DerObjectIdentifier CrlAccessMethod = IdADCAIssuers;
 
         public static readonly DerObjectIdentifier id_ce = new DerObjectIdentifier("2.5.29");
+
+        /// <summary>
+        /// Google's Certificate Transparency arc, the parent of the OIDs defined by RFC 6962.
+        /// </summary>
+        /// <remarks>
+        /// Not under the standard PKIX id-pe/id-ce trees because the values predate RFC 6962's transition to IETF
+        /// process.
+        /// </remarks>
+        public static readonly DerObjectIdentifier id_ct = new DerObjectIdentifier("1.3.6.1.4.1.11129.2.4");
     }
 }
