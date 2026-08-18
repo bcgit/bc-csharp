@@ -355,6 +355,7 @@
             <li>Fix EdiPartyName.ToAsn1Object to use tagging correctly (existing internal usage of this class is unaffected).</li>
             <li>DTLS: Bound the range tracking when reassembling handshake messages to avoid malicious fragmentation DoS.</li>
             <li>TLS: TlsUtilities.ReadFully now reads incrementally to avoid allocating the full declared length up front.</li>
+            <li>Pkix: Bound the total number of nodes visited by PkixCertPathBuilder per build (configurable via Properties.X509MaxCertPathBuildNodes).</li>
         </ul>
         <h5>Additional Features and Functionality</h5>
         <ul>

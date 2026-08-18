@@ -118,6 +118,17 @@ namespace Org.BouncyCastle.Utilities
         public static readonly string X509AllowNonDerTbsCertificate = "Org.BouncyCastle.X509.Allow_Non-DER_TBSCert";
 
         /// <summary>
+        /// Upper bound on the total number of nodes the PKIX CertPath builder visits while searching for a chain. The
+        /// builder does a depth-first walk up the PKI graph, bounded per path by cycle detection and the caller's
+        /// maxPathLength. Because candidate issuers are matched by subject name only, a certificate store containing
+        /// many certificates that share a subject name without chaining to a trust anchor can make the search explore a
+        /// large number of partial paths before it concludes no chain exists. This bound keeps that work predictable:
+        /// the visited-node count is checked on entry to each build step and the build is aborted once it exceeds the
+        /// bound.
+        /// </summary>
+        public static readonly string X509MaxCertPathBuildNodes = "Org.BouncyCastle.X509.MaxCertPathBuildNodes";
+
+        /// <summary>
         /// Upper bound on the total number of valid-policy-tree nodes retained (across all depth levels) during PKIX
         /// CertPath validation. Certificate policy mapping combined with the anyPolicy expansion of RFC 5280
         /// 6.1.3/6.1.4 can grow the tree multiplicatively per certificate, so a crafted chain that still chains to a

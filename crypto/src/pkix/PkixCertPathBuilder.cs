@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Pkix
         private readonly bool m_isForCrlCheck;
 
         private Exception m_certPathException;
+        private int m_maxNodes;
+        private int m_nodesVisited;
 
         public PkixCertPathBuilder()
             : this(isForCrlCheck: false)
@@ -28,15 +30,25 @@ namespace Org.BouncyCastle.Pkix
         /// <param name="pkixParams">Object containing all information to build the CertPath.</param>
         public virtual PkixCertPathBuilderResult Build(PkixBuilderParameters pkixParams)
         {
-            var certPathList = new List<X509Certificate>();
+            m_maxNodes = Properties.GetInt32(Properties.X509MaxCertPathBuildNodes, 262144);
+            m_nodesVisited = 0;
 
-            // check all potential target certificates
-            foreach (X509Certificate tbvCert in PkixCertPathValidatorUtilities.FindTargets(pkixParams))
+            try
             {
-                PkixCertPathBuilderResult result = Build(tbvCert, pkixParams, certPathList);
+                var certPathList = new List<X509Certificate>();
 
-                if (result != null)
-                    return result;
+                // check all potential target certificates
+                foreach (X509Certificate tbvCert in PkixCertPathValidatorUtilities.FindTargets(pkixParams))
+                {
+                    PkixCertPathBuilderResult result = Build(tbvCert, pkixParams, certPathList);
+
+                    if (result != null)
+                        return result;
+                }
+            }
+            catch (NodeBudgetExceededException e)
+            {
+                throw new PkixCertPathBuilderException(e.Message);
             }
 
             if (m_certPathException == null)
@@ -48,6 +60,17 @@ namespace Org.BouncyCastle.Pkix
         protected virtual PkixCertPathBuilderResult Build(X509Certificate tbvCert, PkixBuilderParameters pkixParams,
             IList<X509Certificate> tbvPath)
         {
+            /*
+             * Keep the depth-first search bounded: candidate issuers are matched by subject name only, so a store full
+             * of like-named certificates that never chain to a trust anchor could otherwise be explored as a very large
+             * number of partial paths (see Properties.X509MaxCertPathBuildNodes).
+             */
+            if (++m_nodesVisited > m_maxNodes)
+            {
+                throw new NodeBudgetExceededException("certification path build exceeded node limit set by "
+                    + Properties.X509MaxCertPathBuildNodes);
+            }
+
             // If tbvCert is already present in tbvPath, it indicates having run into a cycle in the PKI graph.
             if (tbvPath.Contains(tbvCert))
                 return null;
@@ -132,7 +155,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                 }
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is NodeBudgetExceededException))
             {
                 m_certPathException = e;
             }
@@ -143,6 +166,15 @@ namespace Org.BouncyCastle.Pkix
             }
 
             return builderResult;
+        }
+
+        private class NodeBudgetExceededException
+            : Exception
+        {
+            internal NodeBudgetExceededException(string message)
+                : base(message)
+            {
+            }
         }
     }
 }
