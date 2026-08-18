@@ -2,18 +2,17 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Security.Certificates;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
 {
-    /**
-     * Implements the PKIX CertPathBuilding algorithm for BouncyCastle.
-     *
-     * @see CertPathBuilderSpi
-     */
+    /// <summary>Implements the PKIX CertPathBuilding algorithm for BouncyCastle.</summary>
     public class PkixCertPathBuilder
     {
         private readonly bool m_isForCrlCheck;
+
+        private Exception m_certPathException;
 
         public PkixCertPathBuilder()
             : this(isForCrlCheck: false)
@@ -25,41 +24,26 @@ namespace Org.BouncyCastle.Pkix
             m_isForCrlCheck = isForCrlCheck;
         }
 
-        /**
-         * Build and validate a CertPath using the given parameter.
-         *
-         * @param params PKIXBuilderParameters object containing all information to
-         *            build the CertPath
-         */
+        /// <summary>Build and validate a CertPath using the given parameter.</summary>
+        /// <param name="pkixParams">Object containing all information to build the CertPath.</param>
         public virtual PkixCertPathBuilderResult Build(PkixBuilderParameters pkixParams)
         {
-            // search target certificates
-
-            var targets = PkixCertPathValidatorUtilities.FindTargets(pkixParams);
-
-
-            PkixCertPathBuilderResult result = null;
             var certPathList = new List<X509Certificate>();
 
             // check all potential target certificates
-            foreach (X509Certificate cert in targets)
+            foreach (X509Certificate tbvCert in PkixCertPathValidatorUtilities.FindTargets(pkixParams))
             {
-                result = Build(cert, pkixParams, certPathList);
+                PkixCertPathBuilderResult result = Build(tbvCert, pkixParams, certPathList);
 
                 if (result != null)
-                    break;
+                    return result;
             }
 
-            if (result == null && certPathException != null)
-                throw new PkixCertPathBuilderException(certPathException.Message, certPathException.InnerException);
-
-            if (result == null && certPathException == null)
+            if (m_certPathException == null)
                 throw new PkixCertPathBuilderException("Unable to find certificate chain.");
 
-            return result;
+            throw new PkixCertPathBuilderException(m_certPathException.Message, m_certPathException.InnerException);
         }
-
-        private Exception certPathException;
 
         protected virtual PkixCertPathBuilderResult Build(X509Certificate tbvCert, PkixBuilderParameters pkixParams,
             IList<X509Certificate> tbvPath)
@@ -150,7 +134,7 @@ namespace Org.BouncyCastle.Pkix
             }
             catch (Exception e)
             {
-                certPathException = e;
+                m_certPathException = e;
             }
 
             if (builderResult == null)
