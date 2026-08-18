@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.X509.Store
     /// A selector for attribute certificates from configurable criteria.
     /// </summary>
     public class X509AttrCertStoreSelector
-        : ISelector<X509V2AttributeCertificate>
+        : ISelector<X509V2AttributeCertificate>, ISpecificAttributeCert
     {
         // TODO: name constraints???
 
@@ -272,5 +272,10 @@ namespace Org.BouncyCastle.X509.Store
             }
             return false;
         }
+    }
+
+    public interface ISpecificAttributeCert
+    {
+        X509V2AttributeCertificate AttributeCert { get; }
     }
 }

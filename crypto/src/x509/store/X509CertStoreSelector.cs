@@ -11,7 +11,7 @@ using Org.BouncyCastle.X509.Extension;
 namespace Org.BouncyCastle.X509.Store
 {
     public class X509CertStoreSelector
-        : ISelector<X509Certificate>
+        : ISelector<X509Certificate>, ISpecificCertificate
     {
         // TODO Missing criteria?
 
@@ -368,5 +368,10 @@ namespace Org.BouncyCastle.X509.Store
             }
             return false;
         }
+    }
+
+    public interface ISpecificCertificate
+    {
+        X509Certificate Certificate { get; }
     }
 }
