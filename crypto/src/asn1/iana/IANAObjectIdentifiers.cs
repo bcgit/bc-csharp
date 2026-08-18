@@ -24,6 +24,11 @@ namespace Org.BouncyCastle.Asn1.Iana
         // {iso(1) identified-organization(3) dod(6) internet(1) security(5) mechanisms(5) ipsec(8) isakmpOakley(1)}
         //
 
+        /** Kerberos V5; 1.3.6.1.5.2 */
+        public static readonly DerObjectIdentifier kerberosv5 = security.Branch("2");
+        /** PKINIT, RFC 4556 sec. 3.2.2; 1.3.6.1.5.2.3 */
+        public static readonly DerObjectIdentifier id_pkinit = kerberosv5.Branch("3");
+
         /** IANA security mechanisms; 1.3.6.1.5.5 */
         public static readonly DerObjectIdentifier security_mechanisms = security.Branch("5");
         /** IANA security nametypes;  1.3.6.1.5.6 */
