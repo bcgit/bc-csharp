@@ -30,6 +30,7 @@ namespace Org.BouncyCastle.Pkix
         /// <param name="pkixParams">Object containing all information to build the CertPath.</param>
         public virtual PkixCertPathBuilderResult Build(PkixBuilderParameters pkixParams)
         {
+            m_certPathException = null;
             m_maxNodes = Properties.GetInt32(Properties.X509MaxCertPathBuildNodes, 262144);
             m_nodesVisited = 0;
 
@@ -57,6 +58,7 @@ namespace Org.BouncyCastle.Pkix
             throw new PkixCertPathBuilderException(m_certPathException.Message, m_certPathException.InnerException);
         }
 
+        // TODO[api] Make private
         protected virtual PkixCertPathBuilderResult Build(X509Certificate tbvCert, PkixBuilderParameters pkixParams,
             IList<X509Certificate> tbvPath)
         {
@@ -86,26 +88,16 @@ namespace Org.BouncyCastle.Pkix
                     return null;
             }
 
-            tbvPath.Add(tbvCert);
-
-            PkixCertPathBuilderResult builderResult = null;
             PkixCertPathValidator validator = new PkixCertPathValidator(m_isForCrlCheck);
+
+            tbvPath.Add(tbvCert);
 
             try
             {
                 // check whether the issuer of <tbvCert> is a TrustAnchor
                 if (PkixCertPathValidatorUtilities.IsIssuerTrustAnchor(tbvCert, pkixParams.GetTrustAnchors()))
                 {
-                    // exception message from possibly later tried certification chains
-                    PkixCertPath certPath;
-                    try
-                    {
-                        certPath = new PkixCertPath(tbvPath);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new Exception("Certification path could not be constructed from certificate list.", e);
-                    }
+                    PkixCertPath certPath = new PkixCertPath(tbvPath);
 
                     PkixCertPathValidatorResult result;
                     try
@@ -133,7 +125,7 @@ namespace Org.BouncyCastle.Pkix
                     }
 
                     // try to get the issuer certificate from one of the stores
-                    ISet<X509Certificate> issuers;
+                    HashSet<X509Certificate> issuers;
                     try
                     {
                         issuers = PkixCertPathValidatorUtilities.FindIssuerCerts(tbvCert, pkixParams);
@@ -148,10 +140,9 @@ namespace Org.BouncyCastle.Pkix
 
                     foreach (X509Certificate issuer in issuers)
                     {
-                        builderResult = Build(issuer, pkixParams, tbvPath);
-
+                        PkixCertPathBuilderResult builderResult = Build(issuer, pkixParams, tbvPath);
                         if (builderResult != null)
-                            break;
+                            return builderResult;
                     }
                 }
             }
@@ -159,13 +150,13 @@ namespace Org.BouncyCastle.Pkix
             {
                 m_certPathException = e;
             }
-
-            if (builderResult == null)
+            finally
             {
+                // Undo the add above on every exit from this frame - including the success path (the PkixCertPath was
+                // built from a copy of tbvPath) and an unwinding NodeBudgetExceededException.
                 tbvPath.Remove(tbvCert);
             }
-
-            return builderResult;
+            return null;
         }
 
         private class NodeBudgetExceededException

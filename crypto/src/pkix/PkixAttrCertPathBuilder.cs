@@ -11,14 +11,14 @@ namespace Org.BouncyCastle.Pkix
 {
     public class PkixAttrCertPathBuilder
     {
-        /**
-         * Build and validate a CertPath using the given parameter.
-         *
-         * @param params PKIXBuilderParameters object containing all information to
-         *            build the CertPath
-         */
+        private Exception m_certPathException;
+
+        /// <summary>Build and validate a CertPath using the given parameter.</summary>
+        /// <param name="pkixParams">Object containing all information to build the CertPath.</param>
         public virtual PkixCertPathBuilderResult Build(PkixBuilderParameters pkixParams)
         {
+            m_certPathException = null;
+
             // search target certificates
 
             if (!(pkixParams.GetTargetConstraintsAttrCert() is X509AttrCertStoreSelector attrCertSelector))
@@ -40,10 +40,8 @@ namespace Org.BouncyCastle.Pkix
                 throw new PkixCertPathBuilderException("Error finding target attribute certificate.", e);
             }
 
-            if (targets.Count == 0)
+            if (targets.Count < 1)
                 throw new PkixCertPathBuilderException("No attribute certificate found matching targetConstraints.");
-
-            PkixCertPathBuilderResult result = null;
 
             // check all potential target certificates
             foreach (var target in targets)
@@ -75,39 +73,26 @@ namespace Org.BouncyCastle.Pkix
 
                 foreach (X509Certificate issuer in issuers)
                 {
-                    result = Build(target, issuer, pkixParams, certPathList);
-
+                    PkixCertPathBuilderResult result = Build(target, issuer, pkixParams, certPathList);
                     if (result != null)
-                        break;
+                        return result;
                 }
-
-                if (result != null)
-                    break;
             }
 
-            if (result == null && certPathException != null)
-                throw new PkixCertPathBuilderException("Possible certificate chain could not be validated.",
-                    certPathException);
-
-            if (result == null && certPathException == null)
+            if (m_certPathException == null)
                 throw new PkixCertPathBuilderException("Unable to find certificate chain.");
 
-            return result;
+            throw new PkixCertPathBuilderException(m_certPathException.Message, m_certPathException.InnerException);
         }
-
-        private Exception certPathException;
 
         private PkixCertPathBuilderResult Build(X509V2AttributeCertificate attrCert, X509Certificate tbvCert,
             PkixBuilderParameters pkixParams, IList<X509Certificate> tbvPath)
         {
-            // If tbvCert is readily present in tbvPath, it indicates having run
-            // into a cycle in the
-            // PKI graph.
+            // If tbvCert is readily present in tbvPath, it indicates having run into a cycle in the PKI graph.
             if (tbvPath.Contains(tbvCert))
                 return null;
 
-            // step out, the certificate is not allowed to appear in a certification
-            // chain
+            // step out, the certificate is not allowed to appear in a certification chain
             if (pkixParams.GetExcludedCerts().Contains(tbvCert))
                 return null;
 
@@ -118,11 +103,9 @@ namespace Org.BouncyCastle.Pkix
                     return null;
             }
 
-            tbvPath.Add(tbvCert);
-
-            PkixCertPathBuilderResult builderResult = null;
-
             PkixAttrCertPathValidator validator = new PkixAttrCertPathValidator();
+
+            tbvPath.Add(tbvCert);
 
             try
             {
@@ -130,8 +113,8 @@ namespace Org.BouncyCastle.Pkix
                 if (PkixCertPathValidatorUtilities.IsIssuerTrustAnchor(tbvCert, pkixParams.GetTrustAnchors()))
                 {
                     PkixCertPath certPath = new PkixCertPath(tbvPath);
-                    PkixCertPathValidatorResult result;
 
+                    PkixCertPathValidatorResult result;
                     try
                     {
                         result = validator.Validate(certPath, pkixParams);
@@ -176,24 +159,23 @@ namespace Org.BouncyCastle.Pkix
                         if (PkixCertPathValidatorUtilities.IsSelfIssued(issuer))
                             continue;
 
-                        builderResult = Build(attrCert, issuer, pkixParams, tbvPath);
-
+                        PkixCertPathBuilderResult builderResult = Build(attrCert, issuer, pkixParams, tbvPath);
                         if (builderResult != null)
-                            break;
+                            return builderResult;
                     }
                 }
             }
             catch (Exception e)
             {
-                certPathException = new Exception("No valid certification path could be build.", e);
+                m_certPathException = new Exception("No valid certification path could be build.", e);
             }
-
-            if (builderResult == null)
+            finally
             {
+                // Undo the add above on every exit from this frame - including the success path (the PkixCertPath was
+                // built from a copy of tbvPath).
                 tbvPath.Remove(tbvCert);
             }
-
-            return builderResult;
+            return null;
         }
 
         internal static HashSet<X509V2AttributeCertificate> FindAttributeCertificates(
