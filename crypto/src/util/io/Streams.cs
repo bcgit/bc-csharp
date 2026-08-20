@@ -1,5 +1,8 @@
 using System;
 using System.IO;
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+using System.Runtime.CompilerServices;
+#endif
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
@@ -268,15 +271,16 @@ namespace Org.BouncyCastle.Utilities.IO
             return true;
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void ValidateBufferArguments(byte[] buffer, int offset, int count)
         {
             if (buffer == null)
                 throw new ArgumentNullException(nameof(buffer));
-            int available = buffer.Length - offset;
-            if ((offset | available) < 0)
+            if (offset < 0)
                 throw new ArgumentOutOfRangeException(nameof(offset));
-            int remaining = available - count;
-            if ((count | remaining) < 0)
+            if ((uint)count > buffer.Length - offset)
                 throw new ArgumentOutOfRangeException(nameof(count));
         }
 

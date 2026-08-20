@@ -1239,37 +1239,47 @@ namespace Org.BouncyCastle.Utilities
                 && bOff - aOff < aLen;
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void ValidateBuffer<T>(T[] buf)
         {
             if (buf == null)
                 throw new ArgumentNullException(nameof(buf));
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void ValidateBufferLength(int len)
         {
             if (len < 0)
                 throw new ArgumentOutOfRangeException(nameof(len));
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void ValidateRange<T>(T[] buf, int from, int to)
         {
             if (buf == null)
                 throw new ArgumentNullException(nameof(buf));
-            if ((from | (buf.Length - from)) < 0)
-                throw new ArgumentOutOfRangeException(nameof(from));
-            if (((to - from) | (buf.Length - to)) < 0)
+            if ((uint)to > buf.Length)
                 throw new ArgumentOutOfRangeException(nameof(to));
+            if ((uint)from > to)
+                throw new ArgumentOutOfRangeException(nameof(from));
         }
 
+#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         public static void ValidateSegment<T>(T[] buf, int off, int len)
         {
             if (buf == null)
                 throw new ArgumentNullException(nameof(buf));
-            int available = buf.Length - off;
-            if ((off | available) < 0)
+            if ((uint)off > buf.Length)
                 throw new ArgumentOutOfRangeException(nameof(off));
-            int remaining = available - len;
-            if ((len | remaining) < 0)
+            if ((uint)len > buf.Length - off)
                 throw new ArgumentOutOfRangeException(nameof(len));
         }
 
