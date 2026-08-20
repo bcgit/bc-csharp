@@ -329,11 +329,15 @@ namespace Org.BouncyCastle.Crypto.Engines
             bool               forEncryption,
             ICipherParameters  parameters)
         {
-            if (!(parameters is KeyParameter))
+            if (!(parameters is BlowfishParameters) && !(parameters is KeyParameter))
 				throw new ArgumentException("invalid parameter passed to Blowfish init - " + Platform.GetTypeName(parameters));
 
+			var blowfishParameters = parameters is BlowfishParameters ? 
+				(BlowfishParameters)parameters : 
+				new BlowfishParameters(((KeyParameter)parameters).GetKey(), extendedKey: false);
+
 			this.encrypting = forEncryption;
-			this.workingKey = ((KeyParameter)parameters).GetKey();
+			this.workingKey = blowfishParameters.GetKey();
 			SetKey(this.workingKey);
         }
 
@@ -441,11 +445,6 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private void SetKey(byte[] key)
         {
-			if (key.Length < 4 || key.Length > 56)
-			{
-				throw new ArgumentException("key length must be in range 32 to 448 bits");
-			}
-
 			/*
             * - comments are from _Applied Crypto_, Schneier, p338
             * please be careful comparing the two, AC numbers the
@@ -469,7 +468,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             * (up to P[17]).  Repeatedly cycle through the key bits until the
             * entire P-array has been XOR-ed with the key bits
             */
-            int keyLength = key.Length;
+            int keyLength = System.Math.Min(key.Length, P_SZ*4);
             int keyIndex = 0;
 
             for (int i=0; i < P_SZ; i++)
