@@ -20,9 +20,11 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /**
-     * an expanded SignerInfo block from a CMS Signed message
-     */
+    /// <summary>
+    /// Represents an expanded CMS <c>SignerInfo</c> from a signed-data message. Obtain instances from
+    /// <see cref="CmsSignedData.GetSignerInfos"/>, match signers with <see cref="SignerID"/>, then call
+    /// <see cref="Verify(AsymmetricKeyParameter)"/> or <see cref="Verify(X509Certificate)"/>.
+    /// </summary>
     public class SignerInformation
     {
         private SignerID sid;
@@ -87,13 +89,11 @@ namespace Org.BouncyCastle.Cms
             this.calculatedDigest = calculatedDigest;
         }
 
-        /**
-         * Protected constructor. In some cases clients have their own idea about how to encode
-         * the signed attributes and calculate the signature. This constructor is to allow developers
-         * to deal with that by extending off the class and overriding e.g. SignedAttributes property.
-         *
-         * @param baseInfo the SignerInformation to base this one on.
-         */
+        /// <summary>
+        /// Initializes a new instance based on <paramref name="baseInfo"/> for subclasses that override
+        /// signed-attribute handling or signature calculation.
+        /// </summary>
+        /// <param name="baseInfo">The signer information to copy state from.</param>
         protected SignerInformation(SignerInformation baseInfo)
         {
             this.info = baseInfo.info;
@@ -112,35 +112,35 @@ namespace Org.BouncyCastle.Cms
             m_unsignedAttributeTable = baseInfo.m_unsignedAttributeTable;
         }
 
+        /// <summary>Gets a value indicating whether this signer information represents a counter signature.</summary>
         public bool IsCounterSignature => isCounterSignature;
 
+        /// <summary>Gets the content type of the signed data, or null for a counter signature.</summary>
         public DerObjectIdentifier ContentType => contentType;
 
+        /// <summary>Gets the identifier used to match this signer against certificates.</summary>
         public SignerID SignerID => sid;
 
-        /**
-         * return the version number for this objects underlying SignerInfo structure.
-         */
+        /// <summary>Gets the <c>SignerInfo</c> version number.</summary>
         public int Version => info.Version.IntValueExact;
 
         // TODO[api] Rename to DigestAlgorithm (after field made non-visible and/or renamed)
+        /// <summary>Gets the digest algorithm identifier from the underlying <c>SignerInfo</c>.</summary>
         public AlgorithmIdentifier DigestAlgorithmID => digestAlgorithm;
 
-        /**
-         * return the object identifier for the signature.
-         */
+        /// <summary>Gets the digest algorithm OID. Use <see cref="DigestAlgorithmID"/> instead.</summary>
         [Obsolete("Use 'DigestAlgorithmID' instead")]
         public string DigestAlgOid => digestAlgorithm.Algorithm.GetID();
 
-        /**
-         * return the signature parameters, or null if there aren't any.
-         */
+        /// <summary>
+        /// Gets the digest algorithm parameters, or null if absent. Use <see cref="DigestAlgorithmID"/> instead.
+        /// </summary>
         [Obsolete("Use 'DigestAlgorithmID' instead")]
         public Asn1Object DigestAlgParams => digestAlgorithm.Parameters?.ToAsn1Object();
 
-        /**
-         * return the content digest that was calculated during verification.
-         */
+        /// <summary>Returns the content digest calculated during the most recent successful verification.</summary>
+        /// <returns>A copy of the calculated digest.</returns>
+        /// <exception cref="InvalidOperationException">Verification has not been performed yet.</exception>
         public byte[] GetContentDigest()
         {
             if (resultDigest == null)
@@ -149,18 +149,24 @@ namespace Org.BouncyCastle.Cms
             return (byte[])resultDigest.Clone();
         }
 
+        /// <summary>Gets the signature algorithm identifier. Use <see cref="SignatureAlgorithm"/> instead.</summary>
         [Obsolete("Use 'SignatureAlgorithm' property instead")]
         public AlgorithmIdentifier EncryptionAlgorithmID => encryptionAlgorithm;
 
+        /// <summary>Gets the signature algorithm OID. Use <see cref="SignatureAlgorithm"/> instead.</summary>
         [Obsolete("Use 'SignatureAlgorithm' property instead")]
         public string EncryptionAlgOid => encryptionAlgorithm.Algorithm.Id;
 
+        /// <summary>
+        /// Gets the signature algorithm parameters, or null if absent. Use <see cref="SignatureAlgorithm"/> instead.
+        /// </summary>
         [Obsolete("Use 'SignatureAlgorithm' property instead")]
         public Asn1Object EncryptionAlgParams => encryptionAlgorithm.Parameters?.ToAsn1Object();
 
+        /// <summary>Gets the signature algorithm identifier from the underlying <c>SignerInfo</c>.</summary>
         public AlgorithmIdentifier SignatureAlgorithm => encryptionAlgorithm;
 
-        /// <summary>Return a table of the signed attributes - indexed by the OID of the attribute.</summary>
+        /// <summary>Gets a table of signed attributes indexed by attribute OID.</summary>
         public Asn1.Cms.AttributeTable SignedAttributes
         {
             get
@@ -173,12 +179,15 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>Gets the underlying ASN.1 <c>SignerInfo</c> structure.</summary>
         public SignerInfo SignerInfo => info;
 
+        /// <summary>Gets the underlying ASN.1 <c>SignerInfo</c> structure. Use <see cref="SignerInfo"/> instead.
+        /// </summary>
         [Obsolete("Use 'SignerInfo' property instead")]
         public SignerInfo ToSignerInfo() => info;
 
-        /// <summary>Return a table of the unsigned attributes - indexed by the OID of the attribute.</summary>
+        /// <summary>Gets a table of unsigned attributes indexed by attribute OID.</summary>
         public Asn1.Cms.AttributeTable UnsignedAttributes
         {
             get
@@ -191,15 +200,13 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /**
-         * return the encoded signature
-         */
+        /// <summary>Returns a copy of the encoded signature value.</summary>
         public byte[] GetSignature() => Arrays.Clone(signature);
 
-        /**
-         * Return a SignerInformationStore containing the counter signatures attached to this
-         * signer. If no counter signatures are present an empty store is returned.
-         */
+        /// <summary>
+        /// Returns counter signatures attached to this signer as unsigned attributes, or an empty store if none are
+        /// present.
+        /// </summary>
         public SignerInformationStore GetCounterSignatures()
         {
             // TODO There are several checks implied by the RFC3852 comments that are missing
@@ -260,10 +267,8 @@ namespace Org.BouncyCastle.Cms
             return new SignerInformationStore(counterSignatures);
         }
 
-        /**
-         * return the DER encoding of the signed attributes.
-         * @throws IOException if an encoding error occurs.
-         */
+        /// <summary>Returns the DER encoding of the signed attributes, or null if none are present.</summary>
+        /// <exception cref="IOException">An encoding error occurs.</exception>
         public virtual byte[] GetEncodedSignedAttributes() => signedAttributeSet?.GetEncoded(Asn1Encodable.Der);
 
         private bool DoVerify(AsymmetricKeyParameter publicKey)
@@ -671,10 +676,13 @@ namespace Org.BouncyCastle.Cms
             return true;
         }
 
-        /**
-         * verify that the given public key successfully handles and confirms the
-         * signature associated with this signer.
-         */
+        /// <summary>
+        /// Verifies the signature using <paramref name="pubKey"/> and validates signed attributes when present.
+        /// </summary>
+        /// <param name="pubKey">The signer's public key.</param>
+        /// <returns><c>true</c> if the signature is valid; otherwise, <c>false</c>.</returns>
+        /// <exception cref="ArgumentException"><paramref name="pubKey"/> is a private key.</exception>
+        /// <exception cref="CmsException">The signature or signed attributes cannot be processed.</exception>
         public bool Verify(AsymmetricKeyParameter pubKey)
         {
             if (pubKey.IsPrivate)
@@ -692,8 +700,14 @@ namespace Org.BouncyCastle.Cms
         /// Verify that the given certificate successfully handles and confirms the signature associated with this
         /// signer.
         /// </summary>
+        /// <param name="cert">The signer's certificate.</param>
+        /// <returns><c>true</c> if the signature is valid; otherwise, <c>false</c>.</returns>
+        /// <exception cref="CmsVerifierCertificateNotValidException">The certificate was not valid at signing time.
+        /// </exception>
+        /// <exception cref="CmsException">The signature or signed attributes cannot be processed.</exception>
         /// <remarks>
-        /// If a signingTime attribute is available, it is checked that the certificate was valid at the indicated time.
+        /// If a signingTime attribute is available, it is checked that the certificate was valid at the indicated
+        /// time.
         /// </remarks>
         public bool Verify(X509Certificate cert)
         {
@@ -754,15 +768,13 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /**
-         * Return a signer information object with the passed in unsigned
-         * attributes replacing the ones that are current associated with
-         * the object passed in.
-         *
-         * @param signerInformation the signerInfo to be used as the basis.
-         * @param unsignedAttributes the unsigned attributes to add.
-         * @return a copy of the original SignerInformationObject with the changed attributes.
-         */
+        /// <summary>
+        /// Returns a copy of <paramref name="signerInformation"/> with unsigned attributes replaced by
+        /// <paramref name="unsignedAttributes"/>.
+        /// </summary>
+        /// <param name="signerInformation">The signer information to copy.</param>
+        /// <param name="unsignedAttributes">The replacement unsigned attributes, or null to clear them.</param>
+        /// <returns>A new signer information object with the updated unsigned attributes.</returns>
         public static SignerInformation ReplaceUnsignedAttributes(SignerInformation signerInformation,
             Asn1.Cms.AttributeTable unsignedAttributes)
         {
@@ -777,14 +789,13 @@ namespace Org.BouncyCastle.Cms
             return new SignerInformation(newInfo, signerInformation.contentType, signerInformation.content, null);
         }
 
-        /**
-         * Return a signer information object with passed in SignerInformationStore representing counter
-         * signatures attached as an unsigned attribute.
-         *
-         * @param signerInformation the signerInfo to be used as the basis.
-         * @param counterSigners signer info objects carrying counter signature.
-         * @return a copy of the original SignerInformationObject with the changed attributes.
-         */
+        /// <summary>
+        /// Returns a copy of <paramref name="signerInformation"/> with counter signatures from
+        /// <paramref name="counterSigners"/> attached as an unsigned attribute.
+        /// </summary>
+        /// <param name="signerInformation">The signer information to copy.</param>
+        /// <param name="counterSigners">The counter signatures to attach.</param>
+        /// <returns>A new signer information object with the counter signatures attached.</returns>
         public static SignerInformation AddCounterSigners(SignerInformation signerInformation,
             SignerInformationStore counterSigners)
         {
