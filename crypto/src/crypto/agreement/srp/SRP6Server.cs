@@ -31,6 +31,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         protected BigInteger M2;
         protected BigInteger Key;
 
+		private bool isRFC2945 = false;
+
 	    public Srp6Server()
 	    {
 	    }
@@ -114,13 +116,47 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 
 		    // Compute the own client evidence message 'M1'
 		    BigInteger computedM1 = Srp6Utilities.CalculateM1(digest, N, A, pubB, S);
-		    if (computedM1.Equals(clientM1))
-		    {
-			    this.M1 = clientM1;
-			    return true;
-		    }
-		    return false;
-	    }
+            if (computedM1.Equals(clientM1))
+            {
+                this.M1 = clientM1;
+                this.isRFC2945 = false;
+                return true;
+            }
+            return false;
+        }
+
+        /** 
+	     * Authenticates the received client evidence message M1 using RFC2945 and saves it only if correct.
+	     * To be called after calculating the secret S.
+	     * @param M1: the client side generated evidence message
+	     * @param messageVerifier: message verifier pre-generated from identity and salt
+	     * @return A boolean indicating if the client message M1 was the expected one.
+	     * @throws CryptoException 
+	     */
+        public virtual bool VerifyClientEvidenceMessageRFC2945(BigInteger clientM1, byte[] messageVerifier)
+        {
+            // Verify pre-requirements
+            if (this.A == null || this.pubB == null || this.S == null || messageVerifier == null)
+            {
+                throw new CryptoException("Impossible to compute and verify M1: " +
+                        "some data are missing from the previous operations (A,B,S,messageVerifier)");
+            }
+
+            if (this.Key == null)
+            {
+                this.Key = Srp6Utilities.CalculateKey(digest, N, S);
+            }
+
+            // Compute the own client evidence message 'M1'
+            BigInteger computedM1 = Srp6Utilities.CalculateM1(digest, N, g, A, pubB, Key, messageVerifier);
+            if (computedM1.Equals(clientM1))
+            {
+                this.M1 = clientM1;
+                this.isRFC2945 = true;
+                return true;
+            }
+            return false;
+        }
 
         /**
 	     * Computes the server evidence message M2 using the previously verified values.
@@ -128,19 +164,26 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 	     * @return M2: the server side generated evidence message
 	     * @throws CryptoException
 	     */
-	    public virtual BigInteger CalculateServerEvidenceMessage()
-	    {
-		    // Verify pre-requirements
-		    if (this.A == null || this.M1 == null || this.S == null)
-		    {
-			    throw new CryptoException("Impossible to compute M2: " +
-					    "some data are missing from the previous operations (A,M1,S)");
-		    }
+        public virtual BigInteger CalculateServerEvidenceMessage()
+        {
+            // Verify pre-requirements
+            if (this.A == null || this.M1 == null || this.S == null)
+            {
+                throw new CryptoException("Impossible to compute M2: " +
+                   "some data are missing from the previous operations (A,M1,S)");
+            }
 
             // Compute the server evidence message 'M2'
-		    this.M2 = Srp6Utilities.CalculateM2(digest, N, A, M1, S);  
-		    return M2;
-	    }
+            if (isRFC2945)
+            {
+                this.M2 = Srp6Utilities.CalculateM2RFC2945(digest, N, A, M1, Key);
+            }
+            else
+            {
+                this.M2 = Srp6Utilities.CalculateM2(digest, N, A, M1, S);
+            }
+            return M2;
+        }
 
         /**
 	     * Computes the final session key as a result of the SRP successful mutual authentication
