@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<content xml:space="preserve" xmlns:ddue="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <item id="AboutBouncyCastleSection">
+    <ddue:section xmlns:ddue="http://ddue.schemas.microsoft.com/authoring/2003/5">
+      <ddue:title>About the Bouncy Castle Cryptography Library For .NET</ddue:title>
+      <ddue:content>
+        <ddue:para>
+          The Bouncy Castle Cryptography library is a .NET implementation of cryptographic algorithms and protocols.
+		  It was developed by the Legion of the Bouncy Castle, a registered Australian Charity, with a little help!
+		  The Legion, and the latest goings on with this package, can be found at 
+          <ddue:externalLink>
+            <ddue:linkText>https://www.bouncycastle.org</ddue:linkText>
+            <ddue:linkAlternateText>https://www.bouncycastle.org</ddue:linkAlternateText>
+            <ddue:linkUri>https://www.bouncycastle.org</ddue:linkUri>
+            <ddue:linkTarget>_blank</ddue:linkTarget>
+          </ddue:externalLink>.
+        </ddue:para>
+        <ddue:para>
+          In addition to providing basic cryptography algorithms, the package also provides support for CMS, OpenPGP,
+		  (D)TLS, TSP, X.509 certificate generation and more. The package also includes implementations of the following
+		  NIST Post-Quantum Cryptography Standardization algorithms: CRYSTALS-Dilithium, CRYSTALS-Kyber, Falcon, SPHINCS+,
+		  Classic McEliece, FrodoKEM, NTRU, NTRU Prime, Picnic, Saber, BIKE, and SIKE. These should all be considered
+		  EXPERIMENTAL and subject to change or removal. SIKE in particular is already slated for removal and should be
+		  used for research purposes only.
+        </ddue:para>
+      </ddue:content>
+    </ddue:section></item>
+  <item id="SHFB"><ddue:externalLink xmlns:ddue="http://ddue.schemas.microsoft.com/authoring/2003/5">
+    <ddue:linkText>Sandcastle Help File Builder</ddue:linkText>
+    <ddue:linkUri>https://GitHub.com/EWSoftware/SHFB</ddue:linkUri>
+    </ddue:externalLink></item>
+</content>
