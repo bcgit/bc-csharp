@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Tls
         /// </summary>
         /// <remarks>
         /// Limits the amount of fragmentation a malicious peer can cause. While at the limit a fragment that would
-        /// split a range is ignored; retransmission is then relied on to complete the message (although 
+        /// split a range is ignored; retransmission is then relied on to complete the message.
         /// </remarks>
         private const int MinMissingRangesLimit = 64;
 
@@ -66,6 +66,7 @@ namespace Org.BouncyCastle.Tls
                 {
                     if (copyEnd == range.End)
                     {
+                        // TODO[tls] It should be possible to handle all removals together at the end (linearly)
                         m_missing.RemoveAt(i--);
                     }
                     else
