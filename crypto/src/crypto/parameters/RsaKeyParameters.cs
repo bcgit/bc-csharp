@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && this.Exponent.Equals(that.Exponent);
         }
 
-        public override int GetHashCode() => IsPrivate.GetHashCode() ^ Modulus.GetHashCode() ^ Modulus.GetHashCode();
+        public override int GetHashCode() => IsPrivate.GetHashCode() ^ Modulus.GetHashCode() ^ Exponent.GetHashCode();
 
         private static int GetMRIterations(int bits)
         {
