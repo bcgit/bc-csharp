@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
@@ -27,15 +26,6 @@ namespace Org.BouncyCastle.X509
     /// </remarks>
     public static class SubjectPublicKeyInfoFactory
     {
-        private static readonly HashSet<DerObjectIdentifier> cryptoProOids = new HashSet<DerObjectIdentifier>
-        {
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProB,
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProC,
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchA,
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchB,
-        };
-
         /// <summary>
         /// Create a <see cref="SubjectPublicKeyInfo"/> object for a given public key.
         /// </summary>
@@ -98,7 +88,7 @@ namespace Org.BouncyCastle.X509
                     int fieldSize = ecKey.Parameters.Curve.FieldElementEncodingLength;
                     DerObjectIdentifier algOid;
 
-                    if (cryptoProOids.Contains(gostParams.PublicKeyParamSet))
+                    if (CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet.Equals(gostParams.DigestParamSet))
                     {
                         algOid = CryptoProObjectIdentifiers.GostR3410x2001;
                     }
