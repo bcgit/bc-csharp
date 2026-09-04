@@ -8,7 +8,11 @@ using AlgorithmIdentifier = Org.BouncyCastle.Asn1.X509.AlgorithmIdentifier;
 
 namespace Org.BouncyCastle.Cms
 {
-    /// <summary>Default signed attributes generator.</summary>
+    /// <summary>
+    /// Default signed-attribute generator for CMS SignedData. Supplies contentType, signingTime, messageDigest, and
+    /// cmsAlgorithmProtect unless overridden. Used by <see cref="SignerInfoGeneratorBuilder"/> and
+    /// <see cref="CmsSignedDataGenerator"/> <c>AddSigner</c> overloads.
+    /// </summary>
     public class DefaultSignedAttributeTableGenerator
         : CmsAttributeTableGenerator
     {
@@ -33,7 +37,9 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
-        /// <summary>Returns a populated <see cref=" AttributeTable"/>.</summary>
+        /// <summary>Returns a populated <see cref="AttributeTable"/>.</summary>
+        /// <param name="parameters">Generation parameters supplied by the CMS generator.</param>
+        /// <returns>An attribute table including standard signed attributes.</returns>
         public virtual AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
         {
             var table = CreateStandardAttributeTable(parameters);

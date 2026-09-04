@@ -7,14 +7,19 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Cms
 {
-    /// <summary>General class for generating a compressed CMS message.</summary>
+    /// <summary>
+    /// Generator for CMS CompressedData messages. Compresses content with ZLIB and returns a
+    /// <see cref="CmsCompressedData"/> instance (read-side: Batch 15d, #703).
+    /// </summary>
     public class CmsCompressedDataGenerator
     {
+        /// <summary>The object identifier for ZLIB compression (<c>id-zlibCompress</c>).</summary>
         public static readonly string ZLib = CmsObjectIdentifiers.ZlibCompress.Id;
 
         private static readonly AlgorithmIdentifier ZLibCompressionAlgorithm =
             new AlgorithmIdentifier(CmsObjectIdentifiers.ZlibCompress);
 
+        /// <summary>Creates a compressed-data generator.</summary>
         public CmsCompressedDataGenerator()
         {
         }
@@ -24,6 +29,14 @@ namespace Org.BouncyCastle.Cms
         public CmsCompressedData Generate(CmsProcessable content, string compressionOid) =>
             Generate(CmsUtilities.GetTypedData(content), compressionOid);
 
+        /// <summary>Generates a CMS CompressedData message for <paramref name="content"/>.</summary>
+        /// <param name="content">The content to compress.</param>
+        /// <param name="compressionOid">The compression algorithm OID (currently only <see cref="ZLib"/>).</param>
+        /// <returns>A compressed-data structure.</returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown if <paramref name="compressionOid"/> is not supported.
+        /// </exception>
+        /// <exception cref="CmsException">Thrown if the content cannot be compressed.</exception>
         public CmsCompressedData Generate(CmsTypedData content, string compressionOid)
         {
             if (ZLib != compressionOid)

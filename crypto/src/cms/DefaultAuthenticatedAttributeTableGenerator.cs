@@ -7,7 +7,11 @@ using AlgorithmIdentifier = Org.BouncyCastle.Asn1.X509.AlgorithmIdentifier;
 
 namespace Org.BouncyCastle.Cms
 {
-    /// <summary>Default authenticated attributes generator.</summary>
+    /// <summary>
+    /// Default authenticated-attribute generator for CMS AuthenticatedData. Supplies contentType, messageDigest, and
+    /// cmsAlgorithmProtect unless overridden. Used by <see cref="CmsAuthenticatedDataGenerator"/> and related
+    /// generators.
+    /// </summary>
     public class DefaultAuthenticatedAttributeTableGenerator
         : CmsAttributeTableGenerator
     {
@@ -33,6 +37,8 @@ namespace Org.BouncyCastle.Cms
         }
 
         /// <summary>Returns a populated <see cref="AttributeTable"/>.</summary>
+        /// <param name="parameters">Generation parameters supplied by the CMS generator.</param>
+        /// <returns>An attribute table including standard authenticated attributes.</returns>
         public virtual AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters)
         {
             var table = CreateStandardAttributeTable(parameters);
