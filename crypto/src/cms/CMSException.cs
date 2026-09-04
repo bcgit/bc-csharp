@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>General exception thrown when CMS processing fails.</summary>
     [Serializable]
     public class CmsException
         : Exception

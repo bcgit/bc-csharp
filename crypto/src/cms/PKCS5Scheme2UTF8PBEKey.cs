@@ -9,12 +9,11 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Cms
 {
-	/**
-	 * PKCS5 scheme-2 - password converted to bytes using UTF-8.
-	 */
+	/// <summary>PKCS#5 scheme 2 PBE key with the password encoded as UTF-8 bytes.</summary>
 	public class Pkcs5Scheme2Utf8PbeKey
 		: CmsPbeKey
 	{
+		/// <inheritdoc/>
 		public Pkcs5Scheme2Utf8PbeKey(
 			char[]	password,
 			byte[]	salt,
@@ -23,6 +22,7 @@ namespace Org.BouncyCastle.Cms
 		{
 		}
 
+		/// <inheritdoc/>
 		public Pkcs5Scheme2Utf8PbeKey(
 			char[]				password,
 			AlgorithmIdentifier keyDerivationAlgorithm)
@@ -31,11 +31,13 @@ namespace Org.BouncyCastle.Cms
 		}
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public Pkcs5Scheme2Utf8PbeKey(ReadOnlySpan<char> password, ReadOnlySpan<byte> salt, int iterationCount)
             : base(password, salt, iterationCount)
         {
         }
 
+        /// <inheritdoc/>
         public Pkcs5Scheme2Utf8PbeKey(ReadOnlySpan<char> password, AlgorithmIdentifier keyDerivationAlgorithm)
             : base(password, keyDerivationAlgorithm)
         {

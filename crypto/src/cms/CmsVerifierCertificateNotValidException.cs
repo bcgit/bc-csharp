@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>Exception thrown when a signer certificate is not valid at the signing time.</summary>
     [Serializable]
     public class CmsVerifierCertificateNotValidException
         : CmsException

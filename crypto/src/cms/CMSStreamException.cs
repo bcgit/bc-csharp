@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>Exception thrown when CMS streaming operations fail.</summary>
     [Serializable]
     public class CmsStreamException
         : IOException
