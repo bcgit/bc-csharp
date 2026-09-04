@@ -17,6 +17,10 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>
+    /// Internal generator for CMS key-agreement <c>RecipientInfo</c> values. Configured and used by
+    /// <see cref="CmsEnvelopedGenerator"/> when adding key-agreement recipients.
+    /// </summary>
     internal class KeyAgreeRecipientInfoGenerator
         : RecipientInfoGenerator
     {
@@ -29,6 +33,8 @@ namespace Org.BouncyCastle.Cms
 
         private byte[] m_userKeyingMaterial;
 
+        /// <summary>Creates a generator for the given recipient certificates.</summary>
+        /// <param name="recipientCerts">The recipients' X.509 certificates.</param>
         internal KeyAgreeRecipientInfoGenerator(IEnumerable<X509Certificate> recipientCerts)
         {
             foreach (var recipientCert in recipientCerts)
@@ -38,33 +44,49 @@ namespace Org.BouncyCastle.Cms
             }
         }
 
+        /// <summary>Creates a generator for a recipient identified by subject key identifier.</summary>
+        /// <param name="subjectKeyID">The recipient's subject key identifier.</param>
+        /// <param name="publicKey">The recipient's public key.</param>
         internal KeyAgreeRecipientInfoGenerator(byte[] subjectKeyID, AsymmetricKeyParameter publicKey)
         {
             m_recipientIDs.Add(new KeyAgreeRecipientIdentifier(new RecipientKeyIdentifier(subjectKeyID)));
             m_recipientKeys.Add(publicKey);
         }
 
+        /// <summary>Sets the key-agreement algorithm OID.</summary>
         internal DerObjectIdentifier KeyAgreementOid
         {
             set { m_keyAgreementOid = value; }
         }
 
+        /// <summary>Sets the key-encryption (wrap) algorithm OID.</summary>
         internal DerObjectIdentifier KeyEncryptionOid
         {
             set { m_keyEncryptionOid = value; }
         }
 
+        /// <summary>Sets the sender's static key-agreement key pair.</summary>
         internal AsymmetricCipherKeyPair SenderKeyPair
         {
             set { m_senderKeyPair = value; }
         }
 
         // TODO[cms] Support public configuration of this
+        /// <summary>Sets optional user keying material for the agreement algorithm.</summary>
         internal byte[] UserKeyingMaterial
         {
             set { m_userKeyingMaterial = Arrays.Clone(value); }
         }
 
+        /// <summary>
+        /// Derives per-recipient wrap keys and returns a key-agreement RecipientInfo for
+        /// <paramref name="contentEncryptionKey"/>.
+        /// </summary>
+        /// <param name="contentEncryptionKey">The content-encryption key to protect for each recipient.</param>
+        /// <param name="random">A source of randomness.</param>
+        /// <returns>A CMS RecipientInfo for key agreement.</returns>
+        /// <exception cref="InvalidKeyException">The sender or recipient keys cannot be used for agreement.</exception>
+        /// <exception cref="CmsException">No recipients are associated with this generator.</exception>
         public RecipientInfo Generate(KeyParameter contentEncryptionKey, SecureRandom random)
         {
             random = CryptoServicesRegistrar.GetSecureRandom(random);

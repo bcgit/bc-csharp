@@ -14,6 +14,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
+    /// <summary>
+    /// Internal generator for CMS KEK <c>RecipientInfo</c> values. Configured and used by
+    /// <see cref="CmsEnvelopedGenerator.AddKekRecipient(string, KeyParameter, byte[])"/> and related overloads.
+    /// </summary>
     internal class KekRecipientInfoGenerator
 		: RecipientInfoGenerator
 	{
@@ -25,15 +29,18 @@ namespace Org.BouncyCastle.Cms
 		// Derived
 		private AlgorithmIdentifier keyEncryptionAlgorithm;
 
+		/// <summary>Creates an unconfigured KEK recipient generator.</summary>
 		internal KekRecipientInfoGenerator()
 		{
 		}
 
+		/// <summary>Sets the KEK identifier carried in the generated RecipientInfo.</summary>
 		internal KekIdentifier KekIdentifier
 		{
 			set { this.kekIdentifier = value; }
 		}
 
+		/// <summary>Sets the key-encryption key and derives the wrap algorithm identifier.</summary>
 		internal KeyParameter KeyEncryptionKey
 		{
 			set
@@ -43,11 +50,16 @@ namespace Org.BouncyCastle.Cms
 			}
 		}
 
+		/// <summary>Sets the base symmetric algorithm name used to select the CMS wrap OID.</summary>
 		internal string KeyEncryptionKeyOID
 		{
 			set { this.keyEncryptionKeyOID = value; }
 		}
 
+		/// <summary>Wraps <paramref name="contentEncryptionKey"/> with the configured KEK.</summary>
+		/// <param name="contentEncryptionKey">The content-encryption key to wrap.</param>
+		/// <param name="random">A source of randomness.</param>
+		/// <returns>A CMS RecipientInfo for KEK transport.</returns>
 		public RecipientInfo Generate(KeyParameter contentEncryptionKey, SecureRandom random)
 		{
 			byte[] keyBytes = contentEncryptionKey.GetKey();

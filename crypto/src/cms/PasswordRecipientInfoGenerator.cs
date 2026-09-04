@@ -11,6 +11,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
+	/// <summary>
+	/// Internal generator for CMS password-based <c>RecipientInfo</c> values. Configured and used by
+	/// <see cref="CmsEnvelopedGenerator.AddPasswordRecipient(CmsPbeKey, string)"/>.
+	/// </summary>
 	internal class PasswordRecipientInfoGenerator
 		: RecipientInfoGenerator
 	{
@@ -19,25 +23,33 @@ namespace Org.BouncyCastle.Cms
 		// TODO Can get this from keyEncryptionKey?		
 		private string				keyEncryptionKeyOID;
 
+		/// <summary>Creates an unconfigured password recipient generator.</summary>
 		internal PasswordRecipientInfoGenerator()
 		{
 		}
 
+		/// <summary>Sets the key-derivation algorithm for the password recipient.</summary>
 		internal AlgorithmIdentifier KeyDerivationAlgorithm
 		{
 			set { this.keyDerivationAlgorithm = value; }
 		}
 
+		/// <summary>Sets the key-encryption key derived from the password.</summary>
 		internal KeyParameter KeyEncryptionKey
 		{
 			set { this.keyEncryptionKey = value; }
 		}
 
+		/// <summary>Sets the symmetric algorithm OID used for RFC 3211 key wrapping.</summary>
 		internal string KeyEncryptionKeyOID
 		{
 			set { this.keyEncryptionKeyOID = value; }
 		}
 
+		/// <summary>Wraps <paramref name="contentEncryptionKey"/> using the configured password-derived KEK.</summary>
+		/// <param name="contentEncryptionKey">The content-encryption key to wrap.</param>
+		/// <param name="random">A source of randomness used for the RFC 3211 IV.</param>
+		/// <returns>A CMS RecipientInfo for password-based key management.</returns>
 		public RecipientInfo Generate(KeyParameter contentEncryptionKey, SecureRandom random)
 		{
 			byte[] keyBytes = contentEncryptionKey.GetKey();
