@@ -1,13 +1,6 @@
-﻿using System;
-using System.IO;
-using System.Net;
-using System.Net.Sockets;
-using System.Threading;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
@@ -23,72 +16,13 @@ namespace Org.BouncyCastle.Tls.Tests
         [Test, Explicit]
         public void TestConnection()
         {
-            int port = 5556;
+            // One connection per version, TLS 1.3 first
             ProtocolVersion[] tlsVersions = ProtocolVersion.TLSv13.DownTo(ProtocolVersion.TLSv12);
 
-            TcpListener ss = new TcpListener(IPAddress.Any, port);
-            ss.Start();
-            Stream stdout = Console.OpenStandardOutput();
-            try
-            {
-                foreach (var tlsVersion in tlsVersions)
-                {
-                    TcpClient s = ss.AcceptTcpClient();
-                    Console.WriteLine("--------------------------------------------------------------------------------");
-                    Console.WriteLine("Accepted " + s);
-                    ServerTask serverTask = new ServerTask(s, stdout, tlsVersion);
-                    Thread t = new Thread(serverTask.Run);
-                    t.Start();
-                }
-            }
-            finally
-            {
-                ss.Stop();
-            }
-        }
-
-        internal class ServerTask
-        {
-            private readonly TcpClient s;
-            private readonly Stream stdout;
-            private readonly ProtocolVersion tlsVersion;
-
-            internal ServerTask(TcpClient s, Stream stdout, ProtocolVersion tlsVersion)
-            {
-                this.s = s;
-                this.stdout = stdout;
-                this.tlsVersion = tlsVersion;
-            }
-
-            public void Run()
-            {
-                try
-                {
-                    MockRawKeysTlsServer server = new MockRawKeysTlsServer(new BcTlsCrypto(),
-                        CertificateType.RawPublicKey, CertificateType.RawPublicKey,
-                        new short[]{ CertificateType.RawPublicKey }, tlsVersion);
-                    TlsServerProtocol serverProtocol = new TlsServerProtocol(s.GetStream());
-                    serverProtocol.Accept(server);
-
-                    using (var stream = serverProtocol.Stream)
-                    {
-                        // NB: We don't dispose this directly to avoid disposing stdout
-                        Stream log = new TeeOutputStream(stream, stdout);
-
-                        Streams.PipeAll(stream, log);
-                    }
-                }
-                finally
-                {
-                    try
-                    {
-                        s.Close();
-                    }
-                    catch (IOException)
-                    {
-                    }
-                }
-            }
+            ExternalPeerUtilities.Serve(ExternalPeerUtilities.DefaultPort,
+                index => new MockRawKeysTlsServer(new BcTlsCrypto(), CertificateType.RawPublicKey,
+                    CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersions[index]),
+                tlsVersions.Length);
         }
     }
 }

@@ -1,98 +1,41 @@
-﻿using System;
-using System.IO;
-using System.Net.Sockets;
+using System;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
     /// <summary>A simple test designed to conduct a TLS handshake with an external TLS server.</summary>
-    /// <remarks>
-    /// Please refer to GnuTLSSetup.html or OpenSSLSetup.html (under 'docs'), and x509-*.pem files in this package
-    /// (under 'src/test/resources') for help configuring an external TLS server.
-    /// </remarks>
+    /// <remarks>See <see cref="ExternalPeerUtilities"/> for help configuring an external TLS server.</remarks>
     [TestFixture]
     public class TlsClientTest
     {
         [Test, Explicit]
         public void TestConnection()
         {
-            string host = "localhost";
-            int port = 5556;
+            string host = ExternalPeerUtilities.DefaultHost;
+            int port = ExternalPeerUtilities.DefaultPort;
 
             long time1 = DateTimeUtilities.CurrentUnixMs();
 
             MockTlsClient client = new MockTlsClient(null);
-            TlsClientProtocol protocol = OpenTlsClientConnection(host, port, client);
+            TlsClientProtocol protocol = ExternalPeerUtilities.Connect(host, port, client);
             protocol.Close();
 
             long time2 = DateTimeUtilities.CurrentUnixMs();
             Console.WriteLine("Elapsed 1: " + (time2 - time1) + "ms");
 
             client = new MockTlsClient(client.GetSessionToResume());
-            protocol = OpenTlsClientConnection(host, port, client);
+            protocol = ExternalPeerUtilities.Connect(host, port, client);
 
             long time3 = DateTimeUtilities.CurrentUnixMs();
             Console.WriteLine("Elapsed 2: " + (time3 - time2) + "ms");
 
             using (var s = protocol.Stream)
             {
-                Http11Get(host, port, s);
+                ExternalPeerUtilities.Http11Get(s);
             }
-        }
-
-        private static void Http11Get(string host, int port, Stream s)
-        {
-            WriteUtf8Line(s, "GET / HTTP/1.1");
-            //WriteUtf8Line(s, "Host: " + host + ":" + port);
-            WriteUtf8Line(s, "");
-            s.Flush();
-
-            Console.WriteLine("---");
-
-            string[] ends = new string[] { "</HTML>", "HTTP/1.1 3", "HTTP/1.1 4" };
-
-            StreamReader reader = new StreamReader(s);
-
-            bool finished = false;
-            string line;
-            while (!finished && (line = reader.ReadLine()) != null)
-            {
-                Console.WriteLine("<<< " + line);
-
-                string upperLine = line.ToUpperInvariant();
-
-                // TEST CODE ONLY. This is not a robust way of parsing the result!
-                foreach (string end in ends)
-                {
-                    if (upperLine.IndexOf(end) >= 0)
-                    {
-                        finished = true;
-                        break;
-                    }
-                }
-            }
-
-            Console.Out.Flush();
-        }
-
-        private static TlsClientProtocol OpenTlsClientConnection(string hostname, int port, TlsClient client)
-        {
-            TcpClient tcp = new TcpClient(hostname, port);
-
-            TlsClientProtocol protocol = new TlsClientProtocol(tcp.GetStream());
-            protocol.Connect(client);
-            return protocol;
-        }
-
-        private static void WriteUtf8Line(Stream output, string line)
-        {
-            byte[] buf = Strings.ToUtf8ByteArray(line + "\r\n");
-            output.Write(buf, 0, buf.Length);
-            Console.WriteLine(">>> " + line);
         }
     }
 }
