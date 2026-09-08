@@ -1,11 +1,9 @@
 ﻿using System.Collections.Generic;
-using System.Threading;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
@@ -55,32 +53,9 @@ namespace Org.BouncyCastle.Tls.Tests
         private TlsSession RunHandshake(StatusRequestTlsServer server, TlsSession sessionToResume,
             bool offerStatusRequest)
         {
-            PipedStream clientPipe = new PipedStream();
-            PipedStream serverPipe = new PipedStream(clientPipe);
-
-            TlsClientProtocol clientProtocol = new TlsClientProtocol(clientPipe);
-            TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
-
             StatusRequestTlsClient client = new StatusRequestTlsClient(sessionToResume, offerStatusRequest);
 
-            TlsProtocolTest.ServerTask serverTask = new TlsProtocolTest.ServerTask(serverProtocol, server);
-
-            Thread serverThread = new Thread(serverTask.Run);
-            serverThread.Start();
-
-            clientProtocol.Connect(client);
-
-            using (var stream = clientProtocol.Stream)
-            {
-                byte[] data = new byte[] { (byte)'!' };
-                stream.Write(data, 0, data.Length);
-
-                byte[] echo = new byte[data.Length];
-                int count = Streams.ReadFully(stream, echo);
-                Assert.AreEqual('!', echo[0]);
-            }
-
-            serverThread.Join();
+            TlsLoopback.Run(client, server).ThrowIfFailed();
 
             return client.m_session;
         }

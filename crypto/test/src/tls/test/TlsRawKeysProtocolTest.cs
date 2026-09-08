@@ -1,13 +1,8 @@
-﻿using System;
-using System.Threading;
-
 using NUnit.Framework;
 
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
@@ -34,7 +29,8 @@ namespace Org.BouncyCastle.Tls.Tests
                 new short[]{ CertificateType.RawPublicKey, CertificateType.X509 }, null, tlsVersion);
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509, -1, null,
                 tlsVersion);
-            PumpData(client, server);
+
+            TlsLoopback.Run(client, server).ThrowIfFailed();
         }
 
         [Test]
@@ -56,7 +52,8 @@ namespace Org.BouncyCastle.Tls.Tests
                 tlsVersion);
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
                 CertificateType.X509, new short[]{ CertificateType.X509 }, tlsVersion);
-            PumpData(client, server);
+
+            TlsLoopback.Run(client, server).ThrowIfFailed();
 
             Assert.IsFalse(server.m_receivedClientExtensions.ContainsKey(ExtensionType.client_certificate_type),
                 "client cert type extension should not be sent");
@@ -83,7 +80,8 @@ namespace Org.BouncyCastle.Tls.Tests
                 new short[]{ CertificateType.RawPublicKey }, tlsVersion);
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey,
                 CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
-            PumpData(client, server);
+
+            TlsLoopback.Run(client, server).ThrowIfFailed();
         }
 
         [Test]
@@ -104,7 +102,8 @@ namespace Org.BouncyCastle.Tls.Tests
                 new short[]{ CertificateType.RawPublicKey }, null, tlsVersion);
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey, -1,
                 null, tlsVersion);
-            PumpData(client, server);
+
+            TlsLoopback.Run(client, server).ThrowIfFailed();
         }
 
         [Test]
@@ -125,7 +124,8 @@ namespace Org.BouncyCastle.Tls.Tests
                 CertificateType.X509, new short[]{ CertificateType.RawPublicKey }, null, tlsVersion);
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey,
                 CertificateType.X509, null, tlsVersion);
-            PumpData(client, server);
+
+            TlsLoopback.Run(client, server).ThrowIfFailed();
         }
 
         [Test]
@@ -146,7 +146,8 @@ namespace Org.BouncyCastle.Tls.Tests
                 CertificateType.RawPublicKey, null, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
                 CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
-            PumpData(client, server);
+
+            TlsLoopback.Run(client, server).ThrowIfFailed();
         }
 
         [Test]
@@ -163,20 +164,12 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private void TestClientSendsClientCertExtensionButServerHasNoCommonTypes(ProtocolVersion tlsVersion)
         {
-            try
-            {
-                MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.X509,
-                    CertificateType.RawPublicKey, null, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
-                MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
-                    CertificateType.X509, new short[]{ CertificateType.X509 }, tlsVersion);
-                PumpData(client, server);
-                Assert.Fail("Should have caused unsupported_certificate alert");
-            }
-            catch (TlsFatalAlertReceived alert)
-            {
-                Assert.AreEqual(AlertDescription.unsupported_certificate, alert.AlertDescription,
-                    "Should have caused unsupported_certificate alert");
-            }
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.X509,
+                CertificateType.RawPublicKey, null, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
+            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
+                CertificateType.X509, new short[]{ CertificateType.X509 }, tlsVersion);
+
+            TlsLoopback.Run(client, server).AssertClientReceivedFatalAlert(AlertDescription.unsupported_certificate);
         }
 
         [Test]
@@ -193,85 +186,14 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private void TestClientSendsServerCertExtensionButServerHasNoCommonTypes(ProtocolVersion tlsVersion)
         {
-            try
-            {
-                MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.RawPublicKey,
-                    CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, null, tlsVersion);
-                MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
-                    CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
-                PumpData(client, server);
-                Assert.Fail("Should have caused unsupported_certificate alert");
-            }
-            catch (TlsFatalAlertReceived alert)
-            {
-                Assert.AreEqual(AlertDescription.unsupported_certificate, alert.AlertDescription,
-                    "Should have caused unsupported_certificate alert");
-            }
+            MockRawKeysTlsClient client = new MockRawKeysTlsClient(CreateCrypto(), CertificateType.RawPublicKey,
+                CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, null, tlsVersion);
+            MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
+                CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
+
+            TlsLoopback.Run(client, server).AssertClientReceivedFatalAlert(AlertDescription.unsupported_certificate);
         }
 
         protected virtual TlsCrypto CreateCrypto() => new BcTlsCrypto(Random);
-
-        private void PumpData(TlsClient client, TlsServer server)
-        {
-            PipedStream clientPipe = new PipedStream();
-            PipedStream serverPipe = new PipedStream(clientPipe);
-
-            TlsClientProtocol clientProtocol = new TlsClientProtocol(clientPipe);
-            TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
-
-            ServerTask serverTask = new ServerTask(serverProtocol, server);
-
-            Thread serverThread = new Thread(serverTask.Run);
-            serverThread.Start();
-
-            clientProtocol.Connect(client);
-
-            // NOTE: Because we write-all before we read-any, this length can't be more than the pipe capacity
-            int length = 1000;
-
-            byte[] data = new byte[length];
-            Random.NextBytes(data);
-
-            using (var stream = clientProtocol.Stream)
-            {
-                stream.Write(data, 0, data.Length);
-
-                byte[] echo = new byte[data.Length];
-                int count = Streams.ReadFully(stream, echo);
-
-                Assert.AreEqual(count, data.Length);
-                Assert.IsTrue(Arrays.AreEqual(data, echo));
-            }
-
-            serverThread.Join();
-        }
-
-        internal class ServerTask
-        {
-            private readonly TlsServerProtocol m_serverProtocol;
-            private readonly TlsServer m_server;
-
-            internal ServerTask(TlsServerProtocol serverProtocol, TlsServer server)
-            {
-                m_serverProtocol = serverProtocol;
-                m_server = server;
-            }
-
-            public void Run()
-            {
-                try
-                {
-                    m_serverProtocol.Accept(m_server);
-
-                    using (var stream = m_serverProtocol.Stream)
-                    {
-                        Streams.PipeAll(stream, stream);
-                    }
-                }
-                catch (Exception)
-                {
-                }
-            }
-        }
     }
 }

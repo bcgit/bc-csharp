@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading;
 
 using NUnit.Framework;
 
@@ -10,7 +9,6 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
@@ -190,20 +188,12 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             CapturingTlsClient client = new CapturingTlsClient(true);
 
-            try
-            {
-                RunHandshake(client, null, false, Strings.ToByteArray("not a CertificateStatus"));
-                Assert.Fail("expected a decode_error");
-            }
-            catch (Exception)
-            {
-                /*
-                 * The client's own exception is the one that says why: RunHandshake rethrows the server's in
-                 * preference, and all the server saw was the pipe closing under it.
-                 */
-                Assert.That(client.failure is TlsFatalAlert, "client failed with " + client.failure);
-                Assert.AreEqual(AlertDescription.decode_error, ((TlsFatalAlert)client.failure).AlertDescription);
-            }
+            LoopbackResult result = RunHandshake(client, null, false, Strings.ToByteArray("not a CertificateStatus"));
+
+            // The client's own exception is the one that says why: all the server saw was the pipe closing under it
+            Exception clientFailure = result.ClientException;
+            Assert.That(clientFailure is TlsFatalAlert, "client failed with " + clientFailure);
+            Assert.AreEqual(AlertDescription.decode_error, ((TlsFatalAlert)clientFailure).AlertDescription);
         }
 
         /// <param name="attachToSecondEntry">
@@ -228,64 +218,26 @@ namespace Org.BouncyCastle.Tls.Tests
             bool requestStatus, byte[] malformedExtension)
         {
             var capturingTlsClient = new CapturingTlsClient(requestStatus);
-            RunHandshake(capturingTlsClient, certificateStatus, attachToSecondEntry, malformedExtension);
+
+            RunHandshake(capturingTlsClient, certificateStatus, attachToSecondEntry, malformedExtension)
+                .ThrowIfFailed();
+
+            Assert.NotNull(capturingTlsClient.CertificateEntryList, "no server Certificate message was seen");
+
             return capturingTlsClient;
         }
 
         /// <summary>
-        /// Drives a handshake with a caller-supplied client, so that where it fails the caller still has the client -
-        /// and its <see cref="CapturingTlsClient.failure"/> - in hand.
+        /// Drives a handshake with a caller-supplied client, leaving it to the caller to decide whether a failure was
+        /// expected.
         /// </summary>
-        private static void RunHandshake(CapturingTlsClient client, CertificateStatus certificateStatus,
+        private static LoopbackResult RunHandshake(CapturingTlsClient client, CertificateStatus certificateStatus,
             bool attachToSecondEntry, byte[] malformedExtension)
         {
-            PipedStream clientPipe = new PipedStream();
-            PipedStream serverPipe = new PipedStream(clientPipe);
-
-            TlsClientProtocol clientProtocol = new TlsClientProtocol(clientPipe);
-            TlsServerProtocol serverProtocol = new TlsServerProtocol(serverPipe);
-
             StatusStaplingTlsServer server = new StatusStaplingTlsServer(certificateStatus, attachToSecondEntry,
                 malformedExtension);
 
-            ServerTask serverTask = new ServerTask(serverProtocol, server);
-
-            Thread serverThread = new Thread(serverTask.Run);
-            serverThread.Start();
-
-            Exception clientFailure = null;
-            try
-            {
-                clientProtocol.Connect(client);
-
-                using (var stream = clientProtocol.Stream)
-                {
-                    byte[] data = new byte[]{ (byte)'!' };
-                    stream.Write(data, 0, data.Length);
-
-                    byte[] echo = new byte[data.Length];
-                    int count = Streams.ReadFully(stream, echo);
-                    Assert.AreEqual('!', echo[0]);
-                }
-            }
-            catch (Exception e)
-            {
-                clientFailure = e;
-            }
-
-            client.failure = clientFailure;
-
-            serverThread.Join();
-
-            /*
-             * Only where the client leg failed too: the server sees the pipe close under it once the client is done,
-             * which is expected and says nothing. Where the handshake did fail, the server's exception is the
-             * informative one - the alert the client received says only "internal_error".
-             */
-            if (null != clientFailure)
-                throw serverTask.Failure ?? clientFailure;
-
-            Assert.NotNull(client.CertificateEntryList, "no server Certificate message was seen");
+            return TlsLoopback.Run(client, server);
         }
 
         /// <summary>
@@ -359,42 +311,6 @@ namespace Org.BouncyCastle.Tls.Tests
             return new Certificate(certificate.GetCertificateRequestContext(), certificateEntryList);
         }
 
-        /// <summary>
-        /// Unlike <see cref="TlsProtocolTest.ServerTask"/>, this keeps whatever the server failed with: the alert the
-        /// client sees carries no detail, so a swallowed server-side exception leaves a failure here impossible to
-        /// read.
-        /// </summary>
-        private class ServerTask
-        {
-            private readonly TlsServerProtocol m_serverProtocol;
-            private readonly StatusStaplingTlsServer m_server;
-
-            internal Exception Failure = null;
-
-            internal ServerTask(TlsServerProtocol serverProtocol, StatusStaplingTlsServer server)
-            {
-                m_serverProtocol = serverProtocol;
-                m_server = server;
-            }
-
-            public void Run()
-            {
-                try
-                {
-                    m_serverProtocol.Accept(m_server);
-
-                    using (var stream = m_serverProtocol.Stream)
-                    {
-                        Streams.PipeAll(stream, stream);
-                    }
-                }
-                catch (Exception e)
-                {
-                    Failure = e;
-                }
-            }
-        }
-
         private class CapturingTlsClient
             : DefaultTlsClient
         {
@@ -402,12 +318,6 @@ namespace Org.BouncyCastle.Tls.Tests
 
             internal CertificateEntry[] CertificateEntryList = null;
             internal TlsServerCertificate ServerCertificate = null;
-
-            /// <summary>
-            /// Whatever the client leg of the handshake failed with, for a case where that is the informative one - see
-            /// the rethrow in <see cref="RunHandshake(CapturingTlsClient, CertificateStatus, bool, byte[])"/>.
-            /// </summary>
-            internal Exception failure = null;
 
             internal CapturingTlsClient(bool requestStatus)
                 : base(new BcTlsCrypto())

@@ -77,6 +77,15 @@ namespace Org.BouncyCastle.Tls.Tests
             return DigestUtilities.CalculateDigest("SHA256", input);
         }
 
+        internal static void LogException(string context, Exception e)
+        {
+            if (TlsTestConfig.Debug)
+            {
+                Console.Error.WriteLine(context + ": " + e);
+                Console.Error.Flush();
+            }
+        }
+
         internal static string GetCACertResource(short signatureAlgorithm)
         {
             return "x509-ca-" + GetResourceName12(signatureAlgorithm, forServer: false) + ".pem";

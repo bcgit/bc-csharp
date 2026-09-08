@@ -26,6 +26,11 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
+        internal bool IsClosed
+        {
+            get { lock (this) return m_closed; }
+        }
+
         public override bool CanRead => true;
         public override bool CanSeek => false;
         public override bool CanWrite => true;
@@ -84,7 +89,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 CheckOpen();
                 m_buf.WriteByte(value);
-                Monitor.PulseAll(m_buf);
+                Monitor.PulseAll(this);
             }
         }
 
