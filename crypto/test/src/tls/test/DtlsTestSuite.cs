@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Tls.Tests
 {
     public class DtlsTestSuite
     {
-        // Make the access to constants less verbose 
+        // Make the access to constants less verbose
         internal class C : TlsTestConfig {}
 
         public DtlsTestSuite()

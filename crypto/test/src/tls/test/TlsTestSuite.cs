@@ -16,13 +16,13 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             switch (config.clientCrypto)
             {
-                case TlsTestConfig.CRYPTO_BC:
-                default:
-                    return BC_CRYPTO;
+            case TlsTestConfig.CRYPTO_BC:
+            default:
+                return BC_CRYPTO;
             }
         }
 
-        // Make the access to constants less verbose 
+        // Make the access to constants less verbose
         internal abstract class C : TlsTestConfig {}
 
         public TlsTestSuite()

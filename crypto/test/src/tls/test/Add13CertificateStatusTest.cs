@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         /// <summary>
-        /// An oversized response for one certificate does not cost the rest of the chain its staples. 
+        /// An oversized response for one certificate does not cost the rest of the chain its staples.
         /// </summary>
         [Test]
         public void OversizedResponseDoesNotSuppressTheOthers()

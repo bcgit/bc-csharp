@@ -419,7 +419,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 {
                     TlsCertificate certificate = LoadCertificateResource(crypto, resources[i]);
 
-                    // TODO[tls13] Add possibility of specifying e.g. CertificateStatus 
+                    // TODO[tls13] Add possibility of specifying e.g. CertificateStatus
                     IDictionary<int, byte[]> extensions = null;
 
                     certificateEntryList[i] = new CertificateEntry(certificate, extensions);
