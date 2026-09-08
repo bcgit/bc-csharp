@@ -331,7 +331,7 @@ namespace Org.BouncyCastle.Tls
                 }
                 else
                 {
-                    ProcessRecord(MAX_RECEIVE_AHEAD, m_recordLayer.ReadEpoch, buf, 0, received);
+                    ProcessRecord(MAX_RECEIVE_AHEAD, m_recordLayer.LastReceivedEpoch, buf, 0, received);
                 }
 
                 currentTimeMillis = DateTimeUtilities.CurrentUnixMs();

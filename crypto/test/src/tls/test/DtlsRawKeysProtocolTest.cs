@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509, -1, null,
                 tlsVersion);
 
-            DtlsLoopback.Run(client, server, CreateOptions()).ThrowIfFailed();
+            DtlsLoopback.Run(client, server, CreateOptions(handshakePacketLossPercent: 10)).ThrowIfFailed();
         }
 
         [Test]
@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
                 CertificateType.X509, new short[]{ CertificateType.X509 }, tlsVersion);
 
-            DtlsLoopback.Run(client, server, CreateOptions()).ThrowIfFailed();
+            DtlsLoopback.Run(client, server, CreateOptions(handshakePacketLossPercent: 10)).ThrowIfFailed();
 
             Assert.IsFalse(server.m_receivedClientExtensions.ContainsKey(ExtensionType.client_certificate_type),
                 "client cert type extension should not be sent");
@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey,
                 CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
 
-            DtlsLoopback.Run(client, server, CreateOptions()).ThrowIfFailed();
+            DtlsLoopback.Run(client, server, CreateOptions(handshakePacketLossPercent: 10)).ThrowIfFailed();
         }
 
         [Test]
@@ -107,7 +107,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey, -1,
                 null, tlsVersion);
 
-            DtlsLoopback.Run(client, server, CreateOptions()).ThrowIfFailed();
+            DtlsLoopback.Run(client, server, CreateOptions(handshakePacketLossPercent: 10)).ThrowIfFailed();
         }
 
         [Test]
@@ -130,7 +130,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.RawPublicKey,
                 CertificateType.X509, null, tlsVersion);
 
-            DtlsLoopback.Run(client, server, CreateOptions()).ThrowIfFailed();
+            DtlsLoopback.Run(client, server, CreateOptions(handshakePacketLossPercent: 10)).ThrowIfFailed();
         }
 
         [Test]
@@ -153,7 +153,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
                 CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
 
-            DtlsLoopback.Run(client, server, CreateOptions()).ThrowIfFailed();
+            DtlsLoopback.Run(client, server, CreateOptions(handshakePacketLossPercent: 10)).ThrowIfFailed();
         }
 
         [Test]
@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
                 CertificateType.X509, new short[]{ CertificateType.X509 }, tlsVersion);
 
-            DtlsLoopback.Run(client, server, CreateOptions())
+            DtlsLoopback.Run(client, server, CreateOptions(handshakePacketLossPercent: 0))
                 .AssertClientReceivedFatalAlert(AlertDescription.unsupported_certificate);
         }
 
@@ -200,18 +200,21 @@ namespace Org.BouncyCastle.Tls.Tests
             MockRawKeysTlsServer server = new MockRawKeysTlsServer(CreateCrypto(), CertificateType.X509,
                 CertificateType.RawPublicKey, new short[]{ CertificateType.RawPublicKey }, tlsVersion);
 
-            DtlsLoopback.Run(client, server, CreateOptions())
+            DtlsLoopback.Run(client, server, CreateOptions(handshakePacketLossPercent: 0))
                 .AssertClientReceivedFatalAlert(AlertDescription.unsupported_certificate);
         }
 
         protected virtual TlsCrypto CreateCrypto() => new BcTlsCrypto(Random);
 
-        private DtlsLoopbackOptions CreateOptions()
+        /// <param name="handshakePacketLossPercent">Datagram loss during the handshake. Use 0 for a handshake that
+        /// is expected to fail: a fatal alert is sent only once, so a lost one leaves the client waiting forever.
+        /// </param>
+        private DtlsLoopbackOptions CreateOptions(int handshakePacketLossPercent)
         {
             return new DtlsLoopbackOptions
             {
                 UseCookieExchange = true,
-                ClientTransportDecorator = transport => new UnreliableDatagramTransport(transport, Random, 0, 0),
+                HandshakePacketLossPercent = handshakePacketLossPercent,
             };
         }
     }

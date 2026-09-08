@@ -9,6 +9,16 @@ namespace Org.BouncyCastle.Tls.Tests
         /// environment variable to turn it on.</summary>
         public static readonly bool Debug = Environment.GetEnvironmentVariable("BC_TLS_TEST_DEBUG") != null;
 
+        /// <summary>
+        /// The most datagrams a lossy DTLS handshake test loses in each direction, after which its transport is
+        /// reliable. Each lost datagram costs at most one resend cycle, and the resend interval doubles with each
+        /// cycle from the 100ms the lossy tests use, so this bounds a run: 8 lost datagrams cost at most
+        /// 100 * (2^9 - 1) ms, about 51 seconds, even in the worst case of one loss per cycle, all in the same flight,
+        /// and the typical run is a few seconds. A limit of 4 rarely binds at 10% loss and leaves several flights to
+        /// be lost at 25%.
+        /// </summary>
+        internal const int DtlsMaxDroppedDatagrams = 4;
+
         /// <summary>Client does not authenticate, ignores any certificate request.</summary>
         public const int CLIENT_AUTH_NONE = 0;
 

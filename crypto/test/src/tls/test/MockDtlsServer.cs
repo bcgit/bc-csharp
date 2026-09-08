@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             m_peerName = "DTLS server";
 
+            HandshakeResendTimeMillis = 100;
             ProtocolNames = null;
             SupportedVersions = ProtocolVersion.DTLSv12.Only();
         }

@@ -31,8 +31,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
             DtlsLoopbackOptions options = new DtlsLoopbackOptions
             {
-                ClientTransportDecorator = transport =>
-                    new UnreliableDatagramTransport(transport, client.Crypto.SecureRandom, 0, 0),
+                HandshakePacketLossPercent = 10,
             };
 
             DtlsLoopback.Run(client, server, options).ThrowIfFailed();

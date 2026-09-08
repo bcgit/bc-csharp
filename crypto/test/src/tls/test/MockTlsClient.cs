@@ -40,6 +40,8 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal int HandshakeTimeoutMillis { get; set; } = 0;
 
+        internal int HandshakeResendTimeMillis { get; set; } = 1000;
+
         /// <summary>The named groups to offer, whatever their roles.</summary>
         internal int[] NamedGroups { get; set; } = null;
 
@@ -69,6 +71,8 @@ namespace Org.BouncyCastle.Tls.Tests
         internal byte[] TlsUnique { get; private set; } = null;
 
         public override int GetHandshakeTimeoutMillis() => HandshakeTimeoutMillis;
+
+        public override int GetHandshakeResendTimeMillis() => HandshakeResendTimeMillis;
 
         protected override IList<ProtocolName> GetProtocolNames() => ProtocolNames;
 

@@ -110,6 +110,7 @@ namespace Org.BouncyCastle.Tls
         private volatile int m_plaintextLimit;
         private DtlsEpoch m_currentEpoch, m_pendingEpoch;
         private DtlsEpoch m_readEpoch, m_writeEpoch;
+        private int m_lastReceivedEpoch = -1;
 
         private DtlsHandshakeRetransmit m_retransmit = null;
         private DtlsEpoch m_retransmitEpoch = null;
@@ -158,6 +159,14 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal virtual int ReadEpoch => m_readEpoch.Epoch;
+
+        /// <summary>The epoch of the record most recently delivered by a receive call.</summary>
+        /// <remarks>
+        /// During the handshake this can differ from <see cref="ReadEpoch"/>: a handshake record from the current
+        /// epoch is still delivered after the peer's ChangeCipherSpec has moved the read epoch on (a message that
+        /// was lost and later retransmitted, while the ChangeCipherSpec and Finished that followed it arrived).
+        /// </remarks>
+        internal virtual int LastReceivedEpoch => m_lastReceivedEpoch;
 
         internal virtual ProtocolVersion ReadVersion
         {
@@ -718,6 +727,18 @@ namespace Org.BouncyCastle.Tls
                     recordEpoch = m_retransmitEpoch;
                 }
             }
+            else if (m_inHandshake && epoch == m_currentEpoch.Epoch)
+            {
+                /*
+                 * The peer's ChangeCipherSpec has moved the read epoch on, but a handshake message from before it
+                 * (e.g. CertificateVerify) may have been lost and is now being retransmitted. Until the handshake
+                 * completes, handshake records from the current epoch are still accepted.
+                 */
+                if (recordType == ContentType.handshake)
+                {
+                    recordEpoch = m_currentEpoch;
+                }
+            }
 
             if (null == recordEpoch)
                 return -1;
@@ -976,6 +997,8 @@ namespace Org.BouncyCastle.Tls
                 m_retransmitTimeout = null;
             }
 
+            m_lastReceivedEpoch = recordEpoch.Epoch;
+
             // NOTE: Internal error implies GetReceiveLimit() was not used to allocate result space
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             if (decoded.len > buffer.Length)
@@ -1010,6 +1033,10 @@ namespace Org.BouncyCastle.Tls
                 else if (null != m_retransmitEpoch && epoch == m_retransmitEpoch.Epoch)
                 {
                     recordEpoch = m_retransmitEpoch;
+                }
+                else if (m_inHandshake && epoch == m_currentEpoch.Epoch)
+                {
+                    recordEpoch = m_currentEpoch;
                 }
 
                 if (null == recordEpoch)
@@ -1052,6 +1079,10 @@ namespace Org.BouncyCastle.Tls
                 else if (null != m_retransmitEpoch && epoch == m_retransmitEpoch.Epoch)
                 {
                     recordEpoch = m_retransmitEpoch;
+                }
+                else if (m_inHandshake && epoch == m_currentEpoch.Epoch)
+                {
+                    recordEpoch = m_currentEpoch;
                 }
 
                 if (null == recordEpoch)

@@ -30,6 +30,8 @@ namespace Org.BouncyCastle.Tls.Tests
          * Knobs. Null means the library default.
          */
 
+        internal int HandshakeResendTimeMillis { get; set; } = 1000;
+
         internal int[] NamedGroups { get; set; } = null;
 
         internal IList<ProtocolName> ProtocolNames { get; set; } =
@@ -54,6 +56,8 @@ namespace Org.BouncyCastle.Tls.Tests
 
         internal byte[] TlsServerEndPoint { get; private set; } = null;
         internal byte[] TlsUnique { get; private set; } = null;
+
+        public override int GetHandshakeResendTimeMillis() => HandshakeResendTimeMillis;
 
         protected override IList<ProtocolName> GetProtocolNames() => ProtocolNames;
 

@@ -25,7 +25,14 @@ namespace Org.BouncyCastle.Tls.Tests
             m_offerServerCertTypes = offerServerCertTypes;
             m_offerClientCertTypes = offerClientCertTypes;
             m_tlsVersion = tlsVersion;
+
+            // The DTLS tests run their handshakes over a lossy transport, so resend quickly
+            HandshakeResendTimeMillis = tlsVersion.IsDtls ? 100 : 1000;
         }
+
+        internal int HandshakeResendTimeMillis { get; set; }
+
+        public override int GetHandshakeResendTimeMillis() => HandshakeResendTimeMillis;
 
         protected override ProtocolVersion[] GetSupportedVersions()
         {

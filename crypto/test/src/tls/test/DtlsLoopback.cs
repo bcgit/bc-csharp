@@ -1,10 +1,12 @@
 using System;
+using System.IO;
 using System.Threading;
 
 using NUnit.Framework;
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
@@ -16,7 +18,15 @@ namespace Org.BouncyCastle.Tls.Tests
         /// before it accepts the handshake.</summary>
         internal bool UseCookieExchange = false;
 
-        /// <summary>Wraps the client's transport, e.g. to drop or aggregate datagrams; null for none.</summary>
+        /// <summary>Percentage of datagrams the client's transport loses, in each direction, while the handshake
+        /// is in progress, to exercise handshake retransmission. The transport becomes reliable once the client's
+        /// handshake completes, since application data is never retransmitted, or once
+        /// <see cref="TlsTestConfig.DtlsMaxDroppedDatagrams"/> have been lost in a direction, which bounds the run.
+        /// </summary>
+        internal int HandshakePacketLossPercent = 0;
+
+        /// <summary>Wraps the client's transport, e.g. to drop or aggregate datagrams; null for none. Applied
+        /// on top of any <see cref="HandshakePacketLossPercent"/>.</summary>
         internal Func<DatagramTransport, DatagramTransport> ClientTransportDecorator = null;
 
         /// <summary>What the client does once connected, or null to <see cref="DtlsLoopback.Echo"/> datagrams of
@@ -38,6 +48,7 @@ namespace Org.BouncyCastle.Tls.Tests
         private const int EchoAttempts = 10;
         private const int EchoWaitMillis = 500;
         private const int GraceMillis = 2000;
+        private const int HandshakeDeadlineMillis = 60000;
         private const int JoinTimeoutMillis = 30000;
         private const int ServerPollMillis = 100;
 
@@ -61,6 +72,14 @@ namespace Org.BouncyCastle.Tls.Tests
             MockDatagramAssociation network = new MockDatagramAssociation(options.Mtu);
 
             DatagramTransport clientTransport = network.Client;
+            UnreliableDatagramTransport lossyTransport = null;
+            if (options.HandshakePacketLossPercent > 0)
+            {
+                int loss = options.HandshakePacketLossPercent, maxDropped = TlsTestConfig.DtlsMaxDroppedDatagrams;
+                lossyTransport = new UnreliableDatagramTransport(clientTransport, client.Crypto.SecureRandom, loss,
+                    loss, maxDropped, maxDropped);
+                clientTransport = lossyTransport;
+            }
             if (options.ClientTransportDecorator != null)
             {
                 clientTransport = options.ClientTransportDecorator(clientTransport);
@@ -71,12 +90,13 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             ServerTask serverTask = new ServerTask(serverProtocol, server, network.Server, options.UseCookieExchange);
+            ClientTransportGuard guard = new ClientTransportGuard(clientTransport, lossyTransport, serverTask);
 
             Thread serverThread = new Thread(serverTask.Run);
             serverThread.Start();
 
             LoopbackResult result = new LoopbackResult();
-            result.ClientException = RunClient(clientProtocol, client, clientTransport, network, options.ClientBody);
+            result.ClientException = RunClient(clientProtocol, client, guard, network, options.ClientBody);
             result.ServerException = serverTask.Shutdown(serverThread);
             return result;
         }
@@ -116,13 +136,14 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         private static Exception RunClient(DtlsClientProtocol clientProtocol, TlsClient client,
-            DatagramTransport clientTransport, MockDatagramAssociation network,
+            ClientTransportGuard clientTransport, MockDatagramAssociation network,
             Action<DtlsTransport, MockDatagramAssociation> clientBody)
         {
             DtlsTransport dtlsClient = null;
             try
             {
                 dtlsClient = clientProtocol.Connect(client, clientTransport);
+                clientTransport.NotifyHandshakeComplete();
 
                 if (clientBody != null)
                 {
@@ -156,6 +177,87 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
+        /// <summary>
+        /// The runner's own, outermost wrapper of the client transport, applying the handshake-phase policy. While the
+        /// handshake is in progress, a receive that comes up empty after the server thread has failed, or after the
+        /// handshake deadline, throws rather than letting a client with no handshake timeout wait forever. Once the
+        /// handshake completes, any handshake packet loss is switched off, since application data is never
+        /// retransmitted.
+        /// </summary>
+        private sealed class ClientTransportGuard
+            : DatagramTransport
+        {
+            private readonly DatagramTransport m_transport;
+            private readonly UnreliableDatagramTransport m_lossyTransport;
+            private readonly ServerTask m_serverTask;
+            private readonly long m_handshakeDeadline;
+
+            private volatile bool m_inHandshake = true;
+
+            internal ClientTransportGuard(DatagramTransport transport, UnreliableDatagramTransport lossyTransport,
+                ServerTask serverTask)
+            {
+                m_transport = transport;
+                m_lossyTransport = lossyTransport;
+                m_serverTask = serverTask;
+                m_handshakeDeadline = DateTimeUtilities.CurrentUnixMs() + HandshakeDeadlineMillis;
+            }
+
+            internal void NotifyHandshakeComplete()
+            {
+                m_inHandshake = false;
+                m_lossyTransport?.SetPacketLoss(0, 0);
+            }
+
+            public int GetReceiveLimit() => m_transport.GetReceiveLimit();
+
+            public int GetSendLimit() => m_transport.GetSendLimit();
+
+            public int Receive(byte[] buf, int off, int len, int waitMillis)
+            {
+                int length = m_transport.Receive(buf, off, len, waitMillis);
+                if (length < 0)
+                {
+                    CheckHandshakeStalled();
+                }
+                return length;
+            }
+
+#if NET6_0_OR_GREATER
+            public int Receive(Span<byte> buffer, int waitMillis)
+            {
+                int length = m_transport.Receive(buffer, waitMillis);
+                if (length < 0)
+                {
+                    CheckHandshakeStalled();
+                }
+                return length;
+            }
+#endif
+
+            public void Send(byte[] buf, int off, int len) => m_transport.Send(buf, off, len);
+
+#if NET6_0_OR_GREATER
+            public void Send(ReadOnlySpan<byte> buffer) => m_transport.Send(buffer);
+#endif
+
+            public void Close() => m_transport.Close();
+
+            /// <summary>Nothing arrived within the wait: give up on the handshake if there is no longer any prospect
+            /// of it completing.</summary>
+            private void CheckHandshakeStalled()
+            {
+                if (!m_inHandshake)
+                    return;
+
+                if (m_serverTask.Failed)
+                    throw new IOException("DTLS server failed during the handshake");
+
+                if (DateTimeUtilities.CurrentUnixMs() >= m_handshakeDeadline)
+                    throw new IOException("DTLS handshake did not complete within " + HandshakeDeadlineMillis + "ms");
+            }
+        }
+
         private sealed class ServerTask
         {
             private readonly DtlsServerProtocol m_serverProtocol;
@@ -164,7 +266,7 @@ namespace Org.BouncyCastle.Tls.Tests
             private readonly bool m_useCookieExchange;
 
             private volatile bool m_isShutdown = false;
-            private Exception m_exception = null;
+            private volatile Exception m_exception = null;
 
             internal ServerTask(DtlsServerProtocol serverProtocol, TlsServer server, DatagramTransport serverTransport,
                 bool useCookieExchange)
@@ -174,6 +276,9 @@ namespace Org.BouncyCastle.Tls.Tests
                 m_serverTransport = serverTransport;
                 m_useCookieExchange = useCookieExchange;
             }
+
+            /// <summary>Whether the server thread has ended with an exception.</summary>
+            internal bool Failed => m_exception != null;
 
             internal void Run()
             {
