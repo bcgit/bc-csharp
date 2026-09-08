@@ -6,33 +6,51 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
+    /// <summary>The test PSK server, for the pre-1.3 PSK cipher suites; see <see cref="MockPskDtlsServer"/> for its
+    /// DTLS configuration.</summary>
     internal class MockPskTlsServer
         : PskTlsServer
     {
-        private const string PeerName = "TLS-PSK server";
+        protected string m_peerName = "TLS-PSK server";
 
         internal MockPskTlsServer(bool badKey = false)
             : base(new BcTlsCrypto(), new MyIdentityManager(badKey))
         {
         }
 
+        /*
+         * Knobs.
+         */
+
+        internal int HandshakeTimeoutMillis { get; set; } = 0;
+
+        internal int HandshakeResendTimeMillis { get; set; } = 1000;
+
+        internal ProtocolVersion[] SupportedVersions { get; set; } = ProtocolVersion.TLSv12.Only();
+
+        public override int GetHandshakeTimeoutMillis() => HandshakeTimeoutMillis;
+
+        public override int GetHandshakeResendTimeMillis() => HandshakeResendTimeMillis;
+
         protected override IList<ProtocolName> GetProtocolNames() =>
             new List<ProtocolName>{ ProtocolName.Http_2_Tls, ProtocolName.Http_1_1 };
+
+        protected override ProtocolVersion[] GetSupportedVersions() => SupportedVersions;
 
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
             Exception cause)
         {
-            TlsTestUtilities.LogAlert(PeerName, true, alertLevel, alertDescription, message, cause);
+            TlsTestUtilities.LogAlert(m_peerName, true, alertLevel, alertDescription, message, cause);
         }
 
         public override void NotifyAlertReceived(short alertLevel, short alertDescription) =>
-            TlsTestUtilities.LogAlert(PeerName, false, alertLevel, alertDescription, null, null);
+            TlsTestUtilities.LogAlert(m_peerName, false, alertLevel, alertDescription, null, null);
 
         public override ProtocolVersion GetServerVersion()
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            TlsTestUtilities.Log(PeerName + " negotiated version " + serverVersion);
+            TlsTestUtilities.Log(m_peerName + " negotiated version " + serverVersion);
 
             return serverVersion;
         }
@@ -41,12 +59,12 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyHandshakeComplete();
 
-            TlsTestUtilities.LogHandshakeComplete(PeerName, m_context);
+            TlsTestUtilities.LogHandshakeComplete(m_peerName, m_context);
 
             byte[] pskIdentity = m_context.SecurityParameters.PskIdentity;
             if (pskIdentity != null)
             {
-                TlsTestUtilities.Log(PeerName + " completed handshake for PSK identity: "
+                TlsTestUtilities.Log(m_peerName + " completed handshake for PSK identity: "
                     + Strings.FromUtf8ByteArray(pskIdentity));
             }
         }
@@ -75,9 +93,7 @@ namespace Org.BouncyCastle.Tls.Tests
         protected override TlsCredentialedDecryptor GetRsaEncryptionCredentials() =>
             TlsTestUtilities.LoadServerEncryptionCredentials(m_context);
 
-        protected override ProtocolVersion[] GetSupportedVersions() => ProtocolVersion.TLSv12.Only();
-
-        /// <summary>Knows the one test client identity; shared with <see cref="MockPskDtlsServer"/>.</summary>
+        /// <summary>Knows the one test client identity.</summary>
         internal class MyIdentityManager
             : TlsPskIdentityManager
         {

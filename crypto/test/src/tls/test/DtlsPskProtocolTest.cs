@@ -40,6 +40,9 @@ namespace Org.BouncyCastle.Tls.Tests
 
         private static void ImplTestKeyMismatch(MockPskDtlsClient client, MockPskDtlsServer server)
         {
+            // The client must be the end that times out: a server timeout would reach the client as an alert first
+            server.HandshakeTimeoutMillis = 2 * client.HandshakeTimeoutMillis;
+
             // No unreliable transport here: the focus is the timeout caused by the bad PSK
             LoopbackResult result = DtlsLoopback.Run(client, server);
 
