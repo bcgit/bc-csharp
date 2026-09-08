@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Tls.Tests
             long start = DateTimeUtilities.CurrentUnixMs();
             try
             {
-                protocol.Connect(new TimeoutTlsClient(HandshakeTimeoutMillis));
+                protocol.Connect(CreateClient(HandshakeTimeoutMillis));
                 Assert.Fail("handshake should have timed out");
             }
             catch (TlsTimeoutException)
@@ -55,7 +55,7 @@ namespace Org.BouncyCastle.Tls.Tests
 
             try
             {
-                protocol.Connect(new TimeoutTlsClient(0));
+                protocol.Connect(CreateClient(0));
                 Assert.Fail("handshake should not have completed");
             }
             catch (TlsTimeoutException)
@@ -68,29 +68,8 @@ namespace Org.BouncyCastle.Tls.Tests
             }
         }
 
-        private class TimeoutTlsClient
-            : MockTlsClient
-        {
-            private readonly int m_handshakeTimeoutMillis;
-
-            internal TimeoutTlsClient(int handshakeTimeoutMillis)
-                : base(null)
-            {
-                m_handshakeTimeoutMillis = handshakeTimeoutMillis;
-            }
-
-            public override int GetHandshakeTimeoutMillis() => m_handshakeTimeoutMillis;
-
-            public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
-                Exception cause)
-            {
-                // Quieter than MockTlsClient: the timeout raises a fatal alert by design
-            }
-
-            public override void NotifyAlertReceived(short alertLevel, short alertDescription)
-            {
-            }
-        }
+        private static MockTlsClient CreateClient(int handshakeTimeoutMillis) =>
+            new MockTlsClient(null) { HandshakeTimeoutMillis = handshakeTimeoutMillis };
 
         private class AlertDripInputStream
             : BaseInputStream

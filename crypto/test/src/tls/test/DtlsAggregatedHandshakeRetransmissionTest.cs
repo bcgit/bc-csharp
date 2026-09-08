@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Tls.Tests
             MockDtlsClient client = new MockDtlsClient(null);
             MockDtlsServer server = new MockDtlsServer();
 
-            client.SetHandshakeTimeoutMillis(30000);    // Test gets stuck, so we need it to time out.
+            client.HandshakeTimeoutMillis = 30000;    // Test gets stuck, so we need it to time out.
 
             DtlsLoopbackOptions options = new DtlsLoopbackOptions
             {

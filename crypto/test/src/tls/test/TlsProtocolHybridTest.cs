@@ -9,11 +9,8 @@ namespace Org.BouncyCastle.Tls.Tests
         [Test]
         public void TestMismatchedGroups()
         {
-            MockTlsHybridClient client = new MockTlsHybridClient(null);
-            MockTlsHybridServer server = new MockTlsHybridServer();
-
-            client.SetNamedGroups(new int[]{ NamedGroup.SecP256r1MLKEM768 });
-            server.SetNamedGroups(new int[]{ NamedGroup.X25519MLKEM768 });
+            MockTlsClient client = CreateClient(NamedGroup.SecP256r1MLKEM768);
+            MockTlsServer server = CreateServer(NamedGroup.X25519MLKEM768);
 
             LoopbackResult result = TlsLoopback.Run(client, server);
 
@@ -45,15 +42,27 @@ namespace Org.BouncyCastle.Tls.Tests
             ImplTestClientServer(NamedGroup.X25519MLKEM768);
         }
 
-        private void ImplTestClientServer(int hybridGroup)
+        private static void ImplTestClientServer(int hybridGroup)
         {
-            MockTlsHybridClient client = new MockTlsHybridClient(null);
-            MockTlsHybridServer server = new MockTlsHybridServer();
+            TlsLoopback.Run(CreateClient(hybridGroup), CreateServer(hybridGroup)).ThrowIfFailed();
+        }
 
-            client.SetNamedGroups(new int[]{ hybridGroup });
-            server.SetNamedGroups(new int[]{ hybridGroup });
+        private static MockTlsClient CreateClient(int namedGroup)
+        {
+            return new MockTlsClient(null)
+            {
+                NamedGroups = new int[]{ namedGroup },
+                SupportedVersions = ProtocolVersion.TLSv13.Only(),
+            };
+        }
 
-            TlsLoopback.Run(client, server).ThrowIfFailed();
+        private static MockTlsServer CreateServer(int namedGroup)
+        {
+            return new MockTlsServer
+            {
+                NamedGroups = new int[]{ namedGroup },
+                SupportedVersions = ProtocolVersion.TLSv13.Only(),
+            };
         }
     }
 }

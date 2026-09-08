@@ -57,16 +57,16 @@ namespace Org.BouncyCastle.Tls.Tests
 
             if (config.expectFatalAlertConnectionEnd == -1)
             {
-                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsKeyingMaterial1, serverImpl.m_tlsKeyingMaterial1));
-                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsKeyingMaterial2, serverImpl.m_tlsKeyingMaterial2));
-                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsServerEndPoint, serverImpl.m_tlsServerEndPoint));
+                Assert.IsTrue(Arrays.AreEqual(clientImpl.TlsKeyingMaterial1, serverImpl.TlsKeyingMaterial1));
+                Assert.IsTrue(Arrays.AreEqual(clientImpl.TlsKeyingMaterial2, serverImpl.TlsKeyingMaterial2));
+                Assert.IsTrue(Arrays.AreEqual(clientImpl.TlsServerEndPoint, serverImpl.TlsServerEndPoint));
 
-                if (!TlsUtilities.IsTlsV13(clientImpl.m_negotiatedVersion))
+                if (!TlsUtilities.IsTlsV13(clientImpl.NegotiatedVersion))
                 {
-                    Assert.NotNull(clientImpl.m_tlsUnique);
-                    Assert.NotNull(serverImpl.m_tlsUnique);
+                    Assert.NotNull(clientImpl.TlsUnique);
+                    Assert.NotNull(serverImpl.TlsUnique);
                 }
-                Assert.IsTrue(Arrays.AreEqual(clientImpl.m_tlsUnique, serverImpl.m_tlsUnique));
+                Assert.IsTrue(Arrays.AreEqual(clientImpl.TlsUnique, serverImpl.TlsUnique));
             }
         }
     }

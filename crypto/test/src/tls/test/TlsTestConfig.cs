@@ -5,8 +5,9 @@ namespace Org.BouncyCastle.Tls.Tests
 {
     public class TlsTestConfig
     {
-        // TODO[tls-port]
-        public static readonly bool Debug = false;
+        /// <summary>Whether the test peers, transports and runners log to the console; set the BC_TLS_TEST_DEBUG
+        /// environment variable to turn it on.</summary>
+        public static readonly bool Debug = Environment.GetEnvironmentVariable("BC_TLS_TEST_DEBUG") != null;
 
         /// <summary>Client does not authenticate, ignores any certificate request.</summary>
         public const int CLIENT_AUTH_NONE = 0;

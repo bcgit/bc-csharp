@@ -9,11 +9,8 @@ namespace Org.BouncyCastle.Tls.Tests
         [Test]
         public void TestMismatchedGroups()
         {
-            MockTlsKemClient client = new MockTlsKemClient(null);
-            MockTlsKemServer server = new MockTlsKemServer();
-
-            client.SetNamedGroups(new int[]{ NamedGroup.MLKEM512 });
-            server.SetNamedGroups(new int[]{ NamedGroup.MLKEM768 });
+            MockTlsClient client = CreateClient(NamedGroup.MLKEM512);
+            MockTlsServer server = CreateServer(NamedGroup.MLKEM768);
 
             LoopbackResult result = TlsLoopback.Run(client, server);
 
@@ -39,15 +36,27 @@ namespace Org.BouncyCastle.Tls.Tests
             ImplTestClientServer(NamedGroup.MLKEM1024);
         }
 
-        private void ImplTestClientServer(int kemGroup)
+        private static void ImplTestClientServer(int kemGroup)
         {
-            MockTlsKemClient client = new MockTlsKemClient(null);
-            MockTlsKemServer server = new MockTlsKemServer();
+            TlsLoopback.Run(CreateClient(kemGroup), CreateServer(kemGroup)).ThrowIfFailed();
+        }
 
-            client.SetNamedGroups(new int[]{ kemGroup });
-            server.SetNamedGroups(new int[]{ kemGroup });
+        private static MockTlsClient CreateClient(int namedGroup)
+        {
+            return new MockTlsClient(null)
+            {
+                NamedGroups = new int[]{ namedGroup },
+                SupportedVersions = ProtocolVersion.TLSv13.Only(),
+            };
+        }
 
-            TlsLoopback.Run(client, server).ThrowIfFailed();
+        private static MockTlsServer CreateServer(int namedGroup)
+        {
+            return new MockTlsServer
+            {
+                NamedGroups = new int[]{ namedGroup },
+                SupportedVersions = ProtocolVersion.TLSv13.Only(),
+            };
         }
     }
 }

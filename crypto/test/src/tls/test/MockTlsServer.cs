@@ -6,18 +6,61 @@ using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
+    /// <summary>
+    /// The configurable test server: authenticates with the test server certificates, requests and checks a client
+    /// certificate against the test client certificates, records what the handshake produced, and can be steered by
+    /// a few knobs (set before the handshake) so that a scenario need not subclass it.
+    /// </summary>
     internal class MockTlsServer
         : DefaultTlsServer
     {
-        private const string PeerName = "TLS server";
+        protected string m_peerName = "TLS server";
 
         internal MockTlsServer()
-            : base(new BcTlsCrypto())
+            : this(new BcTlsCrypto())
         {
         }
 
-        protected override IList<ProtocolName> GetProtocolNames() =>
+        internal MockTlsServer(TlsCrypto crypto)
+            : base(crypto)
+        {
+        }
+
+        /*
+         * Knobs. Null means the library default.
+         */
+
+        internal int[] NamedGroups { get; set; } = null;
+
+        internal IList<ProtocolName> ProtocolNames { get; set; } =
             new List<ProtocolName>{ ProtocolName.Http_2_Tls, ProtocolName.Http_1_1 };
+
+        internal ProtocolVersion[] SupportedVersions { get; set; } = null;
+
+        /*
+         * What the handshake produced.
+         */
+
+        /// <summary>The <see cref="ConnectionEnd"/> that raised the first fatal alert, or -1 if there was none.
+        /// </summary>
+        internal int FirstFatalAlertConnectionEnd { get; private set; } = -1;
+
+        /// <summary>The <see cref="AlertDescription"/> of the first fatal alert, or -1 if there was none.</summary>
+        internal short FirstFatalAlertDescription { get; private set; } = -1;
+
+        /// <summary>Exported keying material, where extended_master_secret allows it.</summary>
+        internal byte[] TlsKeyingMaterial1 { get; private set; } = null;
+        internal byte[] TlsKeyingMaterial2 { get; private set; } = null;
+
+        internal byte[] TlsServerEndPoint { get; private set; } = null;
+        internal byte[] TlsUnique { get; private set; } = null;
+
+        protected override IList<ProtocolName> GetProtocolNames() => ProtocolNames;
+
+        public override int[] GetSupportedGroups() => NamedGroups ?? base.GetSupportedGroups();
+
+        protected override ProtocolVersion[] GetSupportedVersions() =>
+            SupportedVersions ?? base.GetSupportedVersions();
 
         public override TlsCredentials GetCredentials()
         {
@@ -34,17 +77,23 @@ namespace Org.BouncyCastle.Tls.Tests
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
             Exception cause)
         {
-            TlsTestUtilities.LogAlert(PeerName, true, alertLevel, alertDescription, message, cause);
+            NoteFatalAlert(ConnectionEnd.server, alertLevel, alertDescription);
+
+            TlsTestUtilities.LogAlert(m_peerName, true, alertLevel, alertDescription, message, cause);
         }
 
-        public override void NotifyAlertReceived(short alertLevel, short alertDescription) =>
-            TlsTestUtilities.LogAlert(PeerName, false, alertLevel, alertDescription, null, null);
+        public override void NotifyAlertReceived(short alertLevel, short alertDescription)
+        {
+            NoteFatalAlert(ConnectionEnd.client, alertLevel, alertDescription);
+
+            TlsTestUtilities.LogAlert(m_peerName, false, alertLevel, alertDescription, null, null);
+        }
 
         public override ProtocolVersion GetServerVersion()
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            TlsTestUtilities.Log(PeerName + " negotiated version " + serverVersion);
+            TlsTestUtilities.Log(m_peerName + " negotiated version " + serverVersion);
 
             return serverVersion;
         }
@@ -62,7 +111,17 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyHandshakeComplete();
 
-            TlsTestUtilities.LogHandshakeComplete(PeerName, m_context);
+            SecurityParameters securityParameters = m_context.SecurityParameters;
+            if (securityParameters.IsExtendedMasterSecret)
+            {
+                TlsKeyingMaterial1 = m_context.ExportKeyingMaterial("BC_TLS_TESTS_1", null, 16);
+                TlsKeyingMaterial2 = m_context.ExportKeyingMaterial("BC_TLS_TESTS_2", new byte[8], 16);
+            }
+
+            TlsServerEndPoint = m_context.ExportChannelBinding(ChannelBinding.tls_server_end_point);
+            TlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
+
+            TlsTestUtilities.LogHandshakeComplete(m_peerName, m_context);
         }
 
         public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
@@ -89,10 +148,21 @@ namespace Org.BouncyCastle.Tls.Tests
         protected override TlsCredentialedDecryptor GetRsaEncryptionCredentials() =>
             TlsTestUtilities.LoadServerEncryptionCredentials(m_context);
 
-        protected override TlsCredentialedSigner GetRsaSignerCredentials()
+        protected override TlsCredentialedSigner GetRsaSignerCredentials() =>
+            TlsTestUtilities.LoadSignerCredentialsServer(m_context, GetServerSigAlgs(), SignatureAlgorithm.rsa);
+
+        /// <summary>The signature algorithms to choose the server's signing credentials from; by default, whatever
+        /// the client declared.</summary>
+        protected virtual IList<SignatureAndHashAlgorithm> GetServerSigAlgs() =>
+            m_context.SecurityParameters.ClientSigAlgs;
+
+        private void NoteFatalAlert(int connectionEnd, short alertLevel, short alertDescription)
         {
-            return TlsTestUtilities.LoadSignerCredentialsServer(m_context, m_context.SecurityParameters.ClientSigAlgs,
-                SignatureAlgorithm.rsa);
+            if (alertLevel == AlertLevel.fatal && FirstFatalAlertConnectionEnd == -1)
+            {
+                FirstFatalAlertConnectionEnd = connectionEnd;
+                FirstFatalAlertDescription = alertDescription;
+            }
         }
     }
 }
