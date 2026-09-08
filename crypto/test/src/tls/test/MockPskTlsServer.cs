@@ -1,57 +1,38 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
     internal class MockPskTlsServer
         : PskTlsServer
     {
+        private const string PeerName = "TLS-PSK server";
+
         internal MockPskTlsServer(bool badKey = false)
             : base(new BcTlsCrypto(), new MyIdentityManager(badKey))
         {
         }
 
-        protected override IList<ProtocolName> GetProtocolNames()
-        {
-            var protocolNames = new List<ProtocolName>();
-            protocolNames.Add(ProtocolName.Http_2_Tls);
-            protocolNames.Add(ProtocolName.Http_1_1);
-            return protocolNames;
-        }
+        protected override IList<ProtocolName> GetProtocolNames() =>
+            new List<ProtocolName>{ ProtocolName.Http_2_Tls, ProtocolName.Http_1_1 };
 
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
             Exception cause)
         {
-            TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS-PSK server raised alert: " + AlertLevel.GetText(alertLevel)
-                + ", " + AlertDescription.GetText(alertDescription));
-            if (message != null)
-            {
-                output.WriteLine("> " + message);
-            }
-            if (cause != null)
-            {
-                output.WriteLine(cause);
-            }
+            TlsTestUtilities.LogAlert(PeerName, true, alertLevel, alertDescription, message, cause);
         }
 
-        public override void NotifyAlertReceived(short alertLevel, short alertDescription)
-        {
-            TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS-PSK server received alert: " + AlertLevel.GetText(alertLevel)
-                + ", " + AlertDescription.GetText(alertDescription));
-        }
+        public override void NotifyAlertReceived(short alertLevel, short alertDescription) =>
+            TlsTestUtilities.LogAlert(PeerName, false, alertLevel, alertDescription, null, null);
 
         public override ProtocolVersion GetServerVersion()
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            Console.WriteLine("TLS-PSK server negotiated version " + serverVersion);
+            TlsTestUtilities.Log(PeerName + " negotiated version " + serverVersion);
 
             return serverVersion;
         }
@@ -60,66 +41,43 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyHandshakeComplete();
 
-            ProtocolName protocolName = m_context.SecurityParameters.ApplicationProtocol;
-            if (protocolName != null)
-            {
-                Console.WriteLine("Server ALPN: " + protocolName.GetUtf8Decoding());
-            }
-
-            byte[] tlsServerEndPoint = m_context.ExportChannelBinding(ChannelBinding.tls_server_end_point);
-            Console.WriteLine("Server 'tls-server-end-point': " + ToHexString(tlsServerEndPoint));
-
-            byte[] tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
-            Console.WriteLine("Server 'tls-unique': " + ToHexString(tlsUnique));
+            TlsTestUtilities.LogHandshakeComplete(PeerName, m_context);
 
             byte[] pskIdentity = m_context.SecurityParameters.PskIdentity;
             if (pskIdentity != null)
             {
-                string name = Strings.FromUtf8ByteArray(pskIdentity);
-                Console.WriteLine("TLS-PSK server completed handshake for PSK identity: " + name);
+                TlsTestUtilities.Log(PeerName + " completed handshake for PSK identity: "
+                    + Strings.FromUtf8ByteArray(pskIdentity));
             }
         }
 
         public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
         {
-            if (m_context.SecurityParameters.ClientRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckClientRandom(m_context);
 
             base.ProcessClientExtensions(clientExtensions);
         }
 
         public override IDictionary<int, byte[]> GetServerExtensions()
         {
-            if (m_context.SecurityParameters.ServerRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckServerRandom(m_context);
 
             return base.GetServerExtensions();
         }
 
         public override void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions)
         {
-            if (m_context.SecurityParameters.ServerRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckServerRandom(m_context);
 
             base.GetServerExtensionsForConnection(serverExtensions);
         }
 
-        protected override TlsCredentialedDecryptor GetRsaEncryptionCredentials()
-        {
-            return TlsTestUtilities.LoadEncryptionCredentials(m_context,
-                new string[] { "x509-server-rsa-enc.pem", "x509-ca-rsa.pem" }, "x509-server-key-rsa-enc.pem");
-        }
+        protected override TlsCredentialedDecryptor GetRsaEncryptionCredentials() =>
+            TlsTestUtilities.LoadServerEncryptionCredentials(m_context);
 
-        protected virtual string ToHexString(byte[] data)
-        {
-            return data == null ? "(null)" : Hex.ToHexString(data);
-        }
+        protected override ProtocolVersion[] GetSupportedVersions() => ProtocolVersion.TLSv12.Only();
 
-        protected override ProtocolVersion[] GetSupportedVersions()
-        {
-            return ProtocolVersion.TLSv12.Only();
-        }
-
+        /// <summary>Knows the one test client identity; shared with <see cref="MockPskDtlsServer"/>.</summary>
         internal class MyIdentityManager
             : TlsPskIdentityManager
         {

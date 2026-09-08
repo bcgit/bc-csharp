@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
 
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
@@ -11,6 +10,8 @@ namespace Org.BouncyCastle.Tls.Tests
     internal class MockPskTls13Server
         : AbstractTlsServer
     {
+        private const string PeerName = "TLS 1.3 PSK server";
+
         private readonly bool m_badKey;
 
         internal MockPskTls13Server(bool badKey = false)
@@ -19,36 +20,25 @@ namespace Org.BouncyCastle.Tls.Tests
             m_badKey = badKey;
         }
 
-        public override TlsCredentials GetCredentials()
-        {
-            return null;
-        }
+        public override TlsCredentials GetCredentials() => null;
 
-        protected override IList<ProtocolName> GetProtocolNames()
-        {
-            var protocolNames = new List<ProtocolName>();
-            protocolNames.Add(ProtocolName.Http_2_Tls);
-            protocolNames.Add(ProtocolName.Http_1_1);
-            return protocolNames;
-        }
+        protected override IList<ProtocolName> GetProtocolNames() =>
+            new List<ProtocolName>{ ProtocolName.Http_2_Tls, ProtocolName.Http_1_1 };
 
         protected override int[] GetSupportedCipherSuites()
         {
             return TlsUtilities.GetSupportedCipherSuites(Crypto,
-                new int[] { CipherSuite.TLS_AES_128_CCM_8_SHA256, CipherSuite.TLS_AES_128_CCM_SHA256,
+                new int[]{ CipherSuite.TLS_AES_128_CCM_8_SHA256, CipherSuite.TLS_AES_128_CCM_SHA256,
                     CipherSuite.TLS_AES_128_GCM_SHA256, CipherSuite.TLS_CHACHA20_POLY1305_SHA256 });
         }
 
-        protected override ProtocolVersion[] GetSupportedVersions()
-        {
-            return ProtocolVersion.TLSv13.Only();
-        }
+        protected override ProtocolVersion[] GetSupportedVersions() => ProtocolVersion.TLSv13.Only();
 
         public override ProtocolVersion GetServerVersion()
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            Console.WriteLine("TLS 1.3 PSK server negotiated version " + serverVersion);
+            TlsTestUtilities.Log(PeerName + " negotiated version " + serverVersion);
 
             return serverVersion;
         }
@@ -76,65 +66,36 @@ namespace Org.BouncyCastle.Tls.Tests
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
             Exception cause)
         {
-            TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS 1.3 PSK server raised alert: " + AlertLevel.GetText(alertLevel)
-                + ", " + AlertDescription.GetText(alertDescription));
-            if (message != null)
-            {
-                output.WriteLine("> " + message);
-            }
-            if (cause != null)
-            {
-                output.WriteLine(cause);
-            }
+            TlsTestUtilities.LogAlert(PeerName, true, alertLevel, alertDescription, message, cause);
         }
 
-        public override void NotifyAlertReceived(short alertLevel, short alertDescription)
-        {
-            TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS 1.3 PSK server received alert: " + AlertLevel.GetText(alertLevel)
-                + ", " + AlertDescription.GetText(alertDescription));
-        }
+        public override void NotifyAlertReceived(short alertLevel, short alertDescription) =>
+            TlsTestUtilities.LogAlert(PeerName, false, alertLevel, alertDescription, null, null);
 
         public override void NotifyHandshakeComplete()
         {
             base.NotifyHandshakeComplete();
 
-            var securityParameters = m_context.SecurityParameters;
-
-            ProtocolName protocolName = securityParameters.ApplicationProtocol;
-            if (protocolName != null)
-            {
-                Console.WriteLine("Server ALPN: " + protocolName.GetUtf8Decoding());
-            }
-
-            int negotiatedGroup = securityParameters.NegotiatedGroup;
-            if (negotiatedGroup >= 0)
-            {
-                Console.WriteLine("Server negotiated group: " + NamedGroup.GetText(negotiatedGroup));
-            }
+            TlsTestUtilities.LogHandshakeComplete(PeerName, m_context);
         }
 
         public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
         {
-            if (m_context.SecurityParameters.ClientRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckClientRandom(m_context);
 
             base.ProcessClientExtensions(clientExtensions);
         }
 
         public override IDictionary<int, byte[]> GetServerExtensions()
         {
-            if (m_context.SecurityParameters.ServerRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckServerRandom(m_context);
 
             return base.GetServerExtensions();
         }
 
         public override void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions)
         {
-            if (m_context.SecurityParameters.ServerRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckServerRandom(m_context);
 
             base.GetServerExtensionsForConnection(serverExtensions);
         }

@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 if (length < 0 || m_allowReceiving(buf, off, len))
                     return length;
 
-                Console.WriteLine("PACKET FILTERED ({0} byte packet not received)", length);
+                TlsTestUtilities.Log("PACKET FILTERED ({0} byte packet not received)", length);
 
                 long now = DateTimeUtilities.CurrentUnixMs();
                 if (now >= endMillis)
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 if (length < 0 || m_allowReceiving(buffer.ToArray(), 0, buffer.Length))
                     return length;
 
-                Console.WriteLine("PACKET FILTERED ({0} byte packet not received)", length);
+                TlsTestUtilities.Log("PACKET FILTERED ({0} byte packet not received)", length);
 
                 long now = DateTimeUtilities.CurrentUnixMs();
                 if (now >= endMillis)
@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             if (!m_allowSending(buf, off, len))
             {
-                Console.WriteLine("PACKET FILTERED ({0} byte packet not sent)", len);
+                TlsTestUtilities.Log("PACKET FILTERED ({0} byte packet not sent)", len);
             }
             else
             {
@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             if (!m_allowSending(buffer.ToArray(), 0, buffer.Length))
             {
-                Console.WriteLine("PACKET FILTERED ({0} byte packet not sent)", buffer.Length);
+                TlsTestUtilities.Log("PACKET FILTERED ({0} byte packet not sent)", buffer.Length);
             }
             else
             {

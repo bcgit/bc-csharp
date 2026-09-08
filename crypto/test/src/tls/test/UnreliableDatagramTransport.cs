@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 if (length < 0 || !LostPacket(m_percentPacketLossReceiving))
                     return length;
 
-                Console.WriteLine("PACKET LOSS ({0} byte packet not received)", length);
+                TlsTestUtilities.Log("PACKET LOSS ({0} byte packet not received)", length);
 
                 long now = DateTimeUtilities.CurrentUnixMs();
                 if (now >= endMillis)
@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 if (length < 0 || !LostPacket(m_percentPacketLossReceiving))
                     return length;
 
-                Console.WriteLine("PACKET LOSS ({0} byte packet not received)", length);
+                TlsTestUtilities.Log("PACKET LOSS ({0} byte packet not received)", length);
 
                 long now = DateTimeUtilities.CurrentUnixMs();
                 if (now >= endMillis)
@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Tls.Tests
 #else
             if (LostPacket(m_percentPacketLossSending))
             {
-                Console.WriteLine("PACKET LOSS ({0} byte packet not sent)", len);
+                TlsTestUtilities.Log("PACKET LOSS ({0} byte packet not sent)", len);
             }
             else
             {
@@ -98,7 +98,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             if (LostPacket(m_percentPacketLossSending))
             {
-                Console.WriteLine("PACKET LOSS ({0} byte packet not sent)", buffer.Length);
+                TlsTestUtilities.Log("PACKET LOSS ({0} byte packet not sent)", buffer.Length);
             }
             else
             {

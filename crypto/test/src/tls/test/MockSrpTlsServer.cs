@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.IO;
 
 using Org.BouncyCastle.Crypto.Agreement.Srp;
 using Org.BouncyCastle.Crypto.Digests;
@@ -8,13 +7,14 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Tls.Crypto;
 using Org.BouncyCastle.Tls.Crypto.Impl.BC;
 using Org.BouncyCastle.Utilities;
-using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
     internal class MockSrpTlsServer
         : SrpTlsServer
     {
+        private const string PeerName = "TLS-SRP server";
+
         internal static readonly Srp6Group TEST_GROUP = Tls.Crypto.Srp6StandardGroups.rfc5054_1024;
         internal static readonly byte[] TEST_IDENTITY = Strings.ToUtf8ByteArray("client");
         internal static readonly byte[] TEST_PASSWORD = Strings.ToUtf8ByteArray("password");
@@ -28,42 +28,23 @@ namespace Org.BouncyCastle.Tls.Tests
         {
         }
 
-        protected override IList<ProtocolName> GetProtocolNames()
-        {
-            var protocolNames = new List<ProtocolName>();
-            protocolNames.Add(ProtocolName.Http_2_Tls);
-            protocolNames.Add(ProtocolName.Http_1_1);
-            return protocolNames;
-        }
+        protected override IList<ProtocolName> GetProtocolNames() =>
+            new List<ProtocolName>{ ProtocolName.Http_2_Tls, ProtocolName.Http_1_1 };
 
         public override void NotifyAlertRaised(short alertLevel, short alertDescription, string message,
             Exception cause)
         {
-            TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS-SRP server raised alert: " + AlertLevel.GetText(alertLevel)
-                + ", " + AlertDescription.GetText(alertDescription));
-            if (message != null)
-            {
-                output.WriteLine("> " + message);
-            }
-            if (cause != null)
-            {
-                output.WriteLine(cause);
-            }
+            TlsTestUtilities.LogAlert(PeerName, true, alertLevel, alertDescription, message, cause);
         }
 
-        public override void NotifyAlertReceived(short alertLevel, short alertDescription)
-        {
-            TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
-            output.WriteLine("TLS-SRP server received alert: " + AlertLevel.GetText(alertLevel)
-                + ", " + AlertDescription.GetText(alertDescription));
-        }
+        public override void NotifyAlertReceived(short alertLevel, short alertDescription) =>
+            TlsTestUtilities.LogAlert(PeerName, false, alertLevel, alertDescription, null, null);
 
         public override ProtocolVersion GetServerVersion()
         {
             ProtocolVersion serverVersion = base.GetServerVersion();
 
-            Console.WriteLine("TLS-SRP server negotiated version " + serverVersion);
+            TlsTestUtilities.Log(PeerName + " negotiated version " + serverVersion);
 
             return serverVersion;
         }
@@ -72,65 +53,47 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             base.NotifyHandshakeComplete();
 
-            ProtocolName protocolName = m_context.SecurityParameters.ApplicationProtocol;
-            if (protocolName != null)
-            {
-                Console.WriteLine("Server ALPN: " + protocolName.GetUtf8Decoding());
-            }
-
-            byte[] tlsServerEndPoint = m_context.ExportChannelBinding(ChannelBinding.tls_server_end_point);
-            Console.WriteLine("Server 'tls-server-end-point': " + ToHexString(tlsServerEndPoint));
-
-            byte[] tlsUnique = m_context.ExportChannelBinding(ChannelBinding.tls_unique);
-            Console.WriteLine("Server 'tls-unique': " + ToHexString(tlsUnique));
+            TlsTestUtilities.LogHandshakeComplete(PeerName, m_context);
 
             byte[] srpIdentity = m_context.SecurityParameters.SrpIdentity;
             if (srpIdentity != null)
             {
-                string name = Strings.FromUtf8ByteArray(srpIdentity);
-                Console.WriteLine("TLS-SRP server completed handshake for SRP identity: " + name);
+                TlsTestUtilities.Log(PeerName + " completed handshake for SRP identity: "
+                    + Strings.FromUtf8ByteArray(srpIdentity));
             }
         }
 
         public override void ProcessClientExtensions(IDictionary<int, byte[]> clientExtensions)
         {
-            if (m_context.SecurityParameters.ClientRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckClientRandom(m_context);
 
             base.ProcessClientExtensions(clientExtensions);
         }
 
         public override IDictionary<int, byte[]> GetServerExtensions()
         {
-            if (m_context.SecurityParameters.ServerRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckServerRandom(m_context);
 
             return base.GetServerExtensions();
         }
 
         public override void GetServerExtensionsForConnection(IDictionary<int, byte[]> serverExtensions)
         {
-            if (m_context.SecurityParameters.ServerRandom == null)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+            TlsTestUtilities.CheckServerRandom(m_context);
 
             base.GetServerExtensionsForConnection(serverExtensions);
         }
 
         protected override TlsCredentialedSigner GetDsaSignerCredentials()
         {
-            var clientSigAlgs = m_context.SecurityParameters.ClientSigAlgs;
-            return TlsTestUtilities.LoadSignerCredentialsServer(m_context, clientSigAlgs, SignatureAlgorithm.dsa);
+            return TlsTestUtilities.LoadSignerCredentialsServer(m_context, m_context.SecurityParameters.ClientSigAlgs,
+                SignatureAlgorithm.dsa);
         }
 
         protected override TlsCredentialedSigner GetRsaSignerCredentials()
         {
-            var clientSigAlgs = m_context.SecurityParameters.ClientSigAlgs;
-            return TlsTestUtilities.LoadSignerCredentialsServer(m_context, clientSigAlgs, SignatureAlgorithm.rsa);
-        }
-
-        protected virtual string ToHexString(byte[] data)
-        {
-            return data == null ? "(null)" : Hex.ToHexString(data);
+            return TlsTestUtilities.LoadSignerCredentialsServer(m_context, m_context.SecurityParameters.ClientSigAlgs,
+                SignatureAlgorithm.rsa);
         }
 
         internal class MyIdentityManager

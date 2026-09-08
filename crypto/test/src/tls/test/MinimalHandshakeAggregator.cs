@@ -157,7 +157,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 {
                     if (m_receiveRecordCount > 1)
                     {
-                        Console.WriteLine("RECEIVING {0} RECORDS IN {1} BYTE PACKET", m_receiveRecordCount, length);
+                        TlsTestUtilities.Log("RECEIVING {0} RECORDS IN {1} BYTE PACKET", m_receiveRecordCount, length);
                     }
                     Array.Copy(m_receiveBuf, 0, buf, off, System.Math.Min(len, m_receiveBuf.Length));
                     ResetReceiveBuf();
@@ -189,7 +189,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 {
                     if (m_receiveRecordCount > 1)
                     {
-                        Console.WriteLine("RECEIVING {0} RECORDS IN {1} BYTE PACKET", m_receiveRecordCount, length);
+                        TlsTestUtilities.Log("RECEIVING {0} RECORDS IN {1} BYTE PACKET", m_receiveRecordCount, length);
                     }
                     int resultLength = System.Math.Min(buffer.Length, m_receiveBuf.Length);
                     m_receiveBuf.AsSpan(0, resultLength).CopyTo(buffer);
@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 if (m_sendRecordCount > 1)
                 {
-                    Console.WriteLine("SENDING {0} RECORDS IN {1} BYTE PACKET", m_sendRecordCount, m_sendBuf.Length);
+                    TlsTestUtilities.Log("SENDING {0} RECORDS IN {1} BYTE PACKET", m_sendRecordCount, m_sendBuf.Length);
                 }
                 m_transport.Send(m_sendBuf, 0, m_sendBuf.Length);
                 ResetSendBuf();
@@ -241,7 +241,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 if (m_sendRecordCount > 1)
                 {
-                    Console.WriteLine("SENDING {0} RECORDS IN {1} BYTE PACKET", m_sendRecordCount, m_sendBuf.Length);
+                    TlsTestUtilities.Log("SENDING {0} RECORDS IN {1} BYTE PACKET", m_sendRecordCount, m_sendBuf.Length);
                 }
                 m_transport.Send(m_sendBuf, 0, m_sendBuf.Length);
                 ResetSendBuf();

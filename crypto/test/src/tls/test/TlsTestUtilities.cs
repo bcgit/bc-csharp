@@ -77,12 +77,244 @@ namespace Org.BouncyCastle.Tls.Tests
             return DigestUtilities.CalculateDigest("SHA256", input);
         }
 
+        /*
+         * Shared peer behaviour: what every test client/server does the same way, so that a mock peer holds only
+         * what is particular to it. All logging is gated on TlsTestConfig.Debug.
+         */
+
+        /// <summary>The end-entity certificates a test client trusts a server to present.</summary>
+        internal static readonly string[] TrustedServerCertResources = new string[]{ "x509-server-dsa.pem",
+            "x509-server-ecdh.pem", "x509-server-ecdsa.pem", "x509-server-ed25519.pem", "x509-server-ed448.pem",
+            "x509-server-ml_dsa_44.pem", "x509-server-ml_dsa_65.pem", "x509-server-ml_dsa_87.pem",
+            "x509-server-rsa_pss_256.pem", "x509-server-rsa_pss_384.pem", "x509-server-rsa_pss_512.pem",
+            "x509-server-rsa-enc.pem", "x509-server-rsa-sign.pem" };
+
+        /// <summary>The end-entity certificates a test server trusts a client to present.</summary>
+        internal static readonly string[] TrustedClientCertResources = new string[]{ "x509-client-dsa.pem",
+            "x509-client-ecdh.pem", "x509-client-ecdsa.pem", "x509-client-ed25519.pem", "x509-client-ed448.pem",
+            "x509-client-ml_dsa_44.pem", "x509-client-ml_dsa_65.pem", "x509-client-ml_dsa_87.pem",
+            "x509-client-rsa_pss_256.pem", "x509-client-rsa_pss_384.pem", "x509-client-rsa_pss_512.pem",
+            "x509-client-rsa.pem" };
+
+        /// <summary>Extensions the test clients add to their ClientHello to exercise the code paths.</summary>
+        /// <remarks>NOTE: If you are copying test code, do not blindly set these extensions in your own client.
+        /// </remarks>
+        internal static void AddTestClientExtensions(IDictionary<int, byte[]> clientExtensions, TlsContext context)
+        {
+            TlsExtensionsUtilities.AddMaxFragmentLengthExtension(clientExtensions, MaxFragmentLength.pow2_9);
+            TlsExtensionsUtilities.AddPaddingExtension(clientExtensions, context.Crypto.SecureRandom.Next(16));
+            TlsExtensionsUtilities.AddTruncatedHmacExtension(clientExtensions);
+        }
+
+        internal static void CheckClientRandom(TlsContext context)
+        {
+            if (context.SecurityParameters.ClientRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        internal static void CheckServerRandom(TlsContext context)
+        {
+            if (context.SecurityParameters.ServerRandom == null)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+
+        /// <param name="sigAlgs">The signature algorithms to request, or null for the defaults; ignored where the
+        /// negotiated version has no signature_algorithms extension.</param>
+        internal static CertificateRequest CreateCertificateRequest(TlsContext context,
+            IList<SignatureAndHashAlgorithm> sigAlgs)
+        {
+            IList<SignatureAndHashAlgorithm> serverSigAlgs = null;
+            if (TlsUtilities.IsSignatureAlgorithmsExtensionAllowed(context.ServerVersion))
+            {
+                serverSigAlgs = sigAlgs ?? TlsUtilities.GetDefaultSupportedSignatureAlgorithms(context);
+            }
+
+            // All the CA certificates are currently configured with this subject
+            var certificateAuthorities = new List<X509Name>{ new X509Name("CN=BouncyCastle TLS Test CA") };
+
+            if (TlsUtilities.IsTlsV13(context))
+            {
+                // TODO[tls13] Support for non-empty request context
+                byte[] certificateRequestContext = TlsUtilities.EmptyBytes;
+
+                // TODO[tls13] Add support for signature_algorithms_cert
+                IList<SignatureAndHashAlgorithm> serverSigAlgsCert = null;
+
+                return new CertificateRequest(certificateRequestContext, serverSigAlgs, serverSigAlgsCert,
+                    certificateAuthorities);
+            }
+
+            short[] certificateTypes = new short[]{ ClientCertificateType.rsa_sign, ClientCertificateType.dss_sign,
+                ClientCertificateType.ecdsa_sign };
+
+            return new CertificateRequest(certificateTypes, serverSigAlgs, certificateAuthorities);
+        }
+
+        internal static TlsCredentialedDecryptor LoadServerEncryptionCredentials(TlsContext context)
+        {
+            return LoadEncryptionCredentials(context, new string[]{ "x509-server-rsa-enc.pem", "x509-ca-rsa.pem" },
+                "x509-server-key-rsa-enc.pem");
+        }
+
+        internal static void Log(string message)
+        {
+            if (TlsTestConfig.Debug)
+            {
+                Console.WriteLine(message);
+            }
+        }
+
+        internal static void Log(string format, params object[] args)
+        {
+            if (TlsTestConfig.Debug)
+            {
+                Console.WriteLine(format, args);
+            }
+        }
+
+        internal static void LogAlert(string peerName, bool raised, short alertLevel, short alertDescription,
+            string message, Exception cause)
+        {
+            if (!TlsTestConfig.Debug)
+                return;
+
+            TextWriter output = (alertLevel == AlertLevel.fatal) ? Console.Error : Console.Out;
+            output.WriteLine(peerName + (raised ? " raised alert: " : " received alert: ")
+                + AlertLevel.GetText(alertLevel) + ", " + AlertDescription.GetText(alertDescription));
+            if (message != null)
+            {
+                output.WriteLine("> " + message);
+            }
+            if (cause != null)
+            {
+                output.WriteLine(cause);
+            }
+        }
+
         internal static void LogException(string context, Exception e)
         {
             if (TlsTestConfig.Debug)
             {
                 Console.Error.WriteLine(context + ": " + e);
                 Console.Error.Flush();
+            }
+        }
+
+        /// <summary>Log the negotiated ALPN protocol and group, and the channel bindings, of a completed handshake.
+        /// </summary>
+        internal static void LogHandshakeComplete(string peerName, TlsContext context)
+        {
+            if (!TlsTestConfig.Debug)
+                return;
+
+            SecurityParameters securityParameters = context.SecurityParameters;
+
+            ProtocolName protocolName = securityParameters.ApplicationProtocol;
+            if (protocolName != null)
+            {
+                Console.WriteLine(peerName + " ALPN: " + protocolName.GetUtf8Decoding());
+            }
+
+            int negotiatedGroup = securityParameters.NegotiatedGroup;
+            if (negotiatedGroup >= 0)
+            {
+                Console.WriteLine(peerName + " negotiated group: " + NamedGroup.GetText(negotiatedGroup));
+            }
+
+            Console.WriteLine(peerName + " 'tls-server-end-point': "
+                + ToHexString(context.ExportChannelBinding(ChannelBinding.tls_server_end_point)));
+            Console.WriteLine(peerName + " 'tls-unique': "
+                + ToHexString(context.ExportChannelBinding(ChannelBinding.tls_unique)));
+
+            if (securityParameters.IsExtendedMasterSecret)
+            {
+                Console.WriteLine(peerName + " 'tls-exporter': "
+                    + ToHexString(context.ExportChannelBinding(ChannelBinding.tls_exporter)));
+            }
+        }
+
+        /// <summary>The session a client should keep for resumption after a completed handshake: the new session if
+        /// it is resumable, otherwise whatever it held before.</summary>
+        internal static TlsSession NoteSession(string peerName, TlsSession previousSession, TlsContext context)
+        {
+            TlsSession newSession = context.Session;
+            if (newSession == null || !newSession.IsResumable)
+                return previousSession;
+
+            if (TlsTestConfig.Debug)
+            {
+                byte[] newSessionID = newSession.SessionID;
+                bool resumed = previousSession != null && Arrays.AreEqual(previousSession.SessionID, newSessionID);
+
+                Console.WriteLine(peerName + (resumed ? " resumed session: " : " established session: ")
+                    + ToHexString(newSessionID));
+            }
+
+            return newSession;
+        }
+
+        /// <summary>The default client credentials: the RSA test client certificate, if the request admits it.
+        /// </summary>
+        internal static TlsCredentials SelectRsaClientCredentials(TlsContext context,
+            CertificateRequest certificateRequest)
+        {
+            short[] certificateTypes = certificateRequest.CertificateTypes;
+            if (certificateTypes == null || !Arrays.Contains(certificateTypes, ClientCertificateType.rsa_sign))
+                return null;
+
+            return LoadSignerCredentials(context, certificateRequest.SupportedSignatureAlgorithms,
+                SignatureAlgorithm.rsa, "x509-client-rsa.pem", "x509-client-key-rsa.pem");
+        }
+
+        internal static string ToHexString(byte[] data) => data == null ? "(null)" : Hex.ToHexString(data);
+
+        /// <summary>Check a client certificate against a list of trusted end-entity certificates. An empty
+        /// certificate, the client declining to authenticate, passes.</summary>
+        /// <exception cref="TlsFatalAlert">bad_certificate if the certificate is not trusted.</exception>
+        internal static void VerifyClientCertificate(TlsContext context, Certificate clientCertificate,
+            string[] trustedCertResources, bool checkSigAlgs)
+        {
+            if (clientCertificate == null || clientCertificate.IsEmpty)
+                return;
+
+            VerifyPeerCertificate("client", context, clientCertificate.GetCertificateList(), trustedCertResources,
+                checkSigAlgs);
+        }
+
+        /// <summary>Check a server certificate against a list of trusted end-entity certificates.</summary>
+        /// <exception cref="TlsFatalAlert">bad_certificate if the certificate is empty or not trusted.</exception>
+        internal static void VerifyServerCertificate(TlsContext context, TlsServerCertificate serverCertificate,
+            string[] trustedCertResources, bool checkSigAlgs)
+        {
+            Certificate certificate = serverCertificate?.Certificate;
+            if (certificate == null || certificate.IsEmpty)
+                throw new TlsFatalAlert(AlertDescription.bad_certificate);
+
+            VerifyPeerCertificate("server", context, certificate.GetCertificateList(), trustedCertResources,
+                checkSigAlgs);
+        }
+
+        private static void VerifyPeerCertificate(string peerRole, TlsContext context, TlsCertificate[] chain,
+            string[] trustedCertResources, bool checkSigAlgs)
+        {
+            if (TlsTestConfig.Debug)
+            {
+                Console.WriteLine("Received " + peerRole + " certificate chain of length " + chain.Length);
+                for (int i = 0; i < chain.Length; ++i)
+                {
+                    X509CertificateStructure entry = X509CertificateStructure.GetInstance(chain[i].GetEncoded());
+                    // TODO Create fingerprint based on certificate signature algorithm digest
+                    Console.WriteLine("    fingerprint:SHA-256 " + Fingerprint(entry) + " (" + entry.Subject + ")");
+                }
+            }
+
+            TlsCertificate[] certPath = GetTrustedCertPath(context.Crypto, chain[0], trustedCertResources);
+            if (certPath == null)
+                throw new TlsFatalAlert(AlertDescription.bad_certificate);
+
+            if (checkSigAlgs)
+            {
+                TlsUtilities.CheckPeerSigAlgs(context, certPath);
             }
         }
 
