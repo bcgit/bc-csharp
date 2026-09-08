@@ -37,23 +37,10 @@ namespace Org.BouncyCastle.Tls.Tests
             LoopbackResult result = TlsLoopback.Run(clientImpl, serverImpl,
                 stream => new TlsTestClientProtocol(stream, config));
 
-            if (config.expectFatalAlertConnectionEnd == -1)
-            {
-                result.ThrowIfFailed();
-            }
+            TlsTestSuite.AssertExpectedOutcome(config, clientImpl, serverImpl, result);
 
             Assert.IsTrue(result.ClientStreamClosed, "Client Stream not closed");
             Assert.IsTrue(result.ServerStreamClosed, "Server Stream not closed");
-
-            Assert.AreEqual(config.expectFatalAlertConnectionEnd, clientImpl.FirstFatalAlertConnectionEnd,
-                "Client fatal alert connection end");
-            Assert.AreEqual(config.expectFatalAlertConnectionEnd, serverImpl.FirstFatalAlertConnectionEnd,
-                "Server fatal alert connection end");
-
-            Assert.AreEqual(config.expectFatalAlertDescription, clientImpl.FirstFatalAlertDescription,
-                "Client fatal alert description");
-            Assert.AreEqual(config.expectFatalAlertDescription, serverImpl.FirstFatalAlertDescription,
-                "Server fatal alert description");
 
             if (config.expectFatalAlertConnectionEnd == -1)
             {

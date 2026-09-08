@@ -31,20 +31,7 @@ namespace Org.BouncyCastle.Tls.Tests
             LoopbackResult result = DtlsLoopback.Run(clientImpl, serverImpl, null,
                 () => new DtlsTestClientProtocol(config));
 
-            if (config.expectFatalAlertConnectionEnd == -1)
-            {
-                result.ThrowIfFailed();
-            }
-
-            Assert.AreEqual(config.expectFatalAlertConnectionEnd, clientImpl.FirstFatalAlertConnectionEnd,
-                "Client fatal alert connection end");
-            Assert.AreEqual(config.expectFatalAlertConnectionEnd, serverImpl.FirstFatalAlertConnectionEnd,
-                "Server fatal alert connection end");
-
-            Assert.AreEqual(config.expectFatalAlertDescription, clientImpl.FirstFatalAlertDescription,
-                "Client fatal alert description");
-            Assert.AreEqual(config.expectFatalAlertDescription, serverImpl.FirstFatalAlertDescription,
-                "Server fatal alert description");
+            TlsTestSuite.AssertExpectedOutcome(config, clientImpl, serverImpl, result);
         }
     }
 }

@@ -13,7 +13,6 @@ namespace Org.BouncyCastle.Tls.Tests
         protected readonly TlsTestConfig m_config;
 
         internal TlsTestServerImpl(TlsTestConfig config)
-            : base(TlsTestSuite.GetCrypto(config))
         {
             this.m_config = config;
 

@@ -23,8 +23,6 @@ namespace Org.BouncyCastle.Tls.Tests
         /// signature.</summary>
         public const int CLIENT_AUTH_INVALID_VERIFY = 3;
 
-        public const int CRYPTO_BC = 0;
-
         /// <summary>Server will not request a client certificate.</summary>
         public const int SERVER_CERT_REQ_NONE = 0;
 
@@ -54,8 +52,6 @@ namespace Org.BouncyCastle.Tls.Tests
         /// <see cref="TlsUtilities.CheckPeerSigAlgs(TlsContext, Crypto.TlsCertificate[])"/> to check the server
         /// certificate chain.</summary>
         public bool clientCheckSigAlgOfServerCerts = true;
-
-        public int clientCrypto = CRYPTO_BC;
 
         /// <summary>Configures whether the client will send an empty key_share extension in initial ClientHello.
         /// </summary>
@@ -91,8 +87,6 @@ namespace Org.BouncyCastle.Tls.Tests
         /// <see cref="TlsUtilities.CheckPeerSigAlgs(TlsContext, Crypto.TlsCertificate[])"/> to check the client
         /// certificate chain.</summary>
         public bool serverCheckSigAlgOfClientCerts = true;
-
-        public int serverCrypto = CRYPTO_BC;
 
         /// <summary>Configures a protocol version the server will unconditionally negotiate.</summary>
         /// <remarks>

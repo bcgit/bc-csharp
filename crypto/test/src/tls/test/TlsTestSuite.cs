@@ -1,102 +1,113 @@
-﻿using System;
 using System.Collections.Generic;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Tls.Crypto;
-using Org.BouncyCastle.Tls.Crypto.Impl.BC;
-
 namespace Org.BouncyCastle.Tls.Tests
 {
+    /// <summary>
+    /// Generates the configurations that <see cref="TlsTestCase"/> and <see cref="DtlsTestCase"/> run, one NUnit test
+    /// case each. The same generator serves both: cases that only apply to some versions are guarded by version, so
+    /// the TLS 1.3 cases simply do not arise for DTLS.
+    /// </summary>
     public class TlsTestSuite
     {
-        internal static TlsCrypto BC_CRYPTO = new BcTlsCrypto();
-
-        internal static TlsCrypto GetCrypto(TlsTestConfig config)
-        {
-            switch (config.clientCrypto)
-            {
-            case TlsTestConfig.CRYPTO_BC:
-            default:
-                return BC_CRYPTO;
-            }
-        }
-
         // Make the access to constants less verbose
         internal abstract class C : TlsTestConfig {}
 
-        public TlsTestSuite()
-        {
-        }
+        public static IEnumerable<TestCaseData> Suite() =>
+            Generate(ProtocolVersion.TLSv13.DownTo(ProtocolVersion.SSLv3));
 
-        public static IEnumerable<TestCaseData> Suite()
+        /// <param name="versions">The protocol versions to generate cases for, highest first; all TLS or all DTLS.
+        /// </param>
+        internal static IEnumerable<TestCaseData> Generate(ProtocolVersion[] versions)
         {
             var testSuite = new List<TestCaseData>();
-            AddAllTests(testSuite, TlsTestConfig.CRYPTO_BC, TlsTestConfig.CRYPTO_BC);
+
+            AddFallbackTests(testSuite, versions);
+
+            for (int i = versions.Length - 1; i >= 0; --i)
+            {
+                AddVersionTests(testSuite, versions, versions[i]);
+            }
+
             return testSuite;
         }
 
-        private static void AddAllTests(IList<TestCaseData> testSuite, int clientCrypto, int serverCrypto)
+        /// <summary>Check that a case ended the way its configuration says it should.</summary>
+        internal static void AssertExpectedOutcome(TlsTestConfig config, TlsTestClientImpl clientImpl,
+            TlsTestServerImpl serverImpl, LoopbackResult result)
         {
-            AddFallbackTests(testSuite, clientCrypto, serverCrypto);
-            AddVersionTests(testSuite, ProtocolVersion.SSLv3, clientCrypto, serverCrypto);
-            AddVersionTests(testSuite, ProtocolVersion.TLSv10, clientCrypto, serverCrypto);
-            AddVersionTests(testSuite, ProtocolVersion.TLSv11, clientCrypto, serverCrypto);
-            AddVersionTests(testSuite, ProtocolVersion.TLSv12, clientCrypto, serverCrypto);
-            AddVersionTests(testSuite, ProtocolVersion.TLSv13, clientCrypto, serverCrypto);
+            if (config.expectFatalAlertConnectionEnd == -1)
+            {
+                result.ThrowIfFailed();
+            }
+
+            Assert.AreEqual(config.expectFatalAlertConnectionEnd, clientImpl.FirstFatalAlertConnectionEnd,
+                "Client fatal alert connection end");
+            Assert.AreEqual(config.expectFatalAlertConnectionEnd, serverImpl.FirstFatalAlertConnectionEnd,
+                "Server fatal alert connection end");
+
+            Assert.AreEqual(config.expectFatalAlertDescription, clientImpl.FirstFatalAlertDescription,
+                "Client fatal alert description");
+            Assert.AreEqual(config.expectFatalAlertDescription, serverImpl.FirstFatalAlertDescription,
+                "Server fatal alert description");
         }
 
-        private static void AddFallbackTests(IList<TestCaseData> testSuite, int clientCrypto, int serverCrypto)
+        private static void AddFallbackTests(IList<TestCaseData> testSuite, ProtocolVersion[] versions)
         {
-            string prefix = GetCryptoName(clientCrypto) + "_" + GetCryptoName(serverCrypto) + "_";
+            // TLS_FALLBACK_SCSV (RFC 7507) is tested against a server whose maximum version is (D)TLS 1.2
+            ProtocolVersion serverMaxVersion = FindVersion12(versions);
+
+            // A client that has fallen back offers the two versions below that (or the one, for DTLS)
+            ProtocolVersion fallbackMax = serverMaxVersion.GetPreviousVersion();
+            ProtocolVersion[] fallbackVersions = fallbackMax.DownTo(fallbackMax.GetPreviousVersion() ?? fallbackMax);
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(ProtocolVersion.TLSv12, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, serverMaxVersion);
                 c.clientFallback = true;
 
-                AddTestCase(testSuite, c, prefix + "FallbackGood");
+                AddTestCase(testSuite, c, "FallbackGood");
             }
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(ProtocolVersion.TLSv12, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, serverMaxVersion);
                 c.clientFallback = true;
-                c.clientSupportedVersions = ProtocolVersion.TLSv11.DownTo(ProtocolVersion.TLSv10);
+                c.clientSupportedVersions = fallbackVersions;
                 c.ExpectServerFatalAlert(AlertDescription.inappropriate_fallback);
 
-                AddTestCase(testSuite, c, prefix + "FallbackBad");
+                AddTestCase(testSuite, c, "FallbackBad");
             }
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(ProtocolVersion.TLSv12, clientCrypto, serverCrypto);
-                c.clientSupportedVersions = ProtocolVersion.TLSv11.DownTo(ProtocolVersion.TLSv10);
+                TlsTestConfig c = CreateTestConfig(versions, serverMaxVersion);
+                c.clientSupportedVersions = fallbackVersions;
 
-                AddTestCase(testSuite, c, prefix + "FallbackNone");
+                AddTestCase(testSuite, c, "FallbackNone");
             }
         }
 
-        private static void AddVersionTests(IList<TestCaseData> testSuite, ProtocolVersion version, int clientCrypto,
-            int serverCrypto)
+        private static void AddVersionTests(IList<TestCaseData> testSuite, ProtocolVersion[] versions,
+            ProtocolVersion version)
         {
-            string prefix = GetCryptoName(clientCrypto) + "_" + GetCryptoName(serverCrypto) + "_"
-                + version.ToString().Replace(" ", "").Replace(".", "") + "_";
+            string prefix = version.ToString().Replace(" ", "").Replace(".", "") + "_";
 
             bool isTlsV12 = TlsUtilities.IsTlsV12(version);
             bool isTlsV13 = TlsUtilities.IsTlsV13(version);
             bool isTlsV12Exactly = isTlsV12 && !isTlsV13;
 
-            short certReqDeclinedAlert = TlsUtilities.IsTlsV13(version)
+            short certReqDeclinedAlert = isTlsV13
                 ?   AlertDescription.certificate_required
                 :   AlertDescription.handshake_failure;
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
 
                 AddTestCase(testSuite, c, prefix + "GoodDefault");
             }
 
             if (isTlsV13)
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientEmptyKeyShare = true;
 
                 AddTestCase(testSuite, c, prefix + "GoodEmptyKeyShare");
@@ -108,7 +119,7 @@ namespace Org.BouncyCastle.Tls.Tests
              */
             if (isTlsV12Exactly)
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientAuth = C.CLIENT_AUTH_VALID;
                 c.clientAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.sha256, SignatureAlgorithm.rsa);
                 c.serverCertReqSigAlgs = TlsUtilities.VectorOfOne(
@@ -125,10 +136,11 @@ namespace Org.BouncyCastle.Tls.Tests
              */
             if (isTlsV12)
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientAuth = C.CLIENT_AUTH_VALID;
                 c.clientAuthSigAlg = SignatureAndHashAlgorithm.rsa_pss_rsae_sha256;
-                c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256);
+                c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(
+                    SignatureScheme.ecdsa_secp256r1_sha256);
                 c.serverCertReqSigAlgs = TlsUtilities.VectorOfOne(SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
                 c.serverCheckSigAlgOfClientCerts = false;
                 c.ExpectServerFatalAlert(AlertDescription.illegal_parameter);
@@ -143,10 +155,11 @@ namespace Org.BouncyCastle.Tls.Tests
              */
             if (isTlsV12)
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientAuth = C.CLIENT_AUTH_VALID;
                 c.clientAuthSigAlg = SignatureAndHashAlgorithm.rsa_pss_rsae_sha256;
-                c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(SignatureScheme.ecdsa_secp256r1_sha256);
+                c.clientAuthSigAlgClaimed = SignatureScheme.GetSignatureAndHashAlgorithm(
+                    SignatureScheme.ecdsa_secp256r1_sha256);
                 c.serverCertReqSigAlgs = new List<SignatureAndHashAlgorithm>(2);
                 c.serverCertReqSigAlgs.Add(SignatureAndHashAlgorithm.rsa_pss_rsae_sha256);
                 c.serverCertReqSigAlgs.Add(
@@ -157,7 +170,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientAuth = C.CLIENT_AUTH_INVALID_VERIFY;
                 c.ExpectServerFatalAlert(AlertDescription.decrypt_error);
 
@@ -165,7 +178,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientAuth = C.CLIENT_AUTH_INVALID_CERT;
                 c.ExpectServerFatalAlert(AlertDescription.bad_certificate);
 
@@ -178,7 +191,7 @@ namespace Org.BouncyCastle.Tls.Tests
                  * For TLS 1.3 the supported_algorithms extension is required in ClientHello when the
                  * server authenticates via a certificate.
                  */
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientSendSignatureAlgorithms = false;
                 c.clientSendSignatureAlgorithmsCert = false;
                 c.ExpectServerFatalAlert(AlertDescription.missing_extension);
@@ -187,7 +200,7 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientAuth = C.CLIENT_AUTH_NONE;
                 c.serverCertReq = C.SERVER_CERT_REQ_MANDATORY;
                 c.ExpectServerFatalAlert(certReqDeclinedAlert);
@@ -202,7 +215,7 @@ namespace Org.BouncyCastle.Tls.Tests
              */
             if (isTlsV12Exactly)
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientSendSignatureAlgorithms = false;
                 c.clientSendSignatureAlgorithmsCert = false;
                 c.serverAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.sha256, SignatureAlgorithm.rsa);
@@ -215,9 +228,9 @@ namespace Org.BouncyCastle.Tls.Tests
              * Client declares support for SHA256/RSA, server selects SHA384/RSA, so we expect fatal alert from the
              * client validation of the ServerKeyExchange algorithm.
              */
-            if (TlsUtilities.IsTlsV12(version))
+            if (isTlsV12)
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientCHSigAlgs = TlsUtilities.VectorOfOne(
                     new SignatureAndHashAlgorithm(HashAlgorithm.sha256, SignatureAlgorithm.rsa));
                 c.serverAuthSigAlg = new SignatureAndHashAlgorithm(HashAlgorithm.sha384, SignatureAlgorithm.rsa);
@@ -233,7 +246,7 @@ namespace Org.BouncyCastle.Tls.Tests
              */
             if (isTlsV12Exactly)
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientCheckSigAlgOfServerCerts = false;
                 c.clientSendSignatureAlgorithms = false;
                 c.clientSendSignatureAlgorithmsCert = false;
@@ -244,28 +257,28 @@ namespace Org.BouncyCastle.Tls.Tests
             }
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.serverCertReq = C.SERVER_CERT_REQ_NONE;
 
                 AddTestCase(testSuite, c, prefix + "GoodNoCertReq");
             }
 
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.clientAuth = C.CLIENT_AUTH_NONE;
 
                 AddTestCase(testSuite, c, prefix + "GoodOptionalCertReqDeclined");
             }
 
             /*
-             * Server generates downgraded (RFC 8446) 1.1 ServerHello. We expect fatal alert
-             * (illegal_parameter) from the client.
+             * Server generates downgraded (RFC 8446) ServerHello. We expect fatal alert (illegal_parameter) from the
+             * client. Only where there is a higher version for the server to be downgrading from.
              */
-            if (!isTlsV13)
+            if (version != versions[0])
             {
-                TlsTestConfig c = CreateTlsTestConfig(version, clientCrypto, serverCrypto);
+                TlsTestConfig c = CreateTestConfig(versions, version);
                 c.serverNegotiateVersion = version;
-                c.serverSupportedVersions = ProtocolVersion.TLSv13.DownTo(version);
+                c.serverSupportedVersions = versions[0].DownTo(version);
                 c.ExpectClientFatalAlert(AlertDescription.illegal_parameter);
 
                 AddTestCase(testSuite, c, prefix + "BadDowngrade");
@@ -277,25 +290,25 @@ namespace Org.BouncyCastle.Tls.Tests
             testSuite.Add(new TestCaseData(config).SetName(name));
         }
 
-        private static TlsTestConfig CreateTlsTestConfig(ProtocolVersion serverMaxVersion, int clientCrypto,
-            int serverCrypto)
+        /// <summary>A configuration with the client supporting every version and the server supporting every version
+        /// up to the given one.</summary>
+        private static TlsTestConfig CreateTestConfig(ProtocolVersion[] versions, ProtocolVersion serverMaxVersion)
         {
             TlsTestConfig c = new TlsTestConfig();
-            c.clientCrypto = clientCrypto;
-            c.clientSupportedVersions = ProtocolVersion.TLSv13.DownTo(ProtocolVersion.SSLv3);
-            c.serverCrypto = serverCrypto;
-            c.serverSupportedVersions = serverMaxVersion.DownTo(ProtocolVersion.SSLv3);
+            c.clientSupportedVersions = versions;
+            c.serverSupportedVersions = serverMaxVersion.DownTo(versions[versions.Length - 1]);
             return c;
         }
 
-        private static string GetCryptoName(int crypto)
+        private static ProtocolVersion FindVersion12(ProtocolVersion[] versions)
         {
-            switch (crypto)
+            foreach (ProtocolVersion version in versions)
             {
-            case TlsTestConfig.CRYPTO_BC:
-            default:
-                return "BC";
+                if (TlsUtilities.IsTlsV12(version) && !TlsUtilities.IsTlsV13(version))
+                    return version;
             }
+
+            throw new System.ArgumentException("no (D)TLS 1.2 version", nameof(versions));
         }
     }
 }
