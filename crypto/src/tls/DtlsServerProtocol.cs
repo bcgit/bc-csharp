@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Tls
 
                 recordLayer.InitHeartbeat(state.heartbeat, HeartbeatMode.peer_allowed_to_send == state.heartbeatPolicy);
 
-                return new DtlsTransport(recordLayer, server.IgnoreCorruptDtlsRecords);
+                return new DtlsTransport(recordLayer);
             }
 
             var serverSupplementalData = server.GetServerSupplementalData();
@@ -412,7 +412,7 @@ namespace Org.BouncyCastle.Tls
 
             recordLayer.InitHeartbeat(state.heartbeat, HeartbeatMode.peer_allowed_to_send == state.heartbeatPolicy);
 
-            return new DtlsTransport(recordLayer, server.IgnoreCorruptDtlsRecords);
+            return new DtlsTransport(recordLayer);
         }
 
         /// <exception cref="IOException"/>

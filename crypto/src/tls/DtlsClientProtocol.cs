@@ -160,7 +160,7 @@ namespace Org.BouncyCastle.Tls
 
                 recordLayer.InitHeartbeat(state.heartbeat, HeartbeatMode.peer_allowed_to_send == state.heartbeatPolicy);
 
-                return new DtlsTransport(recordLayer, client.IgnoreCorruptDtlsRecords);
+                return new DtlsTransport(recordLayer);
             }
 
             InvalidateSession(state);
@@ -386,7 +386,7 @@ namespace Org.BouncyCastle.Tls
 
             recordLayer.InitHeartbeat(state.heartbeat, HeartbeatMode.peer_allowed_to_send == state.heartbeatPolicy);
 
-            return new DtlsTransport(recordLayer, client.IgnoreCorruptDtlsRecords);
+            return new DtlsTransport(recordLayer);
         }
 
         /// <exception cref="IOException"/>

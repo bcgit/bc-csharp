@@ -108,6 +108,8 @@ namespace Org.BouncyCastle.Tls
 
         public virtual short GetHeartbeatPolicy() => HeartbeatMode.peer_not_allowed_to_send;
 
+        /// <inheritdoc/>
+        [Obsolete("Will be removed")]
         public virtual bool IgnoreCorruptDtlsRecords => false;
     }
 }

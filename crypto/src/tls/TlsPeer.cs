@@ -139,12 +139,14 @@ namespace Org.BouncyCastle.Tls
         /// <returns>the <see cref="HeartbeatMode"/> value.</returns>
         short GetHeartbeatPolicy();
 
-        // TODO[api] Remove this and treat it as default 'true'
-        /// <summary>Indicates whether a DTLS connection should ignore corrupt records (bad_record_mac) instead of
-        /// failing the connection.</summary>
-        /// <remarks>Called only once at the start of a connection and applies throughout.</remarks>
-        /// <returns>The value <c>true</c> to ignore corrupt DTLS records, or <c>false</c> to fail the connection.
-        /// </returns>
+        // TODO[api] Remove this; the DTLS record layer now unconditionally discards invalid records
+        /// <summary>Formerly indicated whether a DTLS connection should ignore corrupt records (bad_record_mac)
+        /// instead of failing the connection.</summary>
+        /// <remarks>This value is no longer consulted. Invalid DTLS records (bad MAC, invalid length, etc.) are
+        /// always silently discarded, preserving the association, per RFC 9147 section 4.5.2 and RFC 9146
+        /// section 6.</remarks>
+        /// <returns>Ignored.</returns>
+        [Obsolete("Will be removed")]
         bool IgnoreCorruptDtlsRecords { get; }
     }
 }
