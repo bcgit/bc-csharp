@@ -131,9 +131,10 @@ namespace Org.BouncyCastle.Pkcs
                 // ECGOST3410
                 if (dp is ECGost3410Parameters domainParameters)
                 {
-                    var gostAlgID = GostUtilities.CreateECGost3410AlgorithmIdentifier(domainParameters);
+                    var gostAlgID = ECGost3410Utilities.CreateAlgorithmIdentifier(domainParameters);
 
-                    int size = domainParameters.Curve.FieldElementEncodingLength;
+                    int size = ECGost3410Utilities.GetFieldElementEncodingLength(domainParameters);
+
                     byte[] encKey = new byte[size];
                     ExtractBytes(encKey, size, 0, ecKey.D);
 

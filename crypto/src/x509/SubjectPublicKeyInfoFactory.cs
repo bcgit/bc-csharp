@@ -85,8 +85,10 @@ namespace Org.BouncyCastle.X509
 
                 if (ecKey.Parameters is ECGost3410Parameters gostParams)
                 {
-                    int fieldSize = gostParams.Curve.FieldElementEncodingLength;
-                    var algID = GostUtilities.CreateECGost3410AlgorithmIdentifier(gostParams);
+                    var algID = ECGost3410Utilities.CreateAlgorithmIdentifier(gostParams);
+
+                    int fieldSize = ECGost3410Utilities.GetFieldElementEncodingLength(gostParams);
+
                     return new SubjectPublicKeyInfo(algID, CreateECGost3410PublicKey(fieldSize, q));
                 }
 

@@ -346,7 +346,7 @@ namespace Org.BouncyCastle.Cms
                 }
                 else if (ecPrivKey.Parameters is ECGost3410Parameters ecGost3410Parameters)
                 {
-                    encOid = GostUtilities.GetECGost3410KeyAlgorithmOid(ecGost3410Parameters);
+                    encOid = ECGost3410Utilities.GetKeyAlgorithmOid(ecGost3410Parameters);
                 }
                 else
                 {

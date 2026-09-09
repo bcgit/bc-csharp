@@ -8,7 +8,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Utilities
 {
-    internal static class GostUtilities
+    internal static class ECGost3410Utilities
     {
         /// <summary>
         /// Create the key <see cref="AlgorithmIdentifier"/> under which an ECGOST3410 key should be encoded (e.g. in
@@ -21,9 +21,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
         /// 34.10-2012 key, so the digest parameter set (not the curve) is the discriminator between 2001 and 2012.
         /// </remarks>
         /// <exception cref="ArgumentException">If the digest parameter set is not recognized.</exception>
-        internal static AlgorithmIdentifier CreateECGost3410AlgorithmIdentifier(ECGost3410Parameters parameters)
+        internal static AlgorithmIdentifier CreateAlgorithmIdentifier(ECGost3410Parameters parameters)
         {
-            var algOid = GetECGost3410KeyAlgorithmOid(parameters);
+            var algOid = GetKeyAlgorithmOid(parameters);
             var algParams = new Gost3410PublicKeyAlgParameters(parameters.PublicKeyParamSet,
                 parameters.DigestParamSet, parameters.EncryptionParamSet);
             return new AlgorithmIdentifier(algOid, algParams);
@@ -31,10 +31,10 @@ namespace Org.BouncyCastle.Crypto.Utilities
 
         /// <summary>
         /// Determine the key algorithm OID (GOST R 34.10-2001, or GOST R 34.10-2012 with 256- or 512-bit keys) for an
-        /// ECGOST3410 key. See <see cref="CreateECGost3410AlgorithmIdentifier"/> for the rules.
+        /// ECGOST3410 key. See <see cref="CreateAlgorithmIdentifier"/> for the rules.
         /// </summary>
         /// <exception cref="ArgumentException">If the digest parameter set is not recognized.</exception>
-        internal static DerObjectIdentifier GetECGost3410KeyAlgorithmOid(ECGost3410Parameters parameters)
+        internal static DerObjectIdentifier GetKeyAlgorithmOid(ECGost3410Parameters parameters)
         {
             DerObjectIdentifier digestParamSet = parameters.DigestParamSet;
 
@@ -56,5 +56,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
             throw new ArgumentException("Unrecognized GOST R 34.11 digestParamSet: " + digestParamSet,
                 nameof(parameters));
         }
+
+        /// <summary>
+        /// The size in octets of a field element(and so of each coordinate and of the private key) for the key's curve:
+        /// 32 for the 256-bit parameter sets, 64 for the 512-bit ones.
+        /// </summary>
+        internal static int GetFieldElementEncodingLength(ECGost3410Parameters parameters) =>
+            parameters.Curve.FieldElementEncodingLength;
     }
 }
