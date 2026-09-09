@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         public static readonly DerObjectIdentifier GostR3411x94WithGostR3410x2001 = GOST_id.Branch("3");
 
 		// { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) hashes(30) }
+        public static readonly DerObjectIdentifier GostR3411x94TestParamSet = GOST_id.Branch("30.0");
         public static readonly DerObjectIdentifier GostR3411x94CryptoProParamSet = GOST_id.Branch("30.1");
 
 		// { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) signs(32) }

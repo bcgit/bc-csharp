@@ -5,11 +5,11 @@ using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities;
@@ -85,23 +85,8 @@ namespace Org.BouncyCastle.X509
 
                 if (ecKey.Parameters is ECGost3410Parameters gostParams)
                 {
-                    int fieldSize = ecKey.Parameters.Curve.FieldElementEncodingLength;
-                    DerObjectIdentifier algOid;
-
-                    if (CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet.Equals(gostParams.DigestParamSet))
-                    {
-                        algOid = CryptoProObjectIdentifiers.GostR3410x2001;
-                    }
-                    else
-                    {
-                        algOid = fieldSize > 32
-                            ? RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512
-                            : RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
-                    }
-
-                    var algParams = new Gost3410PublicKeyAlgParameters(gostParams.PublicKeyParamSet,
-                        gostParams.DigestParamSet, gostParams.EncryptionParamSet);
-                    var algID = new AlgorithmIdentifier(algOid, algParams);
+                    int fieldSize = gostParams.Curve.FieldElementEncodingLength;
+                    var algID = GostUtilities.CreateECGost3410AlgorithmIdentifier(gostParams);
                     return new SubjectPublicKeyInfo(algID, CreateECGost3410PublicKey(fieldSize, q));
                 }
 

@@ -1,17 +1,17 @@
 using System;
-using System.Collections.Generic;
+
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -23,15 +23,6 @@ namespace Org.BouncyCastle.Pkcs
     /// </summary>
     public static class PrivateKeyInfoFactory
     {
-        private static readonly HashSet<DerObjectIdentifier> cryptoProOids = new HashSet<DerObjectIdentifier>
-        {
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProB,
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProC,
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchA,
-            CryptoProObjectIdentifiers.GostR3410x2001CryptoProXchB,
-        };
-
         /// <summary>
         /// Create a <see cref="PrivateKeyInfo"/> representation of a private key.
         /// </summary>
@@ -140,35 +131,14 @@ namespace Org.BouncyCastle.Pkcs
                 // ECGOST3410
                 if (dp is ECGost3410Parameters domainParameters)
                 {
-                    Gost3410PublicKeyAlgParameters gostParams = new Gost3410PublicKeyAlgParameters(
-                        (domainParameters).PublicKeyParamSet,
-                        (domainParameters).DigestParamSet,
-                        (domainParameters).EncryptionParamSet);
+                    var gostAlgID = GostUtilities.CreateECGost3410AlgorithmIdentifier(domainParameters);
 
-                    int size;
-                    DerObjectIdentifier identifier;
-
-                    if (cryptoProOids.Contains(gostParams.PublicKeyParamSet))
-                    {
-                        size = 32;
-                        identifier = CryptoProObjectIdentifiers.GostR3410x2001;
-                    }
-                    else
-                    {
-                        bool is512 = ecKey.D.BitLength > 256;
-                        identifier = (is512) ?
-                            RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512 :
-                            RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
-                        size = (is512) ? 64 : 32;
-                    }
+                    int size = domainParameters.Curve.FieldElementEncodingLength;
                     byte[] encKey = new byte[size];
-
                     ExtractBytes(encKey, size, 0, ecKey.D);
 
-                    return new PrivateKeyInfo(new AlgorithmIdentifier(identifier, gostParams),
-                        new DerOctetString(encKey));
-                } 
-
+                    return new PrivateKeyInfo(gostAlgID, new DerOctetString(encKey), attributes);
+                }
 
                 int orderBitLength = dp.N.BitLength;
 
