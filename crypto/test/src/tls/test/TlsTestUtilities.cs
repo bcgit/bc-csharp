@@ -694,7 +694,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 return X509CertificateStructure.GetInstance(pem.Content);
             }
-            throw new ArgumentException("doesn't specify a valid certificate", "resource");
+            throw new ArgumentException("doesn't specify a valid certificate", nameof(resource));
         }
 
         internal static TlsCertificate LoadCertificateResource(TlsCrypto crypto, string resource)
@@ -704,7 +704,7 @@ namespace Org.BouncyCastle.Tls.Tests
             {
                 return crypto.CreateCertificate(pem.Content);
             }
-            throw new ArgumentException("doesn't specify a valid certificate", "resource");
+            throw new ArgumentException("doesn't specify a valid certificate", nameof(resource));
         }
 
         internal static AsymmetricKeyParameter LoadBcPrivateKeyResource(string resource)
@@ -732,7 +732,7 @@ namespace Org.BouncyCastle.Tls.Tests
                 PrivateKeyInfo privInfo = new PrivateKeyInfo(algId, pKey);
                 return PrivateKeyFactory.CreateKey(privInfo);
             }
-            throw new ArgumentException("doesn't specify a valid private key", "resource");
+            throw new ArgumentException("doesn't specify a valid private key", nameof(resource));
         }
 
         internal static PemObject LoadPemResource(string resource)

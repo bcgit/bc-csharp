@@ -31,9 +31,9 @@ namespace Org.BouncyCastle.Tls.Tests
             int maxDroppedSending)
         {
             if (maxDroppedReceiving < 0)
-                throw new ArgumentException("cannot be negative", "maxDroppedReceiving");
+                throw new ArgumentException("cannot be negative", nameof(maxDroppedReceiving));
             if (maxDroppedSending < 0)
-                throw new ArgumentException("cannot be negative", "maxDroppedSending");
+                throw new ArgumentException("cannot be negative", nameof(maxDroppedSending));
 
             this.m_transport = transport;
             this.m_random = random;
@@ -48,9 +48,9 @@ namespace Org.BouncyCastle.Tls.Tests
         public virtual void SetPacketLoss(int percentPacketLossReceiving, int percentPacketLossSending)
         {
             if (percentPacketLossReceiving < 0 || percentPacketLossReceiving > 100)
-                throw new ArgumentException("out of range", "percentPacketLossReceiving");
+                throw new ArgumentException("out of range", nameof(percentPacketLossReceiving));
             if (percentPacketLossSending < 0 || percentPacketLossSending > 100)
-                throw new ArgumentException("out of range", "percentPacketLossSending");
+                throw new ArgumentException("out of range", nameof(percentPacketLossSending));
 
             this.m_percentPacketLossReceiving = percentPacketLossReceiving;
             this.m_percentPacketLossSending = percentPacketLossSending;
