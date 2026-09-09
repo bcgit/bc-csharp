@@ -32,7 +32,7 @@ namespace Org.BouncyCastle.Tls.Tests
         {
             byte[] ret = new byte[baseBuf.Length + buf.Length];
             Array.Copy(baseBuf, 0, ret, 0, baseBuf.Length);
-            buf.CopyTo(ret[baseBuf.Length..]);
+            buf.CopyTo(ret.AsSpan(baseBuf.Length));
             return ret;
         }
 #endif
