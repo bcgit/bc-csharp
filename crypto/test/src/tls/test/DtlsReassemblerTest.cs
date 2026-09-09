@@ -1,6 +1,4 @@
-﻿// DtlsReassembler's is assembly-internal. Remove guards for checks or if InternalsVisibleTo is ever added.
-#if false
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Date;
@@ -153,4 +151,3 @@ namespace Org.BouncyCastle.Tls.Tests
         }
     }
 }
-#endif

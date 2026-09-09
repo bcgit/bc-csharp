@@ -2062,7 +2062,7 @@ namespace Org.BouncyCastle.Pkix
         /// Returns every <c>emailAddress</c> value present in <paramref name="dn"/>, including the values inside
         /// multi-valued RDNs that hold other attribute types in the same RDN.
         /// </summary>
-        private static List<string> ExtractEmailAddressesFromSubjectDN(X509Name dn)
+        internal static List<string> ExtractEmailAddressesFromSubjectDN(X509Name dn)
         {
             if (dn == null)
                 return new List<string>(capacity: 0);

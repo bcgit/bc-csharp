@@ -1,9 +1,4 @@
-﻿// BinPoly's surface is assembly-internal (closed for the squash/merge), so these direct tests
-// can no longer reference it from the test assembly. Disabled via #if false (the code is kept
-// for re-enabling if InternalsVisibleTo is ever added). Indirect coverage remains through the
-// consumers (generic F2m field via ECPointTest; BIKE/HQC KATs).
-#if false
-using System;
+﻿using System;
 using System.Diagnostics;
 
 using NUnit.Framework;
@@ -2056,4 +2051,3 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
         }
     }
 }
-#endif

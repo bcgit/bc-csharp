@@ -1,6 +1,4 @@
-﻿// Tests assembly-internal methods. Remove guards for checks or if InternalsVisibleTo is ever added.
-#if false
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 using NUnit.Framework;
@@ -192,4 +190,3 @@ namespace Org.BouncyCastle.Tls.Tests
         }
     }
 }
-#endif

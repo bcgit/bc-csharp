@@ -20,9 +20,6 @@ namespace Org.BouncyCastle.Tests
     {
         private static readonly X509DefaultEntryConverter Converter = new X509DefaultEntryConverter();
 
-        // Tests assembly-internal functionality; the code is kept for re-enabling if InternalsVisibleTo is ever added, or for
-        // periodic explicit testing.
-#if false
         [Test]
         public void ExtractEmailAddressesFromSubjectDN()
         {
@@ -93,7 +90,6 @@ namespace Org.BouncyCastle.Tests
                 label + ": expected " + Utilities.Arrays.ToString(expected) + " but got "
                     + Utilities.Arrays.ToString(actual));
         }
-#endif
 
         /// <summary>End-to-end multi-valued RDN <c>EmailAddress</c> test.</summary>
         /// <remarks>
