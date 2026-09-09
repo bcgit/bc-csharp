@@ -29,7 +29,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return new AlgorithmIdentifier(algOid, algParams);
         }
 
-        private static DerObjectIdentifier GetECGost3410KeyAlgorithmOid(ECGost3410Parameters parameters)
+        /// <summary>
+        /// Determine the key algorithm OID (GOST R 34.10-2001, or GOST R 34.10-2012 with 256- or 512-bit keys) for an
+        /// ECGOST3410 key. See <see cref="CreateECGost3410AlgorithmIdentifier"/> for the rules.
+        /// </summary>
+        /// <exception cref="ArgumentException">If the digest parameter set is not recognized.</exception>
+        internal static DerObjectIdentifier GetECGost3410KeyAlgorithmOid(ECGost3410Parameters parameters)
         {
             DerObjectIdentifier digestParamSet = parameters.DigestParamSet;
 

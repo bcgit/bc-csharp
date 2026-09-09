@@ -17,6 +17,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -345,19 +346,7 @@ namespace Org.BouncyCastle.Cms
                 }
                 else if (ecPrivKey.Parameters is ECGost3410Parameters ecGost3410Parameters)
                 {
-                    var digestParamSet = ecGost3410Parameters.DigestParamSet;
-                    if (digestParamSet.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256))
-                    {
-                        encOid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
-                    }
-                    else if (digestParamSet.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512))
-                    {
-                        encOid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512;
-                    }
-                    else
-                    {
-                        throw new ArgumentException("can't determine GOST3410 algorithm");
-                    }
+                    encOid = GostUtilities.GetECGost3410KeyAlgorithmOid(ecGost3410Parameters);
                 }
                 else
                 {

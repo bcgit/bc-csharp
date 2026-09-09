@@ -59,6 +59,17 @@ namespace Org.BouncyCastle.Tests
                 RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA,
                 RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512,
                 RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512),
+
+            // TC26 parameter sets with digestParamSet omitted (RFC 9215, Section 4.2: MUST for 256-B/C/D, SHOULD
+            // for 256-A and 512-bit keys)
+            Case("TC26 256-B with no digest",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetB,
+                null,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256),
+            Case("TC26 512-A with no digest",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA,
+                null,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512),
         };
 
         private static TestCaseData Case(string displayName, DerObjectIdentifier publicKeyParamSet,
@@ -141,10 +152,51 @@ namespace Org.BouncyCastle.Tests
         {
             Assert.That(algID.Algorithm, Is.EqualTo(expectedAlgOid));
 
+            // An omitted digestParamSet must be absent from the encoding, not encoded as some placeholder
+            int expectedCount = digestParamSet == null ? 1 : 2;
+            Assert.That(Asn1Sequence.GetInstance(algID.Parameters).Count, Is.EqualTo(expectedCount));
+
             var algParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
             Assert.That(algParams.PublicKeyParamSet, Is.EqualTo(publicKeyParamSet));
             Assert.That(algParams.DigestParamSet, Is.EqualTo(digestParamSet));
             Assert.That(algParams.EncryptionParamSet, Is.Null);
+        }
+
+        [Test]
+        public void AlgParametersSequenceSizes()
+        {
+            var publicKeyParamSet = CryptoProObjectIdentifiers.GostR3410x2001CryptoProA;
+            var digestParamSet = CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet;
+            var encryptionParamSet = CryptoProObjectIdentifiers.ID_Gost28147_89_CryptoPro_A_ParamSet;
+
+            // One element: digestParamSet omitted (RFC 9215)
+            var one = Gost3410PublicKeyAlgParameters.GetInstance(new DerSequence(publicKeyParamSet));
+            Assert.That(one.PublicKeyParamSet, Is.EqualTo(publicKeyParamSet));
+            Assert.That(one.DigestParamSet, Is.Null);
+            Assert.That(one.EncryptionParamSet, Is.Null);
+            Assert.That(one.ToAsn1Object(), Is.EqualTo(new DerSequence(publicKeyParamSet)));
+
+            // Two elements: the second is always digestParamSet, never encryptionParamSet
+            var two = Gost3410PublicKeyAlgParameters.GetInstance(new DerSequence(publicKeyParamSet, digestParamSet));
+            Assert.That(two.DigestParamSet, Is.EqualTo(digestParamSet));
+            Assert.That(two.EncryptionParamSet, Is.Null);
+            Assert.That(two.ToAsn1Object(), Is.EqualTo(new DerSequence(publicKeyParamSet, digestParamSet)));
+
+            // Three elements (RFC 4491)
+            var threeSeq = new DerSequence(publicKeyParamSet, digestParamSet, encryptionParamSet);
+            var three = Gost3410PublicKeyAlgParameters.GetInstance(threeSeq);
+            Assert.That(three.DigestParamSet, Is.EqualTo(digestParamSet));
+            Assert.That(three.EncryptionParamSet, Is.EqualTo(encryptionParamSet));
+            Assert.That(three.ToAsn1Object(), Is.EqualTo(threeSeq));
+
+            // Out-of-range sizes
+            Assert.Throws<ArgumentException>(() => Gost3410PublicKeyAlgParameters.GetInstance(new DerSequence()));
+            Assert.Throws<ArgumentException>(() => Gost3410PublicKeyAlgParameters.GetInstance(
+                new DerSequence(publicKeyParamSet, digestParamSet, encryptionParamSet, encryptionParamSet)));
+
+            // encryptionParamSet cannot be encoded without digestParamSet
+            Assert.Throws<ArgumentException>(
+                () => new Gost3410PublicKeyAlgParameters(publicKeyParamSet, null, encryptionParamSet));
         }
 
         private static AsymmetricCipherKeyPair GenerateKeyPair(DerObjectIdentifier publicKeyParamSet,

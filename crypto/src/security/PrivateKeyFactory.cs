@@ -113,7 +113,7 @@ namespace Org.BouncyCastle.Security
                 ECGost3410Parameters ecSpec = null;
                 BigInteger d;
 
-                if (p is Asn1Sequence seq && (seq.Count == 2 || seq.Count == 3))
+                if (p is Asn1Sequence seq && seq.Count >= 1 && seq.Count <= 3)
                 {
                     X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
                     if (ecP == null)
@@ -234,7 +234,7 @@ namespace Org.BouncyCastle.Security
                 ECGost3410Parameters ecSpec = null;
                 BigInteger d;
                 Asn1Object p = keyInfo.PrivateKeyAlgorithm.Parameters.ToAsn1Object();
-                if (p is Asn1Sequence && (Asn1Sequence.GetInstance(p).Count == 2 || Asn1Sequence.GetInstance(p).Count == 3))
+                if (p is Asn1Sequence seq && seq.Count >= 1 && seq.Count <= 3)
                 {
                     X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(gostParams.PublicKeyParamSet);
 
