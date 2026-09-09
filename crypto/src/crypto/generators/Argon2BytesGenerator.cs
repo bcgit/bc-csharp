@@ -437,15 +437,16 @@ namespace Org.BouncyCastle.Crypto.Generators
                 int halfLen = blake2bLength / 2, outPos = outOff;
 
                 IDigest digest = new Blake2bDigest(blake2bLength * 8);
-                byte[] outBuffer = new byte[blake2bLength];
 
                 /* V1 */
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                Span<byte> outSpan = stackalloc byte[blake2bLength];
                 digest.BlockUpdate(outLenBytes);
                 digest.BlockUpdate(input);
-                digest.DoFinal(outBuffer);
-                outBuffer[0..halfLen].CopyTo(output);
+                digest.DoFinal(outSpan);
+                outSpan[..halfLen].CopyTo(output);
 #else
+                byte[] outBuffer = new byte[blake2bLength];
                 digest.BlockUpdate(outLenBytes, 0, outLenBytes.Length);
                 digest.BlockUpdate(input, 0, input.Length);
                 digest.DoFinal(outBuffer, 0);
@@ -458,12 +459,13 @@ namespace Org.BouncyCastle.Crypto.Generators
                 for (int i = 2; i <= r; i++, outPos += halfLen)
                 {
                     /* V2 to Vr */
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    digest.BlockUpdate(outSpan);
+                    digest.DoFinal(outSpan);
+                    outSpan[..halfLen].CopyTo(output[outPos..]);
+#else
                     digest.BlockUpdate(outBuffer, 0, outBuffer.Length);
                     digest.DoFinal(outBuffer, 0);
-
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                    outBuffer[0..halfLen].CopyTo(output[outPos..]);
-#else
                     Array.Copy(outBuffer, 0, output, outPos, halfLen);
 #endif
                 }
@@ -473,11 +475,11 @@ namespace Org.BouncyCastle.Crypto.Generators
                 /* Vr+1 */
                 digest = new Blake2bDigest(lastLength * 8);
 
-                digest.BlockUpdate(outBuffer, 0, outBuffer.Length);
-
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                digest.BlockUpdate(outSpan);
                 digest.DoFinal(output[outPos..]);
 #else
+                digest.BlockUpdate(outBuffer, 0, outBuffer.Length);
                 digest.DoFinal(output, outPos);
 #endif
             }

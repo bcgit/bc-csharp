@@ -220,19 +220,20 @@ namespace Org.BouncyCastle.Crypto.Digests
             // addition of last msg block (incl. padding)
             ProcessBlock(m_buf, SPARKLE_STEPS_BIG);
 
-            Pack.UInt32_To_LE(state[..RATE_WORDS], output);
+            Span<uint> stateToOutput = state.AsSpan(0, RATE_WORDS);
+            Pack.UInt32_To_LE(stateToOutput, output);
 
             if (STATE_WORDS == 16)
             {
                 SparkleEngine.SparkleOpt16(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state[..RATE_WORDS], output[16..]);
+                Pack.UInt32_To_LE(stateToOutput, output[16..]);
                 SparkleEngine.SparkleOpt16(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state[..RATE_WORDS], output[32..]);
+                Pack.UInt32_To_LE(stateToOutput, output[32..]);
             }
             else
             {
                 SparkleEngine.SparkleOpt12(state, SPARKLE_STEPS_SLIM);
-                Pack.UInt32_To_LE(state[..RATE_WORDS], output[16..]);
+                Pack.UInt32_To_LE(stateToOutput, output[16..]);
             }
 
             Reset();
