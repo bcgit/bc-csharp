@@ -359,6 +359,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // and cannot have changed - so this is the same tree at a different one-time key, and
                 // the repositioned key keeps the tree the root has already built.
                 //
+                CheckNotRewound(0, keys[0].GetIndex() - (qTreePath.Length > 1 ? 1 : 0), qTreePath[0]);
+
                 keys[0] = originalRootKey.RepositionTo((int)qTreePath[0]);
                 changed = true;
             }
@@ -428,6 +430,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     // rebuild it. The public key is unchanged either way, so the chaining signature
                     // above it still stands and does not need making again.
                     //
+                    CheckNotRewound(i, keys[i].GetIndex() - (i < qTreePath.Length - 1 ? 1 : 0), qTreePath[i]);
+
                     keys[i] = keys[i].RepositionTo((int)qTreePath[i]);
                     changed = true;
                 }
@@ -437,6 +441,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 // We mutate the HSS key here!
                 UpdateHierarchy(keys, sig);
+            }
+        }
+
+        /// <summary>
+        /// A component key whose identifier and seed are unchanged is the same tree, and moving it back within that
+        /// tree would hand out one-time keys it has already used; a signature made with one verifies, so nothing
+        /// later would surface it. Every route here that the key controls moves forward or stays put -
+        /// ExtractKeyShard advances the index, and a decoded key's index already agrees with its component keys -
+        /// so a position behind the key can only be a stale index supplied to the public constructor, and it is
+        /// refused rather than acted on.
+        /// </summary>
+        /// <param name="level">The level being repositioned, for the message.</param>
+        /// <param name="currentQ">The one-time key the level has advanced to (its q, less the post-increment of a
+        /// level that has signed the one beneath it).</param>
+        /// <param name="targetQ">The one-time key the index asks for.</param>
+        private static void CheckNotRewound(int level, long currentQ, long targetQ)
+        {
+            if (targetQ < currentQ)
+            {
+                throw new InvalidOperationException(
+                    $"HSS private key index would move level {level} back from one-time key {currentQ} to {targetQ}");
             }
         }
 

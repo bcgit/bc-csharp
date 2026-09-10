@@ -1255,15 +1255,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreSame(lms, advanced.GetKeys()[0], "the wrap regenerated an advanced root key");
             Assert.AreEqual(3, advanced.GetIndex(), "the wrap moved the index");
 
-            // the reset itself still works: asked for a different position, it does reposition
-            HssPrivateKeyParameters moved = new HssPrivateKeyParameters(lms, 1, 1 << sigParams.H);
+            // the reset itself still works: asked for a different (later - see ResetKeyToIndexRefusesToRewind)
+            // position, it does reposition
+            HssPrivateKeyParameters moved = new HssPrivateKeyParameters(lms, 4, 1 << sigParams.H);
 
             // TODO[lms] GetRootKey
             //Assert.NotSame(lms, moved.GetRootKey(), "the reset failed to reposition to a different index");
             Assert.AreNotSame(lms, moved.GetKeys()[0], "the reset failed to reposition to a different index");
             // TODO[lms] GetRootKey
-            //Assert.AreEqual(1, moved.GetRootKey().GetIndex());
-            Assert.AreEqual(1, moved.GetKeys()[0].GetIndex());
+            //Assert.AreEqual(4, moved.GetRootKey().GetIndex());
+            Assert.AreEqual(4, moved.GetKeys()[0].GetIndex());
 
             // the Merkle tree is a function of I, the seed and the parameters and not of q, so the
             // repositioned key is entitled to the tree it was built from rather than a rebuild costing
@@ -1289,6 +1290,60 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             HssSigner verifier = new HssSigner();
             verifier.Init(false, advanced.GetPublicKey());
             Assert.True(verifier.VerifySignature(msg, sig), "wrapped key produced a signature that does not verify");
+        }
+
+        /*
+         * A component key whose identifier and seed are unchanged is the same tree; an index that would move it back
+         * within that tree asks for one-time keys already used, and is refused. Forward moves still reposition.
+         */
+        [Test]
+        public void ResetKeyToIndexRefusesToRewind()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w2;
+            int twoToH = 1 << sigParams.H;
+            byte[] msg = Hex.Decode("48656c6c6f");
+
+            // single level: the root is the last level and reads its q directly
+            LmsKeyPairGenerator gen = new LmsKeyPairGenerator();
+            gen.Init(new LmsKeyGenerationParameters(new LmsParameters(sigParams, otsParams), new SecureRandom()));
+            LmsPrivateKeyParameters lms = (LmsPrivateKeyParameters)gen.GenerateKeyPair().Private;
+            for (int i = 0; i < 3; ++i)
+            {
+                Lms.GenerateSign(lms, msg);
+            }
+            Assert.AreEqual(3, lms.GetIndex());
+
+            Assert.Throws<InvalidOperationException>(() => new HssPrivateKeyParameters(lms, 2, twoToH));
+            Assert.AreEqual(3, new HssPrivateKeyParameters(lms, 3, twoToH).GetIndex());
+            Assert.AreEqual(4, new HssPrivateKeyParameters(lms, 4, twoToH).GetKeys()[0].GetIndex());
+
+            // two levels: the root is post-incremented past the child it signed, the bottom reads its q directly
+            HssPrivateKeyParameters hss = Hss.GenerateHssKeyPair(new HssKeyGenerationParameters(
+                new LmsParameters[]
+                {
+                    new LmsParameters(sigParams, otsParams),
+                    new LmsParameters(sigParams, otsParams),
+                }, new SecureRandom()));
+            for (int i = 0; i < twoToH + 1; ++i)
+            {
+                Hss.GenerateSignature(hss, msg);
+            }
+            var keys = hss.GetKeys();
+            var sig = hss.GetSig();
+            long limit = (long)twoToH * twoToH;
+            Assert.AreEqual(2, keys[0].GetIndex());
+            Assert.AreEqual(1, keys[1].GetIndex());
+
+            // back one leaf within the current bottom tree
+            Assert.Throws<InvalidOperationException>(() => new HssPrivateKeyParameters(2, keys, sig, twoToH, limit));
+            // back into the previous bottom tree, which the root has already signed and moved past
+            Assert.Throws<InvalidOperationException>(() => new HssPrivateKeyParameters(2, keys, sig, 5, limit));
+            // the position the keys are at, and one further on, are both fine
+            Assert.AreEqual(twoToH + 1, new HssPrivateKeyParameters(2, keys, sig, twoToH + 1, limit).GetIndex());
+            HssPrivateKeyParameters forward = new HssPrivateKeyParameters(2, keys, sig, twoToH + 8, limit);
+            Assert.AreEqual(8, forward.GetKeys()[1].GetIndex());
+            Assert.True(Hss.VerifySignature(hss.GetPublicKey(), Hss.GenerateSignature(forward, msg), msg));
         }
 
         /*
