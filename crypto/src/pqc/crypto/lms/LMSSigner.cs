@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     public sealed class LmsSigner
         : IMessageSigner
     {
-        private LmsPrivateKeyParameters m_privateKey;
+        private ILmsContextBasedSigner m_privateKey;
         private LmsPublicKeyParameters m_publicKey;
 
         public void Init(bool forSigning, ICipherParameters param)
@@ -23,7 +23,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     if (hssPriv.Level != 1)
                         throw new ArgumentException("only a single level HSS key can be used with LMS");
 
-                    m_privateKey = hssPriv.GetRootKey();
+                    // Sign through the HSS key so that its index advances with the root tree's q. Signing
+                    // the root key directly leaves the index behind, and ResetKeyToIndex (reached from
+                    // ExtractKeyShard and the public constructor) would then move the root back to one-time
+                    // keys already used. A single-level context carries no signed public keys, so the LMS
+                    // signature it yields is the HSS signature without its u32str(Nspk = 0) prefix (RFC 8554
+                    // section 6.1).
+                    m_privateKey = hssPriv;
                 }
                 else
                 {
@@ -52,9 +58,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GenerateSignature(byte[] message)
         {
+            LmsContext context = m_privateKey.GenerateLmsContext();
+
+            context.BlockUpdate(message, 0, message.Length);
+
             try
             {
-                return Lms.GenerateSign(m_privateKey, message).GetEncoded();
+                return Lms.GenerateSign(context).GetEncoded();
             }
             catch (IOException e)
             {

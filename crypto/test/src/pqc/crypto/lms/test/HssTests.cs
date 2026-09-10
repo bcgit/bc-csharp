@@ -1292,6 +1292,58 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         }
 
         /*
+         * An LmsSigner given a single-level HSS key used to sign with the root key directly, so the HSS index never
+         * moved. ResetKeyToIndex - reached from ExtractKeyShard and the public constructor - then trusted the stale
+         * index and moved the root back to one-time keys already used. Signing goes through the HSS key now, so the
+         * two records of position advance together, and a shard taken afterwards starts where the signatures
+         * stopped.
+         */
+        [Test]
+        public void LmsSignerAdvancesSingleLevelHssIndex()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w2;
+
+            HssPrivateKeyParameters hss = Hss.GenerateHssKeyPair(new HssKeyGenerationParameters(
+                new LmsParameters[] { new LmsParameters(sigParams, otsParams) }, new SecureRandom()));
+            HssPublicKeyParameters hssPub = hss.GetPublicKey();
+            byte[] msg = Hex.Decode("48656c6c6f");
+
+            LmsSigner lmsSigner = new LmsSigner();
+            lmsSigner.Init(true, hss);
+
+            LmsSigner hssVerifier = new LmsSigner();
+            hssVerifier.Init(false, hssPub);
+
+            for (int i = 0; i < 5; ++i)
+            {
+                byte[] sig = lmsSigner.GenerateSignature(msg);
+                Assert.AreEqual(i, LmsSignature.GetInstance(sig).Q);
+                Assert.AreEqual(i + 1, hss.GetIndex(), "LmsSigner left the HSS index behind");
+
+                // an LMS signature, verifiable under either form of the public key
+                Assert.True(VerifyLms(hssPub.LmsPublicKey, sig, msg));
+                Assert.True(hssVerifier.VerifySignature(msg, sig));
+            }
+
+            // the LMS signature is the HSS one without its u32str(Nspk = 0) prefix (RFC 8554 sec. 6.1)
+            HssSigner hssSigner = new HssSigner();
+            hssSigner.Init(true, hss);
+            byte[] hssSig = hssSigner.GenerateSignature(msg);
+            Assert.AreEqual(0U, Pack_BE_To_UInt32(hssSig, 0));
+            byte[] lmsPart = Arrays.CopyOfRange(hssSig, 4, hssSig.Length);
+            Assert.AreEqual(5, LmsSignature.GetInstance(lmsPart).Q);
+            Assert.True(VerifyLms(hssPub.LmsPublicKey, lmsPart, msg));
+
+            // a shard taken now continues from the position the signatures reached
+            HssPrivateKeyParameters shard = hss.ExtractKeyShard(3);
+            Assert.AreEqual(6, shard.GetIndex());
+            Assert.AreEqual(9, hss.GetIndex());
+            Assert.AreEqual(6, Hss.GenerateSignature(shard, msg).Signature.Q);
+            Assert.AreEqual(9, Hss.GenerateSignature(hss, msg).Signature.Q);
+        }
+
+        /*
          * The HSS index and the bottom key's one-time index are two records of one position and must be claimed
          * under the one monitor (bc-java github #2414). bc-java parks a signer inside the bottom key's claim with
          * a gated subclass; LmsPrivateKeyParameters is sealed here, so the two halves of the claim are separated
