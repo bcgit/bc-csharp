@@ -51,8 +51,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[][] path = new byte[sigParameter.H][];
             for (int h = 0; h < path.Length; h++)
             {
-                path[h] = new byte[sigParameter.M];
-                binaryReader.Read(path[h], 0, path[h].Length);
+                path[h] = BinaryReaders.ReadBytesFully(binaryReader, sigParameter.M);
             }
 
             return new LmsSignature(q, otsSignature, sigParameter, path);

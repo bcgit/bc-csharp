@@ -695,6 +695,48 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(ex2.Message.StartsWith("unknown LM-OTS type code"));
         }
 
+        /*
+         * BinaryReader.Read(byte[], int, int) makes a single Stream.Read call and may return fewer bytes than
+         * asked for. The authentication path was read that way, so a short read left path nodes zero-filled
+         * with no error: the signature parsed, re-encoded differently and failed to verify.
+         */
+        [Test]
+        public void TestSignatureParseFromTrickleStream()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w4;
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+
+            LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I, 1 << sigParams.H,
+                seed);
+            byte[] msg = Hex.Decode("48656c6c6f");
+            byte[] encoded = Lms.GenerateSign(key, msg).GetEncoded();
+
+            LmsSignature parsed = LmsSignature.GetInstance(new TrickleStream(encoded));
+
+            Assert.True(Arrays.AreEqual(encoded, parsed.GetEncoded()), "short reads left the signature incomplete");
+            Assert.True(Lms.VerifySignature(key.GetPublicKey(), parsed, msg));
+        }
+
+        // Hands out one byte per Read call, as a network or pipe stream is entitled to.
+        private sealed class TrickleStream
+            : MemoryStream
+        {
+            internal TrickleStream(byte[] buf)
+                : base(buf, false)
+            {
+            }
+
+            public override int Read(byte[] buffer, int offset, int count) =>
+                base.Read(buffer, offset, System.Math.Min(count, 1));
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override int Read(Span<byte> buffer) =>
+                base.Read(buffer.Slice(0, System.Math.Min(buffer.Length, 1)));
+#endif
+        }
+
         private static int ReadU32(byte[] buf, int off) =>
             (buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3];
 
