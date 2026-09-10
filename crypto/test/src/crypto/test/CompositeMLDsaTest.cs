@@ -12,6 +12,7 @@ using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
+using Org.BouncyCastle.Operators.Utilities;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -313,6 +314,34 @@ namespace Org.BouncyCastle.Crypto.Tests
                 byte[] signature = signer.GenerateSignature();
 
                 Assert.True(Verify(parameters, publicKey, message, signature), parameters.Name + ": sign/verify");
+            }
+        }
+
+        [Test]
+        public void TestAlgorithmIdentifierRegistration()
+        {
+            /*
+             * The draft requires the composite AlgorithmIdentifier to omit its parameters entirely; an
+             * explicit NULL is a silent interoperability failure. The name-to-identifier tables default to
+             * DerNull, so absent parameters depend on each combination being registered as "no params".
+             * TestCertificateGeneration covers the Asn1SignatureFactory table end to end for one combination;
+             * this covers every combination through the public signature-algorithm finder.
+             */
+            var finder = DefaultSignatureAlgorithmFinder.Instance;
+
+            foreach (var parameters in ParametersByTcId.Values)
+            {
+                var oid = SignerUtilities.GetObjectIdentifier(parameters.Name);
+                Assert.NotNull(oid, parameters.Name + ": registered with SignerUtilities");
+
+                var algID = finder.Find(parameters.Name);
+                Assert.AreEqual(oid, algID.Algorithm, parameters.Name + ": signature algorithm OID");
+                Assert.IsNull(algID.Parameters, parameters.Name + ": AlgorithmIdentifier must omit parameters");
+
+                // The name must survive the OID-to-name direction too, since Asn1SignatureFactory resolves a
+                // received AlgorithmIdentifier back to a name before it can construct a signer.
+                Assert.AreEqual(parameters.Name, SignerUtilities.GetEncodingName(oid),
+                    parameters.Name + ": OID maps back to the same name");
             }
         }
 
