@@ -80,6 +80,13 @@ namespace Org.BouncyCastle.Operators.Utilities
 
         static DefaultSignatureAlgorithmFinder()
         {
+            /*
+             * TODO[api] Remove this entry. Nothing in the library can sign or verify id-alg-composite - the
+             * legacy generic composite scheme - so Find("COMPOSITE") returns an AlgorithmIdentifier for an
+             * algorithm with no implementation behind it. Composite ML-DSA
+             * (draft-ietf-lamps-pq-composite-sigs) is a different scheme and is registered by its own names
+             * and OIDs below. Removing this now would change observable behaviour for existing callers.
+             */
             AddAlgorithm("COMPOSITE", MiscObjectIdentifiers.id_alg_composite);
 
             AddAlgorithm("MD2WITHRSAENCRYPTION", PkcsObjectIdentifiers.MD2WithRsaEncryption);
