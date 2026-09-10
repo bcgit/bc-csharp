@@ -117,39 +117,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static HssSignature GenerateSignature(HssPrivateKeyParameters keyPair, byte[] message)
         {
-            LmsSignedPubKey[] signed_pub_key;
-            LmsPrivateKeyParameters nextKey;
-            int L = keyPair.Level;
-
-            lock (keyPair)
-            {
-                RangeTestKeys(keyPair);
-
-                var keys = keyPair.GetKeys();
-                var sig = keyPair.GetSig();
-
-                nextKey = keys[L - 1];
-
-                // Step 2. Stand in for sig[L-1]
-                int i = 0;
-                signed_pub_key = new LmsSignedPubKey[L - 1];
-                while (i < L - 1)
-                {
-                    signed_pub_key[i] = new LmsSignedPubKey(sig[i], keys[i + 1].GetPublicKey());
-                    ++i;
-                }
-
-                //
-                // increment the index.
-                //
-                keyPair.IncIndex();
-            }
-
-            LmsContext context = nextKey.GenerateLmsContext().WithSignedPublicKeys(signed_pub_key);
+            // The key claims its own index and the bottom key's one-time index under the one monitor; doing
+            // the claim here as well would reopen the window between the two.
+            LmsContext context = keyPair.GenerateLmsContext();
 
             context.BlockUpdate(message, 0, message.Length);
 
-            return GenerateSignature(L, context);
+            return GenerateSignature(keyPair.Level, context);
         }
 
         public static HssSignature GenerateSignature(int L, LmsContext context)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using NUnit.Framework;
 
@@ -1290,9 +1291,125 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(verifier.VerifySignature(msg, sig), "wrapped key produced a signature that does not verify");
         }
 
-        // TODO[lms] Port from bc-java (probably only after LMS API promoted)
-        [Test, Explicit]
-        public void IndexAndComponentIndexClaimedTogether() => throw new NotImplementedException();
+        /*
+         * The HSS index and the bottom key's one-time index are two records of one position and must be claimed
+         * under the one monitor (bc-java github #2414). bc-java parks a signer inside the bottom key's claim with
+         * a gated subclass; LmsPrivateKeyParameters is sealed here, so the two halves of the claim are separated
+         * another way: a bottom key whose usage limit is below 2^h passes RangeTestKeys (which looks only at 2^h)
+         * and is then refused by its own claim. Claimed bottom-key-first under the one monitor, that refusal
+         * leaves the HSS index where it was; claimed in two steps, the HSS index is burned and the key encodes
+         * to something its own decoder rejects. A contention sweep across a bottom-key rotation then checks that
+         * every encoding taken while signatures are in flight decodes.
+         */
+        [Test]
+        public void IndexAndComponentIndexClaimedTogether()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w2;
+            int twoToH = 1 << sigParams.H;
+            byte[] msg = Hex.Decode("48656c6c6f");
+
+            byte[] I = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+            byte[] seed = Hex.Decode("0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20");
+
+            LmsPrivateKeyParameters root = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I, twoToH, seed);
+            var child = root.DeriveChildKey();
+            LmsPrivateKeyParameters bottom = new LmsPrivateKeyParameters(sigParams, otsParams, 0, child.Item1, 1,
+                child.Item2);
+
+            // the root signs the bottom key's public key, which advances the root's q to 1 - the position
+            // ResetKeyToIndex expects of an intermediate level, so the key is kept as built
+            LmsSignature chain = Lms.GenerateSign(root, bottom.GetPublicKey().ToByteArray());
+
+            HssPrivateKeyParameters hss = new HssPrivateKeyParameters(2,
+                new List<LmsPrivateKeyParameters> { root, bottom }, new List<LmsSignature> { chain }, 0,
+                (long)twoToH * twoToH);
+
+            Assert.AreSame(bottom, hss.GetKeys()[1], "the bottom key was regenerated, so its usage limit is gone");
+
+            // the one signature the bottom key can give
+            HssSignature first = Hss.GenerateSignature(hss, msg);
+            Assert.True(Hss.VerifySignature(hss.GetPublicKey(), first, msg));
+            Assert.AreEqual(1, hss.GetIndex());
+
+            // the next passes the range test but is refused by the bottom key's own claim
+            Assert.Throws<ExhaustedPrivateKeyException>(() => Hss.GenerateSignature(hss, msg));
+            Assert.AreEqual(1, hss.GetIndex(), "a refused claim moved the HSS index");
+            Assert.AreEqual(1, hss.GetKeys()[1].GetIndex());
+
+            // and the key still encodes to something its own decoder accepts
+            HssPrivateKeyParameters decoded = HssPrivateKeyParameters.GetInstance(hss.GetEncoded());
+            Assert.AreEqual(1, decoded.GetIndex());
+
+            // contention sweep: signatures in flight, encodings taken and decoded throughout
+            HssPrivateKeyParameters sweep = Hss.GenerateHssKeyPair(new HssKeyGenerationParameters(
+                new LmsParameters[]
+                {
+                    new LmsParameters(sigParams, otsParams),
+                    new LmsParameters(sigParams, otsParams),
+                }, new SecureRandom()));
+            HssPublicKeyParameters sweepPub = sweep.GetPublicKey();
+
+            int count = twoToH + 8; // crosses one bottom-key rotation
+            HssSignature[] signatures = new HssSignature[count];
+            Exception signerFailure = null, encoderFailure = null;
+            int snapshots = 0;
+
+            Thread signer = new Thread(() =>
+            {
+                try
+                {
+                    HssSigner s = new HssSigner();
+                    s.Init(true, sweep);
+                    for (int i = 0; i < count; ++i)
+                    {
+                        signatures[i] = HssSignature.GetInstance(s.GenerateSignature(msg), 2);
+                    }
+                }
+                catch (Exception e)
+                {
+                    signerFailure = e;
+                }
+            });
+
+            Thread encoder = new Thread(() =>
+            {
+                try
+                {
+                    do
+                    {
+                        HssPrivateKeyParameters.GetInstance(sweep.GetEncoded());
+                        ++snapshots;
+                    }
+                    while (signer.IsAlive);
+                }
+                catch (Exception e)
+                {
+                    encoderFailure = e;
+                }
+            });
+
+            signer.Start();
+            encoder.Start();
+            signer.Join();
+            encoder.Join();
+
+            Assert.Null(signerFailure, "signing failed: " + signerFailure);
+            Assert.Null(encoderFailure, "an encoding taken while a signature was in flight did not decode: "
+                + encoderFailure);
+            Assert.That(snapshots, Is.GreaterThan(0));
+            Assert.AreEqual(count, sweep.GetIndex());
+
+            var leavesUsed = new HashSet<string>();
+            foreach (HssSignature signature in signatures)
+            {
+                Assert.True(Hss.VerifySignature(sweepPub, signature, msg));
+
+                LmsPublicKeyParameters bottomPub = signature.GetSignedPubKeys()[0].PublicKey;
+                Assert.True(leavesUsed.Add(Hex.ToHexString(bottomPub.GetI()) + ":" + signature.Signature.Q),
+                    "a one-time key was used twice");
+            }
+        }
 
         private static uint Pack_BE_To_UInt32(byte[] bs, int off)
         {
