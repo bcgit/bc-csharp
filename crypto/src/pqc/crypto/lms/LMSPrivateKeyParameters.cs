@@ -351,7 +351,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// (RFC 8554 sec. 6.1) - the child an HSS hierarchy hangs off leaf q. The index is not advanced.
         /// </summary>
         /// <returns>{ I of the child tree, master seed of the child tree }.</returns>
-#if NETCOREAPP1_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+#if NETCOREAPP2_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
         internal ValueTuple<byte[], byte[]> DeriveChildKey()
 #else
         internal Tuple<byte[], byte[]> DeriveChildKey()
@@ -374,7 +374,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// index is not advanced. The derivation runs under the lock so that the secret is read whole.
         /// </summary>
         /// <returns>{ I of the child tree, master seed of the child tree }.</returns>
-#if NETCOREAPP1_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+#if NETCOREAPP2_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
         internal ValueTuple<byte[], byte[]> DeriveChildKey(int q)
 #else
         internal Tuple<byte[], byte[]> DeriveChildKey(int q)

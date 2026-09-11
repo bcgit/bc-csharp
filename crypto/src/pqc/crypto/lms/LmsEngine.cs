@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <returns>
         /// { I of the child tree (16 bytes), master seed of the child tree (n bytes) }.
         /// </returns>
-#if NETCOREAPP1_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+#if NETCOREAPP2_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
         internal static ValueTuple<byte[], byte[]> DeriveChildKey(LMOtsParameters otsParameters, byte[] I,
             byte[] masterSecret, int q)
 #else
@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] childI = new byte[16];
             Array.Copy(postImage, 0, childI, 0, childI.Length);
 
-#if NETCOREAPP1_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+#if NETCOREAPP2_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
             return new ValueTuple<byte[], byte[]>(childI, childSeed);
 #else
             return new Tuple<byte[], byte[]>(childI, childSeed);
