@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly LmsPublicKeyParameters m_lmsPublicKey;
 
         public HssPublicKeyParameters(int l, LmsPublicKeyParameters lmsPublicKey)
-    	    : base(false)
+            : base(false)
         {
             m_level = l;
             m_lmsPublicKey = lmsPublicKey ?? throw new ArgumentNullException(nameof(lmsPublicKey));
