@@ -1300,6 +1300,54 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         }
 
         /*
+         * The context-based signing API on the HSS key (ILmsContextBasedSigner: GenerateLmsContext, absorb the message,
+         * GenerateSignature) is the path the promoted signers will drive, and nothing else exercised it: an off-by-one
+         * in the level count passed to the encoder went unnoticed. Round-trip it at one and two levels, and pin the
+         * Nspk field the encoding starts with.
+         */
+        [Test]
+        public void ContextBasedSigningRoundTrip()
+        {
+            LmsParameters lms = new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2);
+            byte[] msg = Hex.Decode("48656c6c6f");
+
+            for (int level = 1; level <= 2; ++level)
+            {
+                LmsParameters[] levels = new LmsParameters[level];
+                for (int i = 0; i < level; ++i)
+                {
+                    levels[i] = lms;
+                }
+
+                HssPrivateKeyParameters hss = Hss.GenerateHssKeyPair(
+                    new HssKeyGenerationParameters(levels, new SecureRandom()));
+                HssPublicKeyParameters pub = hss.GetPublicKey();
+
+                ILmsContextBasedSigner signer = hss;
+                LmsContext context = signer.GenerateLmsContext();
+                context.BlockUpdate(msg, 0, msg.Length);
+                byte[] sig = signer.GenerateSignature(context);
+
+                Assert.AreEqual(1, hss.GetIndex(), "level " + level);
+                Assert.AreEqual((uint)(level - 1), Pack_BE_To_UInt32(sig, 0), "Nspk at level " + level);
+
+                // verifies through the static API and through the signer
+                Assert.True(Hss.VerifySignature(pub, HssSignature.GetInstance(sig, level), msg), "level " + level);
+
+                HssSigner verifier = new HssSigner();
+                verifier.Init(false, pub);
+                Assert.True(verifier.VerifySignature(msg, sig), "level " + level);
+
+                // and is byte for byte what the one-shot API produces for the next one-time key
+                HssSigner oneShot = new HssSigner();
+                oneShot.Init(true, hss);
+                byte[] next = oneShot.GenerateSignature(msg);
+                Assert.AreEqual(sig.Length, next.Length, "level " + level);
+                Assert.AreEqual(2, hss.GetIndex(), "level " + level);
+            }
+        }
+
+        /*
          * A component key whose identifier and seed are unchanged is the same tree; an index that would move it back
          * within that tree asks for one-time keys already used, and is refused. Forward moves still reposition.
          */
