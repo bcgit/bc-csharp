@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Concurrent;
 using System.IO;
+using System.Threading;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
@@ -34,8 +34,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // those semantics, and an unbounded cache of every node reaches 2 GB at h = 25.
         // TODO[lms] Retain the current authentication path and its ancestor chain, updated as q advances, so that
         // consecutive signatures reuse the nodes they share (amortised about two leaf derivations per signature).
-        private readonly ConcurrentDictionary<int, byte[]> tCache;
+        private readonly byte[][] tCache;
         private readonly int maxCacheR;
+        private readonly Func<int, byte[]> m_calcT;
 
         private int q;
         private readonly bool m_isPlaceholder;
@@ -69,7 +70,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.maxQ = maxQ;
             this.masterSecret = Arrays.Clone(masterSecret);
             this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
-            this.tCache = new ConcurrentDictionary<int, byte[]>();
+            this.tCache = new byte[maxCacheR][];
+            this.m_calcT = CalcT;
         }
 
         /**
@@ -89,7 +91,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.maxQ = maxQ;
             this.masterSecret = new byte[0];
             this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
-            this.tCache = new ConcurrentDictionary<int, byte[]>();
+            this.tCache = new byte[maxCacheR][];
+            this.m_calcT = CalcT;
             this.m_isPlaceholder = true;
         }
 
@@ -112,6 +115,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = parent.masterSecret;
             this.maxCacheR = maxCacheR;
             this.tCache = parent.tCache;
+            this.m_calcT = CalcT;
             this.m_publicKey = parent.m_publicKey;
         }
 
@@ -559,14 +563,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          * computes it, so a caller can cross-check the root against an authoritative public key without
          * paying for a tree rebuild when there is nothing cached (bc-java github #2414).
          */
-        internal byte[] PeekRootT() => tCache.TryGetValue(1, out byte[] rootT) ? rootT : null;
+        internal byte[] PeekRootT() => Volatile.Read(ref tCache[1]);
 
         internal byte[] FindT(int r)
         {
             if (r >= maxCacheR)
                 return CalcT(r);
 
-            return tCache.GetOrAdd(r, CalcT);
+            // Racing computations of one node produce identical arrays; the first to publish wins.
+            return Objects.EnsureSingletonInitialized(ref tCache[r], r, m_calcT);
         }
 
         private byte[] CalcT(int r)
