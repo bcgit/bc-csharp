@@ -202,8 +202,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // which is the work the cache exists to avoid (bc-java github #2414).
             if (publicKey != null)
             {
-                byte[] cachedRoot = pKey.GetRootKey().PeekRootT();
-                if (cachedRoot != null && !Arrays.AreEqual(cachedRoot, publicKey.LmsPublicKey.GetT1()))
+                // cross-check rather than adopt, as the LMS twin does: the level, root identifier and parameter
+                // sets unconditionally, the root node only where it is cached
+                LmsPrivateKeyParameters root = pKey.GetRootKey();
+                LmsPublicKeyParameters lmsPublicKey = publicKey.LmsPublicKey;
+
+                if (publicKey.Level != pKey.Level ||
+                    !Arrays.AreEqual(root.GetI(), lmsPublicKey.GetI()) ||
+                    root.SigParameters.ID != lmsPublicKey.GetSigParameters().ID ||
+                    root.OtsParameters.ID != lmsPublicKey.GetOtsParameters().ID)
+                {
+                    throw new IOException("HSS public key does not match the private key");
+                }
+
+                byte[] cachedRoot = root.PeekRootT();
+                if (cachedRoot != null && !Arrays.AreEqual(cachedRoot, lmsPublicKey.GetT1()))
                     throw new IOException("HSS private key tree cache does not match the public key");
             }
 

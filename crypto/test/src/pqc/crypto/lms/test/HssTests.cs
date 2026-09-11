@@ -186,9 +186,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             HssPrivateKeyParameters decoded = HssPrivateKeyParameters.GetInstance(privA, pubA);
             Assert.True(Arrays.AreEqual(pubA, decoded.GetPublicKey().GetEncoded()));
 
-            // another key's public key: refused
+            // another key's public key: refused on its identifier before the cached root is consulted
             var ex = Assert.Throws<IOException>(
                 () => HssPrivateKeyParameters.GetInstance(privA, pubB));
+            Assert.True(ex.Message.StartsWith("HSS public key does not match"));
+
+            // the right key at the wrong level: refused
+            LmsPublicKeyParameters lmsPubA = keyA.GetPublicKey().LmsPublicKey;
+            byte[] pubAWrongLevel = new HssPublicKeyParameters(keyA.Level + 1, lmsPubA).GetEncoded();
+            ex = Assert.Throws<IOException>(
+                () => HssPrivateKeyParameters.GetInstance(privA, pubAWrongLevel));
+            Assert.True(ex.Message.StartsWith("HSS public key does not match"));
+
+            // the right identifier and parameters with a different root: the cached root catches it
+            byte[] wrongT1 = lmsPubA.GetT1();
+            wrongT1[0] ^= 1;
+            byte[] pubAWrongRoot = new HssPublicKeyParameters(keyA.Level, new LmsPublicKeyParameters(
+                lmsPubA.GetSigParameters(), lmsPubA.GetOtsParameters(), wrongT1, lmsPubA.GetI())).GetEncoded();
+            ex = Assert.Throws<IOException>(
+                () => HssPrivateKeyParameters.GetInstance(privA, pubAWrongRoot));
             Assert.True(ex.Message.StartsWith("HSS private key tree cache does not match"));
         }
 
