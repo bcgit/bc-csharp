@@ -17,9 +17,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 privateKey.I);
         }
 
-        // The number of tree nodes eligible for the persisted cache (nodes 1 .. CacheTopLimit - 1: the top six
-        // levels of the tree). Mirrors the interned-key table size in the bc-java implementation, which defines
-        // the interchange format's cache-count limit.
+        // The number of tree nodes eligible for the cache (nodes 1 .. CacheTopLimit - 1: the top six levels of the
+        // tree), in memory and in the persisted trailer alike. Mirrors the interned-key table size in the bc-java
+        // implementation, which defines the interchange format's cache-count limit.
         private const int CacheTopLimit = 64;
 
         private readonly byte[] I;
@@ -27,7 +27,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly LMOtsParameters otsParameters;
         private readonly int maxQ;
         private readonly byte[] masterSecret;
-        // TODO Java uses a WeakHashMap
+        // Nodes 1 .. maxCacheR - 1 of the Merkle tree, computed on demand and then kept for the life of the key (at
+        // most 63 nodes, about 2 KB). Every deeper node is recomputed each time it is needed, so a signature costs
+        // about 2^(h - 5) leaf derivations below the cached top. bc-java holds the same top in interned keys of a
+        // WeakHashMap and lets deeper nodes come and go with the garbage collector; .NET has no weak-keyed map with
+        // those semantics, and an unbounded cache of every node reaches 2 GB at h = 25.
+        // TODO[lms] Retain the current authentication path and its ancestor chain, updated as q advances, so that
+        // consecutive signatures reuse the nodes they share (amortised about two leaf derivations per signature).
         private readonly ConcurrentDictionary<int, byte[]> tCache;
         private readonly int maxCacheR;
 
@@ -62,7 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.I = Arrays.Clone(I);
             this.maxQ = maxQ;
             this.masterSecret = Arrays.Clone(masterSecret);
-            this.maxCacheR = 1 << (sigParameters.H + 1);
+            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
             this.tCache = new ConcurrentDictionary<int, byte[]>();
         }
 
@@ -82,13 +88,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.I = new byte[0];
             this.maxQ = maxQ;
             this.masterSecret = new byte[0];
-            this.maxCacheR = 1 << (sigParameters.H + 1);
+            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
             this.tCache = new ConcurrentDictionary<int, byte[]>();
             this.m_isPlaceholder = true;
         }
 
         private LmsPrivateKeyParameters(LmsPrivateKeyParameters parent, int q, int maxQ)
-            : this(parent, q, maxQ, 1 << parent.sigParameters.H)
+            : this(parent, q, maxQ, System.Math.Min(CacheTopLimit, 1 << parent.sigParameters.H))
         {
         }
 
@@ -675,7 +681,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // those.
             //
 
-            int cacheTop = System.Math.Min(CacheTopLimit, maxCacheR);
+            // The whole of the in-memory cache is eligible, so a decoded key resumes with the cache it was encoded
+            // with; FindT computes any node not yet there.
+            int cacheTop = maxCacheR;
 
             Composer composer = Composer.Compose()
                 .U32Str(0) // version
