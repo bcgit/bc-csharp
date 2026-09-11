@@ -2,37 +2,38 @@ using System.Collections.Generic;
 using System.IO;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
+
+using NistOids = Org.BouncyCastle.Asn1.Nist.NistObjectIdentifiers;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     public sealed class LMSigParameters
     {
-        public static LMSigParameters lms_sha256_n32_h5 = new LMSigParameters(5, 32, 5, NistObjectIdentifiers.IdSha256);
-        public static LMSigParameters lms_sha256_n32_h10 = new LMSigParameters(6, 32, 10, NistObjectIdentifiers.IdSha256);
-        public static LMSigParameters lms_sha256_n32_h15 = new LMSigParameters(7, 32, 15, NistObjectIdentifiers.IdSha256);
-        public static LMSigParameters lms_sha256_n32_h20 = new LMSigParameters(8, 32, 20, NistObjectIdentifiers.IdSha256);
-        public static LMSigParameters lms_sha256_n32_h25 = new LMSigParameters(9, 32, 25, NistObjectIdentifiers.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n32_h5 = Create(5, 32, 5, NistOids.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n32_h10 = Create(6, 32, 10, NistOids.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n32_h15 = Create(7, 32, 15, NistOids.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n32_h20 = Create(8, 32, 20, NistOids.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n32_h25 = Create(9, 32, 25, NistOids.IdSha256);
 
-        public static LMSigParameters lms_sha256_n24_h5 = new LMSigParameters(10, 24, 5, NistObjectIdentifiers.IdSha256);
-        public static LMSigParameters lms_sha256_n24_h10 = new LMSigParameters(11, 24, 10, NistObjectIdentifiers.IdSha256);
-        public static LMSigParameters lms_sha256_n24_h15 = new LMSigParameters(12, 24, 15, NistObjectIdentifiers.IdSha256);
-        public static LMSigParameters lms_sha256_n24_h20 = new LMSigParameters(13, 24, 20, NistObjectIdentifiers.IdSha256);
-        public static LMSigParameters lms_sha256_n24_h25 = new LMSigParameters(14, 24, 25, NistObjectIdentifiers.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n24_h5 = Create(10, 24, 5, NistOids.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n24_h10 = Create(11, 24, 10, NistOids.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n24_h15 = Create(12, 24, 15, NistOids.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n24_h20 = Create(13, 24, 20, NistOids.IdSha256);
+        public static readonly LMSigParameters lms_sha256_n24_h25 = Create(14, 24, 25, NistOids.IdSha256);
 
-        public static LMSigParameters lms_shake256_n32_h5 = new LMSigParameters(15, 32, 5, NistObjectIdentifiers.IdShake256Len);
-        public static LMSigParameters lms_shake256_n32_h10 = new LMSigParameters(16, 32, 10, NistObjectIdentifiers.IdShake256Len);
-        public static LMSigParameters lms_shake256_n32_h15 = new LMSigParameters(17, 32, 15, NistObjectIdentifiers.IdShake256Len);
-        public static LMSigParameters lms_shake256_n32_h20 = new LMSigParameters(18, 32, 20, NistObjectIdentifiers.IdShake256Len);
-        public static LMSigParameters lms_shake256_n32_h25 = new LMSigParameters(19, 32, 25, NistObjectIdentifiers.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n32_h5 = Create(15, 32, 5, NistOids.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n32_h10 = Create(16, 32, 10, NistOids.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n32_h15 = Create(17, 32, 15, NistOids.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n32_h20 = Create(18, 32, 20, NistOids.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n32_h25 = Create(19, 32, 25, NistOids.IdShake256Len);
 
-        public static LMSigParameters lms_shake256_n24_h5 = new LMSigParameters(20, 24, 5, NistObjectIdentifiers.IdShake256Len);
-        public static LMSigParameters lms_shake256_n24_h10 = new LMSigParameters(21, 24, 10, NistObjectIdentifiers.IdShake256Len);
-        public static LMSigParameters lms_shake256_n24_h15 = new LMSigParameters(22, 24, 15, NistObjectIdentifiers.IdShake256Len);
-        public static LMSigParameters lms_shake256_n24_h20 = new LMSigParameters(23, 24, 20, NistObjectIdentifiers.IdShake256Len);
-        public static LMSigParameters lms_shake256_n24_h25 = new LMSigParameters(24, 24, 25, NistObjectIdentifiers.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n24_h5 = Create(20, 24, 5, NistOids.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n24_h10 = Create(21, 24, 10, NistOids.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n24_h15 = Create(22, 24, 15, NistOids.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n24_h20 = Create(23, 24, 20, NistOids.IdShake256Len);
+        public static readonly LMSigParameters lms_shake256_n24_h25 = Create(24, 24, 25, NistOids.IdShake256Len);
 
         private static Dictionary<int, LMSigParameters> ParametersByID = new Dictionary<int, LMSigParameters>
         {
@@ -72,12 +73,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return parameters;
         }
 
+        private static LMSigParameters Create(int id, int m, int h, DerObjectIdentifier digestOid) =>
+            new LMSigParameters(id, m, h, digestOid);
+
         private readonly int m_id;
         private readonly int m_m;
         private readonly int m_h;
         private readonly DerObjectIdentifier m_digestOid;
 
-        internal LMSigParameters(int id, int m, int h, DerObjectIdentifier digestOid)
+        private LMSigParameters(int id, int m, int h, DerObjectIdentifier digestOid)
         {
             m_id = id;
             m_m = m;

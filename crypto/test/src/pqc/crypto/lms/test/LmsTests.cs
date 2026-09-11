@@ -738,12 +738,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         }
 
         /*
-         * An LM-OTS signature is u32str(type) || C || y[0..p-1], so SigLen is 4 + n + p*n. The eight n=24 sets used to
-         * carry LMS signature sizes instead - the example rows of the additional-parameter-sets draft, w1 at h=25, w2 at
-         * h=20, w4 at h=10 and w8 at h=15 - i.e. 5436/2940/1500/1020 where 4828/2452/1252/652 was meant.
+         * p, ls and SigLen are derived from n and w (RFC 8554 Appendix B), so pin them to the published tables: RFC
+         * 8554 sec. 4.1 for n=32 and SP 800-208 sec. 4 for n=24. An LM-OTS signature is u32str(type) || C ||
+         * y[0..p-1], so SigLen is 4 + n + p*n; the eight n=24 sets used to carry LMS signature sizes instead - the
+         * example rows of the additional-parameter-sets draft, w1 at h=25, w2 at h=20, w4 at h=10 and w8 at h=15 -
+         * i.e. 5436/2940/1500/1020 where 4828/2452/1252/652 was meant.
          */
         [Test]
-        public void TestOtsSigLen()
+        public void TestOtsParameterTables()
         {
             LMOtsParameters[] all =
             {
@@ -756,9 +758,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 LMOtsParameters.shake256_n24_w1, LMOtsParameters.shake256_n24_w2,
                 LMOtsParameters.shake256_n24_w4, LMOtsParameters.shake256_n24_w8,
             };
-            foreach (LMOtsParameters ots in all)
+            int[] ws = { 1, 2, 4, 8 };
+            int[] p32 = { 265, 133, 67, 34 }, ls32 = { 7, 6, 4, 0 };
+            int[] p24 = { 200, 101, 51, 26 }, ls24 = { 8, 6, 4, 0 };
+
+            for (int i = 0; i < all.Length; ++i)
             {
-                Assert.AreEqual(4 + ots.N + ots.P * ots.N, ots.SigLen, "SigLen of LM-OTS type " + ots.ID);
+                LMOtsParameters ots = all[i];
+                int col = i % 4;
+                int n = (i / 4) % 2 == 0 ? 32 : 24;
+                int p = n == 32 ? p32[col] : p24[col];
+                int ls = n == 32 ? ls32[col] : ls24[col];
+                string label = "LM-OTS type " + (i + 1);
+
+                Assert.AreEqual(i + 1, ots.ID, label);
+                Assert.AreEqual(n, ots.N, label);
+                Assert.AreEqual(ws[col], ots.W, label);
+                Assert.AreEqual(p, ots.P, label);
+                Assert.AreEqual(ls, ots.Ls, label);
+                Assert.AreEqual(4 + n + p * n, ots.SigLen, label);
             }
 
             // and against real signatures, one set per hash length and function
