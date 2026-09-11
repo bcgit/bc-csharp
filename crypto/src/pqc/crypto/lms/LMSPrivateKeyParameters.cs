@@ -514,6 +514,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetI() => Arrays.Clone(I);
 
+        // TODO[api] Remove. A seed handed out alone is a second copy of the key with no index attached - the state
+        // duplication SP 800-208 rules out - and GetEncoded carries the index, usage limit and tree cache with it.
+        [Obsolete("Use 'GetEncoded' instead")]
         public byte[] GetMasterSecret()
         {
             byte[] rv = Arrays.Clone(masterSecret);
