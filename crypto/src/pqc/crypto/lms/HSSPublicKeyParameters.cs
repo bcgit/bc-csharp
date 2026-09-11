@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             catch (IOException e)
             {
-                throw new Exception("cannot parse signature", e);
+                throw new IOException("cannot parse signature", e);
             }
 
             LmsSignedPubKey[] signedPubKeys = signature.SignedPubKeys;

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Crypto;
@@ -156,14 +155,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 if (!Lms.VerifySignature(key, sig, msg))
                     return false;
 
-                try
-                {
-                    key = pubList[i];
-                }
-                catch (Exception ex)
-                {
-                    throw new Exception(ex.Message, ex);
-                }
+                key = pubList[i];
             }
             return Lms.VerifySignature(key, sigList[Nspk], message);
         }

@@ -639,7 +639,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             catch (IOException e)
             {
-                throw new Exception($"unable to encode signature: {e.Message}", e);
+                throw new InvalidOperationException("unable to encode signature", e);
             }
         }
 

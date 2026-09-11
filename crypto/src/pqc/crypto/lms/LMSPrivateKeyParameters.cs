@@ -425,7 +425,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public LmsContext GenerateLmsContext()
         {
             if (m_isPlaceholder)
-                throw new Exception("placeholder only");
+                throw new InvalidOperationException("placeholder only");
 
             // Step 1.
             LMSigParameters lmsParameter = SigParameters;
@@ -470,7 +470,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
             catch (IOException e)
             {
-                throw new Exception($"unable to encode signature: {e.Message}", e);
+                throw new InvalidOperationException("unable to encode signature", e);
             }
         }
 
@@ -536,7 +536,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public LmsPublicKeyParameters GetPublicKey()
         {
             if (m_isPlaceholder)
-                throw new Exception("placeholder only");
+                throw new InvalidOperationException("placeholder only");
 
             lock (this)
             {

@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public Composer Pad(int v, int len)
         {
-            for (; len >= 0; len--)
+            for (; len > 0; len--)
             {
                 bos.WriteByte((byte)v);
             }
