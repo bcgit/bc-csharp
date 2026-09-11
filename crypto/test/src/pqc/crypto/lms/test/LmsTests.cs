@@ -807,6 +807,48 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
         }
 
+        /*
+         * RFC 8554 sec. 5.4.2 steps 2g and 2i: a signature whose LMS typecode is not the public key's, or whose leaf
+         * number lies outside the tree, is refused before any hashing rather than left to fail the final T1 compare
+         * or to run off the end of the path.
+         */
+        [Test]
+        public void TestVerifyRejectsWrongTypeAndLeafNumber()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w4;
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+            byte[] msg = Hex.Decode("48656c6c6f");
+
+            LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I, 1 << sigParams.H,
+                seed);
+            LmsPublicKeyParameters pub = key.GetPublicKey();
+            LmsSignature sig = Lms.GenerateSign(key, msg);
+            Assert.True(Lms.VerifySignature(pub, sig, msg));
+
+            // 2g: same hash function, different height
+            LmsSignature wrongType = new LmsSignature(sig.Q, sig.OtsSignature, LMSigParameters.lms_sha256_n32_h10,
+                sig.Y);
+            var ex = Assert.Throws<ArgumentException>(() => Lms.VerifySignature(pub, wrongType, msg));
+            Assert.True(ex.Message.Contains("lms type"));
+
+            // 2i: at and beyond 2^h, and negative
+            foreach (int q in new int[] { 1 << sigParams.H, -1, int.MaxValue })
+            {
+                LmsSignature wrongQ = new LmsSignature(q, sig.OtsSignature, sig.SigParameters, sig.Y);
+                ex = Assert.Throws<ArgumentException>(() => Lms.VerifySignature(pub, wrongQ, msg));
+                Assert.True(ex.Message.Contains("leaf number"));
+            }
+
+            // the signer reports a refusal as a failed verification
+            LmsSigner verifier = new LmsSigner();
+            verifier.Init(false, pub);
+            LmsSignature qTooLarge = new LmsSignature(1 << sigParams.H, sig.OtsSignature, sig.SigParameters, sig.Y);
+            Assert.False(verifier.VerifySignature(msg, qTooLarge.GetEncoded()));
+            Assert.True(verifier.VerifySignature(msg, sig.GetEncoded()));
+        }
+
         private static int ReadU32(byte[] buf, int off) =>
             (buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3];
 

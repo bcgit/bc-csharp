@@ -122,6 +122,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal LmsContext GenerateOtsContext(LmsSignature S)
         {
+            // RFC 8554 sec. 5.4.2: the signature's LMS typecode must be the public key's (step 2g) and its leaf
+            // number must lie within the tree (step 2i). Otherwise the verification takes h and the hash function
+            // from the signature rather than the key, and node_num walks outside the tree; neither is a forgery
+            // by itself, since T1 still has to match, but both are refused up front.
+            if (S.SigParameters.ID != parameterSet.ID)
+                throw new ArgumentException("lms type from lms signature does not match the public key's lms type");
+            if (S.Q < 0 || S.Q >= (1 << parameterSet.H))
+                throw new ArgumentException("lms leaf number q from lms signature is outside the tree");
+
             int ots_typecode = GetOtsParameters().ID;
             if (S.OtsSignature.ParamType.ID != ots_typecode)
             {
