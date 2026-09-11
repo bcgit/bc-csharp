@@ -737,6 +737,58 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 #endif
         }
 
+        /*
+         * An LM-OTS signature is u32str(type) || C || y[0..p-1], so SigLen is 4 + n + p*n. The eight n=24 sets used to
+         * carry LMS signature sizes instead - the example rows of the additional-parameter-sets draft, w1 at h=25, w2 at
+         * h=20, w4 at h=10 and w8 at h=15 - i.e. 5436/2940/1500/1020 where 4828/2452/1252/652 was meant.
+         */
+        [Test]
+        public void TestOtsSigLen()
+        {
+            LMOtsParameters[] all =
+            {
+                LMOtsParameters.sha256_n32_w1, LMOtsParameters.sha256_n32_w2,
+                LMOtsParameters.sha256_n32_w4, LMOtsParameters.sha256_n32_w8,
+                LMOtsParameters.sha256_n24_w1, LMOtsParameters.sha256_n24_w2,
+                LMOtsParameters.sha256_n24_w4, LMOtsParameters.sha256_n24_w8,
+                LMOtsParameters.shake256_n32_w1, LMOtsParameters.shake256_n32_w2,
+                LMOtsParameters.shake256_n32_w4, LMOtsParameters.shake256_n32_w8,
+                LMOtsParameters.shake256_n24_w1, LMOtsParameters.shake256_n24_w2,
+                LMOtsParameters.shake256_n24_w4, LMOtsParameters.shake256_n24_w8,
+            };
+            foreach (LMOtsParameters ots in all)
+            {
+                Assert.AreEqual(4 + ots.N + ots.P * ots.N, ots.SigLen, "SigLen of LM-OTS type " + ots.ID);
+            }
+
+            // and against real signatures, one set per hash length and function
+            LmsParameters[] samples =
+            {
+                new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                new LmsParameters(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4),
+                new LmsParameters(LMSigParameters.lms_shake256_n24_h5, LMOtsParameters.shake256_n24_w1),
+            };
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+            byte[] msg = Hex.Decode("48656c6c6f");
+
+            foreach (LmsParameters lms in samples)
+            {
+                LMSigParameters sigParams = lms.LMSigParameters;
+                LMOtsParameters otsParams = lms.LMOtsParameters;
+
+                LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I,
+                    1 << sigParams.H, seed);
+                LmsSignature sig = Lms.GenerateSign(key, msg);
+
+                Assert.AreEqual(otsParams.SigLen, sig.OtsSignature.GetEncoded().Length, "LM-OTS type " + otsParams.ID);
+
+                // the LMS signature adds u32str(q), u32str(type) and the h path nodes (RFC 8554 sec. 5.4)
+                Assert.AreEqual(4 + otsParams.SigLen + 4 + sigParams.H * sigParams.M, sig.GetEncoded().Length,
+                    "LMS type " + sigParams.ID);
+            }
+        }
+
         private static int ReadU32(byte[] buf, int off) =>
             (buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3];
 
