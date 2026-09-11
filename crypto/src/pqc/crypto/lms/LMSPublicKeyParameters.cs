@@ -108,17 +108,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
-        public LmsContext GenerateLmsContext(byte[] signature)
-        {
-            try
-            {
-                return GenerateOtsContext(LmsSignature.GetInstance(signature));
-            }
-            catch (IOException e)
-            {
-                throw new IOException("cannot parse signature", e);
-            }
-        }
+        public LmsContext GenerateLmsContext(byte[] signature) =>
+            GenerateOtsContext(LmsSignature.GetInstance(signature));
 
         internal LmsContext GenerateOtsContext(LmsSignature S)
         {

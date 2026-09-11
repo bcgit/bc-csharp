@@ -88,15 +88,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public LmsContext GenerateLmsContext(byte[] sigEnc)
         {
-            HssSignature signature;
-            try
-            {
-                signature = HssSignature.GetInstance(sigEnc, Level);
-            }
-            catch (IOException e)
-            {
-                throw new IOException("cannot parse signature", e);
-            }
+            HssSignature signature = HssSignature.GetInstance(sigEnc, Level);
 
             LmsSignedPubKey[] signedPubKeys = signature.SignedPubKeys;
             LmsPublicKeyParameters key = LmsPublicKey;
