@@ -14,6 +14,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 throw new ArgumentNullException(nameof(lmsParameters));
             if (lmsParameters.Length < 1 || lmsParameters.Length > 8)  // RFC 8554, Section 6.
                 throw new ArgumentException("length should be between 1 and 8 inclusive", nameof(lmsParameters));
+
+            // SP 800-208 sec. 4: one hash function throughout - within each level and across the hierarchy
+            for (int i = 0; i < lmsParameters.Length; ++i)
+            {
+                LmsParameters level = lmsParameters[i];
+                if (level == null)
+                    throw new ArgumentException($"HSS level {i} has no parameters", nameof(lmsParameters));
+
+                level.CheckHashFunction();
+
+                if (!level.SameHashFunctionAs(lmsParameters[0]))
+                {
+                    throw new ArgumentException(
+                        $"HSS level {i} uses a different hash function from level 0 (SP 800-208 sec. 4)",
+                        nameof(lmsParameters));
+                }
+            }
+
             return lmsParameters;
         }
 

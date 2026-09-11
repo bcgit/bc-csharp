@@ -1,3 +1,5 @@
+using System;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     public sealed class LmsParameters
@@ -14,5 +16,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public LMSigParameters LMSigParameters => m_lmSigParameters;
 
         public LMOtsParameters LMOtsParameters => m_lmOtsParameters;
+
+        /// <summary>
+        /// SP 800-208 sec. 4 requires one hash function throughout a key: the LMS tree and its LM-OTS keys here,
+        /// and every level of an HSS hierarchy. A hash function is its digest and its output length, so SHA-256/192
+        /// is distinct from SHA-256; that is also what keeps an n=24 parent from deriving a 24-byte seed for an
+        /// m=32 child. Applied at key generation only: an existing key is taken as it was made.
+        /// </summary>
+        internal void CheckHashFunction()
+        {
+            if (m_lmSigParameters == null || m_lmOtsParameters == null)
+                throw new ArgumentException("LMS parameters need both an LMS and an LM-OTS parameter set");
+
+            if (m_lmSigParameters.M != m_lmOtsParameters.N ||
+                !m_lmSigParameters.DigestOid.Equals(m_lmOtsParameters.DigestOid))
+            {
+                throw new ArgumentException(
+                    "LMS tree and LM-OTS parameter sets must use the same hash function (SP 800-208 sec. 4)");
+            }
+        }
+
+        internal bool SameHashFunctionAs(LmsParameters other) =>
+            m_lmSigParameters.M == other.m_lmSigParameters.M &&
+            m_lmSigParameters.DigestOid.Equals(other.m_lmSigParameters.DigestOid);
     }
 }
