@@ -27,16 +27,44 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly LMOtsParameters otsParameters;
         private readonly int maxQ;
         private readonly byte[] masterSecret;
-        // Nodes 1 .. maxCacheR - 1 of the Merkle tree, computed on demand and then kept for the life of the key (at
-        // most 63 nodes, about 2 KB). Every deeper node is recomputed each time it is needed, so a signature costs
-        // about 2^(h - 5) leaf derivations below the cached top. bc-java holds the same top in interned keys of a
-        // WeakHashMap and lets deeper nodes come and go with the garbage collector; .NET has no weak-keyed map with
-        // those semantics, and an unbounded cache of every node reaches 2 GB at h = 25.
-        // TODO[lms] Retain the current authentication path and its ancestor chain, updated as q advances, so that
-        // consecutive signatures reuse the nodes they share (amortised about two leaf derivations per signature).
+        // Two tiers of Merkle tree nodes are kept, neither of them secret: every node is published in some signature
+        // or recomputed by every verifier.
+        //
+        // tCache holds nodes 1 .. maxCacheR - 1 (at most 63, about 2 KB), computed on demand and kept for the life
+        // of the key. It is the tier the encoding persists, so a decoded key resumes with it. bc-java holds the same
+        // top in interned keys of a WeakHashMap and lets deeper nodes come and go with the garbage collector; .NET
+        // has no weak-keyed map with those semantics, and an unbounded cache of every node reaches 2 GB at h = 25.
+        //
+        // m_retained holds the authentication path of the last one-time key signed with, together with the chain of
+        // its ancestors, and is advanced under the key's lock as q is allocated (AdvanceRetainedPath). Consecutive
+        // signatures share most of their path, so a signature costs about (h - 5) / 2 + 1 leaf derivations
+        // amortised, in place of the 2^(h - 5) it takes to rebuild the path below the cached top every time. The
+        // worst case (crossing into the other half of the tree) is still that rebuild; only a scheduled traversal
+        // (BDS) would smooth it.
+        //
+        // The arrays of both tiers are handed out by reference to contexts and signatures and must never be modified
+        // or wiped.
         private readonly byte[][] tCache;
         private readonly int maxCacheR;
         private readonly Func<int, byte[]> m_calcT;
+        private RetainedPath m_retained;
+
+        // The authentication path of one-time key Q with the ancestors of its leaf, indexed by level from the leaf
+        // (0) up to just below the root (h - 1). Immutable: a key replaces it wholesale under its lock, and a shard
+        // or repositioned key inherits the parent's current instance by reference.
+        private sealed class RetainedPath
+        {
+            internal readonly int Q;
+            internal readonly byte[][] Path; // Path[i] is the sibling of Anc[i]
+            internal readonly byte[][] Anc;  // Anc[0] is the leaf node of Q itself
+
+            internal RetainedPath(int q, byte[][] path, byte[][] anc)
+            {
+                Q = q;
+                Path = path;
+                Anc = anc;
+            }
+        }
 
         private int q;
         private readonly bool m_isPlaceholder;
@@ -101,9 +129,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
         }
 
-        // TODO[lms] I, masterSecret and tCache are shared by reference with the parent. Disposal of either key
-        // must account for the shards and repositioned keys derived from it, and a CalcT racing a wipe would
-        // cache a node computed from zeroed input in the shared tCache.
+        // TODO[lms] I, masterSecret and tCache are shared by reference with the parent (m_retained too, but it is
+        // immutable and holds no secrets). Disposal of either key must account for the shards and repositioned keys
+        // derived from it, and a CalcT racing a wipe would cache or retain a node computed from zeroed input.
         private LmsPrivateKeyParameters(LmsPrivateKeyParameters parent, int q, int maxQ, int maxCacheR)
             : base(true)
         {
@@ -116,6 +144,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.maxCacheR = maxCacheR;
             this.tCache = parent.tCache;
             this.m_calcT = CalcT;
+            this.m_retained = parent.m_retained;
             this.m_publicKey = parent.m_publicKey;
         }
 
@@ -437,16 +466,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (m_isPlaceholder)
                 throw new InvalidOperationException("placeholder only");
 
-            // Step 1.
-            LMSigParameters lmsParameter = SigParameters;
-
-            // Step 2
-            int h = lmsParameter.H;
             int q;
+            byte[][] path;
 
             //
             // The index is claimed before the context is handed out, so a one-time key is never issued
-            // twice even if the caller then abandons the context.
+            // twice even if the caller then abandons the context. The path is built under the same lock so
+            // that the retained path advances in step with the index.
             //
             lock (this)
             {
@@ -456,20 +482,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     throw new ExhaustedPrivateKeyException("ots private key exhausted");
 
                 q = this.q++;
+                path = AdvanceRetainedPath(q);
             }
 
-            int i = 0;
-            int r = (1 << h) + q;
-            byte[][] path = new byte[h][];
-
-            while (i < h)
-            {
-                int tmp = (r / (1 << i)) ^ 1;
-
-                path[i++] = FindT(tmp);
-            }
-
-            return LmsEngine.GenerateSignContext(lmsParameter, otsParameters, I, q, masterSecret, path);
+            return LmsEngine.GenerateSignContext(sigParameters, otsParameters, I, q, masterSecret, path);
         }
 
         public byte[] GenerateSignature(LmsContext context)
@@ -576,48 +592,102 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private byte[] CalcT(int r)
         {
-            LMSigParameters sigParameters = SigParameters;
+            int twoToh = 1 << sigParameters.H;
+
+            // r is a base 1 index.
+            if (r < twoToh)
+                return HashInterior(r, FindT(2 * r), FindT(2 * r + 1));
+
+            CheckDisposed();
 
             var tDigest = LmsUtilities.GetDigest(sigParameters);
 
-            int h = sigParameters.H;
+            LmsUtilities.ByteArray(I, tDigest);
+            LmsUtilities.U32Str(r, tDigest);
+            LmsUtilities.U16Str((short)Lms.D_LEAF, tDigest);
 
-            int twoToh = 1 << h;
+            byte[] K = LMOts.LmsOtsGeneratePublicKey(otsParameters, I, r - twoToh, masterSecret);
+
+            LmsUtilities.ByteArray(K, tDigest);
 
             byte[] T = new byte[tDigest.GetDigestSize()];
-
-            // r is a base 1 index.
-
-            if (r >= twoToh)
-            {
-                //
-                // These can be pre generated at the time of key generation and held within the private key.
-                // However it will cost memory to have them stick around.
-                //
-                CheckDisposed();
-
-                LmsUtilities.ByteArray(I, tDigest);
-                LmsUtilities.U32Str(r, tDigest);
-                LmsUtilities.U16Str((short)Lms.D_LEAF, tDigest);
-
-                byte[] K = LMOts.LmsOtsGeneratePublicKey(otsParameters, I, r - twoToh, masterSecret);
-
-                LmsUtilities.ByteArray(K, tDigest);
-            }
-            else
-            {
-                byte[] t2r = FindT(2 * r);
-                byte[] t2rPlus1 = FindT(2 * r + 1);
-
-                LmsUtilities.ByteArray(I, tDigest);
-                LmsUtilities.U32Str(r, tDigest);
-                LmsUtilities.U16Str((short)Lms.D_INTR, tDigest);
-                LmsUtilities.ByteArray(t2r, tDigest);
-                LmsUtilities.ByteArray(t2rPlus1, tDigest);
-            }
-
             tDigest.DoFinal(T, 0);
             return T;
+        }
+
+        private byte[] HashInterior(int r, byte[] left, byte[] right)
+        {
+            var tDigest = LmsUtilities.GetDigest(sigParameters);
+
+            LmsUtilities.ByteArray(I, tDigest);
+            LmsUtilities.U32Str(r, tDigest);
+            LmsUtilities.U16Str((short)Lms.D_INTR, tDigest);
+            LmsUtilities.ByteArray(left, tDigest);
+            LmsUtilities.ByteArray(right, tDigest);
+
+            byte[] T = new byte[tDigest.GetDigestSize()];
+            tDigest.DoFinal(T, 0);
+            return T;
+        }
+
+        // Called under lock(this). Build the authentication path of one-time key q, reusing whatever it shares
+        // with the path of the last one-time key signed with, and retain the result in its place.
+        private byte[][] AdvanceRetainedPath(int q)
+        {
+            int h = sigParameters.H;
+            int r = (1 << h) + q;
+
+            byte[][] path = new byte[h][];
+            byte[][] anc = new byte[h][];
+
+            // Levels below 'fresh' need computing; levels from 'fresh' up are shared with the retained path.
+            int fresh = h;
+
+            RetainedPath old = m_retained;
+            if (old != null)
+            {
+                // The paths of q and old.Q agree above the highest bit in which the two differ. At that level the
+                // roles swap: the old ancestor (root of the subtree just left) becomes the new sibling, and the old
+                // sibling (root of the subtree now entered) becomes the new ancestor.
+                int b = Integers.BitLength(q ^ old.Q);
+                if (b == 0)
+                    return old.Path;
+
+                for (int i = b; i < h; ++i)
+                {
+                    path[i] = old.Path[i];
+                    anc[i] = old.Anc[i];
+                }
+
+                path[b - 1] = old.Anc[b - 1];
+                anc[b - 1] = old.Path[b - 1];
+                fresh = b - 1;
+            }
+
+            // Below the divergence everything lies inside the subtree just entered: the siblings are subtrees that
+            // FindT computes (caching only those within the pinned top), and the ancestors fold up from the new
+            // leaf.
+            for (int i = 0; i < fresh; ++i)
+            {
+                path[i] = FindT((r >> i) ^ 1);
+            }
+
+            if (fresh > 0)
+            {
+                anc[0] = FindT(r);
+
+                for (int i = 1; i < fresh; ++i)
+                {
+                    byte[] child = anc[i - 1], sibling = path[i - 1];
+
+                    anc[i] = ((r >> (i - 1)) & 1) == 0
+                        ? HashInterior(r >> i, child, sibling)
+                        : HashInterior(r >> i, sibling, child);
+                }
+            }
+
+            m_retained = new RetainedPath(q, path, anc);
+            return path;
         }
 
         // TODO[api] Fix parameter name

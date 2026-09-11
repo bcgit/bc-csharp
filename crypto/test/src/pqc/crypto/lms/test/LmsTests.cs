@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 using NUnit.Framework;
 
@@ -846,6 +847,156 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LmsSignature qTooLarge = new LmsSignature(1 << sigParams.H, sig.OtsSignature, sig.SigParameters, sig.Y);
             Assert.False(verifier.VerifySignature(msg, qTooLarge.GetEncoded()));
             Assert.True(verifier.VerifySignature(msg, sig.GetEncoded()));
+        }
+
+        /// <summary>
+        /// The private key retains the authentication path of the last one-time key used and advances it to the
+        /// next, sharing what the two have in common; the shared prefix and the swap at the divergence level are
+        /// exercised at every level by signing a whole height-5 tree in order. A wrong node anywhere in a path makes
+        /// the signature fail to verify. (A guard for the retained path rather than a regression test: a key that
+        /// rebuilt every path from scratch would pass it too.)
+        /// </summary>
+        [Test]
+        public void RetainedPathCoversEveryDivergenceDepth()
+        {
+            SignInOrderAndVerify(LMSigParameters.lms_sha256_n32_h5, 1 << 5);
+            SignInOrderAndVerify(LMSigParameters.lms_sha256_n32_h10, 70); // past the pinned top's level
+        }
+
+        private static void SignInOrderAndVerify(LMSigParameters sigParams, int count)
+        {
+            LmsPrivateKeyParameters key = GenerateKey(sigParams, LMOtsParameters.sha256_n32_w8);
+            LmsPublicKeyParameters pub = key.GetPublicKey();
+            byte[] msg = Strings.ToByteArray("retained path");
+
+            for (int i = 0; i < count; ++i)
+            {
+                byte[] sig = Sign(key, msg);
+                Assert.AreEqual(i, LmsSignature.GetInstance(sig).Q);
+                Assert.True(Verify(pub, sig, msg), "signature " + i + " of " + sigParams.H + " did not verify");
+            }
+        }
+
+        /// <summary>
+        /// A shard inherits the retained path of its parent and the parent keeps signing after a jump over the
+        /// shard's range; a later shard makes a jump into the other half of the tree.
+        /// </summary>
+        [Test]
+        public void RetainedPathSurvivesShardsAndJumps()
+        {
+            LmsPrivateKeyParameters key = GenerateKey(LMSigParameters.lms_sha256_n32_h10, LMOtsParameters.sha256_n32_w8);
+            LmsPublicKeyParameters pub = key.GetPublicKey();
+            byte[] msg = Strings.ToByteArray("shards and jumps");
+            var seen = new HashSet<int>();
+
+            for (int i = 0; i < 4; ++i)
+            {
+                SignVerifyAndRecord(key, pub, msg, seen);
+            }
+
+            LmsPrivateKeyParameters shard = key.ExtractKeyShard(4);
+            for (int i = 0; i < 4; ++i)
+            {
+                SignVerifyAndRecord(shard, pub, msg, seen);
+            }
+            Assert.Throws<ExhaustedPrivateKeyException>(() => Sign(shard, msg));
+
+            for (int i = 0; i < 4; ++i)
+            {
+                SignVerifyAndRecord(key, pub, msg, seen);
+            }
+
+            LmsPrivateKeyParameters skip = key.ExtractKeyShard(500); // jump past the midpoint
+            Assert.AreEqual(512, key.GetIndex());
+            for (int i = 0; i < 3; ++i)
+            {
+                SignVerifyAndRecord(key, pub, msg, seen);
+            }
+            for (int i = 0; i < 3; ++i)
+            {
+                SignVerifyAndRecord(skip, pub, msg, seen);
+            }
+
+            Assert.AreEqual(18, seen.Count, "a one-time key was used twice");
+        }
+
+        private static void SignVerifyAndRecord(LmsPrivateKeyParameters key, LmsPublicKeyParameters pub, byte[] msg,
+            HashSet<int> seen)
+        {
+            int q = key.GetIndex();
+            byte[] sig = Sign(key, msg);
+            Assert.AreEqual(q, LmsSignature.GetInstance(sig).Q);
+            Assert.True(Verify(pub, sig, msg), "signature with q = " + q + " did not verify");
+            Assert.True(seen.Add(q));
+        }
+
+        /// <summary>
+        /// Several signers over one key share its retained path: every signature they produce verifies and no
+        /// one-time key is used twice.
+        /// </summary>
+        [Test]
+        public void ParallelSignersShareOneKey()
+        {
+            const int Threads = 4, PerThread = 64;
+
+            LmsPrivateKeyParameters key = GenerateKey(LMSigParameters.lms_sha256_n32_h10, LMOtsParameters.sha256_n32_w8);
+            LmsPublicKeyParameters pub = key.GetPublicKey();
+            byte[] msg = Strings.ToByteArray("parallel signers");
+
+            byte[][] sigs = new byte[Threads * PerThread][];
+            Exception[] failures = new Exception[Threads];
+            Thread[] threads = new Thread[Threads];
+
+            for (int t = 0; t < Threads; ++t)
+            {
+                int thread = t;
+                threads[t] = new Thread(() =>
+                {
+                    try
+                    {
+                        LmsSigner signer = new LmsSigner();
+                        signer.Init(true, key);
+                        for (int i = 0; i < PerThread; ++i)
+                        {
+                            sigs[thread * PerThread + i] = signer.GenerateSignature(msg);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        failures[thread] = e;
+                    }
+                });
+            }
+
+            foreach (Thread thread in threads)
+            {
+                thread.Start();
+            }
+            foreach (Thread thread in threads)
+            {
+                thread.Join();
+            }
+
+            for (int t = 0; t < Threads; ++t)
+            {
+                Assert.Null(failures[t], "signer " + t + " failed: " + failures[t]);
+            }
+            Assert.AreEqual(Threads * PerThread, key.GetIndex());
+
+            var seen = new HashSet<int>();
+            foreach (byte[] sig in sigs)
+            {
+                Assert.True(Verify(pub, sig, msg));
+                Assert.True(seen.Add(LmsSignature.GetInstance(sig).Q), "a one-time key was used twice");
+            }
+        }
+
+        private static LmsPrivateKeyParameters GenerateKey(LMSigParameters sigParams, LMOtsParameters otsParams)
+        {
+            SecureRandom random = new SecureRandom();
+            byte[] I = SecureRandom.GetNextBytes(random, 16);
+            byte[] seed = SecureRandom.GetNextBytes(random, 32);
+            return Lms.GenerateKeys(sigParams, otsParams, 0, I, seed);
         }
 
         private static int ReadU32(byte[] buf, int off) =>
