@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static ushort D_LEAF = 0x8282;
         internal static ushort D_INTR = 0x8383;
 
+        // TODO[api] Rename to GenerateKey
         public static LmsPrivateKeyParameters GenerateKeys(LMSigParameters parameterSet,
             LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] rootSeed)
         {
@@ -18,20 +19,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // RFC 8554 recommends that digest used in LMS and LMOTS be of the same strength to protect against
             // attackers going after the weaker of the two digests. This is not enforced here!
             //
-
-            // Algorithm 5, Compute LMS private key.
-
-            // Step 1
-            // -- Parameters passed in as arguments.
-
-
-            // Step 2
             if (rootSeed == null || rootSeed.Length < parameterSet.M)
-                throw new ArgumentException($"root seed is less than {parameterSet.M}");
+                throw new ArgumentException($"root seed length is less than {parameterSet.M}");
 
-            int twoToH = 1 << parameterSet.H;
-
-            return new LmsPrivateKeyParameters(parameterSet, lmOtsParameters, q, I, twoToH, rootSeed);
+            return new LmsPrivateKeyParameters(parameterSet, lmOtsParameters, q, I, 1 << parameterSet.H, rootSeed);
         }
 
         public static LmsSignature GenerateSign(LmsPrivateKeyParameters privateKey, byte[] message)
@@ -50,20 +41,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return GenerateSign(context);
         }
 
-        public static LmsSignature GenerateSign(LmsContext context)
-        {
-            //
-            // Get T from the public key.
-            // This may cause the public key to be generated.
-            //
-            // byte[][] T = new byte[privateKey.getMaxQ()][];
-
-            // Step 1.
-            LMOtsSignature ots_signature =
-                LMOts.LMOtsGenerateSignature(context.PrivateKey, context.GetQ(), context.C);
-
-            return new LmsSignature(context.PrivateKey.Q, ots_signature, context.SigParams, context.Path);
-        }
+        public static LmsSignature GenerateSign(LmsContext context) => LmsEngine.GenerateSign(context);
 
         public static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S, byte[] message)
         {

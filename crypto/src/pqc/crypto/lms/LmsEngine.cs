@@ -1,9 +1,70 @@
 using System;
+using System.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     internal static class LmsEngine
     {
+        //
+        // Signing.
+        //
+
+        /// <summary>
+        /// The context a message is absorbed into before signing with one-time key q of an LMS tree (RFC 8554 sec.
+        /// 5.4.1): the randomiser C is derived and the I || q || D_MESG || C prefix is already absorbed. Consumed by
+        /// <see cref="GenerateSign(LmsContext)"/>.
+        /// </summary>
+        internal static LmsContext GenerateSignContext(LMSigParameters sigParameters, LMOtsParameters otsParameters,
+            byte[] I, int q, byte[] masterSecret, byte[][] path)
+        {
+            return new LMOtsPrivateKey(otsParameters, I, q, masterSecret).GetSignatureContext(sigParameters, path);
+        }
+
+        /// <summary>
+        /// Attach the signed public key chain of an HSS signature (RFC 8554 sec. 6.1) to the context for its leaf tree,
+        /// so that <see cref="GenerateHssSignature(int, LmsContext)"/> can emit it.
+        /// </summary>
+        /// <param name="context">
+        /// The context to attach signed public keys to.
+        /// </param>
+        /// <param name="signedPubKeys">
+        /// The L - 1 chaining signatures, signatures[i] made by tree i over the public key of tree i + 1, with the
+        /// corresponding public key of tree i + 1.
+        /// </param>
+        internal static LmsContext WithSignedPublicKeys(LmsContext context, LmsSignedPubKey[] signedPubKeys) =>
+            context.WithSignedPublicKeys(signedPubKeys);
+
+        /// <summary>
+        /// Complete an LMS signature over the message absorbed into a context from
+        /// <see cref="GenerateSignContext(LMSigParameters, LMOtsParameters, byte[], int, byte[], byte[][])"/>.
+        /// </summary>
+        internal static LmsSignature GenerateSign(LmsContext context)
+        {
+            LMOtsSignature ots_signature = LMOts.LMOtsGenerateSignature(context.PrivateKey, context.GetQ(), context.C);
+
+            return new LmsSignature(context.PrivateKey.Q, ots_signature, context.SigParams, context.Path);
+        }
+
+        /// <summary>
+        /// Complete and encode an HSS signature over the message absorbed into a context from
+        /// <see cref="GenerateSignContext(LMSigParameters, LMOtsParameters, byte[], int, byte[], byte[][])"/> that has
+        /// had its chain attached with
+        /// <see cref="WithSignedPublicKeys(LmsContext, LmsSignedPubKey[])"/>.
+        /// </summary>
+        /// <param name="level">The number of levels in the HSS key.</param>
+        /// <param name="context">The context with the message and chain.</param>
+        internal static byte[] GenerateHssSignature(int level, LmsContext context)
+        {
+            try
+            {
+                return Hss.GenerateSignature(level, context).GetEncoded();
+            }
+            catch (IOException e)
+            {
+                throw new InvalidOperationException("unable to encode signature", e);
+            }
+        }
+
         /// <summary>
         /// Derive the identifier and master seed of the tree below one-time key q of an LMS tree (the child of leaf q
         /// in an HSS hierarchy).

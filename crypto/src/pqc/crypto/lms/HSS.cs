@@ -81,7 +81,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 RangeTestKeys(keyPair);
                 keyPair.IncIndex();
-                keyPair.GetKeys()[keyPair.Level - 1].IncIndex();
+                keyPair.GetKey(keyPair.Level - 1).IncIndex();
             }
         }
 

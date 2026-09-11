@@ -150,7 +150,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
          * SP 800-208 sec. 4: one hash function throughout a key - the LMS tree and its LM-OTS keys, and every level
          * of an HSS hierarchy - with SHA-256/192 distinct from SHA-256. Refused at the key generation parameters,
          * where the choice is made, rather than deep inside key generation (an n=24 parent over an m=32 child used
-         * to surface as "root seed is less than 32").
+         * to surface as "root seed length is less than 32").
          */
         [Test]
         public void MixedHashFunctionsRejected()

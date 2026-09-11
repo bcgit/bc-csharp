@@ -459,7 +459,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 path[i++] = FindT(tmp);
             }
 
-            return new LMOtsPrivateKey(otsParameters, I, q, masterSecret).GetSignatureContext(sigParameters, path);
+            return LmsEngine.GenerateSignContext(lmsParameter, otsParameters, I, q, masterSecret, path);
         }
 
         public byte[] GenerateSignature(LmsContext context)

@@ -6,7 +6,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    public sealed class HssSigner 
+    public sealed class HssSigner
         : IMessageSigner
     {
         private HssPrivateKeyParameters m_privateKey;

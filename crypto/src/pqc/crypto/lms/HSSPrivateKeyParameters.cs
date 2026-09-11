@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public long GetUsagesRemaining() => IndexLimit - GetIndex();
 
-        internal LmsPrivateKeyParameters GetRootKey() => GetKeys()[0];
+        internal LmsPrivateKeyParameters GetRootKey() => GetKey(0);
 
         /**
          * Return a key that can be used usageCount times.
@@ -317,6 +317,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 return shard;
             }
+        }
+
+        internal LmsPrivateKeyParameters GetKey(int index)
+        {
+            lock (this) return m_keys[index];
         }
 
         // TODO[api] This is not public in bc-java (promoted API)
@@ -416,8 +421,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     //
                     // Ensure post increment occurs on parent and the new public key is signed.
                     //
-                    // TODO Update per bc-java 'signPublicKey'
-                    sig[i - 1] = Lms.GenerateSign(keys[i - 1], keys[i].GetPublicKey().ToByteArray());
+                    sig[i - 1] = SignPublicKey(keys[i - 1], keys[i].GetPublicKey());
                     changed = true;
                 }
                 else if (!lmsQMatch)
@@ -486,10 +490,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             var newSig = new List<LmsSignature>(m_sig);
 
-            newSig[d - 1] = Lms.GenerateSign(newKeys[d - 1], newKeys[d].GetPublicKey().ToByteArray());
+            newSig[d - 1] = SignPublicKey(newKeys[d - 1], newKeys[d].GetPublicKey());
 
             this.m_keys = new List<LmsPrivateKeyParameters>(newKeys);
             this.m_sig = new List<LmsSignature>(newSig);
+        }
+
+        /// <summary>
+        /// The chaining signature of an HSS hierarchy: a tree signs the public key of the tree below it, consuming one
+        /// of its one-time keys.
+        /// </summary>
+        private static LmsSignature SignPublicKey(LmsPrivateKeyParameters signer, LmsPublicKeyParameters publicKey)
+        {
+            // TODO[lms] Move this helper to LmsEngine
+            return Lms.GenerateSign(signer, publicKey.ToByteArray());
+
+            //LmsContext context = signer.GenerateLmsContext();
+
+            //byte[] encoded = publicKey.ToByteArray();
+            //context.BlockUpdate(encoded, 0, encoded.Length);
+
+            //return LmsEngine.GenerateSign(context);
         }
 
         public override bool Equals(object obj)
@@ -628,20 +649,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 this.IncIndex();
             }
 
-            return context.WithSignedPublicKeys(signed_pub_key);
+            return LmsEngine.WithSignedPublicKeys(context, signed_pub_key);
         }
 
-        public byte[] GenerateSignature(LmsContext context)
-        {
-            try
-            {
-                return Hss.GenerateSignature(Level, context).GetEncoded();
-            }
-            catch (IOException e)
-            {
-                throw new InvalidOperationException("unable to encode signature", e);
-            }
-        }
+        public byte[] GenerateSignature(LmsContext context) => LmsEngine.GenerateHssSignature(Level, context);
 
         private void CheckDisposed()
         {

@@ -391,16 +391,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     Arrays.AreEqual(regenKeyPair.GetPublicKey().GetEncoded(), keyPair.GetPublicKey().GetEncoded()),
                     "Both generated keys are the same");
 
-                Assert.True(keyPair.GetKeys().Count == regenKeyPair.GetKeys().Count,
-                    "same private key size");
+                var keyPairKeys = keyPair.GetKeys();
+                var regenKeyPairKeys = regenKeyPair.GetKeys();
 
-                for (int t = 0; t < keyPair.GetKeys().Count; t++)
+                Assert.AreEqual(keyPairKeys.Count, regenKeyPairKeys.Count, "same private key size");
+
+                for (int t = 0; t < keyPairKeys.Count; t++)
                 {
                     //
                     // Check the private keys can be encoded and are the same.
                     //
-                    byte[] pk1 = keyPair.GetKeys()[t].GetEncoded();
-                    byte[] pk2 = regenKeyPair.GetKeys()[t].GetEncoded();
+                    byte[] pk1 = keyPairKeys[t].GetEncoded();
+                    byte[] pk2 = regenKeyPairKeys[t].GetEncoded();
                     Assert.True(Arrays.AreEqual(pk1, pk2));
 
                     //
@@ -410,7 +412,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     LmsPrivateKeyParameters pk2O = LmsPrivateKeyParameters.GetInstance(pk2);
 
                     Assert.True(pk1O.Equals(pk2O), "LmsPrivateKey still equal after deserialization");
-
                 }
             }
 
@@ -436,13 +437,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     Arrays.AreEqual(differentKey.GetPublicKey().GetEncoded(), keyPair.GetPublicKey().GetEncoded()),
                     "Both generated keys are not the same");
 
-                for (int t = 0; t < keyPair.GetKeys().Count; t++)
+                var keyPairKeys = keyPair.GetKeys();
+                var differentKeyKeys = differentKey.GetKeys();
+
+                for (int t = 0; t < keyPairKeys.Count; t++)
                 {
                     //
                     // Check the private keys can be encoded and are not the same.
                     //
-                    byte[] pk1 = keyPair.GetKeys()[t].GetEncoded();
-                    byte[] pk2 = differentKey.GetKeys()[t].GetEncoded();
+                    byte[] pk1 = keyPairKeys[t].GetEncoded();
+                    byte[] pk2 = differentKeyKeys[t].GetEncoded();
                     Assert.False(Arrays.AreEqual(pk1, pk2), "keys not the same");
 
                     //
@@ -761,7 +765,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             );
 
 
-            LmsPrivateKeyParameters lmsKey = keyPair.GetKeys()[keyPair.L - 1];
+            LmsPrivateKeyParameters lmsKey = keyPair.GetKey(keyPair.L - 1);
             //
             // There should be a max of 32768 signatures for this key.
             //
@@ -802,7 +806,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             //
             // This should trigger the generation of a new key.
             //
-            LmsPrivateKeyParameters potentialNewLMSKey = keyPair.GetKeys()[keyPair.L - 1];
+            LmsPrivateKeyParameters potentialNewLMSKey = keyPair.GetKey(keyPair.L - 1);
             Assert.False(potentialNewLMSKey.Equals(lmsKey));
         }
 
@@ -932,29 +936,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                         Pack_UInt32_To_BE((uint)ctr, message, 0);
                         byte[] sig = Sign(keyPair, message);
 
+                        var keyPairKeys = keyPair.GetKeys();
+
                         Assert.AreEqual(ctr % 1024, LeafSignatureQ(keyPair, sig));
 
                         // Check there was a post increment in the tail end LMS key.
-                        Assert.AreEqual(ctr % 1024 + 1, keyPair.GetKeys()[keyPair.Level - 1].GetIndex(), "" + ctr);
+                        Assert.AreEqual(ctr % 1024 + 1, keyPairKeys[keyPair.Level - 1].GetIndex(), "" + ctr);
 
                         Assert.AreEqual(ctr + 1, keyPair.GetIndex());
 
                         // Validate the heirarchial path building was correct.
 
-                        long[] qValues = new long[keyPair.GetKeys().Count];
+                        long[] qValues = new long[keyPairKeys.Count];
                         long q = ctr;
 
-                        for (int t = keyPair.GetKeys().Count - 1; t >= 0; t--)
+                        for (int t = keyPairKeys.Count - 1; t >= 0; t--)
                         {
-                            LMSigParameters sigParameters = keyPair.GetKeys()[t].SigParameters;
+                            LMSigParameters sigParameters = keyPairKeys[t].SigParameters;
                             int mask = (1 << sigParameters.H) - 1;
                             qValues[t] = q & mask;
                             q >>= sigParameters.H;
                         }
 
-                        for (int t = 0; t < keyPair.GetKeys().Count; t++)
+                        for (int t = 0; t < keyPairKeys.Count; t++)
                         {
-                            Assert.AreEqual(keyPair.GetKeys()[t].GetIndex() - 1, qValues[t], "" + ctr);
+                            Assert.AreEqual(keyPairKeys[t].GetIndex() - 1, qValues[t], "" + ctr);
                         }
 
                         Assert.True(Verify(pk, sig, message));
@@ -1170,8 +1176,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             return (int)Pack_BE_To_UInt32(hssSignature, hssSignature.Length - h * m - 4);
         }
 
-        // TODO[lms] GetSig, PeekRoot
-#if false
         /// <summary>
         /// The lower half of a hierarchy repositions within its own tree - identifier and seed unchanged, only q moves
         /// - so ResetKeyToIndex must share the tree the component key already has rather than regenerate one identical
@@ -1198,11 +1202,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             // derived identifier and seed match and only the position is wrong
             HssPrivateKeyParameters moved = new HssPrivateKeyParameters(2, keys, sigs, 3, 1L << (2 * sigParams.H));
 
-            Assert.AreSame(keys[0], moved.GetKeys()[0], "the reset replaced the root key");
-            Assert.AreNotSame(keys[1], moved.GetKeys()[1], "the reset failed to reposition the bottom key");
-            Assert.AreEqual(3, moved.GetKeys()[1].GetIndex());
-            Assert.NotNull(moved.GetKeys()[1].PeekRootT(), "repositioning discarded the tree cache");
-            Assert.True(Arrays.AreEqual(bottomT1, moved.GetKeys()[1].GetPublicKey().GetT1()),
+            Assert.AreSame(keys[0], moved.GetRootKey(), "the reset replaced the root key");
+            Assert.AreNotSame(keys[1], moved.GetKey(1), "the reset failed to reposition the bottom key");
+            Assert.AreEqual(3, moved.GetKey(1).GetIndex());
+            Assert.NotNull(moved.GetKey(1).PeekRootT(), "repositioning discarded the tree cache");
+            Assert.True(Arrays.AreEqual(bottomT1, moved.GetKey(1).GetPublicKey().GetT1()),
                 "repositioning changed the bottom public key");
             Assert.AreSame(sigs[0], moved.GetSig()[0], "repositioning re-signed a public key that had not changed");
             Assert.True(Arrays.AreEqual(pubKey.GetEncoded(), moved.GetPublicKey().GetEncoded()),
@@ -1218,7 +1222,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(verifier.VerifySignature(msg, sig),
                 "repositioned key produced a signature that does not verify");
         }
-#endif
 
         /// <summary>
         /// Wrapping an LMS key as a single level HSS key keeps the key it was given, rather than regenerating it.
@@ -1246,10 +1249,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             HssPrivateKeyParameters wrapped = new HssPrivateKeyParameters(lms, lms.GetIndex(),
                 lms.GetIndex() + lms.GetUsagesRemaining());
 
-            // TODO[lms] GetRootKey
-            //Assert.AreSame(lms, wrapped.GetRootKey(), "the wrap regenerated the root key");
-            Assert.AreSame(lms, wrapped.GetKeys()[0], "the wrap regenerated the root key");
-            // TODO[lms] GetRootKey, IsTreeCachePrimed
+            Assert.AreSame(lms, wrapped.GetRootKey(), "the wrap regenerated the root key");
+            // TODO[lms] IsTreeCachePrimed
             //Assert.True(wrapped.GetRootKey().IsTreeCachePrimed(), "the wrap discarded the tree cache");
             Assert.That(Arrays.AreEqual(rootT1, wrapped.GetPublicKey().LmsPublicKey.GetT1()),
                 "the wrap changed the public key");
@@ -1266,32 +1267,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             HssPrivateKeyParameters advanced = new HssPrivateKeyParameters(lms, lms.GetIndex(),
                 lms.GetIndex() + lms.GetUsagesRemaining());
 
-            // TODO[lms] GetRootKey
-            //Assert.AreSame(lms, advanced.GetRootKey(), "the wrap regenerated an advanced root key");
-            Assert.AreSame(lms, advanced.GetKeys()[0], "the wrap regenerated an advanced root key");
+            Assert.AreSame(lms, advanced.GetRootKey(), "the wrap regenerated an advanced root key");
             Assert.AreEqual(3, advanced.GetIndex(), "the wrap moved the index");
 
             // the reset itself still works: asked for a different (later - see ResetKeyToIndexRefusesToRewind)
             // position, it does reposition
             HssPrivateKeyParameters moved = new HssPrivateKeyParameters(lms, 4, 1 << sigParams.H);
 
-            // TODO[lms] GetRootKey
-            //Assert.NotSame(lms, moved.GetRootKey(), "the reset failed to reposition to a different index");
-            Assert.AreNotSame(lms, moved.GetKeys()[0], "the reset failed to reposition to a different index");
-            // TODO[lms] GetRootKey
-            //Assert.AreEqual(4, moved.GetRootKey().GetIndex());
-            Assert.AreEqual(4, moved.GetKeys()[0].GetIndex());
+            Assert.AreNotSame(lms, moved.GetRootKey(), "the reset failed to reposition to a different index");
+            Assert.AreEqual(4, moved.GetRootKey().GetIndex());
 
             // the Merkle tree is a function of I, the seed and the parameters and not of q, so the
             // repositioned key is entitled to the tree it was built from rather than a rebuild costing
             // about as much as generating the key. peekRootT is asked before getPublicKey below, which
             // would prime the cache itself and hide the difference.
-            // TODO[lms] GetRootKey, PeekRootT
-            //Assert.NotNull(moved.GetRootKey().PeekRootT(), "repositioning discarded the tree cache");
-            // TODO[lms] GetRootKey
-            //Assert.AreEqual(1 << sigParams.H, moved.GetRootKey().IndexLimit,
-            //    "repositioning narrowed the range of the key");
-            Assert.AreEqual(1 << sigParams.H, moved.GetKeys()[0].IndexLimit,
+            Assert.NotNull(moved.GetRootKey().PeekRootT(), "repositioning discarded the tree cache");
+            Assert.AreEqual(1 << sigParams.H, moved.GetRootKey().IndexLimit,
                 "repositioning narrowed the range of the key");
 
             Assert.That(Arrays.AreEqual(rootT1, moved.GetPublicKey().LmsPublicKey.GetT1()),
@@ -1448,7 +1439,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 new List<LmsPrivateKeyParameters> { root, bottom }, new List<LmsSignature> { chain }, 0,
                 (long)twoToH * twoToH);
 
-            Assert.AreSame(bottom, hss.GetKeys()[1], "the bottom key was regenerated, so its usage limit is gone");
+            Assert.AreSame(bottom, hss.GetKey(1), "the bottom key was regenerated, so its usage limit is gone");
 
             // the one signature the bottom key can give
             HssSignature first = Hss.GenerateSignature(hss, msg);
@@ -1458,7 +1449,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             // the next passes the range test but is refused by the bottom key's own claim
             Assert.Throws<ExhaustedPrivateKeyException>(() => Hss.GenerateSignature(hss, msg));
             Assert.AreEqual(1, hss.GetIndex(), "a refused claim moved the HSS index");
-            Assert.AreEqual(1, hss.GetKeys()[1].GetIndex());
+            Assert.AreEqual(1, hss.GetKey(1).GetIndex());
 
             // and the key still encodes to something its own decoder accepts
             HssPrivateKeyParameters decoded = HssPrivateKeyParameters.GetInstance(hss.GetEncoded());
