@@ -92,6 +92,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
         }
 
+        // TODO[lms] I, masterSecret and tCache are shared by reference with the parent. Disposal of either key
+        // must account for the shards and repositioned keys derived from it, and a CalcT racing a wipe would
+        // cache a node computed from zeroed input in the shared tCache.
         private LmsPrivateKeyParameters(LmsPrivateKeyParameters parent, int q, int maxQ, int maxCacheR)
             : base(true)
         {
@@ -354,17 +357,55 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal Tuple<byte[], byte[]> DeriveChildKey()
 #endif
         {
-            int q;
             lock (this)
             {
                 CheckDisposed();
 
-                q = this.q;
                 if (q >= maxQ)
                     throw new ExhaustedPrivateKeyException("ots private key exhausted");
-            }
 
-            return LmsEngine.DeriveChildKey(otsParameters, I, masterSecret, q);
+                return LmsEngine.DeriveChildKey(otsParameters, I, masterSecret, q);
+            }
+        }
+
+        /// <summary>
+        /// Derive the identifier and master seed of the tree below one-time key <paramref name="q"/> of this key,
+        /// which need not be the current one: HSS repositioning asks for the child at the leaf its index names. The
+        /// index is not advanced. The derivation runs under the lock so that the secret is read whole.
+        /// </summary>
+        /// <returns>{ I of the child tree, master seed of the child tree }.</returns>
+#if NETCOREAPP1_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+        internal ValueTuple<byte[], byte[]> DeriveChildKey(int q)
+#else
+        internal Tuple<byte[], byte[]> DeriveChildKey(int q)
+#endif
+        {
+            // maxQ rather than 2^h: the two coincide for a whole key, but a leaf beyond a shard's usage limit
+            // belongs to some other holder's range, and deriving its child is a misconfiguration to refuse.
+            if (q < 0 || q >= maxQ)
+                throw new ArgumentOutOfRangeException(nameof(q));
+
+            lock (this)
+            {
+                CheckDisposed();
+
+                return LmsEngine.DeriveChildKey(otsParameters, I, masterSecret, q);
+            }
+        }
+
+        /// <summary>
+        /// Whether this key is the tree with the given identifier and master seed. A Merkle tree is a function of
+        /// those and the parameter sets, so two keys agreeing on them are the same tree at (possibly) different
+        /// one-time keys.
+        /// </summary>
+        internal bool HasIdentity(byte[] I, byte[] masterSecret)
+        {
+            lock (this)
+            {
+                CheckDisposed();
+
+                return Arrays.AreEqual(this.I, I) && Arrays.FixedTimeEquals(this.masterSecret, masterSecret);
+            }
         }
 
         /// <summary>Return the private key index number (the q value).</summary>
@@ -472,8 +513,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public LMOtsParameters OtsParameters => otsParameters;
 
         public byte[] GetI() => Arrays.Clone(I);
-
-        internal byte[] InternalI => I;
 
         public byte[] GetMasterSecret()
         {

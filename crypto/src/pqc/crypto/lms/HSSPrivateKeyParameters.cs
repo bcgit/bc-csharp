@@ -371,8 +371,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 LmsPrivateKeyParameters intermediateKey = keys[i - 1];
 
-                var child = LmsEngine.DeriveChildKey(intermediateKey.OtsParameters, intermediateKey.InternalI,
-                    intermediateKey.GetMasterSecret(), (int)qTreePath[i - 1]);
+                var child = intermediateKey.DeriveChildKey((int)qTreePath[i - 1]);
                 byte[] childI = child.Item1;
                 byte[] childSeed = child.Item2;
 
@@ -389,8 +388,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // Equality is I and seed being equal and the lmsQMath.
                 // I and seed are derived from this nodes parent and will change if the parent q, I, seed changes.
                 //
-                bool seedEquals = Arrays.AreEqual(childI, keys[i].InternalI)
-                    && Arrays.FixedTimeEquals(childSeed, keys[i].GetMasterSecret());
+                bool seedEquals = keys[i].HasIdentity(childI, childSeed);
 
                 if (!seedEquals)
                 {
