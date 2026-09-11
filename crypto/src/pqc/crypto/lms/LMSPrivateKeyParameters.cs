@@ -668,8 +668,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // generation (see bc-java github #2365). The nodes are a deterministic function of I, the master
             // secret and the parameters and are independent of q, so persisting them leaks nothing the (already
             // encoded) master secret does not. The cache is appended after the master secret rather than
-            // announced by a new version number, matching the bc-java interchange format, whose pre-cache
-            // decoders stop at the master secret and ignore the trailing bytes.
+            // announced by a new version number, matching the bc-java interchange format. bc-java's pre-cache
+            // decoders stop at the master secret and ignore the trailing bytes; bc-csharp's do not: release 2.7.0
+            // rejects trailing data in an LMS private key encoding, and every earlier release rejects the HSS
+            // version 1 that announces cached component keys, so keys written by this release cannot be read by
+            // those.
             //
 
             int cacheTop = System.Math.Min(CacheTopLimit, maxCacheR);
