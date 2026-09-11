@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             int node_num = (1 << h) + S.Q;
 
             // tmp = H(I || u32str(node_num) || u16str(D_LEAF) || Kc)
-            byte[] I = publicKey.GetI();
+            byte[] I = publicKey.InternalI;
             IDigest H = LmsUtilities.GetDigest(lmsParameter);
             byte[] tmp = new byte[H.GetDigestSize()];
 

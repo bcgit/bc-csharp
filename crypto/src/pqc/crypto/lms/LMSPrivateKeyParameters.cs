@@ -22,14 +22,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // the interchange format's cache-count limit.
         private const int CacheTopLimit = 64;
 
-        private byte[] I;
+        private readonly byte[] I;
         private readonly LMSigParameters sigParameters;
-        private LMOtsParameters otsParameters;
-        private int maxQ;
-        private byte[] masterSecret;
+        private readonly LMOtsParameters otsParameters;
+        private readonly int maxQ;
+        private readonly byte[] masterSecret;
         // TODO Java uses a WeakHashMap
-        private ConcurrentDictionary<int, byte[]> tCache;
-        private int maxCacheR;
+        private readonly ConcurrentDictionary<int, byte[]> tCache;
+        private readonly int maxCacheR;
 
         private int q;
         private readonly bool m_isPlaceholder;
@@ -348,32 +348,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// (RFC 8554 sec. 6.1) - the child an HSS hierarchy hangs off leaf q. The index is not advanced.
         /// </summary>
         /// <returns>{ I of the child tree, master seed of the child tree }.</returns>
+#if NETCOREAPP1_0_OR_GREATER || NET47_OR_GREATER || NETSTANDARD2_0_OR_GREATER
+        internal ValueTuple<byte[], byte[]> DeriveChildKey()
+#else
         internal Tuple<byte[], byte[]> DeriveChildKey()
+#endif
         {
             int q;
             lock (this)
             {
+                CheckDisposed();
+
                 q = this.q;
                 if (q >= maxQ)
                     throw new ExhaustedPrivateKeyException("ots private key exhausted");
             }
 
-            int n = otsParameters.N;
-
-            SeedDerive deriver = new SeedDerive(I, masterSecret, LmsUtilities.GetDigest(otsParameters))
-            {
-                Q = q,
-                J = ~1,
-            };
-
-            byte[] childRootSeed = new byte[n];
-            deriver.DeriveSeed(true, childRootSeed, 0);
-            byte[] postImage = new byte[n];
-            deriver.DeriveSeed(false, postImage, 0);
-            byte[] childI = new byte[16];
-            Array.Copy(postImage, 0, childI, 0, childI.Length);
-
-            return new Tuple<byte[], byte[]>(childI, childRootSeed);
+            return LmsEngine.DeriveChildKey(otsParameters, I, masterSecret, q);
         }
 
         /// <summary>Return the private key index number (the q value).</summary>
@@ -408,6 +399,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             //
             lock (this)
             {
+                CheckDisposed();
+
                 if (this.q >= maxQ)
                     throw new ExhaustedPrivateKeyException("ots private key exhausted");
 
@@ -480,7 +473,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetI() => Arrays.Clone(I);
 
-        public byte[] GetMasterSecret() => Arrays.Clone(masterSecret);
+        internal byte[] InternalI => I;
+
+        public byte[] GetMasterSecret()
+        {
+            byte[] rv = Arrays.Clone(masterSecret);
+
+            // Clone first, check second: a disposal that lands in between has set the flag before
+            // it clears the array, so a stale copy is never handed out.
+            CheckDisposed();
+
+            return rv;
+        }
 
         public int IndexLimit => maxQ;
 
@@ -533,13 +537,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             if (r >= twoToh)
             {
-                LmsUtilities.ByteArray(I, tDigest);
-                LmsUtilities.U32Str(r, tDigest);
-                LmsUtilities.U16Str((short)Lms.D_LEAF, tDigest);
                 //
                 // These can be pre generated at the time of key generation and held within the private key.
                 // However it will cost memory to have them stick around.
                 //
+                CheckDisposed();
+
+                LmsUtilities.ByteArray(I, tDigest);
+                LmsUtilities.U32Str(r, tDigest);
+                LmsUtilities.U16Str((short)Lms.D_LEAF, tDigest);
+
                 byte[] K = LMOts.LmsOtsGeneratePublicKey(otsParameters, I, r - twoToh, masterSecret);
 
                 LmsUtilities.ByteArray(K, tDigest);
@@ -594,6 +601,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public override byte[] GetEncoded()
         {
+            CheckDisposed();
+
             int q = GetIndex();
 
             //
@@ -640,6 +649,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
 
             return composer.Build();
+        }
+
+        private void CheckDisposed()
+        {
+            // TODO[lms] Implement IDisposable instead of Java's Destroyable and check liveness here
         }
     }
 }

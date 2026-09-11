@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetI() => Arrays.Clone(I);
 
-        internal byte[] RefI() => I;
+        internal byte[] InternalI => I;
 
         // TODO[api] Fix parameter name
         public override bool Equals(object o)

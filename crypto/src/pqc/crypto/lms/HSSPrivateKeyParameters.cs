@@ -14,8 +14,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     {
         private readonly int m_level;
         private readonly bool m_isShard;
-        private IList<LmsPrivateKeyParameters> m_keys;
-        private IList<LmsSignature> m_sig;
+        private List<LmsPrivateKeyParameters> m_keys;
+        private List<LmsSignature> m_sig;
         private readonly long m_indexLimit;
         private long m_index = 0;
 
@@ -281,6 +281,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
+                CheckDisposed();
+
                 if (usageCount < 0)
                     throw new ArgumentOutOfRangeException(nameof(usageCount), "cannot be negative");
                 if (usageCount > m_indexLimit - m_index)
@@ -340,8 +342,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
 
             bool changed = false;
-            LmsPrivateKeyParameters[] keys = CollectionUtilities.ToArray(originalKeys);
-            LmsSignature[] sig = CollectionUtilities.ToArray(m_sig);
+            LmsPrivateKeyParameters[] keys = originalKeys.ToArray();
+            LmsSignature[] sig = m_sig.ToArray();
 
             LmsPrivateKeyParameters originalRootKey = this.GetRootKey();
 
@@ -369,25 +371,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 LmsPrivateKeyParameters intermediateKey = keys[i - 1];
 
-                // TODO Refactor to use DeriveChildKey
-
-                int n = intermediateKey.OtsParameters.N;
-
-                byte[] childI = new byte[16];
-                byte[] childSeed = new byte[n];
-                SeedDerive derive = new SeedDerive(
-                    intermediateKey.GetI(),
-                    intermediateKey.GetMasterSecret(),
-                    LmsUtilities.GetDigest(intermediateKey.OtsParameters))
-                {
-                    Q = (int)qTreePath[i - 1],
-                    J = ~1,
-                };
-
-                derive.DeriveSeed(true, childSeed, 0);
-                byte[] postImage = new byte[n];
-                derive.DeriveSeed(false, postImage, 0);
-                Array.Copy(postImage, 0, childI, 0, childI.Length);
+                var child = LmsEngine.DeriveChildKey(intermediateKey.OtsParameters, intermediateKey.InternalI,
+                    intermediateKey.GetMasterSecret(), (int)qTreePath[i - 1]);
+                byte[] childI = child.Item1;
+                byte[] childSeed = child.Item2;
 
                 //
                 // Q values in LMS keys post increment after they are used.
@@ -402,7 +389,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // Equality is I and seed being equal and the lmsQMath.
                 // I and seed are derived from this nodes parent and will change if the parent q, I, seed changes.
                 //
-                bool seedEquals = Arrays.AreEqual(childI, keys[i].GetI())
+                bool seedEquals = Arrays.AreEqual(childI, keys[i].InternalI)
                     && Arrays.FixedTimeEquals(childSeed, keys[i].GetMasterSecret());
 
                 if (!seedEquals)
@@ -548,6 +535,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // Private keys are implementation dependent.
                 //
 
+                CheckDisposed();
+
                 // Version 1: the component keys carry the mandatory tree-cache field their GetEncoded appends; a
                 // version 0 encoding (any release before the tree cache) carries them without it. The version
                 // dispatch in Parse is what keeps the shared stream unambiguous.
@@ -605,6 +594,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // bottom key first so an exhausted one leaves each untouched.
             lock (this)
             {
+                CheckDisposed();
+
                 Hss.RangeTestKeys(this);
 
                 LmsPrivateKeyParameters nextKey = m_keys[level - 1];
@@ -639,6 +630,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 throw new Exception($"unable to encode signature: {e.Message}", e);
             }
+        }
+
+        private void CheckDisposed()
+        {
+            // TODO[lms] Implement IDisposable instead of Java's Destroyable and check liveness here
         }
 
         private static bool CompareLists<T>(IList<T> arr1, IList<T> arr2)
