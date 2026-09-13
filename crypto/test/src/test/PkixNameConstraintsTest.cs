@@ -245,6 +245,61 @@ namespace Org.BouncyCastle.Tests
         }
 
         /// <summary>
+        /// Port of bc-java PKIXNameConstraintsTest.testEmptyLabelRefused (bc-java 415f8ea25b, PR #2436). Only
+        /// the single root-label dot of RFC 1034 sec. 3.1 is canonicalized away. A host carrying any other
+        /// empty label - a second trailing dot, a doubled dot, a leading dot - is not a name RFC 5280
+        /// sec. 4.2.1.6 admits, and stripping the extra dots would decide on the caller's behalf that
+        /// "example.com.." names example.com. It is refused instead, in both directions, so it can neither
+        /// escape an excluded subtree nor be admitted by a permitted one.
+        /// </summary>
+        [Test]
+        public void EmptyLabelRefused()
+        {
+            // dNSName: every shape of empty label is refused, whichever domain the name appears to carry.
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName("example.com..")),
+                "two trailing dots must be refused");
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName("example.com...")),
+                "three trailing dots must be refused");
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName("foo..example.com")),
+                "a doubled inner dot must be refused");
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName(".example.com")),
+                "a leading dot must be refused");
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName("notexample.com..")),
+                "a sibling domain with an empty label must be refused too");
+
+            // The permitted direction refuses it as well, so canonicalizing has not admitted anything new.
+            Assert.False(IsPermitted(DnsName("example.com"), DnsName("example.com..")),
+                "an empty label must not be permitted");
+            Assert.True(IsPermitted(DnsName("example.com"), DnsName("example.com.")),
+                "a well-formed name is still permitted");
+
+            // rfc822Name and URI share the guard, applied to the host.
+            Assert.True(IsExcluded(EmailName("bank.com"), EmailName("ceo@bank.com..")),
+                "two trailing dots on a mail host must be refused");
+            Assert.True(IsExcluded(UriName("competitor.example"), UriName("https://competitor.example../")),
+                "two trailing dots on a URI host must be refused");
+
+            // The guard is scoped to the host: a quoted local part may legally carry a doubled dot.
+            Assert.True(IsExcluded(EmailName("bank.com"), EmailName("\"a..b\"@bank.com")),
+                "a doubled dot in a quoted local part must not be refused, and the host still matches");
+
+            // Deliberate divergence from bc-java, whose guard handles constraints and tested names with one string
+            // and so exempts a bare "." role-blind, as the root label. Here the role is typed into the value: as a
+            // constraint the leading dot is the proper-subtree marker (every subdomain of the root), but a tested
+            // dNSName "." has no such marker, is no host name at all (RFC 5280 sec. 4.2.1.6 preferred name syntax)
+            // and, like any other malformed tested name, fails closed whenever dNSName constraints are in force.
+            // The outcomes agree in the permitted direction; only an excluded-only constraint set sees the difference.
+            Assert.True(IsExcluded(DnsName("example.com"), DnsName(".")),
+                "a bare root label as a tested name fails closed under a dNSName constraint");
+            Assert.False(IsPermitted(DnsName("example.com"), DnsName(".")),
+                "a bare root label as a tested name must not be permitted");
+
+            // Nothing is refused where no constraint of that type is in force.
+            Assert.False(IsExcluded(EmailName("bank.com"), DnsName("example.com..")),
+                "an empty label is immaterial with no dNSName constraint");
+        }
+
+        /// <summary>
         /// RFC 1034 sec. 3.5 name syntax has no empty labels: "a..b", repeated trailing dots, or a dot
         /// right after the constraint-form leading dot misalign the per-label compare - on the excluded
         /// side historically a fail-open escape. Such values are rejected at construction (fail-closed),
@@ -424,7 +479,7 @@ namespace Org.BouncyCastle.Tests
 
         /// <summary>
         /// The rfc822Name/URI HOST part must be free of empty labels, mirroring the dNSName rule
-        /// (see <see cref="DnsEmptyLabelOrLeadingDotRejected"/>): ".." (including repeated trailing dots)
+        /// (see <see cref="DnsEmptyLabelRejected"/>): ".." (including repeated trailing dots)
         /// misaligns the per-label compare - historically a fail-open escape on the excluded side - and a
         /// leading dot on a host does the same (the ".domain" form is a constraint-only shape, RFC 5280
         /// sec. 4.2.1.10). Rejected at construction (fail-closed) for constraints and tested names alike.
