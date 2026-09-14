@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 
 using Org.BouncyCastle.Utilities;
 
@@ -41,7 +40,12 @@ namespace Org.BouncyCastle.Asn1
                     totalOctets += octetStrings[i].contents.Length;
                 }
 
+                // Every byte is written below before the array is returned.
+#if NET5_0_OR_GREATER
+                byte[] str = GC.AllocateUninitializedArray<byte>(totalOctets);
+#else
                 byte[] str = new byte[totalOctets];
+#endif
                 int pos = 0;
                 for (int i = 0; i < count; ++i)
                 {
@@ -50,7 +54,10 @@ namespace Org.BouncyCastle.Asn1
                     pos += octets.Length;
                 }
 
-                Debug.Assert(pos == totalOctets);
+                // Guards the uninitialized allocation above: never return a partially written array.
+                if (pos != totalOctets)
+                    throw new InvalidOperationException("flattened octet string length mismatch");
+
                 return str;
             }
             }
