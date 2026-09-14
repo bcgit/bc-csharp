@@ -718,6 +718,9 @@ namespace Org.BouncyCastle.Security
         private static byte[] ReadBufferWithInt32Length(BinaryReader br)
         {
             int length = BinaryReaders.ReadInt32BigEndian(br);
+            if (length < 0)
+                throw new IOException($"negative length: {length}");
+
             return BinaryReaders.ReadBytesFully(br, length);
         }
 

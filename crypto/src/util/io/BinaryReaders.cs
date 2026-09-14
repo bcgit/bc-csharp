@@ -34,12 +34,12 @@ namespace Org.BouncyCastle.Utilities.IO
         /// the total length of a seekable stream is rejected up front, and a large count is read incrementally
         /// so that allocation tracks the data actually supplied.
         /// </remarks>
-        /// <exception cref="IOException">if <paramref name="count"/> is negative.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">if <paramref name="count"/> is negative.</exception>
         /// <exception cref="EndOfStreamException">if the stream ends before <paramref name="count"/> bytes.</exception>
         public static byte[] ReadBytesFully(BinaryReader binaryReader, int count)
         {
             if (count < 0)
-                throw new IOException($"negative length: {count}");
+                throw new ArgumentOutOfRangeException(nameof(count));
 
             // The reader makes no promise about read-ahead, so the stream position is not a reliable measure of
             // the data remaining; only the total length is a safe bound.
