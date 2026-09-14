@@ -8,8 +8,9 @@ using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Utilities.Encoders;
-
+using Org.BouncyCastle.Utilities.IO;
 using Org.BouncyCastle.Utilities.Test;
+using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Security.Tests
 {
@@ -192,6 +193,74 @@ namespace Org.BouncyCastle.Security.Tests
             ks.Save(bOut, "changedit".ToCharArray());
 
             ks.Load(new MemoryStream(bOut.ToArray()), "changedit".ToCharArray());
+        }
+
+        [Test]
+        public void TestLoadTruncatedStore()
+        {
+            // Shorter than the checksum alone, and shorter than header plus checksum
+            foreach (int length in new int[]{ 0, 4, 19, 31 })
+            {
+                byte[] store = new byte[length];
+                Array.Copy(Test1, store, length);
+
+                Assert.Catch<IOException>(() => new JksStore().LoadUnchecked(new MemoryStream(store, false)));
+                Assert.Catch<IOException>(
+                    () => new JksStore().Load(new MemoryStream(store, false), "fredfred".ToCharArray()));
+            }
+        }
+
+        [Test]
+        public void TestLoadHostileKeyDataLength()
+        {
+            // The length field must be checked against the remaining data before it is allocated
+            foreach (int keyDataLength in new int[]{ -1, int.MinValue, 0x10000, int.MaxValue })
+            {
+                byte[] store = BuildUncheckedKeyEntryStore(keyDataLength, keyDataLength: 4);
+
+                Assert.Catch<IOException>(() => new JksStore().LoadUnchecked(new MemoryStream(store, false)));
+            }
+        }
+
+        [Test]
+        public void TestLongAliasRoundtrip()
+        {
+            JksStore ks = new JksStore();
+            ks.Load(new MemoryStream(Test1, false), "fredfred".ToCharArray());
+            X509Certificate cert = ks.GetCertificate("rsa");
+
+            // Modified UTF-8 lengths are unsigned 16-bit, so aliases beyond 32767 bytes are legitimate
+            string longAlias = new string('a', 40000);
+            ks.SetCertificateEntry(longAlias, cert);
+
+            MemoryStream bOut = new MemoryStream();
+            ks.Save(bOut, "fredfred".ToCharArray());
+
+            ks = new JksStore();
+            ks.Load(new MemoryStream(bOut.ToArray(), false), "fredfred".ToCharArray());
+            Assert.That(ks.GetCertificate(longAlias), Is.EqualTo(cert));
+
+            ks.SetCertificateEntry(new string('a', 70000), cert);
+            Assert.Catch<IOException>(() => ks.Save(new MemoryStream(), "fredfred".ToCharArray()));
+        }
+
+        private static byte[] BuildUncheckedKeyEntryStore(int keyDataLengthField, int keyDataLength)
+        {
+            MemoryStream bOut = new MemoryStream();
+            using (var bw = new BinaryWriter(bOut, System.Text.Encoding.UTF8, leaveOpen: true))
+            {
+                BinaryWriters.WriteInt32BigEndian(bw, unchecked((int)0xFEEDFEED));
+                BinaryWriters.WriteInt32BigEndian(bw, 2);   // version
+                BinaryWriters.WriteInt32BigEndian(bw, 1);   // entry count
+                BinaryWriters.WriteInt32BigEndian(bw, 1);   // key entry
+                BinaryWriters.WriteInt16BigEndian(bw, 1);   // alias length
+                bw.Write((byte)'a');
+                BinaryWriters.WriteInt64BigEndian(bw, 0L);  // date
+                BinaryWriters.WriteInt32BigEndian(bw, keyDataLengthField);
+                bw.Write(new byte[keyDataLength]);
+                bw.Write(new byte[20]);                     // checksum (ignored by LoadUnchecked)
+            }
+            return bOut.ToArray();
         }
     }
 }
