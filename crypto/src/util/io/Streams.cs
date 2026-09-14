@@ -294,9 +294,9 @@ namespace Org.BouncyCastle.Utilities.IO
             where TSource : struct, IReadSource
         {
             if (exactLength < 0)
-                throw new ArgumentOutOfRangeException("cannot be negative", nameof(exactLength));
+                throw new ArgumentOutOfRangeException(nameof(exactLength), "cannot be negative");
             if (exactLength > Arrays.MaxLength)
-                throw new ArgumentOutOfRangeException("exceeds maximum length for an array", nameof(exactLength));
+                throw new ArgumentOutOfRangeException(nameof(exactLength), "exceeds maximum length for an array");
 
             int initialAlloc = exactLength;
             while (initialAlloc > DefaultBufferSize)
