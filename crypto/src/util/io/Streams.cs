@@ -205,14 +205,26 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <summary>Best-effort query of the data remaining before the end of a seekable stream.</summary>
+        /// <remarks>
+        /// Fails (rather than clamping) unless the stream reports a non-negative length and position. A position
+        /// beyond the end is a legal seek target and reports zero available.
+        /// The result is only meaningful when nothing sits between the caller and the stream: a buffering reader
+        /// (e.g. <see cref="BinaryReader"/> makes no promise about read-ahead) can leave the stream position past
+        /// the caller's logical position, and such callers should rely on <see cref="TryGetLength"/> instead.
+        /// </remarks>
         public static bool TryGetAvailable(Stream stream, out long available)
         {
             try
             {
                 if (stream.CanSeek)
                 {
-                    available = System.Math.Max(0L, stream.Length - stream.Position);
-                    return true;
+                    long length = stream.Length, position = stream.Position;
+                    if (length >= 0L && position >= 0L)
+                    {
+                        available = System.Math.Max(0L, length - position);
+                        return true;
+                    }
                 }
             }
             catch (Exception)
@@ -224,14 +236,17 @@ namespace Org.BouncyCastle.Utilities.IO
             return false;
         }
 
+        /// <summary>Best-effort query of the total length of a seekable stream.</summary>
+        /// <remarks>Fails (rather than clamping) unless the stream reports a non-negative length.</remarks>
         public static bool TryGetLength(Stream stream, out long length)
         {
             try
             {
                 if (stream.CanSeek)
                 {
-                    length = System.Math.Max(0L, stream.Length);
-                    return true;
+                    length = stream.Length;
+                    if (length >= 0L)
+                        return true;
                 }
             }
             catch (Exception)
