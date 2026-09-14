@@ -36,7 +36,8 @@ namespace Org.BouncyCastle.Math.Raw
 #endif
         internal static void BitPermuteStep2(ref uint hi, ref uint lo, uint m, int s)
         {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP1_1_OR_GREATER
+            // NOTE: Unsafe is an out-of-band package for .NET Standard, so it is unavailable to those targets.
+#if NETCOREAPP1_1_OR_GREATER
             Debug.Assert(!Unsafe.AreSame(ref hi, ref lo) || (m & (m << s)) == 0U);
 #endif
             Debug.Assert((m << s) >> s == m);
@@ -51,7 +52,7 @@ namespace Org.BouncyCastle.Math.Raw
 #endif
         internal static void BitPermuteStep2(ref ulong hi, ref ulong lo, ulong m, int s)
         {
-#if NETSTANDARD2_1_OR_GREATER || NETCOREAPP1_1_OR_GREATER
+#if NETCOREAPP1_1_OR_GREATER
             Debug.Assert(!Unsafe.AreSame(ref hi, ref lo) || (m & (m << s)) == 0UL);
 #endif
             Debug.Assert((m << s) >> s == m);

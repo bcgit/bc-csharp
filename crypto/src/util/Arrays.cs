@@ -352,7 +352,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(data);
             return hc.ToHashCode();
@@ -375,7 +375,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(data.AsSpan(off, len));
             return hc.ToHashCode();
@@ -398,7 +398,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
             return hc.ToHashCode();
@@ -422,7 +422,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
             return hc.ToHashCode();
@@ -445,7 +445,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
             return hc.ToHashCode();
@@ -469,7 +469,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
             return hc.ToHashCode();
@@ -493,7 +493,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
             return hc.ToHashCode();
@@ -517,7 +517,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan()));
             return hc.ToHashCode();
@@ -544,7 +544,7 @@ namespace Org.BouncyCastle.Utilities
             if (data == null)
                 return 0;
 
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(MemoryMarshal.AsBytes(data.AsSpan(off, len)));
             return hc.ToHashCode();

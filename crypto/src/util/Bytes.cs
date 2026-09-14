@@ -81,6 +81,8 @@ namespace Org.BouncyCastle.Utilities
         public static void Xor(int len, ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> z)
         {
             int i = 0;
+            // NOTE: The span-based Vector<T> constructors and CopyTo are unavailable to .NET Standard targets.
+#if NETCOREAPP3_0_OR_GREATER
             if (Vector.IsHardwareAccelerated)
             {
                 int limit = len - Vector<byte>.Count;
@@ -92,6 +94,7 @@ namespace Org.BouncyCastle.Utilities
                     i += Vector<byte>.Count;
                 }
             }
+#endif
             {
                 int limit = len - 8;
                 while (i <= limit)
@@ -145,6 +148,7 @@ namespace Org.BouncyCastle.Utilities
         public static void XorTo(int len, ReadOnlySpan<byte> x, Span<byte> z)
         {
             int i = 0;
+#if NETCOREAPP3_0_OR_GREATER
             if (Vector.IsHardwareAccelerated)
             {
                 int limit = len - Vector<byte>.Count;
@@ -156,6 +160,7 @@ namespace Org.BouncyCastle.Utilities
                     i += Vector<byte>.Count;
                 }
             }
+#endif
             {
                 int limit = len - 8;
                 while (i <= limit)

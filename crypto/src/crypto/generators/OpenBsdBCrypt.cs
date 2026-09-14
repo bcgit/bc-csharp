@@ -247,7 +247,8 @@ namespace Org.BouncyCastle.Crypto.Generators
             // Padding: add two '\u0000'
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<char> saltChars = stackalloc char[24];
-            saltString.CopyTo(saltChars);
+            // NOTE: string.CopyTo(Span) is unavailable to .NET Standard targets.
+            saltString.AsSpan().CopyTo(saltChars);
 #else
             char[] saltChars = new char[24];
             saltString.CopyTo(0, saltChars, 0, 22);

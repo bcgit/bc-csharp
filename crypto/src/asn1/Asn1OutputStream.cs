@@ -3,9 +3,9 @@ using System.Diagnostics;
 using System.IO;
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Buffers.Binary;
-using System.Numerics;
 #endif
 
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Asn1
@@ -187,7 +187,7 @@ namespace Org.BouncyCastle.Asn1
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> encoding = stackalloc byte[5];
             BinaryPrimitives.WriteUInt32BigEndian(encoding[1..], (uint)dl);
-            int leadingZeroBytes = BitOperations.LeadingZeroCount((uint)dl) / 8;
+            int leadingZeroBytes = Integers.NumberOfLeadingZeros(dl) / 8;
             encoding[leadingZeroBytes] = (byte)(0x84 - leadingZeroBytes);
             output.Write(encoding[leadingZeroBytes..]);
 #else

@@ -48,6 +48,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
         public static void Add(ReadOnlySpan<uint> x, ReadOnlySpan<uint> y, Span<uint> z)
         {
             int i = 0;
+            // NOTE: The span-based Vector<T> constructors and CopyTo are unavailable to .NET Standard targets.
+#if NETCOREAPP3_0_OR_GREATER
             if (Vector.IsHardwareAccelerated)
             {
                 int limit = Size - Vector<uint>.Count;
@@ -59,6 +61,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
                     i += Vector<uint>.Count;
                 }
             }
+#endif
             {
                 while (i < Size)
                 {

@@ -174,6 +174,24 @@ namespace Org.BouncyCastle.Utilities.IO
             return ReadAsyncCompletion(readTask, sharedBuffer, buffer);
         }
 
+        /*
+         * NOTE: The static members of ValueTask arrived in .NET 5, so are unavailable to .NET Standard targets. The
+         * fallbacks are the expressions that ValueTask.CompletedTask and ValueTask.FromCanceled are defined as.
+         */
+        internal static ValueTask CompletedValueTask =>
+#if NET5_0_OR_GREATER
+            ValueTask.CompletedTask;
+#else
+            default;
+#endif
+
+        internal static ValueTask CanceledValueTask(CancellationToken cancellationToken) =>
+#if NET5_0_OR_GREATER
+            ValueTask.FromCanceled(cancellationToken);
+#else
+            new ValueTask(Task.FromCanceled(cancellationToken));
+#endif
+
         internal static async ValueTask<int> ReadAsyncCompletion(Task<int> readTask, byte[] localBuffer,
             Memory<byte> localDestination)
         {
@@ -554,10 +572,10 @@ namespace Org.BouncyCastle.Utilities.IO
             CancellationToken cancellationToken = default)
         {
             if (cancellationToken.IsCancellationRequested)
-                return ValueTask.FromCanceled(cancellationToken);
+                return CanceledValueTask(cancellationToken);
 
             destination.Write(buffer.Span);
-            return ValueTask.CompletedTask;
+            return CompletedValueTask;
         }
 
         /// <summary>

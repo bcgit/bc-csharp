@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Crypto.IO
                 if (!buffer.IsEmpty)
                 {
                     if (cancellationToken.IsCancellationRequested)
-                        return ValueTask.FromCanceled(cancellationToken);
+                        return Streams.CanceledValueTask(cancellationToken);
 
                     m_writeSigner.BlockUpdate(buffer.Span);
                 }

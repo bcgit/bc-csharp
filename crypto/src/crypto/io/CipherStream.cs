@@ -255,7 +255,7 @@ namespace Org.BouncyCastle.Crypto.IO
             if (!buffer.IsEmpty)
             {
                 if (cancellationToken.IsCancellationRequested)
-                    return ValueTask.FromCanceled(cancellationToken);
+                    return Streams.CanceledValueTask(cancellationToken);
 
                 int outputSize = m_writeCipher.GetUpdateOutputSize(buffer.Length);
 
@@ -269,7 +269,7 @@ namespace Org.BouncyCastle.Crypto.IO
                 }
             }
 
-            return ValueTask.CompletedTask;
+            return Streams.CompletedValueTask;
         }
 #endif
 

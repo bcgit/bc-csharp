@@ -1512,7 +1512,7 @@ namespace Org.BouncyCastle.Math
 
         public override int GetHashCode()
         {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER
             HashCode hc = default;
             hc.AddBytes(MemoryMarshal.AsBytes(magnitude.AsSpan()));
             hc.Add(sign);
