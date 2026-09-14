@@ -13,6 +13,20 @@ using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>
+    /// Minimal adapter over a source of bytes (e.g. a <see cref="Stream"/> or a <see cref="BinaryReader"/>) for
+    /// generic reading helpers. Implement on a struct so that the helpers can be JIT-specialized per source.
+    /// </summary>
+    internal interface IReadSource
+    {
+        /// <summary>
+        /// Read up to <paramref name="count"/> bytes into <paramref name="buffer"/> at <paramref name="offset"/>,
+        /// returning the number of bytes read, or zero at end of data. Same contract as
+        /// <see cref="Stream.Read(byte[], int, int)"/>.
+        /// </summary>
+        int Read(byte[] buffer, int offset, int count);
+    }
+
     public static class Streams
     {
         private static readonly int MaxStackAlloc = Platform.Is64BitProcess ? 4096 : 1024;
@@ -266,10 +280,19 @@ namespace Org.BouncyCastle.Utilities.IO
         /// allocated at the full length up front. A caller passing an untrusted (possibly hostile) length therefore
         /// cannot drive an extremely large allocation from a short input.
         /// </remarks>
-        internal static bool TryReadExactIncremental(Stream stream, int exactLength, out byte[] bytes)
+        internal static bool TryReadExactIncremental(Stream stream, int exactLength, out byte[] bytes) =>
+            TryReadExactIncremental(new StreamReadSource(stream), exactLength, out bytes);
+
+        /// <summary>
+        /// Read exactly <paramref name="exactLength"/> bytes from <paramref name="source"/>, allocated incrementally.
+        /// </summary>
+        /// <remarks>
+        /// <typeparamref name="TSource"/> is constrained to a struct so that the JIT specializes this method per
+        /// adapter and the <see cref="IReadSource.Read"/> calls are direct rather than interface dispatch.
+        /// </remarks>
+        internal static bool TryReadExactIncremental<TSource>(TSource source, int exactLength, out byte[] bytes)
+            where TSource : struct, IReadSource
         {
-            if (stream == null)
-                throw new ArgumentNullException(nameof(stream));
             if (exactLength < 0)
                 throw new ArgumentOutOfRangeException("cannot be negative", nameof(exactLength));
             if (exactLength > Arrays.MaxLength)
@@ -291,7 +314,7 @@ namespace Org.BouncyCastle.Utilities.IO
                     buf = Arrays.CopyOf(buf, expandedAlloc);
                 }
 
-                int numRead = stream.Read(buf, totalRead, buf.Length - totalRead);
+                int numRead = source.Read(buf, totalRead, buf.Length - totalRead);
                 if (numRead < 1)
                 {
                     bytes = default;
@@ -397,6 +420,19 @@ namespace Org.BouncyCastle.Utilities.IO
                 buf.WriteTo(segment);
             }
             return size;
+        }
+
+        private readonly struct StreamReadSource
+            : IReadSource
+        {
+            private readonly Stream m_stream;
+
+            internal StreamReadSource(Stream stream)
+            {
+                m_stream = stream ?? throw new ArgumentNullException(nameof(stream));
+            }
+
+            public int Read(byte[] buffer, int offset, int count) => m_stream.Read(buffer, offset, count);
         }
     }
 }

@@ -46,35 +46,10 @@ namespace Org.BouncyCastle.Utilities.IO
             if (Streams.TryGetLength(binaryReader.BaseStream, out long length) && count > length)
                 throw new EndOfStreamException();
 
-            if (count > ReadBytesChunkSize)
-                return ReadBytesFullyChunked(binaryReader, count);
-
-            byte[] bytes = binaryReader.ReadBytes(count);
-            if (bytes == null || bytes.Length != count)
+            if (!TryReadExactIncremental(binaryReader, count, out byte[] bytes))
                 throw new EndOfStreamException();
+
             return bytes;
-        }
-
-        private const int ReadBytesChunkSize = 0x10000;
-
-        // TODO[io] Has a lot in common with Streams.TryReadExactIncremental
-        private static byte[] ReadBytesFullyChunked(BinaryReader binaryReader, int count)
-        {
-            using (var buf = new MemoryStream())
-            {
-                byte[] chunk = new byte[ReadBytesChunkSize];
-                int remaining = count;
-                while (remaining > 0)
-                {
-                    int numRead = binaryReader.Read(chunk, 0, System.Math.Min(chunk.Length, remaining));
-                    if (numRead <= 0)
-                        throw new EndOfStreamException();
-
-                    buf.Write(chunk, 0, numRead);
-                    remaining -= numRead;
-                }
-                return buf.ToArray();
-            }
         }
 
         public static short ReadInt16BigEndian(BinaryReader binaryReader)
@@ -153,6 +128,26 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             ulong n = binaryReader.ReadUInt64();
             return BitConverter.IsLittleEndian ? n : Longs.ReverseBytes(n);
+        }
+
+        /// <summary>
+        /// Read exactly <paramref name="exactLength"/> bytes from <paramref name="binaryReader"/>, allocated
+        /// incrementally. See <see cref="Streams.TryReadExactIncremental(Stream, int, out byte[])"/>.
+        /// </summary>
+        internal static bool TryReadExactIncremental(BinaryReader binaryReader, int exactLength, out byte[] bytes) =>
+            Streams.TryReadExactIncremental(new BinaryReaderReadSource(binaryReader), exactLength, out bytes);
+
+        private readonly struct BinaryReaderReadSource
+            : IReadSource
+        {
+            private readonly BinaryReader m_binaryReader;
+
+            internal BinaryReaderReadSource(BinaryReader binaryReader)
+            {
+                m_binaryReader = binaryReader ?? throw new ArgumentNullException(nameof(binaryReader));
+            }
+
+            public int Read(byte[] buffer, int offset, int count) => m_binaryReader.Read(buffer, offset, count);
         }
     }
 }
