@@ -24,12 +24,57 @@ namespace Org.BouncyCastle.Utilities.IO
             }
         }
 
+        /// <summary>
+        /// Read exactly <paramref name="count"/> bytes, or throw <see cref="EndOfStreamException"/>.
+        /// </summary>
+        /// <remarks>
+        /// <paramref name="count"/> is typically a length field read from untrusted data, and
+        /// <see cref="BinaryReader.ReadBytes(int)"/> allocates the whole result before reading anything, so a
+        /// hostile length would otherwise cost up to 2GB of allocation before the data ran out. A count beyond
+        /// the total length of a seekable stream is rejected up front, and a large count is read incrementally
+        /// so that allocation tracks the data actually supplied.
+        /// </remarks>
+        /// <exception cref="IOException">if <paramref name="count"/> is negative.</exception>
+        /// <exception cref="EndOfStreamException">if the stream ends before <paramref name="count"/> bytes.</exception>
         public static byte[] ReadBytesFully(BinaryReader binaryReader, int count)
         {
+            if (count < 0)
+                throw new IOException($"negative length: {count}");
+
+            // The reader makes no promise about read-ahead, so the stream position is not a reliable measure of
+            // the data remaining; only the total length is a safe bound.
+            if (Streams.TryGetLength(binaryReader.BaseStream, out long length) && count > length)
+                throw new EndOfStreamException();
+
+            if (count > ReadBytesChunkSize)
+                return ReadBytesFullyChunked(binaryReader, count);
+
             byte[] bytes = binaryReader.ReadBytes(count);
             if (bytes == null || bytes.Length != count)
                 throw new EndOfStreamException();
             return bytes;
+        }
+
+        private const int ReadBytesChunkSize = 0x10000;
+
+        // TODO[io] Has a lot in common with Streams.TryReadExactIncremental
+        private static byte[] ReadBytesFullyChunked(BinaryReader binaryReader, int count)
+        {
+            using (var buf = new MemoryStream())
+            {
+                byte[] chunk = new byte[ReadBytesChunkSize];
+                int remaining = count;
+                while (remaining > 0)
+                {
+                    int numRead = binaryReader.Read(chunk, 0, System.Math.Min(chunk.Length, remaining));
+                    if (numRead <= 0)
+                        throw new EndOfStreamException();
+
+                    buf.Write(chunk, 0, numRead);
+                    remaining -= numRead;
+                }
+                return buf.ToArray();
+            }
         }
 
         public static short ReadInt16BigEndian(BinaryReader binaryReader)
