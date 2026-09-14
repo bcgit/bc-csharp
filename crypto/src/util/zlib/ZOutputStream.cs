@@ -63,6 +63,12 @@ namespace Org.BouncyCastle.Utilities.Zlib
         protected Stream output;
         protected bool closed;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // Transfer buffer for Write(ReadOnlySpan), allocated on first use. Only ever read by our own deflater (never
+        // handed to the caller-supplied output stream), so reusing it is safe.
+        private byte[] spanBuf;
+#endif
+
         public ZOutputStream(Stream output)
             : this(output, false)
         {
@@ -246,6 +252,25 @@ namespace Org.BouncyCastle.Utilities.Zlib
             }
             while (z.avail_in > 0 || z.avail_out == 0);
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /*
+         * The base implementation would call WriteByte per byte, and each of those runs a full deflate/inflate call
+         * for a single byte of input. Go through our own array overload instead, one block at a time.
+         */
+        public override void Write(ReadOnlySpan<byte> buffer)
+        {
+            if (buffer.IsEmpty)
+                return;
+
+            if (spanBuf == null)
+            {
+                spanBuf = new byte[BufferSize];
+            }
+
+            Streams.WriteSpanViaArray(this, buffer, spanBuf);
+        }
+#endif
 
         public override void WriteByte(byte value)
         {

@@ -65,6 +65,12 @@ namespace Org.BouncyCastle.Utilities.Zlib
 
         private bool nomoreinput = false;
 
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        // Transfer buffer for Read(Span), allocated on first use. Only ever written by our own inflater (never
+        // handed to the caller-supplied input stream), so reusing it is safe.
+        private byte[] spanBuf;
+#endif
+
         public ZInputStream(Stream input)
             : this(input, false)
         {
@@ -196,6 +202,25 @@ namespace Org.BouncyCastle.Utilities.Zlib
             //Console.Error.WriteLine("("+(len-z.avail_out)+")");
             return count - z.avail_out;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /*
+         * The base implementation would call ReadByte per byte, and each of those runs a full inflate/deflate call
+         * for a single byte of output. Go through our own array overload instead, one block at a time.
+         */
+        public override int Read(Span<byte> buffer)
+        {
+            if (buffer.IsEmpty)
+                return 0;
+
+            if (spanBuf == null)
+            {
+                spanBuf = new byte[BufferSize];
+            }
+
+            return Streams.ReadSpanViaArray(this, buffer, spanBuf);
+        }
+#endif
 
         public override int ReadByte()
         {

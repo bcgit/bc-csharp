@@ -218,6 +218,71 @@ namespace Org.BouncyCastle.Utilities.IO
             }
             return totalRead;
         }
+
+        /// <summary>
+        /// Implement <see cref="Stream.Read(Span{byte})"/> for a stream whose real work happens in
+        /// <see cref="Stream.Read(byte[], int, int)"/>, by reading into <paramref name="transferBuffer"/> and copying
+        /// out, a block at a time.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Intended for <c>Read(Span)</c> overrides of our own stream classes, where the base implementation would
+        /// otherwise fall back to a byte-at-a-time <see cref="Stream.ReadByte"/> loop. Because
+        /// <paramref name="transferBuffer"/> is reused, it must only ever be filled by code we control: pass
+        /// <c>this</c> as <paramref name="inStr"/>. Handing a reused buffer to a caller-supplied stream would let
+        /// that stream retain it and observe later reads.
+        /// </para>
+        /// <para>
+        /// Reading continues only while the stream keeps satisfying a block in full; the first short read ends it,
+        /// that being the stream's signal that nothing more is ready. The result may therefore be short of
+        /// <paramref name="buffer"/>, as the contract allows, but a stream with data to hand still fills it in one
+        /// call. This never blocks for more than the byte-at-a-time base implementation would, which stops only when
+        /// <paramref name="buffer"/> is full or the data ends.
+        /// </para>
+        /// </remarks>
+        internal static int ReadSpanViaArray(Stream inStr, Span<byte> buffer, byte[] transferBuffer)
+        {
+            if (transferBuffer.Length < 1)
+                throw new ArgumentException("must not be empty", nameof(transferBuffer));
+
+            int totalRead = 0;
+            while (totalRead < buffer.Length)
+            {
+                int count = System.Math.Min(buffer.Length - totalRead, transferBuffer.Length);
+                int numRead = inStr.Read(transferBuffer, 0, count);
+                if (numRead < 1)
+                    break;
+
+                new ReadOnlySpan<byte>(transferBuffer, 0, numRead).CopyTo(buffer[totalRead..]);
+                totalRead += numRead;
+
+                if (numRead < count)
+                    break;
+            }
+            return totalRead;
+        }
+
+        /// <summary>
+        /// As <see cref="ReadSpanViaArray(Stream, Span{byte}, byte[])"/>, allocating a single-use transfer buffer of
+        /// at most <see cref="DefaultBufferSize"/> bytes (which caps the block size, not the result). Prefer the
+        /// overload taking a buffer when the caller can hold one for the lifetime of the stream.
+        /// </summary>
+        internal static int ReadSpanViaArray(Stream inStr, Span<byte> buffer)
+        {
+            int count = System.Math.Min(buffer.Length, DefaultBufferSize);
+            if (count < 1)
+                return 0;
+
+            byte[] transferBuffer = new byte[count];
+            try
+            {
+                return ReadSpanViaArray(inStr, buffer, transferBuffer);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(transferBuffer);
+            }
+        }
 #endif
 
         /// <summary>Best-effort query of the data remaining before the end of a seekable stream.</summary>
@@ -493,6 +558,55 @@ namespace Org.BouncyCastle.Utilities.IO
 
             destination.Write(buffer.Span);
             return ValueTask.CompletedTask;
+        }
+
+        /// <summary>
+        /// Implement <see cref="Stream.Write(ReadOnlySpan{byte})"/> for a stream whose real work happens in
+        /// <see cref="Stream.Write(byte[], int, int)"/>, by copying into <paramref name="transferBuffer"/> a block at
+        /// a time. All of <paramref name="buffer"/> is written, as the contract requires.
+        /// </summary>
+        /// <remarks>
+        /// Intended for <c>Write(ReadOnlySpan)</c> overrides of our own stream classes, where the base implementation
+        /// would otherwise fall back to a byte-at-a-time <see cref="Stream.WriteByte"/> loop. Because
+        /// <paramref name="transferBuffer"/> is reused, it must only ever be read by code we control: pass
+        /// <c>this</c> as <paramref name="outStr"/>. Handing a reused buffer to a caller-supplied stream would let
+        /// that stream retain it and observe later writes.
+        /// </remarks>
+        internal static void WriteSpanViaArray(Stream outStr, ReadOnlySpan<byte> buffer, byte[] transferBuffer)
+        {
+            // Guards against an infinite loop: a zero-length transfer buffer would consume nothing each pass.
+            if (transferBuffer.Length < 1)
+                throw new ArgumentException("must not be empty", nameof(transferBuffer));
+
+            while (!buffer.IsEmpty)
+            {
+                int count = System.Math.Min(buffer.Length, transferBuffer.Length);
+                buffer[..count].CopyTo(transferBuffer);
+                outStr.Write(transferBuffer, 0, count);
+                buffer = buffer[count..];
+            }
+        }
+
+        /// <summary>
+        /// As <see cref="WriteSpanViaArray(Stream, ReadOnlySpan{byte}, byte[])"/>, allocating a single-use transfer
+        /// buffer of at most <see cref="DefaultBufferSize"/> bytes. Prefer the overload taking a buffer when the
+        /// caller can hold one for the lifetime of the stream.
+        /// </summary>
+        internal static void WriteSpanViaArray(Stream outStr, ReadOnlySpan<byte> buffer)
+        {
+            int count = System.Math.Min(buffer.Length, DefaultBufferSize);
+            if (count < 1)
+                return;
+
+            byte[] transferBuffer = new byte[count];
+            try
+            {
+                WriteSpanViaArray(outStr, buffer, transferBuffer);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(transferBuffer);
+            }
         }
 #endif
 
