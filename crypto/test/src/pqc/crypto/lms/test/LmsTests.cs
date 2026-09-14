@@ -313,9 +313,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 .U32Str(cacheCountLimit)
                 .Bytes(new byte[cacheCountLimit * m - 1])
                 .Build();
-            var ex2 = Assert.Throws<IOException>(
-                () => LmsPrivateKeyParameters.GetInstance(truncated));
-            Assert.True(ex2.Message.StartsWith("tree cache length exceeded"));
+            // Either the up-front length check or the bounded read may detect the truncation
+            Assert.Catch<IOException>(() => LmsPrivateKeyParameters.GetInstance(truncated));
         }
 
         /// <summary>

@@ -238,9 +238,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 throw new IOException("tree cache node count is not a complete top of tree: " + cacheCount);
 
             int m = key.sigParameters.M;
-            var stream = binaryReader.BaseStream;
-            if (stream.CanSeek && (long)cacheCount * m > stream.Length - stream.Position)
-                throw new IOException($"tree cache length exceeded {stream.Length - stream.Position}");
+            // Only the total length is a safe bound: the reader makes no promise about read-ahead
+            if (Streams.TryGetLength(binaryReader.BaseStream, out long length) && (long)cacheCount * m > length)
+                throw new IOException($"tree cache length exceeded {length}");
 
             byte[][] cachedT = new byte[cacheCount + 1][];
             for (int r = 1; r <= cacheCount; r++)

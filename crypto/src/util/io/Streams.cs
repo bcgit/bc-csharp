@@ -224,6 +224,25 @@ namespace Org.BouncyCastle.Utilities.IO
             return false;
         }
 
+        public static bool TryGetLength(Stream stream, out long length)
+        {
+            try
+            {
+                if (stream.CanSeek)
+                {
+                    length = System.Math.Max(0L, stream.Length);
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                // Ignore; this method is best-effort only
+            }
+
+            length = default;
+            return false;
+        }
+
         /// <summary>
         /// Read exactly <paramref name="exactLength"/> bytes from <paramref name="stream"/>, allocated incrementally.
         /// </summary>
