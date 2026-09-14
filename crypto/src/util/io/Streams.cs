@@ -184,7 +184,7 @@ namespace Org.BouncyCastle.Utilities.IO
             }
             finally
             {
-                Array.Clear(localBuffer, 0, localBuffer.Length);
+                Arrays.ZeroMemory(localBuffer);
             }
         }
 #endif
@@ -350,7 +350,7 @@ namespace Org.BouncyCastle.Utilities.IO
             }
             finally
             {
-                Array.Clear(localBuffer, 0, localBuffer.Length);
+                Arrays.ZeroMemory(localBuffer);
             }
         }
 
@@ -388,7 +388,7 @@ namespace Org.BouncyCastle.Utilities.IO
             }
             finally
             {
-                Array.Clear(localBuffer, 0, localBuffer.Length);
+                Arrays.ZeroMemory(localBuffer);
             }
         }
 
