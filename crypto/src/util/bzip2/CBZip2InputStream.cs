@@ -140,8 +140,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
 
             /*
              * TODO The base class implementation allows to return partial data if/when ReadByte throws. That would be
-             * be preferable here too (so don't override), but it would require that exceptions cause this instance to
-             * permanently fail, and that needs review.
+             * be preferable here too (so remove this override and the Span one below), but it would require that
+             * exceptions cause this instance to permanently fail, and that needs review.
              */
             int pos = 0;
             while (pos < count)
@@ -154,6 +154,26 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             }
             return pos;
         }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        public override int Read(Span<byte> buffer)
+        {
+            /*
+             * Same loop as the array overload above, for the same reason: the base class implementation would return
+             * partial data if/when ReadByte throws, and the two overloads must not disagree about that.
+             */
+            int count = buffer.Length, pos = 0;
+            while (pos < count)
+            {
+                int b = ReadByte();
+                if (b < 0)
+                    break;
+
+                buffer[pos++] = (byte)b;
+            }
+            return pos;
+        }
+#endif
 
         public override int ReadByte()
         {
