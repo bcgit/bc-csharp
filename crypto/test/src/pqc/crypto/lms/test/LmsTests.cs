@@ -44,7 +44,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             ctx.BlockUpdate(ms, 0, ms.Length);
 
-            LMOtsSignature sig = LMOts.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
+            byte[] Q = new byte[parameter.N + 2];
+            ctx.OutputQ(Q, 0);
+
+            LMOtsSignature sig = LMOts.LMOtsGenerateSignature(privateKey, Q, ctx.C);
             Assert.True(LMOts.LMOtsValidateSignature(publicKey, sig, ms, false));
 
             // Recreate signature
@@ -162,18 +165,117 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             ctx.BlockUpdate(ms, 0, ms.Length);
 
-            LMOtsSignature sig = LMOts.LMOtsGenerateSignature(privateKey, ctx.GetQ(), ctx.C);
+            byte[] Q = new byte[parameter.N + 2];
+            ctx.OutputQ(Q, 0);
+
+            LMOtsSignature sig = LMOts.LMOtsGenerateSignature(privateKey, Q, ctx.C);
             Assert.True(LMOts.LMOtsValidateSignature(publicKey, sig, ms, false));
 
-            try
-            {
-                ctx.Update(1);
-                Assert.Fail("Digest reuse after signature taken.");
-            }
-            catch (NullReferenceException)
-            {
-                // Expected
-            }
+            Assert.Throws<InvalidOperationException>(() => ctx.Update(1), "Digest reuse after signature taken.");
+            Assert.Throws<InvalidOperationException>(() => ctx.OutputQ(Q, 0), "Q taken twice from one context.");
+        }
+
+        /**
+         * GetQ is superseded by OutputQ but must keep working: it returns a buffer sized for the largest N over
+         * the parameter sets, plus the two bytes a caller needs for the checksum.
+         */
+        [Test]
+        public void TestObsoleteGetQMatchesOutputQ()
+        {
+            LMOtsParameters parameter = LMOtsParameters.sha256_n24_w4;
+
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+
+            LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
+
+            byte[] ms = new byte[32];
+
+            LmsContext ctx = privateKey.GetSignatureContext(null, null);
+            ctx.BlockUpdate(ms, 0, ms.Length);
+
+            byte[] Q = new byte[parameter.N + 2];
+            Assert.AreEqual(parameter.N, ctx.OutputQ(Q, 0));
+
+            LmsContext ctx2 = privateKey.GetSignatureContext(null, null);
+            ctx2.BlockUpdate(ms, 0, ms.Length);
+
+            byte[] legacyQ = ctx2.GetQ();
+
+            Assert.AreEqual(34, legacyQ.Length);
+            Assert.True(Arrays.AreEqual(Q, 0, parameter.N, legacyQ, 0, parameter.N));
+
+            // The bytes past N are the caller's to fill in, and GetQ leaves them zeroed.
+            Assert.True(Arrays.AreEqual(new byte[legacyQ.Length - parameter.N], Arrays.CopyOfRange(legacyQ,
+                parameter.N, legacyQ.Length)));
+        }
+
+        /**
+         * The context absorbs I || u32str(q) || u16str(D_MESG) || C at construction and must be finalized exactly
+         * once, by OutputQ. IDigest.DoFinal would hand back something that looks like Q while resetting the
+         * digest, leaving OutputQ to hash nothing at all; Reset would discard the prefix irrecoverably. Both
+         * must refuse.
+         */
+        [Test]
+        public void TestContextRejectsDigestFinalization()
+        {
+            LMOtsParameters parameter = LMOtsParameters.sha256_n32_w4;
+
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+
+            LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
+
+            LmsContext ctx = privateKey.GetSignatureContext(null, null);
+
+            Assert.Throws<NotSupportedException>(() => ctx.DoFinal(new byte[parameter.N], 0));
+            Assert.Throws<NotSupportedException>(() => ctx.Reset());
+// NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+//#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Assert.Throws<NotSupportedException>(() => ctx.DoFinal(new byte[parameter.N].AsSpan()));
+#endif
+
+            // The refusals left the context usable.
+            byte[] ms = new byte[32];
+            ctx.BlockUpdate(ms, 0, ms.Length);
+
+            LMOtsPublicKey publicKey = LMOts.LmsOtsGeneratePublicKey(privateKey);
+            byte[] Q = new byte[parameter.N + 2];
+            ctx.OutputQ(Q, 0);
+
+            LMOtsSignature sig = LMOts.LMOtsGenerateSignature(privateKey, Q, ctx.C);
+            Assert.True(LMOts.LMOtsValidateSignature(publicKey, sig, ms, false));
+        }
+
+        /**
+         * The legacy LM_OTS entry points carry a pre-hashed flag they cannot honour: signing has no parameter for
+         * the randomizer C that the caller hashed into Q, and verification ignores the flag entirely.
+         */
+        [Test]
+        public void TestPreHashedFlagRefused()
+        {
+            LMOtsParameters parameter = LMOtsParameters.sha256_n32_w4;
+
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+
+            LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
+            LMOtsPublicKey publicKey = LMOts.LmsOtsGeneratePublicKey(privateKey);
+
+            byte[] ms = new byte[32];
+
+            LmsContext ctx = privateKey.GetSignatureContext(null, null);
+            ctx.BlockUpdate(ms, 0, ms.Length);
+            byte[] Q = new byte[parameter.N + 2];
+            ctx.OutputQ(Q, 0);
+
+            LMOtsSignature sig = LMOts.LMOtsGenerateSignature(privateKey, Q, ctx.C);
+
+            Assert.Throws<ArgumentException>(
+                () => LMOts.lm_ots_generate_signature(null, privateKey, null, ms, preHashed: true));
+            Assert.Throws<ArgumentException>(
+                () => LMOts.LMOtsValidateSignature(publicKey, sig, ms, prehashed: true));
         }
 
         /**

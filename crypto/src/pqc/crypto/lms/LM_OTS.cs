@@ -13,9 +13,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private static int ITER_K = 20;
         private static int ITER_PREV = 23;
         private static int ITER_J = 22;
-        
+
         internal static int SEED_RANDOMISER_INDEX = ~2;
-        internal static int MAX_HASH = 32;
         internal static ushort D_MESG = 0x8181;
 
         public static int Coef(byte[] S, int i, int w)
@@ -120,7 +119,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LmsUtilities.ByteArray(message, 0, message.Length, qCtx);
 
-            return LMOtsGenerateSignature(privateKey, qCtx.GetQ(), qCtx.C);
+            byte[] Q = LmsEngine.CollectQ(qCtx, privateKey.Parameters);
+
+            return LMOtsGenerateSignature(privateKey, Q, qCtx.C);
         }
 
         public static LMOtsSignature LMOtsGenerateSignature(LMOtsPrivateKey privateKey, byte[] Q, byte[] C)
@@ -184,7 +185,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
-        public static byte[] LMOtsValidateSignatureCalculate(LMOtsPublicKey publicKey, LMOtsSignature signature, 
+        public static byte[] LMOtsValidateSignatureCalculate(LMOtsPublicKey publicKey, LMOtsSignature signature,
             byte[] message)
         {
             LmsContext ctx = publicKey.CreateOtsContext(signature);
@@ -212,7 +213,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             int n = parameters.N;
             int w = parameters.W;
             int p = parameters.P;
-            byte[] Q = context.GetQ();
+
+            byte[] Q = LmsEngine.CollectQ(context, parameters);
 
             int cs = Cksm(Q, n, parameters);
             Q[n] = (byte)((cs >> 8) & 0xFF);

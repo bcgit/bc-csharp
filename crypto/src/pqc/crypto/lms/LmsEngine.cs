@@ -5,6 +5,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     internal static class LmsEngine
     {
+        /// <summary>
+        /// Take Q, the message hash, from a context that the message has been absorbed into, in the buffer shape the
+        /// LM-OTS chaining expects: the N bytes of Q, followed by room for the two bytes of
+        /// <see cref="LMOts.Cksm(byte[], int, LMOtsParameters)"/> that the caller appends (RFC 8554 sec. 4.5). The
+        /// context cannot be used afterwards.
+        /// </summary>
+        internal static byte[] CollectQ(LmsContext context, LMOtsParameters otsParameters)
+        {
+            byte[] Q = new byte[otsParameters.N + 2];
+            context.OutputQ(Q, 0);
+            return Q;
+        }
+
         //
         // Signing.
         //
@@ -40,9 +53,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// </summary>
         internal static LmsSignature GenerateSign(LmsContext context)
         {
-            LMOtsSignature ots_signature = LMOts.LMOtsGenerateSignature(context.PrivateKey, context.GetQ(), context.C);
+            LMOtsPrivateKey privateKey = context.PrivateKey;
 
-            return new LmsSignature(context.PrivateKey.Q, ots_signature, context.SigParams, context.Path);
+            byte[] Q = CollectQ(context, privateKey.Parameters);
+
+            LMOtsSignature ots_signature = LMOts.LMOtsGenerateSignature(privateKey, Q, context.C);
+
+            return new LmsSignature(privateKey.Q, ots_signature, context.SigParams, context.Path);
         }
 
         /// <summary>
