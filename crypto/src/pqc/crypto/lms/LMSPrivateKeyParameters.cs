@@ -17,6 +17,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 privateKey.I);
         }
 
+        private static readonly Func<LmsPrivateKeyParameters, LmsPublicKeyParameters> s_derivePublicKey =
+            DerivePublicKey;
+
         // The number of tree nodes eligible for the cache (nodes 1 .. CacheTopLimit - 1: the top six levels of the
         // tree), in memory and in the persisted trailer alike. Mirrors the interned-key table size in the bc-java
         // implementation, which defines the interchange format's cache-count limit.
@@ -70,8 +73,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly bool m_isPlaceholder;
 
         //
-        // These are not final because they can be generated.
-        // They also do not need to be persisted.
+        // This is not final because it can be generated.
+        // It also does not need to be persisted.
+        //
+        // Written once, either by the decoder from the public key supplied alongside the private one or by
+        // GetPublicKey deriving it; published without the key's monitor, so read it with Volatile.Read.
         //
         private LmsPublicKeyParameters m_publicKey;
 
@@ -145,7 +151,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.tCache = parent.tCache;
             this.m_calcT = CalcT;
             this.m_retained = parent.m_retained;
-            this.m_publicKey = parent.m_publicKey;
+            // Inherited if the parent has it already; if a concurrent GetPublicKey is still deriving it, this key
+            // simply derives it in turn, which costs nothing beyond the shared node cache.
+            this.m_publicKey = Volatile.Read(ref parent.m_publicKey);
         }
 
         /// <summary>
@@ -375,11 +383,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 if (cachedRoot != null && !Arrays.AreEqual(cachedRoot, publicKey.GetT1()))
                     throw new IOException("LMS private key tree cache does not match the public key");
-            }
 
-            lock (pKey)
-            {
-                pKey.m_publicKey = publicKey;
+                // Having checked it, keep it: the root is the one part of the tree a decoded key does not
+                // necessarily carry, and deriving it would cost a full rebuild.
+                Volatile.Write(ref pKey.m_publicKey, publicKey);
             }
 
             return pKey;
@@ -559,19 +566,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // TODO[api] Only needs 'int'
         public long GetUsagesRemaining() => IndexLimit - GetIndex();
 
+        /// <summary>
+        /// The public key of this tree, derived on first use and kept thereafter.
+        /// </summary>
+        /// <remarks>
+        /// Deliberately not taken under the key's monitor: the root node is a function of the identifier, the master
+        /// secret and the parameter sets and not of q, so nothing the monitor guards takes part in deriving it, and
+        /// holding the monitor for a tree build (up to 2^h leaf derivations) would stall every one-time key claim on
+        /// the key for its duration. Concurrent callers race harmlessly - <see cref="FindT(int)"/> already dedupes
+        /// the expensive per-node work, so a second caller finds the tree built - and the first to publish wins.
+        /// </remarks>
         public LmsPublicKeyParameters GetPublicKey()
         {
             if (m_isPlaceholder)
                 throw new InvalidOperationException("placeholder only");
 
-            lock (this)
-            {
-                if (m_publicKey == null)
-                {
-                    m_publicKey = DerivePublicKey(this);
-                }
-                return m_publicKey;
-            }
+            return Objects.EnsureSingletonInitialized(ref m_publicKey, this, s_derivePublicKey);
         }
 
         /**
