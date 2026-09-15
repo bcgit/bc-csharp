@@ -269,6 +269,79 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(VerifyLms(lmsPub, blocks[4], message), "Test Case 2 Signature 2");
         }
 
+        private static IEnumerable<TestCaseData> Rfc9858Vectors()
+        {
+            yield return new TestCaseData("rfc9858_testcase_1.txt", LMSigParameters.lms_sha256_n24_h5,
+                LMOtsParameters.sha256_n24_w8, true)
+                .SetArgDisplayNames("A.1", "LMS_SHA256_M24_H5", "LMOTS_SHA256_N24_W8", "regenerate");
+
+            yield return new TestCaseData("rfc9858_testcase_2.txt", LMSigParameters.lms_shake256_n24_h5,
+                LMOtsParameters.shake256_n24_w8, true)
+                .SetArgDisplayNames("A.2", "LMS_SHAKE_N24_H5", "LMOTS_SHAKE_N24_W8", "regenerate");
+
+            // The RFC's A.3 section title says SHA-256/256, but its parameter sets and message are SHAKE256/256.
+            yield return new TestCaseData("rfc9858_testcase_3.txt", LMSigParameters.lms_shake256_n32_h5,
+                LMOtsParameters.shake256_n32_w8, true)
+                .SetArgDisplayNames("A.3", "LMS_SHAKE_N32_H5", "LMOTS_SHAKE_N32_W8", "regenerate");
+
+            // Verification only: regenerating the key means building a 2^20-leaf tree, far too slow for a
+            // unit test.
+            yield return new TestCaseData("rfc9858_testcase_4.txt", LMSigParameters.lms_sha256_n24_h20,
+                LMOtsParameters.sha256_n24_w4, false)
+                .SetArgDisplayNames("A.4", "LMS_SHA256_M24_H20", "LMOTS_SHA256_N24_W4", "verify only");
+        }
+
+        /**
+         * RFC 9858 Appendix A: https://www.rfc-editor.org/rfc/rfc9858#appendix-A. Each vector is a single-level
+         * HSS key with its private SEED and I, a message and a signature, all produced with the RFC 8554
+         * Appendix A key derivation. These are the only known-answer vectors covering the truncated (n=24) and
+         * SHAKE parameter sets, so they pin the digest handling that the n=32 SHA-256 vectors cannot reach.
+         *
+         * Three things are checked: the RFC signature verifies under the RFC public key; the key regenerated
+         * from SEED and I reproduces the RFC public key; and signing the message at the signature's q
+         * reproduces the RFC signature byte for byte.
+         */
+        [TestCaseSource(nameof(Rfc9858Vectors))]
+        public void Rfc9858Vector(string vector, LMSigParameters sigParams, LMOtsParameters otsParams,
+            bool regenerate)
+        {
+            var blocks = LoadTestResource("pqc/crypto/lms/" + vector);
+
+            byte[] seed = blocks[0];
+            byte[] I = blocks[1];
+            HssPublicKeyParameters publicKey = HssPublicKeyParameters.GetInstance(blocks[2]);
+            byte[] message = blocks[3];
+            byte[] signature = blocks[4];
+
+            Assert.AreEqual(1, publicKey.Level, "levels");
+
+            LmsPublicKeyParameters lmsPub = publicKey.LmsPublicKey;
+            Assert.AreEqual(sigParams, lmsPub.GetSigParameters(), "LMS type");
+            Assert.AreEqual(otsParams, lmsPub.GetOtsParameters(), "LM-OTS type");
+            Assert.True(Arrays.AreEqual(I, lmsPub.GetI()), "I");
+            Assert.AreEqual(sigParams.M, seed.Length, "SEED length");
+
+            Assert.True(Verify(publicKey, signature, message), "RFC signature verifies");
+
+            // Nspk is 0, so the HSS signature is u32str(0) followed by the LMS signature, which opens with q.
+            Assert.AreEqual(0U, Pack_BE_To_UInt32(signature, 0), "Nspk");
+            byte[] lmsSignature = Arrays.CopyOfRange(signature, 4, signature.Length);
+            Assert.True(VerifyLms(lmsPub, lmsSignature, message), "RFC LMS signature verifies");
+
+            if (!regenerate)
+                return;
+
+            int q = (int)Pack_BE_To_UInt32(lmsSignature, 0);
+            LmsPrivateKeyParameters privateKey = LmsKey(sigParams, otsParams, q, I, seed);
+            Assert.True(Arrays.AreEqual(lmsPub.GetEncoded(), privateKey.GetPublicKey().GetEncoded()),
+                "public key from SEED and I");
+
+            LmsSigner signer = new LmsSigner();
+            signer.Init(true, privateKey);
+            Assert.True(Arrays.AreEqual(lmsSignature, signer.GenerateSignature(message)),
+                "signature at q from SEED and I");
+        }
+
         private IList<byte[]> LoadTestResource(string path)
         {
             StreamReader bin = new StreamReader(SimpleTest.FindTestResource(path));
