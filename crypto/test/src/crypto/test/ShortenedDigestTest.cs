@@ -53,6 +53,20 @@ namespace Org.BouncyCastle.Crypto.Tests
 			//
 			sd.DoFinal(new byte[20], 0);
 
+			//
+			// check output too short
+			//
+			try
+			{
+				sd.DoFinal(new byte[19], 0);
+
+				Fail("short output not caught");
+			}
+			catch (OutputLengthException)
+			{
+				// expected
+			}
+
 			try
 			{
 				new ShortenedDigest(null, 20);
@@ -69,6 +83,17 @@ namespace Org.BouncyCastle.Crypto.Tests
 				new ShortenedDigest(new Sha1Digest(), 50);
 
 				Fail("short digest not caught");
+			}
+			catch (ArgumentException)
+			{
+				// expected
+			}
+
+			try
+			{
+				new ShortenedDigest(new Sha1Digest(), 0);
+
+				Fail("zero length not caught");
 			}
 			catch (ArgumentException)
 			{

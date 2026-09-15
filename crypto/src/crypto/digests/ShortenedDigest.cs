@@ -1,104 +1,91 @@
 using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Crypto.Digests
 {
-	/**
-	* Wrapper class that reduces the output length of a particular digest to
-	* only the first n bytes of the digest function.
-	*/
-	public class ShortenedDigest
-		: IDigest
-	{
-		private IDigest	baseDigest;
-		private int		length;
+    /// <summary>Wrapper class that reduces the output length of a particular digest to only the first n bytes of
+    /// the digest function.</summary>
+    // TODO[api] Make sealed
+    public class ShortenedDigest
+        : IDigest
+    {
+        private readonly IDigest m_baseDigest;
+        private readonly int m_length;
 
-		/**
-		* Base constructor.
-		*
-		* @param baseDigest underlying digest to use.
-		* @param length length in bytes of the output of doFinal.
-		* @exception ArgumentException if baseDigest is null, or length is greater than baseDigest.GetDigestSize().
-		*/
-		public ShortenedDigest(
-			IDigest	baseDigest,
-			int		length)
-		{
-			if (baseDigest == null)
-			{
-				throw new ArgumentNullException("baseDigest");
-			}
+        /// <summary>Base constructor.</summary>
+        /// <param name="baseDigest">The underlying digest to use.</param>
+        /// <param name="length">The length, in bytes, of the output of DoFinal.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="baseDigest"/> is null.</exception>
+        /// <exception cref="ArgumentOutOfRangeException">If <paramref name="length"/> is less than 1, or greater
+        /// than the digest size of <paramref name="baseDigest"/>.</exception>
+        public ShortenedDigest(IDigest baseDigest, int length)
+        {
+            if (baseDigest == null)
+                throw new ArgumentNullException(nameof(baseDigest));
+            if (length < 1)
+                throw new ArgumentOutOfRangeException(nameof(length));
+            if (length > baseDigest.GetDigestSize())
+                throw new ArgumentOutOfRangeException(nameof(length),
+                    "baseDigest output not large enough to support length");
 
-			if (length > baseDigest.GetDigestSize())
-			{
-				throw new ArgumentException("baseDigest output not large enough to support length");
-			}
+            m_baseDigest = baseDigest;
+            m_length = length;
+        }
 
-			this.baseDigest = baseDigest;
-			this.length = length;
-		}
+        public string AlgorithmName => m_baseDigest.AlgorithmName + "(" + m_length * 8 + ")";
 
-		public string AlgorithmName
-		{
-			get { return baseDigest.AlgorithmName + "(" + length * 8 + ")"; }
-		}
+        public int GetDigestSize() => m_length;
 
-		public int GetDigestSize()
-		{
-			return length;
-		}
+        public void Update(byte input) => m_baseDigest.Update(input);
 
-		public void Update(byte input)
-		{
-			baseDigest.Update(input);
-		}
-
-		public void BlockUpdate(byte[] input, int inOff, int length)
-		{
-			baseDigest.BlockUpdate(input, inOff, length);
-		}
+        public void BlockUpdate(byte[] input, int inOff, int inLen) => m_baseDigest.BlockUpdate(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        public void BlockUpdate(ReadOnlySpan<byte> input)
-        {
-            baseDigest.BlockUpdate(input);
-        }
+        public void BlockUpdate(ReadOnlySpan<byte> input) => m_baseDigest.BlockUpdate(input);
 #endif
 
         public int DoFinal(byte[] output, int outOff)
-		{
-			byte[] tmp = new byte[baseDigest.GetDigestSize()];
+        {
+            // Checked up front so that nothing can throw between filling the temporary and wiping it.
+            Check.OutputLength(output, outOff, m_length, "output buffer too short");
 
-			baseDigest.DoFinal(tmp, 0);
+            byte[] tmp = new byte[m_baseDigest.GetDigestSize()];
 
-	        Array.Copy(tmp, 0, output, outOff, length);
+            m_baseDigest.DoFinal(tmp, 0);
 
-			return length;
-		}
+            Array.Copy(tmp, 0, output, outOff, m_length);
+
+            // The caller asked for a shortened digest, so don't leave the discarded part of it behind.
+            Arrays.ZeroMemory(tmp);
+
+            return m_length;
+        }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int DoFinal(Span<byte> output)
         {
-			int baseDigestSize = baseDigest.GetDigestSize();
+            // Checked up front so that nothing can throw between filling the temporary and wiping it.
+            Check.OutputLength(output, m_length, "output buffer too short");
+
+            int baseDigestSize = m_baseDigest.GetDigestSize();
             Span<byte> tmp = baseDigestSize <= 128
-				? stackalloc byte[baseDigestSize]
-				: new byte[baseDigestSize];
+                ? stackalloc byte[baseDigestSize]
+                : new byte[baseDigestSize];
 
-            baseDigest.DoFinal(tmp);
+            m_baseDigest.DoFinal(tmp);
 
-            tmp[..length].CopyTo(output);
+            tmp[..m_length].CopyTo(output);
 
-            return length;
+            // The caller asked for a shortened digest, so don't leave the discarded part of it behind.
+            Arrays.ZeroMemory(tmp);
+
+            return m_length;
         }
 #endif
 
-        public void Reset()
-		{
-			baseDigest.Reset();
-		}
+        public void Reset() => m_baseDigest.Reset();
 
-		public int GetByteLength()
-		{
-			return baseDigest.GetByteLength();
-		}
-	}
+        public int GetByteLength() => m_baseDigest.GetByteLength();
+    }
 }
