@@ -115,6 +115,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public int SigLen => m_sigLen;
 
+        // TODO[api] Expand to an AlgorithmIdentifier at promotion. A digest OID alone identifies the hash
+        // function only where the parameters are absent; id_shake256_len carries its output length in bits as a
+        // mandatory parameter (RFC 8702), so the OID here is the same for the n=24 and n=32 sets and N has to be
+        // compared alongside it to tell one hash function from another.
         public DerObjectIdentifier DigestOid => m_digestOid;
     }
 }
