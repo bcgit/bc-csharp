@@ -104,33 +104,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         // TODO[api] Rename
+        // TODO[api] Remove on promotion
         public static LMOtsSignature lm_ots_generate_signature(LMSigParameters sigParams, LMOtsPrivateKey privateKey,
             byte[][] path, byte[] message, bool preHashed)
         {
+            // The randomizer C is an input to Q and is carried in the signature for the verifier to reuse, so a
+            // caller supplying Q must supply the C it hashed into it; there is no parameter here to receive it.
+            if (preHashed)
+                throw new ArgumentException("pre-hashed signing must use LMOtsGenerateSignature", nameof(preHashed));
+
             //
             // Add the randomizer.
             //
-            byte[] C;
-            byte[] Q = new byte[MAX_HASH + 2];
+            LmsContext qCtx = privateKey.GetSignatureContext(sigParams, path);
 
-            if (!preHashed)
-            {
-                LmsContext qCtx = privateKey.GetSignatureContext(sigParams, path);
+            LmsUtilities.ByteArray(message, 0, message.Length, qCtx);
 
-                LmsUtilities.ByteArray(message, 0, message.Length, qCtx);
-
-                C = qCtx.C;
-                Q = qCtx.GetQ();
-            }
-            else
-            {
-                int n = privateKey.Parameters.N;
-
-                C = new byte[n];
-                Array.Copy(message, 0, Q, 0, n);
-            }
-
-            return LMOtsGenerateSignature(privateKey, Q, C);
+            return LMOtsGenerateSignature(privateKey, qCtx.GetQ(), qCtx.C);
         }
 
         public static LMOtsSignature LMOtsGenerateSignature(LMOtsPrivateKey privateKey, byte[] Q, byte[] C)
@@ -177,9 +167,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LMOtsSignature(parameters, C, sigComposer);
         }
 
+        // TODO[api] Remove on promotion
         public static bool LMOtsValidateSignature(LMOtsPublicKey publicKey, LMOtsSignature signature, byte[] message,
             bool prehashed)
         {
+            // This entry point always hashes the message itself; a caller holding Q needs the context-based
+            // LMOtsValidateSignatureCalculate overload.
+            if (prehashed)
+                throw new ArgumentException("pre-hashed verification must use an LmsContext", nameof(prehashed));
+
             if (!signature.ParamType.Equals(publicKey.Parameters)) // todo check
                 throw new LmsException("public key and signature ots types do not match");
 
