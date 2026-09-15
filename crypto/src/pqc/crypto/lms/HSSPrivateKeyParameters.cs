@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading;
 
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
@@ -12,10 +13,65 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     public class HssPrivateKeyParameters
         : LmsKeyParameters, ILmsContextBasedSigner
     {
+        /// <summary>
+        /// The component keys of an HSS hierarchy together with the chaining signatures that bind them: the public
+        /// key of level i is signed by the key of level i - 1, and that signature is Sig[i - 1].
+        /// </summary>
+        /// <remarks>
+        /// The two move together - replacing a consumed tree replaces both its key and the signature above it - so
+        /// they are held as one immutable object and published by a single reference write. A reader that has the
+        /// reference has a coherent pair of them without taking the key's monitor, and without a window in which
+        /// one has been replaced and the other has not.
+        /// </remarks>
+        private sealed class Hierarchy
+        {
+            internal static Hierarchy Copy(IList<LmsPrivateKeyParameters> keys, IList<LmsSignature> sig)
+            {
+                var keysCopy = new LmsPrivateKeyParameters[keys.Count];
+                keys.CopyTo(keysCopy, 0);
+
+                var sigCopy = new LmsSignature[sig.Count];
+                sig.CopyTo(sigCopy, 0);
+
+                return new Hierarchy(keysCopy, sigCopy);
+            }
+
+            private readonly LmsPrivateKeyParameters[] m_keys;
+            private readonly LmsSignature[] m_sig;
+
+            /// <summary>Takes ownership of the arrays, which must not be modified afterwards.</summary>
+            internal Hierarchy(LmsPrivateKeyParameters[] keys, LmsSignature[] sig)
+            {
+                m_keys = keys;
+                m_sig = sig;
+
+                // Built once with the snapshot rather than per call, since the snapshot cannot change
+                Keys = CollectionUtilities.ReadOnly(keys);
+                Sig = CollectionUtilities.ReadOnly(sig);
+            }
+
+            internal IList<LmsPrivateKeyParameters> Keys { get; }
+
+            internal IList<LmsSignature> Sig { get; }
+
+            internal int Count => m_keys.Length;
+
+            internal LmsPrivateKeyParameters GetKey(int index) => m_keys[index];
+
+            internal LmsSignature GetSig(int index) => m_sig[index];
+
+            internal LmsPrivateKeyParameters[] CopyKeys() => (LmsPrivateKeyParameters[])m_keys.Clone();
+
+            internal LmsSignature[] CopySig() => (LmsSignature[])m_sig.Clone();
+
+            internal bool HasUnconstructedLevel() =>
+                Array.IndexOf(m_keys, null) >= 0 || Array.IndexOf(m_sig, null) >= 0;
+        }
+
         private readonly int m_level;
         private readonly bool m_isShard;
-        private List<LmsPrivateKeyParameters> m_keys;
-        private List<LmsSignature> m_sig;
+        // Replaced, never modified; written under this key's monitor and read without it (see Hierarchy).
+        private Hierarchy m_hierarchy;
         private readonly long m_indexLimit;
         private long m_index = 0;
 
@@ -24,8 +80,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             m_level = 1;
             m_isShard = false;
-            m_keys = new List<LmsPrivateKeyParameters>() { key };
-            m_sig = new List<LmsSignature>();
+            m_hierarchy = new Hierarchy(new[] { key }, Array.Empty<LmsSignature>());
             m_index = index;
             m_indexLimit = indexLimit;
 
@@ -57,8 +112,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             m_level = l;
             m_isShard = false;
-            m_keys = new List<LmsPrivateKeyParameters>(keys);
-            m_sig = new List<LmsSignature>(sig);
+            m_hierarchy = Hierarchy.Copy(keys, sig);
             m_index = index;
             m_indexLimit = indexLimit;
 
@@ -68,7 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             ResetKeyToIndex();
 
             // a null level is legitimate on the way in, for the reset above to fill, but not on the way out
-            if (m_keys.Contains(null) || m_sig.Contains(null))
+            if (CurrentHierarchy.HasUnconstructedLevel())
                 throw new ArgumentException("HSS private key has a level that was left unconstructed");
         }
 
@@ -77,12 +131,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             : base(true)
         {
             m_level = l;
-            m_keys = new List<LmsPrivateKeyParameters>(keys);
-            m_sig = new List<LmsSignature>(sig);
+            m_hierarchy = Hierarchy.Copy(keys, sig);
             m_index = index;
             m_indexLimit = indexLimit;
             m_isShard = isShard;
         }
+
+        private Hierarchy CurrentHierarchy => Volatile.Read(ref m_hierarchy);
 
         public static HssPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc) =>
             Parse(privEnc, 0, privEnc.Length, HssPublicKeyParameters.Parse(pubEnc));
@@ -235,21 +290,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public LmsParameters[] GetLmsParameters()
         {
-            lock (this)
+            Hierarchy hierarchy = CurrentHierarchy;
+
+            int len = hierarchy.Count;
+
+            LmsParameters[] parameters = new LmsParameters[len];
+
+            for (int i = 0; i < len; i++)
             {
-                int len = m_keys.Count;
+                LmsPrivateKeyParameters lmsPrivateKey = hierarchy.GetKey(i);
 
-                LmsParameters[] parameters = new LmsParameters[len];
-
-                for (int i = 0; i < len; i++)
-                {
-                    LmsPrivateKeyParameters lmsPrivateKey = m_keys[i];
-
-                    parameters[i] = new LmsParameters(lmsPrivateKey.SigParameters, lmsPrivateKey.OtsParameters);
-                }
-
-                return parameters;
+                parameters[i] = new LmsParameters(lmsPrivateKey.SigParameters, lmsPrivateKey.OtsParameters);
             }
+
+            return parameters;
         }
 
         internal void IncIndex()
@@ -268,8 +322,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
-                m_keys = new List<LmsPrivateKeyParameters>(newKeys);
-                m_sig = new List<LmsSignature>(newSig);
+                Volatile.Write(ref m_hierarchy, Hierarchy.Copy(newKeys, newSig));
             }
         }
 
@@ -307,11 +360,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // Move this key's index along
                 m_index = shardIndexLimit;
 
-                var keys = new List<LmsPrivateKeyParameters>(m_keys);
-                var sig = new List<LmsSignature>(m_sig);
+                Hierarchy hierarchy = CurrentHierarchy;
 
-                HssPrivateKeyParameters shard = MakeCopy(
-                    new HssPrivateKeyParameters(m_level, keys, sig, shardIndex, shardIndexLimit, isShard: true));
+                HssPrivateKeyParameters shard = MakeCopy(new HssPrivateKeyParameters(m_level, hierarchy.Keys,
+                    hierarchy.Sig, shardIndex, shardIndexLimit, isShard: true));
 
                 ResetKeyToIndex();
 
@@ -319,21 +371,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        internal LmsPrivateKeyParameters GetKey(int index)
-        {
-            lock (this) return m_keys[index];
-        }
+        internal LmsPrivateKeyParameters GetKey(int index) => CurrentHierarchy.GetKey(index);
 
         // TODO[api] This is not public in bc-java (promoted API)
-        public IList<LmsPrivateKeyParameters> GetKeys()
-        {
-            lock (this) return CollectionUtilities.ReadOnly(m_keys);
-        }
+        public IList<LmsPrivateKeyParameters> GetKeys() => CurrentHierarchy.Keys;
 
-        internal IList<LmsSignature> GetSig()
-        {
-            lock (this) return CollectionUtilities.ReadOnly(m_sig);
-        }
+        internal IList<LmsSignature> GetSig() => CurrentHierarchy.Sig;
 
         /// <summary>
         /// Reset to index will ensure that all LMS keys are correct for a given HSS index value. Normally LMS keys are
@@ -346,24 +389,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private void ResetKeyToIndex()
         {
             // Extract the original keys
-            var originalKeys = m_keys;
+            Hierarchy original = CurrentHierarchy;
 
-            long[] qTreePath = new long[originalKeys.Count];
+            long[] qTreePath = new long[original.Count];
             long q = GetIndex();
 
-            for (int t = originalKeys.Count - 1; t >= 0; t--)
+            for (int t = original.Count - 1; t >= 0; t--)
             {
-                LMSigParameters sigParameters = originalKeys[t].SigParameters;
+                LMSigParameters sigParameters = original.GetKey(t).SigParameters;
                 int mask = (1 << sigParameters.H) - 1;
                 qTreePath[t] = q & mask;
                 q >>= sigParameters.H;
             }
 
             bool changed = false;
-            LmsPrivateKeyParameters[] keys = originalKeys.ToArray();
-            LmsSignature[] sig = m_sig.ToArray();
+            LmsPrivateKeyParameters[] keys = original.CopyKeys();
+            LmsSignature[] sig = original.CopySig();
 
-            LmsPrivateKeyParameters originalRootKey = this.GetRootKey();
+            LmsPrivateKeyParameters originalRootKey = original.GetKey(0);
 
             // We need to replace the root key to a new q value; the last level reads the derived
             // value itself, which for a single level hierarchy is the root.
@@ -414,8 +457,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     // This means the parent has changed.
                     //
                     keys[i] = Lms.GenerateKeys(
-                        originalKeys[i].SigParameters,
-                        originalKeys[i].OtsParameters,
+                        original.GetKey(i).SigParameters,
+                        original.GetKey(i).OtsParameters,
                         (int)qTreePath[i], childI, childSeed);
 
                     //
@@ -475,25 +518,27 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal void ReplaceConsumedKey(int d)
         {
-            var childKey = m_keys[d - 1].DeriveChildKey();
+            Hierarchy hierarchy = CurrentHierarchy;
+
+            var childKey = hierarchy.GetKey(d - 1).DeriveChildKey();
             byte[] childI = childKey.Item1;
             byte[] childRootSeed = childKey.Item2;
 
-            var newKeys = new List<LmsPrivateKeyParameters>(m_keys);
+            var newKeys = hierarchy.CopyKeys();
 
             //
             // We need the parameters from the LMS key we are replacing.
             //
-            LmsPrivateKeyParameters oldPk = m_keys[d];
+            LmsPrivateKeyParameters oldPk = newKeys[d];
 
             newKeys[d] = Lms.GenerateKeys(oldPk.SigParameters, oldPk.OtsParameters, 0, childI, childRootSeed);
 
-            var newSig = new List<LmsSignature>(m_sig);
+            var newSig = hierarchy.CopySig();
 
             newSig[d - 1] = SignPublicKey(newKeys[d - 1], newKeys[d].GetPublicKey());
 
-            this.m_keys = new List<LmsPrivateKeyParameters>(newKeys);
-            this.m_sig = new List<LmsSignature>(newSig);
+            // The replaced key and the signature over it reach readers together
+            Volatile.Write(ref m_hierarchy, new Hierarchy(newKeys, newSig));
         }
 
         /// <summary>
@@ -527,36 +572,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
 
             //
-            // index, keys and sig all move as consumed trees are replaced, and they move together -
-            // ReplaceConsumedKey assigns keys and sig one after the other under this monitor - so read
-            // each key's trio in one synchronized block to get a snapshot no unsynchronized reader
-            // could tear. The lists are unmodifiable and replaced rather than mutated, so a captured
-            // reference stays a coherent view after the lock drops. Neither monitor is held while the
-            // other is taken, so a.Equals(b) racing b.Equals(a) cannot deadlock.
+            // The index and the hierarchy both move as consumed trees are replaced, and they move
+            // together, so read each key's pair in one synchronized block to get a snapshot no
+            // unsynchronized reader could tear. The hierarchy is immutable and replaced rather than
+            // modified, so a captured reference stays a coherent view after the lock drops. Neither
+            // monitor is held while the other is taken, so a.Equals(b) racing b.Equals(a) cannot
+            // deadlock.
             //
             long thisIndex;
-            IList<LmsPrivateKeyParameters> thisKeys;
-            IList<LmsSignature> thisSig;
+            Hierarchy thisHierarchy;
             lock (this)
             {
                 thisIndex = this.m_index;
-                thisKeys = this.m_keys;
-                thisSig = this.m_sig;
+                thisHierarchy = CurrentHierarchy;
             }
 
             long thatIndex;
-            IList<LmsPrivateKeyParameters> thatKeys;
-            IList<LmsSignature> thatSig;
+            Hierarchy thatHierarchy;
             lock (that)
             {
                 thatIndex = that.m_index;
-                thatKeys = that.m_keys;
-                thatSig = that.m_sig;
+                thatHierarchy = that.CurrentHierarchy;
             }
 
             return thisIndex == thatIndex
-                && CompareLists(thisKeys, thatKeys)
-                && CompareLists(thisSig, thatSig);
+                && CompareLists(thisHierarchy.Keys, thatHierarchy.Keys)
+                && CompareLists(thisHierarchy.Sig, thatHierarchy.Sig);
         }
 
         public override byte[] GetEncoded()
@@ -579,12 +620,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     .U64Str(m_indexLimit)
                     .Boolean(m_isShard); // Depth
 
-                foreach (LmsPrivateKeyParameters key in m_keys)
+                Hierarchy hierarchy = CurrentHierarchy;
+
+                foreach (LmsPrivateKeyParameters key in hierarchy.Keys)
                 {
                     composer.Bytes(key);
                 }
 
-                foreach (LmsSignature s in m_sig)
+                foreach (LmsSignature s in hierarchy.Sig)
                 {
                     composer.Bytes(s);
                 }
@@ -630,14 +673,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 Hss.RangeTestKeys(this);
 
-                LmsPrivateKeyParameters nextKey = m_keys[level - 1];
+                // After the range test, which replaces the levels it finds consumed
+                Hierarchy hierarchy = CurrentHierarchy;
+
+                LmsPrivateKeyParameters nextKey = hierarchy.GetKey(level - 1);
 
                 // Step 2. Stand in for sig[level-1]
                 int i = 0;
                 signed_pub_key = new LmsSignedPubKey[level - 1];
                 while (i < level - 1)
                 {
-                    signed_pub_key[i] = new LmsSignedPubKey(m_sig[i], m_keys[i + 1].GetPublicKey());
+                    signed_pub_key[i] = new LmsSignedPubKey(hierarchy.GetSig(i),
+                        hierarchy.GetKey(i + 1).GetPublicKey());
                     ++i;
                 }
 
