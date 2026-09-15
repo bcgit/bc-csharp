@@ -318,7 +318,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private static HssPrivateKeyParameters MakeCopy(HssPrivateKeyParameters privateKeyParameters) =>
             Parse(privateKeyParameters.GetEncoded());
 
-        // TODO[api] Make private
+        // TODO[api] Remove. Nothing calls this: the hierarchy is replaced through the private overload below,
+        // which takes the snapshot as it stands rather than copying two lists into one. Sealing the class
+        // (see above) removes it in any case.
         protected void UpdateHierarchy(IList<LmsPrivateKeyParameters> newKeys, IList<LmsSignature> newSig)
         {
             lock (this)
