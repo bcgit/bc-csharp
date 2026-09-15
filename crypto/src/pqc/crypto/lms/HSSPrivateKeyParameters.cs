@@ -126,12 +126,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 throw new ArgumentException("HSS private key has a level that was left unconstructed");
         }
 
-        private HssPrivateKeyParameters(int l, IList<LmsPrivateKeyParameters> keys, IList<LmsSignature> sig, long index,
-            long indexLimit, bool isShard)
+        /// <summary>Takes the hierarchy as it stands, which is immutable and so may be shared with the key it was
+        /// taken from.</summary>
+        private HssPrivateKeyParameters(int l, Hierarchy hierarchy, long index, long indexLimit, bool isShard)
             : base(true)
         {
             m_level = l;
-            m_hierarchy = Hierarchy.Copy(keys, sig);
+            m_hierarchy = hierarchy;
             m_index = index;
             m_indexLimit = indexLimit;
             m_isShard = isShard;
@@ -157,7 +158,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// Applied at decode only. The constructor is also reached from the hierarchy update, which rebuilds lower
         /// levels and is momentarily inconsistent by design; corrupt stored state can only arrive here.
         /// </remarks>
-        private static void CheckIndexAgainstKeys(int d, List<LmsPrivateKeyParameters> keys, long index)
+        private static void CheckIndexAgainstKeys(int d, LmsPrivateKeyParameters[] keys, long index)
         {
             long implied = keys[d - 1].GetIndex();
             int shift = 0;
@@ -215,7 +216,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             bool limited = binaryReader.ReadBoolean();
 
-            var keys = new List<LmsPrivateKeyParameters>(d);
+            var keys = new LmsPrivateKeyParameters[d];
             for (int t = 0; t < d; t++)
             {
                 // The component keys share this stream with the keys and signatures that follow, so whether each
@@ -223,18 +224,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // encoding version says: a version 0 encoding predates the tree cache and its component keys end
                 // at the master secret, a version 1 component always carries the cache field (bc-java github
                 // #2365).
-                keys.Add(LmsPrivateKeyParameters.ReadKey(binaryReader, withCache: version != 0));
+                keys[t] = LmsPrivateKeyParameters.ReadKey(binaryReader, withCache: version != 0);
             }
 
-            var signatures = new List<LmsSignature>(d - 1);
+            var signatures = new LmsSignature[d - 1];
             for (int t = 1; t < d; t++)
             {
-                signatures.Add(LmsSignature.Parse(binaryReader));
+                signatures[t - 1] = LmsSignature.Parse(binaryReader);
             }
 
             CheckIndexAgainstKeys(d, keys, index);
 
-            return new HssPrivateKeyParameters(d, keys, signatures, index, maxIndex, limited);
+            return new HssPrivateKeyParameters(d, new Hierarchy(keys, signatures), index, maxIndex, limited);
         }
 
         internal static HssPrivateKeyParameters Parse(Stream stream) =>
@@ -326,6 +327,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        private void UpdateHierarchy(Hierarchy newHierarchy)
+        {
+            lock (this)
+            {
+                Volatile.Write(ref m_hierarchy, newHierarchy);
+            }
+        }
+
         public bool IsShard() => m_isShard;
 
         public long IndexLimit => m_indexLimit;
@@ -360,10 +369,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // Move this key's index along
                 m_index = shardIndexLimit;
 
-                Hierarchy hierarchy = CurrentHierarchy;
-
-                HssPrivateKeyParameters shard = MakeCopy(new HssPrivateKeyParameters(m_level, hierarchy.Keys,
-                    hierarchy.Sig, shardIndex, shardIndexLimit, isShard: true));
+                // The hierarchy is shared with this key rather than copied: MakeCopy re-parses the encoding, so
+                // the shard that escapes has component keys of its own either way.
+                HssPrivateKeyParameters shard = MakeCopy(new HssPrivateKeyParameters(m_level, CurrentHierarchy,
+                    shardIndex, shardIndexLimit, isShard: true));
 
                 ResetKeyToIndex();
 
@@ -485,7 +494,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (changed)
             {
                 // We mutate the HSS key here!
-                UpdateHierarchy(keys, sig);
+                UpdateHierarchy(new Hierarchy(keys, sig));
             }
         }
 
