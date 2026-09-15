@@ -318,22 +318,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private static HssPrivateKeyParameters MakeCopy(HssPrivateKeyParameters privateKeyParameters) =>
             Parse(privateKeyParameters.GetEncoded());
 
-        // TODO[api] Remove. Nothing calls this: the hierarchy is replaced through the private overload below,
-        // which takes the snapshot as it stands rather than copying two lists into one. Sealing the class
-        // (see above) removes it in any case.
+        // TODO[api] Remove. Nothing calls this: the hierarchy is replaced by the methods that build it, which
+        // hold the monitor across the read and the write and take ownership of what they built. Sealing the
+        // class (see above) removes it in any case.
         protected void UpdateHierarchy(IList<LmsPrivateKeyParameters> newKeys, IList<LmsSignature> newSig)
         {
             lock (this)
             {
                 Volatile.Write(ref m_hierarchy, Hierarchy.Copy(newKeys, newSig));
-            }
-        }
-
-        private void UpdateHierarchy(Hierarchy newHierarchy)
-        {
-            lock (this)
-            {
-                Volatile.Write(ref m_hierarchy, newHierarchy);
             }
         }
 
@@ -495,8 +487,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             if (changed)
             {
-                // We mutate the HSS key here!
-                UpdateHierarchy(new Hierarchy(keys, sig));
+                // We mutate the HSS key here! Under the caller's monitor, per the contract above.
+                Volatile.Write(ref m_hierarchy, new Hierarchy(keys, sig));
             }
         }
 
@@ -527,6 +519,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return new HssPublicKeyParameters(m_level, GetRootKey().GetPublicKey());
         }
 
+        /// <summary>
+        /// Replace the exhausted tree at level <paramref name="d"/> with a fresh one derived from the current
+        /// one-time key of the level above, and sign its public key with that key.
+        /// </summary>
+        /// <remarks>
+        /// Should only be called under the monitor (lock): the new tree is derived from the hierarchy this reads,
+        /// so the read and the write have to be one step.
+        /// </remarks>
         internal void ReplaceConsumedKey(int d)
         {
             Hierarchy hierarchy = CurrentHierarchy;
