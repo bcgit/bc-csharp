@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
         internal static int GetParameterVersion(int effectiveKeyBits)
         {
             if (effectiveKeyBits < 0)
-                throw new ArgumentOutOfRangeException("cannot be negative", nameof(effectiveKeyBits));
+                throw new ArgumentOutOfRangeException(nameof(effectiveKeyBits), "cannot be negative");
 
             return effectiveKeyBits >= 256 ? effectiveKeyBits : RC2Table[effectiveKeyBits];
         }
