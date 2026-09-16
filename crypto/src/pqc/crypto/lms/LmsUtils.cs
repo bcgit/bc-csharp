@@ -72,6 +72,5 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             throw new LmsException("unrecognized digest OID: " + oid);
         }
-
     }
 }

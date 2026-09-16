@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -9,19 +10,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     public sealed class LmsPublicKeyParameters
         : LmsKeyParameters, ILmsContextBasedVerifier
     {
-        private LMSigParameters parameterSet;
-        private LMOtsParameters lmOtsType;
+        private readonly LmsParameters m_lmsParameters;
         private byte[] I;
         private byte[] T1;
 
         public LmsPublicKeyParameters(LMSigParameters parameterSet, LMOtsParameters lmOtsType, byte[] T1, byte[] I)
             : base(false)
         {
-            this.parameterSet = parameterSet;
-            this.lmOtsType = lmOtsType;
+            this.m_lmsParameters = new LmsParameters(parameterSet, lmOtsType);
             this.I = Arrays.Clone(I);
             this.T1 = Arrays.Clone(T1);
         }
+
+        private LMSigParameters SigParameters => m_lmsParameters.LMSigParameters;
+
+        private LMOtsParameters OtsParameters => m_lmsParameters.LMOtsParameters;
 
         public static LmsPublicKeyParameters GetInstance(object src)
         {
@@ -62,11 +65,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public override byte[] GetEncoded() => ToByteArray();
 
-        public LMSigParameters GetSigParameters() => parameterSet;
+        public LMSigParameters GetSigParameters() => SigParameters;
 
-        public LMOtsParameters GetOtsParameters() => lmOtsType;
+        public LMOtsParameters GetOtsParameters() => OtsParameters;
 
-        public LmsParameters GetLmsParameters() => new LmsParameters(GetSigParameters(), GetOtsParameters());
+        public LmsParameters GetLmsParameters() => m_lmsParameters;
 
         public byte[] GetT1() => Arrays.Clone(T1);
 
@@ -83,30 +86,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return true;
 
             return o is LmsPublicKeyParameters that
-                && this.parameterSet.Equals(that.parameterSet)
-                && this.lmOtsType.Equals(that.lmOtsType)
+                && this.m_lmsParameters.Equals(that.m_lmsParameters)
                 && Arrays.AreEqual(this.I, that.I)
                 && Arrays.AreEqual(this.T1, that.T1);
         }
 
         public override int GetHashCode()
         {
-            int result = parameterSet.GetHashCode();
-            result = 31 * result + lmOtsType.GetHashCode();
+            int result = m_lmsParameters.GetHashCode();
             result = 31 * result + Arrays.GetHashCode(I);
             result = 31 * result + Arrays.GetHashCode(T1);
             return result;
         }
 
-        internal byte[] ToByteArray()
-        {
-            return Composer.Compose()
-                .U32Str(parameterSet.ID)
-                .U32Str(lmOtsType.ID)
+        internal byte[] ToByteArray() => ComposeEncoding().Build();
+
+        /// <summary>Feed the encoding to <paramref name="digest"/> without building it.</summary>
+        internal void UpdateDigest(IDigest digest) => ComposeEncoding().BuildTo(digest);
+
+        private Composer ComposeEncoding() =>
+            Composer.Compose()
+                .U32Str(SigParameters.ID)
+                .U32Str(OtsParameters.ID)
                 .Bytes(I)
-                .Bytes(T1)
-                .Build();
-        }
+                .Bytes(T1);
 
         public LmsContext GenerateLmsContext(byte[] signature) =>
             GenerateOtsContext(LmsSignature.GetInstance(signature));
@@ -117,9 +120,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // number must lie within the tree (step 2i). Otherwise the verification takes h and the hash function
             // from the signature rather than the key, and node_num walks outside the tree; neither is a forgery
             // by itself, since T1 still has to match, but both are refused up front.
-            if (S.SigParameters.ID != parameterSet.ID)
+            if (S.SigParameters.ID != SigParameters.ID)
                 throw new ArgumentException("lms type from lms signature does not match the public key's lms type");
-            if (S.Q < 0 || S.Q >= (1 << parameterSet.H))
+            if (S.Q < 0 || S.Q >= (1 << SigParameters.H))
                 throw new ArgumentException("lms leaf number q from lms signature is outside the tree");
 
             int ots_typecode = GetOtsParameters().ID;
@@ -133,6 +136,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .CreateOtsContext(S);
         }
 
-        public bool Verify(LmsContext context) => Lms.VerifySignature(this, context);
+        public bool Verify(LmsContext context) => LmsEngine.VerifySignature(this, context);
     }
 }

@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] seed = SecureRandom.GetNextBytes(random, 32);
 
             var sw = Stopwatch.StartNew();
-            LmsPrivateKeyParameters key = Lms.GenerateKeys(sigParams, otsParams, 0, I, seed);
+            LmsPrivateKeyParameters key = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
             LmsPublicKeyParameters pub = key.GetPublicKey();
             sw.Stop();
             TestContext.WriteLine($"h={h} keygen (with public key): {sw.Elapsed.TotalMilliseconds:N1} ms");

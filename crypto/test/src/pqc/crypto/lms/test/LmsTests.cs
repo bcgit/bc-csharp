@@ -108,7 +108,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             byte[] seed = Hex.Decode("a1c4696e2608035a886100d05cd99945eb3370731884a8235e2fb3d4d71f2547");
             int level = 1;
-            LmsPrivateKeyParameters lmsPrivateKey = Lms.GenerateKeys(
+            LmsPrivateKeyParameters lmsPrivateKey = LmsTestUtilities.GenerateKey(
                 LMSigParameters.GetParametersByID(5),
                 LMOtsParameters.GetParametersByID(4),
                 level, Hex.Decode("215f83b7ccb9acbcd08db97b0d04dc2b"), seed);
@@ -117,11 +117,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             lmsPrivateKey.ExtractKeyShard(3);
 
-            LmsSignature signature = Lms.GenerateSign(lmsPrivateKey, msg);
-            Assert.True(Lms.VerifySignature(publicKey, signature, msg));
+            LmsSignature signature = LmsTestUtilities.GenerateSign(lmsPrivateKey, msg);
+            Assert.True(LmsTestUtilities.VerifySignature(publicKey, signature, msg));
 
             // Serialize / Deserialize
-            Assert.True(Lms.VerifySignature(
+            Assert.True(LmsTestUtilities.VerifySignature(
                 LmsPublicKeyParameters.GetInstance(publicKey.GetEncoded()),
                 LmsSignature.GetInstance(signature.GetEncoded()), msg));
 
@@ -131,7 +131,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             {
                 byte[] bustedSig = Arrays.Clone(signature.GetEncoded());
                 bustedSig[100] ^= 1;
-                Assert.False(Lms.VerifySignature(publicKey, LmsSignature.GetInstance(bustedSig), msg));
+                Assert.False(LmsTestUtilities.VerifySignature(publicKey, LmsSignature.GetInstance(bustedSig), msg));
             }
 
             //
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             {
                 byte[] msg2 = Arrays.Clone(msg);
                 msg2[10] ^= 1;
-                Assert.False(Lms.VerifySignature(publicKey, signature, msg2));
+                Assert.False(LmsTestUtilities.VerifySignature(publicKey, signature, msg2));
             }
         }
 
@@ -294,7 +294,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
             LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w4;
 
-            LmsPrivateKeyParameters privateKey = Lms.GenerateKeys(sigParams, otsParams, 0, I, seed);
+            LmsPrivateKeyParameters privateKey = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
             LmsPublicKeyParameters publicKey = privateKey.GetPublicKey();
 
             int h = sigParams.H;
@@ -315,11 +315,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             // The decoded key signs correctly and byte-identically to a fresh key at the same index.
             LmsPrivateKeyParameters decoded = LmsPrivateKeyParameters.GetInstance(enc);
-            LmsSignature sigFromDecoded = Lms.GenerateSign(decoded, msg);
-            Assert.True(Lms.VerifySignature(publicKey, sigFromDecoded, msg));
+            LmsSignature sigFromDecoded = LmsTestUtilities.GenerateSign(decoded, msg);
+            Assert.True(LmsTestUtilities.VerifySignature(publicKey, sigFromDecoded, msg));
 
-            LmsPrivateKeyParameters fresh = Lms.GenerateKeys(sigParams, otsParams, 0, I, seed);
-            Assert.True(Arrays.AreEqual(sigFromDecoded.GetEncoded(), Lms.GenerateSign(fresh, msg).GetEncoded()));
+            LmsPrivateKeyParameters fresh = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
+            Assert.True(Arrays.AreEqual(sigFromDecoded.GetEncoded(), LmsTestUtilities.GenerateSign(fresh, msg).GetEncoded()));
 
             // A corrupted cache node is caught at decode: each cached interior node is recomputed from its
             // cached children and compared before the cache is primed into the tree (bc-java github #2414).
@@ -344,7 +344,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(72, legacyEnc.Length);
 
             LmsPrivateKeyParameters legacy = LmsPrivateKeyParameters.GetInstance(legacyEnc);
-            Assert.True(Lms.VerifySignature(publicKey, Lms.GenerateSign(legacy, msg), msg));
+            Assert.True(LmsTestUtilities.VerifySignature(publicKey, LmsTestUtilities.GenerateSign(legacy, msg), msg));
         }
 
         [Test]
@@ -362,7 +362,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             // implementation), so read the limit off a freshly generated key of the same parameters rather than
             // hard-coding it - the limit moves if that cap is resized.
             //
-            byte[] sampleEnc = Lms.GenerateKeys(sigParams, otsParams, 0, I, seed).GetEncoded();
+            byte[] sampleEnc = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed).GetEncoded();
             int cacheCountLimit = ReadU32(sampleEnc, 40 + m);
 
             // A cache at the limit is accepted. The node values have to be the real ones: they are a
@@ -495,7 +495,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 seed);
             ExpectBadArgument("LMS key identifier I must be 16 bytes", sigParams, otsParams, 0, null, twoToH, seed);
             ExpectBadArgument("LMS private key needs both parameter sets", sigParams, null, 0, I, twoToH, seed);
-            ExpectBadArgument("master secret is less than " + sigParams.M, sigParams, otsParams, 0, I, twoToH,
+            ExpectBadArgument("master secret length is less than " + sigParams.M, sigParams, otsParams, 0, I, twoToH,
                 new byte[1]);
             ExpectBadArgument("LMS private key q/maxQ out of range: q=-1 maxQ=" + twoToH + " 2^h=" + twoToH, sigParams,
                 otsParams, -1, I, twoToH, seed);
@@ -649,7 +649,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w4;
             int m = sigParams.M;
 
-            LmsPrivateKeyParameters priv = Lms.GenerateKeys(sigParams, otsParams, 0, I, seed);
+            LmsPrivateKeyParameters priv = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
             byte[] enc = priv.GetEncoded();
 
             int countOff = 40 + ReadU32(enc, 36);
@@ -704,7 +704,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
             byte[] msg = Hex.Decode("54686520656e756d65726174696f6e20696e2074686520436f6e737469747574");
 
-            LmsPrivateKeyParameters privateKey = Lms.GenerateKeys(
+            LmsPrivateKeyParameters privateKey = LmsTestUtilities.GenerateKey(
                 LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4, 0, I, seed);
             LmsPublicKeyParameters publicKey = privateKey.GetPublicKey();
 
@@ -712,15 +712,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(1, shard.GetUsagesRemaining());
 
             // the last usage still signs correctly...
-            LmsSignature signature = Lms.GenerateSign(shard, msg);
-            Assert.True(Lms.VerifySignature(publicKey, signature, msg));
+            LmsSignature signature = LmsTestUtilities.GenerateSign(shard, msg);
+            Assert.True(LmsTestUtilities.VerifySignature(publicKey, signature, msg));
             Assert.AreEqual(0, shard.GetUsagesRemaining());
 
             // ...and the next attempt is refused
             Assert.Throws<ExhaustedPrivateKeyException>(() => shard.GenerateLmsContext());
 
             // the parent key's own usage range is unaffected
-            Assert.True(Lms.VerifySignature(publicKey, Lms.GenerateSign(privateKey, msg), msg));
+            Assert.True(LmsTestUtilities.VerifySignature(publicKey, LmsTestUtilities.GenerateSign(privateKey, msg), msg));
         }
 
         /**
@@ -740,8 +740,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
             LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w4;
 
-            LmsPrivateKeyParameters keyA = Lms.GenerateKeys(sigParams, otsParams, 0, IA, seedA);
-            LmsPrivateKeyParameters keyB = Lms.GenerateKeys(sigParams, otsParams, 0, IB, seedB);
+            LmsPrivateKeyParameters keyA = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, IA, seedA);
+            LmsPrivateKeyParameters keyB = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, IB, seedB);
 
             byte[] privA = keyA.GetEncoded();
             byte[] pubA = keyA.GetPublicKey().GetEncoded();
@@ -813,12 +813,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I, 1 << sigParams.H,
                 seed);
             byte[] msg = Hex.Decode("48656c6c6f");
-            byte[] encoded = Lms.GenerateSign(key, msg).GetEncoded();
+            byte[] encoded = LmsTestUtilities.GenerateSign(key, msg).GetEncoded();
 
             LmsSignature parsed = LmsSignature.GetInstance(new TrickleStream(encoded));
 
             Assert.True(Arrays.AreEqual(encoded, parsed.GetEncoded()), "short reads left the signature incomplete");
-            Assert.True(Lms.VerifySignature(key.GetPublicKey(), parsed, msg));
+            Assert.True(LmsTestUtilities.VerifySignature(key.GetPublicKey(), parsed, msg));
         }
 
         // Hands out one byte per Read call, as a network or pipe stream is entitled to.
@@ -899,7 +899,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                 LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I,
                     1 << sigParams.H, seed);
-                LmsSignature sig = Lms.GenerateSign(key, msg);
+                LmsSignature sig = LmsTestUtilities.GenerateSign(key, msg);
 
                 Assert.AreEqual(otsParams.SigLen, sig.OtsSignature.GetEncoded().Length, "LM-OTS type " + otsParams.ID);
 
@@ -926,20 +926,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I, 1 << sigParams.H,
                 seed);
             LmsPublicKeyParameters pub = key.GetPublicKey();
-            LmsSignature sig = Lms.GenerateSign(key, msg);
-            Assert.True(Lms.VerifySignature(pub, sig, msg));
+            LmsSignature sig = LmsTestUtilities.GenerateSign(key, msg);
+            Assert.True(LmsTestUtilities.VerifySignature(pub, sig, msg));
 
             // 2g: same hash function, different height
             LmsSignature wrongType = new LmsSignature(sig.Q, sig.OtsSignature, LMSigParameters.lms_sha256_n32_h10,
                 sig.Y);
-            var ex = Assert.Throws<ArgumentException>(() => Lms.VerifySignature(pub, wrongType, msg));
+            var ex = Assert.Throws<ArgumentException>(() => LmsTestUtilities.VerifySignature(pub, wrongType, msg));
             Assert.True(ex.Message.Contains("lms type"));
 
             // 2i: at and beyond 2^h, and negative
             foreach (int q in new int[] { 1 << sigParams.H, -1, int.MaxValue })
             {
                 LmsSignature wrongQ = new LmsSignature(q, sig.OtsSignature, sig.SigParameters, sig.Y);
-                ex = Assert.Throws<ArgumentException>(() => Lms.VerifySignature(pub, wrongQ, msg));
+                ex = Assert.Throws<ArgumentException>(() => LmsTestUtilities.VerifySignature(pub, wrongQ, msg));
                 Assert.True(ex.Message.Contains("leaf number"));
             }
 
@@ -1098,7 +1098,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             SecureRandom random = new SecureRandom();
             byte[] I = SecureRandom.GetNextBytes(random, 16);
             byte[] seed = SecureRandom.GetNextBytes(random, 32);
-            return Lms.GenerateKeys(sigParams, otsParams, 0, I, seed);
+            return LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
         }
 
         private static int ReadU32(byte[] buf, int off) =>

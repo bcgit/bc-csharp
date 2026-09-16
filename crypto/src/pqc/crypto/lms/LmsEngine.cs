@@ -1,10 +1,18 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Crypto;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     internal static class LmsEngine
     {
+        // Signed, since that is what U16Str takes; the value written is the RFC 8554 typecode either way.
+        // TODO[lms] Private, once the tree building in LmsPrivateKeyParameters (CalcT, HashInterior) moves here
+        // as bc-java's computeLeaf and computeNode.
+        internal const short D_LEAF = unchecked((short)0x8282);
+        internal const short D_INTR = unchecked((short)0x8383);
+
         /// <summary>
         /// Take Q, the message hash, from a context that the message has been absorbed into, in the buffer shape the
         /// LM-OTS chaining expects: the N bytes of Q, followed by room for the two bytes of
@@ -48,6 +56,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             context.WithSignedPublicKeys(signedPubKeys);
 
         /// <summary>
+        /// An LMS private key positioned at one-time key <paramref name="q"/> of the tree named by
+        /// <paramref name="I"/> (RFC 8554 sec. 5.2, Algorithm 5).
+        /// </summary>
+        /// <remarks>
+        /// SP 800-208 sec. 4 wants one hash function across the tree and its LM-OTS keys, which the key
+        /// generation parameters check; a direct call here does not pass through them. The seed length is
+        /// checked by the constructor.
+        /// </remarks>
+        internal static LmsPrivateKeyParameters GenerateKey(LmsParameters lmsParameters, int q, byte[] I,
+            byte[] masterSecret) =>
+            new LmsPrivateKeyParameters(lmsParameters, q, I, 1 << lmsParameters.LMSigParameters.H, masterSecret);
+
+        /// <summary>
+        /// Sign a message in one step with the current one-time key of <paramref name="privateKey"/>.
+        /// </summary>
+        /// <remarks>
+        /// For tests. The library signs through <see cref="LmsPrivateKeyParameters.GenerateLmsContext"/> so that
+        /// the message can be absorbed as it arrives, and bc-java dropped the one-step form at promotion.
+        /// </remarks>
+        internal static LmsSignature GenerateSign(LmsPrivateKeyParameters privateKey, byte[] message)
+        {
+            LmsContext context = privateKey.GenerateLmsContext();
+
+            context.BlockUpdate(message, 0, message.Length);
+
+            return GenerateSign(context);
+        }
+
+        /// <summary>
         /// Complete an LMS signature over the message absorbed into a context from
         /// <see cref="GenerateSignContext(LMSigParameters, LMOtsParameters, byte[], int, byte[], byte[][])"/>.
         /// </summary>
@@ -74,12 +111,130 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return Hss.GenerateSignature(level, context).GetEncoded();
+                return new HssSignature(level - 1, context.SignedPubKeys, GenerateSign(context)).GetEncoded();
             }
             catch (IOException e)
             {
                 throw new InvalidOperationException("unable to encode signature", e);
             }
+        }
+
+        /// <summary>
+        /// Verify the HSS signature a context carries over the message absorbed into it (RFC 8554 sec. 6.3): each
+        /// chaining signature over the next tree's public key, then the leaf tree's signature over the message.
+        /// </summary>
+        /// <remarks>
+        /// Every level is verified even once one has failed, so the work done does not say which level a bad
+        /// signature failed at.
+        /// </remarks>
+        internal static bool VerifyHssSignature(HssPublicKeyParameters publicKey, LmsContext context)
+        {
+            LmsSignedPubKey[] signedPubKeys = context.SignedPubKeys;
+
+            if (signedPubKeys.Length != publicKey.Level - 1)
+                return false;
+
+            LmsPublicKeyParameters key = publicKey.LmsPublicKey;
+            bool passed = true;
+
+            for (int i = 0; i < signedPubKeys.Length; i++)
+            {
+                LmsPublicKeyParameters nextKey = signedPubKeys[i].PublicKey;
+
+                passed &= VerifySignature(key, signedPubKeys[i].Signature, nextKey);
+
+                key = nextKey;
+            }
+
+            return passed & key.Verify(context);
+        }
+
+        /// <summary>Verify a signature over the encoding of <paramref name="signedPublicKey"/>, the chaining
+        /// signature an HSS hierarchy makes when one tree signs the public key of the tree below it.</summary>
+        internal static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S,
+            LmsPublicKeyParameters signedPublicKey)
+        {
+            LmsContext context = publicKey.GenerateOtsContext(S);
+
+            signedPublicKey.UpdateDigest(context);
+
+            return VerifySignature(publicKey, context);
+        }
+
+        /// <summary>Verify a signature over <paramref name="message"/> in one step.</summary>
+        internal static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S, byte[] message)
+        {
+            LmsContext context = publicKey.GenerateOtsContext(S);
+
+            LmsUtilities.ByteArray(message, context);
+
+            return VerifySignature(publicKey, context);
+        }
+
+        /// <summary>
+        /// Verify the LMS signature a context carries over the message absorbed into it: rebuild the Merkle path
+        /// from the one-time public key the signature computes for itself, up to the root the key commits to
+        /// (RFC 8554 sec. 5.4.2).
+        /// </summary>
+        internal static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsContext context)
+        {
+            LmsSignature signature = (LmsSignature)context.Signature;
+            LMSigParameters sigParameters = signature.SigParameters;
+            byte[][] path = signature.Y;
+
+            // Kc, the LM-OTS public key the signature computes for itself
+            byte[] Kc = LMOts.LMOtsValidateSignatureCalculate(context);
+
+            byte[] I = publicKey.InternalI;
+            IDigest digest = LmsUtilities.GetDigest(sigParameters);
+
+            // The node the walk is at, and the hash it has computed for it: the leaf of the one-time key that
+            // signed, then each parent in turn, leaving the root the signature claims.
+            // RFC 8554 sec. 5.4.2 step 4: node_num = 2^h + q, tmp = H(I || u32str(node_num) || u16str(D_LEAF) || Kc)
+            int nodeNum = (1 << sigParameters.H) + signature.Q;
+            byte[] nodeHash = new byte[digest.GetDigestSize()];
+
+            digest.BlockUpdate(I, 0, I.Length);
+            LmsUtilities.U32Str(nodeNum, digest);
+            LmsUtilities.U16Str(D_LEAF, digest);
+            digest.BlockUpdate(Kc, 0, Kc.Length);
+            digest.DoFinal(nodeHash, 0);
+
+            int i = 0;
+
+            while (nodeNum > 1)
+            {
+                // The path and the node count can get out of sync with an invalid signature, so fail gracefully
+                // rather than index past the path the signature carries.
+                if (i >= path.Length)
+                    return false;
+
+                // The node's parity decides which side its sibling from the path goes on - left for an odd node,
+                // right for an even one - while the hash itself is over the parent (RFC 8554 sec. 5.4.2 step 3).
+                bool isOdd = (nodeNum & 1) == 1;
+                nodeNum >>= 1;
+
+                byte[] siblingHash = path[i++];
+
+                digest.BlockUpdate(I, 0, I.Length);
+                LmsUtilities.U32Str(nodeNum, digest);
+                LmsUtilities.U16Str(D_INTR, digest);
+
+                if (isOdd)
+                {
+                    digest.BlockUpdate(siblingHash, 0, siblingHash.Length);
+                    digest.BlockUpdate(nodeHash, 0, nodeHash.Length);
+                }
+                else
+                {
+                    digest.BlockUpdate(nodeHash, 0, nodeHash.Length);
+                    digest.BlockUpdate(siblingHash, 0, siblingHash.Length);
+                }
+
+                digest.DoFinal(nodeHash, 0);
+            }
+
+            return publicKey.MatchesT1(nodeHash);
         }
 
         /// <summary>

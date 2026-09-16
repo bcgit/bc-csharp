@@ -19,11 +19,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[] I = SecureRandom.GetNextBytes(random, 16);
 
             var lmsParameters = m_parameters.LmsParameters;
-            var sigParameters = lmsParameters.LMSigParameters;
-            var otsParameters = lmsParameters.LMOtsParameters;
-            byte[] rootSecret = SecureRandom.GetNextBytes(random, sigParameters.M);
+            byte[] masterSecret = SecureRandom.GetNextBytes(random, lmsParameters.LMSigParameters.M);
 
-            LmsPrivateKeyParameters privKey = Lms.GenerateKeys(sigParameters, otsParameters, 0, I, rootSecret);
+            LmsPrivateKeyParameters privKey = new LmsPrivateKeyParameters(lmsParameters, 0, I,
+                1 << lmsParameters.LMSigParameters.H, masterSecret);
 
             return new AsymmetricCipherKeyPair(privKey.GetPublicKey(), privKey);
         }

@@ -100,30 +100,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return key.GenerateOtsContext(signature.Signature).WithSignedPublicKeys(signedPubKeys);
         }
 
-        public bool Verify(LmsContext context)
-        {
-            LmsSignedPubKey[] sigKeys = context.SignedPubKeys;
-
-            if (sigKeys.Length != Level - 1)
-                return false;
-
-            LmsPublicKeyParameters key = LmsPublicKey;
-            bool failed = false;
-
-            for (int i = 0; i < sigKeys.Length; i++)
-            {
-                LmsSignature sig = sigKeys[i].Signature;
-                LmsPublicKeyParameters nextKey = sigKeys[i].PublicKey;
-
-                if (!Lms.VerifySignature(key, sig, nextKey.ToByteArray()))
-                {
-                    failed = true;
-                }
-
-                key = nextKey;
-            }
-
-            return !failed & key.Verify(context);
-        }
+        public bool Verify(LmsContext context) => LmsEngine.VerifyHssSignature(this, context);
     }
 }

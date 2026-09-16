@@ -1,34 +1,30 @@
 using System;
 using System.IO;
 
+using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    /**
-    * Type to assist in build LMS messages.
-    */
+    /// <summary>Assembles the byte strings of an LMS encoding, in the order RFC 8554 gives them.</summary>
     public sealed class Composer
     {
-        //Todo make sure MemoryStream works properly (not sure about byte arrays as inputs)
-        private readonly MemoryStream bos = new MemoryStream();
+        private readonly MemoryStream m_buffer = new MemoryStream();
 
         private Composer()
         {
         }
 
-        public static Composer Compose()
-        {
-            return new Composer();
-        }
+        public static Composer Compose() => new Composer();
 
         public Composer U64Str(long n)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> buf = stackalloc byte[8];
             Pack.UInt64_To_BE((ulong)n, buf);
-            bos.Write(buf);
+            m_buffer.Write(buf);
 #else
             U32Str((int)(n >> 32));
             U32Str((int)n);
@@ -41,12 +37,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> buf = stackalloc byte[4];
             Pack.UInt32_To_BE((uint)n, buf);
-            bos.Write(buf);
+            m_buffer.Write(buf);
 #else
-            bos.WriteByte((byte)(n >> 24));
-            bos.WriteByte((byte)(n >> 16));
-            bos.WriteByte((byte)(n >> 8));
-            bos.WriteByte((byte)n);
+            m_buffer.WriteByte((byte)(n >> 24));
+            m_buffer.WriteByte((byte)(n >> 16));
+            m_buffer.WriteByte((byte)(n >> 8));
+            m_buffer.WriteByte((byte)n);
 #endif
             return this;
         }
@@ -56,11 +52,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             Span<byte> buf = stackalloc byte[2];
             Pack.UInt16_To_BE((ushort)n, buf);
-            bos.Write(buf);
+            m_buffer.Write(buf);
 #else
             n &= 0xFFFF;
-            bos.WriteByte((byte)(n >> 8));
-            bos.WriteByte((byte)n);
+            m_buffer.WriteByte((byte)(n >> 8));
+            m_buffer.WriteByte((byte)n);
 #endif
             return this;
         }
@@ -70,7 +66,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             foreach (var e in encodable)
             {
                 byte[] encoding = e.GetEncoded();
-                bos.Write(encoding, 0, encoding.Length);// todo count?
+                m_buffer.Write(encoding, 0, encoding.Length);
             }
             return this;
         }
@@ -78,7 +74,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public Composer Bytes(IEncodable encodable)
         {
             byte[] encoding = encodable.GetEncoded();
-            bos.Write(encoding, 0, encoding.Length);
+            m_buffer.Write(encoding, 0, encoding.Length);
             return this;
         }
 
@@ -86,7 +82,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             for (; len > 0; len--)
             {
-                bos.WriteByte((byte)v);
+                m_buffer.WriteByte((byte)v);
             }
             return this;
         }
@@ -95,51 +91,59 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             foreach (byte[] array in arrays)
             {
-                bos.Write(array, 0, array.Length); //todo count?
+                m_buffer.Write(array, 0, array.Length);
             }
             return this;
         }
 
         public Composer Bytes2(byte[][] arrays, int start, int end)
         {
-            int j = start;
-            while (j != end)
+            for (int j = start; j < end; ++j)
             {
-                bos.Write(arrays[j], 0, arrays[j].Length);//todo count?
-                j++;
+                m_buffer.Write(arrays[j], 0, arrays[j].Length);
             }
             return this;
         }
 
         public Composer Bytes(byte[] array)
         {
-            bos.Write(array, 0, array.Length);//todo count?
+            m_buffer.Write(array, 0, array.Length);
             return this;
         }
 
         public Composer Bytes(byte[] array, int start, int len)
         {
-            bos.Write(array, start, len);
+            m_buffer.Write(array, start, len);
             return this;
         }
 
-        public byte[] Build()
-        {
-            return bos.ToArray();
-        }
+        public byte[] Build() => m_buffer.ToArray();
+
+        /// <summary>Feed what has been composed to <paramref name="digest"/> in place of building it.</summary>
+        /// <remarks>WriteTo hands the stream's own buffer over, so the encoding is never copied out.</remarks>
+        // TODO[lms] Low priority: a composer could write through to the sink as each piece is added, dropping the
+        // buffer entirely. Worth measuring first - the encodings are short, and the write-through composer would
+        // have to give up PadUntil, which needs the length so far.
+        //
+        // Further out, a caller holding the whole input at once needs no buffering digest at all, but that is a
+        // deeper change than it looks: LmsContext absorbs its prefix at construction and takes the message later,
+        // so the input is split before anything could hash it in one go, IDigest has no one-shot entry point, and
+        // the implementations buffer per block regardless. The gain would have to come from one-shot platform APIs
+        // (net5+), which do not cover the SHAKE parameter sets.
+        internal void BuildTo(IDigest digest) => m_buffer.WriteTo(new DigestSink(digest));
 
         public Composer PadUntil(int v, int requiredLen)
         {
-            while (bos.Length < requiredLen)
+            while (m_buffer.Length < requiredLen)
             {
-                bos.WriteByte((byte)v);
+                m_buffer.WriteByte((byte)v);
             }
             return this;
         }
 
         public Composer Boolean(bool v)
         {
-            bos.WriteByte((byte)(v ? 1 : 0));
+            m_buffer.WriteByte((byte)(v ? 1 : 0));
             return this;
         }
     }

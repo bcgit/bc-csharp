@@ -89,6 +89,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_digestOid = digestOid;
         }
 
+        /// <summary>The typecode identifies the parameter set: the rest of the values are derived from it.</summary>
+        /// <remarks>
+        /// The instances are interned - the constructor is private and every lookup hands back one of the static
+        /// fields - so this agrees with the reference equality it replaces. It states the intent instead of
+        /// leaving callers to rely on the interning.
+        /// </remarks>
+        public override bool Equals(object obj) => obj is LMSigParameters that && m_id == that.m_id;
+
+        public override int GetHashCode() => m_id;
+
         // TODO[api] Expand to an AlgorithmIdentifier at promotion. A digest OID alone identifies the hash
         // function only where the parameters are absent; id_shake256_len carries its output length in bits as a
         // mandatory parameter (RFC 8702), so the OID here is the same for the m=24 and m=32 sets and M has to be

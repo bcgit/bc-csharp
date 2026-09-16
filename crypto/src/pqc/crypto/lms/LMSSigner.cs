@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
@@ -58,30 +57,41 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GenerateSignature(byte[] message)
         {
+            if (m_privateKey == null)
+                throw new InvalidOperationException("LmsSigner not initialised for signature generation");
+
             LmsContext context = m_privateKey.GenerateLmsContext();
 
             context.BlockUpdate(message, 0, message.Length);
 
-            try
-            {
-                return Lms.GenerateSign(context).GetEncoded();
-            }
-            catch (IOException e)
-            {
-                throw new InvalidOperationException("unable to encode signature", e);
-            }
+            // Not m_privateKey.GenerateSignature(context): for the single-level HSS key accepted above that
+            // yields the HSS encoding, whose only difference is the u32str(Nspk = 0) prefix a caller here does
+            // not want. Completing the context as LMS gives the same bytes without the prefix to strip off.
+            return LmsEngine.GenerateSign(context).GetEncoded();
         }
 
         public bool VerifySignature(byte[] message, byte[] signature)
         {
+            // Checked before the catch below, so a missing init is reported rather than folded into
+            // "signature did not verify"
+            if (m_publicKey == null)
+                throw new InvalidOperationException("LmsSigner not initialised for verification");
+
+            LmsContext context;
             try
             {
-                return Lms.VerifySignature(m_publicKey, LmsSignature.GetInstance(signature), message);
+                context = m_publicKey.GenerateLmsContext(signature);
             }
             catch (Exception)
             {
+                // A malformed signature is a failed verification, not an exception out of Verify. Scoped to the
+                // decode alone: past it an inconsistent signature is reported by returning false.
                 return false;
             }
+
+            context.BlockUpdate(message, 0, message.Length);
+
+            return m_publicKey.Verify(context);
         }
     }
 }

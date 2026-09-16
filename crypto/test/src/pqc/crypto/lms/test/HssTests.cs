@@ -355,7 +355,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 {
                     if (sw.Length > 0)
                     {
-                        blocks.Add(LmsVectorUtilities.ExtractPrefixedBytes(sw.ToString()));
+                        blocks.Add(LmsTestUtilities.ExtractPrefixedBytes(sw.ToString()));
                         sw.Length = 0;
                     }
                 }
@@ -365,7 +365,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             if (sw.Length > 0)
             {
-                blocks.Add(LmsVectorUtilities.ExtractPrefixedBytes(sw.ToString()));
+                blocks.Add(LmsTestUtilities.ExtractPrefixedBytes(sw.ToString()));
                 sw.Length = 0;
             }
             return blocks;
@@ -1438,7 +1438,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LmsPrivateKeyParameters lms = (LmsPrivateKeyParameters)gen.GenerateKeyPair().Private;
             for (int i = 0; i < 3; ++i)
             {
-                Lms.GenerateSign(lms, msg);
+                LmsTestUtilities.GenerateSign(lms, msg);
             }
             Assert.AreEqual(3, lms.GetIndex());
 
@@ -1554,7 +1554,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             // the root signs the bottom key's public key, which advances the root's q to 1 - the position
             // ResetKeyToIndex expects of an intermediate level, so the key is kept as built
-            LmsSignature chain = Lms.GenerateSign(root, bottom.GetPublicKey().ToByteArray());
+            LmsSignature chain = LmsTestUtilities.GenerateSign(root, bottom.GetPublicKey().ToByteArray());
 
             HssPrivateKeyParameters hss = new HssPrivateKeyParameters(2,
                 new List<LmsPrivateKeyParameters> { root, bottom }, new List<LmsSignature> { chain }, 0,

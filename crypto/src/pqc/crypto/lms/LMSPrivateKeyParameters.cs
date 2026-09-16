@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     {
         private static LmsPublicKeyParameters DerivePublicKey(LmsPrivateKeyParameters privateKey)
         {
-            return new LmsPublicKeyParameters(privateKey.sigParameters, privateKey.otsParameters, privateKey.FindT(1),
+            return new LmsPublicKeyParameters(privateKey.SigParameters, privateKey.OtsParameters, privateKey.FindT(1),
                 privateKey.I);
         }
 
@@ -26,8 +26,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private const int CacheTopLimit = 64;
 
         private readonly byte[] I;
-        private readonly LMSigParameters sigParameters;
-        private readonly LMOtsParameters otsParameters;
+        private readonly LmsParameters m_lmsParameters;
         private readonly int maxQ;
         private readonly byte[] masterSecret;
         // Two tiers of Merkle tree nodes are kept, neither of them secret: every node is published in some signature
@@ -83,27 +82,33 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public LmsPrivateKeyParameters(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q, byte[] I,
             int maxQ, byte[] masterSecret)
+            : this(new LmsParameters(lmsParameter, otsParameters), q, I, maxQ, masterSecret)
+        {
+        }
+
+        internal LmsPrivateKeyParameters(LmsParameters lmsParameters, int q, byte[] I, int maxQ, byte[] masterSecret)
             : base(true)
         {
+            LMSigParameters lmsParameter = lmsParameters.LMSigParameters;
+
             // the checks the decoder applies, so a key built directly is not one it would refuse
-            if (lmsParameter == null || otsParameters == null)
+            if (lmsParameter == null || lmsParameters.LMOtsParameters == null)
                 throw new ArgumentException("LMS private key needs both parameter sets");
             if (I == null || I.Length != 16)
                 throw new ArgumentException("LMS key identifier I must be 16 bytes");
             if (masterSecret == null || masterSecret.Length < lmsParameter.M)
-                throw new ArgumentException("master secret is less than " + lmsParameter.M);
+                throw new ArgumentException($"master secret length is less than {lmsParameter.M}");
 
             int twoToH = 1 << lmsParameter.H;
             if (q < 0 || maxQ < 0 || maxQ > twoToH || q > maxQ)
                 throw new ArgumentException($"LMS private key q/maxQ out of range: q={q} maxQ={maxQ} 2^h={twoToH}");
 
-            this.sigParameters = lmsParameter;
-            this.otsParameters = otsParameters;
+            this.m_lmsParameters = lmsParameters;
             this.q = q;
             this.I = Arrays.Clone(I);
             this.maxQ = maxQ;
             this.masterSecret = Arrays.Clone(masterSecret);
-            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
+            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (lmsParameter.H + 1));
             this.tCache = new byte[maxCacheR][];
             this.m_calcT = CalcT;
         }
@@ -115,23 +120,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          * constructor refuses, so a placeholder can never be mistaken for a key that was merely built
          * carelessly; a subclass using this must not present the result as a usable key.
          */
-        internal LmsPrivateKeyParameters(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int maxQ)
+        internal LmsPrivateKeyParameters(LmsParameters lmsParameters, int maxQ)
             : base(true)
         {
-            this.sigParameters = lmsParameter;
-            this.otsParameters = otsParameters;
+            this.m_lmsParameters = lmsParameters;
             this.q = -1;
             this.I = new byte[0];
             this.maxQ = maxQ;
             this.masterSecret = new byte[0];
-            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
+            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (lmsParameters.LMSigParameters.H + 1));
             this.tCache = new byte[maxCacheR][];
             this.m_calcT = CalcT;
             this.m_isPlaceholder = true;
         }
 
         private LmsPrivateKeyParameters(LmsPrivateKeyParameters parent, int q, int maxQ)
-            : this(parent, q, maxQ, System.Math.Min(CacheTopLimit, 1 << parent.sigParameters.H))
+            : this(parent, q, maxQ, System.Math.Min(CacheTopLimit, 1 << parent.SigParameters.H))
         {
         }
 
@@ -141,8 +145,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private LmsPrivateKeyParameters(LmsPrivateKeyParameters parent, int q, int maxQ, int maxCacheR)
             : base(true)
         {
-            this.sigParameters = parent.sigParameters;
-            this.otsParameters = parent.otsParameters;
+            this.m_lmsParameters = parent.m_lmsParameters;
             this.q = q;
             this.I = parent.I;
             this.maxQ = maxQ;
@@ -168,7 +171,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
-                int twoToH = 1 << sigParameters.H;
+                int twoToH = 1 << SigParameters.H;
 
                 if (q < 0 || q > twoToH)
                     throw new ArgumentException($"LMS private key q out of range: q={q} 2^h={twoToH}", nameof(q));
@@ -267,7 +270,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (l < sigParameter.M)
             {
                 // SP 800-208 sec. 6.1 requires SEED to be n bytes; GenerateKey has always required m
-                throw new IOException($"secret length less than {sigParameter.M}: {l}");
+                throw new IOException($"master secret length is less than {sigParameter.M}: {l}");
             }
 
             // TODO[lms] Guard against stream limit if available, or at least incremental read fully
@@ -284,7 +287,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (cacheCount != 0 && (cacheCount < 3 || ((cacheCount + 1) & cacheCount) != 0))
                 throw new IOException("tree cache node count is not a complete top of tree: " + cacheCount);
 
-            int m = key.sigParameters.M;
+            int m = key.SigParameters.M;
             // Only the total length is a safe bound: the reader makes no promise about read-ahead
             if (Streams.TryGetLength(binaryReader.BaseStream, out long length) && (long)cacheCount * m > length)
                 throw new IOException($"tree cache length exceeded {length}");
@@ -332,14 +335,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          */
         private static void ValidateTreeCache(LmsPrivateKeyParameters key, byte[][] cachedT, int cacheCount)
         {
-            int twoToH = 1 << key.sigParameters.H;
-            var digest = LmsUtilities.GetDigest(key.sigParameters);
+            int twoToH = 1 << key.SigParameters.H;
+            var digest = LmsUtilities.GetDigest(key.SigParameters);
 
             for (int r = 1; r < twoToH && 2 * r + 1 <= cacheCount; r++)
             {
                 LmsUtilities.ByteArray(key.I, digest);
                 LmsUtilities.U32Str(r, digest);
-                LmsUtilities.U16Str((short)Lms.D_INTR, digest);
+                LmsUtilities.U16Str(LmsEngine.D_INTR, digest);
                 LmsUtilities.ByteArray(cachedT[2 * r], digest);
                 LmsUtilities.ByteArray(cachedT[2 * r + 1], digest);
 
@@ -410,7 +413,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 if (q >= maxQ)
                     throw new ExhaustedPrivateKeyException("ots private key exhausted");
 
-                return LmsEngine.DeriveChildKey(otsParameters, I, masterSecret, q);
+                return LmsEngine.DeriveChildKey(OtsParameters, I, masterSecret, q);
             }
         }
 
@@ -435,7 +438,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 CheckDisposed();
 
-                return LmsEngine.DeriveChildKey(otsParameters, I, masterSecret, q);
+                return LmsEngine.DeriveChildKey(OtsParameters, I, masterSecret, q);
             }
         }
 
@@ -492,14 +495,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 path = AdvanceRetainedPath(q);
             }
 
-            return LmsEngine.GenerateSignContext(sigParameters, otsParameters, I, q, masterSecret, path);
+            return LmsEngine.GenerateSignContext(SigParameters, OtsParameters, I, q, masterSecret, path);
         }
 
         public byte[] GenerateSignature(LmsContext context)
         {
             try
             {
-                return Lms.GenerateSign(context).GetEncoded();
+                return LmsEngine.GenerateSign(context).GetEncoded();
             }
             catch (IOException e)
             {
@@ -535,15 +538,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        [Obsolete("Use 'SigParameters' instead")]
-        public LMSigParameters GetSigParameters() => sigParameters;
+        /// <summary>The pair of parameter sets this key was built with, which travel together.</summary>
+        public LmsParameters LmsParameters => m_lmsParameters;
 
-        public LMSigParameters SigParameters => sigParameters;
+        [Obsolete("Use 'SigParameters' instead")]
+        public LMSigParameters GetSigParameters() => SigParameters;
+
+        public LMSigParameters SigParameters => m_lmsParameters.LMSigParameters;
 
         [Obsolete("Use 'OtsParameters' instead")]
-        public LMOtsParameters GetOtsParameters() => otsParameters;
+        public LMOtsParameters GetOtsParameters() => OtsParameters;
 
-        public LMOtsParameters OtsParameters => otsParameters;
+        public LMOtsParameters OtsParameters => m_lmsParameters.LMOtsParameters;
 
         public byte[] GetI() => Arrays.Clone(I);
 
@@ -600,9 +606,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return Objects.EnsureSingletonInitialized(ref tCache[r], r, m_calcT);
         }
 
+        // TODO[lms] Every leaf here allocates a digest from LmsUtilities.GetDigest and a K from
+        // LMOts.LmsOtsGeneratePublicKey, and a path rebuild below the cached top walks 2^(h - 5) of them. Both are
+        // consumed before this returns - the digest is finalized into T, K is hashed into it - so a rebuild could
+        // carry one digest and one K buffer and reuse them leaf by leaf, given a placed-output overload of the
+        // internal LmsOtsGeneratePublicKey writing K to a caller's buffer instead of returning a fresh array (a
+        // Span overload under the usual guard). Only that overload, which yields a bare K: the one returning an
+        // LMOtsPublicKey gains nothing, since the key owns its K, and would only pay if LMOtsPublicKey held its
+        // fields packed in one buffer - a change reaching GetK, GetEncoded and equality, for another day.
+        // The returned T is deliberately not part of this either: it may be interned in tCache or retained in a
+        // path, both of which are handed out by reference, so it has to stay owned here.
+        //
+        // Shape undecided: the two could be threaded through as parameters, or held by a small per-rebuild helper
+        // that owns them and computes a leaf, which keeps the reuse out of these signatures at the cost of a type
+        // whose lifetime has to match the rebuild. Worth settling against a measurement rather than up front.
+        //
+        // bc-java's promoted LMSEngine has already taken the digest half of this, with the threaded shape: a
+        // createDigest(sigParameters) the caller owns, passed to computeLeaf(H, ...) and computeNode(H, ...) -
+        // this method and HashInterior under other names - documented as reset on return. It still allocates the
+        // node and K per call, so the buffer half is open there too.
         private byte[] CalcT(int r)
         {
-            int twoToh = 1 << sigParameters.H;
+            int twoToh = 1 << SigParameters.H;
 
             // r is a base 1 index.
             if (r < twoToh)
@@ -610,13 +635,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             CheckDisposed();
 
-            var tDigest = LmsUtilities.GetDigest(sigParameters);
+            var tDigest = LmsUtilities.GetDigest(SigParameters);
 
             LmsUtilities.ByteArray(I, tDigest);
             LmsUtilities.U32Str(r, tDigest);
-            LmsUtilities.U16Str((short)Lms.D_LEAF, tDigest);
+            LmsUtilities.U16Str(LmsEngine.D_LEAF, tDigest);
 
-            byte[] K = LMOts.LmsOtsGeneratePublicKey(otsParameters, I, r - twoToh, masterSecret);
+            byte[] K = LMOts.LmsOtsGeneratePublicKey(OtsParameters, I, r - twoToh, masterSecret);
 
             LmsUtilities.ByteArray(K, tDigest);
 
@@ -627,11 +652,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         private byte[] HashInterior(int r, byte[] left, byte[] right)
         {
-            var tDigest = LmsUtilities.GetDigest(sigParameters);
+            var tDigest = LmsUtilities.GetDigest(SigParameters);
 
             LmsUtilities.ByteArray(I, tDigest);
             LmsUtilities.U32Str(r, tDigest);
-            LmsUtilities.U16Str((short)Lms.D_INTR, tDigest);
+            LmsUtilities.U16Str(LmsEngine.D_INTR, tDigest);
             LmsUtilities.ByteArray(left, tDigest);
             LmsUtilities.ByteArray(right, tDigest);
 
@@ -644,7 +669,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // with the path of the last one-time key signed with, and retain the result in its place.
         private byte[][] AdvanceRetainedPath(int q)
         {
-            int h = sigParameters.H;
+            int h = SigParameters.H;
             int r = (1 << h) + q;
 
             byte[][] path = new byte[h][];
@@ -710,8 +735,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 && this.GetIndex() == that.GetIndex()
                 && this.maxQ == that.maxQ
                 && Arrays.AreEqual(this.I, that.I)
-                && Objects.Equals(this.sigParameters, that.sigParameters)
-                && Objects.Equals(this.otsParameters, that.otsParameters)
+                && Objects.Equals(this.m_lmsParameters, that.m_lmsParameters)
                 && Arrays.FixedTimeEquals(this.masterSecret, that.masterSecret);
         }
 
@@ -725,8 +749,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // secret, so no function of the seed is handed out. Equal keys agree on every field used
             // here, so the Equals() contract holds.
             //
-            int hc = Objects.GetHashCode(sigParameters);
-            hc = 31 * hc + Objects.GetHashCode(otsParameters);
+            int hc = Objects.GetHashCode(m_lmsParameters);
             hc = 31 * hc + maxQ;
             hc = 31 * hc + Arrays.GetHashCode(I);
             return hc;
@@ -772,8 +795,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             Composer composer = Composer.Compose()
                 .U32Str(0) // version
-                .U32Str(sigParameters.ID) // type
-                .U32Str(otsParameters.ID) // ots type
+                .U32Str(SigParameters.ID) // type
+                .U32Str(OtsParameters.ID) // ots type
                 .Bytes(I) // I at 16 bytes
                 .U32Str(q) // q
                 .U32Str(maxQ) // maximum q

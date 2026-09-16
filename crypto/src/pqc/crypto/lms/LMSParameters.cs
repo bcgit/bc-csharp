@@ -1,5 +1,7 @@
 using System;
 
+using Org.BouncyCastle.Utilities;
+
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     public sealed class LmsParameters
@@ -16,6 +18,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public LMSigParameters LMSigParameters => m_lmSigParameters;
 
         public LMOtsParameters LMOtsParameters => m_lmOtsParameters;
+
+        /// <summary>A pairing of the two parameter sets, so equal by value.</summary>
+        /// <remarks>
+        /// Unlike the two halves, which are interned typecodes, this is composed freely by callers: RFC 8554
+        /// carries the LMS and LM-OTS typecodes as separate fields, so any pairing can be built. Reference
+        /// equality would therefore be wrong here even though it is right for each half.
+        /// </remarks>
+        public override bool Equals(object obj) =>
+            obj is LmsParameters that
+            && Objects.Equals(this.m_lmSigParameters, that.m_lmSigParameters)
+            && Objects.Equals(this.m_lmOtsParameters, that.m_lmOtsParameters);
+
+        public override int GetHashCode() =>
+            31 * Objects.GetHashCode(m_lmSigParameters) + Objects.GetHashCode(m_lmOtsParameters);
 
         /// <summary>
         /// SP 800-208 sec. 4 requires one hash function throughout a key: the LMS tree and its LM-OTS keys here,

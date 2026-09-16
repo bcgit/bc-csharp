@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             // Length is the maximum N over the LM-OTS parameter sets, plus the two checksum bytes that the
             // caller appends; OutputQ writes only the N bytes of Q and lets the caller size the buffer.
-            int MAX_HASH = 32;
+            const int MAX_HASH = 32;
             byte[] Q = new byte[MAX_HASH + 2];
             OutputQ(Q, 0);
             return Q;

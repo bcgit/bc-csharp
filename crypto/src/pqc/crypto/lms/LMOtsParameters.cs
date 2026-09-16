@@ -103,6 +103,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_digestOid = digestOid;
         }
 
+        /// <summary>The typecode identifies the parameter set: the rest of the values are derived from it.</summary>
+        /// <remarks>
+        /// The instances are interned - the constructor is private and every lookup hands back one of the static
+        /// fields - so this agrees with the reference equality it replaces. It states the intent instead of
+        /// leaving callers to rely on the interning.
+        /// </remarks>
+        public override bool Equals(object obj) => obj is LMOtsParameters that && m_id == that.m_id;
+
+        public override int GetHashCode() => m_id;
+
         public int ID => m_id;
 
         public int N => m_n;

@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             int level = 1; // This is the second level, we use this because it signs the message.
 
             // Generate the private key.
-            LmsPrivateKeyParameters lmsPrivateKey = Lms.GenerateKeys(LMSigParameters.GetParametersByID(5),
+            LmsPrivateKeyParameters lmsPrivateKey = LmsTestUtilities.GenerateKey(LMSigParameters.GetParametersByID(5),
                 LMOtsParameters.GetParametersByID(4), level, I, seed);
 
             // This derives the public key.
@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             //
             lmsPrivateKey.ExtractKeyShard(3);
 
-            LmsSignature signature = Lms.GenerateSign(lmsPrivateKey, msg);
+            LmsSignature signature = LmsTestUtilities.GenerateSign(lmsPrivateKey, msg);
 
             // The expected signature as encoded.
             string sigEnc = "00000004\n" +
@@ -143,14 +143,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(Arrays.AreEqual(Hex.Decode(sigEnc), signature.GetEncoded()));
 
             // Sanity test
-            Assert.True(Lms.VerifySignature(publicKey, signature, msg));
+            Assert.True(LmsTestUtilities.VerifySignature(publicKey, signature, msg));
         }
 
         /*
          * SP 800-208 sec. 4: one hash function throughout a key - the LMS tree and its LM-OTS keys, and every level
          * of an HSS hierarchy - with SHA-256/192 distinct from SHA-256. Refused at the key generation parameters,
          * where the choice is made, rather than deep inside key generation (an n=24 parent over an m=32 child used
-         * to surface as "root seed length is less than 32").
+         * to surface as a seed-length complaint from the key constructor).
          */
         [Test]
         public void MixedHashFunctionsRejected()
