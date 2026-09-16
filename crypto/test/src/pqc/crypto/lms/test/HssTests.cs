@@ -1646,6 +1646,136 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
         }
 
+        /*
+         * More than one level of an HSS key can be exhausted at once: the bottom tree's last one-time key was also
+         * the last the tree above it could sign for. Every exhausted level is then rebuilt, and the rebuild has to
+         * reach readers as one hierarchy. GetKeys/GetSig take no monitor, so a rebuild published a level at a time
+         * shows a hierarchy in which the fresh tree at level i sits above the signature the tree it replaced made
+         * over the still-exhausted level i + 1: a chain that does not verify.
+         *
+         * bc-java parks its rebuild inside the outgoing bottom key's getOtsParameters(). LmsPrivateKeyParameters is
+         * sealed here (as IndexAndComponentIndexClaimedTogether also notes), and the rebuild asks the outgoing key
+         * only for its LmsParameters - a field read, so there is no monitor to borrow either. The window is held
+         * open by cost instead: the bottom level is a 2^10 tree, and building its replacement's public key, the
+         * longest step of the rebuild, runs between the two levels. A reader checking coherence in a loop probes
+         * that window hundreds of times over, so timing can only make this test miss the fault, never invent one.
+         */
+        [Test]
+        public void MultiLevelRebuildPublishedAsOneSnapshot()
+        {
+            LMSigParameters topSigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMSigParameters bottomSigParams = LMSigParameters.lms_sha256_n32_h10;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w1;
+            int topTwoToH = 1 << topSigParams.H, bottomTwoToH = 1 << bottomSigParams.H;
+            byte[] msg = Hex.Decode("48656c6c6f");
+
+            byte[] I = Hex.Decode("000102030405060708090a0b0c0d0e0f");
+            byte[] seed = Hex.Decode("0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20");
+
+            // a three-level key one signature short of exhausting both lower trees: the root has signed the middle
+            // tree (q = 1), the middle tree is on its last one-time key when it signs the bottom tree, and the
+            // bottom tree is on its last one-time key too
+            LmsPrivateKeyParameters root = LmsKey(topSigParams, otsParams, 0, I, seed);
+            var middleChild = root.DeriveChildKey();
+            LmsPrivateKeyParameters middle = LmsKey(topSigParams, otsParams, topTwoToH - 1, middleChild.Item1,
+                middleChild.Item2);
+            var bottomChild = middle.DeriveChildKey();
+            LmsPrivateKeyParameters bottom = LmsKey(bottomSigParams, otsParams, bottomTwoToH - 1, bottomChild.Item1,
+                bottomChild.Item2);
+
+            var keys = new List<LmsPrivateKeyParameters> { root, middle, bottom };
+            var sig = new List<LmsSignature>
+            {
+                LmsTestUtilities.GenerateSign(root, middle.GetPublicKey().ToByteArray()),
+                LmsTestUtilities.GenerateSign(middle, bottom.GetPublicKey().ToByteArray()),
+            };
+
+            long indexLimit = (long)topTwoToH * topTwoToH * bottomTwoToH;
+            long index = (long)(topTwoToH - 1) * bottomTwoToH + (bottomTwoToH - 1);
+            HssPrivateKeyParameters hss = new HssPrivateKeyParameters(3, keys, sig, index, indexLimit);
+
+            Assert.AreSame(bottom, hss.GetKey(2), "the key was built one signature short, so the bottom key is kept");
+            AssertCoherent(hss.GetKeys(), hss.GetSig());
+
+            HssPublicKeyParameters hssPub = hss.GetPublicKey();
+
+            // the last signature of both lower trees; the next one has to replace them both
+            HssSigner signer = new HssSigner();
+            signer.Init(true, hss);
+            Assert.True(Verify(hssPub, signer.GenerateSignature(msg), msg));
+            Assert.AreEqual(bottomTwoToH, bottom.GetIndex());
+            Assert.AreEqual(topTwoToH, middle.GetIndex());
+
+            Exception readerFailure = null;
+            int checks = 0, running = 1;
+
+            Thread reader = new Thread(() =>
+            {
+                try
+                {
+                    while (Volatile.Read(ref running) != 0)
+                    {
+                        // GetKeys and GetSig are two reads of the hierarchy, so a publish between them tears the
+                        // pair; the read-only views are built once per snapshot, so re-reading identifies that
+                        var seenKeys = hss.GetKeys();
+                        var seenSig = hss.GetSig();
+                        if (!ReferenceEquals(seenKeys, hss.GetKeys()))
+                            continue;
+
+                        AssertCoherent(seenKeys, seenSig);
+                        Interlocked.Increment(ref checks);
+                    }
+                }
+                catch (Exception e)
+                {
+                    readerFailure = e;
+                }
+            });
+            reader.Start();
+
+            // let the reader get going, so that a count taken across the signature is a count taken during it
+            while (Volatile.Read(ref checks) == 0 && Volatile.Read(ref readerFailure) == null)
+            {
+                Thread.Sleep(0);
+            }
+
+            int checksBefore = Volatile.Read(ref checks);
+            byte[] nextSig = signer.GenerateSignature(msg);
+            int checksDuring = Volatile.Read(ref checks) - checksBefore;
+
+            Volatile.Write(ref running, 0);
+            reader.Join();
+
+            Assert.Null(readerFailure, "a hierarchy read during the rebuild was not coherent: " + readerFailure);
+            Assert.That(checksDuring, Is.GreaterThan(0), "the reader was held up by the rebuild in progress");
+
+            // both lower levels were replaced, and the rebuilt key signs under the same public key, is coherent
+            // again and round-trips
+            Assert.AreNotSame(middle, hss.GetKey(1), "the middle tree was not replaced");
+            Assert.AreNotSame(bottom, hss.GetKey(2), "the bottom tree was not replaced");
+            Assert.True(Verify(hssPub, nextSig, msg));
+            AssertCoherent(hss.GetKeys(), hss.GetSig());
+            Assert.AreEqual(index + 2, hss.GetIndex());
+            Assert.AreEqual(hss, HssPrivateKeyParameters.GetInstance(hss.GetEncoded()));
+        }
+
+        /*
+         * Every chaining signature verifies the public key of the level below it under the public key of the level
+         * that carries it.
+         */
+        private static void AssertCoherent(IList<LmsPrivateKeyParameters> keys, IList<LmsSignature> sig)
+        {
+            Assert.AreEqual(keys.Count - 1, sig.Count);
+
+            for (int i = 0; i < sig.Count; ++i)
+            {
+                Assert.True(
+                    LmsTestUtilities.VerifySignature(keys[i].GetPublicKey(), sig[i],
+                        keys[i + 1].GetPublicKey().ToByteArray()),
+                    "chaining signature at level " + i + " does not verify under the level above");
+            }
+        }
+
         private static uint Pack_BE_To_UInt32(byte[] bs, int off)
         {
             return (uint)bs[off] << 24

@@ -384,7 +384,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal LmsPrivateKeyParameters GetKey(int index) => CurrentHierarchy.GetKey(index);
 
-        // TODO[api] This is not public in bc-java (promoted API)
+        // Two reads of the hierarchy, so a caller that needs the keys and the signatures over them to belong to one
+        // snapshot has to take the pair in one step, or check that it did not change between the two.
+        // TODO[api] Remove: bc-java's promoted API keeps both package-private, and nothing outside needs either
         public IList<LmsPrivateKeyParameters> GetKeys() => CurrentHierarchy.Keys;
 
         internal IList<LmsSignature> GetSig() => CurrentHierarchy.Sig;
