@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     {
         private static LmsPublicKeyParameters DerivePublicKey(LmsPrivateKeyParameters privateKey)
         {
+            privateKey.RetainFirstPath();
+
             return new LmsPublicKeyParameters(privateKey.SigParameters, privateKey.OtsParameters, privateKey.FindT(1),
                 privateKey.I);
         }
@@ -657,6 +659,43 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return LmsEngine.ComputeLeaf(tDigest, OtsParameters, I, r, r - twoToH, masterSecret);
         }
 
+        /// <summary>
+        /// Build the tree as the authentication path of the current one-time key, when it has to be built from
+        /// nothing. It costs exactly the same - every leaf and interior node once - but leaves that path retained,
+        /// so the first signature does not rebuild the 2^(h - 5) leaves below the cached top that the build has
+        /// just computed and dropped.
+        /// </summary>
+        /// <remarks>
+        /// Unlike the rest of <see cref="GetPublicKey"/> this does take the key's monitor, since the retained path
+        /// is the monitor's to advance. It does so only in the case where the first one-time key claim would take
+        /// it for the same build anyway, and by the time that claim arrives the path is there for it: a key with
+        /// the root cached, or one that has signed, returns here without contending for anything.
+        /// </remarks>
+        private void RetainFirstPath()
+        {
+            if (m_retained != null || PeekRootT() != null)
+                return;
+
+            lock (this)
+            {
+                if (m_retained != null || PeekRootT() != null)
+                    return;
+
+                // Not an exhausted key, whose q is one past the last leaf and names no path
+                if (q < 1 << SigParameters.H)
+                {
+                    AdvanceRetainedPath(q);
+                }
+            }
+        }
+
+        /// <summary>Whether an authentication path is currently retained. For the tests that check a key built or
+        /// signed with keeps the path its work produced.</summary>
+        internal bool IsPathRetained()
+        {
+            lock (this) return m_retained != null;
+        }
+
         // Called under lock(this). Build the authentication path of one-time key q, reusing whatever it shares
         // with the path of the last one-time key signed with, and retain the result in its place.
         private byte[][] AdvanceRetainedPath(int q)
@@ -718,6 +757,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                         ? LmsEngine.ComputeNode(tDigest, I, r >> i, child, sibling)
                         : LmsEngine.ComputeNode(tDigest, I, r >> i, sibling, child);
                 }
+            }
+
+            // The fresh ancestors that fall within the pinned top are nodes the cache would otherwise compute
+            // again, so they are published now; the siblings already were, by FindT. Racing writers publish
+            // equal nodes, as they do there.
+            for (int i = 0; i < fresh; ++i)
+            {
+                int node = r >> i;
+                if (node < maxCacheR && Volatile.Read(ref tCache[node]) == null)
+                {
+                    Volatile.Write(ref tCache[node], anc[i]);
+                }
+            }
+
+            // Built from nothing (fresh == h) the above is the whole tree in path form, and the root is then one
+            // hash away - storing it is what lets GetPublicKey come here in place of a plain build.
+            if (Volatile.Read(ref tCache[1]) == null)
+            {
+                byte[] child = anc[h - 1], sibling = path[h - 1];
+
+                var tDigest = LmsUtilities.GetDigest(SigParameters);
+
+                Volatile.Write(ref tCache[1], ((r >> (h - 1)) & 1) == 0
+                    ? LmsEngine.ComputeNode(tDigest, I, 1, child, sibling)
+                    : LmsEngine.ComputeNode(tDigest, I, 1, sibling, child));
             }
 
             m_retained = new RetainedPath(q, path, anc);

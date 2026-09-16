@@ -348,6 +348,54 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(LmsTestUtilities.VerifySignature(publicKey, LmsTestUtilities.GenerateSign(legacy, msg), msg));
         }
 
+        /// <summary>
+        /// Building the tree for the public key computes every node on the current one-time key's path, so the key
+        /// keeps that path rather than rebuilding it for the first signature. A decoded key has no such path until
+        /// it signs, and one decoded from a legacy encoding with no tree cache gets its root from that first
+        /// signature's path rather than from a second full build.
+        /// </summary>
+        [Test]
+        public void TreeBuildRetainsFirstPath()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w8;
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+            byte[] msg = Strings.ToByteArray("first path");
+
+            LmsPrivateKeyParameters key = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
+            Assert.False(key.IsPathRetained());
+
+            LmsPublicKeyParameters pub = key.GetPublicKey();
+            Assert.True(key.IsPathRetained(), "tree build should leave the first path retained");
+            Assert.True(key.IsTreeCachePrimed());
+
+            byte[] sig = Sign(key, msg);
+            Assert.AreEqual(0U, Pack.BE_To_UInt32(sig, 0));
+            Assert.True(Verify(pub, sig, msg));
+
+            // a decoded key resumes with the cache its encoding carries, but with no path until it signs
+            LmsPrivateKeyParameters decoded = LmsPrivateKeyParameters.GetInstance(key.GetEncoded());
+            Assert.True(decoded.IsTreeCachePrimed());
+            Assert.False(decoded.IsPathRetained(), "nothing to retain from a decode");
+
+            sig = Sign(decoded, msg);
+            Assert.AreEqual(1U, Pack.BE_To_UInt32(sig, 0));
+            Assert.True(Verify(pub, sig, msg));
+            Assert.True(decoded.IsPathRetained());
+
+            // and one with no cache at all reaches the root through the path its first signature builds
+            LmsPrivateKeyParameters legacy = LmsPrivateKeyParameters.GetInstance(
+                CoreKey(sigParams, otsParams, I, seed, 2, 1 << sigParams.H));
+            Assert.False(legacy.IsTreeCachePrimed());
+
+            sig = Sign(legacy, msg);
+            Assert.AreEqual(2U, Pack.BE_To_UInt32(sig, 0));
+            Assert.True(Verify(pub, sig, msg));
+            Assert.True(legacy.IsTreeCachePrimed(), "the first path should have supplied the root");
+            Assert.AreEqual(pub, legacy.GetPublicKey());
+        }
+
         [Test]
         public void TestMalformedPrivateKeyTreeCache()
         {
@@ -1099,6 +1147,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] I = SecureRandom.GetNextBytes(random, 16);
             byte[] seed = SecureRandom.GetNextBytes(random, 32);
             return LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
+        }
+
+        /// <summary>A private key encoding with no trailing tree cache, as an older release writes it.</summary>
+        private static byte[] CoreKey(LMSigParameters sigParams, LMOtsParameters otsParams, byte[] I, byte[] seed,
+            int q, int maxQ)
+        {
+            return Composer.Compose()
+                .U32Str(0)
+                .U32Str(sigParams.ID)
+                .U32Str(otsParams.ID)
+                .Bytes(I)
+                .U32Str(q)
+                .U32Str(maxQ)
+                .U32Str(seed.Length)
+                .Bytes(seed)
+                .Build();
         }
 
         private static byte[] Sign(LmsPrivateKeyParameters key, byte[] message)
