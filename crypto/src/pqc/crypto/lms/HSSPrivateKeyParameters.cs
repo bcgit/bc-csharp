@@ -520,35 +520,40 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         /// <summary>
-        /// Replace the exhausted tree at level <paramref name="d"/> with a fresh one derived from the current
-        /// one-time key of the level above, and sign its public key with that key.
+        /// Replace the exhausted trees, at levels <paramref name="d"/> and below, with fresh ones. Each is derived
+        /// from the current one-time key of the level above it, and has its public key signed by that key.
         /// </summary>
         /// <remarks>
-        /// Should only be called under the monitor (lock): the new tree is derived from the hierarchy this reads,
-        /// so the read and the write have to be one step.
+        /// Should only be called under the monitor (lock): the new trees are derived from the hierarchy this reads,
+        /// so the read and the write have to be one step. The rebuilt levels are published as a single hierarchy,
+        /// since one rebuilt only as far as level i pairs the fresh tree at level i with the signature over the
+        /// exhausted one it replaced.
         /// </remarks>
-        internal void ReplaceConsumedKey(int d)
+        internal void ReplaceExhaustedKeys(int d)
         {
             Hierarchy hierarchy = CurrentHierarchy;
 
-            var childKey = hierarchy.GetKey(d - 1).DeriveChildKey();
-            byte[] childI = childKey.Item1;
-            byte[] childRootSeed = childKey.Item2;
-
             var newKeys = hierarchy.CopyKeys();
-
-            //
-            // We need the parameters from the LMS key we are replacing.
-            //
-            LmsPrivateKeyParameters oldPk = newKeys[d];
-
-            newKeys[d] = Lms.GenerateKeys(oldPk.SigParameters, oldPk.OtsParameters, 0, childI, childRootSeed);
-
             var newSig = hierarchy.CopySig();
 
-            newSig[d - 1] = SignPublicKey(newKeys[d - 1], newKeys[d].GetPublicKey());
+            for (; d < m_level; ++d)
+            {
+                // Each level below the first takes its parent from the level rebuilt on the previous pass
+                var childKey = newKeys[d - 1].DeriveChildKey();
+                byte[] childI = childKey.Item1;
+                byte[] childRootSeed = childKey.Item2;
 
-            // The replaced key and the signature over it reach readers together
+                //
+                // We need the parameters from the LMS key we are replacing.
+                //
+                LmsPrivateKeyParameters oldKey = newKeys[d];
+
+                newKeys[d] = Lms.GenerateKeys(oldKey.SigParameters, oldKey.OtsParameters, 0, childI, childRootSeed);
+
+                newSig[d - 1] = SignPublicKey(newKeys[d - 1], newKeys[d].GetPublicKey());
+            }
+
+            // The replaced keys and the signatures over them reach readers together
             Volatile.Write(ref m_hierarchy, new Hierarchy(newKeys, newSig));
         }
 

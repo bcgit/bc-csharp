@@ -107,9 +107,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                             " is exhausted the maximum limit for this HSS private key");
                 }
 
-                while (d < L)
+                if (d < L)
                 {
-                    keyPair.ReplaceConsumedKey(d++);
+                    keyPair.ReplaceExhaustedKeys(d);
                 }
             }
         }
