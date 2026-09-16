@@ -51,7 +51,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetC() => Arrays.Clone(m_C);
 
+        internal byte[] InternalC => m_C;
+
         public byte[] GetY() => Arrays.Clone(m_y);
+
+        internal byte[] InternalY => m_y;
 
         public LMOtsParameters ParamType => m_paramType;
 

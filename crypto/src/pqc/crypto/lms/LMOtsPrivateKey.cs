@@ -41,9 +41,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetI() => Arrays.Clone(m_I);
 
+        internal byte[] InternalI => m_I;
+
         // TODO[api] Remove (see LmsPrivateKeyParameters.GetMasterSecret)
         [Obsolete("Use 'LmsPrivateKeyParameters.GetEncoded' instead")]
         public byte[] GetMasterSecret() => Arrays.Clone(m_masterSecret);
+
+        internal byte[] InternalMasterSecret => m_masterSecret;
 
         public LMOtsParameters Parameters => m_parameters;
 

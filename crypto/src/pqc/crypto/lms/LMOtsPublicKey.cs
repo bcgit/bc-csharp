@@ -55,7 +55,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public byte[] GetI() => Arrays.Clone(m_I);
 
+        internal byte[] InternalI => m_I;
+
         public byte[] GetK() => Arrays.Clone(m_K);
+
+        internal byte[] InternalK => m_K;
 
         public LMOtsParameters Parameters => m_parameters;
 
@@ -99,9 +103,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LmsUtilities.ByteArray(m_I, ctx);
             LmsUtilities.U32Str(m_q, ctx);
             LmsUtilities.U16Str((short)LMOts.D_MESG, ctx);
-#pragma warning disable CS0618 // Type or member is obsolete
-            LmsUtilities.ByteArray(signature.C, ctx);
-#pragma warning restore CS0618 // Type or member is obsolete
+            LmsUtilities.ByteArray(signature.InternalC, ctx);
 
             return new LmsContext(this, signature, ctx);
         }
@@ -113,9 +115,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LmsUtilities.ByteArray(m_I, ctx);
             LmsUtilities.U32Str(m_q, ctx);
             LmsUtilities.U16Str((short)LMOts.D_MESG, ctx);
-#pragma warning disable CS0618 // Type or member is obsolete
-            LmsUtilities.ByteArray(signature.OtsSignature.C, ctx);
-#pragma warning restore CS0618 // Type or member is obsolete
+            LmsUtilities.ByteArray(signature.OtsSignature.InternalC, ctx);
 
             return new LmsContext(this, signature, ctx);
         }

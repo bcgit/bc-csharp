@@ -45,11 +45,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public static LMOtsPublicKey LmsOtsGeneratePublicKey(LMOtsPrivateKey privateKey)
         {
-#pragma warning disable CS0618 // Type or member is obsolete
-            byte[] K = LmsOtsGeneratePublicKey(privateKey.Parameters, privateKey.I, privateKey.Q,
-                privateKey.MasterSecret);
-            return new LMOtsPublicKey(privateKey.Parameters, privateKey.I, privateKey.Q, K);
-#pragma warning restore CS0618 // Type or member is obsolete
+            byte[] K = LmsOtsGeneratePublicKey(privateKey.Parameters, privateKey.InternalI, privateKey.Q,
+                privateKey.InternalMasterSecret);
+            return new LMOtsPublicKey(privateKey.Parameters, privateKey.InternalI, privateKey.Q, K);
         }
 
         internal static byte[] LmsOtsGeneratePublicKey(LMOtsParameters parameters, byte[] I, int q, byte[] masterSecret)
@@ -142,13 +140,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Q[n] = (byte)((cs >> 8) & 0xFF);
             Q[n + 1] = (byte)cs;
 
-#pragma warning disable CS0618 // Type or member is obsolete
             byte[] tmp = Composer.Compose()
-                .Bytes(privateKey.I)
+                .Bytes(privateKey.InternalI)
                 .U32Str(privateKey.Q)
                 .PadUntil(0, ITER_PREV + n)
                 .Build();
-#pragma warning restore CS0618 // Type or member is obsolete
 
             derive.J = 0;
             for (ushort i = 0; i < p; i++)
@@ -180,9 +176,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (!signature.ParamType.Equals(publicKey.Parameters)) // todo check
                 throw new LmsException("public key and signature ots types do not match");
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            return Arrays.AreEqual(LMOtsValidateSignatureCalculate(publicKey, signature, message), publicKey.K);
-#pragma warning restore CS0618 // Type or member is obsolete
+            return Arrays.AreEqual(LMOtsValidateSignatureCalculate(publicKey, signature, message),
+                publicKey.InternalK);
         }
 
         public static byte[] LMOtsValidateSignatureCalculate(LMOtsPublicKey publicKey, LMOtsSignature signature,
@@ -220,9 +215,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Q[n] = (byte)((cs >> 8) & 0xFF);
             Q[n + 1] = (byte)cs;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            byte[] I = publicKey.I;
-#pragma warning restore CS0618 // Type or member is obsolete
+            byte[] I = publicKey.InternalI;
             int q = publicKey.Q;
 
             IDigest finalContext = LmsUtilities.GetDigest(parameters);
@@ -238,9 +231,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             int max_digit = (1 << w) - 1;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-            byte[] y = signature.Y;
-#pragma warning restore CS0618 // Type or member is obsolete
+            byte[] y = signature.InternalY;
 
             IDigest ctx = LmsUtilities.GetDigest(parameters);
             for (ushort i = 0; i < p; i++)
