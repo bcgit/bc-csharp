@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Pack.UInt16_To_BE((ushort)cs, Q, n);
         }
 
-        // TODO[api] Inline
+        // TODO[api] Remove. Nothing calls this: the key derives its own public key.
         public static LMOtsPublicKey LmsOtsGeneratePublicKey(LMOtsPrivateKey privateKey) =>
             privateKey.GeneratePublicKey();
 
@@ -121,7 +121,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // TODO[api] Remove on promotion
         //
         // Not marked obsolete, although the name alone earns it: this is the only public route from a message to
-        // an LM-OTS signature, since the Q it computes in between comes from the internal LmsEngine.CollectQ.
+        // an LM-OTS signature, since the Q it computes in between comes from the internal LmsContext.CollectQ.
         // Deprecating it would need that step made public first, which is only worth doing if standalone LM-OTS
         // signing has users - RFC 8554 does not offer it as a signature scheme in its own right - so it waits for
         // the promotion that makes this whole class internal.
@@ -140,7 +140,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LmsUtilities.ByteArray(message, 0, message.Length, qCtx);
 
-            byte[] Q = LmsEngine.CollectQ(qCtx, privateKey.Parameters);
+            byte[] Q = qCtx.CollectQ(privateKey.Parameters);
 
             return LMOtsGenerateSignature(privateKey, Q, qCtx.C);
         }
@@ -198,10 +198,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (!signature.ParamType.Equals(publicKey.Parameters))
                 throw new LmsException("public key and signature ots types do not match");
 
-            return Arrays.AreEqual(LMOtsValidateSignatureCalculate(publicKey, signature, message),
-                publicKey.InternalK);
+            return Arrays.AreEqual(LMOtsValidateSignatureCalculate(publicKey, signature, message), publicKey.InternalK);
         }
 
+        // TODO[api] Remove on promotion
         public static byte[] LMOtsValidateSignatureCalculate(LMOtsPublicKey publicKey, LMOtsSignature signature,
             byte[] message)
         {
@@ -209,29 +209,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             LmsUtilities.ByteArray(message, ctx);
 
-            return LMOtsValidateSignatureCalculate(ctx);
+            return ctx.CalculateKc();
         }
 
-        public static byte[] LMOtsValidateSignatureCalculate(LmsContext context)
+        // TODO[api] Remove on promotion
+        public static byte[] LMOtsValidateSignatureCalculate(LmsContext context) => context.CalculateKc();
+
+        /// <summary>
+        /// Kc, the LM-OTS public key a signature computes for itself: each Winternitz chain is walked from the
+        /// step the signature stopped at to the end, and the ends are hashed together (RFC 8554 sec. 4.6). It
+        /// matches the public key's own K exactly when the signature is valid for the message Q came from.
+        /// </summary>
+        /// <param name="Q">The message hash, with room for the checksum this appends.</param>
+        internal static byte[] CalculateKc(LMOtsPublicKey publicKey, LMOtsSignature signature, byte[] Q)
         {
-            LMOtsPublicKey publicKey = context.PublicKey;
             LMOtsParameters parameters = publicKey.Parameters;
-            object sig = context.Signature;
-            LMOtsSignature signature;
-            if (sig is LmsSignature lmsSignature)
-            {
-                signature = lmsSignature.OtsSignature;
-            }
-            else
-            {
-                signature = (LMOtsSignature)sig;
-            }
 
             int n = parameters.N;
             int w = parameters.W;
             int p = parameters.P;
-
-            byte[] Q = LmsEngine.CollectQ(context, parameters);
 
             AppendCksm(Q, n, parameters);
 

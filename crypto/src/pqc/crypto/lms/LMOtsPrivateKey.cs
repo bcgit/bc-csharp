@@ -41,9 +41,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         /// <summary>Derive the public key: K, the hash of the ends of this key's Winternitz chains, under the
         /// identifier and leaf number this key was built with.</summary>
-        internal LMOtsPublicKey GeneratePublicKey() =>
-            new LMOtsPublicKey(m_parameters, m_I, m_q, LMOts.LmsOtsGeneratePublicKey(m_parameters, m_I, m_q,
-                m_masterSecret));
+        internal LMOtsPublicKey GeneratePublicKey()
+        {
+            byte[] K = LMOts.LmsOtsGeneratePublicKey(m_parameters, m_I, m_q, m_masterSecret);
+            return new LMOtsPublicKey(m_parameters, m_I, m_q, K);
+        }
 
         public byte[] GetI() => Arrays.Clone(m_I);
 

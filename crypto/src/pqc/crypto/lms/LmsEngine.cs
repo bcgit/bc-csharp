@@ -52,19 +52,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return T;
         }
 
-        /// <summary>
-        /// Take Q, the message hash, from a context that the message has been absorbed into, in the buffer shape the
-        /// LM-OTS chaining expects: the N bytes of Q, followed by room for the two bytes of
-        /// <see cref="LMOts.Cksm(byte[], int, LMOtsParameters)"/> that the caller appends (RFC 8554 sec. 4.5). The
-        /// context cannot be used afterwards.
-        /// </summary>
-        internal static byte[] CollectQ(LmsContext context, LMOtsParameters otsParameters)
-        {
-            byte[] Q = new byte[otsParameters.N + 2];
-            context.OutputQ(Q, 0);
-            return Q;
-        }
-
         //
         // Signing.
         //
@@ -174,16 +161,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// Complete an LMS signature over the message absorbed into a context from
         /// <see cref="GenerateSignContext(LMSigParameters, LMOtsParameters, byte[], int, byte[], byte[][])"/>.
         /// </summary>
-        internal static LmsSignature GenerateSign(LmsContext context)
-        {
-            LMOtsPrivateKey privateKey = context.PrivateKey;
-
-            byte[] Q = CollectQ(context, privateKey.Parameters);
-
-            LMOtsSignature ots_signature = LMOts.LMOtsGenerateSignature(privateKey, Q, context.C);
-
-            return new LmsSignature(privateKey.Q, ots_signature, context.SigParams, context.Path);
-        }
+        internal static LmsSignature GenerateSign(LmsContext context) => context.GenerateSignature();
 
         /// <summary>
         /// Complete and encode an HSS signature over the message absorbed into a context from
@@ -299,12 +277,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// </summary>
         internal static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsContext context)
         {
-            LmsSignature signature = (LmsSignature)context.Signature;
+            // Guaranteed by every route the library has to a verification context, all of which reach
+            // LMOtsPublicKey.CreateOtsContext with a decoded LMS signature. What is left is a context built by
+            // hand through the public constructor, which takes the signature as an object.
+            LmsSignature signature = context.Signature as LmsSignature
+                ?? throw new InvalidOperationException("context was not created from an LMS signature");
             LMSigParameters sigParameters = signature.SigParameters;
             byte[][] path = signature.Y;
 
             // Kc, the LM-OTS public key the signature computes for itself
-            byte[] Kc = LMOts.LMOtsValidateSignatureCalculate(context);
+            byte[] Kc = context.CalculateKc();
 
             byte[] I = publicKey.InternalI;
             IDigest digest = LmsUtilities.GetDigest(sigParameters);

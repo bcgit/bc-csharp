@@ -96,17 +96,50 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 #endif
 
+        /// <summary>
+        /// Take Q, the message hash, in the buffer shape the LM-OTS chaining expects: the N bytes of Q, followed by
+        /// room for the two bytes of <see cref="LMOts.Cksm(byte[], int, LMOtsParameters)"/> that the caller appends
+        /// (RFC 8554 sec. 4.5). The context cannot be used afterwards.
+        /// </summary>
+        internal byte[] CollectQ(LMOtsParameters otsParameters)
+        {
+            byte[] Q = new byte[otsParameters.N + 2];
+            OutputQ(Q, 0);
+            return Q;
+        }
+
+        /// <summary>
+        /// Kc, the LM-OTS public key the signature this context carries computes for itself over the message
+        /// absorbed into it. The context cannot be used afterwards.
+        /// </summary>
+        internal byte[] CalculateKc()
+        {
+            // Either an LMS signature, whose LM-OTS part this verifies, or a bare LM-OTS one
+            LMOtsSignature otsSignature = m_signature is LmsSignature lmsSignature
+                ? lmsSignature.OtsSignature
+                : (LMOtsSignature)m_signature;
+
+            return LMOts.CalculateKc(m_publicKey, otsSignature, CollectQ(m_publicKey.Parameters));
+        }
+
+        /// <summary>
+        /// Complete the LMS signature of the one-time key this context was opened on, over the message absorbed
+        /// into it (RFC 8554 sec. 5.4.1). The context cannot be used afterwards.
+        /// </summary>
+        internal LmsSignature GenerateSignature()
+        {
+            byte[] Q = CollectQ(m_privateKey.Parameters);
+
+            LMOtsSignature otsSignature = LMOts.LMOtsGenerateSignature(m_privateKey, Q, m_c);
+
+            return new LmsSignature(m_privateKey.Q, otsSignature, m_sigParams, m_path);
+        }
+
         // The digest is finalized by OutputQ and released, so every later use is a caller error.
         private IDigest Digest => m_digest ?? throw new InvalidOperationException("context already used");
 
-        internal byte[][] Path => m_path;
-
-        internal LMOtsPrivateKey PrivateKey => m_privateKey;
-
         // TODO[api] Make internal
         public LMOtsPublicKey PublicKey => m_publicKey;
-
-        internal LMSigParameters SigParams => m_sigParams;
 
         public object Signature => m_signature;
 

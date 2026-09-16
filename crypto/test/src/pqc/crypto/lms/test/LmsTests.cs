@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
 
             LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
-            LMOtsPublicKey publicKey = LMOts.LmsOtsGeneratePublicKey(privateKey);
+            LMOtsPublicKey publicKey = privateKey.GeneratePublicKey();
 
             byte[] ms = new byte[32];
             for (int t = 0; t < ms.Length; t++)
@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
 
             LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
-            LMOtsPublicKey publicKey = LMOts.LmsOtsGeneratePublicKey(privateKey);
+            LMOtsPublicKey publicKey = privateKey.GeneratePublicKey();
 
             byte[] ms = new byte[32];
             for (int t = 0; t < ms.Length; t++)
@@ -241,7 +241,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] ms = new byte[32];
             ctx.BlockUpdate(ms, 0, ms.Length);
 
-            LMOtsPublicKey publicKey = LMOts.LmsOtsGeneratePublicKey(privateKey);
+            LMOtsPublicKey publicKey = privateKey.GeneratePublicKey();
             byte[] Q = new byte[parameter.N + 2];
             ctx.OutputQ(Q, 0);
 
@@ -262,7 +262,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
 
             LMOtsPrivateKey privateKey = new LMOtsPrivateKey(parameter, I, 0, seed);
-            LMOtsPublicKey publicKey = LMOts.LmsOtsGeneratePublicKey(privateKey);
+            LMOtsPublicKey publicKey = privateKey.GeneratePublicKey();
 
             byte[] ms = new byte[32];
 
