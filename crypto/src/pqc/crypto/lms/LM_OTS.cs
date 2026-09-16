@@ -125,8 +125,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // Deprecating it would need that step made public first, which is only worth doing if standalone LM-OTS
         // signing has users - RFC 8554 does not offer it as a signature scheme in its own right - so it waits for
         // the promotion that makes this whole class internal.
+#pragma warning disable IDE1006
         public static LMOtsSignature lm_ots_generate_signature(LMSigParameters sigParams, LMOtsPrivateKey privateKey,
             byte[][] path, byte[] message, bool preHashed)
+#pragma warning restore IDE1006
         {
             // The randomizer C is an input to Q and is carried in the signature for the verifier to reuse, so a
             // caller supplying Q must supply the C it hashed into it; there is no parameter here to receive it.
@@ -220,6 +222,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// step the signature stopped at to the end, and the ends are hashed together (RFC 8554 sec. 4.6). It
         /// matches the public key's own K exactly when the signature is valid for the message Q came from.
         /// </summary>
+        /// <param name="publicKey">The one-time public key the signature claims to be under, for the parameter
+        /// set, the identifier and the leaf number the chains are computed with.</param>
+        /// <param name="signature">The signature whose chain ends are walked to their ends.</param>
         /// <param name="Q">The message hash, with room for the checksum this appends.</param>
         internal static byte[] CalculateKc(LMOtsPublicKey publicKey, LMOtsSignature signature, byte[] Q)
         {

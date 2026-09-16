@@ -18,6 +18,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// </summary>
         /// <param name="digest">The tree digest, from <see cref="LmsUtilities.GetDigest(LMSigParameters)"/>; reset
         /// on return, so one digest serves a whole walk.</param>
+        /// <param name="otsParameters">The LM-OTS parameter set of the tree.</param>
+        /// <param name="I">The tree identifier.</param>
+        /// <param name="r">The node number of the leaf, 2^h + <paramref name="q"/>.</param>
+        /// <param name="q">The one-time key the leaf holds.</param>
+        /// <param name="masterSecret">The seed the tree's one-time keys are derived from.</param>
         internal static byte[] ComputeLeaf(IDigest digest, LMOtsParameters otsParameters, byte[] I, int r, int q,
             byte[] masterSecret)
         {
@@ -39,6 +44,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// </summary>
         /// <param name="digest">The tree digest, from <see cref="LmsUtilities.GetDigest(LMSigParameters)"/>; reset
         /// on return, so one digest serves a whole walk.</param>
+        /// <param name="I">The tree identifier.</param>
+        /// <param name="r">The node number of the node computed, half that of its children.</param>
+        /// <param name="left">The node at 2r.</param>
+        /// <param name="right">The node at 2r + 1.</param>
         internal static byte[] ComputeNode(IDigest digest, byte[] I, int r, byte[] left, byte[] right)
         {
             LmsUtilities.ByteArray(I, digest);
