@@ -64,6 +64,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             internal LmsSignature[] CopySig() => (LmsSignature[])m_sig.Clone();
 
+            /// <summary>
+            /// Copy both arrays, unless a previous call already did, for a caller that does not know whether it has
+            /// anything to change until it finds the first thing.
+            /// </summary>
+            internal void EnsureCopies(ref LmsPrivateKeyParameters[] keys, ref LmsSignature[] sig)
+            {
+                if (keys == null)
+                {
+                    keys = CopyKeys();
+                    sig = CopySig();
+                }
+            }
+
             internal bool HasUnconstructedLevel() =>
                 Array.IndexOf(m_keys, null) >= 0 || Array.IndexOf(m_sig, null) >= 0;
         }
@@ -392,31 +405,32 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private void ResetKeyToIndex()
         {
             // Extract the original keys
-            Hierarchy original = CurrentHierarchy;
+            Hierarchy oldHierarchy = CurrentHierarchy;
 
-            long[] qTreePath = new long[original.Count];
+            long[] qTreePath = new long[oldHierarchy.Count];
             long q = GetIndex();
 
-            for (int t = original.Count - 1; t >= 0; t--)
+            for (int t = oldHierarchy.Count - 1; t >= 0; t--)
             {
-                LMSigParameters sigParameters = original.GetKey(t).SigParameters;
+                LMSigParameters sigParameters = oldHierarchy.GetKey(t).SigParameters;
                 int mask = (1 << sigParameters.H) - 1;
                 qTreePath[t] = q & mask;
                 q >>= sigParameters.H;
             }
 
-            bool changed = false;
-            LmsPrivateKeyParameters[] keys = original.CopyKeys();
-            LmsSignature[] sig = original.CopySig();
+            // Copied when the first level is found to need replacing, so a key already in sync with its index -
+            // the usual case, since only sharding and a stale supplied index put it out of sync - copies nothing
+            LmsPrivateKeyParameters[] newKeys = null;
+            LmsSignature[] newSig = null;
 
-            LmsPrivateKeyParameters originalRootKey = original.GetKey(0);
+            LmsPrivateKeyParameters rootKey = oldHierarchy.GetKey(0);
 
             // We need to replace the root key to a new q value; the last level reads the derived
             // value itself, which for a single level hierarchy is the root.
             //
             bool rootQMatch = (qTreePath.Length > 1)
-                ? qTreePath[0] == keys[0].GetIndex() - 1
-                : qTreePath[0] == keys[0].GetIndex();
+                ? qTreePath[0] == rootKey.GetIndex() - 1
+                : qTreePath[0] == rootKey.GetIndex();
 
             if (!rootQMatch)
             {
@@ -425,19 +439,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // and cannot have changed - so this is the same tree at a different one-time key, and
                 // the repositioned key keeps the tree the root has already built.
                 //
-                CheckNotRewound(0, keys[0].GetIndex() - (qTreePath.Length > 1 ? 1 : 0), qTreePath[0]);
+                CheckNotRewound(0, rootKey.GetIndex() - (qTreePath.Length > 1 ? 1 : 0), qTreePath[0]);
 
-                keys[0] = originalRootKey.RepositionTo((int)qTreePath[0]);
-                changed = true;
+                rootKey = rootKey.RepositionTo((int)qTreePath[0]);
+
+                oldHierarchy.EnsureCopies(ref newKeys, ref newSig);
+                newKeys[0] = rootKey;
             }
+
+            // The level above the one being examined, as it now stands: it is the only one that can already
+            // have been replaced, since each level is replaced on its own pass
+            LmsPrivateKeyParameters parentKey = rootKey;
 
             for (int i = 1; i < qTreePath.Length; i++)
             {
-                LmsPrivateKeyParameters intermediateKey = keys[i - 1];
-
-                var child = intermediateKey.DeriveChildKey((int)qTreePath[i - 1]);
+                var child = parentKey.DeriveChildKey((int)qTreePath[i - 1]);
                 byte[] childI = child.Item1;
                 byte[] childSeed = child.Item2;
+
+                LmsPrivateKeyParameters oldKey = oldHierarchy.GetKey(i), newKey = oldKey;
 
                 //
                 // Q values in LMS keys post increment after they are used.
@@ -445,30 +465,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // For the end key its value will match so no correction is required.
                 //
                 bool lmsQMatch = (i < qTreePath.Length - 1)
-                    ? qTreePath[i] == keys[i].GetIndex() - 1
-                    : qTreePath[i] == keys[i].GetIndex();
+                    ? qTreePath[i] == oldKey.GetIndex() - 1
+                    : qTreePath[i] == oldKey.GetIndex();
 
                 //
                 // Equality is I and seed being equal and the lmsQMath.
                 // I and seed are derived from this nodes parent and will change if the parent q, I, seed changes.
                 //
-                bool seedEquals = keys[i].HasIdentity(childI, childSeed);
+                bool seedEquals = oldKey.HasIdentity(childI, childSeed);
 
                 if (!seedEquals)
                 {
                     //
                     // This means the parent has changed.
                     //
-                    keys[i] = Lms.GenerateKeys(
-                        original.GetKey(i).SigParameters,
-                        original.GetKey(i).OtsParameters,
-                        (int)qTreePath[i], childI, childSeed);
+                    newKey = Lms.GenerateKeys(oldKey.SigParameters, oldKey.OtsParameters, (int)qTreePath[i],
+                        childI, childSeed);
+
+                    oldHierarchy.EnsureCopies(ref newKeys, ref newSig);
+                    newKeys[i] = newKey;
 
                     //
                     // Ensure post increment occurs on parent and the new public key is signed.
                     //
-                    sig[i - 1] = SignPublicKey(keys[i - 1], keys[i].GetPublicKey());
-                    changed = true;
+                    newSig[i - 1] = SignPublicKey(parentKey, newKey.GetPublicKey());
                 }
                 else if (!lmsQMatch)
                 {
@@ -478,17 +498,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     // rebuild it. The public key is unchanged either way, so the chaining signature
                     // above it still stands and does not need making again.
                     //
-                    CheckNotRewound(i, keys[i].GetIndex() - (i < qTreePath.Length - 1 ? 1 : 0), qTreePath[i]);
+                    CheckNotRewound(i, oldKey.GetIndex() - (i < qTreePath.Length - 1 ? 1 : 0), qTreePath[i]);
 
-                    keys[i] = keys[i].RepositionTo((int)qTreePath[i]);
-                    changed = true;
+                    newKey = oldKey.RepositionTo((int)qTreePath[i]);
+
+                    oldHierarchy.EnsureCopies(ref newKeys, ref newSig);
+                    newKeys[i] = newKey;
                 }
+
+                parentKey = newKey;
             }
 
-            if (changed)
+            if (newKeys != null)
             {
                 // We mutate the HSS key here! Under the caller's monitor, per the contract above.
-                Volatile.Write(ref m_hierarchy, new Hierarchy(keys, sig));
+                Volatile.Write(ref m_hierarchy, new Hierarchy(newKeys, newSig));
             }
         }
 
@@ -531,10 +555,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// </remarks>
         internal void ReplaceExhaustedKeys(int d)
         {
-            Hierarchy hierarchy = CurrentHierarchy;
+            Hierarchy oldHierarchy = CurrentHierarchy;
 
-            var newKeys = hierarchy.CopyKeys();
-            var newSig = hierarchy.CopySig();
+            var newKeys = oldHierarchy.CopyKeys();
+            var newSig = oldHierarchy.CopySig();
 
             for (; d < m_level; ++d)
             {
@@ -689,7 +713,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 Hss.RangeTestKeys(this);
 
-                // After the range test, which replaces the levels it finds consumed
+                // After the range test, which replaces the levels it finds exhausted
                 Hierarchy hierarchy = CurrentHierarchy;
 
                 LmsPrivateKeyParameters nextKey = hierarchy.GetKey(level - 1);
