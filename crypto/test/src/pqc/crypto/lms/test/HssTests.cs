@@ -7,6 +7,7 @@ using System.Threading;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -87,10 +88,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             int pos = 25;
             for (int t = 0; t < d; t++)
             {
-                int m = LMSigParameters.GetParametersByID(ReadU32(enc, pos + 4)).M;
-                int keyCoreLength = 40 + ReadU32(enc, pos + 36); // up to and including the master secret
+                int m = LMSigParameters.GetParametersByID((int)Pack.BE_To_UInt32(enc, pos + 4)).M;
+                // up to and including the master secret
+                int keyCoreLength = 40 + (int)Pack.BE_To_UInt32(enc, pos + 36);
                 composer.Bytes(enc, pos, keyCoreLength);
-                int cacheCount = ReadU32(enc, pos + keyCoreLength);
+                int cacheCount = (int)Pack.BE_To_UInt32(enc, pos + keyCoreLength);
                 pos += keyCoreLength + 4 + cacheCount * m; // skip the version 1 tree-cache field
             }
             composer.Bytes(enc, pos, enc.Length - pos); // the chaining signatures
@@ -117,7 +119,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             byte[] enc = generated.GetEncoded();
 
-            Assert.AreEqual(1, ReadU32(enc, 0), "encoding version");
+            Assert.AreEqual(1U, Pack.BE_To_UInt32(enc, 0), "encoding version");
 
             HssPrivateKeyParameters decoded = HssPrivateKeyParameters.GetInstance(enc);
 
@@ -143,7 +145,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             for (int i = 0; i != badD.Length; i++)
             {
                 byte[] corrupt = Arrays.Clone(enc);
-                WriteU32(badD[i], corrupt, 4);
+                Pack.UInt32_To_BE((uint)badD[i], corrupt, 4);
                 var ex = Assert.Throws<IOException>(
                     () => HssPrivateKeyParameters.GetInstance(corrupt), "no exception on d = " + badD[i]);
                 Assert.True(ex.Message.StartsWith("d value of HSS private key out of range"));
@@ -154,8 +156,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             for (int i = 0; i != badIndex.Length; i++)
             {
                 byte[] corrupt = Arrays.Clone(enc);
-                WriteU64(badIndex[i][0], corrupt, 8);
-                WriteU64(badIndex[i][1], corrupt, 16);
+                Pack.UInt64_To_BE((ulong)badIndex[i][0], corrupt, 8);
+                Pack.UInt64_To_BE((ulong)badIndex[i][1], corrupt, 16);
                 var ex = Assert.Throws<IOException>(
                     () => HssPrivateKeyParameters.GetInstance(corrupt),
                     "no exception on index = " + badIndex[i][0] + " maxIndex = " + badIndex[i][1]);
@@ -208,20 +210,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(ex.Message.StartsWith("HSS private key tree cache does not match"));
         }
 
-        private static void WriteU32(int n, byte[] buf, int off)
-        {
-            buf[off] = (byte)(n >> 24);
-            buf[off + 1] = (byte)(n >> 16);
-            buf[off + 2] = (byte)(n >> 8);
-            buf[off + 3] = (byte)n;
-        }
-
-        private static void WriteU64(long n, byte[] buf, int off)
-        {
-            WriteU32((int)(n >> 32), buf, off);
-            WriteU32((int)n, buf, off + 4);
-        }
-
         private static HssPrivateKeyParameters GenerateKey(int d)
         {
             LmsParameters[] lmsParameters = new LmsParameters[d];
@@ -232,9 +220,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             return Hss.GenerateHssKeyPair(new HssKeyGenerationParameters(lmsParameters, new SecureRandom()));
         }
-
-        private static int ReadU32(byte[] buf, int off) =>
-            (buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3];
 
         /**
          * Test Case 1 Signature
@@ -324,14 +309,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(Verify(publicKey, signature, message), "RFC signature verifies");
 
             // Nspk is 0, so the HSS signature is u32str(0) followed by the LMS signature, which opens with q.
-            Assert.AreEqual(0U, Pack_BE_To_UInt32(signature, 0), "Nspk");
+            Assert.AreEqual(0U, Pack.BE_To_UInt32(signature, 0), "Nspk");
             byte[] lmsSignature = Arrays.CopyOfRange(signature, 4, signature.Length);
             Assert.True(VerifyLms(lmsPub, lmsSignature, message), "RFC LMS signature verifies");
 
             if (!regenerate)
                 return;
 
-            int q = (int)Pack_BE_To_UInt32(lmsSignature, 0);
+            int q = (int)Pack.BE_To_UInt32(lmsSignature, 0);
             LmsPrivateKeyParameters privateKey = LmsKey(sigParams, otsParams, q, I, seed);
             Assert.True(Arrays.AreEqual(lmsPub.GetEncoded(), privateKey.GetPublicKey().GetEncoded()),
                 "public key from SEED and I");
@@ -993,7 +978,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             // There should be a max of 32768 signatures for this key.
             //
 
-            Assert.True(keyPair.GetUsagesRemaining() == 32768);
+            Assert.AreEqual(32768L, keyPair.GetUsagesRemaining());
 
             int mod = 256;
             try
@@ -1006,7 +991,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                         // We don't want to check every key.
                         // The test will take over an hour to complete.
                         //
-                        Pack_UInt32_To_BE((uint)ctr, message, 0);
+                        Pack.UInt32_To_BE((uint)ctr, message, 0);
                         byte[] sig = Sign(keyPair, message);
 
                         var keyPairKeys = keyPair.GetKeys();
@@ -1110,13 +1095,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
 
             byte[] enc = key.GetEncoded();
-            Assert.AreEqual(5UL, Pack_BE_To_UInt64(enc, 8));
+            Assert.AreEqual(5UL, Pack.BE_To_UInt64(enc, 8));
 
             // roll the declared index back, leaving the component keys advanced
             for (int roll = 0; roll != 5; roll++)
             {
                 byte[] rolled = Arrays.Clone(enc);
-                Pack_UInt64_To_BE((ulong)roll, rolled, 8);
+                Pack.UInt64_To_BE((ulong)roll, rolled, 8);
                 try
                 {
                     HssPrivateKeyParameters.GetInstance(rolled);
@@ -1130,15 +1115,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
 
             // and the other direction: roll a component key's q back, leaving the declared index alone
-            int secretLen = (int)Pack_BE_To_UInt32(enc, 25 + 28 + 8);
-            int cacheCount = (int)Pack_BE_To_UInt32(enc, 25 + 40 + secretLen);
+            int secretLen = (int)Pack.BE_To_UInt32(enc, 25 + 28 + 8);
+            int cacheCount = (int)Pack.BE_To_UInt32(enc, 25 + 40 + secretLen);
             int m = LMSigParameters.lms_sha256_n32_h5.M;
             int componentSize = 4 + 4 + 4 + 16 + 4 + 4 + 4 + secretLen + 4 + cacheCount * m;
             int lastQOff = 25 + componentSize + 28;
-            Assert.True(Pack_BE_To_UInt32(enc, lastQOff) > 0U, "component q should be advanced");
+            Assert.True(Pack.BE_To_UInt32(enc, lastQOff) > 0U, "component q should be advanced");
 
             byte[] qRolled = Arrays.Clone(enc);
-            Pack_UInt32_To_BE(0U, qRolled, lastQOff);
+            Pack.UInt32_To_BE(0U, qRolled, lastQOff);
             try
             {
                 HssPrivateKeyParameters.GetInstance(qRolled);
@@ -1238,7 +1223,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         }
 
         private static int LeafSignatureQ(HssPrivateKeyParameters key, byte[] hssSignature) =>
-            (int)Pack_BE_To_UInt32(hssSignature, LeafSignatureOffset(key, hssSignature));
+            (int)Pack.BE_To_UInt32(hssSignature, LeafSignatureOffset(key, hssSignature));
 
         private static int LeafSignatureType(HssPrivateKeyParameters key, byte[] hssSignature)
         {
@@ -1246,7 +1231,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             int h = leaf.SigParameters.H;
             int m = leaf.SigParameters.M;
 
-            return (int)Pack_BE_To_UInt32(hssSignature, hssSignature.Length - h * m - 4);
+            return (int)Pack.BE_To_UInt32(hssSignature, hssSignature.Length - h * m - 4);
         }
 
         /// <summary>
@@ -1402,7 +1387,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 byte[] sig = signer.GenerateSignature(context);
 
                 Assert.AreEqual(1, hss.GetIndex(), "level " + level);
-                Assert.AreEqual((uint)(level - 1), Pack_BE_To_UInt32(sig, 0), "Nspk at level " + level);
+                Assert.AreEqual((uint)(level - 1), Pack.BE_To_UInt32(sig, 0), "Nspk at level " + level);
 
                 // verifies through the static API and through the signer
                 Assert.True(Hss.VerifySignature(pub, HssSignature.GetInstance(sig, level), msg), "level " + level);
@@ -1513,7 +1498,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             HssSigner hssSigner = new HssSigner();
             hssSigner.Init(true, hss);
             byte[] hssSig = hssSigner.GenerateSignature(msg);
-            Assert.AreEqual(0U, Pack_BE_To_UInt32(hssSig, 0));
+            Assert.AreEqual(0U, Pack.BE_To_UInt32(hssSig, 0));
             byte[] lmsPart = Arrays.CopyOfRange(hssSig, 4, hssSig.Length);
             Assert.AreEqual(5, LmsSignature.GetInstance(lmsPart).Q);
             Assert.True(VerifyLms(hssPub.LmsPublicKey, lmsPart, msg));
@@ -1774,35 +1759,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                         keys[i + 1].GetPublicKey().ToByteArray()),
                     "chaining signature at level " + i + " does not verify under the level above");
             }
-        }
-
-        private static uint Pack_BE_To_UInt32(byte[] bs, int off)
-        {
-            return (uint)bs[off] << 24
-                | (uint)bs[off + 1] << 16
-                | (uint)bs[off + 2] << 8
-                | bs[off + 3];
-        }
-
-        private static ulong Pack_BE_To_UInt64(byte[] bs, int off)
-        {
-            uint hi = Pack_BE_To_UInt32(bs, off);
-            uint lo = Pack_BE_To_UInt32(bs, off + 4);
-            return ((ulong)hi << 32) | (ulong)lo;
-        }
-
-        private static void Pack_UInt32_To_BE(uint n, byte[] bs, int off)
-        {
-            bs[off] = (byte)(n >> 24);
-            bs[off + 1] = (byte)(n >> 16);
-            bs[off + 2] = (byte)(n >> 8);
-            bs[off + 3] = (byte)n;
-        }
-
-        private static void Pack_UInt64_To_BE(ulong n, byte[] bs, int off)
-        {
-            Pack_UInt32_To_BE((uint)(n >> 32), bs, off);
-            Pack_UInt32_To_BE((uint)n, bs, off + 4);
         }
 
         private static bool TrimLine(ref string line)

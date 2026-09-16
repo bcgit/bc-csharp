@@ -6,6 +6,7 @@ using System.Threading;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
@@ -305,8 +306,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             // 72 byte body + u32 node count + (cacheTop - 1) nodes of m bytes each. The version stays 0 and the
             // cache is appended as trailing data, matching the bc-java interchange format.
-            Assert.AreEqual(0, ReadU32(enc, 0));
-            Assert.AreEqual(cacheTop - 1, ReadU32(enc, 72));
+            Assert.AreEqual(0U, Pack.BE_To_UInt32(enc, 0));
+            Assert.AreEqual(cacheTop - 1, (int)Pack.BE_To_UInt32(enc, 72));
             Assert.AreEqual(72 + 4 + (cacheTop - 1) * m, enc.Length);
 
             // The first cached node is the root of the Merkle tree - it must match the public key's T[1].
@@ -363,7 +364,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             // hard-coding it - the limit moves if that cap is resized.
             //
             byte[] sampleEnc = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed).GetEncoded();
-            int cacheCountLimit = ReadU32(sampleEnc, 40 + m);
+            int cacheCountLimit = (int)Pack.BE_To_UInt32(sampleEnc, 40 + m);
 
             // A cache at the limit is accepted. The node values have to be the real ones: they are a
             // deterministic function of I, the master secret and the parameters, and are checked against each
@@ -438,8 +439,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LmsPrivateKeyParameters priv = (LmsPrivateKeyParameters)gen.GenerateKeyPair().Private;
             byte[] enc = priv.GetEncoded();
 
-            int countOff = 40 + ReadU32(enc, 36);
-            int cacheCount = ReadU32(enc, countOff);
+            int countOff = 40 + (int)Pack.BE_To_UInt32(enc, 36);
+            int cacheCount = (int)Pack.BE_To_UInt32(enc, countOff);
             int cacheOff = countOff + 4;
             Assert.Greater(cacheCount, 0, "expected a primed cache to corrupt");
 
@@ -570,8 +571,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LmsPrivateKeyParameters priv = (LmsPrivateKeyParameters)gen.GenerateKeyPair().Private;
             byte[] enc = priv.GetEncoded();
 
-            int countOff = 40 + ReadU32(enc, 36);
-            int cacheCount = ReadU32(enc, countOff);
+            int countOff = 40 + (int)Pack.BE_To_UInt32(enc, 36);
+            int cacheCount = (int)Pack.BE_To_UInt32(enc, countOff);
             Assert.AreEqual(63, cacheCount, "this writer should emit a full top of tree");
 
             int[] incomplete = new int[]{ 1, 2, 4, 5, 6, 8, 30, 62 };
@@ -627,7 +628,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] rebuilt = new byte[countOff + 4 + nodeCount * m];
 
             Array.Copy(enc, 0, rebuilt, 0, countOff);
-            WriteU32(nodeCount, rebuilt, countOff);
+            Pack.UInt32_To_BE((uint)nodeCount, rebuilt, countOff);
             Array.Copy(enc, countOff + 4, rebuilt, countOff + 4, nodeCount * m);
 
             return rebuilt;
@@ -652,8 +653,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LmsPrivateKeyParameters priv = LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
             byte[] enc = priv.GetEncoded();
 
-            int countOff = 40 + ReadU32(enc, 36);
-            int cacheCount = ReadU32(enc, countOff);
+            int countOff = 40 + (int)Pack.BE_To_UInt32(enc, 36);
+            int cacheCount = (int)Pack.BE_To_UInt32(enc, countOff);
             int cacheOff = countOff + 4;
             Assert.True(cacheCount > 0, "expected a primed cache to corrupt");
 
@@ -1099,18 +1100,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             byte[] I = SecureRandom.GetNextBytes(random, 16);
             byte[] seed = SecureRandom.GetNextBytes(random, 32);
             return LmsTestUtilities.GenerateKey(sigParams, otsParams, 0, I, seed);
-        }
-
-        private static int ReadU32(byte[] buf, int off) =>
-            (buf[off] << 24) | (buf[off + 1] << 16) | (buf[off + 2] << 8) | buf[off + 3];
-
-        private static void WriteU32(int x, byte[] bs, int off)
-        {
-            uint n = (uint)x;
-            bs[off] = (byte)(n >> 24);
-            bs[off + 1] = (byte)(n >> 16);
-            bs[off + 2] = (byte)(n >> 8);
-            bs[off + 3] = (byte)n;
         }
 
         private static byte[] Sign(LmsPrivateKeyParameters key, byte[] message)
