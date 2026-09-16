@@ -304,11 +304,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             ValidateTreeCache(key, cachedT, cacheCount);
 
-            // Entries match the state a freshly generated key reaches after its public key has been derived.
-            for (int r = 1; r <= cacheCount; r++)
-            {
-                key.tCache[r] = cachedT[r];
-            }
+            key.PrimeTreeCache(cachedT);
         }
 
         /**
@@ -343,14 +339,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             for (int r = 1; r < twoToH && 2 * r + 1 <= cacheCount; r++)
             {
-                LmsUtilities.ByteArray(key.I, digest);
-                LmsUtilities.U32Str(r, digest);
-                LmsUtilities.U16Str(LmsEngine.D_INTR, digest);
-                LmsUtilities.ByteArray(cachedT[2 * r], digest);
-                LmsUtilities.ByteArray(cachedT[2 * r + 1], digest);
-
-                byte[] node = new byte[digest.GetDigestSize()];
-                digest.DoFinal(node, 0);
+                byte[] node = LmsEngine.ComputeNode(digest, key.I, r, cachedT[2 * r], cachedT[2 * r + 1]);
 
                 if (!Arrays.AreEqual(node, cachedT[r]))
                     throw new IOException($"LMS private key tree cache inconsistent at node {r}");
@@ -600,6 +589,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          */
         internal byte[] PeekRootT() => Volatile.Read(ref tCache[1]);
 
+        /// <summary>
+        /// Whether the top of the Merkle tree is in the node cache - because this key has been used or queried,
+        /// or because it was decoded from a stored key's tree cache. For the tests that check the cache survives
+        /// a round trip.
+        /// </summary>
+        internal bool IsTreeCachePrimed() => PeekRootT() != null;
+
+        /// <summary>
+        /// Populate the node cache with the top-of-tree nodes recovered from a stored key's tree cache, matching
+        /// the state a freshly generated key reaches once its public key has been derived.
+        /// </summary>
+        /// <param name="cachedT">Nodes indexed by tree node number; index 0 is unused, entries 1..n are cached.
+        /// </param>
+        internal void PrimeTreeCache(byte[][] cachedT)
+        {
+            // Published the way FindT publishes a node it computed, so a reader sees a whole node or none of it
+            for (int r = 1; r < cachedT.Length && r < maxCacheR; r++)
+            {
+                if (cachedT[r] != null)
+                {
+                    Volatile.Write(ref tCache[r], cachedT[r]);
+                }
+            }
+        }
+
         internal byte[] FindT(int r)
         {
             if (r >= maxCacheR)
@@ -624,48 +638,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // that owns them and computes a leaf, which keeps the reuse out of these signatures at the cost of a type
         // whose lifetime has to match the rebuild. Worth settling against a measurement rather than up front.
         //
-        // bc-java's promoted LMSEngine has already taken the digest half of this, with the threaded shape: a
-        // createDigest(sigParameters) the caller owns, passed to computeLeaf(H, ...) and computeNode(H, ...) -
-        // this method and HashInterior under other names - documented as reset on return. It still allocates the
-        // node and K per call, so the buffer half is open there too.
+        // The threaded shape bc-java's promoted LMSEngine uses is in place here too: LmsEngine.ComputeLeaf and
+        // ComputeNode take a digest the caller owns and reset it on return. What is left is that this method
+        // creates one per call - the callers that could own one are FindT and this method's own recursion - and
+        // that both still allocate the node and K per call, which is the buffer half above.
         private byte[] CalcT(int r)
         {
-            int twoToh = 1 << SigParameters.H;
+            int twoToH = 1 << SigParameters.H;
+
+            var tDigest = LmsUtilities.GetDigest(SigParameters);
 
             // r is a base 1 index.
-            if (r < twoToh)
-                return HashInterior(r, FindT(2 * r), FindT(2 * r + 1));
+            if (r < twoToH)
+                return LmsEngine.ComputeNode(tDigest, I, r, FindT(2 * r), FindT(2 * r + 1));
 
             CheckDisposed();
 
-            var tDigest = LmsUtilities.GetDigest(SigParameters);
-
-            LmsUtilities.ByteArray(I, tDigest);
-            LmsUtilities.U32Str(r, tDigest);
-            LmsUtilities.U16Str(LmsEngine.D_LEAF, tDigest);
-
-            byte[] K = LMOts.LmsOtsGeneratePublicKey(OtsParameters, I, r - twoToh, masterSecret);
-
-            LmsUtilities.ByteArray(K, tDigest);
-
-            byte[] T = new byte[tDigest.GetDigestSize()];
-            tDigest.DoFinal(T, 0);
-            return T;
-        }
-
-        private byte[] HashInterior(int r, byte[] left, byte[] right)
-        {
-            var tDigest = LmsUtilities.GetDigest(SigParameters);
-
-            LmsUtilities.ByteArray(I, tDigest);
-            LmsUtilities.U32Str(r, tDigest);
-            LmsUtilities.U16Str(LmsEngine.D_INTR, tDigest);
-            LmsUtilities.ByteArray(left, tDigest);
-            LmsUtilities.ByteArray(right, tDigest);
-
-            byte[] T = new byte[tDigest.GetDigestSize()];
-            tDigest.DoFinal(T, 0);
-            return T;
+            return LmsEngine.ComputeLeaf(tDigest, OtsParameters, I, r, r - twoToH, masterSecret);
         }
 
         // Called under lock(this). Build the authentication path of one-time key q, reusing whatever it shares
@@ -713,14 +702,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (fresh > 0)
             {
                 anc[0] = FindT(r);
+            }
+
+            if (fresh > 1)
+            {
+                // One digest for the whole fold; advancing by a single one-time key usually leaves nothing to
+                // fold, which is why it is not taken above
+                var tDigest = LmsUtilities.GetDigest(SigParameters);
 
                 for (int i = 1; i < fresh; ++i)
                 {
                     byte[] child = anc[i - 1], sibling = path[i - 1];
 
                     anc[i] = ((r >> (i - 1)) & 1) == 0
-                        ? HashInterior(r >> i, child, sibling)
-                        : HashInterior(r >> i, sibling, child);
+                        ? LmsEngine.ComputeNode(tDigest, I, r >> i, child, sibling)
+                        : LmsEngine.ComputeNode(tDigest, I, r >> i, sibling, child);
                 }
             }
 

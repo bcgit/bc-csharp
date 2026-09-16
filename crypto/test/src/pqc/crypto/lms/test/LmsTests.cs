@@ -464,8 +464,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             // the untouched encoding still decodes, primes and signs verifiably
             LmsPrivateKeyParameters decoded = LmsPrivateKeyParameters.GetInstance(enc);
-            // TODO[lms] IsTreeCachePrimed
-            //Assert.True(decoded.IsTreeCachePrimed());
+            Assert.True(decoded.IsTreeCachePrimed());
             byte[] msg = Hex.Decode("48656c6c6f");
             Assert.True(Verify(priv.GetPublicKey(), Sign(decoded, msg), msg));
         }

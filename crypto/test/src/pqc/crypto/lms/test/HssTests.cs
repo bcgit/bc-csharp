@@ -1304,15 +1304,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LmsPrivateKeyParameters lms = (LmsPrivateKeyParameters)gen.GenerateKeyPair().Private;
 
             byte[] rootT1 = lms.GetPublicKey().GetT1();
-            // TODO[lms] IsTreeCachePrimed
-            //Assert.True(lms.IsTreeCachePrimed(), "expected the generator to leave the cache primed");
+            Assert.True(lms.IsTreeCachePrimed(), "expected the generator to leave the cache primed");
 
             HssPrivateKeyParameters wrapped = new HssPrivateKeyParameters(lms, lms.GetIndex(),
                 lms.GetIndex() + lms.GetUsagesRemaining());
 
             Assert.AreSame(lms, wrapped.GetRootKey(), "the wrap regenerated the root key");
-            // TODO[lms] IsTreeCachePrimed
-            //Assert.True(wrapped.GetRootKey().IsTreeCachePrimed(), "the wrap discarded the tree cache");
+            Assert.True(wrapped.GetRootKey().IsTreeCachePrimed(), "the wrap discarded the tree cache");
             Assert.That(Arrays.AreEqual(rootT1, wrapped.GetPublicKey().LmsPublicKey.GetT1()),
                 "the wrap changed the public key");
 

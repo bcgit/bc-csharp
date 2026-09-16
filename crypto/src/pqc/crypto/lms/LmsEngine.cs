@@ -9,10 +9,48 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     internal static class LmsEngine
     {
         // Signed, since that is what U16Str takes; the value written is the RFC 8554 typecode either way.
-        // TODO[lms] Private, once the tree building in LmsPrivateKeyParameters (CalcT, HashInterior) moves here
-        // as bc-java's computeLeaf and computeNode.
-        internal const short D_LEAF = unchecked((short)0x8282);
-        internal const short D_INTR = unchecked((short)0x8383);
+        private const short D_LEAF = unchecked((short)0x8282);
+        private const short D_INTR = unchecked((short)0x8383);
+
+        /// <summary>
+        /// Leaf node r of the tree: H(I || u32str(r) || u16str(D_LEAF) || OTS_PUB_HASH[q]), the one-time public
+        /// key of leaf <paramref name="q"/> being derived from the master secret (RFC 8554 sec. 5.3, Algorithm 7).
+        /// </summary>
+        /// <param name="digest">The tree digest, from <see cref="LmsUtilities.GetDigest(LMSigParameters)"/>; reset
+        /// on return, so one digest serves a whole walk.</param>
+        internal static byte[] ComputeLeaf(IDigest digest, LMOtsParameters otsParameters, byte[] I, int r, int q,
+            byte[] masterSecret)
+        {
+            byte[] K = LMOts.LmsOtsGeneratePublicKey(otsParameters, I, q, masterSecret);
+
+            LmsUtilities.ByteArray(I, digest);
+            LmsUtilities.U32Str(r, digest);
+            LmsUtilities.U16Str(D_LEAF, digest);
+            LmsUtilities.ByteArray(K, digest);
+
+            byte[] T = new byte[digest.GetDigestSize()];
+            digest.DoFinal(T, 0);
+            return T;
+        }
+
+        /// <summary>
+        /// Interior node r of the tree: H(I || u32str(r) || u16str(D_INTR) || T[2r] || T[2r+1])
+        /// (RFC 8554 sec. 5.3, Algorithm 7).
+        /// </summary>
+        /// <param name="digest">The tree digest, from <see cref="LmsUtilities.GetDigest(LMSigParameters)"/>; reset
+        /// on return, so one digest serves a whole walk.</param>
+        internal static byte[] ComputeNode(IDigest digest, byte[] I, int r, byte[] left, byte[] right)
+        {
+            LmsUtilities.ByteArray(I, digest);
+            LmsUtilities.U32Str(r, digest);
+            LmsUtilities.U16Str(D_INTR, digest);
+            LmsUtilities.ByteArray(left, digest);
+            LmsUtilities.ByteArray(right, digest);
+
+            byte[] T = new byte[digest.GetDigestSize()];
+            digest.DoFinal(T, 0);
+            return T;
+        }
 
         /// <summary>
         /// Take Q, the message hash, from a context that the message has been absorbed into, in the buffer shape the
