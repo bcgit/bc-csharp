@@ -86,10 +86,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
-        public LmsContext GenerateLmsContext(byte[] sigEnc)
-        {
-            HssSignature signature = HssSignature.GetInstance(sigEnc, Level);
+        public LmsContext GenerateLmsContext(byte[] sigEnc) =>
+            GenerateLmsContext(HssSignature.GetInstance(sigEnc, Level));
 
+        internal LmsContext GenerateLmsContext(HssSignature signature)
+        {
             LmsSignedPubKey[] signedPubKeys = signature.SignedPubKeys;
             LmsPublicKeyParameters key = LmsPublicKey;
             if (signedPubKeys.Length != 0)

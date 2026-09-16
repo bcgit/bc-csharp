@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(fixedSource) };
             SecureRandom rand = new FixedSecureRandom(source);
 
-            HssPrivateKeyParameters generatedPrivateKey = Hss.GenerateHssKeyPair(
+            HssPrivateKeyParameters generatedPrivateKey = LmsEngine.GenerateHssKeyPair(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
@@ -38,7 +38,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 }, rand)
             );
 
-            HssSignature sigFromGeneratedPrivateKey = Hss.GenerateSignature(generatedPrivateKey, Hex.Decode("ABCDEF"));
+            HssSignature sigFromGeneratedPrivateKey = LmsTestUtilities.GenerateHssSignature(generatedPrivateKey,
+                Hex.Decode("ABCDEF"));
 
             byte[] keyPairEnc = generatedPrivateKey.GetEncoded();
 
@@ -57,8 +58,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             //
             // Check the reconstructed key can verify a signature.
             //
-            Assert.True(Hss.VerifySignature(reconstructedPrivateKey.GetPublicKey(), sigFromGeneratedPrivateKey,
-                Hex.Decode("ABCDEF")));
+            Assert.True(LmsTestUtilities.VerifyHssSignature(reconstructedPrivateKey.GetPublicKey(),
+                sigFromGeneratedPrivateKey, Hex.Decode("ABCDEF")));
         }
 
         /**
@@ -103,8 +104,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(generated.GetIndex(), decoded.GetIndex());
             Assert.AreEqual(generated.IndexLimit, decoded.IndexLimit);
 
-            HssSignature signature = Hss.GenerateSignature(decoded, Hex.Decode("ABCDEF"));
-            Assert.True(Hss.VerifySignature(generated.GetPublicKey(), signature, Hex.Decode("ABCDEF")));
+            HssSignature signature = LmsTestUtilities.GenerateHssSignature(decoded, Hex.Decode("ABCDEF"));
+            Assert.True(LmsTestUtilities.VerifyHssSignature(generated.GetPublicKey(), signature, Hex.Decode("ABCDEF")));
         }
 
         /**
@@ -125,8 +126,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             Assert.True(decoded.Equals(generated));
 
-            HssSignature signature = Hss.GenerateSignature(decoded, Hex.Decode("ABCDEF"));
-            Assert.True(Hss.VerifySignature(generated.GetPublicKey(), signature, Hex.Decode("ABCDEF")));
+            HssSignature signature = LmsTestUtilities.GenerateHssSignature(decoded, Hex.Decode("ABCDEF"));
+            Assert.True(LmsTestUtilities.VerifyHssSignature(generated.GetPublicKey(), signature, Hex.Decode("ABCDEF")));
         }
 
         /**
@@ -166,8 +167,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             // the genuine encoding still decodes and signs verifiably
             HssPrivateKeyParameters decoded = HssPrivateKeyParameters.GetInstance(enc);
-            HssSignature signature = Hss.GenerateSignature(decoded, Hex.Decode("ABCDEF"));
-            Assert.True(Hss.VerifySignature(key.GetPublicKey(), signature, Hex.Decode("ABCDEF")));
+            HssSignature signature = LmsTestUtilities.GenerateHssSignature(decoded, Hex.Decode("ABCDEF"));
+            Assert.True(LmsTestUtilities.VerifyHssSignature(key.GetPublicKey(), signature, Hex.Decode("ABCDEF")));
         }
 
         /**
@@ -218,7 +219,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 lmsParameters[t] = new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4);
             }
 
-            return Hss.GenerateHssKeyPair(new HssKeyGenerationParameters(lmsParameters, new SecureRandom()));
+            return LmsEngine.GenerateHssKeyPair(new HssKeyGenerationParameters(lmsParameters, new SecureRandom()));
         }
 
         /**
@@ -407,7 +408,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(fixedSource) };
             SecureRandom rand = new FixedSecureRandom(source);
 
-            HssPrivateKeyParameters keyPair = Hss.GenerateHssKeyPair(
+            HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
@@ -438,7 +439,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 FixedSecureRandom.Source[] source1 = { new FixedSecureRandom.Source(fixedSource) };
                 SecureRandom rand1 = new FixedSecureRandom(source1);
 
-                HssPrivateKeyParameters regenKeyPair = Hss.GenerateHssKeyPair(
+                HssPrivateKeyParameters regenKeyPair = LmsEngine.GenerateHssKeyPair(
                     new HssKeyGenerationParameters(new LmsParameters[]
                     {
                         new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
@@ -483,7 +484,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 // Use a real secure random this time.
                 SecureRandom rand1 = new SecureRandom();
 
-                HssPrivateKeyParameters differentKey = Hss.GenerateHssKeyPair(
+                HssPrivateKeyParameters differentKey = LmsEngine.GenerateHssKeyPair(
                     new HssKeyGenerationParameters(new LmsParameters[]
                     {
                         new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
@@ -606,7 +607,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                     LmsParameters[] lmsParamsArray = new LmsParameters[lmsParams.Count];
                     lmsParams.CopyTo(lmsParamsArray, 0);
-                    HssPrivateKeyParameters keyPair = Hss.GenerateHssKeyPair(
+                    HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
                         new HssKeyGenerationParameters(
                             lmsParamsArray, fixRnd)
                     );
@@ -625,7 +626,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     //
                     // Generate a signature using the keypair we generated.
                     //
-                    HssSignature sig = Hss.GenerateSignature(keyPair, message);
+                    HssSignature sig = LmsTestUtilities.GenerateHssSignature(keyPair, message);
 
                     HssSignature signatureFromVector = null;
                     if (!Arrays.AreEqual(sig.GetEncoded(), encodedSigFromVector))
@@ -638,13 +639,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     Assert.True(Arrays.AreEqual(sig.GetEncoded(), encodedSigFromVector));
 
                     // Check we can verify our generated signature with the vectors sourced public key.
-                    Assert.True(Hss.VerifySignature(vectorSourcedPubKey, sig, message));
+                    Assert.True(LmsTestUtilities.VerifyHssSignature(vectorSourcedPubKey, sig, message));
 
                     // Deserialize the signature from the vector.
                     signatureFromVector = HssSignature.GetInstance(encodedSigFromVector, d);
 
                     // Can we verify signature from vector with public key from vector.
-                    Assert.True(Hss.VerifySignature(vectorSourcedPubKey, signatureFromVector, message));
+                    Assert.True(LmsTestUtilities.VerifyHssSignature(vectorSourcedPubKey, signatureFromVector, message));
 
                     //
                     // Check our generated signature and the one deserialized from the vector
@@ -732,7 +733,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                 LmsParameters[] lmsParamsArray = new LmsParameters[lmsParams.Count];
                 lmsParams.CopyTo(lmsParamsArray, 0);
-                HssPrivateKeyParameters keyPair = Hss.GenerateHssKeyPair(
+                HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
                     new HssKeyGenerationParameters(lmsParamsArray, fixRnd)
                 );
 
@@ -763,7 +764,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     {
                         try
                         {
-                            Hss.IncrementIndex(pair);
+                            pair.IncrementIndex();
                             Assert.Fail("shard should be exhausted.");
                         }
                         catch (Exception ex)
@@ -779,17 +780,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                     if (i % 5 == 0)
                     {
-                        HssSignature sigCalculated = Hss.GenerateSignature(pair, message);
+                        HssSignature sigCalculated = LmsTestUtilities.GenerateHssSignature(pair, message);
                         Assert.True(Arrays.AreEqual(sigCalculated.GetEncoded(), sigVectors[c]));
 
-                        Assert.True(Hss.VerifySignature(pubKeyFromVector, sigCalculated, message));
-                        Assert.True(Hss.VerifySignature(pubKeyGenerated, sigCalculated, message));
+                        Assert.True(LmsTestUtilities.VerifyHssSignature(pubKeyFromVector, sigCalculated, message));
+                        Assert.True(LmsTestUtilities.VerifyHssSignature(pubKeyGenerated, sigCalculated, message));
 
                         HssSignature sigFromVector = HssSignature.GetInstance(sigVectors[c],
                             pubKeyFromVector.Level);
 
-                        Assert.True(Hss.VerifySignature(pubKeyFromVector, sigFromVector, message));
-                        Assert.True(Hss.VerifySignature(pubKeyGenerated, sigFromVector, message));
+                        Assert.True(LmsTestUtilities.VerifyHssSignature(pubKeyFromVector, sigFromVector, message));
+                        Assert.True(LmsTestUtilities.VerifyHssSignature(pubKeyGenerated, sigFromVector, message));
 
 
                         Assert.True(sigCalculated.Equals(sigFromVector));
@@ -799,7 +800,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     }
                     else
                     {
-                        Hss.IncrementIndex(pair);
+                        pair.IncrementIndex();
                     }
                 }
             }
@@ -814,7 +815,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void Remaining()
         {
-            HssPrivateKeyParameters keyPair = Hss.GenerateHssKeyPair(
+            HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2),
@@ -829,11 +830,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             //
             Assert.True(1024 == keyPair.GetUsagesRemaining());
 
-            Hss.IncrementIndex(keyPair);
-            Hss.IncrementIndex(keyPair);
-            Hss.IncrementIndex(keyPair);
-            Hss.IncrementIndex(keyPair);
-            Hss.IncrementIndex(keyPair);
+            keyPair.IncrementIndex();
+            keyPair.IncrementIndex();
+            keyPair.IncrementIndex();
+            keyPair.IncrementIndex();
+            keyPair.IncrementIndex();
 
             Assert.True(5 == keyPair.GetIndex()); // Next key is at index 5!
 
@@ -853,13 +854,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             //
             for (int t = 0; t < 17; t++)
             {
-                Hss.IncrementIndex(keyPair);
+                keyPair.IncrementIndex();
             }
 
             // We have used 32 keys.
             Assert.True(1024 - 32 == keyPair.GetUsagesRemaining());
 
-            Hss.GenerateSignature(keyPair, Encoding.ASCII.GetBytes("Foo"));
+            LmsTestUtilities.GenerateHssSignature(keyPair, Encoding.ASCII.GetBytes("Foo"));
 
             //
             // This should trigger the generation of a new key.
@@ -871,7 +872,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void Sharding()
         {
-            HssPrivateKeyParameters keyPair = Hss.GenerateHssKeyPair(
+            HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2),
@@ -883,7 +884,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(1024 == keyPair.IndexLimit);
             Assert.True(0 == keyPair.GetIndex());
             Assert.False(keyPair.IsShard());
-            Hss.IncrementIndex(keyPair);
+            keyPair.IncrementIndex();
 
 
             //
@@ -901,22 +902,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             int t = 47;
             while (--t >= 0)
             {
-                Hss.IncrementIndex(shard);
+                shard.IncrementIndex();
             }
 
-            HssSignature sig = Hss.GenerateSignature(shard, Encoding.ASCII.GetBytes("Cats"));
+            HssSignature sig = LmsTestUtilities.GenerateHssSignature(shard, Encoding.ASCII.GetBytes("Cats"));
 
             //
             // Test it validates and nothing has gone wrong with the public keys.
             //
-            Assert.True(Hss.VerifySignature(keyPair.GetPublicKey(), sig, Encoding.ASCII.GetBytes("Cats")));
-            Assert.True(Hss.VerifySignature(shard.GetPublicKey(), sig, Encoding.ASCII.GetBytes("Cats")));
+            Assert.True(LmsTestUtilities.VerifyHssSignature(keyPair.GetPublicKey(), sig,
+                Encoding.ASCII.GetBytes("Cats")));
+            Assert.True(LmsTestUtilities.VerifyHssSignature(shard.GetPublicKey(), sig,
+                Encoding.ASCII.GetBytes("Cats")));
 
             // Signing again should Assert.Fail.
 
             try
             {
-                Hss.GenerateSignature(shard, Encoding.ASCII.GetBytes("Cats"));
+                LmsTestUtilities.GenerateHssSignature(shard, Encoding.ASCII.GetBytes("Cats"));
                 Assert.Fail();
             }
             catch (Exception ex)
@@ -925,7 +928,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
 
             // Should work without throwing.
-            Hss.GenerateSignature(keyPair, Encoding.ASCII.GetBytes("Cats"));
+            LmsTestUtilities.GenerateHssSignature(keyPair, Encoding.ASCII.GetBytes("Cats"));
         }
 
         /**
@@ -960,7 +963,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         {
             HSSSecureRandom rand = new HSSSecureRandom();
 
-            HssPrivateKeyParameters keyPair = Hss.GenerateHssKeyPair(
+            HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2),
@@ -1067,7 +1070,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     else
                     {
                         // Skip some keys.
-                        Hss.IncrementIndex(keyPair);
+                        keyPair.IncrementIndex();
                     }
 
                     ctr++;
@@ -1377,7 +1380,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     levels[i] = lms;
                 }
 
-                HssPrivateKeyParameters hss = Hss.GenerateHssKeyPair(
+                HssPrivateKeyParameters hss = LmsEngine.GenerateHssKeyPair(
                     new HssKeyGenerationParameters(levels, new SecureRandom()));
                 HssPublicKeyParameters pub = hss.GetPublicKey();
 
@@ -1390,7 +1393,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 Assert.AreEqual((uint)(level - 1), Pack.BE_To_UInt32(sig, 0), "Nspk at level " + level);
 
                 // verifies through the static API and through the signer
-                Assert.True(Hss.VerifySignature(pub, HssSignature.GetInstance(sig, level), msg), "level " + level);
+                Assert.True(LmsTestUtilities.VerifyHssSignature(pub, HssSignature.GetInstance(sig, level), msg),
+                    "level " + level);
 
                 HssSigner verifier = new HssSigner();
                 verifier.Init(false, pub);
@@ -1432,7 +1436,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(4, new HssPrivateKeyParameters(lms, 4, twoToH).GetKeys()[0].GetIndex());
 
             // two levels: the root is post-incremented past the child it signed, the bottom reads its q directly
-            HssPrivateKeyParameters hss = Hss.GenerateHssKeyPair(new HssKeyGenerationParameters(
+            HssPrivateKeyParameters hss = LmsEngine.GenerateHssKeyPair(new HssKeyGenerationParameters(
                 new LmsParameters[]
                 {
                     new LmsParameters(sigParams, otsParams),
@@ -1440,7 +1444,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 }, new SecureRandom()));
             for (int i = 0; i < twoToH + 1; ++i)
             {
-                Hss.GenerateSignature(hss, msg);
+                LmsTestUtilities.GenerateHssSignature(hss, msg);
             }
             var keys = hss.GetKeys();
             var sig = hss.GetSig();
@@ -1456,7 +1460,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(twoToH + 1, new HssPrivateKeyParameters(2, keys, sig, twoToH + 1, limit).GetIndex());
             HssPrivateKeyParameters forward = new HssPrivateKeyParameters(2, keys, sig, twoToH + 8, limit);
             Assert.AreEqual(8, forward.GetKeys()[1].GetIndex());
-            Assert.True(Hss.VerifySignature(hss.GetPublicKey(), Hss.GenerateSignature(forward, msg), msg));
+            Assert.True(LmsTestUtilities.VerifyHssSignature(hss.GetPublicKey(),
+                LmsTestUtilities.GenerateHssSignature(forward, msg), msg));
         }
 
         /*
@@ -1472,7 +1477,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
             LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w2;
 
-            HssPrivateKeyParameters hss = Hss.GenerateHssKeyPair(new HssKeyGenerationParameters(
+            HssPrivateKeyParameters hss = LmsEngine.GenerateHssKeyPair(new HssKeyGenerationParameters(
                 new LmsParameters[] { new LmsParameters(sigParams, otsParams) }, new SecureRandom()));
             HssPublicKeyParameters hssPub = hss.GetPublicKey();
             byte[] msg = Hex.Decode("48656c6c6f");
@@ -1507,8 +1512,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             HssPrivateKeyParameters shard = hss.ExtractKeyShard(3);
             Assert.AreEqual(6, shard.GetIndex());
             Assert.AreEqual(9, hss.GetIndex());
-            Assert.AreEqual(6, Hss.GenerateSignature(shard, msg).Signature.Q);
-            Assert.AreEqual(9, Hss.GenerateSignature(hss, msg).Signature.Q);
+            Assert.AreEqual(6, LmsTestUtilities.GenerateHssSignature(shard, msg).Signature.Q);
+            Assert.AreEqual(9, LmsTestUtilities.GenerateHssSignature(hss, msg).Signature.Q);
         }
 
         /*
@@ -1548,12 +1553,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreSame(bottom, hss.GetKey(1), "the bottom key was regenerated, so its usage limit is gone");
 
             // the one signature the bottom key can give
-            HssSignature first = Hss.GenerateSignature(hss, msg);
-            Assert.True(Hss.VerifySignature(hss.GetPublicKey(), first, msg));
+            HssSignature first = LmsTestUtilities.GenerateHssSignature(hss, msg);
+            Assert.True(LmsTestUtilities.VerifyHssSignature(hss.GetPublicKey(), first, msg));
             Assert.AreEqual(1, hss.GetIndex());
 
             // the next passes the range test but is refused by the bottom key's own claim
-            Assert.Throws<ExhaustedPrivateKeyException>(() => Hss.GenerateSignature(hss, msg));
+            Assert.Throws<ExhaustedPrivateKeyException>(() => LmsTestUtilities.GenerateHssSignature(hss, msg));
             Assert.AreEqual(1, hss.GetIndex(), "a refused claim moved the HSS index");
             Assert.AreEqual(1, hss.GetKey(1).GetIndex());
 
@@ -1562,7 +1567,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(1, decoded.GetIndex());
 
             // contention sweep: signatures in flight, encodings taken and decoded throughout
-            HssPrivateKeyParameters sweep = Hss.GenerateHssKeyPair(new HssKeyGenerationParameters(
+            HssPrivateKeyParameters sweep = LmsEngine.GenerateHssKeyPair(new HssKeyGenerationParameters(
                 new LmsParameters[]
                 {
                     new LmsParameters(sigParams, otsParams),
@@ -1623,7 +1628,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             var leavesUsed = new HashSet<string>();
             foreach (HssSignature signature in signatures)
             {
-                Assert.True(Hss.VerifySignature(sweepPub, signature, msg));
+                Assert.True(LmsTestUtilities.VerifyHssSignature(sweepPub, signature, msg));
 
                 LmsPublicKeyParameters bottomPub = signature.GetSignedPubKeys()[0].PublicKey;
                 Assert.True(leavesUsed.Add(Hex.ToHexString(bottomPub.GetI()) + ":" + signature.Signature.Q),

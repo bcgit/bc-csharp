@@ -273,7 +273,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 throw new IOException($"master secret length is less than {sigParameter.M}: {l}");
             }
 
-            // TODO[lms] Guard against stream limit if available, or at least incremental read fully
+            // TODO[lms] Bound l from above as well. ReadBytesFully reads incrementally and refuses a count past
+            // a known stream length, so a short stream no longer costs the declared length up front; what is
+            // left is a stream with no length that keeps delivering. SP 800-208 sec. 6.1 makes SEED n bytes, so
+            // anything beyond m is interchange slack - a limit with a Properties.LmsMaxSeedLength override, as
+            // the other size caps have, would close it.
             byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
 
             return new LmsPrivateKeyParameters(sigParameter, otsParameter, q, I, maxQ, masterSecret);
@@ -295,7 +299,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             byte[][] cachedT = new byte[cacheCount + 1][];
             for (int r = 1; r <= cacheCount; r++)
             {
-                // TODO[lms] Guard against stream limit if available, or at least incremental read fully
                 cachedT[r] = BinaryReaders.ReadBytesFully(binaryReader, m);
             }
 

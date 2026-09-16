@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 
+using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.IO;
@@ -90,6 +91,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             internal bool HasUnconstructedLevel() =>
                 Array.IndexOf(m_keys, null) >= 0 || Array.IndexOf(m_sig, null) >= 0;
+
+            /// <summary>The component keys, each as a length-prefixed encoding, followed by the chaining
+            /// signatures the same way.</summary>
+            internal void EncodeTo(Composer composer)
+            {
+                foreach (LmsPrivateKeyParameters key in m_keys)
+                {
+                    composer.Bytes(key);
+                }
+
+                foreach (LmsSignature s in m_sig)
+                {
+                    composer.Bytes(s);
+                }
+            }
         }
 
         private readonly int m_level;
@@ -323,6 +339,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <summary>
+        /// Advance the key past its current index without signing with it, replacing exhausted lower trees as a
+        /// signature would. Used by the tests to walk a key through the RFC 8554 vectors.
+        /// </summary>
+        internal void IncrementIndex()
+        {
+            // The HSS index and the bottom key's q are two records of one position, claimed together (as in
+            // GenerateLmsContext)
+            lock (this)
+            {
+                RangeTestKeys();
+                IncIndex();
+                CurrentHierarchy.GetKey(m_level - 1).IncIndex();
+            }
+        }
+
         private static HssPrivateKeyParameters MakeCopy(HssPrivateKeyParameters privateKeyParameters) =>
             Parse(privateKeyParameters.GetEncoded());
 
@@ -540,6 +572,50 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         /// <summary>
+        /// Check the key has an index left to sign with, and replace every lower tree that has used all of its
+        /// one-time keys with the next one its parent derives (RFC 8554 sec. 6.1).
+        /// </summary>
+        // TODO[api] Make private once Hss.RangeTestKeys goes
+        internal void RangeTestKeys()
+        {
+            lock (this)
+            {
+                if (m_index >= m_indexLimit)
+                {
+                    throw new ExhaustedPrivateKeyException(
+                        "hss private key" + (m_isShard ? " shard" : "") + " is exhausted");
+                }
+
+                int L = m_level;
+                int d = L;
+                Hierarchy hierarchy = CurrentHierarchy;
+                while (true)
+                {
+                    LmsPrivateKeyParameters key = hierarchy.GetKey(d - 1);
+
+                    // The whole tree, not the key's own maxQ: a component key given a narrower limit keeps it, and
+                    // replacing the level would hand back a full tree in its place
+                    // (IndexAndComponentIndexClaimedTogether). >= rather than ==: an index above 2^h steps straight
+                    // over an equality test (bc-java github #2414). Decode now rejects such a q, so this is belt
+                    // and braces.
+                    if (key.GetIndex() < 1 << key.SigParameters.H)
+                        break;
+
+                    if (--d == 0)
+                    {
+                        throw new ExhaustedPrivateKeyException("hss private key" + (m_isShard ? " shard" : "") +
+                            " is exhausted the maximum limit for this HSS private key");
+                    }
+                }
+
+                if (d < L)
+                {
+                    ReplaceExhaustedKeys(d);
+                }
+            }
+        }
+
+        /// <summary>
         /// Replace the exhausted trees, at levels <paramref name="d"/> and below, with fresh ones. Each is derived
         /// from the current one-time key of the level above it, and has its public key signed by that key.
         /// </summary>
@@ -576,8 +652,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <summary>An LMS private key positioned at one-time key <paramref name="q"/> (RFC 8554 sec. 5.2,
         /// Algorithm 5), for the levels this key rebuilds.</summary>
         private static LmsPrivateKeyParameters GenerateKey(LmsParameters lmsParameters, int q, byte[] I,
-            byte[] masterSecret) =>
-            new LmsPrivateKeyParameters(lmsParameters, q, I, 1 << lmsParameters.LMSigParameters.H, masterSecret);
+            byte[] masterSecret)
+        {
+            return new LmsPrivateKeyParameters(lmsParameters, q, I, 1 << lmsParameters.LMSigParameters.H,
+                masterSecret);
+        }
 
         /// <summary>
         /// The chaining signature of an HSS hierarchy: a tree signs the public key of the tree below it, consuming
@@ -655,17 +734,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     .U64Str(m_indexLimit)
                     .Boolean(m_isShard); // Depth
 
-                Hierarchy hierarchy = CurrentHierarchy;
-
-                foreach (LmsPrivateKeyParameters key in hierarchy.Keys)
-                {
-                    composer.Bytes(key);
-                }
-
-                foreach (LmsSignature s in hierarchy.Sig)
-                {
-                    composer.Bytes(s);
-                }
+                CurrentHierarchy.EncodeTo(composer);
 
                 return composer.Build();
             }
@@ -706,7 +775,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 CheckDisposed();
 
-                Hss.RangeTestKeys(this);
+                RangeTestKeys();
 
                 // After the range test, which replaces the levels it finds exhausted
                 Hierarchy hierarchy = CurrentHierarchy;

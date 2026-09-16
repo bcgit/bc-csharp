@@ -8,8 +8,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     {
         // TODO[api] Remove, it only forwards to LmsEngine.GenerateKey
         public static LmsPrivateKeyParameters GenerateKeys(LMSigParameters parameterSet,
-            LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] masterSecret) =>
-            LmsEngine.GenerateKey(new LmsParameters(parameterSet, lmOtsParameters), q, I, masterSecret);
+            LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] masterSecret)
+        {
+            return LmsEngine.GenerateKey(new LmsParameters(parameterSet, lmOtsParameters), q, I, masterSecret);
+        }
 
         // TODO[api] Remove. Nothing in the library signs this way, and bc-java has no such method since its
         // promotion; LmsEngine carries a copy for the tests.

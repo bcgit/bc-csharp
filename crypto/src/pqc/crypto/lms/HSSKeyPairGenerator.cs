@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            HssPrivateKeyParameters privKey = Hss.GenerateHssKeyPair(m_parameters);
+            HssPrivateKeyParameters privKey = LmsEngine.GenerateHssKeyPair(m_parameters);
 
             return new AsymmetricCipherKeyPair(privKey.GetPublicKey(), privKey);
         }

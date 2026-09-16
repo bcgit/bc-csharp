@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -65,8 +66,55 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// checked by the constructor.
         /// </remarks>
         internal static LmsPrivateKeyParameters GenerateKey(LmsParameters lmsParameters, int q, byte[] I,
-            byte[] masterSecret) =>
-            new LmsPrivateKeyParameters(lmsParameters, q, I, 1 << lmsParameters.LMSigParameters.H, masterSecret);
+            byte[] masterSecret)
+        {
+            return new LmsPrivateKeyParameters(lmsParameters, q, I, 1 << lmsParameters.LMSigParameters.H,
+                masterSecret);
+        }
+
+        /// <summary>An HSS private key at index zero, over the parameter sets <paramref name="parameters"/> names
+        /// for each level (RFC 8554 sec. 6.1).</summary>
+        internal static HssPrivateKeyParameters GenerateHssKeyPair(HssKeyGenerationParameters parameters)
+        {
+            //
+            // LmsPrivateKey can derive and hold the public key so we just use an array of those.
+            //
+            LmsPrivateKeyParameters[] keys = new LmsPrivateKeyParameters[parameters.Depth];
+            LmsSignature[] sig = new LmsSignature[parameters.Depth - 1];
+
+            var rootLms = parameters.GetLmsParameters(0);
+
+            byte[] masterSecret = SecureRandom.GetNextBytes(parameters.Random, rootLms.LMSigParameters.M);
+            byte[] I = SecureRandom.GetNextBytes(parameters.Random, 16);
+
+            //
+            // Set the HSS key up with a valid root LMSPrivateKeyParameters and placeholders for the remaining LMS keys.
+            // The placeholders pass enough information to allow the HSSPrivateKeyParameters to be properly reset to an
+            // index of zero. Rather than repeat the same reset-to-index logic in this static method.
+            //
+
+            keys[0] = GenerateKey(rootLms, 0, I, masterSecret);
+
+            long hssKeyMaxIndex = 1L << rootLms.LMSigParameters.H;
+
+            for (int t = 1; t < keys.Length; t++)
+            {
+                var lms = parameters.GetLmsParameters(t);
+
+                keys[t] = new LmsPrivateKeyParameters(lms, 1 << lms.LMSigParameters.H);
+
+                hssKeyMaxIndex <<= lms.LMSigParameters.H;
+            }
+
+            // if this has happened we're trying to generate a really large key
+            // we'll use MAX_VALUE so that it's at least usable until someone upgrades the structure.
+            if (hssKeyMaxIndex == 0)
+            {
+                hssKeyMaxIndex = long.MaxValue;
+            }
+
+            return new HssPrivateKeyParameters(parameters.Depth, keys, sig, 0, hssKeyMaxIndex);
+        }
 
         /// <summary>
         /// Sign a message in one step with the current one-time key of <paramref name="privateKey"/>.
@@ -111,12 +159,47 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             try
             {
-                return new HssSignature(level - 1, context.SignedPubKeys, GenerateSign(context)).GetEncoded();
+                return CreateHssSignature(level, context).GetEncoded();
             }
             catch (IOException e)
             {
                 throw new InvalidOperationException("unable to encode signature", e);
             }
+        }
+
+        /// <summary>
+        /// Sign a message in one step with the current one-time key of <paramref name="privateKey"/>, which the
+        /// signature advances past.
+        /// </summary>
+        /// <remarks>
+        /// For tests, as <see cref="GenerateSign(LmsPrivateKeyParameters, byte[])"/> is.
+        /// </remarks>
+        internal static HssSignature GenerateHssSignature(HssPrivateKeyParameters privateKey, byte[] message)
+        {
+            // The key claims its own index and the bottom key's one-time index under the one monitor; claiming
+            // here as well would reopen the window between the two.
+            LmsContext context = privateKey.GenerateLmsContext();
+
+            context.BlockUpdate(message, 0, message.Length);
+
+            return CreateHssSignature(privateKey.Level, context);
+        }
+
+        private static HssSignature CreateHssSignature(int level, LmsContext context) =>
+            new HssSignature(level - 1, context.SignedPubKeys, GenerateSign(context));
+
+        /// <summary>
+        /// Verify a signature over a message in one step, the counterpart of
+        /// <see cref="GenerateHssSignature(HssPrivateKeyParameters, byte[])"/> and here for the same reason.
+        /// </summary>
+        internal static bool VerifyHssSignature(HssPublicKeyParameters publicKey, HssSignature signature,
+            byte[] message)
+        {
+            LmsContext context = publicKey.GenerateLmsContext(signature);
+
+            context.BlockUpdate(message, 0, message.Length);
+
+            return VerifyHssSignature(publicKey, context);
         }
 
         /// <summary>

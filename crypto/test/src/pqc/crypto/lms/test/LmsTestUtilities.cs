@@ -10,8 +10,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         /// <remarks>Here for the same reason as the signing helpers below: the library takes the pair as an
         /// <see cref="LmsParameters"/>, and the two-parameter-set form is on its way out of the public API.</remarks>
         public static LmsPrivateKeyParameters GenerateKey(LMSigParameters parameterSet,
-            LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] masterSecret) =>
-            LmsEngine.GenerateKey(new LmsParameters(parameterSet, lmOtsParameters), q, I, masterSecret);
+            LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] masterSecret)
+        {
+            return LmsEngine.GenerateKey(new LmsParameters(parameterSet, lmOtsParameters), q, I, masterSecret);
+        }
 
         /// <summary>
         /// Sign a message in one step, the way the RFC 8554 vectors are stated.
@@ -24,10 +26,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         public static LmsSignature GenerateSign(LmsPrivateKeyParameters privateKey, byte[] message) =>
             LmsEngine.GenerateSign(privateKey, message);
 
+        /// <summary>Sign a message in one step with an HSS key, the hierarchy's counterpart of
+        /// <see cref="GenerateSign(LmsPrivateKeyParameters, byte[])"/> and here for the same reason.</summary>
+        public static HssSignature GenerateHssSignature(HssPrivateKeyParameters privateKey, byte[] message) =>
+            LmsEngine.GenerateHssSignature(privateKey, message);
+
         /// <summary>Verify a signature over a message in one step, the counterpart of
         /// <see cref="GenerateSign(LmsPrivateKeyParameters, byte[])"/> and here for the same reason.</summary>
         public static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S, byte[] message) =>
             LmsEngine.VerifySignature(publicKey, S, message);
+
+        /// <summary>Verify an HSS signature over a message in one step, the counterpart of
+        /// <see cref="GenerateHssSignature(HssPrivateKeyParameters, byte[])"/> and here for the same reason.</summary>
+        public static bool VerifyHssSignature(HssPublicKeyParameters publicKey, HssSignature signature,
+            byte[] message)
+        {
+            return LmsEngine.VerifyHssSignature(publicKey, signature, message);
+        }
 
         public static byte[] ExtractPrefixedBytes(string vectorFromRFC)
         {
