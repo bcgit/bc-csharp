@@ -26,12 +26,30 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static byte[] ComputeLeaf(IDigest digest, LMOtsParameters otsParameters, byte[] I, int r, int q,
             byte[] masterSecret)
         {
-            byte[] K = LMOts.LmsOtsGeneratePublicKey(otsParameters, I, q, masterSecret);
+            return ComputeLeaf(digest, new byte[otsParameters.N], otsParameters, I, r, q, masterSecret);
+        }
+
+        /// <summary>
+        /// <see cref="ComputeLeaf(IDigest, LMOtsParameters, byte[], int, int, byte[])"/> with the one-time public
+        /// key hash derived into a caller's buffer, so a walk over many leaves reuses one.
+        /// </summary>
+        /// <param name="digest">The tree digest, from <see cref="LmsUtilities.GetDigest(LMSigParameters)"/>; reset
+        /// on return, so one digest serves a whole walk.</param>
+        /// <param name="K">Scratch for the one-time public key hash, at least n bytes; overwritten.</param>
+        /// <param name="otsParameters">The LM-OTS parameter set of the tree.</param>
+        /// <param name="I">The tree identifier.</param>
+        /// <param name="r">The node number of the leaf, 2^h + <paramref name="q"/>.</param>
+        /// <param name="q">The one-time key the leaf holds.</param>
+        /// <param name="masterSecret">The seed the tree's one-time keys are derived from.</param>
+        internal static byte[] ComputeLeaf(IDigest digest, byte[] K, LMOtsParameters otsParameters, byte[] I, int r,
+            int q, byte[] masterSecret)
+        {
+            LMOts.LmsOtsGeneratePublicKey(otsParameters, I, q, masterSecret, K);
 
             LmsUtilities.ByteArray(I, digest);
             LmsUtilities.U32Str(r, digest);
             LmsUtilities.U16Str(D_LEAF, digest);
-            LmsUtilities.ByteArray(K, digest);
+            digest.BlockUpdate(K, 0, otsParameters.N);
 
             byte[] T = new byte[digest.GetDigestSize()];
             digest.DoFinal(T, 0);

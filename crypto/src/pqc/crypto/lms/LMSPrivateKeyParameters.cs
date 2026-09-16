@@ -50,7 +50,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // or wiped.
         private readonly byte[][] tCache;
         private readonly int maxCacheR;
-        private readonly Func<int, byte[]> m_calcT;
         private RetainedPath m_retained;
 
         // The authentication path of one-time key Q with the ancestors of its leaf, indexed by level from the leaf
@@ -112,7 +111,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = Arrays.Clone(masterSecret);
             this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (lmsParameter.H + 1));
             this.tCache = new byte[maxCacheR][];
-            this.m_calcT = CalcT;
         }
 
         /**
@@ -132,7 +130,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = new byte[0];
             this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (lmsParameters.LMSigParameters.H + 1));
             this.tCache = new byte[maxCacheR][];
-            this.m_calcT = CalcT;
             this.m_isPlaceholder = true;
         }
 
@@ -154,7 +151,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.masterSecret = parent.masterSecret;
             this.maxCacheR = maxCacheR;
             this.tCache = parent.tCache;
-            this.m_calcT = CalcT;
             this.m_retained = parent.m_retained;
             // Inherited if the parent has it already; if a concurrent GetPublicKey is still deriving it, this key
             // simply derives it in turn, which costs nothing beyond the shared node cache.
@@ -616,47 +612,64 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <summary>Node r of the tree, from the cache if it is there, otherwise computed (and cached if it is
+        /// within the pinned top).</summary>
         internal byte[] FindT(int r)
         {
-            if (r >= maxCacheR)
-                return CalcT(r);
+            if (r < maxCacheR)
+            {
+                byte[] cached = Volatile.Read(ref tCache[r]);
+                if (cached != null)
+                    return cached;
+            }
 
-            // Racing computations of one node produce identical arrays; the first to publish wins.
-            return Objects.EnsureSingletonInitialized(ref tCache[r], r, m_calcT);
+            return FindT(r, LmsUtilities.GetDigest(SigParameters), new byte[OtsParameters.N]);
         }
 
-        // TODO[lms] Every leaf here allocates a digest from LmsUtilities.GetDigest and a K from
-        // LMOts.LmsOtsGeneratePublicKey, and a path rebuild below the cached top walks 2^(h - 5) of them. Both are
-        // consumed before this returns - the digest is finalized into T, K is hashed into it - so a rebuild could
-        // carry one digest and one K buffer and reuse them leaf by leaf, given a placed-output overload of the
-        // internal LmsOtsGeneratePublicKey writing K to a caller's buffer instead of returning a fresh array (a
-        // Span overload under the usual guard). Only that overload, which yields a bare K: the one returning an
-        // LMOtsPublicKey gains nothing, since the key owns its K, and would only pay if LMOtsPublicKey held its
-        // fields packed in one buffer - a change reaching GetK, GetEncoded and equality, for another day.
-        // The returned T is deliberately not part of this either: it may be interned in tCache or retained in a
-        // path, both of which are handed out by reference, so it has to stay owned here.
-        //
-        // Shape undecided: the two could be threaded through as parameters, or held by a small per-rebuild helper
-        // that owns them and computes a leaf, which keeps the reuse out of these signatures at the cost of a type
-        // whose lifetime has to match the rebuild. Worth settling against a measurement rather than up front.
-        //
-        // The threaded shape bc-java's promoted LMSEngine uses is in place here too: LmsEngine.ComputeLeaf and
-        // ComputeNode take a digest the caller owns and reset it on return. What is left is that this method
-        // creates one per call - the callers that could own one are FindT and this method's own recursion - and
-        // that both still allocate the node and K per call, which is the buffer half above.
-        private byte[] CalcT(int r)
+        /// <summary>
+        /// <see cref="FindT(int)"/> for a walk over many nodes, which brings the tree digest and the scratch buffer
+        /// for each leaf's one-time public key hash, so that computing a subtree of 2^k leaves allocates the nodes
+        /// and nothing else.
+        /// </summary>
+        /// <param name="r">The node number.</param>
+        /// <param name="tDigest">The tree digest, from <see cref="LmsUtilities.GetDigest(LMSigParameters)"/>; reset
+        /// on return.</param>
+        /// <param name="K">Scratch for a leaf's one-time public key hash, at least n bytes; overwritten.</param>
+        /// <remarks>
+        /// The nodes themselves are not reused: one may be interned in the cache or retained in a path, both of
+        /// which are handed out by reference, so every node computed is freshly owned.
+        /// </remarks>
+        private byte[] FindT(int r, IDigest tDigest, byte[] K)
+        {
+            if (r >= maxCacheR)
+                return CalcT(r, tDigest, K);
+
+            byte[] cached = Volatile.Read(ref tCache[r]);
+            if (cached != null)
+                return cached;
+
+            // Racing computations of one node produce identical arrays; the first to publish wins.
+            byte[] T = CalcT(r, tDigest, K);
+            return Interlocked.CompareExchange(ref tCache[r], T, null) ?? T;
+        }
+
+        private byte[] CalcT(int r, IDigest tDigest, byte[] K)
         {
             int twoToH = 1 << SigParameters.H;
 
-            var tDigest = LmsUtilities.GetDigest(SigParameters);
-
             // r is a base 1 index.
             if (r < twoToH)
-                return LmsEngine.ComputeNode(tDigest, I, r, FindT(2 * r), FindT(2 * r + 1));
+            {
+                // Both children are complete, and the digest reset, before the parent's hash begins
+                byte[] left = FindT(2 * r, tDigest, K);
+                byte[] right = FindT(2 * r + 1, tDigest, K);
+
+                return LmsEngine.ComputeNode(tDigest, I, r, left, right);
+            }
 
             CheckDisposed();
 
-            return LmsEngine.ComputeLeaf(tDigest, OtsParameters, I, r, r - twoToH, masterSecret);
+            return LmsEngine.ComputeLeaf(tDigest, K, OtsParameters, I, r, r - twoToH, masterSecret);
         }
 
         /// <summary>
@@ -730,24 +743,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 fresh = b - 1;
             }
 
+            // One tree digest and one one-time public key hash buffer serve everything computed below, from the
+            // subtrees through the fold to the root.
+            IDigest tDigest = LmsUtilities.GetDigest(SigParameters);
+            byte[] K = new byte[OtsParameters.N];
+
             // Below the divergence everything lies inside the subtree just entered: the siblings are subtrees that
             // FindT computes (caching only those within the pinned top), and the ancestors fold up from the new
             // leaf.
             for (int i = 0; i < fresh; ++i)
             {
-                path[i] = FindT((r >> i) ^ 1);
+                path[i] = FindT((r >> i) ^ 1, tDigest, K);
             }
 
             if (fresh > 0)
             {
-                anc[0] = FindT(r);
-            }
-
-            if (fresh > 1)
-            {
-                // One digest for the whole fold; advancing by a single one-time key usually leaves nothing to
-                // fold, which is why it is not taken above
-                var tDigest = LmsUtilities.GetDigest(SigParameters);
+                anc[0] = FindT(r, tDigest, K);
 
                 for (int i = 1; i < fresh; ++i)
                 {
@@ -776,8 +787,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (Volatile.Read(ref tCache[1]) == null)
             {
                 byte[] child = anc[h - 1], sibling = path[h - 1];
-
-                var tDigest = LmsUtilities.GetDigest(SigParameters);
 
                 Volatile.Write(ref tCache[1], ((r >> (h - 1)) & 1) == 0
                     ? LmsEngine.ComputeNode(tDigest, I, 1, child, sibling)

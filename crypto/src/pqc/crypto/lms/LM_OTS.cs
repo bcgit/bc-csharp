@@ -68,6 +68,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal static byte[] LmsOtsGeneratePublicKey(LMOtsParameters parameters, byte[] I, int q, byte[] masterSecret)
         {
+            byte[] K = new byte[parameters.N];
+            LmsOtsGeneratePublicKey(parameters, I, q, masterSecret, K);
+            return K;
+        }
+
+        /// <summary>
+        /// Derive the public key hash K of one-time key <paramref name="q"/> into the first n bytes of
+        /// <paramref name="K"/>, for a caller that consumes it at once and can reuse the buffer (a tree build hashes
+        /// each leaf's K into the leaf and needs it for nothing else).
+        /// </summary>
+        /// <param name="parameters">The LM-OTS parameter set.</param>
+        /// <param name="I">The tree identifier.</param>
+        /// <param name="q">The one-time key number within the tree.</param>
+        /// <param name="masterSecret">The seed the one-time keys are derived from.</param>
+        /// <param name="K">Receives K; at least n bytes.</param>
+        internal static void LmsOtsGeneratePublicKey(LMOtsParameters parameters, byte[] I, int q, byte[] masterSecret,
+            byte[] K)
+        {
             //
             // Start hash that computes the final value.
             //
@@ -103,6 +121,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 derive.DeriveSeed(i < p - 1, buf, ITER_PREV); // Private Key!
                 Pack.UInt16_To_BE(i, buf, ITER_K);
+                // The hot spot of LMS: p * (2^w - 1) one-block hashes per one-time key, and a tree build derives
+                // every one-time key. The digest layers (buffering, padding, reset) are a fair share of each step.
                 for (int j = 0; j < maxDigit; j++)
                 {
                     buf[ITER_J] = (byte)j;
@@ -112,9 +132,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 publicKeyDigest.BlockUpdate(buf, ITER_PREV, n);
             }
 
-            byte[] K = new byte[publicKeyDigest.GetDigestSize()];
             publicKeyDigest.DoFinal(K, 0);
-            return K;
         }
 
         // TODO[api] Rename
@@ -176,6 +194,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 Pack.UInt16_To_BE(i, buf, ITER_K);
                 derive.DeriveSeed(i < p - 1, buf, ITER_PREV);
                 int a = Coef(Q, i, w);
+                // Chain hashing hot spot, as in LmsOtsGeneratePublicKey; about half the steps of a full chain
                 for (int j = 0; j < a; j++)
                 {
                     buf[ITER_J] = (byte)j;
@@ -262,6 +281,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 Array.Copy(y, i * n, buf, ITER_PREV, n);
                 int a = Coef(Q, i, w);
 
+                // Chain hashing hot spot, as in LmsOtsGeneratePublicKey; the steps the signer left undone
                 for (int j = a; j < maxDigit; j++)
                 {
                     buf[ITER_J] = (byte)j;
