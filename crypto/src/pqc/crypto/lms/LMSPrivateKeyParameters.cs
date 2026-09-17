@@ -337,6 +337,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             if (cacheCount < 0 || cacheCount >= CacheTopLimit)
                 throw new IOException($"tree cache node count out of range: {cacheCount}");
+            // 1 is a complete top of tree, but a root alone has nothing to be checked against (see ValidateTreeCache)
+            if (cacheCount == 1)
+                throw new IOException("tree cache of the root alone cannot be checked for consistency");
             if (cacheCount != 0 && (cacheCount < 3 || ((cacheCount + 1) & cacheCount) != 0))
                 throw new IOException("tree cache node count is not a complete top of tree: " + cacheCount);
 

@@ -638,12 +638,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         }
 
         /// <summary>
-        /// A tree cache node count that is not a complete top of tree - 2^k - 1 nodes - is refused at decode. The
-        /// consistency check recomputes a cached node from its two cached children, so a node with no cached sibling
-        /// pair above it would be read but never checked: at a count of 1 or 2 that is the root itself, so a corrupted
-        /// root was primed and the key reported the wrong public key, and at any even count it is the last node, so a
-        /// corrupted one survived and was carried forward by the next getEncoded().This writer only ever emits 63, or
-        /// 31 for a height-5 shard.
+        /// A tree cache node count that is not a complete top of tree - 2^k - 1 nodes - is refused at decode, as is
+        /// the one complete top the consistency check cannot cover, the root alone. The check recomputes a cached node
+        /// from its two cached children, so a node with no cached sibling pair above it would be read but never
+        /// checked: at a count of 1 or 2 that is the root itself, so a corrupted root was primed and the key reported
+        /// the wrong public key, and at any even count it is the last node, so a corrupted one survived and was carried
+        /// forward by the next getEncoded(). This writer only ever emits 63, or 31 for a height-5 shard.
         /// </summary>
         [Test]
         public void TreeCacheIncompleteTopOfTreeRejected()
@@ -672,7 +672,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 }
                 catch (IOException e)
                 {
-                    Assert.AreEqual("tree cache node count is not a complete top of tree: " + count, e.Message);
+                    Assert.AreEqual(RefusedCountMessage(count), e.Message);
                 }
             }
 
@@ -700,11 +700,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 }
                 catch (IOException e)
                 {
-                    Assert.AreEqual("tree cache node count is not a complete top of tree: " + corruptCases[i][0],
-                        e.Message);
+                    Assert.AreEqual(RefusedCountMessage(corruptCases[i][0]), e.Message);
                 }
             }
         }
+
+        // 1 is a complete top of tree - the root alone - refused for a different reason than the rest
+        private static string RefusedCountMessage(int count) =>
+            count == 1
+                ? "tree cache of the root alone cannot be checked for consistency"
+                : "tree cache node count is not a complete top of tree: " + count;
 
         /// <summary>
         /// The passed in encoding with its tree cache cut down to the first nodeCount nodes.
