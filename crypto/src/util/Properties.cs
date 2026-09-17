@@ -67,6 +67,17 @@ namespace Org.BouncyCastle.Utilities
         public static readonly string FpeDisableFf1 = "Org.BouncyCastle.Fpe.Disable_Ff1";
 
         /// <summary>
+        /// The largest SEED, in bytes, accepted in an LMS or HSS private key encoding. Default 1024.
+        /// </summary>
+        /// <remarks>
+        /// SP 800-208 sec. 6.1 makes SEED n bytes (24 or 32 for the defined parameter sets), so the default is far
+        /// above any legitimate value; the bound keeps what a decoder commits to on the strength of a length field
+        /// read from untrusted data finite. A value below the parameter set's n is ignored, since SEED may not be
+        /// shorter than that.
+        /// </remarks>
+        public static readonly string LmsMaxSeedLength = "Org.BouncyCastle.Lms.MaxSeedLength";
+
+        /// <summary>
         /// The largest OCSP response, in bytes, to accept from a responder. Default 64KiB.
         /// </summary>
         /// <remarks>

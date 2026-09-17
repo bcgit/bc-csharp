@@ -879,6 +879,56 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         }
 
         /*
+         * SP 800-208 sec. 6.1 makes SEED n bytes, so a decoder has no reason to honour an arbitrary length field:
+         * the declared length arrives as untrusted data and, on a stream with no known length that keeps
+         * delivering, it bounds nothing. The default ceiling is generous (1KiB) and Properties.LmsMaxSeedLength
+         * raises it for an encoding carrying longer interchange slack; a key built directly is not capped, since
+         * the caller supplied that memory itself. bc-java bounds the same field by DataInputStream.available(),
+         * which measures the transport rather than the encoding.
+         */
+        [Test]
+        public void TestPrivateKeySeedLengthBound()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w4;
+            int twoToH = 1 << sigParams.H;
+
+            byte[] longSeed = new byte[2048];
+            Arrays.Fill(longSeed, 0x5A);
+
+            // built directly the long seed is accepted, and encodes with its declared length
+            LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, new byte[16], twoToH,
+                longSeed);
+            byte[] encoded = key.GetEncoded();
+
+            // the length is refused before the seed is read, so nothing is committed on the strength of it
+            var ex = Assert.Throws<IOException>(() => LmsPrivateKeyParameters.GetInstance(encoded));
+            Assert.True(ex.Message.StartsWith("master secret length exceeds 1024: 2048"));
+
+            // an HSS encoding holds its component keys to the same ceiling
+            HssPrivateKeyParameters hss = new HssPrivateKeyParameters(1, new List<LmsPrivateKeyParameters>{ key },
+                new List<LmsSignature>(), 0, twoToH);
+            byte[] hssEncoded = hss.GetEncoded();
+            var hssEx = Assert.Throws<IOException>(() => HssPrivateKeyParameters.GetInstance(hssEncoded));
+            Assert.True(hssEx.Message.StartsWith("master secret length exceeds 1024: 2048"));
+
+            // raising the ceiling admits both, which then round-trip
+            Properties.WithThreadProperty(Properties.LmsMaxSeedLength, "4096", () =>
+            {
+                Assert.That(LmsPrivateKeyParameters.GetInstance(encoded).GetEncoded(), Is.EqualTo(encoded));
+                Assert.That(HssPrivateKeyParameters.GetInstance(hssEncoded).GetEncoded(), Is.EqualTo(hssEncoded));
+            });
+
+            // a ceiling below m is floored at m: SEED cannot be shorter than that, so it would refuse every key
+            byte[] normal = new LmsPrivateKeyParameters(sigParams, otsParams, 0, new byte[16], twoToH,
+                new byte[sigParams.M]).GetEncoded();
+            Properties.WithThreadProperty(Properties.LmsMaxSeedLength, "1", () =>
+            {
+                Assert.That(LmsPrivateKeyParameters.GetInstance(normal).GetEncoded(), Is.EqualTo(normal));
+            });
+        }
+
+        /*
          * BinaryReader.Read(byte[], int, int) makes a single Stream.Read call and may return fewer bytes than
          * asked for. The authentication path was read that way, so a short read left path nodes zero-filled
          * with no error: the signature parsed, re-encoded differently and failed to verify.
@@ -902,6 +952,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.True(LmsTestUtilities.VerifySignature(key.GetPublicKey(), parsed, msg));
         }
 
+        /*
+         * The tree cache trails a standalone private key encoding as optional data, so the decoder has to decide
+         * whether it is there at all. Asking the base stream - its position against its length - was wrong twice
+         * over: it needs a seekable stream, so the cache was silently dropped for a network or pipe stream, and
+         * BinaryReader buffers by an unspecified amount, so the position it reports is the reader's read-ahead
+         * rather than the decoder's own place in the stream. Reading the four count bytes and switching on how
+         * many arrive asks the reader itself.
+         */
+        [Test]
+        public void TestPrivateKeyTreeCacheFromNonSeekableStream()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w4;
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+
+            LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I, 1 << sigParams.H,
+                seed);
+
+            // GetEncoded computes the top of the tree, so the encoding carries the cache to be read back
+            byte[] encoded = key.GetEncoded();
+
+            var parsed = LmsPrivateKeyParameters.GetInstance(new NonSeekableStream(encoded));
+
+            Assert.True(parsed.IsTreeCachePrimed(), "the tree cache was not read back");
+            Assert.That(parsed.PeekRootT(), Is.EqualTo(key.GetPublicKey().GetT1()));
+            Assert.That(parsed.GetEncoded(), Is.EqualTo(encoded));
+        }
+
         // Hands out one byte per Read call, as a network or pipe stream is entitled to.
         private sealed class TrickleStream
             : MemoryStream
@@ -918,6 +997,28 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             public override int Read(Span<byte> buffer) =>
                 base.Read(buffer.Slice(0, System.Math.Min(buffer.Length, 1)));
 #endif
+        }
+
+        // Has no length or position to consult, as a network or pipe stream is entitled not to.
+        private sealed class NonSeekableStream
+            : MemoryStream
+        {
+            internal NonSeekableStream(byte[] buf)
+                : base(buf, false)
+            {
+            }
+
+            public override bool CanSeek => false;
+
+            public override long Length => throw new NotSupportedException();
+
+            public override long Position
+            {
+                get => throw new NotSupportedException();
+                set => throw new NotSupportedException();
+            }
+
+            public override long Seek(long offset, SeekOrigin loc) => throw new NotSupportedException();
         }
 
         /*

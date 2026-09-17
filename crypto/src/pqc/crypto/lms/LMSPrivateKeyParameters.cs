@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -26,6 +27,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // tree), in memory and in the persisted trailer alike. Mirrors the interned-key table size in the bc-java
         // implementation, which defines the interchange format's cache-count limit.
         private const int CacheTopLimit = 64;
+
+        // The default ceiling on SEED, overridden by Properties.LmsMaxSeedLength. SP 800-208 sec. 6.1 makes SEED
+        // n bytes, so anything beyond the parameter set's m is interchange slack and 1KiB is generous.
+        private const int DefaultMaxSeedLength = 1024;
 
         private readonly byte[] I;
         private readonly LmsParameters m_lmsParameters;
@@ -220,9 +225,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             throw new ArgumentException($"cannot parse {src}");
         }
 
+        /// <summary>
+        /// The ceiling on SEED length the decoder holds every key in one encoding to: the configured
+        /// <see cref="Properties.LmsMaxSeedLength"/>, or <see cref="DefaultMaxSeedLength"/> when none is set.
+        /// </summary>
+        /// <remarks>
+        /// Read once by the top-level parse of the structure - a standalone key, or an HSS key with its component
+        /// keys - and passed down, so the limit cannot shift between the keys of one encoding.
+        /// </remarks>
+        internal static int GetMaxSeedLength() =>
+            Properties.GetInt32(Properties.LmsMaxSeedLength, DefaultMaxSeedLength);
+
         internal static LmsPrivateKeyParameters Parse(BinaryReader binaryReader)
         {
-            LmsPrivateKeyParameters key = ParseCore(binaryReader);
+            LmsPrivateKeyParameters key = ParseCore(binaryReader, GetMaxSeedLength());
 
             //
             // Anything after the master secret is a cache of the top of the Merkle tree (see GetEncoded). Priming
@@ -231,13 +247,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // optional trailing data rather than a new version, matching the bc-java interchange format - at the
             // cost of it being absent rather than malformed when a stream supplies no more bytes. Component keys
             // inside an HSS private key share their stream with the keys and signatures that follow, so "more
-            // data" means nothing there - they are read via ReadKey, where the enclosing HSS encoding's version
-            // dictates whether the cache field is present (bc-java github #2365).
+            // data" means nothing there - they are read via ParseComponentKey, where the enclosing HSS encoding's
+            // version dictates whether the cache field is present (bc-java github #2365).
             //
-            var stream = binaryReader.BaseStream;
-            if (stream.CanSeek && stream.Position < stream.Length)
+            // Ask the reader, not the stream: BinaryReader buffers internally by an unspecified amount, so the
+            // base stream's position and length say nothing about what the reader has left to give. ReadBytes
+            // returns fewer bytes than asked for only at the end of the stream, so none of them is the field
+            // being absent and one to three of them is a count cut short.
+            //
+            byte[] cacheCount = binaryReader.ReadBytes(4);
+            if (cacheCount.Length != 0)
             {
-                ReadTreeCache(binaryReader, key);
+                if (cacheCount.Length != 4)
+                    throw new EndOfStreamException("truncated tree cache node count in LMS private key");
+
+                ReadTreeCache(binaryReader, key, (int)Pack.BE_To_UInt32(cacheCount));
             }
 
             return key;
@@ -249,9 +273,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
          * caller - from the enclosing HSS encoding's version - rather than inferred from the stream having more
          * data, which is meaningless mid-stream.
          */
-        internal static LmsPrivateKeyParameters ReadKey(BinaryReader binaryReader, bool withCache)
+        // TODO[lms] If the per-parse options grow beyond these two, bundle them in a ParseConfig struct/class read
+        // once by the top-level parse and passed down, rather than adding parameters here and to ParseCore.
+        internal static LmsPrivateKeyParameters ParseComponentKey(BinaryReader binaryReader, int maxSeedLength,
+            bool withCache)
         {
-            LmsPrivateKeyParameters key = ParseCore(binaryReader);
+            LmsPrivateKeyParameters key = ParseCore(binaryReader, maxSeedLength);
 
             if (withCache)
             {
@@ -261,7 +288,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return key;
         }
 
-        private static LmsPrivateKeyParameters ParseCore(BinaryReader binaryReader)
+        private static LmsPrivateKeyParameters ParseCore(BinaryReader binaryReader, int maxSeedLength)
         {
             int version = BinaryReaders.ReadInt32BigEndian(binaryReader);
             if (version != 0)
@@ -293,19 +320,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 throw new IOException($"master secret length is less than {sigParameter.M}: {l}");
             }
 
-            // TODO[lms] Bound l from above as well. ReadBytesFully reads incrementally and refuses a count past
-            // a known stream length, so a short stream no longer costs the declared length up front; what is
-            // left is a stream with no length that keeps delivering. SP 800-208 sec. 6.1 makes SEED n bytes, so
-            // anything beyond m is interchange slack - a limit with a Properties.LmsMaxSeedLength override, as
-            // the other size caps have, would close it.
+            // SP 800-208 sec. 6.1 makes SEED n bytes, so anything beyond m is interchange slack, and the ceiling
+            // keeps what is committed on the strength of a length field finite where the stream has no known
+            // length for ReadBytesFully to refuse it against. A ceiling below m is ignored: SEED cannot be shorter
+            // than m, so it would refuse every key. The limit is the caller's, read once for the whole encoding.
+            if (l > System.Math.Max(sigParameter.M, maxSeedLength))
+                throw new IOException($"master secret length exceeds {maxSeedLength}: {l}");
+
             byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
 
             return new LmsPrivateKeyParameters(new LmsParameters(sigParameter, otsParameter), q, I, maxQ, masterSecret);
         }
 
-        private static void ReadTreeCache(BinaryReader binaryReader, LmsPrivateKeyParameters key)
+        private static void ReadTreeCache(BinaryReader binaryReader, LmsPrivateKeyParameters key) =>
+            ReadTreeCache(binaryReader, key, BinaryReaders.ReadInt32BigEndian(binaryReader));
+
+        private static void ReadTreeCache(BinaryReader binaryReader, LmsPrivateKeyParameters key, int cacheCount)
         {
-            int cacheCount = BinaryReaders.ReadInt32BigEndian(binaryReader);
             if (cacheCount < 0 || cacheCount >= CacheTopLimit)
                 throw new IOException($"tree cache node count out of range: {cacheCount}");
             if (cacheCount != 0 && (cacheCount < 3 || ((cacheCount + 1) & cacheCount) != 0))

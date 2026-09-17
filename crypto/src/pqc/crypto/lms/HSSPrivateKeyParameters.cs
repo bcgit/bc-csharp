@@ -256,6 +256,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             bool limited = binaryReader.ReadBoolean();
 
+            // Read once here, so every component key is held to the same limit
+            int maxSeedLength = LmsPrivateKeyParameters.GetMaxSeedLength();
+
             var keys = new LmsPrivateKeyParameters[d];
             for (int t = 0; t < d; t++)
             {
@@ -264,7 +267,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 // encoding version says: a version 0 encoding predates the tree cache and its component keys end
                 // at the master secret, a version 1 component always carries the cache field (bc-java github
                 // #2365).
-                keys[t] = LmsPrivateKeyParameters.ReadKey(binaryReader, withCache: version != 0);
+                keys[t] = LmsPrivateKeyParameters.ParseComponentKey(binaryReader, maxSeedLength,
+                    withCache: version != 0);
             }
 
             var signatures = new LmsSignature[d - 1];
