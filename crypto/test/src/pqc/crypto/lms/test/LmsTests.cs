@@ -570,6 +570,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.NotNull(new HssPrivateKeyParameters(1, one, none, 0, twoToH));
         }
 
+        /// <summary>
+        /// The public constructor copies the identifier and master secret it is given, so a caller mutating or
+        /// reusing its own arrays afterwards cannot reach inside the key. The internal constructor it forwards to
+        /// takes ownership instead, which is why this copy is the only thing standing between the two.
+        /// </summary>
+        [Test]
+        public void PublicConstructorCopiesCallerArrays()
+        {
+            LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
+            LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w1;
+            int twoToH = 1 << sigParams.H;
+
+            byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");
+            byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
+
+            LmsPrivateKeyParameters expected = new LmsPrivateKeyParameters(sigParams, otsParams, 0, Arrays.Clone(I),
+                twoToH, Arrays.Clone(seed));
+            byte[] expectedEncoding = expected.GetEncoded();
+            byte[] expectedPublicKey = expected.GetPublicKey().GetEncoded();
+
+            LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(sigParams, otsParams, 0, I, twoToH, seed);
+
+            // the arrays the constructor was given now belong to the caller alone
+            Arrays.Fill(I, 0xFF);
+            Arrays.Fill(seed, 0xFF);
+
+            Assert.That(key.GetI(), Is.EqualTo(expected.GetI()));
+            Assert.That(key.GetEncoded(), Is.EqualTo(expectedEncoding));
+
+            // the tree is built after the mutation, from the key's own copies
+            Assert.That(key.GetPublicKey().GetEncoded(), Is.EqualTo(expectedPublicKey));
+        }
+
         private static void ExpectBadArgument(String message, LMSigParameters sigParams, LMOtsParameters otsParams,
             int q, byte[] I, int maxQ, byte[] seed)
         {

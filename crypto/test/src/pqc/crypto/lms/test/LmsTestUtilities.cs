@@ -9,10 +9,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         /// <summary>Generate a key from the two parameter sets the vectors name it by.</summary>
         /// <remarks>Here for the same reason as the signing helpers below: the library takes the pair as an
         /// <see cref="LmsParameters"/>, and the two-parameter-set form is on its way out of the public API.</remarks>
-        public static LmsPrivateKeyParameters GenerateKey(LMSigParameters parameterSet,
-            LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] masterSecret)
+        public static LmsPrivateKeyParameters GenerateKey(LMSigParameters sigParameters,
+            LMOtsParameters otsParameters, int q, byte[] I, byte[] masterSecret)
         {
-            return LmsEngine.GenerateKey(new LmsParameters(parameterSet, lmOtsParameters), q, I, masterSecret);
+            int maxQ = 1 << sigParameters.H;
+            return new LmsPrivateKeyParameters(sigParameters, otsParameters, q, I, maxQ, masterSecret);
         }
 
         /// <summary>

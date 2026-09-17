@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LmsPrivateKeyParameters GenerateKeys(LMSigParameters parameterSet,
             LMOtsParameters lmOtsParameters, int q, byte[] I, byte[] masterSecret)
         {
-            return LmsEngine.GenerateKey(new LmsParameters(parameterSet, lmOtsParameters), q, I, masterSecret);
+            return new LmsPrivateKeyParameters(parameterSet, lmOtsParameters, q, I, 1 << parameterSet.H, masterSecret);
         }
 
         // TODO[api] Remove. Nothing in the library signs this way, and bc-java has no such method since its

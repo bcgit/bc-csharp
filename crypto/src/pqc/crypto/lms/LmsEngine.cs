@@ -108,22 +108,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static LmsContext WithSignedPublicKeys(LmsContext context, LmsSignedPubKey[] signedPubKeys) =>
             context.WithSignedPublicKeys(signedPubKeys);
 
-        /// <summary>
-        /// An LMS private key positioned at one-time key <paramref name="q"/> of the tree named by
-        /// <paramref name="I"/> (RFC 8554 sec. 5.2, Algorithm 5).
-        /// </summary>
-        /// <remarks>
-        /// SP 800-208 sec. 4 wants one hash function across the tree and its LM-OTS keys, which the key
-        /// generation parameters check; a direct call here does not pass through them. The seed length is
-        /// checked by the constructor.
-        /// </remarks>
-        internal static LmsPrivateKeyParameters GenerateKey(LmsParameters lmsParameters, int q, byte[] I,
-            byte[] masterSecret)
-        {
-            return new LmsPrivateKeyParameters(lmsParameters, q, I, 1 << lmsParameters.LMSigParameters.H,
-                masterSecret);
-        }
-
         /// <summary>An HSS private key at index zero, over the parameter sets <paramref name="parameters"/> names
         /// for each level (RFC 8554 sec. 6.1).</summary>
         internal static HssPrivateKeyParameters GenerateHssKeyPair(HssKeyGenerationParameters parameters)
@@ -145,14 +129,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // index of zero. Rather than repeat the same reset-to-index logic in this static method.
             //
 
-            keys[0] = GenerateKey(rootLms, 0, I, masterSecret);
+            int rootMaxQ = 1 << rootLms.LMSigParameters.H;
 
-            long hssKeyMaxIndex = 1L << rootLms.LMSigParameters.H;
+            keys[0] = new LmsPrivateKeyParameters(rootLms, q: 0, I, rootMaxQ, masterSecret);
+
+            long hssKeyMaxIndex = rootMaxQ;
 
             for (int t = 1; t < keys.Length; t++)
             {
                 var lms = parameters.GetLmsParameters(t);
 
+                // Placeholder
                 keys[t] = new LmsPrivateKeyParameters(lms, 1 << lms.LMSigParameters.H);
 
                 hssKeyMaxIndex <<= lms.LMSigParameters.H;
@@ -160,7 +147,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             // if this has happened we're trying to generate a really large key
             // we'll use MAX_VALUE so that it's at least usable until someone upgrades the structure.
-            if (hssKeyMaxIndex == 0)
+            if (hssKeyMaxIndex <= 0L)
             {
                 hssKeyMaxIndex = long.MaxValue;
             }

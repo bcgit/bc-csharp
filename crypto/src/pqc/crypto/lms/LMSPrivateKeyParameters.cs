@@ -81,12 +81,34 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         //
         private LmsPublicKeyParameters m_publicKey;
 
+        /// <summary>
+        /// An LMS private key positioned at one-time key <paramref name="q"/> of the tree named by
+        /// <paramref name="I"/> (RFC 8554 sec. 5.2, Algorithm 5).
+        /// </summary>
+        /// <remarks>
+        /// The identifier and master secret are copied, so the caller keeps its arrays.
+        /// </remarks>
         public LmsPrivateKeyParameters(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q, byte[] I,
             int maxQ, byte[] masterSecret)
-            : this(new LmsParameters(lmsParameter, otsParameters), q, I, maxQ, masterSecret)
+            : this(new LmsParameters(lmsParameter, otsParameters), q, Arrays.Clone(I), maxQ, Arrays.Clone(masterSecret))
         {
         }
 
+        /// <summary>
+        /// An LMS private key positioned at one-time key <paramref name="q"/> of the tree named by
+        /// <paramref name="I"/> (RFC 8554 sec. 5.2, Algorithm 5).
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Takes ownership of <paramref name="I"/> and <paramref name="masterSecret"/>: they become the key's own
+        /// arrays, so a caller must pass arrays it neither retains nor reuses. The public constructor clones on the
+        /// caller's behalf; the callers here pass bytes freshly generated, decoded or derived from a parent key.
+        /// </para>
+        /// <para>
+        /// SP 800-208 sec. 4 wants one hash function across the tree and its LM-OTS keys, which the key generation
+        /// parameters check; a key built directly does not pass through them. The seed length is checked below.
+        /// </para>
+        /// </remarks>
         internal LmsPrivateKeyParameters(LmsParameters lmsParameters, int q, byte[] I, int maxQ, byte[] masterSecret)
             : base(true)
         {
@@ -106,9 +128,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             this.m_lmsParameters = lmsParameters;
             this.q = q;
-            this.I = Arrays.Clone(I);
+            this.I = I;
             this.maxQ = maxQ;
-            this.masterSecret = Arrays.Clone(masterSecret);
+            this.masterSecret = masterSecret;
             this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (lmsParameter.H + 1));
             this.tCache = new byte[maxCacheR][];
         }
@@ -125,9 +147,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             this.m_lmsParameters = lmsParameters;
             this.q = -1;
-            this.I = new byte[0];
+            this.I = Array.Empty<byte>();
             this.maxQ = maxQ;
-            this.masterSecret = new byte[0];
+            this.masterSecret = Array.Empty<byte>();
             this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (lmsParameters.LMSigParameters.H + 1));
             this.tCache = new byte[maxCacheR][];
             this.m_isPlaceholder = true;
@@ -278,7 +300,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // the other size caps have, would close it.
             byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
 
-            return new LmsPrivateKeyParameters(sigParameter, otsParameter, q, I, maxQ, masterSecret);
+            return new LmsPrivateKeyParameters(new LmsParameters(sigParameter, otsParameter), q, I, maxQ, masterSecret);
         }
 
         private static void ReadTreeCache(BinaryReader binaryReader, LmsPrivateKeyParameters key)

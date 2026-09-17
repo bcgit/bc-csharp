@@ -15,8 +15,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_lmOtsParameters = lmOtsParameters;
         }
 
+        // TODO[api] Rename to SigParameters
         public LMSigParameters LMSigParameters => m_lmSigParameters;
 
+        // TODO[api] Rename to OtsParameters
         public LMOtsParameters LMOtsParameters => m_lmOtsParameters;
 
         /// <summary>A pairing of the two parameter sets, so equal by value.</summary>
