@@ -703,8 +703,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return cached;
 
             // Racing computations of one node produce identical arrays; the first to publish wins.
-            byte[] T = CalcT(r, tDigest, K);
-            return Interlocked.CompareExchange(ref tCache[r], T, null) ?? T;
+            return Objects.EnsureSingletonInitialized(ref tCache[r], CalcT(r, tDigest, K));
         }
 
         private byte[] CalcT(int r, IDigest tDigest, byte[] K)
@@ -765,6 +764,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         // Called under lock(this). Build the authentication path of one-time key q, reusing whatever it shares
         // with the path of the last one-time key signed with, and retain the result in its place.
+        //
+        // Node numbers are RFC 8554's: the root is 1, the children of node r are 2r and 2r + 1, and leaf q is
+        // 2^h + q. Levels count from the leaf (0) up to just below the root (h - 1), as Path and Anc are indexed,
+        // so the leaf's ancestor at a level is its node number shifted right by that many, and ^ 1 is the sibling.
         private byte[][] AdvanceRetainedPath(int q)
         {
             int h = SigParameters.H;
@@ -779,22 +782,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             RetainedPath old = m_retained;
             if (old != null)
             {
-                // The paths of q and old.Q agree above the highest bit in which the two differ. At that level the
-                // roles swap: the old ancestor (root of the subtree just left) becomes the new sibling, and the old
+                // The paths of q and old.Q agree above the highest bit in which the two differ, so the levels from
+                // 'shared' up are copied. At level shared - 1 the two leaves sit in sibling subtrees, and the roles
+                // swap: the old ancestor (root of the subtree just left) becomes the new sibling, and the old
                 // sibling (root of the subtree now entered) becomes the new ancestor.
-                int b = Integers.BitLength(q ^ old.Q);
-                if (b == 0)
+                int shared = Integers.BitLength(q ^ old.Q);
+                if (shared == 0)
                     return old.Path;
 
-                for (int i = b; i < h; ++i)
+                for (int level = shared; level < h; ++level)
                 {
-                    path[i] = old.Path[i];
-                    anc[i] = old.Anc[i];
+                    path[level] = old.Path[level];
+                    anc[level] = old.Anc[level];
                 }
 
-                path[b - 1] = old.Anc[b - 1];
-                anc[b - 1] = old.Path[b - 1];
-                fresh = b - 1;
+                path[shared - 1] = old.Anc[shared - 1];
+                anc[shared - 1] = old.Path[shared - 1];
+                fresh = shared - 1;
             }
 
             // One tree digest and one one-time public key hash buffer serve everything computed below, from the
@@ -805,34 +809,35 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             // Below the divergence everything lies inside the subtree just entered: the siblings are subtrees that
             // FindT computes (caching only those within the pinned top), and the ancestors fold up from the new
             // leaf.
-            for (int i = 0; i < fresh; ++i)
+            for (int level = 0; level < fresh; ++level)
             {
-                path[i] = FindT((r >> i) ^ 1, tDigest, K);
+                path[level] = FindT((r >> level) ^ 1, tDigest, K);
             }
 
             if (fresh > 0)
             {
                 anc[0] = FindT(r, tDigest, K);
 
-                for (int i = 1; i < fresh; ++i)
+                for (int level = 1; level < fresh; ++level)
                 {
-                    byte[] child = anc[i - 1], sibling = path[i - 1];
+                    byte[] child = anc[level - 1], sibling = path[level - 1];
 
-                    anc[i] = ((r >> (i - 1)) & 1) == 0
-                        ? LmsEngine.ComputeNode(tDigest, I, r >> i, child, sibling)
-                        : LmsEngine.ComputeNode(tDigest, I, r >> i, sibling, child);
+                    // the child is the left input when it is an even node
+                    anc[level] = ((r >> (level - 1)) & 1) == 0
+                        ? LmsEngine.ComputeNode(tDigest, I, r >> level, child, sibling)
+                        : LmsEngine.ComputeNode(tDigest, I, r >> level, sibling, child);
                 }
             }
 
             // The fresh ancestors that fall within the pinned top are nodes the cache would otherwise compute
             // again, so they are published now; the siblings already were, by FindT. Racing writers publish
-            // equal nodes, as they do there.
-            for (int i = 0; i < fresh; ++i)
+            // equal nodes, as they do there, and the path adopts whichever instance the cache ended up with.
+            for (int level = 0; level < fresh; ++level)
             {
-                int node = r >> i;
-                if (node < maxCacheR && Volatile.Read(ref tCache[node]) == null)
+                int node = r >> level;
+                if (node < maxCacheR)
                 {
-                    Volatile.Write(ref tCache[node], anc[i]);
+                    anc[level] = Objects.EnsureSingletonInitialized(ref tCache[node], anc[level]);
                 }
             }
 
@@ -842,9 +847,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             {
                 byte[] child = anc[h - 1], sibling = path[h - 1];
 
-                Volatile.Write(ref tCache[1], ((r >> (h - 1)) & 1) == 0
+                byte[] root = ((r >> (h - 1)) & 1) == 0
                     ? LmsEngine.ComputeNode(tDigest, I, 1, child, sibling)
-                    : LmsEngine.ComputeNode(tDigest, I, 1, sibling, child));
+                    : LmsEngine.ComputeNode(tDigest, I, 1, sibling, child);
+
+                Objects.EnsureSingletonInitialized(ref tCache[1], root);
             }
 
             m_retained = new RetainedPath(q, path, anc);
