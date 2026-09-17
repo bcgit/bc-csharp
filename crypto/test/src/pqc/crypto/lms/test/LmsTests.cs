@@ -542,7 +542,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             ExpectBadArgument("LMS key identifier I must be 16 bytes", sigParams, otsParams, 0, new byte[17], twoToH,
                 seed);
             ExpectBadArgument("LMS key identifier I must be 16 bytes", sigParams, otsParams, 0, null, twoToH, seed);
-            ExpectBadArgument("LMS private key needs both parameter sets", sigParams, null, 0, I, twoToH, seed);
+            // a missing parameter set is refused by the LmsParameters pairing itself
+            Assert.That(Assert.Throws<ArgumentNullException>(
+                () => new LmsPrivateKeyParameters(null, otsParams, 0, I, twoToH, seed)).ParamName,
+                Is.EqualTo("lmSigParameters"));
+            Assert.That(Assert.Throws<ArgumentNullException>(
+                () => new LmsPrivateKeyParameters(sigParams, null, 0, I, twoToH, seed)).ParamName,
+                Is.EqualTo("lmOtsParameters"));
             ExpectBadArgument("master secret length is less than " + sigParams.M, sigParams, otsParams, 0, I, twoToH,
                 new byte[1]);
             ExpectBadArgument("LMS private key q/maxQ out of range: q=-1 maxQ=" + twoToH + " 2^h=" + twoToH, sigParams,

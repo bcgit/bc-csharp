@@ -22,9 +22,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 if (level == null)
                     throw new ArgumentException($"HSS level {i} has no parameters", nameof(lmsParameters));
 
-                level.CheckHashFunction();
+                if (!level.UsesOneHashFunction())
+                {
+                    throw new ArgumentException(
+                        $"HSS level {i} mixes hash functions between its LMS tree and LM-OTS keys (SP 800-208 sec. 4)",
+                        nameof(lmsParameters));
+                }
 
-                if (!level.SameHashFunctionAs(lmsParameters[0]))
+                if (!level.UsesSameLmsHashFunctionAs(lmsParameters[0]))
                 {
                     throw new ArgumentException(
                         $"HSS level {i} uses a different hash function from level 0 (SP 800-208 sec. 4)",

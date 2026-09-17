@@ -13,7 +13,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (lmsParameters == null)
                 throw new ArgumentNullException(nameof(lmsParameters));
 
-            lmsParameters.CheckHashFunction();
+            if (!lmsParameters.UsesOneHashFunction())
+            {
+                throw new ArgumentException(
+                    "LMS tree and LM-OTS parameter sets must use the same hash function (SP 800-208 sec. 4)",
+                    nameof(lmsParameters));
+            }
+
             return lmsParameters;
         }
 

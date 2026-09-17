@@ -120,8 +120,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             LMSigParameters lmsParameter = lmsParameters.LMSigParameters;
 
             // the checks the decoder applies, so a key built directly is not one it would refuse
-            if (lmsParameter == null || lmsParameters.LMOtsParameters == null)
-                throw new ArgumentException("LMS private key needs both parameter sets");
             if (I == null || I.Length != 16)
                 throw new ArgumentException("LMS key identifier I must be 16 bytes");
             if (masterSecret == null || masterSecret.Length < lmsParameter.M)

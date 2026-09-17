@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
 
             {
-                object o = new HssPublicKeyParameters(0, new LmsPublicKeyParameters(null, null, null, null));
+                object o = new HssPublicKeyParameters(0, LmsPublicKey());
                 Assert.AreSame(o, HssPublicKeyParameters.GetInstance(o));
             }
 
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
 
             {
-                object o = new LmsPublicKeyParameters(null, null, null, null);
+                object o = LmsPublicKey();
                 Assert.AreSame(o, LmsPublicKeyParameters.GetInstance(o));
             }
 
@@ -60,6 +60,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         /// The key parameter constructors validate their arguments, so these are real -the point of the test is only
         /// that GetInstance() hands back an object of its own type unchanged.
         /// </summary>
+        private static LmsPublicKeyParameters LmsPublicKey()
+        {
+            return new LmsPublicKeyParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w1,
+                null, null);
+        }
+
         private static LmsPrivateKeyParameters LmsKey()
         {
             return new LmsPrivateKeyParameters(LMSigParameters.lms_sha256_n32_h5,
