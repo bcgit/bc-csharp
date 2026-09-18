@@ -119,6 +119,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <remarks>
         /// The identifier and master secret are copied, so the caller keeps its arrays.
         /// </remarks>
+        // TODO[api] Rename lmsParameter to sigParameters
         public LmsPrivateKeyParameters(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q, byte[] I,
             int maxQ, byte[] masterSecret)
             : this(new LmsParameters(lmsParameter, otsParameters), q, Arrays.Clone(I), maxQ, Arrays.Clone(masterSecret))
@@ -143,15 +144,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal LmsPrivateKeyParameters(LmsParameters lmsParameters, int q, byte[] I, int maxQ, byte[] masterSecret)
             : base(true)
         {
-            LMSigParameters lmsParameter = lmsParameters.LMSigParameters;
+            LMSigParameters sigParameters = lmsParameters.LMSigParameters;
 
             // the checks the decoder applies, so a key built directly is not one it would refuse
             if (I == null || I.Length != 16)
                 throw new ArgumentException("LMS key identifier I must be 16 bytes");
-            if (masterSecret == null || masterSecret.Length < lmsParameter.M)
-                throw new ArgumentException($"master secret length is less than {lmsParameter.M}");
+            if (masterSecret == null || masterSecret.Length < sigParameters.M)
+                throw new ArgumentException($"master secret length is less than {sigParameters.M}");
 
-            int twoToH = 1 << lmsParameter.H;
+            int twoToH = 1 << sigParameters.H;
             if (q < 0 || maxQ < 0 || maxQ > twoToH || q > maxQ)
                 throw new ArgumentException($"LMS private key q/maxQ out of range: q={q} maxQ={maxQ} 2^h={twoToH}");
 
@@ -160,7 +161,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.I = I;
             this.maxQ = maxQ;
             this.masterSecret = masterSecret;
-            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (lmsParameter.H + 1));
+            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
             this.tCache = new byte[maxCacheR][];
         }
 
@@ -781,8 +782,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        /// <summary>Whether an authentication path is currently retained. For the tests that check a key built or
-        /// signed with keeps the path its work produced.</summary>
+        /// <summary>
+        /// Whether an authentication path is currently retained. Used by the regression tests that check
+        /// that a key keeps the path produced by building its tree or by signing.
+        /// </summary>
         internal bool IsPathRetained()
         {
             lock (this) return m_retained != null;

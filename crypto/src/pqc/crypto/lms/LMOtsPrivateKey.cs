@@ -47,6 +47,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LMOtsPublicKey(m_parameters, m_I, m_q, K);
         }
 
+        // TODO[api] Remove
         public byte[] GetI() => Arrays.Clone(m_I);
 
         internal byte[] InternalI => m_I;

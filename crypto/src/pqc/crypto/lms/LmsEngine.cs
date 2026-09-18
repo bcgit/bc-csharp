@@ -216,10 +216,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         /// <summary>Verify a signature over the encoding of <paramref name="signedPublicKey"/>, the chaining
         /// signature an HSS hierarchy makes when one tree signs the public key of the tree below it.</summary>
-        internal static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S,
+        internal static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature signature,
             LmsPublicKeyParameters signedPublicKey)
         {
-            LmsContext context = publicKey.GenerateOtsContext(S);
+            LmsContext context = publicKey.GenerateOtsContext(signature);
 
             signedPublicKey.UpdateDigest(context);
 
@@ -227,9 +227,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         /// <summary>Verify a signature over <paramref name="message"/> in one step.</summary>
-        internal static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S, byte[] message)
+        internal static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature signature, byte[] message)
         {
-            LmsContext context = publicKey.GenerateOtsContext(S);
+            LmsContext context = publicKey.GenerateOtsContext(signature);
 
             LmsUtilities.ByteArray(message, context);
 
@@ -278,28 +278,21 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 if (i >= path.Length)
                     return false;
 
+                byte[] siblingHash = path[i++];
+
                 // The node's parity decides which side its sibling from the path goes on - left for an odd node,
-                // right for an even one - while the hash itself is over the parent (RFC 8554 sec. 5.4.2 step 3).
+                // right for an even one - while the hash itself is over the parent (RFC 8554 sec. 5.4.2 step 4).
                 bool isOdd = (nodeNum & 1) == 1;
                 nodeNum >>= 1;
 
-                byte[] siblingHash = path[i++];
+                byte[] left = isOdd ? siblingHash : nodeHash;
+                byte[] right = isOdd ? nodeHash : siblingHash;
 
                 digest.BlockUpdate(I, 0, I.Length);
                 LmsUtilities.U32Str(nodeNum, digest);
                 LmsUtilities.U16Str(D_INTR, digest);
-
-                if (isOdd)
-                {
-                    digest.BlockUpdate(siblingHash, 0, siblingHash.Length);
-                    digest.BlockUpdate(nodeHash, 0, nodeHash.Length);
-                }
-                else
-                {
-                    digest.BlockUpdate(nodeHash, 0, nodeHash.Length);
-                    digest.BlockUpdate(siblingHash, 0, siblingHash.Length);
-                }
-
+                digest.BlockUpdate(left, 0, left.Length);
+                digest.BlockUpdate(right, 0, right.Length);
                 digest.DoFinal(nodeHash, 0);
             }
 

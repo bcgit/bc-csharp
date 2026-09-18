@@ -37,8 +37,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
         /// <summary>Verify a signature over a message in one step, the counterpart of
         /// <see cref="GenerateSign(LmsPrivateKeyParameters, byte[])"/> and here for the same reason.</summary>
-        public static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature S, byte[] message) =>
-            LmsEngine.VerifySignature(publicKey, S, message);
+        public static bool VerifySignature(LmsPublicKeyParameters publicKey, LmsSignature signature, byte[] message) =>
+            LmsEngine.VerifySignature(publicKey, signature, message);
 
         /// <summary>Verify an HSS signature over a message in one step, the counterpart of
         /// <see cref="GenerateHssSignature(HssPrivateKeyParameters, byte[])"/> and here for the same reason.</summary>

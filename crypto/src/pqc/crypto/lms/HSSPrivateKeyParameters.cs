@@ -485,7 +485,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             Hierarchy oldHierarchy = CurrentHierarchy;
 
             long[] qTreePath = new long[oldHierarchy.Count];
-            long q = GetIndex();
+            long q = m_index;
 
             for (int t = oldHierarchy.Count - 1; t >= 0; t--)
             {
