@@ -2,6 +2,7 @@ using System;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -15,10 +16,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             if (lmsParameters.Length < 1 || lmsParameters.Length > 8)  // RFC 8554, Section 6.
                 throw new ArgumentException("length should be between 1 and 8 inclusive", nameof(lmsParameters));
 
+            LmsParameters[] copy = Arrays.CopyBuffer(lmsParameters);
+
             // SP 800-208 sec. 4: one hash function throughout - within each level and across the hierarchy
-            for (int i = 0; i < lmsParameters.Length; ++i)
+            for (int i = 0; i < copy.Length; ++i)
             {
-                LmsParameters level = lmsParameters[i];
+                LmsParameters level = copy[i];
                 if (level == null)
                     throw new ArgumentException($"HSS level {i} has no parameters", nameof(lmsParameters));
 
@@ -29,7 +32,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                         nameof(lmsParameters));
                 }
 
-                if (!level.UsesSameLmsHashFunctionAs(lmsParameters[0]))
+                if (!level.UsesSameLmsHashFunctionAs(copy[0]))
                 {
                     throw new ArgumentException(
                         $"HSS level {i} uses a different hash function from level 0 (SP 800-208 sec. 4)",
@@ -37,31 +40,38 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 }
             }
 
-            return lmsParameters;
+            return copy;
         }
 
         private readonly LmsParameters[] m_lmsParameters;
 
-        /**
-         * Base constructor - parameters and a source of randomness.
-         *
-         * @param lmsParameters array of LMS parameters, one per level in the hierarchy (up to 8 levels).
-         * @param random   the random byte source.
-         */
+        /// <summary>Base constructor - parameters and a source of randomness.</summary>
+        /// <param name="lmsParameters">
+        /// An array of <see cref="LmsParameters"/>, one per level in the hierarchy (from 1 to 8 levels).
+        /// </param>
+        /// <param name="random">The random byte source.</param>
         public HssKeyGenerationParameters(LmsParameters[] lmsParameters, SecureRandom random)
-            :base(random, LmsUtilities.CalculateStrength(ValidateLmsParameters(lmsParameters)[0]))
+            : this(random, ValidateLmsParameters(lmsParameters))
+        {
+        }
+
+        private HssKeyGenerationParameters(SecureRandom random, LmsParameters[] lmsParameters)
+            : base(random, LmsUtilities.CalculateStrength(lmsParameters[0]))
         {
             m_lmsParameters = lmsParameters;
         }
 
         public int Depth => m_lmsParameters.Length;
 
-        public LmsParameters GetLmsParameters(int index)
-        {
-            if (index < 0 || index >= m_lmsParameters.Length)
-                throw new ArgumentOutOfRangeException(nameof(index));
-
-            return m_lmsParameters[index];
-        }
+        /// <sumamry>
+        /// The parameters of one level of the hierarchy, 0 being the root.
+        /// </sumamry>
+        /// <remarks>
+        /// <see cref="Depth"/> gives the range.
+        /// </remarks>
+        /// <exception cref="IndexOutOfRangeException">
+        /// If <paramref name="index"/> is not in [0, <see cref="Depth"/>).
+        /// </exception>
+        public LmsParameters GetLmsParameters(int index) => m_lmsParameters[index];
     }
 }
