@@ -1,5 +1,4 @@
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -15,16 +14,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            var random = m_parameters.Random;
-            byte[] I = SecureRandom.GetNextBytes(random, 16);
-
-            var lmsParameters = m_parameters.LmsParameters;
-            byte[] masterSecret = SecureRandom.GetNextBytes(random, lmsParameters.LMSigParameters.M);
-
-            LmsPrivateKeyParameters privKey = new LmsPrivateKeyParameters(lmsParameters, 0, I,
-                1 << lmsParameters.LMSigParameters.H, masterSecret);
-
-            return new AsymmetricCipherKeyPair(privKey.GetPublicKey(), privKey);
+            var privateKey = LmsPrivateKeyParameters.Generate(m_parameters.LmsParameters, m_parameters.Random);
+            var publicKey = privateKey.GetPublicKey();
+            return new AsymmetricCipherKeyPair(publicKey, privateKey);
         }
     }
 }

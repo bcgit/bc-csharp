@@ -176,7 +176,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             // consistent choices are still accepted, n=24 throughout included
             Assert.NotNull(new LmsKeyGenerationParameters(n24, random));
             Assert.NotNull(new HssKeyGenerationParameters(new LmsParameters[] { n24, n24 }, random));
-            Assert.NotNull(LmsEngine.GenerateHssKeyPair(
+            Assert.NotNull(LmsTestUtilities.GenerateHssPrivateKey(
                 new HssKeyGenerationParameters(new LmsParameters[] { n24, n24 }, random)));
         }
     }

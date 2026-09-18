@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(fixedSource) };
             SecureRandom rand = new FixedSecureRandom(source);
 
-            HssPrivateKeyParameters generatedPrivateKey = LmsEngine.GenerateHssKeyPair(
+            HssPrivateKeyParameters generatedPrivateKey = LmsTestUtilities.GenerateHssPrivateKey(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 lmsParameters[t] = new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4);
             }
 
-            return LmsEngine.GenerateHssKeyPair(new HssKeyGenerationParameters(lmsParameters, new SecureRandom()));
+            return LmsTestUtilities.GenerateHssPrivateKey(new HssKeyGenerationParameters(lmsParameters, new SecureRandom()));
         }
 
         /**
@@ -408,7 +408,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             FixedSecureRandom.Source[] source = { new FixedSecureRandom.Source(fixedSource) };
             SecureRandom rand = new FixedSecureRandom(source);
 
-            HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
+            HssPrivateKeyParameters keyPair = LmsTestUtilities.GenerateHssPrivateKey(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
@@ -439,7 +439,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 FixedSecureRandom.Source[] source1 = { new FixedSecureRandom.Source(fixedSource) };
                 SecureRandom rand1 = new FixedSecureRandom(source1);
 
-                HssPrivateKeyParameters regenKeyPair = LmsEngine.GenerateHssKeyPair(
+                HssPrivateKeyParameters regenKeyPair = LmsTestUtilities.GenerateHssPrivateKey(
                     new HssKeyGenerationParameters(new LmsParameters[]
                     {
                         new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
@@ -484,7 +484,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                 // Use a real secure random this time.
                 SecureRandom rand1 = new SecureRandom();
 
-                HssPrivateKeyParameters differentKey = LmsEngine.GenerateHssKeyPair(
+                HssPrivateKeyParameters differentKey = LmsTestUtilities.GenerateHssPrivateKey(
                     new HssKeyGenerationParameters(new LmsParameters[]
                     {
                         new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
@@ -607,7 +607,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                     LmsParameters[] lmsParamsArray = new LmsParameters[lmsParams.Count];
                     lmsParams.CopyTo(lmsParamsArray, 0);
-                    HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
+                    HssPrivateKeyParameters keyPair = LmsTestUtilities.GenerateHssPrivateKey(
                         new HssKeyGenerationParameters(
                             lmsParamsArray, fixRnd)
                     );
@@ -733,7 +733,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
                 LmsParameters[] lmsParamsArray = new LmsParameters[lmsParams.Count];
                 lmsParams.CopyTo(lmsParamsArray, 0);
-                HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
+                HssPrivateKeyParameters keyPair = LmsTestUtilities.GenerateHssPrivateKey(
                     new HssKeyGenerationParameters(lmsParamsArray, fixRnd)
                 );
 
@@ -815,7 +815,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void Remaining()
         {
-            HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
+            HssPrivateKeyParameters keyPair = LmsTestUtilities.GenerateHssPrivateKey(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2),
@@ -872,7 +872,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void Sharding()
         {
-            HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
+            HssPrivateKeyParameters keyPair = LmsTestUtilities.GenerateHssPrivateKey(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2),
@@ -963,7 +963,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         {
             HSSSecureRandom rand = new HSSSecureRandom();
 
-            HssPrivateKeyParameters keyPair = LmsEngine.GenerateHssKeyPair(
+            HssPrivateKeyParameters keyPair = LmsTestUtilities.GenerateHssPrivateKey(
                 new HssKeyGenerationParameters(new LmsParameters[]
                 {
                     new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2),
@@ -1378,7 +1378,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
                     levels[i] = lms;
                 }
 
-                HssPrivateKeyParameters hss = LmsEngine.GenerateHssKeyPair(
+                HssPrivateKeyParameters hss = LmsTestUtilities.GenerateHssPrivateKey(
                     new HssKeyGenerationParameters(levels, new SecureRandom()));
                 HssPublicKeyParameters pub = hss.GetPublicKey();
 
@@ -1434,7 +1434,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(4, new HssPrivateKeyParameters(lms, 4, twoToH).GetKeys()[0].GetIndex());
 
             // two levels: the root is post-incremented past the child it signed, the bottom reads its q directly
-            HssPrivateKeyParameters hss = LmsEngine.GenerateHssKeyPair(new HssKeyGenerationParameters(
+            HssPrivateKeyParameters hss = LmsTestUtilities.GenerateHssPrivateKey(new HssKeyGenerationParameters(
                 new LmsParameters[]
                 {
                     new LmsParameters(sigParams, otsParams),
@@ -1475,7 +1475,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             LMSigParameters sigParams = LMSigParameters.lms_sha256_n32_h5;
             LMOtsParameters otsParams = LMOtsParameters.sha256_n32_w2;
 
-            HssPrivateKeyParameters hss = LmsEngine.GenerateHssKeyPair(new HssKeyGenerationParameters(
+            HssPrivateKeyParameters hss = LmsTestUtilities.GenerateHssPrivateKey(new HssKeyGenerationParameters(
                 new LmsParameters[] { new LmsParameters(sigParams, otsParams) }, new SecureRandom()));
             HssPublicKeyParameters hssPub = hss.GetPublicKey();
             byte[] msg = Hex.Decode("48656c6c6f");
@@ -1565,7 +1565,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(1, decoded.GetIndex());
 
             // contention sweep: signatures in flight, encodings taken and decoded throughout
-            HssPrivateKeyParameters sweep = LmsEngine.GenerateHssKeyPair(new HssKeyGenerationParameters(
+            HssPrivateKeyParameters sweep = LmsTestUtilities.GenerateHssPrivateKey(new HssKeyGenerationParameters(
                 new LmsParameters[]
                 {
                     new LmsParameters(sigParams, otsParams),

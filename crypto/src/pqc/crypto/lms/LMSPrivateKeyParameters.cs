@@ -4,6 +4,7 @@ using System.Threading;
 
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Utilities;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
 
@@ -86,6 +87,31 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         //
         private LmsPublicKeyParameters m_publicKey;
 
+        /**
+         * A fresh LMS private key (RFC 8554 sec. 5.2, Algorithm 5): the SEED (m bytes) and then the identifier I
+         * (16 bytes) are drawn from the random, in that order, and the key starts at q = 0 with all 2^h one-time
+         * keys available.
+         */
+        internal static LmsPrivateKeyParameters Generate(LmsParameters lmsParameters, SecureRandom random)
+        {
+            if (lmsParameters == null)
+                throw new ArgumentNullException(nameof(lmsParameters));
+
+            LMSigParameters sigParameters = lmsParameters.LMSigParameters;
+
+            byte[] masterSecret = SecureRandom.GetNextBytes(random, sigParameters.M);
+            byte[] I = SecureRandom.GetNextBytes(random, 16);
+
+            return new LmsPrivateKeyParameters(lmsParameters, q: 0, I, maxQ: 1 << sigParameters.H, masterSecret);
+        }
+
+        /**
+         * The stand-in an HSS hierarchy holds for a level below the root while a fresh key is built: it carries
+         * the level's parameter set and size so that resetKeyToIndex can replace it, and refuses to act as a key.
+         */
+        internal static LmsPrivateKeyParameters CreatePlaceholder(LmsParameters lmsParameters, int maxQ) =>
+            new LmsPrivateKeyParameters(lmsParameters, maxQ);
+
         /// <summary>
         /// An LMS private key positioned at one-time key <paramref name="q"/> of the tree named by
         /// <paramref name="I"/> (RFC 8554 sec. 5.2, Algorithm 5).
@@ -138,14 +164,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.tCache = new byte[maxCacheR][];
         }
 
-        /**
-         * A key with no position, identifier or seed of its own - the placeholder an HSS hierarchy is
-         * built with for the levels below the root, each of which resetKeyToIndex replaces from the
-         * level above before the key is used. The sentinel values are deliberately ones the public
-         * constructor refuses, so a placeholder can never be mistaken for a key that was merely built
-         * carelessly; a subclass using this must not present the result as a usable key.
-         */
-        internal LmsPrivateKeyParameters(LmsParameters lmsParameters, int maxQ)
+        /// <summary>
+        /// A key with no position, identifier or seed of its own - the placeholder an HSS hierarchy is
+        /// built with for the levels below the root, each of which ResetKeyToIndex replaces from the
+        /// level above before the key is used. The sentinel values are deliberately ones the public
+        /// constructor refuses, so a placeholder can never be mistaken for a key that was merely built
+        /// carelessly; a subclass using this must not present the result as a usable key.
+        /// </summary>
+        private LmsPrivateKeyParameters(LmsParameters lmsParameters, int maxQ)
             : base(true)
         {
             this.m_lmsParameters = lmsParameters;

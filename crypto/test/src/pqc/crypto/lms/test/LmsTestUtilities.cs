@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 {
     public class LmsTestUtilities
     {
+        public static HssPrivateKeyParameters GenerateHssPrivateKey(HssKeyGenerationParameters parameters) =>
+            HssPrivateKeyParameters.Generate(parameters);
+
         /// <summary>Generate a key from the two parameter sets the vectors name it by.</summary>
         /// <remarks>Here for the same reason as the signing helpers below: the library takes the pair as an
         /// <see cref="LmsParameters"/>, and the two-parameter-set form is on its way out of the public API.</remarks>

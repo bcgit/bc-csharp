@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     {
         // TODO[api] Remove
         public static HssPrivateKeyParameters GenerateHssKeyPair(HssKeyGenerationParameters parameters) =>
-            LmsEngine.GenerateHssKeyPair(parameters);
+            HssPrivateKeyParameters.Generate(parameters);
 
         // TODO[api] Remove
         public static void IncrementIndex(HssPrivateKeyParameters keyPair) => keyPair.IncrementIndex();

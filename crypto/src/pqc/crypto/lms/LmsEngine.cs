@@ -2,7 +2,6 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
@@ -107,53 +106,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// </param>
         internal static LmsContext WithSignedPublicKeys(LmsContext context, LmsSignedPubKey[] signedPubKeys) =>
             context.WithSignedPublicKeys(signedPubKeys);
-
-        /// <summary>An HSS private key at index zero, over the parameter sets <paramref name="parameters"/> names
-        /// for each level (RFC 8554 sec. 6.1).</summary>
-        internal static HssPrivateKeyParameters GenerateHssKeyPair(HssKeyGenerationParameters parameters)
-        {
-            //
-            // LmsPrivateKey can derive and hold the public key so we just use an array of those.
-            //
-            LmsPrivateKeyParameters[] keys = new LmsPrivateKeyParameters[parameters.Depth];
-            LmsSignature[] sig = new LmsSignature[parameters.Depth - 1];
-
-            var rootLms = parameters.GetLmsParameters(0);
-
-            byte[] masterSecret = SecureRandom.GetNextBytes(parameters.Random, rootLms.LMSigParameters.M);
-            byte[] I = SecureRandom.GetNextBytes(parameters.Random, 16);
-
-            //
-            // Set the HSS key up with a valid root LMSPrivateKeyParameters and placeholders for the remaining LMS keys.
-            // The placeholders pass enough information to allow the HSSPrivateKeyParameters to be properly reset to an
-            // index of zero. Rather than repeat the same reset-to-index logic in this static method.
-            //
-
-            int rootMaxQ = 1 << rootLms.LMSigParameters.H;
-
-            keys[0] = new LmsPrivateKeyParameters(rootLms, q: 0, I, rootMaxQ, masterSecret);
-
-            long hssKeyMaxIndex = rootMaxQ;
-
-            for (int t = 1; t < keys.Length; t++)
-            {
-                var lms = parameters.GetLmsParameters(t);
-
-                // Placeholder
-                keys[t] = new LmsPrivateKeyParameters(lms, 1 << lms.LMSigParameters.H);
-
-                hssKeyMaxIndex <<= lms.LMSigParameters.H;
-            }
-
-            // if this has happened we're trying to generate a really large key
-            // we'll use MAX_VALUE so that it's at least usable until someone upgrades the structure.
-            if (hssKeyMaxIndex <= 0L)
-            {
-                hssKeyMaxIndex = long.MaxValue;
-            }
-
-            return new HssPrivateKeyParameters(parameters.Depth, keys, sig, 0, hssKeyMaxIndex);
-        }
 
         /// <summary>
         /// Sign a message in one step with the current one-time key of <paramref name="privateKey"/>.
