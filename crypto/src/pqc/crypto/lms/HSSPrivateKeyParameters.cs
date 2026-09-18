@@ -534,7 +534,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 byte[] childI = child.Item1;
                 byte[] childSeed = child.Item2;
 
-                LmsPrivateKeyParameters oldKey = oldHierarchy.GetKey(i), newKey = oldKey;
+                LmsPrivateKeyParameters oldKey = oldHierarchy.GetKey(i);
+                LmsPrivateKeyParameters newKey = oldKey;
 
                 //
                 // Q values in LMS keys post increment after they are used.
@@ -556,15 +557,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                     //
                     // This means the parent has changed.
                     //
-                    newKey = GenerateKey(oldKey.LmsParameters, (int)qTreePath[i], childI, childSeed);
-
                     oldHierarchy.EnsureCopies(ref newKeys, ref newSig);
-                    newKeys[i] = newKey;
-
-                    //
-                    // Ensure post increment occurs on parent and the new public key is signed.
-                    //
-                    newSig[i - 1] = SignPublicKey(parentKey, newKey.GetPublicKey());
+                    newKey = ReplaceLevel(newKeys, newSig, i, oldKey.LmsParameters, q: (int)qTreePath[i], childI, childSeed);
                 }
                 else if (!lmsQMatch)
                 {
@@ -688,36 +682,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 byte[] childSeed = childKey.Item2;
 
                 // The replacement keeps the parameters of the key it replaces
-                newKeys[d] = GenerateKey(newKeys[d].LmsParameters, 0, childI, childSeed);
+                LmsPrivateKeyParameters oldKey = newKeys[d];
 
-                newSig[d - 1] = SignPublicKey(newKeys[d - 1], newKeys[d].GetPublicKey());
+                ReplaceLevel(newKeys, newSig, d, oldKey.LmsParameters, q: 0, childI, childSeed);
             }
 
             // The replaced keys and the signatures over them reach readers together
             Volatile.Write(ref m_hierarchy, new Hierarchy(newKeys, newSig));
         }
 
-        /// <summary>An LMS private key positioned at one-time key <paramref name="q"/> (RFC 8554 sec. 5.2,
-        /// Algorithm 5), for the levels this key rebuilds.</summary>
-        private static LmsPrivateKeyParameters GenerateKey(LmsParameters lmsParameters, int q, byte[] I,
-            byte[] masterSecret)
-        {
-            return new LmsPrivateKeyParameters(lmsParameters, q, I, 1 << lmsParameters.LMSigParameters.H,
-                masterSecret);
-        }
-
         /// <summary>
-        /// The chaining signature of an HSS hierarchy: a tree signs the public key of the tree below it, consuming
-        /// one of its one-time keys.
+        /// Replace level d of a hierarchy: an LMS private key positioned at index q(RFC 8554 sec. 5.2, Algorithm 5)
+        /// built from the identifier and seed the level above derived for it, together with the chaining signature
+        /// over its public key, which the level above makes by consuming one of its one - time keys(sec. 6.1).
+        /// Writes keys[d] and sig[d - 1]; keys[d - 1] must already be the level above.
         /// </summary>
-        private static LmsSignature SignPublicKey(LmsPrivateKeyParameters signer,
-            LmsPublicKeyParameters publicKey)
+        private static LmsPrivateKeyParameters ReplaceLevel(LmsPrivateKeyParameters[] keys, LmsSignature[] sig, int d,
+            LmsParameters lmsParameters, int q, byte[] I, byte[] masterSecret)
         {
-            LmsContext context = signer.GenerateLmsContext();
+            //
+            // RFC 8554 recommends the digest used in LMS and LMOTS be of the same strength to protect against
+            // attackers going after the weaker of the two digests. This is not enforced here!
+            //
+            LmsPrivateKeyParameters key = new LmsPrivateKeyParameters(lmsParameters, q, I,
+                1 << lmsParameters.LMSigParameters.H, masterSecret);
 
-            publicKey.UpdateDigest(context);
+            LmsContext context = keys[d - 1].GenerateLmsContext();
 
-            return LmsEngine.GenerateSign(context);
+            key.GetPublicKey().UpdateDigest(context);
+
+            keys[d] = key;
+            sig[d - 1] = LmsEngine.GenerateSign(context);
+
+            return key;
         }
 
         public override bool Equals(object obj)
