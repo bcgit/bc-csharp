@@ -602,7 +602,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             if (targetQ < currentQ)
             {
-                throw new InvalidOperationException(
+                throw new ArgumentException(
                     $"HSS private key index would move level {level} back from one-time key {currentQ} to {targetQ}");
             }
         }

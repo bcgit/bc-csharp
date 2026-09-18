@@ -1429,7 +1429,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             }
             Assert.AreEqual(3, lms.GetIndex());
 
-            Assert.Throws<InvalidOperationException>(() => new HssPrivateKeyParameters(lms, 2, twoToH));
+            Assert.Throws<ArgumentException>(() => new HssPrivateKeyParameters(lms, 2, twoToH));
             Assert.AreEqual(3, new HssPrivateKeyParameters(lms, 3, twoToH).GetIndex());
             Assert.AreEqual(4, new HssPrivateKeyParameters(lms, 4, twoToH).GetKeys()[0].GetIndex());
 
@@ -1451,9 +1451,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             Assert.AreEqual(1, keys[1].GetIndex());
 
             // back one leaf within the current bottom tree
-            Assert.Throws<InvalidOperationException>(() => new HssPrivateKeyParameters(2, keys, sig, twoToH, limit));
+            Assert.Throws<ArgumentException>(() => new HssPrivateKeyParameters(2, keys, sig, twoToH, limit));
             // back into the previous bottom tree, which the root has already signed and moved past
-            Assert.Throws<InvalidOperationException>(() => new HssPrivateKeyParameters(2, keys, sig, 5, limit));
+            Assert.Throws<ArgumentException>(() => new HssPrivateKeyParameters(2, keys, sig, 5, limit));
             // the position the keys are at, and one further on, are both fine
             Assert.AreEqual(twoToH + 1, new HssPrivateKeyParameters(2, keys, sig, twoToH + 1, limit).GetIndex());
             HssPrivateKeyParameters forward = new HssPrivateKeyParameters(2, keys, sig, twoToH + 8, limit);
