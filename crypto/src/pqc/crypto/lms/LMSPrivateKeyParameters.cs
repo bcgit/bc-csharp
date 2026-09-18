@@ -122,7 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // TODO[api] Rename lmsParameter to sigParameters
         public LmsPrivateKeyParameters(LMSigParameters lmsParameter, LMOtsParameters otsParameters, int q, byte[] I,
             int maxQ, byte[] masterSecret)
-            : this(new LmsParameters(lmsParameter, otsParameters), q, Arrays.Clone(I), maxQ, Arrays.Clone(masterSecret))
+            : this(LmsParameters.Create(lmsParameter, otsParameters), q, Arrays.Clone(I), maxQ, Arrays.Clone(masterSecret))
         {
         }
 
@@ -354,7 +354,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             byte[] masterSecret = BinaryReaders.ReadBytesFully(binaryReader, l);
 
-            return new LmsPrivateKeyParameters(new LmsParameters(sigParameter, otsParameter), q, I, maxQ, masterSecret);
+            return new LmsPrivateKeyParameters(LmsParameters.Create(sigParameter, otsParameter), q, I, maxQ, masterSecret);
         }
 
         private static void ReadTreeCache(BinaryReader binaryReader, LmsPrivateKeyParameters key) =>

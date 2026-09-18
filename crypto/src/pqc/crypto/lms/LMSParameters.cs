@@ -4,10 +4,20 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
     public sealed class LmsParameters
     {
+        /// <summary>
+        /// Pair LMS tree parameters with the LM-OTS parameters of its one-time keys.
+        /// </summary>
+        /// <param name="sigParameters">The LMS tree parameters.</param>
+        /// <param name="otsParameters">The LM-OTS one-time signature parameters.</param>
+        /// <returns>The parameter set.</returns>
+        /// <exception cref="ArgumentNullException">If either argument is null.</exception>
+        public static LmsParameters Create(LMSigParameters sigParameters, LMOtsParameters otsParameters) =>
+            new LmsParameters(sigParameters, otsParameters);
+
         private readonly LMSigParameters m_sigParameters;
         private readonly LMOtsParameters m_otsParameters;
 
-        // TODO[api] Rename parameters like fields
+        // TODO[api] Make internal, rename parameters like fields
         public LmsParameters(LMSigParameters lmSigParameters, LMOtsParameters lmOtsParameters)
         {
             m_sigParameters = lmSigParameters ?? throw new ArgumentNullException(nameof(lmSigParameters));

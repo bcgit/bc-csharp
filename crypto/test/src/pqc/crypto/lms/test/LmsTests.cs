@@ -484,7 +484,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             int m = sigParams.M;
 
             LmsKeyPairGenerator gen = new LmsKeyPairGenerator();
-            gen.Init(new LmsKeyGenerationParameters(new LmsParameters(sigParams, otsParams), new SecureRandom()));
+            gen.Init(new LmsKeyGenerationParameters(LmsParameters.Create(sigParams, otsParams), new SecureRandom()));
             LmsPrivateKeyParameters priv = (LmsPrivateKeyParameters)gen.GenerateKeyPair().Private;
             byte[] enc = priv.GetEncoded();
 
@@ -618,7 +618,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         [Test]
         public void RandomConstructorDrawOrder()
         {
-            var lmsParameters = new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2);
+            var lmsParameters = LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2);
             int m = lmsParameters.LMSigParameters.M;
 
             byte[] seed = new byte[m];
@@ -693,7 +693,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             int m = sigParams.M;
 
             LmsKeyPairGenerator gen = new LmsKeyPairGenerator();
-            gen.Init(new LmsKeyGenerationParameters(new LmsParameters(sigParams, otsParams), new SecureRandom()));
+            gen.Init(new LmsKeyGenerationParameters(LmsParameters.Create(sigParams, otsParams), new SecureRandom()));
             LmsPrivateKeyParameters priv = (LmsPrivateKeyParameters)gen.GenerateKeyPair().Private;
             byte[] enc = priv.GetEncoded();
 
@@ -1117,9 +1117,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
             // and against real signatures, one set per hash length and function
             LmsParameters[] samples =
             {
-                new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
-                new LmsParameters(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4),
-                new LmsParameters(LMSigParameters.lms_shake256_n24_h5, LMOtsParameters.shake256_n24_w1),
+                LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                LmsParameters.Create(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4),
+                LmsParameters.Create(LMSigParameters.lms_shake256_n24_h5, LMOtsParameters.shake256_n24_w1),
             };
             byte[] seed = Hex.Decode("558b8966c48ae9cb898b423c83443aae014a72f1b1ab5cc85cf1d892903b5439");
             byte[] I = Hex.Decode("d08fabd4a2091ff0a8cb4ed834e74534");

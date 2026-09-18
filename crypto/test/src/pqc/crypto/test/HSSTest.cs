@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             var lmsParameters = new LmsParameters[]
             {
-                new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
+                LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
             };
             kpGen.Init(new HssKeyGenerationParameters(lmsParameters, new SecureRandom()));
 
@@ -49,8 +49,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             var lmsParameters = new LmsParameters[]
             {
-                new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
-                new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
+                LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
             };
             kpGen.Init(new HssKeyGenerationParameters(lmsParameters, new SecureRandom()));
 
@@ -75,8 +75,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
             IAsymmetricCipherKeyPairGenerator kpGen = new HssKeyPairGenerator();
             kpGen.Init(new HssKeyGenerationParameters(
                 new LmsParameters[]{
-                    new LmsParameters(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4),
-                    new LmsParameters(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4)
+                    LmsParameters.Create(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4),
+                    LmsParameters.Create(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4),
                 },
                 new SecureRandom()));
 
@@ -98,9 +98,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             kpGen.Init(new HssKeyGenerationParameters(
                 new LmsParameters[]{
-                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
-                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
-                }, new SecureRandom()));
+                    LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                    LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                },
+                new SecureRandom()));
 
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 
@@ -139,9 +140,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Tests
 
             kpGen.Init(new HssKeyGenerationParameters(
                 new LmsParameters[]{
-                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
-                    new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4)
-                }, new SecureRandom()));
+                    LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                    LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                },
+                new SecureRandom()));
             
             AsymmetricCipherKeyPair kp = kpGen.GenerateKeyPair();
 

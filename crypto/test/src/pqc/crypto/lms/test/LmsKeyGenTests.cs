@@ -157,11 +157,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
         {
             SecureRandom random = new SecureRandom();
 
-            LmsParameters n32 = new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4);
-            LmsParameters n24 = new LmsParameters(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4);
-            LmsParameters shaTreeShakeOts = new LmsParameters(LMSigParameters.lms_sha256_n32_h5,
+            LmsParameters n32 = LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4);
+            LmsParameters n24 = LmsParameters.Create(LMSigParameters.lms_sha256_n24_h5, LMOtsParameters.sha256_n24_w4);
+            LmsParameters shaTreeShakeOts = LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5,
                 LMOtsParameters.shake256_n32_w4);
-            LmsParameters n32TreeN24Ots = new LmsParameters(LMSigParameters.lms_sha256_n32_h5,
+            LmsParameters n32TreeN24Ots = LmsParameters.Create(LMSigParameters.lms_sha256_n32_h5,
                 LMOtsParameters.sha256_n24_w4);
 
             Assert.Throws<ArgumentException>(() => new LmsKeyGenerationParameters(shaTreeShakeOts, random));

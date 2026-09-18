@@ -14,8 +14,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private byte[] I;
         private byte[] T1;
 
+        // TODO[api] Rename parameters
         public LmsPublicKeyParameters(LMSigParameters parameterSet, LMOtsParameters lmOtsType, byte[] T1, byte[] I)
-            : this(new LmsParameters(parameterSet, lmOtsType), Arrays.Clone(T1), Arrays.Clone(I))
+            : this(LmsParameters.Create(parameterSet, lmOtsType), Arrays.Clone(T1), Arrays.Clone(I))
         {
         }
 
@@ -60,7 +61,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, sigParameter.M);
 
-            return new LmsPublicKeyParameters(new LmsParameters(sigParameter, otsParameter), T1, I);
+            return new LmsPublicKeyParameters(LmsParameters.Create(sigParameter, otsParameter), T1, I);
         }
 
         internal static LmsPublicKeyParameters Parse(Stream stream) =>
