@@ -10,6 +10,7 @@ using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 {
@@ -607,6 +608,45 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms.Tests
 
             // the tree is built after the mutation, from the key's own copies
             Assert.That(key.GetPublicKey().GetEncoded(), Is.EqualTo(expectedPublicKey));
+        }
+
+        /**
+        * The random-drawing constructor consumes SEED (m bytes) then I (16 bytes), the reference implementation's
+        * order that the HSS vectors in bc-test-data pin, and yields the key the explicit constructor builds from
+        * those bytes at q = 0 with 2^h one-time keys. The key pair generator is a thin wrapper over it.
+        */
+        [Test]
+        public void RandomConstructorDrawOrder()
+        {
+            var lmsParameters = new LmsParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2);
+            int m = lmsParameters.LMSigParameters.M;
+
+            byte[] seed = new byte[m];
+            byte[] I = new byte[16];
+            for (int i = 0; i != seed.Length; i++)
+            {
+                seed[i] = (byte)(0x40 + i);
+            }
+            for (int i = 0; i != I.Length; i++)
+            {
+                I[i] = (byte)(0x80 + i);
+            }
+
+            LmsPrivateKeyParameters expected = new LmsPrivateKeyParameters(lmsParameters.LMSigParameters,
+                lmsParameters.LMOtsParameters, 0, I, 1 << lmsParameters.LMSigParameters.H, seed);
+
+            LmsPrivateKeyParameters drawn = LmsPrivateKeyParameters.Generate(lmsParameters,
+                FixedSecureRandom.From(seed, I));
+            Assert.AreEqual(expected, drawn);
+            Assert.That(Arrays.AreEqual(I, drawn.GetI()));
+
+            LmsKeyPairGenerator gen = new LmsKeyPairGenerator();
+            gen.Init(new LmsKeyGenerationParameters(lmsParameters, FixedSecureRandom.From(seed, I)));
+            Assert.AreEqual(expected, gen.GenerateKeyPair().Private);
+
+            // the other order is a different key
+            LmsPrivateKeyParameters swapped = LmsPrivateKeyParameters.Generate(lmsParameters, FixedSecureRandom.From(I, seed));
+            Assert.AreNotEqual(expected, swapped);
         }
 
         private static void ExpectBadArgument(String message, LMSigParameters sigParams, LMOtsParameters otsParams,
