@@ -15,11 +15,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private byte[] T1;
 
         public LmsPublicKeyParameters(LMSigParameters parameterSet, LMOtsParameters lmOtsType, byte[] T1, byte[] I)
+            : this(new LmsParameters(parameterSet, lmOtsType), Arrays.Clone(T1), Arrays.Clone(I))
+        {
+        }
+
+        /// <remarks>Takes ownership of <paramref name="T1"/> and <paramref name="I"/> without copying.</remarks>
+        internal LmsPublicKeyParameters(LmsParameters lmsParameters, byte[] T1, byte[] I)
             : base(false)
         {
-            this.m_lmsParameters = new LmsParameters(parameterSet, lmOtsType);
-            this.I = Arrays.Clone(I);
-            this.T1 = Arrays.Clone(T1);
+            this.m_lmsParameters = lmsParameters;
+            this.I = I;
+            this.T1 = T1;
         }
 
         private LMSigParameters SigParameters => m_lmsParameters.LMSigParameters;
@@ -52,7 +58,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             byte[] T1 = BinaryReaders.ReadBytesFully(binaryReader, sigParameter.M);
 
-            return new LmsPublicKeyParameters(sigParameter, otsParameter, T1, I);
+            return new LmsPublicKeyParameters(new LmsParameters(sigParameter, otsParameter), T1, I);
         }
 
         internal static LmsPublicKeyParameters Parse(Stream stream) =>

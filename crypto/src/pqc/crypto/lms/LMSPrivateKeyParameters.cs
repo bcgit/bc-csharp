@@ -17,8 +17,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             privateKey.RetainFirstPath();
 
-            return new LmsPublicKeyParameters(privateKey.SigParameters, privateKey.OtsParameters, privateKey.FindT(1),
-                privateKey.I);
+            // Tree nodes and I are immutable once published, so the public key shares them rather than copying.
+            return new LmsPublicKeyParameters(privateKey.m_lmsParameters, privateKey.FindT(1), privateKey.I);
         }
 
         private static readonly Func<LmsPrivateKeyParameters, LmsPublicKeyParameters> s_derivePublicKey =
