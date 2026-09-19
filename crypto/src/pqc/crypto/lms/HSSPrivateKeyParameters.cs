@@ -62,15 +62,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             internal LmsSignature GetSig(int index) => m_sig[index];
 
             /// <summary>The parameter sets of every level, in order from the root.</summary>
-            internal LmsParameters[] GetLmsParameters()
-            {
-                var parameters = new LmsParameters[m_keys.Length];
-                for (int i = 0; i < m_keys.Length; i++)
-                {
-                    parameters[i] = m_keys[i].LmsParameters;
-                }
-                return parameters;
-            }
+            internal LmsParameters[] GetLmsParameters() => CollectionUtilities.Map(m_keys, key => key.LmsParameters);
 
             internal LmsPrivateKeyParameters[] CopyKeys() => (LmsPrivateKeyParameters[])m_keys.Clone();
 
@@ -630,23 +622,26 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
                 int L = m_level;
                 int d = L;
-                Hierarchy hierarchy = CurrentHierarchy;
+                Hierarchy currentHierarchy = CurrentHierarchy;
                 while (true)
                 {
-                    LmsPrivateKeyParameters key = hierarchy.GetKey(d - 1);
+                    LmsPrivateKeyParameters key = currentHierarchy.GetKey(d - 1);
 
-                    // The whole tree, not the key's own maxQ: a component key given a narrower limit keeps it, and
-                    // replacing the level would hand back a full tree in its place
-                    // (IndexAndComponentIndexClaimedTogether). >= rather than ==: an index above 2^h steps straight
-                    // over an equality test (bc-java github #2414). Decode now rejects such a q, so this is belt
-                    // and braces.
-                    if (key.GetIndex() < 1 << key.SigParameters.H)
+                    // The whole tree, not the key's own maxQ: a component key given a narrower usage limit is
+                    // left to refuse for itself once it reaches it. Judging it by maxQ would replace the level
+                    // with a fresh full tree, lifting a limit the caller set and spending a one-time key of the
+                    // level above to sign it (IndexAndComponentIndexClaimedTogether).
+                    int keyIndexLimit = 1 << key.SigParameters.H;
+
+                    // < rather than !=: an index above 2^h steps straight over an equality test
+                    // (bc-java github #2414). Decode now rejects such a q, so this is belt and braces.
+                    if (key.GetIndex() < keyIndexLimit)
                         break;
 
                     if (--d == 0)
                     {
                         throw new ExhaustedPrivateKeyException("hss private key" + (m_isShard ? " shard" : "") +
-                            " is exhausted the maximum limit for this HSS private key");
+                            " has no one-time keys left at any level");
                     }
                 }
 
