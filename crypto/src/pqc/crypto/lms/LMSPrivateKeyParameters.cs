@@ -13,17 +13,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     public sealed class LmsPrivateKeyParameters
         : LmsKeyParameters, ILmsContextBasedSigner
     {
-        private static LmsPublicKeyParameters DerivePublicKey(LmsPrivateKeyParameters privateKey)
-        {
-            privateKey.RetainFirstPath();
-
-            // Tree nodes and I are immutable once published, so the public key shares them rather than copying.
-            return new LmsPublicKeyParameters(privateKey.m_lmsParameters, privateKey.FindT(1), privateKey.I);
-        }
-
-        private static readonly Func<LmsPrivateKeyParameters, LmsPublicKeyParameters> s_derivePublicKey =
-            DerivePublicKey;
-
         // The number of tree nodes eligible for the cache (nodes 1 .. CacheTopLimit - 1: the top six levels of the
         // tree), in memory and in the persisted trailer alike. Mirrors the interned-key table size in the bc-java
         // implementation, which defines the interchange format's cache-count limit.
@@ -55,7 +44,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // The arrays of both tiers are handed out by reference to contexts and signatures and must never be modified
         // or wiped.
         private readonly byte[][] tCache;
-        private readonly int maxCacheR;
         private RetainedPath m_retained;
 
         // The authentication path of one-time key Q with the ancestors of its leaf, indexed by level from the leaf
@@ -76,7 +64,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         }
 
         private int q;
-        private readonly bool m_isPlaceholder;
 
         //
         // This is not final because it can be generated.
@@ -105,12 +92,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LmsPrivateKeyParameters(lmsParameters, q: 0, I, maxQ: 1 << sigParameters.H, masterSecret);
         }
 
-        /**
-         * The stand-in an HSS hierarchy holds for a level below the root while a fresh key is built: it carries
-         * the level's parameter set and size so that resetKeyToIndex can replace it, and refuses to act as a key.
-         */
+        /// <summary>
+        /// The stand-in an HSS hierarchy holds for a level below the root while a fresh key is built: it carries
+        /// the level's parameter set and size so that resetKeyToIndex can replace it, and refuses to act as a key.
+        /// </summary>
         internal static LmsPrivateKeyParameters CreatePlaceholder(LmsParameters lmsParameters, int maxQ) =>
             new LmsPrivateKeyParameters(lmsParameters, maxQ);
+
+        /// <summary>
+        /// The node cache for a tree of the given height: room for nodes 1 .. maxCacheR - 1, where maxCacheR is
+        /// the whole tree(2^(h + 1) nodes) or CACHE_TOP_LIMIT, whichever is smaller.
+        /// </summary>
+        private static byte[][] CreateCache(LMSigParameters sigParameters)
+        {
+            int maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
+
+            return new byte[maxCacheR][];
+        }
 
         /// <summary>
         /// An LMS private key positioned at one-time key <paramref name="q"/> of the tree named by
@@ -161,8 +159,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.I = I;
             this.maxQ = maxQ;
             this.masterSecret = masterSecret;
-            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (sigParameters.H + 1));
-            this.tCache = new byte[maxCacheR][];
+            this.tCache = CreateCache(sigParameters);
         }
 
         /// <summary>
@@ -180,20 +177,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.I = Array.Empty<byte>();
             this.maxQ = maxQ;
             this.masterSecret = Array.Empty<byte>();
-            this.maxCacheR = System.Math.Min(CacheTopLimit, 1 << (lmsParameters.LMSigParameters.H + 1));
-            this.tCache = new byte[maxCacheR][];
-            this.m_isPlaceholder = true;
-        }
-
-        private LmsPrivateKeyParameters(LmsPrivateKeyParameters parent, int q, int maxQ)
-            : this(parent, q, maxQ, System.Math.Min(CacheTopLimit, 1 << parent.SigParameters.H))
-        {
+            // no tree to cache: ResetKeyToIndex replaces a placeholder before anything reaches its nodes, and a
+            // placeholder that leaked past it should fail on the first cache access rather than encode a bogus key
+            this.tCache = null;
         }
 
         // TODO[lms] I, masterSecret and tCache are shared by reference with the parent (m_retained too, but it is
         // immutable and holds no secrets). Disposal of either key must account for the shards and repositioned keys
         // derived from it, and a CalcT racing a wipe would cache or retain a node computed from zeroed input.
-        private LmsPrivateKeyParameters(LmsPrivateKeyParameters parent, int q, int maxQ, int maxCacheR)
+        private LmsPrivateKeyParameters(LmsPrivateKeyParameters parent, int q, int maxQ)
             : base(true)
         {
             this.m_lmsParameters = parent.m_lmsParameters;
@@ -201,7 +193,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             this.I = parent.I;
             this.maxQ = maxQ;
             this.masterSecret = parent.masterSecret;
-            this.maxCacheR = maxCacheR;
             this.tCache = parent.tCache;
             this.m_retained = parent.m_retained;
             // Inherited if the parent has it already; if a concurrent GetPublicKey is still deriving it, this key
@@ -226,7 +217,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 if (q < 0 || q > twoToH)
                     throw new ArgumentException($"LMS private key q out of range: q={q} 2^h={twoToH}", nameof(q));
 
-                return new LmsPrivateKeyParameters(this, q, twoToH, maxCacheR);
+                return new LmsPrivateKeyParameters(this, q, twoToH);
             }
         }
 
@@ -479,7 +470,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
-                CheckDisposed();
+                CheckUsable();
 
                 if (q >= maxQ)
                     throw new ExhaustedPrivateKeyException("ots private key exhausted");
@@ -507,7 +498,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             lock (this)
             {
-                CheckDisposed();
+                CheckUsable();
 
                 return LmsEngine.DeriveChildKey(OtsParameters, I, masterSecret, q);
             }
@@ -522,6 +513,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
             lock (this)
             {
+                // not CheckUsable: ResetKeyToIndex asks a placeholder this, and its empty I answers no
                 CheckDisposed();
 
                 return Arrays.AreEqual(this.I, I) && Arrays.FixedTimeEquals(this.masterSecret, masterSecret);
@@ -544,9 +536,6 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public LmsContext GenerateLmsContext()
         {
-            if (m_isPlaceholder)
-                throw new InvalidOperationException("placeholder only");
-
             int q;
             byte[][] path;
 
@@ -557,7 +546,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             //
             lock (this)
             {
-                CheckDisposed();
+                CheckUsable();
 
                 if (this.q >= maxQ)
                     throw new ExhaustedPrivateKeyException("ots private key exhausted");
@@ -633,7 +622,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             // Clone first, check second: a disposal that lands in between has set the flag before
             // it clears the array, so a stale copy is never handed out.
-            CheckDisposed();
+            CheckUsable();
 
             return rv;
         }
@@ -653,12 +642,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// the key for its duration. Concurrent callers race harmlessly - <see cref="FindT(int)"/> already dedupes
         /// the expensive per-node work, so a second caller finds the tree built - and the first to publish wins.
         /// </remarks>
-        public LmsPublicKeyParameters GetPublicKey()
-        {
-            if (m_isPlaceholder)
-                throw new InvalidOperationException("placeholder only");
+        public LmsPublicKeyParameters GetPublicKey() =>
+            Objects.EnsureSingletonInitialized(ref m_publicKey, this, self => self.DerivePublicKey());
 
-            return Objects.EnsureSingletonInitialized(ref m_publicKey, this, s_derivePublicKey);
+        private LmsPublicKeyParameters DerivePublicKey()
+        {
+            CheckNotPlaceholder();
+
+            RetainFirstPath();
+
+            // Tree nodes and I are immutable once published, so the public key shares them rather than copying.
+            return new LmsPublicKeyParameters(m_lmsParameters, FindT(1), I);
         }
 
         /**
@@ -684,7 +678,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal void PrimeTreeCache(byte[][] cachedT)
         {
             // Published the way FindT publishes a node it computed, so a reader sees a whole node or none of it
-            for (int r = 1; r < cachedT.Length && r < maxCacheR; r++)
+            int limit = System.Math.Min(cachedT.Length, tCache.Length);
+
+            for (int r = 1; r < limit; r++)
             {
                 if (cachedT[r] != null)
                 {
@@ -697,7 +693,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// within the pinned top).</summary>
         internal byte[] FindT(int r)
         {
-            if (r < maxCacheR)
+            if (r < tCache.Length)
             {
                 byte[] cached = Volatile.Read(ref tCache[r]);
                 if (cached != null)
@@ -722,7 +718,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// </remarks>
         private byte[] FindT(int r, IDigest tDigest, byte[] K)
         {
-            if (r >= maxCacheR)
+            if (r >= tCache.Length)
                 return CalcT(r, tDigest, K);
 
             byte[] cached = Volatile.Read(ref tCache[r]);
@@ -747,7 +743,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 return LmsEngine.ComputeNode(tDigest, I, r, left, right);
             }
 
-            CheckDisposed();
+            //
+            // These can be pre generated at the time of key generation and held within the private key.
+            // However it will cost memory to have them stick around.
+            //
+
+            CheckUsable();
 
             return LmsEngine.ComputeLeaf(tDigest, K, OtsParameters, I, r, r - twoToH, masterSecret);
         }
@@ -864,7 +865,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             for (int level = 0; level < fresh; ++level)
             {
                 int node = r >> level;
-                if (node < maxCacheR)
+                if (node < tCache.Length)
                 {
                     anc[level] = Objects.EnsureSingletonInitialized(ref tCache[node], anc[level]);
                 }
@@ -919,7 +920,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public override byte[] GetEncoded()
         {
-            CheckDisposed();
+            CheckUsable();
 
             int q = GetIndex();
 
@@ -953,7 +954,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
             // The whole of the in-memory cache is eligible, so a decoded key resumes with the cache it was encoded
             // with; FindT computes any node not yet there.
-            int cacheTop = maxCacheR;
+            int cacheTop = tCache.Length;
 
             Composer composer = Composer.Compose()
                 .U32Str(0) // version
@@ -977,6 +978,18 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private void CheckDisposed()
         {
             // TODO[lms] Implement IDisposable instead of Java's Destroyable and check liveness here
+        }
+
+        private void CheckNotPlaceholder()
+        {
+            if (tCache == null)
+                throw new InvalidOperationException("placeholder only");
+        }
+
+        private void CheckUsable()
+        {
+            CheckDisposed();
+            CheckNotPlaceholder();
         }
     }
 }
