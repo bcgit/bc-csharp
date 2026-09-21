@@ -580,7 +580,10 @@ namespace Org.BouncyCastle.Security
         private ErasableByteStream ValidateStream(Stream inputStream, char[] password)
         {
             byte[] rawStore = Streams.ReadAll(inputStream);
-            int checksumPos = GetChecksumPos(rawStore);
+
+            // Only SHA-1 is supported
+            int checksumSize = 20;
+            int checksumPos = GetChecksumPos(rawStore, checksumSize);
 
             if (password != null)
             {
@@ -590,7 +593,7 @@ namespace Org.BouncyCastle.Security
                 byte[] checksum = CalculateChecksum(password, rawStore, 0, checksumPos);
 #endif
 
-                if (!Arrays.FixedTimeEquals(20, checksum, 0, rawStore, checksumPos))
+                if (!Arrays.FixedTimeEquals(checksumSize, checksum, 0, rawStore, checksumPos))
                 {
                     Array.Clear(rawStore, 0, rawStore.Length);
                     throw new IOException("password incorrect or store tampered with");
@@ -605,11 +608,14 @@ namespace Org.BouncyCastle.Security
         private ErasableByteStream ValidateStream(Stream inputStream, ReadOnlySpan<char> password)
         {
             byte[] rawStore = Streams.ReadAll(inputStream);
-            int checksumPos = GetChecksumPos(rawStore);
+
+            // Only SHA-1 is supported
+            int checksumSize = 20;
+            int checksumPos = GetChecksumPos(rawStore, checksumSize);
 
             byte[] checksum = CalculateChecksum(password, rawStore.AsSpan(0, checksumPos));
 
-            if (!Arrays.FixedTimeEquals(20, checksum, 0, rawStore, checksumPos))
+            if (!Arrays.FixedTimeEquals(checksumSize, checksum, 0, rawStore, checksumPos))
             {
                 Array.Clear(rawStore, 0, rawStore.Length);
                 throw new IOException("password incorrect or store tampered with");
@@ -662,14 +668,14 @@ namespace Org.BouncyCastle.Security
             return (X509Certificate[])chain?.Clone();
         }
 
-        /// <exception cref="IOException"/>
-        private static int GetChecksumPos(byte[] rawStore)
+        /// <exception cref="EndOfStreamException"/>
+        private static int GetChecksumPos(byte[] rawStore, int checksumSize)
         {
-            // A store is at least the 12-byte header (magic, version, entry count) plus a 20-byte checksum
-            if (rawStore.Length < 32)
-                throw new IOException("Invalid keystore format");
+            // A store is at least the 12-byte header (magic, version, entry count) plus a checksum
+            if (rawStore.Length - checksumSize < 12)
+                throw new EndOfStreamException("Invalid keystore format");
 
-            return rawStore.Length - 20;
+            return rawStore.Length - checksumSize;
         }
 
         private static string ConvertAlias(string alias)

@@ -204,8 +204,8 @@ namespace Org.BouncyCastle.Security.Tests
                 byte[] store = new byte[length];
                 Array.Copy(Test1, store, length);
 
-                Assert.Catch<IOException>(() => new JksStore().LoadUnchecked(new MemoryStream(store, false)));
-                Assert.Catch<IOException>(
+                Assert.Catch<EndOfStreamException>(() => new JksStore().LoadUnchecked(new MemoryStream(store, false)));
+                Assert.Catch<EndOfStreamException>(
                     () => new JksStore().Load(new MemoryStream(store, false), "fredfred".ToCharArray()));
             }
         }
