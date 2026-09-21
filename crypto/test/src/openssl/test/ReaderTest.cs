@@ -9,8 +9,10 @@ using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
@@ -320,30 +322,22 @@ namespace Org.BouncyCastle.OpenSsl.Tests
             //
             // EdDSAKey
             //
-            //using (var pemRd = OpenPemResource("eddsapriv.pem"))
-            //{
-            //    byte[] msg = Strings.toByteArray("Hello, world!");
+            using (var pemRd = OpenPemResource("eddsapriv.pem"))
+            {
+                Ed25519PrivateKeyParameters edPrivKey = (Ed25519PrivateKeyParameters)pemRd.ReadObject();
+                Ed25519PublicKeyParameters edPubKey = edPrivKey.GeneratePublicKey();
 
-            //    PrivateKeyInfo edPrivInfo = (PrivateKeyInfo)pemRd.readObject();
+                byte[] msg = Strings.ToByteArray("Hello, world!");
 
-            //    EdDSAPrivateKey edPrivKey = (EdDSAPrivateKey)new JcaPEMKeyConverter().setProvider("BC").getPrivateKey(edPrivInfo);
+                Ed25519Signer edSig = new Ed25519Signer();
+                edSig.Init(forSigning: true, edPrivKey);
+                edSig.BlockUpdate(msg, 0, msg.Length);
+                byte[] s = edSig.GenerateSignature();
 
-            //    EdDSAPublicKey edPubKey = edPrivKey.getPublicKey();
-
-            //    Signature edSig = Signature.getInstance(edPrivKey.getAlgorithm(), "BC");
-
-            //    edSig.initSign(edPrivKey);
-
-            //    edSig.update(msg);
-
-            //    byte[] s = edSig.sign();
-
-            //    edSig.initVerify(edPubKey);
-
-            //    edSig.update(msg);
-
-            //    isTrue(edSig.verify(s));
-            //}
+                edSig.Init(forSigning: false, edPubKey);
+                edSig.BlockUpdate(msg, 0, msg.Length);
+                Assert.True(edSig.VerifySignature(s));
+            }
 
             //ImplOpenSslGost2012Test();
             //ImplParseAttrECKeyTest();
