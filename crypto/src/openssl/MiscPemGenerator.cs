@@ -86,6 +86,11 @@ namespace Org.BouncyCastle.OpenSsl
                     throw new IOException("Cannot Encode object: " + e.ToString());
                 }
             }
+            else if (obj is X509TrustedCertificateBlock trustedCert)
+            {
+                type = "TRUSTED CERTIFICATE";
+                encoding = trustedCert.GetEncoded();
+            }
             else if (obj is AsymmetricKeyParameter akp)
             {
                 if (akp.IsPrivate)

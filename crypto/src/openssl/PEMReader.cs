@@ -38,6 +38,7 @@ namespace Org.BouncyCastle.OpenSsl
             //Parsers.Add("CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
             //Parsers.Add("NEW CERTIFICATE REQUEST", new PKCS10CertificationRequestParser());
             //Parsers.Add("CERTIFICATE", new X509CertificateParser(provider));
+            //Parsers.Add"TRUSTED CERTIFICATE", new X509TrustedCertificateParser());
             //Parsers.Add("X509 CERTIFICATE", new X509CertificateParser(provider));
             //Parsers.Add("X509 CRL", new X509CRLParser(provider));
             //Parsers.Add("PKCS7", new PKCS7Parser());
@@ -102,6 +103,8 @@ namespace Org.BouncyCastle.OpenSsl
             case "CERTIFICATE":
             case "X509 CERTIFICATE":
                 return ReadCertificate(obj);
+            case "TRUSTED CERTIFICATE":
+                return ReadTrustedCertificate(obj);
             case "PKCS7":
             case "CMS":
                 return ReadPkcs7(obj);
@@ -140,7 +143,19 @@ namespace Org.BouncyCastle.OpenSsl
             }
             catch (Exception e)
             {
-                throw new PemException("problem parsing cert: " + e.ToString());
+                throw new PemException("problem parsing certificate: " + e.ToString());
+            }
+        }
+
+        private static X509TrustedCertificateBlock ReadTrustedCertificate(PemObject pemObject)
+        {
+            try
+            {
+                return new X509TrustedCertificateBlock(pemObject.Content);
+            }
+            catch (Exception e)
+            {
+                throw new PemException("problem parsing trusted certificate: " + e.ToString());
             }
         }
 
@@ -158,7 +173,7 @@ namespace Org.BouncyCastle.OpenSsl
             }
             catch (Exception e)
             {
-                throw new PemException("problem parsing cert: " + e.ToString());
+                throw new PemException("problem parsing CRL: " + e.ToString());
             }
         }
 
@@ -176,7 +191,7 @@ namespace Org.BouncyCastle.OpenSsl
             }
             catch (Exception e)
             {
-                throw new PemException("problem parsing cert: " + e.ToString());
+                throw new PemException("problem parsing certificatiopn request: " + e.ToString());
             }
         }
 

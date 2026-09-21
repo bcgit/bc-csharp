@@ -4,6 +4,7 @@ using System.IO;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -294,26 +295,27 @@ namespace Org.BouncyCastle.OpenSsl.Tests
                 }
             }
 
-            //using (var pemRd = OpenPemResource("trusted_cert.pem"))
-            //{
-            //    X509TrustedCertificateBlock trusted = (X509TrustedCertificateBlock)pemRd.ReadObject();
+            using (var pemRd = OpenPemResource("trusted_cert.pem"))
+            {
+                X509TrustedCertificateBlock trusted = (X509TrustedCertificateBlock)pemRd.ReadObject();
 
-            //    checkTrustedCert(trusted);
+                CheckTrustedCert(trusted);
 
-            //    StringWriter stringWriter = new StringWriter();
+                MemoryStream trustedBuf = new MemoryStream();
+                using (var trustedWriter = new PemWriter(new StreamWriter(trustedBuf)))
+                {
+                    trustedWriter.WriteObject(trusted);
+                }
 
-            //    pWrt = new JcaPEMWriter(stringWriter);
+                var trustedEncoding = trustedBuf.ToArray();
 
-            //    pWrt.writeObject(trusted);
+                using (var trustedReader = new PemReader(new StreamReader(new MemoryStream(trustedEncoding, false))))
+                {
+                    trusted = (X509TrustedCertificateBlock)trustedReader.ReadObject();
+                }
 
-            //    pWrt.close();
-
-            //    pemRd = new PEMParser(new StringReader(stringWriter.toString()));
-
-            //    trusted = (X509TrustedCertificateBlock)pemRd.readObject();
-
-            //    checkTrustedCert(trusted);
-            //}
+                CheckTrustedCert(trusted);
+            }
 
             //
             // EdDSAKey
@@ -345,6 +347,18 @@ namespace Org.BouncyCastle.OpenSsl.Tests
 
             //ImplOpenSslGost2012Test();
             //ImplParseAttrECKeyTest();
+        }
+
+        private void CheckTrustedCert(X509TrustedCertificateBlock trusted)
+        {
+            CertificateTrustBlock trustBlock = trusted.TrustBlock;
+
+            Assert.AreEqual("Fred", trustBlock.GetAlias(), "alias not found");
+            Assert.AreEqual(3, trustBlock.GetUses().Count, "key purpose usages wrong size");
+            Assert.That(trustBlock.GetUses().Contains(KeyPurposeID.id_kp_OCSPSigning), "key purpose use not found");
+            Assert.AreEqual(1, trustBlock.GetProhibitions().Count, "key purpose prohibitions wrong size");
+            Assert.That(trustBlock.GetProhibitions().Contains(KeyPurposeID.id_kp_clientAuth),
+                "key purpose prohibition not found");
         }
 
         private void ImplKeyPairTest(string name, AsymmetricCipherKeyPair pair)
