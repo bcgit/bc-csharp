@@ -1,7 +1,9 @@
 using NUnit.Framework;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Agreement.Kdf;
 using Org.BouncyCastle.Crypto.Digests;
 using Org.BouncyCastle.Security;
@@ -50,6 +52,38 @@ namespace Org.BouncyCastle.Crypto.Tests
             var kdfParameters = new DHKdfParameters(NistObjectIdentifiers.IdAes256Wrap, 256, seed);
 
             CheckMask(nameof(Test256), kdf, kdfParameters, result);
+        }
+
+        [Test]
+        public void TestKeyInfoParametersMatter()
+        {
+            // The KDF must use the AlgorithmIdentifier exactly as given: NULL vs. absent parameters give different
+            // ECC-CMS-SharedInfo encodings and therefore different keys (issue #697).
+            byte[] seed = Hex.Decode("75d7487b5d3d2bfb3c69ce0365fe64e3bfab5d0d63731628a9f47eb8fddfa28c65decaf228a0b38f0c51c6a3356d7c56");
+            byte[] resultWithNull = Hex.Decode("042be1faca3a4a8fc859241bfb87ba35");
+
+            var kdf = new ECDHKekGenerator(new Sha1Digest());
+
+            var withNull = new AlgorithmIdentifier(NistObjectIdentifiers.IdAes128Wrap, DerNull.Instance);
+            var absent = new AlgorithmIdentifier(NistObjectIdentifiers.IdAes128Wrap);
+
+            byte[] keyWithNull = Generate(kdf, new DHKdfParameters(withNull, 128, seed));
+            byte[] keyAbsent = Generate(kdf, new DHKdfParameters(absent, 128, seed));
+#pragma warning disable CS0618 // Type or member is obsolete
+            byte[] keyLegacy = Generate(kdf, new DHKdfParameters(NistObjectIdentifiers.IdAes128Wrap, 128, seed));
+#pragma warning restore CS0618 // Type or member is obsolete
+
+            Assert.That(keyWithNull, Is.EqualTo(resultWithNull));
+            Assert.That(keyLegacy, Is.EqualTo(resultWithNull), "legacy OID constructor must keep implying NULL");
+            Assert.That(keyAbsent, Is.Not.EqualTo(resultWithNull));
+        }
+
+        private static byte[] Generate(IDerivationFunction kdf, IDerivationParameters parameters)
+        {
+            byte[] data = new byte[16];
+            kdf.Init(parameters);
+            kdf.GenerateBytes(data, 0, data.Length);
+            return data;
         }
 
         private void CheckMask(string name, IDerivationFunction kdf, IDerivationParameters parameters, byte[] result)

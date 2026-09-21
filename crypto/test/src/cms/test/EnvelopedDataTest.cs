@@ -158,6 +158,82 @@ namespace Org.BouncyCastle.Cms.Tests
 			+ "Tt84dUvuSKkFy3RhjxJmjwIscK6zbEUzKhcPQG2GHzXhWK5x1kov0I74XpGhVkya"
 			+ "ElH5K6SaOXiXAzcyNGggTOk4+ZFnz5Xl0pBje3zKxPhYu0SnCw7Pcqw=");
 
+		/*
+		 * OpenSSL 3.5.7 vectors (issue #697): 'openssl cms -encrypt -recip cert.pem [-keyopt ecdh_kdf_md:sha256]'.
+		 * The AES key-wrap AlgorithmIdentifier has absent parameters (RFC 5753 section 7.2), whereas the older
+		 * vectors above carry an explicit NULL; both encodings must be fed to the KDF exactly as received.
+		 */
+		private static readonly byte[] openSslEcKeyAgreeKey = Base64.Decode(
+			"MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgLesokEE5JasY"
+			+ "ZBoFs6rNWYCVUaURjSUQzHWgytyzJvmhRANCAARvb4l75aHUwO2gvQ1ESrvz"
+			+ "p1JzhPbnocH1Y8RxS73or+uYTrBGcq5krg3fRHR9ySSvejDWpzl1yFhnnimZ"
+			+ "tn6Z");
+
+		private static readonly byte[] openSslEcKeyAgreeMsgAes128Sha1 = Base64.Decode(
+			"MIIBOwYJKoZIhvcNAQcDoIIBLDCCASgCAQIxgdShgdECAQOgUaFPMAkGByqG"
+			+ "SM49AgEDQgAElF/audNFif621SsmUm3MQ7NQTT9UlybminWyiwl57D74JMnq"
+			+ "YkjOPaa8+VK4wk74JEnYOz4sDTrNbWJ/LAGTgTAYBgkrgQUQhkg/AAIwCwYJ"
+			+ "YIZIAWUDBAEFMF8wXTBBMCkxFTATBgNVBAMMDFJlY2lwaWVudCBFQzEQMA4G"
+			+ "A1UECgwHQkMgVGVzdAIURCSGxBL9K7iK8eNRXi+jP/utRmgEGLF/QlMQJDDu"
+			+ "ClWalDlfGDOXiCqPpwGkAjBMBgkqhkiG9w0BBwEwHQYJYIZIAWUDBAECBBAX"
+			+ "69KgBjXOm9LymN2V9xtEgCAHimqhcl4gDMg/GD12vjGhmg1kgQw9W6YvqHej"
+			+ "UEH7DA==");
+
+		private static readonly byte[] openSslEcKeyAgreeMsgAes256Sha1 = Base64.Decode(
+			"MIIBSwYJKoZIhvcNAQcDoIIBPDCCATgCAQIxgeShgeECAQOgUaFPMAkGByqG"
+			+ "SM49AgEDQgAE5u4V2aioW1PnhabaCESQOd/GdncNWnlsiZliIKXdiYgZyduq"
+			+ "xUVsBZuEF5epgXdseBGyQ5GZvcCkr5Fj6FqbXTAYBgkrgQUQhkg/AAIwCwYJ"
+			+ "YIZIAWUDBAEtMG8wbTBBMCkxFTATBgNVBAMMDFJlY2lwaWVudCBFQzEQMA4G"
+			+ "A1UECgwHQkMgVGVzdAIURCSGxBL9K7iK8eNRXi+jP/utRmgEKKEMhXG914Mq"
+			+ "b110s1iZB6SiAanVYIqTx/YmgfOSirl/EG3uP+5faI8wTAYJKoZIhvcNAQcB"
+			+ "MB0GCWCGSAFlAwQBKgQQoiiAk5KOIO/jY5gypLwtO4AgDJGCMyW9frblygQZ"
+			+ "vrOm52cIJRLmCVTqJ5lvWKuNrMU=");
+
+		private static readonly byte[] openSslEcKeyAgreeMsgAes256Sha256 = Base64.Decode(
+			"MIIBSAYJKoZIhvcNAQcDoIIBOTCCATUCAQIxgeGhgd4CAQOgUaFPMAkGByqG"
+			+ "SM49AgEDQgAEoFw91DrFroiZqY36p+mxEiTT6/fDFnEnYeG6+Qh4JiEgqDgn"
+			+ "PfTkdg3zzF0ZWmAWrLc0hescWwWAjcJXT4edKzAVBgYrgQQBCwEwCwYJYIZI"
+			+ "AWUDBAEtMG8wbTBBMCkxFTATBgNVBAMMDFJlY2lwaWVudCBFQzEQMA4GA1UE"
+			+ "CgwHQkMgVGVzdAIURCSGxBL9K7iK8eNRXi+jP/utRmgEKP5xILAFKJlVOQsf"
+			+ "xBRnKaPR5E+7Mab2TNOTJ9PW+DgH/9JmS4EQqAIwTAYJKoZIhvcNAQcBMB0G"
+			+ "CWCGSAFlAwQBKgQQF+lbB3ktPTi4WVhZpbJhpYAgtyu81F7Wqa1FyCDNSDic"
+			+ "32VAbY3kCEaBMJBXPQjpe5o=");
+
+		private static readonly byte[] openSslEcKeyAgreeMsgDesEde3Sha1 = Base64.Decode(
+			"MIIBRgYJKoZIhvcNAQcDoIIBNzCCATMCAQIxgeihgeUCAQOgUaFPMAkGByqG"
+			+ "SM49AgEDQgAESAURNoIYftZ/jSFmnhxspo2v+uKoqBfp/37yb7z08bnRIF+X"
+			+ "WjfdtOTN+usvF6tinTW1fQVyx3eXztFViK88ezAcBgkrgQUQhkg/AAIwDwYL"
+			+ "KoZIhvcNAQkQAwYFADBvMG0wQTApMRUwEwYDVQQDDAxSZWNpcGllbnQgRUMx"
+			+ "EDAOBgNVBAoMB0JDIFRlc3QCFEQkhsQS/Su4ivHjUV4voz/7rUZoBCj8X9cL"
+			+ "0Zb+BsVozQZpVqT2QjpIgDR8XlYy6o6iy4Vu/huau11OWJt2MEMGCSqGSIb3"
+			+ "DQEHATAUBggqhkiG9w0DBwQIaJ7bD3T4fPGAIK5HgrdamCCPZMaqLLwJj544"
+			+ "hyCwlZdZuYgM6Wd1moS9");
+
+		/*
+		 * Messages produced by bc-csharp before 2.8.0 for the OpenSSL key above (issue #697). The AES key-wrap
+		 * AlgorithmIdentifier is encoded with absent parameters, but the KEK was derived as though it carried NULL,
+		 * so they can only be read via the CmsAllowLegacyKeyAgreeKdf retry.
+		 */
+		private static readonly byte[] legacyEcKeyAgreeMsgAes128Sha1 = Base64.Decode(
+			"MIAGCSqGSIb3DQEHA6CAMIACAQIxgd6hgdsCAQOgW6FZMBMGByqGSM49AgEG"
+			+ "CCqGSM49AwEHA0IABPos+V3W2/idEF3r+P8d0lvedlW4pUjr1OLgDebSER4/"
+			+ "X1Rr7L3eI08PaFVQwflh7EzuwvhoI49EXG8XsGb3exowGAYJK4EFEIZIPwAC"
+			+ "MAsGCWCGSAFlAwQBBTBfMF0wQTApMRUwEwYDVQQDDAxSZWNpcGllbnQgRUMx"
+			+ "EDAOBgNVBAoMB0JDIFRlc3QCFEQkhsQS/Su4ivHjUV4voz/7rUZoBBjNyN5y"
+			+ "F0/tewrc7skuhvaFzdxBj8PkIxUwgAYJKoZIhvcNAQcBMB0GCWCGSAFlAwQB"
+			+ "AgQQZLz6u/MhPUFNIvQsnUpgcYAgNaoXccdd5BjexnYPIfRr6LurA9jJebbN"
+			+ "2+BIHDtSXUQAAAAAAAAAAA==");
+
+		private static readonly byte[] legacyEcKeyAgreeMsgAes256Sha256 = Base64.Decode(
+			"MIAGCSqGSIb3DQEHA6CAMIACAQIxgeuhgegCAQOgW6FZMBMGByqGSM49AgEG"
+			+ "CCqGSM49AwEHA0IABPos+V3W2/idEF3r+P8d0lvedlW4pUjr1OLgDebSER4/"
+			+ "X1Rr7L3eI08PaFVQwflh7EzuwvhoI49EXG8XsGb3exowFQYGK4EEAQsBMAsG"
+			+ "CWCGSAFlAwQBLTBvMG0wQTApMRUwEwYDVQQDDAxSZWNpcGllbnQgRUMxEDAO"
+			+ "BgNVBAoMB0JDIFRlc3QCFEQkhsQS/Su4ivHjUV4voz/7rUZoBCjrQas6b0fA"
+			+ "Kdti8tbD7X9GZ1TVGsJ7Vf/6tFi1vxUeLJI3b3IO6m9mMIAGCSqGSIb3DQEH"
+			+ "ATAdBglghkgBZQMEASoEEOvoEj9BfCFEi7Pv1WOX5YOAIKaSzpFcCUCWDuTL"
+			+ "8jv3whm3iSPWwjDTUe9/Ve22lxd0AAAAAAAAAAA=");
+
 		private static readonly byte[] bobPrivRsaEncrypt = Base64.Decode(
 			"MIIChQIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKnhZ5g/OdVf"
 			+ "8qCTQV6meYmFyDVdmpFb+x0B2hlwJhcPvaUi0DWFbXqYZhRBXM+3twg7CcmR"
@@ -1184,6 +1260,104 @@ namespace Org.BouncyCastle.Cms.Tests
 		}
 
 		[Test]
+		public void TestECKeyAgreeVectorsOpenSsl()
+		{
+			AsymmetricKeyParameter privKey = PrivateKeyFactory.CreateKey(openSslEcKeyAgreeKey);
+
+			string ecdhSha1Kdf = CmsEnvelopedGenerator.ECDHSha1Kdf;
+			string ecdhSha256Kdf = CmsEnvelopedGenerator.ECDHSha256Kdf;
+
+			VerifyECKeyAgreeVectors(privKey, ecdhSha1Kdf, CmsEnvelopedGenerator.Aes128Cbc,
+				openSslEcKeyAgreeMsgAes128Sha1);
+			VerifyECKeyAgreeVectors(privKey, ecdhSha1Kdf, CmsEnvelopedGenerator.Aes256Cbc,
+				openSslEcKeyAgreeMsgAes256Sha1);
+			VerifyECKeyAgreeVectors(privKey, ecdhSha256Kdf, CmsEnvelopedGenerator.Aes256Cbc,
+				openSslEcKeyAgreeMsgAes256Sha256);
+			VerifyECKeyAgreeVectors(privKey, ecdhSha1Kdf, CmsEnvelopedGenerator.DesEde3Cbc,
+				openSslEcKeyAgreeMsgDesEde3Sha1);
+		}
+
+		[Test]
+		public void TestECKeyAgreeVectorsLegacyKdf()
+		{
+			AsymmetricKeyParameter privKey = PrivateKeyFactory.CreateKey(openSslEcKeyAgreeKey);
+
+			string ecdhSha1Kdf = CmsEnvelopedGenerator.ECDHSha1Kdf;
+			string ecdhSha256Kdf = CmsEnvelopedGenerator.ECDHSha256Kdf;
+
+			// Default: the legacy derivation is retried, so pre-2.8.0 messages remain readable
+			VerifyECKeyAgreeVectors(privKey, ecdhSha1Kdf, CmsEnvelopedGenerator.Aes128Cbc,
+				legacyEcKeyAgreeMsgAes128Sha1);
+			VerifyECKeyAgreeVectors(privKey, ecdhSha256Kdf, CmsEnvelopedGenerator.Aes256Cbc,
+				legacyEcKeyAgreeMsgAes256Sha256);
+
+			Properties.WithThreadProperty(Properties.CmsAllowLegacyKeyAgreeKdf, bool.FalseString, () =>
+			{
+				// Standard-only: the legacy messages must fail ...
+				Assert.Throws<CmsException>(() => VerifyECKeyAgreeVectors(privKey, ecdhSha1Kdf,
+					CmsEnvelopedGenerator.Aes128Cbc, legacyEcKeyAgreeMsgAes128Sha1));
+				Assert.Throws<CmsException>(() => VerifyECKeyAgreeVectors(privKey, ecdhSha256Kdf,
+					CmsEnvelopedGenerator.Aes256Cbc, legacyEcKeyAgreeMsgAes256Sha256));
+
+				// ... while standard messages (absent parameters) and explicit-NULL messages are unaffected
+				VerifyECKeyAgreeVectors(privKey, ecdhSha1Kdf, CmsEnvelopedGenerator.Aes128Cbc,
+					openSslEcKeyAgreeMsgAes128Sha1);
+				VerifyECKeyAgreeVectors(PrivateKeyFactory.CreateKey(ecKeyAgreeKey), "2.16.840.1.101.3.4.1.2",
+					ecKeyAgreeMsgAES128);
+			});
+		}
+
+		[Test]
+		public void TestECKeyAgreeWrapAlgorithmParameters()
+		{
+			// RFC 5753 section 7.2: AES key wrap has absent parameters; RFC 3370 section 4.3.1: 3DES wrap has NULL.
+			string ecdhSha1Kdf = CmsEnvelopedGenerator.ECDHSha1Kdf;
+			string ecMqvSha1Kdf = CmsEnvelopedGenerator.ECMqvSha1Kdf;
+
+			CheckECKeyAgreeWrapAlgorithmParameters(ecdhSha1Kdf, CmsEnvelopedGenerator.Aes128Wrap, expectNull: false);
+			CheckECKeyAgreeWrapAlgorithmParameters(ecdhSha1Kdf, CmsEnvelopedGenerator.Aes256Wrap, expectNull: false);
+			CheckECKeyAgreeWrapAlgorithmParameters(ecdhSha1Kdf, CmsEnvelopedGenerator.DesEde3Wrap, expectNull: true);
+
+			CheckECKeyAgreeWrapAlgorithmParameters(ecMqvSha1Kdf, CmsEnvelopedGenerator.Aes128Wrap, expectNull: false);
+			CheckECKeyAgreeWrapAlgorithmParameters(ecMqvSha1Kdf, CmsEnvelopedGenerator.Aes256Wrap, expectNull: false);
+			CheckECKeyAgreeWrapAlgorithmParameters(ecMqvSha1Kdf, CmsEnvelopedGenerator.DesEde3Wrap, expectNull: true);
+		}
+
+		private static void CheckECKeyAgreeWrapAlgorithmParameters(string agreeAlg, string wrapAlg, bool expectNull)
+		{
+			byte[] data = Hex.Decode("504b492d4320434d5320456e76656c6f706564446174612053616d706c65");
+
+			CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+			edGen.AddKeyAgreementRecipient(agreeAlg, OrigECKP.Private, OrigECKP.Public, ReciECCert, wrapAlg);
+
+			CmsEnvelopedData ed = edGen.Generate(new CmsProcessableByteArray(data), CmsEnvelopedGenerator.Aes128Cbc);
+
+			// Re-parse from the encoding so we check what is actually transmitted
+			ed = new CmsEnvelopedData(ed.GetEncoded());
+
+			Asn1Set recipientInfos = ed.EnvelopedData.RecipientInfos;
+			Assert.AreEqual(1, recipientInfos.Count);
+
+			var keyAgreeRecipientInfo = (Asn1.Cms.KeyAgreeRecipientInfo)Asn1.Cms.RecipientInfo.GetInstance(
+				recipientInfos[0]).Info;
+			AlgorithmIdentifier wrapAlgID = AlgorithmIdentifier.GetInstance(
+				keyAgreeRecipientInfo.KeyEncryptionAlgorithm.Parameters);
+
+			Assert.AreEqual(agreeAlg, keyAgreeRecipientInfo.KeyEncryptionAlgorithm.Algorithm.GetID());
+			Assert.AreEqual(wrapAlg, wrapAlgID.Algorithm.GetID());
+			if (expectNull)
+			{
+				Assert.AreEqual(DerNull.Instance, wrapAlgID.Parameters);
+			}
+			else
+			{
+				Assert.IsNull(wrapAlgID.Parameters);
+			}
+
+			ConfirmDataReceived(ed.GetRecipientInfos(), data, ReciECCert, ReciECKP.Private);
+		}
+
+		[Test]
 		public void TestPasswordAes256()
 		{
 			PasswordTest(CmsEnvelopedGenerator.Aes256Cbc);
@@ -1536,6 +1710,12 @@ namespace Org.BouncyCastle.Cms.Tests
 
 		private void VerifyECKeyAgreeVectors(AsymmetricKeyParameter privKey, string wrapAlg, byte[] message)
 		{
+			VerifyECKeyAgreeVectors(privKey, "1.3.133.16.840.63.0.2", wrapAlg, message);
+		}
+
+		private void VerifyECKeyAgreeVectors(AsymmetricKeyParameter privKey, string agreeAlg, string wrapAlg,
+			byte[] message)
+		{
 			byte[] data = Hex.Decode("504b492d4320434d5320456e76656c6f706564446174612053616d706c65");
 
 			CmsEnvelopedData ed = new CmsEnvelopedData(message);
@@ -1550,7 +1730,7 @@ namespace Org.BouncyCastle.Cms.Tests
 
 			foreach (RecipientInformation recipient in c)
 			{
-				Assert.AreEqual("1.3.133.16.840.63.0.2", recipient.KeyEncryptionAlgOid);
+				Assert.AreEqual(agreeAlg, recipient.KeyEncryptionAlgOid);
 
 				byte[] recData = recipient.GetContent(privKey);
 

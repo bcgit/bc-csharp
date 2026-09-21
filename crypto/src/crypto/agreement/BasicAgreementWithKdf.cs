@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using System;
+
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto.Agreement.Kdf;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
@@ -8,24 +10,33 @@ namespace Org.BouncyCastle.Crypto.Agreement
 {
     internal static class BasicAgreementWithKdf
     {
-        internal static BigInteger CalculateAgreementWithKdf(string algorithm, IDerivationFunction kdf, int fieldSize,
-            BigInteger result)
+        internal static BigInteger CalculateAgreementWithKdf(AlgorithmIdentifier algID, IDerivationFunction kdf,
+            int fieldSize, BigInteger result)
         {
-            // Note that the ec.KeyAgreement class in JCE only uses kdf in oneof the engineGenerateSecret methods.
+            // Note that the ec.KeyAgreement class in JCE only uses kdf in one of the engineGenerateSecret methods.
 
-            int keySize = GeneratorUtilities.GetDefaultKeySize(algorithm);
+            var algOid = algID.Algorithm;
 
-            DHKdfParameters dhKdfParams = new DHKdfParameters(
-                new DerObjectIdentifier(algorithm),
-                keySize,
-                BigIntegers.AsUnsignedByteArray(fieldSize, result));
+            int keySize = GeneratorUtilities.GetDefaultKeySize(algOid);
+            byte[] z = BigIntegers.AsUnsignedByteArray(fieldSize, result);
+            byte[] extraInfo = null; // TODO[api] Support for passing extraInfo
 
-            kdf.Init(dhKdfParams);
+            DHKdfParameters kdfParams = new DHKdfParameters(algID, keySize, z, extraInfo);
 
-            byte[] keyBytes = new byte[keySize / 8];
-            kdf.GenerateBytes(keyBytes, 0, keyBytes.Length);
+            kdf.Init(kdfParams);
 
-            return new BigInteger(1, keyBytes);
+            int length = keySize / 8;
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            Span<byte> buf = length <= 1024
+                ? stackalloc byte[length]
+                : new byte[length];
+            kdf.GenerateBytes(buf);
+#else
+            byte[] buf = new byte[length];
+            kdf.GenerateBytes(buf, 0, buf.Length);
+#endif
+
+            return new BigInteger(1, buf);
         }
     }
 }

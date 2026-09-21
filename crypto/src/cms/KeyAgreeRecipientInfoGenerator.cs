@@ -156,7 +156,7 @@ namespace Org.BouncyCastle.Cms
 
                 // Use key agreement to choose a wrap key for this recipient
                 IBasicAgreement keyAgreement = AgreementUtilities.GetBasicAgreementWithKdf(m_keyAgreementOid,
-                    m_keyEncryptionOid);
+                    keyEncAlgorithm);
                 keyAgreement.Init(new ParametersWithRandom(senderPrivateParams, random));
                 BigInteger agreedValue = keyAgreement.CalculateAgreement(recipientPublicParams);
 

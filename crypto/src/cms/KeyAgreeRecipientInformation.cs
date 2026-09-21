@@ -14,6 +14,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Cms
 {
@@ -108,12 +109,10 @@ namespace Org.BouncyCastle.Cms
             throw new CmsException("No support for 'originator' as IssuerAndSerialNumber or SubjectKeyIdentifier");
         }
 
-        private static KeyParameter CalculateAgreedWrapKey(AlgorithmIdentifier agreeAlgID,
+        private static KeyParameter CalculateAgreedWrapKey(DerObjectIdentifier agreeAlgOid,
             AlgorithmIdentifier wrapAlgID, AsymmetricKeyParameter senderPublicKey, Asn1OctetString userKeyingMaterial,
             AsymmetricKeyParameter receiverPrivateKey)
         {
-            DerObjectIdentifier agreeAlgOid = agreeAlgID.Algorithm;
-
             ICipherParameters senderPublicParams = senderPublicKey;
             ICipherParameters receiverPrivateParams = receiverPrivateKey;
 
@@ -142,11 +141,11 @@ namespace Org.BouncyCastle.Cms
              * This leads to broken signatures (especially for AES, since it always rebuilds with ASN.1 NULL).
              * Instead, the full wrapAlgID needs to propagate throughout.
              */
-            DerObjectIdentifier wrapAlgOid = wrapAlgID.Algorithm;
-            IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgOid, wrapAlgOid);
+            IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgOid, wrapAlgID);
             agreement.Init(receiverPrivateParams);
             BigInteger agreedValue = agreement.CalculateAgreement(senderPublicParams);
 
+            DerObjectIdentifier wrapAlgOid = wrapAlgID.Algorithm;
             int wrapKeySize = GeneratorUtilities.GetDefaultKeySize(wrapAlgOid) / 8;
             byte[] wrapKeyBytes = X9IntegerConverter.IntegerToBytes(agreedValue, wrapKeySize);
             return ParameterUtilities.CreateKeyParameter(wrapAlgOid, wrapKeyBytes);
@@ -170,17 +169,49 @@ namespace Org.BouncyCastle.Cms
 
                 AsymmetricKeyParameter senderPublicKey = GetSenderPublicKey(receiverPrivateKey, m_info.Originator);
 
-                KeyParameter agreedWrapKey = CalculateAgreedWrapKey(keyEncAlg, wrapAlgID, senderPublicKey,
+                DerObjectIdentifier agreeAlgOid = keyEncAlg.Algorithm;
+                DerObjectIdentifier wrapAlgOid = wrapAlgID.Algorithm;
+
+                KeyParameter agreedWrapKey = CalculateAgreedWrapKey(agreeAlgOid, wrapAlgID, senderPublicKey,
                     m_info.UserKeyingMaterial, receiverPrivateKey);
 
-                DerObjectIdentifier wrapAlgOid = wrapAlgID.Algorithm;
                 if (CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.Equals(wrapAlgOid) ||
                     CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.Equals(wrapAlgOid))
                 {
                     // TODO[cms] GOST key wrapping
                 }
 
-                return UnwrapSessionKey(wrapAlgOid, agreedWrapKey);
+                try
+                {
+                    return UnwrapSessionKey(wrapAlgOid, agreedWrapKey);
+                }
+                catch (InvalidCipherTextException)
+                    when (wrapAlgID.Parameters == null &&
+                          Properties.GetBoolean(Properties.CmsAllowLegacyKeyAgreeKdf, true))
+                {
+                    /*
+                     * bc-csharp until 2.7.0 derived the KEK as though the key-wrap AlgorithmIdentifier carried NULL
+                     * parameters, even when it was encoded with absent parameters (github bc-csharp #697). Retry with
+                     * that derivation so that messages from those versions remain readable.
+                     */
+                    // TODO[api] Consider defaulting CmsAllowLegacyKeyAgreeKdf to false (or removing the retry)
+                    try
+                    {
+                        var legacyWrapAlgID = new AlgorithmIdentifier(wrapAlgOid, DerNull.Instance);
+
+                        KeyParameter legacyWrapKey = CalculateAgreedWrapKey(agreeAlgOid, legacyWrapAlgID,
+                            senderPublicKey, m_info.UserKeyingMaterial, receiverPrivateKey);
+
+                        return UnwrapSessionKey(wrapAlgOid, legacyWrapKey);
+                    }
+                    catch (Exception)
+                    {
+                        // Ignore any exception during the retry
+                    }
+
+                    // Re-throw original InvalidCipherTextException
+                    throw;
+                }
             }
             catch (SecurityUtilityException e)
             {
