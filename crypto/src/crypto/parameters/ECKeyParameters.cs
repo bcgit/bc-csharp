@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.X9;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Parameters
@@ -21,6 +19,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             { "ECDH", "ECDH" },
             { "ECDHC", "ECDHC" },
             { "ECGOST3410", "ECGOST3410" },
+            { "ECGOST3410-2012", "ECGOST3410-2012" },
             { "ECMQV", "ECMQV" },
         };
 
