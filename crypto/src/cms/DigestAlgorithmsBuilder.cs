@@ -20,7 +20,6 @@ namespace Org.BouncyCastle.Cms
             m_digestAlgorithmFinder = digestAlgorithmFinder;
         }
 
-        // TODO[cms] Currently relies on caller to only use this after any 'AddExisting' calls - enforce?
         internal bool Add(AlgorithmIdentifier algID)
         {
             if (algID == null)
