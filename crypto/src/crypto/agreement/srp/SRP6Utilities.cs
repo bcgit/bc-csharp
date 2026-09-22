@@ -80,45 +80,41 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return val;
         }
 
-        /**
-         * Computes the client evidence message (M1) according to the standard routine:
-         * M1 = H( A | B | S )
-         * @param digest The Digest used as the hashing function H
-         * @param N Modulus used to get the pad length
-         * @param A The public client value
-         * @param B The public server value
-         * @param S The secret calculated by both sides
-         * @return M1 The calculated client evidence message
-         */
+        /// <summary>
+        /// Computes the client evidence message (M1) according to the standard routine: M1 = H( A | B | S ).
+        /// </summary>
+        /// <param name="digest">The Digest used as the hashing function H.</param>
+        /// <param name="N">Modulus used to get the pad length.</param>
+        /// <param name="A">The public client value.</param>
+        /// <param name="B">The public server value.</param>
+        /// <param name="S">The secret calculated by both sides.</param>
+        /// <returns>M1 The calculated client evidence message.</returns>
         public static BigInteger CalculateM1(IDigest digest, BigInteger N, BigInteger A, BigInteger B, BigInteger S)
         {
             BigInteger M1 = HashPaddedTriplet(digest, N, A, B, S);
             return M1;
         }
 
-        /**
-         * Computes the server evidence message (M2) according to the standard routine:
-         * M2 = H( A | M1 | S )
-         * @param digest The Digest used as the hashing function H
-         * @param N Modulus used to get the pad length
-         * @param A The public client value
-         * @param M1 The client evidence message
-         * @param S The secret calculated by both sides
-         * @return M2 The calculated server evidence message
-         */
+        /// <summary>
+        /// Computes the server evidence message (M2) according to the standard routine: M2 = H( A | M1 | S ).
+        /// </summary>
+        /// <param name="digest">The Digest used as the hashing function H.</param>
+        /// <param name="N">Modulus used to get the pad length.</param>
+        /// <param name="A">The public client value.</param>
+        /// <param name="M1">The client evidence message.</param>
+        /// <param name="S">The secret calculated by both sides.</param>
+        /// <returns>M2 The calculated server evidence message.</returns>
         public static BigInteger CalculateM2(IDigest digest, BigInteger N, BigInteger A, BigInteger M1, BigInteger S)
         {
             BigInteger M2 = HashPaddedTriplet(digest, N, A, M1, S);
             return M2;
         }
 
-        /**
-         * Computes the final Key according to the standard routine: Key = H(S)
-         * @param digest The Digest used as the hashing function H
-         * @param N Modulus used to get the pad length
-         * @param S The secret calculated by both sides
-         * @return
-         */
+        /// <summary>Computes the final Key according to the standard routine: Key = H(S).</summary>
+        /// <param name="digest">The Digest used as the hashing function H.</param>
+        /// <param name="N">Modulus used to get the pad length.</param>
+        /// <param name="S">The secret calculated by both sides.</param>
+        /// <returns>The final Key value.</returns>
         public static BigInteger CalculateKey(IDigest digest, BigInteger N, BigInteger S)
         {
             int paddedLength = (N.BitLength + 7) / 8;

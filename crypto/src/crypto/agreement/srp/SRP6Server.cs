@@ -6,11 +6,12 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Agreement.Srp
 {
-    /**
-     * Implements the server side SRP-6a protocol. Note that this class is stateful, and therefore NOT threadsafe.
-     * This implementation of SRP is based on the optimized message sequence put forth by Thomas Wu in the paper
-     * "SRP-6: Improvements and Refinements to the Secure Remote Password Protocol, 2002"
-     */
+    /// <summary>Implements the server side SRP-6a protocol.</summary>
+    /// <remarks>
+    /// Note that this class is stateful, and therefore NOT threadsafe. This implementation of SRP is based on the
+    /// optimized message sequence put forth by Thomas Wu in the paper "SRP-6: Improvements and Refinements to the
+    /// Secure Remote Password Protocol, 2002".
+    /// </remarks>
     public class Srp6Server
     {
         protected BigInteger N;
@@ -35,14 +36,12 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         {
         }
 
-        /**
-         * Initialises the server to accept a new client authentication attempt
-         * @param N The safe prime associated with the client's verifier
-         * @param g The group parameter associated with the client's verifier
-         * @param v The client's verifier
-         * @param digest The digest algorithm associated with the client's verifier
-         * @param random For key generation
-         */
+        /// <summary>Initialises the server to accept a new client authentication attempt.</summary>
+        /// <param name="N">The safe prime associated with the client's verifier.</param>
+        /// <param name="g">The group parameter associated with the client's verifier.</param>
+        /// <param name="v">The client's verifier.</param>
+        /// <param name="digest">The digest algorithm associated with the client's verifier.</param>
+        /// <param name="random">For key generation.</param>
         public virtual void Init(BigInteger N, BigInteger g, BigInteger v, IDigest digest, SecureRandom random)
         {
             this.N = N;
@@ -58,10 +57,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             Init(group.N, group.G, v, digest, random);
         }
 
-        /**
-         * Generates the server's credentials that are to be sent to the client.
-         * @return The server's public value to the client
-         */
+        /// <summary>Generates the server's credentials that are to be sent to the client.</summary>
+        /// <returns>The server's public value to the client.</returns>
         public virtual BigInteger GenerateServerCredentials()
         {
             BigInteger k = Srp6Utilities.CalculateK(digest, N, g);
@@ -71,12 +68,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return pubB;
         }
 
-        /**
-         * Processes the client's credentials. If valid the shared secret is generated and returned.
-         * @param clientA The client's credentials
-         * @return A shared secret BigInteger
-         * @throws CryptoException If client's credentials are invalid
-         */
+        /// <summary>Processes the client's credentials. If valid the shared secret is generated and returned.</summary>
+        /// <param name="clientA">The client's credentials.</param>
+        /// <returns>A shared secret BigInteger.</returns>
+        /// <exception cref="CryptoException">If client's credentials are invalid.</exception>
         public virtual BigInteger CalculateSecret(BigInteger clientA)
         {
             this.A = Srp6Utilities.ValidatePublicValue(N, clientA);
@@ -96,13 +91,11 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return v.ModPow(u, N).Multiply(A).Mod(N).ModPow(privB, N);
         }
 
-        /**
-         * Authenticates the received client evidence message M1 and saves it only if correct.
-         * To be called after calculating the secret S.
-         * @param M1: the client side generated evidence message
-         * @return A boolean indicating if the client message M1 was the expected one.
-         * @throws CryptoException
-         */
+        /// <summary>Authenticates the received client evidence message M1 and saves it only if correct.</summary>
+        /// <remarks>To be called after calculating the secret S.</remarks>
+        /// <param name="clientM1">The client side generated evidence message.</param>
+        /// <returns>A boolean indicating if the client message M1 was the expected one.</returns>
+        /// <exception cref="CryptoException"/>
         public virtual bool VerifyClientEvidenceMessage(BigInteger clientM1)
         {
             // Verify pre-requirements
@@ -122,12 +115,10 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return false;
         }
 
-        /**
-         * Computes the server evidence message M2 using the previously verified values.
-         * To be called after successfully verifying the client evidence message M1.
-         * @return M2: the server side generated evidence message
-         * @throws CryptoException
-         */
+        /// <summary>Computes the server evidence message M2 using the previously verified values.</summary>
+        /// <remarks>To be called after successfully verifying the client evidence message M1.</remarks>
+        /// <returns>M2: the server side generated evidence message.</returns>
+        /// <exception cref="CryptoException"/>
         public virtual BigInteger CalculateServerEvidenceMessage()
         {
             // Verify pre-requirements
@@ -142,12 +133,12 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return M2;
         }
 
-        /**
-         * Computes the final session key as a result of the SRP successful mutual authentication
-         * To be called after calculating the server evidence message M2.
-         * @return Key: the mutual authenticated symmetric session key
-         * @throws CryptoException
-         */
+        /// <summary>
+        /// Computes the final session key as a result of the SRP successful mutual authentication.
+        /// </summary>
+        /// <remarks>To be called after calculating the server evidence message M2.</remarks>
+        /// <returns>Key: the mutual authenticated symmetric session key.</returns>
+        /// <exception cref="CryptoException"/>
         public virtual BigInteger CalculateSessionKey()
         {
             // Verify pre-requirements
