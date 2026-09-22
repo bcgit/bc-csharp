@@ -3,8 +3,10 @@ using System.IO;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
@@ -16,6 +18,32 @@ namespace Org.BouncyCastle.OpenSsl.Tests
     public class AllTests
     {
         private readonly SecureRandom Random = new SecureRandom();
+
+        [Test]
+        public void GitHub_584()
+        {
+            var generator = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
+            generator.Init(new ECKeyGenerationParameters(CryptoProObjectIdentifiers.GostR3410x2001CryptoProB, Random));
+            var gostKeyPair = generator.GenerateKeyPair();
+            var originalKey = (ECPrivateKeyParameters)gostKeyPair.Private;
+
+            MemoryStream buf = new MemoryStream();
+            using (var pemWriter = new PemWriter(new StreamWriter(buf)))
+            {
+                pemWriter.WriteObject(originalKey);
+            }
+
+            var pemData = buf.ToArray();
+            //var pemString = Strings.FromUtf8ByteArray(pemData);
+
+            ECPrivateKeyParameters recoveredKey;
+            using (var pemReader = new PemReader(new StreamReader(new MemoryStream(pemData, false))))
+            {
+                recoveredKey = (ECPrivateKeyParameters)pemReader.ReadObject();
+            }
+
+            Assert.AreEqual(originalKey, recoveredKey, "ECGOST3410 private key failed roundtrip");
+        }
 
         [Test]
         public void Pkcs8Encrypted()
