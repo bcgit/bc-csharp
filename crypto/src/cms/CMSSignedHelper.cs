@@ -338,19 +338,15 @@ namespace Org.BouncyCastle.Cms
             }
             else if (key is ECPrivateKeyParameters ecPrivKey)
             {
-                string algName = ecPrivKey.AlgorithmName;
-
-                if (algName == "ECGOST3410")
+                var ecGost3410Parameters = ECGost3410Utilities.GetEncodingParameters(ecPrivKey);
+                if (ecGost3410Parameters != null)
                 {
-                    encOid = CryptoProObjectIdentifiers.GostR3410x2001;
-                }
-                else if (ecPrivKey.Parameters is ECGost3410Parameters ecGost3410Parameters)
-                {
+                    // TODO Check that digestOID is a GOST R 34.11 digest consistent with the key
                     encOid = ECGost3410Utilities.GetKeyAlgorithmOid(ecGost3410Parameters);
                 }
                 else
                 {
-                    // TODO Should we insist on algName being one of "EC" or "ECDSA", as Java does?
+                    // TODO Should we insist on AlgorithmName being one of "EC" or "ECDSA", as Java does?
                     if (!m_ecAlgorithms.TryGetValue(digestOID, out encOid))
                         throw new ArgumentException("can't mix ECDSA with anything but SHA family digests");
                 }
