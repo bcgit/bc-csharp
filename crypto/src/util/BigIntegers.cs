@@ -129,6 +129,14 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
+        internal static BigInteger CreateBlindedExponent(BigInteger exponent, BigInteger groupOrder,
+            SecureRandom random)
+        {
+            int randomBits = 7;
+            BigInteger blind = CreateRandomBigInteger(randomBits, random).SetBit(randomBits);
+            return exponent.Add(blind.Multiply(groupOrder));
+        }
+
         /// <summary>
         /// Creates a Random BigInteger from the secure random of a given bit length.
         /// </summary>
