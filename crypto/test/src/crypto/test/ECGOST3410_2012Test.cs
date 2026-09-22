@@ -30,11 +30,12 @@ namespace Org.BouncyCastle.Crypto.Tests
         public SimpleTestResult EncodeRecodePublicKey()
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid("Tc26-Gost-3410-12-512-paramSetA");
-            ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-            ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512, null);
-            ECKeyGenerationParameters paramameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
+            var gostParams = new Gost3410PublicKeyAlgParameters(oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
+            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+
+            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
-            engine.Init(paramameters);
+            engine.Init(parameters);
             AsymmetricCipherKeyPair pair = engine.GenerateKeyPair();
 
             ECPublicKeyParameters generatedKeyParameters = (ECPublicKeyParameters)pair.Public;
@@ -42,7 +43,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             //
             // Continuously encode/decode the key and check for loss of information.
-            //          
+            //
             for (int t = 0; t < 3; t++)
             {
                 SubjectPublicKeyInfo info = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyParameters);
@@ -118,9 +119,10 @@ namespace Org.BouncyCastle.Crypto.Tests
         private SimpleTestResult EncodeRecodePrivateKey()
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid("Tc26-Gost-3410-12-512-paramSetA");
-            ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-            ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512, null);
-            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
+            var gostParams = new Gost3410PublicKeyAlgParameters(oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
+            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+
+            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
             AsymmetricCipherKeyPair pair = engine.GenerateKeyPair();
@@ -338,9 +340,10 @@ namespace Org.BouncyCastle.Crypto.Tests
         public SimpleTestResult EncodeDecodePrivateLW(string oidStr, DerObjectIdentifier digest)
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid(oidStr);
-            ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-            ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid, digest, null);
-            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
+            var gostParams = new Gost3410PublicKeyAlgParameters(oid, digest);
+            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+
+            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
             AsymmetricCipherKeyPair pair = engine.GenerateKeyPair();
@@ -421,9 +424,10 @@ namespace Org.BouncyCastle.Crypto.Tests
         public SimpleTestResult EncodeDecodePublicLW(string oidStr, DerObjectIdentifier digest)
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid(oidStr);
-            ECNamedDomainParameters ecp = new ECNamedDomainParameters(oid, ECGost3410NamedCurves.GetByOid(oid));
-            ECGost3410Parameters gostParams = new ECGost3410Parameters(ecp, oid, digest, null);
-            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(gostParams, new SecureRandom());
+            var gostParams = new Gost3410PublicKeyAlgParameters(oid, digest);
+            var ecGostParameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+
+            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGostParameters, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
             AsymmetricCipherKeyPair pair = engine.GenerateKeyPair();

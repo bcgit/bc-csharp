@@ -6,12 +6,16 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Rosstandart;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tests
@@ -111,20 +115,14 @@ namespace Org.BouncyCastle.Tests
         public void Gost2012CryptoProSpki()
         {
             // 1. Select a legacy CryptoPro curve OID (GOST R 34.10-2001 parameter set)
-            var curveOid = CryptoProObjectIdentifiers.GostR3410x2001CryptoProA;
-            var domain = ECGost3410NamedCurves.GetByOid(curveOid);
-            var namedDomain = new ECNamedDomainParameters(curveOid, domain);
-
             // 2. Configure key parameters with a GOST 2012 (256-bit) digest OID
-            var gostParameters = new ECGost3410Parameters(
-                namedDomain,
-                curveOid,
-                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256,
-                null);
+            var gostParams = new Gost3410PublicKeyAlgParameters(CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
+            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
 
             // 3. Generate a key pair based on GOST 2012 parameters
             var keyGen = new ECKeyPairGenerator();
-            keyGen.Init(new ECKeyGenerationParameters(gostParameters, new SecureRandom()));
+            keyGen.Init(new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom()));
             var keyPair = keyGen.GenerateKeyPair();
 
             // 4. Wrap the public key into SubjectPublicKeyInfo structure
@@ -199,14 +197,239 @@ namespace Org.BouncyCastle.Tests
                 () => new Gost3410PublicKeyAlgParameters(publicKeyParamSet, null, encryptionParamSet));
         }
 
+        private static readonly TestCaseData[] CurveOidCases =
+        {
+            // "ECGOST3410" (GOST R 34.10-2001) on a CryptoPro parameter set
+            CurveOidCase("ECGOST3410 on CryptoPro-A", "ECGOST3410",
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                CryptoProObjectIdentifiers.GostR3410x2001,
+                CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet),
+
+            // TC26 parameter sets are GOST R 34.10-2012 regardless of the algorithm name
+            CurveOidCase("ECGOST3410 on TC26 256-A", "ECGOST3410",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+                null),
+            CurveOidCase("ECGOST3410 on TC26 512-A", "ECGOST3410",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512,
+                null),
+            CurveOidCase("ECGOST3410-2012 on TC26 256-B", "ECGOST3410-2012",
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetB,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+                null),
+
+            // A GOST R 34.10-2012 key on a legacy parameter set must carry id-tc26-gost3411-12-256 (RFC 9215, 4.2)
+            CurveOidCase("ECGOST3410-2012 on CryptoPro-A", "ECGOST3410-2012",
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256),
+        };
+
+        private static TestCaseData CurveOidCase(string displayName, string algorithm, DerObjectIdentifier curveOid,
+            DerObjectIdentifier expectedAlgOid, DerObjectIdentifier expectedDigestParamSet)
+        {
+            return new TestCaseData(algorithm, curveOid, expectedAlgOid, expectedDigestParamSet)
+                .SetArgDisplayNames(displayName);
+        }
+
+        /// <summary>
+        /// A key pair generated from a bare curve OID has plain named domain parameters (not
+        /// <see cref="ECGost3410Parameters"/>). It must still encode in the standard GOST form, with default parameter
+        /// sets chosen from the algorithm name and curve, and round trip through both key factories.
+        /// </summary>
+        [TestCaseSource(nameof(CurveOidCases))]
+        public void GeneratedFromCurveOid(string algorithm, DerObjectIdentifier curveOid,
+            DerObjectIdentifier expectedAlgOid, DerObjectIdentifier expectedDigestParamSet)
+        {
+            var generator = GeneratorUtilities.GetKeyPairGenerator(algorithm);
+            generator.Init(new ECKeyGenerationParameters(curveOid, new SecureRandom()));
+            var keyPair = generator.GenerateKeyPair();
+
+            var publicKey = (ECPublicKeyParameters)keyPair.Public;
+            var privateKey = (ECPrivateKeyParameters)keyPair.Private;
+            Assert.That(privateKey.Parameters, Is.Not.InstanceOf<ECGost3410Parameters>());
+
+            int fieldSize = privateKey.Parameters.Curve.FieldElementEncodingLength;
+
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
+            CheckAlgorithmIdentifier(spki.Algorithm, expectedAlgOid, curveOid, expectedDigestParamSet);
+
+            var pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
+            CheckAlgorithmIdentifier(pki.PrivateKeyAlgorithm, expectedAlgOid, curveOid, expectedDigestParamSet);
+
+            // The private key must be the little-endian OCTET STRING form, not an ECPrivateKey structure
+            var privateKeyOctets = Asn1OctetString.GetInstance(pki.ParsePrivateKey());
+            Assert.That(privateKeyOctets.GetOctetsLength(), Is.EqualTo(fieldSize));
+
+            var decodedPublic = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(spki);
+            Assert.That(decodedPublic.Q, Is.EqualTo(publicKey.Q));
+            Assert.That(decodedPublic.PublicKeyParamSet, Is.EqualTo(curveOid));
+
+            var decodedPrivate = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(pki);
+            Assert.That(decodedPrivate.D, Is.EqualTo(privateKey.D));
+            Assert.That(decodedPrivate.PublicKeyParamSet, Is.EqualTo(curveOid));
+            Assert.That(decodedPrivate, Is.EqualTo(privateKey));
+
+            // Re-encoding the decoded keys must be stable
+            Assert.That(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(decodedPublic), Is.EqualTo(spki));
+            Assert.That(PrivateKeyInfoFactory.CreatePrivateKeyInfo(decodedPrivate), Is.EqualTo(pki));
+        }
+
+        [Test]
+        public void NonGostCurveRejected()
+        {
+            var generator = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
+            generator.Init(new ECKeyGenerationParameters(SecObjectIdentifiers.SecP256r1, new SecureRandom()));
+            var keyPair = generator.GenerateKeyPair();
+
+            Assert.Throws<ArgumentException>(
+                () => SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public));
+            Assert.Throws<ArgumentException>(
+                () => PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private));
+        }
+
+        private static readonly TestCaseData[] LegacyPrivateKeyShapeCases =
+        {
+            new TestCaseData(CryptoProObjectIdentifiers.GostR3410x2001,
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet).SetArgDisplayNames("2001 CryptoPro-A"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256).SetArgDisplayNames("2012 CryptoPro-A"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA,
+                null).SetArgDisplayNames("2012 TC26 512-A"),
+        };
+
+        /// <summary>
+        /// PrivateKeyFactory must accept the private key shapes other encoders (and older bc-csharp versions) have
+        /// produced under a GOST algorithm OID: an ECPrivateKey structure with either GOST parameters or a bare curve
+        /// OID, an INTEGER, and a nested OCTET STRING, as well as the standard raw little-endian OCTET STRING.
+        /// </summary>
+        [TestCaseSource(nameof(LegacyPrivateKeyShapeCases))]
+        public void LegacyPrivateKeyShapes(DerObjectIdentifier algOid, DerObjectIdentifier curveOid,
+            DerObjectIdentifier expectedDigestParamSet)
+        {
+            var x9 = ECGost3410NamedCurves.GetByOid(curveOid);
+            var d = new BigInteger(x9.N.BitLength - 1, new SecureRandom()).Add(BigInteger.One);
+            int fieldSize = x9.Curve.FieldElementEncodingLength;
+
+            var gostParams = new Gost3410PublicKeyAlgParameters(curveOid, expectedDigestParamSet);
+            var gostAlgID = new AlgorithmIdentifier(algOid, gostParams);
+            var bareOidAlgID = new AlgorithmIdentifier(algOid, curveOid);
+
+            var ecPrivateKey = new ECPrivateKeyStructure(x9.N.BitLength, d);
+            var dLittleEndian = BigIntegers.AsUnsignedByteArray(fieldSize, d);
+            Array.Reverse(dLittleEndian);
+
+            var shapes = new[]
+            {
+                // Standard (BC): GOST parameters, little-endian OCTET STRING inside the PrivateKeyInfo OCTET STRING
+                new PrivateKeyInfo(gostAlgID, new DerOctetString(dLittleEndian)),
+                // GOST parameters, raw little-endian octets as the PrivateKeyInfo OCTET STRING (CryptoPro)
+                PrivateKeyInfo.GetInstance(
+                    new DerSequence(DerInteger.Zero, gostAlgID, new DerOctetString(dLittleEndian))),
+                // GOST parameters with an ECPrivateKey structure (older bc-csharp versions)
+                new PrivateKeyInfo(gostAlgID, ecPrivateKey),
+                // GOST parameters with an INTEGER (other encoders)
+                new PrivateKeyInfo(gostAlgID, new DerInteger(d)),
+                // Bare curve OID with an ECPrivateKey structure (bc-java provider) or INTEGER
+                new PrivateKeyInfo(bareOidAlgID, ecPrivateKey),
+                new PrivateKeyInfo(bareOidAlgID, new DerInteger(d)),
+            };
+
+            foreach (var pki in shapes)
+            {
+                var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(pki);
+
+                Assert.That(privateKey.D, Is.EqualTo(d));
+                Assert.That(privateKey.AlgorithmName, Is.EqualTo("ECGOST3410"));
+                Assert.That(privateKey.PublicKeyParamSet, Is.EqualTo(curveOid));
+
+                var parameters = (ECGost3410Parameters)privateKey.Parameters;
+                Assert.That(parameters.DigestParamSet, Is.EqualTo(expectedDigestParamSet));
+
+                // Every shape re-encodes to the standard form under the original algorithm OID
+                var reencoded = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
+                Assert.That(reencoded, Is.EqualTo(shapes[0]));
+            }
+        }
+
+        private static readonly TestCaseData[] PublicKeyAlgorithmOidCases =
+        {
+            new TestCaseData(CryptoProObjectIdentifiers.GostR3410x2001,
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet).SetArgDisplayNames("2001 CryptoPro-A"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
+                null).SetArgDisplayNames("2012-256 TC26 256-A"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA,
+                null).SetArgDisplayNames("2012-512 TC26 512-A"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetB,
+                null).SetArgDisplayNames("agreement-256 TC26 256-B"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetB,
+                null).SetArgDisplayNames("agreement-512 TC26 512-B"),
+        };
+
+        /// <summary>
+        /// PublicKeyFactory must decode an ECGOST3410 public key under any of the key algorithm OIDs, including the
+        /// GOST R 34.10-2012 agreement OIDs (which the encoder never produces) and with a bare curve OID in place of
+        /// the GOST parameters, sizing the point from the curve rather than the algorithm OID.
+        /// </summary>
+        [TestCaseSource(nameof(PublicKeyAlgorithmOidCases))]
+        public void PublicKeyAlgorithmOids(DerObjectIdentifier algOid, DerObjectIdentifier curveOid,
+            DerObjectIdentifier digestParamSet)
+        {
+            var keyPair = GenerateKeyPair(curveOid, digestParamSet);
+            var publicKey = (ECPublicKeyParameters)keyPair.Public;
+
+            // Take the encoder's public key octets and re-wrap them under the OID being tested
+            var encoded = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
+            var publicKeyData = encoded.PublicKey;
+
+            var gostParams = new Gost3410PublicKeyAlgParameters(curveOid, digestParamSet);
+            var gostAlgID = new AlgorithmIdentifier(algOid, gostParams);
+            var bareOidAlgID = new AlgorithmIdentifier(algOid, curveOid);
+
+            foreach (var algID in new[] { gostAlgID, bareOidAlgID })
+            {
+                var spki = new SubjectPublicKeyInfo(algID, publicKeyData);
+                var decoded = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(spki);
+
+                Assert.That(decoded.Q, Is.EqualTo(publicKey.Q));
+                Assert.That(decoded.AlgorithmName, Is.EqualTo("ECGOST3410"));
+                Assert.That(decoded.PublicKeyParamSet, Is.EqualTo(curveOid));
+                Assert.That(decoded.Parameters, Is.InstanceOf<ECGost3410Parameters>());
+            }
+
+            // A public key of the wrong size for the curve is rejected
+            var truncated = new SubjectPublicKeyInfo(gostAlgID, Arrays.CopyOf(publicKeyData.GetBytes(), 32));
+            Assert.Throws<ArgumentException>(() => PublicKeyFactory.CreateKey(truncated));
+        }
+
+        [Test]
+        public void ExplicitParametersRejected()
+        {
+            var x9 = ECGost3410NamedCurves.GetByOid(CryptoProObjectIdentifiers.GostR3410x2001CryptoProA);
+            var explicitParams = new X962Parameters(x9);
+            var algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x2001, explicitParams);
+            var pki = new PrivateKeyInfo(algID, new ECPrivateKeyStructure(x9.N.BitLength, BigInteger.One));
+
+            Assert.Throws<ArgumentException>(() => PrivateKeyFactory.CreateKey(pki));
+        }
+
         private static AsymmetricCipherKeyPair GenerateKeyPair(DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet)
         {
-            var domainParameters = ECNamedDomainParameters.LookupOid(publicKeyParamSet);
-            var gostParameters = new ECGost3410Parameters(domainParameters, publicKeyParamSet, digestParamSet, null);
+            var gostParams = new Gost3410PublicKeyAlgParameters(publicKeyParamSet, digestParamSet);
+            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
 
             var generator = new ECKeyPairGenerator();
-            generator.Init(new ECKeyGenerationParameters(gostParameters, new SecureRandom()));
+            generator.Init(new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom()));
             return generator.GenerateKeyPair();
         }
     }

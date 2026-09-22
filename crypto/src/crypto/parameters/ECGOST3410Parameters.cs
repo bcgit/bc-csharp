@@ -1,37 +1,105 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using System;
+
+using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.X9;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ECGost3410Parameters
         : ECNamedDomainParameters
     {
-        private readonly DerObjectIdentifier m_publicKeyParamSet;
+        public static ECGost3410Parameters FromGost3410PublicKeyAlgParameters(
+            Gost3410PublicKeyAlgParameters publicKeyAlgParams)
+        {
+            if (publicKeyAlgParams == null)
+                throw new ArgumentNullException(nameof(publicKeyAlgParams));
+
+            return new ECGost3410Parameters(publicKeyAlgParams.PublicKeyParamSet, publicKeyAlgParams.DigestParamSet,
+                publicKeyAlgParams.EncryptionParamSet);
+        }
+
         private readonly DerObjectIdentifier m_digestParamSet;
         private readonly DerObjectIdentifier m_encryptionParamSet;
 
+        public ECGost3410Parameters(DerObjectIdentifier publicKeyParamSet, DerObjectIdentifier digestParamSet,
+            DerObjectIdentifier encryptionParamSet)
+            : this(GetX9ECParameters(publicKeyParamSet), publicKeyParamSet, digestParamSet, encryptionParamSet)
+        {
+        }
+
+        private ECGost3410Parameters(X9ECParameters x9ECParameters, DerObjectIdentifier publicKeyParamSet,
+            DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
+            : base(publicKeyParamSet, x9ECParameters)
+        {
+            // Invalid for both structures: GOST R 34.10-2001 requires digestParamSet and GOST R 34.10-2012 has no
+            // encryptionParamSet (see Gost3410PublicKeyAlgParameters).
+            if (digestParamSet == null && encryptionParamSet != null)
+                throw new ArgumentException("encryptionParamSet requires digestParamSet", nameof(encryptionParamSet));
+
+            m_digestParamSet = digestParamSet;
+            m_encryptionParamSet = encryptionParamSet;
+        }
+
+        [Obsolete("Use 'FromGost3410PublicKeyAlgParameters' or param-sets-only constructor instead")]
         public ECGost3410Parameters(ECNamedDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
-            : base(dp.Name, dp.Curve, dp.G, dp.N, dp.H, dp.GetSeed())
+            : this(ValidateDomainParameters(dp, publicKeyParamSet), publicKeyParamSet, digestParamSet,
+                encryptionParamSet)
         {
-            m_publicKeyParamSet = publicKeyParamSet;
-            m_digestParamSet = digestParamSet;
-            m_encryptionParamSet = encryptionParamSet;
         }
 
+        [Obsolete("Use 'FromGost3410PublicKeyAlgParameters' or param-sets-only constructor instead")]
         public ECGost3410Parameters(ECDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
-            : base(dp is ECNamedDomainParameters ndp ? ndp.Name : publicKeyParamSet, dp.Curve, dp.G, dp.N, dp.H,
-                  dp.GetSeed())
+            : this(ValidateDomainParameters(dp, publicKeyParamSet), publicKeyParamSet, digestParamSet,
+                encryptionParamSet)
         {
-            m_publicKeyParamSet = publicKeyParamSet;
-            m_digestParamSet = digestParamSet;
-            m_encryptionParamSet = encryptionParamSet;
         }
 
-        public DerObjectIdentifier PublicKeyParamSet => m_publicKeyParamSet;
+        public DerObjectIdentifier PublicKeyParamSet => Name;
 
         public DerObjectIdentifier DigestParamSet => m_digestParamSet;
 
         public DerObjectIdentifier EncryptionParamSet => m_encryptionParamSet;
+
+        public Gost3410PublicKeyAlgParameters ToGost3410PublicKeyAlgParameters() =>
+            new Gost3410PublicKeyAlgParameters(PublicKeyParamSet, DigestParamSet, EncryptionParamSet);
+
+        private static X9ECParameters GetX9ECParameters(DerObjectIdentifier publicKeyParamSet)
+        {
+            return ECGost3410NamedCurves.GetByOid(publicKeyParamSet)
+                ?? throw new ArgumentException("Unrecognized ECGOST3410 curve OID", nameof(publicKeyParamSet));
+        }
+
+        /// <summary>
+        /// Check that <paramref name="dp"/> is consistent with the ECGOST3410 named curve identified by
+        /// <paramref name="publicKeyParamSet"/>, and return that curve (from which the instance is then built).
+        /// </summary>
+        private static X9ECParameters ValidateDomainParameters(ECDomainParameters dp,
+            DerObjectIdentifier publicKeyParamSet)
+        {
+            if (dp == null)
+                throw new ArgumentNullException(nameof(dp));
+            if (publicKeyParamSet == null)
+                throw new ArgumentNullException(nameof(publicKeyParamSet));
+
+            var x962Parameters = dp.ToX962Parameters();
+            if (x962Parameters.IsNamedCurve && !publicKeyParamSet.Equals(x962Parameters.NamedCurve))
+            {
+                throw new ArgumentException("Curve name does not match the specified 'publicKeyParamSet'",
+                    nameof(dp));
+            }
+
+            var x9ECParameters = GetX9ECParameters(publicKeyParamSet);
+
+            if (!FromX9ECParameters(x9ECParameters).Equals(dp))
+            {
+                throw new ArgumentException("Domain parameters do not match the specified 'publicKeyParamSet'",
+                    nameof(dp));
+            }
+
+            return x9ECParameters;
+        }
     }
 }

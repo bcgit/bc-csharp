@@ -8,12 +8,12 @@ using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Gnu;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
-using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.UA;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Utilities;
@@ -116,31 +116,27 @@ namespace Org.BouncyCastle.Security
                 ECPoint q = domainParameters.Curve.DecodePoint(keyInfo.PublicKey.GetBytes());
                 return new ECPublicKeyParameters("EC", q, domainParameters);
             }
-            else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x2001))
+            else if (ECGost3410Utilities.IsKeyAlgorithmOid(algOid))
             {
-                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
-                DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
-
-                X9ECParameters ecP = ECGost3410NamedCurves.GetByOid(publicKeyParamSet);
-                if (ecP == null)
-                    return null;
+                var ecGost3410Parameters = ECGost3410Utilities.ParseAlgorithmIdentifier(algID);
 
                 Asn1OctetString key;
                 try
                 {
-                    key = (Asn1OctetString)keyInfo.ParsePublicKey();
+                    key = Asn1OctetString.GetInstance(keyInfo.ParsePublicKey());
                 }
                 catch (IOException e)
                 {
-                    throw new ArgumentException("error recovering GOST3410_2001 public key", e);
+                    throw new ArgumentException("error recovering ECGOST3410 public key", e);
                 }
 
-                int fieldSize = 32;
+                // Little-endian X then Y, each a field element
+                int fieldSize = ECGost3410Utilities.GetFieldElementEncodingLength(ecGost3410Parameters);
                 int keySize = 2 * fieldSize;
 
                 byte[] keyEnc = key.GetOctets();
                 if (keyEnc.Length != keySize)
-                    throw new ArgumentException("invalid length for GOST3410_2001 public key");
+                    throw new ArgumentException("invalid length for ECGOST3410 public key");
 
                 byte[] x9Encoding = new byte[1 + keySize];
                 x9Encoding[0] = 0x04;
@@ -150,9 +146,9 @@ namespace Org.BouncyCastle.Security
                     x9Encoding[i + fieldSize] = keyEnc[keySize - i];
                 }
 
-                ECPoint q = ecP.Curve.DecodePoint(x9Encoding);
+                ECPoint q = ecGost3410Parameters.Curve.DecodePoint(x9Encoding);
 
-                return new ECPublicKeyParameters("ECGOST3410", q, publicKeyParamSet);
+                return new ECPublicKeyParameters("ECGOST3410", q, ecGost3410Parameters);
             }
             else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x94))
             {
@@ -191,53 +187,6 @@ namespace Org.BouncyCastle.Security
             else if (algOid.Equals(EdECObjectIdentifiers.id_Ed448))
             {
                 return new Ed448PublicKeyParameters(GetRawKey(keyInfo));
-            }
-            else if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256)
-                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512)
-                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256)
-                ||   algOid.Equals(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512))
-            {
-                Gost3410PublicKeyAlgParameters gostParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
-                DerObjectIdentifier publicKeyParamSet = gostParams.PublicKeyParamSet;
-
-                ECGost3410Parameters ecDomainParameters =new ECGost3410Parameters(
-                    new ECNamedDomainParameters(publicKeyParamSet, ECGost3410NamedCurves.GetByOid(publicKeyParamSet)),
-                    publicKeyParamSet,
-                    gostParams.DigestParamSet,
-                    gostParams.EncryptionParamSet);
-
-                Asn1OctetString key;
-                try
-                {
-                    key = (Asn1OctetString)keyInfo.ParsePublicKey();
-                }
-                catch (IOException e)
-                {
-                    throw new ArgumentException("error recovering GOST3410_2012 public key", e);
-                }
-
-                int fieldSize = 32;
-                if (algOid.Equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512))
-                {
-                    fieldSize = 64;
-                }
-                int keySize = 2 * fieldSize;
-
-                byte[] keyEnc = key.GetOctets();
-                if (keyEnc.Length != keySize)
-                    throw new ArgumentException("invalid length for GOST3410_2012 public key");
-
-                byte[] x9Encoding = new byte[1 + keySize];
-                x9Encoding[0] = 0x04;
-                for (int i = 1; i <= fieldSize; ++i)
-                {
-                    x9Encoding[i] = keyEnc[fieldSize - i];
-                    x9Encoding[i + fieldSize] = keyEnc[keySize - i];
-                }
-
-                ECPoint q = ecDomainParameters.Curve.DecodePoint(x9Encoding);
-
-                return new ECPublicKeyParameters(q, ecDomainParameters);
             }
             else if (MLDsaParameters.ByOid.TryGetValue(algOid, out MLDsaParameters mlDsaParameters))
             {
