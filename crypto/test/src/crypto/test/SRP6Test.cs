@@ -1,3 +1,5 @@
+using System;
+
 using NUnit.Framework;
 
 using Org.BouncyCastle.Crypto.Agreement.Srp;
@@ -54,6 +56,60 @@ namespace Org.BouncyCastle.Crypto.Tests
             DHParameters parameters = paramGen.GenerateParameters();
 
             ImplTestMutualVerification(new Srp6GroupParameters(parameters.P, parameters.G));
+        }
+
+        /// <summary>
+        /// The exponents carrying private material are randomised before
+        /// <see cref="BigInteger.ModPow(BigInteger, BigInteger)"/> sees them, so each of those calls draws a blinding
+        /// factor. Blinding is result-preserving - the RFC 5054 vectors above are what pin the values - so the draws
+        /// are the only thing left to observe.
+        /// </summary>
+        [Test]
+        public void PrivateExponentsAreBlinded()
+        {
+            Srp6GroupParameters group = Srp6StandardGroups.rfc5054_1024;
+
+            byte[] I = Strings.ToUtf8ByteArray("username");
+            byte[] P = Strings.ToUtf8ByteArray("password");
+            byte[] s = new byte[16];
+            random.NextBytes(s);
+
+            CountingRandom genRandom = new CountingRandom(random);
+            Srp6VerifierGenerator gen = new Srp6VerifierGenerator();
+            gen.Init(group, new Sha256Digest(), genRandom);
+            BigInteger v = gen.GenerateVerifier(s, I, P);
+
+            // one draw, for the exponent carrying the password derived x
+            Assert.That(genRandom.Count, Is.EqualTo(1), "verifier generation did not blind its exponent");
+
+            CountingRandom clientRandom = new CountingRandom(random);
+            Srp6Client client = new Srp6Client();
+            client.Init(group, new Sha256Digest(), clientRandom);
+
+            CountingRandom serverRandom = new CountingRandom(random);
+            Srp6Server server = new Srp6Server();
+            server.Init(group, v, new Sha256Digest(), serverRandom);
+
+            BigInteger A = client.GenerateClientCredentials(s, I, P);
+            BigInteger B = server.GenerateServerCredentials();
+
+            // the credential draws include the private value itself, which CreateRandomInRange may retry, so only
+            // the secret calculations below have an exactly known count
+            int clientBase = clientRandom.Count;
+            int serverBase = serverRandom.Count;
+
+            BigInteger clientS = client.CalculateSecret(B);
+            BigInteger serverS = server.CalculateSecret(A);
+
+            // client: one draw for x, one for u * x + a
+            Assert.That(clientRandom.Count - clientBase, Is.EqualTo(2),
+                "client secret did not blind both exponents");
+            // server: one draw for b
+            Assert.That(serverRandom.Count - serverBase, Is.EqualTo(1),
+                "server secret did not blind its exponent");
+
+            Assert.That(clientS, Is.EqualTo(serverS),
+                "SRP agreement failed - client/server calculated different secrets");
         }
 
         [Test]
@@ -150,6 +206,32 @@ namespace Org.BouncyCastle.Crypto.Tests
                 "Server failed to detect invalid value for 'A'");
         }
 
+        /// <summary>
+        /// Two different blinding factors have to give the same verifier. A multiple of the wrong order would not -
+        /// and for a safe prime it would be wrong about half the time, which is why this is checked rather than
+        /// assumed.
+        /// </summary>
+        [Test]
+        public void VerifierSurvivesBlinding()
+        {
+            Srp6GroupParameters group = Srp6StandardGroups.rfc5054_1024;
+
+            byte[] I = Strings.ToUtf8ByteArray("username");
+            byte[] P = Strings.ToUtf8ByteArray("password");
+            byte[] s = new byte[16];
+            random.NextBytes(s);
+
+            Srp6VerifierGenerator gen = new Srp6VerifierGenerator();
+            gen.Init(group, new Sha256Digest(), random);
+
+            BigInteger first = gen.GenerateVerifier(s, I, P);
+
+            for (int i = 0; i < 20; ++i)
+            {
+                Assert.That(gen.GenerateVerifier(s, I, P), Is.EqualTo(first), "blinding changed the SRP verifier");
+            }
+        }
+
         private void ImplTestMutualVerification(Srp6GroupParameters group)
         {
             byte[] I = Strings.ToUtf8ByteArray("username");
@@ -180,6 +262,41 @@ namespace Org.BouncyCastle.Crypto.Tests
         private static BigInteger FromHex(string hex)
         {
             return new BigInteger(1, Hex.Decode(hex));
+        }
+
+        /// <summary>Counts the calls a wrapped <see cref="SecureRandom"/> receives, forwarding each one.</summary>
+        private class CountingRandom
+            : SecureRandom
+        {
+            private readonly SecureRandom m_random;
+
+            internal CountingRandom(SecureRandom random)
+                : base(null)
+            {
+                m_random = random;
+            }
+
+            internal int Count { get; private set; }
+
+            public override void NextBytes(byte[] buf)
+            {
+                ++Count;
+                m_random.NextBytes(buf);
+            }
+
+            public override void NextBytes(byte[] buf, int off, int len)
+            {
+                ++Count;
+                m_random.NextBytes(buf, off, len);
+            }
+
+#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+            public override void NextBytes(Span<byte> buffer)
+            {
+                ++Count;
+                m_random.NextBytes(buffer);
+            }
+#endif
         }
 
         private class MySrp6Client

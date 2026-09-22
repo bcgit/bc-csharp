@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Agreement.Srp
 {
@@ -48,7 +49,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             this.g = g;
             this.v = v;
 
-            this.random = random;
+            this.random = CryptoServicesRegistrar.GetSecureRandom(random);
             this.digest = digest;
         }
 
@@ -63,7 +64,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         {
             BigInteger k = Srp6Utilities.CalculateK(digest, N, g);
             this.privB = SelectPrivateValue();
-            this.pubB = k.Multiply(v).Mod(N).Add(g.ModPow(privB, N)).Mod(N);
+            this.pubB = k.Multiply(v).Mod(N).Add(g.ModPow(BlindExponent(privB), N)).Mod(N);
 
             return pubB;
         }
@@ -88,7 +89,23 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
 
         private BigInteger CalculateS()
         {
-            return v.ModPow(u, N).Multiply(A).Mod(N).ModPow(privB, N);
+            // TODO Consider base blinding to protect 'v'
+            return v.ModPow(u, N).ModMultiply(A, N).ModPow(BlindExponent(privB), N);
+        }
+
+        /// <summary>
+        /// Add a random multiple of N-1 to a private exponent, so that the variable-time
+        /// <see cref="BigInteger.ModPow(BigInteger, BigInteger)"/> applied to it sees a different exponent.
+        /// </summary>
+        /// <remarks>
+        /// Raising any value coprime to the prime N to the power N-1 gives 1 by Fermat's little theorem, so the result
+        /// is unchanged. The multiple is of N-1 rather than of the order of g because the base blinded in
+        /// <see cref="CalculateS"/> carries a client-supplied value that need not lie in the subgroup g generates, and
+        /// for a safe prime an odd multiple of that order would give the wrong answer for the values that do not.
+        /// </remarks>
+        private BigInteger BlindExponent(BigInteger e)
+        {
+            return BigIntegers.CreateBlindedExponent(e, N.Subtract(BigIntegers.One), random);
         }
 
         /// <summary>Authenticates the received client evidence message M1 and saves it only if correct.</summary>

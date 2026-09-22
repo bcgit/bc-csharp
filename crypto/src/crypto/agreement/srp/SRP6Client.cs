@@ -3,6 +3,7 @@ using System;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Agreement.Srp
 {
@@ -47,7 +48,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             this.N = N;
             this.g = g;
             this.digest = digest;
-            this.random = random;
+            this.random = CryptoServicesRegistrar.GetSecureRandom(random);
         }
 
         public virtual void Init(Srp6GroupParameters group, IDigest digest, SecureRandom random)
@@ -64,7 +65,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         {
             this.x = Srp6Utilities.CalculateX(digest, N, salt, identity, password);
             this.privA = SelectPrivateValue();
-            this.pubA = g.ModPow(privA, N);
+            this.pubA = g.ModPow(BlindExponent(privA), N);
 
             return pubA;
         }
@@ -91,8 +92,23 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         {
             BigInteger k = Srp6Utilities.CalculateK(digest, N, g);
             BigInteger exp = u.Multiply(x).Add(privA);
-            BigInteger tmp = g.ModPow(x, N).Multiply(k).Mod(N);
-            return B.Subtract(tmp).Mod(N).ModPow(exp, N);
+            BigInteger tmp = g.ModPow(BlindExponent(x), N).Multiply(k).Mod(N);
+            return B.Subtract(tmp).Mod(N).ModPow(BlindExponent(exp), N);
+        }
+
+        /// <summary>
+        /// Add a random multiple of N-1 to a private exponent, so that the variable-time
+        /// <see cref="BigInteger.ModPow(BigInteger, BigInteger)"/> applied to it sees a different exponent.
+        /// </summary>
+        /// <remarks>
+        /// Raising any value coprime to the prime N to the power N-1 gives 1 by Fermat's little theorem, so the result
+        /// is unchanged. The multiple is of N-1 rather than of the order of g because the base blinded in
+        /// <see cref="CalculateS"/> carries a client-supplied value that need not lie in the subgroup g generates, and
+        /// for a safe prime an odd multiple of that order would give the wrong answer for the values that do not.
+        /// </remarks>
+        private BigInteger BlindExponent(BigInteger e)
+        {
+            return BigIntegers.CreateBlindedExponent(e, N.Subtract(BigIntegers.One), random);
         }
 
         /// <summary>Computes the client evidence message M1 using the previously received values.</summary>
