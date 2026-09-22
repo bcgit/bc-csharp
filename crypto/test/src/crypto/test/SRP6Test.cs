@@ -8,40 +8,56 @@ using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
-using Org.BouncyCastle.Utilities.Test;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
     [TestFixture]
     public class Srp6Test
-        : SimpleTest
     {
-        private static BigInteger FromHex(string hex)
-        {
-            return new BigInteger(1, Hex.Decode(hex));
-        }
-
         private readonly SecureRandom random = new SecureRandom();
 
-        public override string Name
+        [Test]
+        public void ClientCatchesBadB()
         {
-            get { return "SRP6"; }
+            Srp6GroupParameters group = Srp6StandardGroups.rfc5054_1024;
+
+            byte[] I = Strings.ToUtf8ByteArray("username");
+            byte[] P = Strings.ToUtf8ByteArray("password");
+            byte[] s = new byte[16];
+            random.NextBytes(s);
+
+            Srp6Client client = new Srp6Client();
+            client.Init(group, new Sha256Digest(), random);
+
+            client.GenerateClientCredentials(s, I, P);
+
+            Assert.Throws<CryptoException>(() => client.CalculateSecret(BigInteger.Zero),
+                "Client failed to detect invalid value for 'B'");
+
+            Assert.Throws<CryptoException>(() => client.CalculateSecret(group.N),
+                "Client failed to detect invalid value for 'B'");
         }
 
-        public override void PerformTest()
+        [Test]
+        public void MutualVerification()
         {
-            rfc5054AppendixBTestVectors();
-
-            testMutualVerification(Srp6StandardGroups.rfc5054_1024);
-            testClientCatchesBadB(Srp6StandardGroups.rfc5054_1024);
-            testServerCatchesBadA(Srp6StandardGroups.rfc5054_1024);
-
-            testWithRandomParams(256);
-            testWithRandomParams(384);
-            testWithRandomParams(512);
+            ImplTestMutualVerification(Srp6StandardGroups.rfc5054_1024);
         }
 
-        private void rfc5054AppendixBTestVectors()
+        [TestCase(256)]
+        [TestCase(384)]
+        [TestCase(512)]
+        public void MutualVerificationRandomParams(int bits)
+        {
+            DHParametersGenerator paramGen = new DHParametersGenerator();
+            paramGen.Init(bits, 25, random);
+            DHParameters parameters = paramGen.GenerateParameters();
+
+            ImplTestMutualVerification(new Srp6GroupParameters(parameters.P, parameters.G));
+        }
+
+        [Test]
+        public void Rfc5054AppendixBTestVectors()
         {
             byte[] I = Strings.ToUtf8ByteArray("alice");
             byte[] P = Strings.ToUtf8ByteArray("password123");
@@ -76,135 +92,43 @@ namespace Org.BouncyCastle.Crypto.Tests
                 + "C346D7E474B29EDE8A469FFECA686E5A");
 
             BigInteger k = Srp6Utilities.CalculateK(new Sha1Digest(), N, g);
-            if (!k.Equals(expect_k))
-            {
-                Fail("wrong value of 'k'");
-            }
+            Assert.That(k, Is.EqualTo(expect_k), "wrong value of 'k'");
 
             BigInteger x = Srp6Utilities.CalculateX(new Sha1Digest(), N, s, I, P);
-            if (!x.Equals(expect_x))
-            {
-                Fail("wrong value of 'x'");
-            }
+            Assert.That(x, Is.EqualTo(expect_x), "wrong value of 'x'");
 
             Srp6VerifierGenerator gen = new Srp6VerifierGenerator();
             gen.Init(N, g, new Sha1Digest());
             BigInteger v = gen.GenerateVerifier(s, I, P);
-            if (!v.Equals(expect_v))
-            {
-                Fail("wrong value of 'v'");
-            }
+            Assert.That(v, Is.EqualTo(expect_v), "wrong value of 'v'");
 
             Srp6Client client = new MySrp6Client(a);
             client.Init(N, g, new Sha1Digest(), random);
 
             BigInteger A = client.GenerateClientCredentials(s, I, P);
-            if (!A.Equals(expect_A))
-            {
-                Fail("wrong value of 'A'");
-            }
+            Assert.That(A, Is.EqualTo(expect_A), "wrong value of 'A'");
 
             Srp6Server server = new MySrp6Server(b);
             server.Init(N, g, v, new Sha1Digest(), random);
 
             BigInteger B = server.GenerateServerCredentials();
-            if (!B.Equals(expect_B))
-            {
-                Fail("wrong value of 'B'");
-            }
+            Assert.That(B, Is.EqualTo(expect_B), "wrong value of 'B'");
 
             BigInteger u = Srp6Utilities.CalculateU(new Sha1Digest(), N, A, B);
-            if (!u.Equals(expect_u))
-            {
-                Fail("wrong value of 'u'");
-            }
+            Assert.That(u, Is.EqualTo(expect_u), "wrong value of 'u'");
 
             BigInteger clientS = client.CalculateSecret(B);
-            if (!clientS.Equals(expect_S))
-            {
-                Fail("wrong value of 'S' (client)");
-            }
+            Assert.That(clientS, Is.EqualTo(expect_S), "wrong value of 'S' (client)");
 
             BigInteger serverS = server.CalculateSecret(A);
-            if (!serverS.Equals(expect_S))
-            {
-                Fail("wrong value of 'S' (server)");
-            }
+            Assert.That(serverS, Is.EqualTo(expect_S), "wrong value of 'S' (server)");
         }
 
-        private void testWithRandomParams(int bits)
+        [Test]
+        public void ServerCatchesBadA()
         {
-            DHParametersGenerator paramGen = new DHParametersGenerator();
-            paramGen.Init(bits, 25, random);
-            DHParameters parameters = paramGen.GenerateParameters();
+            Srp6GroupParameters group = Srp6StandardGroups.rfc5054_1024;
 
-            testMutualVerification(new Srp6GroupParameters(parameters.P, parameters.G));
-        }
-
-        private void testMutualVerification(Srp6GroupParameters group)
-        {
-            byte[] I = Strings.ToUtf8ByteArray("username");
-            byte[] P = Strings.ToUtf8ByteArray("password");
-            byte[] s = new byte[16];
-            random.NextBytes(s);
-
-            Srp6VerifierGenerator gen = new Srp6VerifierGenerator();
-            gen.Init(group, new Sha256Digest());
-            BigInteger v = gen.GenerateVerifier(s, I, P);
-
-            Srp6Client client = new Srp6Client();
-            client.Init(group, new Sha256Digest(), random);
-
-            Srp6Server server = new Srp6Server();
-            server.Init(group, v, new Sha256Digest(), random);
-
-            BigInteger A = client.GenerateClientCredentials(s, I, P);
-            BigInteger B = server.GenerateServerCredentials();
-
-            BigInteger clientS = client.CalculateSecret(B);
-            BigInteger serverS = server.CalculateSecret(A);
-
-            if (!clientS.Equals(serverS))
-            {
-                Fail("SRP agreement failed - client/server calculated different secrets");
-            }
-        }
-
-        private void testClientCatchesBadB(Srp6GroupParameters group)
-        {
-            byte[] I = Strings.ToUtf8ByteArray("username");
-            byte[] P = Strings.ToUtf8ByteArray("password");
-            byte[] s = new byte[16];
-            random.NextBytes(s);
-
-            Srp6Client client = new Srp6Client();
-            client.Init(group, new Sha256Digest(), random);
-
-            client.GenerateClientCredentials(s, I, P);
-
-            try
-            {
-                client.CalculateSecret(BigInteger.Zero);
-                Fail("Client failed to detect invalid value for 'B'");
-            }
-            catch (CryptoException)
-            {
-                // Expected
-            }
-
-            try
-            {
-                client.CalculateSecret(group.N);
-                Fail("Client failed to detect invalid value for 'B'");
-            }
-            catch (CryptoException)
-            {
-                // Expected
-            }
-        }
-
-        private void testServerCatchesBadA(Srp6GroupParameters group)
-        {
             byte[] I = Strings.ToUtf8ByteArray("username");
             byte[] P = Strings.ToUtf8ByteArray("password");
             byte[] s = new byte[16];
@@ -219,32 +143,43 @@ namespace Org.BouncyCastle.Crypto.Tests
 
             server.GenerateServerCredentials();
 
-            try
-            {
-                server.CalculateSecret(BigInteger.Zero);
-                Fail("Client failed to detect invalid value for 'A'");
-            }
-            catch (CryptoException)
-            {
-                // Expected
-            }
+            Assert.Throws<CryptoException>(() => server.CalculateSecret(BigInteger.Zero),
+                "Server failed to detect invalid value for 'A'");
 
-            try
-            {
-                server.CalculateSecret(group.N);
-                Fail("Client failed to detect invalid value for 'A'");
-            }
-            catch (CryptoException)
-            {
-                // Expected
-            }
+            Assert.Throws<CryptoException>(() => server.CalculateSecret(group.N),
+                "Server failed to detect invalid value for 'A'");
         }
 
-        [Test]
-        public void TestFunction()
+        private void ImplTestMutualVerification(Srp6GroupParameters group)
         {
-            string resultText = Perform().ToString();
-            Assert.AreEqual(Name + ": Okay", resultText);
+            byte[] I = Strings.ToUtf8ByteArray("username");
+            byte[] P = Strings.ToUtf8ByteArray("password");
+            byte[] s = new byte[16];
+            random.NextBytes(s);
+
+            Srp6VerifierGenerator gen = new Srp6VerifierGenerator();
+            gen.Init(group, new Sha256Digest());
+            BigInteger v = gen.GenerateVerifier(s, I, P);
+
+            Srp6Client client = new Srp6Client();
+            client.Init(group, new Sha256Digest(), random);
+
+            Srp6Server server = new Srp6Server();
+            server.Init(group, v, new Sha256Digest(), random);
+
+            BigInteger A = client.GenerateClientCredentials(s, I, P);
+            BigInteger B = server.GenerateServerCredentials();
+
+            BigInteger clientS = client.CalculateSecret(B);
+            BigInteger serverS = server.CalculateSecret(A);
+
+            Assert.That(clientS, Is.EqualTo(serverS),
+                "SRP agreement failed - client/server calculated different secrets");
+        }
+
+        private static BigInteger FromHex(string hex)
+        {
+            return new BigInteger(1, Hex.Decode(hex));
         }
 
         private class MySrp6Client
