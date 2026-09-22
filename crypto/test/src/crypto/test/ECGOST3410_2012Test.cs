@@ -30,8 +30,9 @@ namespace Org.BouncyCastle.Crypto.Tests
         public SimpleTestResult EncodeRecodePublicKey()
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid("Tc26-Gost-3410-12-512-paramSetA");
-            var gostParams = new Gost3410PublicKeyAlgParameters(oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
-            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+            var gostParams = new GostR3410x2012PublicKeyParameters(oid,
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
+            var ecGost3410Parameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
             ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
@@ -119,8 +120,9 @@ namespace Org.BouncyCastle.Crypto.Tests
         private SimpleTestResult EncodeRecodePrivateKey()
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid("Tc26-Gost-3410-12-512-paramSetA");
-            var gostParams = new Gost3410PublicKeyAlgParameters(oid, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
-            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+            var gostParams = new GostR3410x2012PublicKeyParameters(oid,
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
+            var ecGost3410Parameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
             ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
@@ -340,8 +342,8 @@ namespace Org.BouncyCastle.Crypto.Tests
         public SimpleTestResult EncodeDecodePrivateLW(string oidStr, DerObjectIdentifier digest)
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid(oidStr);
-            var gostParams = new Gost3410PublicKeyAlgParameters(oid, digest);
-            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+            var gostParams = new GostR3410x2012PublicKeyParameters(oid, digest);
+            var ecGost3410Parameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
             ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
@@ -424,8 +426,8 @@ namespace Org.BouncyCastle.Crypto.Tests
         public SimpleTestResult EncodeDecodePublicLW(string oidStr, DerObjectIdentifier digest)
         {
             DerObjectIdentifier oid = ECGost3410NamedCurves.GetOid(oidStr);
-            var gostParams = new Gost3410PublicKeyAlgParameters(oid, digest);
-            var ecGostParameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+            var gostParams = new GostR3410x2012PublicKeyParameters(oid, digest);
+            var ecGostParameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
             ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGostParameters, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();

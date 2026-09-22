@@ -116,9 +116,9 @@ namespace Org.BouncyCastle.Tests
         {
             // 1. Select a legacy CryptoPro curve OID (GOST R 34.10-2001 parameter set)
             // 2. Configure key parameters with a GOST 2012 (256-bit) digest OID
-            var gostParams = new Gost3410PublicKeyAlgParameters(CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+            var gostParams = new GostR3410x2012PublicKeyParameters(CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
                 RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
-            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+            var ecGost3410Parameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
             // 3. Generate a key pair based on GOST 2012 parameters
             var keyGen = new ECKeyPairGenerator();
@@ -150,14 +150,24 @@ namespace Org.BouncyCastle.Tests
         {
             Assert.That(algID.Algorithm, Is.EqualTo(expectedAlgOid));
 
-            // An omitted digestParamSet must be absent from the encoding, not encoded as some placeholder
+            // An omitted digestParamSet (or DEFAULT encryptionParamSet) must be absent from the encoding
             int expectedCount = digestParamSet == null ? 1 : 2;
             Assert.That(Asn1Sequence.GetInstance(algID.Parameters).Count, Is.EqualTo(expectedCount));
 
-            var algParams = Gost3410PublicKeyAlgParameters.GetInstance(algID.Parameters);
-            Assert.That(algParams.PublicKeyParamSet, Is.EqualTo(publicKeyParamSet));
-            Assert.That(algParams.DigestParamSet, Is.EqualTo(digestParamSet));
-            Assert.That(algParams.EncryptionParamSet, Is.Null);
+            if (CryptoProObjectIdentifiers.GostR3410x2001.Equals(expectedAlgOid))
+            {
+                var algParams = GostR3410x2001PublicKeyParameters.GetInstance(algID.Parameters);
+                Assert.That(algParams.PublicKeyParamSet, Is.EqualTo(publicKeyParamSet));
+                Assert.That(algParams.DigestParamSet, Is.EqualTo(digestParamSet));
+                Assert.That(algParams.EncryptionParamSet,
+                    Is.EqualTo(GostR3410x2001PublicKeyParameters.DefaultEncryptionParamSet));
+            }
+            else
+            {
+                var algParams = GostR3410x2012PublicKeyParameters.GetInstance(algID.Parameters);
+                Assert.That(algParams.PublicKeyParamSet, Is.EqualTo(publicKeyParamSet));
+                Assert.That(algParams.DigestParamSet, Is.EqualTo(digestParamSet));
+            }
         }
 
         [Test]
@@ -315,8 +325,7 @@ namespace Org.BouncyCastle.Tests
             var d = new BigInteger(x9.N.BitLength - 1, new SecureRandom()).Add(BigInteger.One);
             int fieldSize = x9.Curve.FieldElementEncodingLength;
 
-            var gostParams = new Gost3410PublicKeyAlgParameters(curveOid, expectedDigestParamSet);
-            var gostAlgID = new AlgorithmIdentifier(algOid, gostParams);
+            var gostAlgID = CreateGostAlgID(algOid, curveOid, expectedDigestParamSet);
             var bareOidAlgID = new AlgorithmIdentifier(algOid, curveOid);
 
             var ecPrivateKey = new ECPrivateKeyStructure(x9.N.BitLength, d);
@@ -391,8 +400,7 @@ namespace Org.BouncyCastle.Tests
             var encoded = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
             var publicKeyData = encoded.PublicKey;
 
-            var gostParams = new Gost3410PublicKeyAlgParameters(curveOid, digestParamSet);
-            var gostAlgID = new AlgorithmIdentifier(algOid, gostParams);
+            var gostAlgID = CreateGostAlgID(algOid, curveOid, digestParamSet);
             var bareOidAlgID = new AlgorithmIdentifier(algOid, curveOid);
 
             foreach (var algID in new[] { gostAlgID, bareOidAlgID })
@@ -411,6 +419,184 @@ namespace Org.BouncyCastle.Tests
             Assert.Throws<ArgumentException>(() => PublicKeyFactory.CreateKey(truncated));
         }
 
+        /// <summary>
+        /// The GOST R 34.10-2001 encryptionParamSet is DEFAULT id-Gost28147-89-CryptoPro-A-ParamSet (RFC 4491): an
+        /// absent value decodes as the DEFAULT, an explicit DEFAULT is omitted on re-encoding, and any other value
+        /// round trips.
+        /// </summary>
+        [Test]
+        public void Gost2001EncryptionParamSet()
+        {
+            var algOid = CryptoProObjectIdentifiers.GostR3410x2001;
+            var publicKeyParamSet = CryptoProObjectIdentifiers.GostR3410x2001CryptoProA;
+            var digestParamSet = CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet;
+            var defaultEncryptionParamSet = GostR3410x2001PublicKeyParameters.DefaultEncryptionParamSet;
+            var otherEncryptionParamSet = CryptoProObjectIdentifiers.ID_Gost28147_89_CryptoPro_B_ParamSet;
+
+            var keyPair = GenerateKeyPair(
+                new ECGost3410Parameters(publicKeyParamSet, digestParamSet, otherEncryptionParamSet));
+
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public);
+            Assert.That(spki.Algorithm.Parameters,
+                Is.EqualTo(new DerSequence(publicKeyParamSet, digestParamSet, otherEncryptionParamSet)));
+            Assert.That(GetEncryptionParamSet(PublicKeyFactory.CreateKey(spki)), Is.EqualTo(otherEncryptionParamSet));
+
+            var pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private);
+            Assert.That(pki.PrivateKeyAlgorithm.Parameters, Is.EqualTo(spki.Algorithm.Parameters));
+            Assert.That(GetEncryptionParamSet(PrivateKeyFactory.CreateKey(pki)), Is.EqualTo(otherEncryptionParamSet));
+
+            var defaultAlgID = new AlgorithmIdentifier(algOid, new DerSequence(publicKeyParamSet, digestParamSet));
+            var algIDs = new[]
+            {
+                defaultAlgID,
+                new AlgorithmIdentifier(algOid,
+                    new DerSequence(publicKeyParamSet, digestParamSet, defaultEncryptionParamSet)),
+                new AlgorithmIdentifier(algOid, publicKeyParamSet),
+            };
+
+            foreach (var algID in algIDs)
+            {
+                var publicKey = PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(algID, spki.PublicKey));
+                Assert.That(GetEncryptionParamSet(publicKey), Is.EqualTo(defaultEncryptionParamSet));
+                Assert.That(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey).Algorithm,
+                    Is.EqualTo(defaultAlgID));
+
+                var privateKey = PrivateKeyFactory.CreateKey(new PrivateKeyInfo(algID, pki.ParsePrivateKey()));
+                Assert.That(GetEncryptionParamSet(privateKey), Is.EqualTo(defaultEncryptionParamSet));
+                Assert.That(PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey).PrivateKeyAlgorithm,
+                    Is.EqualTo(defaultAlgID));
+            }
+        }
+
+        /// <summary>
+        /// GOST R 34.10-2001 parameters require digestParamSet (RFC 4491), so a one-element SEQUENCE is rejected.
+        /// </summary>
+        [Test]
+        public void Gost2001MissingDigestParamSetRejected()
+        {
+            var keyPair = GenerateKeyPair(CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public);
+            var pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private);
+
+            var algID = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3410x2001,
+                new DerSequence(CryptoProObjectIdentifiers.GostR3410x2001CryptoProA));
+
+            Assert.Throws<ArgumentException>(
+                () => PublicKeyFactory.CreateKey(new SubjectPublicKeyInfo(algID, spki.PublicKey)));
+            Assert.Throws<ArgumentException>(
+                () => PrivateKeyFactory.CreateKey(new PrivateKeyInfo(algID, pki.ParsePrivateKey())));
+        }
+
+        /// <summary>
+        /// GOST R 34.10-2012 parameters have no encryptionParamSet (RFC 9215), so one set on the parameters is not
+        /// encoded.
+        /// </summary>
+        [Test]
+        public void Gost2012EncryptionParamSetNotEncoded()
+        {
+            var publicKeyParamSet = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA;
+            var digestParamSet = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
+
+            var keyPair = GenerateKeyPair(new ECGost3410Parameters(publicKeyParamSet, digestParamSet,
+                CryptoProObjectIdentifiers.ID_Gost28147_89_CryptoPro_A_ParamSet));
+
+            var expected = new DerSequence(publicKeyParamSet, digestParamSet);
+
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public);
+            Assert.That(spki.Algorithm.Algorithm, Is.EqualTo(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256));
+            Assert.That(spki.Algorithm.Parameters, Is.EqualTo(expected));
+
+            var pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private);
+            Assert.That(pki.PrivateKeyAlgorithm.Parameters, Is.EqualTo(expected));
+        }
+
+        /// <summary>
+        /// bc-csharp versions prior to 2.8.0 could encode a GOST R 34.10-2012 key with an encryptionParamSet. Such
+        /// keys are rejected unless <see cref="Properties.GostAllowLenientKeyParameters"/> is set, and then re-encode
+        /// in the RFC 9215 form.
+        /// </summary>
+        [Test]
+        public void Gost2012LegacyEncryptionParamSet()
+        {
+            var algOid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
+            var publicKeyParamSet = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA;
+            var digestParamSet = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
+            var encryptionParamSet = CryptoProObjectIdentifiers.ID_Gost28147_89_CryptoPro_A_ParamSet;
+
+            var keyPair = GenerateKeyPair(publicKeyParamSet, digestParamSet);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public);
+            var pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private);
+
+            var legacyAlgID = new AlgorithmIdentifier(algOid,
+                new DerSequence(publicKeyParamSet, digestParamSet, encryptionParamSet));
+            var legacySpki = new SubjectPublicKeyInfo(legacyAlgID, spki.PublicKey);
+            var legacyPki = new PrivateKeyInfo(legacyAlgID, pki.ParsePrivateKey());
+
+            Assert.Throws<ArgumentException>(() => PublicKeyFactory.CreateKey(legacySpki));
+            Assert.Throws<ArgumentException>(() => PrivateKeyFactory.CreateKey(legacyPki));
+
+            Properties.WithThreadProperty(Properties.GostAllowLenientKeyParameters, bool.TrueString, () =>
+            {
+                var publicKey = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(legacySpki);
+                Assert.That(publicKey.Q, Is.EqualTo(((ECPublicKeyParameters)keyPair.Public).Q));
+                Assert.That(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey), Is.EqualTo(spki));
+
+                var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(legacyPki);
+                Assert.That(privateKey.D, Is.EqualTo(((ECPrivateKeyParameters)keyPair.Private).D));
+                Assert.That(PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey), Is.EqualTo(pki));
+            });
+        }
+
+        /// <summary>
+        /// GOST R 34.10-2001 (RFC 4491) defines no TC26 parameter sets, but bc-csharp versions prior to 2.8.0 could
+        /// encode such a key under the GOST R 34.10-2001 key algorithm. Such keys are rejected unless
+        /// <see cref="Properties.GostAllowLenientKeyParameters"/> is set.
+        /// </summary>
+        [Test]
+        public void Gost2001Tc26ParamSet()
+        {
+            var algOid = CryptoProObjectIdentifiers.GostR3410x2001;
+            var publicKeyParamSet = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA;
+            var digestParamSet = CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet;
+
+            var keyPair = GenerateKeyPair(publicKeyParamSet, null);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public);
+            var pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private);
+
+            var expectedAlgID = new AlgorithmIdentifier(algOid, new DerSequence(publicKeyParamSet, digestParamSet));
+            var algIDs = new[]
+            {
+                expectedAlgID,
+                new AlgorithmIdentifier(algOid, publicKeyParamSet),
+            };
+
+            foreach (var algID in algIDs)
+            {
+                var legacySpki = new SubjectPublicKeyInfo(algID, spki.PublicKey);
+                var legacyPki = new PrivateKeyInfo(algID, pki.ParsePrivateKey());
+
+                Assert.Throws<ArgumentException>(() => PublicKeyFactory.CreateKey(legacySpki));
+                Assert.Throws<ArgumentException>(() => PrivateKeyFactory.CreateKey(legacyPki));
+
+                Properties.WithThreadProperty(Properties.GostAllowLenientKeyParameters, bool.TrueString, () =>
+                {
+                    var publicKey = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(legacySpki);
+                    Assert.That(publicKey.Q, Is.EqualTo(((ECPublicKeyParameters)keyPair.Public).Q));
+                    Assert.That(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey).Algorithm,
+                        Is.EqualTo(expectedAlgID));
+
+                    var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(legacyPki);
+                    Assert.That(privateKey.D, Is.EqualTo(((ECPrivateKeyParameters)keyPair.Private).D));
+                    Assert.That(PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey).PrivateKeyAlgorithm,
+                        Is.EqualTo(expectedAlgID));
+                });
+            }
+        }
+
+        private static DerObjectIdentifier GetEncryptionParamSet(AsymmetricKeyParameter key) =>
+            ((ECGost3410Parameters)((ECKeyParameters)key).Parameters).EncryptionParamSet;
+
         [Test]
         public void ExplicitParametersRejected()
         {
@@ -425,12 +611,29 @@ namespace Org.BouncyCastle.Tests
         private static AsymmetricCipherKeyPair GenerateKeyPair(DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet)
         {
-            var gostParams = new Gost3410PublicKeyAlgParameters(publicKeyParamSet, digestParamSet);
-            var ecGost3410Parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(gostParams);
+            return GenerateKeyPair(new ECGost3410Parameters(publicKeyParamSet, digestParamSet, null));
+        }
 
+        private static AsymmetricCipherKeyPair GenerateKeyPair(ECGost3410Parameters parameters)
+        {
             var generator = new ECKeyPairGenerator();
-            generator.Init(new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom()));
+            generator.Init(new ECKeyGenerationParameters(parameters, new SecureRandom()));
             return generator.GenerateKeyPair();
+        }
+
+        private static AlgorithmIdentifier CreateGostAlgID(DerObjectIdentifier algOid,
+            DerObjectIdentifier publicKeyParamSet, DerObjectIdentifier digestParamSet)
+        {
+            Asn1Encodable algParams;
+            if (CryptoProObjectIdentifiers.GostR3410x2001.Equals(algOid))
+            {
+                algParams = new GostR3410x2001PublicKeyParameters(publicKeyParamSet, digestParamSet);
+            }
+            else
+            {
+                algParams = new GostR3410x2012PublicKeyParameters(publicKeyParamSet, digestParamSet);
+            }
+            return new AlgorithmIdentifier(algOid, algParams);
         }
     }
 }

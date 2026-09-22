@@ -79,6 +79,18 @@ namespace Org.BouncyCastle.Utilities
         public static readonly string FpeDisableFf1 = "Org.BouncyCastle.Fpe.Disable_Ff1";
 
         /// <summary>
+        /// Allow GOST key AlgorithmIdentifier parameters that do not match the structure required for the key
+        /// algorithm, where earlier bc-csharp versions could write them.
+        /// </summary>
+        /// <remarks>
+        /// bc-csharp versions prior to 2.8.0 could encode a GOST R 34.10-2012 key with an encryptionParamSet, which
+        /// the RFC 9215 parameters structure does not have, or a key on a TC26 parameter set under the GOST R
+        /// 34.10-2001 key algorithm, which RFC 4491 does not allow. This property defaults to 'false'; set it to
+        /// 'true' to accept such keys.
+        /// </remarks>
+        public static readonly string GostAllowLenientKeyParameters = "Org.BouncyCastle.Gost.AllowLenientKeyParameters";
+
+        /// <summary>
         /// The largest SEED, in bytes, accepted in an LMS or HSS private key encoding. Default 1024.
         /// </summary>
         /// <remarks>

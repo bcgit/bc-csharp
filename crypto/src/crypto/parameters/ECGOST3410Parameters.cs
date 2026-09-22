@@ -2,6 +2,7 @@
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X9;
 
 namespace Org.BouncyCastle.Crypto.Parameters
@@ -9,14 +10,24 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public class ECGost3410Parameters
         : ECNamedDomainParameters
     {
-        public static ECGost3410Parameters FromGost3410PublicKeyAlgParameters(
-            Gost3410PublicKeyAlgParameters publicKeyAlgParams)
+        public static ECGost3410Parameters FromPublicKeyParameters(
+            GostR3410x2001PublicKeyParameters publicKeyParameters)
         {
-            if (publicKeyAlgParams == null)
-                throw new ArgumentNullException(nameof(publicKeyAlgParams));
+            if (publicKeyParameters == null)
+                throw new ArgumentNullException(nameof(publicKeyParameters));
 
-            return new ECGost3410Parameters(publicKeyAlgParams.PublicKeyParamSet, publicKeyAlgParams.DigestParamSet,
-                publicKeyAlgParams.EncryptionParamSet);
+            return new ECGost3410Parameters(publicKeyParameters.PublicKeyParamSet,
+                publicKeyParameters.DigestParamSet, publicKeyParameters.EncryptionParamSet);
+        }
+
+        public static ECGost3410Parameters FromPublicKeyParameters(
+            GostR3410x2012PublicKeyParameters publicKeyParameters)
+        {
+            if (publicKeyParameters == null)
+                throw new ArgumentNullException(nameof(publicKeyParameters));
+
+            return new ECGost3410Parameters(publicKeyParameters.PublicKeyParamSet,
+                publicKeyParameters.DigestParamSet, encryptionParamSet: null);
         }
 
         private readonly DerObjectIdentifier m_digestParamSet;
@@ -41,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_encryptionParamSet = encryptionParamSet;
         }
 
-        [Obsolete("Use 'FromGost3410PublicKeyAlgParameters' or param-sets-only constructor instead")]
+        [Obsolete("Use 'FromPublicKeyParameters' or param-sets-only constructor instead")]
         public ECGost3410Parameters(ECNamedDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
             : this(ValidateDomainParameters(dp, publicKeyParamSet), publicKeyParamSet, digestParamSet,
@@ -49,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
-        [Obsolete("Use 'FromGost3410PublicKeyAlgParameters' or param-sets-only constructor instead")]
+        [Obsolete("Use 'FromPublicKeyParameters' or param-sets-only constructor instead")]
         public ECGost3410Parameters(ECDomainParameters dp, DerObjectIdentifier publicKeyParamSet,
             DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
             : this(ValidateDomainParameters(dp, publicKeyParamSet), publicKeyParamSet, digestParamSet,
@@ -62,9 +73,6 @@ namespace Org.BouncyCastle.Crypto.Parameters
         public DerObjectIdentifier DigestParamSet => m_digestParamSet;
 
         public DerObjectIdentifier EncryptionParamSet => m_encryptionParamSet;
-
-        public Gost3410PublicKeyAlgParameters ToGost3410PublicKeyAlgParameters() =>
-            new Gost3410PublicKeyAlgParameters(PublicKeyParamSet, DigestParamSet, EncryptionParamSet);
 
         private static X9ECParameters GetX9ECParameters(DerObjectIdentifier publicKeyParamSet)
         {

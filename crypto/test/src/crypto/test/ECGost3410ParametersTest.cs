@@ -15,7 +15,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 {
     /// <summary>
     /// Tests for <see cref="ECGost3410Parameters"/>: construction from parameter set OIDs (validated against
-    /// <see cref="ECGost3410NamedCurves"/>), conversion to/from <see cref="Gost3410PublicKeyAlgParameters"/>, and
+    /// <see cref="ECGost3410NamedCurves"/>), conversion from <see cref="GostR3410x2001PublicKeyParameters"/> and
+    /// <see cref="GostR3410x2012PublicKeyParameters"/>, and
     /// the consistency checks in the legacy constructors that accept caller-supplied domain parameters.
     /// </summary>
     [TestFixture]
@@ -55,21 +56,36 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [TestCaseSource(nameof(NamedCurves))]
-        public void FromToGost3410PublicKeyAlgParameters(DerObjectIdentifier publicKeyParamSet)
+        public void FromGost2001PublicKeyParameters(DerObjectIdentifier publicKeyParamSet)
+        {
+            var digestParamSet = CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet;
+            var otherEncryptionParamSet = CryptoProObjectIdentifiers.ID_Gost28147_89_CryptoPro_B_ParamSet;
+
+            // The DEFAULT encryptionParamSet is reported, not null
+            CheckFrom(new GostR3410x2001PublicKeyParameters(publicKeyParamSet, digestParamSet),
+                publicKeyParamSet, digestParamSet, GostR3410x2001PublicKeyParameters.DefaultEncryptionParamSet);
+            CheckFrom(new GostR3410x2001PublicKeyParameters(publicKeyParamSet, digestParamSet, otherEncryptionParamSet),
+                publicKeyParamSet, digestParamSet, otherEncryptionParamSet);
+        }
+
+        [TestCaseSource(nameof(NamedCurves))]
+        public void FromGost2012PublicKeyParameters(DerObjectIdentifier publicKeyParamSet)
         {
             var digestParamSet = DefaultDigestParamSet(publicKeyParamSet);
 
-            // One, two and three element forms (see Gost3410PublicKeyAlgParameters)
-            CheckFromTo(new Gost3410PublicKeyAlgParameters(publicKeyParamSet, null, null));
-            CheckFromTo(new Gost3410PublicKeyAlgParameters(publicKeyParamSet, digestParamSet, null));
-            CheckFromTo(new Gost3410PublicKeyAlgParameters(publicKeyParamSet, digestParamSet, EncryptionParamSet));
+            CheckFrom(new GostR3410x2012PublicKeyParameters(publicKeyParamSet),
+                publicKeyParamSet, null, null);
+            CheckFrom(new GostR3410x2012PublicKeyParameters(publicKeyParamSet, digestParamSet),
+                publicKeyParamSet, digestParamSet, null);
         }
 
         [Test]
         public void FromNullThrows()
         {
             Assert.Throws<ArgumentNullException>(
-                () => ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(null));
+                () => ECGost3410Parameters.FromPublicKeyParameters((GostR3410x2001PublicKeyParameters)null));
+            Assert.Throws<ArgumentNullException>(
+                () => ECGost3410Parameters.FromPublicKeyParameters((GostR3410x2012PublicKeyParameters)null));
         }
 
         [Test]
@@ -80,8 +96,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             var digestParamSet = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
 
             Assert.Throws<ArgumentException>(() => new ECGost3410Parameters(notGost, digestParamSet, null));
-            Assert.Throws<ArgumentException>(() => ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(
-                new Gost3410PublicKeyAlgParameters(notGost, digestParamSet)));
+            Assert.Throws<ArgumentException>(() => ECGost3410Parameters.FromPublicKeyParameters(
+                new GostR3410x2012PublicKeyParameters(notGost, digestParamSet)));
+            Assert.Throws<ArgumentException>(() => ECGost3410Parameters.FromPublicKeyParameters(
+                new GostR3410x2001PublicKeyParameters(notGost,
+                    CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet)));
         }
 
         [Test]
@@ -195,17 +214,29 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.That(parameters.H, Is.EqualTo(x9.H));
         }
 
-        private static void CheckFromTo(Gost3410PublicKeyAlgParameters algParams)
+        private static void CheckFrom(ECGost3410Parameters parameters, DerObjectIdentifier publicKeyParamSet,
+            DerObjectIdentifier digestParamSet, DerObjectIdentifier encryptionParamSet)
         {
-            var parameters = ECGost3410Parameters.FromGost3410PublicKeyAlgParameters(algParams);
+            Assert.That(parameters.PublicKeyParamSet, Is.EqualTo(publicKeyParamSet));
+            Assert.That(parameters.DigestParamSet, Is.EqualTo(digestParamSet));
+            Assert.That(parameters.EncryptionParamSet, Is.EqualTo(encryptionParamSet));
+            CheckCurve(parameters, publicKeyParamSet);
+        }
 
-            Assert.That(parameters.PublicKeyParamSet, Is.EqualTo(algParams.PublicKeyParamSet));
-            Assert.That(parameters.DigestParamSet, Is.EqualTo(algParams.DigestParamSet));
-            Assert.That(parameters.EncryptionParamSet, Is.EqualTo(algParams.EncryptionParamSet));
-            CheckCurve(parameters, algParams.PublicKeyParamSet);
+        private static void CheckFrom(GostR3410x2001PublicKeyParameters publicKeyParameters,
+            DerObjectIdentifier publicKeyParamSet, DerObjectIdentifier digestParamSet,
+            DerObjectIdentifier encryptionParamSet)
+        {
+            CheckFrom(ECGost3410Parameters.FromPublicKeyParameters(publicKeyParameters), publicKeyParamSet,
+                digestParamSet, encryptionParamSet);
+        }
 
-            // Asn1Encodable equality compares the encodings
-            Assert.That(parameters.ToGost3410PublicKeyAlgParameters(), Is.EqualTo(algParams));
+        private static void CheckFrom(GostR3410x2012PublicKeyParameters publicKeyParameters,
+            DerObjectIdentifier publicKeyParamSet, DerObjectIdentifier digestParamSet,
+            DerObjectIdentifier encryptionParamSet)
+        {
+            CheckFrom(ECGost3410Parameters.FromPublicKeyParameters(publicKeyParameters), publicKeyParamSet,
+                digestParamSet, encryptionParamSet);
         }
 
         /// <summary>
