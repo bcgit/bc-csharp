@@ -176,35 +176,86 @@ namespace Org.BouncyCastle.Crypto.Utilities
             parameters.Curve.FieldElementEncodingLength;
 
         /// <summary>
+        /// Whether an EC key algorithm name (as canonicalized by <see cref="ECKeyParameters"/>) denotes an ECGOST3410
+        /// key.
+        /// </summary>
+        /// <param name="algorithm">The algorithm name.</param>
+        /// <param name="gost2012PerName">Whether the name specifically denotes GOST R 34.10-2012.</param>
+        internal static bool IsGostAlgorithmName(string algorithm, out bool gost2012PerName)
+        {
+            gost2012PerName = algorithm == "ECGOST3410-2012";
+            return gost2012PerName || algorithm == "ECGOST3410";
+        }
+
+        /// <summary>
         /// Get the <see cref="ECGost3410Parameters"/> under which an EC key should be encoded, or null if the key is
         /// not an ECGOST3410 key.
         /// </summary>
         /// <remarks>
-        /// A key generated from a bare curve OID (e.g. via
-        /// <see cref="ECKeyGenerationParameters(DerObjectIdentifier, Security.SecureRandom)"/>) with an "ECGOST3410"
-        /// or "ECGOST3410-2012" algorithm name carries plain <see cref="ECNamedDomainParameters"/>. Such a key is
-        /// promoted here using <see cref="CreateDefaultParameters"/>. A TC26 parameter set is always treated as GOST
-        /// R 34.10-2012, whatever the algorithm name, since GOST R 34.10-2001 (RFC 4491) defines no such curves.
+        /// A key constructed directly with an "ECGOST3410" or "ECGOST3410-2012" algorithm name may carry plain
+        /// <see cref="ECNamedDomainParameters"/>; such a key is promoted here (see
+        /// <see cref="TryGetECGost3410Parameters"/>).
         /// </remarks>
-        /// <exception cref="ArgumentException">If an ECGOST3410 key has explicit (unnamed) domain parameters, or a
-        /// curve that is not an ECGOST3410 parameter set.</exception>
+        /// <exception cref="ArgumentException">If an ECGOST3410 key does not have the domain parameters of a named
+        /// ECGOST3410 parameter set.</exception>
         internal static ECGost3410Parameters GetEncodingParameters(ECKeyParameters ecKey)
         {
             if (ecKey.Parameters is ECGost3410Parameters gostParameters)
                 return gostParameters;
 
-            string algorithm = ecKey.AlgorithmName;
-            bool gost2012PerName = algorithm == "ECGOST3410-2012";
-            if (!gost2012PerName && algorithm != "ECGOST3410")
+            if (!IsGostAlgorithmName(ecKey.AlgorithmName, out bool gost2012PerName))
                 return null;
 
-            var publicKeyParamSet = ecKey.PublicKeyParamSet ??
-                throw new ArgumentException("Explicit EC parameters not supported for ECGOST3410 keys", nameof(ecKey));
+            if (!TryGetECGost3410Parameters(gost2012PerName, ecKey.Parameters, out var ecGost3410Parameters))
+            {
+                throw new ArgumentException(
+                    "ECGOST3410 keys require the domain parameters of a named ECGOST3410 parameter set", nameof(ecKey));
+            }
+
+            return ecGost3410Parameters;
+        }
+
+        /// <summary>
+        /// Get the domain parameters of an ECGOST3410 key as <see cref="ECGost3410Parameters"/>, promoting them if
+        /// necessary; fails if they are not those of a named ECGOST3410 parameter set.
+        /// </summary>
+        /// <remarks>
+        /// Plain <see cref="ECNamedDomainParameters"/> (e.g. from
+        /// <see cref="ECKeyGenerationParameters(DerObjectIdentifier, Security.SecureRandom)"/>) are promoted using
+        /// <see cref="CreateDefaultParameters"/>. A TC26 parameter set is always treated as GOST R 34.10-2012,
+        /// whatever <paramref name="gost2012PerName"/> says, since GOST R 34.10-2001 (RFC 4491) defines no such
+        /// curves.
+        /// </remarks>
+        /// <param name="gost2012PerName">Whether the key's algorithm name specifically denotes GOST R 34.10-2012
+        /// (see <see cref="IsGostAlgorithmName"/>).</param>
+        /// <param name="domainParameters">The key's domain parameters.</param>
+        /// <param name="ecGost3410Parameters">The resulting parameters, or null on failure.</param>
+        internal static bool TryGetECGost3410Parameters(bool gost2012PerName, ECDomainParameters domainParameters,
+            out ECGost3410Parameters ecGost3410Parameters)
+        {
+            if (domainParameters is ECGost3410Parameters gostParameters)
+            {
+                ecGost3410Parameters = gostParameters;
+                return true;
+            }
+
+            ecGost3410Parameters = null;
+
+            var publicKeyParamSet = (domainParameters as ECNamedDomainParameters)?.Name;
+            if (publicKeyParamSet == null || ECGost3410NamedCurves.GetByOid(publicKeyParamSet) == null)
+                return false;
 
             bool gost2012PerCurve = IsTc26ParamSet(publicKeyParamSet);
             bool isGost2012 = gost2012PerName || gost2012PerCurve;
 
-            return CreateDefaultParameters(isGost2012, publicKeyParamSet);
+            var promoted = CreateDefaultParameters(isGost2012, publicKeyParamSet);
+
+            // The name alone selects the curve, so it must agree with the domain parameters
+            if (!promoted.Equals(domainParameters))
+                return false;
+
+            ecGost3410Parameters = promoted;
+            return true;
         }
 
         /// <summary>

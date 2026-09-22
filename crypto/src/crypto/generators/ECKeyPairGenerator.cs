@@ -4,6 +4,7 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Math.EC;
 using Org.BouncyCastle.Math.EC.Multiplier;
@@ -34,12 +35,27 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         public void Init(KeyGenerationParameters parameters)
         {
+            bool gostAlgorithm = ECGost3410Utilities.IsGostAlgorithmName(m_algorithm, out bool gost2012PerName);
+
             if (parameters is ECKeyGenerationParameters ecP)
             {
                 m_parameters = ecP.DomainParameters;
+
+                // Keys on a named ECGOST3410 curve carry the default GOST parameter sets; others are left as given
+                if (gostAlgorithm &&
+                    ECGost3410Utilities.TryGetECGost3410Parameters(gost2012PerName, m_parameters, out var gostParams))
+                {
+                    m_parameters = gostParams;
+                }
             }
             else
             {
+                if (gostAlgorithm)
+                {
+                    throw new ArgumentException("ECGOST3410 key generation requires ECKeyGenerationParameters",
+                        nameof(parameters));
+                }
+
                 DerObjectIdentifier oid;
                 switch (parameters.Strength)
                 {

@@ -244,9 +244,10 @@ namespace Org.BouncyCastle.Tests
         }
 
         /// <summary>
-        /// A key pair generated from a bare curve OID has plain named domain parameters (not
-        /// <see cref="ECGost3410Parameters"/>). It must still encode in the standard GOST form, with default parameter
-        /// sets chosen from the algorithm name and curve, and round trip through both key factories.
+        /// A key pair generated from a bare curve OID under a GOST algorithm name is promoted to
+        /// <see cref="ECGost3410Parameters"/>, with default parameter sets chosen from the algorithm name and curve. A
+        /// key constructed directly with plain named domain parameters must encode the same way. Both must round trip
+        /// through the key factories.
         /// </summary>
         [TestCaseSource(nameof(CurveOidCases))]
         public void GeneratedFromCurveOid(string algorithm, DerObjectIdentifier curveOid,
@@ -258,7 +259,11 @@ namespace Org.BouncyCastle.Tests
 
             var publicKey = (ECPublicKeyParameters)keyPair.Public;
             var privateKey = (ECPrivateKeyParameters)keyPair.Private;
-            Assert.That(privateKey.Parameters, Is.Not.InstanceOf<ECGost3410Parameters>());
+
+            var gostParameters = (ECGost3410Parameters)privateKey.Parameters;
+            Assert.That(gostParameters.PublicKeyParamSet, Is.EqualTo(curveOid));
+            Assert.That(gostParameters.DigestParamSet, Is.EqualTo(expectedDigestParamSet));
+            Assert.That(publicKey.Parameters, Is.SameAs(gostParameters));
 
             int fieldSize = privateKey.Parameters.Curve.FieldElementEncodingLength;
 
@@ -267,6 +272,14 @@ namespace Org.BouncyCastle.Tests
 
             var pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey);
             CheckAlgorithmIdentifier(pki.PrivateKeyAlgorithm, expectedAlgOid, curveOid, expectedDigestParamSet);
+
+            // Keys constructed with plain named domain parameters are promoted by the encoders
+            var namedParameters = ECNamedDomainParameters.LookupOid(curveOid);
+            Assert.That(namedParameters, Is.Not.InstanceOf<ECGost3410Parameters>());
+            var plainPublic = new ECPublicKeyParameters(algorithm, publicKey.Q, namedParameters);
+            var plainPrivate = new ECPrivateKeyParameters(algorithm, privateKey.D, namedParameters);
+            Assert.That(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(plainPublic), Is.EqualTo(spki));
+            Assert.That(PrivateKeyInfoFactory.CreatePrivateKeyInfo(plainPrivate), Is.EqualTo(pki));
 
             // The private key must be the little-endian OCTET STRING form, not an ECPrivateKey structure
             var privateKeyOctets = Asn1OctetString.GetInstance(pki.ParsePrivateKey());
@@ -292,11 +305,52 @@ namespace Org.BouncyCastle.Tests
             var generator = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
             generator.Init(new ECKeyGenerationParameters(SecObjectIdentifiers.SecP256r1, new SecureRandom()));
             var keyPair = generator.GenerateKeyPair();
+            Assert.That(((ECPrivateKeyParameters)keyPair.Private).Parameters,
+                Is.Not.InstanceOf<ECGost3410Parameters>());
 
             Assert.Throws<ArgumentException>(
                 () => SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public));
             Assert.Throws<ArgumentException>(
                 () => PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private));
+        }
+
+        /// <summary>
+        /// Keys on explicit (unnamed) domain parameters, or on a GOST curve name that does not match the domain
+        /// parameters, are generated as given (they remain usable for signing) but cannot be encoded.
+        /// </summary>
+        [Test]
+        public void UnpromotableParametersNotPromoted()
+        {
+            var gostOid = CryptoProObjectIdentifiers.GostR3410x2001CryptoProA;
+            var explicitParameters = ECDomainParameters.FromX9ECParameters(ECGost3410NamedCurves.GetByOid(gostOid));
+            var misnamedParameters = new ECNamedDomainParameters(gostOid,
+                ECNamedCurveTable.GetByOid(SecObjectIdentifiers.SecP256r1));
+
+            foreach (var domainParameters in new[] { explicitParameters, misnamedParameters })
+            {
+                var generator = GeneratorUtilities.GetKeyPairGenerator("ECGOST3410");
+                generator.Init(new ECKeyGenerationParameters(domainParameters, new SecureRandom()));
+                var keyPair = generator.GenerateKeyPair();
+                Assert.That(((ECPrivateKeyParameters)keyPair.Private).Parameters, Is.SameAs(domainParameters));
+
+                Assert.Throws<ArgumentException>(
+                    () => SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public));
+                Assert.Throws<ArgumentException>(
+                    () => PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private));
+            }
+        }
+
+        /// <summary>
+        /// Key generation by strength alone selects X9.62/SEC curves, never GOST ones, so it is rejected for the GOST
+        /// algorithm names.
+        /// </summary>
+        [TestCase("ECGOST3410")]
+        [TestCase("ECGOST3410-2012")]
+        public void StrengthOnlyInitRejected(string algorithm)
+        {
+            var generator = GeneratorUtilities.GetKeyPairGenerator(algorithm);
+            Assert.Throws<ArgumentException>(
+                () => generator.Init(new KeyGenerationParameters(new SecureRandom(), 256)));
         }
 
         private static readonly TestCaseData[] LegacyPrivateKeyShapeCases =
