@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -644,6 +645,65 @@ namespace Org.BouncyCastle.Tests
                     Assert.That(privateKey.D, Is.EqualTo(((ECPrivateKeyParameters)keyPair.Private).D));
                     Assert.That(PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey).PrivateKeyAlgorithm,
                         Is.EqualTo(expectedAlgID));
+                });
+            }
+        }
+
+        private static readonly TestCaseData[] InconsistentKeyAlgorithmCases =
+        {
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
+                CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet).SetArgDisplayNames("2012-256 with 34.11-94"),
+            new TestCaseData(CryptoProObjectIdentifiers.GostR3410x2001,
+                CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256).SetArgDisplayNames("2001 with 34.11-2012"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
+                null).SetArgDisplayNames("2012-512 on 256-bit curve"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
+                null).SetArgDisplayNames("agreement-512 on 256-bit curve"),
+            new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
+                CryptoProObjectIdentifiers.GostR3411).SetArgDisplayNames("2012-256 with unrecognized digest"),
+        };
+
+        /// <summary>
+        /// The encoder derives the key algorithm OID from the parameters, so parameters that identify a different key
+        /// algorithm than the one they are decoded under (or none, for an unrecognized digestParamSet) are rejected
+        /// unless <see cref="Properties.GostAllowLenientKeyParameters"/> is set. bc-csharp versions prior to 2.8.0
+        /// could write such keys, since they chose the key algorithm OID from the curve.
+        /// </summary>
+        [TestCaseSource(nameof(InconsistentKeyAlgorithmCases))]
+        public void InconsistentKeyAlgorithmRejected(DerObjectIdentifier algOid, DerObjectIdentifier curveOid,
+            DerObjectIdentifier digestParamSet)
+        {
+            var keyPair = GenerateKeyPair(curveOid, null);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public);
+            var pki = PrivateKeyInfoFactory.CreatePrivateKeyInfo(keyPair.Private);
+
+            var algIDs = new List<AlgorithmIdentifier> { CreateGostAlgID(algOid, curveOid, digestParamSet) };
+            if (digestParamSet == null)
+            {
+                // A bare curve OID is equivalent to parameters without a digestParamSet
+                algIDs.Add(new AlgorithmIdentifier(algOid, curveOid));
+            }
+
+            foreach (var algID in algIDs)
+            {
+                var inconsistentSpki = new SubjectPublicKeyInfo(algID, spki.PublicKey);
+                var inconsistentPki = new PrivateKeyInfo(algID, pki.ParsePrivateKey());
+
+                Assert.Throws<ArgumentException>(() => PublicKeyFactory.CreateKey(inconsistentSpki));
+                Assert.Throws<ArgumentException>(() => PrivateKeyFactory.CreateKey(inconsistentPki));
+
+                Properties.WithThreadProperty(Properties.GostAllowLenientKeyParameters, bool.TrueString, () =>
+                {
+                    var publicKey = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(inconsistentSpki);
+                    Assert.That(publicKey.Q, Is.EqualTo(((ECPublicKeyParameters)keyPair.Public).Q));
+
+                    var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(inconsistentPki);
+                    Assert.That(privateKey.D, Is.EqualTo(((ECPrivateKeyParameters)keyPair.Private).D));
                 });
             }
         }

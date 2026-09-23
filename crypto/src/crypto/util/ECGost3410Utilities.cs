@@ -4,7 +4,6 @@ using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.CryptoPro;
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 
@@ -31,8 +30,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
         }
 
         /// <summary>
-        /// Recover the <see cref="ECGost3410Parameters"/> from the key <see cref="AlgorithmIdentifier"/> of an
-        /// ECGOST3410 key (the inverse of <see cref="CreateAlgorithmIdentifier"/>).
+        /// Create the <see cref="ECGost3410Parameters"/> of an ECGOST3410 key from its key
+        /// <see cref="AlgorithmIdentifier"/> (e.g. in a SubjectPublicKeyInfo or PrivateKeyInfo); the inverse of
+        /// <see cref="CreateAlgorithmIdentifier"/>.
         /// </summary>
         /// <remarks>
         /// The parameters are normally a <see cref="GostR3410x2001PublicKeyParameters"/> or
@@ -41,71 +41,115 @@ namespace Org.BouncyCastle.Crypto.Utilities
         /// bc-java provider) is also accepted; it carries no digestParamSet, so defaults are derived from the key
         /// algorithm and the curve (see <see cref="CreateDefaultParameters"/>). Explicit EC parameters are rejected.
         /// <para/>
+        /// Since <see cref="CreateAlgorithmIdentifier"/> derives the key algorithm from the parameters (see
+        /// <see cref="GetKeyAlgorithmOid"/>), the parameters must identify the same key algorithm as the algorithm
+        /// identifier (a GOST R 34.10-2012 agreement OID counting as the corresponding signature OID), so that the key
+        /// re-encodes under it. This also rejects an unrecognized digestParamSet.
+        /// <para/>
         /// bc-csharp versions prior to 2.8.0 could write an encryptionParamSet for GOST R 34.10-2012 keys, which the
-        /// RFC 9215 structure does not have, or a TC26 parameter set under the GOST R 34.10-2001 key algorithm, which
-        /// RFC 4491 does not allow; both are rejected unless
+        /// RFC 9215 structure does not have, a TC26 parameter set under the GOST R 34.10-2001 key algorithm, which
+        /// RFC 4491 does not allow, or parameters that identify a different key algorithm; all are rejected unless
         /// <see cref="Properties.GostAllowLenientKeyParameters"/> is set.
         /// </remarks>
         /// <exception cref="ArgumentException">If the algorithm identifier is not that of an ECGOST3410 key, or its
         /// parameters are missing or invalid.</exception>
-        internal static ECGost3410Parameters ParseAlgorithmIdentifier(AlgorithmIdentifier algID)
+        internal static ECGost3410Parameters CreateECGost3410Parameters(AlgorithmIdentifier algID)
+        {
+            var parameters = ParseAlgorithmIdentifier(algID);
+            CheckKeyAlgorithm(algID.Algorithm, parameters, nameof(algID));
+            return parameters;
+        }
+
+        /// <summary>
+        /// Parse the key <see cref="AlgorithmIdentifier"/> of an ECGOST3410 key according to the structure its key
+        /// algorithm requires (see <see cref="CreateECGost3410Parameters"/>), without checking that the parameters are
+        /// consistent with the key algorithm.
+        /// </summary>
+        private static ECGost3410Parameters ParseAlgorithmIdentifier(AlgorithmIdentifier algID)
         {
             DerObjectIdentifier algOid = algID.Algorithm;
             if (!IsKeyAlgorithmOid(algOid))
                 throw new ArgumentException("Not an ECGOST3410 key algorithm: " + algOid, nameof(algID));
 
-            Asn1Object p = algID.Parameters?.ToAsn1Object()
+            Asn1Object paramsObject = algID.Parameters?.ToAsn1Object()
                 ?? throw new ArgumentException("Missing algorithm parameters for ECGOST3410 key", nameof(algID));
 
             bool gost2012PerAlg = !CryptoProObjectIdentifiers.GostR3410x2001.Equals(algOid);
 
-            if (p is Asn1Sequence seq && seq.Count >= 1 && seq.Count <= 3)
-            {
-                if (gost2012PerAlg)
-                    return ParseGost2012Parameters(seq);
+            // Handle X962Parameters.namedCurve shape
+            if (paramsObject is DerObjectIdentifier namedCurve)
+                return CreateDefaultParameters(isGost2012: gost2012PerAlg, namedCurve);
 
-                var gost2001Params = GostR3410x2001PublicKeyParameters.GetInstance(seq);
-                CheckGost2001ParamSet(gost2001Params.PublicKeyParamSet, nameof(algID));
-                return ECGost3410Parameters.FromPublicKeyParameters(gost2001Params);
+            if (paramsObject is Asn1Sequence seq)
+            {
+                int count = seq.Count;
+
+                // Handle X962Parameters.ecParameters shape
+                if (count >= 5 && count <= 6)
+                    throw new ArgumentException("Explicit EC parameters invalid for ECGOST3410 key", nameof(algID));
+
+                if (gost2012PerAlg && count == 3 && !IsStrict())
+                {
+                    var legacyParams = Gost3410PublicKeyAlgParameters.GetInstance(seq);
+                    return new ECGost3410Parameters(legacyParams.PublicKeyParamSet, legacyParams.DigestParamSet,
+                        legacyParams.EncryptionParamSet);
+                }
             }
 
-            var x962Parameters = X962Parameters.GetInstance(p);
-            if (!x962Parameters.IsNamedCurve)
-                throw new ArgumentException("Explicit EC parameters invalid for ECGOST3410 key", nameof(algID));
-
-            var namedCurve = x962Parameters.NamedCurve;
-            if (!gost2012PerAlg)
+            if (gost2012PerAlg)
             {
-                CheckGost2001ParamSet(namedCurve, nameof(algID));
+                var gost2012Params = GostR3410x2012PublicKeyParameters.GetInstance(paramsObject);
+                return ECGost3410Parameters.FromPublicKeyParameters(gost2012Params);
             }
 
-            return CreateDefaultParameters(isGost2012: gost2012PerAlg, namedCurve);
+            var gost2001Params = GostR3410x2001PublicKeyParameters.GetInstance(paramsObject);
+            return ECGost3410Parameters.FromPublicKeyParameters(gost2001Params);
         }
 
         /// <summary>
-        /// GOST R 34.10-2001 (RFC 4491) defines no TC26 parameter sets, so reject one under the GOST R 34.10-2001 key
-        /// algorithm (unless <see cref="Properties.GostAllowLenientKeyParameters"/> is set).
+        /// Check that <paramref name="parameters"/>, as parsed under the key algorithm <paramref name="algOid"/>,
+        /// are valid for it and would re-encode under it (see <see cref="CreateECGost3410Parameters"/>), unless
+        /// <see cref="Properties.GostAllowLenientKeyParameters"/> is set.
         /// </summary>
-        private static void CheckGost2001ParamSet(DerObjectIdentifier publicKeyParamSet, string paramName)
+        private static void CheckKeyAlgorithm(DerObjectIdentifier algOid, ECGost3410Parameters parameters,
+            string paramName)
         {
-            if (IsTc26ParamSet(publicKeyParamSet) &&
-                !Properties.GetBoolean(Properties.GostAllowLenientKeyParameters, false))
+            // GOST R 34.10-2001 (RFC 4491) defines no TC26 parameter sets
+            if (CryptoProObjectIdentifiers.GostR3410x2001.Equals(algOid) &&
+                IsTc26ParamSet(parameters.PublicKeyParamSet) &&
+                IsStrict())
             {
                 throw new ArgumentException("TC26 parameter set invalid for GOST R 34.10-2001 key", paramName);
             }
-        }
 
-        private static ECGost3410Parameters ParseGost2012Parameters(Asn1Sequence seq)
-        {
-            if (seq.Count > 2 && Properties.GetBoolean(Properties.GostAllowLenientKeyParameters, false))
+            // The encoder only uses the signature OIDs, so an agreement OID must match the corresponding one
+            DerObjectIdentifier expectedOid = algOid;
+            if (RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256.Equals(algOid))
             {
-                var legacyParams = Gost3410PublicKeyAlgParameters.GetInstance(seq);
-                return new ECGost3410Parameters(legacyParams.PublicKeyParamSet, legacyParams.DigestParamSet,
-                    legacyParams.EncryptionParamSet);
+                expectedOid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
+            }
+            else if (RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512.Equals(algOid))
+            {
+                expectedOid = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512;
             }
 
-            return ECGost3410Parameters.FromPublicKeyParameters(GostR3410x2012PublicKeyParameters.GetInstance(seq));
+            DerObjectIdentifier keyAlgorithmOid = TryGetKeyAlgorithmOid(parameters);
+
+            if (!expectedOid.Equals(keyAlgorithmOid) && IsStrict())
+            {
+                if (keyAlgorithmOid == null)
+                {
+                    throw new ArgumentException(
+                        "Unrecognized GOST R 34.11 digestParamSet: " + parameters.DigestParamSet, paramName);
+                }
+
+                throw new ArgumentException(
+                    "ECGOST3410 key parameters identify key algorithm " + keyAlgorithmOid + ", not " + algOid,
+                    paramName);
+            }
         }
+
+        private static bool IsStrict() => !Properties.GetBoolean(Properties.GostAllowLenientKeyParameters, false);
 
         /// <summary>
         /// Create the key <see cref="AlgorithmIdentifier"/> under which an ECGOST3410 key should be encoded (e.g. in
@@ -147,6 +191,16 @@ namespace Org.BouncyCastle.Crypto.Utilities
         /// <exception cref="ArgumentException">If the digest parameter set is not recognized.</exception>
         internal static DerObjectIdentifier GetKeyAlgorithmOid(ECGost3410Parameters parameters)
         {
+            return TryGetKeyAlgorithmOid(parameters)
+                ?? throw new ArgumentException("Unrecognized GOST R 34.11 digestParamSet: " + parameters.DigestParamSet,
+                    nameof(parameters));
+        }
+
+        /// <summary>
+        /// As <see cref="GetKeyAlgorithmOid"/>, but returns null if the digest parameter set is not recognized.
+        /// </summary>
+        private static DerObjectIdentifier TryGetKeyAlgorithmOid(ECGost3410Parameters parameters)
+        {
             DerObjectIdentifier digestParamSet = parameters.DigestParamSet;
 
             if (digestParamSet == null ||
@@ -164,8 +218,7 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 return CryptoProObjectIdentifiers.GostR3410x2001;
             }
 
-            throw new ArgumentException("Unrecognized GOST R 34.11 digestParamSet: " + digestParamSet,
-                nameof(parameters));
+            return null;
         }
 
         /// <summary>

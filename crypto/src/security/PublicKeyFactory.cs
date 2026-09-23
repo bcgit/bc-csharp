@@ -118,7 +118,7 @@ namespace Org.BouncyCastle.Security
             }
             else if (ECGost3410Utilities.IsKeyAlgorithmOid(algOid))
             {
-                var ecGost3410Parameters = ECGost3410Utilities.ParseAlgorithmIdentifier(algID);
+                var ecGost3410Parameters = ECGost3410Utilities.CreateECGost3410Parameters(algID);
 
                 Asn1OctetString key;
                 try

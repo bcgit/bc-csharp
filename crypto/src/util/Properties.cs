@@ -84,9 +84,10 @@ namespace Org.BouncyCastle.Utilities
         /// </summary>
         /// <remarks>
         /// bc-csharp versions prior to 2.8.0 could encode a GOST R 34.10-2012 key with an encryptionParamSet, which
-        /// the RFC 9215 parameters structure does not have, or a key on a TC26 parameter set under the GOST R
-        /// 34.10-2001 key algorithm, which RFC 4491 does not allow. This property defaults to 'false'; set it to
-        /// 'true' to accept such keys.
+        /// the RFC 9215 parameters structure does not have, a key on a TC26 parameter set under the GOST R 34.10-2001
+        /// key algorithm, which RFC 4491 does not allow, or a key whose parameters identify a different key
+        /// algorithm (e.g. a GOST R 34.11-94 digestParamSet under a GOST R 34.10-2012 key algorithm). This property
+        /// defaults to 'false'; set it to 'true' to accept such keys.
         /// </remarks>
         public static readonly string GostAllowLenientKeyParameters = "Org.BouncyCastle.Gost.AllowLenientKeyParameters";
 
