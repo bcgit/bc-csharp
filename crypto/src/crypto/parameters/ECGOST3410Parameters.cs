@@ -33,6 +33,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly DerObjectIdentifier m_digestParamSet;
         private readonly DerObjectIdentifier m_encryptionParamSet;
 
+        /// <param name="publicKeyParamSet">The public key parameter set; must be a named ECGOST3410 curve (see
+        /// <see cref="ECGost3410NamedCurves"/>).</param>
+        /// <param name="digestParamSet">The digest parameter set, or null. A GOST R 34.11-94 parameter set makes this
+        /// a GOST R 34.10-2001 key; a GOST R 34.11-2012 parameter set, or null, makes it a GOST R 34.10-2012 key.
+        /// </param>
+        /// <param name="encryptionParamSet">The encryption parameter set, or null. It has meaning only for GOST R
+        /// 34.10-2001 keys, so it may be non-null only if <paramref name="digestParamSet"/> is.</param>
+        /// <exception cref="ArgumentException">If <paramref name="publicKeyParamSet"/> is not a named ECGOST3410
+        /// curve, or <paramref name="encryptionParamSet"/> is non-null while <paramref name="digestParamSet"/> is null.
+        /// </exception>
         public ECGost3410Parameters(DerObjectIdentifier publicKeyParamSet, DerObjectIdentifier digestParamSet,
             DerObjectIdentifier encryptionParamSet)
             : this(GetX9ECParameters(publicKeyParamSet), publicKeyParamSet, digestParamSet, encryptionParamSet)

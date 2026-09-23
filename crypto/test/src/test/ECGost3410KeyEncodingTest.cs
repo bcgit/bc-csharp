@@ -371,8 +371,9 @@ namespace Org.BouncyCastle.Tests
 
         /// <summary>
         /// PrivateKeyFactory must accept the private key shapes other encoders (and older bc-csharp versions) have
-        /// produced under a GOST algorithm OID: an ECPrivateKey structure with either GOST parameters or a bare curve
-        /// OID, an INTEGER, and a nested OCTET STRING, as well as the standard raw little-endian OCTET STRING.
+        /// produced under a GOST algorithm OID: raw little-endian octets, an ECPrivateKey structure with either GOST
+        /// parameters or a bare curve OID, and an INTEGER, as well as the nested little-endian OCTET STRING that BC
+        /// writes.
         /// </summary>
         [TestCaseSource(nameof(LegacyPrivateKeyShapeCases))]
         public void LegacyPrivateKeyShapes(DerObjectIdentifier algOid, DerObjectIdentifier curveOid,
@@ -393,7 +394,8 @@ namespace Org.BouncyCastle.Tests
             {
                 // Standard (BC): GOST parameters, little-endian OCTET STRING inside the PrivateKeyInfo OCTET STRING
                 new PrivateKeyInfo(gostAlgID, new DerOctetString(dLittleEndian)),
-                // GOST parameters, raw little-endian octets as the PrivateKeyInfo OCTET STRING (CryptoPro)
+                // GOST parameters, raw little-endian octets as the PrivateKeyInfo OCTET STRING (OpenSSL gost-engine;
+                // bc-java github #675)
                 PrivateKeyInfo.GetInstance(
                     new DerSequence(DerInteger.Zero, gostAlgID, new DerOctetString(dLittleEndian))),
                 // GOST parameters with an ECPrivateKey structure (older bc-csharp versions)

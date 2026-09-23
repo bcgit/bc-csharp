@@ -22,6 +22,8 @@ namespace Org.BouncyCastle.Crypto.Tests
     public class ECGost3410_2012Test
         : SimpleTest
     {
+        private readonly SecureRandom Random = new SecureRandom();
+
         public override string Name
         {
             get { return "ECGOST3410-2012"; }
@@ -34,7 +36,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
             var ecGost3410Parameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
-            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
+            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, Random);
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
             AsymmetricCipherKeyPair pair = engine.GenerateKeyPair();
@@ -124,7 +126,7 @@ namespace Org.BouncyCastle.Crypto.Tests
                 RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
             var ecGost3410Parameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
-            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
+            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, Random);
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
             AsymmetricCipherKeyPair pair = engine.GenerateKeyPair();
@@ -345,7 +347,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             var gostParams = new GostR3410x2012PublicKeyParameters(oid, digest);
             var ecGost3410Parameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
-            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, new SecureRandom());
+            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGost3410Parameters, Random);
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
             AsymmetricCipherKeyPair pair = engine.GenerateKeyPair();
@@ -415,7 +417,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 return new SimpleTestResult(false, "N does not match");
             }
 
-            if (!Arrays.AreEqual(recoveredKeyParameters.Parameters.GetSeed(), generatedKeyParameters.Parameters.GetSeed()))
+            if (!Arrays.AreEqual(recoveredKeyParameters.Parameters.GetSeed(),
+                generatedKeyParameters.Parameters.GetSeed()))
             {
                 return new SimpleTestResult(false, "Seed does not match");
             }
@@ -429,7 +432,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             var gostParams = new GostR3410x2012PublicKeyParameters(oid, digest);
             var ecGostParameters = ECGost3410Parameters.FromPublicKeyParameters(gostParams);
 
-            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGostParameters, new SecureRandom());
+            ECKeyGenerationParameters parameters = new ECKeyGenerationParameters(ecGostParameters, Random);
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.Init(parameters);
             AsymmetricCipherKeyPair pair = engine.GenerateKeyPair();
@@ -499,7 +502,8 @@ namespace Org.BouncyCastle.Crypto.Tests
                 return new SimpleTestResult(false, "N does not match");
             }
 
-            if (!Arrays.AreEqual(recoveredKeyParameters.Parameters.GetSeed(), generatedKeyParameters.Parameters.GetSeed()))
+            if (!Arrays.AreEqual(recoveredKeyParameters.Parameters.GetSeed(),
+                generatedKeyParameters.Parameters.GetSeed()))
             {
                 return new SimpleTestResult(false, "Seed does not match");
             }
@@ -510,25 +514,29 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public override void PerformTest()
         {
-            SimpleTestResult str = EncodeDecodePublicLW("Tc26-Gost-3410-12-512-paramSetA", RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
+            SimpleTestResult str = EncodeDecodePublicLW("Tc26-Gost-3410-12-512-paramSetA",
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
             if (!str.IsSuccessful())
             {
                 Fail(str.ToString(), str.GetException());
             }
 
-            str = EncodeDecodePrivateLW("Tc26-Gost-3410-12-512-paramSetA", RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
+            str = EncodeDecodePrivateLW("Tc26-Gost-3410-12-512-paramSetA",
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
             if (!str.IsSuccessful())
             {
                 Fail(str.ToString(), str.GetException());
             }
 
-            str = EncodeDecodePublicLW("Tc26-Gost-3410-12-256-paramSetA", RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
+            str = EncodeDecodePublicLW("Tc26-Gost-3410-12-256-paramSetA",
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
             if (!str.IsSuccessful())
             {
                 Fail(str.ToString(), str.GetException());
             }
 
-            str = EncodeDecodePrivateLW("Tc26-Gost-3410-12-256-paramSetA", RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
+            str = EncodeDecodePrivateLW("Tc26-Gost-3410-12-256-paramSetA",
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
             if (!str.IsSuccessful())
             {
                 Fail(str.ToString(), str.GetException());
