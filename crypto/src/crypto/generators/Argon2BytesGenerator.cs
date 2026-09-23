@@ -91,14 +91,12 @@ namespace Org.BouncyCastle.Crypto.Generators
             this.parameters = parameters;
 
             // 2. Align memory size
-            // Minimum memoryBlocks = 8L blocks, where L is the number of lanes
-            int memoryBlocks = System.Math.Max(parameters.Memory, 2 * Argon2SyncPoints * parameters.Parallelism);
+            int lanes = parameters.Parallelism;
 
-            this.segmentLength = memoryBlocks / (Argon2SyncPoints * parameters.Parallelism);
+            this.segmentLength = GetSegmentLength(parameters.Memory, lanes);
             this.laneLength = segmentLength * Argon2SyncPoints;
 
-            // Ensure that all segments have equal length
-            memoryBlocks = parameters.Parallelism * laneLength;
+            int memoryBlocks = lanes * laneLength;
 
             this.memory = new Block[memoryBlocks];
 
@@ -107,6 +105,11 @@ namespace Org.BouncyCastle.Crypto.Generators
                 memory[i] = new Block();
             }
         }
+
+        // Minimum memory is 8L blocks, where L is the number of lanes, and the segments of every lane
+        // are of equal length, so the memory actually used is a multiple of ARGON2_SYNC_POINTS * lanes.
+        private static int GetSegmentLength(int memory, int lanes) =>
+            System.Math.Max(memory, 2 * Argon2SyncPoints * lanes) / (Argon2SyncPoints * lanes);
 
         public int GenerateBytes(char[] password, byte[] output) =>
             GenerateBytes(parameters.CharToByteConverter.Convert(password), output);
@@ -123,11 +126,17 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             byte[] tmpBlockBytes = new byte[Argon2BlockSize];
 
-            Initialize(tmpBlockBytes, password, outLen);
-            FillMemoryBlocks();
-            Digest(tmpBlockBytes, output, outOff, outLen);
-
-            Reset();
+            try
+            {
+                Initialize(tmpBlockBytes, password, outLen);
+                FillMemoryBlocks();
+                Digest(tmpBlockBytes, output, outOff, outLen);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(tmpBlockBytes);
+                Reset();
+            }
 
             return outLen;
         }
