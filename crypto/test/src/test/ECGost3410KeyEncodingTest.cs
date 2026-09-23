@@ -420,6 +420,43 @@ namespace Org.BouncyCastle.Tests
             }
         }
 
+        /// <summary>
+        /// The raw form is recognized only at the curve's field size, so an ASN.1 form whose length is the other raw
+        /// size is parsed as ASN.1 rather than misread as raw.
+        /// </summary>
+        [Test]
+        public void PrivateKeyRawLengthFollowsCurve()
+        {
+            // 256-bit curve: a nested OCTET STRING zero-padded (little-endian) to 62 bytes, 64 bytes in all
+            {
+                var algID = CreateGostAlgID(CryptoProObjectIdentifiers.GostR3410x2001,
+                    CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
+                    CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet);
+                var x9 = ECGost3410NamedCurves.GetByOid(CryptoProObjectIdentifiers.GostR3410x2001CryptoProA);
+                var d = new BigInteger(x9.N.BitLength - 1, new SecureRandom()).Add(BigInteger.One);
+
+                var dLittleEndian = Arrays.ReverseInPlace(BigIntegers.AsUnsignedByteArray(62, d));
+                var pki = new PrivateKeyInfo(algID, new DerOctetString(dLittleEndian));
+                Assert.That(pki.PrivateKeyLength, Is.EqualTo(64));
+
+                var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(pki);
+                Assert.That(privateKey.D, Is.EqualTo(d));
+            }
+
+            // 512-bit curve: an INTEGER with 30 content bytes, 32 bytes in all
+            {
+                var algID = CreateGostAlgID(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512,
+                    RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA, null);
+                var d = new BigInteger(239, new SecureRandom()).SetBit(238);
+
+                var pki = new PrivateKeyInfo(algID, new DerInteger(d));
+                Assert.That(pki.PrivateKeyLength, Is.EqualTo(32));
+
+                var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(pki);
+                Assert.That(privateKey.D, Is.EqualTo(d));
+            }
+        }
+
         private static readonly TestCaseData[] PublicKeyAlgorithmOidCases =
         {
             new TestCaseData(CryptoProObjectIdentifiers.GostR3410x2001,

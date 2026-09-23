@@ -109,8 +109,13 @@ namespace Org.BouncyCastle.Security
 
                 BigInteger d;
 
-                int privateKeyLength = keyInfo.PrivateKeyLength;
-                if (privateKeyLength == 32 || privateKeyLength == 64)
+                /*
+                 * TODO[ecgost3410] The raw and ASN.1 forms are ambiguous:
+                 * 1. If we check for raw first, then we might mistake a short ASN.1 encoding for raw.
+                 * 2. If we check for ASN.1 first, we might accidentally parse a raw key successfully.
+                 */
+                int fieldSize = ECGost3410Utilities.GetFieldElementEncodingLength(ecGost3410Parameters);
+                if ((fieldSize == 32 || fieldSize == 64) && keyInfo.PrivateKeyLength == fieldSize)
                 {
                     d = new BigInteger(1, keyInfo.PrivateKey.GetOctets(), bigEndian: false);
                 }
