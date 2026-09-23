@@ -33,7 +33,7 @@ namespace Org.BouncyCastle.Cms.Tests
         /// <summary>
         /// The encryption (signature) algorithm OID for an ECGOST3410 key must follow the key's GOST parameters, both
         /// for a freshly generated key and for the same key decoded by <see cref="PrivateKeyFactory"/> (which names
-        /// every ECGOST3410 key "ECGOST3410", whatever its version).
+        /// it for the key algorithm its parameters identify, not for the name it was generated under).
         /// </summary>
         [TestCaseSource(nameof(ECGost3410EncOidCases))]
         public void ECGost3410EncOid(string algorithm, DerObjectIdentifier curveOid, DerObjectIdentifier expectedOid)
@@ -42,8 +42,12 @@ namespace Org.BouncyCastle.Cms.Tests
             generator.Init(new ECKeyGenerationParameters(curveOid, new SecureRandom()));
             var privateKey = generator.GenerateKeyPair().Private;
 
+            string expectedName = CryptoProObjectIdentifiers.GostR3410x2001.Equals(expectedOid)
+                ?  "ECGOST3410"
+                :  "ECGOST3410-2012";
+
             var decoded = PrivateKeyFactory.CreateKey(PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey));
-            Assert.That(((ECPrivateKeyParameters)decoded).AlgorithmName, Is.EqualTo("ECGOST3410"));
+            Assert.That(((ECPrivateKeyParameters)decoded).AlgorithmName, Is.EqualTo(expectedName));
 
             foreach (var key in new[] { privateKey, decoded })
             {

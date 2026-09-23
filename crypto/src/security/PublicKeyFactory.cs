@@ -148,7 +148,9 @@ namespace Org.BouncyCastle.Security
 
                 ECPoint q = ecGost3410Parameters.Curve.DecodePoint(x9Encoding);
 
-                return new ECPublicKeyParameters("ECGOST3410", q, ecGost3410Parameters);
+                string algorithm = ECGost3410Utilities.GetAlgorithmName(algOid, ecGost3410Parameters);
+
+                return new ECPublicKeyParameters(algorithm, q, ecGost3410Parameters);
             }
             else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x94))
             {

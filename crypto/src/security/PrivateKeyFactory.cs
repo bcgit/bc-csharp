@@ -137,7 +137,9 @@ namespace Org.BouncyCastle.Security
                     }
                 }
 
-                return new ECPrivateKeyParameters("ECGOST3410", d, ecGost3410Parameters);
+                string algorithm = ECGost3410Utilities.GetAlgorithmName(algOid, ecGost3410Parameters);
+
+                return new ECPrivateKeyParameters(algorithm, d, ecGost3410Parameters);
             }
             else if (algOid.Equals(CryptoProObjectIdentifiers.GostR3410x94))
             {

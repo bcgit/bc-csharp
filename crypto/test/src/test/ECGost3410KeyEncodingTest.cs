@@ -99,11 +99,13 @@ namespace Org.BouncyCastle.Tests
             // Round trip: the key material and the algorithm OID must survive decoding and re-encoding
             var publicKey = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(spki);
             Assert.That(publicKey.Q, Is.EqualTo(((ECPublicKeyParameters)keyPair.Public).Q));
+            Assert.That(publicKey.AlgorithmName, Is.EqualTo(GetExpectedAlgorithmName(expectedAlgOid)));
             Assert.That(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey).Algorithm.Algorithm,
                 Is.EqualTo(expectedAlgOid));
 
             var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(pki);
             Assert.That(privateKey.D, Is.EqualTo(((ECPrivateKeyParameters)keyPair.Private).D));
+            Assert.That(privateKey.AlgorithmName, Is.EqualTo(GetExpectedAlgorithmName(expectedAlgOid)));
             Assert.That(PrivateKeyInfoFactory.CreatePrivateKeyInfo(privateKey).PrivateKeyAlgorithm.Algorithm,
                 Is.EqualTo(expectedAlgOid));
         }
@@ -408,7 +410,7 @@ namespace Org.BouncyCastle.Tests
                 var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(pki);
 
                 Assert.That(privateKey.D, Is.EqualTo(d));
-                Assert.That(privateKey.AlgorithmName, Is.EqualTo("ECGOST3410"));
+                Assert.That(privateKey.AlgorithmName, Is.EqualTo(GetExpectedAlgorithmName(algOid)));
                 Assert.That(privateKey.PublicKeyParamSet, Is.EqualTo(curveOid));
 
                 var parameters = (ECGost3410Parameters)privateKey.Parameters;
@@ -501,7 +503,7 @@ namespace Org.BouncyCastle.Tests
                 var decoded = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(spki);
 
                 Assert.That(decoded.Q, Is.EqualTo(publicKey.Q));
-                Assert.That(decoded.AlgorithmName, Is.EqualTo("ECGOST3410"));
+                Assert.That(decoded.AlgorithmName, Is.EqualTo(GetExpectedAlgorithmName(algOid)));
                 Assert.That(decoded.PublicKeyParamSet, Is.EqualTo(curveOid));
                 Assert.That(decoded.Parameters, Is.InstanceOf<ECGost3410Parameters>());
             }
@@ -690,30 +692,36 @@ namespace Org.BouncyCastle.Tests
         {
             new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
                 RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
-                CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet).SetArgDisplayNames("2012-256 with 34.11-94"),
+                CryptoProObjectIdentifiers.GostR3411x94CryptoProParamSet,
+                "ECGOST3410").SetArgDisplayNames("2012-256 with 34.11-94"),
             new TestCaseData(CryptoProObjectIdentifiers.GostR3410x2001,
                 CryptoProObjectIdentifiers.GostR3410x2001CryptoProA,
-                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256).SetArgDisplayNames("2001 with 34.11-2012"),
+                RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256,
+                "ECGOST3410-2012").SetArgDisplayNames("2001 with 34.11-2012"),
             new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512,
                 RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
-                null).SetArgDisplayNames("2012-512 on 256-bit curve"),
+                null,
+                "ECGOST3410-2012").SetArgDisplayNames("2012-512 on 256-bit curve"),
             new TestCaseData(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512,
                 RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
-                null).SetArgDisplayNames("agreement-512 on 256-bit curve"),
+                null,
+                "ECGOST3410-2012").SetArgDisplayNames("agreement-512 on 256-bit curve"),
             new TestCaseData(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
                 RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256_paramSetA,
-                CryptoProObjectIdentifiers.GostR3411).SetArgDisplayNames("2012-256 with unrecognized digest"),
+                CryptoProObjectIdentifiers.GostR3411,
+                "ECGOST3410-2012").SetArgDisplayNames("2012-256 with unrecognized digest"),
         };
 
         /// <summary>
         /// The encoder derives the key algorithm OID from the parameters, so parameters that identify a different key
         /// algorithm than the one they are decoded under (or none, for an unrecognized digestParamSet) are rejected
         /// unless <see cref="Properties.GostAllowLenientKeyParameters"/> is set. bc-csharp versions prior to 2.8.0
-        /// could write such keys, since they chose the key algorithm OID from the curve.
+        /// could write such keys, since they chose the key algorithm OID from the curve. When accepted, a key is named
+        /// for the key algorithm its parameters identify, or for the one it was decoded under if they identify none.
         /// </summary>
         [TestCaseSource(nameof(InconsistentKeyAlgorithmCases))]
         public void InconsistentKeyAlgorithmRejected(DerObjectIdentifier algOid, DerObjectIdentifier curveOid,
-            DerObjectIdentifier digestParamSet)
+            DerObjectIdentifier digestParamSet, string expectedLenientName)
         {
             var keyPair = GenerateKeyPair(curveOid, null);
             var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(keyPair.Public);
@@ -738,12 +746,21 @@ namespace Org.BouncyCastle.Tests
                 {
                     var publicKey = (ECPublicKeyParameters)PublicKeyFactory.CreateKey(inconsistentSpki);
                     Assert.That(publicKey.Q, Is.EqualTo(((ECPublicKeyParameters)keyPair.Public).Q));
+                    Assert.That(publicKey.AlgorithmName, Is.EqualTo(expectedLenientName));
 
                     var privateKey = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(inconsistentPki);
                     Assert.That(privateKey.D, Is.EqualTo(((ECPrivateKeyParameters)keyPair.Private).D));
+                    Assert.That(privateKey.AlgorithmName, Is.EqualTo(expectedLenientName));
                 });
             }
         }
+
+        /// <summary>
+        /// Decoded ECGOST3410 keys are named for their key algorithm (a GOST R 34.10-2012 agreement OID counting as
+        /// GOST R 34.10-2012).
+        /// </summary>
+        private static string GetExpectedAlgorithmName(DerObjectIdentifier algOid) =>
+            CryptoProObjectIdentifiers.GostR3410x2001.Equals(algOid) ? "ECGOST3410" : "ECGOST3410-2012";
 
         private static DerObjectIdentifier GetEncryptionParamSet(AsymmetricKeyParameter key) =>
             ((ECGost3410Parameters)((ECKeyParameters)key).Parameters).EncryptionParamSet;

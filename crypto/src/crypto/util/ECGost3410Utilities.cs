@@ -229,6 +229,21 @@ namespace Org.BouncyCastle.Crypto.Utilities
             parameters.Curve.FieldElementEncodingLength;
 
         /// <summary>
+        /// The algorithm name for an ECGOST3410 key decoded under the key algorithm <paramref name="algOid"/>:
+        /// "ECGOST3410" for GOST R 34.10-2001 or "ECGOST3410-2012" for GOST R 34.10-2012, as identified by the
+        /// parameters (see <see cref="GetKeyAlgorithmOid"/>), or by <paramref name="algOid"/> if they identify neither
+        /// (only possible when <see cref="Properties.GostAllowLenientKeyParameters"/> is set).
+        /// </summary>
+        internal static string GetAlgorithmName(DerObjectIdentifier algOid, ECGost3410Parameters parameters)
+        {
+            var keyAlgorithmOid = TryGetKeyAlgorithmOid(parameters) ?? algOid;
+
+            return CryptoProObjectIdentifiers.GostR3410x2001.Equals(keyAlgorithmOid)
+                ?  "ECGOST3410"
+                :  "ECGOST3410-2012";
+        }
+
+        /// <summary>
         /// Whether an EC key algorithm name (as canonicalized by <see cref="ECKeyParameters"/>) denotes an ECGOST3410
         /// key.
         /// </summary>
