@@ -1010,7 +1010,11 @@ namespace Org.BouncyCastle.Pkix
             }
 
             if (!validCrlFound)
-                throw lastException;
+            {
+                // every candidate was skipped rather than rejected - the reasons they cover add nothing to the mask -
+                // so there is no exception to report.
+                throw lastException ?? new Exception("No valid CRL found.");
+            }
         }
 
         /**
