@@ -6,11 +6,14 @@ namespace Org.BouncyCastle.Crypto.Digests
 {
     internal class XofUtilities
     {
-        internal static byte[] LeftEncode(long strLen)
+        internal static byte[] LeftEncode(long length)
         {
+            if (length < 0L)
+                throw new ArgumentException("cannot be negative", nameof(length));
+
             byte n = 1;
 
-            long v = strLen;
+            long v = length;
             while ((v >>= 8) != 0)
             {
                 n++;
@@ -22,7 +25,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             for (int i = 1; i <= n; i++)
             {
-                b[i] = (byte)(strLen >> (8 * (n - i)));
+                b[i] = (byte)(length >> (8 * (n - i)));
             }
 
             return b;
@@ -31,6 +34,9 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static int LeftEncode(long length, Span<byte> lengthEncoding)
         {
+            if (length < 0L)
+                throw new ArgumentException("cannot be negative", nameof(length));
+
             byte n = 1;
 
             long v = length;
@@ -48,11 +54,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        internal static byte[] RightEncode(long strLen)
+        internal static byte[] RightEncode(long length)
         {
+            if (length < 0L)
+                throw new ArgumentException("cannot be negative", nameof(length));
+
             byte n = 1;
 
-            long v = strLen;
+            long v = length;
             while ((v >>= 8) != 0)
             {
                 n++;
@@ -64,7 +73,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
             for (int i = 0; i < n; i++)
             {
-                b[i] = (byte)(strLen >> (8 * (n - i - 1)));
+                b[i] = (byte)(length >> (8 * (n - i - 1)));
             }
 
             return b;
@@ -73,6 +82,9 @@ namespace Org.BouncyCastle.Crypto.Digests
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         internal static int RightEncode(long length, Span<byte> lengthEncoding)
         {
+            if (length < 0L)
+                throw new ArgumentException("cannot be negative", nameof(length));
+
             byte n = 1;
 
             long v = length;
@@ -90,18 +102,16 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
-        internal static byte[] Encode(byte X)
-        {
-            return Arrays.Concatenate(LeftEncode(8), new byte[] { X });
-        }
+        internal static byte[] Encode(byte b) => Arrays.Append(LeftEncode(8L), b);
 
-        internal static byte[] Encode(byte[] inBuf, int inOff, int len)
+        internal static byte[] Encode(byte[] buf, int off, int len)
         {
-            if (inBuf.Length == len)
-            {
-                return Arrays.Concatenate(LeftEncode(len * 8), inBuf);
-            }
-            return Arrays.Concatenate(LeftEncode(len * 8), Arrays.CopyOfRange(inBuf, inOff, inOff + len));
+            Arrays.ValidateSegment(buf, off, len);
+            byte[] left = LeftEncode(len * 8L);
+            byte[] result = new byte[left.Length + len];
+            Array.Copy(left, 0, result, 0, left.Length);
+            Array.Copy(buf, off, result, left.Length, len);
+            return result;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
