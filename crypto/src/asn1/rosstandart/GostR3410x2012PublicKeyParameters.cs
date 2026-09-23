@@ -21,7 +21,7 @@ namespace Org.BouncyCastle.Asn1.Rosstandart
     /// When the key algorithm is not known, so that the parameters could be either this structure or the GOST R
     /// 34.10-2001 one, see <see cref="Gost3410PublicKeyAlgParameters"/>.
     /// </remarks>
-    public class GostR3410x2012PublicKeyParameters
+    public sealed class GostR3410x2012PublicKeyParameters
         : Asn1Encodable
     {
         public static GostR3410x2012PublicKeyParameters GetInstance(object obj)

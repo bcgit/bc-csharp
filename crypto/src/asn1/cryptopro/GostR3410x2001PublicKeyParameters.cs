@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
     /// When the key algorithm is not known, so that the parameters could be either this structure or the GOST R
     /// 34.10-2012 one, see <see cref="Gost3410PublicKeyAlgParameters"/>.
     /// </remarks>
-    public class GostR3410x2001PublicKeyParameters
+    public sealed class GostR3410x2001PublicKeyParameters
         : Asn1Encodable
     {
         public static readonly DerObjectIdentifier DefaultEncryptionParamSet =
