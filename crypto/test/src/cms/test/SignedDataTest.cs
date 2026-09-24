@@ -1179,7 +1179,7 @@ namespace Org.BouncyCastle.Cms.Tests
             /*
              * RFC 8419 3.1. When signing with Ed25519, the digestAlgorithm MUST be id-sha512, and the algorithm
              * parameters field MUST be absent.
-             * 
+             *
              * We confirm here that our implementation defaults to SHA-512 for the digest algorithm.
              */
             AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdSha512);
@@ -1197,7 +1197,7 @@ namespace Org.BouncyCastle.Cms.Tests
         //     * RFC 8419 3.1. When signing with Ed448, the digestAlgorithm MUST be id-shake256-len, the algorithm
         //     * parameters field MUST be present, and the parameter MUST contain 512, encoded as a positive integer
         //     * value.
-        //     * 
+        //     *
         //     * We confirm here that our implementation defaults to id-shake256-len/512 for the digest algorithm.
         //     */
         //    AlgorithmIdentifier expectedDigAlgID = new AlgorithmIdentifier(NistObjectIdentifiers.IdShake256Len,

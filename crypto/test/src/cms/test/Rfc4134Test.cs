@@ -16,120 +16,120 @@ namespace Org.BouncyCastle.Cms.Tests
     [TestFixture]
     [Parallelizable(ParallelScope.All)]
     public class Rfc4134Test
-	{
-		private static readonly byte[] exContent = GetRfc4134Data("ExContent.bin");
-		private static readonly byte[] sha1 = Hex.Decode("406aec085279ba6e16022d9e0629c0229687dd48");
+    {
+        private static readonly byte[] exContent = GetRfc4134Data("ExContent.bin");
+        private static readonly byte[] sha1 = Hex.Decode("406aec085279ba6e16022d9e0629c0229687dd48");
 
-		[Test]
-		public void Test4_1()
-		{
-			byte[] data = GetRfc4134Data("4.1.bin");
-			CmsSignedData signedData = new CmsSignedData(data);
+        [Test]
+        public void Test4_1()
+        {
+            byte[] data = GetRfc4134Data("4.1.bin");
+            CmsSignedData signedData = new CmsSignedData(data);
 
-			VerifySignatures(signedData);
+            VerifySignatures(signedData);
 
-			CmsSignedDataParser parser = new CmsSignedDataParser(data);
+            CmsSignedDataParser parser = new CmsSignedDataParser(data);
 
-			VerifySignatures(parser);
-		}
+            VerifySignatures(parser);
+        }
 
-		[Test]
-		public void Test4_2()
-		{
-			byte[] data = GetRfc4134Data("4.2.bin");
-			CmsSignedData signedData = new CmsSignedData(data);
+        [Test]
+        public void Test4_2()
+        {
+            byte[] data = GetRfc4134Data("4.2.bin");
+            CmsSignedData signedData = new CmsSignedData(data);
 
-			VerifySignatures(signedData);
+            VerifySignatures(signedData);
 
-			CmsSignedDataParser parser = new CmsSignedDataParser(data);
+            CmsSignedDataParser parser = new CmsSignedDataParser(data);
 
-			VerifySignatures(parser);
-		}
+            VerifySignatures(parser);
+        }
 
-		[Test]
-		public void Test4_3()
-		{
-			CmsProcessableByteArray unencap = new CmsProcessableByteArray(exContent);
-			byte[] data = GetRfc4134Data("4.3.bin");
-			CmsSignedData signedData = new CmsSignedData(unencap, data);
+        [Test]
+        public void Test4_3()
+        {
+            CmsProcessableByteArray unencap = new CmsProcessableByteArray(exContent);
+            byte[] data = GetRfc4134Data("4.3.bin");
+            CmsSignedData signedData = new CmsSignedData(unencap, data);
 
-			VerifySignatures(signedData, sha1);
+            VerifySignatures(signedData, sha1);
 
-			CmsSignedDataParser parser = new CmsSignedDataParser(
-				new CmsTypedStream(unencap.GetInputStream()), data);
+            CmsSignedDataParser parser = new CmsSignedDataParser(
+                new CmsTypedStream(unencap.GetInputStream()), data);
 
-			VerifySignatures(parser);
-		}
+            VerifySignatures(parser);
+        }
 
-		[Test]
-		public void Test4_4()
-		{
-			byte[] data = GetRfc4134Data("4.4.bin");
-			byte[] counterSigCert = GetRfc4134Data("AliceRSASignByCarl.cer");
-			CmsSignedData signedData = new CmsSignedData(data);
+        [Test]
+        public void Test4_4()
+        {
+            byte[] data = GetRfc4134Data("4.4.bin");
+            byte[] counterSigCert = GetRfc4134Data("AliceRSASignByCarl.cer");
+            CmsSignedData signedData = new CmsSignedData(data);
 
-			VerifySignatures(signedData, sha1);
+            VerifySignatures(signedData, sha1);
 
-			VerifySignerInfo4_4(GetFirstSignerInfo(signedData.GetSignerInfos()), counterSigCert);
+            VerifySignerInfo4_4(GetFirstSignerInfo(signedData.GetSignerInfos()), counterSigCert);
 
-			CmsSignedDataParser parser = new CmsSignedDataParser(data);
+            CmsSignedDataParser parser = new CmsSignedDataParser(data);
 
-			VerifySignatures(parser);
+            VerifySignatures(parser);
 
-			VerifySignerInfo4_4(GetFirstSignerInfo(parser.GetSignerInfos()), counterSigCert);
-		}
+            VerifySignerInfo4_4(GetFirstSignerInfo(parser.GetSignerInfos()), counterSigCert);
+        }
 
-		[Test]
-		public void Test4_5()
-		{
-			byte[] data = GetRfc4134Data("4.5.bin");
-			CmsSignedData signedData = new CmsSignedData(data);
+        [Test]
+        public void Test4_5()
+        {
+            byte[] data = GetRfc4134Data("4.5.bin");
+            CmsSignedData signedData = new CmsSignedData(data);
 
-			VerifySignatures(signedData);
+            VerifySignatures(signedData);
 
-			CmsSignedDataParser parser = new CmsSignedDataParser(data);
+            CmsSignedDataParser parser = new CmsSignedDataParser(data);
 
-			VerifySignatures(parser);
-		}
+            VerifySignatures(parser);
+        }
 
-		[Test]
-		public void Test4_6()
-		{
-			byte[] data = GetRfc4134Data("4.6.bin");
-			CmsSignedData signedData = new CmsSignedData(data);
+        [Test]
+        public void Test4_6()
+        {
+            byte[] data = GetRfc4134Data("4.6.bin");
+            CmsSignedData signedData = new CmsSignedData(data);
 
-			VerifySignatures(signedData);
+            VerifySignatures(signedData);
 
-			CmsSignedDataParser parser = new CmsSignedDataParser(data);
+            CmsSignedDataParser parser = new CmsSignedDataParser(data);
 
-			VerifySignatures(parser);
-		}
-		
-		[Test]
-		public void Test4_7()
-		{
-			byte[] data = GetRfc4134Data("4.7.bin");
-			CmsSignedData signedData = new CmsSignedData(data);
+            VerifySignatures(parser);
+        }
 
-			VerifySignatures(signedData);
+        [Test]
+        public void Test4_7()
+        {
+            byte[] data = GetRfc4134Data("4.7.bin");
+            CmsSignedData signedData = new CmsSignedData(data);
 
-			CmsSignedDataParser parser = new CmsSignedDataParser(data);
+            VerifySignatures(signedData);
 
-			VerifySignatures(parser);
-		}
+            CmsSignedDataParser parser = new CmsSignedDataParser(data);
 
-		[Test]
-		public void Test5_1()
-		{
-			byte[] data = GetRfc4134Data("5.1.bin");
-			CmsEnvelopedData envelopedData = new CmsEnvelopedData(data);
+            VerifySignatures(parser);
+        }
 
-			VerifyEnvelopedData(envelopedData, CmsEnvelopedGenerator.DesEde3Cbc);
+        [Test]
+        public void Test5_1()
+        {
+            byte[] data = GetRfc4134Data("5.1.bin");
+            CmsEnvelopedData envelopedData = new CmsEnvelopedData(data);
 
-			CmsEnvelopedDataParser envelopedParser = new CmsEnvelopedDataParser(data);
+            VerifyEnvelopedData(envelopedData, CmsEnvelopedGenerator.DesEde3Cbc);
 
-			VerifyEnvelopedData(envelopedParser, CmsEnvelopedGenerator.DesEde3Cbc);
-		}
+            CmsEnvelopedDataParser envelopedParser = new CmsEnvelopedDataParser(data);
+
+            VerifyEnvelopedData(envelopedParser, CmsEnvelopedGenerator.DesEde3Cbc);
+        }
 
         [Test]
         public void Test5_2()
@@ -146,152 +146,152 @@ namespace Org.BouncyCastle.Cms.Tests
             });
         }
 
-		private void VerifyEnvelopedData(CmsEnvelopedData envelopedData, string symAlgorithmOID)
-		{
-			byte[] privKeyData = GetRfc4134Data("BobPrivRSAEncrypt.pri");
-			AsymmetricKeyParameter privKey = PrivateKeyFactory.CreateKey(privKeyData);
-			Assert.IsTrue(privKey.IsPrivate);
-			Assert.IsTrue(privKey is RsaKeyParameters);
+        private void VerifyEnvelopedData(CmsEnvelopedData envelopedData, string symAlgorithmOID)
+        {
+            byte[] privKeyData = GetRfc4134Data("BobPrivRSAEncrypt.pri");
+            AsymmetricKeyParameter privKey = PrivateKeyFactory.CreateKey(privKeyData);
+            Assert.IsTrue(privKey.IsPrivate);
+            Assert.IsTrue(privKey is RsaKeyParameters);
 
-			RecipientInformationStore recipients = envelopedData.GetRecipientInfos();
+            RecipientInformationStore recipients = envelopedData.GetRecipientInfos();
 
-			Assert.AreEqual(envelopedData.EncryptionAlgOid, symAlgorithmOID);
+            Assert.AreEqual(envelopedData.EncryptionAlgOid, symAlgorithmOID);
 
-			var c = recipients.GetRecipients();
-			Assert.LessOrEqual(1, c.Count);
-			Assert.GreaterOrEqual(2, c.Count);
+            var c = recipients.GetRecipients();
+            Assert.LessOrEqual(1, c.Count);
+            Assert.GreaterOrEqual(2, c.Count);
 
-			VerifyRecipient(c[0], privKey);
+            VerifyRecipient(c[0], privKey);
 
-			if (c.Count == 2)
-			{
-				RecipientInformation recInfo = c[1];
+            if (c.Count == 2)
+            {
+                RecipientInformation recInfo = c[1];
 
-				Assert.AreEqual(PkcsObjectIdentifiers.IdAlgCmsRC2Wrap.Id, recInfo.KeyEncryptionAlgOid);
-			}
-		}
+                Assert.AreEqual(PkcsObjectIdentifiers.IdAlgCmsRC2Wrap.Id, recInfo.KeyEncryptionAlgOid);
+            }
+        }
 
-		private void VerifyEnvelopedData(CmsEnvelopedDataParser envelopedParser, string symAlgorithmOID)
-		{
-			byte[] privKeyData = GetRfc4134Data("BobPrivRSAEncrypt.pri");
-			AsymmetricKeyParameter privKey = PrivateKeyFactory.CreateKey(privKeyData);
-			Assert.IsTrue(privKey.IsPrivate);
-			Assert.IsTrue(privKey is RsaKeyParameters);
+        private void VerifyEnvelopedData(CmsEnvelopedDataParser envelopedParser, string symAlgorithmOID)
+        {
+            byte[] privKeyData = GetRfc4134Data("BobPrivRSAEncrypt.pri");
+            AsymmetricKeyParameter privKey = PrivateKeyFactory.CreateKey(privKeyData);
+            Assert.IsTrue(privKey.IsPrivate);
+            Assert.IsTrue(privKey is RsaKeyParameters);
 
-			RecipientInformationStore recipients = envelopedParser.GetRecipientInfos();
+            RecipientInformationStore recipients = envelopedParser.GetRecipientInfos();
 
-			Assert.AreEqual(envelopedParser.EncryptionAlgOid, symAlgorithmOID);
+            Assert.AreEqual(envelopedParser.EncryptionAlgOid, symAlgorithmOID);
 
-			var c = recipients.GetRecipients();
-			Assert.LessOrEqual(1, c.Count);
-			Assert.GreaterOrEqual(2, c.Count);
+            var c = recipients.GetRecipients();
+            Assert.LessOrEqual(1, c.Count);
+            Assert.GreaterOrEqual(2, c.Count);
 
-			VerifyRecipient((RecipientInformation)c[0], privKey);
+            VerifyRecipient((RecipientInformation)c[0], privKey);
 
-			if (c.Count == 2)
-			{
-				RecipientInformation recInfo = (RecipientInformation)c[1];
+            if (c.Count == 2)
+            {
+                RecipientInformation recInfo = (RecipientInformation)c[1];
 
-				Assert.AreEqual(PkcsObjectIdentifiers.IdAlgCmsRC2Wrap.Id, recInfo.KeyEncryptionAlgOid);
-			}
-		}
+                Assert.AreEqual(PkcsObjectIdentifiers.IdAlgCmsRC2Wrap.Id, recInfo.KeyEncryptionAlgOid);
+            }
+        }
 
-		private void VerifyRecipient(RecipientInformation recipient, AsymmetricKeyParameter privKey)
-		{
-			Assert.IsTrue(privKey.IsPrivate);
+        private void VerifyRecipient(RecipientInformation recipient, AsymmetricKeyParameter privKey)
+        {
+            Assert.IsTrue(privKey.IsPrivate);
 
-			Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
+            Assert.AreEqual(recipient.KeyEncryptionAlgOid, PkcsObjectIdentifiers.RsaEncryption.Id);
 
-			byte[] recData = recipient.GetContent(privKey);
+            byte[] recData = recipient.GetContent(privKey);
 
-			Assert.IsTrue(Arrays.AreEqual(exContent, recData));
-		}
+            Assert.IsTrue(Arrays.AreEqual(exContent, recData));
+        }
 
-		private void VerifySignerInfo4_4(SignerInformation signerInfo, byte[] counterSigCert)
-		{
-			VerifyCounterSignature(signerInfo, counterSigCert);
+        private void VerifySignerInfo4_4(SignerInformation signerInfo, byte[] counterSigCert)
+        {
+            VerifyCounterSignature(signerInfo, counterSigCert);
 
-			VerifyContentHint(signerInfo);
-		}
+            VerifyContentHint(signerInfo);
+        }
 
-		private SignerInformation GetFirstSignerInfo(SignerInformationStore store)
-		{
-			var e = store.GetSigners().GetEnumerator();
-			e.MoveNext();
-			return e.Current;
-		}
+        private SignerInformation GetFirstSignerInfo(SignerInformationStore store)
+        {
+            var e = store.GetSigners().GetEnumerator();
+            e.MoveNext();
+            return e.Current;
+        }
 
-		private void VerifyCounterSignature(SignerInformation signInfo, byte[] certificate)
-		{
-			SignerInformation csi = GetFirstSignerInfo(signInfo.GetCounterSignatures());
+        private void VerifyCounterSignature(SignerInformation signInfo, byte[] certificate)
+        {
+            SignerInformation csi = GetFirstSignerInfo(signInfo.GetCounterSignatures());
 
-			X509Certificate cert = new X509CertificateParser().ReadCertificate(certificate);
+            X509Certificate cert = new X509CertificateParser().ReadCertificate(certificate);
 
-			Assert.IsTrue(csi.Verify(cert));
-		}
+            Assert.IsTrue(csi.Verify(cert));
+        }
 
-		private void VerifyContentHint(SignerInformation signInfo)
-		{
-			Asn1.Cms.AttributeTable attrTable = signInfo.UnsignedAttributes;
+        private void VerifyContentHint(SignerInformation signInfo)
+        {
+            Asn1.Cms.AttributeTable attrTable = signInfo.UnsignedAttributes;
 
-			Asn1.Cms.Attribute attr = attrTable[CmsAttributes.ContentHint];
+            Asn1.Cms.Attribute attr = attrTable[CmsAttributes.ContentHint];
 
-			Assert.AreEqual(1, attr.AttrValues.Count);
-		
-			Asn1EncodableVector v = new Asn1EncodableVector(
-				new DerUtf8String("Content Hints Description Buffer"),
-				CmsObjectIdentifiers.Data);
+            Assert.AreEqual(1, attr.AttrValues.Count);
 
-			Assert.IsTrue(attr.AttrValues[0].Equals(new DerSequence(v)));
-		}
+            Asn1EncodableVector v = new Asn1EncodableVector(
+                new DerUtf8String("Content Hints Description Buffer"),
+                CmsObjectIdentifiers.Data);
 
-		private static void VerifySignatures(CmsSignedData s, byte[] contentDigest)
-		{
-			var x509Certs = s.GetCertificates();
-			SignerInformationStore signers = s.GetSignerInfos();
+            Assert.IsTrue(attr.AttrValues[0].Equals(new DerSequence(v)));
+        }
 
-			foreach (SignerInformation signer in signers.GetSigners())
-			{
-				var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
+        private static void VerifySignatures(CmsSignedData s, byte[] contentDigest)
+        {
+            var x509Certs = s.GetCertificates();
+            SignerInformationStore signers = s.GetSignerInfos();
 
-				var certEnum = certCollection.GetEnumerator();
+            foreach (SignerInformation signer in signers.GetSigners())
+            {
+                var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
 
-				certEnum.MoveNext();
-				X509Certificate cert = certEnum.Current;
+                var certEnum = certCollection.GetEnumerator();
 
-				VerifySigner(signer, cert);
+                certEnum.MoveNext();
+                X509Certificate cert = certEnum.Current;
 
-				if (contentDigest != null)
-				{
-					Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
-				}
-			}
-		}
+                VerifySigner(signer, cert);
 
-		private static void VerifySignatures(CmsSignedData s) => VerifySignatures(s, null);
+                if (contentDigest != null)
+                {
+                    Assert.IsTrue(Arrays.AreEqual(contentDigest, signer.GetContentDigest()));
+                }
+            }
+        }
 
-		private static void VerifySignatures(CmsSignedDataParser sp)
-		{
-	        CmsTypedStream sc = sp.GetSignedContent();
-	        if (sc != null)
-	        {
-	            sc.Drain();
-	        }
+        private static void VerifySignatures(CmsSignedData s) => VerifySignatures(s, null);
 
-			var x509Certs = sp.GetCertificates();
-			SignerInformationStore signers = sp.GetSignerInfos();
+        private static void VerifySignatures(CmsSignedDataParser sp)
+        {
+            CmsTypedStream sc = sp.GetSignedContent();
+            if (sc != null)
+            {
+                sc.Drain();
+            }
 
-			foreach (SignerInformation signer in signers.GetSigners())
-			{
-				var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
+            var x509Certs = sp.GetCertificates();
+            SignerInformationStore signers = sp.GetSignerInfos();
 
-				var certEnum = certCollection.GetEnumerator();
-				certEnum.MoveNext();
-				X509Certificate cert = certEnum.Current;
+            foreach (SignerInformation signer in signers.GetSigners())
+            {
+                var certCollection = x509Certs.EnumerateMatches(signer.SignerID);
 
-				VerifySigner(signer, cert);
-			}
-		}
+                var certEnum = certCollection.GetEnumerator();
+                certEnum.MoveNext();
+                X509Certificate cert = certEnum.Current;
+
+                VerifySigner(signer, cert);
+            }
+        }
 
         private static void VerifySigner(SignerInformation signer, X509Certificate cert)
         {
@@ -308,15 +308,15 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         private static DsaPublicKeyParameters GetInheritedKey(DsaPublicKeyParameters dsaPubKey)
-		{
-			X509Certificate cert = new X509CertificateParser().ReadCertificate(
-				GetRfc4134Data("CarlDSSSelf.cer"));
+        {
+            X509Certificate cert = new X509CertificateParser().ReadCertificate(
+                GetRfc4134Data("CarlDSSSelf.cer"));
 
-			DsaParameters dsaParams = ((DsaPublicKeyParameters)cert.GetPublicKey()).Parameters;
+            DsaParameters dsaParams = ((DsaPublicKeyParameters)cert.GetPublicKey()).Parameters;
 
-			return new DsaPublicKeyParameters(dsaPubKey.Y, dsaParams);
-		}
+            return new DsaPublicKeyParameters(dsaPubKey.Y, dsaParams);
+        }
 
-		private static byte[] GetRfc4134Data(string name) => SimpleTest.GetTestData("rfc4134." + name);
-	}
+        private static byte[] GetRfc4134Data(string name) => SimpleTest.GetTestData("rfc4134." + name);
+    }
 }

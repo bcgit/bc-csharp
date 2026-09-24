@@ -67,49 +67,49 @@ namespace Org.BouncyCastle.Cms.Tests
 
         internal static int serialNumber;
 
-		private static readonly byte[] attrCert = Base64.Decode(
-			  "MIIHQDCCBqkCAQEwgZChgY2kgYowgYcxHDAaBgkqhkiG9w0BCQEWDW1sb3JjaEB2"
-			+ "dC5lZHUxHjAcBgNVBAMTFU1hcmt1cyBMb3JjaCAobWxvcmNoKTEbMBkGA1UECxMS"
-			+ "VmlyZ2luaWEgVGVjaCBVc2VyMRAwDgYDVQQLEwdDbGFzcyAyMQswCQYDVQQKEwJ2"
-			+ "dDELMAkGA1UEBhMCVVMwgYmkgYYwgYMxGzAZBgkqhkiG9w0BCQEWDHNzaGFoQHZ0"
-			+ "LmVkdTEbMBkGA1UEAxMSU3VtaXQgU2hhaCAoc3NoYWgpMRswGQYDVQQLExJWaXJn"
-			+ "aW5pYSBUZWNoIFVzZXIxEDAOBgNVBAsTB0NsYXNzIDExCzAJBgNVBAoTAnZ0MQsw"
-			+ "CQYDVQQGEwJVUzANBgkqhkiG9w0BAQQFAAIBBTAiGA8yMDAzMDcxODE2MDgwMloY"
-			+ "DzIwMDMwNzI1MTYwODAyWjCCBU0wggVJBgorBgEEAbRoCAEBMYIFORaCBTU8UnVs"
-			+ "ZSBSdWxlSWQ9IkZpbGUtUHJpdmlsZWdlLVJ1bGUiIEVmZmVjdD0iUGVybWl0Ij4K"
-			+ "IDxUYXJnZXQ+CiAgPFN1YmplY3RzPgogICA8U3ViamVjdD4KICAgIDxTdWJqZWN0"
-			+ "TWF0Y2ggTWF0Y2hJZD0idXJuOm9hc2lzOm5hbWVzOnRjOnhhY21sOjEuMDpmdW5j"
-			+ "dGlvbjpzdHJpbmctZXF1YWwiPgogICAgIDxBdHRyaWJ1dGVWYWx1ZSBEYXRhVHlw"
-			+ "ZT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjc3RyaW5nIj4KICAg"
-			+ "ICAgIENOPU1hcmt1cyBMb3JjaDwvQXR0cmlidXRlVmFsdWU+CiAgICAgPFN1Ympl"
-			+ "Y3RBdHRyaWJ1dGVEZXNpZ25hdG9yIEF0dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFt"
-			+ "ZXM6dGM6eGFjbWw6MS4wOnN1YmplY3Q6c3ViamVjdC1pZCIgRGF0YVR5cGU9Imh0"
-			+ "dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hI3N0cmluZyIgLz4gCiAgICA8"
-			+ "L1N1YmplY3RNYXRjaD4KICAgPC9TdWJqZWN0PgogIDwvU3ViamVjdHM+CiAgPFJl"
-			+ "c291cmNlcz4KICAgPFJlc291cmNlPgogICAgPFJlc291cmNlTWF0Y2ggTWF0Y2hJ"
-			+ "ZD0idXJuOm9hc2lzOm5hbWVzOnRjOnhhY21sOjEuMDpmdW5jdGlvbjpzdHJpbmct"
-			+ "ZXF1YWwiPgogICAgIDxBdHRyaWJ1dGVWYWx1ZSBEYXRhVHlwZT0iaHR0cDovL3d3"
-			+ "dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjYW55VVJJIj4KICAgICAgaHR0cDovL3p1"
-			+ "bmkuY3MudnQuZWR1PC9BdHRyaWJ1dGVWYWx1ZT4KICAgICA8UmVzb3VyY2VBdHRy"
-			+ "aWJ1dGVEZXNpZ25hdG9yIEF0dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFtZXM6dGM6"
-			+ "eGFjbWw6MS4wOnJlc291cmNlOnJlc291cmNlLWlkIiBEYXRhVHlwZT0iaHR0cDov"
-			+ "L3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjYW55VVJJIiAvPiAKICAgIDwvUmVz"
-			+ "b3VyY2VNYXRjaD4KICAgPC9SZXNvdXJjZT4KICA8L1Jlc291cmNlcz4KICA8QWN0"
-			+ "aW9ucz4KICAgPEFjdGlvbj4KICAgIDxBY3Rpb25NYXRjaCBNYXRjaElkPSJ1cm46"
-			+ "b2FzaXM6bmFtZXM6dGM6eGFjbWw6MS4wOmZ1bmN0aW9uOnN0cmluZy1lcXVhbCI+"
-			+ "CiAgICAgPEF0dHJpYnV0ZVZhbHVlIERhdGFUeXBlPSJodHRwOi8vd3d3LnczLm9y"
-			+ "Zy8yMDAxL1hNTFNjaGVtYSNzdHJpbmciPgpEZWxlZ2F0ZSBBY2Nlc3MgICAgIDwv"
-			+ "QXR0cmlidXRlVmFsdWU+CgkgIDxBY3Rpb25BdHRyaWJ1dGVEZXNpZ25hdG9yIEF0"
-			+ "dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFtZXM6dGM6eGFjbWw6MS4wOmFjdGlvbjph"
-			+ "Y3Rpb24taWQiIERhdGFUeXBlPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNj"
-			+ "aGVtYSNzdHJpbmciIC8+IAogICAgPC9BY3Rpb25NYXRjaD4KICAgPC9BY3Rpb24+"
-			+ "CiAgPC9BY3Rpb25zPgogPC9UYXJnZXQ+CjwvUnVsZT4KMA0GCSqGSIb3DQEBBAUA"
-			+ "A4GBAGiJSM48XsY90HlYxGmGVSmNR6ZW2As+bot3KAfiCIkUIOAqhcphBS23egTr"
-			+ "6asYwy151HshbPNYz+Cgeqs45KkVzh7bL/0e1r8sDVIaaGIkjHK3CqBABnfSayr3"
-			+ "Rd1yBoDdEv8Qb+3eEPH6ab9021AsLEnJ6LWTmybbOpMNZ3tv");
+        private static readonly byte[] attrCert = Base64.Decode(
+              "MIIHQDCCBqkCAQEwgZChgY2kgYowgYcxHDAaBgkqhkiG9w0BCQEWDW1sb3JjaEB2"
+            + "dC5lZHUxHjAcBgNVBAMTFU1hcmt1cyBMb3JjaCAobWxvcmNoKTEbMBkGA1UECxMS"
+            + "VmlyZ2luaWEgVGVjaCBVc2VyMRAwDgYDVQQLEwdDbGFzcyAyMQswCQYDVQQKEwJ2"
+            + "dDELMAkGA1UEBhMCVVMwgYmkgYYwgYMxGzAZBgkqhkiG9w0BCQEWDHNzaGFoQHZ0"
+            + "LmVkdTEbMBkGA1UEAxMSU3VtaXQgU2hhaCAoc3NoYWgpMRswGQYDVQQLExJWaXJn"
+            + "aW5pYSBUZWNoIFVzZXIxEDAOBgNVBAsTB0NsYXNzIDExCzAJBgNVBAoTAnZ0MQsw"
+            + "CQYDVQQGEwJVUzANBgkqhkiG9w0BAQQFAAIBBTAiGA8yMDAzMDcxODE2MDgwMloY"
+            + "DzIwMDMwNzI1MTYwODAyWjCCBU0wggVJBgorBgEEAbRoCAEBMYIFORaCBTU8UnVs"
+            + "ZSBSdWxlSWQ9IkZpbGUtUHJpdmlsZWdlLVJ1bGUiIEVmZmVjdD0iUGVybWl0Ij4K"
+            + "IDxUYXJnZXQ+CiAgPFN1YmplY3RzPgogICA8U3ViamVjdD4KICAgIDxTdWJqZWN0"
+            + "TWF0Y2ggTWF0Y2hJZD0idXJuOm9hc2lzOm5hbWVzOnRjOnhhY21sOjEuMDpmdW5j"
+            + "dGlvbjpzdHJpbmctZXF1YWwiPgogICAgIDxBdHRyaWJ1dGVWYWx1ZSBEYXRhVHlw"
+            + "ZT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjc3RyaW5nIj4KICAg"
+            + "ICAgIENOPU1hcmt1cyBMb3JjaDwvQXR0cmlidXRlVmFsdWU+CiAgICAgPFN1Ympl"
+            + "Y3RBdHRyaWJ1dGVEZXNpZ25hdG9yIEF0dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFt"
+            + "ZXM6dGM6eGFjbWw6MS4wOnN1YmplY3Q6c3ViamVjdC1pZCIgRGF0YVR5cGU9Imh0"
+            + "dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hI3N0cmluZyIgLz4gCiAgICA8"
+            + "L1N1YmplY3RNYXRjaD4KICAgPC9TdWJqZWN0PgogIDwvU3ViamVjdHM+CiAgPFJl"
+            + "c291cmNlcz4KICAgPFJlc291cmNlPgogICAgPFJlc291cmNlTWF0Y2ggTWF0Y2hJ"
+            + "ZD0idXJuOm9hc2lzOm5hbWVzOnRjOnhhY21sOjEuMDpmdW5jdGlvbjpzdHJpbmct"
+            + "ZXF1YWwiPgogICAgIDxBdHRyaWJ1dGVWYWx1ZSBEYXRhVHlwZT0iaHR0cDovL3d3"
+            + "dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjYW55VVJJIj4KICAgICAgaHR0cDovL3p1"
+            + "bmkuY3MudnQuZWR1PC9BdHRyaWJ1dGVWYWx1ZT4KICAgICA8UmVzb3VyY2VBdHRy"
+            + "aWJ1dGVEZXNpZ25hdG9yIEF0dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFtZXM6dGM6"
+            + "eGFjbWw6MS4wOnJlc291cmNlOnJlc291cmNlLWlkIiBEYXRhVHlwZT0iaHR0cDov"
+            + "L3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjYW55VVJJIiAvPiAKICAgIDwvUmVz"
+            + "b3VyY2VNYXRjaD4KICAgPC9SZXNvdXJjZT4KICA8L1Jlc291cmNlcz4KICA8QWN0"
+            + "aW9ucz4KICAgPEFjdGlvbj4KICAgIDxBY3Rpb25NYXRjaCBNYXRjaElkPSJ1cm46"
+            + "b2FzaXM6bmFtZXM6dGM6eGFjbWw6MS4wOmZ1bmN0aW9uOnN0cmluZy1lcXVhbCI+"
+            + "CiAgICAgPEF0dHJpYnV0ZVZhbHVlIERhdGFUeXBlPSJodHRwOi8vd3d3LnczLm9y"
+            + "Zy8yMDAxL1hNTFNjaGVtYSNzdHJpbmciPgpEZWxlZ2F0ZSBBY2Nlc3MgICAgIDwv"
+            + "QXR0cmlidXRlVmFsdWU+CgkgIDxBY3Rpb25BdHRyaWJ1dGVEZXNpZ25hdG9yIEF0"
+            + "dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFtZXM6dGM6eGFjbWw6MS4wOmFjdGlvbjph"
+            + "Y3Rpb24taWQiIERhdGFUeXBlPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNj"
+            + "aGVtYSNzdHJpbmciIC8+IAogICAgPC9BY3Rpb25NYXRjaD4KICAgPC9BY3Rpb24+"
+            + "CiAgPC9BY3Rpb25zPgogPC9UYXJnZXQ+CjwvUnVsZT4KMA0GCSqGSIb3DQEBBAUA"
+            + "A4GBAGiJSM48XsY90HlYxGmGVSmNR6ZW2As+bot3KAfiCIkUIOAqhcphBS23egTr"
+            + "6asYwy151HshbPNYz+Cgeqs45KkVzh7bL/0e1r8sDVIaaGIkjHK3CqBABnfSayr3"
+            + "Rd1yBoDdEv8Qb+3eEPH6ab9021AsLEnJ6LWTmybbOpMNZ3tv");
 
         internal static X509Certificate InitCertificate(ref X509Certificate certificate,
-			Func<X509Certificate> initialize)
+            Func<X509Certificate> initialize)
         {
             var current = Volatile.Read(ref certificate);
             if (null != current)
@@ -166,7 +166,7 @@ namespace Org.BouncyCastle.Cms.Tests
             new Gost3410KeyGenerationParameters(Random, CryptoProObjectIdentifiers.GostR3410x94CryptoProA));
 
         private static IAsymmetricCipherKeyPairGenerator DsaKpg => InitKpg(ref dsaKpg, "DSA", () =>
-		{
+        {
             DsaParameters dsaSpec = new DsaParameters(
                 new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
                 new BigInteger("1138656671590261728308283492178581223478058193247"),
@@ -180,14 +180,14 @@ namespace Org.BouncyCastle.Cms.Tests
         private static IAsymmetricCipherKeyPairGenerator ECDsaKpg => InitKpg(ref ecDsaKpg, "ECDSA", () =>
             new KeyGenerationParameters(Random, 239));
 
-		private static IAsymmetricCipherKeyPairGenerator Ed25519Kpg => InitKpg(ref ed25519Kpg, "Ed25519", () =>
-			new Ed25519KeyGenerationParameters(Random));
+        private static IAsymmetricCipherKeyPairGenerator Ed25519Kpg => InitKpg(ref ed25519Kpg, "Ed25519", () =>
+            new Ed25519KeyGenerationParameters(Random));
 
         private static IAsymmetricCipherKeyPairGenerator Ed448Kpg => InitKpg(ref ed448Kpg, "Ed448", () =>
             new Ed448KeyGenerationParameters(Random));
 
         private static IAsymmetricCipherKeyPairGenerator MLDsa44Kpg => InitKpg(ref mlDsa44Kpg, "ML-DSA", () =>
-			new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
+            new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_44));
 
         private static IAsymmetricCipherKeyPairGenerator MLDsa65Kpg => InitKpg(ref mlDsa65Kpg, "ML-DSA", () =>
             new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_65));
@@ -243,12 +243,12 @@ namespace Org.BouncyCastle.Cms.Tests
         private static int NextSerialNumber() => Interlocked.Increment(ref serialNumber);
 
         static CmsTestUtil()
-		{
+        {
             aes128KG = GeneratorUtilities.GetKeyGenerator("AES");
             aes128KG.Init(new KeyGenerationParameters(Random, 128));
 
             aes192KG = GeneratorUtilities.GetKeyGenerator("AES");
-			aes192KG.Init(new KeyGenerationParameters(Random, 192));
+            aes192KG.Init(new KeyGenerationParameters(Random, 192));
 
             aes256KG = GeneratorUtilities.GetKeyGenerator("AES");
             aes256KG.Init(new KeyGenerationParameters(Random, 256));
@@ -263,46 +263,46 @@ namespace Org.BouncyCastle.Cms.Tests
             camellia256KG.Init(new KeyGenerationParameters(Random, 256));
 
             desede128KG = GeneratorUtilities.GetKeyGenerator("DESEDE");
-			desede128KG.Init(new KeyGenerationParameters(Random, 112));
+            desede128KG.Init(new KeyGenerationParameters(Random, 112));
 
-			desede192KG = GeneratorUtilities.GetKeyGenerator("DESEDE");
-			desede192KG.Init(new KeyGenerationParameters(Random, 168));
+            desede192KG = GeneratorUtilities.GetKeyGenerator("DESEDE");
+            desede192KG.Init(new KeyGenerationParameters(Random, 168));
 
-			rc2_40KG = GeneratorUtilities.GetKeyGenerator("RC2");
-			rc2_40KG.Init(new KeyGenerationParameters(Random, 40));
+            rc2_40KG = GeneratorUtilities.GetKeyGenerator("RC2");
+            rc2_40KG.Init(new KeyGenerationParameters(Random, 40));
 
-			rc2_64KG = GeneratorUtilities.GetKeyGenerator("RC2");
-			rc2_64KG.Init(new KeyGenerationParameters(Random, 64));
+            rc2_64KG = GeneratorUtilities.GetKeyGenerator("RC2");
+            rc2_64KG.Init(new KeyGenerationParameters(Random, 64));
 
-			rc2_128KG = GeneratorUtilities.GetKeyGenerator("RC2");
-			rc2_128KG.Init(new KeyGenerationParameters(Random, 128));
+            rc2_128KG = GeneratorUtilities.GetKeyGenerator("RC2");
+            rc2_128KG.Init(new KeyGenerationParameters(Random, 128));
 
-			seedKG = GeneratorUtilities.GetKeyGenerator("SEED");
+            seedKG = GeneratorUtilities.GetKeyGenerator("SEED");
 
-			serialNumber = 0;
-		}
+            serialNumber = 0;
+        }
 
-		public static string DumpBase64(byte[] data)
-		{
-			StringBuilder buf = new StringBuilder();
+        public static string DumpBase64(byte[] data)
+        {
+            StringBuilder buf = new StringBuilder();
 
-			data = Base64.Encode(data);
+            data = Base64.Encode(data);
 
-			for (int i = 0; i < data.Length; i += 64)
-			{
-				if (i + 64 < data.Length)
-				{
-					buf.Append(Encoding.ASCII.GetString(data, i, 64));
-				}
-				else
-				{
-					buf.Append(Encoding.ASCII.GetString(data, i, data.Length - i));
-				}
-				buf.AppendLine();
-			}
+            for (int i = 0; i < data.Length; i += 64)
+            {
+                if (i + 64 < data.Length)
+                {
+                    buf.Append(Encoding.ASCII.GetString(data, i, 64));
+                }
+                else
+                {
+                    buf.Append(Encoding.ASCII.GetString(data, i, data.Length - i));
+                }
+                buf.AppendLine();
+            }
 
-			return buf.ToString();
-		}
+            return buf.ToString();
+        }
 
         public static X509V2AttributeCertificate GetAttributeCertificate() =>
             new X509AttrCertParser().ReadAttrCert(attrCert);
@@ -386,124 +386,124 @@ namespace Org.BouncyCastle.Cms.Tests
         public static KeyParameter MakeDesEde128Key() =>
             ParameterUtilities.CreateKeyParameter("DESEDE", desede128KG.GenerateKey());
 
-		public static KeyParameter MakeDesEde192Key() =>
-			ParameterUtilities.CreateKeyParameter("DESEDE", desede192KG.GenerateKey());
+        public static KeyParameter MakeDesEde192Key() =>
+            ParameterUtilities.CreateKeyParameter("DESEDE", desede192KG.GenerateKey());
 
-		public static KeyParameter MakeRC2_40Key() =>
-			ParameterUtilities.CreateKeyParameter("RC2", rc2_40KG.GenerateKey());
+        public static KeyParameter MakeRC2_40Key() =>
+            ParameterUtilities.CreateKeyParameter("RC2", rc2_40KG.GenerateKey());
 
-		public static KeyParameter MakeRC2_64Key() =>
-			ParameterUtilities.CreateKeyParameter("RC2", rc2_64KG.GenerateKey());
+        public static KeyParameter MakeRC2_64Key() =>
+            ParameterUtilities.CreateKeyParameter("RC2", rc2_64KG.GenerateKey());
 
-		public static KeyParameter MakeRC2_128Key() =>
-			ParameterUtilities.CreateKeyParameter("RC2", rc2_128KG.GenerateKey());
+        public static KeyParameter MakeRC2_128Key() =>
+            ParameterUtilities.CreateKeyParameter("RC2", rc2_128KG.GenerateKey());
 
-		public static KeyParameter MakeSeedKey() =>
-			ParameterUtilities.CreateKeyParameter("SEED", seedKG.GenerateKey());
+        public static KeyParameter MakeSeedKey() =>
+            ParameterUtilities.CreateKeyParameter("SEED", seedKG.GenerateKey());
 
-		public static X509Certificate MakeCertificate(AsymmetricCipherKeyPair _subKP, string _subDN,
-			AsymmetricCipherKeyPair _issKP, string _issDN)
-		{
-			return MakeCertificate(_subKP, _subDN, _issKP, _issDN, false);
-		}
+        public static X509Certificate MakeCertificate(AsymmetricCipherKeyPair _subKP, string _subDN,
+            AsymmetricCipherKeyPair _issKP, string _issDN)
+        {
+            return MakeCertificate(_subKP, _subDN, _issKP, _issDN, false);
+        }
 
-		public static X509Certificate MakeCACertificate(AsymmetricCipherKeyPair _subKP, string _subDN,
-			AsymmetricCipherKeyPair _issKP, string _issDN)
-		{
-			return MakeCertificate(_subKP, _subDN, _issKP, _issDN, true);
-		}
+        public static X509Certificate MakeCACertificate(AsymmetricCipherKeyPair _subKP, string _subDN,
+            AsymmetricCipherKeyPair _issKP, string _issDN)
+        {
+            return MakeCertificate(_subKP, _subDN, _issKP, _issDN, true);
+        }
 
-		public static X509Certificate MakeV1Certificate(AsymmetricCipherKeyPair subKP, string _subDN,
-			AsymmetricCipherKeyPair issKP, string _issDN)
-		{
-			AsymmetricKeyParameter subPub = subKP.Public;
-			AsymmetricKeyParameter issPriv = issKP.Private;
-			AsymmetricKeyParameter issPub = issKP.Public;
+        public static X509Certificate MakeV1Certificate(AsymmetricCipherKeyPair subKP, string _subDN,
+            AsymmetricCipherKeyPair issKP, string _issDN)
+        {
+            AsymmetricKeyParameter subPub = subKP.Public;
+            AsymmetricKeyParameter issPriv = issKP.Private;
+            AsymmetricKeyParameter issPub = issKP.Public;
 
-			string signatureAlgorithm = GetSignatureAlgorithm(issPub);
-			ISignatureFactory signatureFactory = new Asn1SignatureFactory(signatureAlgorithm, issPriv, Random);
+            string signatureAlgorithm = GetSignatureAlgorithm(issPub);
+            ISignatureFactory signatureFactory = new Asn1SignatureFactory(signatureAlgorithm, issPriv, Random);
 
-			X509V1CertificateGenerator v1CertGen = new X509V1CertificateGenerator();
-			v1CertGen.Reset();
-			v1CertGen.SetSerialNumber(AllocateSerialNumber());
-			v1CertGen.SetIssuerDN(new X509Name(_issDN));
-			v1CertGen.SetNotBefore(DateTime.UtcNow);
-			v1CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
-			v1CertGen.SetSubjectDN(new X509Name(_subDN));
-			v1CertGen.SetPublicKey(subPub);
-			X509Certificate _cert = v1CertGen.Generate(signatureFactory);
+            X509V1CertificateGenerator v1CertGen = new X509V1CertificateGenerator();
+            v1CertGen.Reset();
+            v1CertGen.SetSerialNumber(AllocateSerialNumber());
+            v1CertGen.SetIssuerDN(new X509Name(_issDN));
+            v1CertGen.SetNotBefore(DateTime.UtcNow);
+            v1CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
+            v1CertGen.SetSubjectDN(new X509Name(_subDN));
+            v1CertGen.SetPublicKey(subPub);
+            X509Certificate _cert = v1CertGen.Generate(signatureFactory);
 
-			_cert.CheckValidity(DateTime.UtcNow);
-			_cert.Verify(issPub);
+            _cert.CheckValidity(DateTime.UtcNow);
+            _cert.Verify(issPub);
 
-			return _cert;
-		}
+            return _cert;
+        }
 
-		public static X509Certificate MakeCertificate(AsymmetricCipherKeyPair subKP, string _subDN,
-			AsymmetricCipherKeyPair issKP, string _issDN, bool _ca)
-		{
-			AsymmetricKeyParameter subPub = subKP.Public;
-			AsymmetricKeyParameter issPriv = issKP.Private;
-			AsymmetricKeyParameter issPub = issKP.Public;
+        public static X509Certificate MakeCertificate(AsymmetricCipherKeyPair subKP, string _subDN,
+            AsymmetricCipherKeyPair issKP, string _issDN, bool _ca)
+        {
+            AsymmetricKeyParameter subPub = subKP.Public;
+            AsymmetricKeyParameter issPriv = issKP.Private;
+            AsymmetricKeyParameter issPub = issKP.Public;
 
-			string signatureAlgorithm = GetSignatureAlgorithm(issPub);
-			ISignatureFactory signatureFactory = new Asn1SignatureFactory(signatureAlgorithm, issPriv, Random);
+            string signatureAlgorithm = GetSignatureAlgorithm(issPub);
+            ISignatureFactory signatureFactory = new Asn1SignatureFactory(signatureAlgorithm, issPriv, Random);
 
-			X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
-			v3CertGen.Reset();
-			v3CertGen.SetSerialNumber(AllocateSerialNumber());
-			v3CertGen.SetIssuerDN(new X509Name(_issDN));
-			v3CertGen.SetNotBefore(DateTime.UtcNow);
-			v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
-			v3CertGen.SetSubjectDN(new X509Name(_subDN));
-			v3CertGen.SetPublicKey(subPub);
+            X509V3CertificateGenerator v3CertGen = new X509V3CertificateGenerator();
+            v3CertGen.Reset();
+            v3CertGen.SetSerialNumber(AllocateSerialNumber());
+            v3CertGen.SetIssuerDN(new X509Name(_issDN));
+            v3CertGen.SetNotBefore(DateTime.UtcNow);
+            v3CertGen.SetNotAfter(DateTime.UtcNow.AddDays(100));
+            v3CertGen.SetSubjectDN(new X509Name(_subDN));
+            v3CertGen.SetPublicKey(subPub);
 
-			v3CertGen.AddExtension(
-				X509Extensions.SubjectKeyIdentifier,
-				false,
-				CreateSubjectKeyID(subPub));
+            v3CertGen.AddExtension(
+                X509Extensions.SubjectKeyIdentifier,
+                false,
+                CreateSubjectKeyID(subPub));
 
-			v3CertGen.AddExtension(
-				X509Extensions.AuthorityKeyIdentifier,
-				false,
-				CreateAuthorityKeyID(issPub));
+            v3CertGen.AddExtension(
+                X509Extensions.AuthorityKeyIdentifier,
+                false,
+                CreateAuthorityKeyID(issPub));
 
-			v3CertGen.AddExtension(
-				X509Extensions.BasicConstraints,
-				false,
-				new BasicConstraints(_ca));
+            v3CertGen.AddExtension(
+                X509Extensions.BasicConstraints,
+                false,
+                new BasicConstraints(_ca));
 
-			X509Certificate _cert = v3CertGen.Generate(signatureFactory);
+            X509Certificate _cert = v3CertGen.Generate(signatureFactory);
 
-			_cert.CheckValidity();
-			_cert.Verify(issPub);
+            _cert.CheckValidity();
+            _cert.Verify(issPub);
 
-			return _cert;
-		}
+            return _cert;
+        }
 
-		public static X509Crl MakeCrl(AsymmetricCipherKeyPair pair)
-		{
-			X509V2CrlGenerator crlGen = new X509V2CrlGenerator();
-			DateTime now = DateTime.UtcNow;
+        public static X509Crl MakeCrl(AsymmetricCipherKeyPair pair)
+        {
+            X509V2CrlGenerator crlGen = new X509V2CrlGenerator();
+            DateTime now = DateTime.UtcNow;
 
-			crlGen.SetIssuerDN(new X509Name("CN=Test CA"));
+            crlGen.SetIssuerDN(new X509Name("CN=Test CA"));
 
-			crlGen.SetThisUpdate(now);
-			crlGen.SetNextUpdate(now.AddSeconds(100));
+            crlGen.SetThisUpdate(now);
+            crlGen.SetNextUpdate(now.AddSeconds(100));
 
-			crlGen.AddCrlEntry(BigInteger.One, now, CrlReason.PrivilegeWithdrawn);
+            crlGen.AddCrlEntry(BigInteger.One, now, CrlReason.PrivilegeWithdrawn);
 
             crlGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
                 X509ExtensionUtilities.CreateAuthorityKeyIdentifier(pair.Public));
 
             return crlGen.Generate(new Asn1SignatureFactory("SHA256WithRSAEncryption", pair.Private, Random));
-		}
+        }
 
         /*
-		*
-		*  INTERNAL METHODS
-		*
-		*/
+        *
+        *  INTERNAL METHODS
+        *
+        */
 
         internal static string GetSignatureAlgorithm(AsymmetricKeyParameter publicKey)
         {
@@ -536,15 +536,15 @@ namespace Org.BouncyCastle.Cms.Tests
         }
 
         internal static IStore<X509V2AttributeCertificate> MakeAttrCertStore(
-			params X509V2AttributeCertificate[] attrCerts)
+            params X509V2AttributeCertificate[] attrCerts)
         {
-			var attrCertList = new List<X509V2AttributeCertificate>();
-			foreach (var attrCert in attrCerts)
+            var attrCertList = new List<X509V2AttributeCertificate>();
+            foreach (var attrCert in attrCerts)
             {
                 attrCertList.Add(attrCert);
             }
 
-			return CollectionUtilities.CreateStore(attrCertList);
+            return CollectionUtilities.CreateStore(attrCertList);
         }
 
         internal static IStore<X509Certificate> MakeCertStore(params X509Certificate[] certs)
@@ -555,7 +555,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 certList.Add(cert);
             }
 
-			return CollectionUtilities.CreateStore(certList);
+            return CollectionUtilities.CreateStore(certList);
         }
 
         internal static IStore<X509Crl> MakeCrlStore(params X509Crl[] crls)
@@ -566,7 +566,7 @@ namespace Org.BouncyCastle.Cms.Tests
                 crlList.Add(crl);
             }
 
-			return CollectionUtilities.CreateStore(crlList);
+            return CollectionUtilities.CreateStore(crlList);
         }
 
         internal static IStore<Asn1Encodable> MakeOtherRevocationInfoStore(byte[] ocspResponseBytes)
