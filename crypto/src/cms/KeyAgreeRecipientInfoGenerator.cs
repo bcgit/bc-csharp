@@ -95,6 +95,14 @@ namespace Org.BouncyCastle.Cms
             //    keyEncAlgParams = new Gost2814789KeyWrapParameters(CryptoProObjectIdentifiers.ID_Gost28147_89_CryptoPro_A_ParamSet);
             //}
 
+            // RFC 3370 sec. 4.1.2 (static-static DH) and RFC 4490 sec. 4.1.1 (GOST): the ukm MUST be present
+            // TODO Consider delegating to an OID classifier for static-key agreement schemes
+            if (m_userKeyingMaterial == null &&
+                (PkcsObjectIdentifiers.IdAlgSsdh.Equals(m_keyAgreementOid) || CmsUtilities.IsGost(m_keyAgreementOid)))
+            {
+                throw new CmsException("User keying material must be set for static keys.");
+            }
+
             AlgorithmIdentifier keyEncAlgorithm = new AlgorithmIdentifier(m_keyEncryptionOid, keyEncAlgParams);
             AlgorithmIdentifier keyAgreeAlgorithm = new AlgorithmIdentifier(m_keyAgreementOid, keyEncAlgorithm);
 
