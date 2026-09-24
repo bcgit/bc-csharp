@@ -788,9 +788,11 @@ namespace Org.BouncyCastle.Pkix
                 }
                 catch (PkixCertPathBuilderException e)
                 {
-                    // Candidate signer's path could not be built - skip and try the next candidate. The post-loop
-                    // empty-check will surface a useful error if no valid signer is found at all.
-                    signerLastException = new Exception("CertPath for CRL signer failed to validate.", e);
+                    // Candidate signer's path could not be built - skip and try the next candidate.
+                    var message = "CertPath for CRL signer failed to validate. Per RFC 5280 sec. 6.3.3 (f) the CRL " +
+                        "issuer's certification path must be anchored at the same trust anchor as the certificate " +
+                        "being checked.";
+                    signerLastException = new Exception(message, e);
                 }
                 catch (PkixCertPathValidatorException e)
                 {
@@ -802,9 +804,6 @@ namespace Org.BouncyCastle.Pkix
                     CrlSignerExit(signingCert);
                 }
             }
-
-            if (validCerts.Count < 1 && signerLastException != null)
-                throw signerLastException;
 
             var checkKeys = new HashSet<AsymmetricKeyParameter>();
 
@@ -825,11 +824,16 @@ namespace Org.BouncyCastle.Pkix
                 }
             }
 
-            if (checkKeys.Count == 0 && lastException == null)
+            if (checkKeys.Count < 1)
+            {
+                // defaultCRLSignCert always reaches validCerts, so a guard on validCerts being empty
+                // can never report signerLastException (github bc-java #2427).
+                if (signerLastException != null)
+                    throw signerLastException;
+                if (lastException != null)
+                    throw lastException;
                 throw new Exception("Cannot find a valid issuer certificate.");
-
-            if (checkKeys.Count == 0 && lastException != null)
-                throw lastException;
+            }
 
             return checkKeys;
         }
@@ -1119,6 +1123,16 @@ namespace Org.BouncyCastle.Pkix
                 catch (Exception e) when (!(e is PkixCertPathValidatorException))
                 {
                     lastException = e;
+                }
+                catch (PkixRecoverableCertPathValidatorException e) when (lastException != null)
+                {
+                    // The fallback runs without the CRLDP-derived stores, so finding nothing here says
+                    // nothing about the distribution point attempts above (github bc-java #2427).
+
+                    var message = e.Message +
+                        ". The CRL distribution points of the certificate were tried first and failed: " +
+                        lastException.Message;
+                    throw new PkixRecoverableCertPathValidatorException(message, lastException, e.Index);
                 }
             }
 

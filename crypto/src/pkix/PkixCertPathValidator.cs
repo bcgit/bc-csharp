@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
@@ -86,14 +87,27 @@ namespace Org.BouncyCastle.Pkix
             //
             // (d)
             //
+            var trustAnchors = pkixParams.GetTrustAnchors();
+            int trustAnchorCount = trustAnchors.Count;
+
             TrustAnchor trust;
             try
             {
-                trust = PkixCertPathValidatorUtilities.FindTrustAnchor(certs[certs.Count - 1],
-                    pkixParams.GetTrustAnchors());
+                trust = PkixCertPathValidatorUtilities.FindTrustAnchor(certs[certs.Count - 1], trustAnchors);
 
                 if (trust == null)
-                    throw new PkixCertPathValidatorException("Trust anchor for certification path not found.", null, -1);
+                {
+                    var message = "Trust anchor for certification path not found.";
+                    throw new PkixCertPathValidatorException(message, null, -1);
+                }
+
+                // Belt and braces: the trust anchor below is what CRL checking is then restricted to, so ensure it
+                // really is one of the supplied ones and not something reached out-of-band.
+                if (!trustAnchors.Contains(trust))
+                {
+                    var message = "Trust anchor for certification path is not one of the supplied trust anchors.";
+                    throw new PkixCertPathValidatorException(message, null, -1);
+                }
 
                 // A TrustAnchor may be supplied by name + public key only, in which case no certificate to check
                 if (trust.TrustedCert != null)
@@ -101,13 +115,17 @@ namespace Org.BouncyCastle.Pkix
                     CheckCertificate(trust.TrustedCert);
                 }
             }
-            catch (Exception e)
+            catch (Exception e) when (!(e is PkixCertPathValidatorException))
             {
                 throw new PkixCertPathValidatorException(e.Message, e.InnerException, certs.Count - 1);
             }
 
             // RFC 5280 - CRLs must originate from the same trust anchor as the target certificate.
-            // TODO[pkix] Recreate pkixParams (if necessary) with only 'trust' as a trust anchor
+            if (trustAnchorCount > 1)
+            {
+                pkixParams = (PkixParameters)pkixParams.Clone();
+                pkixParams.SetTrustAnchor(trust);
+            }
 
             /*
              * TODO[pkix] Move revocation checking into a PkixCertPathChecker

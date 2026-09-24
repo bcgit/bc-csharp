@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.IsisMtt;
@@ -732,12 +733,8 @@ namespace Org.BouncyCastle.Pkix
             crlselect.CompleteCrlEnabled = true;
 
             var crls = PkixCrlUtilities.ImplFindCrls(crlselect, pkixParams, validityDate);
-            if (crls.Count < 1)
-            {
-                // TODO[pkix] RecoverableCertPathValidatorException
-                // TODO[pkix] Rfc4519Style for issuer
-                throw new PkixCertPathValidatorException($"No CRLs found for issuer \"{certObjIssuer}\"", null, index);
-            }
+
+            CheckCrlsNotEmpty(index, crls, certObj, certObjIssuer, pkixParams);
 
             return crls;
         }
@@ -987,6 +984,35 @@ namespace Org.BouncyCastle.Pkix
             }
 
             return certs;
+        }
+
+        internal static void CheckCrlsNotEmpty(int index, HashSet<X509Crl> crls, object certObj, X509Name certObjIssuer,
+            PkixParameters pkixParams)
+        {
+            if (crls.Count < 1)
+            {
+                // TODO[pkix] Rfc4519Style for issuer
+                //string issuer = Rfc4519Style.Instance.ToString(certObjIssuer);
+                string issuer = certObjIssuer.ToString();
+
+                StringBuilder msg = new StringBuilder("No CRLs found for issuer \"").Append(issuer).Append("\"");
+                AppendCrlLookupDiagnostics(msg, certObj, pkixParams);
+                throw new PkixRecoverableCertPathValidatorException(msg.ToString(), null, index);
+            }
+        }
+
+        /// <summary>
+        /// Append diagnostic context to the supplied <paramref name="msg"/> buffer explaining why a CRL lookup came
+        /// back empty.
+        /// </summary>
+        /// <remarks>
+        /// The certificate's advertised CRL Distribution Point URIs (if any), and the
+        /// number of stores the validator consulted.
+        /// </remarks>
+        private static void AppendCrlLookupDiagnostics(StringBuilder msg, object certObj, PkixParameters pkixParams)
+        {
+            // TODO[pkix] Basic implementation
+            // TODO[pkix] Update xmldoc and implementation for future Properties.X509_ENABLE_CRLDP port.
         }
 
         internal static void CheckCrlCriticalExtensions(X509Crl crl, string exceptionMessage)
