@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
     internal static class BasicAgreementWithKdf
     {
         internal static BigInteger CalculateAgreementWithKdf(AlgorithmIdentifier algID, IDerivationFunction kdf,
-            int fieldSize, BigInteger result)
+            int fieldSize, BigInteger result, byte[] extraInfo)
         {
             // Note that the ec.KeyAgreement class in JCE only uses kdf in one of the engineGenerateSecret methods.
 
@@ -19,7 +19,6 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
             int keySize = GeneratorUtilities.GetDefaultKeySize(algOid);
             byte[] z = BigIntegers.AsUnsignedByteArray(fieldSize, result);
-            byte[] extraInfo = null; // TODO[api] Support for passing extraInfo
 
             DHKdfParameters kdfParams = new DHKdfParameters(algID, keySize, z, extraInfo);
 
