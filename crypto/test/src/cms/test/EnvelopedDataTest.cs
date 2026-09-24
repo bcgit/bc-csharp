@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 
 using NUnit.Framework;
@@ -12,11 +13,16 @@ using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Agreement;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
+using Org.BouncyCastle.Utilities.IO.Pem;
+using Org.BouncyCastle.Utilities.Test;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cms.Tests
@@ -233,6 +239,15 @@ namespace Org.BouncyCastle.Cms.Tests
             + "Kdti8tbD7X9GZ1TVGsJ7Vf/6tFi1vxUeLJI3b3IO6m9mMIAGCSqGSIb3DQEH"
             + "ATAdBglghkgBZQMEASoEEOvoEj9BfCFEi7Pv1WOX5YOAIKaSzpFcCUCWDuTL"
             + "8jv3whm3iSPWwjDTUe9/Ve22lxd0AAAAAAAAAAA=");
+
+        /*
+         * User keying material for the key agreement ukm tests. The bc-test-data messages were produced by bc-java 1.86
+         * (JceKeyAgreeRecipientInfoGenerator.setUserKeyingMaterial) with this ukm, each with a fresh P-256 originator
+         * key, for the recipient key in recipient_p256.pem.
+         */
+        private static readonly byte[] keyAgreeUkm = Hex.Decode("6a7e1b2c3d4f5061728394a5b6c7d8e9");
+
+        private const string EcdhUkmVectorsPath = "pkix/cms/ecdh-ukm";
 
         private static readonly byte[] bobPrivRsaEncrypt = Base64.Decode(
             "MIIChQIBADANBgkqhkiG9w0BAQEFAASCAmAwggJcAgEAAoGBAKnhZ5g/OdVf"
@@ -1355,6 +1370,239 @@ namespace Org.BouncyCastle.Cms.Tests
             }
 
             ConfirmDataReceived(ed.GetRecipientInfos(), data, ReciECCert, ReciECKP.Private);
+        }
+
+        /*
+         * RFC 5753 sec. 7.2: the ukm (ECDH), or the addedukm of the MQVuserKeyingMaterial (1-Pass ECMQV), is the
+         * entityUInfo of the ECC-CMS-SharedInfo fed to the KDF.
+         */
+        public enum KeyAgreeScheme { ECDH, ECCDH, ECMqv }
+
+        private static IEnumerable<TestCaseData> ECKeyAgreeUkmVectors()
+        {
+            yield return new TestCaseData(KeyAgreeScheme.ECDH, CmsEnvelopedGenerator.ECDHSha1Kdf, "SHA-1",
+                CmsEnvelopedGenerator.Aes128Cbc, "EnvelopedData_ECDH-SHA1KDF_AES128.pem")
+                .SetArgDisplayNames("ECDH-SHA1-AES128");
+            yield return new TestCaseData(KeyAgreeScheme.ECDH, CmsEnvelopedGenerator.ECDHSha256Kdf, "SHA-256",
+                CmsEnvelopedGenerator.Aes256Cbc, "EnvelopedData_ECDH-SHA256KDF_AES256.pem")
+                .SetArgDisplayNames("ECDH-SHA256-AES256");
+            yield return new TestCaseData(KeyAgreeScheme.ECCDH, CmsEnvelopedGenerator.ECCDHSha256Kdf, "SHA-256",
+                CmsEnvelopedGenerator.Aes128Cbc, "EnvelopedData_ECCDH-SHA256KDF_AES128.pem")
+                .SetArgDisplayNames("ECCDH-SHA256-AES128");
+            yield return new TestCaseData(KeyAgreeScheme.ECDH, CmsEnvelopedGenerator.ECDHSha1Kdf, "SHA-1",
+                CmsEnvelopedGenerator.DesEde3Cbc, "EnvelopedData_ECDH-SHA1KDF_DESEDE3.pem")
+                .SetArgDisplayNames("ECDH-SHA1-DESEDE3");
+        }
+
+        private static IEnumerable<TestCaseData> KeyAgreeUkmSchemes()
+        {
+            yield return new TestCaseData(KeyAgreeScheme.ECDH, CmsEnvelopedGenerator.ECDHSha1Kdf, "SHA-1")
+                .SetArgDisplayNames("ECDH-SHA1");
+            yield return new TestCaseData(KeyAgreeScheme.ECDH, CmsEnvelopedGenerator.ECDHSha256Kdf, "SHA-256")
+                .SetArgDisplayNames("ECDH-SHA256");
+            yield return new TestCaseData(KeyAgreeScheme.ECCDH, CmsEnvelopedGenerator.ECCDHSha256Kdf, "SHA-256")
+                .SetArgDisplayNames("ECCDH-SHA256");
+            yield return new TestCaseData(KeyAgreeScheme.ECMqv, CmsEnvelopedGenerator.ECMqvSha1Kdf, "SHA-1")
+                .SetArgDisplayNames("ECMQV-SHA1");
+            yield return new TestCaseData(KeyAgreeScheme.ECMqv, CmsEnvelopedGenerator.ECMqvSha256Kdf, "SHA-256")
+                .SetArgDisplayNames("ECMQV-SHA256");
+        }
+
+        [TestCaseSource(nameof(ECKeyAgreeUkmVectors))]
+        public void TestECKeyAgreeUkmVectors(KeyAgreeScheme scheme, string agreeAlg, string kdfDigest,
+            string contentAlg, string fileName)
+        {
+            byte[] data = Hex.Decode("504b492d4320434d5320456e76656c6f706564446174612053616d706c65");
+
+            var reciPriv = (ECPrivateKeyParameters)PrivateKeyFactory.CreateKey(
+                LoadPemContents(EcdhUkmVectorsPath, "recipient_p256.pem"));
+
+            CmsEnvelopedData ed = new CmsEnvelopedData(LoadPemContents(EcdhUkmVectorsPath, fileName));
+            Assert.That(ed.EncryptionAlgOid, Is.EqualTo(contentAlg));
+
+            var recipients = ed.GetRecipientInfos().GetRecipients();
+            Assert.That(recipients.Count, Is.EqualTo(1));
+
+            foreach (RecipientInformation recipient in recipients)
+            {
+                Assert.That(recipient.KeyEncryptionAlgOid, Is.EqualTo(agreeAlg));
+                Assert.That(recipient.GetContent(reciPriv), Is.EqualTo(data));
+            }
+
+            CheckKeyAgreeUkmKek(ed, 0, reciPriv, scheme, kdfDigest);
+        }
+
+        /*
+         * After bc-java's doRFC8418Round/checkRFC8418Kek: a round trip against ourselves cannot tell whether the ukm
+         * reached the KDF, so the KEK is also derived independently of the CMS code. Two recipients share the
+         * KeyAgreeRecipientInfo, so the sender's agreement parameters are used more than once.
+         */
+        [TestCaseSource(nameof(KeyAgreeUkmSchemes))]
+        public void TestKeyAgreeUkmRoundTrip(KeyAgreeScheme scheme, string agreeAlg, string kdfDigest)
+        {
+            byte[] data = Hex.Decode("504b492d4320434d5320456e76656c6f706564446174612053616d706c65");
+
+            CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+            edGen.AddRecipientInfoGenerator(new KeyAgreeRecipientInfoGenerator(new[] { ReciECCert, ReciECCert2 })
+            {
+                KeyAgreementOid = new DerObjectIdentifier(agreeAlg),
+                KeyEncryptionOid = new DerObjectIdentifier(CmsEnvelopedGenerator.Aes128Wrap),
+                SenderKeyPair = OrigECKP,
+                UserKeyingMaterial = keyAgreeUkm,
+            });
+
+            CmsEnvelopedData ed = edGen.Generate(new CmsProcessableByteArray(data), CmsEnvelopedGenerator.Aes128Cbc);
+
+            // Re-parse from the encoding so we check what is actually transmitted
+            ed = new CmsEnvelopedData(ed.GetEncoded());
+
+            RecipientInformationStore recipients = ed.GetRecipientInfos();
+
+            ConfirmDataReceived(recipients, data, ReciECCert, ReciECKP.Private);
+            ConfirmDataReceived(recipients, data, ReciECCert2, ReciECKP2.Private);
+            ConfirmNumberRecipients(recipients, 2);
+
+            CheckKeyAgreeUkmKek(ed, 0, (ECPrivateKeyParameters)ReciECKP.Private, scheme, kdfDigest);
+            CheckKeyAgreeUkmKek(ed, 1, (ECPrivateKeyParameters)ReciECKP2.Private, scheme, kdfDigest);
+        }
+
+        [Test]
+        public void TestECMqvKeyAgreeWithoutUkm()
+        {
+            byte[] data = Hex.Decode("504b492d4320434d5320456e76656c6f706564446174612053616d706c65");
+
+            CmsEnvelopedDataGenerator edGen = new CmsEnvelopedDataGenerator();
+            edGen.AddKeyAgreementRecipient(CmsEnvelopedGenerator.ECMqvSha1Kdf, OrigECKP.Private, OrigECKP.Public,
+                ReciECCert, CmsEnvelopedGenerator.Aes128Wrap);
+
+            CmsEnvelopedData ed = edGen.Generate(new CmsProcessableByteArray(data), CmsEnvelopedGenerator.Aes128Cbc);
+
+            // Rebuild the message with the (mandatory) ukm removed from the KeyAgreeRecipientInfo
+            var envelopedData = ed.EnvelopedData;
+            var kari = GetKeyAgreeRecipientInfo(ed);
+            Assert.That(kari.UserKeyingMaterial, Is.Not.Null);
+
+            var strippedKari = new Asn1.Cms.KeyAgreeRecipientInfo(kari.Originator, null, kari.KeyEncryptionAlgorithm,
+                kari.RecipientEncryptedKeys);
+            var strippedEnvelopedData = new Asn1.Cms.EnvelopedData(envelopedData.OriginatorInfo,
+                new DerSet(new Asn1.Cms.RecipientInfo(strippedKari)), envelopedData.EncryptedContentInfo,
+                envelopedData.UnprotectedAttrs);
+            var stripped = new CmsEnvelopedData(
+                new Asn1.Cms.ContentInfo(ed.ContentInfo.ContentType, strippedEnvelopedData));
+
+            RecipientInformation recipient = stripped.GetRecipientInfos().GetRecipients()[0];
+
+            var e = Assert.Throws<CmsException>(() => recipient.GetContent(ReciECKP.Private));
+            Assert.That(e.Message, Is.EqualTo("User keying material must be present for MQV."));
+            Assert.That(e.InnerException, Is.Null);
+        }
+
+        /// <summary>
+        /// Derive the KEK for one recipient independently of the CMS code (RFC 5753 sec. 7.2) and check that it
+        /// unwraps that recipient's encryptedKey, while the same derivation without the entityUInfo does not.
+        /// </summary>
+        private static void CheckKeyAgreeUkmKek(CmsEnvelopedData ed, int recipientIndex,
+            ECPrivateKeyParameters reciPriv, KeyAgreeScheme scheme, string kdfDigest)
+        {
+            var kari = GetKeyAgreeRecipientInfo(ed);
+            var wrapAlgID = AlgorithmIdentifier.GetInstance(kari.KeyEncryptionAlgorithm.Parameters);
+            byte[] encryptedKey = Asn1.Cms.RecipientEncryptedKey.GetInstance(
+                kari.RecipientEncryptedKeys[recipientIndex]).EncryptedKey.GetOctets();
+
+            var originatorKey = DecodeOriginatorPublicKey(reciPriv, kari.Originator.OriginatorKey);
+
+            IBasicAgreement agreement;
+            ICipherParameters publicParams;
+            byte[] entityUInfo;
+
+            Assert.That(kari.UserKeyingMaterial, Is.Not.Null, "ukm not carried in the message");
+
+            if (scheme == KeyAgreeScheme.ECMqv)
+            {
+                var mqvUkm = Asn1.Cms.Ecc.MQVuserKeyingMaterial.GetInstance(kari.UserKeyingMaterial.GetOctets());
+                var ephemeralKey = DecodeOriginatorPublicKey(reciPriv, mqvUkm.EphemeralPublicKey);
+
+                // 1-Pass ECMQV: the recipient's static key is used in both roles
+                agreement = new ECMqvBasicAgreement();
+                agreement.Init(new MqvPrivateParameters(reciPriv, reciPriv));
+                publicParams = new MqvPublicParameters(originatorKey, ephemeralKey);
+                entityUInfo = mqvUkm.AddedUkm?.GetOctets();
+            }
+            else
+            {
+                if (scheme == KeyAgreeScheme.ECCDH)
+                {
+                    agreement = new ECDHCBasicAgreement();
+                }
+                else
+                {
+                    agreement = new ECDHBasicAgreement();
+                }
+                agreement.Init(reciPriv);
+                publicParams = originatorKey;
+                entityUInfo = kari.UserKeyingMaterial.GetOctets();
+            }
+
+            Assert.That(entityUInfo, Is.EqualTo(keyAgreeUkm), "ukm not carried in the message");
+
+            byte[] z = BigIntegers.AsUnsignedByteArray(agreement.GetFieldSize(),
+                agreement.CalculateAgreement(publicParams));
+
+            Assert.That(UnwrapsWith(DeriveKeyAgreeKek(kdfDigest, z, wrapAlgID, entityUInfo), wrapAlgID, encryptedKey),
+                Is.True, "the KEK derived with entityUInfo = ukm does not open the message");
+            Assert.That(UnwrapsWith(DeriveKeyAgreeKek(kdfDigest, z, wrapAlgID, null), wrapAlgID, encryptedKey),
+                Is.False, "the KEK derived without entityUInfo still opens the message");
+        }
+
+        private static ECPublicKeyParameters DecodeOriginatorPublicKey(ECPrivateKeyParameters reciPriv,
+            Asn1.Cms.OriginatorPublicKey originatorKey)
+        {
+            ECDomainParameters dp = reciPriv.Parameters;
+            return new ECPublicKeyParameters(dp.Curve.DecodePoint(originatorKey.PublicKey.GetOctets()), dp);
+        }
+
+        private static byte[] DeriveKeyAgreeKek(string kdfDigest, byte[] z, AlgorithmIdentifier wrapAlgID,
+            byte[] entityUInfo)
+        {
+            int kekBits = GeneratorUtilities.GetDefaultKeySize(wrapAlgID.Algorithm);
+
+            var sharedInfo = new Asn1.Cms.Ecc.ECC_CMS_SharedInfo(wrapAlgID,
+                DerOctetString.WithContentsOptional(entityUInfo),
+                DerOctetString.WithContents(Pack.UInt32_To_BE((uint)kekBits)));
+
+            var kdf = new Kdf2BytesGenerator(DigestUtilities.GetDigest(kdfDigest));
+            kdf.Init(new KdfParameters(z, sharedInfo.GetEncoded(Asn1Encodable.Der)));
+
+            byte[] kek = new byte[kekBits / 8];
+            kdf.GenerateBytes(kek, 0, kek.Length);
+            return kek;
+        }
+
+        private static bool UnwrapsWith(byte[] kek, AlgorithmIdentifier wrapAlgID, byte[] encryptedKey)
+        {
+            IWrapper wrapper = WrapperUtilities.GetWrapper(wrapAlgID.Algorithm);
+            wrapper.Init(false, ParameterUtilities.CreateKeyParameter(wrapAlgID.Algorithm, kek));
+
+            try
+            {
+                wrapper.Unwrap(encryptedKey, 0, encryptedKey.Length);
+                return true;
+            }
+            catch (InvalidCipherTextException)
+            {
+                return false;
+            }
+        }
+
+        private static Asn1.Cms.KeyAgreeRecipientInfo GetKeyAgreeRecipientInfo(CmsEnvelopedData ed) =>
+            (Asn1.Cms.KeyAgreeRecipientInfo)Asn1.Cms.RecipientInfo.GetInstance(ed.EnvelopedData.RecipientInfos[0]).Info;
+
+        private static byte[] LoadPemContents(string path, string name)
+        {
+            using (var pemReader = new PemReader(new StreamReader(SimpleTest.FindTestResource(path, name))))
+            {
+                return pemReader.ReadPemObject().Content;
+            }
         }
 
         [Test]

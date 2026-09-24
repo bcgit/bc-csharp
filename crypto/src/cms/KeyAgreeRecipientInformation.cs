@@ -124,12 +124,22 @@ namespace Org.BouncyCastle.Cms
                 throw new NotImplementedException();
             }
 
+            byte[] kdfUkm = userKeyingMaterial?.GetOctets();
+
             if (CmsUtilities.IsMqv(agreeAlgOid))
             {
-                MQVuserKeyingMaterial ukm = MQVuserKeyingMaterial.GetInstance(userKeyingMaterial.GetOctets());
+                // RFC 5753 sec. 3.2.1: for 1-Pass ECMQV the ukm MUST be present
+                if (userKeyingMaterial == null)
+                    throw new CmsException("User keying material must be present for MQV.");
+
+                // The MQVuserKeyingMaterial is received DER-encoded in KeyAgreeRecipientInfo.ukm
+                MQVuserKeyingMaterial mqvUkm = MQVuserKeyingMaterial.GetInstance(userKeyingMaterial.GetOctets());
+
+                // RFC 5753 7.2: for ECMQV, entityUInfo is the addedukm (not the ukm field)
+                kdfUkm = mqvUkm.AddedUkm?.GetOctets();
 
                 AsymmetricKeyParameter ephemeralKey = GetPublicKeyFromOriginatorPublicKey(
-                    receiverPrivateKey, ukm.EphemeralPublicKey);
+                    receiverPrivateKey, mqvUkm.EphemeralPublicKey);
 
                 senderPublicParams = new MqvPublicParameters(
                     (ECPublicKeyParameters)senderPublicParams,
@@ -138,10 +148,8 @@ namespace Org.BouncyCastle.Cms
                     (ECPrivateKeyParameters)receiverPrivateParams,
                     (ECPrivateKeyParameters)receiverPrivateParams);
             }
-            else
-            {
-                // TODO[cms] bc-java has other consumers of userKeyingMaterial in EC, GOST, RFC2631 branches
-            }
+
+            receiverPrivateParams = ParameterUtilities.WithUkm(receiverPrivateParams, kdfUkm);
 
             IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgOid, wrapAlgID);
             agreement.Init(receiverPrivateParams);
