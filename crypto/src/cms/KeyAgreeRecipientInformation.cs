@@ -135,12 +135,6 @@ namespace Org.BouncyCastle.Cms
                 // TODO[cms] bc-java has other consumers of userKeyingMaterial in EC, GOST, RFC2631 branches
             }
 
-            /*
-             * TODO[cms] This seems like the place where the original wrapAlgID.Parameters gets lost so that
-             * ECDHKekGenerator ultimately has to rebuild the AlgorithmIdentifier that it gives to ECC_CMS_SharedInfo.
-             * This leads to broken signatures (especially for AES, since it always rebuilds with ASN.1 NULL).
-             * Instead, the full wrapAlgID needs to propagate throughout.
-             */
             IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgOid, wrapAlgID);
             agreement.Init(receiverPrivateParams);
             BigInteger agreedValue = agreement.CalculateAgreement(senderPublicParams);
