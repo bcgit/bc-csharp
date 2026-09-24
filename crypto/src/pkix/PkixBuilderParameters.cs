@@ -39,13 +39,26 @@ namespace Org.BouncyCastle.Pkix
         }
 
         public PkixBuilderParameters(ISet<TrustAnchor> trustAnchors, ISelector<X509Certificate> targetConstraintsCert)
-            : this(trustAnchors, targetConstraintsCert, null)
+            : this(trustAnchors, targetConstraintsCert, targetConstraintsAttrCert: null)
         {
         }
 
         public PkixBuilderParameters(ISet<TrustAnchor> trustAnchors, ISelector<X509Certificate> targetConstraintsCert,
             ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
             : base(trustAnchors)
+        {
+            SetTargetConstraintsCert(targetConstraintsCert);
+            SetTargetConstraintsAttrCert(targetConstraintsAttrCert);
+        }
+
+        public PkixBuilderParameters(TrustAnchor trustAnchor, ISelector<X509Certificate> targetConstraintsCert)
+            : this(trustAnchor, targetConstraintsCert, targetConstraintsAttrCert: null)
+        {
+        }
+
+        public PkixBuilderParameters(TrustAnchor trustAnchor, ISelector<X509Certificate> targetConstraintsCert,
+            ISelector<X509V2AttributeCertificate> targetConstraintsAttrCert)
+            : base(trustAnchor)
         {
             SetTargetConstraintsCert(targetConstraintsCert);
             SetTargetConstraintsAttrCert(targetConstraintsAttrCert);
@@ -93,7 +106,7 @@ namespace Org.BouncyCastle.Pkix
         /**
          * Can alse handle <code>ExtendedPKIXBuilderParameters</code> and
          * <code>PKIXBuilderParameters</code>.
-         * 
+         *
          * @param params Parameters to set.
          * @see Org.BouncyCastle.X509.ExtendedPKIXParameters#setParams(java.security.cert.PKIXParameters)
          */

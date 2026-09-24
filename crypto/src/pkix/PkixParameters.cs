@@ -81,9 +81,28 @@ namespace Org.BouncyCastle.Pkix
          *                <code>java.security.cert.TrustAnchor</code>
          */
         public PkixParameters(ISet<TrustAnchor> trustAnchors)
+            : this()
         {
             SetTrustAnchors(trustAnchors);
+        }
 
+        /**
+         * Creates an instance of PkixParameters with a single most-trusted CA.
+         *
+         * @param trustAnchor
+         *            the TrustAnchor for the single most-trusted CA
+         *
+         * @exception NullPointerException
+         *                if the specified TrustAnchor is <code>null</code>
+         */
+        public PkixParameters(TrustAnchor trustAnchor)
+            : this()
+        {
+            SetTrustAnchor(trustAnchor);
+        }
+
+        private PkixParameters()
+        {
             this.initialPolicies = new HashSet<string>();
             this.m_checkers = new List<PkixCertPathChecker>();
             this.m_storesAttrCert = new List<IStore<X509V2AttributeCertificate>>();
@@ -203,6 +222,15 @@ namespace Org.BouncyCastle.Pkix
 
             if (trustAnchors.Count < 1)
                 throw new ArgumentException("non-empty set required", nameof(tas));
+        }
+
+        // Sets a single most-trusted CA.
+        public virtual void SetTrustAnchor(TrustAnchor trustAnchor)
+        {
+            if (trustAnchor == null)
+                throw new ArgumentNullException(nameof(trustAnchor));
+
+            this.trustAnchors = new HashSet<TrustAnchor>() { trustAnchor };
         }
 
         /**
