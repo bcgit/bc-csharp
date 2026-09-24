@@ -464,6 +464,25 @@ namespace Org.BouncyCastle.Security
         }
 
         /// <summary>
+        /// Unwrap a <see cref="ParametersWithUkm"/> envelope, returning the inner parameters and copying the
+        /// UKM bytes out via <paramref name="ukm"/>. If the envelope is absent, <paramref name="ukm"/>
+        /// is set to <c>null</c> and the input is returned unchanged.
+        /// </summary>
+        /// <param name="cipherParameters">Parameters to inspect.</param>
+        /// <param name="ukm">Receives the UKM bytes, or <c>null</c> if no envelope is present.</param>
+        public static ICipherParameters GetUkm(ICipherParameters cipherParameters, out byte[] ukm)
+        {
+            if (cipherParameters is ParametersWithUkm withUkm)
+            {
+                ukm = withUkm.GetUkm();
+                return withUkm.Parameters;
+            }
+
+            ukm = null;
+            return cipherParameters;
+        }
+
+        /// <summary>
         /// Strip any <see cref="ParametersWithRandom"/> envelope and return the inner parameters; otherwise return
         /// the input unchanged.
         /// </summary>
@@ -497,6 +516,19 @@ namespace Org.BouncyCastle.Security
             if (random != null)
             {
                 cp = new ParametersWithRandom(cp, random);
+            }
+            return cp;
+        }
+
+        /// <summary>
+        /// Wrap <paramref name="cp"/> in a <see cref="ParametersWithUkm"/> envelope when <paramref name="ukm"/>
+        /// is non-<c>null</c>; otherwise return <paramref name="cp"/> unchanged.
+        /// </summary>
+        public static ICipherParameters WithUkm(ICipherParameters cp, byte[] ukm)
+        {
+            if (ukm != null)
+            {
+                cp = new ParametersWithUkm(cp, ukm);
             }
             return cp;
         }
