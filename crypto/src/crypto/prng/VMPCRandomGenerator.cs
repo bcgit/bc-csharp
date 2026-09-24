@@ -62,13 +62,16 @@ namespace Org.BouncyCastle.Crypto.Prng
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             AddSeedMaterial(seed.AsSpan());
 #else
-            for (int m = 0; m < seed.Length; m++) 
+            lock (P)
             {
-                byte pn = P[n];
-                s = P[(s + pn + seed[m]) & 0xff];
-                P[n] = P[s];
-                P[s] = pn;
-                n = (byte)(n + 1);
+                for (int m = 0; m < seed.Length; m++)
+                {
+                    byte pn = P[n];
+                    s = P[(s + pn + seed[m]) & 0xff];
+                    P[n] = P[s];
+                    P[s] = pn;
+                    n = (byte)(n + 1);
+                }
             }
 #endif
         }
@@ -76,13 +79,16 @@ namespace Org.BouncyCastle.Crypto.Prng
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public void AddSeedMaterial(ReadOnlySpan<byte> seed)
         {
-            for (int m = 0; m < seed.Length; m++)
+            lock (P)
             {
-                byte pn = P[n];
-                s = P[(s + pn + seed[m]) & 0xff];
-                P[n] = P[s];
-                P[s] = pn;
-                n = (byte)(n + 1);
+                for (int m = 0; m < seed.Length; m++)
+                {
+                    byte pn = P[n];
+                    s = P[(s + pn + seed[m]) & 0xff];
+                    P[n] = P[s];
+                    P[s] = pn;
+                    n = (byte)(n + 1);
+                }
             }
         }
 #endif
