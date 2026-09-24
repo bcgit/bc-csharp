@@ -223,6 +223,10 @@ namespace Org.BouncyCastle.Cms
             {
                 throw new CmsException("key invalid in message.", e);
             }
+            catch (CmsException)
+            {
+                throw;
+            }
             catch (Exception e)
             {
                 throw new CmsException("originator key invalid.", e);
