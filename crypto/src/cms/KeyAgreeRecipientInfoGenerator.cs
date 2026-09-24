@@ -142,6 +142,14 @@ namespace Org.BouncyCastle.Cms
                 var recipientID = m_recipientIDs[i];
                 ICipherParameters recipientPublicParams = m_recipientKeys[i];
 
+                // RFC 8418 sec. 2.2: for the HKDF schemes a ukm is both the entityUInfo of the
+                // ECC-CMS-SharedInfo and the HKDF salt
+                if (m_userKeyingMaterial != null && CmsUtilities.IsHkdf(m_keyAgreementOid))
+                {
+                    // TODO[cms] Add HKDF support, with some way to handle UKM
+                    throw new NotImplementedException();
+                }
+
                 if (isMqv)
                 {
                     // NOTE: recipient public key used in both static and ephemeral roles

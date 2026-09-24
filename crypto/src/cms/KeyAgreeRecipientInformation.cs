@@ -116,6 +116,14 @@ namespace Org.BouncyCastle.Cms
             ICipherParameters senderPublicParams = senderPublicKey;
             ICipherParameters receiverPrivateParams = receiverPrivateKey;
 
+            // RFC 8418 sec. 2.2: for the HKDF schemes a ukm is both the entityUInfo of the
+            // ECC-CMS-SharedInfo and the HKDF salt
+            if (userKeyingMaterial != null && CmsUtilities.IsHkdf(agreeAlgOid))
+            {
+                // TODO[cms] Add HKDF support, with some way to handle UKM
+                throw new NotImplementedException();
+            }
+
             if (CmsUtilities.IsMqv(agreeAlgOid))
             {
                 MQVuserKeyingMaterial ukm = MQVuserKeyingMaterial.GetInstance(userKeyingMaterial.GetOctets());

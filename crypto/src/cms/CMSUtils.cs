@@ -23,6 +23,7 @@ namespace Org.BouncyCastle.Cms
         private static readonly HashSet<DerObjectIdentifier> DesAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> ECAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> GostAlgorithms = new HashSet<DerObjectIdentifier>();
+        private static readonly HashSet<DerObjectIdentifier> HkdfAlgorithms = new HashSet<DerObjectIdentifier>();
         private static readonly HashSet<DerObjectIdentifier> MqvAlgorithms = new HashSet<DerObjectIdentifier>();
 
         static CmsUtilities()
@@ -45,6 +46,10 @@ namespace Org.BouncyCastle.Cms
             GostAlgorithms.Add(CryptoProObjectIdentifiers.GostR3410x2001CryptoProESDH);
             GostAlgorithms.Add(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_256);
             GostAlgorithms.Add(RosstandartObjectIdentifiers.id_tc26_agreement_gost_3410_12_512);
+
+            HkdfAlgorithms.Add(Asn1.Pkcs.PkcsObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha256_scheme);
+            HkdfAlgorithms.Add(Asn1.Pkcs.PkcsObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha384_scheme);
+            HkdfAlgorithms.Add(Asn1.Pkcs.PkcsObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha512_scheme);
 
             MqvAlgorithms.Add(X9ObjectIdentifiers.MqvSinglePassSha1KdfScheme);
             MqvAlgorithms.Add(SecObjectIdentifiers.mqvSinglePass_sha224kdf_scheme);
@@ -74,7 +79,15 @@ namespace Org.BouncyCastle.Cms
 
         internal static bool IsGost(DerObjectIdentifier oid) => GostAlgorithms.Contains(oid);
 
+        internal static bool IsHkdf(DerObjectIdentifier oid) => HkdfAlgorithms.Contains(oid);
+
         internal static bool IsMqv(DerObjectIdentifier oid) => MqvAlgorithms.Contains(oid);
+
+        internal static bool IsRfc2631(DerObjectIdentifier oid)
+        {
+            return Asn1.Pkcs.PkcsObjectIdentifiers.IdAlgEsdh.Equals(oid)
+                || Asn1.Pkcs.PkcsObjectIdentifiers.IdAlgSsdh.Equals(oid);
+        }
 
         internal static bool IsEquivalent(AlgorithmIdentifier algID1, AlgorithmIdentifier algID2)
         {
