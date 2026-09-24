@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -104,6 +105,6 @@ namespace Org.BouncyCastle.Cms
 			return null;
 		}
 
-		internal abstract KeyParameter GetEncoded(string algorithmOid);
+		internal abstract KeyParameter GetEncoded(DerObjectIdentifier algorithmOid);
 	}
 }

@@ -36,13 +36,13 @@ namespace Org.BouncyCastle.Cms
                 AlgorithmIdentifier kekAlg = AlgorithmIdentifier.GetInstance(m_info.KeyEncryptionAlgorithm);
                 Asn1Sequence kekAlgParams = (Asn1Sequence)kekAlg.Parameters;
                 byte[] encryptedKey = m_info.EncryptedKey.GetOctets();
-                string kekAlgName = DerObjectIdentifier.GetInstance(kekAlgParams[0]).Id;
-                string cName = CmsEnvelopedHelper.GetRfc3211WrapperName(kekAlgName);
+                var kekAlgOid = DerObjectIdentifier.GetInstance(kekAlgParams[0]);
+                string cName = CmsEnvelopedHelper.GetRfc3211WrapperName(kekAlgOid.GetID());
                 IWrapper keyWrapper = WrapperUtilities.GetWrapper(cName);
 
                 var iv = Asn1OctetString.GetInstance(kekAlgParams[1]);
 
-                ICipherParameters parameters = ((CmsPbeKey)key).GetEncoded(kekAlgName);
+                ICipherParameters parameters = ((CmsPbeKey)key).GetEncoded(kekAlgOid);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
                 parameters = new ParametersWithIV(parameters, iv.GetOctetsSpan());

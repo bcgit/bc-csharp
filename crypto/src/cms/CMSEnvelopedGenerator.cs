@@ -212,16 +212,21 @@ namespace Org.BouncyCastle.Cms
             recipientInfoGenerators.Add(kekrig);
         }
 
-        public void AddPasswordRecipient(
-            CmsPbeKey pbeKey,
-            string kekAlgorithmOid)
+        public void AddPasswordRecipient(CmsPbeKey pbeKey, string kekAlgorithmOid)
         {
+            if (pbeKey == null)
+                throw new ArgumentNullException(nameof(pbeKey));
+            if (kekAlgorithmOid == null)
+                throw new ArgumentNullException(nameof(kekAlgorithmOid));
+            if (!DerObjectIdentifier.TryFromID(kekAlgorithmOid, out var kekAlgOid))
+                throw new ArgumentException("Must be an OID string", nameof(kekAlgorithmOid));
+
             Pbkdf2Params p = new Pbkdf2Params(pbeKey.Salt, pbeKey.IterationCount);
 
             PasswordRecipientInfoGenerator prig = new PasswordRecipientInfoGenerator();
             prig.KeyDerivationAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPbkdf2, p);
             prig.KeyEncryptionKeyOID = kekAlgorithmOid;
-            prig.KeyEncryptionKey = pbeKey.GetEncoded(kekAlgorithmOid);
+            prig.KeyEncryptionKey = pbeKey.GetEncoded(kekAlgOid);
 
             recipientInfoGenerators.Add(prig);
         }

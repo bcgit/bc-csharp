@@ -4,7 +4,13 @@ using System.IO;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Cms;
+using Org.BouncyCastle.Asn1.CryptoPro;
+using Org.BouncyCastle.Asn1.GM;
+using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Misc;
+using Org.BouncyCastle.Asn1.Nist;
+using Org.BouncyCastle.Asn1.Ntt;
+using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -18,27 +24,54 @@ namespace Org.BouncyCastle.Cms
 {
     internal class CmsEnvelopedHelper
     {
-        private static readonly Dictionary<string, int> FixedKeySizes = new Dictionary<string, int>();
+        private static readonly Dictionary<DerObjectIdentifier, int> FixedKeySizes =
+            new Dictionary<DerObjectIdentifier, int>();
         private static readonly Dictionary<string, string> Rfc3211WrapperNames = new Dictionary<string, string>();
 
         static CmsEnvelopedHelper()
         {
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes128Cbc, 128);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes192Cbc, 192);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes256Cbc, 256);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes128Ccm, 128);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes192Ccm, 192);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes256Ccm, 256);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes128Gcm, 128);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes192Gcm, 192);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Aes256Gcm, 256);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Camellia128Cbc, 128);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Camellia192Cbc, 192);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.Camellia256Cbc, 256);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.DesCbc, 64);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.DesEde3Cbc, 192);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.IdeaCbc, 128);
-            FixedKeySizes.Add(CmsEnvelopedGenerator.SeedCbc, 128);
+            FixedKeySizes.Add(MiscObjectIdentifiers.cast5CBC, 128);
+            FixedKeySizes.Add(MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC, 128);
+
+            FixedKeySizes.Add(PkcsObjectIdentifiers.DesEde3Cbc, 192);
+            FixedKeySizes.Add(PkcsObjectIdentifiers.IdAlgCms3DesWrap, 192);
+
+            FixedKeySizes.Add(PkcsObjectIdentifiers.PbeWithSha1AndDesCbc, 64);
+            FixedKeySizes.Add(PkcsObjectIdentifiers.PbeWithMD5AndDesCbc, 64);
+
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes128Cbc, 128);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes192Cbc, 192);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes256Cbc, 256);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes128Gcm, 128);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes192Gcm, 192);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes256Gcm, 256);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes128Ccm, 128);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes192Ccm, 192);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes256Ccm, 256);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes128GMac, 128);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes192GMac, 192);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes256GMac, 256);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes128Wrap, 128);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes192Wrap, 192);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes256Wrap, 256);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes128WrapPad, 128);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes192WrapPad, 192);
+            FixedKeySizes.Add(NistObjectIdentifiers.IdAes256WrapPad, 256);
+
+            FixedKeySizes.Add(NttObjectIdentifiers.IdCamellia128Cbc, 128);
+            FixedKeySizes.Add(NttObjectIdentifiers.IdCamellia192Cbc, 192);
+            FixedKeySizes.Add(NttObjectIdentifiers.IdCamellia256Cbc, 256);
+            FixedKeySizes.Add(NttObjectIdentifiers.IdCamellia128Wrap, 128);
+            FixedKeySizes.Add(NttObjectIdentifiers.IdCamellia192Wrap, 192);
+            FixedKeySizes.Add(NttObjectIdentifiers.IdCamellia256Wrap, 256);
+
+            FixedKeySizes.Add(KisaObjectIdentifiers.IdSeedCbc, 128);
+
+            FixedKeySizes.Add(OiwObjectIdentifiers.DesCbc, 64);
+
+            FixedKeySizes.Add(CryptoProObjectIdentifiers.GostR28147Gcfb, 256);
+
+            FixedKeySizes.Add(GMObjectIdentifiers.sms4_cbc, 128);
 
             Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Aes128Cbc, "AESRFC3211WRAP");
             Rfc3211WrapperNames.Add(CmsEnvelopedGenerator.Aes192Cbc, "AESRFC3211WRAP");
@@ -63,7 +96,7 @@ namespace Org.BouncyCastle.Cms
             return new RecipientInformationStore(infos);
         }
 
-        internal static int GetKeySize(string oid)
+        internal static int GetKeySize(DerObjectIdentifier oid)
         {
             if (oid == null)
                 throw new ArgumentNullException(nameof(oid));

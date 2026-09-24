@@ -1,5 +1,6 @@
 using System;
 
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -41,8 +42,7 @@ namespace Org.BouncyCastle.Cms
         }
 #endif
 
-        internal override KeyParameter GetEncoded(
-			string algorithmOid)
+        internal override KeyParameter GetEncoded(DerObjectIdentifier algorithmOid)
 		{
 			Pkcs5S2ParametersGenerator gen = new Pkcs5S2ParametersGenerator();
 
@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Cms
 				iterationCount);
 
 			return (KeyParameter) gen.GenerateDerivedParameters(
-				algorithmOid,
+				algorithmOid.GetID(),
 				CmsEnvelopedHelper.GetKeySize(algorithmOid));
 		}
 	}
