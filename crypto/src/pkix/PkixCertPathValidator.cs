@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
-using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
@@ -230,7 +229,7 @@ namespace Org.BouncyCastle.Pkix
                 }
                 else
                 {
-                    workingIssuerName = new X509Name(trust.CAName);
+                    workingIssuerName = trust.CA;
                     workingPublicKey = trust.CAPublicKey;
                 }
             }

@@ -138,6 +138,8 @@ namespace Org.BouncyCastle.Pkix
         /// the OID or criticality flag. Specify null to omit the 
         /// parameter.</param>
         /// throws NullPointerException, IllegalArgumentException
+        // TODO[api] Remove, along with the 'caName' field
+        [Obsolete("Use constructor taking an 'X509Name' instead")]
         public TrustAnchor(string caName, AsymmetricKeyParameter pubKey, byte[] nameConstraints)
         {
             if (caName == null)
@@ -167,6 +169,8 @@ namespace Org.BouncyCastle.Pkix
         /// <summary>
         /// Returns the name of the most-trusted CA in RFC 2253 string format.
         /// </summary>
+        // TODO[api] Remove, along with the 'caName' field
+        [Obsolete("Use 'CA' instead")]
         public string CAName => this.caName;
 
         /// <summary>
