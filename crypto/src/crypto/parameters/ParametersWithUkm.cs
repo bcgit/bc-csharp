@@ -7,6 +7,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// <summary>
     /// Wrapper class for parameters which include User Key Material (UKM).
     /// </summary>
+    /// <remarks>
+    /// Combined with a <see cref="ParametersWithRandom"/>, this goes on the outside:
+    /// <c>ParametersWithUkm(ParametersWithRandom(key))</c>. The ukm is consumed by the key agreement (or its KDF),
+    /// and anything inside it is passed on.
+    /// </remarks>
     public class ParametersWithUkm
         : ICipherParameters
     {

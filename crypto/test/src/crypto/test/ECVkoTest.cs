@@ -1,4 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System;
+
+using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1.Rosstandart;
 using Org.BouncyCastle.Crypto.Agreement;
@@ -78,12 +80,43 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.True(Arrays.AreEqual(secretA, expectedResult), "ECVKO agreement unexpected result");
         }
 
+        [Test]
+        public void ParametersNesting()
+        {
+            var random = new SecureRandom();
+            var domainParameters = ECNamedDomainParameters.LookupOid(
+                RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512_paramSetA);
+
+            var kpg = new ECKeyPairGenerator();
+            kpg.Init(new ECKeyGenerationParameters(domainParameters, random));
+
+            var ukm = SecureRandom.GetNextBytes(random, 8);
+            var kpA = kpg.GenerateKeyPair();
+            var kpB = kpg.GenerateKeyPair();
+
+            byte[] expected = ImplAgreement(new ParametersWithUkm(kpA.Private, ukm), kpB.Public);
+
+            // The ukm goes outside any randomness, which is ignored
+            byte[] withRandom = ImplAgreement(
+                new ParametersWithUkm(new ParametersWithRandom(kpA.Private, random), ukm), kpB.Public);
+            Assert.That(withRandom, Is.EqualTo(expected));
+
+            // The other nesting is rejected
+            Assert.Throws<ArgumentException>(() => ImplAgreement(
+                new ParametersWithRandom(new ParametersWithUkm(kpA.Private, ukm), random), kpB.Public));
+        }
+
         private static byte[] ImplAgreement(byte[] ukm, AsymmetricKeyParameter privateKey,
             AsymmetricKeyParameter publicKey)
         {
+            return ImplAgreement(new ParametersWithUkm(privateKey, ukm), publicKey);
+        }
+
+        private static byte[] ImplAgreement(ICipherParameters privateParameters, AsymmetricKeyParameter publicKey)
+        {
             var digest = new Gost3411_2012_256Digest();
             var agreement = new ECVkoAgreement(digest);
-            agreement.Init(new ParametersWithUkm(privateKey, ukm));
+            agreement.Init(privateParameters);
             byte[] secret = new byte[agreement.AgreementSize];
             agreement.CalculateAgreement(publicKey, secret, 0);
             return secret;

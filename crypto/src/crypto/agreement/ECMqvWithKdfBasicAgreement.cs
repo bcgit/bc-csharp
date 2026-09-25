@@ -29,7 +29,6 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
         public override void Init(ICipherParameters parameters)
         {
-            parameters = ParameterUtilities.IgnoreRandom(parameters);
             parameters = ParameterUtilities.GetUkm(parameters, out m_ukm);
             base.Init(parameters);
         }

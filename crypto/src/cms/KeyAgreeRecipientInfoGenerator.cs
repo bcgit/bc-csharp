@@ -149,8 +149,8 @@ namespace Org.BouncyCastle.Cms
                 }
             }
 
-            senderPrivateParams = ParameterUtilities.WithUkm(senderPrivateParams, kdfUkm);
             senderPrivateParams = ParameterUtilities.WithRandom(senderPrivateParams, random);
+            senderPrivateParams = ParameterUtilities.WithUkm(senderPrivateParams, kdfUkm);
 
             Asn1EncodableVector recipientEncryptedKeys = new Asn1EncodableVector(m_recipientIDs.Count);
             for (int i = 0; i < m_recipientIDs.Count; ++i)
