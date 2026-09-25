@@ -9,7 +9,6 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
-using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.X509;
@@ -74,93 +73,61 @@ namespace Org.BouncyCastle.Pkix
         }
 
         /// <summary>
-        /// Search the given Set of TrustAnchor's for one that is the
-        /// issuer of the given X509 certificate.
+        /// Return the first of the given trust anchors that names the issuer of <paramref name="cert"/> and whose
+        /// public key verifies it, or null if there is none.
         /// </summary>
         /// <param name="cert">the X509 certificate</param>
         /// <param name="trustAnchors">a Set of TrustAnchor's</param>
-        /// <returns>the <code>TrustAnchor</code> object if found or
-        /// <code>null</code> if not.
-        /// </returns>
-        /// @exception
+        /// <exception cref="Exception">
+        /// A trust anchor named the issuer, but none of those that did verified the certificate.
+        /// </exception>
         internal static TrustAnchor FindTrustAnchor(X509Certificate cert, ISet<TrustAnchor> trustAnchors)
         {
-            var iter = trustAnchors.GetEnumerator();
-            TrustAnchor trust = null;
-            AsymmetricKeyParameter trustPublicKey = null;
+            X509Name certIssuer = GetIssuerPrincipal(cert);
+
             Exception invalidKeyEx = null;
 
-            X509CertStoreSelector certSelectX509 = new X509CertStoreSelector();
-
-            try
+            foreach (TrustAnchor trust in trustAnchors)
             {
-                certSelectX509.Subject = GetIssuerPrincipal(cert);
-            }
-            catch (IOException ex)
-            {
-                throw new Exception("Cannot set subject search criteria for trust anchor.", ex);
-            }
+                AsymmetricKeyParameter trustPublicKey = GetIssuerPublicKey(trust, certIssuer);
+                if (trustPublicKey == null)
+                    continue;
 
-            while (iter.MoveNext() && trust == null)
-            {
-                trust = iter.Current;
-                if (trust.TrustedCert != null)
+                try
                 {
-                    if (certSelectX509.Match(trust.TrustedCert))
-                    {
-                        trustPublicKey = trust.TrustedCert.GetPublicKey();
-                    }
-                    else
-                    {
-                        trust = null;
-                    }
+                    cert.Verify(trustPublicKey);
+                    return trust;
                 }
-                else if (trust.CAName != null && trust.CAPublicKey != null)
+                catch (Exception e)
                 {
-                    try
+                    // Anchors sharing the issuer's subject DN can fail in turn; report the first failure.
+                    if (invalidKeyEx == null)
                     {
-                        X509Name certIssuer = GetIssuerPrincipal(cert);
-                        X509Name caName = new X509Name(trust.CAName);
-
-                        if (certIssuer.Equivalent(caName, true))
-                        {
-                            trustPublicKey = trust.CAPublicKey;
-                        }
-                        else
-                        {
-                            trust = null;
-                        }
-                    }
-                    catch (InvalidParameterException)
-                    {
-                        trust = null;
-                    }
-                }
-                else
-                {
-                    trust = null;
-                }
-
-                if (trustPublicKey != null)
-                {
-                    try
-                    {
-                        cert.Verify(trustPublicKey);
-                    }
-                    catch (Exception ex)
-                    {
-                        invalidKeyEx = ex;
-                        trust = null;
+                        invalidKeyEx = e;
                     }
                 }
             }
 
-            if (trust == null && invalidKeyEx != null)
-            {
+            if (invalidKeyEx != null)
                 throw new Exception("TrustAnchor found but certificate validation failed.", invalidKeyEx);
-            }
 
-            return trust;
+            return null;
+        }
+
+        /// <summary>
+        /// Return the public key of the given trust anchor if it names <paramref name="certIssuer"/>, else null. An
+        /// anchor supplied as a certificate is matched on that certificate's subject, one supplied as a name and key
+        /// on the name.
+        /// </summary>
+        private static AsymmetricKeyParameter GetIssuerPublicKey(TrustAnchor trust, X509Name certIssuer)
+        {
+            // A TrustAnchor is built either from a trusted certificate, or from a name and a public key, so when
+            // there is no trusted certificate both CA and CAPublicKey are present.
+            X509Certificate trustedCert = trust.TrustedCert;
+            if (trustedCert == null)
+                return certIssuer.Equivalent(trust.CA, inOrder: true) ? trust.CAPublicKey : null;
+
+            return certIssuer.Equivalent(trustedCert.SubjectDN, inOrder: true) ? trustedCert.GetPublicKey() : null;
         }
 
         internal static bool IsIssuerTrustAnchor(X509Certificate cert, ISet<TrustAnchor> trustAnchors)
