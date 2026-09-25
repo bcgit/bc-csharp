@@ -50,8 +50,9 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] secretA = new byte[agreeA.AgreementSize];
             agreeA.CalculateAgreement(kpB.Public, secretA, 0);
 
+            // Init must accept (and ignore) randomness
             X448Agreement agreeB = new X448Agreement();
-            agreeB.Init(kpB.Private);
+            agreeB.Init(new ParametersWithRandom(kpB.Private, Random));
             byte[] secretB = new byte[agreeB.AgreementSize];
             agreeB.CalculateAgreement(kpA.Public, secretB, 0);
 

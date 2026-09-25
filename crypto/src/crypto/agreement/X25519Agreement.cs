@@ -1,6 +1,7 @@
 ﻿using System;
 
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
@@ -16,11 +17,12 @@ namespace Org.BouncyCastle.Crypto.Agreement
         private X25519PrivateKeyParameters m_privateKey;
 
         /// <summary>Capture the local private key used for subsequent agreements.</summary>
+        /// <remarks>A <see cref="ParametersWithRandom"/> wrapper is accepted, and its randomness ignored.</remarks>
         /// <exception cref="InvalidCastException">If <paramref name="parameters"/> is not an
         /// <see cref="X25519PrivateKeyParameters"/>.</exception>
         public void Init(ICipherParameters parameters)
         {
-            m_privateKey = (X25519PrivateKeyParameters)parameters;
+            m_privateKey = (X25519PrivateKeyParameters)ParameterUtilities.IgnoreRandom(parameters);
         }
 
         /// <summary>Length in bytes of the shared secret produced by the agreement (32).</summary>
