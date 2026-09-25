@@ -231,6 +231,36 @@ namespace Org.BouncyCastle.Pkix
             return cert.SubjectDN.Equivalent(cert.IssuerDN, true);
         }
 
+        /// <summary>
+        /// Return the number of non-self-issued intermediate certificates the path would hold with
+        /// <paramref name="tbvCert"/> added to it, the first certificate in the combined path being the target.
+        /// </summary>
+        /// <remarks>
+        /// This is what a builder's maximum path length bounds, so a self-issued certificate (a key rollover, say)
+        /// does not use up any of the limit, and a limit of zero admits the target alone.
+        /// </remarks>
+        internal static int CountIntermediates(IList<X509Certificate> tbvPath, X509Certificate tbvCert)
+        {
+            // tbvCert is then the target itself
+            if (tbvPath.Count < 1)
+                return 0;
+
+            int count = 0;
+            // tbvPath[0] is the target, so skip it
+            for (int i = 1; i < tbvPath.Count; i++)
+            {
+                if (!IsSelfIssued(tbvPath[i]))
+                {
+                    ++count;
+                }
+            }
+            if (!IsSelfIssued(tbvCert))
+            {
+                ++count;
+            }
+            return count;
+        }
+
         internal static AlgorithmIdentifier GetAlgorithmIdentifier(AsymmetricKeyParameter key)
         {
             try

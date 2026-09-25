@@ -527,6 +527,113 @@ namespace Org.BouncyCastle.Tests
             Assert.AreEqual(2, path.Certificates.Count, $"wrong number of certs in {nameof(V0Test)} path");
         }
 
+        /// <summary>
+        /// The builder's maximum path length counts the non-self-issued intermediate certificates, as
+        /// <see cref="PkixBuilderParameters.MaxPathLength"/> defines it: a limit of 0 admits the target alone, and a
+        /// self-issued certificate (a key rollover, say) does not use up any of the limit.
+        /// </summary>
+        [Test]
+        public void MaxPathLengthTest()
+        {
+            AsymmetricCipherKeyPair rootPair = TestUtilities.GenerateRsaKeyPair();
+            X509Name rootDN = new X509Name("CN=Path Length Root");
+            SubjectKeyIdentifier rootSki = ComputeSki(rootPair.Public);
+            X509Certificate rootCert = SelfSignedV3CACert(rootPair, rootDN, rootSki);
+
+            // root -> Int1 -> Int2 -> EE: two intermediates
+            AsymmetricCipherKeyPair int1Pair = TestUtilities.GenerateRsaKeyPair();
+            X509Name int1DN = new X509Name("CN=Path Length Int1");
+            SubjectKeyIdentifier int1Ski = ComputeSki(int1Pair.Public);
+            X509Certificate int1Cert = UnconstrainedCACert(int1DN, int1Pair.Public, int1Ski, rootPair.Private, rootDN,
+                rootSki);
+
+            AsymmetricCipherKeyPair int2Pair = TestUtilities.GenerateRsaKeyPair();
+            X509Name int2DN = new X509Name("CN=Path Length Int2");
+            SubjectKeyIdentifier int2Ski = ComputeSki(int2Pair.Public);
+            X509Certificate int2Cert = UnconstrainedCACert(int2DN, int2Pair.Public, int2Ski, int1Pair.Private, int1DN,
+                int1Ski);
+
+            AsymmetricCipherKeyPair eePair = TestUtilities.GenerateRsaKeyPair();
+            X509Certificate eeCert = SubordinateV3Cert(new X509Name("CN=Path Length EE"), eePair.Public,
+                ComputeSki(eePair.Public), int2Pair.Private, int2DN, int2Ski, isCA: false);
+
+            var certs = new List<X509Certificate>() { int1Cert, int2Cert, eeCert };
+
+            CheckPathLength("two intermediates", rootCert, eeCert, certs, maxPathLength: -1, expectedLength: 3);
+            CheckPathLength("two intermediates", rootCert, eeCert, certs, maxPathLength: 2, expectedLength: 3);
+            CheckPathLength("two intermediates", rootCert, eeCert, certs, maxPathLength: 1, expectedLength: -1);
+            CheckPathLength("two intermediates", rootCert, eeCert, certs, maxPathLength: 0, expectedLength: -1);
+
+            // root -> Int1 -> Int1' -> Int1'' -> EE: one intermediate, then two self-issued rollovers
+            AsymmetricCipherKeyPair roll1Pair = TestUtilities.GenerateRsaKeyPair();
+            SubjectKeyIdentifier roll1Ski = ComputeSki(roll1Pair.Public);
+            X509Certificate roll1Cert = UnconstrainedCACert(int1DN, roll1Pair.Public, roll1Ski, int1Pair.Private,
+                int1DN, int1Ski);
+
+            AsymmetricCipherKeyPair roll2Pair = TestUtilities.GenerateRsaKeyPair();
+            SubjectKeyIdentifier roll2Ski = ComputeSki(roll2Pair.Public);
+            X509Certificate roll2Cert = UnconstrainedCACert(int1DN, roll2Pair.Public, roll2Ski, roll1Pair.Private,
+                int1DN, roll1Ski);
+
+            AsymmetricCipherKeyPair ee2Pair = TestUtilities.GenerateRsaKeyPair();
+            X509Certificate ee2Cert = SubordinateV3Cert(new X509Name("CN=Path Length EE2"), ee2Pair.Public,
+                ComputeSki(ee2Pair.Public), roll2Pair.Private, int1DN, roll2Ski, isCA: false);
+
+            certs = new List<X509Certificate>() { int1Cert, roll1Cert, roll2Cert, ee2Cert };
+
+            CheckPathLength("self-issued intermediates", rootCert, ee2Cert, certs, maxPathLength: 1,
+                expectedLength: 4);
+            CheckPathLength("self-issued intermediates", rootCert, ee2Cert, certs, maxPathLength: 0,
+                expectedLength: -1);
+        }
+
+        /// <summary>
+        /// Build a path to <paramref name="target"/> with the given maximum path length, expecting a path of
+        /// <paramref name="expectedLength"/> certificates, or no path at all when that is -1.
+        /// </summary>
+        private static void CheckPathLength(string label, X509Certificate rootCert, X509Certificate target,
+            List<X509Certificate> certs, int maxPathLength, int expectedLength)
+        {
+            var anchors = new HashSet<TrustAnchor>() { new TrustAnchor(rootCert, null) };
+
+            X509CertStoreSelector pathConstraints = new X509CertStoreSelector();
+            pathConstraints.Certificate = target;
+
+            PkixBuilderParameters pkixParams = new PkixBuilderParameters(anchors, pathConstraints);
+            pkixParams.AddStoreCert(CollectionUtilities.CreateStore(certs));
+            pkixParams.IsRevocationEnabled = false;
+            pkixParams.MaxPathLength = maxPathLength;
+
+            PkixCertPathBuilder builder = new PkixCertPathBuilder();
+
+            label += " at maxPathLength " + maxPathLength;
+
+            if (expectedLength < 0)
+            {
+                CheckBuildFails(label, builder, pkixParams, "Unable to find certificate chain.");
+            }
+            else
+            {
+                int length = builder.Build(pkixParams).CertPath.Certificates.Count;
+
+                Assert.AreEqual(expectedLength, length, label + ": path of " + length);
+            }
+        }
+
+        private static X509Certificate UnconstrainedCACert(X509Name subjectDN, AsymmetricKeyParameter subjectKey,
+            SubjectKeyIdentifier subjectSki, AsymmetricKeyParameter issuerKey, X509Name issuerDN,
+            SubjectKeyIdentifier issuerSki)
+        {
+            var extGen = new X509ExtensionsGenerator();
+            extGen.AddExtension(X509Extensions.BasicConstraints, true, new BasicConstraints(cA: true));
+            extGen.AddExtension(X509Extensions.KeyUsage, true,
+                new KeyUsage(KeyUsage.DigitalSignature | KeyUsage.KeyCertSign | KeyUsage.CrlSign));
+            extGen.AddExtension(X509Extensions.SubjectKeyIdentifier, false, subjectSki);
+            extGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, false,
+                X509ExtensionUtilities.CreateAuthorityKeyIdentifier(issuerSki));
+            return SignV3Cert(subjectDN, issuerKey, issuerDN, subjectKey, extGen);
+        }
+
         private static void CheckBuildFails(string label, PkixCertPathBuilder builder,
             PkixBuilderParameters certPathParameters, string expectedMessage)
         {

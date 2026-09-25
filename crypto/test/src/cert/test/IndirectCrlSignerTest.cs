@@ -94,6 +94,38 @@ namespace Org.BouncyCastle.Cert.Tests
                 excluded: new HashSet<X509Certificate>() { pki.signers[0] });
         }
 
+        /// <summary>
+        /// The caller's maximum path length bounds the CRL signer's certification path, which here has two
+        /// intermediates between the signer and the root while the certificate under check has none.
+        /// </summary>
+        [Test]
+        public void MaxPathLengthBoundsSignerPath()
+        {
+            Pki pki = BuildPki(generations: 1, signerDepth: 2);
+
+            Assert.NotNull(Validate(pki, maxPathLength: 2, excluded: null),
+                "CRL signer path within the maximum path length rejected");
+
+            SignerRejected("CRL signer path longer than the maximum path length accepted", pki, maxPathLength: 1,
+                excluded: null);
+        }
+
+        /// <summary>
+        /// A caller who lifts the path length limit gets it lifted for the CRL signer's path as well,
+        /// rather than having that path held to the builder default of 5.
+        /// </summary>
+        [Test]
+        public void MaxPathLengthUnboundedAdmitsLongSignerPath()
+        {
+            Pki pki = BuildPki(generations: 1, signerDepth: 6);
+
+            Assert.NotNull(Validate(pki, maxPathLength: -1, excluded: null),
+                "CRL signer path with an unlimited maximum path length rejected");
+
+            SignerRejected("CRL signer path longer than the default maximum path length accepted", pki,
+                maxPathLength: 5, excluded: null);
+        }
+
         private void SignerRejected(string failMessage, Pki pki, int maxPathLength, ISet<X509Certificate> excluded)
         {
             try

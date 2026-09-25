@@ -84,7 +84,7 @@ namespace Org.BouncyCastle.Pkix
             // test if certificate path exceeds maximum length
             if (pkixParams.MaxPathLength != -1)
             {
-                if (tbvPath.Count - 1 > pkixParams.MaxPathLength)
+                if (PkixCertPathValidatorUtilities.CountIntermediates(tbvPath, tbvCert) > pkixParams.MaxPathLength)
                     return null;
             }
 
