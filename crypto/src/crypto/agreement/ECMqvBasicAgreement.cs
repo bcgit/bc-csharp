@@ -26,23 +26,26 @@ namespace Org.BouncyCastle.Crypto.Agreement
 
         public virtual int GetFieldSize() => privParams.StaticPrivateKey.Parameters.Curve.FieldElementEncodingLength;
 
-        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey)
-        {
-            MqvPublicParameters pubParams = (MqvPublicParameters)pubKey;
+        public virtual BigInteger CalculateAgreement(ICipherParameters pubKey) =>
+            CalculateAgreementFieldElement(privParams, (MqvPublicParameters)pubKey).ToBigInteger();
 
-            ECPrivateKeyParameters staticPrivateKey = privParams.StaticPrivateKey;
+        internal static ECFieldElement CalculateAgreementFieldElement(MqvPrivateParameters privateParameters,
+            MqvPublicParameters publicParameters)
+        {
+            ECPrivateKeyParameters staticPrivateKey = privateParameters.StaticPrivateKey;
             ECDomainParameters parameters = staticPrivateKey.Parameters;
 
-            if (!parameters.Equals(pubParams.StaticPublicKey.Parameters))
+            if (!parameters.Equals(publicParameters.StaticPublicKey.Parameters))
                 throw new InvalidOperationException("ECMQV public key components have wrong domain parameters");
 
-            ECPoint agreement = CalculateMqvAgreement(parameters, staticPrivateKey, privParams.EphemeralPrivateKey,
-                privParams.EphemeralPublicKey, pubParams.StaticPublicKey, pubParams.EphemeralPublicKey).Normalize();
+            ECPoint agreement = CalculateMqvAgreement(parameters, staticPrivateKey,
+                privateParameters.EphemeralPrivateKey, privateParameters.EphemeralPublicKey,
+                publicParameters.StaticPublicKey, publicParameters.EphemeralPublicKey).Normalize();
 
             if (agreement.IsInfinity)
                 throw new InvalidOperationException("Infinity is not a valid agreement value for MQV");
 
-            return agreement.AffineXCoord.ToBigInteger();
+            return agreement.AffineXCoord;
         }
 
         // The ECMQV Primitive as described in SEC-1, 3.4

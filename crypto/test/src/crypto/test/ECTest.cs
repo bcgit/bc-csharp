@@ -909,28 +909,50 @@ namespace Org.BouncyCastle.Crypto.Tests
             AsymmetricCipherKeyPair V1,
             AsymmetricCipherKeyPair V2)
         {
-            ECMqvBasicAgreement u = new ECMqvBasicAgreement();
-            u.Init(new MqvPrivateParameters(
+            var uPrivate = new MqvPrivateParameters(
                 (ECPrivateKeyParameters)U1.Private,
                 (ECPrivateKeyParameters)U2.Private,
-                (ECPublicKeyParameters)U2.Public));
-            BigInteger ux = u.CalculateAgreement(new MqvPublicParameters(
-                (ECPublicKeyParameters)V1.Public,
-                (ECPublicKeyParameters)V2.Public));
-
-            ECMqvBasicAgreement v = new ECMqvBasicAgreement();
-            v.Init(new MqvPrivateParameters(
+                (ECPublicKeyParameters)U2.Public);
+            var uPublic = new MqvPublicParameters(
+                (ECPublicKeyParameters)U1.Public,
+                (ECPublicKeyParameters)U2.Public);
+            var vPrivate = new MqvPrivateParameters(
                 (ECPrivateKeyParameters)V1.Private,
                 (ECPrivateKeyParameters)V2.Private,
-                (ECPublicKeyParameters)V2.Public));
-            BigInteger vx = v.CalculateAgreement(new MqvPublicParameters(
-                (ECPublicKeyParameters)U1.Public,
-                (ECPublicKeyParameters)U2.Public));
+                (ECPublicKeyParameters)V2.Public);
+            var vPublic = new MqvPublicParameters(
+                (ECPublicKeyParameters)V1.Public,
+                (ECPublicKeyParameters)V2.Public);
+
+            ECMqvBasicAgreement u = new ECMqvBasicAgreement();
+            u.Init(uPrivate);
+            BigInteger ux = u.CalculateAgreement(vPublic);
+
+            ECMqvBasicAgreement v = new ECMqvBasicAgreement();
+            v.Init(vPrivate);
+            BigInteger vx = v.CalculateAgreement(uPublic);
+
+            // The raw agreement must give the fixed-length encoding of the basic agreement's value
+            byte[] uRaw = CalculateRawMqvAgreement(uPrivate, vPublic);
+            byte[] vRaw = CalculateRawMqvAgreement(vPrivate, uPublic);
+            byte[] expectedRaw = BigIntegers.AsUnsignedByteArray(u.GetFieldSize(), ux);
+            if (!Arrays.AreEqual(expectedRaw, uRaw) || !Arrays.AreEqual(expectedRaw, vRaw))
+                return null;
 
             if (ux.Equals(vx))
                 return ux;
 
             return null;
+        }
+
+        private static byte[] CalculateRawMqvAgreement(MqvPrivateParameters privateParameters,
+            MqvPublicParameters publicParameters)
+        {
+            ECMqvRawAgreement agreement = new ECMqvRawAgreement();
+            agreement.Init(privateParameters);
+            byte[] result = new byte[agreement.AgreementSize];
+            agreement.CalculateAgreement(publicParameters, result, 0);
+            return result;
         }
 
         public override string Name
