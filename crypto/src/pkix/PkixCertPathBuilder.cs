@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Pkix
                 return null;
 
             // step out, the certificate is not allowed to appear in a certification chain.
-            if (pkixParams.GetExcludedCerts().Contains(tbvCert))
+            if (pkixParams.IsExcludedCert(tbvCert))
                 return null;
 
             // test if certificate path exceeds maximum length
@@ -88,8 +88,6 @@ namespace Org.BouncyCastle.Pkix
                     return null;
             }
 
-            PkixCertPathValidator validator = new PkixCertPathValidator(m_isForCrlCheck);
-
             tbvPath.Add(tbvCert);
 
             try
@@ -97,6 +95,7 @@ namespace Org.BouncyCastle.Pkix
                 // check whether the issuer of <tbvCert> is a TrustAnchor
                 if (PkixCertPathValidatorUtilities.IsIssuerTrustAnchor(tbvCert, pkixParams.GetTrustAnchors()))
                 {
+                    PkixCertPathValidator validator = new PkixCertPathValidator(m_isForCrlCheck);
                     PkixCertPath certPath = new PkixCertPath(tbvPath);
 
                     PkixCertPathValidatorResult result;
@@ -121,7 +120,7 @@ namespace Org.BouncyCastle.Pkix
                     }
                     catch (CertificateParsingException e)
                     {
-                        throw new Exception("No additiontal X.509 stores can be added from certificate locations.", e);
+                        throw new Exception("No additional X.509 stores can be added from certificate locations.", e);
                     }
 
                     // try to get the issuer certificate from one of the stores

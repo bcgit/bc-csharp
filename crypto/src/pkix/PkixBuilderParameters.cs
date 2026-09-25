@@ -83,6 +83,16 @@ namespace Org.BouncyCastle.Pkix
         public virtual ISet<X509Certificate> GetExcludedCerts() => new HashSet<X509Certificate>(excludedCerts);
 
         /// <summary>
+        /// Return whether the given certificate is one of the excluded certificates, which are not used for
+        /// building a certification path.
+        /// </summary>
+        /// <remarks>
+        /// Equivalent to testing <see cref="GetExcludedCerts"/> for membership, but without copying the set.
+        /// </remarks>
+        /// <param name="cert">The certificate to test.</param>
+        public virtual bool IsExcludedCert(X509Certificate cert) => excludedCerts.Contains(cert);
+
+        /// <summary>
         /// Sets the excluded certificates which are not used for building a
         /// certification path. If the <code>ISet</code> is <code>null</code> an
         /// empty set is assumed.
