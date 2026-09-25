@@ -43,14 +43,16 @@ namespace Org.BouncyCastle.Utilities
         public static readonly string Asn1MaxLimit = "Org.BouncyCastle.Asn1.MaxLimit";
 
         /// <summary>
-        /// Allow CMS key-agreement recipients to retry the key-encryption-key derivation as earlier bc-csharp
-        /// versions performed it, if the standard derivation fails to unwrap the content-encryption key.
+        /// Allow CMS key-agreement recipients to retry the key-encryption-key derivation in known non-standard
+        /// forms, if the standard derivation fails to unwrap the content-encryption key.
         /// </summary>
         /// <remarks>
-        /// bc-csharp versions prior to 2.8.0 derived the key-encryption key as though the key-wrap
-        /// AlgorithmIdentifier carried NULL parameters, even when it was encoded with absent parameters (as it is
-        /// for AES key wrap, per RFC 5753). This property defaults to 'true', so that messages produced by those
-        /// versions remain readable; set it to 'false' to accept only the standard derivation.
+        /// Two forms are retried. bc-csharp versions prior to 2.8.0 derived the key-encryption key as though the
+        /// key-wrap AlgorithmIdentifier carried NULL parameters, even when it was encoded with absent parameters (as
+        /// it is for AES key wrap, per RFC 5753). Some senders, among them bc-java 1.53 to 1.86 for 1-Pass ECMQV,
+        /// give the KDF the user keying material itself (for ECMQV, the addedukm, or nothing) as its SharedInfo, in
+        /// place of the ECC-CMS-SharedInfo of RFC 5753 sec. 7.2. This property defaults to 'true', so that messages
+        /// produced by those senders remain readable; set it to 'false' to accept only the standard derivation.
         /// </remarks>
         public static readonly string CmsAllowLegacyKeyAgreeKdf = "Org.BouncyCastle.Cms.AllowLegacyKeyAgreeKdf";
 

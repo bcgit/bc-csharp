@@ -111,7 +111,7 @@ namespace Org.BouncyCastle.Cms
 
         private static KeyParameter CalculateAgreedWrapKey(DerObjectIdentifier agreeAlgOid,
             AlgorithmIdentifier wrapAlgID, AsymmetricKeyParameter senderPublicKey, Asn1OctetString userKeyingMaterial,
-            AsymmetricKeyParameter receiverPrivateKey)
+            AsymmetricKeyParameter receiverPrivateKey, bool rawUkm)
         {
             ICipherParameters senderPublicParams = senderPublicKey;
             ICipherParameters receiverPrivateParams = receiverPrivateKey;
@@ -151,7 +151,7 @@ namespace Org.BouncyCastle.Cms
 
             receiverPrivateParams = ParameterUtilities.WithUkm(receiverPrivateParams, kdfUkm);
 
-            IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgOid, wrapAlgID);
+            IBasicAgreement agreement = AgreementUtilities.GetBasicAgreementWithKdf(agreeAlgOid, wrapAlgID, rawUkm);
             agreement.Init(receiverPrivateParams);
             BigInteger agreedValue = agreement.CalculateAgreement(senderPublicParams);
 
@@ -183,7 +183,7 @@ namespace Org.BouncyCastle.Cms
                 DerObjectIdentifier wrapAlgOid = wrapAlgID.Algorithm;
 
                 KeyParameter agreedWrapKey = CalculateAgreedWrapKey(agreeAlgOid, wrapAlgID, senderPublicKey,
-                    m_info.UserKeyingMaterial, receiverPrivateKey);
+                    m_info.UserKeyingMaterial, receiverPrivateKey, rawUkm: false);
 
                 if (CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.Equals(wrapAlgOid) ||
                     CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.Equals(wrapAlgOid))
@@ -196,27 +196,50 @@ namespace Org.BouncyCastle.Cms
                     return UnwrapSessionKey(wrapAlgOid, agreedWrapKey);
                 }
                 catch (InvalidCipherTextException)
-                    when (wrapAlgID.Parameters == null &&
-                          Properties.GetBoolean(Properties.CmsAllowLegacyKeyAgreeKdf, true))
+                    when (Properties.GetBoolean(Properties.CmsAllowLegacyKeyAgreeKdf, true))
                 {
+                    // TODO[api] Consider defaulting CmsAllowLegacyKeyAgreeKdf to false (or removing the retries)
+
                     /*
                      * bc-csharp until 2.7.0 derived the KEK as though the key-wrap AlgorithmIdentifier carried NULL
                      * parameters, even when it was encoded with absent parameters (github bc-csharp #697). Retry with
                      * that derivation so that messages from those versions remain readable.
                      */
-                    // TODO[api] Consider defaulting CmsAllowLegacyKeyAgreeKdf to false (or removing the retry)
-                    try
+                    if (wrapAlgID.Parameters == null)
                     {
-                        var legacyWrapAlgID = new AlgorithmIdentifier(wrapAlgOid, DerNull.Instance);
+                        try
+                        {
+                            var legacyWrapAlgID = new AlgorithmIdentifier(wrapAlgOid, DerNull.Instance);
 
-                        KeyParameter legacyWrapKey = CalculateAgreedWrapKey(agreeAlgOid, legacyWrapAlgID,
-                            senderPublicKey, m_info.UserKeyingMaterial, receiverPrivateKey);
+                            KeyParameter legacyWrapKey = CalculateAgreedWrapKey(agreeAlgOid, legacyWrapAlgID,
+                                senderPublicKey, m_info.UserKeyingMaterial, receiverPrivateKey, rawUkm: false);
 
-                        return UnwrapSessionKey(wrapAlgOid, legacyWrapKey);
+                            return UnwrapSessionKey(wrapAlgOid, legacyWrapKey);
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore any exception during the retry
+                        }
                     }
-                    catch (Exception)
+
+                    /*
+                     * Some senders give the KDF the ukm itself (for 1-Pass ECMQV, the addedukm, or nothing) as its
+                     * SharedInfo, in place of the ECC-CMS-SharedInfo of RFC 5753 sec. 7.2; among them bc-java 1.53 to
+                     * 1.86 for ECMQV. Retry with that derivation, as bc-java does, so that such messages are readable.
+                     */
+                    if (m_info.UserKeyingMaterial != null)
                     {
-                        // Ignore any exception during the retry
+                        try
+                        {
+                            KeyParameter rawUkmWrapKey = CalculateAgreedWrapKey(agreeAlgOid, wrapAlgID,
+                                senderPublicKey, m_info.UserKeyingMaterial, receiverPrivateKey, rawUkm: true);
+
+                            return UnwrapSessionKey(wrapAlgOid, rawUkmWrapKey);
+                        }
+                        catch (Exception)
+                        {
+                            // Ignore any exception during the retry
+                        }
                     }
 
                     // Re-throw original InvalidCipherTextException
