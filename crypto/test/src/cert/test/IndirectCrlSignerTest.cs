@@ -81,6 +81,35 @@ namespace Org.BouncyCastle.Cert.Tests
             }
         }
 
+        /// <summary>
+        /// The caller's excluded certificates apply to the CRL signer's certification path too, so an
+        /// excluded signer cannot vouch for the CRL.
+        /// </summary>
+        [Test]
+        public void ExcludedSignerIsNotUsed()
+        {
+            Pki pki = BuildPki(generations: 1, signerDepth: 0);
+
+            SignerRejected("excluded CRL signer accepted", pki, maxPathLength: 5,
+                excluded: new HashSet<X509Certificate>() { pki.signers[0] });
+        }
+
+        private void SignerRejected(string failMessage, Pki pki, int maxPathLength, ISet<X509Certificate> excluded)
+        {
+            try
+            {
+                Validate(pki, maxPathLength, excluded);
+                Assert.Fail(failMessage);
+            }
+            catch (PkixCertPathBuilderException e)
+            {
+                string chain = MessageChain(e);
+
+                Assert.GreaterOrEqual(chain.IndexOf("CertPath for CRL signer failed to validate"), 0,
+                    "failure of the CRL signer's own path not reported: " + chain);
+            }
+        }
+
         private static string MessageChain(Exception e)
         {
             StringBuilder sb = new StringBuilder();
@@ -94,7 +123,10 @@ namespace Org.BouncyCastle.Cert.Tests
             return sb.ToString();
         }
 
-        private PkixCertPathBuilderResult Validate(Pki pki)
+        private PkixCertPathBuilderResult Validate(Pki pki) =>
+            Validate(pki, maxPathLength: 5, excluded: null);
+
+        private PkixCertPathBuilderResult Validate(Pki pki, int maxPathLength, ISet<X509Certificate> excluded)
         {
             HashSet<TrustAnchor> anchors = new HashSet<TrustAnchor>();
             for (int i = 0; i < pki.roots.Count; i++)
@@ -102,7 +134,10 @@ namespace Org.BouncyCastle.Cert.Tests
                 anchors.Add(new TrustAnchor(pki.roots[i], null));
             }
 
-            var certs = new List<X509Certificate>(pki.signers) { pki.subCa };
+            var certs = new List<X509Certificate>(pki.signers);
+            certs.AddRange(pki.intermediates);
+            certs.Add(pki.subCa);
+
             var crls = new List<X509Crl>() { pki.crl };
 
             var certStore = CollectionUtilities.CreateStore(certs);
@@ -115,6 +150,12 @@ namespace Org.BouncyCastle.Cert.Tests
             pkixParams.AddStoreCert(certStore);
             pkixParams.AddStoreCrl(crlStore);
             pkixParams.IsRevocationEnabled = true;
+            pkixParams.MaxPathLength = maxPathLength;
+
+            if (excluded != null)
+            {
+                pkixParams.SetExcludedCerts(excluded);
+            }
 
             return new PkixCertPathBuilder().Build(pkixParams);
         }
@@ -125,7 +166,13 @@ namespace Org.BouncyCastle.Cert.Tests
          * certificate under check chains to the first generation while the single published CRL is
          * signed by the last generation's signer.
          */
-        private Pki BuildPki(int generations)
+        private Pki BuildPki(int generations) => BuildPki(generations, signerDepth: 0);
+
+        /**
+         * As above, with each generation's CRL signer issued at the end of a chain of signerDepth
+         * intermediate CAs under its root, all of them covered by the same indirect CRL.
+         */
+        private Pki BuildPki(int generations, int signerDepth)
         {
             Pki pki = new Pki();
 
@@ -147,10 +194,22 @@ namespace Org.BouncyCastle.Cert.Tests
                 rootKeys.Add(rootKey);
                 pki.roots.Add(root);
 
+                AsymmetricCipherKeyPair issuerKey = rootKey;
+                X509Certificate issuer = root;
+                for (int d = 1; d <= signerDepth; d++)
+                {
+                    AsymmetricCipherKeyPair caKey = kpg.GenerateKeyPair();
+                    issuer = SubCa(caKey.Public,
+                        new X509Name("CN=Test-Int" + d + ".CA, O=Test-PKI, C=DE, SERIALNUMBER=" + g), issuerKey,
+                        issuer, crlDp);
+                    issuerKey = caKey;
+                    pki.intermediates.Add(issuer);
+                }
+
                 AsymmetricCipherKeyPair signerKey = kpg.GenerateKeyPair();
                 // Self-referencing CRLDP: the signer's own path is validated with revocation enabled
                 // before its key is trusted, so the signer needs a resolvable CRLDP of its own.
-                pki.signers.Add(CrlSigner(signerKey.Public, signerDn, rootKey, root, crlDp));
+                pki.signers.Add(CrlSigner(signerKey.Public, signerDn, issuerKey, issuer, crlDp));
                 signerKeys.Add(signerKey);
             }
 
@@ -196,7 +255,7 @@ namespace Org.BouncyCastle.Cert.Tests
         {
             X509V3CertificateGenerator b = Builder(SubjectOf(caCert), subject, pub);
 
-            b.AddExtension(X509Extensions.BasicConstraints, critical: true, new BasicConstraints(0));
+            b.AddExtension(X509Extensions.BasicConstraints, critical: true, new BasicConstraints(cA: true));
             b.AddExtension(X509Extensions.KeyUsage, critical: true,
                 new KeyUsage(KeyUsage.KeyCertSign | KeyUsage.CrlSign));
             b.AddExtension(X509Extensions.SubjectKeyIdentifier, critical: false,
@@ -248,6 +307,7 @@ namespace Org.BouncyCastle.Cert.Tests
         {
             internal readonly List<X509Certificate> roots = new List<X509Certificate>();
             internal readonly List<X509Certificate> signers = new List<X509Certificate>();
+            internal readonly List<X509Certificate> intermediates = new List<X509Certificate>();
             internal X509Certificate subCa;
             internal X509Crl crl;
         }
