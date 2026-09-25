@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Pkix
             {
                 throw new ArgumentException(
                     "trustAnchors is null, this is not allowed for certification path validation.",
-                    nameof(pkixParams));
+                    nameof(paramsPkix));
             }
 
             //

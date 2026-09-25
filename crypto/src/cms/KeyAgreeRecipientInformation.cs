@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Cms
             m_encryptedKey = encryptedKey;
         }
 
-        private AsymmetricKeyParameter GetSenderPublicKey(AsymmetricKeyParameter receiverPrivateKey,
+        private static AsymmetricKeyParameter GetSenderPublicKey(AsymmetricKeyParameter receiverPrivateKey,
             OriginatorIdentifierOrKey originator)
         {
             OriginatorPublicKey originatorKey = originator.OriginatorKey;
@@ -101,8 +101,7 @@ namespace Org.BouncyCastle.Cms
             return PublicKeyFactory.CreateKey(pubInfo);
         }
 
-        private AsymmetricKeyParameter GetPublicKeyFromOriginatorID(
-            OriginatorID origID)
+        private static AsymmetricKeyParameter GetPublicKeyFromOriginatorID(OriginatorID origID)
         {
             // TODO Support all alternatives for OriginatorIdentifierOrKey
             // see RFC 3852 6.2.2
@@ -274,10 +273,10 @@ namespace Org.BouncyCastle.Cms
             ICipherParameters key)
         {
             if (!(key is AsymmetricKeyParameter receiverPrivateKey))
-                throw new ArgumentException("KeyAgreement requires asymmetric key", "key");
+                throw new ArgumentException("KeyAgreement requires asymmetric key", nameof(key));
 
             if (!receiverPrivateKey.IsPrivate)
-                throw new ArgumentException("Expected private key", "key");
+                throw new ArgumentException("Expected private key", nameof(key));
 
             KeyParameter sKey = GetSessionKey(receiverPrivateKey);
 

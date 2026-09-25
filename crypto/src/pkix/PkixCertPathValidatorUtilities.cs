@@ -992,7 +992,7 @@ namespace Org.BouncyCastle.Pkix
                 //string issuer = Rfc4519Style.Instance.ToString(certObjIssuer);
                 string issuer = certObjIssuer.ToString();
 
-                StringBuilder msg = new StringBuilder("No CRLs found for issuer \"").Append(issuer).Append("\"");
+                StringBuilder msg = new StringBuilder("No CRLs found for issuer \"").Append(issuer).Append('\"');
                 AppendCrlLookupDiagnostics(msg, certObj, pkixParams);
                 throw new PkixRecoverableCertPathValidatorException(msg.ToString(), null, index);
             }
