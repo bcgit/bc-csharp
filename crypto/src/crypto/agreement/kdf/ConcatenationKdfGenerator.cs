@@ -44,6 +44,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
         /// </summary>
         public int GenerateBytes(byte[]	output, int outOff, int length)
         {
+            if (length <= 0)
+                throw new ArgumentException("must be > 0", nameof(length));
+
             Check.OutputLength(output, outOff, length, "output buffer too short");
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -84,6 +87,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public int GenerateBytes(Span<byte> output)
         {
+            if (output.Length <= 0)
+                throw new ArgumentException("must have Length > 0", nameof(output));
+
             int hashPos = m_buffer.Length - m_hLen;
             uint counter = 1;
 
