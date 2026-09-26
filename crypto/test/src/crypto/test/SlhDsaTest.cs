@@ -191,6 +191,36 @@ namespace Org.BouncyCastle.Crypto.Tests
                 (name, data) => ImplContext(name, data, ContextSlowFileParameters[name]));
         }
 
+        /*
+         * Port of bc-java's SLHDSATest.testComponentLengthChecks. Our component constructor is internal, so a
+         * component of the wrong length can only arrive inside an encoding of the wrong length.
+         */
+        [Test]
+        public void EncodingLengthChecks()
+        {
+            var parameters = SlhDsaParameters.slh_dsa_sha2_128s;
+            byte[] sk = Hex.Decode("2F896D61D9CD9038CA303394FADAA22A24AC5EC1D86A989CA2196C3C8632419C" +
+                "1A05A42FE300E87B16AEE116CB2E236358E2C3E62632C9DE03D08A535A0EB7E7");
+            byte[] pk = Arrays.CopyOfRange(sk, sk.Length / 2, sk.Length);
+
+            var privParams = SlhDsaPrivateKeyParameters.FromEncoding(parameters, sk);
+            Assert.That(privParams.GetEncoded(), Is.EqualTo(sk));
+            Assert.That(privParams.GetPublicKeyEncoded(), Is.EqualTo(pk));
+            Assert.That(SlhDsaPublicKeyParameters.FromEncoding(parameters, pk).GetEncoded(), Is.EqualTo(pk));
+
+            for (int delta = -1; delta <= 1; delta += 2)
+            {
+                byte[] badSk = Arrays.CopyOf(sk, sk.Length + delta);
+                var e = Assert.Throws<ArgumentException>(
+                    () => SlhDsaPrivateKeyParameters.FromEncoding(parameters, badSk));
+                Assert.That(e.ParamName, Is.EqualTo("encoding"));
+
+                byte[] badPk = Arrays.CopyOf(pk, pk.Length + delta);
+                e = Assert.Throws<ArgumentException>(() => SlhDsaPublicKeyParameters.FromEncoding(parameters, badPk));
+                Assert.That(e.ParamName, Is.EqualTo("encoding"));
+            }
+        }
+
         // One test case per parameter set so the (expensive) "s" sets run in parallel rather than serially.
         [TestCaseSource(nameof(KeyGenParametersValues))]
         [Parallelizable(ParallelScope.All)]

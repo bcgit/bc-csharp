@@ -132,6 +132,47 @@ namespace Org.BouncyCastle.Crypto.Tests
                 (name, data) => ImplContext(name, data, ContextFileParameters[name]));
         }
 
+        /*
+         * Port of bc-java's MLDSATest.testComponentLengthChecks. Our component constructors are internal, so
+         * a component of the wrong length can only arrive inside an encoding of the wrong length.
+         */
+        [TestCaseSource(nameof(ParametersValues))]
+        [Parallelizable(ParallelScope.All)]
+        public void EncodingLengthChecks(MLDsaParameters parameters)
+        {
+            var kpg = new MLDsaKeyPairGenerator();
+            kpg.Init(new MLDsaKeyGenerationParameters(new SecureRandom(), parameters));
+            var kp = kpg.GenerateKeyPair();
+            var priv = (MLDsaPrivateKeyParameters)kp.Private;
+            var pub = (MLDsaPublicKeyParameters)kp.Public;
+
+            byte[] privEnc = priv.GetEncoded();
+            byte[] pubEnc = pub.GetEncoded();
+            byte[] seed = priv.GetSeed();
+
+            // correct lengths are accepted
+            Assert.That(MLDsaPrivateKeyParameters.FromEncoding(parameters, privEnc).GetEncoded(), Is.EqualTo(privEnc));
+            Assert.That(MLDsaPrivateKeyParameters.FromSeed(parameters, seed).GetEncoded(), Is.EqualTo(privEnc));
+            Assert.That(MLDsaPublicKeyParameters.FromEncoding(parameters, pubEnc).GetEncoded(), Is.EqualTo(pubEnc));
+
+            for (int delta = -1; delta <= 1; delta += 2)
+            {
+                byte[] badPrivEnc = Arrays.CopyOf(privEnc, privEnc.Length + delta);
+                var e = Assert.Throws<ArgumentException>(
+                    () => MLDsaPrivateKeyParameters.FromEncoding(parameters, badPrivEnc));
+                Assert.That(e.ParamName, Is.EqualTo("encoding"));
+
+                byte[] badSeed = Arrays.CopyOf(seed, seed.Length + delta);
+                e = Assert.Throws<ArgumentException>(() => MLDsaPrivateKeyParameters.FromSeed(parameters, badSeed));
+                Assert.That(e.ParamName, Is.EqualTo("seed"));
+
+                byte[] badPubEnc = Arrays.CopyOf(pubEnc, pubEnc.Length + delta);
+                e = Assert.Throws<ArgumentException>(
+                    () => MLDsaPublicKeyParameters.FromEncoding(parameters, badPubEnc));
+                Assert.That(e.ParamName, Is.EqualTo("encoding"));
+            }
+        }
+
         [Test]
         [Parallelizable]
         public void KeyGen()
