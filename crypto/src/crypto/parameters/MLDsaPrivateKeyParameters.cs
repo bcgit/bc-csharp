@@ -167,7 +167,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
         internal byte[] Seed => m_seed;
 
-        // NB: Don't remove - needed by commented-out test cases
+        // NB: Used by tests
         internal byte[] SignInternal(byte[] rnd, byte[] msg, int msgOff, int msgLen)
         {
             var engine = Parameters.ParameterSet.GetEngine(random: null);

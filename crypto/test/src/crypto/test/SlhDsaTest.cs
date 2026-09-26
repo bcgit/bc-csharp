@@ -243,37 +243,38 @@ namespace Org.BouncyCastle.Crypto.Tests
                 (name, data) => ImplKeyGen(name, data, AcvpFileParameters[name]));
         }
 
-        //[Test]
-        //[Parallelizable]
-        //public void SigGen()
-        //{
-        //    RunTestVectors("pqc/crypto/slhdsa", "SLH-DSA-sigGen.txt",
-        //        (name, data) => ImplSigGen(name, data, Parameters[data["parameterSet"]]));
-        //}
+        [Test]
+        [Parallelizable]
+        public void SigGen()
+        {
+            // 204 vectors, 84 of them for the slow 's' parameter sets, so sample them (as bc-java does)
+            RunTestVectors("pqc/crypto/slhdsa", "SLH-DSA-sigGen.txt", sampleOnly: true,
+                (name, data) => ImplSigGen(name, data, Parameters[data["parameterSet"]]));
+        }
 
-        //[TestCaseSource(nameof(SigGenAcvpFiles))]
-        //[Parallelizable(ParallelScope.All)]
-        //public void SigGenAcvp(string fileName)
-        //{
-        //    RunTestVectors("pqc/crypto/slhdsa/acvp", fileName,
-        //        (name, data) => ImplSigGen(name, data, AcvpFileParameters[name]));
-        //}
+        [TestCaseSource(nameof(SigGenAcvpFiles))]
+        [Parallelizable(ParallelScope.All)]
+        public void SigGenAcvp(string fileName)
+        {
+            RunTestVectors("pqc/crypto/slhdsa/acvp", fileName, sampleOnly: true,
+                (name, data) => ImplSigGen(name, data, AcvpFileParameters[name]));
+        }
 
-        //[Test]
-        //[Parallelizable]
-        //public void SigVer()
-        //{
-        //    RunTestVectors("pqc/crypto/slhdsa", "SLH-DSA-sigVer.txt",
-        //        (name, data) => ImplSigVer(name, data, Parameters[data["parameterSet"]]));
-        //}
+        [Test]
+        [Parallelizable]
+        public void SigVer()
+        {
+            RunTestVectors("pqc/crypto/slhdsa", "SLH-DSA-sigVer.txt",
+                (name, data) => ImplSigVer(name, data, Parameters[data["parameterSet"]]));
+        }
 
-        //[TestCaseSource(nameof(SigVerAcvpFiles))]
-        //[Parallelizable(ParallelScope.All)]
-        //public void SigVerAcvp(string fileName)
-        //{
-        //    RunTestVectors("pqc/crypto/slhdsa/acvp", fileName,
-        //        (name, data) => ImplSigVer(name, data, AcvpFileParameters[name]));
-        //}
+        [TestCaseSource(nameof(SigVerAcvpFiles))]
+        [Parallelizable(ParallelScope.All)]
+        public void SigVerAcvp(string fileName)
+        {
+            RunTestVectors("pqc/crypto/slhdsa/acvp", fileName,
+                (name, data) => ImplSigVer(name, data, AcvpFileParameters[name]));
+        }
 
         private static ISigner CreateSigner(SlhDsaParameters parameters, bool deterministic)
         {
@@ -335,11 +336,11 @@ namespace Org.BouncyCastle.Crypto.Tests
             // The current test data is a bit weird and uses internal signing when no explicit context provided.
             if (context == null)
             {
-                //byte[] generated = privateKey.SignInternal(optrand, msg, 0, msg.Length);
-                //Assert.True(Arrays.AreEqual(sm, generated), $"{name} {count}: SignInternal");
+                byte[] generated = privateKey.SignInternal(optrand, msg, 0, msg.Length);
+                Assert.True(Arrays.AreEqual(sm, generated), $"{name} {count}: SignInternal");
 
-                //bool shouldVerify = publicKey.VerifyInternal(msg, 0, msg.Length, sm);
-                //Assert.True(shouldVerify, $"{name} {count}: VerifyInternal");
+                bool shouldVerify = publicKey.VerifyInternal(msg, 0, msg.Length, sm);
+                Assert.True(shouldVerify, $"{name} {count}: VerifyInternal");
             }
             else
             {
@@ -382,40 +383,40 @@ namespace Org.BouncyCastle.Crypto.Tests
             Assert.True(Arrays.AreEqual(sk, privParams.GetEncoded()), name + ": secret key");
         }
 
-        //private static void ImplSigGen(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
-        //{
-        //    byte[] sk = Hex.Decode(data["sk"]);
-        //    byte[] message = Hex.Decode(data["message"]);
-        //    byte[] signature = Hex.Decode(data["signature"]);
+        private static void ImplSigGen(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
+        {
+            byte[] sk = Hex.Decode(data["sk"]);
+            byte[] message = Hex.Decode(data["message"]);
+            byte[] signature = Hex.Decode(data["signature"]);
 
-        //    bool deterministic = !data.ContainsKey("additionalRandomness");
+            bool deterministic = !data.ContainsKey("additionalRandomness");
 
-        //    byte[] additionalRandomness = null;
-        //    if (!deterministic)
-        //    {
-        //        additionalRandomness = Hex.Decode(data["additionalRandomness"]);
-        //    }
+            byte[] additionalRandomness = null;
+            if (!deterministic)
+            {
+                additionalRandomness = Hex.Decode(data["additionalRandomness"]);
+            }
 
-        //    var privateKey = SlhDsaPrivateKeyParameters.FromEncoding(parameters, sk);
+            var privateKey = SlhDsaPrivateKeyParameters.FromEncoding(parameters, sk);
 
-        //    byte[] generated = privateKey.SignInternal(optRand: additionalRandomness, message, 0, message.Length);
+            byte[] generated = privateKey.SignInternal(optRand: additionalRandomness, message, 0, message.Length);
 
-        //    Assert.True(Arrays.AreEqual(generated, signature));
-        //}
+            Assert.True(Arrays.AreEqual(generated, signature));
+        }
 
-        //private static void ImplSigVer(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
-        //{
-        //    bool testPassed = bool.Parse(data["testPassed"]);
-        //    byte[] pk = Hex.Decode(data["pk"]);
-        //    byte[] message = Hex.Decode(data["message"]);
-        //    byte[] signature = Hex.Decode(data["signature"]);
+        private static void ImplSigVer(string name, Dictionary<string, string> data, SlhDsaParameters parameters)
+        {
+            bool testPassed = bool.Parse(data["testPassed"]);
+            byte[] pk = Hex.Decode(data["pk"]);
+            byte[] message = Hex.Decode(data["message"]);
+            byte[] signature = Hex.Decode(data["signature"]);
 
-        //    var publicKey = SlhDsaPublicKeyParameters.FromEncoding(parameters, pk);
+            var publicKey = SlhDsaPublicKeyParameters.FromEncoding(parameters, pk);
 
-        //    bool verified = publicKey.VerifyInternal(message, 0, message.Length, signature);
+            bool verified = publicKey.VerifyInternal(message, 0, message.Length, signature);
 
-        //    Assert.True(verified == testPassed, "expected " + testPassed);
-        //}
+            Assert.True(verified == testPassed, "expected " + testPassed);
+        }
 
         private static void RunTestVectors(string homeDir, string fileName, RunTestVector runTestVector) =>
             RunTestVectors(homeDir, fileName, sampleOnly: false, runTestVector);
@@ -425,6 +426,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             var data = new Dictionary<string, string>();
             var sampler = sampleOnly ? new TestSampler() : null;
+            int count = 0;
             using (var src = new StreamReader(SimpleTest.FindTestResource(homeDir, fileName)))
             {
                 string line;
@@ -446,7 +448,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                     if (data.Count > 0)
                     {
-                        if (sampler == null || !sampler.SkipTest(data["count"]))
+                        if (sampler == null || !sampler.SkipTest(count++))
                         {
                             runTestVector(fileName, data);
                         }
@@ -456,7 +458,7 @@ namespace Org.BouncyCastle.Crypto.Tests
 
                 if (data.Count > 0)
                 {
-                    if (sampler == null || !sampler.SkipTest(data["count"]))
+                    if (sampler == null || !sampler.SkipTest(count++))
                     {
                         runTestVector(fileName, data);
                     }

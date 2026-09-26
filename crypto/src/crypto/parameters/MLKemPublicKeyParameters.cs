@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Returns a copy of the raw FIPS 203 public key encoding.</summary>
         public byte[] GetEncoded() => Arrays.InternalCopyBuffer(m_encoding);
 
-        // NB: Don't remove - needed by commented-out test cases
+        // NB: Used by tests
         internal Tuple<byte[], byte[]> InternalEncapsulate(byte[] randBytes)
         {
             if (randBytes.Length != MLKemEngine.SymBytes)
