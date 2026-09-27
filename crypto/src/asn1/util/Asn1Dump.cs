@@ -238,16 +238,19 @@ namespace Org.BouncyCastle.Asn1.Utilities
             }
         }
 
+        public static void AppendAsString(StringBuilder buf, Asn1Encodable obj) =>
+            AppendAsString(buf, obj, verbose: false);
+
+        public static void AppendAsString(StringBuilder buf, Asn1Encodable obj, bool verbose) =>
+            AsString("", verbose, obj.ToAsn1Object(), buf);
+
         /**
          * dump out a DER object as a formatted string, in non-verbose mode
          *
          * @param obj the Asn1Encodable to be dumped out.
          * @return  the resulting string.
          */
-        public static string DumpAsString(Asn1Encodable obj)
-        {
-            return DumpAsString(obj, false);
-        }
+        public static string DumpAsString(Asn1Encodable obj) => DumpAsString(obj, verbose: false);
 
         /**
          * Dump out the object as a string
@@ -259,7 +262,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
         public static string DumpAsString(Asn1Encodable obj, bool verbose)
         {
             StringBuilder buf = new StringBuilder();
-            AsString("", verbose, obj.ToAsn1Object(), buf);
+            AppendAsString(buf, obj, verbose);
             return buf.ToString();
         }
 
