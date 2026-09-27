@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Macs
     * H(K XOR opad, H(K XOR ipad, text))
     */
     public class HMac
-		: IMac
+        : IMac
     {
         private const byte IPAD = (byte)0x36;
         private const byte OPAD = (byte)0x5C;
@@ -19,10 +19,10 @@ namespace Org.BouncyCastle.Crypto.Macs
         private readonly IDigest digest;
         private readonly int digestSize;
         private readonly int blockLength;
-		private IMemoable ipadState;
-		private IMemoable opadState;
+        private IMemoable ipadState;
+        private IMemoable opadState;
 
-		private readonly byte[] inputPad;
+        private readonly byte[] inputPad;
         private readonly byte[] outputBuf;
 
         public HMac(IDigest digest)
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             get { return digest.AlgorithmName + "/HMAC"; }
         }
 
-		public virtual IDigest GetUnderlyingDigest()
+        public virtual IDigest GetUnderlyingDigest()
         {
             return digest;
         }
@@ -70,28 +70,28 @@ namespace Org.BouncyCastle.Crypto.Macs
 
                 digest.DoFinal(inputPad, 0);
 
-				keyLength = digestSize;
+                keyLength = digestSize;
             }
             else
             {
                 keyParameter.CopyKeyTo(inputPad, 0, keyLength);
             }
 
-			Array.Clear(inputPad, keyLength, blockLength - keyLength);
+            Array.Clear(inputPad, keyLength, blockLength - keyLength);
             Array.Copy(inputPad, 0, outputBuf, 0, blockLength);
 
-			XorPad(inputPad, blockLength, IPAD);
+            XorPad(inputPad, blockLength, IPAD);
             XorPad(outputBuf, blockLength, OPAD);
 
-			if (digest is IMemoable memoable)
-			{
-				opadState = memoable.Copy();
+            if (digest is IMemoable memoable)
+            {
+                opadState = memoable.Copy();
 
-				((IDigest)opadState).BlockUpdate(outputBuf, 0, blockLength);
+                ((IDigest)opadState).BlockUpdate(outputBuf, 0, blockLength);
 
-			    digest.BlockUpdate(inputPad, 0, inputPad.Length);
+                digest.BlockUpdate(inputPad, 0, inputPad.Length);
 
-				ipadState = memoable.Copy();
+                ipadState = memoable.Copy();
             }
             else
             {
@@ -128,28 +128,28 @@ namespace Org.BouncyCastle.Crypto.Macs
 #else
             digest.DoFinal(outputBuf, blockLength);
 
-			if (opadState != null)
-			{
-				((IMemoable)digest).Reset(opadState);
-				digest.BlockUpdate(outputBuf, blockLength, digestSize);
-			}
-			else
-			{
-				digest.BlockUpdate(outputBuf, 0, outputBuf.Length);
-			}
+            if (opadState != null)
+            {
+                ((IMemoable)digest).Reset(opadState);
+                digest.BlockUpdate(outputBuf, blockLength, digestSize);
+            }
+            else
+            {
+                digest.BlockUpdate(outputBuf, 0, outputBuf.Length);
+            }
 
-			int len = digest.DoFinal(output, outOff);
+            int len = digest.DoFinal(output, outOff);
 
-			Array.Clear(outputBuf, blockLength, digestSize);
+            Array.Clear(outputBuf, blockLength, digestSize);
 
-			if (ipadState != null)
-			{
-				((IMemoable)digest).Reset(ipadState);
-			}
-			else
-			{
-				digest.BlockUpdate(inputPad, 0, inputPad.Length);
-			}
+            if (ipadState != null)
+            {
+                ((IMemoable)digest).Reset(ipadState);
+            }
+            else
+            {
+                digest.BlockUpdate(inputPad, 0, inputPad.Length);
+            }
 
             return len;
 #endif
@@ -204,11 +204,11 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
         private static void XorPad(byte[] pad, int len, byte n)
-		{
-			for (int i = 0; i < len; ++i)
+        {
+            for (int i = 0; i < len; ++i)
             {
                 pad[i] ^= n;
             }
-		}
+        }
     }
 }
