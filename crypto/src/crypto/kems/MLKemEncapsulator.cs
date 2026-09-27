@@ -46,9 +46,9 @@ namespace Org.BouncyCastle.Crypto.Kems
             Encapsulate(encBuf.AsSpan(encOff, encLen), secBuf.AsSpan(secOff, secLen));
 #else
             if (EncapsulationLength != encLen)
-                throw new ArgumentException(nameof(encLen));
+                throw new ArgumentException($"Expected {EncapsulationLength}", nameof(encLen));
             if (SecretLength != secLen)
-                throw new ArgumentException(nameof(secLen));
+                throw new ArgumentException($"Expected {SecretLength}", nameof(secLen));
 
             byte[] randBytes = new byte[MLKemEngine.SymBytes];
             m_random.NextBytes(randBytes);
@@ -61,9 +61,9 @@ namespace Org.BouncyCastle.Crypto.Kems
         public void Encapsulate(Span<byte> encapsulation, Span<byte> secret)
         {
             if (EncapsulationLength != encapsulation.Length)
-                throw new ArgumentException(nameof(encapsulation));
+                throw new ArgumentException($"Expected length {EncapsulationLength}", nameof(encapsulation));
             if (SecretLength != secret.Length)
-                throw new ArgumentException(nameof(secret));
+                throw new ArgumentException($"Expected length {SecretLength}", nameof(secret));
 
             Span<byte> randBytes = stackalloc byte[MLKemEngine.SymBytes];
             m_random.NextBytes(randBytes);

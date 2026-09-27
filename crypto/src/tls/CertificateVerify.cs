@@ -11,24 +11,18 @@ namespace Org.BouncyCastle.Tls
         public CertificateVerify(int algorithm, byte[] signature)
         {
             if (!TlsUtilities.IsValidUint16(algorithm))
-                throw new ArgumentException("algorithm");
+                throw new ArgumentException("Expected SignatureScheme (uint16)", nameof(algorithm));
             if (signature == null)
-                throw new ArgumentNullException("signature");
+                throw new ArgumentNullException(nameof(signature));
 
-            this.m_algorithm = algorithm;
-            this.m_signature = signature;
+            m_algorithm = algorithm;
+            m_signature = signature;
         }
 
         /// <returns>a <see cref="SignatureScheme"/> value.</returns>
-        public int Algorithm
-        {
-            get { return m_algorithm; }
-        }
+        public int Algorithm => m_algorithm;
 
-        public byte[] Signature
-        {
-            get { return m_signature; }
-        }
+        public byte[] Signature => m_signature;
 
         /// <summary>Encode this <see cref="CertificateVerify"/> to a <see cref="Stream"/>.</summary>
         /// <param name="output">the <see cref="Stream"/> to encode to.</param>

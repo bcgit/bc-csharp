@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         public LegacyTls13Verifier(int signatureScheme, Tls13Verifier tls13Verifier)
         {
             if (!TlsUtilities.IsValidUint16(signatureScheme))
-                throw new ArgumentException(nameof(signatureScheme));
+                throw new ArgumentException("Expected SignatureScheme (uint16)", nameof(signatureScheme));
 
             m_signatureScheme = signatureScheme;
             m_tls13Verifier = tls13Verifier ?? throw new ArgumentNullException(nameof(tls13Verifier));

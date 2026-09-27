@@ -28,7 +28,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
             if (encapsulation == null)
                 throw new ArgumentNullException(nameof(encapsulation));
             if (encapsulation.Length != parameterSet.NtruCiphertextBytes())
-                throw new ArgumentException(nameof(encapsulation));
+                throw new ArgumentException($"Expected length {parameterSet.NtruCiphertextBytes()}",
+                    nameof(encapsulation));
 
             // TODO[pqc] Avoid copy?
             byte[] sk = m_privateKey.GetEncoded();

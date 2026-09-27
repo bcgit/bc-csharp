@@ -256,7 +256,7 @@ namespace Org.BouncyCastle.Tls
             }
             else if (!TlsUtilities.IsValidUint16(context.Length))
             {
-                throw new ArgumentException("must have length less than 2^16 (or be null)", "context");
+                throw new ArgumentException("must have length less than 2^16 (or be null)", nameof(context));
             }
 
             TlsHash exporterHash = Crypto.CreateHash(cryptoHashAlgorithm);

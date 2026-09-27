@@ -59,11 +59,11 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public static void DH(Span<byte> k, ReadOnlySpan<byte> pk, ReadOnlySpan<byte> sk)
         {
             if (sk.Length != DHSecretKeyBytes)
-                throw new ArgumentException(nameof(sk));
+                throw new ArgumentException($"Expected length {DHSecretKeyBytes}", nameof(sk));
             if (pk.Length != DHPublicKeyBytes)
-                throw new ArgumentException(nameof(pk));
+                throw new ArgumentException($"Expected length {DHPublicKeyBytes}", nameof(pk));
             if (k.Length != DHBytes)
-                throw new ArgumentException(nameof(k));
+                throw new ArgumentException($"Expected length {DHBytes}", nameof(k));
 
             X25519.ScalarMult(sk, pk, k);
         }
@@ -83,9 +83,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public static void DHKeyPair(Span<byte> pk, Span<byte> sk)
         {
             if (sk.Length != DHSecretKeyBytes)
-                throw new ArgumentException(nameof(sk));
+                throw new ArgumentException($"Expected length {DHSecretKeyBytes}", nameof(sk));
             if (pk.Length != DHPublicKeyBytes)
-                throw new ArgumentException(nameof(pk));
+                throw new ArgumentException($"Expected length {DHPublicKeyBytes}", nameof(pk));
 
             RandomNumberGenerator.Fill(sk);
             X25519.ScalarMultBase(sk, pk);
@@ -118,15 +118,15 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public static void Sign(Span<byte> sm, out int smlen, ReadOnlySpan<byte> m, ReadOnlySpan<byte> sk)
         {
             if (sk.Length != SignSecretKeyBytes)
-                throw new ArgumentException(nameof(sk));
+                throw new ArgumentException($"Expected length {SignSecretKeyBytes}", nameof(sk));
 
             int _mlen = m.Length;
             if (_mlen > int.MaxValue - SignBytes)
-                throw new ArgumentException(nameof(m));
+                throw new ArgumentOutOfRangeException(nameof(m));
 
             int _smlen = _mlen + SignBytes;
             if (sm.Length < _smlen)
-                throw new ArgumentException(nameof(sm));
+                throw new ArgumentOutOfRangeException(nameof(sm));
 
             var _sk = sk[..Ed25519.SecretKeySize];
             var _pk = sk[Ed25519.SecretKeySize..];
@@ -153,9 +153,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public static void SignKeyPair(Span<byte> pk, Span<byte> sk)
         {
             if (sk.Length != SignSecretKeyBytes)
-                throw new ArgumentException(nameof(sk));
+                throw new ArgumentException($"Expected length {SignSecretKeyBytes}", nameof(sk));
             if (pk.Length != SignPublicKeyBytes)
-                throw new ArgumentException(nameof(pk));
+                throw new ArgumentException($"Expected length {SignPublicKeyBytes}", nameof(pk));
 
             var _sk = sk[..Ed25519.SecretKeySize];
             var _pk = sk[Ed25519.SecretKeySize..];
@@ -200,15 +200,15 @@ namespace Org.BouncyCastle.Crypto.Utilities
         public static bool SignOpen(Span<byte> m, out int mlen, ReadOnlySpan<byte> sm, ReadOnlySpan<byte> pk)
         {
             if (pk.Length != SignPublicKeyBytes)
-                throw new ArgumentException(nameof(pk));
+                throw new ArgumentException($"Expected length {SignPublicKeyBytes}", nameof(pk));
 
             int _smlen = sm.Length;
             if (_smlen < SignBytes)
-                throw new ArgumentException(nameof(sm));
+                throw new ArgumentOutOfRangeException(nameof(sm));
 
             int _mlen = _smlen - SignBytes;
             if (m.Length < _smlen)
-                throw new ArgumentException(nameof(m));
+                throw new ArgumentOutOfRangeException(nameof(m));
 
             var sig = sm.Slice(0, SignBytes);
             var msg = sm.Slice(SignBytes, _mlen);
