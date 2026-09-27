@@ -294,6 +294,22 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         internal static KeyParameter DoMakeKeyFromPassPhrase(SymmetricKeyAlgorithmTag algorithm, S2k s2k,
             byte[] rawPassPhrase, bool clearPassPhrase)
         {
+            try
+            {
+                return ImplMakeKeyFromPassPhrase(algorithm, s2k, rawPassPhrase, clearPassPhrase);
+            }
+            finally
+            {
+                if (clearPassPhrase && rawPassPhrase != null)
+                {
+                    Arrays.ZeroMemory(rawPassPhrase);
+                }
+            }
+        }
+
+        private static KeyParameter ImplMakeKeyFromPassPhrase(SymmetricKeyAlgorithmTag algorithm, S2k s2k,
+            byte[] rawPassPhrase, bool clearPassPhrase)
+        {
             int keySize = GetKeySize(algorithm);
             byte[] pBytes = rawPassPhrase;
             byte[] keyBytes = new byte[(keySize + 7) / 8];
@@ -419,11 +435,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 generatedBytes += toCopy;
 
                 loopCount++;
-            }
-
-            if (clearPassPhrase && rawPassPhrase != null)
-            {
-                Array.Clear(rawPassPhrase, 0, rawPassPhrase.Length);
             }
 
             return MakeKey(algorithm, keyBytes);
