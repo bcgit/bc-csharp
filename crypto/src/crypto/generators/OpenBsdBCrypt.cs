@@ -31,9 +31,6 @@ namespace Org.BouncyCastle.Crypto.Generators
             (byte)'6', (byte)'7', (byte)'8', (byte)'9'
         };
 
-        /*
-         * set up the decoding table.
-         */
         private static readonly byte[] DecodingTable = new byte[128];
         private static readonly string DefaultVersion = "2y";
         private static readonly HashSet<string> AllowedVersions = new HashSet<string>();
@@ -53,20 +50,19 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        [Obsolete("Use static methods instead")]
         public OpenBsdBCrypt()
         {
         }
 
-        /**
-         * Creates a 60 character Bcrypt String, including
-         * version, cost factor, salt and hash, separated by '$'
-         *
-         * @param version  the version, 2y,2b or 2a. (2a is not backwards compatible.)
-         * @param cost     the cost factor, treated as an exponent of 2
-         * @param salt     a 16 byte salt
-         * @param password the password
-         * @return a 60 character Bcrypt String
-         */
+        /// <summary>
+        /// Creates a 60 character Bcrypt String, including version, cost factor, salt and hash, separated by '$'.
+        /// </summary>
+        /// <param name="version">The version: 2y, 2b or 2a (2a is not backwards compatible).</param>
+        /// <param name="password">The password.</param>
+        /// <param name="salt">A 16 byte salt.</param>
+        /// <param name="cost">The cost factor, treated as an exponent of 2.</param>
+        /// <returns>A 60 character Bcrypt String.</returns>
         private static string CreateBcryptString(string version, byte[] password, byte[] salt, int cost)
         {
             if (!AllowedVersions.Contains(version))
@@ -86,29 +82,25 @@ namespace Org.BouncyCastle.Crypto.Generators
             return sb.ToString();
         }
 
-        /**
-         * Creates a 60 character Bcrypt String, including
-         * version, cost factor, salt and hash, separated by '$' using version
-         * '2y'.
-         *
-         * @param cost     the cost factor, treated as an exponent of 2
-         * @param salt     a 16 byte salt
-         * @param password the password
-         * @return a 60 character Bcrypt String
-         */
+        /// <summary>
+        /// Creates a 60 character Bcrypt String, including version, cost factor, salt and hash, separated by '$' using
+        /// version '2y'.
+        /// </summary>
+        /// <param name="password">The password.</param>
+        /// <param name="salt">A 16 byte salt.</param>
+        /// <param name="cost">The cost factor, treated as an exponent of 2.</param>
+        /// <returns>A 60 character Bcrypt String.</returns>
         public static string Generate(char[] password, byte[] salt, int cost) =>
             Generate(DefaultVersion, password, salt, cost);
 
-        /**
-         * Creates a 60 character Bcrypt String, including
-         * version, cost factor, salt and hash, separated by '$'
-         *
-         * @param version  the version, may be 2b, 2y or 2a. (2a is not backwards compatible.)
-         * @param cost     the cost factor, treated as an exponent of 2
-         * @param salt     a 16 byte salt
-         * @param password the password
-         * @return a 60 character Bcrypt String
-         */
+        /// <summary>
+        /// Creates a 60 character Bcrypt String, including version, cost factor, salt and hash, separated by '$'.
+        /// </summary>
+        /// <param name="version">The version: 2y, 2b or 2a (2a is not backwards compatible).</param>
+        /// <param name="password">The password.</param>
+        /// <param name="salt">A 16 byte salt.</param>
+        /// <param name="cost">The cost factor, treated as an exponent of 2.</param>
+        /// <returns>A 60 character Bcrypt String.</returns>
         public static string Generate(string version, char[] password, byte[] salt, int cost)
         {
             if (!AllowedVersions.Contains(version))
@@ -139,41 +131,41 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
-        /**
-         * Checks if a password corresponds to a 60 character Bcrypt String
-         *
-         * @param bcryptString a 60 character Bcrypt String, including
-         *                     version, cost factor, salt and hash,
-         *                     separated by '$'
-         * @param password     the password as an array of chars
-         * @return true if the password corresponds to the
-         * Bcrypt String, otherwise false
-         */
+        /// <summary>Checks if a password corresponds to a 60 character Bcrypt String.</summary>
+        /// <param name="bcryptString">
+        /// A 60 character Bcrypt String, including version, cost factor, salt and hash, separated by '$'.
+        /// </param>
+        /// <param name="password">The password as an array of chars.</param>
+        /// <returns><c>true</c> if the password corresponds to the Bcrypt String, otherwise <c>false</c>.</returns>
         public static bool CheckPassword(string bcryptString, char[] password)
         {
+            if (bcryptString == null)
+                throw new ArgumentNullException(nameof(bcryptString));
+            if (password == null)
+                throw new ArgumentNullException(nameof(password));
+
             // validate bcryptString:
             if (bcryptString.Length != 60)
                 throw new DataLengthException("Bcrypt String length: " + bcryptString.Length + ", 60 required.");
             if (bcryptString[0] != '$' || bcryptString[3] != '$' || bcryptString[6] != '$')
-                throw new ArgumentException("Invalid Bcrypt String format.", "bcryptString");
+                throw new ArgumentException("Invalid Bcrypt String format.", nameof(bcryptString));
 
             string version = bcryptString.Substring(1, 2);
             if (!AllowedVersions.Contains(version))
-                throw new ArgumentException("Bcrypt version '" + version + "' is not supported by this implementation", "bcryptString");
+                throw new ArgumentException("Bcrypt version '" + version + "' is not supported by this implementation",
+                    nameof(bcryptString));
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             if (!int.TryParse(bcryptString.AsSpan(4, 2), out int cost))
 #else
             if (!int.TryParse(bcryptString.Substring(4, 2), out int cost))
 #endif
-                throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2), nameof(bcryptString));
+                throw new ArgumentException("Invalid cost factor: " + bcryptString.Substring(4, 2),
+                    nameof(bcryptString));
 
             if (cost < 4 || cost > 31)
-                throw new ArgumentException("Invalid cost factor: " + cost + ", 4 < cost < 31 expected.");
-
-            // check password:
-            if (password == null)
-                throw new ArgumentNullException("Missing password.", nameof(password));
+                throw new ArgumentException("Invalid cost factor: " + cost + ", 4 < cost < 31 expected.",
+                    nameof(bcryptString));
 
             int start = bcryptString.LastIndexOf('$') + 1, end = bcryptString.Length - 31;
             byte[] salt = DecodeSaltString(bcryptString.Substring(start, end - start));
@@ -183,12 +175,11 @@ namespace Org.BouncyCastle.Crypto.Generators
             return bcryptString.Equals(newBcryptString);
         }
 
-        /*
-         * encode the input data producing a Bcrypt base 64 string.
-         *
-         * @param 	a byte representation of the salt or the password
-         * @return 	the Bcrypt base64 string
-         */
+        /// <summary>Encode the input data producing a Bcrypt base 64 string.</summary>
+        /// <param name="sb">The <see cref="StringBuilder"/> to append the encoded data to.</param>
+        /// <param name="data">A byte representation of the salt or the password</param>
+        /// <returns>The Bcrypt base64 string.</returns>
+        /// <exception cref="DataLengthException">If the length of <paramref name="data"/> is not 16 or 24.</exception>
         private static void EncodeData(StringBuilder sb, byte[] data)
         {
             if (data.Length != 24 && data.Length != 16) // 192 bit key or 128 bit salt expected
@@ -229,16 +220,13 @@ namespace Org.BouncyCastle.Crypto.Generators
             Strings.AppendFromByteArray(sb, buf, 0, resultLen);
         }
 
-        /*
-         * decodes the bcrypt base 64 encoded SaltString
-         *
-         * @param 		a 22 character Bcrypt base 64 encoded String 
-         * @return 		the 16 byte salt
-         * @exception 	DataLengthException if the length 
-         * 				of parameter is not 22
-         * @exception 	InvalidArgumentException if the parameter
-         * 				contains a value other than from Bcrypts base 64 encoding table
-         */
+        /// <summary>Decodes the bcrypt base 64 encoded SaltString.</summary>
+        /// <param name="saltString">A 22 character Bcrypt base 64 encoded String.</param>
+        /// <returns>The 16 byte salt.</returns>
+        /// <exception cref="DataLengthException">If the length of <paramref name="saltString"/> is not 22.</exception>
+        /// <exception cref="ArgumentException">
+        /// If the parameter contains a value other than from Bcrypts base 64 encoding table.
+        /// </exception>
         private static byte[] DecodeSaltString(string saltString)
         {
             if (saltString.Length != 22)// bcrypt salt must be 22 (16 bytes)
@@ -259,7 +247,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             {
                 int value = Convert.ToInt32(saltChars[i]);
                 if (value > 122 || value < 46 || (value > 57 && value < 65))
-                    throw new ArgumentException("Salt string contains invalid character: " + value, "saltString");
+                    throw new ArgumentException("Salt string contains invalid character: " + value, nameof(saltString));
             }
 
             MemoryStream mOut = new MemoryStream(16);
