@@ -308,16 +308,16 @@ namespace Org.BouncyCastle.X509
             buf.Append("          Next update: ").Append(this.NextUpdate).AppendLine();
             buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).AppendLine();
 
-            byte[] sig = this.GetSignature();
+            byte[] sig = GetSignature();
+            int sigPos = System.Math.Min(20, sig.Length);
 
-            buf.Append("            Signature: ");
-            buf.AppendLine(Hex.ToHexString(sig, 0, 20));
+            buf.Append("            Signature: ").AppendLine(Hex.ToHexString(sig, 0, sigPos));
 
-            for (int i = 20; i < sig.Length; i += 20)
+            while (sigPos < sig.Length)
             {
-                int count = System.Math.Min(20, sig.Length - i);
-                buf.Append("                       ");
-                buf.AppendLine(Hex.ToHexString(sig, i, count));
+                int next = System.Math.Min(20, sig.Length - sigPos);
+                buf.Append("                       ").AppendLine(Hex.ToHexString(sig, sigPos, next));
+                sigPos += next;
             }
 
             X509Extensions extensions = c.TbsCertList.Extensions;

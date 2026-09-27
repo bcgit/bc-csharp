@@ -432,12 +432,15 @@ namespace Org.BouncyCastle.X509
             buf.Append("  Signature Algorithm: ").Append(SigAlgName).AppendLine();
 
             byte[] sig = GetSignature();
-            buf.Append("            Signature: ").AppendLine(Hex.ToHexString(sig, 0, 20));
+            int sigPos = System.Math.Min(20, sig.Length);
 
-            for (int i = 20; i < sig.Length; i += 20)
+            buf.Append("            Signature: ").AppendLine(Hex.ToHexString(sig, 0, sigPos));
+
+            while (sigPos < sig.Length)
             {
-                int len = System.Math.Min(20, sig.Length - i);
-                buf.Append("                       ").AppendLine(Hex.ToHexString(sig, i, len));
+                int next = System.Math.Min(20, sig.Length - sigPos);
+                buf.Append("                       ").AppendLine(Hex.ToHexString(sig, sigPos, next));
+                sigPos += next;
             }
 
             X509Extensions extensions = c.Extensions;
