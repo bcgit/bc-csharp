@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using Org.BouncyCastle.Utilities.Collections;
+
 namespace Org.BouncyCastle.Asn1.X509
 {
     public class CrlEntry
@@ -90,46 +92,6 @@ namespace Org.BouncyCastle.Asn1.X509
     public class TbsCertificateList
         : Asn1Encodable
     {
-        private class RevokedCertificatesEnumeration
-            : IEnumerable<CrlEntry>
-        {
-            private readonly IEnumerable<Asn1Encodable> m_en;
-
-            internal RevokedCertificatesEnumeration(IEnumerable<Asn1Encodable> en)
-            {
-                m_en = en;
-            }
-
-            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => GetEnumerator();
-
-            public IEnumerator<CrlEntry> GetEnumerator() => new RevokedCertificatesEnumerator(m_en.GetEnumerator());
-
-            private sealed class RevokedCertificatesEnumerator
-                : IEnumerator<CrlEntry>
-            {
-                private readonly IEnumerator<Asn1Encodable> m_e;
-
-                internal RevokedCertificatesEnumerator(IEnumerator<Asn1Encodable> e)
-                {
-                    m_e = e;
-                }
-
-                public void Dispose()
-                {
-                    m_e.Dispose();
-                    GC.SuppressFinalize(this);
-                }
-
-                public bool MoveNext() => m_e.MoveNext();
-
-                public void Reset() => m_e.Reset();
-
-                object System.Collections.IEnumerator.Current => Current;
-
-                public CrlEntry Current => CrlEntry.GetInstance(m_e.Current);
-            }
-        }
-
         public static TbsCertificateList GetInstance(object obj)
         {
             if (obj == null)
@@ -196,13 +158,8 @@ namespace Org.BouncyCastle.Asn1.X509
         public CrlEntry[] GetRevokedCertificates() =>
             m_revokedCertificates?.MapElements(CrlEntry.GetInstance) ?? Array.Empty<CrlEntry>();
 
-        public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration()
-        {
-            if (m_revokedCertificates == null)
-                return new List<CrlEntry>(0);
-
-            return new RevokedCertificatesEnumeration(m_revokedCertificates);
-        }
+        public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration() =>
+            CollectionUtilities.Select(m_revokedCertificates ?? DerSequence.Empty, CrlEntry.GetInstance);
 
         public X509Extensions Extensions => m_crlExtensions;
 
