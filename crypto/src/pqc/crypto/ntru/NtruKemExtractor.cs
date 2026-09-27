@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
     /// <summary>
     /// NTRU secret encapsulation extractor.
     /// </summary>
+    // TODO[api] On promotion, rename and implement IKemDecapsulator
     public class NtruKemExtractor
         : IEncapsulatedSecretExtractor
     {
@@ -48,21 +49,12 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
             sha3256.BlockUpdate(encapsulation, 0, encapsulation.Length);
             sha3256.DoFinal(rm, 0);
 
-            Cmov(k, rm, (byte)fail);
+            Bytes.CMov(k.Length, fail, rm, k);
 
             var sharedKey = Arrays.CopyOfRange(k, 0, parameterSet.SharedKeyBytes);
             Array.Clear(k, 0, k.Length);
 
             return sharedKey;
-        }
-
-        private static void Cmov(byte[] r, byte[] x, byte b)
-        {
-            b = (byte)(~b + 1);
-            for (int i = 0; i < r.Length; i++)
-            {
-                r[i] ^= (byte)(b & (x[i] ^ r[i]));
-            }
         }
 
         public int EncapsulationLength => m_privateKey.Parameters.ParameterSet.NtruCiphertextBytes();

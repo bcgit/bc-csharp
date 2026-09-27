@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Ntru
     ///
     /// <seealso cref="NtruKemExtractor"/>
     /// <seealso href="https://ntru.org/">NTRU website</seealso>
+    // TODO[api] On promotion, rename and implement IKemEncapsulator
     public class NtruKemGenerator
         : IEncapsulatedSecretGenerator
     {
