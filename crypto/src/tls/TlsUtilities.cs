@@ -5703,6 +5703,17 @@ namespace Org.BouncyCastle.Tls
             switch (extensionType)
             {
             case ExtensionType.server_name:
+            {
+                switch (handshakeType)
+                {
+                case HandshakeType.client_hello:
+                case HandshakeType.encrypted_extensions:
+                case HandshakeType.certificate_request:
+                    return true;
+                default:
+                    return false;
+                }
+            }
             case ExtensionType.max_fragment_length:
             case ExtensionType.supported_groups:
             case ExtensionType.use_srtp:
@@ -5710,6 +5721,8 @@ namespace Org.BouncyCastle.Tls
             case ExtensionType.application_layer_protocol_negotiation:
             case ExtensionType.client_certificate_type:
             case ExtensionType.server_certificate_type:
+            case ExtensionType.cached_info:
+            case ExtensionType.record_size_limit:
             {
                 switch (handshakeType)
                 {
@@ -5773,6 +5786,8 @@ namespace Org.BouncyCastle.Tls
                 }
             }
             case ExtensionType.pre_shared_key:
+            // TODO DTLS 1.3 differences
+            // case ExtensionType.connection_id:
             {
                 switch (handshakeType)
                 {
