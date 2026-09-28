@@ -1311,9 +1311,6 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void NotifyClientCertificate(Certificate clientCertificate)
         {
-            if (null == m_certificateRequest)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-
             TlsUtilities.ProcessClientCertificate(m_tlsServerContext, clientCertificate, m_keyExchange, m_tlsServer);
         }
 
@@ -1334,6 +1331,16 @@ namespace Org.BouncyCastle.Tls
             Certificate clientCertificate = Certificate.Parse(options, m_tlsServerContext, buf, null);
 
             AssertEmpty(buf);
+
+            /*
+             * RFC 8446 4.4.2. If this message is in response to a CertificateRequest, the value of
+             * certificate_request_context in that message.
+             */
+            if (!m_certificateRequest.HasCertificateRequestContext(clientCertificate.GetCertificateRequestContext()))
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+
+            TlsUtilities.Check13CertificateEntryExtensions(clientCertificate,
+                m_certificateRequest.CreateExtensions13());
 
             NotifyClientCertificate(clientCertificate);
         }

@@ -165,23 +165,31 @@ namespace Org.BouncyCastle.Tls.Tests
         }
 
         /// <summary>
-        /// RFC 8446 sec. 4.2: a server answers only the extensions the client sent, so a staple the client never asked
-        /// for is ignored - not read, and not a reason to fail the handshake. The staple has to be attached to the
-        /// Certificate by hand here, the protocol declining to consult CertificateStatus for a client that did not ask.
+        /// RFC 8446 sec. 4.2: a server answers only the extensions the client sent, and an endpoint receiving any other
+        /// MUST abort the handshake with unsupported_extension - so a staple the client never asked for fails it. The
+        /// staple has to be attached to the Certificate by hand here, the protocol declining to consult
+        /// CertificateStatus for a client that did not ask.
         /// </summary>
         [Test]
-        public void ClientIgnoresAnUnsolicitedStaple()
+        public void ClientRejectsAnUnsolicitedStaple()
         {
             byte[] extensionData = TlsExtensionsUtilities.CreateStatusRequestExtension13(
                 new CertificateStatus(CertificateStatusType.ocsp, CreateOcspResponse("unsolicited")));
 
-            CapturingTlsClient client = RunHandshake(null, false, false, extensionData);
+            LoopbackResult result = RunHandshake(new CapturingTlsClient(false), null, false, extensionData);
 
-            Assert.AreEqual("unsolicited", GetStapledMarker(client.CertificateEntryList[0]),
-                "the staple should still have been on the wire");
+            AssertClientFailedWith(result, AlertDescription.unsupported_extension);
+        }
 
-            Assert.Null(client.ServerCertificate.CertificateStatus);
-            Assert.Null(TlsUtilities.GetCertificateStatusAt(client.ServerCertificate, 0));
+        /// <summary>
+        /// Every CertificateEntry is held to the ClientHello, not just the end-entity certificate's.
+        /// </summary>
+        [Test]
+        public void ClientRejectsAnUnsolicitedStapleOnAnIntermediate()
+        {
+            LoopbackResult result = RunHandshake(new CapturingTlsClient(false), null, true, null);
+
+            AssertClientFailedWith(result, AlertDescription.unsupported_extension);
         }
 
         /// <summary>

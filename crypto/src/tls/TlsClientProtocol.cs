@@ -1540,7 +1540,8 @@ namespace Org.BouncyCastle.Tls
             if (m_selectedPsk13)
                 throw new TlsFatalAlert(AlertDescription.unexpected_message);
 
-            m_authentication = TlsUtilities.Receive13ServerCertificate(m_tlsClientContext, m_tlsClient, buf);
+            m_authentication = TlsUtilities.Receive13ServerCertificate(m_tlsClientContext, m_tlsClient,
+                m_clientExtensions, buf);
 
             // NOTE: In TLS 1.3 we don't have to wait for a possible CertificateStatus message.
             HandleServerCertificate();

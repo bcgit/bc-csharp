@@ -5016,7 +5016,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         internal static TlsAuthentication Receive13ServerCertificate(TlsClientContext clientContext, TlsClient client,
-            MemoryStream buf)
+            IDictionary<int, byte[]> clientExtensions, MemoryStream buf)
         {
             SecurityParameters securityParameters = clientContext.SecurityParameters;
             if (null != securityParameters.PeerCertificate)
@@ -5037,6 +5037,8 @@ namespace Org.BouncyCastle.Tls
 
             if (serverCertificate.IsEmpty)
                 throw new TlsFatalAlert(AlertDescription.decode_error);
+
+            Check13CertificateEntryExtensions(serverCertificate, clientExtensions);
 
             securityParameters.m_peerCertificate = serverCertificate;
             securityParameters.m_tlsServerEndPoint = null;
@@ -5918,6 +5920,45 @@ namespace Org.BouncyCastle.Tls
                 if (!IsPermittedExtensionType13(handshakeType, extensionType))
                     throw new TlsFatalAlert(alertDescription, "Invalid extension: "
                         + ExtensionType.GetText(extensionType));
+            }
+        }
+
+        /// <summary>
+        /// RFC 8446 4.4.2. Extensions in the Certificate message from the server MUST correspond to ones from the
+        /// ClientHello message. Extensions in the Certificate message from the client MUST correspond to extensions in
+        /// the CertificateRequest message from the server.
+        /// </summary>
+        /// <param name="certificate">A TLS 1.3 Certificate message received from the peer.</param>
+        /// <param name="requestExtensions">
+        /// The extensions of the ClientHello (for a server Certificate) or the CertificateRequest (for a client
+        /// Certificate) that this endpoint sent.
+        /// </param>
+        /// <exception cref="IOException"/>
+        internal static void Check13CertificateEntryExtensions(Certificate certificate,
+            IDictionary<int, byte[]> requestExtensions)
+        {
+            int count = certificate.Length;
+            for (int i = 0; i < count; ++i)
+            {
+                var extensions = certificate.GetCertificateEntryAt(i).Extensions;
+                if (null == extensions)
+                {
+                    continue;
+                }
+
+                foreach (int extensionType in extensions.Keys)
+                {
+                    /*
+                     * RFC 8446 4.2. Implementations MUST NOT send extension responses if the remote endpoint did
+                     * not send the corresponding extension requests [..]. Upon receiving such an extension, an
+                     * endpoint MUST abort the handshake with an "unsupported_extension" alert.
+                     */
+                    if (!HasExtension(requestExtensions, extensionType))
+                    {
+                        throw new TlsFatalAlert(AlertDescription.unsupported_extension,
+                            "Unrequested extension in CertificateEntry: " + ExtensionType.GetText(extensionType));
+                    }
+                }
             }
         }
 

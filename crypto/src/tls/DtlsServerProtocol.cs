@@ -778,9 +778,6 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         protected virtual void NotifyClientCertificate(ServerHandshakeState state, Certificate clientCertificate)
         {
-            if (null == state.certificateRequest)
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-
             TlsUtilities.ProcessClientCertificate(state.serverContext, clientCertificate, state.keyExchange,
                 state.server);
         }

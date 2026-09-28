@@ -138,21 +138,7 @@ namespace Org.BouncyCastle.Tls
             {
                 TlsUtilities.WriteOpaque8(m_certificateRequestContext, output);
 
-                var extensions = new Dictionary<int, byte[]>();
-                TlsExtensionsUtilities.AddSignatureAlgorithmsExtension(extensions, m_supportedSignatureAlgorithms);
-
-                if (null != m_supportedSignatureAlgorithmsCert)
-                {
-                    TlsExtensionsUtilities.AddSignatureAlgorithmsCertExtension(extensions,
-                        m_supportedSignatureAlgorithmsCert);
-                }
-
-                if (null != m_certificateAuthorities)
-                {
-                    TlsExtensionsUtilities.AddCertificateAuthoritiesExtension(extensions, m_certificateAuthorities);
-                }
-
-                byte[] extEncoding = TlsProtocol.WriteExtensionsData(extensions);
+                byte[] extEncoding = TlsProtocol.WriteExtensionsData(CreateExtensions13());
 
                 TlsUtilities.WriteOpaque16(extEncoding, output);
                 return;
@@ -190,6 +176,27 @@ namespace Org.BouncyCastle.Tls
                     TlsUtilities.WriteOpaque16(derEncoding, output);
                 }
             }
+        }
+
+        /// <summary>The extensions of this (TLS 1.3) CertificateRequest, as <see cref="Encode"/> sends them.</summary>
+        /// <exception cref="IOException"/>
+        internal IDictionary<int, byte[]> CreateExtensions13()
+        {
+            var extensions = new Dictionary<int, byte[]>();
+            TlsExtensionsUtilities.AddSignatureAlgorithmsExtension(extensions, m_supportedSignatureAlgorithms);
+
+            if (null != m_supportedSignatureAlgorithmsCert)
+            {
+                TlsExtensionsUtilities.AddSignatureAlgorithmsCertExtension(extensions,
+                    m_supportedSignatureAlgorithmsCert);
+            }
+
+            if (null != m_certificateAuthorities)
+            {
+                TlsExtensionsUtilities.AddCertificateAuthoritiesExtension(extensions, m_certificateAuthorities);
+            }
+
+            return extensions;
         }
 
         /// <summary>Parse a <see cref="CertificateRequest"/> from a <see cref="Stream"/></summary>
