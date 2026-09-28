@@ -12,21 +12,12 @@ namespace Org.BouncyCastle.Tls
 
         public CertificateEntry(TlsCertificate certificate, IDictionary<int, byte[]> extensions)
         {
-            if (null == certificate)
-                throw new ArgumentNullException("certificate");
-
-            this.m_certificate = certificate;
-            this.m_extensions = extensions;
+            m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
+            m_extensions = extensions;
         }
 
-        public TlsCertificate Certificate
-        {
-            get { return m_certificate; }
-        }
+        public TlsCertificate Certificate => m_certificate;
 
-        public IDictionary<int, byte[]> Extensions
-        {
-            get { return m_extensions; }
-        }
+        public IDictionary<int, byte[]> Extensions => m_extensions;
     }
 }
