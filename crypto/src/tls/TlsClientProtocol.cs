@@ -594,7 +594,7 @@ namespace Org.BouncyCastle.Tls
                     }
                     else
                     {
-                        m_keyExchange.ProcessClientCredentials(clientAuthCredentials);                    
+                        m_keyExchange.ProcessClientCredentials(clientAuthCredentials);
                     }
 
                     var clientSupplementalData = m_tlsClient.GetClientSupplementalData();
@@ -607,7 +607,7 @@ namespace Org.BouncyCastle.Tls
                     if (m_certificateRequest != null)
                     {
                         SendCertificateMessage(clientAuthCertificate, null);
-                        this.m_connectionState = CS_CLIENT_CERTIFICATE;                    
+                        this.m_connectionState = CS_CLIENT_CERTIFICATE;
                     }
 
                     SendClientKeyExchange();
@@ -1198,7 +1198,7 @@ namespace Org.BouncyCastle.Tls
             /*
              * RFC 3546 2.2 Note that the extended server hello message is only sent in response to an
              * extended client hello message.
-             * 
+             *
              * However, see RFC 5746 exception below. We always include the SCSV, so an Extended Server
              * Hello is always allowed.
              */
@@ -1245,7 +1245,8 @@ namespace Org.BouncyCastle.Tls
                 }
             }
 
-            byte[] renegExtData = TlsUtilities.GetExtensionData(serverHelloExtensions, ExtensionType.renegotiation_info);
+            byte[] renegExtData = TlsUtilities.GetExtensionData(serverHelloExtensions,
+                ExtensionType.renegotiation_info);
 
             // NOT renegotiating
             {
@@ -1413,7 +1414,7 @@ namespace Org.BouncyCastle.Tls
             if (postHandshakeAuth)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
 
-            /* 
+            /*
              * RFC 8446 4.3.2. A server which is authenticating with a certificate MAY optionally
              * request a certificate from the client.
              */
@@ -1725,7 +1726,7 @@ namespace Org.BouncyCastle.Tls
 
             TlsSession sessionToResume = offeringTlsV12Minus ? m_tlsClient.GetSessionToResume() : null;
 
-            // NOTE: Client is free to modify the cipher suites up until GetSessionToResume 
+            // NOTE: Client is free to modify the cipher suites up until GetSessionToResume
             int[] offeredCipherSuites = m_tlsClient.GetCipherSuites();
 
             bool fallback = m_tlsClient.IsFallback();
@@ -1816,7 +1817,7 @@ namespace Org.BouncyCastle.Tls
             this.m_clientBinders = TlsUtilities.AddPreSharedKeyToClientHello(m_tlsClientContext, m_tlsClient,
                 m_clientExtensions, offeredCipherSuites);
 
-            // TODO[tls13-psk] Perhaps don't add key_share if external PSK(s) offered and 'psk_dhe_ke' not offered  
+            // TODO[tls13-psk] Perhaps don't add key_share if external PSK(s) offered and 'psk_dhe_ke' not offered
             this.m_clientAgreements = TlsUtilities.AddKeyShareToClientHello(m_tlsClientContext, m_tlsClient,
                 m_clientExtensions);
 

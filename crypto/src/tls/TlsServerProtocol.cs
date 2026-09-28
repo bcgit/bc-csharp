@@ -168,7 +168,7 @@ namespace Org.BouncyCastle.Tls
 
                 /*
                  * TODO[tls13] Confirm fields in the ClientHello haven't changed
-                 * 
+                 *
                  * RFC 8446 4.1.2 [..] when the server has responded to its ClientHello with a
                  * HelloRetryRequest [..] the client MUST send the same ClientHello without
                  * modification, except as follows: [key_share, early_data, cookie, pre_shared_key,
@@ -219,7 +219,7 @@ namespace Org.BouncyCastle.Tls
 
                 /*
                  * NOTE: Currently no server support for session resumption
-                 * 
+                 *
                  * If adding support, ensure securityParameters.tlsUnique is set to the localVerifyData, but
                  * ONLY when extended_master_secret has been negotiated (otherwise NULL).
                  */
@@ -403,7 +403,7 @@ namespace Org.BouncyCastle.Tls
             this.m_offeredCipherSuites = clientHello.CipherSuites;
 
 
- 
+
             SecurityParameters securityParameters = m_tlsServerContext.SecurityParameters;
 
             m_tlsServerContext.SetClientSupportedVersions(
@@ -424,7 +424,7 @@ namespace Org.BouncyCastle.Tls
                 clientVersion = ProtocolVersion.GetLatestTls(m_tlsServerContext.ClientSupportedVersions);
             }
 
-            // Set the legacy_record_version to use for early alerts 
+            // Set the legacy_record_version to use for early alerts
             m_recordStream.SetWriteVersion(clientVersion);
 
             if (!ProtocolVersion.SERVER_EARLIEST_SUPPORTED_TLS.IsEqualOrEarlierVersionOf(clientVersion))
@@ -485,7 +485,8 @@ namespace Org.BouncyCastle.Tls
 
             this.m_clientExtensions = clientHello.Extensions;
 
-            byte[] clientRenegExtData = TlsUtilities.GetExtensionData(m_clientExtensions, ExtensionType.renegotiation_info);
+            byte[] clientRenegExtData = TlsUtilities.GetExtensionData(m_clientExtensions,
+                ExtensionType.renegotiation_info);
 
             // NOT renegotiating
             {
@@ -522,11 +523,8 @@ namespace Org.BouncyCastle.Tls
                      */
                     securityParameters.m_secureRenegotiation = true;
 
-                    if (!Arrays.FixedTimeEquals(clientRenegExtData,
-                        CreateRenegotiationInfo(TlsUtilities.EmptyBytes)))
-                    {
+                    if (!Arrays.FixedTimeEquals(clientRenegExtData, CreateRenegotiationInfo(TlsUtilities.EmptyBytes)))
                         throw new TlsFatalAlert(AlertDescription.handshake_failure);
-                    }
                 }
             }
 
@@ -765,7 +763,7 @@ namespace Org.BouncyCastle.Tls
 
             /*
              * TODO[tls13] Abbreviated handshakes (PSK resumption)
-             * 
+             *
              * NOTE: No CertificateRequest, Certificate, CertificateVerify messages, but client
              * might now send EndOfEarlyData after receiving server Finished message.
              */
@@ -1170,7 +1168,7 @@ namespace Org.BouncyCastle.Tls
                             /*
                              * RFC 5246 If no suitable certificate is available, the client MUST send a
                              * certificate message containing no certificates.
-                             * 
+                             *
                              * NOTE: In previous RFCs, this was SHOULD instead of MUST.
                              */
                             throw new TlsFatalAlert(AlertDescription.unexpected_message);
