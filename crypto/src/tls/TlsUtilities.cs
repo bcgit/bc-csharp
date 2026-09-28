@@ -1167,6 +1167,9 @@ namespace Org.BouncyCastle.Tls
             return extensionData;
         }
 
+        public static bool HasExtension(IDictionary<int, byte[]> extensions, int extensionType) =>
+             extensions != null && extensions.ContainsKey(extensionType);
+
         public static bool HasExpectedEmptyExtensionData(IDictionary<int, byte[]> extensions, int extensionType,
             short alertDescription)
         {
@@ -5437,8 +5440,7 @@ namespace Org.BouncyCastle.Tls
 
                 OcspResponse ocspResponse = i < ocspResponseList.Count ? ocspResponseList[i] : null;
 
-                if (null != ocspResponse &&
-                    null == TlsUtilities.GetExtensionData(extensions, ExtensionType.status_request))
+                if (null != ocspResponse && !HasExtension(extensions, ExtensionType.status_request))
                 {
                     byte[] extensionData = TlsExtensionsUtilities.CreateStatusRequestExtension13(
                         new CertificateStatus(CertificateStatusType.ocsp, ocspResponse));

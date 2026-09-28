@@ -841,7 +841,7 @@ namespace Org.BouncyCastle.Tls
                     if (ExtensionType.cookie == extensionType)
                         continue;
 
-                    if (null == TlsUtilities.GetExtensionData(m_clientExtensions, extensionType))
+                    if (!TlsUtilities.HasExtension(m_clientExtensions, extensionType))
                     {
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension,
                             "Unrequested extension in HelloRetryRequest: " + ExtensionType.GetText(extensionType));
@@ -1224,7 +1224,7 @@ namespace Org.BouncyCastle.Tls
                      * associated ClientHello, it MUST abort the handshake with an unsupported_extension
                      * fatal alert.
                      */
-                    if (null == TlsUtilities.GetExtensionData(clientHelloExtensions, extType))
+                    if (!TlsUtilities.HasExtension(clientHelloExtensions, extType))
                     {
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension,
                             "Unrequested extension in ServerHello: " + ExtensionType.GetText(extType));
@@ -1453,7 +1453,7 @@ namespace Org.BouncyCastle.Tls
                  */
                 foreach (int extType in m_serverExtensions.Keys)
                 {
-                    if (null == TlsUtilities.GetExtensionData(m_clientExtensions, extType))
+                    if (!TlsUtilities.HasExtension(m_clientExtensions, extType))
                     {
                         throw new TlsFatalAlert(AlertDescription.unsupported_extension,
                             "Unrequested extension in EncryptedExtensions: " + ExtensionType.GetText(extType));
@@ -1842,8 +1842,7 @@ namespace Org.BouncyCastle.Tls
                  * TLS_EMPTY_RENEGOTIATION_INFO_SCSV signaling cipher suite value in the ClientHello.
                  * Including both is NOT RECOMMENDED.
                  */
-                bool noRenegExt = (null == TlsUtilities.GetExtensionData(m_clientExtensions,
-                    ExtensionType.renegotiation_info));
+                bool noRenegExt = !TlsUtilities.HasExtension(m_clientExtensions, ExtensionType.renegotiation_info);
                 bool noRenegScsv = !Arrays.Contains(offeredCipherSuites, CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV);
 
                 if (noRenegExt && noRenegScsv)

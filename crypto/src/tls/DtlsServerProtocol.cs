@@ -604,9 +604,8 @@ namespace Org.BouncyCastle.Tls
                  */
                 if (securityParameters.IsSecureRenegotiation)
                 {
-                    byte[] serverRenegExtData = TlsUtilities.GetExtensionData(state.serverExtensions,
+                    bool noRenegExt = !TlsUtilities.HasExtension(state.serverExtensions,
                         ExtensionType.renegotiation_info);
-                    bool noRenegExt = (null == serverRenegExtData);
 
                     if (noRenegExt)
                     {
