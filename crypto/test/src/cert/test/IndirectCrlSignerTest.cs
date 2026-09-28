@@ -126,6 +126,34 @@ namespace Org.BouncyCastle.Cert.Tests
                 maxPathLength: 5, excluded: null);
         }
 
+        /// <summary>
+        /// The CRL signer is not the certificate's issuer, so the certificate's entry names its issuer
+        /// through the certificateIssuer extension.
+        /// </summary>
+        [Test]
+        public void RevocationFoundUnderAnotherCRLIssuer()
+        {
+            Pki pki = BuildPki(1);
+            pki.crl = IndirectCrl(pki.signerKey, pki.signers[0], revoked: pki.subCa);
+
+            SubCaRevoked(pki);
+        }
+
+        private void SubCaRevoked(Pki pki)
+        {
+            try
+            {
+                Validate(pki);
+                Assert.Fail("revoked certificate accepted with a CRL");
+            }
+            catch (PkixCertPathBuilderException e)
+            {
+                string chain = MessageChain(e);
+
+                Assert.GreaterOrEqual(chain.IndexOf("revocation"), 0, "unexpected failure with a CRL: " + chain);
+            }
+        }
+
         private void SignerRejected(string failMessage, Pki pki, int maxPathLength, ISet<X509Certificate> excluded)
         {
             try
@@ -249,8 +277,8 @@ namespace Org.BouncyCastle.Cert.Tests
                 rootKeys[0], pki.roots[0], crlDp);
 
             int last = pki.signers.Count - 1;
-            pki.crl = IndirectCrl(signerKeys[last], pki.signers[last]);
-
+            pki.signerKey = signerKeys[last];
+            pki.crl = IndirectCrl(pki.signerKey, pki.signers[last], revoked: null);
             return pki;
         }
 
@@ -299,7 +327,11 @@ namespace Org.BouncyCastle.Cert.Tests
             return Sign(b, caKey.Private);
         }
 
-        private X509Crl IndirectCrl(AsymmetricCipherKeyPair signerKey, X509Certificate signerCert)
+        /// <summary>
+        /// An indirect CRL from the given signer, revoking the certificate revoked when it is not null.
+        /// </summary>
+        private X509Crl IndirectCrl(AsymmetricCipherKeyPair signerKey, X509Certificate signerCert,
+            X509Certificate revoked)
         {
             DateTime now = DateTime.UtcNow;
 
@@ -312,6 +344,19 @@ namespace Org.BouncyCastle.Cert.Tests
                 new IssuingDistributionPoint(null, false, false, null, true, false));
             b.AddExtension(X509Extensions.AuthorityKeyIdentifier, critical: false,
                 X509ExtensionUtilities.CreateAuthorityKeyIdentifier(signerCert));
+
+            if (revoked != null)
+            {
+                // the certificate's entry inherits its issuer from the entry before it (RFC 5280 sec. 5.3.3).
+                var gen = new X509ExtensionsGenerator();
+                gen.AddExtension(X509Extensions.CertificateIssuer, critical: true,
+                    new GeneralNames(new GeneralName(revoked.IssuerDN)));
+                var extensions = gen.Generate();
+
+                var revokedSerial = revoked.SerialNumber;
+                b.AddCrlEntry(revokedSerial.Add(BigInteger.One), now.AddHours(-1), extensions);
+                b.AddCrlEntry(revokedSerial, now.AddHours(-1), CrlReason.KeyCompromise);
+            }
 
             return b.Generate(new Asn1SignatureFactory(SignatureAlgorithm, signerKey.Private));
         }
@@ -342,6 +387,7 @@ namespace Org.BouncyCastle.Cert.Tests
             internal readonly List<X509Certificate> intermediates = new List<X509Certificate>();
             internal X509Certificate subCa;
             internal X509Crl crl;
+            internal AsymmetricCipherKeyPair signerKey;
         }
     }
 }

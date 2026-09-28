@@ -55,53 +55,55 @@ namespace Org.BouncyCastle.X509
             }
         }
 
-        private readonly CertificateList c;
-        private readonly byte[] sigAlgParams;
-        private readonly bool isIndirect;
+        private readonly CertificateList m_certificateList;
+        private readonly byte[] m_sigAlgParams;
+        private readonly bool m_isIndirect;
 
         private string m_sigAlgName = null;
 
-        private CachedEncoding cachedEncoding;
+        private CachedEncoding m_cachedEncoding;
 
-        private volatile bool hashValueSet;
-        private volatile int hashValue;
+        private volatile bool m_hashValueSet;
+        private volatile int m_hashValue;
 
         public X509Crl(byte[] encoding)
             : this(CertificateList.GetInstance(encoding))
         {
         }
 
+        // TODO[api] Rename to 'certificateList'
         public X509Crl(CertificateList c)
         {
-            this.c = c;
+            m_certificateList = c ?? throw new ArgumentNullException(nameof(c));
 
             try
             {
                 Asn1Encodable parameters = c.SignatureAlgorithm.Parameters;
-                this.sigAlgParams = parameters?.GetEncoded(Asn1Encodable.Der);
+                m_sigAlgParams = parameters?.GetEncoded(Asn1Encodable.Der);
 
-                this.isIndirect = IsIndirectCrl;
+                m_isIndirect = ImplIsIndirectCrl(c);
             }
             catch (Exception e)
             {
-                throw new CrlException("CRL contents invalid: " + e);
+                throw new CrlException("CRL contents invalid", e);
             }
         }
 
-        public virtual CertificateList CertificateList => c;
+        public virtual CertificateList CertificateList => m_certificateList;
 
-        protected override X509Extensions GetX509Extensions() => c.Version >= 2 ? c.TbsCertList.Extensions : null;
+        protected override X509Extensions GetX509Extensions() =>
+            m_certificateList.Version >= 2 ? m_certificateList.Extensions : null;
 
         // TODO[api] Rename 'key' to 'publicKey'
         public virtual bool IsSignatureValid(AsymmetricKeyParameter key) =>
-            CheckSignatureValid(new Asn1VerifierFactory(c.SignatureAlgorithm, key));
+            CheckSignatureValid(new Asn1VerifierFactory(m_certificateList.SignatureAlgorithm, key));
 
         public virtual bool IsSignatureValid(IVerifierFactoryProvider verifierProvider) =>
-            CheckSignatureValid(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
+            CheckSignatureValid(verifierProvider.CreateVerifierFactory(m_certificateList.SignatureAlgorithm));
 
         public virtual bool IsAlternativeSignatureValid(IVerifierFactoryProvider verifierProvider)
         {
-            var tbsCertList = c.TbsCertList;
+            var tbsCertList = m_certificateList.TbsCertList;
             var extensions = tbsCertList.Extensions;
 
             AltSignatureAlgorithm altSigAlg = AltSignatureAlgorithm.FromExtensions(extensions);
@@ -130,7 +132,7 @@ namespace Org.BouncyCastle.X509
         }
 
         public virtual void Verify(AsymmetricKeyParameter publicKey) =>
-            CheckSignature(new Asn1VerifierFactory(c.SignatureAlgorithm, publicKey));
+            CheckSignature(new Asn1VerifierFactory(m_certificateList.SignatureAlgorithm, publicKey));
 
         /// <summary>
         /// Verify the CRL's signature using a verifier created using the passed in verifier provider.
@@ -139,7 +141,7 @@ namespace Org.BouncyCastle.X509
         /// <returns>True if the signature is valid.</returns>
         /// <exception cref="Exception">If verifier provider is not appropriate or the CRL algorithm is invalid.</exception>
         public virtual void Verify(IVerifierFactoryProvider verifierProvider) =>
-            CheckSignature(verifierProvider.CreateVerifierFactory(c.SignatureAlgorithm));
+            CheckSignature(verifierProvider.CreateVerifierFactory(m_certificateList.SignatureAlgorithm));
 
         /// <summary>Verify the CRL's alternative signature using a verifier created using the passed in
         /// verifier provider.</summary>
@@ -161,52 +163,78 @@ namespace Org.BouncyCastle.X509
 
         protected virtual bool CheckSignatureValid(IVerifierFactory verifier)
         {
-            var tbsCertList = c.TbsCertList;
+            var tbsCertList = m_certificateList.TbsCertList;
 
-            if (!X509Utilities.AreEquivalentAlgorithms(c.SignatureAlgorithm, tbsCertList.Signature))
+            if (!X509Utilities.AreEquivalentAlgorithms(m_certificateList.SignatureAlgorithm, tbsCertList.Signature))
                 throw new CrlException("Signature algorithm on CertificateList does not match TbsCertList.");
 
-            return X509Utilities.VerifySignature(verifier, tbsCertList, c.Signature);
+            return X509Utilities.VerifySignature(verifier, tbsCertList, m_certificateList.Signature);
         }
 
-        public virtual int Version => c.Version;
+        public virtual int Version => m_certificateList.Version;
 
-        public virtual X509Name IssuerDN => c.Issuer;
+        public virtual X509Name IssuerDN => m_certificateList.Issuer;
 
-        public virtual DateTime ThisUpdate => c.ThisUpdate.ToDateTime();
+        public virtual DateTime ThisUpdate => m_certificateList.ThisUpdate.ToDateTime();
 
-        public virtual DateTime? NextUpdate => c.NextUpdate?.ToDateTime();
+        public virtual DateTime? NextUpdate => m_certificateList.NextUpdate?.ToDateTime();
 
-        private ISet<X509CrlEntry> LoadCrlEntries()
+        /// <summary>
+        /// Returns the first entry with the serial number whatever its issuer - the cert path validators rely on that.
+        /// </summary>
+        public virtual X509CrlEntry GetRevokedCertificate(BigInteger serialNumber)
         {
-            var entrySet = new HashSet<X509CrlEntry>();
-            var revoked = c.GetRevokedCertificateEnumeration();
-
-            X509Name previousCertificateIssuer = IssuerDN;
-            foreach (CrlEntry entry in revoked)
+            X509Name certificateIssuer = null;
+            foreach (CrlEntry entry in m_certificateList.GetRevokedCertificateEnumeration())
             {
-                X509CrlEntry crlEntry = new X509CrlEntry(entry, isIndirect, previousCertificateIssuer);
-                entrySet.Add(crlEntry);
-                previousCertificateIssuer = crlEntry.GetCertificateIssuer();
+                certificateIssuer = X509CrlEntry.LoadCertificateIssuer(entry, m_isIndirect, certificateIssuer);
+
+                if (entry.UserCertificate.HasValue(serialNumber))
+                    return new X509CrlEntry(entry, certificateIssuer);
             }
 
-            return entrySet;
+            return null;
         }
 
-        public virtual X509CrlEntry GetRevokedCertificate(
-            BigInteger serialNumber)
+        /// <summary>
+        /// Return the entry for the given certificate, matching its issuer as well as its serial number:
+        /// an indirect CRL (RFC 5280 sec. 5.2.5) lists certificates from more than one issuer and a serial
+        /// number is only unique within its issuer, so the entry cannot be located by serial number alone.
+        /// </summary>
+        public virtual X509CrlEntry GetRevokedCertificate(X509Certificate certificate)
         {
-            var certs = c.GetRevokedCertificateEnumeration();
-
-            X509Name previousCertificateIssuer = IssuerDN;
-            foreach (CrlEntry entry in certs)
+            var entries = m_certificateList.GetRevokedCertificateEnumeration().GetEnumerator();
+            if (entries.MoveNext())
             {
-                X509CrlEntry crlEntry = new X509CrlEntry(entry, isIndirect, previousCertificateIssuer);
+                var certIssuer = certificate.IssuerDN;
+                var certSerial = certificate.SerialNumber;
 
-                if (serialNumber.Equals(entry.UserCertificate.Value))
-                    return crlEntry;
+                bool certIssuedByCrlIssuer = certIssuer.Equivalent(IssuerDN, true);
 
-                previousCertificateIssuer = crlEntry.GetCertificateIssuer();
+                if (!m_isIndirect)
+                    return certIssuedByCrlIssuer ? GetRevokedCertificate(certSerial) : null;
+
+                X509Name certificateIssuer = null;
+                do
+                {
+                    var entry = entries.Current;
+
+                    certificateIssuer = X509CrlEntry.LoadCertificateIssuer(entry, m_isIndirect, certificateIssuer);
+
+                    // a serial number is only unique within its issuer, so another issuer's entry is not this one.
+                    if (entry.UserCertificate.HasValue(certSerial))
+                    {
+                        bool certIssuerMatches = certIssuedByCrlIssuer;
+                        if (certificateIssuer != null)
+                        {
+                            certIssuerMatches = certIssuer.Equivalent(certificateIssuer, true);
+                        }
+
+                        if (certIssuerMatches)
+                            return new X509CrlEntry(entry, certificateIssuer);
+                    }
+                }
+                while (entries.MoveNext());
             }
 
             return null;
@@ -214,27 +242,36 @@ namespace Org.BouncyCastle.X509
 
         public virtual ISet<X509CrlEntry> GetRevokedCertificates()
         {
-            var entrySet = LoadCrlEntries();
+            var entries = m_certificateList.GetRevokedCertificateEnumeration().GetEnumerator();
+            if (!entries.MoveNext())
+                return null;
 
-            if (entrySet.Count > 0)
-                return entrySet;
+            var entrySet = new HashSet<X509CrlEntry>();
+            X509Name certificateIssuer = null;
+            do
+            {
+                var entry = entries.Current;
+                certificateIssuer = X509CrlEntry.LoadCertificateIssuer(entry, m_isIndirect, certificateIssuer);
+                entrySet.Add(new X509CrlEntry(entry, certificateIssuer));
+            }
+            while (entries.MoveNext());
 
-            return null;
+            return entrySet;
         }
 
         public virtual byte[] GetTbsCertList()
         {
             try
             {
-                return c.TbsCertList.GetDerEncoded();
+                return m_certificateList.TbsCertList.GetDerEncoded();
             }
-            catch (Exception e)
+            catch (IOException e)
             {
-                throw new CrlException(e.ToString());
+                throw new CrlException("Encoding error", e);
             }
         }
 
-        public virtual byte[] GetSignature() => c.GetSignatureOctets();
+        public virtual byte[] GetSignature() => m_certificateList.GetSignatureOctets();
 
         /// <summary>
         /// A meaningful version of the Signature Algorithm. (e.g. SHA1WITHRSA)
@@ -243,11 +280,11 @@ namespace Org.BouncyCastle.X509
         public virtual string SigAlgName => Objects.EnsureSingletonInitialized(ref m_sigAlgName, SignatureAlgorithm,
             X509SignatureUtilities.GetSignatureName);
 
-        public virtual string SigAlgOid => c.SignatureAlgorithm.Algorithm.GetID();
+        public virtual string SigAlgOid => m_certificateList.SignatureAlgorithm.Algorithm.GetID();
 
-        public virtual byte[] GetSigAlgParams() => Arrays.Clone(sigAlgParams);
+        public virtual byte[] GetSigAlgParams() => Arrays.Clone(m_sigAlgParams);
 
-        public virtual AlgorithmIdentifier SignatureAlgorithm => c.SignatureAlgorithm;
+        public virtual AlgorithmIdentifier SignatureAlgorithm => m_certificateList.SignatureAlgorithm;
 
         /// <summary>
         /// Return the DER encoding of this CRL.
@@ -264,15 +301,15 @@ namespace Org.BouncyCastle.X509
             if (!(other is X509Crl that))
                 return false;
 
-            if (this.hashValueSet && that.hashValueSet)
+            if (this.m_hashValueSet && that.m_hashValueSet)
             {
-                if (this.hashValue != that.hashValue)
+                if (this.m_hashValue != that.m_hashValue)
                     return false;
             }
-            else if (null == this.cachedEncoding || null == that.cachedEncoding)
+            else if (null == this.m_cachedEncoding || null == that.m_cachedEncoding)
             {
-                DerBitString signature = c.Signature;
-                if (null != signature && !signature.Equals(that.c.Signature))
+                DerBitString signature = m_certificateList.Signature;
+                if (null != signature && !signature.Equals(that.m_certificateList.Signature))
                     return false;
             }
 
@@ -286,15 +323,15 @@ namespace Org.BouncyCastle.X509
 
         public override int GetHashCode()
         {
-            if (!hashValueSet)
+            if (!m_hashValueSet)
             {
                 byte[] thisEncoding = this.GetCachedEncoding().Encoding;
 
-                hashValue = Arrays.GetHashCode(thisEncoding);
-                hashValueSet = true;
+                m_hashValue = Arrays.GetHashCode(thisEncoding);
+                m_hashValueSet = true;
             }
 
-            return hashValue;
+            return m_hashValue;
         }
 
         /// <summary>Returns a string representation of this CRL.</summary>
@@ -302,11 +339,11 @@ namespace Org.BouncyCastle.X509
         {
             StringBuilder buf = new StringBuilder();
 
-            buf.Append("              Version: ").Append(this.Version).AppendLine();
-            buf.Append("             IssuerDN: ").Append(this.IssuerDN).AppendLine();
-            buf.Append("          This update: ").Append(this.ThisUpdate).AppendLine();
-            buf.Append("          Next update: ").Append(this.NextUpdate).AppendLine();
-            buf.Append("  Signature Algorithm: ").Append(this.SigAlgName).AppendLine();
+            buf.Append("              Version: ").Append(Version).AppendLine();
+            buf.Append("             IssuerDN: ").Append(IssuerDN).AppendLine();
+            buf.Append("          This update: ").Append(ThisUpdate).AppendLine();
+            buf.Append("          Next update: ").Append(NextUpdate).AppendLine();
+            buf.Append("  Signature Algorithm: ").Append(SigAlgName).AppendLine();
 
             byte[] sig = GetSignature();
             int sigPos = System.Math.Min(20, sig.Length);
@@ -320,7 +357,7 @@ namespace Org.BouncyCastle.X509
                 sigPos += next;
             }
 
-            X509Extensions extensions = c.TbsCertList.Extensions;
+            X509Extensions extensions = m_certificateList.TbsCertList.Extensions;
 
             if (extensions != null)
             {
@@ -338,53 +375,49 @@ namespace Org.BouncyCastle.X509
 
                     if (ext.Value != null)
                     {
-                        Asn1Object asn1Value = X509ExtensionUtilities.FromExtensionValue(ext.Value);
+                        Asn1Object obj = X509ExtensionUtilities.FromExtensionValue(ext.Value);
 
                         buf.Append("                       critical(").Append(ext.IsCritical).Append(") ");
                         try
                         {
                             if (oid.Equals(X509Extensions.CrlNumber))
                             {
-                                buf.Append(new CrlNumber(DerInteger.GetInstance(asn1Value).PositiveValue)).AppendLine();
+                                buf.Append(new CrlNumber(DerInteger.GetInstance(obj).PositiveValue));
                             }
                             else if (oid.Equals(X509Extensions.DeltaCrlIndicator))
                             {
                                 buf.Append(
                                     "Base CRL: "
                                     + new CrlNumber(DerInteger.GetInstance(
-                                    asn1Value).PositiveValue))
-                                    .AppendLine();
+                                    obj).PositiveValue));
                             }
                             else if (oid.Equals(X509Extensions.IssuingDistributionPoint))
                             {
-                                buf.Append(IssuingDistributionPoint.GetInstance((Asn1Sequence)asn1Value)).AppendLine();
+                                buf.Append(IssuingDistributionPoint.GetInstance((Asn1Sequence)obj));
                             }
                             else if (oid.Equals(X509Extensions.CrlDistributionPoints))
                             {
-                                buf.Append(CrlDistPoint.GetInstance((Asn1Sequence)asn1Value)).AppendLine();
+                                buf.Append(CrlDistPoint.GetInstance((Asn1Sequence)obj));
                             }
                             else if (oid.Equals(X509Extensions.FreshestCrl))
                             {
-                                buf.Append(CrlDistPoint.GetInstance((Asn1Sequence)asn1Value)).AppendLine();
+                                buf.Append(CrlDistPoint.GetInstance((Asn1Sequence)obj));
                             }
                             else
                             {
-                                buf.Append(oid.Id);
-                                buf.Append(" value = ").Append(
-                                    Asn1Dump.DumpAsString(asn1Value))
-                                    .AppendLine();
+                                buf.Append(oid.GetID());
+                                buf.Append(" value = ");
+                                Asn1Dump.AppendAsString(buf, obj);
                             }
                         }
                         catch (Exception)
                         {
-                            buf.Append(oid.Id);
-                            buf.Append(" value = ").Append("*****").AppendLine();
+                            buf.Append(oid.GetID());
+                            buf.Append(" value = ").Append("*****");
                         }
                     }
-                    else
-                    {
-                        buf.AppendLine();
-                    }
+
+                    buf.AppendLine();
                 }
                 while (e.MoveNext());
             }
@@ -405,47 +438,17 @@ namespace Org.BouncyCastle.X509
         /// <summary>Checks whether the given certificate is on this CRL.</summary>
         /// <param name="cert">The certificate to check for.</param>
         /// <returns><c>true</c> if the given certificate is on this CRL, <c>false</c> otherwise.</returns>
-        public virtual bool IsRevoked(X509Certificate cert)
-        {
-            CrlEntry[] certs = c.GetRevokedCertificates();
+        public virtual bool IsRevoked(X509Certificate cert) => GetRevokedCertificate(cert) != null;
 
-            if (certs != null)
-            {
-                BigInteger serial = cert.SerialNumber;
+        public virtual bool IsIndirect => m_isIndirect;
 
-                for (int i = 0; i < certs.Length; i++)
-                {
-                    if (certs[i].UserCertificate.HasValue(serial))
-                        return true;
-                }
-            }
-
-            return false;
-        }
-
-        protected virtual bool IsIndirectCrl
-        {
-            get
-            {
-                IssuingDistributionPoint idp;
-                try
-                {
-                    idp = this.GetExtension(X509Extensions.IssuingDistributionPoint,
-                        IssuingDistributionPoint.GetInstance);
-                }
-                catch (Exception e)
-                {
-                    throw new CrlException("Exception reading IssuingDistributionPoint" + e);
-                }
-
-                return idp != null && idp.IsIndirectCrl;
-            }
-        }
+        [Obsolete("Use 'IsIndirect' instead")]
+        protected virtual bool IsIndirectCrl => m_isIndirect;
 
         internal byte[] GetEncodedInternal() => GetCachedEncoding().GetEncoded();
 
         private CachedEncoding GetCachedEncoding() =>
-            Objects.EnsureSingletonInitialized(ref cachedEncoding, c, CreateCachedEncoding);
+            Objects.EnsureSingletonInitialized(ref m_cachedEncoding, m_certificateList, CreateCachedEncoding);
 
         private static CachedEncoding CreateCachedEncoding(CertificateList c)
         {
@@ -461,6 +464,20 @@ namespace Org.BouncyCastle.X509
             }
 
             return new CachedEncoding(encoding, exception);
+        }
+
+        private static bool ImplIsIndirectCrl(CertificateList certificateList)
+        {
+            try
+            {
+                var idp = certificateList.Extensions.GetExtension(X509Extensions.IssuingDistributionPoint,
+                    IssuingDistributionPoint.GetInstance);
+                return idp != null && idp.IsIndirectCrl;
+            }
+            catch (Exception e)
+            {
+                throw new CrlException("Exception reading IssuingDistributionPoint", e);
+            }
         }
     }
 }

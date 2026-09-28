@@ -427,16 +427,24 @@ namespace Org.BouncyCastle.Pkix
 
         internal static void GetCertStatus(DateTime validDate, X509Crl crl, object cert, CertStatus certStatus)
         {
-            X509CrlEntry crl_entry = crl.GetRevokedCertificate(GetSerialNumber(cert));
-            if (crl_entry == null)
-                return;
+            bool isIndirect = crl.IsIndirect;
 
-            X509Name issuer = GetIssuerPrincipal(cert);
-
-            if (!issuer.Equivalent(crl_entry.GetCertificateIssuer(), true)
-                && !issuer.Equivalent(crl.IssuerDN, true))
+            X509CrlEntry crl_entry = null;
+            if (isIndirect)
             {
-                return;
+                crl_entry = GetIndirectCrlEntry(crl, GetSerialNumber(cert), GetIssuerPrincipal(cert));
+                if (crl_entry == null)
+                    return;
+            }
+            else if (!GetIssuerPrincipal(cert).Equivalent(crl.IssuerDN, true))
+            {
+                return;  // not for our issuer, ignore
+            }
+            else
+            {
+                crl_entry = crl.GetRevokedCertificate(GetSerialNumber(cert));
+                if (crl_entry == null)
+                    return;
             }
 
             int reasonCodeValue = CrlReason.Unspecified;
@@ -447,7 +455,7 @@ namespace Org.BouncyCastle.Pkix
 
                 try
                 {
-                    var reasonCode = crl_entry.GetExtension(X509Extensions.ReasonCode, CrlReason.GetInstance);
+                    var reasonCode = crl_entry.GetExtension(X509Extensions.ReasonCode, DerEnumerated.GetInstance);
                     if (null != reasonCode)
                     {
                         reasonCodeValue = reasonCode.IntValueExact;
@@ -460,24 +468,51 @@ namespace Org.BouncyCastle.Pkix
             }
 
             DateTime revocationDate = crl_entry.RevocationDate;
-            if (validDate.Ticks < revocationDate.Ticks)
+
+            // for reason keyCompromise, caCompromise, aACompromise or unspecified
+            if (IsRevocationEffective(validDate, revocationDate, reasonCodeValue))
             {
-                switch (reasonCodeValue)
-                {
-                case CrlReason.Unspecified:
-                case CrlReason.KeyCompromise:
-                case CrlReason.CACompromise:
-                case CrlReason.AACompromise:
-                    break;
-                default:
-                    return;
-                }
+                // (i) or (j)
+                certStatus.Status = reasonCodeValue;
+                certStatus.RevocationDate = revocationDate;
+            }
+        }
+
+        /**
+         * Find the entry of an indirect CRL for the certificate with the given serial number and issuer.
+         * An indirect CRL (RFC 5280 sec. 5.2.5) lists certificates from more than one issuer and a serial
+         * number is only unique within its issuer, so the entry cannot be located by serial number alone:
+         * an entry carrying the serial number is the certificate's only if it applies to the certificate's
+         * issuer, the one named by its certificateIssuer extension or inherited from the entries before it
+         * (sec. 5.3.3). The lookup by serial number is tried first, as it avoids building the set of all
+         * entries, and every entry carrying the serial number is checked when that is not conclusive.
+         *
+         * @return the entry naming the certificate, or null if the CRL carries none.
+         */
+        private static X509CrlEntry GetIndirectCrlEntry(X509Crl crl, BigInteger serialNumber, X509Name certIssuer)
+        {
+            X509CrlEntry serialEntry = crl.GetRevokedCertificate(serialNumber);
+            if (serialEntry == null || certIssuer.Equivalent(GetEntryIssuer(crl, serialEntry), true))
+                return serialEntry;
+
+            ISet<X509CrlEntry> entries = crl.GetRevokedCertificates();
+            if (entries == null)
+                return null;
+
+            foreach (var entry in entries)
+            {
+                if (serialNumber.Equals(entry.SerialNumber) && certIssuer.Equivalent(GetEntryIssuer(crl, entry), true))
+                    return entry;
             }
 
-            // (i) or (j)
-            certStatus.Status = reasonCodeValue;
-            certStatus.RevocationDate = revocationDate;
+            return null;
         }
+
+        /// <summary>
+        /// Return the issuer of the certificate an entry of an indirect CRL applies to.
+        /// </summary>
+        private static X509Name GetEntryIssuer(X509Crl crl, X509CrlEntry entry) =>
+            entry.GetCertificateIssuer() ?? crl.IssuerDN;
 
         /**
          * Return the next working key inheriting DSA parameters if necessary.
@@ -1086,6 +1121,26 @@ namespace Org.BouncyCastle.Pkix
                     return extension.IsCritical;
             }
             return false;
+        }
+
+        /**
+         * RFC 5280 sec. 6.3.3 (i)/(j): whether a CRL entry's revocation takes effect for the
+         * validation date - it does when the date is not before the entry's revocation date, and
+         * additionally, whatever the dates, for the unspecified, keyCompromise, cACompromise and
+         * aACompromise reasons.
+         *
+         * @param validDate      the date validation is being performed for.
+         * @param revocationDate the CRL entry's revocation date.
+         * @param reasonCodeValue the entry's {@link CRLReason} code, {@link CRLReason#unspecified} if absent.
+         * @return true if the certificate is to be treated as revoked at validDate.
+         */
+        private static bool IsRevocationEffective(DateTime validDate, DateTime revocationDate, int reasonCodeValue)
+        {
+            return validDate.Ticks >= revocationDate.Ticks
+                || reasonCodeValue == CrlReason.Unspecified
+                || reasonCodeValue == CrlReason.KeyCompromise
+                || reasonCodeValue == CrlReason.CACompromise
+                || reasonCodeValue == CrlReason.AACompromise;
         }
     }
 }

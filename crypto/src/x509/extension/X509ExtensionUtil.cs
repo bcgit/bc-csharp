@@ -125,7 +125,23 @@ namespace Org.BouncyCastle.X509.Extension
             Func<byte[], TExtension> constructor)
             where TExtension : class
         {
-            Asn1OctetString extensionValue = extension.GetExtensionValue(oid);
+            Asn1OctetString extensionValue = extension?.GetExtensionValue(oid);
+            return extensionValue == null ? null : constructor(extensionValue.GetOctets());
+        }
+
+        internal static TExtension GetExtension<TExtension>(this X509Extensions extensions,
+            DerObjectIdentifier oid, Func<byte[], TExtension> constructor)
+            where TExtension : class
+        {
+            Asn1OctetString extensionValue = extensions?.GetExtensionValue(oid);
+            return extensionValue == null ? null : constructor(extensionValue.GetOctets());
+        }
+
+        internal static TExtension GetExtension<TExtension>(this Extensions extensions,
+            DerObjectIdentifier oid, Func<byte[], TExtension> constructor)
+            where TExtension : class
+        {
+            Asn1OctetString extensionValue = extensions?.GetExtensionValue(oid);
             return extensionValue == null ? null : constructor(extensionValue.GetOctets());
         }
     }

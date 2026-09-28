@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Text;
 
 using Org.BouncyCastle.Asn1;
@@ -6,6 +7,7 @@ using Org.BouncyCastle.Asn1.Utilities;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security.Certificates;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.X509.Extension;
 
 namespace Org.BouncyCastle.X509
@@ -22,18 +24,17 @@ namespace Org.BouncyCastle.X509
     public class X509CrlEntry
         : X509ExtensionBase
     {
-        private CrlEntry c;
-        private bool isIndirect;
-        private X509Name previousCertificateIssuer;
-        private X509Name certificateIssuer;
+        private readonly CrlEntry m_crlEntry;
+        private readonly X509Name m_certificateIssuer;
 
-        private volatile bool hashValueSet;
-        private volatile int hashValue;
+        private volatile bool m_hashValueSet;
+        private volatile int m_hashValue;
 
+        // TODO[api] Rename to 'crlEntry'
         public X509CrlEntry(CrlEntry c)
         {
-            this.c = c;
-            this.certificateIssuer = LoadCertificateIssuer();
+            m_crlEntry = c ?? throw new ArgumentNullException(nameof(c));
+            m_certificateIssuer = null;
         }
 
         /// <summary>
@@ -48,27 +49,38 @@ namespace Org.BouncyCastle.X509
         /// <param name="c">The ASN.1 <see cref="CrlEntry"/> object.</param>
         /// <param name="isIndirect"><c>true</c> if the corresponding CRL is an indirect CRL.</param>
         /// <param name="previousCertificateIssuer">Certificate issuer of the previous CRL entry.</param>
+        // TODO[api] Rename to 'crlEntry'
         public X509CrlEntry(CrlEntry c, bool isIndirect, X509Name previousCertificateIssuer)
         {
-            this.c = c;
-            this.isIndirect = isIndirect;
-            this.previousCertificateIssuer = previousCertificateIssuer;
-            this.certificateIssuer = LoadCertificateIssuer();
+            m_crlEntry = c ?? throw new ArgumentNullException(nameof(c));
+            m_certificateIssuer = LoadCertificateIssuer(c, isIndirect, previousCertificateIssuer);
         }
 
-        public virtual CrlEntry CrlEntry => c;
+        /// <summary>
+        /// Constructor for a CRLEntry whose certificate issuer the caller has already worked out with
+        /// <see cref="LoadCertificateIssuer(CrlEntry, bool, X509Name)"/>, which it has to do anyway to track the issuer
+        /// from one entry to the next.
+        /// </summary>
+        internal X509CrlEntry(CrlEntry crlEntry, X509Name certificateIssuer)
+        {
+            m_crlEntry = crlEntry ?? throw new ArgumentNullException(nameof(crlEntry));
+            m_certificateIssuer = certificateIssuer;
+        }
 
-        private X509Name LoadCertificateIssuer()
+        public virtual CrlEntry CrlEntry => m_crlEntry;
+
+        internal static X509Name LoadCertificateIssuer(CrlEntry c, bool isIndirect, X509Name previousCertificateIssuer)
         {
             if (!isIndirect)
                 return null;
 
-            var certificateIssuer = this.GetExtension(X509Extensions.CertificateIssuer, GeneralNames.GetInstance);
-            if (certificateIssuer == null)
-                return previousCertificateIssuer;
-
             try
             {
+                var certificateIssuer = c.Extensions.GetExtension(X509Extensions.CertificateIssuer,
+                    GeneralNames.GetInstance);
+                if (certificateIssuer == null)
+                    return previousCertificateIssuer;
+
                 foreach (var name in certificateIssuer.GetNames())
                 {
                     if (name.TagNo == GeneralName.DirectoryName)
@@ -82,27 +94,27 @@ namespace Org.BouncyCastle.X509
             return null;
         }
 
-        public X509Name GetCertificateIssuer() => certificateIssuer;
+        public X509Name GetCertificateIssuer() => m_certificateIssuer;
 
-        protected override X509Extensions GetX509Extensions() => c.Extensions;
+        protected override X509Extensions GetX509Extensions() => m_crlEntry.Extensions;
 
         public byte[] GetEncoded()
         {
             try
             {
-                return c.GetEncoded(Asn1Encodable.Der);
+                return m_crlEntry.GetEncoded(Asn1Encodable.Der);
             }
-            catch (Exception e)
+            catch (IOException e)
             {
-                throw new CrlException(e.ToString());
+                throw new CrlException("Encoding error", e);
             }
         }
 
-        public BigInteger SerialNumber => c.UserCertificate.Value;
+        public BigInteger SerialNumber => m_crlEntry.UserCertificate.Value;
 
-        public DateTime RevocationDate => c.RevocationDate.ToDateTime();
+        public DateTime RevocationDate => m_crlEntry.RevocationDate.ToDateTime();
 
-        public bool HasExtensions => c.Extensions != null;
+        public bool HasExtensions => m_crlEntry.Extensions != null;
 
         public override bool Equals(object other)
         {
@@ -112,35 +124,39 @@ namespace Org.BouncyCastle.X509
             if (!(other is X509CrlEntry that))
                 return false;
 
-            if (this.hashValueSet && that.hashValueSet)
+            if (this.m_hashValueSet && that.m_hashValueSet)
             {
-                if (this.hashValue != that.hashValue)
+                if (this.m_hashValue != that.m_hashValue)
                     return false;
             }
 
-            return this.c.Equals(that.c);
+            // an entry of an indirect CRL applies to the issuer named by its own or a preceding
+            // entry's certificateIssuer extension (RFC 5280 sec. 5.3.3), so two entries with the
+            // same encoding under different issuers are different entries.
+            return this.m_crlEntry.Equals(that.m_crlEntry)
+                && Objects.Equals(this.m_certificateIssuer, that.m_certificateIssuer);
         }
 
         public override int GetHashCode()
         {
-            if (!hashValueSet)
+            if (!m_hashValueSet)
             {
-                hashValue = this.c.GetHashCode();
-                hashValueSet = true;
+                m_hashValue = m_crlEntry.GetHashCode();
+                m_hashValueSet = true;
             }
 
-            return hashValue;
+            return m_hashValue;
         }
 
         public override string ToString()
         {
             StringBuilder buf = new StringBuilder();
 
-            buf.Append("        userCertificate: ").Append(this.SerialNumber).AppendLine();
-            buf.Append("         revocationDate: ").Append(this.RevocationDate).AppendLine();
-            buf.Append("      certificateIssuer: ").Append(this.GetCertificateIssuer()).AppendLine();
+            buf.Append("        userCertificate: ").Append(SerialNumber).AppendLine();
+            buf.Append("         revocationDate: ").Append(RevocationDate).AppendLine();
+            buf.Append("      certificateIssuer: ").Append(GetCertificateIssuer()).AppendLine();
 
-            X509Extensions extensions = c.Extensions;
+            X509Extensions extensions = m_crlEntry.Extensions;
 
             if (extensions != null)
             {
@@ -174,21 +190,19 @@ namespace Org.BouncyCastle.X509
                                 }
                                 else
                                 {
-                                    buf.Append(oid.Id);
-                                    buf.Append(" value = ").Append(Asn1Dump.DumpAsString(obj));
+                                    buf.Append(oid.GetID());
+                                    buf.Append(" value = ");
+                                    Asn1Dump.AppendAsString(buf, obj);
                                 }
-                                buf.AppendLine();
                             }
                             catch (Exception)
                             {
-                                buf.Append(oid.Id);
-                                buf.Append(" value = ").Append("*****").AppendLine();
+                                buf.Append(oid.GetID());
+                                buf.Append(" value = ").Append("*****");
                             }
                         }
-                        else
-                        {
-                            buf.AppendLine();
-                        }
+
+                        buf.AppendLine();
                     }
                     while (e.MoveNext());
                 }
