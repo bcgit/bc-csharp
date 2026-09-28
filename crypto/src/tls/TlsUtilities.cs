@@ -4566,42 +4566,111 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
-        internal static void CheckTlsFeatures(Certificate serverCertificate, IDictionary<int, byte[]> clientExtensions,
-            IDictionary<int, byte[]> serverExtensions)
+        internal static void CheckTlsFeatures(TlsClientContext clientContext, TlsServerCertificate serverCertificate,
+            IDictionary<int, byte[]> clientExtensions, IDictionary<int, byte[]> serverExtensions)
         {
             /*
              * RFC 7633 4.3.3. A client MUST treat a certificate with a TLS feature extension as an
              * invalid certificate if the features offered by the server do not contain all features
              * present in both the client's ClientHello message and the TLS feature extension.
              */
-            byte[] tlsFeatures = serverCertificate.GetCertificateAt(0).GetExtension(TlsObjectIdentifiers.id_pe_tlsfeature);
-            if (tlsFeatures != null)
+
+            var certificate = serverCertificate.Certificate;
+            if (certificate.IsEmpty)
+                throw new TlsFatalAlert(AlertDescription.internal_error);
+
+            CertificateEntry eeEntry = certificate.GetCertificateEntryAt(0);
+
+            byte[] tlsFeatures = eeEntry.Certificate.GetExtension(TlsObjectIdentifiers.id_pe_tlsfeature);
+            if (tlsFeatures == null)
+                return;
+
+            // TODO[tls] Proper ASN.1 type class for this extension?
+            Asn1Object tlsFeaturesObj = ReadAsn1Object(tlsFeatures);
+            if (!(tlsFeaturesObj is Asn1Sequence tlsFeaturesSeq))
             {
-                // TODO[tls] Proper ASN.1 type class for this extension?
-                Asn1Object tlsFeaturesObj = ReadAsn1Object(tlsFeatures);
-                if (!(tlsFeaturesObj is Asn1Sequence tlsFeaturesSeq))
+                throw new TlsFatalAlert(AlertDescription.bad_certificate,
+                    "Server certificate has invalid TLS Features extension");
+            }
+
+            for (int i = 0; i < tlsFeaturesSeq.Count; ++i)
+            {
+                if (!(tlsFeaturesSeq[i] is DerInteger))
                 {
                     throw new TlsFatalAlert(AlertDescription.bad_certificate,
                         "Server certificate has invalid TLS Features extension");
                 }
+            }
 
-                for (int i = 0; i < tlsFeaturesSeq.Count; ++i)
+            RequireDerEncoding(tlsFeaturesSeq, tlsFeatures);
+
+            bool isTlsV13 = IsTlsV13(clientContext);
+            bool mustStaple = false;
+            var eeExtensions = eeEntry.Extensions;
+
+            foreach (var tlsFeature in tlsFeaturesSeq)
+            {
+                if (!((DerInteger)tlsFeature).TryGetIntValueExact(out int extensionType) ||
+                    !IsValidUint16(extensionType))
                 {
-                    if (!(tlsFeaturesSeq[i] is DerInteger))
-                        throw new TlsFatalAlert(AlertDescription.bad_certificate,
-                            "Server certificate has invalid TLS Features extension");
+                    // Feature has invalid value - couldn't legally appear in ClientHello extensions
+                    continue;
                 }
 
-                RequireDerEncoding(tlsFeaturesSeq, tlsFeatures);
-
-                foreach (var tlsFeature in tlsFeaturesSeq)
+                if (!HasExtension(clientExtensions, extensionType))
                 {
-                    if (((DerInteger)tlsFeature).TryGetIntValueExact(out int extensionType) && IsValidUint16(extensionType))
+                    // Feature only in force if actually in ClientHello extensions
+                    continue;
+                }
+
+                if (isTlsV13 && ExtensionType.IsRecognized(extensionType))
+                {
+                    if (!IsPermittedExtensionType13(HandshakeType.client_hello, extensionType))
                     {
-                        if (clientExtensions.ContainsKey(extensionType) && !serverExtensions.ContainsKey(extensionType))
-                            throw new TlsFatalAlert(AlertDescription.certificate_unknown,
-                                "Server extensions missing TLS Feature " + extensionType);
+                        // Feature not in force if extension not relevant to negotiated version
+                        continue;
                     }
+
+                    // Note that no stapling extensions are skipped here
+                    if (IsPermittedExtensionType13(HandshakeType.server_hello, extensionType))
+                    {
+                        // Feature not checked for TLS 1.3 ServerHello extensions - existing permitted extensions are
+                        // either not relevant to server certificate authentication, or always added. Revisit this if
+                        // one that is relevant becomes permitted there (e.g. tls_cert_with_extern_psk, RFC 8773).
+                        continue;
+                    }
+                }
+
+                // We now consider the feature requirement to be "in force" - check it's satisfied
+
+                if (ExtensionType.status_request == extensionType || ExtensionType.status_request_v2 == extensionType)
+                {
+                    mustStaple = true;
+                }
+
+                if (HasExtension(serverExtensions, extensionType))
+                {
+                    // Feature satisfied by the ServerHello extensions (EncryptedExtensions in TLS 1.3)
+                    continue;
+                }
+
+                if (HasExtension(eeExtensions, extensionType))
+                {
+                    // Feature satisfied by the CertificateEntry extensions (only in TLS 1.3+)
+                    continue;
+                }
+
+                throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                    "Server extensions missing TLS Feature " + ExtensionType.GetText(extensionType));
+            }
+
+            if (mustStaple)
+            {
+                var certificateStatus = serverCertificate.CertificateStatus;
+                if (certificateStatus == null || !certificateStatus.HasLeafResponse())
+                {
+                    throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                        "Server failed TLS Feature 'Must-Staple'");
                 }
             }
         }
@@ -4666,8 +4735,6 @@ namespace Org.BouncyCastle.Tls
 
             Certificate serverCertificate = securityParameters.PeerCertificate;
 
-            CheckTlsFeatures(serverCertificate, clientExtensions, serverExtensions);
-
             CertificateStatus certificateStatus;
             CertificateStatus[] certificateStatuses;
 
@@ -4688,8 +4755,12 @@ namespace Org.BouncyCastle.Tls
                 certificateStatuses = SpreadCertificateStatus(serverCertificate, serverCertificateStatus);
             }
 
-            clientAuthentication.NotifyServerCertificate(
-                new TlsServerCertificateImpl(serverCertificate, certificateStatus, certificateStatuses));
+            var tlsServerCertificate = new TlsServerCertificateImpl(serverCertificate, certificateStatus,
+                certificateStatuses);
+
+            CheckTlsFeatures(clientContext, tlsServerCertificate, clientExtensions, serverExtensions);
+
+            clientAuthentication.NotifyServerCertificate(tlsServerCertificate);
         }
 
         internal static SignatureAndHashAlgorithm GetCertSigAndHashAlg(TlsCertificate subjectCert, TlsCertificate issuerCert)

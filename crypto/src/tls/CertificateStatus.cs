@@ -21,6 +21,24 @@ namespace Org.BouncyCastle.Tls
             m_response = response;
         }
 
+        /// <summary>
+        /// Whether there exists an OCSP response for certificate 0 of the chain this status answers for: always true
+        /// for <see cref="CertificateStatusType.ocsp"/>, true for <see cref="CertificateStatusType.ocsp_multi"/> only
+        /// when there was a non-empty response for position 0.
+        /// </summary>
+        internal bool HasLeafResponse()
+        {
+            switch (m_statusType)
+            {
+            case CertificateStatusType.ocsp:
+                return true;
+            case CertificateStatusType.ocsp_multi:
+                return ((IList<OcspResponse>)m_response)[0] != null;
+            default:
+                throw new InvalidOperationException();
+            }
+        }
+
         public short StatusType => m_statusType;
 
         public object Response => m_response;
