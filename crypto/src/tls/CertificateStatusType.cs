@@ -13,5 +13,21 @@ namespace Org.BouncyCastle.Tls
          *  RFC 6961
          */
         public const short ocsp_multi = 2;
+
+        public static string GetName(short certificateStatusType)
+        {
+            switch (certificateStatusType)
+            {
+            case ocsp:
+                return "ocsp";
+            case ocsp_multi:
+                return "ocsp_multi";
+            default:
+                return "UNKNOWN";
+            }
+        }
+
+        public static string GetText(short certificateStatusType) =>
+            $"{GetName(certificateStatusType)}({certificateStatusType})";
     }
 }
