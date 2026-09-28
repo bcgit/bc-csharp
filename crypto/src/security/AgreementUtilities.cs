@@ -153,9 +153,9 @@ namespace Org.BouncyCastle.Security
             return GetBasicAgreementWithKdf(agreeAlgOid, wrapAlgID, rawUkm: false);
         }
 
-        /// <param name="rawUkm">If true, the KDF is given the user keying material itself as its SharedInfo, in
-        /// place of the ECC-CMS-SharedInfo of RFC 5753 sec. 7.2. NOT conformant; only for reading legacy messages.
-        /// </param>
+        /// <remarks>If <paramref name="rawUkm"/> is true, the KDF is given the user keying material itself as its
+        /// SharedInfo, in place of the ECC-CMS-SharedInfo of RFC 5753 sec. 7.2. NOT conformant; only for reading
+        /// legacy messages.</remarks>
         internal static IBasicAgreement GetBasicAgreementWithKdf(DerObjectIdentifier agreeAlgOid,
             AlgorithmIdentifier wrapAlgID, bool rawUkm)
         {
