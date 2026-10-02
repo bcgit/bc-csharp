@@ -24,15 +24,43 @@ namespace Org.BouncyCastle.Crypto.Signers
         private MLDsaEngine m_engine;
 
         public HashMLDsaSigner(MLDsaParameters parameters, bool deterministic)
+            : this(parameters, deterministic,
+                  DigestUtilities.GetDigest(parameters.PreHashOid),
+                  parameters.PreHashOid)
+        {
+            if (parameters == null)
+                throw new ArgumentNullException(nameof(parameters));
+            if (parameters.PreHashOid == null)
+                throw new ArgumentException("cannot be used for ML-DSA", nameof(parameters));
+        }
+
+        public static HashMLDsaSigner CreatePrehashSigner(MLDsaParameters parameters, bool deterministic)
         {
             if (parameters == null)
                 throw new ArgumentNullException(nameof(parameters));
             if (parameters.PreHashOid == null)
                 throw new ArgumentException("cannot be used for ML-DSA", nameof(parameters));
 
+            IDigest preHashDigest =  DigestUtilities.GetDigest(parameters.PreHashOid);
+            return new HashMLDsaSigner(parameters, deterministic, Prehash.ForDigest(preHashDigest), parameters.PreHashOid);
+        }
+
+        public static HashMLDsaSigner CreatePrehashSigner(MLDsaParameters parametersWithoutPrehash, bool deterministic, DerObjectIdentifier preHashOid)
+        {
+            if (parametersWithoutPrehash == null)
+                throw new ArgumentNullException(nameof(parametersWithoutPrehash));
+            if (preHashOid == null)
+                throw new ArgumentNullException(nameof(preHashOid));
+
+            IDigest preHashDigest = DigestUtilities.GetDigest(preHashOid);
+            return new HashMLDsaSigner(parametersWithoutPrehash, deterministic, Prehash.ForDigest(preHashDigest), preHashOid);
+        }
+
+        private HashMLDsaSigner(MLDsaParameters parameters, bool deterministic, IDigest preHashDigest, DerObjectIdentifier preHashOid)
+        {
             m_parameters = parameters;
-            m_preHashOidEncoding = parameters.PreHashOid.GetEncoded(Asn1Encodable.Der);
-            m_preHashDigest = DigestUtilities.GetDigest(parameters.PreHashOid);
+            m_preHashOidEncoding = preHashOid.GetEncoded(Asn1Encodable.Der);
+            m_preHashDigest = preHashDigest;
             m_deterministic = deterministic;
         }
 
