@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-using System.Runtime.CompilerServices;
-#endif
 
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
@@ -154,11 +151,6 @@ namespace Org.BouncyCastle.Crypto.Digests
         private const int FLAGS = 15;
 
         /**
-         * Message word permutations.
-         */
-        private static readonly byte[] SIGMA = { 2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8 };
-
-        /**
          * Blake3 Initialization Vector.
          */
         private static readonly uint[] IV = {
@@ -189,11 +181,6 @@ namespace Org.BouncyCastle.Crypto.Digests
          * The message Buffer.
          */
         private readonly uint[] m_theM = new uint[NUMWORDS << 1];
-
-        /**
-         * The indices.
-         */
-        private readonly byte[] m_theIndices = new byte[NUMWORDS << 1];
 
         /**
          * The chainingStack.
@@ -777,44 +764,181 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
-        /**
-         * Perform compression.
-         */
+        /// <summary>
+        /// Perform compression: the seven rounds of the BLAKE3 compression function over theV, with the message words
+        /// in theM, followed by the output transformation.
+        /// </summary>
         private void Compress()
         {
-            /* Initialise the buffers */
-            InitIndices();
+            uint[] v = m_theV;
+            uint[] m = m_theM;
 
-            /* Loop through the rounds */
-            for (int round = 0; round < ROUNDS - 1; round++)
+            uint v00 = v[0];
+            uint v01 = v[1];
+            uint v02 = v[2];
+            uint v03 = v[3];
+            uint v04 = v[4];
+            uint v05 = v[5];
+            uint v06 = v[6];
+            uint v07 = v[7];
+            uint v08 = v[8];
+            uint v09 = v[9];
+            uint v10 = v[10];
+            uint v11 = v[11];
+            uint v12 = v[12];
+            uint v13 = v[13];
+            uint v14 = v[14];
+            uint v15 = v[15];
+
+            uint m00 = m[0];
+            uint m01 = m[1];
+            uint m02 = m[2];
+            uint m03 = m[3];
+            uint m04 = m[4];
+            uint m05 = m[5];
+            uint m06 = m[6];
+            uint m07 = m[7];
+            uint m08 = m[8];
+            uint m09 = m[9];
+            uint m10 = m[10];
+            uint m11 = m[11];
+            uint m12 = m[12];
+            uint m13 = m[13];
+            uint m14 = m[14];
+            uint m15 = m[15];
+
+            for (int round = 0; round < ROUNDS; round++)
             {
-                /* Perform the round and permuteM */
-                PerformRound();
-                PermuteIndices();
+                /* Apply to columns of V */
+                v00 += v04 + m00;
+                v12 = Integers.RotateRight(v12 ^ v00, 16);
+                v08 += v12;
+                v04 = Integers.RotateRight(v04 ^ v08, 12);
+                v00 += v04 + m01;
+                v12 = Integers.RotateRight(v12 ^ v00, 8);
+                v08 += v12;
+                v04 = Integers.RotateRight(v04 ^ v08, 7);
+
+                v01 += v05 + m02;
+                v13 = Integers.RotateRight(v13 ^ v01, 16);
+                v09 += v13;
+                v05 = Integers.RotateRight(v05 ^ v09, 12);
+                v01 += v05 + m03;
+                v13 = Integers.RotateRight(v13 ^ v01, 8);
+                v09 += v13;
+                v05 = Integers.RotateRight(v05 ^ v09, 7);
+
+                v02 += v06 + m04;
+                v14 = Integers.RotateRight(v14 ^ v02, 16);
+                v10 += v14;
+                v06 = Integers.RotateRight(v06 ^ v10, 12);
+                v02 += v06 + m05;
+                v14 = Integers.RotateRight(v14 ^ v02, 8);
+                v10 += v14;
+                v06 = Integers.RotateRight(v06 ^ v10, 7);
+
+                v03 += v07 + m06;
+                v15 = Integers.RotateRight(v15 ^ v03, 16);
+                v11 += v15;
+                v07 = Integers.RotateRight(v07 ^ v11, 12);
+                v03 += v07 + m07;
+                v15 = Integers.RotateRight(v15 ^ v03, 8);
+                v11 += v15;
+                v07 = Integers.RotateRight(v07 ^ v11, 7);
+
+                /* Apply to diagonals of V */
+                v00 += v05 + m08;
+                v15 = Integers.RotateRight(v15 ^ v00, 16);
+                v10 += v15;
+                v05 = Integers.RotateRight(v05 ^ v10, 12);
+                v00 += v05 + m09;
+                v15 = Integers.RotateRight(v15 ^ v00, 8);
+                v10 += v15;
+                v05 = Integers.RotateRight(v05 ^ v10, 7);
+
+                v01 += v06 + m10;
+                v12 = Integers.RotateRight(v12 ^ v01, 16);
+                v11 += v12;
+                v06 = Integers.RotateRight(v06 ^ v11, 12);
+                v01 += v06 + m11;
+                v12 = Integers.RotateRight(v12 ^ v01, 8);
+                v11 += v12;
+                v06 = Integers.RotateRight(v06 ^ v11, 7);
+
+                v02 += v07 + m12;
+                v13 = Integers.RotateRight(v13 ^ v02, 16);
+                v08 += v13;
+                v07 = Integers.RotateRight(v07 ^ v08, 12);
+                v02 += v07 + m13;
+                v13 = Integers.RotateRight(v13 ^ v02, 8);
+                v08 += v13;
+                v07 = Integers.RotateRight(v07 ^ v08, 7);
+
+                v03 += v04 + m14;
+                v14 = Integers.RotateRight(v14 ^ v03, 16);
+                v09 += v14;
+                v04 = Integers.RotateRight(v04 ^ v09, 12);
+                v03 += v04 + m15;
+                v14 = Integers.RotateRight(v14 ^ v03, 8);
+                v09 += v14;
+                v04 = Integers.RotateRight(v04 ^ v09, 7);
+
+                /*
+                 * Permute the message words for the next round: m'[i] = m[SIGMA[i]], with the BLAKE3 message
+                 * permutation SIGMA = {2, 6, 3, 10, 7, 0, 4, 13, 1, 11, 12, 5, 9, 14, 15, 8}.
+                 */
+                uint t0 = m00;
+                uint t1 = m01;
+                uint t2 = m02;
+                uint t3 = m03;
+                uint t4 = m04;
+                uint t5 = m05;
+                uint t6 = m06;
+                uint t7 = m07;
+                uint t8 = m08;
+                uint t9 = m09;
+                uint t10 = m10;
+                uint t11 = m11;
+                uint t12 = m12;
+                uint t13 = m13;
+                uint t14 = m14;
+                uint t15 = m15;
+                m00 = t2;
+                m01 = t6;
+                m02 = t3;
+                m03 = t10;
+                m04 = t7;
+                m05 = t0;
+                m06 = t4;
+                m07 = t13;
+                m08 = t1;
+                m09 = t11;
+                m10 = t12;
+                m11 = t5;
+                m12 = t9;
+                m13 = t14;
+                m14 = t15;
+                m15 = t8;
             }
-            PerformRound();
+
+            v[0] = v00;
+            v[1] = v01;
+            v[2] = v02;
+            v[3] = v03;
+            v[4] = v04;
+            v[5] = v05;
+            v[6] = v06;
+            v[7] = v07;
+            v[8] = v08;
+            v[9] = v09;
+            v[10] = v10;
+            v[11] = v11;
+            v[12] = v12;
+            v[13] = v13;
+            v[14] = v14;
+            v[15] = v15;
+
             AdjustChaining();
-        }
-
-        /**
-         * Perform a round.
-         */
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-        private void PerformRound()
-        {
-            /* Apply to columns of V */
-            MixG(0, CHAINING0, CHAINING4, IV0, COUNT0);
-            MixG(1, CHAINING1, CHAINING5, IV1, COUNT1);
-            MixG(2, CHAINING2, CHAINING6, IV2, DATALEN);
-            MixG(3, CHAINING3, CHAINING7, IV3, FLAGS);
-
-            /* Apply to diagonals of V */
-            MixG(4, CHAINING0, CHAINING5, IV2, FLAGS);
-            MixG(5, CHAINING1, CHAINING6, IV3, COUNT0);
-            MixG(6, CHAINING2, CHAINING7, IV0, COUNT1);
-            MixG(7, CHAINING3, CHAINING4, IV1, DATALEN);
         }
 
         /**
@@ -845,56 +969,6 @@ namespace Org.BouncyCastle.Crypto.Digests
                 {
                     m_theChaining[i] = m_theV[i] ^ m_theV[i + NUMWORDS];
                 }
-            }
-        }
-
-        /**
-         * Mix function G.
-         *
-         * @param msgIdx the message index
-         * @param posA   position A in V
-         * @param posB   position B in V
-         * @param posC   position C in V
-         * @param posD   poistion D in V
-         */
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-#endif
-        private void MixG(int msgIdx, int posA, int posB, int posC, int posD)
-        {
-            /* Determine indices */
-            int msg = msgIdx << 1;
-
-            /* Perform the Round */
-            m_theV[posA] += m_theV[posB] + m_theM[m_theIndices[msg++]];
-            m_theV[posD] = Integers.RotateRight(m_theV[posD] ^ m_theV[posA], 16);
-            m_theV[posC] += m_theV[posD];
-            m_theV[posB] = Integers.RotateRight(m_theV[posB] ^ m_theV[posC], 12);
-            m_theV[posA] += m_theV[posB] + m_theM[m_theIndices[msg]];
-            m_theV[posD] = Integers.RotateRight(m_theV[posD] ^ m_theV[posA], 8);
-            m_theV[posC] += m_theV[posD];
-            m_theV[posB] = Integers.RotateRight(m_theV[posB] ^ m_theV[posC], 7);
-        }
-
-        /**
-         * initialise the indices.
-         */
-        private void InitIndices()
-        {
-            for (byte i = 0; i < m_theIndices.Length; i++)
-            {
-                m_theIndices[i] = i;
-            }
-        }
-
-        /**
-         * PermuteIndices.
-         */
-        private void PermuteIndices()
-        {
-            for (byte i = 0; i < m_theIndices.Length; i++)
-            {
-                m_theIndices[i] = SIGMA[m_theIndices[i]];
             }
         }
 
