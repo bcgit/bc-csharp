@@ -241,7 +241,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             int remaining;
             while ((remaining = input.Length - pos) >= BlockSize)
             {
-                ProcessBlock(input[pos..]);
+                ProcessBlockInner(input[pos..]);
                 pos += BlockSize;
             }
 
@@ -251,7 +251,11 @@ namespace Org.BouncyCastle.Crypto.Macs
 #endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-        private void ProcessBlock(ReadOnlySpan<byte> block)
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void ProcessBlock(ReadOnlySpan<byte> block) => ProcessBlockInner(block);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ProcessBlockInner(ReadOnlySpan<byte> block)
         {
             uint t0 = Pack.LE_To_UInt32(block);
             uint t1 = Pack.LE_To_UInt32(block[4..]);

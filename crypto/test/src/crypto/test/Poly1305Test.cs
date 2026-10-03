@@ -2,14 +2,13 @@ using System;
 
 using NUnit.Framework;
 
-using Org.BouncyCastle.Crypto.Engines;
 using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Macs;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
-using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Tests
 {
@@ -508,5 +507,35 @@ namespace Org.BouncyCastle.Crypto.Tests
 
 			Assert.AreEqual(Name + ": Okay", resultText);
 		}
-	}
+
+        [Test, Explicit]
+        public void BenchMac()
+        {
+            IMac mac = new Poly1305();
+            mac.Init(new KeyParameter(new byte[32]));
+
+            byte[] data = new byte[1024];
+            for (int i = 0; i < 1024; ++i)
+            {
+                for (int j = 0; j < 1024; ++j)
+                {
+                    // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+                    //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                    mac.BlockUpdate(data);
+#else
+                    mac.BlockUpdate(data, 0, 1024);
+#endif
+                }
+
+                // NOTE: .NET Core 3.1 has Span<T>, but is tested against our .NET Standard 2.0 assembly.
+                //#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+#if NET6_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+                mac.DoFinal(data);
+#else
+                mac.DoFinal(data, 0);
+#endif
+            }
+        }
+    }
 }
