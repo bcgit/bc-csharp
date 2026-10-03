@@ -13,13 +13,13 @@ namespace Org.BouncyCastle.Crypto.Modes
     /// </summary>
     /// <remarks>
     /// <para>
-    /// ChaCha20-Poly1305 is an Authenticated Encryption with Associated Data (AEAD) algorithm 
+    /// ChaCha20-Poly1305 is an Authenticated Encryption with Associated Data (AEAD) algorithm
     /// combining the ChaCha20 stream cipher with the Poly1305 message authentication code.
     /// </para>
     /// <para>
-    /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every 
-    /// invocation with the same key. Reusing a nonce with the same key catastrophically compromises 
-    /// the security of the cipher, allowing an attacker to recover the authentication key (Poly1305) 
+    /// <b>CRITICAL SECURITY WARNING:</b> For encryption, a unique nonce (IV) MUST be used for every
+    /// invocation with the same key. Reusing a nonce with the same key catastrophically compromises
+    /// the security of the cipher, allowing an attacker to recover the authentication key (Poly1305)
     /// and plaintext.
     /// </para>
     /// </remarks>
@@ -271,11 +271,11 @@ namespace Org.BouncyCastle.Crypto.Modes
         public virtual void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
             if (null == inBytes)
-                throw new ArgumentNullException("inBytes");
+                throw new ArgumentNullException(nameof(inBytes));
             if (inOff < 0)
-                throw new ArgumentException("cannot be negative", "inOff");
+                throw new ArgumentException("cannot be negative", nameof(inOff));
             if (len < 0)
-                throw new ArgumentException("cannot be negative", "len");
+                throw new ArgumentException("cannot be negative", nameof(len));
             Check.DataLength(inBytes, inOff, len, "input buffer too short");
 
             CheckAad();
@@ -407,7 +407,7 @@ namespace Org.BouncyCastle.Crypto.Modes
         public virtual int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             if (null == inBytes)
-                throw new ArgumentNullException("inBytes");
+                throw new ArgumentNullException(nameof(inBytes));
             /*
              * Following bc-java, we allow null when no output is expected (e.g. based on a
              * GetUpdateOutputSize call).
@@ -417,12 +417,12 @@ namespace Org.BouncyCastle.Crypto.Modes
                 //throw new ArgumentNullException("outBytes");
             }
             if (inOff < 0)
-                throw new ArgumentException("cannot be negative", "inOff");
+                throw new ArgumentException("cannot be negative", nameof(inOff));
             if (len < 0)
-                throw new ArgumentException("cannot be negative", "len");
+                throw new ArgumentException("cannot be negative", nameof(len));
             Check.DataLength(inBytes, inOff, len, "input buffer too short");
             if (outOff < 0)
-                throw new ArgumentException("cannot be negative", "outOff");
+                throw new ArgumentException("cannot be negative", nameof(outOff));
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return ProcessBytes(inBytes.AsSpan(inOff, len), Spans.FromNullable(outBytes, outOff));
@@ -459,33 +459,39 @@ namespace Org.BouncyCastle.Crypto.Modes
                     }
                 }
 
-                int inLimit1 = inOff + len - m_buf.Length;
-                int inLimit2 = inLimit1 - BufSize;
-
                 available = BufSize - m_bufPos;
                 Array.Copy(inBytes, inOff, m_buf, m_bufPos, available);
                 m_poly1305.BlockUpdate(m_buf, 0, BufSize);
                 ProcessBlock(m_buf, 0, outBytes, outOff + resultLen);
                 inOff += available;
+                len -= available;
                 resultLen += BufSize;
 
-                while (inOff <= inLimit2)
+                int bytesInBlocks = (len - MacSize) & -BufSize;
+                if (bytesInBlocks > 0)
                 {
-                    m_poly1305.BlockUpdate(inBytes, inOff, BufSize * 2);
-                    ProcessBlocks2(inBytes, inOff, outBytes, outOff + resultLen);
-                    inOff += BufSize * 2;
-                    resultLen += BufSize * 2;
+                    Check.OutputLength(outBytes, outOff + resultLen, bytesInBlocks, "output buffer too short");
+                    m_dataCount = IncrementCount(m_dataCount, (uint)bytesInBlocks, DataLimit);
+
+                    m_poly1305.BlockUpdate(inBytes, inOff, bytesInBlocks);
+
+                    int limit2 = inOff + bytesInBlocks - BufSize;
+                    while (inOff < limit2)
+                    {
+                        m_chacha20.ProcessBlocks2(inBytes, inOff, outBytes, outOff + resultLen);
+                        inOff += BufSize * 2;
+                        resultLen += BufSize * 2;
+                    }
+
+                    if (inOff - BufSize < limit2)
+                    {
+                        m_chacha20.ProcessBlock(inBytes, inOff, outBytes, outOff + resultLen);
+                        inOff += BufSize;
+                        resultLen += BufSize;
+                    }
                 }
 
-                if (inOff <= inLimit1)
-                {
-                    m_poly1305.BlockUpdate(inBytes, inOff, BufSize);
-                    ProcessBlock(inBytes, inOff, outBytes, outOff + resultLen);
-                    inOff += BufSize;
-                    resultLen += BufSize;
-                }
-
-                m_bufPos = m_buf.Length + inLimit1 - inOff;
+                m_bufPos = len - bytesInBlocks;
                 Array.Copy(inBytes, inOff, m_buf, 0, m_bufPos);
                 break;
             }
@@ -499,34 +505,40 @@ namespace Org.BouncyCastle.Crypto.Modes
                     break;
                 }
 
-                int inLimit1 = inOff + len - BufSize;
-                int inLimit2 = inLimit1 - BufSize;
-
                 if (m_bufPos > 0)
                 {
                     Array.Copy(inBytes, inOff, m_buf, m_bufPos, available);
                     ProcessBlock(m_buf, 0, outBytes, outOff);
                     inOff += available;
+                    len -= available;
                     resultLen = BufSize;
                 }
 
-                while (inOff <= inLimit2)
+                int bytesInBlocks = len & -BufSize;
+                if (bytesInBlocks > 0)
                 {
-                    ProcessBlocks2(inBytes, inOff, outBytes, outOff + resultLen);
-                    inOff += BufSize * 2;
-                    resultLen += BufSize * 2;
-                }
+                    Check.OutputLength(outBytes, outOff + resultLen, bytesInBlocks, "output buffer too short");
+                    m_dataCount = IncrementCount(m_dataCount, (uint)bytesInBlocks, DataLimit);
 
-                if (inOff <= inLimit1)
-                {
-                    ProcessBlock(inBytes, inOff, outBytes, outOff + resultLen);
-                    inOff += BufSize;
-                    resultLen += BufSize;
+                    int limit2 = inOff + bytesInBlocks - BufSize;
+                    while (inOff < limit2)
+                    {
+                        m_chacha20.ProcessBlocks2(inBytes, inOff, outBytes, outOff + resultLen);
+                        inOff += BufSize * 2;
+                        resultLen += BufSize * 2;
+                    }
+
+                    if (inOff - BufSize < limit2)
+                    {
+                        m_chacha20.ProcessBlock(inBytes, inOff, outBytes, outOff + resultLen);
+                        inOff += BufSize;
+                        resultLen += BufSize;
+                    }
                 }
 
                 m_poly1305.BlockUpdate(outBytes, outOff, resultLen);
 
-                m_bufPos = BufSize + inLimit1 - inOff;
+                m_bufPos = len - bytesInBlocks;
                 Array.Copy(inBytes, inOff, m_buf, 0, m_bufPos);
                 break;
             }
@@ -577,9 +589,6 @@ namespace Org.BouncyCastle.Crypto.Modes
                     }
                 }
 
-                int inLimit1 = m_buf.Length;
-                int inLimit2 = inLimit1 + BufSize;
-
                 available = BufSize - m_bufPos;
                 input[..available].CopyTo(m_buf.AsSpan(m_bufPos));
                 m_poly1305.BlockUpdate(m_buf.AsSpan(0, BufSize));
@@ -587,20 +596,30 @@ namespace Org.BouncyCastle.Crypto.Modes
                 input = input[available..];
                 resultLen += BufSize;
 
-                while (input.Length >= inLimit2)
+                int bytesInBlocks = (input.Length - MacSize) & -BufSize;
+                if (bytesInBlocks > 0)
                 {
-                    m_poly1305.BlockUpdate(input[..(BufSize * 2)]);
-                    ProcessBlocks2(input, output[resultLen..]);
-                    input = input[(BufSize * 2)..];
-                    resultLen += BufSize * 2;
-                }
+                    Check.OutputLength(output[resultLen..], bytesInBlocks, "output buffer too short");
+                    m_dataCount = IncrementCount(m_dataCount, (uint)bytesInBlocks, DataLimit);
 
-                if (input.Length >= inLimit1)
-                {
-                    m_poly1305.BlockUpdate(input[..BufSize]);
-                    ProcessBlock(input, output[resultLen..]);
-                    input = input[BufSize..];
-                    resultLen += BufSize;
+                    m_poly1305.BlockUpdate(input[..bytesInBlocks]);
+
+                    int limit1 = m_buf.Length;
+                    int limit2 = limit1 + BufSize;
+
+                    while (input.Length >= limit2)
+                    {
+                        m_chacha20.ProcessBlocks2(input, output[resultLen..]);
+                        input = input[(BufSize * 2)..];
+                        resultLen += BufSize * 2;
+                    }
+
+                    if (input.Length >= limit1)
+                    {
+                        m_chacha20.ProcessBlock(input, output[resultLen..]);
+                        input = input[BufSize..];
+                        resultLen += BufSize;
+                    }
                 }
 
                 m_bufPos = input.Length;
@@ -625,18 +644,25 @@ namespace Org.BouncyCastle.Crypto.Modes
                     resultLen = BufSize;
                 }
 
-                while (input.Length >= BufSize * 2)
+                int bytesInBlocks = input.Length & -BufSize;
+                if (bytesInBlocks > 0)
                 {
-                    ProcessBlocks2(input, output[resultLen..]);
-                    input = input[(BufSize * 2)..];
-                    resultLen += BufSize * 2;
-                }
+                    Check.OutputLength(output[resultLen..], bytesInBlocks, "output buffer too short");
+                    m_dataCount = IncrementCount(m_dataCount, (uint)bytesInBlocks, DataLimit);
 
-                if (input.Length >= BufSize)
-                {
-                    ProcessBlock(input, output[resultLen..]);
-                    input = input[BufSize..];
-                    resultLen += BufSize;
+                    while (input.Length >= BufSize * 2)
+                    {
+                        m_chacha20.ProcessBlocks2(input, output[resultLen..]);
+                        input = input[(BufSize * 2)..];
+                        resultLen += BufSize * 2;
+                    }
+
+                    if (input.Length >= BufSize)
+                    {
+                        m_chacha20.ProcessBlock(input, output[resultLen..]);
+                        input = input[BufSize..];
+                        resultLen += BufSize;
+                    }
                 }
 
                 m_poly1305.BlockUpdate(output[..resultLen]);
@@ -661,9 +687,9 @@ namespace Org.BouncyCastle.Crypto.Modes
         public virtual int DoFinal(byte[] outBytes, int outOff)
         {
             if (null == outBytes)
-                throw new ArgumentNullException("outBytes");
+                throw new ArgumentNullException(nameof(outBytes));
             if (outOff < 0)
-                throw new ArgumentException("cannot be negative", "outOff");
+                throw new ArgumentException("cannot be negative", nameof(outOff));
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return DoFinal(outBytes.AsSpan(outOff));
@@ -683,12 +709,12 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 resultLen = m_bufPos - MacSize;
 
-                Check.OutputLength(outBytes, outOff, resultLen, "output buffer too short");
-
                 if (resultLen > 0)
                 {
+                    Check.OutputLength(outBytes, outOff, resultLen, "output buffer too short");
+                    m_dataCount = IncrementCount(m_dataCount, (uint)resultLen, DataLimit);
                     m_poly1305.BlockUpdate(m_buf, 0, resultLen);
-                    ProcessData(m_buf, 0, resultLen, outBytes, outOff);
+                    m_chacha20.ProcessBytes(m_buf, 0, resultLen, outBytes, outOff);
                 }
 
                 FinishData(State.DecFinal);
@@ -706,7 +732,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 if (m_bufPos > 0)
                 {
-                    ProcessData(m_buf, 0, m_bufPos, outBytes, outOff);
+                    m_dataCount = IncrementCount(m_dataCount, (uint)m_bufPos, DataLimit);
+                    m_chacha20.ProcessBytes(m_buf, 0, m_bufPos, outBytes, outOff);
                     m_poly1305.BlockUpdate(outBytes, outOff, m_bufPos);
                 }
 
@@ -747,12 +774,12 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 resultLen = m_bufPos - MacSize;
 
-                Check.OutputLength(output, resultLen, "output buffer too short");
-
                 if (resultLen > 0)
                 {
+                    Check.OutputLength(output, resultLen, "output buffer too short");
+                    m_dataCount = IncrementCount(m_dataCount, (uint)resultLen, DataLimit);
                     m_poly1305.BlockUpdate(m_buf, 0, resultLen);
-                    ProcessData(m_buf.AsSpan(0, resultLen), output);
+                    m_chacha20.ProcessBytes(m_buf.AsSpan(0, resultLen), output);
                 }
 
                 FinishData(State.DecFinal);
@@ -770,7 +797,8 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                 if (m_bufPos > 0)
                 {
-                    ProcessData(m_buf.AsSpan(0, m_bufPos), output);
+                    m_dataCount = IncrementCount(m_dataCount, (uint)m_bufPos, DataLimit);
+                    m_chacha20.ProcessBytes(m_buf.AsSpan(0, m_bufPos), output);
                     m_poly1305.BlockUpdate(output[..m_bufPos]);
                 }
 
@@ -877,7 +905,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             finally
             {
-                firstBlock.Fill(0x00);
+                Arrays.ZeroMemory(firstBlock);
             }
 #else
             byte[] firstBlock = new byte[64];
@@ -888,7 +916,7 @@ namespace Org.BouncyCastle.Crypto.Modes
             }
             finally
             {
-                Array.Clear(firstBlock, 0, 64);
+                Arrays.ZeroMemory(firstBlock);
             }
 #endif
         }
@@ -910,22 +938,6 @@ namespace Org.BouncyCastle.Crypto.Modes
             m_chacha20.ProcessBlock(input, output);
             m_dataCount = IncrementCount(m_dataCount, 64U, DataLimit);
         }
-
-        private void ProcessBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
-        {
-            Check.OutputLength(output, 128, "output buffer too short");
-
-            m_chacha20.ProcessBlocks2(input, output);
-            m_dataCount = IncrementCount(m_dataCount, 128U, DataLimit);
-        }
-
-        private void ProcessData(ReadOnlySpan<byte> input, Span<byte> output)
-        {
-            Check.OutputLength(output, input.Length, "output buffer too short");
-
-            m_chacha20.ProcessBytes(input, output);
-            m_dataCount = IncrementCount(m_dataCount, (uint)input.Length, DataLimit);
-        }
 #else
         private void ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
         {
@@ -933,22 +945,6 @@ namespace Org.BouncyCastle.Crypto.Modes
 
             m_chacha20.ProcessBlock(inBytes, inOff, outBytes, outOff);
             m_dataCount = IncrementCount(m_dataCount, 64U, DataLimit);
-        }
-
-        private void ProcessBlocks2(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
-        {
-            Check.OutputLength(outBytes, outOff, 128, "output buffer too short");
-
-            m_chacha20.ProcessBlocks2(inBytes, inOff, outBytes, outOff);
-            m_dataCount = IncrementCount(m_dataCount, 128U, DataLimit);
-        }
-
-        private void ProcessData(byte[] inBytes, int inOff, int inLen, byte[] outBytes, int outOff)
-        {
-            Check.OutputLength(outBytes, outOff, inLen, "output buffer too short");
-
-            m_chacha20.ProcessBytes(inBytes, inOff, inLen, outBytes, outOff);
-            m_dataCount = IncrementCount(m_dataCount, (uint)inLen, DataLimit);
         }
 #endif
 
