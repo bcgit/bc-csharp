@@ -37,6 +37,9 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         protected override void AdvanceCounter()
         {
+            // TODO[chacha] Counter 0xFFFFFFFF is never usable (its keystream is generated, then rejected here), though
+            // RFC 8439 allows it. Also, the throw leaves the counter at 0, so a caller that catches and continues will
+            // reuse keystream. Consider a sticky "exhausted" state (and then relax the check in ProcessBlocks to match).
             if (++engineState[12] == 0)
                 throw new InvalidOperationException("attempt to increase counter past 2^32.");
         }
@@ -76,29 +79,14 @@ namespace Org.BouncyCastle.Crypto.Engines
             Check.DataLength(inBuf, inOff, inLen, "input buffer too short");
             Check.OutputLength(outBuf, outOff, inLen, "output buffer too short");
 
-            while (inLen >= 128)
-            {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                ProcessBlocks2(inBuf.AsSpan(inOff), outBuf.AsSpan(outOff));
+            int processed = ProcessBlocks(inBuf.AsSpan(inOff, inLen), outBuf.AsSpan(outOff));
 #else
-                ProcessBlocks2(inBuf, inOff, outBuf, outOff);
+            int processed = ProcessBlocks(inBuf, inOff, inLen, outBuf, outOff);
 #endif
-                inOff += 128;
-                inLen -= 128;
-                outOff += 128;
-            }
-
-            if (inLen >= 64)
-            {
-#if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-                ImplProcessBlock(inBuf.AsSpan(inOff), outBuf.AsSpan(outOff));
-#else
-                ImplProcessBlock(inBuf, inOff, outBuf, outOff);
-#endif
-                inOff += 64;
-                inLen -= 64;
-                outOff += 64;
-            }
+            inOff += processed;
+            inLen -= processed;
+            outOff += processed;
 
             if (inLen > 0)
             {
@@ -107,7 +95,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                 Bytes.Xor(inLen, inBuf, inOff, keyStream, 0, outBuf, outOff);
             }
 
-            engineState[12] = 0;
+            ResetCounter();
 
             // TODO Prevent re-use if encrypting
         }
@@ -125,16 +113,39 @@ namespace Org.BouncyCastle.Crypto.Engines
             ImplProcessBlock(input, output);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void ProcessBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
+        /// <summary>Process all complete blocks of the input.</summary>
+        /// <returns>The number of bytes processed (a multiple of the block size).</returns>
+        internal int ProcessBlocks(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!initialised)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
-            if (LimitExceeded(128U))
+
+            int len = input.Length & -64;
+            if (((uint)len >> 6) > ~engineState[12])
+                throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
+            if (LimitExceeded((uint)len))
                 throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
 
             Debug.Assert(index == 0);
 
+            while (input.Length >= 128)
+            {
+                ImplProcessBlocks2(input, output);
+                input = input[128..];
+                output = output[128..];
+            }
+
+            if (input.Length >= 64)
+            {
+                ImplProcessBlock(input, output);
+            }
+
+            return len;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ImplProcessBlocks2(ReadOnlySpan<byte> input, Span<byte> output)
+        {
 #if NETCOREAPP3_0_OR_GREATER
             if (Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled)
             {
@@ -156,7 +167,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void ImplProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
+        private void ImplProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             ChaChaEngine.ChaChaCore(rounds, engineState, keyStream);
             AdvanceCounter();
@@ -175,25 +186,33 @@ namespace Org.BouncyCastle.Crypto.Engines
             ImplProcessBlock(inBytes, inOff, outBytes, outOff);
         }
 
-        internal void ProcessBlocks2(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
+        /// <summary>Process all complete blocks of the input.</summary>
+        /// <returns>The number of bytes processed (a multiple of the block size).</returns>
+        internal int ProcessBlocks(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             if (!initialised)
                 throw new InvalidOperationException(AlgorithmName + " not initialised");
-            if (LimitExceeded(128U))
+
+            len &= -64;
+            if (((uint)len >> 6) > ~engineState[12])
+                throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
+            if (LimitExceeded((uint)len))
                 throw new MaxBytesExceededException("2^38 byte limit per IV would be exceeded; Change IV");
 
             Debug.Assert(index == 0);
 
+            for (int pos = 0; pos < len; pos += 64)
             {
-                ImplProcessBlock(inBytes, inOff, outBytes, outOff);
-                ImplProcessBlock(inBytes, inOff + 64, outBytes, outOff + 64);
+                ImplProcessBlock(inBytes, inOff + pos, outBytes, outOff + pos);
             }
+
+            return len;
         }
 
 #if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-        internal void ImplProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
+        private void ImplProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
             ChaChaEngine.ChaChaCore(rounds, engineState, keyStream);
             AdvanceCounter();
@@ -240,7 +259,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             return Avx2.Shuffle(v.AsByte(), Rot8Mask256).AsUInt32();
         }
 
-        internal static void ImplProcessBlocks2_X86_Avx2(int rounds, uint[] state, ReadOnlySpan<byte> input,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ImplProcessBlocks2_X86_Avx2(int rounds, uint[] state, ReadOnlySpan<byte> input,
             Span<byte> output)
         {
             if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Avx2.IsEnabled)
@@ -325,7 +345,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             Store256_Byte(n3, output[0x60..]);
         }
 
-        internal static void ImplProcessBlocks2_X86_Sse2(int rounds, uint[] state, ReadOnlySpan<byte> input,
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static void ImplProcessBlocks2_X86_Sse2(int rounds, uint[] state, ReadOnlySpan<byte> input,
             Span<byte> output)
         {
             if (!Org.BouncyCastle.Runtime.Intrinsics.X86.Sse2.IsEnabled)

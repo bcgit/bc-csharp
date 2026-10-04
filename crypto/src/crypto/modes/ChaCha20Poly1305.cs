@@ -475,20 +475,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                     m_poly1305.BlockUpdate(inBytes, inOff, bytesInBlocks);
 
-                    int limit2 = inOff + bytesInBlocks - BufSize;
-                    while (inOff < limit2)
-                    {
-                        m_chacha20.ProcessBlocks2(inBytes, inOff, outBytes, outOff + resultLen);
-                        inOff += BufSize * 2;
-                        resultLen += BufSize * 2;
-                    }
-
-                    if (inOff - BufSize < limit2)
-                    {
-                        m_chacha20.ProcessBlock(inBytes, inOff, outBytes, outOff + resultLen);
-                        inOff += BufSize;
-                        resultLen += BufSize;
-                    }
+                    m_chacha20.ProcessBlocks(inBytes, inOff, bytesInBlocks, outBytes, outOff + resultLen);
+                    inOff += bytesInBlocks;
+                    resultLen += bytesInBlocks;
                 }
 
                 m_bufPos = len - bytesInBlocks;
@@ -520,20 +509,9 @@ namespace Org.BouncyCastle.Crypto.Modes
                     Check.OutputLength(outBytes, outOff + resultLen, bytesInBlocks, "output buffer too short");
                     m_dataCount = IncrementCount(m_dataCount, (uint)bytesInBlocks, DataLimit);
 
-                    int limit2 = inOff + bytesInBlocks - BufSize;
-                    while (inOff < limit2)
-                    {
-                        m_chacha20.ProcessBlocks2(inBytes, inOff, outBytes, outOff + resultLen);
-                        inOff += BufSize * 2;
-                        resultLen += BufSize * 2;
-                    }
-
-                    if (inOff - BufSize < limit2)
-                    {
-                        m_chacha20.ProcessBlock(inBytes, inOff, outBytes, outOff + resultLen);
-                        inOff += BufSize;
-                        resultLen += BufSize;
-                    }
+                    m_chacha20.ProcessBlocks(inBytes, inOff, bytesInBlocks, outBytes, outOff + resultLen);
+                    inOff += bytesInBlocks;
+                    resultLen += bytesInBlocks;
                 }
 
                 m_poly1305.BlockUpdate(outBytes, outOff, resultLen);
@@ -604,22 +582,9 @@ namespace Org.BouncyCastle.Crypto.Modes
 
                     m_poly1305.BlockUpdate(input[..bytesInBlocks]);
 
-                    int limit1 = m_buf.Length;
-                    int limit2 = limit1 + BufSize;
-
-                    while (input.Length >= limit2)
-                    {
-                        m_chacha20.ProcessBlocks2(input, output[resultLen..]);
-                        input = input[(BufSize * 2)..];
-                        resultLen += BufSize * 2;
-                    }
-
-                    if (input.Length >= limit1)
-                    {
-                        m_chacha20.ProcessBlock(input, output[resultLen..]);
-                        input = input[BufSize..];
-                        resultLen += BufSize;
-                    }
+                    m_chacha20.ProcessBlocks(input[..bytesInBlocks], output[resultLen..]);
+                    input = input[bytesInBlocks..];
+                    resultLen += bytesInBlocks;
                 }
 
                 m_bufPos = input.Length;
@@ -650,19 +615,9 @@ namespace Org.BouncyCastle.Crypto.Modes
                     Check.OutputLength(output[resultLen..], bytesInBlocks, "output buffer too short");
                     m_dataCount = IncrementCount(m_dataCount, (uint)bytesInBlocks, DataLimit);
 
-                    while (input.Length >= BufSize * 2)
-                    {
-                        m_chacha20.ProcessBlocks2(input, output[resultLen..]);
-                        input = input[(BufSize * 2)..];
-                        resultLen += BufSize * 2;
-                    }
-
-                    if (input.Length >= BufSize)
-                    {
-                        m_chacha20.ProcessBlock(input, output[resultLen..]);
-                        input = input[BufSize..];
-                        resultLen += BufSize;
-                    }
+                    m_chacha20.ProcessBlocks(input[..bytesInBlocks], output[resultLen..]);
+                    input = input[bytesInBlocks..];
+                    resultLen += bytesInBlocks;
                 }
 
                 m_poly1305.BlockUpdate(output[..resultLen]);
