@@ -18,6 +18,8 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// <summary>
     /// Implementation of Daniel J. Bernstein's ChaCha stream cipher.
     /// </summary>
+    // TODO[api] Make sealed, and don't derive from Salsa20Engine (its 2^70 limit doesn't fit a 32-bit block counter);
+    // own a single exact counter limit, so the SIMD paths and ChaCha20Poly1305 needn't duplicate it
     public class ChaCha7539Engine
         : Salsa20Engine
     {

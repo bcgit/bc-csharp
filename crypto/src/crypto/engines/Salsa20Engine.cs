@@ -17,6 +17,8 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// <summary>
     /// Implementation of Daniel J. Bernstein's Salsa20 stream cipher, Snuffle 2005
     /// </summary>
+    // TODO[api] Make sealed, and stop subclassing this class (subclasses inherit its counter model, 2^70 limit, and
+    // protected virtual hooks); share the core by composition instead
     public class Salsa20Engine
         : IStreamCipher
     {

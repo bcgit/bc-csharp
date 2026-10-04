@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// <summary>
     /// Implementation of Daniel J. Bernstein's ChaCha stream cipher.
     /// </summary>
+    // TODO[api] Make sealed, and don't derive from Salsa20Engine
     public class ChaChaEngine
         : Salsa20Engine
     {

@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// <remarks>
     /// XSalsa20 requires a 256 bit key, and a 192 bit nonce.
     /// </remarks>
+    // TODO[api] Make sealed, and don't derive from Salsa20Engine
     public class XSalsa20Engine
         : Salsa20Engine
     {

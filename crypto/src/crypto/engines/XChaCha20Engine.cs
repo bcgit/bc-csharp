@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// XChaCha20 requires a 256 bit key, and a 192 bit nonce. See
     /// draft-irtf-cfrg-xchacha-03 for the specification.
     /// </remarks>
+    // TODO[api] Make sealed, and don't derive from ChaCha7539Engine
     public class XChaCha20Engine
         : ChaCha7539Engine
     {
