@@ -488,7 +488,7 @@ namespace Org.BouncyCastle.Pkix
                     catch (PkixCertPathValidatorException ex)
                     {
                         throw new PkixCertPathValidatorException("Policy qualifier info set could not be built.", ex,
-                            index);
+                            index, ex.Reason);
                     }
 
                     bool match = PkixCertPathValidatorUtilities.ProcessCertD1i(i, policyNodes, pOid, pq);
@@ -1132,7 +1132,7 @@ namespace Org.BouncyCastle.Pkix
                     var message = e.Message +
                         ". The CRL distribution points of the certificate were tried first and failed: " +
                         lastException.Message;
-                    throw new PkixRecoverableCertPathValidatorException(message, lastException, e.Index);
+                    throw new PkixRecoverableCertPathValidatorException(message, lastException, e.Index, e.Reason);
                 }
             }
 
@@ -1281,7 +1281,7 @@ namespace Org.BouncyCastle.Pkix
                             catch (PkixCertPathValidatorException ex)
                             {
                                 throw new PkixCertPathValidatorException(
-                                    "Policy qualifier info set could not be decoded.", ex, index);
+                                    "Policy qualifier info set could not be decoded.", ex, index, ex.Reason);
                             }
                             break;
                         }
@@ -1672,7 +1672,7 @@ namespace Org.BouncyCastle.Pkix
                 }
                 catch (PkixCertPathValidatorException e)
                 {
-                    throw new PkixCertPathValidatorException(e.Message, e.InnerException, index);
+                    throw new PkixCertPathValidatorException(e.Message, e.InnerException, index, e.Reason);
                 }
             }
 
@@ -1813,7 +1813,8 @@ namespace Org.BouncyCastle.Pkix
                 }
                 catch (PkixCertPathValidatorException e)
                 {
-                    throw new PkixCertPathValidatorException("Additional certificate path checker failed.", e, index);
+                    throw new PkixCertPathValidatorException("Additional certificate path checker failed.", e, index,
+                        e.Reason);
                 }
             }
 

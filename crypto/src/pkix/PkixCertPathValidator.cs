@@ -246,7 +246,7 @@ namespace Org.BouncyCastle.Pkix
             catch (PkixCertPathValidatorException e)
             {
                 throw new PkixCertPathValidatorException(
-                    "Algorithm identifier of public key of trust anchor could not be read.", e, -1);
+                    "Algorithm identifier of public key of trust anchor could not be read.", e, -1, e.Reason);
             }
 
             //DerObjectIdentifier workingPublicKeyAlgorithm = workingAlgID.Algorithm;
@@ -288,14 +288,7 @@ namespace Org.BouncyCastle.Pkix
                 cert = certs[index];
                 bool verificationAlreadyPerformed = (index == certs.Count - 1);
 
-                try
-                {
-                    CheckCertificate(cert);
-                }
-                catch (Exception e)
-                {
-                    throw new PkixCertPathValidatorException(e.Message, e.InnerException, index);
-                }
+                CheckCertificate(cert);
 
                 //
                 // 6.1.3
@@ -402,7 +395,8 @@ namespace Org.BouncyCastle.Pkix
                     }
                     catch (PkixCertPathValidatorException e)
                     {
-                        throw new PkixCertPathValidatorException("Next working key could not be retrieved.", e, index);
+                        throw new PkixCertPathValidatorException("Next working key could not be retrieved.", e, index,
+                            e.Reason);
                     }
 
                     // (e), (f)
@@ -467,6 +461,8 @@ namespace Org.BouncyCastle.Pkix
             /*
              * NOTE: Unlike bc-java, only our own Org.BouncyCastle.X509.X509Certificate implementation is
              * supported, so no decode/import checks are needed.
+             *
+             * If this ever becomes active, it should throw PkixCertPathValidatorException (including index).
              */
         }
     }

@@ -32,6 +32,13 @@ namespace Org.BouncyCastle.Pkix
         {
         }
 
+        /// <inheritdoc/>
+        internal PkixRecoverableCertPathValidatorException(string message, Exception innerException, int index,
+            PkixCertPathValidatorReason reason)
+            : base(message, innerException, index, reason)
+        {
+        }
+
 #if NET8_0_OR_GREATER
         [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
 #endif
