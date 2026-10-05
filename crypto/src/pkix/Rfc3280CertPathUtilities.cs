@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -1151,24 +1152,39 @@ namespace Org.BouncyCastle.Pkix
                     PkixCertPathValidatorReason.UndeterminedRevocationStatus);
             }
 
-            if (certStatus.Status != CertStatus.Unrevoked)
-            {
-                // This format is enforced by the NistCertPath tests
-                var formattedDate = certStatus.RevocationDate.Value.ToString("yyyy-MM-dd HH:mm:ss K");
-                var reason = CrlReasons[certStatus.Status];
-                var message = $"Certificate revocation after {formattedDate}, reason: {reason}";
-                throw new PkixCertPathValidatorException(message, null, index, PkixCertPathValidatorReason.Revoked);
-            }
+            int rawStatus = certStatus.Status;
 
-            if (certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons)
-            {
-                certStatus.Status = CertStatus.Undetermined;
-            }
-
-            if (certStatus.Status == CertStatus.Undetermined)
+            if (rawStatus == CertStatus.Undetermined ||
+                (rawStatus == CertStatus.Unrevoked && !reasonsMask.IsAllReasons))
             {
                 throw new PkixCertPathValidatorException("Certificate status could not be determined.", null, index,
                     PkixCertPathValidatorReason.UndeterminedRevocationStatus);
+            }
+
+            if (rawStatus != CertStatus.Unrevoked)
+            {
+                DateTime? revocationDate = certStatus.RevocationDate;
+
+                string formattedDate = "(NO DATE)";
+                if (revocationDate.HasValue)
+                {
+                    formattedDate = revocationDate.Value.ToString("yyyy-MM-dd HH:mm:ss K",
+                        DateTimeFormatInfo.InvariantInfo);
+                }
+
+                string reason;
+                if (rawStatus >= 0 && rawStatus < CrlReasons.Length)
+                {
+                    reason = CrlReasons[rawStatus];
+                }
+                else
+                {
+                    reason = $"(unknown code: {rawStatus})";
+                }
+
+                // This format is enforced by the NistCertPath tests
+                var message = $"Certificate revocation after {formattedDate}, reason: {reason}";
+                throw new PkixCertPathValidatorException(message, null, index, PkixCertPathValidatorReason.Revoked);
             }
         }
 
