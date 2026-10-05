@@ -447,7 +447,7 @@ namespace Org.BouncyCastle.Pkix
                     return;
             }
 
-            int reasonCodeValue = CrlReason.Unspecified;
+            int crlReason = CrlReason.Unspecified;
 
             if (crl_entry.HasExtensions)
             {
@@ -456,9 +456,11 @@ namespace Org.BouncyCastle.Pkix
                 try
                 {
                     var reasonCode = crl_entry.GetExtension(X509Extensions.ReasonCode, DerEnumerated.GetInstance);
-                    if (null != reasonCode)
+                    if (null != reasonCode &&
+                        reasonCode.TryGetIntValueExact(out int reasonCodeValue) &&
+                        IsReasonCodeKnown(reasonCodeValue))
                     {
-                        reasonCodeValue = reasonCode.IntValueExact;
+                        crlReason = reasonCodeValue;
                     }
                 }
                 catch (Exception e)
@@ -470,10 +472,10 @@ namespace Org.BouncyCastle.Pkix
             DateTime revocationDate = crl_entry.RevocationDate;
 
             // for reason keyCompromise, caCompromise, aACompromise or unspecified
-            if (IsRevocationEffective(validDate, revocationDate, reasonCodeValue))
+            if (IsRevocationEffective(validDate, revocationDate, crlReason))
             {
                 // (i) or (j)
-                certStatus.Status = reasonCodeValue;
+                certStatus.Status = crlReason;
                 certStatus.RevocationDate = revocationDate;
             }
         }
@@ -1124,6 +1126,13 @@ namespace Org.BouncyCastle.Pkix
             return false;
         }
 
+        private static bool IsReasonCodeKnown(int reasonCodeValue)
+        {
+            return reasonCodeValue >= CrlReason.Unspecified
+                && reasonCodeValue <= CrlReason.AACompromise
+                && reasonCodeValue != 7; // value 7 is not used (RFC 5280 5.3.1)
+        }
+
         /**
          * RFC 5280 sec. 6.3.3 (i)/(j): whether a CRL entry's revocation takes effect for the
          * validation date - it does when the date is not before the entry's revocation date, and
@@ -1132,16 +1141,16 @@ namespace Org.BouncyCastle.Pkix
          *
          * @param validDate      the date validation is being performed for.
          * @param revocationDate the CRL entry's revocation date.
-         * @param reasonCodeValue the entry's {@link CRLReason} code, {@link CRLReason#unspecified} if absent.
+         * @param crlReason the entry's {@link CRLReason} code, {@link CRLReason#unspecified} if absent.
          * @return true if the certificate is to be treated as revoked at validDate.
          */
-        private static bool IsRevocationEffective(DateTime validDate, DateTime revocationDate, int reasonCodeValue)
+        private static bool IsRevocationEffective(DateTime validDate, DateTime revocationDate, int crlReason)
         {
             return validDate.Ticks >= revocationDate.Ticks
-                || reasonCodeValue == CrlReason.Unspecified
-                || reasonCodeValue == CrlReason.KeyCompromise
-                || reasonCodeValue == CrlReason.CACompromise
-                || reasonCodeValue == CrlReason.AACompromise;
+                || crlReason == CrlReason.Unspecified
+                || crlReason == CrlReason.KeyCompromise
+                || crlReason == CrlReason.CACompromise
+                || crlReason == CrlReason.AACompromise;
         }
     }
 }
