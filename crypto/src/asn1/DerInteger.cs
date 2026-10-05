@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1
         [Obsolete("Use 'Properties.Asn1AllowUnsafeInteger' instead")]
         public const string AllowUnsafeProperty = "Org.BouncyCastle.Asn1.AllowUnsafeInteger";
 
-        private static readonly DerInteger[] SmallConstants = new DerInteger[17];
+        private static readonly DerInteger[] SmallConstants = new DerInteger[64];
 
         public static readonly DerInteger Zero;
         public static readonly DerInteger One;
@@ -38,14 +38,6 @@ namespace Org.BouncyCastle.Asn1
         internal const int SignExtSigned = -1;
         internal const int SignExtUnsigned = 0xFF;
 
-        private readonly byte[] m_contents;
-        private readonly int m_start;
-
-        /**
-         * return an integer from the passed in object
-         *
-         * @exception ArgumentException if the object cannot be converted.
-         */
         public static DerInteger GetInstance(object obj)
         {
             if (obj == null)
@@ -74,13 +66,6 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
-        /**
-         * return an Integer from a tagged object.
-         *
-         * @param taggedObject the tagged object holding the object we want
-         * @param declaredExplicit true if the object is meant to be explicitly tagged false otherwise.
-         * @exception ArgumentException if the tagged object cannot  be converted.
-         */
         public static DerInteger GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
             return (DerInteger)Meta.Instance.GetContextTagged(taggedObject, declaredExplicit);
@@ -139,6 +124,9 @@ namespace Org.BouncyCastle.Asn1
             Five = SmallConstants[5];
         }
 
+        private readonly byte[] m_contents;
+        private readonly int m_start;
+
         [Obsolete("Use ValueOf instead.")]
         public DerInteger(int value)
         {
@@ -162,18 +150,19 @@ namespace Org.BouncyCastle.Asn1
             m_start = 0;
         }
 
+        // TODO[api] Rename parameter to contents
         public DerInteger(byte[] bytes)
             : this(bytes, clone: true)
         {
         }
 
-        internal DerInteger(byte[] bytes, bool clone)
+        internal DerInteger(byte[] contents, bool clone)
         {
-            if (IsMalformed(bytes))
-                throw new ArgumentException("malformed integer", nameof(bytes));
+            if (IsMalformed(contents))
+                throw new ArgumentException("malformed integer", nameof(contents));
 
-            m_contents = clone ? Arrays.Clone(bytes) : bytes;
-            m_start = SignBytesToSkip(bytes);
+            m_contents = clone ? Arrays.Clone(contents) : contents;
+            m_start = SignBytesToSkip(m_contents);
         }
 
         /// <summary>Force the ASN.1 INTEGER encoding to be interpreted as unsigned.</summary>
@@ -300,17 +289,37 @@ namespace Org.BouncyCastle.Asn1
         internal sealed override DerEncoding GetEncodingDerImplicit(int tagClass, int tagNo) =>
             new PrimitiveDerEncoding(tagClass, tagNo, m_contents);
 
-        protected override int Asn1GetHashCode() => Arrays.GetHashCode(m_contents);
-
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             return asn1Object is DerInteger that
                 && Arrays.AreEqual(this.m_contents, that.m_contents);
         }
 
+        protected override int Asn1GetHashCode() => Arrays.GetHashCode(m_contents);
+
         public override string ToString() => Value.ToString();
 
-        internal static DerInteger CreatePrimitive(byte[] contents) => new DerInteger(contents, clone: false);
+        internal static DerInteger CreatePrimitive(byte[] contents)
+        {
+            if (contents.Length == 1 && contents[0] < SmallConstants.Length)
+                return SmallConstants[contents[0]];
+
+            return new DerInteger(contents, clone: false);
+        }
+
+        internal static DerInteger CreatePrimitive(DefiniteLengthInputStream defIn)
+        {
+            if (defIn.Remaining == 1)
+            {
+                int value = defIn.ReadByte();
+                if (value < SmallConstants.Length)
+                    return SmallConstants[value];
+
+                return new DerInteger(new byte[1] { (byte)value }, clone: false);
+            }
+
+            return new DerInteger(defIn.ToArray(), clone: false);
+        }
 
         internal static int GetEncodingLength(BigInteger x) =>
             Asn1OutputStream.GetLengthOfEncodingDL(Asn1Tags.Integer, BigIntegers.GetByteLength(x));
@@ -341,30 +350,29 @@ namespace Org.BouncyCastle.Asn1
             return val;
         }
 
-        /**
-         * Apply the correct validation for an INTEGER primitive following the BER rules.
-         *
-         * @param bytes The raw encoding of the integer.
-         * @return true if the (in)put fails this validation.
-         */
-        internal static bool IsMalformed(byte[] bytes)
+        /// <summary>
+        /// Apply the correct validation for an INTEGER primitive following the BER rules.
+        /// </summary>
+        /// <param name="contents">The contents octets of the integer.</param>
+        /// <returns><c>true</c> if the contents octets fail validation.</returns>
+        internal static bool IsMalformed(byte[] contents)
         {
-            switch (bytes.Length)
+            switch (contents.Length)
             {
             case 0:
                 return true;
             case 1:
                 return false;
             default:
-                return (sbyte)bytes[0] == ((sbyte)bytes[1] >> 7) && !AllowUnsafe();
+                return (sbyte)contents[0] == ((sbyte)contents[1] >> 7) && !AllowUnsafe();
             }
         }
 
-        internal static int SignBytesToSkip(byte[] bytes)
+        internal static int SignBytesToSkip(byte[] contents)
         {
-            int pos = 0, last = bytes.Length - 1;
+            int pos = 0, last = contents.Length - 1;
             while (pos < last
-                && (sbyte)bytes[pos] == ((sbyte)bytes[pos + 1] >> 7))
+                && (sbyte)contents[pos] == ((sbyte)contents[pos + 1] >> 7))
             {
                 ++pos;
             }

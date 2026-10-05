@@ -387,6 +387,8 @@ namespace Org.BouncyCastle.Asn1
                 return DerBoolean.CreatePrimitive(defIn);
             case Asn1Tags.Enumerated:
                 return DerEnumerated.CreatePrimitive(defIn);
+            case Asn1Tags.Integer:
+                return DerInteger.CreatePrimitive(defIn);
             case Asn1Tags.Null:
                 return Asn1Null.CreatePrimitive(defIn);
             case Asn1Tags.ObjectIdentifier:
@@ -409,8 +411,6 @@ namespace Org.BouncyCastle.Asn1
                 return DerGraphicString.CreatePrimitive(bytes);
             case Asn1Tags.IA5String:
                 return DerIA5String.CreatePrimitive(bytes);
-            case Asn1Tags.Integer:
-                return DerInteger.CreatePrimitive(bytes);
             case Asn1Tags.NumericString:
                 return DerNumericString.CreatePrimitive(bytes);
             case Asn1Tags.ObjectDescriptor:
