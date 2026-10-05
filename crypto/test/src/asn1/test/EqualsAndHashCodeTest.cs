@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.Tests
                 new DerBmpString("hello world"),
                 DerBoolean.True,
                 DerBoolean.False,
-                new DerEnumerated(100),
+                DerEnumerated.ValueOf(100),
                 new DerGeneralizedTime("20070315173729Z"),
                 new DerGeneralString("hello world"),
                 new DerIA5String("hello"),

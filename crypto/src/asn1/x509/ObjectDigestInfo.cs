@@ -91,7 +91,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public ObjectDigestInfo(int digestedObjectType, string otherObjectTypeID,
 			AlgorithmIdentifier digestAlgorithm, byte[] objectDigest)
         {
-            m_digestedObjectType = new DerEnumerated(digestedObjectType);
+            m_digestedObjectType = DerEnumerated.ValueOf(digestedObjectType);
 
 			if (digestedObjectType == OtherObjectDigest)
 			{

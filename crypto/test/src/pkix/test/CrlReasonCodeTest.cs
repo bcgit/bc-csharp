@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Pkix.Tests
 
             // Built directly, since the reasonCode values of interest are not all valid CrlReasons
             var entryExtGen = new X509ExtensionsGenerator();
-            entryExtGen.AddExtension(X509Extensions.ReasonCode, false, new DerEnumerated(reasonCode));
+            entryExtGen.AddExtension(X509Extensions.ReasonCode, false, DerEnumerated.ValueOf(reasonCode));
 
             var crlGen = new X509V2CrlGenerator();
             crlGen.SetIssuerDN(issuerCert.SubjectDN);

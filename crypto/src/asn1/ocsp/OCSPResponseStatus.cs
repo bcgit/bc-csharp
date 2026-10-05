@@ -25,12 +25,16 @@ namespace Org.BouncyCastle.Asn1.Ocsp
          * </pre>
          */
         public OcspResponseStatus(int value)
+#pragma warning disable CS0618 // Type or member is obsolete
             : base(value)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
         }
 
         public OcspResponseStatus(DerEnumerated value)
+#pragma warning disable CS0618 // Type or member is obsolete
             : base(value.IntValueExact)
+#pragma warning restore CS0618 // Type or member is obsolete
         {
         }
     }
