@@ -2,33 +2,16 @@ using System;
 using System.Runtime.Serialization;
 
 using Org.BouncyCastle.Security;
-using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkix
 {
-    /**
-     * An exception indicating one of a variety of problems encountered when
-     * validating a certification path. <br />
-     * <br />
-     * A <code>CertPathValidatorException</code> provides support for wrapping
-     * exceptions. The {@link #getCause getCause} method returns the throwable,
-     * if any, that caused this exception to be thrown. <br />
-     * <br />
-     * A <code>CertPathValidatorException</code> may also include the index of
-     * the certificate in the certification path that caused the
-     * exception to be thrown. Use the {@link #Index Index} property to retrieve
-     * this information.<br />
-     * <br />
-     * <b>Concurrent Access</b><br />
-     * <br />
-     * Unless otherwise specified, the methods defined in this class are not
-     * thread-safe. Multiple threads that need to access a single
-     * object concurrently should synchronize amongst themselves and
-     * provide the necessary locking. Multiple threads each manipulating
-     * separate objects need not synchronize.
-     *
-     * @see CertPathValidator
-     */
+    /// <summary>
+    /// An exception indicating one of a variety of problems encountered when validating a certification path.
+    /// </summary>
+    /// <remarks>
+    /// Instances may also include the (zero based) index of the certificate in the certification path that caused the
+    /// exception to be thrown. Use the <see cref="Index"/> property to retrieve this information.
+    /// </remarks>
     [Serializable]
     public class PkixCertPathValidatorException
         : GeneralSecurityException
