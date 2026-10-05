@@ -329,7 +329,7 @@ namespace Org.BouncyCastle.Pkix
             catch (PkixNameConstraintValidatorException e)
             {
                 throw new PkixCertPathValidatorException(
-                    "Subtree check for certificate subject failed.", e, index);
+                    "Subtree check for certificate subject failed.", e, index, PkixCertPathValidatorReason.InvalidName);
             }
 
             GeneralNames altName;
@@ -352,7 +352,8 @@ namespace Org.BouncyCastle.Pkix
                 catch (PkixNameConstraintValidatorException ex)
                 {
                     throw new PkixCertPathValidatorException(
-                        "Subtree check for certificate subject alternative email failed.", ex, index);
+                        "Subtree check for certificate subject alternative email failed.", ex, index,
+                        PkixCertPathValidatorReason.InvalidName);
                 }
             }
 
@@ -378,7 +379,8 @@ namespace Org.BouncyCastle.Pkix
                     catch (PkixNameConstraintValidatorException e)
                     {
                         throw new PkixCertPathValidatorException(
-                            "Subtree check for certificate subject alternative name failed.", e, index);
+                            "Subtree check for certificate subject alternative name failed.", e, index,
+                            PkixCertPathValidatorReason.InvalidName);
                     }
                 }
             }
@@ -430,10 +432,16 @@ namespace Org.BouncyCastle.Pkix
                     }
 
                     if (ANY_POLICY_OID.Equals(issuerDomainPolicy))
-                        throw new PkixCertPathValidatorException("IssuerDomainPolicy is anyPolicy", null, index);
+                    {
+                        throw new PkixCertPathValidatorException("IssuerDomainPolicy is anyPolicy", null, index,
+                            PkixCertPathValidatorReason.InvalidPolicy);
+                    }
 
                     if (ANY_POLICY_OID.Equals(subjectDomainPolicy))
-                        throw new PkixCertPathValidatorException("SubjectDomainPolicy is anyPolicy", null, index);
+                    {
+                        throw new PkixCertPathValidatorException("SubjectDomainPolicy is anyPolicy", null, index,
+                            PkixCertPathValidatorReason.InvalidPolicy);
+                    }
                 }
             }
         }
@@ -1137,7 +1145,11 @@ namespace Org.BouncyCastle.Pkix
             }
 
             if (!validCrlFound)
-                throw lastException;
+            {
+                throw new PkixCertPathValidatorException(lastException.Message,
+                    lastException.InnerException ?? lastException, index,
+                    PkixCertPathValidatorReason.UndeterminedRevocationStatus);
+            }
 
             if (certStatus.Status != CertStatus.Unrevoked)
             {
@@ -1145,7 +1157,7 @@ namespace Org.BouncyCastle.Pkix
                 var formattedDate = certStatus.RevocationDate.Value.ToString("yyyy-MM-dd HH:mm:ss K");
                 var reason = CrlReasons[certStatus.Status];
                 var message = $"Certificate revocation after {formattedDate}, reason: {reason}";
-                throw new Exception(message);
+                throw new PkixCertPathValidatorException(message, null, index, PkixCertPathValidatorReason.Revoked);
             }
 
             if (certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons)
@@ -1154,7 +1166,10 @@ namespace Org.BouncyCastle.Pkix
             }
 
             if (certStatus.Status == CertStatus.Undetermined)
-                throw new Exception("Certificate status could not be determined.");
+            {
+                throw new PkixCertPathValidatorException("Certificate status could not be determined.", null, index,
+                    PkixCertPathValidatorReason.UndeterminedRevocationStatus);
+            }
         }
 
         /// <exception cref="PkixCertPathValidatorException"/>
@@ -1309,7 +1324,10 @@ namespace Org.BouncyCastle.Pkix
             // (f)
             //
             if (explicitPolicy <= 0 && validPolicyTree == null)
-                throw new PkixCertPathValidatorException("No valid policy tree found when one expected.", null, index);
+            {
+                throw new PkixCertPathValidatorException("No valid policy tree found when one expected.", null, index,
+                    PkixCertPathValidatorReason.InvalidPolicy);
+            }
         }
 
         internal static void ProcessCertA(PkixCertPath certPath, PkixParameters pkixParams, DateTime currentDate,
@@ -1331,7 +1349,8 @@ namespace Org.BouncyCastle.Pkix
                 }
                 catch (GeneralSecurityException e)
                 {
-                    throw new PkixCertPathValidatorException("Could not validate certificate signature.", e, index);
+                    throw new PkixCertPathValidatorException("Could not validate certificate signature.", e, index,
+                        PkixCertPathValidatorReason.InvalidSignature);
                 }
             }
 
@@ -1353,11 +1372,13 @@ namespace Org.BouncyCastle.Pkix
             }
             catch (CertificateExpiredException e)
             {
-                throw new PkixCertPathValidatorException("Could not validate certificate: " + e.Message, e, index);
+                throw new PkixCertPathValidatorException("Could not validate certificate: " + e.Message, e, index,
+                    PkixCertPathValidatorReason.Expired);
             }
             catch (CertificateNotYetValidException e)
             {
-                throw new PkixCertPathValidatorException("Could not validate certificate: " + e.Message, e, index);
+                throw new PkixCertPathValidatorException("Could not validate certificate: " + e.Message, e, index,
+                    PkixCertPathValidatorReason.NotYetValid);
             }
 
             //
@@ -1384,7 +1405,8 @@ namespace Org.BouncyCastle.Pkix
             if (!issuer.Equivalent(workingIssuerName, true))
             {
                 throw new PkixCertPathValidatorException("IssuerName(" + issuer + ") does not match SubjectName("
-                    + workingIssuerName + ") of signing certificate.", null, index);
+                    + workingIssuerName + ") of signing certificate.", null, index,
+                    PkixCertPathValidatorReason.NameChaining);
             }
         }
 
@@ -1513,7 +1535,8 @@ namespace Org.BouncyCastle.Pkix
                 catch (Exception ex)
                 {
                     throw new PkixCertPathValidatorException(
-                        "Permitted subtrees could not be built from name constraints extension.", ex, index);
+                        "Permitted subtrees could not be built from name constraints extension.", ex, index,
+                        PkixCertPathValidatorReason.InvalidName);
                 }
             }
 
@@ -1533,7 +1556,8 @@ namespace Org.BouncyCastle.Pkix
                 catch (Exception ex)
                 {
                     throw new PkixCertPathValidatorException(
-                        "Excluded subtrees could not be built from name constraints extension.", ex, index);
+                        "Excluded subtrees could not be built from name constraints extension.", ex, index,
+                        PkixCertPathValidatorReason.InvalidName);
                 }
             }
         }
@@ -1586,10 +1610,16 @@ namespace Org.BouncyCastle.Pkix
             }
 
             if (bc == null)
-                throw new PkixCertPathValidatorException("Intermediate certificate lacks BasicConstraints", null, index);
+            {
+                throw new PkixCertPathValidatorException("Intermediate certificate lacks BasicConstraints", null, index,
+                    PkixCertPathValidatorReason.NotCACertificate);
+            }
 
             if (!bc.IsCA())
-                throw new PkixCertPathValidatorException("Not a CA certificate", null, index);
+            {
+                throw new PkixCertPathValidatorException("Not a CA certificate", null, index,
+                    PkixCertPathValidatorReason.NotCACertificate);
+            }
 
             return bc;
         }
@@ -1606,7 +1636,10 @@ namespace Org.BouncyCastle.Pkix
                 return maxPathLength;
 
             if (maxPathLength <= 0)
-                throw new PkixCertPathValidatorException("Max path length not greater than zero", null, index);
+            {
+                throw new PkixCertPathValidatorException("Max path length not greater than zero", null, index,
+                    PkixCertPathValidatorReason.PathTooLong);
+            }
 
             return maxPathLength - 1;
         }
@@ -1650,7 +1683,8 @@ namespace Org.BouncyCastle.Pkix
             if (keyUsage != null && (keyUsage.Length <= KEY_CERT_SIGN || !keyUsage[KEY_CERT_SIGN]))
             {
                 throw new PkixCertPathValidatorException(
-                    "Issuer certificate keyusage extension is critical and does not permit key signing.", null, index);
+                    "Issuer certificate keyusage extension is critical and does not permit key signing.", null, index,
+                    PkixCertPathValidatorReason.InvalidKeyUsage);
             }
         }
 
@@ -1679,7 +1713,7 @@ namespace Org.BouncyCastle.Pkix
             if (criticalExtensions.Count > 0)
             {
                 throw new PkixCertPathValidatorException(GetUnsupportedCriticalExtensionMessage(criticalExtensions),
-                    null, index);
+                    null, index, PkixCertPathValidatorReason.UnrecognizedCriticalExtension);
             }
         }
 
@@ -1821,7 +1855,7 @@ namespace Org.BouncyCastle.Pkix
             if (criticalExtensions.Count > 0)
             {
                 throw new PkixCertPathValidatorException(GetUnsupportedCriticalExtensionMessage(criticalExtensions),
-                    null, index);
+                    null, index, PkixCertPathValidatorReason.UnrecognizedCriticalExtension);
             }
         }
 
@@ -1844,7 +1878,7 @@ namespace Org.BouncyCastle.Pkix
                 if (pkixParams.IsExplicitPolicyRequired)
                 {
                     throw new PkixCertPathValidatorException("Explicit policy requested but none available.", null,
-                        index);
+                        index, PkixCertPathValidatorReason.InvalidPolicy);
                 }
                 intersection = null;
             }
@@ -1855,7 +1889,7 @@ namespace Org.BouncyCastle.Pkix
                     if (acceptablePolicies.Count < 1)
                     {
                         throw new PkixCertPathValidatorException("Explicit policy requested but none available.", null,
-                            index);
+                            index, PkixCertPathValidatorReason.InvalidPolicy);
                     }
 
                     var _validPolicyNodeSet = new HashSet<PkixPolicyNode>();

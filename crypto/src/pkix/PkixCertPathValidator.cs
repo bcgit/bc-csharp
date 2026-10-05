@@ -92,12 +92,21 @@ namespace Org.BouncyCastle.Pkix
             TrustAnchor trust;
             try
             {
-                trust = PkixCertPathValidatorUtilities.FindTrustAnchor(certs[certs.Count - 1], trustAnchors);
+                trust = PkixCertPathValidatorUtilities.FindTrustAnchor(certs[certs.Count - 1], trustAnchors,
+                    out var verificationException);
 
                 if (trust == null)
                 {
+                    if (verificationException != null)
+                    {
+                        throw new PkixCertPathValidatorException(
+                            "TrustAnchor found but certificate validation failed.", verificationException,
+                            certs.Count - 1, PkixCertPathValidatorReason.InvalidSignature);
+                    }
+
                     var message = "Trust anchor for certification path not found.";
-                    throw new PkixCertPathValidatorException(message, null, -1);
+                    throw new PkixCertPathValidatorException(message, null, -1,
+                        PkixCertPathValidatorReason.NoTrustAnchor);
                 }
 
                 // Belt and braces: the trust anchor below is what CRL checking is then restricted to, so ensure it
@@ -105,7 +114,8 @@ namespace Org.BouncyCastle.Pkix
                 if (!trustAnchors.Contains(trust))
                 {
                     var message = "Trust anchor for certification path is not one of the supplied trust anchors.";
-                    throw new PkixCertPathValidatorException(message, null, -1);
+                    throw new PkixCertPathValidatorException(message, null, -1,
+                        PkixCertPathValidatorReason.NoTrustAnchor);
                 }
 
                 // A TrustAnchor may be supplied by name + public key only, in which case no certificate to check
@@ -319,7 +329,8 @@ namespace Org.BouncyCastle.Pkix
                             continue;
 
                         throw new PkixCertPathValidatorException(
-                            "Version 1 certificates can't be used as CA ones.", null, index);
+                            "Version 1 certificates can't be used as CA ones.", null, index,
+                            PkixCertPathValidatorReason.NotCACertificate);
                     }
 
                     Rfc3280CertPathUtilities.PrepareNextCertA(certPath, index);
@@ -453,7 +464,8 @@ namespace Org.BouncyCastle.Pkix
             if ((explicitPolicy > 0) || (intersection != null))
                 return new PkixCertPathValidatorResult(trust, intersection, cert.GetPublicKey());
 
-            throw new PkixCertPathValidatorException("Path processing failed on policy.", null, index);
+            throw new PkixCertPathValidatorException("Path processing failed on policy.", null, index,
+                PkixCertPathValidatorReason.InvalidPolicy);
         }
 
         private static void CheckCertificate(X509Certificate cert)

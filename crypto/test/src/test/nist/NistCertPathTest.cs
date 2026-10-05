@@ -67,6 +67,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { "ValidCertificatePathTest1EE", "BadSignedCACert" },
                 new string[] { "BadSignedCACRL", TRUST_ANCHOR_ROOT_CRL },
                 1,
+                PkixCertPathValidatorReason.InvalidSignature,
                 "TrustAnchor found but certificate validation failed.");
         }
 
@@ -77,6 +78,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { GOOD_CA_CERT, "InvalidEESignatureTest3EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL },
                 0,
+                PkixCertPathValidatorReason.InvalidSignature,
                 "Could not validate certificate signature.");
         }
 
@@ -104,6 +106,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { "DSACACert", "InvalidDSASignatureTest6EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, "DSACACRL" },
                 0,
+                PkixCertPathValidatorReason.InvalidSignature,
                 "Could not validate certificate signature.");
         }
 
@@ -114,6 +117,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { "BadnotBeforeDateCACert", "InvalidCAnotBeforeDateTest1EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, "BadnotBeforeDateCACRL" },
                 1,
+                PkixCertPathValidatorReason.NotYetValid,
                 "Could not validate certificate: certificate not valid until 20470101120100Z");
         }
 
@@ -124,6 +128,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { GOOD_CA_CERT, "InvalidEEnotBeforeDateTest2EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL },
                 0,
+                PkixCertPathValidatorReason.NotYetValid,
                 "Could not validate certificate: certificate not valid until 20470101120100Z");
         }
 
@@ -150,6 +155,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { "BadnotAfterDateCACert", "InvalidCAnotAfterDateTest5EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, "BadnotAfterDateCACRL" },
                 1,
+                PkixCertPathValidatorReason.Expired,
                 "Could not validate certificate: certificate expired on 20020101120100Z");
         }
 
@@ -160,6 +166,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { GOOD_CA_CERT, "InvalidEEnotAfterDateTest6EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL },
                 0,
+                PkixCertPathValidatorReason.Expired,
                 "Could not validate certificate: certificate expired on 20020101120100Z");
         }
 
@@ -170,6 +177,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { GOOD_CA_CERT, "Invalidpre2000UTCEEnotAfterDateTest7EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL },
                 0,
+                PkixCertPathValidatorReason.Expired,
                 "Could not validate certificate: certificate expired on 19990101120100Z");
         }
 
@@ -180,6 +188,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { "NegativeSerialNumberCACert", "InvalidNegativeSerialNumberTest15EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, "NegativeSerialNumberCACRL" },
                 0,
+                PkixCertPathValidatorReason.Revoked,
                 // NOTE: Date/time part is locale-dependent
                 //"Certificate revocation after Thu Apr 19 14:57:20",
                 "Certificate revocation after",
@@ -210,6 +219,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 crlList,
                 nistTestPolicy2,
                 -1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "Path processing failed on policy.");
 
             DoTest(TRUST_ANCHOR_ROOT_CERTIFICATE,
@@ -230,6 +240,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { TRUST_ANCHOR_ROOT_CRL, "NoPoliciesCACRL" },
                 noPolicies,
                 1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -245,6 +256,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL, "PoliciesP2subCACRL" },
                 noPolicies,
                 1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE,
@@ -252,6 +264,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL, "PoliciesP2subCACRL" },
                 nistTestPolicy1And2,
                 1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -262,6 +275,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { GOOD_CA_CERT, "GoodsubCACert", "DifferentPoliciesTest4EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL, "GoodsubCACRL" },
                 0,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -272,6 +286,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 new string[] { GOOD_CA_CERT, "PoliciesP2subCA2Cert", "DifferentPoliciesTest5EE" },
                 new string[] { TRUST_ANCHOR_ROOT_CRL, GOOD_CA_CRL, "PoliciesP2subCA2CRL" },
                 0,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -287,6 +302,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy2,
                 -1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "Path processing failed on policy.");
         }
 
@@ -298,6 +314,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 0,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -309,6 +326,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -320,6 +338,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -353,6 +372,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 0,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -376,6 +396,7 @@ namespace Org.BouncyCastle.Tests.Nist
             DoTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy1);
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy2,
                 -1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "Path processing failed on policy.");
         }
 
@@ -389,6 +410,7 @@ namespace Org.BouncyCastle.Tests.Nist
             DoTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy1);
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy2,
                 -1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "Path processing failed on policy.");
         }
 
@@ -404,6 +426,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy2,
                 -1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "Path processing failed on policy.");
         }
 
@@ -417,6 +440,7 @@ namespace Org.BouncyCastle.Tests.Nist
             DoTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy1);
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy2,
                 -1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "Path processing failed on policy.");
         }
 
@@ -439,6 +463,7 @@ namespace Org.BouncyCastle.Tests.Nist
             DoTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy1);
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, nistTestPolicy2,
                 -1,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "Path processing failed on policy.");
         }
 
@@ -450,6 +475,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null,
                 0,
+                PkixCertPathValidatorReason.InvalidPolicy,
                 "No valid policy tree found when one expected.");
         }
 
@@ -500,6 +526,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null,
                 0,
+                PkixCertPathValidatorReason.UndeterminedRevocationStatus,
                 "CRL contains unsupported critical extensions.");
         }
 
@@ -514,6 +541,7 @@ namespace Org.BouncyCastle.Tests.Nist
             // so use the prefix-matching variant.
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 0,
+                PkixCertPathValidatorReason.UndeterminedRevocationStatus,
                 "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.",
                 "");
         }
@@ -537,6 +565,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 0,
+                PkixCertPathValidatorReason.UndeterminedRevocationStatus,
                 "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.",
                 "");
         }
@@ -550,6 +579,7 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList,
                 0,
+                PkixCertPathValidatorReason.UndeterminedRevocationStatus,
                 "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.",
                 "");
         }
@@ -563,13 +593,15 @@ namespace Org.BouncyCastle.Tests.Nist
 
             DoExceptionTest(TRUST_ANCHOR_ROOT_CERTIFICATE, certList, crlList, null,
                 0,
+                PkixCertPathValidatorReason.UndeterminedRevocationStatus,
                 "Certificate status could not be determined.");
         }
 
         // section 4.14: tests 17, 24, 25, 30, 31, 32, 33, 35
 
         // section 4.15: tests 5, 7
-        private void DoExceptionTest(string trustAnchor, string[] certs, string[] crls, int index, string message)
+        private void DoExceptionTest(string trustAnchor, string[] certs, string[] crls, int index,
+            PkixCertPathValidatorReason reason, string message)
         {
             try
             {
@@ -580,12 +612,13 @@ namespace Org.BouncyCastle.Tests.Nist
             catch (PkixCertPathValidatorException e)
             {
                 Assert.AreEqual(index, e.Index);
+                Assert.AreEqual(reason, e.Reason);
                 Assert.AreEqual(message, e.Message);
             }
         }
 
         private void DoExceptionTest(string trustAnchor, string[] certs, string[] crls, ISet<string> policies,
-            int index, string message)
+            int index, PkixCertPathValidatorReason reason, string message)
         {
             try
             {
@@ -596,12 +629,13 @@ namespace Org.BouncyCastle.Tests.Nist
             catch (PkixCertPathValidatorException e)
             {
                 Assert.AreEqual(index, e.Index);
+                Assert.AreEqual(reason, e.Reason);
                 Assert.AreEqual(message, e.Message);
             }
         }
 
-        private void DoExceptionTest(string trustAnchor, string[] certs, string[] crls, int index, string mesStart,
-            string mesEnd)
+        private void DoExceptionTest(string trustAnchor, string[] certs, string[] crls, int index,
+            PkixCertPathValidatorReason reason, string mesStart, string mesEnd)
         {
             try
             {
@@ -612,6 +646,7 @@ namespace Org.BouncyCastle.Tests.Nist
             catch (PkixCertPathValidatorException e)
             {
                 Assert.AreEqual(index, e.Index);
+                Assert.AreEqual(reason, e.Reason);
                 Assert.IsTrue(e.Message.StartsWith(mesStart));
                 Assert.IsTrue(e.Message.EndsWith(mesEnd));
             }

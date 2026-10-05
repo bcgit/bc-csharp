@@ -4,6 +4,8 @@ using System.Globalization;
 using NUnit.Framework;
 using NUnit.Framework.Internal;
 
+using Org.BouncyCastle.Pkix;
+
 namespace Org.BouncyCastle.Tests.Nist
 {
     /// <remarks>
@@ -40,7 +42,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid CA Signature Test2 EE")
                 .WithCrls("Bad Signed CA CRL")
                 .WithCerts("Bad Signed CA Cert")
-                .DoExceptionTest(1, "TrustAnchor found but certificate validation failed.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidSignature,
+                    "TrustAnchor found but certificate validation failed.");
         }
 
         /// <summary>4.1.3 Invalid EE Signature Test3</summary>
@@ -55,7 +58,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid EE Signature Test3 EE")
                 .WithCrls("Good CA CRL")
                 .WithCerts("Good CA Cert")
-                .DoExceptionTest(0, "Could not validate certificate signature.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidSignature,
+                    "Could not validate certificate signature.");
         }
 
         /// <summary>4.1.4 Valid DSA Signatures Test4</summary>
@@ -101,7 +105,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DSA Signature Test6 EE")
                 .WithCrls("DSA CA CRL")
                 .WithCerts("DSA CA Cert")
-                .DoExceptionTest(0, "Could not validate certificate signature.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidSignature,
+                    "Could not validate certificate signature.");
         }
 
         /// <summary>4.2.1 Invalid CA notBefore Date Test1</summary>
@@ -116,7 +121,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid CA notBefore Date Test1 EE")
                 .WithCrls("Bad notBefore Date CA CRL")
                 .WithCerts("Bad notBefore Date CA Cert")
-                .DoExceptionTest(1, $"Could not validate certificate: certificate not valid until {expectedDate}");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.NotYetValid,
+                    $"Could not validate certificate: certificate not valid until {expectedDate}");
         }
 
         /// <summary>4.2.2 Invalid EE notBefore Date Test2</summary>
@@ -131,7 +137,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid EE notBefore Date Test2 EE")
                 .WithCrls("Good CA CRL")
                 .WithCerts("Good CA Cert")
-                .DoExceptionTest(0, $"Could not validate certificate: certificate not valid until {expectedDate}");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.NotYetValid,
+                    $"Could not validate certificate: certificate not valid until {expectedDate}");
         }
 
         /// <summary>4.2.3 Valid pre2000 UTC notBefore Date Test3</summary>
@@ -174,7 +181,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid CA notAfter Date Test5 EE")
                 .WithCrls("Bad notAfter Date CA CRL")
                 .WithCerts("Bad notAfter Date CA Cert")
-                .DoExceptionTest(1, $"Could not validate certificate: certificate expired on {expectedDate}");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.Expired,
+                    $"Could not validate certificate: certificate expired on {expectedDate}");
         }
 
         /// <summary>4.2.6 Invalid EE notAfter Date Test6</summary>
@@ -189,7 +197,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid EE notAfter Date Test6 EE")
                 .WithCrls("Good CA CRL")
                 .WithCerts("Good CA Cert")
-                .DoExceptionTest(0, $"Could not validate certificate: certificate expired on {expectedDate}");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Expired,
+                    $"Could not validate certificate: certificate expired on {expectedDate}");
         }
 
         /// <summary>4.2.7 Invalid pre2000 UTC EE notAfter Date Test7</summary>
@@ -204,7 +213,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid pre2000 UTC EE notAfter Date Test7 EE")
                 .WithCrls("Good CA CRL")
                 .WithCerts("Good CA Cert")
-                .DoExceptionTest(0, $"Could not validate certificate: certificate expired on {expectedDate}");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Expired,
+                    $"Could not validate certificate: certificate expired on {expectedDate}");
         }
 
         /// <summary>4.2.8 Valid GeneralizedTime notAfter Date Test8</summary>
@@ -235,7 +245,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Good CA Cert")
                 // TODO[pkix] Stable X509Name strings
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=Good CA Root,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.3.2 Invalid Name Chaining Order Test2</summary>
@@ -253,7 +264,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Name Ordering CA Cert")
                 // TODO[pkix] Stable X509Name strings
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=Name Ordering CA,ou=Organizational Unit Name 1,ou=Organizational Unit Name 2,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.3.3 Valid Name Chaining Whitespace Test3</summary>
@@ -415,7 +427,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("No CRL CA Cert")
                 // TODO[pkix] Stable X509Name strings
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=No CRL CA,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.4.2 Invalid Revoked CA Test2</summary>
@@ -431,7 +444,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Revoked CA Test2 EE")
                 .WithCrls("Revoked subCA CRL", "Good CA CRL")
                 .WithCerts("Revoked subCA Cert", "Good CA Cert")
-                .DoExceptionTest(1, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.4.3 Invalid Revoked EE Test3</summary>
@@ -447,7 +461,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Revoked EE Test3 EE")
                 .WithCrls("Good CA CRL")
                 .WithCerts("Good CA Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.4.4 Invalid Bad CRL Signature Test4</summary>
@@ -461,7 +476,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Bad CRL Signature Test4 EE")
                 .WithCrls("Bad CRL Signature CA CRL")
                 .WithCerts("Bad CRL Signature CA Cert")
-                .DoExceptionTest(0, "Cannot verify CRL.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus, "Cannot verify CRL.");
         }
 
         /// <summary>4.4.5 Invalid Bad CRL Issuer Name Test5</summary>
@@ -478,7 +493,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Bad CRL Issuer Name CA Cert")
                 // TODO[pkix] Stable X509Name strings
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=Bad CRL Issuer Name CA,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.4.6 Invalid Wrong CRL Test6</summary>
@@ -496,7 +512,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Wrong CRL CA Cert")
                 // TODO[pkix]
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=Wrong CRL CA,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.4.7 Valid Two CRLs Test7</summary>
@@ -532,7 +549,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Unknown CRL Entry Extension Test8 EE")
                 .WithCrls("Unknown CRL Entry Extension CACRL")
                 .WithCerts("Unknown CRL Entry Extension CA Cert")
-                .DoExceptionTest(0, "CRL entry has unsupported critical extensions.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "CRL entry has unsupported critical extensions.");
         }
 
         /// <summary>4.4.9 Invalid Unknown CRL Extension Test9</summary>
@@ -550,7 +568,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Unknown CRL Extension Test9 EE")
                 .WithCrls("Unknown CRL Extension CA CRL")
                 .WithCerts("Unknown CRL Extension CA Cert")
-                .DoExceptionTest(0, "CRL contains unsupported critical extensions.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "CRL contains unsupported critical extensions.");
         }
 
         /// <summary>4.4.10 Invalid Unknown CRL Extension Test10</summary>
@@ -569,7 +588,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Unknown CRL Extension Test10 EE")
                 .WithCrls("Unknown CRL Extension CA CRL")
                 .WithCerts("Unknown CRL Extension CA Cert")
-                .DoExceptionTest(0, "CRL contains unsupported critical extensions.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "CRL contains unsupported critical extensions.");
         }
 
         /// <summary>4.4.11 Invalid Old CRL nextUpdate Test11</summary>
@@ -589,7 +609,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Old CRL nextUpdate CA Cert")
                 // TODO[pkix]
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=Old CRL nextUpdate CA,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.4.12 Invalid pre2000 CRL nextUpdate Test12</summary>
@@ -609,7 +630,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("pre2000 CRL nextUpdate CA Cert")
                 // TODO[pkix]
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=pre2000 CRL nextUpdate CA,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.4.13 Valid GeneralizedTime CRL nextUpdate Test13</summary>
@@ -662,7 +684,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Negative Serial Number Test15 EE")
                 .WithCrls("Negative Serial Number CA CRL")
                 .WithCerts("Negative Serial Number CA Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.4.16 Valid Long Serial Number Test16</summary>
@@ -713,7 +736,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Long Serial Number Test18 EE")
                 .WithCrls("Long Serial Number CA CRL")
                 .WithCerts("Long Serial Number CA Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.4.19 Valid Separate Certificate and CRL Keys Test19</summary>
@@ -750,7 +774,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("Separate Certificate and CRLKeys CRL")
                 .WithCerts("SeparateCertificate and CRL Keys CRL Signing Cert",
                     "Separate Certificate and CRL Keys Certificate Signing CA Cert")
-                .DoExceptionTest(1, "--");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.Revoked, "--");
         }
 
         /// <summary>4.4.21 Invalid Separate Certificate and CRL Keys Test21</summary>
@@ -769,7 +793,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("Separate Certificate and CRLKeys CA2 CRL")
                 .WithCerts("SeparateCertificate and CRL Keys CA2 CRL Signing Cert",
                     "Separate Certificate and CRL Keys CA2 Certificate Signing CA Cert")
-                .DoExceptionTest(1, "--");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.UndeterminedRevocationStatus, "--");
         }
 
         /// <summary>4.5.1 Valid Basic Self-Issued Old With New Test1</summary>
@@ -807,7 +831,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Basic SelfIssued Old With New Test2 EE")
                 .WithCerts("Basic SelfIssued New Key OldWithNew CA Cert", "Basic SelfIssued New Key CA Cert")
                 .WithCrls("Basic SelfIssued New Key CA CRL")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.5.3 Valid Basic Self-Issued New With Old Test3</summary>
@@ -874,7 +899,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Basic SelfIssued New With Old Test5 EE")
                 .WithCrls("Basic SelfIssued Old Key CACRL", "Basic SelfIssued Old Key SelfIssued CertCRL")
                 .WithCerts("Basic SelfIssued Old Key NewWithOld CA Cert", "Basic SelfIssued Old Key CA Cert")
-                .DoExceptionTest(0, "--");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked, "--");
         }
 
         /// <summary>4.5.6 Valid Basic Self-Issued CRL Signing Key Test6</summary>
@@ -916,7 +941,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Basic SelfIssued CRL Signing Key Test7 EE")
                 .WithCrls("Basic SelfIssued CRL SigningKey CA CRL", "Basic SelfIssued CRL SigningKey CRL Cert CRL")
                 .WithCerts("Basic SelfIssued CRL Signing Key CRL Cert", "Basic SelfIssued CRL Signing Key CA Cert")
-                .DoExceptionTest(1, "--");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.Revoked, "--");
         }
 
         /// <summary>4.5.8 Invalid Basic Self-Issued CRL Signing Key Test7</summary>
@@ -937,7 +962,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Basic SelfIssued CRL Signing Key CRL Cert")
                 .WithCrls("Basic SelfIssued CRL SigningKey CRL Cert CRL")
                 .WithCerts("Basic SelfIssued CRL Signing Key CA Cert")
-                .DoExceptionTest(1, "Intermediate certificate lacks BasicConstraints");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.NotCACertificate,
+                    "Intermediate certificate lacks BasicConstraints");
         }
 
         /// <summary>4.6.1 Invalid Missing basicConstraints Test1</summary>
@@ -951,7 +977,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Missing basicConstraints Test1 EE")
                 .WithCrls("Missing basicConstraints CA CRL")
                 .WithCerts("Missing basicConstraints CA Cert")
-                .DoExceptionTest(1, "Intermediate certificate lacks BasicConstraints");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.NotCACertificate,
+                    "Intermediate certificate lacks BasicConstraints");
         }
 
         /// <summary>4.6.2 Invalid cA False Test2</summary>
@@ -967,7 +994,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid cA False Test2 EE")
                 .WithCrls("basicConstraints Critical cA FalseCA CRL")
                 .WithCerts("basicConstraints Critical cA False CA Cert")
-                .DoExceptionTest(1, "Not a CA certificate");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.NotCACertificate, "Not a CA certificate");
         }
 
         /// <summary>4.6.3 Invalid cA False Test3</summary>
@@ -985,7 +1012,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid cA False Test3 EE")
                 .WithCrls("basicConstraints Not CriticalcA False CA CRL")
                 .WithCerts("basicConstraints Not Critical cA False CA Cert")
-                .DoExceptionTest(1, "Not a CA certificate");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.NotCACertificate, "Not a CA certificate");
         }
 
         /// <summary>4.6.4 Valid basicConstraints Not Critical Test4</summary>
@@ -1016,7 +1043,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid pathLenConstraint Test5 EE")
                 .WithCrls("pathLenConstraint0 subCA CRL", "pathLenConstraint0 CA CRL")
                 .WithCerts("pathLenConstraint0 subCA Cert", "pathLenConstraint0 CA Cert")
-                .DoExceptionTest(1, "Max path length not greater than zero");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.PathTooLong, "Max path length not greater than zero");
         }
 
         /// <summary>4.6.6 Invalid pathLenConstraint Test6</summary>
@@ -1032,7 +1059,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid pathLenConstraint Test6 EE")
                 .WithCrls("pathLenConstraint0 subCA CRL", "pathLenConstraint0 CA CRL")
                 .WithCerts("pathLenConstraint0 subCA Cert", "pathLenConstraint0 CA Cert")
-                .DoExceptionTest(1, "Max path length not greater than zero");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.PathTooLong, "Max path length not greater than zero");
         }
 
         /// <summary>4.6.7 Valid pathLenConstraint Test7</summary>
@@ -1082,7 +1109,7 @@ namespace Org.BouncyCastle.Tests.Nist
                     "pathLenConstraint6 CA CRL")
                 .WithCerts("pathLenConstraint6 subsubCA00 Cert", "pathLenConstraint6 subCA0 Cert",
                     "pathLenConstraint6 CA Cert")
-                .DoExceptionTest(1, "Max path length not greater than zero");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.PathTooLong, "Max path length not greater than zero");
         }
 
         /// <summary>4.6.10 Invalid pathLenConstraint Test10</summary>
@@ -1100,7 +1127,7 @@ namespace Org.BouncyCastle.Tests.Nist
                     "pathLenConstraint6 CA CRL")
                 .WithCerts("pathLenConstraint6 subsubCA00 Cert", "pathLenConstraint6 subCA0 Cert",
                     "pathLenConstraint6 CA Cert")
-                .DoExceptionTest(1, "Max path length not greater than zero");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.PathTooLong, "Max path length not greater than zero");
         }
 
         /// <summary>4.6.11 Invalid pathLenConstraint Test11</summary>
@@ -1119,7 +1146,7 @@ namespace Org.BouncyCastle.Tests.Nist
                     "pathLenConstraint6 subCA1 CRL", "pathLenConstraint6 CA CRL")
                 .WithCerts("pathLenConstraint6 subsubsubCA11X Cert", "pathLenConstraint6 subsubCA11 Cert",
                     "pathLenConstraint6 subCA1 Cert", "pathLenConstraint6 CA Cert")
-                .DoExceptionTest(1, "Max path length not greater than zero");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.PathTooLong, "Max path length not greater than zero");
         }
 
         /// <summary>4.6.12 Invalid pathLenConstraint Test12</summary>
@@ -1138,7 +1165,7 @@ namespace Org.BouncyCastle.Tests.Nist
                     "pathLenConstraint6 subCA1 CRL", "pathLenConstraint6 CA CRL")
                 .WithCerts("pathLenConstraint6 subsubsubCA11X Cert", "pathLenConstraint6 subsubCA11 Cert",
                     "pathLenConstraint6 subCA1 Cert", "pathLenConstraint6 CA Cert")
-                .DoExceptionTest(1, "Max path length not greater than zero");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.PathTooLong, "Max path length not greater than zero");
         }
 
         /// <summary>4.6.13 Valid pathLenConstraint Test13</summary>
@@ -1210,7 +1237,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("pathLenConstraint0 subCA2 CRL", "pathLenConstraint0 CA CRL")
                 .WithCerts("pathLenConstraint0 subCA2 Cert", "pathLenConstraint0 SelfIssued CA Cert",
                     "pathLenConstraint0 CA Cert")
-                .DoExceptionTest(1, "Max path length not greater than zero");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.PathTooLong, "Max path length not greater than zero");
         }
 
         /// <summary>4.6.17 Valid Self-Issued pathLenConstraint Test17</summary>
@@ -1243,7 +1270,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid keyUsage Critical keyCertSign False Test1 EE")
                 .WithCrls("keyUsage Critical keyCertSignFalse CA CRL")
                 .WithCerts("keyUsage Critical keyCertSign False CA Cert")
-                .DoExceptionTest(1, "Issuer certificate keyusage extension is critical and does not permit key signing.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidKeyUsage,
+                    "Issuer certificate keyusage extension is critical and does not permit key signing.");
         }
 
         /// <summary>4.7.2 Invalid keyUsage Not Critical keyCertSign False Test2</summary>
@@ -1258,7 +1286,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid keyUsage Not Critical keyCertSign False Test2 EE")
                 .WithCrls("keyUsage Not CriticalkeyCertSign False CA CRL")
                 .WithCerts("keyUsage Not Critical keyCertSign False CA Cert")
-                .DoExceptionTest(1, "Issuer certificate keyusage extension is critical and does not permit key signing.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidKeyUsage,
+                    "Issuer certificate keyusage extension is critical and does not permit key signing.");
         }
 
         /// <summary>4.7.3 Valid keyUsage Not Critical Test3</summary>
@@ -1287,7 +1316,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid keyUsage Critical cRLSign False Test4 EE")
                 .WithCrls("keyUsage Critical cRLSign False CACRL")
                 .WithCerts("keyUsage Critical cRLSign False CA Cert")
-                .DoExceptionTest(0, "Issuer certificate key usage extension does not permit CRL signing.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "Issuer certificate key usage extension does not permit CRL signing.");
         }
 
         /// <summary>4.7.5 Invalid keyUsage Not Critical cRLSign False Test5</summary>
@@ -1302,7 +1332,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid keyUsage Not Critical cRLSign False Test5 EE")
                 .WithCrls("keyUsage Not Critical cRLSignFalse CA CRL")
                 .WithCerts("keyUsage Not Critical cRLSign False CA Cert")
-                .DoExceptionTest(0, "Issuer certificate key usage extension does not permit CRL signing.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "Issuer certificate key usage extension does not permit CRL signing.");
         }
 
         /// <summary>4.8.1 All Certificates Same Policy Test1</summary>
@@ -1348,7 +1379,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Good CA Cert")
                 .WithExplicitPolicyRequired(true)
                 .WithPoliciesByName("NIST-test-policy-2")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
 
             // 4
             new PkitsTest()
@@ -1385,7 +1416,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("No Policies CA CRL")
                 .WithCerts("No Policies CA Cert")
                 .WithExplicitPolicyRequired(true)
-                .DoExceptionTest(1, "No valid policy tree found when one expected.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.8.3 Different Policies Test3</summary>
@@ -1414,7 +1446,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("Policies P2 subCA CRL", "Good CA CRL")
                 .WithCerts("Policies P2 subCA Cert", "Good CA Cert")
                 .WithExplicitPolicyRequired(true)
-                .DoExceptionTest(1, "No valid policy tree found when one expected.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
 
             new PkitsTest()
                 .WithEndEntity("Different Policies Test3 EE")
@@ -1422,7 +1455,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Policies P2 subCA Cert", "Good CA Cert")
                 .WithExplicitPolicyRequired(true)
                 .WithPoliciesByName("NIST-test-policy-1", "NIST-test-policy-2")
-                .DoExceptionTest(1, "No valid policy tree found when one expected.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.8.4 Different Policies Test4</summary>
@@ -1437,7 +1471,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Different Policies Test4 EE")
                 .WithCrls("Good subCA CRL", "Good CA CRL")
                 .WithCerts("Good subCA Cert", "Good CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.8.5 Different Policies Test5</summary>
@@ -1451,7 +1486,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Different Policies Test5 EE")
                 .WithCrls("Policies P2 subCA2 CRL", "Good CA CRL")
                 .WithCerts("Policies P2 subCA2 Cert", "Good CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.8.6 Overlapping Policies Test6</summary>
@@ -1493,7 +1529,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("Policies P1234 subsubCAP123P12 Cert", "Policies P1234 subCAP123 Cert",
                     "Policies P1234 CA Cert")
                 .WithPoliciesByName("NIST-test-policy-2")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
         }
 
         /// <summary>4.8.7 Different Policies Test7</summary>
@@ -1508,7 +1544,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Different Policies Test7 EE")
                 .WithCrls("Policies P123 subsubCAP12P1 CRL", "Policies P123 subCAP12 CRL", "Policies P123 CA CRL")
                 .WithCerts("Policies P123 subsubCAP12P1 Cert", "Policies P123 subCAP12 Cert", "Policies P123 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.8.8 Different Policies Test8</summary>
@@ -1523,7 +1560,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Different Policies Test8 EE")
                 .WithCrls("Policies P12 subsubCAP1P2 CRL", "Policies P12 subCAP1 CRL", "Policies P12 CA CRL")
                 .WithCerts("Policies P12 subsubCAP1P2 Cert", "Policies P12 subCAP1 Cert", "Policies P12 CA Cert")
-                .DoExceptionTest(1, "No valid policy tree found when one expected.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.8.9 Different Policies Test9</summary>
@@ -1540,7 +1578,8 @@ namespace Org.BouncyCastle.Tests.Nist
                     "Policies P123 subCAP12 CRL", "Policies P123 CA CRL")
                 .WithCerts("Policies P123 subsubsubCAP12P2P1 Cert", "Policies P123 subsubCAP12P2 Cert",
                     "Policies P123 subCAP12 Cert", "Policies P123 CA Cert")
-                .DoExceptionTest(1, "No valid policy tree found when one expected.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.8.10 All Certificates Same Policies Test10</summary>
@@ -1619,7 +1658,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Different Policies Test12 EE")
                 .WithCrls("Policies P3 CA CRL")
                 .WithCerts("Policies P3 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.8.13 All Certificates Same Policies Test13</summary>
@@ -1689,7 +1729,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("anyPolicy CA CRL")
                 .WithCerts("anyPolicy CA Cert")
                 .WithPoliciesByName("NIST-test-policy-2")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
         }
 
         /// <summary>4.8.15 User Notice Qualifier Test15</summary>
@@ -1710,7 +1750,7 @@ namespace Org.BouncyCastle.Tests.Nist
             new PkitsTest()
                 .WithPoliciesByName("NIST-test-policy-2")
                 .WithEndEntity("User Notice Qualifier Test15 EE")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
         }
 
         /// <summary>4.8.16 User Notice Qualifier Test16</summary>
@@ -1873,7 +1913,7 @@ namespace Org.BouncyCastle.Tests.Nist
                     "requireExplicitPolicy4 subCA CRL", "requireExplicitPolicy4 CA CRL")
                 .WithCerts("requireExplicitPolicy4 subsubsubCA Cert", "requireExplicitPolicy4 subsubCA Cert",
                     "requireExplicitPolicy4 subCA Cert", "requireExplicitPolicy4 CA Cert")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
         }
 
         /// <summary>4.9.4 Valid RequireExplicitPolicy Test4</summary>
@@ -1913,7 +1953,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("requireExplicitPolicy7 subsubsubCARE2RE4 Cert",
                     "requireExplicitPolicy7 subsubCARE2RE4 Cert", "requireExplicitPolicy7 subCARE2 Cert",
                     "requireExplicitPolicy7 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.9.6 Valid Self-Issued requireExplicitPolicy Test6</summary>
@@ -1947,7 +1988,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("requireExplicitPolicy2 subCA CRL", "requireExplicitPolicy2 CA CRL")
                 .WithCerts("requireExplicitPolicy2 subCA Cert", "requireExplicitPolicy2 SelfIssued CA Cert",
                     "requireExplicitPolicy2 CA Cert")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
         }
 
         /// <summary>4.9.8 Invalid Self-Issued requireExplicitPolicy Test8</summary>
@@ -1965,7 +2006,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("requireExplicitPolicy2 SelfIssued subCA Cert", "requireExplicitPolicy2 subCA Cert",
                     "requireExplicitPolicy2 SelfIssued CA Cert", "requireExplicitPolicy2 CA Cert")
                 .WithCrls("requireExplicitPolicy2 subCA CRL", "requireExplicitPolicy2 CA CRL")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
         }
 
         /// <summary>4.10.1 Valid Policy Mapping Test1</summary>
@@ -1995,14 +2036,15 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("Mapping 1to2 CA CRL")
                 .WithCerts("Mapping 1to2 CA Cert")
                 .WithPoliciesByName("NIST-test-policy-2")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
 
             new PkitsTest()
                 .WithEndEntity("Valid Policy Mapping Test1 EE")
                 .WithCrls("Mapping 1to2 CA CRL")
                 .WithCerts("Mapping 1to2 CA Cert")
                 .WithPolicyMappingInhibited(true)
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.10.2 Invalid Policy Mapping Test2</summary>
@@ -2021,14 +2063,16 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Policy Mapping Test2 EE")
                 .WithCrls("Mapping 1to2 CA CRL")
                 .WithCerts("Mapping 1to2 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
 
             new PkitsTest()
                 .WithEndEntity("Invalid Policy Mapping Test2 EE")
                 .WithCrls("Mapping 1to2 CA CRL")
                 .WithCerts("Mapping 1to2 CA Cert")
                 .WithPolicyMappingInhibited(true)
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.10.3 Valid Policy Mapping Test3</summary>
@@ -2048,7 +2092,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("P12 Mapping 1to3 subsubCA CRL", "P12 Mapping 1to3 subCA CRL", "P12 Mapping 1to3 CA CRL")
                 .WithCerts("P12 Mapping 1to3 subsubCA Cert", "P12 Mapping 1to3 subCA Cert", "P12 Mapping 1to3 CA Cert")
                 .WithPoliciesByName("NIST-test-policy-1")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
 
             new PkitsTest()
                 .WithEndEntity("Valid Policy Mapping Test3 EE")
@@ -2069,7 +2113,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Policy Mapping Test4 EE")
                 .WithCrls("P12 Mapping 1to3 subsubCA CRL", "P12 Mapping 1to3 subCA CRL", "P12 Mapping 1to3 CA CRL")
                 .WithCerts("P12 Mapping 1to3 subsubCA Cert", "P12 Mapping 1to3 subCA Cert", "P12 Mapping 1to3 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.10.5 Valid Policy Mapping Test5</summary>
@@ -2096,7 +2141,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("P1 Mapping 1to234 subCA CRL", "P1 Mapping 1to234 CA CRL")
                 .WithCerts("P1 Mapping 1to234 subCA Cert", "P1 Mapping 1to234 CA Cert")
                 .WithPoliciesByName("NIST-test-policy-6")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
         }
 
         /// <summary>4.10.6 Valid Policy Mapping Test6</summary>
@@ -2123,7 +2168,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("P1 Mapping 1to234 subCA CRL", "P1 Mapping 1to234 CA CRL")
                 .WithCerts("P1 Mapping 1to234 subCA Cert", "P1 Mapping 1to234 CA Cert")
                 .WithPoliciesByName("NIST-test-policy-6")
-                .DoExceptionTest(-1, "Path processing failed on policy.");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.InvalidPolicy, "Path processing failed on policy.");
         }
 
         /// <summary>4.10.7 Invalid Mapping From anyPolicy Test7</summary>
@@ -2141,7 +2186,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Mapping From anyPolicy Test7 EE")
                 .WithCrls("Mapping From anyPolicy CA CRL")
                 .WithCerts("Mapping From anyPolicy CA Cert")
-                .DoExceptionTest(1, "IssuerDomainPolicy is anyPolicy");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy, "IssuerDomainPolicy is anyPolicy");
         }
 
         /// <summary>4.10.8 Invalid Mapping To anyPolicy Test8</summary>
@@ -2159,7 +2204,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Mapping To anyPolicy Test8 EE")
                 .WithCrls("Mapping To anyPolicy CA CRL")
                 .WithCerts("Mapping To anyPolicy CA Cert")
-                .DoExceptionTest(1, "SubjectDomainPolicy is anyPolicy");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy, "SubjectDomainPolicy is anyPolicy");
         }
 
         /// <summary>4.10.9 Valid Policy Mapping Test9</summary>
@@ -2190,7 +2235,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid Policy Mapping Test10 EE")
                 .WithCrls("Good subCA PanyPolicyMapping 1to2 CA CRL", "Good CA CRL")
                 .WithCerts("Good subCA PanyPolicy Mapping 1to2 CA Cert", "Good CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.10.11 Valid Policy Mapping Test11</summary>
@@ -2286,7 +2332,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid inhibitPolicyMapping Test1 EE")
                 .WithCrls("inhibitPolicyMapping0 subCA CRL", "inhibitPolicyMapping0 CA CRL")
                 .WithCerts("inhibitPolicyMapping0 subCA Cert", "inhibitPolicyMapping0 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.11.2 Valid inhibitPolicyMapping Test2</summary>
@@ -2324,7 +2371,8 @@ namespace Org.BouncyCastle.Tests.Nist
                     "inhibitPolicyMapping1 P12 CA CRL")
                 .WithCerts("inhibitPolicyMapping1 P12 subsubCA Cert", "inhibitPolicyMapping1 P12 subCA Cert",
                     "inhibitPolicyMapping1 P12 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.11.4 Valid inhibitPolicyMapping Test4</summary>
@@ -2366,7 +2414,8 @@ namespace Org.BouncyCastle.Tests.Nist
                     "inhibitPolicyMapping5 subCA CRL", "inhibitPolicyMapping5 CA CRL")
                 .WithCerts("inhibitPolicyMapping5 subsubsubCA Cert", "inhibitPolicyMapping5 subsubCA Cert",
                     "inhibitPolicyMapping5 subCA Cert", "inhibitPolicyMapping5 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.11.6 Invalid inhibitPolicyMapping Test6</summary>
@@ -2387,7 +2436,8 @@ namespace Org.BouncyCastle.Tests.Nist
                     "inhibitPolicyMapping1 P12 CA CRL")
                 .WithCerts("inhibitPolicyMapping1 P12 subsubCAIPM5 Cert", "inhibitPolicyMapping1 P12 subCAIPM5 Cert",
                     "inhibitPolicyMapping1 P12 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.11.7 Valid Self-Issued inhibitPolicyMapping Test7</summary>
@@ -2427,7 +2477,8 @@ namespace Org.BouncyCastle.Tests.Nist
                     "inhibitPolicyMapping1 P1 CA CRL")
                 .WithCerts("inhibitPolicyMapping1 P1 subsubCA Cert", "inhibitPolicyMapping1 P1 subCA Cert",
                     "inhibitPolicyMapping1 P1 SelfIssued CA Cert", "inhibitPolicyMapping1 P1 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.11.9 Invalid Self-Issued inhibitPolicyMapping Test9</summary>
@@ -2448,7 +2499,8 @@ namespace Org.BouncyCastle.Tests.Nist
                     "inhibitPolicyMapping1 P1 CA CRL")
                 .WithCerts("inhibitPolicyMapping1 P1 subsubCA Cert", "inhibitPolicyMapping1 P1 subCA Cert",
                     "inhibitPolicyMapping1 P1 SelfIssued CA Cert", "inhibitPolicyMapping1 P1 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.11.10 Invalid Self-Issued inhibitPolicyMapping Test10</summary>
@@ -2468,7 +2520,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("inhibitPolicyMapping1 P1 SelfIssued subCA Cert", "inhibitPolicyMapping1 P1 subCA Cert",
                     "inhibitPolicyMapping1 P1 SelfIssued CA Cert", "inhibitPolicyMapping1 P1 CA Cert")
                 .WithCrls("inhibitPolicyMapping1 P1 subCA CRL", "inhibitPolicyMapping1 P1 CA CRL")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.11.11 Invalid Self-Issued inhibitPolicyMapping Test11</summary>
@@ -2488,7 +2541,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("inhibitPolicyMapping1 P1 SelfIssued subCA Cert", "inhibitPolicyMapping1 P1 subCA Cert",
                     "inhibitPolicyMapping1 P1 SelfIssued CA Cert", "inhibitPolicyMapping1 P1 CA Cert")
                 .WithCrls("inhibitPolicyMapping1 P1 subCA CRL", "inhibitPolicyMapping1 P1 CA CRL")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.12.1 Invalid inhibitAnyPolicy Test1</summary>
@@ -2503,7 +2557,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid inhibitAnyPolicy Test1 EE")
                 .WithCrls("inhibitAnyPolicy0 CA CRL")
                 .WithCerts("inhibitAnyPolicy0 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.12.2 Valid inhibitAnyPolicy Test2</summary>
@@ -2545,7 +2600,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("inhibitAnyPolicy1 subCA1 CRL", "inhibitAnyPolicy1 CA CRL")
                 .WithCerts("inhibitAnyPolicy1 subCA1 Cert", "inhibitAnyPolicy1 CA Cert")
                 .WithInhibitAnyPolicy(true)
-                .DoExceptionTest(1, "No valid policy tree found when one expected.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.12.4 Invalid inhibitAnyPolicy Test4</summary>
@@ -2561,7 +2617,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid inhibitAnyPolicy Test4 EE")
                 .WithCrls("inhibitAnyPolicy1 subCA1 CRL", "inhibitAnyPolicy1 CA CRL")
                 .WithCerts("inhibitAnyPolicy1 subCA1 Cert", "inhibitAnyPolicy1 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.12.5 Invalid inhibitAnyPolicy Test5</summary>
@@ -2579,7 +2636,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("inhibitAnyPolicy5 subsubCA CRL", "inhibitAnyPolicy5 subCA CRL", "inhibitAnyPolicy5 CA CRL")
                 .WithCerts("inhibitAnyPolicy5 subsubCA Cert", "inhibitAnyPolicy5 subCA Cert",
                     "inhibitAnyPolicy5 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.12.6 Invalid inhibitAnyPolicy Test6</summary>
@@ -2595,7 +2653,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid inhibitAnyPolicy Test6 EE")
                 .WithCrls("inhibitAnyPolicy1 subCAIAP5 CRL", "inhibitAnyPolicy1 CA CRL")
                 .WithCerts("inhibitAnyPolicy1 subCAIAP5 Cert", "inhibitAnyPolicy1 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.12.7 Valid Self-Issued inhibitAnyPolicy Test7</summary>
@@ -2631,7 +2690,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("inhibitAnyPolicy1 subsubCA2 CRL", "inhibitAnyPolicy1 subCA2 CRL", "inhibitAnyPolicy1 CA CRL")
                 .WithCerts("inhibitAnyPolicy1 subsubCA2 Cert", "inhibitAnyPolicy1 subCA2 Cert",
                     "inhibitAnyPolicy1 SelfIssued CA Cert", "inhibitAnyPolicy1 CA Cert")
-                .DoExceptionTest(1, "No valid policy tree found when one expected.");
+                .DoExceptionTest(1, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.12.9 Valid Self-Issued inhibitAnyPolicy Test9</summary>
@@ -2669,7 +2729,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCrls("inhibitAnyPolicy1 subCA2 CRL", "inhibitAnyPolicy1 CA CRL")
                 .WithCerts("inhibitAnyPolicy1 subCA2 Cert", "inhibitAnyPolicy1 SelfIssued CA Cert",
                     "inhibitAnyPolicy1 CA Cert")
-                .DoExceptionTest(0, "No valid policy tree found when one expected.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidPolicy,
+                    "No valid policy tree found when one expected.");
         }
 
         /// <summary>4.13.1 Valid DN nameConstraints Test1</summary>
@@ -2701,7 +2762,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test2 EE")
                 .WithCrls("nameConstraints DN1 CA CRL")
                 .WithCerts("nameConstraints DN1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.3 Invalid DN nameConstraints Test3</summary>
@@ -2717,7 +2779,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test3 EE")
                 .WithCrls("nameConstraints DN1 CA CRL")
                 .WithCerts("nameConstraints DN1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.4 Valid DN nameConstraints Test4</summary>
@@ -2781,7 +2844,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test7 EE")
                 .WithCrls("nameConstraints DN3 CA CRL")
                 .WithCerts("nameConstraints DN3 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.8 Invalid DN nameConstraints Test8</summary>
@@ -2797,7 +2861,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test8 EE")
                 .WithCrls("nameConstraints DN4 CA CRL")
                 .WithCerts("nameConstraints DN4 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.9 Invalid DN nameConstraints Test9</summary>
@@ -2813,7 +2878,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test9 EE")
                 .WithCrls("nameConstraints DN4 CA CRL")
                 .WithCerts("nameConstraints DN4 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.10 Invalid DN nameConstraints Test10</summary>
@@ -2830,7 +2896,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test10 EE")
                 .WithCrls("nameConstraints DN5 CA CRL")
                 .WithCerts("nameConstraints DN5 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.11 Valid DN nameConstraints Test11</summary>
@@ -2866,7 +2933,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test12 EE")
                 .WithCrls("nameConstraints DN1 subCA1 CRL", "nameConstraints DN1 CA CRL")
                 .WithCerts("nameConstraints DN1 subCA1 Cert", "nameConstraints DN1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.13 Invalid DN nameConstraints Test13</summary>
@@ -2885,7 +2953,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test13 EE")
                 .WithCrls("nameConstraints DN1 subCA2 CRL", "nameConstraints DN1 CA CRL")
                 .WithCerts("nameConstraints DN1 subCA2 Cert", "nameConstraints DN1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.14 Valid DN nameConstraints Test14</summary>
@@ -2923,7 +2992,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test15 EE")
                 .WithCrls("nameConstraints DN3 subCA1 CRL", "nameConstraints DN3 CA CRL")
                 .WithCerts("nameConstraints DN3 subCA1 Cert", "nameConstraints DN3 CA Cert")
-                .DoExceptionTest(00, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(00, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.16 Invalid DN nameConstraints Test16</summary>
@@ -2942,7 +3012,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test16 EE")
                 .WithCrls("nameConstraints DN3 subCA1 CRL", "nameConstraints DN3 CA CRL")
                 .WithCerts("nameConstraints DN3 subCA1 Cert", "nameConstraints DN3 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.17 Invalid DN nameConstraints Test17</summary>
@@ -2961,7 +3032,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test17 EE")
                 .WithCrls("nameConstraints DN3 subCA2 CRL", "nameConstraints DN3 CA CRL")
                 .WithCerts("nameConstraints DN3 subCA2 Cert", "nameConstraints DN3 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.18 Valid DN nameConstraints Test18</summary>
@@ -3015,7 +3087,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN nameConstraints Test20 EE")
                 .WithCrls("nameConstraints DN1 CA CRL")
                 .WithCerts("nameConstraints DN1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject failed.");
         }
 
         /// <summary>4.13.21 Valid RFC822 nameConstraints Test21</summary>
@@ -3047,7 +3120,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid RFC822 nameConstraints Test22 EE")
                 .WithCrls("nameConstraints RFC822 CA1 CRL")
                 .WithCerts("nameConstraints RFC822 CA1 Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.23 Valid RFC822 nameConstraints Test23</summary>
@@ -3079,7 +3153,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid RFC822 nameConstraints Test24 EE")
                 .WithCrls("nameConstraints RFC822 CA2 CRL")
                 .WithCerts("nameConstraints RFC822 CA2 Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.25 Valid RFC822 nameConstraints Test25</summary>
@@ -3111,7 +3186,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid RFC822 nameConstraints Test26 EE")
                 .WithCrls("nameConstraints RFC822 CA3 CRL")
                 .WithCerts("nameConstraints RFC822 CA3 Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.27 Valid DN and RFC822 nameConstraints Test27</summary>
@@ -3149,7 +3225,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN and RFC822 nameConstraints Test28 EE")
                 .WithCrls("nameConstraints DN1 subCA3 CRL", "nameConstraints DN1 CA CRL")
                 .WithCerts("nameConstraints DN1 subCA3 Cert", "nameConstraints DN1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.29 Invalid DN and RFC822 nameConstraints Test29</summary>
@@ -3169,7 +3246,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DN and RFC822 nameConstraints Test29 EE")
                 .WithCrls("nameConstraints DN1 subCA3 CRL", "nameConstraints DN1 CA CRL")
                 .WithCerts("nameConstraints DN1 subCA3 Cert", "nameConstraints DN1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative email failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative email failed.");
         }
 
         /// <summary>4.13.30 Valid DNS nameConstraints Test30</summary>
@@ -3201,7 +3279,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DNS nameConstraints Test31 EE")
                 .WithCrls("nameConstraints DNS1 CA CRL")
                 .WithCerts("nameConstraints DNS1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.32 Valid DNS nameConstraints Test32</summary>
@@ -3233,7 +3312,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DNS nameConstraints Test33 EE")
                 .WithCrls("nameConstraints DNS2 CA CRL")
                 .WithCerts("nameConstraints DNS2 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.34 Valid URI nameConstraints Test34</summary>
@@ -3265,7 +3345,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid URI nameConstraints Test35 EE")
                 .WithCrls("nameConstraints URI1 CA CRL")
                 .WithCerts("nameConstraints URI1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.36 Valid URI nameConstraints Test36</summary>
@@ -3297,7 +3378,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid URI nameConstraints Test37 EE")
                 .WithCrls("nameConstraints URI2 CA CRL")
                 .WithCerts("nameConstraints URI2 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.13.38 Invalid DNS nameConstraints Test38</summary>
@@ -3314,7 +3396,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid DNS nameConstraints Test38 EE")
                 .WithCrls("nameConstraints DNS1 CA CRL")
                 .WithCerts("nameConstraints DNS1 CA Cert")
-                .DoExceptionTest(0, "Subtree check for certificate subject alternative name failed.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.InvalidName,
+                    "Subtree check for certificate subject alternative name failed.");
         }
 
         /// <summary>4.14.1 Valid distributionPoint Test1</summary>
@@ -3349,7 +3432,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid distributionPoint Test2 EE")
                 .WithCrls("distributionPoint1 CA CRL")
                 .WithCerts("distributionPoint1 CA Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.14.3 Invalid distributionPoint Test3</summary>
@@ -3367,7 +3451,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid distributionPoint Test3 EE")
                 .WithCrls("distributionPoint1 CA CRL")
                 .WithCerts("distributionPoint1 CA Cert")
-                .DoExceptionPrefixTest(0,
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
                     "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
         }
 
@@ -3424,7 +3508,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid distributionPoint Test6 EE")
                 .WithCrls("distributionPoint2 CA CRL")
                 .WithCerts("distributionPoint2 CA Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.14.7 Valid distributionPoint Test7</summary>
@@ -3462,7 +3547,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid distributionPoint Test8 EE")
                 .WithCrls("distributionPoint2 CA CRL")
                 .WithCerts("distributionPoint2 CA Cert")
-                .DoExceptionPrefixTest(0,
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
                     "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
         }
 
@@ -3479,7 +3564,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid distributionPoint Test9 EE")
                 .WithCrls("distributionPoint2 CA CRL")
                 .WithCerts("distributionPoint2 CA Cert")
-                .DoExceptionPrefixTest(0,
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
                     "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
         }
 
@@ -3512,7 +3597,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid onlyContainsUserCerts Test11 EE")
                 .WithCrls("onlyContainsUserCerts CA CRL")
                 .WithCerts("onlyContainsUserCerts CA Cert")
-                .DoExceptionTest(0, "CA Cert CRL only contains user certificates.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "CA Cert CRL only contains user certificates.");
         }
 
         /// <summary>4.14.12 Invalid onlyContainsCACerts CRL Test12</summary>
@@ -3527,7 +3613,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid onlyContainsCACerts Test12 EE")
                 .WithCrls("onlyContainsCACerts CA CRL")
                 .WithCerts("onlyContainsCACerts CA Cert")
-                .DoExceptionTest(0, "End CRL only contains CA certificates.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "End CRL only contains CA certificates.");
         }
 
         /// <summary>4.14.13 Valid onlyContainsCACerts CRL Test13</summary>
@@ -3558,7 +3645,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid onlyContainsAttributeCerts Test14 EE")
                 .WithCrls("onlyContainsAttributeCerts CA CRL")
                 .WithCerts("onlyContainsAttributeCerts CA Cert")
-                .DoExceptionTest(0, "onlyContainsAttributeCerts boolean is asserted.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "onlyContainsAttributeCerts boolean is asserted.");
         }
 
         /// <summary>4.14.15 Invalid onlySomeReasons Test15</summary>
@@ -3575,7 +3663,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid onlySomeReasons Test15 EE")
                 .WithCrls("onlySomeReasons CA1 other reasons CRL", "onlySomeReasons CA1 compromise CRL")
                 .WithCerts("onlySomeReasons CA1 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.14.16 Invalid onlySomeReasons Test16</summary>
@@ -3592,7 +3681,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid onlySomeReasons Test16 EE")
                 .WithCrls("onlySomeReasons CA1 other reasons CRL", "onlySomeReasons CA1 compromise CRL")
                 .WithCerts("onlySomeReasons CA1 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: certificateHold");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: certificateHold");
         }
 
         /// <summary>4.14.17 Invalid onlySomeReasons Test17</summary>
@@ -3608,7 +3698,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid onlySomeReasons Test17 EE")
                 .WithCrls("onlySomeReasonsCA2 CRL2", "onlySomeReasons CA2 CRL1")
                 .WithCerts("onlySomeReasons CA2 Cert")
-                .DoExceptionTest(0, "Certificate status could not be determined.");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "Certificate status could not be determined.");
         }
 
         /// <summary>4.14.18 Valid onlySomeReasons Test18</summary>
@@ -3663,7 +3754,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid onlySomeReasons Test20 EE")
                 .WithCrls("onlySomeReasons CA4 other reasons CRL", "onlySomeReasons CA4 compromise CRL")
                 .WithCerts("onlySomeReasons CA4 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.14.21 Invalid onlySomeReasons Test21</summary>
@@ -3682,7 +3774,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid onlySomeReasons Test21 EE")
                 .WithCrls("onlySomeReasons CA4 other reasons CRL", "onlySomeReasons CA4 compromise CRL")
                 .WithCerts("onlySomeReasons CA4 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: affiliationChanged");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: affiliationChanged");
         }
 
         /// <summary>4.14.22 Valid IDP with indirectCRL Test22</summary>
@@ -3715,7 +3808,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid IDP with indirectCRL Test23 EE")
                 .WithCrls("indirectCRL CA1 CRL")
                 .WithCerts("indirectCRL CA1 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.14.24 Valid IDP with indirectCRL Test24</summary>
@@ -3768,7 +3862,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid IDP with indirectCRL Test26 EE")
                 .WithCrls("indirectCRL CA1 CRL")
                 .WithCerts("indirectCRL CA1 Cert", "indirectCRL CA2 Cert")
-                .DoExceptionTest(-1, "--");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.UndeterminedRevocationStatus, "--");
         }
 
         /// <summary>4.14.27 Invalid cRLIssuer Test27</summary>
@@ -3786,7 +3880,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid cRLIssuer Test27 EE")
                 .WithCrls("Good CA CRL")
                 .WithCerts("Good CA Cert", "indirectCRL CA2 Cert")
-                .DoExceptionTest(-1, "--");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.UndeterminedRevocationStatus, "--");
         }
 
         /// <summary>4.14.28 Valid cRLIssuer Test28</summary>
@@ -3862,7 +3956,7 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid cRLIssuer Test31 EE")
                 .WithCerts("indirectCRL CA6 Cert", "indirectCRL CA5 Cert")
                 .WithCrls("indirectCRL CA5 CRL")
-                .DoExceptionTest(-1, "--");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.Revoked, "--");
         }
 
         /// <summary>4.14.32 Invalid cRLIssuer Test32</summary>
@@ -3882,7 +3976,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid cRLIssuer Test32 EE")
                 .WithCerts("indirectCRL CA6 Cert", "indirectCRL CA5 Cert")
                 .WithCrls("indirectCRL CA5 CRL")
-                .DoExceptionTest(-1, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(-1, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.14.33 Valid cRLIssuer Test33</summary>
@@ -3919,7 +4014,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid cRLIssuer Test34 EE")
                 .WithCrls("indirectCRL CA5 CRL")
                 .WithCerts("indirectCRL CA5 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.14.35 Invalid cRLIssuer Test35</summary>
@@ -3939,7 +4035,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("indirectCRL CA5 Cert")
                 // TODO[pkix] Stable X509Name strings
                 //.DoExceptionTest(0, "No CRLs found for issuer \"ou=indirectCRL CA5,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.15.1 Invalid deltaCRLIndicator No Base Test1</summary>
@@ -3956,7 +4053,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("deltaCRLIndicator No Base CA Cert")
                 // TODO[pkix] Stable X509Name strings
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=deltaCRLIndicator No Base CA,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.15.2 Valid delta-CRL Test2</summary>
@@ -3988,7 +4086,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid deltaCRL Test3 EE")
                 .WithCrls("deltaCRL CA1 deltaCRL", "deltaCRL CA1 CRL")
                 .WithCerts("deltaCRL CA1 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.15.4 Invalid delta-CRL Test4</summary>
@@ -4006,7 +4105,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid deltaCRL Test4 EE")
                 .WithCrls("deltaCRL CA1 deltaCRL", "deltaCRL CA1 CRL")
                 .WithCerts("deltaCRL CA1 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.15.5 Valid delta-CRL Test5</summary>
@@ -4041,7 +4141,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid deltaCRL Test6 EE")
                 .WithCrls("deltaCRL CA1 deltaCRL", "deltaCRL CA1 CRL")
                 .WithCerts("deltaCRL CA1 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.15.7 Valid delta-CRL Test7</summary>
@@ -4090,7 +4191,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithEndEntity("Invalid deltaCRL Test9 EE")
                 .WithCrls("deltaCRL CA2 deltaCRL", "deltaCRL CA2 CRL")
                 .WithCerts("deltaCRL CA2 Cert")
-                .DoExceptionTest(0, $"Certificate revocation after {expectedDate}, reason: keyCompromise");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.Revoked,
+                    $"Certificate revocation after {expectedDate}, reason: keyCompromise");
         }
 
         /// <summary>4.15.10 Invalid delta-CRL Test10</summary>
@@ -4111,7 +4213,8 @@ namespace Org.BouncyCastle.Tests.Nist
                 .WithCerts("deltaCRL CA3 Cert")
                 // TODO[pkix] Stable X509Name strings
                 //.DoExceptionTest(0, "No CRLs found for issuer \"cn=deltaCRL CA3,o=Test Certificates,c=US\"");
-                .DoExceptionPrefixTest(0, "No CRLs found for issuer ");
+                .DoExceptionPrefixTest(0, PkixCertPathValidatorReason.UndeterminedRevocationStatus,
+                    "No CRLs found for issuer ");
         }
 
         /// <summary>4.16.1 Valid Unknown Not Critical Certificate Extension Test1</summary>
@@ -4135,7 +4238,8 @@ namespace Org.BouncyCastle.Tests.Nist
         {
             new PkitsTest()
                 .WithEndEntity("Invalid Unknown Critical Certificate Extension Test2 EE")
-                .DoExceptionTest(0, "Certificate has unsupported critical extension: [2.16.840.1.101.2.1.12.2]");
+                .DoExceptionTest(0, PkixCertPathValidatorReason.UnrecognizedCriticalExtension,
+                    "Certificate has unsupported critical extension: [2.16.840.1.101.2.1.12.2]");
         }
 
         private static string FormatDate(string format, DateTime date) =>

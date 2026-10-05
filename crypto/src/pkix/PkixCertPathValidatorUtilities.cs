@@ -78,10 +78,10 @@ namespace Org.BouncyCastle.Pkix
         /// </summary>
         /// <param name="cert">the X509 certificate</param>
         /// <param name="trustAnchors">a Set of TrustAnchor's</param>
-        /// <exception cref="Exception">
-        /// A trust anchor named the issuer, but none of those that did verified the certificate.
-        /// </exception>
-        internal static TrustAnchor FindTrustAnchor(X509Certificate cert, ISet<TrustAnchor> trustAnchors)
+        /// <param name="verificationException">If trust anchors named the issuer but none of them verified the
+        /// certificate, the first verification failure; otherwise null.</param>
+        internal static TrustAnchor FindTrustAnchor(X509Certificate cert, ISet<TrustAnchor> trustAnchors,
+            out Exception verificationException)
         {
             X509Name certIssuer = GetIssuerPrincipal(cert);
 
@@ -96,6 +96,7 @@ namespace Org.BouncyCastle.Pkix
                 try
                 {
                     cert.Verify(trustPublicKey);
+                    verificationException = null;
                     return trust;
                 }
                 catch (Exception e)
@@ -108,9 +109,7 @@ namespace Org.BouncyCastle.Pkix
                 }
             }
 
-            if (invalidKeyEx != null)
-                throw new Exception("TrustAnchor found but certificate validation failed.", invalidKeyEx);
-
+            verificationException = invalidKeyEx;
             return null;
         }
 
@@ -134,7 +133,7 @@ namespace Org.BouncyCastle.Pkix
         {
             try
             {
-                return FindTrustAnchor(cert, trustAnchors) != null;
+                return FindTrustAnchor(cert, trustAnchors, out _) != null;
             }
             catch (Exception)
             {
@@ -420,7 +419,8 @@ namespace Org.BouncyCastle.Pkix
                 if (total > maxPolicyNodes)
                 {
                     throw new PkixCertPathValidatorException(
-                        $"certificate policy tree exceeds {maxPolicyNodes} nodes ({Properties.X509MaxPolicyNodes})");
+                        $"certificate policy tree exceeds {maxPolicyNodes} nodes ({Properties.X509MaxPolicyNodes})",
+                        null, -1, PkixCertPathValidatorReason.LimitExceeded);
                 }
             }
         }
@@ -1029,7 +1029,8 @@ namespace Org.BouncyCastle.Pkix
 
                 StringBuilder msg = new StringBuilder("No CRLs found for issuer \"").Append(issuer).Append('\"');
                 AppendCrlLookupDiagnostics(msg, certObj, pkixParams);
-                throw new PkixRecoverableCertPathValidatorException(msg.ToString(), null, index);
+                throw new PkixRecoverableCertPathValidatorException(msg.ToString(), null, index,
+                    PkixCertPathValidatorReason.UndeterminedRevocationStatus);
             }
         }
 

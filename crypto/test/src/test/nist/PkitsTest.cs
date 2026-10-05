@@ -169,7 +169,8 @@ namespace Org.BouncyCastle.Tests.Nist
             return m_validatorResult;
         }
 
-        internal void DoExceptionTest(int expectedIndex, string expectedMessage)
+        internal void DoExceptionTest(int expectedIndex, PkixCertPathValidatorReason expectedReason,
+            string expectedMessage)
         {
             try
             {
@@ -181,12 +182,15 @@ namespace Org.BouncyCastle.Tests.Nist
             {
                 if (expectedIndex != e.Index)
                     throw new Exception("Index did not match: " + expectedIndex + " got " + e.Index);
+                if (expectedReason != e.Reason)
+                    throw new Exception("Reason did not match: " + expectedReason + " got " + e.Reason);
                 if (!Equals(expectedMessage, e.Message))
                     throw new Exception("Message did not match: '" + expectedMessage + "', got '" + e.Message + "'");
             }
         }
 
-        internal void DoExceptionPrefixTest(int expectedIndex, string expectedPrefix)
+        internal void DoExceptionPrefixTest(int expectedIndex, PkixCertPathValidatorReason expectedReason,
+            string expectedPrefix)
         {
             try
             {
@@ -198,6 +202,8 @@ namespace Org.BouncyCastle.Tests.Nist
             {
                 if (expectedIndex != e.Index)
                     throw new Exception("Index did not match: " + expectedIndex + " got " + e.Index);
+                if (expectedReason != e.Reason)
+                    throw new Exception("Reason did not match: " + expectedReason + " got " + e.Reason);
                 if (!StartsWith(e.Message, expectedPrefix))
                     throw new Exception("Prefix did not match: '" + expectedPrefix + "', got '" + e.Message + "'");
             }
