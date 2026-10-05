@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Pkix
 {
+    [Obsolete("Will be removed")]
     public class CertStatus
     {
         public const int Unrevoked = 11;

@@ -907,7 +907,7 @@ namespace Org.BouncyCastle.Pkix
          */
         private static void CheckCrl(int index, DistributionPoint dp, PkixParameters pkixParams, DateTime currentDate,
             DateTime validityDate, X509Certificate cert, X509Certificate defaultCRLSignCert,
-            AsymmetricKeyParameter defaultCRLSignKey, CertStatus certStatus, ReasonsMask reasonsMask,
+            AsymmetricKeyParameter defaultCRLSignKey, CrlCertStatus certStatus, ReasonsMask reasonsMask,
             IList<X509Certificate> certPathCerts)
         {
             if (validityDate.CompareTo(currentDate) > 0)
@@ -927,7 +927,7 @@ namespace Org.BouncyCastle.Pkix
 
             foreach (var crl in crls)
             {
-                if (certStatus.Status != CertStatus.Unrevoked || reasonsMask.IsAllReasons)
+                if (certStatus.IsRevoked || reasonsMask.IsAllReasons)
                     break;
 
                 try
@@ -1007,9 +1007,9 @@ namespace Org.BouncyCastle.Pkix
                     ProcessCrlJ(validityDate, crl, cert, certStatus);
 
                     // (k)
-                    if (certStatus.Status == CrlReason.RemoveFromCrl)
+                    if (certStatus.IsRevoked && certStatus.Reason == CrlReason.RemoveFromCrl)
                     {
-                        certStatus.Status = CertStatus.Unrevoked;
+                        certStatus.SetUnrevoked();
                     }
 
                     // update reasons mask
@@ -1069,7 +1069,7 @@ namespace Org.BouncyCastle.Pkix
                     "No additional CRL locations could be decoded from CRL distribution point extension.", e);
             }
 
-            CertStatus certStatus = new CertStatus();
+            CrlCertStatus certStatus = new CrlCertStatus();
             ReasonsMask reasonsMask = new ReasonsMask();
 
             Exception lastException = null;
@@ -1090,7 +1090,7 @@ namespace Org.BouncyCastle.Pkix
                 if (dps != null)
                 {
                     // TODO[pkix] The 'validCrlFound/lastException' pattern breaks down a bit for multiple iterations.
-                    for (int i = 0; i < dps.Length && certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons; i++)
+                    for (int i = 0; i < dps.Length && !certStatus.IsRevoked && !reasonsMask.IsAllReasons; i++)
                     {
                         try
                         {
@@ -1112,7 +1112,7 @@ namespace Org.BouncyCastle.Pkix
              * but issued by the certificate issuer.
              */
 
-            if (certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons)
+            if (!certStatus.IsRevoked && !reasonsMask.IsAllReasons)
             {
                 try
                 {
@@ -1152,35 +1152,20 @@ namespace Org.BouncyCastle.Pkix
                     PkixCertPathValidatorReason.UndeterminedRevocationStatus);
             }
 
-            int rawStatus = certStatus.Status;
-
-            if (rawStatus == CertStatus.Undetermined ||
-                (rawStatus == CertStatus.Unrevoked && !reasonsMask.IsAllReasons))
+            DateTime? revocationDate = certStatus.RevocationDate;
+            if (!revocationDate.HasValue)
             {
-                throw new PkixCertPathValidatorException("Certificate status could not be determined.", null, index,
-                    PkixCertPathValidatorReason.UndeterminedRevocationStatus);
+                if (!reasonsMask.IsAllReasons)
+                {
+                    throw new PkixCertPathValidatorException("Certificate status could not be determined.", null,
+                        index, PkixCertPathValidatorReason.UndeterminedRevocationStatus);
+                }
             }
-
-            if (rawStatus != CertStatus.Unrevoked)
+            else
             {
-                DateTime? revocationDate = certStatus.RevocationDate;
-
-                string formattedDate = "(NO DATE)";
-                if (revocationDate.HasValue)
-                {
-                    formattedDate = revocationDate.Value.ToString("yyyy-MM-dd HH:mm:ss K",
-                        DateTimeFormatInfo.InvariantInfo);
-                }
-
-                string reason;
-                if (rawStatus >= 0 && rawStatus < CrlReasons.Length)
-                {
-                    reason = CrlReasons[rawStatus];
-                }
-                else
-                {
-                    reason = $"(unknown code: {rawStatus})";
-                }
+                string formattedDate = revocationDate.Value.ToString("yyyy-MM-dd HH:mm:ss K",
+                    DateTimeFormatInfo.InvariantInfo);
+                string reason = certStatus.GetReasonText();
 
                 // This format is enforced by the NistCertPath tests
                 var message = $"Certificate revocation after {formattedDate}, reason: {reason}";
@@ -2075,12 +2060,14 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        internal static void ProcessCrlI(DateTime validDate, X509Crl deltacrl, object cert, CertStatus certStatus) =>
+        internal static void ProcessCrlI(DateTime validDate, X509Crl deltacrl, object cert,
+            CrlCertStatus certStatus) =>
             PkixCertPathValidatorUtilities.GetCertStatus(validDate, deltacrl, cert, certStatus);
 
-        internal static void ProcessCrlJ(DateTime validDate, X509Crl completecrl, object cert, CertStatus certStatus)
+        internal static void ProcessCrlJ(DateTime validDate, X509Crl completecrl, object cert,
+            CrlCertStatus certStatus)
         {
-            if (certStatus.Status == CertStatus.Unrevoked)
+            if (!certStatus.IsRevoked)
             {
                 PkixCertPathValidatorUtilities.GetCertStatus(validDate, completecrl, cert, certStatus);
             }
@@ -2111,21 +2098,6 @@ namespace Org.BouncyCastle.Pkix
             }
             return validPolicyTree;
         }
-
-        internal static readonly string[] CrlReasons = new string[]
-        {
-            "unspecified",
-            "keyCompromise",
-            "cACompromise",
-            "affiliationChanged",
-            "superseded",
-            "cessationOfOperation",
-            "certificateHold",
-            "unknown",
-            "removeFromCRL",
-            "privilegeWithdrawn",
-            "aACompromise"
-        };
 
         /// <summary>
         /// Returns every <c>emailAddress</c> value present in <paramref name="dn"/>, including the values inside

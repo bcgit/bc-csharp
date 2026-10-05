@@ -20,9 +20,9 @@ namespace Org.BouncyCastle.Pkix.Tests
     /// not define.
     /// </summary>
     /// <remarks>
-    /// The CRL entry is what revokes the certificate; an undefined reason code is treated as unspecified. In
-    /// particular, codes 11 and 12 must not be confused with <see cref="CertStatus.Unrevoked"/> and
-    /// <see cref="CertStatus.Undetermined"/>.
+    /// The CRL entry is what revokes the certificate; an undefined reason code is processed as unspecified, and is
+    /// reported as given if it fits in an int. Codes 11 and 12 once collided with the values the deprecated
+    /// CertStatus used for unrevoked and undetermined.
     /// </remarks>
     [TestFixture]
     public class CrlReasonCodeTest
@@ -32,9 +32,9 @@ namespace Org.BouncyCastle.Pkix.Tests
         private static readonly TestCaseData[] ReasonCodeCases =
         {
             new TestCaseData(1L, "keyCompromise").SetArgDisplayNames("keyCompromise"),
-            new TestCaseData(7L, "unspecified").SetArgDisplayNames("unused 7"),
-            new TestCaseData(11L, "unspecified").SetArgDisplayNames("11 Unrevoked"),
-            new TestCaseData(12L, "unspecified").SetArgDisplayNames("12 Undetermined"),
+            new TestCaseData(7L, "(unknown code: 7)").SetArgDisplayNames("unused 7"),
+            new TestCaseData(11L, "(unknown code: 11)").SetArgDisplayNames("11 Unrevoked"),
+            new TestCaseData(12L, "(unknown code: 12)").SetArgDisplayNames("12 Undetermined"),
             new TestCaseData(1L << 40, "unspecified").SetArgDisplayNames("beyond int"),
         };
 

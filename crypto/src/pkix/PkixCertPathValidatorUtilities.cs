@@ -425,7 +425,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        internal static void GetCertStatus(DateTime validDate, X509Crl crl, object cert, CertStatus certStatus)
+        internal static void GetCertStatus(DateTime validDate, X509Crl crl, object cert, CrlCertStatus certStatus)
         {
             bool isIndirect = crl.IsIndirect;
 
@@ -447,7 +447,8 @@ namespace Org.BouncyCastle.Pkix
                     return;
             }
 
-            int crlReason = CrlReason.Unspecified;
+            // Kept only if it fits in an int; larger values are treated as absent
+            int? reasonCode = null;
 
             if (crl_entry.HasExtensions)
             {
@@ -455,12 +456,10 @@ namespace Org.BouncyCastle.Pkix
 
                 try
                 {
-                    var reasonCode = crl_entry.GetExtension(X509Extensions.ReasonCode, DerEnumerated.GetInstance);
-                    if (null != reasonCode &&
-                        reasonCode.TryGetIntValueExact(out int reasonCodeValue) &&
-                        IsReasonCodeKnown(reasonCodeValue))
+                    var reasonCodeExt = crl_entry.GetExtension(X509Extensions.ReasonCode, DerEnumerated.GetInstance);
+                    if (null != reasonCodeExt && reasonCodeExt.TryGetIntValueExact(out int reasonCodeValue))
                     {
-                        crlReason = reasonCodeValue;
+                        reasonCode = reasonCodeValue;
                     }
                 }
                 catch (Exception e)
@@ -472,11 +471,10 @@ namespace Org.BouncyCastle.Pkix
             DateTime revocationDate = crl_entry.RevocationDate;
 
             // for reason keyCompromise, caCompromise, aACompromise or unspecified
-            if (IsRevocationEffective(validDate, revocationDate, crlReason))
+            if (IsRevocationEffective(validDate, revocationDate, CrlCertStatus.GetReason(reasonCode)))
             {
                 // (i) or (j)
-                certStatus.Status = crlReason;
-                certStatus.RevocationDate = revocationDate;
+                certStatus.SetRevoked(revocationDate, reasonCode);
             }
         }
 
@@ -1124,13 +1122,6 @@ namespace Org.BouncyCastle.Pkix
                     return extension.IsCritical;
             }
             return false;
-        }
-
-        private static bool IsReasonCodeKnown(int reasonCodeValue)
-        {
-            return reasonCodeValue >= CrlReason.Unspecified
-                && reasonCodeValue <= CrlReason.AACompromise
-                && reasonCodeValue != 7; // value 7 is not used (RFC 5280 5.3.1)
         }
 
         /**

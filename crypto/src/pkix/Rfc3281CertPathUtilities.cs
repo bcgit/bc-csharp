@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -105,7 +106,7 @@ namespace Org.BouncyCastle.Pkix
                     "No additional CRL locations could be decoded from CRL distribution point extension.", e);
             }
 
-            CertStatus certStatus = new CertStatus();
+            CrlCertStatus certStatus = new CrlCertStatus();
             ReasonsMask reasonsMask = new ReasonsMask();
 
             Exception lastException = null;
@@ -125,7 +126,7 @@ namespace Org.BouncyCastle.Pkix
 
                 if (dps != null)
                 {
-                    for (int i = 0; i < dps.Length && certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons; i++)
+                    for (int i = 0; i < dps.Length && !certStatus.IsRevoked && !reasonsMask.IsAllReasons; i++)
                     {
                         try
                         {
@@ -147,7 +148,7 @@ namespace Org.BouncyCastle.Pkix
              * distribution point but issued by the certificate issuer.
              */
 
-            if (certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons)
+            if (!certStatus.IsRevoked && !reasonsMask.IsAllReasons)
             {
                 try
                 {
@@ -173,22 +174,21 @@ namespace Org.BouncyCastle.Pkix
             if (!validCrlFound)
                 throw new PkixCertPathValidatorException("No valid CRL found.", lastException);
 
-            if (certStatus.Status != CertStatus.Unrevoked)
+            DateTime? revocationDate = certStatus.RevocationDate;
+            if (!revocationDate.HasValue)
             {
-                // This format is enforced by the NistCertPath tests
-                var formattedDate = certStatus.RevocationDate.Value.ToString("ddd MMM dd HH:mm:ss K yyyy");
-                var reason = Rfc3280CertPathUtilities.CrlReasons[certStatus.Status];
+                if (!reasonsMask.IsAllReasons)
+                    throw new PkixCertPathValidatorException("Attribute certificate status could not be determined.");
+            }
+            else
+            {
+                string formattedDate = revocationDate.Value.ToString("ddd MMM dd HH:mm:ss K yyyy",
+                    DateTimeFormatInfo.InvariantInfo);
+                string reason = certStatus.GetReasonText();
+
                 var message = $"Attribute certificate revocation after {formattedDate}, reason: {reason}";
                 throw new PkixCertPathValidatorException(message);
             }
-
-            if (certStatus.Status == CertStatus.Unrevoked && !reasonsMask.IsAllReasons)
-            {
-                certStatus.Status = CertStatus.Undetermined;
-            }
-
-            if (certStatus.Status == CertStatus.Undetermined)
-                throw new PkixCertPathValidatorException("Attribute certificate status could not be determined.");
         }
 
         internal static void AdditionalChecks(X509V2AttributeCertificate attrCert, PkixParameters pkixParams)
@@ -418,7 +418,7 @@ namespace Org.BouncyCastle.Pkix
          */
         private static void CheckCrl(DistributionPoint dp, X509V2AttributeCertificate attrCert,
             PkixParameters pkixParams, DateTime currentDate, DateTime validityDate, X509Certificate issuerCert,
-            CertStatus certStatus, ReasonsMask reasonsMask, IList<X509Certificate> certPathCerts)
+            CrlCertStatus certStatus, ReasonsMask reasonsMask, IList<X509Certificate> certPathCerts)
         {
             /*
              * 4.3.6 No Revocation Available
@@ -447,7 +447,7 @@ namespace Org.BouncyCastle.Pkix
 
             foreach (var crl in crls)
             {
-                if (certStatus.Status != CertStatus.Unrevoked || reasonsMask.IsAllReasons)
+                if (certStatus.IsRevoked || reasonsMask.IsAllReasons)
                     break;
 
                 try
@@ -527,9 +527,9 @@ namespace Org.BouncyCastle.Pkix
                     Rfc3280CertPathUtilities.ProcessCrlJ(validityDate, crl, attrCert, certStatus);
 
                     // (k)
-                    if (certStatus.Status == CrlReason.RemoveFromCrl)
+                    if (certStatus.IsRevoked && certStatus.Reason == CrlReason.RemoveFromCrl)
                     {
-                        certStatus.Status = CertStatus.Unrevoked;
+                        certStatus.SetUnrevoked();
                     }
 
                     // update reasons mask
