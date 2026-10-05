@@ -2,6 +2,9 @@ using System;
 using System.Runtime.Serialization;
 
 using Org.BouncyCastle.Security;
+#if NET8_0_OR_GREATER
+using Org.BouncyCastle.Utilities;
+#endif
 
 namespace Org.BouncyCastle.Pkix
 {
