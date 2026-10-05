@@ -135,16 +135,20 @@ namespace Org.BouncyCastle.Asn1
                 && Value.Equals(x);
         }
 
-        public int IntValueExact
-        {
-            get
-            {
-                int count = m_contents.Length - m_start;
-                if (count > 4)
-                    throw new ArithmeticException("ASN.1 Enumerated out of int range");
+        public int IntValueExact => TryGetIntValueExact(out int result) ? result
+            : throw new ArithmeticException("ASN.1 Enumerated out of int range");
 
-                return DerInteger.IntValue(m_contents, m_start, DerInteger.SignExtSigned);
+        public bool TryGetIntValueExact(out int value)
+        {
+            int count = m_contents.Length - m_start;
+            if (count > 4)
+            {
+                value = default;
+                return false;
             }
+
+            value = DerInteger.IntValue(m_contents, m_start, DerInteger.SignExtSigned);
+            return true;
         }
 
         internal override IAsn1Encoding GetEncoding(int encoding) =>
