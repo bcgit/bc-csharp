@@ -222,11 +222,6 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x4257b8d0
         };
 
-        private static uint Shift(uint r, int shift)
-        {
-            return (r >> shift) | (r << (32 - shift));
-        }
-
         /* multiply four bytes in GF(2^8) by 'x' {02} in parallel */
 
         private const uint m1 = 0x80808080;
@@ -262,10 +257,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         {
             uint t0, t1;
             t0  = x;
-            t1  = t0 ^ Shift(t0, 8);
+            t1  = t0 ^ Integers.RotateRight(t0, 8);
             t0 ^= FFmulX(t1);
             t1 ^= FFmulX2(t0);
-            t0 ^= t1 ^ Shift(t1, 16);
+            t0 ^= t1 ^ Integers.RotateRight(t1, 16);
             return t0;
         }
 
@@ -315,7 +310,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                     for (int i = 1; i <= 10; ++i)
                     {
-                        uint u = SubWord(Shift(t3, 8)) ^ rcon[i - 1];
+                        uint u = SubWord(Integers.RotateRight(t3, 8)) ^ rcon[i - 1];
                         t0 ^= u;  W[i][0] = t0;
                         t1 ^= t0; W[i][1] = t1;
                         t2 ^= t1; W[i][2] = t2;
@@ -334,7 +329,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                     uint t5 = Pack.LE_To_UInt32(key, 20); W[1][1] = t5;
 
                     uint rcon = 1;
-                    uint u = SubWord(Shift(t5, 8)) ^ rcon; rcon <<= 1;
+                    uint u = SubWord(Integers.RotateRight(t5, 8)) ^ rcon; rcon <<= 1;
                     t0 ^= u;  W[1][2] = t0;
                     t1 ^= t0; W[1][3] = t1;
                     t2 ^= t1; W[2][0] = t2;
@@ -344,14 +339,14 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                     for (int i = 3; i < 12; i += 3)
                     {
-                        u = SubWord(Shift(t5, 8)) ^ rcon; rcon <<= 1;
+                        u = SubWord(Integers.RotateRight(t5, 8)) ^ rcon; rcon <<= 1;
                         t0 ^= u;  W[i    ][0] = t0;
                         t1 ^= t0; W[i    ][1] = t1;
                         t2 ^= t1; W[i    ][2] = t2;
                         t3 ^= t2; W[i    ][3] = t3;
                         t4 ^= t3; W[i + 1][0] = t4;
                         t5 ^= t4; W[i + 1][1] = t5;
-                        u = SubWord(Shift(t5, 8)) ^ rcon; rcon <<= 1;
+                        u = SubWord(Integers.RotateRight(t5, 8)) ^ rcon; rcon <<= 1;
                         t0 ^= u;  W[i + 1][2] = t0;
                         t1 ^= t0; W[i + 1][3] = t1;
                         t2 ^= t1; W[i + 2][0] = t2;
@@ -360,7 +355,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                         t5 ^= t4; W[i + 2][3] = t5;
                     }
 
-                    u = SubWord(Shift(t5, 8)) ^ rcon;
+                    u = SubWord(Integers.RotateRight(t5, 8)) ^ rcon;
                     t0 ^= u;  W[12][0] = t0;
                     t1 ^= t0; W[12][1] = t1;
                     t2 ^= t1; W[12][2] = t2;
@@ -383,7 +378,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
                     for (int i = 2; i < 14; i += 2)
                     {
-                        u = SubWord(Shift(t7, 8)) ^ rcon; rcon <<= 1;
+                        u = SubWord(Integers.RotateRight(t7, 8)) ^ rcon; rcon <<= 1;
                         t0 ^= u;  W[i    ][0] = t0;
                         t1 ^= t0; W[i    ][1] = t1;
                         t2 ^= t1; W[i    ][2] = t2;
@@ -395,7 +390,7 @@ namespace Org.BouncyCastle.Crypto.Engines
                         t7 ^= t6; W[i + 1][3] = t7;
                     }
 
-                    u = SubWord(Shift(t7, 8)) ^ rcon;
+                    u = SubWord(Integers.RotateRight(t7, 8)) ^ rcon;
                     t0 ^= u;  W[14][0] = t0;
                     t1 ^= t0; W[14][1] = t1;
                     t2 ^= t1; W[14][2] = t2;
@@ -527,6 +522,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        // The round functions write their rotates out rather than calling Integers.RotateRight: the .NET Framework JIT
+        // stops inlining partway through these methods and would leave most of those calls out-of-line.
+
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         private void EncryptBlock(ReadOnlySpan<byte> input, Span<byte> output, uint[][] KW)
         {
@@ -541,26 +539,39 @@ namespace Org.BouncyCastle.Crypto.Engines
             uint t2 = C2 ^ kw[2];
 
             uint r0, r1, r2, r3 = C3 ^ kw[3];
+            uint u1, u2, u3;
             int r = 1;
             while (r < ROUNDS - 1)
             {
                 kw = KW[r++];
-                r0 = T0[t0 & 255] ^ Shift(T0[(t1 >> 8) & 255], 24) ^ Shift(T0[(t2 >> 16) & 255], 16) ^ Shift(T0[(r3 >> 24) & 255], 8) ^ kw[0];
-                r1 = T0[t1 & 255] ^ Shift(T0[(t2 >> 8) & 255], 24) ^ Shift(T0[(r3 >> 16) & 255], 16) ^ Shift(T0[(t0 >> 24) & 255], 8) ^ kw[1];
-                r2 = T0[t2 & 255] ^ Shift(T0[(r3 >> 8) & 255], 24) ^ Shift(T0[(t0 >> 16) & 255], 16) ^ Shift(T0[(t1 >> 24) & 255], 8) ^ kw[2];
-                r3 = T0[r3 & 255] ^ Shift(T0[(t0 >> 8) & 255], 24) ^ Shift(T0[(t1 >> 16) & 255], 16) ^ Shift(T0[(t2 >> 24) & 255], 8) ^ kw[3];
+                u1 = T0[(t1 >> 8) & 255]; u2 = T0[(t2 >> 16) & 255]; u3 = T0[(r3 >> 24) & 255];
+                r0 = T0[t0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+                u1 = T0[(t2 >> 8) & 255]; u2 = T0[(r3 >> 16) & 255]; u3 = T0[(t0 >> 24) & 255];
+                r1 = T0[t1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+                u1 = T0[(r3 >> 8) & 255]; u2 = T0[(t0 >> 16) & 255]; u3 = T0[(t1 >> 24) & 255];
+                r2 = T0[t2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+                u1 = T0[(t0 >> 8) & 255]; u2 = T0[(t1 >> 16) & 255]; u3 = T0[(t2 >> 24) & 255];
+                r3 = T0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
                 kw = KW[r++];
-                t0 = T0[r0 & 255] ^ Shift(T0[(r1 >> 8) & 255], 24) ^ Shift(T0[(r2 >> 16) & 255], 16) ^ Shift(T0[(r3 >> 24) & 255], 8) ^ kw[0];
-                t1 = T0[r1 & 255] ^ Shift(T0[(r2 >> 8) & 255], 24) ^ Shift(T0[(r3 >> 16) & 255], 16) ^ Shift(T0[(r0 >> 24) & 255], 8) ^ kw[1];
-                t2 = T0[r2 & 255] ^ Shift(T0[(r3 >> 8) & 255], 24) ^ Shift(T0[(r0 >> 16) & 255], 16) ^ Shift(T0[(r1 >> 24) & 255], 8) ^ kw[2];
-                r3 = T0[r3 & 255] ^ Shift(T0[(r0 >> 8) & 255], 24) ^ Shift(T0[(r1 >> 16) & 255], 16) ^ Shift(T0[(r2 >> 24) & 255], 8) ^ kw[3];
+                u1 = T0[(r1 >> 8) & 255]; u2 = T0[(r2 >> 16) & 255]; u3 = T0[(r3 >> 24) & 255];
+                t0 = T0[r0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+                u1 = T0[(r2 >> 8) & 255]; u2 = T0[(r3 >> 16) & 255]; u3 = T0[(r0 >> 24) & 255];
+                t1 = T0[r1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+                u1 = T0[(r3 >> 8) & 255]; u2 = T0[(r0 >> 16) & 255]; u3 = T0[(r1 >> 24) & 255];
+                t2 = T0[r2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+                u1 = T0[(r0 >> 8) & 255]; u2 = T0[(r1 >> 16) & 255]; u3 = T0[(r2 >> 24) & 255];
+                r3 = T0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
             }
 
             kw = KW[r++];
-            r0 = T0[t0 & 255] ^ Shift(T0[(t1 >> 8) & 255], 24) ^ Shift(T0[(t2 >> 16) & 255], 16) ^ Shift(T0[(r3 >> 24) & 255], 8) ^ kw[0];
-            r1 = T0[t1 & 255] ^ Shift(T0[(t2 >> 8) & 255], 24) ^ Shift(T0[(r3 >> 16) & 255], 16) ^ Shift(T0[(t0 >> 24) & 255], 8) ^ kw[1];
-            r2 = T0[t2 & 255] ^ Shift(T0[(r3 >> 8) & 255], 24) ^ Shift(T0[(t0 >> 16) & 255], 16) ^ Shift(T0[(t1 >> 24) & 255], 8) ^ kw[2];
-            r3 = T0[r3 & 255] ^ Shift(T0[(t0 >> 8) & 255], 24) ^ Shift(T0[(t1 >> 16) & 255], 16) ^ Shift(T0[(t2 >> 24) & 255], 8) ^ kw[3];
+            u1 = T0[(t1 >> 8) & 255]; u2 = T0[(t2 >> 16) & 255]; u3 = T0[(r3 >> 24) & 255];
+            r0 = T0[t0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+            u1 = T0[(t2 >> 8) & 255]; u2 = T0[(r3 >> 16) & 255]; u3 = T0[(t0 >> 24) & 255];
+            r1 = T0[t1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+            u1 = T0[(r3 >> 8) & 255]; u2 = T0[(t0 >> 16) & 255]; u3 = T0[(t1 >> 24) & 255];
+            r2 = T0[t2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+            u1 = T0[(t0 >> 8) & 255]; u2 = T0[(t1 >> 16) & 255]; u3 = T0[(t2 >> 24) & 255];
+            r3 = T0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
 
             // the final round's table is a simple function of S so we don't use a whole other four tables for it
 
@@ -589,26 +600,39 @@ namespace Org.BouncyCastle.Crypto.Engines
             uint t2 = C2 ^ kw[2];
 
             uint r0, r1, r2, r3 = C3 ^ kw[3];
+            uint u1, u2, u3;
             int r = ROUNDS - 1;
             while (r > 1)
             {
                 kw = KW[r--];
-                r0 = Tinv0[t0 & 255] ^ Shift(Tinv0[(r3 >> 8) & 255], 24) ^ Shift(Tinv0[(t2 >> 16) & 255], 16) ^ Shift(Tinv0[(t1 >> 24) & 255], 8) ^ kw[0];
-                r1 = Tinv0[t1 & 255] ^ Shift(Tinv0[(t0 >> 8) & 255], 24) ^ Shift(Tinv0[(r3 >> 16) & 255], 16) ^ Shift(Tinv0[(t2 >> 24) & 255], 8) ^ kw[1];
-                r2 = Tinv0[t2 & 255] ^ Shift(Tinv0[(t1 >> 8) & 255], 24) ^ Shift(Tinv0[(t0 >> 16) & 255], 16) ^ Shift(Tinv0[(r3 >> 24) & 255], 8) ^ kw[2];
-                r3 = Tinv0[r3 & 255] ^ Shift(Tinv0[(t2 >> 8) & 255], 24) ^ Shift(Tinv0[(t1 >> 16) & 255], 16) ^ Shift(Tinv0[(t0 >> 24) & 255], 8) ^ kw[3];
+                u1 = Tinv0[(r3 >> 8) & 255]; u2 = Tinv0[(t2 >> 16) & 255]; u3 = Tinv0[(t1 >> 24) & 255];
+                r0 = Tinv0[t0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+                u1 = Tinv0[(t0 >> 8) & 255]; u2 = Tinv0[(r3 >> 16) & 255]; u3 = Tinv0[(t2 >> 24) & 255];
+                r1 = Tinv0[t1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+                u1 = Tinv0[(t1 >> 8) & 255]; u2 = Tinv0[(t0 >> 16) & 255]; u3 = Tinv0[(r3 >> 24) & 255];
+                r2 = Tinv0[t2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+                u1 = Tinv0[(t2 >> 8) & 255]; u2 = Tinv0[(t1 >> 16) & 255]; u3 = Tinv0[(t0 >> 24) & 255];
+                r3 = Tinv0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
                 kw = KW[r--];
-                t0 = Tinv0[r0 & 255] ^ Shift(Tinv0[(r3 >> 8) & 255], 24) ^ Shift(Tinv0[(r2 >> 16) & 255], 16) ^ Shift(Tinv0[(r1 >> 24) & 255], 8) ^ kw[0];
-                t1 = Tinv0[r1 & 255] ^ Shift(Tinv0[(r0 >> 8) & 255], 24) ^ Shift(Tinv0[(r3 >> 16) & 255], 16) ^ Shift(Tinv0[(r2 >> 24) & 255], 8) ^ kw[1];
-                t2 = Tinv0[r2 & 255] ^ Shift(Tinv0[(r1 >> 8) & 255], 24) ^ Shift(Tinv0[(r0 >> 16) & 255], 16) ^ Shift(Tinv0[(r3 >> 24) & 255], 8) ^ kw[2];
-                r3 = Tinv0[r3 & 255] ^ Shift(Tinv0[(r2 >> 8) & 255], 24) ^ Shift(Tinv0[(r1 >> 16) & 255], 16) ^ Shift(Tinv0[(r0 >> 24) & 255], 8) ^ kw[3];
+                u1 = Tinv0[(r3 >> 8) & 255]; u2 = Tinv0[(r2 >> 16) & 255]; u3 = Tinv0[(r1 >> 24) & 255];
+                t0 = Tinv0[r0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+                u1 = Tinv0[(r0 >> 8) & 255]; u2 = Tinv0[(r3 >> 16) & 255]; u3 = Tinv0[(r2 >> 24) & 255];
+                t1 = Tinv0[r1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+                u1 = Tinv0[(r1 >> 8) & 255]; u2 = Tinv0[(r0 >> 16) & 255]; u3 = Tinv0[(r3 >> 24) & 255];
+                t2 = Tinv0[r2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+                u1 = Tinv0[(r2 >> 8) & 255]; u2 = Tinv0[(r1 >> 16) & 255]; u3 = Tinv0[(r0 >> 24) & 255];
+                r3 = Tinv0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
             }
 
             kw = KW[1];
-            r0 = Tinv0[t0 & 255] ^ Shift(Tinv0[(r3 >> 8) & 255], 24) ^ Shift(Tinv0[(t2 >> 16) & 255], 16) ^ Shift(Tinv0[(t1 >> 24) & 255], 8) ^ kw[0];
-            r1 = Tinv0[t1 & 255] ^ Shift(Tinv0[(t0 >> 8) & 255], 24) ^ Shift(Tinv0[(r3 >> 16) & 255], 16) ^ Shift(Tinv0[(t2 >> 24) & 255], 8) ^ kw[1];
-            r2 = Tinv0[t2 & 255] ^ Shift(Tinv0[(t1 >> 8) & 255], 24) ^ Shift(Tinv0[(t0 >> 16) & 255], 16) ^ Shift(Tinv0[(r3 >> 24) & 255], 8) ^ kw[2];
-            r3 = Tinv0[r3 & 255] ^ Shift(Tinv0[(t2 >> 8) & 255], 24) ^ Shift(Tinv0[(t1 >> 16) & 255], 16) ^ Shift(Tinv0[(t0 >> 24) & 255], 8) ^ kw[3];
+            u1 = Tinv0[(r3 >> 8) & 255]; u2 = Tinv0[(t2 >> 16) & 255]; u3 = Tinv0[(t1 >> 24) & 255];
+            r0 = Tinv0[t0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+            u1 = Tinv0[(t0 >> 8) & 255]; u2 = Tinv0[(r3 >> 16) & 255]; u3 = Tinv0[(t2 >> 24) & 255];
+            r1 = Tinv0[t1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+            u1 = Tinv0[(t1 >> 8) & 255]; u2 = Tinv0[(t0 >> 16) & 255]; u3 = Tinv0[(r3 >> 24) & 255];
+            r2 = Tinv0[t2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+            u1 = Tinv0[(t2 >> 8) & 255]; u2 = Tinv0[(t1 >> 16) & 255]; u3 = Tinv0[(t0 >> 24) & 255];
+            r3 = Tinv0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
 
             // the final round's table is a simple function of Si so we don't use a whole other four tables for it
 
@@ -637,26 +661,39 @@ namespace Org.BouncyCastle.Crypto.Engines
             uint t2 = C2 ^ kw[2];
 
             uint r0, r1, r2, r3 = C3 ^ kw[3];
+            uint u1, u2, u3;
             int r = 1;
             while (r < ROUNDS - 1)
             {
                 kw = KW[r++];
-                r0 = T0[t0 & 255] ^ Shift(T0[(t1 >> 8) & 255], 24) ^ Shift(T0[(t2 >> 16) & 255], 16) ^ Shift(T0[(r3 >> 24) & 255], 8) ^ kw[0];
-                r1 = T0[t1 & 255] ^ Shift(T0[(t2 >> 8) & 255], 24) ^ Shift(T0[(r3 >> 16) & 255], 16) ^ Shift(T0[(t0 >> 24) & 255], 8) ^ kw[1];
-                r2 = T0[t2 & 255] ^ Shift(T0[(r3 >> 8) & 255], 24) ^ Shift(T0[(t0 >> 16) & 255], 16) ^ Shift(T0[(t1 >> 24) & 255], 8) ^ kw[2];
-                r3 = T0[r3 & 255] ^ Shift(T0[(t0 >> 8) & 255], 24) ^ Shift(T0[(t1 >> 16) & 255], 16) ^ Shift(T0[(t2 >> 24) & 255], 8) ^ kw[3];
+                u1 = T0[(t1 >> 8) & 255]; u2 = T0[(t2 >> 16) & 255]; u3 = T0[(r3 >> 24) & 255];
+                r0 = T0[t0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+                u1 = T0[(t2 >> 8) & 255]; u2 = T0[(r3 >> 16) & 255]; u3 = T0[(t0 >> 24) & 255];
+                r1 = T0[t1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+                u1 = T0[(r3 >> 8) & 255]; u2 = T0[(t0 >> 16) & 255]; u3 = T0[(t1 >> 24) & 255];
+                r2 = T0[t2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+                u1 = T0[(t0 >> 8) & 255]; u2 = T0[(t1 >> 16) & 255]; u3 = T0[(t2 >> 24) & 255];
+                r3 = T0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
                 kw = KW[r++];
-                t0 = T0[r0 & 255] ^ Shift(T0[(r1 >> 8) & 255], 24) ^ Shift(T0[(r2 >> 16) & 255], 16) ^ Shift(T0[(r3 >> 24) & 255], 8) ^ kw[0];
-                t1 = T0[r1 & 255] ^ Shift(T0[(r2 >> 8) & 255], 24) ^ Shift(T0[(r3 >> 16) & 255], 16) ^ Shift(T0[(r0 >> 24) & 255], 8) ^ kw[1];
-                t2 = T0[r2 & 255] ^ Shift(T0[(r3 >> 8) & 255], 24) ^ Shift(T0[(r0 >> 16) & 255], 16) ^ Shift(T0[(r1 >> 24) & 255], 8) ^ kw[2];
-                r3 = T0[r3 & 255] ^ Shift(T0[(r0 >> 8) & 255], 24) ^ Shift(T0[(r1 >> 16) & 255], 16) ^ Shift(T0[(r2 >> 24) & 255], 8) ^ kw[3];
+                u1 = T0[(r1 >> 8) & 255]; u2 = T0[(r2 >> 16) & 255]; u3 = T0[(r3 >> 24) & 255];
+                t0 = T0[r0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+                u1 = T0[(r2 >> 8) & 255]; u2 = T0[(r3 >> 16) & 255]; u3 = T0[(r0 >> 24) & 255];
+                t1 = T0[r1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+                u1 = T0[(r3 >> 8) & 255]; u2 = T0[(r0 >> 16) & 255]; u3 = T0[(r1 >> 24) & 255];
+                t2 = T0[r2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+                u1 = T0[(r0 >> 8) & 255]; u2 = T0[(r1 >> 16) & 255]; u3 = T0[(r2 >> 24) & 255];
+                r3 = T0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
             }
 
             kw = KW[r++];
-            r0 = T0[t0 & 255] ^ Shift(T0[(t1 >> 8) & 255], 24) ^ Shift(T0[(t2 >> 16) & 255], 16) ^ Shift(T0[(r3 >> 24) & 255], 8) ^ kw[0];
-            r1 = T0[t1 & 255] ^ Shift(T0[(t2 >> 8) & 255], 24) ^ Shift(T0[(r3 >> 16) & 255], 16) ^ Shift(T0[(t0 >> 24) & 255], 8) ^ kw[1];
-            r2 = T0[t2 & 255] ^ Shift(T0[(r3 >> 8) & 255], 24) ^ Shift(T0[(t0 >> 16) & 255], 16) ^ Shift(T0[(t1 >> 24) & 255], 8) ^ kw[2];
-            r3 = T0[r3 & 255] ^ Shift(T0[(t0 >> 8) & 255], 24) ^ Shift(T0[(t1 >> 16) & 255], 16) ^ Shift(T0[(t2 >> 24) & 255], 8) ^ kw[3];
+            u1 = T0[(t1 >> 8) & 255]; u2 = T0[(t2 >> 16) & 255]; u3 = T0[(r3 >> 24) & 255];
+            r0 = T0[t0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+            u1 = T0[(t2 >> 8) & 255]; u2 = T0[(r3 >> 16) & 255]; u3 = T0[(t0 >> 24) & 255];
+            r1 = T0[t1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+            u1 = T0[(r3 >> 8) & 255]; u2 = T0[(t0 >> 16) & 255]; u3 = T0[(t1 >> 24) & 255];
+            r2 = T0[t2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+            u1 = T0[(t0 >> 8) & 255]; u2 = T0[(t1 >> 16) & 255]; u3 = T0[(t2 >> 24) & 255];
+            r3 = T0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
 
             // the final round's table is a simple function of S so we don't use a whole other four tables for it
 
@@ -685,26 +722,39 @@ namespace Org.BouncyCastle.Crypto.Engines
             uint t2 = C2 ^ kw[2];
 
             uint r0, r1, r2, r3 = C3 ^ kw[3];
+            uint u1, u2, u3;
             int r = ROUNDS - 1;
             while (r > 1)
             {
                 kw = KW[r--];
-                r0 = Tinv0[t0 & 255] ^ Shift(Tinv0[(r3 >> 8) & 255], 24) ^ Shift(Tinv0[(t2 >> 16) & 255], 16) ^ Shift(Tinv0[(t1 >> 24) & 255], 8) ^ kw[0];
-                r1 = Tinv0[t1 & 255] ^ Shift(Tinv0[(t0 >> 8) & 255], 24) ^ Shift(Tinv0[(r3 >> 16) & 255], 16) ^ Shift(Tinv0[(t2 >> 24) & 255], 8) ^ kw[1];
-                r2 = Tinv0[t2 & 255] ^ Shift(Tinv0[(t1 >> 8) & 255], 24) ^ Shift(Tinv0[(t0 >> 16) & 255], 16) ^ Shift(Tinv0[(r3 >> 24) & 255], 8) ^ kw[2];
-                r3 = Tinv0[r3 & 255] ^ Shift(Tinv0[(t2 >> 8) & 255], 24) ^ Shift(Tinv0[(t1 >> 16) & 255], 16) ^ Shift(Tinv0[(t0 >> 24) & 255], 8) ^ kw[3];
+                u1 = Tinv0[(r3 >> 8) & 255]; u2 = Tinv0[(t2 >> 16) & 255]; u3 = Tinv0[(t1 >> 24) & 255];
+                r0 = Tinv0[t0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+                u1 = Tinv0[(t0 >> 8) & 255]; u2 = Tinv0[(r3 >> 16) & 255]; u3 = Tinv0[(t2 >> 24) & 255];
+                r1 = Tinv0[t1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+                u1 = Tinv0[(t1 >> 8) & 255]; u2 = Tinv0[(t0 >> 16) & 255]; u3 = Tinv0[(r3 >> 24) & 255];
+                r2 = Tinv0[t2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+                u1 = Tinv0[(t2 >> 8) & 255]; u2 = Tinv0[(t1 >> 16) & 255]; u3 = Tinv0[(t0 >> 24) & 255];
+                r3 = Tinv0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
                 kw = KW[r--];
-                t0 = Tinv0[r0 & 255] ^ Shift(Tinv0[(r3 >> 8) & 255], 24) ^ Shift(Tinv0[(r2 >> 16) & 255], 16) ^ Shift(Tinv0[(r1 >> 24) & 255], 8) ^ kw[0];
-                t1 = Tinv0[r1 & 255] ^ Shift(Tinv0[(r0 >> 8) & 255], 24) ^ Shift(Tinv0[(r3 >> 16) & 255], 16) ^ Shift(Tinv0[(r2 >> 24) & 255], 8) ^ kw[1];
-                t2 = Tinv0[r2 & 255] ^ Shift(Tinv0[(r1 >> 8) & 255], 24) ^ Shift(Tinv0[(r0 >> 16) & 255], 16) ^ Shift(Tinv0[(r3 >> 24) & 255], 8) ^ kw[2];
-                r3 = Tinv0[r3 & 255] ^ Shift(Tinv0[(r2 >> 8) & 255], 24) ^ Shift(Tinv0[(r1 >> 16) & 255], 16) ^ Shift(Tinv0[(r0 >> 24) & 255], 8) ^ kw[3];
+                u1 = Tinv0[(r3 >> 8) & 255]; u2 = Tinv0[(r2 >> 16) & 255]; u3 = Tinv0[(r1 >> 24) & 255];
+                t0 = Tinv0[r0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+                u1 = Tinv0[(r0 >> 8) & 255]; u2 = Tinv0[(r3 >> 16) & 255]; u3 = Tinv0[(r2 >> 24) & 255];
+                t1 = Tinv0[r1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+                u1 = Tinv0[(r1 >> 8) & 255]; u2 = Tinv0[(r0 >> 16) & 255]; u3 = Tinv0[(r3 >> 24) & 255];
+                t2 = Tinv0[r2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+                u1 = Tinv0[(r2 >> 8) & 255]; u2 = Tinv0[(r1 >> 16) & 255]; u3 = Tinv0[(r0 >> 24) & 255];
+                r3 = Tinv0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
             }
 
             kw = KW[1];
-            r0 = Tinv0[t0 & 255] ^ Shift(Tinv0[(r3 >> 8) & 255], 24) ^ Shift(Tinv0[(t2 >> 16) & 255], 16) ^ Shift(Tinv0[(t1 >> 24) & 255], 8) ^ kw[0];
-            r1 = Tinv0[t1 & 255] ^ Shift(Tinv0[(t0 >> 8) & 255], 24) ^ Shift(Tinv0[(r3 >> 16) & 255], 16) ^ Shift(Tinv0[(t2 >> 24) & 255], 8) ^ kw[1];
-            r2 = Tinv0[t2 & 255] ^ Shift(Tinv0[(t1 >> 8) & 255], 24) ^ Shift(Tinv0[(t0 >> 16) & 255], 16) ^ Shift(Tinv0[(r3 >> 24) & 255], 8) ^ kw[2];
-            r3 = Tinv0[r3 & 255] ^ Shift(Tinv0[(t2 >> 8) & 255], 24) ^ Shift(Tinv0[(t1 >> 16) & 255], 16) ^ Shift(Tinv0[(t0 >> 24) & 255], 8) ^ kw[3];
+            u1 = Tinv0[(r3 >> 8) & 255]; u2 = Tinv0[(t2 >> 16) & 255]; u3 = Tinv0[(t1 >> 24) & 255];
+            r0 = Tinv0[t0 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[0];
+            u1 = Tinv0[(t0 >> 8) & 255]; u2 = Tinv0[(r3 >> 16) & 255]; u3 = Tinv0[(t2 >> 24) & 255];
+            r1 = Tinv0[t1 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[1];
+            u1 = Tinv0[(t1 >> 8) & 255]; u2 = Tinv0[(t0 >> 16) & 255]; u3 = Tinv0[(r3 >> 24) & 255];
+            r2 = Tinv0[t2 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[2];
+            u1 = Tinv0[(t2 >> 8) & 255]; u2 = Tinv0[(t1 >> 16) & 255]; u3 = Tinv0[(t0 >> 24) & 255];
+            r3 = Tinv0[r3 & 255] ^ (u1 >> 24 | u1 << 8) ^ (u2 >> 16 | u2 << 16) ^ (u3 >> 8 | u3 << 24) ^ kw[3];
 
             // the final round's table is a simple function of Si so we don't use a whole other four tables for it
 
