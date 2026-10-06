@@ -3,7 +3,7 @@ using System;
 using System.Buffers.Binary;
 #endif
 using System.Diagnostics;
-#if NETSTANDARD1_0_OR_GREATER || NETCOREAPP1_0_OR_GREATER
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
 
@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 {
     internal static class Pack
     {
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt16_To_BE(ushort n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -21,6 +24,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt16_To_BE(ushort n, byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -65,6 +71,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return bs;
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static ushort BE_To_UInt16(byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -76,6 +85,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static ushort BE_To_UInt16(byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -145,6 +157,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 | bs[off + 2];
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt32_To_BE(uint n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -157,6 +172,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt32_To_BE(uint n, byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -221,6 +239,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             UInt32_To_BE_High(n << ((4 - len) << 3), bs, off, len);
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static uint BE_To_UInt32(byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -233,6 +254,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static uint BE_To_UInt32(byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -288,6 +312,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return result;
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt64_To_BE(ulong n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -298,6 +325,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt64_To_BE(ulong n, byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -360,6 +390,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             UInt64_To_BE_High(n << ((8 - len) << 3), bs, off, len);
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static ulong BE_To_UInt64(byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -371,6 +404,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static ulong BE_To_UInt64(byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -425,6 +461,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return result;
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt16_To_LE(ushort n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -435,6 +474,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt16_To_LE(ushort n, byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -479,6 +521,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return bs;
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static ushort LE_To_UInt16(byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -490,6 +535,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static ushort LE_To_UInt16(byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -526,6 +574,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return ns;
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt32_To_LE(uint n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -538,6 +589,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt32_To_LE(uint n, byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -608,6 +662,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
                 | (uint)bs[off + 2] << 16;
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static uint LE_To_UInt32(byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -620,6 +677,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static uint LE_To_UInt32(byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -676,6 +736,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             return result;
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt64_To_LE(ulong n, byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -686,6 +749,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static void UInt64_To_LE(ulong n, byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -747,6 +813,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
             }
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static ulong LE_To_UInt64(byte[] bs)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -758,6 +827,9 @@ namespace Org.BouncyCastle.Crypto.Utilities
 #endif
         }
 
+#if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+#endif
         internal static ulong LE_To_UInt64(byte[] bs, int off)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
