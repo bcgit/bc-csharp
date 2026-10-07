@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<topic id="About" revisionNumber="1">
+  <developerConceptualDocument xmlns="http://ddue.schemas.microsoft.com/authoring/2003/5" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <introduction>
+      <para>
+        The Bouncy Castle Cryptography library is a .NET implementation of cryptographic algorithms and protocols.
+      </para>
+      <para>
+        Return to
+        <externalLink>
+          <linkText>documentation home</linkText>
+          <linkUri>https://gridprotectionalliance.github.io/bc-csharp/</linkUri>
+          <linkTarget>_self</linkTarget>
+        </externalLink>.
+      </para>
+    </introduction>
+    <token>AboutBouncyCastleSection</token>
+  </developerConceptualDocument>
+</topic>
