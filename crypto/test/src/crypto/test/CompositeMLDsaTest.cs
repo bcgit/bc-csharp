@@ -318,6 +318,47 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void TestRecoversAfterFailedOperation()
+        {
+            /*
+             * However a sign or verify leaves, the signer must go back to the state Init left it in.
+             * Resetting only on the normal exits left a throw from inside the operation - a pre-hash of
+             * the wrong length is the reachable case - with the buffered bytes still in place, so every
+             * later attempt overflowed the buffer and threw again and the object could not be reused.
+             */
+            var parameters = CompositeMLDsaParameters.MLDsa44_ECDsa_P256_SHA256;
+            var keyPair = GenerateKeyPair(parameters);
+            byte[] message = Strings.ToByteArray("recovery after a failed operation");
+
+            var digest = DigestUtilities.GetDigest(parameters.PreHashAlgorithm);
+            byte[] preHash = new byte[digest.GetDigestSize()];
+            digest.BlockUpdate(message, 0, message.Length);
+            digest.DoFinal(preHash, 0);
+
+            var signer = new CompositeMLDsaSigner(parameters, preHashed: true);
+            signer.Init(forSigning: true, keyPair.Private);
+
+            // One byte short, so the failure comes from inside GenerateSignature.
+            signer.BlockUpdate(preHash, 0, preHash.Length - 1);
+            Assert.Throws<InvalidOperationException>(() => signer.GenerateSignature());
+
+            // The same object must now accept a complete pre-hash as a fresh operation.
+            signer.BlockUpdate(preHash, 0, preHash.Length);
+            byte[] signature = signer.GenerateSignature();
+            Assert.True(Verify(parameters, (CompositeMLDsaPublicKeyParameters)keyPair.Public, message, signature),
+                "signature produced after a failed operation");
+
+            // Same contract on the verify side.
+            var verifier = new CompositeMLDsaSigner(parameters, preHashed: true);
+            verifier.Init(forSigning: false, keyPair.Public);
+            verifier.BlockUpdate(preHash, 0, preHash.Length - 1);
+            Assert.Throws<InvalidOperationException>(() => verifier.VerifySignature(signature));
+
+            verifier.BlockUpdate(preHash, 0, preHash.Length);
+            Assert.True(verifier.VerifySignature(signature), "verification after a failed operation");
+        }
+
+        [Test]
         public void TestAlgorithmIdentifierRegistration()
         {
             /*

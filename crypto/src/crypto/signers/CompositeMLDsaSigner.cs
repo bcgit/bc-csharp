@@ -218,47 +218,56 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <inheritdoc/>
         public byte[] GenerateSignature()
         {
+            // Before the try: a mis-sequenced call consumed no message, so the finally must not discard one.
             if (!m_initialised || !m_forSigning)
                 throw new InvalidOperationException("CompositeMLDsaSigner not initialised for signature generation");
 
-            ProcessMessageRepresentative();
+            try
+            {
+                ProcessMessageRepresentative();
 
-            byte[] mlDsaSignature = m_mlDsaSigner.GenerateSignature();
-            byte[] traditionalSignature = m_traditionalSigner.GenerateSignature();
+                byte[] mlDsaSignature = m_mlDsaSigner.GenerateSignature();
+                byte[] traditionalSignature = m_traditionalSigner.GenerateSignature();
 
-            Reset();
-
-            return Arrays.Concatenate(mlDsaSignature, traditionalSignature);
+                return Arrays.Concatenate(mlDsaSignature, traditionalSignature);
+            }
+            finally
+            {
+                Reset();
+            }
         }
 
         /// <inheritdoc/>
         public bool VerifySignature(byte[] signature)
         {
+            // Before the try: a mis-sequenced call consumed no message, so the finally must not discard one.
             if (!m_initialised || m_forSigning)
                 throw new InvalidOperationException("CompositeMLDsaSigner not initialised for verification");
 
-            int mlDsaSignatureLength = m_parameters.MLDsaSignatureLength;
-            if (signature == null || signature.Length <= mlDsaSignatureLength)
+            try
+            {
+                int mlDsaSignatureLength = m_parameters.MLDsaSignatureLength;
+                if (signature == null || signature.Length <= mlDsaSignatureLength)
+                    return false;
+
+                ProcessMessageRepresentative();
+
+                /*
+                 * Both components are verified even once one has failed: the component verifications are
+                 * independent, and reporting which half failed would tell an attacker more than the single
+                 * bit the caller asked for.
+                 */
+                bool mlDsaOk = m_mlDsaSigner.VerifySignature(
+                    Arrays.CopyOfRange(signature, 0, mlDsaSignatureLength));
+                bool traditionalOk = m_traditionalSigner.VerifySignature(
+                    Arrays.CopyOfRange(signature, mlDsaSignatureLength, signature.Length));
+
+                return mlDsaOk & traditionalOk;
+            }
+            finally
             {
                 Reset();
-                return false;
             }
-
-            ProcessMessageRepresentative();
-
-            /*
-             * Both components are verified even once one has failed: the component verifications are
-             * independent, and reporting which half failed would tell an attacker more than the single bit
-             * the caller asked for.
-             */
-            bool mlDsaOk = m_mlDsaSigner.VerifySignature(
-                Arrays.CopyOfRange(signature, 0, mlDsaSignatureLength));
-            bool traditionalOk = m_traditionalSigner.VerifySignature(
-                Arrays.CopyOfRange(signature, mlDsaSignatureLength, signature.Length));
-
-            Reset();
-
-            return mlDsaOk & traditionalOk;
         }
 
         /// <inheritdoc/>
