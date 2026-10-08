@@ -20,7 +20,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// pre-hash used to build the message representative plus the domain separator that binds a signature to
     /// exactly one combination. The IANA-assigned identifiers live under the <c>1.3.6.1.5.5.7.6</c> arc.
     /// </remarks>
-    public sealed class CompositeMLDsaParameters
+    internal sealed class CompositeMLDsaParameters
     {
         /// <summary>The kind of traditional key a combination pairs ML-DSA with.</summary>
         internal enum TraditionalKeyType

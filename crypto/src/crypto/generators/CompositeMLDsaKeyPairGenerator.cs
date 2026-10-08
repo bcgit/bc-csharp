@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Generators
     /// <see cref="SecureRandom"/> from the supplied <see cref="KeyGenerationParameters"/> is used; both component
     /// key pairs are generated to the sizes the combination requires.
     /// </summary>
-    public sealed class CompositeMLDsaKeyPairGenerator
+    internal sealed class CompositeMLDsaKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {
         private static readonly BigInteger PublicExponent = BigInteger.ValueOf(0x10001);

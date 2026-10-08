@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// Common base for Composite ML-DSA public and private key parameters; carries the
     /// <see cref="CompositeMLDsaParameters"/> combination the key was generated for.
     /// </summary>
-    public abstract class CompositeMLDsaKeyParameters
+    internal abstract class CompositeMLDsaKeyParameters
         : AsymmetricKeyParameter
     {
         private readonly CompositeMLDsaParameters m_parameters;

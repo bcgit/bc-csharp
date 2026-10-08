@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// unambiguous. That concatenation is what appears in the <c>subjectPublicKey</c> BIT STRING of a
     /// composite <c>SubjectPublicKeyInfo</c>.
     /// </remarks>
-    public sealed class CompositeMLDsaPublicKeyParameters
+    internal sealed class CompositeMLDsaPublicKeyParameters
         : CompositeMLDsaKeyParameters
     {
         /// <summary>

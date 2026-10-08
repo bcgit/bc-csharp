@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             return d;
         }
 
-        private static IList<IDictionary<string, string>> LoadTestVectors(out byte[] message)
+        internal static IList<IDictionary<string, string>> LoadTestVectors(out byte[] message)
         {
             string json;
             using (var stream = SimpleTest.FindTestResource("pqc", "crypto/composite", "testvectors.json"))

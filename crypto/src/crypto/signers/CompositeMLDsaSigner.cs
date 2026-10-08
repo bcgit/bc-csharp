@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Crypto.Signers
     /// treat the pair as a single signature, which is what this class exposes.
     /// </para>
     /// </remarks>
-    public sealed class CompositeMLDsaSigner
+    internal sealed class CompositeMLDsaSigner
         : ISigner
     {
         // The ASCII string "CompositeAlgorithmSignatures2025"

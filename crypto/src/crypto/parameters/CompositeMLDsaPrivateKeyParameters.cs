@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// the curve but not the public point), or the raw Ed25519/Ed448 secret. Because the ML-DSA half is a
     /// seed, a composite private key can only be encoded when its ML-DSA component retains one.
     /// </remarks>
-    public sealed class CompositeMLDsaPrivateKeyParameters
+    internal sealed class CompositeMLDsaPrivateKeyParameters
         : CompositeMLDsaKeyParameters
     {
         /// <summary>
