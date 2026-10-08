@@ -542,6 +542,75 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void TestECPrivateKeyPublicKeyOmitted()
+        {
+            // The draft requires the ECPrivateKey to omit the optional publicKey field.
+            var parameters = CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256;
+            GetVectorKeys(parameters, out byte[] pk, out byte[] sk);
+
+            byte[] seed = Arrays.CopyOfRange(sk, 0, parameters.MLDsaSeedLength);
+            var d = ECPrivateKeyStructure.GetInstance(Arrays.CopyOfRange(sk, seed.Length, sk.Length)).GetKey();
+            var publicPoint = new DerBitString(Arrays.CopyOfRange(pk, parameters.MLDsaPublicKeyLength, pk.Length));
+
+            byte[] withPublicKey = Arrays.Concatenate(seed,
+                new ECPrivateKeyStructure(256, d, publicPoint, SecObjectIdentifiers.SecP256r1)
+                    .GetEncoded(Asn1Encodable.Der));
+            AssertMalformed(() => CompositeMLDsaPrivateKeyParameters.FromEncoding(parameters, withPublicKey),
+                "ECPrivateKey including the public key");
+        }
+
+        [Test]
+        public void TestECPrivateKeyLength()
+        {
+            // RFC 5915 fixes the privateKey octets at the byte length of the curve order, here 32.
+            var parameters = CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256;
+            GetVectorKeys(parameters, out _, out byte[] sk);
+
+            byte[] seed = Arrays.CopyOfRange(sk, 0, parameters.MLDsaSeedLength);
+            byte[] d = ECPrivateKeyStructure.GetInstance(Arrays.CopyOfRange(sk, seed.Length, sk.Length))
+                .PrivateKey.GetOctets();
+            Assert.AreEqual(32, d.Length);
+
+            // Both still denote valid scalars, so only the length check rejects them.
+            byte[] shortD = Arrays.CopyOfRange(d, 1, d.Length);
+            byte[] longD = Arrays.Prepend(d, 0x00);
+
+            foreach (byte[] octets in new byte[][]{ shortD, longD })
+            {
+                byte[] encoding = Arrays.Concatenate(seed, new ECPrivateKeyStructure(new DerOctetString(octets),
+                    SecObjectIdentifiers.SecP256r1, null).GetEncoded(Asn1Encodable.Der));
+                AssertMalformed(() => CompositeMLDsaPrivateKeyParameters.FromEncoding(parameters, encoding),
+                    "ECPrivateKey with " + octets.Length + " private key octets");
+            }
+        }
+
+        [Test]
+        public void TestDerEncoding()
+        {
+            // The draft requires DER; the same structures in valid BER, with a non-minimal length, are malformed.
+            var rsa = CompositeMLDsaParameters.MLDSA44_RSA2048_PSS_SHA256;
+            GetVectorKeys(rsa, out byte[] rsaPk, out byte[] rsaSk);
+
+            byte[] berPk = Arrays.Concatenate(Arrays.CopyOfRange(rsaPk, 0, rsa.MLDsaPublicKeyLength),
+                WithNonMinimalLength(Arrays.CopyOfRange(rsaPk, rsa.MLDsaPublicKeyLength, rsaPk.Length)));
+            AssertMalformed(() => CompositeMLDsaPublicKeyParameters.FromEncoding(rsa, berPk),
+                "BER-encoded RSAPublicKey");
+
+            byte[] berSk = Arrays.Concatenate(Arrays.CopyOfRange(rsaSk, 0, rsa.MLDsaSeedLength),
+                WithNonMinimalLength(Arrays.CopyOfRange(rsaSk, rsa.MLDsaSeedLength, rsaSk.Length)));
+            AssertMalformed(() => CompositeMLDsaPrivateKeyParameters.FromEncoding(rsa, berSk),
+                "BER-encoded RSAPrivateKey");
+
+            var ec = CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256;
+            GetVectorKeys(ec, out _, out byte[] ecSk);
+
+            byte[] berEcSk = Arrays.Concatenate(Arrays.CopyOfRange(ecSk, 0, ec.MLDsaSeedLength),
+                WithNonMinimalLength(Arrays.CopyOfRange(ecSk, ec.MLDsaSeedLength, ecSk.Length)));
+            AssertMalformed(() => CompositeMLDsaPrivateKeyParameters.FromEncoding(ec, berEcSk),
+                "BER-encoded ECPrivateKey");
+        }
+
+        [Test]
         public void TestECPublicKeyUncompressed()
         {
             // The draft mandates the uncompressed point; anything else would not re-encode to the same bytes.
@@ -588,6 +657,20 @@ namespace Org.BouncyCastle.Crypto.Tests
         {
             var e = Assert.Throws<ArgumentException>(decode, message);
             StringAssert.StartsWith("malformed composite", e.Message, message);
+        }
+
+        /// <summary>
+        /// Re-encode the outer length of a DER object in long form with a redundant leading zero octet: still valid
+        /// BER, but not DER.
+        /// </summary>
+        private static byte[] WithNonMinimalLength(byte[] der)
+        {
+            int lengthOctets = (der[1] & 0x80) == 0 ? 0 : der[1] & 0x7F;
+            int contentsOff = 2 + lengthOctets;
+            byte[] length = lengthOctets == 0 ? new byte[]{ der[1] } : Arrays.CopyOfRange(der, 2, contentsOff);
+
+            return Arrays.ConcatenateAll(new byte[]{ der[0], (byte)(0x80 | (length.Length + 1)), 0x00 }, length,
+                Arrays.CopyOfRange(der, contentsOff, der.Length));
         }
 
         private static void GetVectorKeys(CompositeMLDsaParameters parameters, out byte[] pk, out byte[] sk)

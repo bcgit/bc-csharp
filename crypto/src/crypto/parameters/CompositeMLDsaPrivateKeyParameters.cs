@@ -138,18 +138,33 @@ namespace Org.BouncyCastle.Crypto.Parameters
             case CompositeMLDsaParameters.TraditionalKeyType.ECDsa:
             {
                 var ecPrivateKey = ECPrivateKeyStructure.GetInstance(encoding);
+                CheckDer(ecPrivateKey, encoding, "ECPrivateKey");
 
                 // The draft requires the curve to be carried; it must be the one the combination specifies.
                 if (!parameters.CurveOid.Equals(ecPrivateKey.Parameters as DerObjectIdentifier))
                     throw new ArgumentException("malformed composite private key: ECPrivateKey does not name "
                         + parameters.CurveOid.GetID(), nameof(encoding));
 
+                // The draft also requires the optional public key to be omitted.
+                if (ecPrivateKey.PublicKey != null)
+                    throw new ArgumentException("malformed composite private key: ECPrivateKey includes the public key",
+                        nameof(encoding));
+
                 var domainParameters = ECNamedDomainParameters.LookupOid(parameters.CurveOid);
+
+                // RFC 5915 fixes the private key octets at the byte length of the curve order.
+                int privateKeyLength = (domainParameters.N.BitLength + 7) / 8;
+                if (ecPrivateKey.PrivateKey.GetOctetsLength() != privateKeyLength)
+                    throw new ArgumentException("malformed composite private key: ECPrivateKey private key is not "
+                        + privateKeyLength + " bytes", nameof(encoding));
+
                 return new ECPrivateKeyParameters(ecPrivateKey.GetKey(), domainParameters);
             }
             case CompositeMLDsaParameters.TraditionalKeyType.Rsa:
             {
                 var rsaPrivateKey = RsaPrivateKeyStructure.GetInstance(encoding);
+                CheckDer(rsaPrivateKey, encoding, "RSAPrivateKey");
+
                 if (rsaPrivateKey.Modulus.BitLength != parameters.RsaKeySize)
                     throw new ArgumentException("malformed composite private key: RSA modulus is not "
                         + parameters.RsaKeySize + " bits", nameof(encoding));
@@ -158,6 +173,25 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
             default:
                 throw new InvalidOperationException();
+            }
+        }
+
+        /*
+         * The draft requires DER; the parser also accepts BER, so compare against the DER re-encoding. Both hold
+         * private key material, hence the fixed-time comparison and the wipe.
+         */
+        private static void CheckDer(Asn1Encodable structure, byte[] encoding, string structureName)
+        {
+            byte[] der = structure.GetEncoded(Asn1Encodable.Der);
+            try
+            {
+                if (!Arrays.FixedTimeEquals(der, encoding))
+                    throw new ArgumentException("malformed composite private key: " + structureName
+                        + " is not DER encoded", nameof(encoding));
+            }
+            finally
+            {
+                Arrays.ZeroMemory(der);
             }
         }
 

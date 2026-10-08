@@ -110,6 +110,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
             case CompositeMLDsaParameters.TraditionalKeyType.Rsa:
             {
                 var rsaPublicKey = RsaPublicKeyStructure.GetInstance(encoding);
+
+                // The draft requires DER; the parser also accepts BER, so compare against the DER re-encoding.
+                if (!Arrays.AreEqual(encoding, rsaPublicKey.GetEncoded(Asn1Encodable.Der)))
+                    throw new ArgumentException("malformed composite public key: RSAPublicKey is not DER encoded",
+                        nameof(encoding));
+
                 if (rsaPublicKey.Modulus.BitLength != parameters.RsaKeySize)
                     throw new ArgumentException("malformed composite public key: RSA modulus is not "
                         + parameters.RsaKeySize + " bits", nameof(encoding));
