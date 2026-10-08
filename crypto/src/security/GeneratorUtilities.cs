@@ -17,6 +17,7 @@ using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 
@@ -296,7 +297,6 @@ namespace Org.BouncyCastle.Security
             AddKpgAlgorithm("GOST3410",
                 "GOST-3410",
                 "GOST-3410-94");
-            AddKpgAlgorithm("COMPOSITE-ML-DSA");
             AddKpgAlgorithm("ML-DSA");
             AddKpgAlgorithm("ML-KEM");
             AddKpgAlgorithm("RSA",
@@ -307,6 +307,14 @@ namespace Org.BouncyCastle.Security
                 EdECObjectIdentifiers.id_X25519);
             AddKpgAlgorithm("X448",
                 EdECObjectIdentifiers.id_X448);
+
+            /*
+             * Composite ML-DSA: each combination is its own algorithm, with its own OID.
+             */
+            foreach (CompositeMLDsaParameters compositeMLDsa in CompositeMLDsaParameters.ByName.Values)
+            {
+                AddKpgAlgorithm(compositeMLDsa.Name, compositeMLDsa.Oid);
+            }
 
             AddDefaultKeySizeEntries(64, "DES");
             AddDefaultKeySizeEntries(80, "SKIPJACK");
@@ -456,8 +464,11 @@ namespace Org.BouncyCastle.Security
             if (canonicalName == "GOST3410")
                 return new Gost3410KeyPairGenerator();
 
-            if (canonicalName == "COMPOSITE-ML-DSA")
-                return new CompositeMLDsaKeyPairGenerator();
+            if (CompositeMLDsaParameters.ByName.TryGetValue(canonicalName,
+                out CompositeMLDsaParameters compositeMLDsaParameters))
+            {
+                return new CompositeMLDsaKeyPairGenerator(compositeMLDsaParameters);
+            }
 
             if (canonicalName == "ML-DSA")
                 return new MLDsaKeyPairGenerator();

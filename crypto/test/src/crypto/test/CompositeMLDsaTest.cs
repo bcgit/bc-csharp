@@ -7,7 +7,6 @@ using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.X509;
-using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
@@ -443,8 +442,8 @@ namespace Org.BouncyCastle.Crypto.Tests
 
         private static AsymmetricCipherKeyPair GenerateKeyPair(CompositeMLDsaParameters parameters)
         {
-            var generator = new CompositeMLDsaKeyPairGenerator();
-            generator.Init(new CompositeMLDsaKeyGenerationParameters(new SecureRandom(), parameters));
+            var generator = GeneratorUtilities.GetKeyPairGenerator(parameters.Name);
+            generator.Init(new KeyGenerationParameters(new SecureRandom(), 0));
             return generator.GenerateKeyPair();
         }
 

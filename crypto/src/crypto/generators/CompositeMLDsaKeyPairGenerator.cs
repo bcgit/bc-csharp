@@ -7,9 +7,9 @@ using Org.BouncyCastle.Security;
 namespace Org.BouncyCastle.Crypto.Generators
 {
     /// <summary>
-    /// Key-pair generator for Composite ML-DSA. Driven by a
-    /// <see cref="CompositeMLDsaKeyGenerationParameters"/> init payload; generates both component key pairs
-    /// to the sizes the chosen combination requires.
+    /// Key-pair generator for one Composite ML-DSA combination, fixed at construction. Only the
+    /// <see cref="SecureRandom"/> from the supplied <see cref="KeyGenerationParameters"/> is used; both component
+    /// key pairs are generated to the sizes the combination requires.
     /// </summary>
     public sealed class CompositeMLDsaKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
@@ -18,25 +18,30 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private const int RsaCertainty = 100;
 
+        private readonly CompositeMLDsaParameters m_parameters;
+
         private SecureRandom m_random;
-        private CompositeMLDsaParameters m_parameters;
+
+        /// <summary>Construct a generator for the given combination.</summary>
+        /// <exception cref="ArgumentNullException">If <paramref name="parameters"/> is <c>null</c>.</exception>
+        public CompositeMLDsaKeyPairGenerator(CompositeMLDsaParameters parameters)
+        {
+            m_parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
+        }
 
         /// <summary>
-        /// Initialise with a <see cref="CompositeMLDsaKeyGenerationParameters"/> instance; the
-        /// <see cref="SecureRandom"/> and combination are taken from it.
+        /// Capture the <see cref="SecureRandom"/> both component generators will draw from. The strength is
+        /// ignored, since the combination fixes every key size.
         /// </summary>
-        /// <exception cref="InvalidCastException">If <paramref name="parameters"/> is not a
-        /// <see cref="CompositeMLDsaKeyGenerationParameters"/>.</exception>
         public void Init(KeyGenerationParameters parameters)
         {
             m_random = parameters.Random;
-            m_parameters = ((CompositeMLDsaKeyGenerationParameters)parameters).Parameters;
         }
 
         /// <summary>Generate a fresh composite key pair.</summary>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
-            if (m_parameters == null)
+            if (m_random == null)
                 throw new InvalidOperationException("CompositeMLDsaKeyPairGenerator not initialised");
 
             var random = CryptoServicesRegistrar.GetSecureRandom(m_random);
