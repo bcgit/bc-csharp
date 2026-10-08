@@ -37,6 +37,34 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 			this.priv = new PgpPrivateKey(pub.KeyId, pub.PublicKeyPacket, privKey);
         }
 
+		/// <summary>Create a key pair of the given key version.</summary>
+		/// <param name="version">The version of the key: 4 or 6.</param>
+		/// <exception cref="ArgumentException">
+		/// If the algorithm and key do not fit each other or the version; see
+		/// <see cref="PgpPublicKey(int, PublicKeyAlgorithmTag, AsymmetricKeyParameter, DateTime)"/>.
+		/// </exception>
+		public PgpKeyPair(
+			int						version,
+			PublicKeyAlgorithmTag	algorithm,
+			AsymmetricKeyParameter	pubKey,
+			AsymmetricKeyParameter	privKey,
+			DateTime				time)
+		{
+			this.pub = new PgpPublicKey(version, algorithm, pubKey, time);
+			this.priv = new PgpPrivateKey(pub.KeyId, pub.PublicKeyPacket, privKey);
+		}
+
+		/// <summary>Create a key pair of the given key version.</summary>
+		/// <param name="version">The version of the key: 4 or 6.</param>
+		public PgpKeyPair(
+			int						version,
+			PublicKeyAlgorithmTag	algorithm,
+			AsymmetricCipherKeyPair	keyPair,
+			DateTime				time)
+			: this(version, algorithm, keyPair.Public, keyPair.Private, time)
+		{
+		}
+
 		/// <summary>Create a key pair from a PgpPrivateKey and a PgpPublicKey.</summary>
 		/// <param name="pub">The public key.</param>
 		/// <param name="priv">The private key.</param>

@@ -20,6 +20,16 @@ namespace Org.BouncyCastle.Bcpg
         public const int Version5 = 5;  // https://datatracker.ietf.org/doc/draft-koch-librepgp/
         public const int Version6 = 6;  // https://www.rfc-editor.org/rfc/rfc9580.html
 
+        private const int Ed25519SignatureLength = 64;
+        private const int Ed448SignatureLength = 114;
+
+        // RFC 9980 5.2.1 and 5.2.2
+        private const int MLDsa65Ed25519SignatureLength = Ed25519SignatureLength + 3309;
+        private const int MLDsa87Ed448SignatureLength = Ed448SignatureLength + 4627;
+        private const int SlhDsaShake128sSignatureLength = 7856;
+        private const int SlhDsaShake128fSignatureLength = 17088;
+        private const int SlhDsaShake256sSignatureLength = 29792;
+
         private int version;
         private int signatureType;
         private long m_creationTime;
@@ -30,8 +40,22 @@ namespace Org.BouncyCastle.Bcpg
         private byte[] fingerprint;
         private SignatureSubpacket[] hashedData;
         private SignatureSubpacket[] unhashedData;
+
+        // The hashed subpacket area as it was read, which the signature covers (null for a packet made here)
+        private byte[] m_hashedArea;
         private byte[] signatureEncoding;
-        private readonly byte[] m_salt = null; // v6 only
+        private byte[] m_salt = null; // v6 only
+
+        // Set when the signature value could not be interpreted; such a signature never verifies.
+        internal bool IsMalformed { get; private set; }
+
+        internal void MarkMalformed() => IsMalformed = true;
+
+        // Set when the parser repaired a subpacket that was shorter than its length said.
+        internal bool HasRepairedSubpackets { get; private set; }
+
+        // Set when an Issuer Fingerprint subpacket carries a key version that differs from the signature version.
+        internal bool IssuerFingerprintVersionMismatch { get; private set; }
 
         internal SignaturePacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
@@ -54,13 +78,13 @@ namespace Org.BouncyCastle.Bcpg
                 keyAlgorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
                 hashAlgorithm = (HashAlgorithmTag)bcpgIn.RequireByte();
             }
-            else if (version == 4)
+            else if (version == Version4 || version == Version6)
             {
                 signatureType = bcpgIn.RequireByte();
                 keyAlgorithm = (PublicKeyAlgorithmTag)bcpgIn.RequireByte();
                 hashAlgorithm = (HashAlgorithmTag)bcpgIn.RequireByte();
 
-                hashedData = ReadSignatureSubpackets(bcpgIn);
+                hashedData = ReadSignatureSubpackets(bcpgIn, out m_hashedArea);
 
                 foreach (var p in hashedData)
                 {
@@ -72,15 +96,23 @@ namespace Org.BouncyCastle.Bcpg
                     {
                         m_creationTime = ParseCreationTimeOrThrow(signatureCreationTime);
                     }
+                    else if (p is IssuerFingerprint issuerFingerprint && issuerFingerprint.KeyVersion != version)
+                    {
+                        IssuerFingerprintVersionMismatch = true;
+                    }
                 }
 
-                unhashedData = ReadSignatureSubpackets(bcpgIn);
+                unhashedData = ReadSignatureSubpackets(bcpgIn, out _);
 
                 foreach (var p in unhashedData)
                 {
                     if (p is IssuerKeyId issuerKeyId)
                     {
                         m_keyID = ParseKeyIdOrThrow(issuerKeyId);
+                    }
+                    else if (p is IssuerFingerprint issuerFingerprint && issuerFingerprint.KeyVersion != version)
+                    {
+                        IssuerFingerprintVersionMismatch = true;
                     }
                 }
 
@@ -97,12 +129,20 @@ namespace Org.BouncyCastle.Bcpg
             fingerprint = new byte[2];
             bcpgIn.ReadFully(fingerprint);
 
+            if (version == Version6)
+            {
+                // RFC 9580 5.2.3: the salt length is not validated here, since it depends on the hash algorithm
+                m_salt = new byte[bcpgIn.RequireByte()];
+                bcpgIn.ReadFully(m_salt);
+            }
+
             switch (keyAlgorithm)
             {
             case PublicKeyAlgorithmTag.RsaGeneral:
             case PublicKeyAlgorithmTag.RsaSign:
                 MPInteger v = new MPInteger(bcpgIn);
                 signature = new MPInteger[1]{ v };
+                CheckMpis(bcpgIn);
                 break;
             case PublicKeyAlgorithmTag.Dsa:
             case PublicKeyAlgorithmTag.ElGamalEncrypt: // yep, this really does happen sometimes.
@@ -110,20 +150,40 @@ namespace Org.BouncyCastle.Bcpg
                 MPInteger r = new MPInteger(bcpgIn);
                 MPInteger s = new MPInteger(bcpgIn);
                 signature = new MPInteger[2]{ r, s };
+                CheckMpis(bcpgIn);
                 break;
             case PublicKeyAlgorithmTag.ECDsa:
             case PublicKeyAlgorithmTag.EdDsa_Legacy:
                 MPInteger ecR = new MPInteger(bcpgIn);
                 MPInteger ecS = new MPInteger(bcpgIn);
                 signature = new MPInteger[2]{ ecR, ecS };
+                CheckMpis(bcpgIn);
+                break;
+            case PublicKeyAlgorithmTag.Ed25519:
+                // RFC 9580 5.2.3.4: 64 octets of the native signature
+                ReadRawSignature(bcpgIn, Ed25519SignatureLength);
+                break;
+            case PublicKeyAlgorithmTag.Ed448:
+                // RFC 9580 5.2.3.5: 114 octets of the native signature
+                ReadRawSignature(bcpgIn, Ed448SignatureLength);
+                break;
+            case PublicKeyAlgorithmTag.MLDsa65_Ed25519:
+                ReadRawSignature(bcpgIn, MLDsa65Ed25519SignatureLength);
+                break;
+            case PublicKeyAlgorithmTag.MLDsa87_Ed448:
+                ReadRawSignature(bcpgIn, MLDsa87Ed448SignatureLength);
+                break;
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128s:
+                ReadRawSignature(bcpgIn, SlhDsaShake128sSignatureLength);
+                break;
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128f:
+                ReadRawSignature(bcpgIn, SlhDsaShake128fSignatureLength);
+                break;
+            case PublicKeyAlgorithmTag.SlhDsa_Shake256s:
+                ReadRawSignature(bcpgIn, SlhDsaShake256sSignatureLength);
                 break;
             default:
-                if (keyAlgorithm < PublicKeyAlgorithmTag.Experimental_1 ||
-                    keyAlgorithm > PublicKeyAlgorithmTag.Experimental_11)
-                {
-                    throw new IOException("unknown signature key algorithm: " + keyAlgorithm);
-                }
-
+                // Unknown algorithms are kept opaque so that they cannot abort the parsing of a whole key ring
                 signature = null;
                 signatureEncoding = Streams.ReadAll(bcpgIn);
                 break;
@@ -176,8 +236,41 @@ namespace Org.BouncyCastle.Bcpg
         public SignaturePacket(int version, bool newPacketFormat, int signatureType, long keyId,
             PublicKeyAlgorithmTag keyAlgorithm, HashAlgorithmTag hashAlgorithm, SignatureSubpacket[] hashedData,
             SignatureSubpacket[] unhashedData, byte[] fingerprint, MPInteger[] signature)
+            : this(version, newPacketFormat, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData,
+                unhashedData, fingerprint, salt: null, signature, signatureEncoding: null, validate: false)
+        {
+        }
+
+        /// <summary>Generate a version 4 or version 6 signature packet.</summary>
+        /// <param name="salt">The signature salt; required for (and only allowed with) version 6.</param>
+        /// <param name="signature">The signature value as MPIs, or null if <paramref name="signatureEncoding"/>
+        /// is given.</param>
+        /// <param name="signatureEncoding">The signature value as an octet string (for Ed25519, Ed448 and the
+        /// RFC 9980 algorithms), or null if <paramref name="signature"/> is given.</param>
+        public SignaturePacket(int version, bool newPacketFormat, int signatureType, long keyId,
+            PublicKeyAlgorithmTag keyAlgorithm, HashAlgorithmTag hashAlgorithm, SignatureSubpacket[] hashedData,
+            SignatureSubpacket[] unhashedData, byte[] fingerprint, byte[] salt, MPInteger[] signature,
+            byte[] signatureEncoding)
+            : this(version, newPacketFormat, signatureType, keyId, keyAlgorithm, hashAlgorithm, hashedData,
+                unhashedData, fingerprint, salt, signature, signatureEncoding, validate: true)
+        {
+        }
+
+        private SignaturePacket(int version, bool newPacketFormat, int signatureType, long keyId,
+            PublicKeyAlgorithmTag keyAlgorithm, HashAlgorithmTag hashAlgorithm, SignatureSubpacket[] hashedData,
+            SignatureSubpacket[] unhashedData, byte[] fingerprint, byte[] salt, MPInteger[] signature,
+            byte[] signatureEncoding, bool validate)
             : base(PacketTag.Signature, newPacketFormat)
         {
+            if (validate)
+            {
+                if ((version == Version6) != (salt != null))
+                    throw new ArgumentException("a salt is required for version 6 signatures, and only for those",
+                        nameof(salt));
+                if ((signature != null) == (signatureEncoding != null))
+                    throw new ArgumentException("exactly one of the signature forms is required", nameof(signature));
+            }
+
             this.version = version;
             this.signatureType = signatureType;
             m_keyID = (ulong)keyId;
@@ -186,12 +279,58 @@ namespace Org.BouncyCastle.Bcpg
             this.hashedData = hashedData;
             this.unhashedData = unhashedData;
             this.fingerprint = fingerprint;
+
+            // a packet made here is held to the same rule as a parsed one (RFC 9580 5.2.3.35)
+            IssuerFingerprintVersionMismatch = HasIssuerFingerprintOfOtherVersion(hashedData) ||
+                HasIssuerFingerprintOfOtherVersion(unhashedData);
+            m_salt = Arrays.Clone(salt);
             this.signature = signature;
+            this.signatureEncoding = signatureEncoding;
 
             if (hashedData != null)
             {
                 SetCreationTime();
             }
+        }
+
+        /// <summary>
+        /// Create a copy of <paramref name="template"/> with different subpackets, keeping its version, packet
+        /// format and signature value (whether MPI-encoded or a raw octet string).
+        /// </summary>
+        internal SignaturePacket(SignaturePacket template, SignatureSubpacket[] hashedData,
+            SignatureSubpacket[] unhashedData)
+            : this(template.version, template.HasNewPacketFormat, template.signatureType, template.KeyId,
+                template.keyAlgorithm, template.hashAlgorithm, hashedData, unhashedData, template.fingerprint,
+                template.m_salt, template.signature, template.signatureEncoding, validate: false)
+        {
+            this.m_creationTime = template.m_creationTime;
+            this.IsMalformed = template.IsMalformed;
+            this.HasRepairedSubpackets = template.HasRepairedSubpackets;
+            this.IssuerFingerprintVersionMismatch = template.IssuerFingerprintVersionMismatch;
+        }
+
+        /// <summary>
+        /// A copy with other unhashed subpackets, which keeps the hashed subpacket area as it was read.
+        /// </summary>
+        internal SignaturePacket WithUnhashedSubpackets(SignatureSubpacket[] unhashedData)
+        {
+            // the new unhashed subpackets have their say on the issuer fingerprint version (RFC 9580 5.2.3.35)
+            return new SignaturePacket(this, hashedData, unhashedData)
+            {
+                m_hashedArea = m_hashedArea,
+                IssuerFingerprintVersionMismatch = HasIssuerFingerprintOfOtherVersion(hashedData) ||
+                    HasIssuerFingerprintOfOtherVersion(unhashedData),
+            };
+        }
+
+        private bool HasIssuerFingerprintOfOtherVersion(SignatureSubpacket[] subpackets)
+        {
+            foreach (SignatureSubpacket subpacket in subpackets ?? new SignatureSubpacket[0])
+            {
+                if (subpacket is IssuerFingerprint issuerFingerprint && issuerFingerprint.KeyVersion != version)
+                    return true;
+            }
+            return false;
         }
 
         public int Version => version;
@@ -216,7 +355,7 @@ namespace Org.BouncyCastle.Bcpg
          * Only for v6 signatures.
          * @return salt
          */
-        public byte[] GetSalt() => m_salt;
+        public byte[] GetSalt() => Arrays.Clone(m_salt);
 
         /**
          * return the signature trailer that must be included with the data
@@ -243,18 +382,30 @@ namespace Org.BouncyCastle.Bcpg
             sOut.WriteByte((byte)KeyAlgorithm);
             sOut.WriteByte((byte)HashAlgorithm);
 
-            // Mark position an reserve two bytes for length
+            // Mark position and reserve the length field (4 octets for version 6, otherwise 2)
+            bool isV6 = version == Version6;
+            int lengthFieldSize = isV6 ? 4 : 2;
             long lengthPosition = sOut.Position;
-            sOut.WriteByte(0x00);
-            sOut.WriteByte(0x00);
-
-            SignatureSubpacket[] hashed = GetHashedSubPackets();
-            for (int i = 0; i != hashed.Length; i++)
+            for (int i = 0; i < lengthFieldSize; ++i)
             {
-                hashed[i].Encode(sOut);
+                sOut.WriteByte(0x00);
             }
 
-            ushort dataLength = Convert.ToUInt16(sOut.Position - lengthPosition - 2);
+            // RFC 9580 5.2.4: the hashed subpackets as they were signed, not as they are encoded here
+            if (m_hashedArea != null)
+            {
+                sOut.Write(m_hashedArea, 0, m_hashedArea.Length);
+            }
+            else
+            {
+                SignatureSubpacket[] hashed = GetHashedSubPackets();
+                for (int i = 0; i != hashed.Length; i++)
+                {
+                    hashed[i].Encode(sOut);
+                }
+            }
+
+            uint dataLength = Convert.ToUInt32(sOut.Position - lengthPosition - lengthFieldSize);
             uint hDataLength = Convert.ToUInt32(sOut.Position);
 
             sOut.WriteByte((byte)Version);
@@ -263,7 +414,14 @@ namespace Org.BouncyCastle.Bcpg
 
             // Reset position and fill in length
             sOut.Position = lengthPosition;
-            StreamUtilities.WriteUInt16BE(sOut, dataLength);
+            if (isV6)
+            {
+                StreamUtilities.WriteUInt32BE(sOut, dataLength);
+            }
+            else
+            {
+                StreamUtilities.WriteUInt16BE(sOut, Convert.ToUInt16(dataLength));
+            }
 
             return sOut.ToArray();
         }
@@ -316,7 +474,11 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the creation time in milliseconds since 1 Jan., 1970 UTC.</summary>
         public long CreationTime => m_creationTime;
 
-        public override void Encode(BcpgOutputStream bcpgOut)
+        public override void Encode(BcpgOutputStream bcpgOut) =>
+            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.Signature, GetEncodedBody());
+
+        /// <summary>The octets of the packet without its header.</summary>
+        internal byte[] GetEncodedBody()
         {
             MemoryStream bOut = new MemoryStream();
             using (var pOut = new BcpgOutputStream(bOut))
@@ -333,9 +495,11 @@ namespace Org.BouncyCastle.Bcpg
                 }
                 else if (version == Version4 || version == Version5 || version == Version6)
                 {
+                    // RFC 9580 5.2.3: version 6 signatures use 4-octet subpacket area lengths
+                    bool longLengths = version == Version6;
                     pOut.Write((byte)signatureType, (byte)keyAlgorithm, (byte)hashAlgorithm);
-                    EncodeLengthAndData(pOut, GetEncodedSubpackets(hashedData));
-                    EncodeLengthAndData(pOut, GetEncodedSubpackets(unhashedData));
+                    EncodeLengthAndData(pOut, m_hashedArea ?? GetEncodedSubpackets(hashedData), longLengths);
+                    EncodeLengthAndData(pOut, GetEncodedSubpackets(unhashedData), longLengths);
                 }
                 else
                 {
@@ -360,7 +524,7 @@ namespace Org.BouncyCastle.Bcpg
                 }
             }
 
-            bcpgOut.WritePacket(HasNewPacketFormat, PacketTag.Signature, bOut.ToArray());
+            return bOut.ToArray();
         }
 
         private static ulong ParseKeyIdOrThrow(IssuerKeyId issuerKeyId)
@@ -399,7 +563,7 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
-        private SignatureSubpacket[] ReadSignatureSubpackets(BcpgInputStream bcpgIn)
+        private SignatureSubpacket[] ReadSignatureSubpackets(BcpgInputStream bcpgIn, out byte[] encoding)
         {
             uint hashedLength;
             if (version == 6)
@@ -418,6 +582,7 @@ namespace Org.BouncyCastle.Bcpg
 
             byte[] hashed = new byte[hashedLength];
             bcpgIn.ReadFully(hashed);
+            encoding = hashed;
 
             SignatureSubpacketsParser sIn = new SignatureSubpacketsParser(new MemoryStream(hashed, false));
 
@@ -426,14 +591,66 @@ namespace Org.BouncyCastle.Bcpg
             while ((sub = sIn.ReadPacket()) != null)
             {
                 result.Add(sub);
+                HasRepairedSubpackets |= sIn.IsLastRepaired;
             }
             return result.ToArray();
         }
 
-        private static void EncodeLengthAndData(BcpgOutputStream pOut, byte[] data)
+        private static void EncodeLengthAndData(BcpgOutputStream pOut, byte[] data, bool longLength)
         {
-            StreamUtilities.WriteUInt16BE(pOut, (ushort)data.Length);
+            if (longLength)
+            {
+                StreamUtilities.WriteUInt32BE(pOut, (uint)data.Length);
+            }
+            else
+            {
+                // TODO[api] Refuse a subpacket area of more than 65535 octets, whose length wraps here (RFC 9580
+                // 5.2.3 gives version 4 signatures two-octet lengths); the parser then leaves the signature out
+                StreamUtilities.WriteUInt16BE(pOut, (ushort)data.Length);
+            }
             pOut.Write(data);
+        }
+
+        /// <summary>
+        /// Version 6 signatures have minimal MPIs and nothing after them (RFC 9580 3.2, 5.2.3); otherwise the packet is
+        /// flagged as malformed, so that the signature never verifies, instead of rejected, so that it does not
+        /// prevent the parsing of the rest of a key ring or message.
+        /// </summary>
+        private void CheckMpis(BcpgInputStream bcpgIn)
+        {
+            if (version != Version6)
+                return;
+
+            if (bcpgIn.ReadByte() >= 0)
+            {
+                Streams.Drain(bcpgIn);
+                IsMalformed = true;
+            }
+
+            foreach (MPInteger mpi in signature)
+            {
+                if (!mpi.IsMinimal)
+                {
+                    IsMalformed = true;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Read a signature value that is a fixed-length octet string. Excess octets cannot be interpreted; they are
+        /// consumed and the packet is flagged as malformed so that the signature never verifies.
+        /// </summary>
+        private void ReadRawSignature(BcpgInputStream bcpgIn, int length)
+        {
+            signature = null;
+            signatureEncoding = new byte[length];
+            bcpgIn.ReadFully(signatureEncoding);
+
+            if (bcpgIn.ReadByte() >= 0)
+            {
+                Streams.Drain(bcpgIn);
+                IsMalformed = true;
+            }
         }
 
         private static byte[] GetEncodedSubpackets(SignatureSubpacket[] ps)

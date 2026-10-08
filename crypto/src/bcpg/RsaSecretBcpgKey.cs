@@ -13,11 +13,18 @@ namespace Org.BouncyCastle.Bcpg
         private readonly BigInteger m_expP, m_expQ, m_crt;
 
         public RsaSecretBcpgKey(BcpgInputStream bcpgIn)
+            : this(bcpgIn, strict: false)
         {
-            m_d = new MPInteger(bcpgIn);
-            m_p = new MPInteger(bcpgIn);
-            m_q = new MPInteger(bcpgIn);
-            m_u = new MPInteger(bcpgIn);
+        }
+
+        /// <param name="bcpgIn">The input.</param>
+        /// <param name="strict">Reject MPIs that are not minimal, as RFC 9580 3.2 requires for version 6 keys.</param>
+        internal RsaSecretBcpgKey(BcpgInputStream bcpgIn, bool strict)
+        {
+            m_d = new MPInteger(bcpgIn, strict);
+            m_p = new MPInteger(bcpgIn, strict);
+            m_q = new MPInteger(bcpgIn, strict);
+            m_u = new MPInteger(bcpgIn, strict);
 
             m_expP = m_d.Value.Remainder(m_p.Value.Subtract(BigInteger.One));
             m_expQ = m_d.Value.Remainder(m_q.Value.Subtract(BigInteger.One));

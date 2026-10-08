@@ -12,21 +12,30 @@ namespace Org.BouncyCastle.Bcpg
         : BcpgObject
     {
         private readonly BigInteger m_value;
+        private readonly bool m_minimal = true;
 
         public MPInteger(BcpgInputStream bcpgIn)
+            : this(bcpgIn, strict: false)
+        {
+        }
+
+        /// <summary>Read an MPI.</summary>
+        /// <param name="strict">
+        /// RFC 9580 3.2: when parsing an MPI in a version 6 key, signature or PKESK packet, the encoded length must
+        /// match the length starting from the most significant non-zero bit. With this option, other encodings are
+        /// rejected.
+        /// </param>
+        /// <exception cref="MalformedPacketException">If <paramref name="strict"/> is set and the encoding is not
+        /// minimal.</exception>
+        internal MPInteger(BcpgInputStream bcpgIn, bool strict)
         {
             if (bcpgIn == null)
                 throw new ArgumentNullException(nameof(bcpgIn));
 
-            /*
-             * TODO RFC 9580 3.2. When parsing an MPI in a version 6 Key, Signature, or Public Key Encrypted
-             * Session Key (PKESK) packet, the implementation MUST check that the encoded length matches the
-             * length starting from the most significant non-zero bit; if it doesn't match, reject the packet as
-             * malformed.
-             */
-            bool validateLength = false;
+            m_value = ReadMpi(bcpgIn, out m_minimal);
 
-            m_value = ReadMpi(bcpgIn, validateLength);
+            if (strict && !m_minimal)
+                throw new MalformedPacketException("malformed MPI");
         }
 
         public MPInteger(BigInteger val)
@@ -40,6 +49,9 @@ namespace Org.BouncyCastle.Bcpg
         }
 
         public BigInteger Value => m_value;
+
+        /// <summary>Whether the encoded bit length matched the value when this MPI was read.</summary>
+        internal bool IsMinimal => m_minimal;
 
         public override void Encode(BcpgOutputStream bcpgOut) => Encode(bcpgOut, m_value);
 
@@ -63,7 +75,7 @@ namespace Org.BouncyCastle.Bcpg
             return new BigInteger(1, encoding);
         }
 
-        private static BigInteger ReadMpi(BcpgInputStream bcpgIn, bool validateLength)
+        private static BigInteger ReadMpi(BcpgInputStream bcpgIn, out bool minimal)
         {
             int bitLength = StreamUtilities.RequireUInt16BE(bcpgIn);
             int byteLength = (bitLength + 7) / 8;
@@ -79,8 +91,7 @@ namespace Org.BouncyCastle.Bcpg
             bcpgIn.ReadFully(bytes);
             BigInteger n = new BigInteger(1, bytes);
 
-            if (validateLength && n.BitLength != bitLength)
-                throw new IOException("malformed MPI");
+            minimal = n.BitLength == bitLength;
 
             return n;
         }

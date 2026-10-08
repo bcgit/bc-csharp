@@ -28,6 +28,14 @@ namespace Org.BouncyCastle.Bcpg
         Ed25519 = 27,           // new style Ed25519 signing algorithm
         Ed448 = 28,             // new style Ed448 signing algorithm
 
+        MLDsa65_Ed25519 = 30,   // ML-DSA-65 + Ed25519 composite signature scheme (RFC 9980)
+        MLDsa87_Ed448 = 31,     // ML-DSA-87 + Ed448 composite signature scheme (RFC 9980)
+        SlhDsa_Shake128s = 32,  // SLH-DSA-SHAKE-128s signature scheme (RFC 9980)
+        SlhDsa_Shake128f = 33,  // SLH-DSA-SHAKE-128f signature scheme (RFC 9980)
+        SlhDsa_Shake256s = 34,  // SLH-DSA-SHAKE-256s signature scheme (RFC 9980)
+        MLKem768_X25519 = 35,   // ML-KEM-768 + X25519 composite KEM (RFC 9980)
+        MLKem1024_X448 = 36,    // ML-KEM-1024 + X448 composite KEM (RFC 9980)
+
         Experimental_1 = 100,
         Experimental_2 = 101,
         Experimental_3 = 102,

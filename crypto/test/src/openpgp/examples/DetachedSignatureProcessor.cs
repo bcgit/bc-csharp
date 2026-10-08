@@ -116,7 +116,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
             PgpSecretKey pgpSec = PgpExampleUtilities.ReadSecretKey(keyIn);
             PgpPrivateKey pgpPrivKey = pgpSec.ExtractPrivateKey(pass);
             PgpSignatureGenerator sGen = new PgpSignatureGenerator(
-				pgpSec.PublicKey.Algorithm, HashAlgorithmTag.Sha1);
+				pgpSec.PublicKey.Algorithm, HashAlgorithmTag.Sha256);
 
 			sGen.InitSign(PgpSignature.BinaryDocument, pgpPrivKey);
 

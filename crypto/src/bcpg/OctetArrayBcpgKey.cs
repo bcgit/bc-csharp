@@ -48,5 +48,8 @@ namespace Org.BouncyCastle.Bcpg
         public virtual byte[] GetKey() => Arrays.Clone(m_key);
 
         internal virtual byte[] Key => m_key;
+
+        /// <summary>Wipe the key material, for secret keys that are no longer needed.</summary>
+        internal void Clear() => Arrays.ZeroMemory(m_key);
     }
 }

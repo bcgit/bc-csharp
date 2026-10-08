@@ -44,8 +44,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 			foreach (var obj in e)
             {
-                // Marker packets must be ignored
-                if (obj is PgpMarker)
+                // Marker and padding packets must be ignored
+                if (obj is PgpMarker || obj is PgpPadding)
                     continue;
 
 				if (!(obj is PgpPublicKeyRing pgpPub))

@@ -10,8 +10,14 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
 		public PgpSignatureList(
             PgpSignature[] sigs)
+            : this(sigs, 0)
         {
-            this.sigs = (PgpSignature[]) sigs.Clone();
+        }
+
+        internal PgpSignatureList(PgpSignature[] sigs, int unsupportedCount)
+        {
+            this.sigs = (PgpSignature[])sigs.Clone();
+            UnsupportedCount = unsupportedCount;
         }
 
 		public PgpSignatureList(
@@ -34,5 +40,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         {
 			get { return (sigs.Length == 0); }
         }
+
+        /// <summary>
+        /// The number of signatures of unsupported versions, and of malformed ones, that the list leaves out (RFC
+        /// 9580 5.2.5), which matters to a consumer that pairs signatures with one-pass signatures (5.4).
+        /// </summary>
+        public int UnsupportedCount { get; }
     }
 }

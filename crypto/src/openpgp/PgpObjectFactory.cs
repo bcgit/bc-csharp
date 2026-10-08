@@ -41,8 +41,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             case PacketTag.Signature:
             {
                 var l = new List<PgpSignature>();
+                int unsupportedSignatures = 0;
 
-                while (bcpgIn.NextPacketTag() == PacketTag.Signature)
+                while (bcpgIn.SkipIgnoredPackets() == PacketTag.Signature)
                 {
                     try
                     {
@@ -52,6 +53,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     {
                         // Signatures of unsupported version MUST BE ignored
                         // see: https://tests.sequoia-pgp.org/#Detached_signatures_with_unknown_packets
+                        ++unsupportedSignatures;
+                        continue;
+                    }
+                    catch (MalformedSignaturePacketException)
+                    {
+                        // RFC 9580 5.2.5: so are malformed signatures, which do not spoil the others
+                        ++unsupportedSignatures;
                         continue;
                     }
                     catch (PgpException e)
@@ -60,7 +68,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     }
                 }
 
-                return new PgpSignatureList(l.ToArray());
+                return new PgpSignatureList(l.ToArray(), unsupportedSignatures);
             }
             case PacketTag.SecretKey:
                 try
@@ -90,12 +98,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             case PacketTag.OnePassSignature:
             {
                 var l = new List<PgpOnePassSignature>();
+                int unsupported = 0;
 
-                while (bcpgIn.NextPacketTag() == PacketTag.OnePassSignature)
+                while (bcpgIn.SkipIgnoredPackets() == PacketTag.OnePassSignature)
                 {
                     try
                     {
                         l.Add(new PgpOnePassSignature(bcpgIn));
+                    }
+                    catch (UnsupportedPacketVersionException)
+                    {
+                        // One-pass signatures of unsupported versions are ignored, like signatures
+                        ++unsupported;
+                        continue;
+                    }
+                    catch (MalformedSignaturePacketException)
+                    {
+                        // RFC 9580 5.2.5: so are malformed ones, which do not spoil the others
+                        ++unsupported;
+                        continue;
                     }
                     catch (PgpException e)
                     {
@@ -103,7 +124,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     }
                 }
 
-                return new PgpOnePassSignatureList(l.ToArray());
+                return new PgpOnePassSignatureList(l.ToArray(), unsupported);
             }
             case PacketTag.Marker:
                 return new PgpMarker(bcpgIn);

@@ -35,6 +35,24 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_oldFormat = oldFormat;
         }
 
+        /// <summary>
+        /// The file name in UTF-8, whose length the literal data packet gives in one octet (RFC 9580 5.9): a longer
+        /// name is cut to at most 255 octets, at the start of a character.
+        /// </summary>
+        private static byte[] EncodeFileName(string name)
+        {
+            byte[] encoded = Strings.ToUtf8ByteArray(name);
+            if (encoded.Length <= 255)
+                return encoded;
+
+            int length = 255;
+            while (length > 0 && (encoded[length] & 0xC0) == 0x80)
+            {
+                --length;
+            }
+            return Arrays.CopyOf(encoded, length);
+        }
+
         private void WriteHeader(BcpgOutputStream outStr, char format, byte[] encName, long modificationTime)
         {
             outStr.Write(
@@ -73,7 +91,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             // Do this first, since it might throw an exception
             long unixMs = DateTimeUtilities.DateTimeToUnixMs(modificationTime);
 
-            byte[] encName = Strings.ToUtf8ByteArray(name);
+            byte[] encName = EncodeFileName(name);
 
             pkOut = new BcpgOutputStream(outStr, PacketTag.LiteralData, length + 2 + encName.Length + 4, m_oldFormat);
 
@@ -112,7 +130,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             // Do this first, since it might throw an exception
             long unixMs = DateTimeUtilities.DateTimeToUnixMs(modificationTime);
 
-            byte[] encName = Strings.ToUtf8ByteArray(name);
+            byte[] encName = EncodeFileName(name);
 
             pkOut = new BcpgOutputStream(outStr, PacketTag.LiteralData, buffer);
 

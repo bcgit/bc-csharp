@@ -2440,7 +2440,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
                     // this should succeed
                     PgpPrivateKey privTmp = pgpKey.ExtractPrivateKey(newPass);
 
-                    if (pgpKey.KeyId != oldKeyID || pgpKey.S2kUsage != SecretKeyPacket.UsageChecksum)
+                    // RFC 9580 3.7.2.1: usage 254, the checksum form (usage 255) is not generated
+                    if (pgpKey.KeyId != oldKeyID || pgpKey.S2kUsage != SecretKeyPacket.UsageSha1)
                     {
                         Fail("usage/key ID mismatch");
                     }

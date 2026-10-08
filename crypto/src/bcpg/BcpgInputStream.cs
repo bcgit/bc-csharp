@@ -176,17 +176,62 @@ namespace Org.BouncyCastle.Bcpg
             case PacketTag.PublicKeyEncryptedSession:
                 return new PublicKeyEncSessionPacket(objStream, newPacketFormat);
             case PacketTag.Signature:
-                return new SignaturePacket(objStream, newPacketFormat);
+                // RFC 9580 5.2.5: a malformed signature does not halt processing, so the rest of its packet is
+                // consumed (a stream that ends early still throws)
+                try
+                {
+                    var signature = new SignaturePacket(objStream, newPacketFormat);
+                    // RFC 9580 4.2.1.4: partial lengths are only for data packets
+                    // TODO[api] Also for version 4 signatures
+                    if (partial && signature.Version == SignaturePacket.Version6)
+                    {
+                        signature.MarkMalformed();
+                    }
+                    return signature;
+                }
+                catch (Exception e) when (objStream != this && (e is IOException || e is ArgumentException))
+                {
+                    Streams.Drain(objStream);
+                    throw new MalformedSignaturePacketException("malformed signature packet: " + e.Message, e);
+                }
             case PacketTag.SymmetricKeyEncryptedSessionKey:
                 return new SymmetricKeyEncSessionPacket(objStream, newPacketFormat);
             case PacketTag.OnePassSignature:
-                return new OnePassSignaturePacket(objStream, newPacketFormat);
+                // RFC 9580 5.2.5: a malformed one-pass signature does not halt processing either
+                try
+                {
+                    var onePass = new OnePassSignaturePacket(objStream, newPacketFormat);
+                    // RFC 9580 5.4, 4.2.1.4: nothing follows the nested flag, and partial lengths are only for
+                    // data packets
+                    // TODO[api] Also for version 3 one-pass signatures
+                    if (onePass.Version == OnePassSignaturePacket.Version6 &&
+                        (partial || (objStream != this && objStream.ReadByte() >= 0)))
+                    {
+                        throw new MalformedPacketException("Malformed version 6 one-pass signature.");
+                    }
+                    return onePass;
+                }
+                catch (Exception e) when (objStream != this && (e is IOException || e is ArgumentException))
+                {
+                    Streams.Drain(objStream);
+                    throw new MalformedSignaturePacketException("malformed one-pass signature packet: " + e.Message,
+                        e);
+                }
             case PacketTag.SecretKey:
-                return new SecretKeyPacket(objStream, newPacketFormat);
+            {
+                var secretKey = new SecretKeyPacket(objStream, newPacketFormat);
+                return RequireDefiniteLength(secretKey, secretKey.PublicKeyPacket, partial);
+            }
             case PacketTag.PublicKey:
-                return new PublicKeyPacket(objStream, newPacketFormat);
+            {
+                var publicKey = new PublicKeyPacket(objStream, newPacketFormat);
+                return RequireDefiniteLength(publicKey, publicKey, partial);
+            }
             case PacketTag.SecretSubkey:
-                return new SecretSubkeyPacket(objStream, newPacketFormat);
+            {
+                var secretSubkey = new SecretSubkeyPacket(objStream, newPacketFormat);
+                return RequireDefiniteLength(secretSubkey, secretSubkey.PublicKeyPacket, partial);
+            }
             case PacketTag.CompressedData:
                 return new CompressedDataPacket(objStream, newPacketFormat);
             case PacketTag.SymmetricKeyEncrypted:
@@ -202,7 +247,10 @@ namespace Org.BouncyCastle.Bcpg
             case PacketTag.UserAttribute:
                 return new UserAttributePacket(objStream, newPacketFormat);
             case PacketTag.PublicSubkey:
-                return new PublicSubkeyPacket(objStream, newPacketFormat);
+            {
+                var publicSubkey = new PublicSubkeyPacket(objStream, newPacketFormat);
+                return RequireDefiniteLength(publicSubkey, publicSubkey, partial);
+            }
             case PacketTag.SymmetricEncryptedIntegrityProtected:
                 return new SymmetricEncIntegrityPacket(objStream, newPacketFormat);
             case PacketTag.ModificationDetectionCode:
@@ -221,10 +269,38 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>
+        /// RFC 9580 4.2.1.4: partial lengths are only for data packets, so a version 6 key packet with them is
+        /// malformed.
+        /// </summary>
+        // TODO[api] Also for key packets of other versions
+        private static Packet RequireDefiniteLength(Packet packet, PublicKeyPacket key, bool partial)
+        {
+            if (partial && key.Version == PublicKeyPacket.Version6)
+                throw new MalformedPacketException("Partial lengths in a version 6 key packet.");
+
+            return packet;
+        }
+
         public PacketTag SkipMarkerPackets()
         {
             PacketTag tag;
             while ((tag = NextPacketTag()) == PacketTag.Marker)
+            {
+                ReadPacket();
+            }
+
+            return tag;
+        }
+
+        /// <summary>
+        /// Consume any Marker and Padding packets, and packets of the non-critical types (40 to 63), which are
+        /// ignored within packet sequences (RFC 9580 4.3, 5.8, 5.14), and return the tag of the next packet.
+        /// </summary>
+        internal PacketTag SkipIgnoredPackets()
+        {
+            PacketTag tag;
+            while ((tag = NextPacketTag()) == PacketTag.Marker || tag == PacketTag.Padding || (int)tag >= 40)
             {
                 ReadPacket();
             }
@@ -328,13 +404,11 @@ namespace Org.BouncyCastle.Bcpg
 
             private bool ReadPartialDataLength()
             {
+                // RFC 9580 4.2.1.4: a packet with partial lengths ends with a definite length, so the end of the
+                // stream before it truncates the packet
                 uint bodyLen = StreamUtilities.ReadBodyLen(m_in, out var streamFlags);
                 if (streamFlags.HasFlag(StreamUtilities.StreamFlags.Eof))
-                {
-                    m_partial = false;
-                    m_dataLength = 0U;
-                    return false;
-                }
+                    throw new EndOfStreamException("Premature end of stream in PartialInputStream");
 
                 m_partial = streamFlags.HasFlag(StreamUtilities.StreamFlags.Partial);
                 m_dataLength = bodyLen;

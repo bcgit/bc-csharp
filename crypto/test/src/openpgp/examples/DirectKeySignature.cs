@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Examples
 				secretKeyPass.ToCharArray());
 
 			PgpSignatureGenerator sGen = new PgpSignatureGenerator(
-				secretKey.PublicKey.Algorithm, HashAlgorithmTag.Sha1);
+				secretKey.PublicKey.Algorithm, HashAlgorithmTag.Sha256);
 
 			sGen.InitSign(PgpSignature.DirectKey, pgpPrivKey);
 

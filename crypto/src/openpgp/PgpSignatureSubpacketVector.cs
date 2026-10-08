@@ -193,6 +193,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : ((PreferredAlgorithms)p).GetPreferences();
         }
 
+        /// <summary>The preferred AEAD ciphersuites, or null if there are none or they are malformed.</summary>
+        public PreferredAeadCiphersuites GetPreferredAeadCiphersuites() =>
+            GetSubpacket(SignatureSubpacketTag.PreferredAeadAlgorithms) as PreferredAeadCiphersuites;
+
         public int GetKeyFlags()
         {
             SignatureSubpacket p = GetSubpacket(SignatureSubpacketTag.KeyFlags);

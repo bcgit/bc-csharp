@@ -336,8 +336,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
         [Test]
         public void CrcErrorGetsThrown()
         {
+            // with strict checking only: RFC 9580 6.1 ignores a wrong checksum otherwise
             MemoryStream bytesIn = new MemoryStream(Strings.ToByteArray(ASCII_ARMOR_CRC_MISMATCH), false);
-            ArmoredInputStream armorIn = new ArmoredInputStream(bytesIn);
+            ArmoredInputStream armorIn = ArmoredInputStream.Build()
+                .SetDetectMissingCrc(true)
+                .Build(bytesIn);
             MemoryStream bytesOut = new MemoryStream();
 
             try

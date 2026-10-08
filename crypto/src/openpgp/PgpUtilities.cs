@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.EdEC;
 using Org.BouncyCastle.Asn1.Sec;
+using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Generators;
@@ -583,6 +584,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             switch (publicKeyAlgorithm)
             {
             case PublicKeyAlgorithmTag.EdDsa_Legacy:
+            case PublicKeyAlgorithmTag.Ed25519:
+            case PublicKeyAlgorithmTag.Ed448:
             {
                 ISigner signer;
                 if (key is Ed25519PrivateKeyParameters || key is Ed25519PublicKeyParameters)
@@ -598,12 +601,292 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     throw new InvalidOperationException();
                 }
 
-                return new EdDsaSigner(signer, CreateDigest(hashAlgorithm));
+                return new PgpDigestSigner(signer, CreateDigest(hashAlgorithm));
             }
+            case PublicKeyAlgorithmTag.MLDsa65_Ed25519:
+            case PublicKeyAlgorithmTag.MLDsa87_Ed448:
+                return new PgpDigestSigner(new PgpCompositeSigner(publicKeyAlgorithm), CreateDigest(hashAlgorithm));
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128s:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128f:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake256s:
+                return new PgpDigestSigner(
+                    new SlhDsaSigner(GetSlhDsaParameters(publicKeyAlgorithm), deterministic: false),
+                    CreateDigest(hashAlgorithm));
             default:
             {
-                return SignerUtilities.GetSigner(GetSignatureName(publicKeyAlgorithm, hashAlgorithm));
+                try
+                {
+                    return SignerUtilities.GetSigner(GetSignatureName(publicKeyAlgorithm, hashAlgorithm));
+                }
+                catch (SecurityUtilityException e)
+                {
+                    throw new PgpException("cannot use " + publicKeyAlgorithm + " for signatures", e);
+                }
             }
+            }
+        }
+
+        /// <summary>
+        /// As <see cref="IsHashStrongEnough(PublicKeyAlgorithmTag, HashAlgorithmTag)"/> for the given key: an
+        /// EdDSALegacy key over Ed448 needs the 57 octets of the fsize of its curve (RFC 9580 5.2.3.3), that is 512
+        /// bits.
+        /// </summary>
+        internal static bool IsHashStrongEnough(PublicKeyAlgorithmTag keyAlgorithm, HashAlgorithmTag hashAlgorithm,
+            AsymmetricKeyParameter key)
+        {
+            if (keyAlgorithm == PublicKeyAlgorithmTag.EdDsa_Legacy &&
+                (key is Ed448PublicKeyParameters || key is Ed448PrivateKeyParameters))
+            {
+                return IsHashStrongEnough(PublicKeyAlgorithmTag.Ed448, hashAlgorithm);
+            }
+
+            return IsHashStrongEnough(keyAlgorithm, hashAlgorithm);
+        }
+
+        /// <summary>
+        /// The hash algorithm for the signatures of the given keys where the caller names none: SHA-256, or a larger
+        /// one where RFC 9580 5.2.3.2-5 requires it, for ECDSA and DSA over larger groups and for Ed448.
+        /// </summary>
+        internal static HashAlgorithmTag GetDefaultHashAlgorithm(params PgpPublicKey[] signingKeys)
+        {
+            int minDigestBits = 256;
+            foreach (PgpPublicKey key in signingKeys)
+            {
+                minDigestBits = System.Math.Max(minDigestBits, GetMinimumDigestBits(key));
+            }
+
+            if (minDigestBits <= 256)
+                return HashAlgorithmTag.Sha256;
+            if (minDigestBits <= 384)
+                return HashAlgorithmTag.Sha384;
+
+            return HashAlgorithmTag.Sha512;
+        }
+
+        private static int GetMinimumDigestBits(PgpPublicKey key)
+        {
+            IBcpgKey bcpgKey = key.PublicKeyPacket.Key;
+            switch (key.Algorithm)
+            {
+            case PublicKeyAlgorithmTag.ECDsa:
+            {
+                // RFC 9580 5.2.3.2: the fsize of the curve, but 512 bits for NIST P-521
+                X9ECParameters curve = bcpgKey is ECPublicBcpgKey ecKey
+                    ? ECNamedCurveTable.GetByOid(ecKey.CurveOid)
+                    : null;
+                return curve == null ? 0 : System.Math.Min((curve.Curve.FieldSize + 7) / 8 * 8, 512);
+            }
+            case PublicKeyAlgorithmTag.Dsa:
+                // RFC 9580 5.2.3.2: the size of q
+                return bcpgKey is DsaPublicBcpgKey dsaKey ? dsaKey.Q.BitLength : 0;
+            case PublicKeyAlgorithmTag.EdDsa_Legacy:
+                // RFC 9580 5.2.3.3: the fsize of Ed448 is 57 octets
+                return bcpgKey is EdDsaPublicBcpgKey edKey && EdECObjectIdentifiers.id_Ed448.Equals(edKey.CurveOid)
+                    ? 512
+                    : 256;
+            case PublicKeyAlgorithmTag.Ed448:
+                return 512;
+            default:
+                return 0;
+            }
+        }
+
+        /// <summary>
+        /// Check the minimum digest size for signatures of the given key algorithm: 256 bits for EdDSALegacy and
+        /// Ed25519 and 512 bits for Ed448 (RFC 9580 5.2.3.3-5). Other algorithms are not restricted here.
+        /// </summary>
+        internal static bool IsHashStrongEnough(PublicKeyAlgorithmTag keyAlgorithm, HashAlgorithmTag hashAlgorithm)
+        {
+            int minDigestBits;
+            switch (keyAlgorithm)
+            {
+            case PublicKeyAlgorithmTag.EdDsa_Legacy:
+            case PublicKeyAlgorithmTag.Ed25519:
+            case PublicKeyAlgorithmTag.MLDsa65_Ed25519:
+            case PublicKeyAlgorithmTag.MLDsa87_Ed448:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128s:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128f:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake256s:
+                minDigestBits = 256;
+                break;
+            case PublicKeyAlgorithmTag.Ed448:
+                minDigestBits = 512;
+                break;
+            default:
+                return true;
+            }
+
+            IDigest digest;
+            try
+            {
+                digest = CreateDigest(hashAlgorithm);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return digest.GetDigestSize() * 8 >= minDigestBits;
+        }
+
+        /// <summary>
+        /// The KDF hash and KEK algorithm that RFC 9580 9.2 (table of ECDH KDF and KEK parameters) prescribes for
+        /// version 6 ECDH keys over the given curve.
+        /// </summary>
+        /// <returns>The parameters, or null for a curve that has none.</returns>
+        internal static PgpKdfParameters GetMandatedEcdhKdfParameters(DerObjectIdentifier curveOid)
+        {
+            if (SecObjectIdentifiers.SecP256r1.Equals(curveOid) ||
+                TeleTrusTObjectIdentifiers.BrainpoolP256R1.Equals(curveOid))
+            {
+                return new PgpKdfParameters(HashAlgorithmTag.Sha256, SymmetricKeyAlgorithmTag.Aes128);
+            }
+            if (SecObjectIdentifiers.SecP384r1.Equals(curveOid) ||
+                TeleTrusTObjectIdentifiers.BrainpoolP384R1.Equals(curveOid))
+            {
+                return new PgpKdfParameters(HashAlgorithmTag.Sha384, SymmetricKeyAlgorithmTag.Aes192);
+            }
+            if (SecObjectIdentifiers.SecP521r1.Equals(curveOid) ||
+                TeleTrusTObjectIdentifiers.BrainpoolP512R1.Equals(curveOid))
+            {
+                return new PgpKdfParameters(HashAlgorithmTag.Sha512, SymmetricKeyAlgorithmTag.Aes256);
+            }
+
+            return null;
+        }
+
+        /// <summary>The salt size in octets of a version 6 signature made with the hash, or -1 if there is none.</summary>
+        /// <remarks>RFC 9580 9.5 (table of hash algorithms): only these hashes can be used for version 6 signatures.</remarks>
+        internal static int GetV6SaltSize(HashAlgorithmTag hashAlgorithm)
+        {
+            switch (hashAlgorithm)
+            {
+            case HashAlgorithmTag.Sha256:
+            case HashAlgorithmTag.Sha224:
+            case HashAlgorithmTag.Sha3_256:
+                return 16;
+            case HashAlgorithmTag.Sha384:
+                return 24;
+            case HashAlgorithmTag.Sha512:
+            case HashAlgorithmTag.Sha3_512:
+                return 32;
+            default:
+                return -1;
+            }
+        }
+
+        /// <summary>Whether a signature of the given algorithm can be made or verified by a key of the other.</summary>
+        internal static bool IsSignatureAlgorithmCompatible(PublicKeyAlgorithmTag signatureAlgorithm,
+            PublicKeyAlgorithmTag keyAlgorithm)
+        {
+            if (signatureAlgorithm == keyAlgorithm)
+                return true;
+
+            return IsRsaSigningAlgorithm(signatureAlgorithm) && IsRsaSigningAlgorithm(keyAlgorithm);
+        }
+
+        private static bool IsRsaSigningAlgorithm(PublicKeyAlgorithmTag algorithm)
+        {
+            return algorithm == PublicKeyAlgorithmTag.RsaGeneral || algorithm == PublicKeyAlgorithmTag.RsaSign;
+        }
+
+        /// <summary>The SLH-DSA algorithms (32 to 34).</summary>
+        internal static bool IsSlhDsaAlgorithm(PublicKeyAlgorithmTag algorithm)
+        {
+            switch (algorithm)
+            {
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128s:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128f:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake256s:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        /// <summary>The SLH-DSA parameter set of an OpenPGP algorithm (RFC 9980 6.1).</summary>
+        internal static SlhDsaParameters GetSlhDsaParameters(PublicKeyAlgorithmTag algorithm)
+        {
+            switch (algorithm)
+            {
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128s: return SlhDsaParameters.slh_dsa_shake_128s;
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128f: return SlhDsaParameters.slh_dsa_shake_128f;
+            case PublicKeyAlgorithmTag.SlhDsa_Shake256s: return SlhDsaParameters.slh_dsa_shake_256s;
+            default: throw new ArgumentException("not an SLH-DSA algorithm", nameof(algorithm));
+            }
+        }
+
+        /// <summary>The composite ML-KEM algorithms (35 and 36), which can only encrypt.</summary>
+        internal static bool IsCompositeKemAlgorithm(PublicKeyAlgorithmTag algorithm) =>
+            algorithm == PublicKeyAlgorithmTag.MLKem768_X25519 || algorithm == PublicKeyAlgorithmTag.MLKem1024_X448;
+
+        /// <summary>The algorithms that can make signatures (excluding ElGamal, which only encrypts).</summary>
+        internal static bool IsSigningAlgorithm(PublicKeyAlgorithmTag algorithm)
+        {
+            switch (algorithm)
+            {
+            case PublicKeyAlgorithmTag.RsaGeneral:
+            case PublicKeyAlgorithmTag.RsaSign:
+            case PublicKeyAlgorithmTag.Dsa:
+            case PublicKeyAlgorithmTag.ECDsa:
+            case PublicKeyAlgorithmTag.EdDsa_Legacy:
+            case PublicKeyAlgorithmTag.Ed25519:
+            case PublicKeyAlgorithmTag.Ed448:
+            case PublicKeyAlgorithmTag.MLDsa65_Ed25519:
+            case PublicKeyAlgorithmTag.MLDsa87_Ed448:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128s:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128f:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake256s:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        /// <summary>Whether the algorithm is one of those introduced by RFC 9980 (30 to 36).</summary>
+        internal static bool IsRfc9980Algorithm(PublicKeyAlgorithmTag algorithm)
+        {
+            switch (algorithm)
+            {
+            case PublicKeyAlgorithmTag.MLDsa65_Ed25519:
+            case PublicKeyAlgorithmTag.MLDsa87_Ed448:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128s:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake128f:
+            case PublicKeyAlgorithmTag.SlhDsa_Shake256s:
+            case PublicKeyAlgorithmTag.MLKem768_X25519:
+            case PublicKeyAlgorithmTag.MLKem1024_X448:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Hash algorithms that must not be used in the S2K specifier of version 6 packets (RFC 9580 9.5).
+        /// </summary>
+        internal static bool IsWeakS2kHash(HashAlgorithmTag hashAlgorithm) => IsWeakBindingHash(hashAlgorithm);
+
+        /// <summary>The ciphers that RFC 9580 9.3 only allows to decrypt with: IDEA, TripleDES and CAST5.</summary>
+        internal static bool IsDecryptOnlyCipher(SymmetricKeyAlgorithmTag cipher) =>
+            cipher == SymmetricKeyAlgorithmTag.Idea ||
+            cipher == SymmetricKeyAlgorithmTag.TripleDes ||
+            cipher == SymmetricKeyAlgorithmTag.Cast5;
+
+        /// <summary>
+        /// Hash algorithms that must not be used for subkey binding signatures over RFC 9980 keys (RFC 9980 7.2), nor
+        /// for any new signature (RFC 9580 9.5).
+        /// </summary>
+        internal static bool IsWeakBindingHash(HashAlgorithmTag hashAlgorithm)
+        {
+            switch (hashAlgorithm)
+            {
+            case HashAlgorithmTag.MD2:
+            case HashAlgorithmTag.MD5:
+            case HashAlgorithmTag.Sha1:
+            case HashAlgorithmTag.RipeMD160:
+                return true;
+            default:
+                return false;
             }
         }
 

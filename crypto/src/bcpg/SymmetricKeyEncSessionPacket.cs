@@ -2,6 +2,7 @@ using System;
 using System.IO;
 
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
@@ -66,7 +67,7 @@ namespace Org.BouncyCastle.Bcpg
             case Version5:
             case Version6:
             {
-                int ivLen = 0;
+                int ivLen = 0, s2kOctetCount = -1;
                 if (m_version == Version6)
                 {
                     // https://www.rfc-editor.org/rfc/rfc9580.html#section-5.3.2-3.2.1
@@ -80,8 +81,21 @@ namespace Org.BouncyCastle.Bcpg
                 if (m_version == Version6)
                 {
                     // https://www.rfc-editor.org/rfc/rfc9580.html#section-5.3.2-3.5.1
-                    int s2kOctetCount = bcpgIn.RequireByte();
+                    s2kOctetCount = bcpgIn.RequireByte();
                     ivLen = ivLen - 3 - s2kOctetCount;
+
+                    int expectedIVLen;
+                    try
+                    {
+                        expectedIVLen = AeadUtilities.GetIVLength(m_aeadAlgorithm);
+                    }
+                    catch (ArgumentException e)
+                    {
+                        throw new MalformedPacketException("Unknown AEAD algorithm.", e);
+                    }
+
+                    if (ivLen != expectedIVLen)
+                        throw new MalformedPacketException("Mismatched AEAD IV length.");
                 }
                 else
                 {
@@ -98,7 +112,19 @@ namespace Org.BouncyCastle.Bcpg
                 if (ivLen < 0)
                     throw new MalformedPacketException("IV length cannot be negative.");
 
-                m_s2k = new S2k(bcpgIn);
+                if (s2kOctetCount >= 0)
+                {
+                    // RFC 9580 5.3.2: the S2K specifier has exactly the length that the packet gives
+                    byte[] s2kBytes = new byte[s2kOctetCount];
+                    bcpgIn.ReadFully(s2kBytes);
+                    m_s2k = new S2k(new MemoryStream(s2kBytes, false));
+                    if (m_s2k.GetEncoded().Length != s2kOctetCount)
+                        throw new MalformedPacketException("Invalid S2K length in version 6 SKESK.");
+                }
+                else
+                {
+                    m_s2k = new S2k(bcpgIn);
+                }
 
                 m_iv = new byte[ivLen]; // also called nonce
                 bcpgIn.ReadFully(m_iv);
@@ -127,6 +153,8 @@ namespace Org.BouncyCastle.Bcpg
             }
             default:
             {
+                Streams.Drain(bcpgIn);
+
                 throw new UnsupportedPacketVersionException(
                     "Unsupported PGP symmetric-key encrypted session key packet version encountered: " + m_version);
             }
@@ -149,7 +177,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <remarks>Create a v5 or v6 SKESK packet.</remarks>
         private SymmetricKeyEncSessionPacket(byte version, SymmetricKeyAlgorithmTag encAlgorithm,
             AeadAlgorithmTag aeadAlgorithm, byte[] iv, S2k s2k, byte[] secKeyData, byte[] authTag)
-            : base(PacketTag.SymmetricKeyEncryptedSessionKey)
+            : base(PacketTag.SymmetricKeyEncryptedSessionKey, newPacketFormat: version == Version6)
         {
             int expectedIVLen = AeadUtilities.GetIVLength(aeadAlgorithm);
             if (expectedIVLen != iv.Length)

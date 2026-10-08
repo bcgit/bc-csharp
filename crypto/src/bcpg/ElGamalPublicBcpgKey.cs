@@ -9,10 +9,15 @@ namespace Org.BouncyCastle.Bcpg
         private readonly MPInteger m_p, m_g, m_y;
 
         public ElGamalPublicBcpgKey(BcpgInputStream bcpgIn)
+            : this(bcpgIn, strict: false)
         {
-            m_p = new MPInteger(bcpgIn);
-            m_g = new MPInteger(bcpgIn);
-            m_y = new MPInteger(bcpgIn);
+        }
+
+        internal ElGamalPublicBcpgKey(BcpgInputStream bcpgIn, bool strict)
+        {
+            m_p = new MPInteger(bcpgIn, strict);
+            m_g = new MPInteger(bcpgIn, strict);
+            m_y = new MPInteger(bcpgIn, strict);
         }
 
         public ElGamalPublicBcpgKey(BigInteger p, BigInteger g, BigInteger y)

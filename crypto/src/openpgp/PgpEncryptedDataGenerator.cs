@@ -27,6 +27,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private bool oldFormat;
         private DigestStream digestOut;
 
+        // v2 SEIPD mode (RFC 9580 5.13.2)
+        private readonly bool m_isAead;
+        private readonly AeadAlgorithmTag m_aeadAlgorithm;
+        private readonly int m_chunkSizeOctet;
+        private PgpAeadOutputStream m_aeadOut;
+
         private abstract class EncMethod
             : ContainedPacket
         {
@@ -42,6 +48,64 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             protected KeyParameter key;
 
             public abstract void AddSessionInfo(byte[] si, SecureRandom random);
+
+            /// <summary>Protect the session key for a v2 SEIPD message (v6 ESK packets).</summary>
+            public virtual void AddSessionKey(byte[] sessionKey, SymmetricKeyAlgorithmTag payloadAlgorithm,
+                AeadAlgorithmTag aeadAlgorithm, SecureRandom random)
+            {
+                throw new PgpException("encryption method not supported for AEAD encrypted messages");
+            }
+        }
+
+        /// <summary>Password based encryption for v2 SEIPD messages: a v6 SKESK packet (RFC 9580 5.3.2).</summary>
+        private class AeadPbeMethod
+            : EncMethod
+        {
+            private readonly S2k m_s2k;
+            private readonly byte[] m_s2kKey;
+            private SymmetricKeyEncSessionPacket m_packet;
+
+            internal AeadPbeMethod(SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k, byte[] s2kKey)
+            {
+                this.encAlgorithm = encAlgorithm;
+                m_s2k = s2k;
+                m_s2kKey = s2kKey;
+            }
+
+            public override void AddSessionInfo(byte[] si, SecureRandom random) =>
+                throw new InvalidOperationException();
+
+            public override void AddSessionKey(byte[] sessionKey, SymmetricKeyAlgorithmTag payloadAlgorithm,
+                AeadAlgorithmTag aeadAlgorithm, SecureRandom random)
+            {
+                byte[] aad = SymmetricKeyEncSessionPacket.CreateAAData(SymmetricKeyEncSessionPacket.Version6,
+                    encAlgorithm, aeadAlgorithm);
+                byte[] kek = null;
+                try
+                {
+                    kek = PgpAead.Hkdf(m_s2kKey, null, aad, SymmetricKeyUtilities.GetKeyLengthInOctets(encAlgorithm));
+
+                    byte[] nonce = new byte[AeadUtilities.GetIVLength(aeadAlgorithm)];
+                    random.NextBytes(nonce);
+
+                    byte[] encrypted = PgpAead.EncryptOneShot(encAlgorithm, aeadAlgorithm, kek, nonce, aad,
+                        sessionKey);
+                    int keyLength = encrypted.Length - PgpAead.TagLength;
+
+                    m_packet = SymmetricKeyEncSessionPacket.CreateV6Packet(encAlgorithm, aeadAlgorithm, nonce, m_s2k,
+                        Arrays.CopyOfRange(encrypted, 0, keyLength),
+                        Arrays.CopyOfRange(encrypted, keyLength, encrypted.Length));
+                }
+                finally
+                {
+                    if (kek != null)
+                    {
+                        Arrays.ZeroMemory(kek);
+                    }
+                }
+            }
+
+            public override void Encode(BcpgOutputStream pOut) => m_packet.Encode(pOut);
         }
 
         private class PbeMethod
@@ -79,6 +143,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             internal PgpPublicKey pubKey;
             internal bool sessionKeyObfuscation;
             internal byte[][] data;
+            private bool m_isVersion6;
 
             internal PubMethod(PgpPublicKey pubKey, bool sessionKeyObfuscation)
             {
@@ -95,9 +160,138 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 this.data = ProcessSessionInfo(encryptedSessionInfo);
             }
 
+            /// <summary>Protect the session key for a v2 SEIPD message: a version 6 PKESK packet (RFC 9580 5.1).</summary>
+            public override void AddSessionKey(byte[] sessionKey, SymmetricKeyAlgorithmTag payloadAlgorithm,
+                AeadAlgorithmTag aeadAlgorithm, SecureRandom random)
+            {
+                m_isVersion6 = true;
+
+                var cryptoPublicKey = pubKey.GetKey();
+                switch (pubKey.Algorithm)
+                {
+                case PublicKeyAlgorithmTag.X25519:
+                case PublicKeyAlgorithmTag.X448:
+                    // there is no algorithm octet in a version 6 PKESK
+                    data = new byte[1][]{ PgpXdhKem.ForAlgorithm(pubKey.Algorithm).Encrypt(cryptoPublicKey, sessionKey,
+                        isVersion3Pkesk: false, payloadAlgorithm, random) };
+                    break;
+                case PublicKeyAlgorithmTag.MLKem768_X25519:
+                case PublicKeyAlgorithmTag.MLKem1024_X448:
+                    data = new byte[1][]{ EncryptComposite(pubKey.Algorithm, cryptoPublicKey, sessionKey,
+                        isVersion3Pkesk: false, 0, random) };
+                    break;
+                case PublicKeyAlgorithmTag.RsaEncrypt:
+                case PublicKeyAlgorithmTag.RsaGeneral:
+                case PublicKeyAlgorithmTag.ECDH:
+                {
+                    // the session key followed by its 2-octet checksum, without the algorithm octet
+                    int check = 0;
+                    for (int i = 0; i < sessionKey.Length; ++i)
+                    {
+                        check += sessionKey[i];
+                    }
+                    byte[] sessionInfo = Arrays.Concatenate(sessionKey,
+                        new byte[]{ (byte)(check >> 8), (byte)check });
+                    try
+                    {
+                        data = ProcessSessionInfo(EncryptSessionInfo(sessionInfo, random));
+                    }
+                    finally
+                    {
+                        Arrays.ZeroMemory(sessionInfo);
+                    }
+                    break;
+                }
+                default:
+                    throw new PgpException("public key algorithm not supported for AEAD encrypted messages: "
+                        + pubKey.Algorithm);
+                }
+            }
+
+            /// <summary>
+            /// RFC 9980 4.2.3: ecdhCipherText || mlkemCipherText || len(C, [symAlgId]) || [symAlgId] || C, where
+            /// C is the session key (without checksum or padding) wrapped with AES-256 under the composite KEK.
+            /// The algorithm octet is only present in version 3 PKESK packets.
+            /// </summary>
+            private static byte[] EncryptComposite(PublicKeyAlgorithmTag algorithm, AsymmetricKeyParameter key,
+                byte[] sessionKey, bool isVersion3Pkesk, byte symAlgorithm, SecureRandom random)
+            {
+                AsymmetricKeyParameter ecdhKey;
+                MLKemPublicKeyParameters mlKemKey;
+                if (key is MLKem768X25519PublicKeyParameters key768)
+                {
+                    ecdhKey = key768.X25519Key;
+                    mlKemKey = key768.MLKemKey;
+                }
+                else if (key is MLKem1024X448PublicKeyParameters key1024)
+                {
+                    ecdhKey = key1024.X448Key;
+                    mlKemKey = key1024.MLKemKey;
+                }
+                else
+                {
+                    throw new PgpException("unknown key class");
+                }
+
+                byte[] kek = null;
+                try
+                {
+                    kek = PgpCompositeKem.ForAlgorithm(algorithm).Encapsulate(ecdhKey, mlKemKey, random,
+                        out byte[] ecdhCipherText, out byte[] mlkemCipherText);
+
+                    IWrapper wrapper = PgpUtilities.CreateWrapper(SymmetricKeyAlgorithmTag.Aes256);
+                    wrapper.Init(true, new ParametersWithRandom(new KeyParameter(kek), random));
+                    byte[] wrapped = wrapper.Wrap(sessionKey, 0, sessionKey.Length);
+
+                    byte[] lengthAndAlgorithm = isVersion3Pkesk
+                        ? new byte[]{ (byte)(1 + wrapped.Length), symAlgorithm }
+                        : new byte[]{ (byte)wrapped.Length };
+
+                    return Arrays.ConcatenateAll(ecdhCipherText, mlkemCipherText, lengthAndAlgorithm, wrapped);
+                }
+                finally
+                {
+                    if (kek != null)
+                    {
+                        Arrays.ZeroMemory(kek);
+                    }
+                }
+            }
+
             private byte[] EncryptSessionInfo(byte[] sessionInfo, SecureRandom random)
             {
                 var cryptoPublicKey = pubKey.GetKey();
+
+                if (pubKey.Algorithm == PublicKeyAlgorithmTag.MLKem768_X25519 ||
+                    pubKey.Algorithm == PublicKeyAlgorithmTag.MLKem1024_X448)
+                {
+                    // sessionInfo is algorithm || session key || 2-octet checksum, and is shared between methods
+                    byte[] key = Arrays.CopyOfRange(sessionInfo, 1, sessionInfo.Length - 2);
+                    try
+                    {
+                        return EncryptComposite(pubKey.Algorithm, cryptoPublicKey, key, isVersion3Pkesk: true,
+                            sessionInfo[0], random);
+                    }
+                    finally
+                    {
+                        Arrays.ZeroMemory(key);
+                    }
+                }
+
+                if (pubKey.Algorithm == PublicKeyAlgorithmTag.X25519 || pubKey.Algorithm == PublicKeyAlgorithmTag.X448)
+                {
+                    // sessionInfo is algorithm || session key || 2-octet checksum, and is shared between methods
+                    byte[] sessionKey = Arrays.CopyOfRange(sessionInfo, 1, sessionInfo.Length - 2);
+                    try
+                    {
+                        return PgpXdhKem.ForAlgorithm(pubKey.Algorithm).Encrypt(cryptoPublicKey, sessionKey,
+                            isVersion3Pkesk: true, (SymmetricKeyAlgorithmTag)sessionInfo[0], random);
+                    }
+                    finally
+                    {
+                        Arrays.ZeroMemory(sessionKey);
+                    }
+                }
 
                 if (pubKey.Algorithm != PublicKeyAlgorithmTag.ECDH)
                 {
@@ -241,6 +435,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
                 switch (pubKey.Algorithm)
                 {
+                case PublicKeyAlgorithmTag.MLKem768_X25519:
+                case PublicKeyAlgorithmTag.MLKem1024_X448:
+                case PublicKeyAlgorithmTag.X25519:
+                case PublicKeyAlgorithmTag.X448:
+                    data = new byte[1][]{ encryptedSessionInfo };
+                    break;
                 case PublicKeyAlgorithmTag.RsaEncrypt:
                 case PublicKeyAlgorithmTag.RsaGeneral:
                     data = new byte[1][]{ ConvertToEncodedMpi(encryptedSessionInfo) };
@@ -281,11 +481,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 }
             }
 
-            public override void Encode(BcpgOutputStream pOut) =>
-                new PublicKeyEncSessionPacket(pubKey.KeyId, pubKey.Algorithm, data).Encode(pOut);
+            public override void Encode(BcpgOutputStream pOut)
+            {
+                PublicKeyEncSessionPacket packet = m_isVersion6
+                    ? PublicKeyEncSessionPacket.CreateV6Packet(pubKey.Version, pubKey.GetFingerprint(),
+                        pubKey.Algorithm, data)
+                    : PublicKeyEncSessionPacket.CreateV3Packet(pubKey.KeyId, pubKey.Algorithm, data);
+
+                packet.Encode(pOut);
+            }
         }
 
+        private const int DefaultChunkSizeOctet = 12;
+
         private readonly List<EncMethod> methods = new List<EncMethod>();
+        // TODO[api] Refuse IDEA, TripleDES and CAST5 for version 1 SEIPD too (RFC 9580 9.3)
         private readonly SymmetricKeyAlgorithmTag defAlgorithm;
         private readonly SecureRandom rand;
 
@@ -329,6 +539,50 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.defAlgorithm = encAlgorithm;
             this.rand = random ?? throw new ArgumentNullException(nameof(random));
             this.oldFormat = oldFormat;
+        }
+
+        /// <summary>
+        /// Creates a generator for messages protected by AEAD (a version 2 SEIPD packet, RFC 9580 5.13.2), with
+        /// version 6 session key packets and a chunk size of 256 KiB.
+        /// </summary>
+        /// <param name="encAlgorithm">The symmetric algorithm to use; it needs a block size of 128 bits.</param>
+        /// <param name="aeadAlgorithm">The AEAD mode to use.</param>
+        /// <param name="random">Source of randomness.</param>
+        public PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag encAlgorithm, AeadAlgorithmTag aeadAlgorithm,
+            SecureRandom random)
+            : this(encAlgorithm, aeadAlgorithm, DefaultChunkSizeOctet, random)
+        {
+        }
+
+        /// <summary>
+        /// Creates a generator for messages protected by AEAD (a version 2 SEIPD packet, RFC 9580 5.13.2), with
+        /// version 6 session key packets.
+        /// </summary>
+        /// <param name="encAlgorithm">The symmetric algorithm to use; it needs a block size of 128 bits.</param>
+        /// <param name="aeadAlgorithm">The AEAD mode to use.</param>
+        /// <param name="chunkSizeOctet">
+        /// The chunk size octet (0 to 16): messages are processed in chunks of 2^(chunkSizeOctet + 6) octets.
+        /// </param>
+        /// <param name="random">Source of randomness.</param>
+        public PgpEncryptedDataGenerator(SymmetricKeyAlgorithmTag encAlgorithm, AeadAlgorithmTag aeadAlgorithm,
+            int chunkSizeOctet, SecureRandom random)
+        {
+            if (!PgpAead.IsSupportedCipher(encAlgorithm))
+                throw new ArgumentException("unsupported symmetric algorithm for AEAD: " + encAlgorithm,
+                    nameof(encAlgorithm));
+            if (aeadAlgorithm != AeadAlgorithmTag.Eax && aeadAlgorithm != AeadAlgorithmTag.Ocb &&
+                aeadAlgorithm != AeadAlgorithmTag.Gcm)
+            {
+                throw new ArgumentException("unsupported AEAD algorithm: " + aeadAlgorithm, nameof(aeadAlgorithm));
+            }
+            if (chunkSizeOctet < 0 || chunkSizeOctet > PgpAead.MaxChunkSizeOctet)
+                throw new ArgumentOutOfRangeException(nameof(chunkSizeOctet), "must be in the range 0 to 16");
+
+            this.defAlgorithm = encAlgorithm;
+            this.rand = random ?? throw new ArgumentNullException(nameof(random));
+            m_isAead = true;
+            m_aeadAlgorithm = aeadAlgorithm;
+            m_chunkSizeOctet = chunkSizeOctet;
         }
 
         /// <summary>Add a PBE encryption method to the encrypted object.</summary>
@@ -391,24 +645,171 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         public void AddMethodRaw(byte[] rawPassPhrase, HashAlgorithmTag s2kDigest, int itCount) =>
             ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: false, s2kDigest, itCount);
 
+        /// <summary>Add a PBE encryption method to the encrypted object, using Argon2 to derive the key.</summary>
+        /// <remarks>
+        /// Conversion of the passphrase characters to bytes is performed using Convert.ToByte(), which is
+        /// the historical behaviour of the library (1.7 and earlier). A fresh salt is generated; the salt of
+        /// <paramref name="argon2Template"/> is not used. With a generator for AEAD messages, a version 6 SKESK
+        /// packet is written, otherwise a version 4 SKESK packet.
+        /// </remarks>
+        public void AddMethod(char[] passPhrase, S2k.Argon2Params argon2Template)
+        {
+            var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: false);
+
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: true, argon2Template);
+        }
+
+        /// <summary>Add a PBE encryption method to the encrypted object, using Argon2 to derive the key.</summary>
+        /// <remarks>
+        /// The passphrase is encoded to bytes using UTF8. See <see cref="AddMethod(char[], S2k.Argon2Params)"/>.
+        /// </remarks>
+        public void AddMethodUtf8(char[] passPhrase, S2k.Argon2Params argon2Template)
+        {
+            var rawPassPhrase = PgpUtilities.EncodePassPhrase(passPhrase, utf8: true);
+
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: true, argon2Template);
+        }
+
+        /// <summary>Add a PBE encryption method to the encrypted object, using Argon2 to derive the key.</summary>
+        /// <remarks>
+        /// Allows the caller to handle the encoding of the passphrase to bytes. See
+        /// <see cref="AddMethod(char[], S2k.Argon2Params)"/>.
+        /// </remarks>
+        public void AddMethodRaw(byte[] rawPassPhrase, S2k.Argon2Params argon2Template) =>
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase: false, argon2Template);
+
+        private void ImplAddPbeMethod(byte[] rawPassPhrase, bool clearPassPhrase, S2k.Argon2Params argon2Template)
+        {
+            if (argon2Template == null)
+                throw new ArgumentNullException(nameof(argon2Template));
+
+            var argon2Params = new S2k.Argon2Params(argon2Template.Passes, argon2Template.Parallelism,
+                argon2Template.MemorySizeExponent, rand);
+
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase, S2k.Argon2S2k(argon2Params));
+        }
+
         internal void ImplAddPbeMethod(byte[] rawPassPhrase, bool clearPassPhrase, HashAlgorithmTag s2kDigest,
             int itCount)
         {
-            var s2k = S2k.GenerateSaltedAndIterated(rand, s2kDigest, itCount);
+            // RFC 9580 9.5: no S2K with MD5, SHA-1 or RIPEMD-160 in new packets, also in version 4 SKESK packets
+            if (PgpUtilities.IsWeakS2kHash(s2kDigest))
+                throw new ArgumentException("S2K hash not allowed: " + s2kDigest, nameof(s2kDigest));
+
+            ImplAddPbeMethod(rawPassPhrase, clearPassPhrase, S2k.GenerateSaltedAndIterated(rand, s2kDigest, itCount));
+        }
+
+        private void ImplAddPbeMethod(byte[] rawPassPhrase, bool clearPassPhrase, S2k s2k)
+        {
             var key = PgpUtilities.DoMakeKeyFromPassPhrase(defAlgorithm, s2k, rawPassPhrase, clearPassPhrase);
+
+            if (m_isAead)
+            {
+                methods.Add(new AeadPbeMethod(defAlgorithm, s2k, key.GetKey()));
+                return;
+            }
+
             var encMethod = new PbeMethod(defAlgorithm, s2k, key);
             methods.Add(encMethod);
         }
 
         /// <summary>Add a public key encrypted session key to the encrypted object.</summary>
+        /// <remarks>
+        /// For X25519, X448 and the ML-KEM composite keys (RFC 9980), a generator that makes version 1 SEIPD packets
+        /// must have been created with an integrity packet and an AES algorithm; AES-256 is recommended. Such a
+        /// message uses a v3 PKESK. A generator made with an AEAD algorithm makes v6 PKESK and v2 SEIPD packets.
+        /// </remarks>
         public void AddMethod(PgpPublicKey key) => AddMethod(key, sessionKeyObfuscation: true);
 
+        /// <summary>Add a public key encrypted session key to the encrypted object.</summary>
+        /// <remarks>
+        /// <paramref name="sessionKeyObfuscation"/> only applies to ECDH keys. See
+        /// <see cref="AddMethod(PgpPublicKey)"/> for the requirements of X25519, X448 and ML-KEM keys.
+        /// </remarks>
         public void AddMethod(PgpPublicKey key, bool sessionKeyObfuscation)
         {
             if (!key.IsEncryptionKey)
                 throw new ArgumentException("passed in key not an encryption key!", nameof(key));
 
+            // key material that is not defined for the version of its key, or that cannot be parsed, is kept opaque
+            if (key.PublicKeyPacket.Key is UnknownBcpgKey)
+            {
+                throw new ArgumentException(
+                    "the material of this version " + key.Version + " " + key.Algorithm + " key cannot be used",
+                    nameof(key));
+            }
+
+            CheckVersion6EcdhRecipient(key);
+
+            if (m_isAead)
+            {
+                CheckAeadRecipient(key);
+                methods.Add(new PubMethod(key, sessionKeyObfuscation));
+                return;
+            }
+
+            if (key.Algorithm == PublicKeyAlgorithmTag.X25519 || key.Algorithm == PublicKeyAlgorithmTag.X448)
+            {
+                // RFC 9580 5.1.6 and 5.1.7: AES only in a v3 PKESK, and the SED packet must not be generated
+                if (!withIntegrityPacket)
+                    throw new PgpException(key.Algorithm + " recipients require an integrity protected packet");
+                if (defAlgorithm != SymmetricKeyAlgorithmTag.Aes128 &&
+                    defAlgorithm != SymmetricKeyAlgorithmTag.Aes192 &&
+                    defAlgorithm != SymmetricKeyAlgorithmTag.Aes256)
+                {
+                    throw new PgpException(key.Algorithm + " recipients require AES-128, AES-192 or AES-256");
+                }
+            }
+
+            if (key.Algorithm == PublicKeyAlgorithmTag.MLKem768_X25519 ||
+                key.Algorithm == PublicKeyAlgorithmTag.MLKem1024_X448)
+            {
+                // RFC 9980 4.3.1: never with the obsolete SED packet, and AES only in a v3 PKESK
+                if (!withIntegrityPacket)
+                    throw new PgpException(key.Algorithm + " recipients require an integrity protected packet");
+                if (defAlgorithm != SymmetricKeyAlgorithmTag.Aes128 &&
+                    defAlgorithm != SymmetricKeyAlgorithmTag.Aes192 &&
+                    defAlgorithm != SymmetricKeyAlgorithmTag.Aes256)
+                {
+                    throw new PgpException(key.Algorithm + " recipients require AES-128, AES-192 or AES-256");
+                }
+            }
+
             methods.Add(new PubMethod(key, sessionKeyObfuscation));
+        }
+
+        /// <summary>The requirements for recipients of version 2 SEIPD messages (RFC 9580 5.1.2, 9.2).</summary>
+        private static void CheckAeadRecipient(PgpPublicKey key)
+        {
+            if (key.Version != PublicKeyPacket.Version4 && key.Version != PublicKeyPacket.Version6)
+                throw new PgpException("unsupported recipient key version: " + key.Version);
+
+            switch (key.Algorithm)
+            {
+            case PublicKeyAlgorithmTag.ElGamalEncrypt:
+            case PublicKeyAlgorithmTag.ElGamalGeneral:
+                throw new PgpException("ElGamal cannot be used for encryption in AEAD encrypted messages");
+            }
+        }
+
+        /// <summary>
+        /// RFC 9580 11.5.1: no message is encrypted to a version 6 ECDH key that announces other KDF or KEK parameters
+        /// than its curve requires, whatever the format of the message.
+        /// </summary>
+        private static void CheckVersion6EcdhRecipient(PgpPublicKey key)
+        {
+            if (key.Algorithm != PublicKeyAlgorithmTag.ECDH || key.Version != PublicKeyPacket.Version6)
+                return;
+
+            var ecdhKey = (ECDHPublicBcpgKey)key.PublicKeyPacket.Key;
+            PgpKdfParameters expected = PgpUtilities.GetMandatedEcdhKdfParameters(ecdhKey.CurveOid);
+            if (expected != null &&
+                (expected.HashAlgorithm != ecdhKey.HashAlgorithm ||
+                 expected.SymmetricWrapAlgorithm != ecdhKey.SymmetricKeyAlgorithm))
+            {
+                throw new PgpException(
+                    "the KDF parameters of the ECDH key are not the ones required for version 6 keys");
+            }
         }
 
         private static void AddCheckSum(byte[] sessionInfo)
@@ -450,12 +851,15 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// </summary>
         private Stream Open(Stream outStr, long length, byte[] buffer)
         {
-            if (cOut != null)
+            if (cOut != null || m_aeadOut != null)
                 throw new InvalidOperationException("generator already in open state");
             if (methods.Count == 0)
                 throw new InvalidOperationException("No encryption methods specified");
             if (outStr == null)
                 throw new ArgumentNullException(nameof(outStr));
+
+            if (m_isAead)
+                return OpenAead(outStr, length, buffer);
 
             pOut = new BcpgOutputStream(outStr);
 
@@ -481,6 +885,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                     {
                         throw new PgpException("exception encrypting session key", e);
                     }
+                    finally
+                    {
+                        Arrays.ZeroMemory(sessionInfo);
+                    }
                 }
                 else
                 {
@@ -494,18 +902,25 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                 key = PgpUtilities.MakeRandomKey(defAlgorithm, rand);
                 byte[] sessionInfo = CreateSessionInfo(defAlgorithm, key);
 
-                foreach (EncMethod m in methods)
+                try
                 {
-                    try
+                    foreach (EncMethod m in methods)
                     {
-                        m.AddSessionInfo(sessionInfo, rand);
-                    }
-                    catch (Exception e)
-                    {
-                        throw new PgpException("exception encrypting session key", e);
-                    }
+                        try
+                        {
+                            m.AddSessionInfo(sessionInfo, rand);
+                        }
+                        catch (Exception e)
+                        {
+                            throw new PgpException("exception encrypting session key", e);
+                        }
 
-                    m.Encode(pOut);
+                        m.Encode(pOut);
+                    }
+                }
+                finally
+                {
+                    Arrays.ZeroMemory(sessionInfo);
                 }
             }
 
@@ -581,6 +996,78 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>
+        /// Write the session key packets and the header of the v2 SEIPD packet, and return the stream that encrypts
+        /// the data in chunks.
+        /// </summary>
+        private Stream OpenAead(Stream outStr, long length, byte[] buffer)
+        {
+            byte[] sessionKey = new byte[SymmetricKeyUtilities.GetKeyLengthInOctets(defAlgorithm)];
+            rand.NextBytes(sessionKey);
+
+            byte[][] keyAndIv = null;
+            try
+            {
+                pOut = new BcpgOutputStream(outStr);
+
+                foreach (EncMethod m in methods)
+                {
+                    try
+                    {
+                        m.AddSessionKey(sessionKey, defAlgorithm, m_aeadAlgorithm, rand);
+                    }
+                    catch (PgpException)
+                    {
+                        throw;
+                    }
+                    catch (Exception e)
+                    {
+                        throw new PgpException("exception encrypting session key", e);
+                    }
+
+                    m.Encode(pOut);
+                }
+
+                byte[] salt = new byte[SymmetricEncIntegrityPacket.SaltLength];
+                rand.NextBytes(salt);
+
+                byte[] aad = SymmetricEncIntegrityPacket.CreateAAData(defAlgorithm, m_aeadAlgorithm, m_chunkSizeOctet);
+                keyAndIv = PgpAead.DeriveMessageKeyAndIv(defAlgorithm, m_aeadAlgorithm, sessionKey, salt, aad);
+
+                if (buffer == null)
+                {
+                    // header (version, algorithms, chunk size), salt, the chunks with their tags, and the final tag
+                    long chunkLength = PgpAead.GetChunkLength(m_chunkSizeOctet);
+                    long chunks = (length + chunkLength - 1) / chunkLength;
+                    long bodyLength = 4 + salt.Length + length + chunks * PgpAead.TagLength + PgpAead.TagLength;
+
+                    pOut = new BcpgOutputStream(outStr, PacketTag.SymmetricEncryptedIntegrityProtected, bodyLength);
+                }
+                else
+                {
+                    pOut = new BcpgOutputStream(outStr, PacketTag.SymmetricEncryptedIntegrityProtected, buffer);
+                }
+
+                pOut.Write((byte)SymmetricEncIntegrityPacket.Version2, (byte)defAlgorithm, (byte)m_aeadAlgorithm,
+                    (byte)m_chunkSizeOctet);
+                pOut.Write(salt);
+
+                m_aeadOut = new PgpAeadOutputStream(pOut, defAlgorithm, m_aeadAlgorithm, keyAndIv[0], keyAndIv[1], aad,
+                    m_chunkSizeOctet);
+
+                return new WrappedGeneratorStream(this, m_aeadOut);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(sessionKey);
+                if (keyAndIv != null)
+                {
+                    Arrays.ZeroMemory(keyAndIv[0]);
+                    Arrays.ZeroMemory(keyAndIv[1]);
+                }
+            }
+        }
+
+        /// <summary>
         /// <p>
         /// Return an output stream which will encrypt the data as it is written to it.
         /// </p>
@@ -612,6 +1099,21 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         [Obsolete("Dispose any opened Stream directly")]
         public void Close()
         {
+            if (m_aeadOut != null)
+            {
+                try
+                {
+                    m_aeadOut.Finish();
+                    pOut.Finish();
+                }
+                finally
+                {
+                    m_aeadOut = null;
+                    pOut = null;
+                }
+                return;
+            }
+
             if (cOut != null)
             {
                 // TODO Should this all be under the try/catch block?

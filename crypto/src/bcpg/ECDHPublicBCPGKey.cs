@@ -16,7 +16,12 @@ namespace Org.BouncyCastle.Bcpg
 
         /// <param name="bcpgIn">The stream to read the packet from.</param>
         public ECDHPublicBcpgKey(BcpgInputStream bcpgIn)
-            : base(bcpgIn)
+            : this(bcpgIn, strict: false)
+        {
+        }
+
+        internal ECDHPublicBcpgKey(BcpgInputStream bcpgIn, bool strict)
+            : base(bcpgIn, strict)
         {
             int length = bcpgIn.RequireByte();
             if (length != 3)

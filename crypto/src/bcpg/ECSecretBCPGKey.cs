@@ -9,8 +9,15 @@ namespace Org.BouncyCastle.Bcpg
         private readonly MPInteger m_x;
 
         public ECSecretBcpgKey(BcpgInputStream bcpgIn)
+            : this(bcpgIn, strict: false)
         {
-            m_x = new MPInteger(bcpgIn);
+        }
+
+        /// <param name="bcpgIn">The input.</param>
+        /// <param name="strict">Reject an MPI that is not minimal, as RFC 9580 3.2 requires for version 6 keys.</param>
+        internal ECSecretBcpgKey(BcpgInputStream bcpgIn, bool strict)
+        {
+            m_x = new MPInteger(bcpgIn, strict);
         }
 
         public ECSecretBcpgKey(BigInteger x)

@@ -3,6 +3,7 @@ using System.IO;
 
 using NUnit.Framework;
 
+using Org.BouncyCastle.Bcpg.Sig;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.IO;
@@ -108,7 +109,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             ImplTestDecryption(V5_GCM_PACKET_SEQUENCE, Password, PlainText);
         }
 
-        [Test, Explicit] // Incomplete implementation
+        [Test]
         public void KnownV6TestVectorDecryptionTests()
         {
             // Test known-good V6 test vectors
@@ -117,68 +118,64 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             ImplTestDecryption(V6_GCM_PACKET_SEQUENCE, Password, PlainText);
         }
 
-        [Test, Explicit] // Incomplete implementation
+        [Test]
         public void PreferredAeadAlgorithmsImplicitlySupportAes128Ocb()
         {
-            throw new NotImplementedException();
+            var implicitCombination = new PreferredAeadCiphersuites.Combination(
+                SymmetricKeyAlgorithmTag.Aes128, AeadAlgorithmTag.Ocb);
 
-            //PreferredAEADCiphersuites.Combination implicit = new PreferredAEADCiphersuites.Combination(
-            //    SymmetricKeyAlgorithmTags.AES_128, AEADAlgorithmTags.OCB);
+            var preferences = new PreferredAeadCiphersuites(false, new PreferredAeadCiphersuites.Combination[0]);
 
-            //PreferredAEADCiphersuites preferences = new PreferredAEADCiphersuites(false,
-            //    new PreferredAEADCiphersuites.Combination[0]);
+            Assert.That(preferences.IsSupported(implicitCombination), Is.True);
+            Assert.That(preferences.GetRawAlgorithms(), Is.Empty);
+            Assert.That(preferences.GetAlgorithms(), Is.EqualTo(new[]{ implicitCombination }));
 
-            //Assert.True(preferences.IsSupported(implicit));
-            //Assert.That(Arrays.AreEqual(new PreferredAEADCiphersuites.Combination[0], preferences.getRawAlgorithms()));
-            //Assert.That(Arrays.AreEqual(new PreferredAEADCiphersuites.Combination[]{implicit}, preferences.getAlgorithms()));
+            // an explicit entry is not duplicated
+            var explicitPreferences = new PreferredAeadCiphersuites(false,
+                new[]{ new PreferredAeadCiphersuites.Combination(SymmetricKeyAlgorithmTag.Aes256, AeadAlgorithmTag.Gcm),
+                    implicitCombination });
+            Assert.That(explicitPreferences.GetAlgorithms().Length, Is.EqualTo(2));
+            Assert.That(explicitPreferences.IsSupported(new PreferredAeadCiphersuites.Combination(
+                SymmetricKeyAlgorithmTag.Aes256, AeadAlgorithmTag.Gcm)), Is.True);
+            Assert.That(explicitPreferences.IsSupported(new PreferredAeadCiphersuites.Combination(
+                SymmetricKeyAlgorithmTag.Aes256, AeadAlgorithmTag.Eax)), Is.False);
         }
 
-        [Test, Explicit] // Incomplete implementation
+        [Test]
         public void PreferredAeadAlgorithmsInvalidConstructor()
         {
-            throw new NotImplementedException();
-
-            //// odd number of data bytes
-            //try
-            //{
-            //    new PreferredAeadCiphersuites(false, false, new byte[]{ 0x09, 0x02, 0x09 });
-            //    Assert.Fail("Odd number of data bytes must throw.");
-            //}
-            //catch (ArgumentException)
-            //{
-            //    // expected
-            //}
+            // odd number of data bytes
+            Assert.Throws<ArgumentException>(
+                () => new PreferredAeadCiphersuites(false, false, new byte[]{ 0x09, 0x02, 0x09 }));
         }
 
-        [Test, Explicit] // Incomplete implementation
+        [Test]
         public void PreferredAeadAlgorithmsRoundtrip()
         {
-            throw new NotImplementedException();
+            var preferences = new PreferredAeadCiphersuites(false, new[]
+            {
+                new PreferredAeadCiphersuites.Combination(SymmetricKeyAlgorithmTag.Aes256, AeadAlgorithmTag.Ocb),
+                new PreferredAeadCiphersuites.Combination(SymmetricKeyAlgorithmTag.Aes256, AeadAlgorithmTag.Gcm),
+                new PreferredAeadCiphersuites.Combination(SymmetricKeyAlgorithmTag.Camellia256, AeadAlgorithmTag.Ocb),
+            });
+            Assert.That(preferences.GetData(), Is.EqualTo(new byte[]{ 0x09, 0x02, 0x09, 0x03, 0x0d, 0x02 }));
 
-            //PreferredAEADCiphersuites preferences = new PreferredAEADCiphersuites(false, new PreferredAEADCiphersuites.Combination[]
-            //    {
-            //        new PreferredAEADCiphersuites.Combination(SymmetricKeyAlgorithmTags.AES_256, AEADAlgorithmTags.OCB),
-            //        new PreferredAEADCiphersuites.Combination(SymmetricKeyAlgorithmTags.AES_256, AEADAlgorithmTags.GCM),
-            //        new PreferredAEADCiphersuites.Combination(SymmetricKeyAlgorithmTags.CAMELLIA_256, AEADAlgorithmTags.OCB)
-            //    });
-            //isTrue(Arrays.areEqual(new byte[] { 0x09, 0x02, 0x09, 0x03, 0x0d, 0x02 }, preferences.getData()));
+            var bOut = new MemoryStream();
+            preferences.Encode(bOut);
 
-            //ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-            //BCPGOutputStream bcpgOut = new BCPGOutputStream(bOut);
+            var subpacketIn = new SignatureSubpacketsParser(new MemoryStream(bOut.ToArray(), false));
+            SignatureSubpacket subpacket = subpacketIn.ReadPacket();
 
-            //preferences.encode(bcpgOut);
+            Assert.That(subpacket, Is.InstanceOf<PreferredAeadCiphersuites>());
+            var parsed = (PreferredAeadCiphersuites)subpacket;
+            Assert.That(parsed.GetRawAlgorithms(), Is.EqualTo(preferences.GetRawAlgorithms()));
+            Assert.That(parsed.IsCritical(), Is.False);
 
-            //ByteArrayInputStream bIn = new ByteArrayInputStream(bOut.toByteArray());
-            //SignatureSubpacketInputStream subpacketIn = new SignatureSubpacketInputStream(bIn);
-            //SignatureSubpacket subpacket = subpacketIn.readPacket();
-            //assert subpacket != null;
-            //assert subpacket instanceof PreferredAEADCiphersuites;
-
-            //PreferredAEADCiphersuites parsed = (PreferredAEADCiphersuites)subpacket;
-            //Assert.That(Arrays.AreEqual(preferences.getRawAlgorithms(), parsed.getRawAlgorithms()));
+            // the values are also reachable through the generic preferences accessor
+            Assert.That(((PreferredAlgorithms)subpacket).GetPreferences(), Is.EqualTo(new[]{ 9, 2, 9, 3, 13, 2 }));
         }
 
-        [Test, Explicit] // Incomplete implementation
+        [Test]
         public void RoundTripEncryptionDecryptionTests()
         {
             AeadAlgorithmTag[] aeadAlgs = new AeadAlgorithmTag[]{
@@ -200,11 +197,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             {
                 foreach (var symAlg in symAlgs)
                 {
-                    // OpenPGP v5
-                    ImplTestRoundTrip(true, aeadAlg, symAlg, PlainText, Password);
-
-                    // OpenPGP v6
-                    ImplTestRoundTrip(false, aeadAlg, symAlg, PlainText, Password);
+                    // OpenPGP v6 (the LibrePGP v5 format is not supported)
+                    ImplTestRoundTrip(aeadAlg, symAlg, PlainText, Password);
                 }
             }
         }
@@ -239,56 +233,34 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp.Tests
             }
         }
 
-        private string ImplTestEncryption(bool v5AEAD, AeadAlgorithmTag aeadAlg, SymmetricKeyAlgorithmTag symAlg,
+        private string ImplTestEncryption(AeadAlgorithmTag aeadAlg, SymmetricKeyAlgorithmTag symAlg,
             byte[] plaintext, char[] password)
         {
-            throw new NotImplementedException();
+            var ciphertextOut = new MemoryStream();
 
-            //MemoryStream ciphertextOut = new MemoryStream();
-            //PGPDigestCalculatorProvider digestCalculatorProvider = new BcPGPDigestCalculatorProvider();
-            //PGPDataEncryptorBuilder encBuilder = new BcPGPDataEncryptorBuilder(symAlg);
-            //if (v5AEAD)
-            //{
-            //    encBuilder.setUseV5AEAD();
-            //}
-            //else
-            //{
-            //    encBuilder.setUseV6AEAD();
-            //}
-            //encBuilder.setWithAEAD(aeadAlg, 6);
+            var encGen = new PgpEncryptedDataGenerator(symAlg, aeadAlg, chunkSizeOctet: 6, new SecureRandom());
+            encGen.AddMethod(password, HashAlgorithmTag.Sha256);
 
-            //PGPEncryptedDataGenerator encGen = new PGPEncryptedDataGenerator(encBuilder, false);
-            //encGen.setForceSessionKey(true);
-            //PBEKeyEncryptionMethodGenerator encMethodGen = new BcPBEKeyEncryptionMethodGenerator(password,
-            //    digestCalculatorProvider.get(HashAlgorithmTags.SHA256));
-            //encGen.addMethod(encMethodGen);
-            //OutputStream encOut = encGen.open(ciphertextOut, new byte[1 << 9]);
-            //encOut.flush();
-            //PGPLiteralDataGenerator litGen = new PGPLiteralDataGenerator();
-            //OutputStream litOut = litGen.open(encOut, PGPLiteralData.UTF8, "", new Date(), new byte[1 << 9]);
+            using (Stream encOut = encGen.Open(ciphertextOut, new byte[1 << 9]))
+            using (Stream litOut = new PgpLiteralDataGenerator().Open(encOut, PgpLiteralData.Utf8, "", DateTime.UtcNow,
+                new byte[1 << 9]))
+            {
+                litOut.Write(plaintext, 0, plaintext.Length);
+            }
 
-            //litOut.write(plaintext);
-            //litOut.flush();
-            //litOut.close();
+            var armoredMsg = new MemoryStream();
+            using (var armorOut = new ArmoredOutputStream(armoredMsg))
+            {
+                armorOut.Write(ciphertextOut.ToArray(), 0, (int)ciphertextOut.Length);
+            }
 
-            //encOut.flush();
-            //encOut.close();
-
-            //ByteArrayOutputStream armoredMsg = new ByteArrayOutputStream();
-            //ArmoredOutputStream armorOut = new ArmoredOutputStream(armoredMsg);
-            //armorOut.write(ciphertextOut.toByteArray());
-            //armorOut.flush();
-            //armorOut.close();
-
-            //PrintHex(ciphertextOut.toByteArray());
-
-            //return armoredMsg.toString();
+            return Strings.FromAsciiByteArray(armoredMsg.ToArray());
         }
 
-        private void ImplTestRoundTrip(bool v5AEAD, AeadAlgorithmTag aeadAlg, SymmetricKeyAlgorithmTag symAlg,
-            byte[] plaintext, char[] password)
+        private void ImplTestRoundTrip(AeadAlgorithmTag aeadAlg, SymmetricKeyAlgorithmTag symAlg, byte[] plaintext,
+            char[] password)
         {
-            string armored = ImplTestEncryption(v5AEAD, aeadAlg, symAlg, plaintext, password);
+            string armored = ImplTestEncryption(aeadAlg, symAlg, plaintext, password);
             ImplTestDecryption(armored, password, plaintext);
         }
     }

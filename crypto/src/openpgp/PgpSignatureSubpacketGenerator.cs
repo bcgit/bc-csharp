@@ -40,9 +40,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             list.Add(new Revocable(isCritical, isRevocable));
         }
 
+        /// <remarks>
+        /// RFC 9580 5.2.3.19: the subpacket of a non-exportable signature is critical, whatever
+        /// <paramref name="isCritical"/> says.
+        /// </remarks>
 		public void SetExportable(bool isCritical, bool isExportable)
         {
-            list.Add(new Exportable(isCritical, isExportable));
+            list.Add(new Exportable(isCritical || !isExportable, isExportable));
         }
 
         public void SetFeature(bool isCritical, byte feature)
@@ -115,6 +119,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             list.Add(new PreferredAlgorithms(SignatureSubpacketTag.PreferredAeadAlgorithms, isCritical, algorithms));
         }
 
+        public void SetPreferredAeadCiphersuites(bool isCritical,
+            PreferredAeadCiphersuites.Combination[] combinations)
+        {
+            list.Add(new PreferredAeadCiphersuites(isCritical, combinations));
+        }
+
         public void AddPolicyUrl(bool isCritical, string policyUrl)
         {
             list.Add(new PolicyUrl(isCritical, policyUrl));
@@ -155,20 +165,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         public void AddEmbeddedSignature(bool isCritical, PgpSignature pgpSignature)
         {
-            byte[] sig = pgpSignature.GetEncoded();
-            byte[] data;
-
-            // TODO Should be >= ?
-            if (sig.Length - 1 > 256)
-            {
-                data = new byte[sig.Length - 3];
-            }
-            else
-            {
-                data = new byte[sig.Length - 2];
-            }
-
-            Array.Copy(sig, sig.Length - data.Length, data, 0, data.Length);
+            // the subpacket holds the body of the signature packet; the header has a different length in
+            // the old and the new packet format, and for long signatures
+            byte[] data = pgpSignature.GetEncodedPacketBody();
 
             list.Add(new EmbeddedSignature(isCritical, false, data));
         }
@@ -203,6 +202,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             AddRevocationKey(isCritical, keyAlgorithm, fingerprint);
 		}
 
+        /// <remarks>
+        /// RFC 9580 5.2.3.23 deprecates this subpacket: it must not be generated. A version 6 signature refuses it.
+        /// </remarks>
+        [Obsolete("RFC 9580 deprecates the Revocation Key subpacket; consider an escrowed revocation signature")]
         public void AddRevocationKey(bool isCritical, PublicKeyAlgorithmTag keyAlgorithm, byte[] fingerprint)
         {
             list.Add(new RevocationKey(isCritical, RevocationKeyTag.ClassDefault, keyAlgorithm, fingerprint));

@@ -5,6 +5,7 @@ using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.IO;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
@@ -20,7 +21,30 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_keyData = keyData;
         }
 
+        /// <summary>The symmetric algorithm of the session key packet.</summary>
+        /// <remarks>
+        /// For version 4 packets this is the algorithm used to encrypt the session key (if any), which is not
+        /// necessarily the one that protects the data. See <see cref="GetSymmetricAlgorithm"/>.
+        /// </remarks>
         public SymmetricKeyAlgorithmTag Algorithm => m_keyData.EncAlgorithm;
+
+        /// <summary>The symmetric algorithm that protects the data.</summary>
+        /// <remarks>
+        /// For a version 6 session key packet this is the cipher of the version 2 SEIPD packet. For a version 4
+        /// packet it is the algorithm of the session key packet; if the packet has an encrypted session key, the
+        /// algorithm of the data is only known once the session key has been recovered.
+        /// </remarks>
+        public SymmetricKeyAlgorithmTag GetSymmetricAlgorithm()
+        {
+            if (m_keyData.Version == SymmetricKeyEncSessionPacket.Version6 &&
+                EncryptedPacket is SymmetricEncIntegrityPacket seipd &&
+                seipd.Version == SymmetricEncIntegrityPacket.Version2)
+            {
+                return seipd.CipherAlgorithm;
+            }
+
+            return m_keyData.EncAlgorithm;
+        }
 
         public int Version => m_keyData.Version;
 
@@ -57,6 +81,84 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             ImplGetDataStream(rawPassPhrase, clearPassPhrase: false);
 
         internal Stream ImplGetDataStream(byte[] rawPassPhrase, bool clearPassPhrase)
+        {
+            switch (m_keyData.Version)
+            {
+            case SymmetricKeyEncSessionPacket.Version4:
+                return ImplGetV4DataStream(rawPassPhrase, clearPassPhrase);
+            case SymmetricKeyEncSessionPacket.Version6:
+                return ImplGetV6DataStream(rawPassPhrase, clearPassPhrase);
+            default:
+                throw new PgpException("unsupported SKESK version: " + m_keyData.Version);
+            }
+        }
+
+        /// <summary>RFC 9580 5.3.2 and 5.13.2: a version 6 SKESK packet and a version 2 SEIPD packet.</summary>
+        private Stream ImplGetV6DataStream(byte[] rawPassPhrase, bool clearPassPhrase)
+        {
+            if (!(EncryptedPacket is SymmetricEncIntegrityPacket seipd) ||
+                seipd.Version != SymmetricEncIntegrityPacket.Version2)
+            {
+                throw new PgpException("a version 6 SKESK packet requires a version 2 SEIPD packet");
+            }
+
+            SymmetricKeyAlgorithmTag keyAlgorithm = m_keyData.EncAlgorithm;
+            AeadAlgorithmTag aeadAlgorithm = m_keyData.AeadAlgorithm;
+            S2k s2k = m_keyData.S2k;
+
+            // RFC 9580 9.5: these hashes must not be used to derive keys in version 6 packets
+            if (s2k.Type != S2k.Argon2 && PgpUtilities.IsWeakS2kHash(s2k.HashAlgorithm))
+                throw new PgpDataValidationException("S2K hash algorithm not allowed in version 6 SKESK packets");
+
+            if (!PgpAead.IsSupportedCipher(keyAlgorithm))
+                throw new PgpException("unsupported symmetric algorithm in SKESK packet: " + keyAlgorithm);
+
+            byte[] s2kKey = null, kek = null, sessionKey = null;
+            try
+            {
+                s2kKey = PgpUtilities.DoMakeKeyFromPassPhrase(keyAlgorithm, s2k, rawPassPhrase, clearPassPhrase)
+                    .GetKey();
+
+                byte[] aad = m_keyData.GetAAData();
+                kek = PgpAead.Hkdf(s2kKey, null, aad, SymmetricKeyUtilities.GetKeyLengthInOctets(keyAlgorithm));
+
+                try
+                {
+                    sessionKey = PgpAead.DecryptOneShot(keyAlgorithm, aeadAlgorithm, kek, m_keyData.GetIV(), aad,
+                        Arrays.Concatenate(m_keyData.GetSecKeyData(), m_keyData.GetAuthTag()));
+                }
+                catch (InvalidCipherTextException e)
+                {
+                    throw new PgpDataValidationException("passphrase or session key check failed", e);
+                }
+
+                // the session key is for the cipher of the SEIPD packet, which can differ from the SKESK cipher
+                if (!PgpAead.IsSupportedCipher(seipd.CipherAlgorithm) ||
+                    sessionKey.Length != SymmetricKeyUtilities.GetKeyLengthInOctets(seipd.CipherAlgorithm))
+                {
+                    throw new PgpDataValidationException("passphrase or session key check failed");
+                }
+
+                return InitAeadDecStream(sessionKey);
+            }
+            finally
+            {
+                if (s2kKey != null)
+                {
+                    Arrays.ZeroMemory(s2kKey);
+                }
+                if (kek != null)
+                {
+                    Arrays.ZeroMemory(kek);
+                }
+                if (sessionKey != null)
+                {
+                    Arrays.ZeroMemory(sessionKey);
+                }
+            }
+        }
+
+        private Stream ImplGetV4DataStream(byte[] rawPassPhrase, bool clearPassPhrase)
         {
             try
             {
@@ -105,37 +207,6 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             {
                 throw new PgpException("Exception creating cipher", e);
             }
-        }
-
-        /// <exception cref="PgpException" />
-        private KeyParameter GetSessionKey(byte[] rawPassPhrase, bool clearPassPhrase)
-        {
-            //byte[] key = dataDecryptorFactory.makeKeyFromPassPhrase(keyData.getEncAlgorithm(), keyData.getS2K());
-            KeyParameter key = PgpUtilities.DoMakeKeyFromPassPhrase(m_keyData.EncAlgorithm, m_keyData.S2k, rawPassPhrase,
-                clearPassPhrase);
-
-            throw new NotImplementedException();
-
-            //int version = Version;
-            //switch (version)
-            //{
-            //case SymmetricKeyEncSessionPacket.Version4:
-            //{
-            //    byte[] sessionData = dataDecryptorFactory.recoverSessionData(keyData.getEncAlgorithm(), key, keyData.getSecKeyData());
-            //    int sessionKeyAlg = sessionData[0] & 0xff;
-            //    byte[] sessionKey = Arrays.copyOfRange(sessionData, 1, sessionData.length);
-            //    return new PGPSessionKey(sessionKeyAlg, sessionKey);
-            //}
-            //case SymmetricKeyEncSessionPacket.Version5:
-            //case SymmetricKeyEncSessionPacket.Version6:
-            //{
-            //    int sessionKeyAlg = getSymmetricAlgorithm(dataDecryptorFactory);
-            //    byte[] sessionKey = dataDecryptorFactory.recoverAEADEncryptedSessionData(keyData, key);
-            //    return new PGPSessionKey(sessionKeyAlg, sessionKey);
-            //}
-            //default:
-            //    throw new UnsupportedPacketVersionException("Unsupported packet version: " + version);
-            //}
         }
     }
 }

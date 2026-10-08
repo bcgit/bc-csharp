@@ -10,11 +10,16 @@ namespace Org.BouncyCastle.Bcpg
 
         /// <param name="bcpgIn">The stream to read the packet from.</param>
         public DsaPublicBcpgKey(BcpgInputStream bcpgIn)
+            : this(bcpgIn, strict: false)
         {
-            m_p = new MPInteger(bcpgIn);
-            m_q = new MPInteger(bcpgIn);
-            m_g = new MPInteger(bcpgIn);
-            m_y = new MPInteger(bcpgIn);
+        }
+
+        internal DsaPublicBcpgKey(BcpgInputStream bcpgIn, bool strict)
+        {
+            m_p = new MPInteger(bcpgIn, strict);
+            m_q = new MPInteger(bcpgIn, strict);
+            m_g = new MPInteger(bcpgIn, strict);
+            m_y = new MPInteger(bcpgIn, strict);
         }
 
         public DsaPublicBcpgKey(BigInteger p, BigInteger q, BigInteger g, BigInteger y)
