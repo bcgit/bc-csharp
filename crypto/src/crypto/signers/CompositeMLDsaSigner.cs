@@ -257,9 +257,9 @@ namespace Org.BouncyCastle.Crypto.Signers
                  * independent, and reporting which half failed would tell an attacker more than the single
                  * bit the caller asked for.
                  */
-                bool mlDsaOk = m_mlDsaSigner.VerifySignature(
+                bool mlDsaOk = VerifyComponent(m_mlDsaSigner,
                     Arrays.CopyOfRange(signature, 0, mlDsaSignatureLength));
-                bool traditionalOk = m_traditionalSigner.VerifySignature(
+                bool traditionalOk = VerifyComponent(m_traditionalSigner,
                     Arrays.CopyOfRange(signature, mlDsaSignatureLength, signature.Length));
 
                 return mlDsaOk & traditionalOk;
@@ -280,6 +280,23 @@ namespace Org.BouncyCastle.Crypto.Signers
             {
                 m_mlDsaSigner.Reset();
                 m_traditionalSigner.Reset();
+            }
+        }
+
+        /*
+         * Any component failure is an invalid composite signature (draft Section 3.3). Some component signers
+         * throw rather than return false for a value they cannot parse - RSASSA-PSS, for an RSA block of the
+         * wrong length or out of range - so that is mapped to false here too, as DsaDigestSigner does.
+         */
+        private static bool VerifyComponent(ISigner signer, byte[] signature)
+        {
+            try
+            {
+                return signer.VerifySignature(signature);
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
 

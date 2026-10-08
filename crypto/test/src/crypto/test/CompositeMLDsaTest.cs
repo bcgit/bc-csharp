@@ -358,6 +358,56 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void TestMalformedTraditionalComponent()
+        {
+            /*
+             * The draft treats any component failure as an invalid signature (Section 3.3). A traditional
+             * component its own signer cannot even parse - an RSA block of the wrong length or out of range is
+             * the reachable case - must return false like any other mismatch, and must not leave the signer
+             * unusable. All 18 vectors between them cover the four traditional families.
+             */
+            var testVectors = LoadTestVectors(out byte[] message);
+
+            string[] labels = { "byte appended", "traditional half zeroed", "traditional half set to 0xFF" };
+
+            int count = 0;
+            foreach (var testVector in testVectors)
+            {
+                string tcId = testVector["tcId"];
+                if (!ParametersByTcId.TryGetValue(tcId, out var parameters))
+                    continue;
+
+                var publicKey = CompositeMLDsaPublicKeyParameters.FromEncoding(parameters,
+                    Base64.Decode(testVector["pk"]));
+                byte[] signature = Base64.Decode(testVector["s"]);
+
+                int mlDsaLength = parameters.MLDsaSignatureLength;
+                byte[] zeroed = Arrays.Clone(signature);
+                Arrays.Fill(zeroed, mlDsaLength, zeroed.Length, 0x00);
+                byte[] ones = Arrays.Clone(signature);
+                Arrays.Fill(ones, mlDsaLength, ones.Length, 0xFF);
+
+                byte[][] mutations = { Arrays.Append(signature, 0x00), zeroed, ones };
+
+                // One verifier throughout, so a mutation that left state behind would fail the final check.
+                var verifier = new CompositeMLDsaSigner(parameters);
+                verifier.Init(forSigning: false, publicKey);
+
+                for (int i = 0; i < mutations.Length; ++i)
+                {
+                    verifier.BlockUpdate(message, 0, message.Length);
+                    Assert.False(verifier.VerifySignature(mutations[i]), tcId + ": " + labels[i]);
+                }
+
+                verifier.BlockUpdate(message, 0, message.Length);
+                Assert.True(verifier.VerifySignature(signature), tcId + ": valid signature after rejected ones");
+                ++count;
+            }
+
+            Assert.AreEqual(ParametersByTcId.Count, count, "not all combinations were exercised");
+        }
+
+        [Test]
         public void TestAlgorithmIdentifierRegistration()
         {
             /*
