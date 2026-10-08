@@ -36,24 +36,24 @@ namespace Org.BouncyCastle.Crypto.Tests
             var d = new Dictionary<string, CompositeMLDsaParameters>();
             foreach (var parameters in new CompositeMLDsaParameters[]
             {
-                CompositeMLDsaParameters.MLDsa44_RSA2048_PSS_SHA256,
-                CompositeMLDsaParameters.MLDsa44_RSA2048_PKCS15_SHA256,
-                CompositeMLDsaParameters.MLDsa44_Ed25519_SHA512,
-                CompositeMLDsaParameters.MLDsa44_ECDsa_P256_SHA256,
-                CompositeMLDsaParameters.MLDsa65_RSA3072_PSS_SHA512,
-                CompositeMLDsaParameters.MLDsa65_RSA3072_PKCS15_SHA512,
-                CompositeMLDsaParameters.MLDsa65_RSA4096_PSS_SHA512,
-                CompositeMLDsaParameters.MLDsa65_RSA4096_PKCS15_SHA512,
-                CompositeMLDsaParameters.MLDsa65_ECDsa_P256_SHA512,
-                CompositeMLDsaParameters.MLDsa65_ECDsa_P384_SHA512,
-                CompositeMLDsaParameters.MLDsa65_ECDsa_brainpoolP256r1_SHA512,
-                CompositeMLDsaParameters.MLDsa65_Ed25519_SHA512,
-                CompositeMLDsaParameters.MLDsa87_ECDsa_P384_SHA512,
-                CompositeMLDsaParameters.MLDsa87_ECDsa_brainpoolP384r1_SHA512,
-                CompositeMLDsaParameters.MLDsa87_Ed448_SHAKE256,
-                CompositeMLDsaParameters.MLDsa87_RSA3072_PSS_SHA512,
-                CompositeMLDsaParameters.MLDsa87_RSA4096_PSS_SHA512,
-                CompositeMLDsaParameters.MLDsa87_ECDsa_P521_SHA512,
+                CompositeMLDsaParameters.MLDSA44_RSA2048_PSS_SHA256,
+                CompositeMLDsaParameters.MLDSA44_RSA2048_PKCS15_SHA256,
+                CompositeMLDsaParameters.MLDSA44_Ed25519_SHA512,
+                CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256,
+                CompositeMLDsaParameters.MLDSA65_RSA3072_PSS_SHA512,
+                CompositeMLDsaParameters.MLDSA65_RSA3072_PKCS15_SHA512,
+                CompositeMLDsaParameters.MLDSA65_RSA4096_PSS_SHA512,
+                CompositeMLDsaParameters.MLDSA65_RSA4096_PKCS15_SHA512,
+                CompositeMLDsaParameters.MLDSA65_ECDSA_P256_SHA512,
+                CompositeMLDsaParameters.MLDSA65_ECDSA_P384_SHA512,
+                CompositeMLDsaParameters.MLDSA65_ECDSA_brainpoolP256r1_SHA512,
+                CompositeMLDsaParameters.MLDSA65_Ed25519_SHA512,
+                CompositeMLDsaParameters.MLDSA87_ECDSA_P384_SHA512,
+                CompositeMLDsaParameters.MLDSA87_ECDSA_brainpoolP384r1_SHA512,
+                CompositeMLDsaParameters.MLDSA87_Ed448_SHAKE256,
+                CompositeMLDsaParameters.MLDSA87_RSA3072_PSS_SHA512,
+                CompositeMLDsaParameters.MLDSA87_RSA4096_PSS_SHA512,
+                CompositeMLDsaParameters.MLDSA87_ECDSA_P521_SHA512,
             })
             {
                 d.Add("id-" + parameters.Name, parameters);
@@ -216,7 +216,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void TestContextSeparation()
         {
-            var parameters = CompositeMLDsaParameters.MLDsa44_Ed25519_SHA512;
+            var parameters = CompositeMLDsaParameters.MLDSA44_Ed25519_SHA512;
             var keyPair = GenerateKeyPair(parameters);
 
             byte[] message = Strings.ToByteArray("Hello, how was your day?");
@@ -250,8 +250,8 @@ namespace Org.BouncyCastle.Crypto.Tests
              * a combination it was not made for. Use two combinations with identical component algorithms and
              * pre-hash but different domain separators.
              */
-            var signing = CompositeMLDsaParameters.MLDsa65_ECDsa_P256_SHA512;
-            var other = CompositeMLDsaParameters.MLDsa65_ECDsa_brainpoolP256r1_SHA512;
+            var signing = CompositeMLDsaParameters.MLDSA65_ECDSA_P256_SHA512;
+            var other = CompositeMLDsaParameters.MLDSA65_ECDSA_brainpoolP256r1_SHA512;
 
             Assert.AreEqual(signing.MLDsaParameters, other.MLDsaParameters);
             Assert.AreEqual(signing.TraditionalSignatureAlgorithm, other.TraditionalSignatureAlgorithm);
@@ -325,7 +325,7 @@ namespace Org.BouncyCastle.Crypto.Tests
              * the wrong length is the reachable case - with the buffered bytes still in place, so every
              * later attempt overflowed the buffer and threw again and the object could not be reused.
              */
-            var parameters = CompositeMLDsaParameters.MLDsa44_ECDsa_P256_SHA256;
+            var parameters = CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256;
             var keyPair = GenerateKeyPair(parameters);
             byte[] message = Strings.ToByteArray("recovery after a failed operation");
 
@@ -388,7 +388,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void TestCertificateGeneration()
         {
-            var parameters = CompositeMLDsaParameters.MLDsa44_ECDsa_P256_SHA256;
+            var parameters = CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256;
             var keyPair = GenerateKeyPair(parameters);
 
             var name = new X509Name("CN=Composite ML-DSA Test");
@@ -419,7 +419,7 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void TestMalformedEncodings()
         {
-            var parameters = CompositeMLDsaParameters.MLDsa44_ECDsa_P256_SHA256;
+            var parameters = CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256;
 
             // A body shorter than the ML-DSA component must not surface as an out-of-range exception.
             Assert.Throws<ArgumentException>(

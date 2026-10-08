@@ -37,130 +37,130 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private const string Shake256 = "SHAKE256";
 
         /// <summary>ML-DSA-44 with RSASSA-PSS (2048-bit).</summary>
-        public static readonly CompositeMLDsaParameters MLDsa44_RSA2048_PSS_SHA256 = CreateRsa(
+        public static readonly CompositeMLDsaParameters MLDSA44_RSA2048_PSS_SHA256 = CreateRsa(
             "MLDSA44-RSA2048-PSS-SHA256", IanaObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256,
             MLDsaParameters.ml_dsa_44, Sha256, "COMPSIG-MLDSA44-RSA2048-PSS-SHA256", "SHA-256withRSAandMGF1",
             rsaKeySize: 2048);
 
         /// <summary>ML-DSA-44 with RSASSA-PKCS1-v1_5 (2048-bit).</summary>
-        public static readonly CompositeMLDsaParameters MLDsa44_RSA2048_PKCS15_SHA256 = CreateRsa(
+        public static readonly CompositeMLDsaParameters MLDSA44_RSA2048_PKCS15_SHA256 = CreateRsa(
             "MLDSA44-RSA2048-PKCS15-SHA256", IanaObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256,
             MLDsaParameters.ml_dsa_44, Sha256, "COMPSIG-MLDSA44-RSA2048-PKCS15-SHA256", "SHA-256withRSA",
             rsaKeySize: 2048);
 
         /// <summary>ML-DSA-44 with Ed25519.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa44_Ed25519_SHA512 = Create(
+        public static readonly CompositeMLDsaParameters MLDSA44_Ed25519_SHA512 = Create(
             "MLDSA44-Ed25519-SHA512", IanaObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, MLDsaParameters.ml_dsa_44,
             Sha512, "COMPSIG-MLDSA44-Ed25519-SHA512", "Ed25519", TraditionalKeyType.Ed25519);
 
         /// <summary>ML-DSA-44 with ECDSA on NIST P-256.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa44_ECDsa_P256_SHA256 = CreateECDsa(
+        public static readonly CompositeMLDsaParameters MLDSA44_ECDSA_P256_SHA256 = CreateECDsa(
             "MLDSA44-ECDSA-P256-SHA256", IanaObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256,
             MLDsaParameters.ml_dsa_44, Sha256, "COMPSIG-MLDSA44-ECDSA-P256-SHA256", "SHA-256withECDSA",
             SecObjectIdentifiers.SecP256r1);
 
         /// <summary>ML-DSA-65 with RSASSA-PSS (3072-bit).</summary>
-        public static readonly CompositeMLDsaParameters MLDsa65_RSA3072_PSS_SHA512 = CreateRsa(
+        public static readonly CompositeMLDsaParameters MLDSA65_RSA3072_PSS_SHA512 = CreateRsa(
             "MLDSA65-RSA3072-PSS-SHA512", IanaObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512,
             MLDsaParameters.ml_dsa_65, Sha512, "COMPSIG-MLDSA65-RSA3072-PSS-SHA512", "SHA-256withRSAandMGF1",
             rsaKeySize: 3072);
 
         /// <summary>ML-DSA-65 with RSASSA-PKCS1-v1_5 (3072-bit).</summary>
-        public static readonly CompositeMLDsaParameters MLDsa65_RSA3072_PKCS15_SHA512 = CreateRsa(
+        public static readonly CompositeMLDsaParameters MLDSA65_RSA3072_PKCS15_SHA512 = CreateRsa(
             "MLDSA65-RSA3072-PKCS15-SHA512", IanaObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512,
             MLDsaParameters.ml_dsa_65, Sha512, "COMPSIG-MLDSA65-RSA3072-PKCS15-SHA512", "SHA-256withRSA",
             rsaKeySize: 3072);
 
         /// <summary>ML-DSA-65 with RSASSA-PSS (4096-bit).</summary>
-        public static readonly CompositeMLDsaParameters MLDsa65_RSA4096_PSS_SHA512 = CreateRsa(
+        public static readonly CompositeMLDsaParameters MLDSA65_RSA4096_PSS_SHA512 = CreateRsa(
             "MLDSA65-RSA4096-PSS-SHA512", IanaObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA512,
             MLDsaParameters.ml_dsa_65, Sha512, "COMPSIG-MLDSA65-RSA4096-PSS-SHA512", "SHA-384withRSAandMGF1",
             rsaKeySize: 4096);
 
         /// <summary>ML-DSA-65 with RSASSA-PKCS1-v1_5 (4096-bit).</summary>
-        public static readonly CompositeMLDsaParameters MLDsa65_RSA4096_PKCS15_SHA512 = CreateRsa(
+        public static readonly CompositeMLDsaParameters MLDSA65_RSA4096_PKCS15_SHA512 = CreateRsa(
             "MLDSA65-RSA4096-PKCS15-SHA512", IanaObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA512,
             MLDsaParameters.ml_dsa_65, Sha512, "COMPSIG-MLDSA65-RSA4096-PKCS15-SHA512", "SHA-384withRSA",
             rsaKeySize: 4096);
 
         /// <summary>ML-DSA-65 with ECDSA on NIST P-256.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa65_ECDsa_P256_SHA512 = CreateECDsa(
+        public static readonly CompositeMLDsaParameters MLDSA65_ECDSA_P256_SHA512 = CreateECDsa(
             "MLDSA65-ECDSA-P256-SHA512", IanaObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512,
             MLDsaParameters.ml_dsa_65, Sha512, "COMPSIG-MLDSA65-ECDSA-P256-SHA512", "SHA-256withECDSA",
             SecObjectIdentifiers.SecP256r1);
 
         /// <summary>ML-DSA-65 with ECDSA on NIST P-384.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa65_ECDsa_P384_SHA512 = CreateECDsa(
+        public static readonly CompositeMLDsaParameters MLDSA65_ECDSA_P384_SHA512 = CreateECDsa(
             "MLDSA65-ECDSA-P384-SHA512", IanaObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA512,
             MLDsaParameters.ml_dsa_65, Sha512, "COMPSIG-MLDSA65-ECDSA-P384-SHA512", "SHA-384withECDSA",
             SecObjectIdentifiers.SecP384r1);
 
         /// <summary>ML-DSA-65 with ECDSA on brainpoolP256r1.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa65_ECDsa_brainpoolP256r1_SHA512 = CreateECDsa(
+        public static readonly CompositeMLDsaParameters MLDSA65_ECDSA_brainpoolP256r1_SHA512 = CreateECDsa(
             "MLDSA65-ECDSA-brainpoolP256r1-SHA512", IanaObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA512,
             MLDsaParameters.ml_dsa_65, Sha512, "COMPSIG-MLDSA65-ECDSA-BP256-SHA512", "SHA-256withECDSA",
             TeleTrusTObjectIdentifiers.BrainpoolP256R1);
 
         /// <summary>ML-DSA-65 with Ed25519.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa65_Ed25519_SHA512 = Create(
+        public static readonly CompositeMLDsaParameters MLDSA65_Ed25519_SHA512 = Create(
             "MLDSA65-Ed25519-SHA512", IanaObjectIdentifiers.id_MLDSA65_Ed25519_SHA512, MLDsaParameters.ml_dsa_65,
             Sha512, "COMPSIG-MLDSA65-Ed25519-SHA512", "Ed25519", TraditionalKeyType.Ed25519);
 
         /// <summary>ML-DSA-87 with ECDSA on NIST P-384.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa87_ECDsa_P384_SHA512 = CreateECDsa(
+        public static readonly CompositeMLDsaParameters MLDSA87_ECDSA_P384_SHA512 = CreateECDsa(
             "MLDSA87-ECDSA-P384-SHA512", IanaObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512,
             MLDsaParameters.ml_dsa_87, Sha512, "COMPSIG-MLDSA87-ECDSA-P384-SHA512", "SHA-384withECDSA",
             SecObjectIdentifiers.SecP384r1);
 
         /// <summary>ML-DSA-87 with ECDSA on brainpoolP384r1.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa87_ECDsa_brainpoolP384r1_SHA512 = CreateECDsa(
+        public static readonly CompositeMLDsaParameters MLDSA87_ECDSA_brainpoolP384r1_SHA512 = CreateECDsa(
             "MLDSA87-ECDSA-brainpoolP384r1-SHA512", IanaObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512,
             MLDsaParameters.ml_dsa_87, Sha512, "COMPSIG-MLDSA87-ECDSA-BP384-SHA512", "SHA-384withECDSA",
             TeleTrusTObjectIdentifiers.BrainpoolP384R1);
 
         /// <summary>ML-DSA-87 with Ed448.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa87_Ed448_SHAKE256 = Create(
+        public static readonly CompositeMLDsaParameters MLDSA87_Ed448_SHAKE256 = Create(
             "MLDSA87-Ed448-SHAKE256", IanaObjectIdentifiers.id_MLDSA87_Ed448_SHAKE256, MLDsaParameters.ml_dsa_87,
             Shake256, "COMPSIG-MLDSA87-Ed448-SHAKE256", "Ed448", TraditionalKeyType.Ed448);
 
         /// <summary>ML-DSA-87 with RSASSA-PSS (3072-bit).</summary>
-        public static readonly CompositeMLDsaParameters MLDsa87_RSA3072_PSS_SHA512 = CreateRsa(
+        public static readonly CompositeMLDsaParameters MLDSA87_RSA3072_PSS_SHA512 = CreateRsa(
             "MLDSA87-RSA3072-PSS-SHA512", IanaObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512,
             MLDsaParameters.ml_dsa_87, Sha512, "COMPSIG-MLDSA87-RSA3072-PSS-SHA512", "SHA-256withRSAandMGF1",
             rsaKeySize: 3072);
 
         /// <summary>ML-DSA-87 with RSASSA-PSS (4096-bit).</summary>
-        public static readonly CompositeMLDsaParameters MLDsa87_RSA4096_PSS_SHA512 = CreateRsa(
+        public static readonly CompositeMLDsaParameters MLDSA87_RSA4096_PSS_SHA512 = CreateRsa(
             "MLDSA87-RSA4096-PSS-SHA512", IanaObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512,
             MLDsaParameters.ml_dsa_87, Sha512, "COMPSIG-MLDSA87-RSA4096-PSS-SHA512", "SHA-384withRSAandMGF1",
             rsaKeySize: 4096);
 
         /// <summary>ML-DSA-87 with ECDSA on NIST P-521.</summary>
-        public static readonly CompositeMLDsaParameters MLDsa87_ECDsa_P521_SHA512 = CreateECDsa(
+        public static readonly CompositeMLDsaParameters MLDSA87_ECDSA_P521_SHA512 = CreateECDsa(
             "MLDSA87-ECDSA-P521-SHA512", IanaObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512,
             MLDsaParameters.ml_dsa_87, Sha512, "COMPSIG-MLDSA87-ECDSA-P521-SHA512", "SHA-512withECDSA",
             SecObjectIdentifiers.SecP521r1);
 
         private static readonly CompositeMLDsaParameters[] All =
         {
-            MLDsa44_RSA2048_PSS_SHA256,
-            MLDsa44_RSA2048_PKCS15_SHA256,
-            MLDsa44_Ed25519_SHA512,
-            MLDsa44_ECDsa_P256_SHA256,
-            MLDsa65_RSA3072_PSS_SHA512,
-            MLDsa65_RSA3072_PKCS15_SHA512,
-            MLDsa65_RSA4096_PSS_SHA512,
-            MLDsa65_RSA4096_PKCS15_SHA512,
-            MLDsa65_ECDsa_P256_SHA512,
-            MLDsa65_ECDsa_P384_SHA512,
-            MLDsa65_ECDsa_brainpoolP256r1_SHA512,
-            MLDsa65_Ed25519_SHA512,
-            MLDsa87_ECDsa_P384_SHA512,
-            MLDsa87_ECDsa_brainpoolP384r1_SHA512,
-            MLDsa87_Ed448_SHAKE256,
-            MLDsa87_RSA3072_PSS_SHA512,
-            MLDsa87_RSA4096_PSS_SHA512,
-            MLDsa87_ECDsa_P521_SHA512,
+            MLDSA44_RSA2048_PSS_SHA256,
+            MLDSA44_RSA2048_PKCS15_SHA256,
+            MLDSA44_Ed25519_SHA512,
+            MLDSA44_ECDSA_P256_SHA256,
+            MLDSA65_RSA3072_PSS_SHA512,
+            MLDSA65_RSA3072_PKCS15_SHA512,
+            MLDSA65_RSA4096_PSS_SHA512,
+            MLDSA65_RSA4096_PKCS15_SHA512,
+            MLDSA65_ECDSA_P256_SHA512,
+            MLDSA65_ECDSA_P384_SHA512,
+            MLDSA65_ECDSA_brainpoolP256r1_SHA512,
+            MLDSA65_Ed25519_SHA512,
+            MLDSA87_ECDSA_P384_SHA512,
+            MLDSA87_ECDSA_brainpoolP384r1_SHA512,
+            MLDSA87_Ed448_SHAKE256,
+            MLDSA87_RSA3072_PSS_SHA512,
+            MLDSA87_RSA4096_PSS_SHA512,
+            MLDSA87_ECDSA_P521_SHA512,
         };
 
         internal static readonly IDictionary<string, CompositeMLDsaParameters> ByName = CreateByName();
