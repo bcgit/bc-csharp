@@ -6,7 +6,10 @@ using System.Text;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Signers;
@@ -488,6 +491,118 @@ namespace Org.BouncyCastle.Crypto.Tests
             signer.Init(forSigning: false, keyPair.Public);
             signer.BlockUpdate(new byte[1], 0, 1);
             Assert.False(signer.VerifySignature(new byte[16]));
+        }
+
+        [Test]
+        public void TestRsaModulusSize()
+        {
+            // Each RSA combination fixes the modulus size: any other size is malformed, however valid as RSA.
+            var parameters = CompositeMLDsaParameters.MLDSA44_RSA2048_PSS_SHA256;
+            GetVectorKeys(parameters, out byte[] pk, out byte[] sk);
+
+            var generator = new RsaKeyPairGenerator();
+            generator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(0x10001), new SecureRandom(), 1024,
+                100));
+            var keyPair = generator.GenerateKeyPair();
+            var publicKey = (RsaKeyParameters)keyPair.Public;
+            var privateKey = (RsaPrivateCrtKeyParameters)keyPair.Private;
+
+            byte[] pk1024 = Arrays.Concatenate(Arrays.CopyOfRange(pk, 0, parameters.MLDsaPublicKeyLength),
+                new RsaPublicKeyStructure(publicKey.Modulus, publicKey.Exponent).GetEncoded(Asn1Encodable.Der));
+            AssertMalformed(() => CompositeMLDsaPublicKeyParameters.FromEncoding(parameters, pk1024),
+                "RSA-1024 public key under an RSA-2048 combination");
+
+            byte[] sk1024 = Arrays.Concatenate(Arrays.CopyOfRange(sk, 0, parameters.MLDsaSeedLength),
+                new RsaPrivateKeyStructure(privateKey.Modulus, privateKey.PublicExponent, privateKey.Exponent,
+                    privateKey.P, privateKey.Q, privateKey.DP, privateKey.DQ, privateKey.QInv)
+                    .GetEncoded(Asn1Encodable.Der));
+            AssertMalformed(() => CompositeMLDsaPrivateKeyParameters.FromEncoding(parameters, sk1024),
+                "RSA-1024 private key under an RSA-2048 combination");
+        }
+
+        [Test]
+        public void TestECPrivateKeyCurve()
+        {
+            // The ECPrivateKey must carry its curve, and it must be the one the combination specifies.
+            var parameters = CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256;
+            GetVectorKeys(parameters, out _, out byte[] sk);
+
+            byte[] seed = Arrays.CopyOfRange(sk, 0, parameters.MLDsaSeedLength);
+            var d = ECPrivateKeyStructure.GetInstance(Arrays.CopyOfRange(sk, seed.Length, sk.Length)).GetKey();
+
+            byte[] wrongCurve = Arrays.Concatenate(seed,
+                new ECPrivateKeyStructure(256, d, SecObjectIdentifiers.SecP256k1).GetEncoded(Asn1Encodable.Der));
+            AssertMalformed(() => CompositeMLDsaPrivateKeyParameters.FromEncoding(parameters, wrongCurve),
+                "ECPrivateKey naming secp256k1 under a P-256 combination");
+
+            byte[] noCurve = Arrays.Concatenate(seed,
+                new ECPrivateKeyStructure(256, d).GetEncoded(Asn1Encodable.Der));
+            AssertMalformed(() => CompositeMLDsaPrivateKeyParameters.FromEncoding(parameters, noCurve),
+                "ECPrivateKey without parameters");
+        }
+
+        [Test]
+        public void TestECPublicKeyUncompressed()
+        {
+            // The draft mandates the uncompressed point; anything else would not re-encode to the same bytes.
+            var parameters = CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256;
+            GetVectorKeys(parameters, out byte[] pk, out _);
+
+            byte[] mlDsaPk = Arrays.CopyOfRange(pk, 0, parameters.MLDsaPublicKeyLength);
+            var q = ((ECPublicKeyParameters)CompositeMLDsaPublicKeyParameters.FromEncoding(parameters, pk)
+                .TraditionalPublicKey).Q;
+
+            byte[] compressed = Arrays.Concatenate(mlDsaPk, q.GetEncoded(compressed: true));
+            AssertMalformed(() => CompositeMLDsaPublicKeyParameters.FromEncoding(parameters, compressed),
+                "compressed EC point");
+
+            byte[] hybridPoint = q.GetEncoded(compressed: false);
+            hybridPoint[0] = (byte)(q.AffineYCoord.TestBitZero() ? 0x07 : 0x06);
+            byte[] hybrid = Arrays.Concatenate(mlDsaPk, hybridPoint);
+            AssertMalformed(() => CompositeMLDsaPublicKeyParameters.FromEncoding(parameters, hybrid),
+                "hybrid EC point");
+        }
+
+        [Test]
+        public void TestTrailingBytes()
+        {
+            // The traditional component must consume the rest of the encoding exactly, for every family.
+            foreach (var testVector in LoadTestVectors(out _))
+            {
+                string tcId = testVector["tcId"];
+                if (!ParametersByTcId.TryGetValue(tcId, out var parameters))
+                    continue;
+
+                byte[] pk = Arrays.Append(Base64.Decode(testVector["pk"]), 0x00);
+                Assert.Throws<ArgumentException>(() => CompositeMLDsaPublicKeyParameters.FromEncoding(parameters, pk),
+                    tcId + ": public key with a trailing byte");
+
+                byte[] sk = Arrays.Append(Base64.Decode(testVector["sk"]), 0x00);
+                Assert.Throws<ArgumentException>(
+                    () => CompositeMLDsaPrivateKeyParameters.FromEncoding(parameters, sk),
+                    tcId + ": private key with a trailing byte");
+            }
+        }
+
+        private static void AssertMalformed(TestDelegate decode, string message)
+        {
+            var e = Assert.Throws<ArgumentException>(decode, message);
+            StringAssert.StartsWith("malformed composite", e.Message, message);
+        }
+
+        private static void GetVectorKeys(CompositeMLDsaParameters parameters, out byte[] pk, out byte[] sk)
+        {
+            foreach (var testVector in LoadTestVectors(out _))
+            {
+                if (testVector["tcId"] == "id-" + parameters.Name)
+                {
+                    pk = Base64.Decode(testVector["pk"]);
+                    sk = Base64.Decode(testVector["sk"]);
+                    return;
+                }
+            }
+
+            throw new InvalidOperationException("no test vector for " + parameters.Name);
         }
 
         private static AsymmetricCipherKeyPair GenerateKeyPair(CompositeMLDsaParameters parameters)

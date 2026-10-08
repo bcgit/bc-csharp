@@ -138,11 +138,24 @@ namespace Org.BouncyCastle.Crypto.Parameters
             case CompositeMLDsaParameters.TraditionalKeyType.ECDsa:
             {
                 var ecPrivateKey = ECPrivateKeyStructure.GetInstance(encoding);
+
+                // The draft requires the curve to be carried; it must be the one the combination specifies.
+                if (!parameters.CurveOid.Equals(ecPrivateKey.Parameters as DerObjectIdentifier))
+                    throw new ArgumentException("malformed composite private key: ECPrivateKey does not name "
+                        + parameters.CurveOid.GetID(), nameof(encoding));
+
                 var domainParameters = ECNamedDomainParameters.LookupOid(parameters.CurveOid);
                 return new ECPrivateKeyParameters(ecPrivateKey.GetKey(), domainParameters);
             }
             case CompositeMLDsaParameters.TraditionalKeyType.Rsa:
-                return new RsaPrivateCrtKeyParameters(RsaPrivateKeyStructure.GetInstance(encoding));
+            {
+                var rsaPrivateKey = RsaPrivateKeyStructure.GetInstance(encoding);
+                if (rsaPrivateKey.Modulus.BitLength != parameters.RsaKeySize)
+                    throw new ArgumentException("malformed composite private key: RSA modulus is not "
+                        + parameters.RsaKeySize + " bits", nameof(encoding));
+
+                return new RsaPrivateCrtKeyParameters(rsaPrivateKey);
+            }
             default:
                 throw new InvalidOperationException();
             }

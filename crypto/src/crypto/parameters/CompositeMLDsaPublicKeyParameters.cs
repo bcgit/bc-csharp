@@ -97,12 +97,23 @@ namespace Org.BouncyCastle.Crypto.Parameters
             case CompositeMLDsaParameters.TraditionalKeyType.ECDsa:
             {
                 var domainParameters = ECNamedDomainParameters.LookupOid(parameters.CurveOid);
+
+                // The draft requires the uncompressed form, which also keeps the encoding byte-stable.
+                int fieldLength = domainParameters.Curve.FieldElementEncodingLength;
+                if (encoding.Length != 1 + 2 * fieldLength || encoding[0] != 0x04)
+                    throw new ArgumentException("malformed composite public key: EC point is not uncompressed",
+                        nameof(encoding));
+
                 var q = domainParameters.Curve.DecodePoint(encoding);
                 return new ECPublicKeyParameters(q, domainParameters);
             }
             case CompositeMLDsaParameters.TraditionalKeyType.Rsa:
             {
                 var rsaPublicKey = RsaPublicKeyStructure.GetInstance(encoding);
+                if (rsaPublicKey.Modulus.BitLength != parameters.RsaKeySize)
+                    throw new ArgumentException("malformed composite public key: RSA modulus is not "
+                        + parameters.RsaKeySize + " bits", nameof(encoding));
+
                 return new RsaKeyParameters(isPrivate: false, rsaPublicKey.Modulus, rsaPublicKey.PublicExponent);
             }
             default:
