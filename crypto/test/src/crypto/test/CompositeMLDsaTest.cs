@@ -6,6 +6,7 @@ using System.Text;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
@@ -434,6 +435,40 @@ namespace Org.BouncyCastle.Crypto.Tests
                 // received AlgorithmIdentifier back to a name before it can construct a signer.
                 Assert.AreEqual(parameters.Name, SignerUtilities.GetEncodingName(oid),
                     parameters.Name + ": OID maps back to the same name");
+            }
+        }
+
+        [Test]
+        public void TestDigestAlgorithmRegistration()
+        {
+            /*
+             * The digest for a composite signature algorithm is its pre-hash, named by the algorithm's suffix:
+             * CMS requires it as the SignerInfo digestAlgorithm, and CMP uses it for the certHash in certConf.
+             */
+            var finder = DefaultDigestAlgorithmFinder.Instance;
+
+            foreach (var parameters in ParametersByTcId.Values)
+            {
+                string name = parameters.Name;
+                DerObjectIdentifier expected;
+                if (name.EndsWith("-SHA256"))
+                {
+                    expected = NistObjectIdentifiers.IdSha256;
+                }
+                else if (name.EndsWith("-SHA512"))
+                {
+                    expected = NistObjectIdentifiers.IdSha512;
+                }
+                else
+                {
+                    Assert.True(name.EndsWith("-SHAKE256"), name + ": unrecognised pre-hash suffix");
+                    expected = NistObjectIdentifiers.IdShake256;
+                }
+
+                var digestAlgID = finder.Find(new AlgorithmIdentifier(SignerUtilities.GetObjectIdentifier(name)));
+                Assert.AreEqual(expected, digestAlgID.Algorithm, name + ": digest algorithm");
+                Assert.AreEqual(DigestUtilities.GetDigest(parameters.PreHashAlgorithm).GetDigestSize(),
+                    DigestUtilities.GetDigest(digestAlgID.Algorithm).GetDigestSize(), name + ": digest size");
             }
         }
 

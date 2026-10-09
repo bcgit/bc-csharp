@@ -16,6 +16,7 @@ using Org.BouncyCastle.Asn1.TeleTrust;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto.Parameters;
+using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Operators.Utilities
@@ -274,6 +275,16 @@ namespace Org.BouncyCastle.Operators.Utilities
                 {
                     DigestOids.Add(slhDsa.Oid, preHashOid);
                 }
+            }
+
+            /*
+             * Composite ML-DSA: each combination's pre-hash, as draft-ietf-lamps-cms-composite-sigs requires for
+             * the SignerInfo digestAlgorithm. CMP also uses it for the certHash of a composite-signed certificate.
+             */
+            foreach (CompositeMLDsaParameters compositeMLDsa in CompositeMLDsaParameters.ByName.Values)
+            {
+                var preHashOid = DigestUtilities.GetObjectIdentifier(compositeMLDsa.PreHashAlgorithm);
+                DigestOids.Add(compositeMLDsa.Oid, preHashOid);
             }
         }
 
