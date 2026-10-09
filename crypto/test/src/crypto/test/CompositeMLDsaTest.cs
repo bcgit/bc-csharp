@@ -248,10 +248,9 @@ namespace Org.BouncyCastle.Crypto.Tests
         public void TestDomainSeparation()
         {
             /*
-             * The two ML-DSA-65/Ed25519 and ML-DSA-44/Ed25519 combinations differ only in ML-DSA strength, but
-             * the ML-DSA-65 pairing shares its pre-hash with several others; a signature must not verify under
-             * a combination it was not made for. Use two combinations with identical component algorithms and
-             * pre-hash but different domain separators.
+             * A signature must not verify under a combination it was not made for. These two combinations
+             * share the ML-DSA parameter set, the traditional signature algorithm and the pre-hash, so with the
+             * same component keys bound under both, only their signature labels tell them apart.
              */
             var signing = CompositeMLDsaParameters.MLDSA65_ECDSA_P256_SHA512;
             var other = CompositeMLDsaParameters.MLDSA65_ECDSA_brainpoolP256r1_SHA512;

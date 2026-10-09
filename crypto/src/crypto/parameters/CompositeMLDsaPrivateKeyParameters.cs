@@ -14,10 +14,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// </summary>
     /// <remarks>
     /// The wire form is the plain concatenation of the ML-DSA 32-byte seed and the traditional private key,
-    /// with no framing. The traditional half is the bare key material as it would appear inside its own
-    /// PKCS#8 <c>privateKey</c> OCTET STRING — a DER <c>RSAPrivateKey</c>, a DER <c>ECPrivateKey</c> (carrying
-    /// the curve but not the public point), or the raw Ed25519/Ed448 secret. Because the ML-DSA half is a
-    /// seed, a composite private key can only be encoded when its ML-DSA component retains one.
+    /// with no framing. The traditional half is a DER <c>RSAPrivateKey</c>, a DER <c>ECPrivateKey</c> (carrying
+    /// the curve but not the public point), or the raw Ed25519/Ed448 secret (draft Section 4). These are not
+    /// necessarily the forms the components take in their own PKCS#8 <c>privateKey</c>: there an EdDSA secret
+    /// is wrapped as a <c>CurvePrivateKey</c> OCTET STRING, and an ML-DSA key is a CHOICE that need not be the
+    /// bare seed. Because the ML-DSA half is a seed, a composite private key can only be encoded when its
+    /// ML-DSA component retains one.
     /// </remarks>
     internal sealed class CompositeMLDsaPrivateKeyParameters
         : CompositeMLDsaKeyParameters

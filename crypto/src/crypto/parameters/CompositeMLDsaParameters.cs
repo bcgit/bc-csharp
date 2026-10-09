@@ -13,11 +13,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// <summary>
     /// The Composite ML-DSA algorithm combinations defined by
     /// <a href="https://datatracker.ietf.org/doc/draft-ietf-lamps-pq-composite-sigs/">Composite ML-DSA for use
-    /// in X.509 Public Key Infrastructure and CMS</a>.
+    /// in X.509 Public Key Infrastructure</a>.
     /// </summary>
     /// <remarks>
     /// Each combination pairs an ML-DSA parameter set with a traditional signature algorithm, and fixes the
-    /// pre-hash used to build the message representative plus the domain separator that binds a signature to
+    /// pre-hash used to build the message representative plus the signature label that binds a signature to
     /// exactly one combination. The IANA-assigned identifiers live under the <c>1.3.6.1.5.5.7.6</c> arc.
     /// </remarks>
     internal sealed class CompositeMLDsaParameters
@@ -188,26 +188,26 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         private static CompositeMLDsaParameters Create(string name, DerObjectIdentifier oid,
-            MLDsaParameters mlDsaParameters, string preHashAlgorithm, string domain,
+            MLDsaParameters mlDsaParameters, string preHashAlgorithm, string label,
             string traditionalSignatureAlgorithm, TraditionalKeyType traditionalKeyType)
         {
-            return new CompositeMLDsaParameters(name, oid, mlDsaParameters, preHashAlgorithm, domain,
+            return new CompositeMLDsaParameters(name, oid, mlDsaParameters, preHashAlgorithm, label,
                 traditionalSignatureAlgorithm, traditionalKeyType, rsaKeySize: 0, curveOid: null);
         }
 
         private static CompositeMLDsaParameters CreateECDsa(string name, DerObjectIdentifier oid,
-            MLDsaParameters mlDsaParameters, string preHashAlgorithm, string domain,
+            MLDsaParameters mlDsaParameters, string preHashAlgorithm, string label,
             string traditionalSignatureAlgorithm, DerObjectIdentifier curveOid)
         {
-            return new CompositeMLDsaParameters(name, oid, mlDsaParameters, preHashAlgorithm, domain,
+            return new CompositeMLDsaParameters(name, oid, mlDsaParameters, preHashAlgorithm, label,
                 traditionalSignatureAlgorithm, TraditionalKeyType.ECDsa, rsaKeySize: 0, curveOid: curveOid);
         }
 
         private static CompositeMLDsaParameters CreateRsa(string name, DerObjectIdentifier oid,
-            MLDsaParameters mlDsaParameters, string preHashAlgorithm, string domain,
+            MLDsaParameters mlDsaParameters, string preHashAlgorithm, string label,
             string traditionalSignatureAlgorithm, int rsaKeySize)
         {
-            return new CompositeMLDsaParameters(name, oid, mlDsaParameters, preHashAlgorithm, domain,
+            return new CompositeMLDsaParameters(name, oid, mlDsaParameters, preHashAlgorithm, label,
                 traditionalSignatureAlgorithm, TraditionalKeyType.Rsa, rsaKeySize: rsaKeySize, curveOid: null);
         }
 
@@ -215,21 +215,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly DerObjectIdentifier m_oid;
         private readonly MLDsaParameters m_mlDsaParameters;
         private readonly string m_preHashAlgorithm;
-        private readonly byte[] m_domain;
+        private readonly byte[] m_label;
         private readonly string m_traditionalSignatureAlgorithm;
         private readonly TraditionalKeyType m_traditionalKeyType;
         private readonly int m_rsaKeySize;
         private readonly DerObjectIdentifier m_curveOid;
 
         private CompositeMLDsaParameters(string name, DerObjectIdentifier oid, MLDsaParameters mlDsaParameters,
-            string preHashAlgorithm, string domain, string traditionalSignatureAlgorithm,
+            string preHashAlgorithm, string label, string traditionalSignatureAlgorithm,
             TraditionalKeyType traditionalKeyType, int rsaKeySize, DerObjectIdentifier curveOid)
         {
             m_name = name ?? throw new ArgumentNullException(nameof(name));
             m_oid = oid ?? throw new ArgumentNullException(nameof(oid));
             m_mlDsaParameters = mlDsaParameters ?? throw new ArgumentNullException(nameof(mlDsaParameters));
             m_preHashAlgorithm = preHashAlgorithm;
-            m_domain = Strings.ToByteArray(domain);
+            m_label = Strings.ToByteArray(label);
             m_traditionalSignatureAlgorithm = traditionalSignatureAlgorithm;
             m_traditionalKeyType = traditionalKeyType;
             m_rsaKeySize = rsaKeySize;
@@ -271,10 +271,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal int MLDsaSeedLength => m_mlDsaParameters.ParameterSet.SeedLength;
 
         /// <summary>
-        /// The domain separator that binds a signature to this combination; it is both the ML-DSA component's
+        /// The signature label that binds a signature to this combination; it is both the ML-DSA component's
         /// context string and part of the message representative.
         /// </summary>
-        internal byte[] GetDomain() => Arrays.Clone(m_domain);
+        internal byte[] GetLabel() => Arrays.Clone(m_label);
 
         /// <summary>Returns the algorithm name (see <see cref="Name"/>).</summary>
         public override string ToString() => Name;

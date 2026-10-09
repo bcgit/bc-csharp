@@ -9,19 +9,19 @@ namespace Org.BouncyCastle.Crypto.Signers
     /// <summary>
     /// Composite ML-DSA signature primitive, as specified by
     /// <a href="https://datatracker.ietf.org/doc/draft-ietf-lamps-pq-composite-sigs/">Composite ML-DSA for use
-    /// in X.509 Public Key Infrastructure and CMS</a>.
+    /// in X.509 Public Key Infrastructure</a>.
     /// </summary>
     /// <remarks>
     /// <para>
     /// The message is first reduced to a message representative that binds both components to the same
     /// combination and context:
     /// </para>
-    /// <code>M' = Prefix || Domain || len(ctx) || ctx || PH(M)</code>
+    /// <code>M' = Prefix || Label || len(ctx) || ctx || PH(M)</code>
     /// <para>
-    /// <c>Prefix</c> is the fixed ASCII string <c>CompositeAlgorithmSignatures2025</c>, <c>Domain</c> is the
-    /// per-combination separator from <see cref="CompositeMLDsaParameters"/>, and <c>PH</c> is that
+    /// <c>Prefix</c> is the fixed ASCII string <c>CompositeAlgorithmSignatures2025</c>, <c>Label</c> is the
+    /// per-combination signature label from <see cref="CompositeMLDsaParameters"/>, and <c>PH</c> is that
     /// combination's pre-hash. Both components then sign <c>M'</c> — the ML-DSA component additionally taking
-    /// <c>Domain</c> as its FIPS 204 context — and the composite signature is the concatenation
+    /// <c>Label</c> as its FIPS 204 context — and the composite signature is the concatenation
     /// <c>mldsaSig || tradSig</c>. Verification succeeds only if both components verify.
     /// </para>
     /// <para>
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Crypto.Signers
         private readonly CompositeMLDsaParameters m_parameters;
         private readonly bool m_preHashed;
         private readonly IDigest m_digest;
-        private readonly byte[] m_domain;
+        private readonly byte[] m_label;
 
         private readonly MLDsaSigner m_mlDsaSigner;
         private readonly ISigner m_traditionalSigner;
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             m_preHashed = preHashed;
 
             m_digest = DigestUtilities.GetDigest(parameters.PreHashAlgorithm);
-            m_domain = parameters.GetDomain();
+            m_label = parameters.GetLabel();
 
             m_mlDsaSigner = new MLDsaSigner(parameters.MLDsaParameters, deterministic: false);
             m_traditionalSigner = SignerUtilities.GetSigner(parameters.TraditionalSignatureAlgorithm);
@@ -131,11 +131,11 @@ namespace Org.BouncyCastle.Crypto.Signers
             }
 
             /*
-             * The ML-DSA component takes the domain separator as its FIPS 204 context. MLDsaSigner unwraps the
+             * The ML-DSA component takes the signature label as its FIPS 204 context. MLDsaSigner unwraps the
              * context envelope before the random one, so the context has to be the outer of the two.
              */
             var mlDsaParameters = new ParametersWithContext(
-                ParameterUtilities.WithRandom(mlDsaKey, providedRandom), m_domain);
+                ParameterUtilities.WithRandom(mlDsaKey, providedRandom), m_label);
 
             /*
              * Ed25519/Ed448 are deterministic and their signers reject a ParametersWithRandom envelope, so the
@@ -307,13 +307,13 @@ namespace Org.BouncyCastle.Crypto.Signers
         }
 
         /*
-         * M' = Prefix || Domain || len(ctx) || ctx || PH(M), fed to both component signers.
+         * M' = Prefix || Label || len(ctx) || ctx || PH(M), fed to both component signers.
          */
         private void ProcessMessageRepresentative()
         {
             byte[] preHash = GetPreHash();
 
-            byte[] messageRepresentative = Arrays.ConcatenateAll(Prefix, m_domain,
+            byte[] messageRepresentative = Arrays.ConcatenateAll(Prefix, m_label,
                 new byte[]{ (byte)m_context.Length }, m_context, preHash);
 
             m_mlDsaSigner.BlockUpdate(messageRepresentative, 0, messageRepresentative.Length);
