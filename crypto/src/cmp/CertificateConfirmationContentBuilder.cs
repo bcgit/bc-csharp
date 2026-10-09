@@ -62,7 +62,7 @@ namespace Org.BouncyCastle.Cmp
             for (int i = 0; i != m_acceptedCerts.Count; i++)
             {
                 var certHash = CmpUtilities.CalculateCertHash(m_acceptedCerts[i], m_acceptedSignatureAlgorithms[i],
-                    m_digestAlgorithmFinder);
+                    hashAlg: null, m_digestAlgorithmFinder);
                 var reqID = m_acceptedReqIDs[i];
 
                 v.Add(new CertStatus(certHash, reqID));

@@ -40,7 +40,8 @@ namespace Org.BouncyCastle.Cmp
 
         public virtual bool IsVerified(CmpCertificate cmpCertificate, AlgorithmIdentifier signatureAlgorithm)
         {
-            var certHash = CmpUtilities.CalculateCertHash(cmpCertificate, signatureAlgorithm, m_digestAlgorithmFinder);
+            var certHash = CmpUtilities.CalculateCertHash(cmpCertificate, signatureAlgorithm, m_certStatus.HashAlg,
+                m_digestAlgorithmFinder);
 
             return Arrays.FixedTimeEquals(m_certStatus.CertHash.GetOctets(), certHash);
         }
