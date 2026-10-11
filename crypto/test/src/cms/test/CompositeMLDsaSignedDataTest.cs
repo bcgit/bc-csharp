@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using NUnit.Framework;
 
@@ -12,6 +11,7 @@ using Org.BouncyCastle.Crypto.Tests;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkix;
 using Org.BouncyCastle.Security;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509;
 
@@ -117,9 +117,10 @@ namespace Org.BouncyCastle.Cms.Tests
              */
             // TODO Review the source of these test keys
             var vectorKey = m_vectorKeys[name];
-            var otherRsaKey = m_vectorKeys.Values.First(key => key != vectorKey
-                && key.Parameters.KeyType == CompositeMLDsaParameters.TraditionalKeyType.Rsa
-                && key.Parameters.RsaKeySize == parameters.RsaKeySize).TraditionalPrivateKey;
+            var otherRsaKey = CollectionUtilities.GetFirstOrNull(CollectionUtilities.Where(m_vectorKeys.Values,
+                key => key != vectorKey
+                    && key.Parameters.KeyType == CompositeMLDsaParameters.TraditionalKeyType.Rsa
+                    && key.Parameters.RsaKeySize == parameters.RsaKeySize)).TraditionalPrivateKey;
 
             byte[] seed = new byte[parameters.MLDsaSeedLength];
             Random.NextBytes(seed);

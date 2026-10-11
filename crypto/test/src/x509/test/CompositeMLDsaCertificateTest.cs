@@ -5,7 +5,6 @@ using System.IO;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
-using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
@@ -21,6 +20,7 @@ using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.X509.Extension;
+using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.X509.Tests
 {
@@ -28,9 +28,10 @@ namespace Org.BouncyCastle.X509.Tests
     /// The CA/RA certificate issuance flow with Composite ML-DSA keys, through public, algorithm-agnostic API only.
     /// </summary>
     /// <remarks>
-    /// Nothing here names a Composite ML-DSA type: keys are held as <see cref="AsymmetricKeyParameter"/> and
-    /// algorithms are chosen by name, exactly as for any other signature algorithm. The CA keys are the published
-    /// test vector keys, so the test is fast and deterministic.
+    /// Beyond listing the combinations, nothing here names a Composite ML-DSA type: keys are held as
+    /// <see cref="AsymmetricKeyParameter"/> and algorithms are chosen by name, exactly as for any other signature
+    /// algorithm. The composite root and CA keys are the published test vector keys, so the test is fast and
+    /// deterministic.
     /// </remarks>
     [TestFixture]
     public class CompositeMLDsaCertificateTest
@@ -39,35 +40,18 @@ namespace Org.BouncyCastle.X509.Tests
 
         private static readonly char[] Password = "composite".ToCharArray();
 
-        private static readonly string[] Names =
-        {
-            "MLDSA44-RSA2048-PSS-SHA256",
-            "MLDSA44-RSA2048-PKCS15-SHA256",
-            "MLDSA44-Ed25519-SHA512",
-            "MLDSA44-ECDSA-P256-SHA256",
-            "MLDSA65-RSA3072-PSS-SHA512",
-            "MLDSA65-RSA3072-PKCS15-SHA512",
-            "MLDSA65-RSA4096-PSS-SHA512",
-            "MLDSA65-RSA4096-PKCS15-SHA512",
-            "MLDSA65-ECDSA-P256-SHA512",
-            "MLDSA65-ECDSA-P384-SHA512",
-            "MLDSA65-ECDSA-brainpoolP256r1-SHA512",
-            "MLDSA65-Ed25519-SHA512",
-            "MLDSA87-ECDSA-P384-SHA512",
-            "MLDSA87-ECDSA-brainpoolP384r1-SHA512",
-            "MLDSA87-Ed448-SHAKE256",
-            "MLDSA87-RSA3072-PSS-SHA512",
-            "MLDSA87-RSA4096-PSS-SHA512",
-            "MLDSA87-ECDSA-P521-SHA512",
-        };
+        // The root for the tests that are not run per combination.
+        private static readonly string RootName = CompositeMLDsaParameters.MLDSA87_Ed448_SHAKE256.Name;
+
+        private static readonly IList<string> Names = new List<string>(CompositeMLDsaParameters.ByName.Keys);
 
         // RSA key generation is slow, so the generated subjects cover one combination of each other family.
         private static readonly string[] GeneratedSubjectNames =
         {
-            "MLDSA44-ECDSA-P256-SHA256",
-            "MLDSA65-Ed25519-SHA512",
-            "MLDSA87-Ed448-SHAKE256",
-            "MLDSA44-RSA2048-PKCS15-SHA256",
+            CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256.Name,
+            CompositeMLDsaParameters.MLDSA65_Ed25519_SHA512.Name,
+            CompositeMLDsaParameters.MLDSA87_Ed448_SHAKE256.Name,
+            CompositeMLDsaParameters.MLDSA44_RSA2048_PKCS15_SHA256.Name,
         };
 
         private sealed class Party
@@ -96,7 +80,7 @@ namespace Org.BouncyCastle.X509.Tests
             foreach (var testVector in CompositeMLDsaTest.LoadTestVectors(out _))
             {
                 string name = testVector["tcId"].Substring("id-".Length);
-                if (Array.IndexOf(Names, name) < 0)
+                if (!IsComposite(name))
                     continue;
 
                 var privateKey = PrivateKeyFactory.CreateKey(Base64.Decode(testVector["sk_pkcs8"]));
@@ -106,19 +90,22 @@ namespace Org.BouncyCastle.X509.Tests
                 m_vectorParties.Add(name, new Party(name, privateKey, publicKey));
             }
 
-            Assert.AreEqual(Names.Length, m_vectorParties.Count, "test vector keys");
+            Assert.AreEqual(Names.Count, m_vectorParties.Count, "test vector keys");
         }
 
         /// <summary>
-        /// Each combination as the CA, issuing to a subject holding the next combination's key, so that every
-        /// combination also appears once as a subject.
+        /// Each combination as the CA, under a root holding the previous combination's key and issuing to a subject
+        /// holding the next combination's key, so that every combination also appears once as a root and once as a
+        /// subject.
         /// </summary>
         [TestCaseSource(nameof(Names))]
         public void TestIssuance(string caName)
         {
-            string subjectName = Names[(Array.IndexOf(Names, caName) + 1) % Names.Length];
+            int index = Names.IndexOf(caName);
+            string rootName = Names[(index + Names.Count - 1) % Names.Count];
+            string subjectName = Names[(index + 1) % Names.Count];
 
-            RunIssuance(m_vectorParties[caName], m_vectorParties[subjectName]);
+            RunIssuance(m_vectorParties[rootName], m_vectorParties[caName], m_vectorParties[subjectName]);
         }
 
         [TestCaseSource(nameof(GeneratedSubjectNames))]
@@ -128,30 +115,35 @@ namespace Org.BouncyCastle.X509.Tests
             generator.Init(new KeyGenerationParameters(Random, 0));
             var keyPair = generator.GenerateKeyPair();
 
-            RunIssuance(m_vectorParties["MLDSA65-ECDSA-P384-SHA512"],
+            RunIssuance(m_vectorParties[RootName],
+                m_vectorParties[CompositeMLDsaParameters.MLDSA65_ECDSA_P384_SHA512.Name],
                 new Party(subjectName, keyPair.Private, keyPair.Public));
         }
 
         [Test]
         public void TestCompositeCAIssuingToECSubject()
         {
-            RunIssuance(m_vectorParties["MLDSA65-ECDSA-P384-SHA512"], GenerateECParty());
+            RunIssuance(m_vectorParties[RootName],
+                m_vectorParties[CompositeMLDsaParameters.MLDSA65_ECDSA_P384_SHA512.Name], GenerateECParty());
         }
 
         [Test]
         public void TestECCAIssuingToCompositeSubject()
         {
-            RunIssuance(GenerateECParty(), m_vectorParties["MLDSA44-ECDSA-P256-SHA256"]);
+            RunIssuance(m_vectorParties[RootName], GenerateECParty(),
+                m_vectorParties[CompositeMLDsaParameters.MLDSA44_ECDSA_P256_SHA256.Name]);
         }
 
         [Test]
         public void TestMLDsaCAIssuingToCompositeSubject()
         {
-            RunIssuance(GenerateMLDsaParty(), m_vectorParties["MLDSA65-ECDSA-P256-SHA512"]);
+            RunIssuance(m_vectorParties[RootName], GenerateMLDsaParty(),
+                m_vectorParties[CompositeMLDsaParameters.MLDSA65_ECDSA_P256_SHA512.Name]);
         }
 
-        private static void RunIssuance(Party ca, Party subject)
+        private static void RunIssuance(Party root, Party ca, Party subject)
         {
+            var rootDN = new X509Name("CN=" + root.Algorithm + " Root CA,O=Bouncy Castle");
             var caDN = new X509Name("CN=" + ca.Algorithm + " CA,O=Bouncy Castle");
             var subjectDN = new X509Name("CN=" + subject.Algorithm + " Subject,O=Bouncy Castle");
 
@@ -166,26 +158,36 @@ namespace Org.BouncyCastle.X509.Tests
             CheckAlgorithm(subject.Algorithm, request.SignatureAlgorithm, "PKCS#10 request");
             var subjectPublicKeyInfo = request.GetCertificationRequestInfo().SubjectPublicKeyInfo;
 
-            // 3. CA: a self-signed CA certificate, then two certificates for the requested key, one to revoke.
-            var caCert = MakeCACertificate(ca, caDN);
-            var subjectCert = IssueCertificate(ca, caCert, subjectPublicKeyInfo, subjectDN, BigInteger.Two);
-            var revokedCert = IssueCertificate(ca, caCert, subjectPublicKeyInfo, subjectDN, BigInteger.Three);
+            /*
+             * 3. CA: a self-signed root issues the intermediate CA certificate, and the CA issues the certificate for
+             * the requested key. Each also issues a second certificate to revoke, and the CA issues a certificate
+             * under the one to be revoked.
+             */
+            var caPublicKeyInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(ca.Public);
 
-            foreach (var cert in new X509Certificate[]{ caCert, subjectCert })
-            {
-                CheckAlgorithm(ca.Algorithm, cert.SignatureAlgorithm, "certificate");
-                if (IsComposite(ca.Algorithm))
-                {
-                    Assert.AreEqual(ca.Algorithm, cert.SigAlgName, ca.Algorithm + ": certificate SigAlgName");
-                }
-            }
+            var rootCert = MakeRootCertificate(root, rootDN);
+            var caCert = IssueCertificate(root, rootCert, caPublicKeyInfo, caDN, BigInteger.Two, isCA: true);
+            var revokedCACert = IssueCertificate(root, rootCert, caPublicKeyInfo, caDN, BigInteger.Three, isCA: true);
 
-            // 4. Over the wire: re-parse both, verify each against its issuer, and use the subject's key.
+            var subjectCert = IssueCertificate(ca, caCert, subjectPublicKeyInfo, subjectDN, BigInteger.Two,
+                isCA: false);
+            var revokedCert = IssueCertificate(ca, caCert, subjectPublicKeyInfo, subjectDN, BigInteger.Three,
+                isCA: false);
+            var underRevokedCACert = IssueCertificate(ca, revokedCACert, subjectPublicKeyInfo, subjectDN,
+                BigInteger.Four, isCA: false);
+
+            CheckCertificateAlgorithm(root.Algorithm, rootCert);
+            CheckCertificateAlgorithm(root.Algorithm, caCert);
+            CheckCertificateAlgorithm(ca.Algorithm, subjectCert);
+
+            // 4. Over the wire: re-parse the chain, verify each against its issuer, and use the subject's key.
             var parser = new X509CertificateParser();
+            var parsedRootCert = parser.ReadCertificate(rootCert.GetEncoded());
             var parsedCACert = parser.ReadCertificate(caCert.GetEncoded());
             var parsedSubjectCert = parser.ReadCertificate(subjectCert.GetEncoded());
 
-            parsedCACert.Verify(parsedCACert.GetPublicKey());
+            parsedRootCert.Verify(parsedRootCert.GetPublicKey());
+            parsedCACert.Verify(parsedRootCert.GetPublicKey());
             parsedSubjectCert.Verify(parsedCACert.GetPublicKey());
 
             byte[] message = Strings.ToByteArray("signed by the certified key");
@@ -199,16 +201,40 @@ namespace Org.BouncyCastle.X509.Tests
             verifier.BlockUpdate(message, 0, message.Length);
             Assert.True(verifier.VerifySignature(signature), subject.Algorithm + ": key from issued certificate");
 
-            // 5. Revocation: a CRL revoking one of the two, then revocation-enabled path validation.
-            var crl = new X509CrlParser().ReadCrl(MakeCrl(ca, caCert, revokedCert.SerialNumber).GetEncoded());
-            CheckAlgorithm(ca.Algorithm, crl.CertificateList.SignatureAlgorithm, "CRL");
-            crl.Verify(parsedCACert.GetPublicKey());
+            /*
+             * 5. Revocation: a CRL from each CA, revoking its second certificate, then revocation-enabled path
+             * validation of the two-certificate path below the root.
+             */
+            var crlParser = new X509CrlParser();
 
-            Validate(parsedCACert, parsedSubjectCert, crl);
+            var rootCrl = crlParser.ReadCrl(MakeCrl(root, rootCert, revokedCACert.SerialNumber).GetEncoded());
+            CheckAlgorithm(root.Algorithm, rootCrl.CertificateList.SignatureAlgorithm, "root CRL");
+            rootCrl.Verify(parsedRootCert.GetPublicKey());
 
-            var e = Assert.Throws<PkixCertPathValidatorException>(() => Validate(parsedCACert, revokedCert, crl),
+            var caCrl = crlParser.ReadCrl(MakeCrl(ca, caCert, revokedCert.SerialNumber).GetEncoded());
+            CheckAlgorithm(ca.Algorithm, caCrl.CertificateList.SignatureAlgorithm, "CRL");
+            caCrl.Verify(parsedCACert.GetPublicKey());
+
+            var crls = new X509Crl[]{ rootCrl, caCrl };
+
+            Validate(parsedRootCert, parsedCACert, parsedSubjectCert, crls);
+
+            var builtPath = BuildPath(parsedRootCert, parsedCACert, parsedSubjectCert, crls).Certificates;
+            Assert.AreEqual(2, builtPath.Count, ca.Algorithm + ": built path length");
+            Assert.AreEqual(parsedSubjectCert, builtPath[0], ca.Algorithm + ": built path subject certificate");
+            Assert.AreEqual(parsedCACert, builtPath[1], ca.Algorithm + ": built path CA certificate");
+
+            var e = Assert.Throws<PkixCertPathValidatorException>(
+                () => Validate(parsedRootCert, parsedCACert, revokedCert, crls),
                 ca.Algorithm + ": revoked certificate must not validate");
             Assert.AreEqual(PkixCertPathValidatorReason.Revoked, e.Reason, ca.Algorithm + ": rejection reason");
+            Assert.AreEqual(0, e.Index, ca.Algorithm + ": rejected certificate");
+
+            e = Assert.Throws<PkixCertPathValidatorException>(
+                () => Validate(parsedRootCert, revokedCACert, underRevokedCACert, crls),
+                root.Algorithm + ": certificate under a revoked CA must not validate");
+            Assert.AreEqual(PkixCertPathValidatorReason.Revoked, e.Reason, root.Algorithm + ": CA rejection reason");
+            Assert.AreEqual(1, e.Index, root.Algorithm + ": rejected CA certificate");
 
             // 6. Key storage: PKCS#8, PKCS#12 with the certificate chain, and PEM.
             byte[] pkcs8 = PrivateKeyInfoFactory.CreatePrivateKeyInfo(subject.Private).GetEncoded(Asn1Encodable.Der);
@@ -218,29 +244,29 @@ namespace Org.BouncyCastle.X509.Tests
             CheckPem(subject, pkcs8, parsedSubjectCert, request);
         }
 
-        private static X509Certificate MakeCACertificate(Party ca, X509Name caDN)
+        private static X509Certificate MakeRootCertificate(Party root, X509Name rootDN)
         {
             DateTime now = DateTime.UtcNow;
 
             var certGen = new X509V3CertificateGenerator();
             certGen.SetSerialNumber(BigInteger.One);
-            certGen.SetIssuerDN(caDN);
-            certGen.SetSubjectDN(caDN);
+            certGen.SetIssuerDN(rootDN);
+            certGen.SetSubjectDN(rootDN);
             certGen.SetNotBefore(now.AddMinutes(-5));
             certGen.SetNotAfter(now.AddDays(1));
-            certGen.SetPublicKey(ca.Public);
+            certGen.SetPublicKey(root.Public);
 
             certGen.AddExtension(X509Extensions.BasicConstraints, critical: true, new BasicConstraints(true));
             certGen.AddExtension(X509Extensions.KeyUsage, critical: true,
                 new KeyUsage(KeyUsage.KeyCertSign | KeyUsage.CrlSign));
             certGen.AddExtension(X509Extensions.SubjectKeyIdentifier, critical: false,
-                X509ExtensionUtilities.CreateSubjectKeyIdentifier(ca.Public));
+                X509ExtensionUtilities.CreateSubjectKeyIdentifier(root.Public));
 
-            return certGen.Generate(new Asn1SignatureFactory(ca.Algorithm, ca.Private, Random));
+            return certGen.Generate(new Asn1SignatureFactory(root.Algorithm, root.Private, Random));
         }
 
         private static X509Certificate IssueCertificate(Party ca, X509Certificate caCert,
-            SubjectPublicKeyInfo subjectPublicKeyInfo, X509Name subjectDN, BigInteger serialNumber)
+            SubjectPublicKeyInfo subjectPublicKeyInfo, X509Name subjectDN, BigInteger serialNumber, bool isCA)
         {
             DateTime now = DateTime.UtcNow;
 
@@ -252,8 +278,9 @@ namespace Org.BouncyCastle.X509.Tests
             certGen.SetNotAfter(now.AddHours(1));
             certGen.SetSubjectPublicKeyInfo(subjectPublicKeyInfo);
 
-            certGen.AddExtension(X509Extensions.BasicConstraints, critical: true, new BasicConstraints(false));
-            certGen.AddExtension(X509Extensions.KeyUsage, critical: true, new KeyUsage(KeyUsage.DigitalSignature));
+            certGen.AddExtension(X509Extensions.BasicConstraints, critical: true, new BasicConstraints(isCA));
+            certGen.AddExtension(X509Extensions.KeyUsage, critical: true,
+                new KeyUsage(isCA ? KeyUsage.KeyCertSign | KeyUsage.CrlSign : KeyUsage.DigitalSignature));
             certGen.AddExtension(X509Extensions.AuthorityKeyIdentifier, critical: false,
                 X509ExtensionUtilities.CreateAuthorityKeyIdentifier(caCert));
             certGen.AddExtension(X509Extensions.SubjectKeyIdentifier, critical: false,
@@ -275,19 +302,39 @@ namespace Org.BouncyCastle.X509.Tests
             return crlGen.Generate(new Asn1SignatureFactory(ca.Algorithm, ca.Private, Random));
         }
 
-        private static void Validate(X509Certificate caCert, X509Certificate eeCert, X509Crl crl)
+        private static void Validate(X509Certificate rootCert, X509Certificate caCert, X509Certificate eeCert,
+            X509Crl[] crls)
         {
-            var certPath = new PkixCertPath(new List<X509Certificate>{ eeCert });
+            var pkixParams = new PkixParameters(CreateTrustAnchors(rootCert));
+            ConfigureParameters(pkixParams, rootCert, caCert, eeCert, crls);
 
-            var trustAnchors = new HashSet<TrustAnchor>{ new TrustAnchor(caCert, null) };
-
-            var pkixParams = new PkixParameters(trustAnchors);
-            pkixParams.AddStoreCert(CollectionUtilities.CreateStore(new List<X509Certificate>{ caCert, eeCert }));
-            pkixParams.AddStoreCrl(CollectionUtilities.CreateStore(new List<X509Crl>{ crl }));
-            pkixParams.Date = DateTime.UtcNow;
-            pkixParams.IsRevocationEnabled = true;
+            var certPath = new PkixCertPath(new List<X509Certificate>{ eeCert, caCert });
 
             new PkixCertPathValidator().Validate(certPath, pkixParams);
+        }
+
+        private static PkixCertPath BuildPath(X509Certificate rootCert, X509Certificate caCert, X509Certificate eeCert,
+            X509Crl[] crls)
+        {
+            var target = new X509CertStoreSelector{ Certificate = eeCert };
+
+            var pkixParams = new PkixBuilderParameters(CreateTrustAnchors(rootCert), target);
+            ConfigureParameters(pkixParams, rootCert, caCert, eeCert, crls);
+
+            return new PkixCertPathBuilder().Build(pkixParams).CertPath;
+        }
+
+        private static ISet<TrustAnchor> CreateTrustAnchors(X509Certificate rootCert) =>
+            new HashSet<TrustAnchor>{ new TrustAnchor(rootCert, null) };
+
+        private static void ConfigureParameters(PkixParameters pkixParams, X509Certificate rootCert,
+            X509Certificate caCert, X509Certificate eeCert, X509Crl[] crls)
+        {
+            pkixParams.AddStoreCert(
+                CollectionUtilities.CreateStore(new List<X509Certificate>{ rootCert, caCert, eeCert }));
+            pkixParams.AddStoreCrl(CollectionUtilities.CreateStore(new List<X509Crl>(crls)));
+            pkixParams.Date = DateTime.UtcNow;
+            pkixParams.IsRevocationEnabled = true;
         }
 
         private static void CheckPkcs12(Party subject, byte[] pkcs8, X509Certificate subjectCert,
@@ -333,6 +380,15 @@ namespace Org.BouncyCastle.X509.Tests
             Assert.IsNull(pemReader.ReadObject(), subject.Algorithm + ": PEM end");
         }
 
+        private static void CheckCertificateAlgorithm(string algorithm, X509Certificate cert)
+        {
+            CheckAlgorithm(algorithm, cert.SignatureAlgorithm, "certificate");
+            if (IsComposite(algorithm))
+            {
+                Assert.AreEqual(algorithm, cert.SigAlgName, algorithm + ": certificate SigAlgName");
+            }
+        }
+
         private static void CheckAlgorithm(string algorithm, AlgorithmIdentifier algID, string what)
         {
             Assert.AreEqual(SignerUtilities.GetObjectIdentifier(algorithm), algID.Algorithm,
@@ -358,11 +414,11 @@ namespace Org.BouncyCastle.X509.Tests
         private static Party GenerateMLDsaParty()
         {
             var generator = GeneratorUtilities.GetKeyPairGenerator("ML-DSA");
-            generator.Init(new MLDsaKeyGenerationParameters(Random, NistObjectIdentifiers.id_ml_dsa_65));
+            generator.Init(new MLDsaKeyGenerationParameters(Random, MLDsaParameters.ml_dsa_65));
             var keyPair = generator.GenerateKeyPair();
-            return new Party("ML-DSA-65", keyPair.Private, keyPair.Public);
+            return new Party(MLDsaParameters.ml_dsa_65.Name, keyPair.Private, keyPair.Public);
         }
 
-        private static bool IsComposite(string algorithm) => Array.IndexOf(Names, algorithm) >= 0;
+        private static bool IsComposite(string algorithm) => CompositeMLDsaParameters.ByName.ContainsKey(algorithm);
     }
 }
