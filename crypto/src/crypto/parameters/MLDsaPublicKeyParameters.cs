@@ -35,8 +35,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (encoding.Length != parameters.ParameterSet.PublicKeyLength)
                 throw new ArgumentException("invalid encoding", nameof(encoding));
 
-            byte[] rho = Arrays.CopyOfRange(encoding, 0, MLDsaEngine.SeedBytes);
-            byte[] t1 = Arrays.CopyOfRange(encoding, MLDsaEngine.SeedBytes, encoding.Length);
+            return FromEncoding(parameters, encoding, 0);
+        }
+
+        /// <summary>
+        /// Decode the encoding at <paramref name="off"/> in <paramref name="buf"/>, which the caller has checked holds
+        /// a whole public key. The key takes its own copies.
+        /// </summary>
+        internal static MLDsaPublicKeyParameters FromEncoding(MLDsaParameters parameters, byte[] buf, int off)
+        {
+            int t1Length = parameters.ParameterSet.PublicKeyLength - MLDsaEngine.SeedBytes;
+
+            byte[] rho = Arrays.InternalCopySegment(buf, off, MLDsaEngine.SeedBytes);
+            byte[] t1 = Arrays.InternalCopySegment(buf, off + MLDsaEngine.SeedBytes, t1Length);
             return new MLDsaPublicKeyParameters(parameters, rho, t1);
         }
 

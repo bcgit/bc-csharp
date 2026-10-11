@@ -124,10 +124,15 @@ namespace Org.BouncyCastle.Crypto.Tests
             var oid = SignerUtilities.GetObjectIdentifier(parameters.Name);
             Assert.AreEqual(tcId, "id-" + SignerUtilities.GetEncodingName(oid), tcId + ": OID registration");
 
-            var publicKey = CompositeMLDsaPublicKeyParameters.FromEncoding(parameters, pk);
+            // Decode from copies that are then wiped: the keys must not share the caller's buffers.
+            byte[] pkCopy = Arrays.Clone(pk);
+            var publicKey = CompositeMLDsaPublicKeyParameters.FromEncoding(parameters, pkCopy);
+            Arrays.ZeroMemory(pkCopy);
             Assert.True(Arrays.AreEqual(pk, publicKey.GetEncoded()), tcId + ": public key round-trip");
 
-            var privateKey = CompositeMLDsaPrivateKeyParameters.FromEncoding(parameters, sk);
+            byte[] skCopy = Arrays.Clone(sk);
+            var privateKey = CompositeMLDsaPrivateKeyParameters.FromEncoding(parameters, skCopy);
+            Arrays.ZeroMemory(skCopy);
             Assert.True(Arrays.AreEqual(sk, privateKey.GetEncoded()), tcId + ": private key round-trip");
 
             Assert.True(Arrays.AreEqual(pk, privateKey.GetPublicKey().GetEncoded()),

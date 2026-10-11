@@ -38,8 +38,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentException("malformed composite public key: no traditional component",
                     nameof(encoding));
 
-            var mlDsaKey = MLDsaPublicKeyParameters.FromEncoding(parameters.MLDsaParameters,
-                Arrays.CopyOfRange(encoding, 0, mlDsaLength));
+            var mlDsaKey = MLDsaPublicKeyParameters.FromEncoding(parameters.MLDsaParameters, encoding, 0);
 
             var traditionalKey = DecodeTraditionalKey(parameters,
                 Arrays.CopyOfRange(encoding, mlDsaLength, encoding.Length));

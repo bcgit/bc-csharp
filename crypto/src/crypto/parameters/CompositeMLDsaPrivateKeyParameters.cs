@@ -44,13 +44,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 throw new ArgumentException("malformed composite private key: body shorter than the ML-DSA seed",
                     nameof(encoding));
 
-            var mlDsaKey = MLDsaPrivateKeyParameters.FromSeed(parameters.MLDsaParameters,
-                Arrays.CopyOfRange(encoding, 0, seedLength));
+            var mlDsaKey = MLDsaPrivateKeyParameters.FromSeed(parameters.MLDsaParameters, encoding, 0,
+                MLDsaPrivateKeyParameters.DefaultFormat);
 
-            var traditionalKey = DecodeTraditionalKey(parameters,
-                Arrays.CopyOfRange(encoding, seedLength, encoding.Length));
+            // The decoded key keeps no reference to this copy, so it can be wiped.
+            byte[] traditionalEncoding = Arrays.CopyOfRange(encoding, seedLength, encoding.Length);
+            try
+            {
+                var traditionalKey = DecodeTraditionalKey(parameters, traditionalEncoding);
 
-            return new CompositeMLDsaPrivateKeyParameters(parameters, mlDsaKey, traditionalKey);
+                return new CompositeMLDsaPrivateKeyParameters(parameters, mlDsaKey, traditionalKey);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(traditionalEncoding);
+            }
         }
 
         private readonly MLDsaPrivateKeyParameters m_mlDsaPrivateKey;
@@ -92,11 +100,19 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// encoding and so has no seed to encode.</exception>
         public byte[] GetEncoded()
         {
-            byte[] seed = m_mlDsaPrivateKey.GetSeed();
+            byte[] seed = m_mlDsaPrivateKey.Seed;
             if (seed == null)
                 throw new InvalidOperationException("composite private key requires an ML-DSA seed to encode");
 
-            return Arrays.Concatenate(seed, EncodeTraditionalKey(Parameters, m_traditionalPrivateKey));
+            byte[] traditionalEncoding = EncodeTraditionalKey(Parameters, m_traditionalPrivateKey);
+            try
+            {
+                return Arrays.Concatenate(seed, traditionalEncoding);
+            }
+            finally
+            {
+                Arrays.ZeroMemory(traditionalEncoding);
+            }
         }
 
         /// <summary>Derive the matching composite public key.</summary>

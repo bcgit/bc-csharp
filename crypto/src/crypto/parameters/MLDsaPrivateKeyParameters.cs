@@ -107,11 +107,22 @@ namespace Org.BouncyCastle.Crypto.Parameters
             if (seed.Length != parameters.ParameterSet.SeedLength)
                 throw new ArgumentException("invalid seed", nameof(seed));
 
-            var format = CheckFormat(preferredFormat, seed);
+            return FromSeed(parameters, seed, 0, preferredFormat);
+        }
 
-            seed = Arrays.InternalCopyBuffer(seed);
+        /// <summary>
+        /// Expand the seed at <paramref name="off"/> in <paramref name="buf"/>, which the caller has checked holds a
+        /// whole seed. The key takes its own copy.
+        /// </summary>
+        internal static MLDsaPrivateKeyParameters FromSeed(MLDsaParameters parameters, byte[] buf, int off,
+            Format preferredFormat)
+        {
+            var format = CheckFormat(preferredFormat, buf);
 
-            var engine = parameters.ParameterSet.GetEngine(random: null);
+            var parameterSet = parameters.ParameterSet;
+            byte[] seed = Arrays.InternalCopySegment(buf, off, parameterSet.SeedLength);
+
+            var engine = parameterSet.GetEngine(random: null);
 
             engine.GenerateKeyPairInternal(seed, out var rho, out var k, out var tr, out var s1, out var s2, out var t0,
                 out var t1);
