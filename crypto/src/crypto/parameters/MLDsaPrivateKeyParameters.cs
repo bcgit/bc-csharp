@@ -109,6 +109,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             var format = CheckFormat(preferredFormat, seed);
 
+            seed = Arrays.InternalCopyBuffer(seed);
+
             var engine = parameters.ParameterSet.GetEngine(random: null);
 
             engine.GenerateKeyPairInternal(seed, out var rho, out var k, out var tr, out var s1, out var s2, out var t0,

@@ -174,6 +174,21 @@ namespace Org.BouncyCastle.Crypto.Tests
         }
 
         [Test]
+        public void FromSeedCopiesSeed()
+        {
+            byte[] seed = new byte[32];
+            new SecureRandom().NextBytes(seed);
+            byte[] expected = Arrays.Clone(seed);
+
+            var priv = MLDsaPrivateKeyParameters.FromSeed(MLDsaParameters.ml_dsa_65, seed);
+
+            // The caller may wipe its seed buffer; the key must hold its own copy.
+            Arrays.ZeroMemory(seed);
+
+            Assert.IsTrue(Arrays.AreEqual(expected, priv.GetSeed()), "seed changed after wiping the caller's buffer");
+        }
+
+        [Test]
         [Parallelizable]
         public void KeyGen()
         {
