@@ -10,6 +10,7 @@ using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crmf;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Operators;
+using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Tests;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Pkcs;
@@ -23,9 +24,9 @@ namespace Org.BouncyCastle.Cmp.Tests
     /// CMP certificate enrolment with Composite ML-DSA keys, through public, algorithm-agnostic API only.
     /// </summary>
     /// <remarks>
-    /// Nothing here names a Composite ML-DSA type: keys are held as <see cref="AsymmetricKeyParameter"/> and
-    /// algorithms are chosen by name. The keys are the published test vector keys, so the test is fast and
-    /// deterministic.
+    /// Beyond naming the combinations, nothing here names a Composite ML-DSA type: keys are held as
+    /// <see cref="AsymmetricKeyParameter"/> and algorithms are chosen by name. The keys are the published test vector
+    /// keys, so the test is fast and deterministic.
     /// </remarks>
     [TestFixture]
     public class CompositeMLDsaCmpTest
@@ -34,27 +35,7 @@ namespace Org.BouncyCastle.Cmp.Tests
 
         private static readonly char[] SharedSecret = "composite enrolment secret".ToCharArray();
 
-        private static readonly string[] Names =
-        {
-            "MLDSA44-RSA2048-PSS-SHA256",
-            "MLDSA44-RSA2048-PKCS15-SHA256",
-            "MLDSA44-Ed25519-SHA512",
-            "MLDSA44-ECDSA-P256-SHA256",
-            "MLDSA65-RSA3072-PSS-SHA512",
-            "MLDSA65-RSA3072-PKCS15-SHA512",
-            "MLDSA65-RSA4096-PSS-SHA512",
-            "MLDSA65-RSA4096-PKCS15-SHA512",
-            "MLDSA65-ECDSA-P256-SHA512",
-            "MLDSA65-ECDSA-P384-SHA512",
-            "MLDSA65-ECDSA-brainpoolP256r1-SHA512",
-            "MLDSA65-Ed25519-SHA512",
-            "MLDSA87-ECDSA-P384-SHA512",
-            "MLDSA87-ECDSA-brainpoolP384r1-SHA512",
-            "MLDSA87-Ed448-SHAKE256",
-            "MLDSA87-RSA3072-PSS-SHA512",
-            "MLDSA87-RSA4096-PSS-SHA512",
-            "MLDSA87-ECDSA-P521-SHA512",
-        };
+        private static readonly IList<string> Names = new List<string>(CompositeMLDsaParameters.ByName.Keys);
 
         private IDictionary<string, AsymmetricCipherKeyPair> m_vectorKeys;
 
@@ -65,7 +46,7 @@ namespace Org.BouncyCastle.Cmp.Tests
             foreach (var testVector in CompositeMLDsaTest.LoadTestVectors(out _))
             {
                 string name = testVector["tcId"].Substring("id-".Length);
-                if (Array.IndexOf(Names, name) < 0)
+                if (!CompositeMLDsaParameters.ByName.ContainsKey(name))
                     continue;
 
                 var privateKey = PrivateKeyFactory.CreateKey(Base64.Decode(testVector["sk_pkcs8"]));
@@ -75,7 +56,7 @@ namespace Org.BouncyCastle.Cmp.Tests
                 m_vectorKeys.Add(name, new AsymmetricCipherKeyPair(publicKey, privateKey));
             }
 
-            Assert.AreEqual(Names.Length, m_vectorKeys.Count, "test vector keys");
+            Assert.AreEqual(Names.Count, m_vectorKeys.Count, "test vector keys");
         }
 
         /// <summary>
@@ -89,7 +70,7 @@ namespace Org.BouncyCastle.Cmp.Tests
         [TestCaseSource(nameof(Names))]
         public void TestInitialRegistration(string caAlgorithm)
         {
-            string subjectAlgorithm = Names[(Array.IndexOf(Names, caAlgorithm) + 1) % Names.Length];
+            string subjectAlgorithm = Names[(Names.IndexOf(caAlgorithm) + 1) % Names.Count];
 
             var ca = new CA(caAlgorithm, m_vectorKeys[caAlgorithm]);
             var subjectKeys = m_vectorKeys[subjectAlgorithm];
@@ -164,9 +145,10 @@ namespace Org.BouncyCastle.Cmp.Tests
         [Test]
         public void TestSignatureProtectedRequest()
         {
-            var ca = new CA("MLDSA65-ECDSA-P384-SHA512", m_vectorKeys["MLDSA65-ECDSA-P384-SHA512"]);
+            string caAlgorithm = CompositeMLDsaParameters.MLDSA65_ECDSA_P384_SHA512.Name;
+            var ca = new CA(caAlgorithm, m_vectorKeys[caAlgorithm]);
 
-            string currentAlgorithm = "MLDSA44-Ed25519-SHA512";
+            string currentAlgorithm = CompositeMLDsaParameters.MLDSA44_Ed25519_SHA512.Name;
             var currentKeys = m_vectorKeys[currentAlgorithm];
             var subjectDN = new X509Name("CN=Signature-protected Subject,O=Bouncy Castle");
             var subjectName = new GeneralName(subjectDN);
@@ -175,7 +157,7 @@ namespace Org.BouncyCastle.Cmp.Tests
                 .SetPublicKey(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(currentKeys.Public))
                 .Build());
 
-            string newAlgorithm = "MLDSA87-ECDSA-P521-SHA512";
+            string newAlgorithm = CompositeMLDsaParameters.MLDSA87_ECDSA_P521_SHA512.Name;
             var newKeys = m_vectorKeys[newAlgorithm];
             byte[] transactionID = SecureRandom.GetNextBytes(Random, 16);
 
