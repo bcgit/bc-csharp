@@ -207,6 +207,43 @@ namespace Org.BouncyCastle.Crmf.Tests
             CheckCertReqMsgWithArchiveControl(rsaKeyPair,msg);
         }
 
+        [Test]
+        public void ArchiveControlWithoutEnvelopedData()
+        {
+            EncryptedValue encValue = new EncryptedValue(null, new AlgorithmIdentifier(NistObjectIdentifiers.IdAes128Cbc),
+                new DerBitString(new byte[16]), null, null, new DerBitString(new byte[32]));
+
+            CheckArchiveControlWithoutEnvelopedData(PkiArchiveControl.keyGenParameters,
+                new PkiArchiveOptions(new DerOctetString(new byte[8])));
+            CheckArchiveControlWithoutEnvelopedData(PkiArchiveControl.archiveRemGenPrivKey,
+                new PkiArchiveOptions(true));
+            CheckArchiveControlWithoutEnvelopedData(PkiArchiveControl.encryptedPrivKey,
+                new PkiArchiveOptions(new EncryptedKey(encValue)));
+        }
+
+        private void CheckArchiveControlWithoutEnvelopedData(int archiveType, PkiArchiveOptions options)
+        {
+            CheckArchiveControlWithoutEnvelopedData(archiveType, new PkiArchiveControl(options));
+            CheckArchiveControlWithoutEnvelopedData(archiveType,
+                new PkiArchiveControl(PkiArchiveOptions.GetInstance(Asn1Object.FromByteArray(options.GetEncoded()))));
+        }
+
+        private void CheckArchiveControlWithoutEnvelopedData(int archiveType, PkiArchiveControl archiveControl)
+        {
+            Assert.AreEqual(archiveType, archiveControl.ArchiveType);
+            Assert.False(archiveControl.IsEnvelopedData());
+
+            try
+            {
+                archiveControl.GetEnvelopedData();
+                Assert.Fail("no exception");
+            }
+            catch (CrmfException e)
+            {
+                Assert.AreEqual(e.Message, "archive control does not contain enveloped data");
+            }
+        }
+
         private void CheckCertReqMsgWithArchiveControl(AsymmetricCipherKeyPair kp, CertificateRequestMessage certReqMessage)
         {
             PkiArchiveControl archiveControl = (PkiArchiveControl)certReqMessage.GetControl(
