@@ -24,7 +24,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		: Asn1Encodable
 	{
 		/**
-		* Rechtsanw�ltin
+		* Rechtsanwältin
 		*/
 		public static readonly DerObjectIdentifier Rechtsanwltin =
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("1");
@@ -54,13 +54,13 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("5");
 
 		/**
-		* Steuerbevollm�chtigte
+		* Steuerbevollmächtigte
 		*/
 		public static readonly DerObjectIdentifier Steuerbevollmchtigte =
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("6");
 
 		/**
-		* Steuerbevollm�chtigter
+		* Steuerbevollmächtigter
 		*/
 		public static readonly DerObjectIdentifier Steuerbevollmchtigter =
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("7");
@@ -102,31 +102,31 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("13");
 
 		/**
-		* Wirtschaftspr�ferin
+		* Wirtschaftsprüferin
 		*/
 		public static readonly DerObjectIdentifier Wirtschaftsprferin =
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("14");
 
 		/**
-		* Wirtschaftspr�fer
+		* Wirtschaftsprüfer
 		*/
 		public static readonly DerObjectIdentifier Wirtschaftsprfer =
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("15");
 
 		/**
-		* Vereidigte Buchpr�ferin
+		* Vereidigte Buchprüferin
 		*/
 		public static readonly DerObjectIdentifier VereidigteBuchprferin =
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("16");
 
 		/**
-		* Vereidigter Buchpr�fer
+		* Vereidigter Buchprüfer
 		*/
 		public static readonly DerObjectIdentifier VereidigterBuchprfer =
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("17");
 
 		/**
-		* Patentanw�ltin
+		* Patentanwältin
 		*/
 		public static readonly DerObjectIdentifier Patentanwltin =
 			NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("18");

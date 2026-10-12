@@ -67,7 +67,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt
 		/**
 		 * 
 		 * Reference for a file of a smartcard that stores the public key of this
-		 * certificate and that is used as �security anchor�.
+		 * certificate and that is used as “security anchor”.
 		 * 
 		 * <pre>
 		 *		PKReferenceSyntax ::= OCTET STRING (SIZE(20))

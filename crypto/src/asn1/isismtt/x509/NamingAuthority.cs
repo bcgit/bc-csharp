@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		/**
 		* Profession OIDs should always be defined under the OID branch of the
 		* responsible naming authority. At the time of this writing, the work group
-		* �Recht, Wirtschaft, Steuern� (�Law, Economy, Taxes�) is registered as the
+		* “Recht, Wirtschaft, Steuern” (“Law, Economy, Taxes”) is registered as the
 		* first naming authority under the OID id-isismtt-at-namingAuthorities.
 		*/
 		public static readonly DerObjectIdentifier IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern =

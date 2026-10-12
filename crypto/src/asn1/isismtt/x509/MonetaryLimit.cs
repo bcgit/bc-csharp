@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 	* <p/>
 	* currency must be the ISO code.
 	* <p/>
-	* value = amount�10*exponent
+	* value = amount×10*exponent
 	*/
     public class MonetaryLimit
 		: Asn1Encodable
@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
 		* Constructor from a given details.
 		* <p/>
 		* <p/>
-		* value = amount�10^exponent
+		* value = amount×10^exponent
 		*
 		* @param currency The currency. Must be the ISO code.
 		* @param amount   The amount
