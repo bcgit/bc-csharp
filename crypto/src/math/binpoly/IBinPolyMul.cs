@@ -43,6 +43,12 @@
         /// Compute <c>z = x^(2^n) mod r(x)</c>, i.e. <paramref name="n"/> repeated squarings.
         /// <c>x</c> may alias <c>z</c> (in-place repeated squaring).
         /// </summary>
+        /// <remarks>
+        /// <para><paramref name="n"/> must not be secret: the running time, the choice between repeated squaring and a
+        /// coefficient permutation, and the permutation's memory access pattern all depend on it.</para>
+        /// <para><paramref name="n"/> is used as given, not reduced modulo the period of squaring in the ring (e.g. the
+        /// degree for a field); callers are expected to pass counts already in reduced form.</para>
+        /// </remarks>
         void SquareN(ulong[] x, int xOff, int n, ulong[] z, int zOff);
     }
 }

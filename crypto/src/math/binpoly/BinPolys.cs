@@ -295,6 +295,10 @@ namespace Org.BouncyCastle.Math.BinPoly
             private const int MaxN = 1 << 20;
 
             /// <summary>Reduction by <c>x^n + 1</c> (cyclic ring, used by BIKE and HQC).</summary>
+            /// <remarks>
+            /// For odd <c>n</c> the result is a <see cref="BinomialPermuteMul"/>, whose <c>SquareN</c> applies large
+            /// counts as a coefficient permutation.
+            /// </remarks>
             public static IBinPolyMul Binomial(int n)
             {
                 if (n < 1)
@@ -305,7 +309,7 @@ namespace Org.BouncyCastle.Math.BinPoly
                 if (n > MaxN)
                     throw new ArgumentOutOfRangeException(nameof(n), "must be at most 2^20");
 
-                return CreateBinPolyMul(n, BinPolyMulBase.BinomialReduce.Create(n));
+                return BinomialPermuteMul.Wrap(CreateBinPolyMul(n, BinPolyMulBase.BinomialReduce.Create(n)));
             }
 
             /// <summary>Reduction by <c>x^n + x^k + 1</c>.</summary>

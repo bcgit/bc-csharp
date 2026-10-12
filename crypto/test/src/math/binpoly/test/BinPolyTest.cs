@@ -529,6 +529,60 @@ namespace Org.BouncyCastle.Math.BinPoly.Tests
             Assert.Throws<ArgumentOutOfRangeException>(() => binomial.SquareN(x, 0, -1, z, 0));
         }
 
+        // For odd n, SquareN switches from repeated squaring to a coefficient permutation at a count that depends on
+        // the runtime's ISA; even n never switches. The counts straddle every cutoff in use and run well past the
+        // smaller n, each checked out-of-place, in place, and at offsets with guard zones.
+        [TestCaseSource(nameof(EvenBinomials))]
+        [TestCaseSource(nameof(SmallBinomials))]
+        [TestCaseSource(nameof(MediumBinomials))]
+        [TestCaseSource(nameof(BikeBinomials))]
+        public void Binomial_SquareN_AcrossPermuteCutoff(string label, int n)
+        {
+            var binomial = BinPolys.Mul.Binomial(n);
+            var random = new Random(FixedSeed + 1400 + n);
+            int size = binomial.Size;
+            int[] ks = { 1, 2, 7, 8, 9, 11, 12, 13, 16, 17, 23, 24, 25, 32, 33, 64, 81, 200, 1000 };
+
+            ulong[] x = RandomReduced(random, n);
+            ulong[] expected = (ulong[])x.Clone();
+            int squarings = 0;
+
+            foreach (int k in ks)
+            {
+                for (; squarings < k; ++squarings)
+                {
+                    binomial.Square(expected, 0, expected, 0);
+                }
+
+                string context = label + " k = " + k;
+
+                ulong[] z = BinPolys.Create(size);
+                binomial.SquareN(x, 0, k, z, 0);
+                Assert.AreEqual(expected, z, context);
+
+                ulong[] xBuf = PadBuffer(size, OffX, OffPadTail, random);
+                ulong[] zBuf = PadBuffer(size, OffZ, OffPadTail, random);
+                Array.Copy(x, 0, xBuf, OffX, size);
+                ulong[] xBufBefore = (ulong[])xBuf.Clone();
+                ulong[] zBufBefore = (ulong[])zBuf.Clone();
+
+                binomial.SquareN(xBuf, OffX, k, zBuf, OffZ);
+
+                AssertSliceEquals(expected, zBuf, OffZ, size, context + " offsets");
+                Assert.AreEqual(xBufBefore, xBuf, context + " xBuf clobbered");
+                AssertGuardZonesEqual(zBufBefore, zBuf, OffZ, size, context + " zBuf");
+
+                ulong[] inPlace = PadBuffer(size, OffX, OffPadTail, random);
+                Array.Copy(x, 0, inPlace, OffX, size);
+                ulong[] inPlaceBefore = (ulong[])inPlace.Clone();
+
+                binomial.SquareN(inPlace, OffX, k, inPlace, OffX);
+
+                AssertSliceEquals(expected, inPlace, OffX, size, context + " in place");
+                AssertGuardZonesEqual(inPlaceBefore, inPlace, OffX, size, context + " in place");
+            }
+        }
+
         [TestCaseSource(nameof(EvenTrinomials))]
         [TestCaseSource(nameof(SectTrinomials))]
         [TestCaseSource(nameof(SyntheticTrinomialsA))]
