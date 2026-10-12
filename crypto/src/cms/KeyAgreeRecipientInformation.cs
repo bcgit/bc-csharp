@@ -69,6 +69,9 @@ namespace Org.BouncyCastle.Cms
             m_encryptedKey = encryptedKey;
         }
 
+        /// <summary>Return the originator details for this recipient.</summary>
+        public OriginatorIdentifierOrKey Originator => m_info.Originator;
+
         private static AsymmetricKeyParameter GetSenderPublicKey(AsymmetricKeyParameter receiverPrivateKey,
             OriginatorIdentifierOrKey originator)
         {

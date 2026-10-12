@@ -6,12 +6,14 @@ using System.Text;
 using NUnit.Framework;
 
 using Org.BouncyCastle.Asn1;
+using Org.BouncyCastle.Asn1.Cms;
 using Org.BouncyCastle.Asn1.Kisa;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Ntt;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.X509;
+using Org.BouncyCastle.Asn1.X9;
 using Org.BouncyCastle.Crypto;
 using Org.BouncyCastle.Crypto.Agreement;
 using Org.BouncyCastle.Crypto.Generators;
@@ -20,6 +22,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Crypto.Utilities;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Utilities;
+using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.IO.Pem;
 using Org.BouncyCastle.Utilities.Test;
@@ -1185,6 +1188,14 @@ namespace Org.BouncyCastle.Cms.Tests
 
             ConfirmDataReceived(recipients, data, ReciECCert, ReciECKP.Private);
             ConfirmNumberRecipients(recipients, 1);
+
+            KeyAgreeRecipientInformation recInfo = (KeyAgreeRecipientInformation)
+                CollectionUtilities.GetFirstOrNull(recipients.GetRecipients());
+
+            OriginatorIdentifierOrKey originator = recInfo.Originator;
+            Assert.NotNull(originator.OriginatorKey);
+
+            Assert.AreEqual(X9ObjectIdentifiers.Prime239v1, originator.OriginatorKey.Algorithm.Parameters);
         }
 
         [Test]
