@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 using NUnit.Framework;
 
@@ -9,6 +10,7 @@ using Org.BouncyCastle.Asn1.Iana;
 using Org.BouncyCastle.Asn1.Nist;
 using Org.BouncyCastle.Asn1.Oiw;
 using Org.BouncyCastle.Asn1.Pkcs;
+using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Cmp.Tests;
 using Org.BouncyCastle.Cms;
@@ -123,32 +125,31 @@ namespace Org.BouncyCastle.Crmf.Tests
         [Test]
         public void BasicMessage()
         {
-            RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
-            AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
+            var rsaKeyPair = GenerateRsaKeyPair(512);
 
-            CertificateRequestMessageBuilder certReqBuild = new CertificateRequestMessageBuilder(BigInteger.One);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
 
-            certReqBuild.SetSubject(new X509Name("CN=Test"))
+            CertificateRequestMessageBuilder crmBuilder = new CertificateRequestMessageBuilder(BigInteger.One);
+
+            crmBuilder.SetSubject(new X509Name("CN=Test"))
                 .SetPublicKey(rsaKeyPair.Public)
                 .SetProofOfPossessionSignKeySigner(new Asn1SignatureFactory("SHA1WithRSA", rsaKeyPair.Private));
 
-            CertificateRequestMessage certificateRequestMessage = certReqBuild.Build();
+            CertificateRequestMessage crm = crmBuilder.Build();
 
-            Assert.That(certificateRequestMessage.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public)),
+            Assert.That(crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public)),
                 "Signing Key Pop Valid");
 
-            var certTemplate = certificateRequestMessage.GetCertTemplate();
+            var certTemplate = crm.GetCertTemplate();
             Assert.That(certTemplate.Subject.Equivalent(new X509Name("CN=Test")));
-            Assert.That(certTemplate.PublicKey.Equals(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public)));
+            Assert.That(certTemplate.PublicKey.Equals(spki));
         }
 
         [Test]
         public void BasicMessageWithArchiveControl()
         {
-            RsaKeyPairGenerator rsaKeyPairGenerator = new RsaKeyPairGenerator();
-            rsaKeyPairGenerator.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), 2048, 100));
-            AsymmetricCipherKeyPair rsaKeyPair = rsaKeyPairGenerator.GenerateKeyPair();
+            var rsaKeyPair = GenerateRsaKeyPair(1024);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
 
             TestCertBuilder tcb = new TestCertBuilder();
             tcb.PublicKey = rsaKeyPair.Public;
@@ -160,26 +161,28 @@ namespace Org.BouncyCastle.Crmf.Tests
 
             X509Certificate cert = tcb.Build(rsaKeyPair.Private);
 
-            SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
             PrivateKeyInfo privateInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(rsaKeyPair.Private);
 
-            CertificateRequestMessageBuilder certificateRequestMessageBuilder = new CertificateRequestMessageBuilder(BigInteger.One);
-            certificateRequestMessageBuilder.SetSubject(new X509Name("CN=Test"));
-            certificateRequestMessageBuilder.SetSubjectPublicKeyInfo(publicKeyInfo);
+            CertificateRequestMessageBuilder crmBuilder = new CertificateRequestMessageBuilder(BigInteger.One);
+            crmBuilder.SetSubject(new X509Name("CN=Test"));
+            crmBuilder.SetSubjectPublicKeyInfo(spki);
 
-            certificateRequestMessageBuilder.AddControl(
+            crmBuilder.AddControl(
                 new PkiArchiveControlBuilder(privateInfo, new GeneralName(new X509Name("CN=Test")))
-                    .AddRecipientGenerator(new KeyTransRecipientInfoGenerator(cert, new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
+                    .AddRecipientGenerator(new KeyTransRecipientInfoGenerator(cert,
+                        new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
                     .Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build())
             );
 
-            CertificateRequestMessage msg = certificateRequestMessageBuilder.Build();
+            CertificateRequestMessage crm = crmBuilder.Build();
 
-            Assert.That(Arrays.AreEqual(msg.GetCertTemplate().Subject.GetEncoded(), new X509Name("CN=Test").GetEncoded()));
-            Assert.That(Arrays.AreEqual(msg.GetCertTemplate().PublicKey.GetEncoded(),publicKeyInfo.GetEncoded()));
+            var certTemplate = crm.GetCertTemplate();
+            Assert.That(Arrays.AreEqual(certTemplate.Subject.GetEncoded(), new X509Name("CN=Test").GetEncoded()));
+            Assert.That(Arrays.AreEqual(certTemplate.PublicKey.GetEncoded(), spki.GetEncoded()));
 
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair,msg);
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair, new CertificateRequestMessage(msg.GetEncoded()));
+            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private, crm);
+            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private,
+                new CertificateRequestMessage(crm.GetEncoded()));
         }
 
         [Test]
@@ -190,21 +193,190 @@ namespace Org.BouncyCastle.Crmf.Tests
             AsymmetricKeyParameter privateKey = PrivateKeyFactory.CreateKey(
                 Hex.Decode("30820154020100300d06092a864886f70d01010105000482013e3082013a020100024100a9a94b7b98dc3daf8cac032a14bd4510832b0e007edbdafc065e328645a35828b8185cdbf73ed495c88436b11a9322965595d2e4c1dd63c3c4d41812f876b307020301000102400831deacfe21a9331902d7f648e1297c563196b00c70971fb439098cb5c1618925bdbac4c66b30f8956660220f326f51e5a1725ce690165154fb62fa14497265022100e54943be1b4951e127f6e79c5ab333cba4b0fff0b5e59328d6393ba98dc0e6c3022100bd6da58ce195146a1d3825ec2a622cf4962da653096bea87fbd9a94db266a66d0221008948bcceeef78f97089ec53ed0efcb6b7b489f7638f32491a6f2cdce4f99d89102204eb1b066d8883054ed12985e863506ec0d3fa5ab356cc99ff876b228ff0639f9022024049aaf39bf9a0ddfbd4caee277d0a9f07d075faae12571176a5c0ca40415c0"));
 
-            CertificateRequestMessage msg = new CertificateRequestMessage(
+            CertificateRequestMessage crm = new CertificateRequestMessage(
                 Hex.Decode("308202af308202ab0201013071a511300f310d300b0603550403130454657374a65c300d06092a864886f70d0101010500034b003048024100a9a94b7b98dc3daf8cac032a14bd4510832b0e007edbdafc065e328645a35828b8185cdbf73ed495c88436b11a9322965595d2e4c1dd63c3c4d41812f876b3070203010001308202313082022d06092b0601050507050104a082021ea082021a0201003171306f0201003019300f310d300b06035504030c04546573740206016859de5806300d06092a864886f70d0101010500044066f1a72f808908af784b83c07895276104d7c4caaee6090212ce5b27517aec510425b784352b5342c999f844b8796286f10a59807e290f06aa39f8cba86dd6bf308201a0060b2a864886f70d0109100115301d060960864801650304010204104aceaa277cc7974ea2a775ff9db6062580820170c648e70c25c4789d2ff4ed398e5536efb45d2dd8ba76a628ad30bf9596a18337afc0f596f0c18e05fb3fa9944ed9691dae1d9b327b5bbafaaa63efb0e22d675811c27bfb023b80184325fd4b67b3b9e41bf43c5583a86433b230e09a34b61397ddff0eadf10c883fc1f01860e2a56ab4002dcc4d4925c53e09dde0b99928fdf602bce544722155cebd8816e91a411a99feea07695774cd8883034022d57f64e9cd3383c3125c48db2936b7395a22b17910be1f2c0b8650bdb5bd752ffc40fcd30169e5ae3a4ac7ad9cc850e9c17bbcf8e1a1898d0d8be19145c484467b8f1124657a5e08c10fc67416274990cc16d55c9fb76c265dd436b7e803425892297f1a08e4fab8e178874b2b3bf9c749693d609db208e9a3ebbddd26cd6a1b33c0201532170dc6c303e7ac0c42ba0bc54dfb928b228842b6bb08d8dc411d262dabf140a8b5a5c67ea486c1877a2fc000981d54cf2decaf1cfeebcf83134992b09a2b1fe9e02da25b874604b5d8bbd609875ba8"));
 
-            AsymmetricCipherKeyPair rsaKeyPair = new AsymmetricCipherKeyPair(publicKey,privateKey);
+            var rsaKeyPair = new AsymmetricCipherKeyPair(publicKey, privateKey);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
 
-            SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey);
-
-            var certTemplate = msg.GetCertTemplate();
+            var certTemplate = crm.GetCertTemplate();
             Assert.That(certTemplate.Subject.Equivalent(new X509Name("CN=Test")));
-            Assert.That(Arrays.AreEqual(certTemplate.PublicKey.GetEncoded(), publicKeyInfo.GetEncoded()));
+            Assert.That(Arrays.AreEqual(certTemplate.PublicKey.GetEncoded(), spki.GetEncoded()));
 
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair, msg);
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair, new CertificateRequestMessage(msg.GetEncoded()));
+            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private, crm);
+            CheckCertReqMsgWithArchiveControl(rsaKeyPair, rsaKeyPair.Private,
+                new CertificateRequestMessage(crm.GetEncoded()));
+        }
 
-            CheckCertReqMsgWithArchiveControl(rsaKeyPair,msg);
+        [Test]
+        public void BasicMessageWithProtocolEncrKeyControl()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(512);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
+
+            CertificateRequestMessage crm = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetSubjectPublicKeyInfo(spki)
+                .AddControl(new ProtocolEncrKeyControl(spki))
+                .Build();
+
+            CheckCertReqMsgWithProtocolEncrKeyControl(crm, spki);
+            CheckCertReqMsgWithProtocolEncrKeyControl(new CertificateRequestMessage(crm.GetEncoded()), spki);
+        }
+
+        [Test]
+        public void BasicMessageWithPublicationInfoControl()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(512);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
+
+            SinglePubInfo pubInfo = new SinglePubInfo(SinglePubInfo.x500, new GeneralName(new X509Name("CN=Test CA")));
+
+            CertificateRequestMessage crm = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetSubjectPublicKeyInfo(spki)
+                .AddControl(new PkiPublicationInfoControl(new SinglePubInfo[] { pubInfo }))
+                .Build();
+
+            CheckCertReqMsgWithPublicationInfoControl(crm, pubInfo);
+            CheckCertReqMsgWithPublicationInfoControl(new CertificateRequestMessage(crm.GetEncoded()), pubInfo);
+
+            // asking for no publication at all carries the action on its own
+            crm = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetSubjectPublicKeyInfo(spki)
+                .AddControl(PkiPublicationInfoControl.DontPublish())
+                .Build();
+
+            crm = new CertificateRequestMessage(crm.GetEncoded());
+
+            PkiPublicationInfoControl control = (PkiPublicationInfoControl)crm.GetControl(
+                CrmfObjectIdentifiers.id_regCtrl_pkiPublicationInfo);
+
+            Assert.AreEqual(PkiPublicationInfo.DontPublish, control.PublicationInfo.Action);
+            Assert.Null(control.PublicationInfo.GetPubInfos());
+
+            // and "don't care" is the pleasePublish action with no locations
+            crm = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetSubjectPublicKeyInfo(spki)
+                .AddControl(new PkiPublicationInfoControl((SinglePubInfo[])null))
+                .Build();
+
+            crm = new CertificateRequestMessage(crm.GetEncoded());
+
+            control = (PkiPublicationInfoControl)crm.GetControl(CrmfObjectIdentifiers.id_regCtrl_pkiPublicationInfo);
+
+            Assert.AreEqual(PkiPublicationInfo.PleasePublish, control.PublicationInfo.Action);
+            Assert.Null(control.PublicationInfo.GetPubInfos());
+        }
+
+        [Test]
+        public void BasicMessageWithRegInfo()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(512);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
+
+            AttributeTypeAndValue regInfoATaV = new AttributeTypeAndValue(CmpObjectIdentifiers.regInfo_utf8Pairs,
+                new DerUtf8String("CertType?Server%"));
+            AttributeTypeAndValue[] atavArr = new AttributeTypeAndValue[1];
+            atavArr[0] = regInfoATaV;
+
+            CertificateRequestMessage crm = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetSubjectPublicKeyInfo(spki)
+                .SetRegInfo(atavArr)
+                .SetProofOfPossessionSignKeySigner(new Asn1SignatureFactory("SHA1WithRSA", rsaKeyPair.Private))
+                .Build();
+
+            Assert.That(crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public)));
+
+            var certTemplate = crm.GetCertTemplate();
+            Assert.That(certTemplate.Subject.Equivalent(new X509Name("CN=Test")));
+            Assert.That(certTemplate.PublicKey.Equals(spki));
+
+            CertReqMsg certReqMsgAsn1 = crm.ToAsn1Structure();
+            Assert.AreEqual(1, certReqMsgAsn1.GetRegInfo().Length);
+            Assert.AreEqual(atavArr[0], certReqMsgAsn1.GetRegInfo()[0]);
+        }
+
+        [Test]
+        public void ECBasicMessageWithArchiveControl()
+        {
+            var kpg = GeneratorUtilities.GetKeyPairGenerator("EC");
+            kpg.Init(new ECKeyGenerationParameters(SecObjectIdentifiers.SecP256r1, new SecureRandom()));
+
+            var clientKP = kpg.GenerateKeyPair();
+            var serverKP = kpg.GenerateKeyPair();
+
+            var clientPrivateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(clientKP.Private);
+            var clientSpki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(clientKP.Public);
+
+            var serverPrivateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(serverKP.Private);
+            var serverSpki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(serverKP.Public);
+
+            var serverSubject = new X509Name("CN=Test Server");
+
+            TestCertBuilder tcb = new TestCertBuilder();
+            tcb.PublicKey = serverKP.Public;
+            tcb.Subject = serverSubject;
+            tcb.Issuer = serverSubject;
+            tcb.NotBefore = DateTime.UtcNow.AddDays(-1);
+            tcb.NotAfter = DateTime.UtcNow.AddDays(1);
+            tcb.SignatureAlgorithm = "SHA256withECDSA";
+
+            X509Certificate serverCert = tcb.Build(serverKP.Private);
+
+            CertificateRequestMessageBuilder crmBuilder = new CertificateRequestMessageBuilder(BigInteger.One);
+            crmBuilder.SetSubject(new X509Name("CN=Test"));
+            crmBuilder.SetSubjectPublicKeyInfo(clientSpki);
+
+            var recipientCerts = new List<X509Certificate>() { serverCert };
+
+            crmBuilder.AddControl(
+                new PkiArchiveControlBuilder(clientPrivateKeyInfo, new GeneralName(new X509Name("CN=Test")))
+                    .AddRecipientGenerator(new KeyAgreeRecipientInfoGenerator(recipientCerts) {
+                        KeyAgreementOid = SecObjectIdentifiers.dhSinglePass_cofactorDH_sha256kdf_scheme,
+                        KeyEncryptionOid = NistObjectIdentifiers.IdAes256Wrap,
+                        SenderKeyPair = clientKP,
+                    })
+                    .Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build())
+            );
+
+            CertificateRequestMessage crm = crmBuilder.Build();
+
+            var certTemplate = crm.GetCertTemplate();
+            Assert.That(certTemplate.Subject.Equivalent(new X509Name("CN=Test")));
+            Assert.That(certTemplate.PublicKey.Equals(clientSpki));
+
+            CheckCertReqMsgWithArchiveControl(clientKP, serverKP.Private, crm);
+            CheckCertReqMsgWithArchiveControl(clientKP, serverKP.Private,
+                new CertificateRequestMessage(crm.GetEncoded()));
+        }
+
+        [Test]
+        public void GetControlValue()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(512);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
+
+            CertificateRequestMessage crm = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetSubjectPublicKeyInfo(spki)
+                .AddControl(new ProtocolEncrKeyControl(spki))
+                .AddControl(new UnknownControl())
+                .Build();
+
+            crm = new CertificateRequestMessage(crm.GetEncoded());
+
+            Assert.AreEqual(spki, crm.GetControlValue(CrmfObjectIdentifiers.id_regCtrl_protocolEncrKey));
+            Assert.That(crm.HasControl(UnknownControl.unknownControl));
+            Assert.Null(crm.GetControl(UnknownControl.unknownControl));
+            Assert.AreEqual(new DerUtf8String("a control this class has no implementation for"),
+                crm.GetControlValue(UnknownControl.unknownControl));
+
+            Assert.False(crm.HasControl(CrmfObjectIdentifiers.id_regCtrl_oldCertID));
+            Assert.Null(crm.GetControlValue(CrmfObjectIdentifiers.id_regCtrl_oldCertID));
         }
 
         [Test]
@@ -244,7 +416,8 @@ namespace Org.BouncyCastle.Crmf.Tests
             }
         }
 
-        private void CheckCertReqMsgWithArchiveControl(AsymmetricCipherKeyPair kp, CertificateRequestMessage certReqMessage)
+        private void CheckCertReqMsgWithArchiveControl(AsymmetricCipherKeyPair kp,
+            AsymmetricKeyParameter recipientPrivateKey, CertificateRequestMessage certReqMessage)
         {
             PkiArchiveControl archiveControl = (PkiArchiveControl)certReqMessage.GetControl(
                 CrmfObjectIdentifiers.id_regCtrl_pkiArchiveOptions);
@@ -254,19 +427,71 @@ namespace Org.BouncyCastle.Crmf.Tests
             RecipientInformationStore recips = archiveControl.GetEnvelopedData().GetRecipientInfos();
 
             var collection = recips.GetRecipients();
-
             Assert.AreEqual(1, collection.Count);
-            KeyTransRecipientInformation info = (KeyTransRecipientInformation)collection[0];
 
-            EncKeyWithID encKeyWithId = EncKeyWithID.GetInstance(info.GetContent(kp.Private));
+            RecipientInformation recipientInformation = collection[0];
+            if (recipientInformation is KeyAgreeRecipientInformation keyAgreeRI)
+            {
+            }
+            else if (recipientInformation is KeyTransRecipientInformation keyTransRI)
+            {
+            }
+            else
+            {
+                Assert.Fail();
+            }
 
-            Assert.True(encKeyWithId.HasIdentifier);
-            Assert.True(!encKeyWithId.IsIdentifierUtf8String); // GeneralName at this point.
+            EncKeyWithID encKeyWithID = EncKeyWithID.GetInstance(recipientInformation.GetContent(recipientPrivateKey));
 
-            Assert.True(X509Name.GetInstance(GeneralName.GetInstance(encKeyWithId.Identifier).Name).Equivalent(new X509Name("CN=Test")), "Name");
+            Assert.True(encKeyWithID.HasIdentifier);
+            Assert.False(encKeyWithID.IsIdentifierUtf8String); // GeneralName at this point.
+
+            Assert.True(X509Name.GetInstance(GeneralName.GetInstance(encKeyWithID.Identifier).Name).Equivalent(new X509Name("CN=Test")), "Name");
 
             PrivateKeyInfo privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
-            Assert.That(Arrays.AreEqual(privateKeyInfo.GetEncoded(), encKeyWithId.PrivateKey.GetEncoded()), "Private Key");
+            Assert.That(Arrays.AreEqual(privateKeyInfo.GetEncoded(), encKeyWithID.PrivateKey.GetEncoded()), "Private Key");
+        }
+
+        private void CheckCertReqMsgWithProtocolEncrKeyControl(CertificateRequestMessage certReqMsg,
+            SubjectPublicKeyInfo publicKeyInfo)
+        {
+            Assert.That(certReqMsg.HasControl(CrmfObjectIdentifiers.id_regCtrl_protocolEncrKey));
+
+            ProtocolEncrKeyControl protocolEncrKeyControl = (ProtocolEncrKeyControl)certReqMsg.GetControl(
+                CrmfObjectIdentifiers.id_regCtrl_protocolEncrKey);
+
+            Assert.AreEqual(CrmfObjectIdentifiers.id_regCtrl_protocolEncrKey, protocolEncrKeyControl.Type);
+            Assert.AreEqual(publicKeyInfo, protocolEncrKeyControl.Value);
+        }
+
+        private void CheckCertReqMsgWithPublicationInfoControl(CertificateRequestMessage certReqMsg,
+            SinglePubInfo pubInfo)
+        {
+            Assert.That(certReqMsg.HasControl(CrmfObjectIdentifiers.id_regCtrl_pkiPublicationInfo));
+
+            PkiPublicationInfoControl control = (PkiPublicationInfoControl)certReqMsg.GetControl(
+                CrmfObjectIdentifiers.id_regCtrl_pkiPublicationInfo);
+
+            Assert.AreEqual(CrmfObjectIdentifiers.id_regCtrl_pkiPublicationInfo, control.Type);
+            Assert.AreEqual(PkiPublicationInfo.PleasePublish, control.PublicationInfo.Action);
+            Assert.AreEqual(1, control.PublicationInfo.GetPubInfos().Length);
+            Assert.AreEqual(pubInfo, control.PublicationInfo.GetPubInfos()[0]);
+        }
+
+        private static AsymmetricCipherKeyPair GenerateRsaKeyPair(int strength)
+        {
+            RsaKeyPairGenerator kpg = new RsaKeyPairGenerator();
+            kpg.Init(new RsaKeyGenerationParameters(BigInteger.ValueOf(65537), new SecureRandom(), strength, 100));
+            return kpg.GenerateKeyPair();
+        }
+
+        private class UnknownControl : IControl
+        {
+            internal static readonly DerObjectIdentifier unknownControl = new DerObjectIdentifier("1.2.3.4.5.6.7.8.9");
+
+            public DerObjectIdentifier Type => unknownControl;
+
+            public Asn1Encodable Value => new DerUtf8String("a control this class has no implementation for");
         }
     }
 }

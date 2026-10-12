@@ -1,4 +1,6 @@
-﻿using Org.BouncyCastle.Asn1;
+﻿using System;
+
+using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
 
 namespace Org.BouncyCastle.Crmf
@@ -14,7 +16,7 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="token">UTF-8 string representing the token.</param>
         public RegTokenControl(DerUtf8String token)
         {
-            m_token = token;
+            m_token = token ?? throw new ArgumentNullException(nameof(token));
         }
 
         /// <summary>
@@ -29,7 +31,7 @@ namespace Org.BouncyCastle.Crmf
         /// <summary>
         /// Return the type of this control.
         /// </summary>
-        /// <returns>CRMFObjectIdentifiers.id_regCtrl_regToken</returns>
+        /// <returns><see cref="CrmfObjectIdentifiers.id_regCtrl_regToken"/>.</returns>
         public DerObjectIdentifier Type => CrmfObjectIdentifiers.id_regCtrl_regToken;
 
         /// <summary>

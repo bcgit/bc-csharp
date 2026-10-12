@@ -2,6 +2,7 @@
 
 using Org.BouncyCastle.Asn1;
 using Org.BouncyCastle.Asn1.Crmf;
+using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Crmf
@@ -84,28 +85,45 @@ namespace Org.BouncyCastle.Crmf
 
                 if (CrmfObjectIdentifiers.id_regCtrl_authenticator.Equals(oid))
                     return new AuthenticatorControl(DerUtf8String.GetInstance(found.Value));
+
+                if (CrmfObjectIdentifiers.id_regCtrl_protocolEncrKey.Equals(oid))
+                    return new ProtocolEncrKeyControl(SubjectPublicKeyInfo.GetInstance(found.Value));
+
+                if (CrmfObjectIdentifiers.id_regCtrl_pkiPublicationInfo.Equals(oid))
+                    return new PkiPublicationInfoControl(PkiPublicationInfo.GetInstance(found.Value));
+
+                // TODO[crmf]
+                //if (CrmfObjectIdentifiers.id_regCtrl_oldCertID.Equals(oid))
+                //    return new OldCertIDControl(CertId.GetInstance(found.Value));
             }
             return null;
         }
 
+        /// <summary>
+        /// Return the raw value of the control of passed in type, if present.
+        /// </summary>
+        /// <remarks>
+        /// Unlike <see cref="GetControl(DerObjectIdentifier)"/> this makes no attempt to interpret the value, so a
+        /// control this class has no <see cref="IControl"/> implementation for can still be read, and a null return
+        /// means the control is absent rather than unrecognised.
+        /// </remarks>
+        /// <param name="type">The type OID of the control to look for.</param>
+        /// <returns>
+        /// The value of the control of the passed in type, null if the control is not present.
+        /// </returns>
+        public Asn1Encodable GetControlValue(DerObjectIdentifier type) => FindControl(type)?.Value;
+
         public AttributeTypeAndValue FindControl(DerObjectIdentifier type)
         {
-            if (m_controls == null)
-                return null;
-
-            AttributeTypeAndValue[] tAndV = m_controls.ToAttributeTypeAndValueArray();
-            AttributeTypeAndValue found = null;
-
-            for (int i = 0; i < tAndV.Length; i++)
+            if (m_controls != null)
             {
-                if (tAndV[i].Type.Equals(type))
+                foreach (var atav in m_controls.ToAttributeTypeAndValueArray())
                 {
-                    found = tAndV[i];
-                    break;
+                    if (atav.Type.Equals(type))
+                        return atav;
                 }
             }
-
-            return found;
+            return null;
         }
 
         /// <summary>

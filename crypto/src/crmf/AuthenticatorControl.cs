@@ -19,7 +19,7 @@ namespace Org.BouncyCastle.Crmf
         /// <param name="token">UTF-8 string representing the token.</param>
         public AuthenticatorControl(DerUtf8String token)
         {
-            m_token = token;
+            m_token = token ?? throw new ArgumentNullException(nameof(token));
         }
 
         /// <summary>
@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Crmf
         /// <summary>
         /// Return the type of this control.
         /// </summary>
+        /// <returns><see cref="CrmfObjectIdentifiers.id_regCtrl_authenticator"/>.</returns>
         public DerObjectIdentifier Type => CrmfObjectIdentifiers.id_regCtrl_authenticator;
 
         /// <summary>
