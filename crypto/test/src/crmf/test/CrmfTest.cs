@@ -427,6 +427,185 @@ namespace Org.BouncyCastle.Crmf.Tests
         }
 
         [Test]
+        public void ProofOfPossessionWithSender()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(1024);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(rsaKeyPair.Private);
+
+            TestCertBuilder tcb = new TestCertBuilder();
+            tcb.PublicKey = rsaKeyPair.Public;
+            tcb.Subject = new X509Name("CN=Test");
+            tcb.Issuer = new X509Name("CN=Test");
+            tcb.NotBefore = DateTime.UtcNow.AddDays(-1);
+            tcb.NotAfter = DateTime.UtcNow.AddDays(1);
+            tcb.SignatureAlgorithm = "Sha1WithRSA";
+
+            X509Certificate cert = tcb.Build(rsaKeyPair.Private);
+
+            CertificateRequestMessageBuilder crmBuilder = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubjectPublicKeyInfo(spki)
+                .SetAuthInfoSender(new X509Name("CN=Test"))
+                .SetProofOfPossessionSignKeySigner(new Asn1SignatureFactory("SHA1WithRSA", rsaKeyPair.Private));
+
+            crmBuilder.AddControl(
+                new PkiArchiveControlBuilder(privateKeyInfo, new GeneralName(new X509Name("CN=Test")))
+                    .AddRecipientGenerator(new KeyTransRecipientInfoGenerator(cert,
+                        new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
+                    .Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build())
+            );
+
+            CertificateRequestMessage crm = crmBuilder.Build();
+
+            // check that internal check on popo signing is working okay
+            try
+            {
+                crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public),
+                    new PKMacBuilder(), "fred".ToCharArray());
+
+                Assert.Fail("IllegalStateException not thrown");
+            }
+            catch (InvalidOperationException)
+            {
+                // ignore
+            }
+
+            Assert.True(crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public)));
+
+            var certTemplate = crm.GetCertTemplate();
+            Assert.That(certTemplate.PublicKey.Equals(spki));
+        }
+
+        [Test]
+        public void ProofOfPossessionWithoutSender()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(1024);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(rsaKeyPair.Private);
+
+            TestCertBuilder tcb = new TestCertBuilder();
+            tcb.PublicKey = rsaKeyPair.Public;
+            tcb.Subject = new X509Name("CN=Test");
+            tcb.Issuer = new X509Name("CN=Test");
+            tcb.NotBefore = DateTime.UtcNow.AddDays(-1);
+            tcb.NotAfter = DateTime.UtcNow.AddDays(1);
+            tcb.SignatureAlgorithm = "Sha1WithRSA";
+
+            X509Certificate cert = tcb.Build(rsaKeyPair.Private);
+
+            CertificateRequestMessageBuilder crmBuilder = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubjectPublicKeyInfo(spki)
+                .SetAuthInfoPKMacBuilder(new PKMacBuilder(), "fred".ToCharArray())
+                .SetProofOfPossessionSignKeySigner(new Asn1SignatureFactory("SHA1WithRSA", rsaKeyPair.Private));
+
+            crmBuilder.AddControl(
+                new PkiArchiveControlBuilder(privateKeyInfo, new GeneralName(new X509Name("CN=Test")))
+                    .AddRecipientGenerator(new KeyTransRecipientInfoGenerator(cert,
+                        new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
+                    .Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build())
+            );
+
+            CertificateRequestMessage crm = crmBuilder.Build();
+
+            // check that internal check on popo signing is working okay
+            try
+            {
+                crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public));
+                Assert.Fail("InvalidOperationException not thrown");
+            }
+            catch (InvalidOperationException)
+            {
+                // ignore
+            }
+
+            Assert.That(crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public),
+                new PKMacBuilder(), "fred".ToCharArray()));
+
+            var certTemplate = crm.GetCertTemplate();
+            Assert.That(certTemplate.PublicKey.Equals(spki));
+
+            crm = new CertificateRequestMessage(crm.GetEncoded());
+
+            // check that internal check on popo signing is working okay
+            try
+            {
+                crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public));
+                Assert.Fail("InvalidOperationException not thrown");
+            }
+            catch (InvalidOperationException)
+            {
+                // ignore
+            }
+
+            Assert.That(crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public),
+                new PKMacBuilder(), "fred".ToCharArray()));
+
+            certTemplate = crm.GetCertTemplate();
+            Assert.That(certTemplate.PublicKey.Equals(spki));
+        }
+
+        [Test]
+        public void HasSigningKeyPopWithPKMacIsTotal()
+        {
+            // HasSigningKeyProofOfPossessionWithPkMac() is a predicate: it must answer false, not throw a
+            // NullReferenceException, when the POP is absent (POP is OPTIONAL) or when a signing-key POP omits
+            // poposkInput (which is [0] OPTIONAL and, per RFC 4211, omitted for a direct-over-certReq POP).
+            CertTemplate template = new CertTemplateBuilder().Build();
+            CertRequest certReq = new CertRequest(1, template, null);
+            AlgorithmIdentifier sigAlg = new AlgorithmIdentifier(PkcsObjectIdentifiers.Sha256WithRsaEncryption);
+
+            // no POP present
+            CertificateRequestMessage noPop = new CertificateRequestMessage(new CertReqMsg(certReq, null, null));
+            Assert.False(noPop.HasSigningKeyProofOfPossessionWithPkMac);
+
+            // signing-key POP with no poposkInput (direct signature over certReq) => no PKMAC
+            PopoSigningKey popoSign = new PopoSigningKey(null, sigAlg, new DerBitString(new byte[]{ 1, 2, 3, 4 }));
+            CertificateRequestMessage signPop = new CertificateRequestMessage(
+                new CertReqMsg(certReq, new ProofOfPossession(popoSign), null));
+            Assert.False(signPop.HasSigningKeyProofOfPossessionWithPkMac);
+        }
+
+        [Test]
+        public void ProofOfPossessionWithTemplate()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(1024);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(rsaKeyPair.Private);
+
+            TestCertBuilder tcb = new TestCertBuilder();
+            tcb.PublicKey = rsaKeyPair.Public;
+            tcb.Subject = new X509Name("CN=Test");
+            tcb.Issuer = new X509Name("CN=Test");
+            tcb.NotBefore = DateTime.UtcNow.AddDays(-1);
+            tcb.NotAfter = DateTime.UtcNow.AddDays(1);
+            tcb.SignatureAlgorithm = "Sha1WithRSA";
+
+            X509Certificate cert = tcb.Build(rsaKeyPair.Private);
+
+            CertificateRequestMessageBuilder crmBuilder = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetSubjectPublicKeyInfo(spki)
+                .SetAuthInfoSender(new X509Name("CN=Test"))
+                .SetProofOfPossessionSignKeySigner(new Asn1SignatureFactory("SHA1WithRSA", rsaKeyPair.Private));
+
+            crmBuilder.AddControl(
+                new PkiArchiveControlBuilder(privateKeyInfo, new GeneralName(new X509Name("CN=Test")))
+                    .AddRecipientGenerator(new KeyTransRecipientInfoGenerator(cert,
+                        new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", cert)))
+                    .Build(new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build())
+            );
+
+            CertificateRequestMessage crm = crmBuilder.Build();
+
+            crm = new CertificateRequestMessage(crm.GetEncoded());
+
+            Assert.True(crm.IsValidSigningKeyPop(new Asn1VerifierFactoryProvider(rsaKeyPair.Public)));
+
+            var certTemplate = crm.GetCertTemplate();
+            Assert.That(certTemplate.PublicKey.Equals(spki));
+        }
+
+        [Test]
         public void ProofOfPossessionSigningKeyIncomplete()
         {
             // a signing key POP the builder cannot form must be refused with a CrmfException, not an NRE
@@ -456,6 +635,32 @@ namespace Org.BouncyCastle.Crmf.Tests
             CheckIncompleteSigningKeyPop(new CertificateRequestMessageBuilder(BigInteger.One)
                 .SetPublicKey(rsaKeyPair.Public)
                 .SetProofOfPossessionSignKeySigner(signer), noAuthInfo);
+        }
+
+        [Test]
+        public void EncryptedValueWithKey()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(1024);
+            var privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(rsaKeyPair.Private);
+
+            EncryptedValueBuilder build = new EncryptedValueBuilder(
+                new Asn1KeyWrapper("RSA/None/OAEPwithSHA256andMGF1Padding", rsaKeyPair.Public),
+                new CmsContentEncryptorBuilder(NistObjectIdentifiers.IdAes128Cbc).Build());
+
+            EncryptedValue value = build.Build(privateKeyInfo);
+
+            // TODO[crmf]
+#if false
+            ValueDecryptorGenerator decGen = new JceAsymmetricValueDecryptorGenerator(kp.getPrivate()).setProvider(BC);
+
+            EncryptedValueParser parser = new EncryptedValueParser(value);
+
+            PrivateKeyInfo privInfo = parser.readPrivateKeyInfo(decGen);
+
+            TestCase.assertEquals(privInfo.getPrivateKeyAlgorithm(), parser.getIntendedAlg());
+
+            TestCase.assertTrue(Arrays.areEqual(privInfo.getEncoded(), kp.getPrivate().getEncoded()));
+#endif
         }
 
         private void CheckArchiveControlWithoutEnvelopedData(int archiveType, PkiArchiveOptions options)
