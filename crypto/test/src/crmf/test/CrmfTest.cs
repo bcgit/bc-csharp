@@ -209,6 +209,39 @@ namespace Org.BouncyCastle.Crmf.Tests
         }
 
         [Test]
+        public void BasicMessageWithOldCertIDControl()
+        {
+            var rsaKeyPair = GenerateRsaKeyPair(512);
+            var spki = SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(rsaKeyPair.Public);
+
+            TestCertBuilder tcb = new TestCertBuilder();
+            tcb.PublicKey = rsaKeyPair.Public;
+            tcb.Subject = new X509Name("CN=Old Cert");
+            tcb.Issuer = new X509Name("CN=Old Cert");
+            tcb.NotBefore = DateTime.UtcNow.AddDays(-1);
+            tcb.NotAfter = DateTime.UtcNow.AddDays(1);
+            tcb.SignatureAlgorithm = "Sha1WithRSAEncryption";
+
+            X509Certificate oldCert = tcb.Build(rsaKeyPair.Private);
+
+            var issuer = oldCert.IssuerDN;
+            var serialNumber = oldCert.CertificateStructure.SerialNumber;
+
+            CertificateRequestMessage crm = new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetSubjectPublicKeyInfo(spki)
+                .AddControl(new OldCertIDControl(issuer, serialNumber))
+                .Build();
+
+            CertId expected = new CertId(new GeneralName(issuer), serialNumber);
+
+            CheckCertReqMsgWithOldCertIDControl(crm, expected);
+            CheckCertReqMsgWithOldCertIDControl(new CertificateRequestMessage(crm.GetEncoded()), expected);
+
+            Assert.AreEqual(expected, new OldCertIDControl(issuer, serialNumber).Value);
+        }
+
+        [Test]
         public void BasicMessageWithProtocolEncrKeyControl()
         {
             var rsaKeyPair = GenerateRsaKeyPair(512);
@@ -450,6 +483,16 @@ namespace Org.BouncyCastle.Crmf.Tests
 
             PrivateKeyInfo privateKeyInfo = PrivateKeyInfoFactory.CreatePrivateKeyInfo(kp.Private);
             Assert.That(Arrays.AreEqual(privateKeyInfo.GetEncoded(), encKeyWithID.PrivateKey.GetEncoded()), "Private Key");
+        }
+
+        private void CheckCertReqMsgWithOldCertIDControl(CertificateRequestMessage certReqMsg, CertId expected)
+        {
+            Assert.That(certReqMsg.HasControl(CrmfObjectIdentifiers.id_regCtrl_oldCertID));
+
+            OldCertIDControl control = (OldCertIDControl)certReqMsg.GetControl(CrmfObjectIdentifiers.id_regCtrl_oldCertID);
+
+            Assert.AreEqual(CrmfObjectIdentifiers.id_regCtrl_oldCertID, control.Type);
+            Assert.AreEqual(expected, control.CertId);
         }
 
         private void CheckCertReqMsgWithProtocolEncrKeyControl(CertificateRequestMessage certReqMsg,

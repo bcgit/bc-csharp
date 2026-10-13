@@ -92,9 +92,8 @@ namespace Org.BouncyCastle.Crmf
                 if (CrmfObjectIdentifiers.id_regCtrl_pkiPublicationInfo.Equals(oid))
                     return new PkiPublicationInfoControl(PkiPublicationInfo.GetInstance(found.Value));
 
-                // TODO[crmf]
-                //if (CrmfObjectIdentifiers.id_regCtrl_oldCertID.Equals(oid))
-                //    return new OldCertIDControl(CertId.GetInstance(found.Value));
+                if (CrmfObjectIdentifiers.id_regCtrl_oldCertID.Equals(oid))
+                    return new OldCertIDControl(CertId.GetInstance(found.Value));
             }
             return null;
         }
