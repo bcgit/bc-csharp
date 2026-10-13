@@ -426,6 +426,38 @@ namespace Org.BouncyCastle.Crmf.Tests
                 new PkiArchiveOptions(new EncryptedKey(encValue)));
         }
 
+        [Test]
+        public void ProofOfPossessionSigningKeyIncomplete()
+        {
+            // a signing key POP the builder cannot form must be refused with a CrmfException, not an NRE
+            var rsaKeyPair = GenerateRsaKeyPair(512);
+
+            var signer = new Asn1SignatureFactory("SHA1WithRSA", rsaKeyPair.Private);
+
+            string noPublicKey = "signing key proof of possession requires a public key in the certificate template";
+            string noAuthInfo = "signing key proof of possession without a subject in the certificate template requires an authInfo sender or PKMAC";
+
+            // no public key, sender set
+            CheckIncompleteSigningKeyPop(new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetSubject(new X509Name("CN=Test"))
+                .SetAuthInfoSender(new X509Name("CN=Test"))
+                .SetProofOfPossessionSignKeySigner(signer), noPublicKey);
+
+            // no public key, PKMAC set
+            CheckIncompleteSigningKeyPop(new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetAuthInfoPKMacBuilder(new PKMacBuilder(), "fred".ToCharArray())
+                .SetProofOfPossessionSignKeySigner(signer), noPublicKey);
+
+            // no public key, no subject, no authInfo
+            CheckIncompleteSigningKeyPop(new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetProofOfPossessionSignKeySigner(signer), noPublicKey);
+
+            // public key, no subject, neither sender nor PKMAC
+            CheckIncompleteSigningKeyPop(new CertificateRequestMessageBuilder(BigInteger.One)
+                .SetPublicKey(rsaKeyPair.Public)
+                .SetProofOfPossessionSignKeySigner(signer), noAuthInfo);
+        }
+
         private void CheckArchiveControlWithoutEnvelopedData(int archiveType, PkiArchiveOptions options)
         {
             CheckArchiveControlWithoutEnvelopedData(archiveType, new PkiArchiveControl(options));
@@ -519,6 +551,19 @@ namespace Org.BouncyCastle.Crmf.Tests
             Assert.AreEqual(PkiPublicationInfo.PleasePublish, control.PublicationInfo.Action);
             Assert.AreEqual(1, control.PublicationInfo.GetPubInfos().Length);
             Assert.AreEqual(pubInfo, control.PublicationInfo.GetPubInfos()[0]);
+        }
+
+        private void CheckIncompleteSigningKeyPop(CertificateRequestMessageBuilder certReqBuild, string expectedMessage)
+        {
+            try
+            {
+                certReqBuild.Build();
+                Assert.Fail("no exception");
+            }
+            catch (CrmfException e)
+            {
+                Assert.AreEqual(expectedMessage, e.Message);
+            }
         }
 
         private static AsymmetricCipherKeyPair GenerateRsaKeyPair(int strength)

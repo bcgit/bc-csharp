@@ -241,20 +241,29 @@ namespace Org.BouncyCastle.Crmf
             {
                 CertTemplate template = request.CertTemplate;
 
-                ProofOfPossessionSigningKeyBuilder builder;
-                if (template.Subject == null || template.PublicKey == null)
-                {
-                    SubjectPublicKeyInfo pubKeyInfo = request.CertTemplate.PublicKey;
+                // RFC 4211 sec. 4.1: the signature can only be verified against the public key in the
+                // template, which poposkInput (when present) must also carry.
+                SubjectPublicKeyInfo pubKeyInfo = template.PublicKey
+                    ?? throw new CrmfException(
+                        "signing key proof of possession requires a public key in the certificate template");
 
+                ProofOfPossessionSigningKeyBuilder builder;
+                if (template.Subject == null)
+                {
                     builder = new ProofOfPossessionSigningKeyBuilder(pubKeyInfo);
 
                     if (m_sender != null)
                     {
                         builder.SetSender(m_sender);
                     }
-                    else
+                    else if (m_pkMacBuilder != null)
                     {
                         builder.SetPublicKeyMac(m_pkMacBuilder, m_password);
+                    }
+                    else
+                    {
+                        throw new CrmfException(
+                            "signing key proof of possession without a subject in the certificate template requires an authInfo sender or PKMAC");
                     }
                 }
                 else
