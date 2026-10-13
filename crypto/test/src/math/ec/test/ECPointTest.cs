@@ -639,6 +639,34 @@ namespace Org.BouncyCastle.Math.EC.Tests
             ImplAddSubtractMultiplyTwiceEncodingTestAllCoords(x9);
         }
 
+        /// <summary>
+        /// DecodePoint must reject an empty (or null) encoding with ArgumentException, not leak an
+        /// IndexOutOfRangeException from the <c>encoded[0]</c> read. Reachable via any untrusted EC-point decode.
+        /// </summary>
+        [Test]
+        public void DecodePointRejectsEmptyEncoding()
+        {
+            ECCurve curve = ECNamedCurveTable.GetByName("secp256r1").Curve;
+            try
+            {
+                curve.DecodePoint(new byte[0]);
+                Assert.Fail("empty point encoding not rejected");
+            }
+            catch (ArgumentException)
+            {
+                // expected - an IndexOutOfRangeException here is an unchecked leak
+            }
+            try
+            {
+                curve.DecodePoint(null);
+                Assert.Fail("null point encoding not rejected");
+            }
+            catch (ArgumentException)
+            {
+                // expected
+            }
+        }
+
         private void AssertPointsEqual(string message, ECPoint a, ECPoint b)
         {
             // NOTE: We intentionally test points for equality in both directions
