@@ -359,6 +359,18 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void TestFailures()
         {
+            // An empty blob must be rejected with a typed exception, not an ArrayIndexOutOfBoundsException
+            // from the leading blob[0] format probe in parsePrivateKeyBlob.
+            try
+            {
+                OpenSshPrivateKeyUtilities.ParsePrivateKeyBlob(Arrays.EmptyBytes);
+                Assert.Fail("empty blob should be rejected");
+            }
+            catch (ArgumentException e)
+            {
+                Assert.That(e.Message.StartsWith("cannot be null or empty"));
+            }
+
             var data = "-----BEGIN OPENSSH PRIVATE KEY-----\n" +
                 "b3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\n" +
                 "QyNTUxOQAAACDOAmle1kHMtJYbdIXJYF3+Dpcr8779n51L0NyfCGLFhQAAAKBTr4PvU6+D\n" +

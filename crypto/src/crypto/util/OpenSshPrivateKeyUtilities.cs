@@ -119,6 +119,12 @@ namespace Org.BouncyCastle.Crypto.Utilities
          */
         public static AsymmetricKeyParameter ParsePrivateKeyBlob(byte[] blob)
         {
+            // The first byte selects the format (0x30 => legacy ASN.1, otherwise the openssh-key-v1 magic),
+            // so guard against an empty/null blob rather than letting blob[0] throw a raw
+            // IndexOutOfRangeException / NullReferenceException out of this parse entry point.
+            if (Arrays.IsNullOrEmpty(blob))
+                throw new ArgumentException("cannot be null or empty", nameof(blob));
+
             AsymmetricKeyParameter result = null;
 
             if (blob[0] == 0x30)
