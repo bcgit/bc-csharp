@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 #if NETCOREAPP3_0_OR_GREATER
 using System.Runtime.CompilerServices;
 #endif
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
 using System.Runtime.InteropServices;
 #endif
+using System.Threading;
 using System.Threading.Tasks;
 
 using Org.BouncyCastle.Crypto.Digests;
@@ -27,9 +29,15 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private const int Argon2SyncPoints = 4;
 
+        /* R, Z, addressBlock and inputBlock - the blocks a FillBlock works in */
+        private const int FillBlockCount = 4;
+
         /* Minimum and maximum number of lanes (degree of parallelism) */
         private const int MinParallelism = 1;
         private const int MaxParallelism = (1 << 24) - 1;
+
+        /* Maximum memory size in KiB - the ceiling Argon2Parameters.Builder allows */
+        private const int MaxMemory = 1 << 30;
 
         /* Minimum and maximum digest size in bytes */
         private const int MinOutlen = 4;
@@ -42,9 +50,15 @@ namespace Org.BouncyCastle.Crypto.Generators
         private readonly TaskFactory m_taskFactory;
 
         private Argon2Parameters parameters;
-        private Block[] memory;
+        private IBlockPool pool;
+        private int memoryBlocks;
         private int segmentLength;
         private int laneLength;
+
+        // Kept between calls. Without a pool they hold the generator's own blocks (zeroised between calls); with one
+        // they are empty between calls.
+        private Block[] memory;
+        private Block[] fillerBlocks;
 
         public Argon2BytesGenerator()
             : this(taskFactory: null)
@@ -56,6 +70,9 @@ namespace Org.BouncyCastle.Crypto.Generators
         /// </summary>
         /// <param name="taskFactory">
         /// The <see cref="TaskFactory"/> that (if not null) will be used for parallel execution when parallelism > 1.
+        /// The lanes are shared among no more tasks than the factory's scheduler reports it can run concurrently
+        /// (<see cref="TaskScheduler.MaximumConcurrencyLevel"/>, or <see cref="Environment.ProcessorCount"/> if it
+        /// sets no limit).
         /// </param>
         public Argon2BytesGenerator(TaskFactory taskFactory)
         {
@@ -95,15 +112,57 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             this.segmentLength = GetSegmentLength(parameters.Memory, lanes);
             this.laneLength = segmentLength * Argon2SyncPoints;
+            this.memoryBlocks = lanes * laneLength;
 
-            int memoryBlocks = lanes * laneLength;
-
-            this.memory = new Block[memoryBlocks];
-
-            for (int i = 0; i < memory.Length; i++)
+            // if no pool is provided the generator allocates its own blocks, and keeps them between calls; blocks kept
+            // for one pool (or none) are not to be mixed with another's
+            if (parameters.BlockPool != pool)
             {
-                memory[i] = new Block();
+                this.memory = null;
+                this.fillerBlocks = null;
             }
+            this.pool = parameters.BlockPool;
+        }
+
+        /// <summary>
+        /// Return the most <see cref="Block"/>s a generator has outstanding from its <see cref="IBlockPool"/> at once,
+        /// for the given memory size and degree of parallelism.
+        /// </summary>
+        /// <remarks>
+        /// This is the primary memory, after the alignment Argon2 applies to it, plus the blocks the fill step works
+        /// in for each lane, and so the size to give a <see cref="FixedBlockPool"/> that is to recycle every block of
+        /// a run. A generator that fills the lanes in turn, or in parallel on fewer tasks than there are lanes, takes
+        /// fewer. The alignment rules are an implementation detail and are not to be replicated by callers.
+        /// </remarks>
+        /// <param name="memory">The memory size in KiB, as passed to
+        /// <see cref="Argon2Parameters.Builder.WithMemoryAsKB(int)"/>.</param>
+        /// <param name="parallelism">The degree of parallelism, as passed to
+        /// <see cref="Argon2Parameters.Builder.WithParallelism(int)"/>.</param>
+        /// <returns>The most blocks a generator has outstanding at once.</returns>
+        public static int GetBlockCount(int memory, int parallelism)
+        {
+            if (memory < 1 || memory > MaxMemory)
+                throw new ArgumentOutOfRangeException(nameof(memory));
+            if (parallelism < MinParallelism || parallelism > MaxParallelism)
+                throw new ArgumentOutOfRangeException(nameof(parallelism));
+
+            int memoryBlocks = parallelism * GetSegmentLength(memory, parallelism) * Argon2SyncPoints;
+            return memoryBlocks + parallelism * FillBlockCount;
+        }
+
+        // The number of tasks to share the lanes among: as many as the scheduler says it can run at once (the processor
+        // count if it sets no limit), but no more than there are lanes. MaximumConcurrencyLevel is only advisory, so
+        // this bounds the tasks and FillBlocks a slice takes; the result doesn't depend on it.
+        private static int GetWorkerCount(int lanes, TaskFactory taskFactory)
+        {
+            int level = (taskFactory.Scheduler ?? TaskScheduler.Current).MaximumConcurrencyLevel;
+            if (level < 1 || level == int.MaxValue)
+            {
+                level = Environment.ProcessorCount;
+            }
+            level = System.Math.Min(level, lanes);
+            level = System.Math.Max(level, 1);
+            return level;
         }
 
         // Minimum memory is 8L blocks, where L is the number of lanes, and the segments of every lane
@@ -128,12 +187,14 @@ namespace Org.BouncyCastle.Crypto.Generators
 
             try
             {
+                AllocateMemory();
                 Initialize(tmpBlockBytes, password, outLen);
                 FillMemoryBlocks();
                 Digest(tmpBlockBytes, output, outOff, outLen);
             }
             finally
             {
+                // whatever happened, the password-derived material goes back zeroised
                 Arrays.ZeroMemory(tmpBlockBytes);
                 Reset();
             }
@@ -141,54 +202,166 @@ namespace Org.BouncyCastle.Crypto.Generators
             return outLen;
         }
 
-        // Clear memory.
+        // Allocate primary memory.
+        private void AllocateMemory() => AllocateBlocks(ref memory, memoryBlocks);
+
+        // Release primary memory, zeroised.
         private void Reset()
         {
-            // Reset memory.
             if (null != memory)
             {
-                for (int i = 0; i < memory.Length; i++)
+                ReleaseBlocks(memory);
+            }
+        }
+
+        // Fill the array (reallocated if it isn't of the given length) from the pool, or without one with blocks of
+        // the generator's own where it doesn't have them already. ReleaseBlocks returns whatever was taken before a
+        // failure.
+        private void AllocateBlocks(ref Block[] blocks, int count)
+        {
+            if (null == blocks || blocks.Length != count)
+            {
+                blocks = new Block[count];
+            }
+
+            for (int i = 0; i < count; ++i)
+            {
+                if (null != pool)
                 {
-                    Block b = memory[i];
-                    b?.Clear();
+                    blocks[i] = pool.Allocate();
+                }
+                else if (null == blocks[i])
+                {
+                    blocks[i] = new Block();
+                }
+            }
+        }
+
+        // Return blocks to the pool, zeroised - see IBlockPool. Without a pool, the generator keeps them, zeroised.
+        private void ReleaseBlocks(Block[] blocks)
+        {
+            // Clear every block before returning any: Deallocate is caller-supplied code, and if it throws part way
+            // through, the blocks not yet returned are left to the garbage collector - they must not still hold
+            // password-derived data when that happens.
+            foreach (Block block in blocks)
+            {
+                block?.Clear();
+            }
+
+            if (null == pool)
+                return;
+
+            // Only now hand them back, keeping no reference to them here (null entries are those an allocation failure
+            // never filled).
+            for (int i = 0; i < blocks.Length; ++i)
+            {
+                Block block = blocks[i];
+                if (null != block)
+                {
+                    blocks[i] = null;
+                    pool.Deallocate(block);
                 }
             }
         }
 
         private void FillMemoryBlocks()
         {
-            for (int pass = 0; pass < parameters.Iterations; ++pass)
+            bool inParallel = m_taskFactory != null && parameters.Parallelism > 1;
+
+            // one FillBlock for each task the lanes are shared among, or for all of them when filled in turn
+            FillBlock[] fillers = new FillBlock[inParallel ? GetWorkerCount(parameters.Parallelism, m_taskFactory) : 1];
+
+            try
             {
-                for (int slice = 0; slice < Argon2SyncPoints; ++slice)
+                AllocateBlocks(ref fillerBlocks, fillers.Length * FillBlockCount);
+
+                for (int i = 0; i < fillers.Length; ++i)
                 {
-                    if (m_taskFactory == null || parameters.Parallelism <= 1)
+                    fillers[i] = new FillBlock(fillerBlocks, i * FillBlockCount);
+                }
+
+                for (int pass = 0; pass < parameters.Iterations; ++pass)
+                {
+                    for (int slice = 0; slice < Argon2SyncPoints; ++slice)
                     {
-                        for (int lane = 0; lane < parameters.Parallelism; ++lane)
+                        if (inParallel)
                         {
-                            var position = new Position(pass, slice, lane);
-                            FillSegment(position);
+                            FillSliceInParallel(fillers, pass, slice);
+                        }
+                        else
+                        {
+                            for (int lane = 0; lane < parameters.Parallelism; ++lane)
+                            {
+                                var position = new Position(pass, slice, lane);
+                                FillSegment(fillers[0], position);
+                            }
                         }
                     }
-                    else
-                    {
-                        Task[] tasks = new Task[parameters.Parallelism];
-
-                        for (int lane = 0; lane < parameters.Parallelism; ++lane)
-                        {
-                            var position = new Position(pass, slice, lane);
-                            tasks[lane] = m_taskFactory.StartNew(() => FillSegment(position));
-                        }
-
-                        Task.WaitAll(tasks);
-                    }
+                }
+            }
+            finally
+            {
+                if (null != fillerBlocks)
+                {
+                    ReleaseBlocks(fillerBlocks);
                 }
             }
         }
 
-        private void FillSegment(Position position)
+        // Fill one slice with a task per FillBlock, each claiming lanes from a shared counter until none are left.
+        private void FillSliceInParallel(FillBlock[] fillers, int pass, int slice)
+        {
+            int lanes = parameters.Parallelism, nextLane = -1;
+            Task[] tasks = new Task[fillers.Length];
+
+            try
+            {
+                for (int i = 0; i < tasks.Length; ++i)
+                {
+                    var filler = fillers[i];
+                    tasks[i] = m_taskFactory.StartNew(() =>
+                    {
+                        int lane;
+                        while ((lane = Interlocked.Increment(ref nextLane)) < lanes)
+                        {
+                            FillSegment(filler, new Position(pass, slice, lane));
+                        }
+                    });
+                }
+            }
+            catch
+            {
+                // The blocks go back to the pool once this throws, so no task may still be working on them
+                WaitForStartedTasks(tasks);
+                throw;
+            }
+
+            Task.WaitAll(tasks);
+        }
+
+        private static void WaitForStartedTasks(Task[] tasks)
+        {
+            foreach (Task task in tasks)
+            {
+                if (null == task)
+                {
+                    break;
+                }
+
+                try
+                {
+                    task.Wait();
+                }
+                catch (AggregateException)
+                {
+                    // Only completion matters here; the caller rethrows the original failure
+                }
+            }
+        }
+
+        private void FillSegment(FillBlock filler, Position position)
         {
             Block addressBlock = null, inputBlock = null;
-            FillBlock filler = new FillBlock();
 
             bool dataIndependentAddressing = IsDataIndependentAddressing(position);
             int startingIndex = GetStartingIndex(position);
@@ -598,11 +771,19 @@ namespace Org.BouncyCastle.Crypto.Generators
 
         private sealed class FillBlock
         {
-            private readonly Block R = new Block();
-            private readonly Block Z = new Block();
+            private readonly Block R;
+            private readonly Block Z;
 
-            internal readonly Block addressBlock = new Block();
-            internal readonly Block inputBlock = new Block();
+            internal readonly Block addressBlock;
+            internal readonly Block inputBlock;
+
+            internal FillBlock(Block[] blocks, int off)
+            {
+                R = blocks[off + 0];
+                Z = blocks[off + 1];
+                addressBlock = blocks[off + 2];
+                inputBlock = blocks[off + 3];
+            }
 
             internal void ApplyBlake()
             {
@@ -679,14 +860,21 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
-        private sealed class Block
+        /// <summary>A single 1024-byte memory block used by the Argon2 mixing function.</summary>
+        /// <remarks>
+        /// Public so that callers can supply their own <see cref="IBlockPool"/> implementations - see
+        /// <see cref="Argon2Parameters.Builder.WithBlockPool(IBlockPool)"/>. The contents of a block are deliberately
+        /// not part of the public API; only <see cref="Clear"/> is.
+        /// </remarks>
+        public sealed class Block
         {
             private const int Size = Argon2QwordsInBlock;
 
             /* 128 * 8 Byte QWords */
             internal readonly ulong[] v;
 
-            internal Block()
+            /// <summary>Create a new, zeroed block.</summary>
+            public Block()
             {
                 v = new ulong[Size];
             }
@@ -727,10 +915,92 @@ namespace Org.BouncyCastle.Crypto.Generators
                 Nat.XorBothTo64(Size, b1.v, b2.v, v);
             }
 
-            internal Block Clear()
+            /// <summary>Zeroise this block.</summary>
+            /// <returns>This block.</returns>
+            public Block Clear()
             {
                 Arrays.ZeroMemory(v);
                 return this;
+            }
+        }
+
+        /// <summary>Strategy for allocating and recycling Argon2 <see cref="Block"/>s.</summary>
+        /// <remarks>
+        /// <para>An implementation may simply return new blocks from <see cref="Allocate"/>, or pool them so that the
+        /// underlying buffers can be reused across successive <c>GenerateBytes</c> calls. Every block handed out must
+        /// be distinct from the others still outstanding. The generator returns each block it took to
+        /// <see cref="Deallocate(Block)"/>, also when <c>GenerateBytes</c> fails part way through, and keeps no
+        /// reference to it afterwards.</para>
+        /// <para>The generator zeroises a block before passing it to <see cref="Deallocate(Block)"/>, so an
+        /// implementation never receives password-derived data and need not clear anything itself, and it doesn't
+        /// rely on a block from <see cref="Allocate"/> being zeroed. <see cref="Block.Clear"/> is public for an
+        /// implementation that wants to zeroise blocks it obtained some other way. Size a pool that is to recycle a
+        /// whole run with <see cref="GetBlockCount(int, int)"/>.</para>
+        /// <para>The generator calls its pool only from the thread calling <c>GenerateBytes</c>, also when it fills
+        /// lanes in parallel; a pool shared by generators running concurrently must be thread-safe.</para>
+        /// </remarks>
+        public interface IBlockPool
+        {
+            /// <summary>Supply a block for the generator to work in.</summary>
+            /// <returns>A block, not necessarily zeroed.</returns>
+            Block Allocate();
+
+            /// <summary>Take back a block, zeroised, that <see cref="Allocate"/> supplied.</summary>
+            /// <param name="block">The block being returned.</param>
+            void Deallocate(Block block);
+        }
+
+        /// <summary>A bounded pool that recycles up to a fixed number of <see cref="Block"/>s.</summary>
+        /// <remarks>
+        /// Blocks returned beyond that number are dropped and left to the garbage collector. The generator returns
+        /// every block zeroised, so this pool neither clears nor inspects what it recycles;
+        /// <see cref="GetBlockCount(int, int)"/> gives the size that recycles a whole run. Instances are thread-safe.
+        /// </remarks>
+        public sealed class FixedBlockPool
+            : IBlockPool
+        {
+            private readonly int m_maxBlocks;
+            private readonly Stack<Block> m_blocks = new Stack<Block>();
+
+            /// <summary>Create a pool that holds on to at most <paramref name="maxBlocks"/> blocks.</summary>
+            /// <param name="maxBlocks">The maximum number of blocks to keep for reuse.</param>
+            /// <returns>A new, empty pool.</returns>
+            public static FixedBlockPool Create(int maxBlocks)
+            {
+                if (maxBlocks < 0)
+                    throw new ArgumentOutOfRangeException(nameof(maxBlocks));
+
+                return new FixedBlockPool(maxBlocks);
+            }
+
+            private FixedBlockPool(int maxBlocks)
+            {
+                m_maxBlocks = maxBlocks;
+            }
+
+            public Block Allocate()
+            {
+                lock (m_blocks)
+                {
+                    if (m_blocks.Count > 0)
+                        return m_blocks.Pop();
+                }
+
+                return new Block();
+            }
+
+            public void Deallocate(Block block)
+            {
+                if (block == null)
+                    throw new ArgumentNullException(nameof(block));
+
+                lock (m_blocks)
+                {
+                    if (m_blocks.Count < m_maxBlocks)
+                    {
+                        m_blocks.Push(block);
+                    }
+                }
             }
         }
 

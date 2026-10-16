@@ -1,5 +1,6 @@
 ﻿using System;
 
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Parameters
@@ -27,6 +28,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         private readonly int parallelism;
         private readonly int version;
         private readonly ICharToByteConverter converter;
+        private readonly Argon2BytesGenerator.IBlockPool blockPool;
 
         /// <summary>Fluent builder for <see cref="Argon2Parameters"/>.</summary>
         public sealed class Builder
@@ -48,6 +50,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             private int parallelism = DefaultParallelism;
             private int version = DefaultVersion;
             private ICharToByteConverter converter = PasswordConverter.Utf8;
+            private Argon2BytesGenerator.IBlockPool blockPool;
 
             /// <summary>Create a builder defaulting to <see cref="Argon2i"/>.</summary>
             public Builder()
@@ -171,12 +174,29 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 return this;
             }
 
+            /// <summary>
+            /// Provide a custom <see cref="Argon2BytesGenerator.IBlockPool"/> for the generator to take its working
+            /// blocks from.
+            /// </summary>
+            /// <remarks>
+            /// Useful in high-throughput scenarios where the cost of allocating fresh blocks for each call dominates,
+            /// e.g. to share blocks among generators. If <c>null</c> (the default), each generator allocates its own
+            /// blocks and keeps them between calls.
+            /// </remarks>
+            /// <param name="blockPool">The block pool to use; may be <c>null</c>.</param>
+            /// <returns>This builder.</returns>
+            public Builder WithBlockPool(Argon2BytesGenerator.IBlockPool blockPool)
+            {
+                this.blockPool = blockPool;
+                return this;
+            }
+
             /// <summary>Construct immutable <see cref="Argon2Parameters"/> from the current builder state.</summary>
             /// <returns>The configured parameters.</returns>
             public Argon2Parameters Build()
             {
                 return new Argon2Parameters(m_type, salt, secret, additional, iterations, memory, parallelism, version,
-                    converter);
+                    converter, blockPool);
             }
 
             /// <summary>Zeroise sensitive state (salt, secret, additional) held by this builder.</summary>
@@ -189,7 +209,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         private Argon2Parameters(int type, byte[] salt, byte[] secret, byte[] additional, int iterations, int memory,
-            int parallelism, int version, ICharToByteConverter converter)
+            int parallelism, int version, ICharToByteConverter converter, Argon2BytesGenerator.IBlockPool blockPool)
         {
             this.type = type;
             this.salt = salt;
@@ -200,7 +220,14 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.parallelism = parallelism;
             this.version = version;
             this.converter = converter;
+            this.blockPool = blockPool;
         }
+
+        /// <returns>
+        /// The user-supplied <see cref="Argon2BytesGenerator.IBlockPool"/>, or <c>null</c> if the generator should
+        /// allocate its own blocks.
+        /// </returns>
+        public Argon2BytesGenerator.IBlockPool BlockPool => blockPool;
 
         /// <returns>The character-to-byte converter used to encode <c>char[]</c> passwords.</returns>
         public ICharToByteConverter CharToByteConverter => converter;

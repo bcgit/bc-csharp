@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 using NUnit.Framework;
 
@@ -387,8 +389,7 @@ namespace Org.BouncyCastle.Crypto.Tests
             });
         }
 
-        // Tests for the not-yet-implemented block pooling
-#if false
+        #region "Block pool tests"
         // A FixedBlockPool with capacity smaller than the working set must still
         // produce correct output - excess deallocations are silently dropped.
         [Test]
@@ -397,26 +398,30 @@ namespace Org.BouncyCastle.Crypto.Tests
             byte[] expected = HashWithPool(null);
 
             // capacity of 1 forces all but a single deallocate to be dropped
-            byte[] result = HashWithPool(new Argon2BytesGenerator.FixedBlockPool(1));
+            byte[] result = HashWithPool(Argon2BytesGenerator.FixedBlockPool.Create(1));
 
-            Assert.That(Arrays.AreEqual(expected, result), "undersized pool produced wrong hash");
+            Assert.IsTrue(Arrays.AreEqual(expected, result), "undersized pool produced wrong hash");
+
+            // and with no capacity at all
+            result = HashWithPool(Argon2BytesGenerator.FixedBlockPool.Create(0));
+
+            Assert.IsTrue(Arrays.AreEqual(expected, result), "empty pool produced wrong hash");
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => Argon2BytesGenerator.FixedBlockPool.Create(-1));
         }
 
-        // A user-supplied pool must produce identical output to the default
-        // (per-call FixedBlockPool) - no leftover state from prior calls.
+        // A user-supplied pool must produce identical output to the default - no leftover state from prior calls.
         [Test]
         public void CustomBlockPoolMatchesDefault()
         {
             byte[] expected = HashWithPool(null);
 
-            Argon2BytesGenerator.FixedBlockPool pool = new Argon2BytesGenerator.FixedBlockPool(64);
-            byte[] first = HashWithPool(pool);
-            byte[] second = HashWithPool(pool);
-            byte[] third = HashWithPool(pool);
-
-            Assert.That(Arrays.AreEqual(expected, first), "first hash with custom pool differs from default");
-            Assert.That(Arrays.AreEqual(expected, second), "second hash with custom pool differs from default");
-            Assert.That(Arrays.AreEqual(expected, third), "third hash with custom pool differs from default");
+            var pool = Argon2BytesGenerator.FixedBlockPool.Create(64);
+            for (int run = 1; run <= 3; ++run)
+            {
+                Assert.IsTrue(Arrays.AreEqual(expected, HashWithPool(pool)),
+                    "hash {0} with custom pool differs from default", run);
+            }
         }
 
         // A correctly-sized custom pool should never need to allocate fresh blocks
@@ -424,22 +429,261 @@ namespace Org.BouncyCastle.Crypto.Tests
         [Test]
         public void CustomBlockPoolReusesBlocks()
         {
-            CountingBlockPool pool = new CountingBlockPool();
+            var pool = new CountingBlockPool();
 
             HashWithPool(pool);
-            int afterFirst = pool.m_fresh;
+            int afterFirst = pool.Fresh;
             Assert.Greater(afterFirst, 0, "pool produced no fresh blocks on first call");
 
-            HashWithPool(pool);
-            Assert.AreEqual(afterFirst, pool.m_fresh,
-                $"pool allocated extra blocks on a recycled run: fresh={pool.m_fresh} expected={afterFirst}");
-
-            HashWithPool(pool);
-            Assert.AreEqual(afterFirst, pool.m_fresh,
-                $"pool allocated extra blocks on a recycled run: fresh={pool.m_fresh} expected={afterFirst}");
+            for (int run = 2; run <= 3; ++run)
+            {
+                HashWithPool(pool);
+                Assert.AreEqual(afterFirst, pool.Fresh, "pool allocated extra blocks on recycled run {0}", run);
+            }
         }
 
-        private static byte[] HashWithPool(Argon2BytesGenerator.IBlockPool pool)
+        // The generator mustn't rely on what a pool hands out being zeroed.
+        [Test]
+        public void DirtyBlocksFromPool()
+        {
+            byte[] expected = HashWithPool(null);
+
+            Assert.IsTrue(Arrays.AreEqual(expected, HashWithPool(new DirtyBlockPool())),
+                "hash with blocks handed out dirty differs from default");
+        }
+
+        // The generator zeroises a block before handing it back, so a pool that clears nothing - as a
+        // custom implementation is entitled to be - never sees password-derived data.
+        [Test]
+        public void BlocksClearedOnDeallocate()
+        {
+            var pool = new CheckingBlockPool();
+
+            HashWithPool(pool);
+
+            Assert.Greater(pool.Deallocated, 0, "no blocks were returned to the pool");
+            Assert.AreEqual(0, pool.Dirty, "blocks returned to the pool carrying data");
+
+            // and again on a run that recycles, where the blocks arrive with the previous run's data
+            pool.Deallocated = 0;
+
+            HashWithPool(pool, taskFactory: Task.Factory);
+
+            Assert.Greater(pool.Deallocated, 0, "no blocks were returned on the second run");
+            Assert.AreEqual(0, pool.Dirty, "blocks returned to the pool carrying data on a recycled run");
+        }
+
+        // GetBlockCount() is the number a pool must hold to recycle a whole run: the aligned primary
+        // memory plus the fill step's working blocks. Compare it against what the generator asks for.
+        [TestCase(32, 4)]
+        [TestCase(32, 1)]
+        [TestCase(8, 4)]
+        [TestCase(1, 4)]
+        [TestCase(4096, 2)]
+        [TestCase(100, 3)]
+        public void BlockCountMatchesTheBlocksTaken(int memory, int lanes)
+        {
+            byte[] expected = HashWithPool(null, memory, lanes);
+
+            // exact only with a task for every lane (one lane is filled in turn whatever the TaskFactory)
+            CheckBlockCount(expected, memory, lanes, taskFactory: null, exact: lanes == 1);
+            CheckBlockCount(expected, memory, lanes, Task.Factory, exact: false);
+            CheckBlockCount(expected, memory, lanes, new TaskFactory(new TestTaskScheduler(lanes)), exact: true);
+        }
+
+        private static void CheckBlockCount(byte[] expected, int memory, int lanes, TaskFactory taskFactory,
+            bool exact)
+        {
+            int blockCount = Argon2BytesGenerator.GetBlockCount(memory, lanes);
+
+            var pool = new CountingBlockPool();
+
+            for (int run = 1; run <= 2; ++run)
+            {
+                Assert.IsTrue(Arrays.AreEqual(expected, HashWithPool(pool, memory, lanes, taskFactory)),
+                    "hash {0} with a counting pool differs from the default", run);
+
+                if (exact)
+                {
+                    Assert.AreEqual(blockCount, pool.Fresh, "GetBlockCount() differs from the blocks taken");
+                }
+                else
+                {
+                    Assert.LessOrEqual(pool.Fresh, blockCount, "GetBlockCount() is less than the blocks taken");
+                }
+                Assert.AreEqual(pool.Fresh, pool.Available, "blocks not returned to the pool (run {0})", run);
+            }
+
+            // a pool of that size recycles every block of the next run
+            var sized = Argon2BytesGenerator.FixedBlockPool.Create(blockCount);
+            for (int run = 1; run <= 2; ++run)
+            {
+                Assert.IsTrue(Arrays.AreEqual(expected, HashWithPool(sized, memory, lanes, taskFactory)),
+                    "hash {0} with a pool sized by GetBlockCount() differs from the default", run);
+            }
+        }
+
+        [Test]
+        public void BlockCountArguments()
+        {
+            Assert.Throws<ArgumentOutOfRangeException>(() => Argon2BytesGenerator.GetBlockCount(32, 0));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Argon2BytesGenerator.GetBlockCount(32, 1 << 24));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Argon2BytesGenerator.GetBlockCount(0, 1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => Argon2BytesGenerator.GetBlockCount((1 << 30) + 1, 1));
+
+            // the largest arguments mustn't overflow
+            Assert.Greater(Argon2BytesGenerator.GetBlockCount(1 << 30, 1), 1 << 30);
+            Assert.Greater(Argon2BytesGenerator.GetBlockCount(1 << 30, (1 << 24) - 1), 1 << 30);
+        }
+
+        // A run that fails part way through must still return what it took, zeroised.
+        [Test]
+        public void BlocksReturnedAndClearedOnFailure()
+        {
+            var counting = new CountingBlockPool();
+            HashWithPool(counting);
+            int blocksTaken = counting.Fresh;
+
+            // fail while taking the primary memory, and while taking the fill step's blocks (the last taken), by
+            // which time the first blocks of each lane hold password-derived data
+            foreach (int failAfter in new int[] { 0, 5, blocksTaken - 2 })
+            {
+                var pool = new CheckingBlockPool { FailAfter = failAfter };
+
+                var e = Assert.Throws<InvalidOperationException>(() => HashWithPool(pool));
+                Assert.AreEqual("no more blocks", e.Message);
+
+                Assert.AreEqual(failAfter, pool.Allocated);
+                Assert.AreEqual(pool.Allocated, pool.Deallocated, "blocks taken before the failure not returned");
+                Assert.AreEqual(0, pool.Dirty, "blocks returned carrying data after a failed run");
+            }
+        }
+
+        // The lanes are shared among no more tasks than the scheduler says it can run at once.
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(int.MaxValue)]
+        public void TasksBoundedBySchedulerConcurrency(int maxConcurrencyLevel)
+        {
+            const int Lanes = 4, Iterations = 3, Slices = 4;
+
+            byte[] expected = HashWithPool(null, lanes: Lanes);
+
+            var scheduler = new TestTaskScheduler(maxConcurrencyLevel);
+            var taskFactory = new TaskFactory(scheduler);
+            var pool = new CountingBlockPool();
+
+            Assert.IsTrue(Arrays.AreEqual(expected, HashWithPool(pool, lanes: Lanes, taskFactory: taskFactory)),
+                "hash with tasks bounded by the scheduler differs from the default");
+
+            // a scheduler that sets no limit gets one task per processor
+            int tasksPerSlice = maxConcurrencyLevel == int.MaxValue
+                ? System.Math.Min(Lanes, Environment.ProcessorCount)
+                : System.Math.Min(Lanes, maxConcurrencyLevel);
+            Assert.AreEqual(Iterations * Slices * tasksPerSlice, scheduler.Queued.Count);
+
+            Assert.LessOrEqual(pool.Fresh, Argon2BytesGenerator.GetBlockCount(32, Lanes));
+        }
+
+        // If a task can't be started, the tasks already started must finish before the blocks go back.
+        [Test]
+        public void StartedTasksFinishBeforeBlocksReturned()
+        {
+            var pool = new CheckingBlockPool();
+            var scheduler = new TestTaskScheduler(maxConcurrencyLevel: 4, failAt: 2, delay: 100);
+            var taskFactory = new TaskFactory(scheduler);
+
+            Assert.Throws<TaskSchedulerException>(() => HashWithPool(pool, lanes: 4, taskFactory: taskFactory));
+
+            Assert.AreEqual(2, scheduler.Queued.Count);
+            foreach (Task task in scheduler.Queued)
+            {
+                Assert.IsTrue(task.IsCompleted, "a started task was still running after GenerateBytes threw");
+            }
+
+            Assert.AreEqual(pool.Allocated, pool.Deallocated, "blocks taken before the failure not returned");
+            Assert.AreEqual(0, pool.Dirty, "blocks returned carrying data after a failed run");
+        }
+
+#if NETCOREAPP3_0_OR_GREATER
+        // Without a pool, a generator keeps its blocks between calls (and across an Init that doesn't change the
+        // memory size) rather than allocating them again.
+        [Test]
+        public void DefaultKeepsItsBlocks()
+        {
+            const int Memory = 1024;
+
+            var gen = new Argon2BytesGenerator();
+            byte[] first = HashWith(gen, null, Memory, lanes: 1);
+
+            long before = GC.GetAllocatedBytesForCurrentThread();
+            byte[] second = HashWith(gen, null, Memory, lanes: 1);
+            long allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+
+            Assert.IsTrue(Arrays.AreEqual(first, second), "second hash differs from the first");
+            Assert.Less(allocated, Memory * 1024 / 8, "the second call allocated its memory again");
+        }
+#endif
+
+        // A generator re-initialised across memory sizes, and between its own blocks and a pool's, matches a new one.
+        [Test]
+        public void ReinitAcrossSizesAndPools()
+        {
+            var gen = new Argon2BytesGenerator();
+            var pool = new CheckingBlockPool();
+
+            // { with pool, memory, lanes }
+            int[][] configs = new int[][]
+            {
+                new int[] { 0, 32, 4 }, new int[] { 0, 32, 4 }, new int[] { 0, 64, 2 }, new int[] { 1, 64, 2 },
+                new int[] { 1, 32, 4 }, new int[] { 0, 32, 4 }, new int[] { 1, 32, 4 }, new int[] { 0, 64, 2 },
+            };
+
+            foreach (int[] config in configs)
+            {
+                byte[] expected = HashWithPool(null, config[1], config[2]);
+                byte[] result = HashWith(gen, config[0] != 0 ? pool : null, config[1], config[2]);
+
+                Assert.IsTrue(Arrays.AreEqual(expected, result), "hash differs for config {{{0}}}",
+                    string.Join(", ", config));
+            }
+
+            Assert.AreEqual(pool.Allocated, pool.Deallocated, "blocks taken from the pool not returned");
+            Assert.AreEqual(0, pool.Dirty, "blocks returned to the pool carrying data");
+        }
+
+        // With a pool, the generator keeps no reference to a block once it has gone back.
+        [Test]
+        public void NoReferenceKeptToReturnedBlocks()
+        {
+            var pool = new TrackingBlockPool();
+            var gen = new Argon2BytesGenerator();
+
+            HashWith(gen, pool, memory: 32, lanes: 4);
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            Assert.Greater(pool.Tracked.Count, 0, "no blocks were taken from the pool");
+            foreach (WeakReference tracked in pool.Tracked)
+            {
+                Assert.IsFalse(tracked.IsAlive, "a returned block is still referenced");
+            }
+
+            GC.KeepAlive(gen);
+        }
+
+        private static byte[] HashWithPool(Argon2BytesGenerator.IBlockPool pool, int memory = 32, int lanes = 4,
+            TaskFactory taskFactory = null)
+        {
+            return HashWith(new Argon2BytesGenerator(taskFactory), pool, memory, lanes);
+        }
+
+        private static byte[] HashWith(Argon2BytesGenerator gen, Argon2BytesGenerator.IBlockPool pool, int memory,
+            int lanes)
         {
             byte[] salt = Hex.Decode("02020202020202020202020202020202");
             byte[] password = Hex.Decode("0101010101010101010101010101010101010101010101010101010101010101");
@@ -447,8 +691,8 @@ namespace Org.BouncyCastle.Crypto.Tests
             Argon2Parameters.Builder builder = new Argon2Parameters.Builder(Argon2Parameters.Argon2id)
                 .WithVersion(Argon2Parameters.Version13)
                 .WithIterations(3)
-                .WithMemoryAsKB(32)
-                .WithParallelism(4)
+                .WithMemoryAsKB(memory)
+                .WithParallelism(lanes)
                 .WithSalt(salt);
 
             if (pool != null)
@@ -456,7 +700,6 @@ namespace Org.BouncyCastle.Crypto.Tests
                 builder.WithBlockPool(pool);
             }
 
-            Argon2BytesGenerator gen = new Argon2BytesGenerator();
             gen.Init(builder.Build());
 
             byte[] output = new byte[32];
@@ -464,30 +707,144 @@ namespace Org.BouncyCastle.Crypto.Tests
             return output;
         }
 
-        private class CountingBlockPool
+        private static bool IsClear(Argon2BytesGenerator.Block block)
+        {
+            foreach (ulong x in block.v)
+            {
+                if (x != 0UL)
+                    return false;
+            }
+            return true;
+        }
+
+        private sealed class CountingBlockPool
             : Argon2BytesGenerator.IBlockPool
         {
-            private readonly ConcurrentStack<Argon2BytesGenerator.Block> m_available =
-                new ConcurrentStack<Argon2BytesGenerator.Block>();
-            internal int m_fresh;
-            internal int m_recycled;
+            private readonly Stack<Argon2BytesGenerator.Block> m_available = new Stack<Argon2BytesGenerator.Block>();
+
+            internal int Fresh { get; private set; }
+
+            internal int Available => m_available.Count;
 
             public Argon2BytesGenerator.Block Allocate()
             {
-                if (!m_available.TryPop(out var b))
-                {
-                    m_fresh++;
-                    return new Argon2BytesGenerator.Block();
-                }
-                m_recycled++;
-                return b;
+                if (m_available.Count > 0)
+                    return m_available.Pop();
+
+                ++Fresh;
+                return new Argon2BytesGenerator.Block();
+            }
+
+            public void Deallocate(Argon2BytesGenerator.Block block) => m_available.Push(block);
+        }
+
+        // Checks what it is handed rather than clearing it.
+        private sealed class CheckingBlockPool
+            : Argon2BytesGenerator.IBlockPool
+        {
+            private readonly Stack<Argon2BytesGenerator.Block> m_available = new Stack<Argon2BytesGenerator.Block>();
+
+            internal int Allocated { get; private set; }
+            internal int Deallocated { get; set; }
+            internal int Dirty { get; private set; }
+            internal int FailAfter { get; set; } = -1;
+
+            public Argon2BytesGenerator.Block Allocate()
+            {
+                if (Allocated == FailAfter)
+                    throw new InvalidOperationException("no more blocks");
+
+                ++Allocated;
+                return m_available.Count > 0 ? m_available.Pop() : new Argon2BytesGenerator.Block();
             }
 
             public void Deallocate(Argon2BytesGenerator.Block block)
             {
+                ++Deallocated;
+                if (!IsClear(block))
+                {
+                    ++Dirty;
+                }
                 m_available.Push(block);
             }
         }
-#endif
+
+        // Hands out new blocks, tracking them weakly, and drops what comes back.
+        private sealed class TrackingBlockPool
+            : Argon2BytesGenerator.IBlockPool
+        {
+            internal List<WeakReference> Tracked { get; } = new List<WeakReference>();
+
+            public Argon2BytesGenerator.Block Allocate()
+            {
+                var block = new Argon2BytesGenerator.Block();
+                Tracked.Add(new WeakReference(block));
+                return block;
+            }
+
+            public void Deallocate(Argon2BytesGenerator.Block block)
+            {
+            }
+        }
+
+        // Hands out blocks full of junk.
+        private sealed class DirtyBlockPool
+            : Argon2BytesGenerator.IBlockPool
+        {
+            public Argon2BytesGenerator.Block Allocate()
+            {
+                var block = new Argon2BytesGenerator.Block();
+                for (int i = 0; i < block.v.Length; ++i)
+                {
+                    block.v[i] = 0xA5A5A5A5A5A5A5A5UL ^ (ulong)i;
+                }
+                return block;
+            }
+
+            public void Deallocate(Argon2BytesGenerator.Block block)
+            {
+            }
+        }
+
+        // Reports the given concurrency level, runs each task on the thread pool (after an optional delay), and
+        // refuses to queue any after the first failAt.
+        private sealed class TestTaskScheduler
+            : TaskScheduler
+        {
+            private readonly int m_maxConcurrencyLevel, m_failAt, m_delay;
+
+            internal TestTaskScheduler(int maxConcurrencyLevel, int failAt = -1, int delay = 0)
+            {
+                m_maxConcurrencyLevel = maxConcurrencyLevel;
+                m_failAt = failAt;
+                m_delay = delay;
+            }
+
+            public override int MaximumConcurrencyLevel => m_maxConcurrencyLevel;
+
+            // only the generator's calling thread queues tasks
+            internal List<Task> Queued { get; } = new List<Task>();
+
+            protected override IEnumerable<Task> GetScheduledTasks() => null;
+
+            protected override void QueueTask(Task task)
+            {
+                if (Queued.Count == m_failAt)
+                    throw new InvalidOperationException("no more tasks");
+
+                Queued.Add(task);
+                ThreadPool.QueueUserWorkItem(_ =>
+                {
+                    if (m_delay > 0)
+                    {
+                        Thread.Sleep(m_delay);
+                    }
+                    TryExecuteTask(task);
+                });
+            }
+
+            protected override bool TryExecuteTaskInline(Task task, bool taskWasPreviouslyQueued) => false;
+        }
+        #endregion
     }
 }
