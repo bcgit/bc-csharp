@@ -1656,8 +1656,6 @@ namespace Org.BouncyCastle.Pkcs.Tests
 
         private void CheckNoDuplicateOracleTrustedCertAttribute()
         {
-            var random = new SecureRandom();
-
             string certificateAlias = "myAlias";
             string keystorePassword = "myPassword";
 
@@ -1674,7 +1672,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             var firstTrustStore = new Pkcs12StoreBuilder().Build();
             firstTrustStore.SetCertificateEntry(certificateAlias, new X509CertificateEntry(originalCertificate));
             var bOut = new MemoryStream();
-            firstTrustStore.Save(bOut, keystorePassword.ToCharArray(), random);
+            firstTrustStore.Save(bOut, keystorePassword.ToCharArray(), Random);
 
             // read certificate from the truststore
             var firstTrustStoreReadAgain = new Pkcs12StoreBuilder().Build();
@@ -1685,7 +1683,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             secondTrustStore.SetCertificateEntry(certificateAlias,
                 new X509CertificateEntry(certificateReadFromFirstTrustStore.Certificate));
             bOut = new MemoryStream();
-            secondTrustStore.Save(bOut, keystorePassword.ToCharArray(), random);
+            secondTrustStore.Save(bOut, keystorePassword.ToCharArray(), Random);
 
             // TODO Some other way to check that 'id_oracle_pkcs12_trusted_key_usage' is not duplicated?
             //KeyStore secondTrustStoreReadWithoutBc = KeyStore.getInstance("PKCS12", "SunJSSE");
@@ -1801,7 +1799,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             Pkcs12Store store2 = new Pkcs12StoreBuilder().Build();
             // overwriteFriendlyName=FALSE AND friendlyName is null -> friendlyName should stay null
             MemoryStream outStream = new MemoryStream();
-            store1.Save(outStream, storePassword, new SecureRandom());
+            store1.Save(outStream, storePassword, Random);
             store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
 
             string alias1 = GetFirst(store1.Aliases);
@@ -1819,7 +1817,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             store1 = new Pkcs12StoreBuilder().SetOverwriteFriendlyName(true).Build();
             store1.Load(stream, storePassword);
 
-            store1.Save(outStream, storePassword, new SecureRandom());
+            store1.Save(outStream, storePassword, Random);
             store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
 
             alias1 = GetFirst(store1.Aliases);
@@ -1837,7 +1835,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             // overwriteFriendlyName=TRUE AND friendlyName is null then added -> friendlyName should be default value
             outStream = new MemoryStream();
 
-            store1.Save(outStream, storePassword, new SecureRandom());
+            store1.Save(outStream, storePassword, Random);
             store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
 
             alias1 = GetFirst(store1.Aliases);
@@ -1856,7 +1854,7 @@ namespace Org.BouncyCastle.Pkcs.Tests
             store1.SetFriendlyName(alias1, "my_custom_friendly_name");
             outStream = new MemoryStream();
 
-            store1.Save(outStream, storePassword, new SecureRandom());
+            store1.Save(outStream, storePassword, Random);
             store2.Load(new MemoryStream(outStream.ToArray(), false), storePassword);
 
             alias2 = GetFirst(store2.Aliases);
