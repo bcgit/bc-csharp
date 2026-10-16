@@ -10,11 +10,13 @@ using Org.BouncyCastle.Asn1.Pkcs;
 using Org.BouncyCastle.Asn1.Sec;
 using Org.BouncyCastle.Asn1.X509;
 using Org.BouncyCastle.Crypto;
+using Org.BouncyCastle.Crypto.Generators;
 using Org.BouncyCastle.Crypto.Operators;
 using Org.BouncyCastle.Crypto.Parameters;
 using Org.BouncyCastle.Math;
 using Org.BouncyCastle.Security;
 using Org.BouncyCastle.Tests;
+using Org.BouncyCastle.Utilities;
 using Org.BouncyCastle.Utilities.Collections;
 using Org.BouncyCastle.Utilities.Encoders;
 using Org.BouncyCastle.Utilities.Test;
@@ -1865,6 +1867,86 @@ namespace Org.BouncyCastle.Pkcs.Tests
             }
         }
 
+        // TODO[pkcs12] Pending PBMAC1 or at least selective HMAC algorithm (and/or MAC salt length)
+#if false
+        [Test]
+        public void MacParametersResetByUnprotectedLoad()
+        {
+            char[] vectorPassword = "1234".ToCharArray();
+
+            KeyStore src = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+            src.load(new ByteArrayInputStream(pkcs12WithPBMac1PBKdf2_a1), vectorPassword);
+
+            Certificate cert = src.getCertificate((String)src.aliases().nextElement());
+
+            // certificates only, stored without a password, so the file carries no MacData at all
+            KeyStore certsOnly = KeyStore.getInstance("PKCS12", BC);
+
+            certsOnly.load(null, null);
+            certsOnly.setCertificateEntry("cert", cert);
+
+            byte[] noMacFile = storeToBytes(certsOnly, null);
+
+            isTrue("the certificate only file has a MAC", Pfx.getInstance(noMacFile).getMacData() == null);
+
+            // MAC'd files shaped unlike either store's own: the RFC 9579 vector, and a SHA-1 MAC
+            // with a zero length salt at one iteration
+            byte[][] macFiles = new byte[][]{pkcs12WithPBMac1PBKdf2_a1, withZeroLengthMacSalt(storeToBytes(certsOnly, passwd), passwd)};
+            char[][] macPasswords = new char[][]{vectorPassword, passwd};
+            String[] types = new String[]{"PKCS12", "PKCS12-PBMAC1"};
+
+            for (int t = 0; t != types.length; t++)
+            {
+                KeyStore fresh = KeyStore.getInstance(types[t], BC);
+
+                fresh.load(null, null);
+                fresh.setCertificateEntry("cert", cert);
+
+                String expected = macShapeOf(storeToBytes(fresh, passwd));
+
+                for (int f = 0; f != macFiles.length; f++)
+                {
+                    String label = types[t] + ", file " + (f + 1) + ": ";
+                    KeyStore store = KeyStore.getInstance(types[t], BC);
+
+                    store.load(new ByteArrayInputStream(macFiles[f]), macPasswords[f]);
+
+                    // otherwise the check below cannot tell an inherited shape from the default
+                    isTrue(label + "the MAC'd file's shape was not inherited",
+                        !expected.equals(macShapeOf(storeToBytes(store, passwd))));
+
+                    store.load(new ByteArrayInputStream(noMacFile), null);
+
+                    isEquals(label + "MAC shape carried over a load with no MAC", expected, macShapeOf(storeToBytes(store, passwd)));
+                }
+            }
+
+            // nor does an AlgorithmIdentifier a caller supplied to an earlier write
+            byte[] callerSalt = Hex.decode("0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20");
+            AlgorithmIdentifier callerMac = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBMAC1,
+                new PBMAC1Params(new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2,
+                    new PBKDF2Params(callerSalt, 4096, 32,
+                        new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256))),
+                    new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256)));
+
+            KeyStore caller = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+            caller.load(null, null);
+            caller.setCertificateEntry("cert", cert);
+
+            caller.store(PKCS12StoreParameter.builder(new ByteArrayOutputStream(), passwd).setMacAlgorithm(callerMac).build());
+
+            isTrue("the caller supplied PBKDF2 salt was not kept",
+                Arrays.areEqual(callerSalt, pbkdf2ParamsOf(storeToBytes(caller, passwd)).getSalt()));
+
+            caller.load(new ByteArrayInputStream(noMacFile), null);
+
+            isTrue("a caller supplied PBKDF2 salt carried over a load with no MAC",
+                !Arrays.areEqual(callerSalt, pbkdf2ParamsOf(storeToBytes(caller, passwd)).getSalt()));
+        }
+#endif
+
         [Test]
         public void MissingContentInfoContent()
         {
@@ -1959,6 +2041,64 @@ namespace Org.BouncyCastle.Pkcs.Tests
         }
 
         [Test]
+        public void StoreIterationCount()
+        {
+            // A small default is set (via environment variable to affect all threads) in EnvironmentSetup so the suite
+            // doesn't spend its time on the KDF, so put back whatever was there on the way out rather than assuming the
+            // property was unset.
+
+            //
+            // Pkcs12StoreIterationCount is the write-side counterpart of Pkcs12MaxIterationCount:
+            // an operator trading password-cracking resistance for store/load time.
+            //
+
+            Properties.WithThreadProperty(Properties.Pkcs12StoreIterationCount, "51200", () =>
+            {
+                byte[] lowered = StoreFreshPkcs12(Random);
+
+                Assert.AreEqual(51200, GetKeyBagIterationCount(lowered), "lowered key bag iteration count");
+                Assert.AreEqual(102400, GetMacIterationCount(lowered), "lowered MAC iteration count");
+
+                Pkcs12Store inStore = new Pkcs12StoreBuilder().Build();
+                inStore.Load(new MemoryStream(lowered, writable: false), passwd);
+
+                Assert.NotNull(inStore.GetKey("key"), "lowered store did not round trip");
+            });
+
+            //
+            // a value outside 1..2,500,000 is ignored - a mistyped property must not be
+            // able to write a file with no PBE work in it at all. This is the one case
+            // that has to pay for a full strength store.
+            //
+
+            Properties.WithThreadProperty(Properties.Pkcs12StoreIterationCount, "0", () =>
+            {
+                byte[] ignored = StoreFreshPkcs12(Random);
+
+                Assert.AreEqual(599000, GetKeyBagIterationCount(ignored),
+                    "out of range key bag iteration count honoured");
+                Assert.AreEqual(1198000, GetMacIterationCount(ignored), "out of range MAC iteration count honoured");
+            });
+
+            //
+            // a file that arrived with its own MAC count keeps it on the way back out.
+            //
+
+            Pkcs12Store reSave = new Pkcs12StoreBuilder().Build();
+            reSave.Load(new MemoryStream(pkcs12, writable: false), passwd);
+
+            byte[] reSaved;
+            using (var bOut = new MemoryStream())
+            {
+                reSave.Save(bOut, passwd, Random);
+                reSaved = bOut.ToArray();
+            }
+
+            Assert.AreEqual(GetMacIterationCount(pkcs12), GetMacIterationCount(reSaved),
+                "loaded MAC iteration count not preserved");
+        }
+
+        [Test]
         public void WrongPassword()
         {
             var store = new Pkcs12StoreBuilder().Build();
@@ -1989,5 +2129,91 @@ namespace Org.BouncyCastle.Pkcs.Tests
         }
 
         private static T GetFirst<T>(IEnumerable<T> e) => CollectionUtilities.RequireNext(e.GetEnumerator());
+
+        private static int GetKeyBagIterationCount(byte[] pfxEncoding)
+        {
+            Pfx pfx = Pfx.GetInstance(pfxEncoding);
+            AuthenticatedSafe authSafe = AuthenticatedSafe.GetInstance(
+                Asn1OctetString.GetInstance(pfx.AuthSafe.Content).GetOctets());
+            ContentInfo[] infos = authSafe.GetContentInfo();
+
+            for (int i = 0; i != infos.Length; i++)
+            {
+                // the shrouded key bags are the unencrypted SafeContents, the certificates
+                // live in the EncryptedData block alongside them
+                if (!PkcsObjectIdentifiers.Data.Equals(infos[i].ContentType))
+                    continue;
+
+                Asn1Sequence bags = Asn1Sequence.GetInstance(
+                    Asn1OctetString.GetInstance(infos[i].Content).GetOctets());
+
+                for (int j = 0; j != bags.Count; j++)
+                {
+                    SafeBag bag = SafeBag.GetInstance(bags[j]);
+
+                    if (PkcsObjectIdentifiers.Pkcs8ShroudedKeyBag.Equals(bag.BagID))
+                    {
+                        EncryptedPrivateKeyInfo encInfo = EncryptedPrivateKeyInfo.GetInstance(bag.BagValue);
+                        Pkcs12PbeParams pbeParams = Pkcs12PbeParams.GetInstance(encInfo.EncryptionAlgorithm.Parameters);
+
+                        return pbeParams.IterationsObject.IntValueExact;
+                    }
+                }
+            }
+
+            Assert.Fail("no pkcs8ShroudedKeyBag found");
+            return -1;
+        }
+
+        private static int GetMacIterationCount(byte[] pfxEncoding) =>
+            Pfx.GetInstance(pfxEncoding).MacData.Iterations.IntValueExact;
+
+        // the parts of a file's MAC a later write of the same store may inherit, salts aside
+        private static string MacShapeOf(byte[] pfx)
+        {
+            MacData macData = Pfx.GetInstance(pfx).MacData;
+            AlgorithmIdentifier macAlgorithm = macData.Mac.DigestAlgorithm;
+            string shape = macAlgorithm.Algorithm + ", MAC salt length " + macData.MacSalt.GetOctetsLength()
+                + ", MAC count " + macData.IterationCount;
+
+            if (PkcsObjectIdentifiers.IdPbmac1.Equals(macAlgorithm.Algorithm))
+            {
+                Pbkdf2Params kdf = Pbkdf2ParamsOf(pfx);
+
+                shape += ", PBKDF2 count " + kdf.IterationCount + ", key length " + kdf.KeyLength
+                    + ", PRF " + kdf.Prf.Algorithm
+                    + ", auth " + Pbmac1ParamsOf(pfx).MessageAuthScheme.Algorithm;
+            }
+
+            return shape;
+        }
+
+        private static Pbmac1Params Pbmac1ParamsOf(byte[] pfx) =>
+            Pbmac1Params.GetInstance(Pfx.GetInstance(pfx).MacData.Mac.DigestAlgorithm.Parameters);
+
+        private static Pbkdf2Params Pbkdf2ParamsOf(byte[] pfx) =>
+            Pbkdf2Params.GetInstance(Pbmac1ParamsOf(pfx).KeyDerivationFunc.Parameters);
+
+        private static byte[] StoreFreshPkcs12(SecureRandom random)
+        {
+            var kpg = new ECKeyPairGenerator();
+            kpg.Init(new ECKeyGenerationParameters(SecObjectIdentifiers.SecP256r1, random));
+
+            var kp = kpg.GenerateKeyPair();
+
+            X509Certificate cert = TestUtilities.CreateSelfSignedCert(new X509Name("CN=PKCS12 Iteration Count Test"),
+                "SHA256withECDSA", kp);
+
+            Pkcs12Store pkcs12 = new Pkcs12StoreBuilder().Build();
+
+            pkcs12.SetKeyEntry("key", new AsymmetricKeyEntry(kp.Private),
+                new X509CertificateEntry[]{ new X509CertificateEntry(cert) });
+
+            using (var bOut = new MemoryStream())
+            {
+                pkcs12.Save(bOut, passwd, random);
+                return bOut.ToArray();
+            }
+        }
     }
 }

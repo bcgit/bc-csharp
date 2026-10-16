@@ -142,6 +142,24 @@ namespace Org.BouncyCastle.Utilities
         /// </summary>
         public static readonly string Pkcs12MaxIterationCount = "Org.BouncyCastle.Pkcs12.MaxIterationCount";
 
+        /// <summary>
+        /// The PBE iteration count the PKCS12 keystore uses when <b>writing</b> a file - the write-side counterpart of
+        /// <see cref="Pkcs12MaxIterationCount"/>, which only bounds what is accepted on load. Default 599,000 for the
+        /// key and certificate encryption, twice that for the integrity MAC.
+        /// </summary>
+        /// <remarks>
+        /// Note that Windows currently reports an error importing a PKCS#12 file written with an iteration count of
+        /// 600,000 or greater, which is why the default sits just below that figure; setting this property to 600,000
+        /// or more produces files Windows may refuse.
+        /// <para>
+        /// A value outside 1..2,500,000 is ignored and the default used, so a mistyped property fails towards the
+        /// default rather than towards a file with no PBE work in it; the upper bound keeps the doubled MAC count
+        /// inside the 5,000,000 that <see cref="Pkcs12MaxIterationCount"/> defaults to, so a file written under this
+        /// property can always be read back.
+        /// </para>
+        /// </remarks>
+        public static readonly string Pkcs12StoreIterationCount = "Org.BouncyCastle.Pkcs12.StoreIterationCount";
+
         public static readonly string Pkcs1NotStrict = "Org.BouncyCastle.Pkcs1.NotStrict";
 
         /// <summary>

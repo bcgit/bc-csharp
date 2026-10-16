@@ -31,6 +31,11 @@ namespace Org.BouncyCastle.Pkcs
         [Obsolete("Use 'Properties.Pkcs12IgnoreUselessPassword' instead")]
         public const string IgnoreUselessPasswordProperty = "Org.BouncyCastle.Pkcs12.IgnoreUselessPassword";
 
+        private static readonly AlgorithmIdentifier DefaultMacDigestAlgorithm =
+            DefaultDigestAlgorithmFinder.Instance.Find(OiwObjectIdentifiers.IdSha1);
+
+        private const int DefaultMacSaltLength = 20;
+
         private readonly Dictionary<string, AsymmetricKeyEntry> m_keys =
             new Dictionary<string, AsymmetricKeyEntry>(StringComparer.OrdinalIgnoreCase);
         private readonly List<string> m_keysOrder = new List<string>();
@@ -57,8 +62,11 @@ namespace Org.BouncyCastle.Pkcs
         private readonly bool overwriteFriendlyName;
         private readonly bool enableOracleTrustedKeyUsage;
 
-        private const int MinIterations = 1024;
         private const int SaltSize = 20;
+
+        private AlgorithmIdentifier m_macDigestAlgorithm = DefaultMacDigestAlgorithm;
+        private int m_macIterations = -1; // -1 means use the store-time default
+        private int m_macSaltLength = DefaultMacSaltLength;
 
         private struct CertID
             : IEquatable<CertID>
@@ -218,12 +226,15 @@ namespace Org.BouncyCastle.Pkcs
                 if (password == null)
                     throw new ArgumentNullException(nameof(password), "no password supplied when one expected");
 
+                int macIterations = Pkcs12Utilities.ValidateIterations(macData.Iterations);
+
                 byte[] data = Pkcs12Utilities.GetContentOctets(info);
 
-                if (!VerifyPbeMac(macData, password, wrongPkcs12Zero: false, data))
+                if (!VerifyPbeMac(macData, macIterations, password, wrongPkcs12Zero: false, data))
                 {
                     // Try with incorrect zero length password conversion
-                    if (password.Length == 0 && VerifyPbeMac(macData, password, wrongPkcs12Zero: true, data))
+                    if (password.Length == 0 &&
+                        VerifyPbeMac(macData, macIterations, password, wrongPkcs12Zero: true, data))
                     {
                         wrongPkcs12Zero = true;
                     }
@@ -232,6 +243,21 @@ namespace Org.BouncyCastle.Pkcs
                         throw new IOException("PKCS12 key store MAC invalid - wrong password or corrupted file.");
                     }
                 }
+
+                // the file has verified: a write may now keep the MAC algorithm, count and salt
+                // length it arrived with. The salt bytes are not inherited - they are generated per
+                // write - and nothing is latched from a file that failed the check above.
+                m_macDigestAlgorithm = macData.Mac.DigestAlgorithm;
+                m_macIterations = macIterations;
+                m_macSaltLength = Pkcs12Utilities.GetMacSaltLength(macData.MacSalt.GetOctetsLength());
+            }
+            else
+            {
+                // a file with no MAC has no shape for a write to inherit, so put the defaults back
+                // rather than let one loaded earlier into this store carry over to it
+                m_macDigestAlgorithm = DefaultMacDigestAlgorithm;
+                m_macIterations = -1;
+                m_macSaltLength = DefaultMacSaltLength;
             }
 
             Clear(m_keys, m_keysOrder);
@@ -838,6 +864,16 @@ namespace Org.BouncyCastle.Pkcs
             if (random == null)
                 throw new ArgumentNullException(nameof(random));
 
+            // TODO[pkcs12] Support more conventional config setting for this?
+            int storeIterations = Pkcs12Utilities.GetDefaultStoreIterationCount();
+
+            // a file loaded from disk keeps its own MAC count, otherwise twice the PBE count
+            int macIterations = m_macIterations;
+            if (macIterations <= 0)
+            {
+                macIterations = 2 * storeIterations;
+            }
+
             //
             // handle the keys
             //
@@ -849,6 +885,7 @@ namespace Org.BouncyCastle.Pkcs
                 var name = m_keysOrder[(int)i];
                 var privKey = m_keys[name];
 
+                // TODO Configurable salt length?
                 byte[] kSalt = SecureRandom.GetNextBytes(random, SaltSize);
 
                 DerObjectIdentifier bagOid;
@@ -865,12 +902,12 @@ namespace Org.BouncyCastle.Pkcs
                     if (keyPrfAlgorithm != null)
                     {
                         bagData = EncryptedPrivateKeyInfoFactory.CreateEncryptedPrivateKeyInfo(keyAlgorithm,
-                            keyPrfAlgorithm, password, kSalt, MinIterations, random, privKey.Key);
+                            keyPrfAlgorithm, password, kSalt, storeIterations, random, privKey.Key);
                     }
                     else
                     {
                         bagData = EncryptedPrivateKeyInfoFactory.CreateEncryptedPrivateKeyInfo(keyAlgorithm, password,
-                            kSalt, MinIterations, privKey.Key);
+                            kSalt, storeIterations, privKey.Key);
                     }
                 }
 
@@ -1054,8 +1091,7 @@ namespace Org.BouncyCastle.Pkcs
             {
                 // TODO Configurable salt length?
                 byte[] cSalt = SecureRandom.GetNextBytes(random, SaltSize);
-                // TODO Configurable number of iterations?
-                int cIterations = MinIterations;
+                int cIterations = storeIterations;
 
                 AlgorithmIdentifier encAlgID;
 
@@ -1092,20 +1128,25 @@ namespace Org.BouncyCastle.Pkcs
             MacData macData = null;
             if (password != null)
             {
-                // TODO Support other HMAC digest algorithms (SHA-224, SHA-256, SHA384, SHA-512, SHA-512/224,
-                // or SHA-512/256) and PBMAC1 (RFC 9579).
-                var macAlgID = DefaultDigestAlgorithmFinder.Instance.Find(OiwObjectIdentifiers.IdSha1);
-                // TODO Configurable salt length?
-                byte[] salt = SecureRandom.GetNextBytes(random, 20);
-                // TODO Configurable number of iterations
-                int itCount = MinIterations;
+                /*
+                 * TODO MAC configuration is currently at least inherited from a Load call (if any).
+                 * We'd still like explicit control for new files and to override for existing ones:
+                 * - other HMAC digest algorithms (SHA-224, SHA-256, SHA384, etc.)
+                 * - PBMAC1 (RFC 9579)
+                 * - salt length
+                 * - iterations (already possible via Properties)
+                 */
+                var macDigestAlgorithm = m_macDigestAlgorithm;
+                int saltLength = m_macSaltLength;
 
-                byte[] macResult = CalculatePbeMac(macAlgID, salt, itCount, password,
+                byte[] salt = SecureRandom.GetNextBytes(random, saltLength);
+
+                byte[] macResult = CalculatePbeMac(macDigestAlgorithm, salt, macIterations, password,
                     wrongPkcs12Zero: false, data);
 
-                var digInfo = new DigestInfo(macAlgID, DerOctetString.WithContents(macResult));
+                var digInfo = new DigestInfo(macDigestAlgorithm, DerOctetString.WithContents(macResult));
 
-                macData = new MacData(digInfo, DerOctetString.WithContents(salt), DerInteger.ValueOf(itCount));
+                macData = new MacData(digInfo, DerOctetString.WithContents(salt), DerInteger.ValueOf(macIterations));
             }
 
             //
@@ -1148,11 +1189,12 @@ namespace Org.BouncyCastle.Pkcs
             return MacUtilities.DoFinal(mac, data);
         }
 
-        internal static bool VerifyPbeMac(MacData macData, char[] password, bool wrongPkcs12Zero, byte[] data)
+        internal static bool VerifyPbeMac(MacData macData, int iterations, char[] password, bool wrongPkcs12Zero,
+            byte[] data)
         {
             DigestInfo mac = macData.Mac;
-            byte[] macResult = CalculatePbeMac(mac.DigestAlgorithm, macData.MacSalt.GetOctets(),
-                Pkcs12Utilities.ValidateIterations(macData.Iterations), password, wrongPkcs12Zero, data);
+            byte[] macResult = CalculatePbeMac(mac.DigestAlgorithm, macData.MacSalt.GetOctets(), iterations, password,
+                wrongPkcs12Zero, data);
             return Arrays.FixedTimeEquals(macResult, mac.Digest.GetOctets());
         }
 
