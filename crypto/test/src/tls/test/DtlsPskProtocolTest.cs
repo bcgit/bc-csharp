@@ -2,9 +2,11 @@ using NUnit.Framework;
 
 namespace Org.BouncyCastle.Tls.Tests
 {
-    [TestFixture, NonParallelizable, Parallelizable(ParallelScope.Children)]
+    [NonParallelizable] // Minimize timeout problems
+    [TestFixture]
     public class DtlsPskProtocolTest
     {
+        [Parallelizable]
         [Test]
         public void BadClientKeyTimeout()
         {
@@ -14,6 +16,7 @@ namespace Org.BouncyCastle.Tls.Tests
             ImplTestKeyMismatch(client, server);
         }
 
+        [Parallelizable]
         [Test]
         public void BadServerKeyTimeout()
         {
@@ -23,6 +26,7 @@ namespace Org.BouncyCastle.Tls.Tests
             ImplTestKeyMismatch(client, server);
         }
 
+        [Parallelizable]
         [Test]
         public void TestClientServer()
         {
