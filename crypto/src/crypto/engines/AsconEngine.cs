@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     public sealed class AsconEngine
         : IAeadCipher
     {
+        /// <summary>The variants of Ascon supported by this class.</summary>
         public enum AsconParameters
         {
             ascon80pq,
@@ -65,6 +66,8 @@ namespace Org.BouncyCastle.Crypto.Engines
         private readonly byte[] m_buf;
         private int m_bufPos = 0;
 
+        /// <summary>Create a new <see cref="AsconEngine"/>.</summary>
+        /// <param name="asconParameters">The ascon parameters.</param>
         public AsconEngine(AsconParameters asconParameters)
         {
             this.asconParameters = asconParameters;
@@ -100,12 +103,16 @@ namespace Org.BouncyCastle.Crypto.Engines
             m_buf = new byte[m_bufferSizeDecrypt];
         }
 
+        /// <summary>Return the key bytes size.</summary>
         public int GetKeyBytesSize() => CRYPTO_KEYBYTES;
 
+        /// <summary>Return the IV bytes size.</summary>
         public int GetIVBytesSize() => CRYPTO_ABYTES;
 
+        /// <inheritdoc/>
         public string AlgorithmName => algorithmName;
 
+        /// <inheritdoc/>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             KeyParameter key;
@@ -182,6 +189,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Reset(true);
         }
 
+        /// <inheritdoc/>
         public void ProcessAadByte(byte input)
         {
             CheckAad();
@@ -198,6 +206,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public void ProcessAadBytes(byte[] inBytes, int inOff, int len)
         {
             Check.DataLength(inBytes, inOff, len, "input buffer too short");
@@ -242,6 +251,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             // Don't enter AAD state until we actually get input
@@ -278,6 +288,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public int ProcessByte(byte input, byte[] outBytes, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -288,6 +299,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessByte(byte input, Span<byte> output)
         {
             Span<byte> singleByte = stackalloc byte[1]{ input };
@@ -296,6 +308,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public int ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             Check.DataLength(inBytes, inOff, len, "input buffer too short");
@@ -388,6 +401,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             bool forEncryption = CheckData();
@@ -470,6 +484,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] outBytes, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -516,6 +531,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             bool forEncryption = CheckData();
@@ -558,11 +574,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public byte[] GetMac()
         {
             return mac;
         }
 
+        /// <inheritdoc/>
         public int GetUpdateOutputSize(int len)
         {
             int total = System.Math.Max(0, len);
@@ -588,6 +606,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return total - total % ASCON_AEAD_RATE;
         }
 
+        /// <inheritdoc/>
         public int GetOutputSize(int len)
         {
             int total = System.Math.Max(0, len);
@@ -608,6 +627,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public void Reset()
         {
             Reset(true);

@@ -80,6 +80,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.rounds = rounds;
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             /*
@@ -122,8 +123,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             initialised = true;
         }
 
+        /// <summary>Gets the nonce size.</summary>
         protected virtual int NonceSize => 8;
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get
@@ -137,6 +140,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual byte ReturnByte(byte input)
         {
             if (LimitExceeded())
@@ -162,6 +166,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessBytes(byte[] inBytes, int inOff, int len, byte[] outBytes, int outOff)
         {
             if (!initialised)
@@ -186,6 +191,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!initialised)
@@ -209,6 +215,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             index = 0;

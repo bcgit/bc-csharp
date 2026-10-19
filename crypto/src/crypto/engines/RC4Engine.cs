@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
+    /// <summary>Implementation of the RC4 (ARC4) stream cipher.</summary>
     public class RC4Engine
         : IStreamCipher
     {
@@ -46,11 +47,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             throw new ArgumentException("invalid parameter passed to RC4 init - " + Platform.GetTypeName(parameters));
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "RC4"; }
         }
 
+        /// <inheritdoc/>
         public virtual byte ReturnByte(
             byte input)
         {
@@ -66,6 +69,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return (byte)(input ^ engineState[(engineState[x] + engineState[y]) & 0xff]);
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, length, "input buffer too short");
@@ -89,6 +93,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, input.Length, "output buffer too short");
@@ -111,6 +116,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             SetKey(workingKey);

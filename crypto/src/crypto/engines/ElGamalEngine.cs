@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private bool forEncryption;
         private int bitSize;
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "ElGamal";
 
         /// <summary>Initialise the ElGamal engine.</summary>

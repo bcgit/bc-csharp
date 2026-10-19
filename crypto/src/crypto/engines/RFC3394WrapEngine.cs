@@ -23,19 +23,26 @@ namespace Org.BouncyCastle.Crypto.Engines
         private KeyParameter m_key = null;
         private bool m_forWrapping = true;
 
+        /// <summary>Create a new <see cref="Rfc3394WrapEngine"/>.</summary>
+        /// <param name="engine">The underlying engine.</param>
         public Rfc3394WrapEngine(IBlockCipher engine)
             : this(engine, false)
         {
         }
 
+        /// <summary>Create a new <see cref="Rfc3394WrapEngine"/>.</summary>
+        /// <param name="engine">The underlying engine.</param>
+        /// <param name="useReverseDirection">true if use reverse direction, false otherwise.</param>
         public Rfc3394WrapEngine(IBlockCipher engine, bool useReverseDirection)
         {
             m_engine = engine;
             m_wrapCipherMode = !useReverseDirection;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => m_engine.AlgorithmName;
 
+        /// <inheritdoc/>
         public virtual void Init(bool forWrapping, ICipherParameters parameters)
         {
             m_forWrapping = forWrapping;
@@ -66,6 +73,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Wrap(byte[] input, int inOff, int inLen)
         {
             if (!m_forWrapping)
@@ -116,6 +124,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return block;
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Unwrap(byte[] input, int inOff, int inLen)
         {
             if (m_forWrapping)

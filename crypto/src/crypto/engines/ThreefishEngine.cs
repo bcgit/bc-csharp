@@ -264,16 +264,19 @@ namespace Org.BouncyCastle.Crypto.Engines
             t[4] = t[1];
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "Threefish-" + (blocksizeBytes * 8); }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return blocksizeBytes;
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
         {
             Check.DataLength(inBytes, inOff, blocksizeBytes, "input buffer too short");
@@ -286,6 +289,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input, blocksizeBytes, "input buffer too short");

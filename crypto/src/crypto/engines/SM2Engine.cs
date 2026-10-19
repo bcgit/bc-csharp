@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     /// </summary>
     public class SM2Engine
     {
+        /// <summary>The ordering of the components of an SM2 ciphertext.</summary>
         public enum Mode
         {
             C1C2C3, C1C3C2
@@ -30,21 +31,29 @@ namespace Org.BouncyCastle.Crypto.Engines
         private int mCurveLength;
         private SecureRandom mRandom;
 
+        /// <summary>Create a new <see cref="SM2Engine"/>.</summary>
         public SM2Engine()
             : this(new SM3Digest())
         {
         }
 
+        /// <summary>Create a new <see cref="SM2Engine"/>.</summary>
+        /// <param name="mode">The mode.</param>
         public SM2Engine(Mode mode)
             : this(new SM3Digest(), mode)
         {
         }
 
+        /// <summary>Create a new <see cref="SM2Engine"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public SM2Engine(IDigest digest)
             : this(digest, Mode.C1C2C3)
         {
         }
 
+        /// <summary>Create a new <see cref="SM2Engine"/>.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <param name="mode">The mode.</param>
         public SM2Engine(IDigest digest, Mode mode)
         {
             mDigest = digest;

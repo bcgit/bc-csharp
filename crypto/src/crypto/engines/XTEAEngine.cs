@@ -35,11 +35,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             _initialised = false;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "XTEA"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return block_size;
@@ -71,6 +73,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             setKey(p.GetKey());
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] inBytes, int inOff, byte[] outBytes, int outOff)
         {
             if (!_initialised)
@@ -91,6 +94,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!_initialised)

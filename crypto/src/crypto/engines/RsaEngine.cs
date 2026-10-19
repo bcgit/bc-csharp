@@ -12,16 +12,20 @@ namespace Org.BouncyCastle.Crypto.Engines
     {
         private readonly IRsa core;
 
+        /// <summary>Create a new <see cref="RsaEngine"/>.</summary>
         public RsaEngine()
             : this(new RsaCoreEngine())
         {
         }
 
+        /// <summary>Create a new <see cref="RsaEngine"/>.</summary>
+        /// <param name="rsa">The rsa.</param>
         public RsaEngine(IRsa rsa)
         {
             this.core = rsa;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "RSA"; }

@@ -308,6 +308,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private byte[] workingKey;
 
+        /// <summary>Create a new <see cref="BlowfishEngine"/>.</summary>
         public BlowfishEngine()
         {
             S0 = new uint[SBOX_SK];
@@ -337,11 +338,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             SetKey(this.workingKey);
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Blowfish"; }
         }
 
+        /// <inheritdoc/>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
@@ -374,6 +377,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (workingKey == null)
@@ -395,6 +399,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public int GetBlockSize()
         {
             return BLOCK_SIZE;

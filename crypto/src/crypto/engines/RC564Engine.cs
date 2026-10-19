@@ -50,11 +50,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 //            _S            = null;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "RC5-64"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return 16;
@@ -80,6 +82,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             SetKey(rc5Parameters.GetKey());
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -94,6 +97,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             return forEncryption

@@ -18,16 +18,20 @@ namespace Org.BouncyCastle.Crypto.Engines
         private RsaKeyParameters key;
         private SecureRandom random;
 
+        /// <summary>Create a new <see cref="RsaBlindedEngine"/>.</summary>
         public RsaBlindedEngine()
             : this(new RsaCoreEngine())
         {
         }
 
+        /// <summary>Create a new <see cref="RsaBlindedEngine"/>.</summary>
+        /// <param name="rsa">The rsa.</param>
         public RsaBlindedEngine(IRsa rsa)
         {
             this.core = rsa;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "RSA"; }

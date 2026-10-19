@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
+    /// <summary>Implementation of the DSTU 7624:2014 key wrap algorithm.</summary>
     public class Dstu7624WrapEngine
         : IWrapper
     {
@@ -15,6 +16,8 @@ namespace Org.BouncyCastle.Crypto.Engines
         private bool forWrapping;
         private int blockSize;
 
+        /// <summary>Create a new <see cref="Dstu7624WrapEngine"/>.</summary>
+        /// <param name="blockSizeBits">The block size bits.</param>
         public Dstu7624WrapEngine(int blockSizeBits)
         {
             engine = new Dstu7624Engine(blockSizeBits);
@@ -23,11 +26,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             blockSize = blockSizeBits / 8;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Dstu7624WrapEngine"; }
         }
 
+        /// <inheritdoc/>
         public void Init(bool forWrapping, ICipherParameters parameters)
         {
             this.forWrapping = forWrapping;
@@ -44,6 +49,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public byte[] Wrap(byte[] input, int inOff, int length)
         {
             if (!forWrapping)
@@ -122,6 +128,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return buffer;
         }
 
+        /// <inheritdoc/>
         public byte[] Unwrap(byte[] input, int inOff, int length)
         {
             if (forWrapping)

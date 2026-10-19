@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class CamelliaWrapEngine
         : Rfc3394WrapEngine
     {
+        /// <summary>Create a new <see cref="CamelliaWrapEngine"/>.</summary>
         public CamelliaWrapEngine()
             : base(new CamelliaEngine())
         {

@@ -544,21 +544,25 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <summary>Create a new <see cref="CamelliaLightEngine"/>.</summary>
         public CamelliaLightEngine()
         {
             initialised = false;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "Camellia"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
+        /// <inheritdoc/>
         public virtual void Init(
             bool forEncryption,
             ICipherParameters parameters)
@@ -571,6 +575,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             initialised = true;
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (!initialised)
@@ -601,6 +606,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!initialised)

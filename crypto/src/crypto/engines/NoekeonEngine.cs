@@ -31,11 +31,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             _initialised = false;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "Noekeon"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return Size;
@@ -87,6 +89,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             this._initialised = true;
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (!_initialised)
@@ -107,6 +110,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!_initialised)

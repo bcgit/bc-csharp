@@ -28,8 +28,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         private byte[] m_workingKey = null;
         private bool m_initialised = false;
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "ISAAC";
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             // ISAAC encryption/decryption is symmetrical so forEncryption is ignored
@@ -51,6 +53,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             ResetCipher();
         }
 
+        /// <inheritdoc/>
         public virtual byte ReturnByte(byte input)
         {
             if (m_keyStreamPos == 0)
@@ -64,6 +67,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return output;
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -93,6 +97,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!m_initialised)
@@ -117,6 +122,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             if (m_c > 1)

@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
+    /// <summary>Base class for the Serpent block cipher implementations.</summary>
     public abstract class SerpentEngineBase
         :   IBlockCipher
     {
@@ -39,11 +40,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.wKey = MakeWorkingKey(((KeyParameter)parameters).GetKey());
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "Serpent"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return BlockSize;
@@ -94,6 +97,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (wKey == null)

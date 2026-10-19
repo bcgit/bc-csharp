@@ -30,6 +30,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private bool forEncryption;
 
+        /// <summary>Create a new <see cref="Dstu7624Engine"/>.</summary>
+        /// <param name="blockSizeBits">The block size bits.</param>
         public Dstu7624Engine(int blockSizeBits)
         {
             /* DSTU7624 supports 128 | 256 | 512 key/block sizes */
@@ -44,6 +46,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         #region INITIALIZATION
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             if (!(parameters is KeyParameter))
@@ -253,6 +256,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         #endregion
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
@@ -338,6 +342,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (workingKey == null)
@@ -1275,11 +1280,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
 #endregion
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "DSTU7624"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return wordsInBlock << 3;

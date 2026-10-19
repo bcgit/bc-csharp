@@ -587,16 +587,19 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.forEncryption = forEncryption;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "Rijndael"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return BC / 2;
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
@@ -630,6 +633,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (workingKey == null)

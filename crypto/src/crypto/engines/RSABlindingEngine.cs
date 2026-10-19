@@ -22,16 +22,20 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private bool forEncryption;
 
+        /// <summary>Create a new <see cref="RsaBlindingEngine"/>.</summary>
         public RsaBlindingEngine()
             : this(new RsaCoreEngine())
         {
         }
 
+        /// <summary>Create a new <see cref="RsaBlindingEngine"/>.</summary>
+        /// <param name="rsa">The rsa.</param>
         public RsaBlindingEngine(IRsa rsa)
         {
             this.core = rsa;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "RSA"; }

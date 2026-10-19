@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
+    /// <summary>Implementation of the Grain-128AEAD authenticated stream cipher.</summary>
     public sealed class Grain128AeadEngine
         : IAeadCipher
     {
@@ -46,11 +47,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         private readonly byte[] m_buf = new byte[BufSize + MacSize];
         private int m_bufPos;
 
+        /// <summary>Create a new <see cref="Grain128AeadEngine"/>.</summary>
         public Grain128AeadEngine()
         {
             m_aadData.Position = 5;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => "Grain-128AEAD";
 
         /**
@@ -88,6 +91,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Reset();
         }
 
+        /// <inheritdoc/>
         public int GetOutputSize(int len)
         {
             int total = System.Math.Max(0, len);
@@ -108,6 +112,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public int GetUpdateOutputSize(int len)
         {
             int total = System.Math.Max(0, len);
@@ -133,6 +138,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return total - total % BufSize;
         }
 
+        /// <inheritdoc/>
         public void ProcessAadByte(byte input)
         {
             CheckAad();
@@ -140,6 +146,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             m_aadData.WriteByte(input);
         }
 
+        /// <inheritdoc/>
         public void ProcessAadBytes(byte[] input, int inOff, int len)
         {
             // TODO More argument checks?
@@ -152,6 +159,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void ProcessAadBytes(ReadOnlySpan<byte> input)
         {
             CheckAad();
@@ -160,13 +168,16 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public int ProcessByte(byte input, byte[] output, int outOff) =>
             ProcessBytes(new byte[1]{ input }, 0, 1, output, outOff);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessByte(byte input, Span<byte> output) => ProcessBytes(stackalloc byte[1]{ input }, output);
 #endif
 
+        /// <inheritdoc/>
         public int ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             // TODO More argument checks?
@@ -224,6 +235,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int updateOutputSize = GetUpdateOutputSize(input.Length);
@@ -273,6 +285,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -324,6 +337,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             int outputSize = GetOutputSize(0);
@@ -371,8 +385,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public byte[] GetMac() => (byte[])m_mac.Clone();
 
+        /// <inheritdoc/>
         public void Reset() => Reset(true);
 
         // TODO[api] Remove ASAP

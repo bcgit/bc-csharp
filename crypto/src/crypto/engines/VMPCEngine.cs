@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
+    /// <summary>Implementation of the VMPC stream cipher.</summary>
     public class VmpcEngine
         : IStreamCipher
     {
@@ -14,6 +15,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         protected byte[] workingIV;
         protected byte[] workingKey;
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "VMPC";
 
         /**
@@ -60,6 +62,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             KsaRound(P, ref s, ivBytes);
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
@@ -78,6 +81,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, input.Length, "output buffer too short");
@@ -95,11 +99,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             InitKey(this.workingKey, this.workingIV);
         }
 
+        /// <inheritdoc/>
         public virtual byte ReturnByte(byte input)
         {
             byte pn = P[n];

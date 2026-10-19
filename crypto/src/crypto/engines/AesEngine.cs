@@ -467,7 +467,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         /// <param name="output">The output buffer to store the result.</param>
         /// <param name="outOff">The offset into the output buffer.</param>
         /// <returns>The number of bytes processed and produced.</returns>
-        /// <exception cref="DataLengthException">If the input buffer is too small, or the output buffer is too small.</exception>
+        /// <exception cref="DataLengthException">
+        /// If the input buffer is too small, or the output buffer is too small.
+        /// </exception>
         /// <exception cref="InvalidOperationException">If the cipher isn't initialised.</exception>
         public int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
@@ -501,6 +503,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (WorkingKey == null)

@@ -37,8 +37,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         private int[] workingKey;
         private bool encrypting;
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "RC2";
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.encrypting = forEncryption;
@@ -58,8 +60,10 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize() => BLOCK_SIZE;
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
@@ -92,6 +96,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (workingKey == null)

@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private int[] workingKey;
 
+        /// <summary>Return the working key.</summary>
         public virtual int[] GetWorkingKey()
         {
             return workingKey;
@@ -37,16 +38,19 @@ namespace Org.BouncyCastle.Crypto.Engines
             workingKey = GenerateWorkingKey(forEncryption, keyParameter.GetKey());
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "DES"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
@@ -67,6 +71,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (workingKey == null)

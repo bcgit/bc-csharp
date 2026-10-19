@@ -37,15 +37,18 @@ namespace Org.BouncyCastle.Crypto.Engines
         private uint []_Tm = new uint[24 * 8];
         private uint[] _workingKey = new uint[8];
 
+        /// <summary>Create a new <see cref="Cast6Engine"/>.</summary>
         public Cast6Engine()
         {
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "CAST6"; }
         }
 
+        /// <inheritdoc/>
         public override int GetBlockSize()
         {
             return BLOCK_SIZE;

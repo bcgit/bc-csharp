@@ -19,8 +19,10 @@ namespace Org.BouncyCastle.Crypto.Engines
     public class XChaCha20Engine
         : ChaCha7539Engine
     {
+        /// <inheritdoc/>
         public override string AlgorithmName => "XChaCha20";
 
+        /// <inheritdoc/>
         protected override int NonceSize => 24;
 
         /// <summary>
@@ -86,7 +88,9 @@ namespace Org.BouncyCastle.Crypto.Engines
         /// <param name="keyBytes">A 256-bit key.</param>
         /// <param name="nonceBytes">Buffer containing a 128-bit nonce at <paramref name="nonceOff"/>.</param>
         /// <param name="nonceOff">Offset of the nonce in <paramref name="nonceBytes"/>.</param>
-        /// <param name="subKeyBytes">Output buffer receiving the 256-bit subkey at <paramref name="subKeyOff"/>.</param>
+        /// <param name="subKeyBytes">
+        /// Output buffer receiving the 256-bit subkey at <paramref name="subKeyOff"/>.
+        /// </param>
         /// <param name="subKeyOff">Offset at which to write the subkey.</param>
         internal static void HChaCha20(byte[] keyBytes, byte[] nonceBytes, int nonceOff, byte[] subKeyBytes,
             int subKeyOff)

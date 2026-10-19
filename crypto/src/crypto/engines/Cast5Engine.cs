@@ -318,6 +318,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         private byte[] _workingKey;
         private int _rounds = MAX_ROUNDS;
 
+        /// <summary>Create a new <see cref="Cast5Engine"/>.</summary>
         public Cast5Engine()
         {
         }
@@ -342,11 +343,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             SetKey(_workingKey);
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "CAST5"; }
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (_workingKey == null)
@@ -378,6 +381,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (_workingKey == null)
@@ -398,6 +402,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;

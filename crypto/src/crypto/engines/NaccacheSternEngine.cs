@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         private IList<BigInteger>[] lookup = null;
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "NaccacheStern"; }

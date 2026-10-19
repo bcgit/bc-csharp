@@ -52,10 +52,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             m_workingKey = GenerateWorkingKey(forEncryption, keyParameter.GetKey());
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "IDEA";
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize() => BlockSize;
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (m_workingKey == null)
@@ -73,6 +76,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (m_workingKey == null)

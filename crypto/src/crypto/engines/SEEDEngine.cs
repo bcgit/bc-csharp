@@ -173,16 +173,20 @@ namespace Org.BouncyCastle.Crypto.Engines
         private int[] wKey;
         private bool forEncryption;
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
             wKey = CreateWorkingKey((KeyParameter)parameters);
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "SEED";
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize() => BlockSize;
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
             Check.DataLength(inBuf, inOff, BlockSize, "input buffer too short");
@@ -232,6 +236,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (wKey == null)

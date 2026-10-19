@@ -49,11 +49,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             _noRounds     = 12;         // the default
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "RC5-32"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize()
         {
             return 2 * 4;
@@ -87,6 +89,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.forEncryption = forEncryption;
         }
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -101,6 +104,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             return forEncryption

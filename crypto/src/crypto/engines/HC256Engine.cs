@@ -121,6 +121,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             cnt = 0;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "HC-256";
 
         /**
@@ -166,6 +167,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return ret;
         }
 
+        /// <inheritdoc/>
         public virtual void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             if (!initialised)
@@ -181,6 +183,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (!initialised)
@@ -195,11 +198,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             Init();
         }
 
+        /// <inheritdoc/>
         public virtual byte ReturnByte(byte input)
         {
             return (byte)(input ^ GetByte());

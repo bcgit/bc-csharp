@@ -13,9 +13,11 @@ namespace Org.BouncyCastle.Crypto.Engines
     using Aes = System.Runtime.Intrinsics.X86.Aes;
     using Sse2 = System.Runtime.Intrinsics.X86.Sse2;
 
+    /// <summary>Implementation of the AES block cipher using the x86 AES instructions.</summary>
     public struct AesEngine_X86
         : IBlockCipher
     {
+        /// <summary>Gets a value indicating whether this is supported.</summary>
         public static bool IsSupported => Org.BouncyCastle.Runtime.Intrinsics.X86.Aes.IsEnabled;
 
         private static Vector128<byte>[] CreateRoundKeys(ReadOnlySpan<byte> key, bool forEncryption)
@@ -145,16 +147,20 @@ namespace Org.BouncyCastle.Crypto.Engines
         private Vector128<byte>[] m_roundKeys = null;
         private Mode m_mode = Mode.UNINITIALIZED;
 
+        /// <summary>Create a new <see cref="AesEngine_X86"/>.</summary>
         public AesEngine_X86()
         {
             if (!IsSupported)
                 throw new PlatformNotSupportedException(nameof(AesEngine_X86));
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => "AES";
 
+        /// <inheritdoc/>
         public int GetBlockSize() => 16;
 
+        /// <inheritdoc/>
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
             if (!(parameters is KeyParameter keyParameter))
@@ -179,6 +185,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public int ProcessBlock(byte[] inBuf, int inOff, byte[] outBuf, int outOff)
         {
             Check.DataLength(inBuf, inOff, 16, "input buffer too short");
@@ -190,6 +197,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return 16;
         }
 
+        /// <inheritdoc/>
         public int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.DataLength(input, 16, "input buffer too short");

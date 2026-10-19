@@ -18,12 +18,15 @@ namespace Org.BouncyCastle.Crypto.Engines
         private bool forWrapping;
         private SecureRandom rand;
 
+        /// <summary>Create a new <see cref="Rfc3211WrapEngine"/>.</summary>
+        /// <param name="engine">The underlying engine.</param>
         public Rfc3211WrapEngine(
             IBlockCipher engine)
         {
             this.engine = new CbcBlockCipher(engine);
         }
 
+        /// <inheritdoc/>
         public virtual void Init(bool forWrapping, ICipherParameters param)
         {
             this.forWrapping = forWrapping;
@@ -34,11 +37,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.rand = forWrapping ? CryptoServicesRegistrar.GetSecureRandom(providedRandom) : null;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return engine.UnderlyingCipher.AlgorithmName + "/RFC3211Wrap"; }
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Wrap(
             byte[] inBytes,
             int inOff,
@@ -86,6 +91,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return cekBlock;
         }
 
+        /// <inheritdoc/>
         public virtual byte[] Unwrap(
             byte[] inBytes,
             int inOff,

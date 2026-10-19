@@ -96,10 +96,12 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x25, 0x8a, 0xb5, 0xe7, 0x42, 0xb3, 0xc7, 0xea, 0xf7, 0x4c, 0x11, 0x33, 0x03, 0xa2, 0xac, 0x60,
         };
 
+        /// <summary>The <c>BlockSize</c> constant, with the value <c>16</c>.</summary>
         protected const int BlockSize = 16;
 
         private byte[][] m_roundKeys;
 
+        /// <inheritdoc/>
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
             if (!(parameters is KeyParameter keyParameter))
@@ -119,10 +121,13 @@ namespace Org.BouncyCastle.Crypto.Engines
             }
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "ARIA";
 
+        /// <inheritdoc/>
         public virtual int GetBlockSize() => BlockSize;
 
+        /// <inheritdoc/>
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -156,6 +161,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int ProcessBlock(ReadOnlySpan<byte> input, Span<byte> output)
         {
             if (m_roundKeys == null)
