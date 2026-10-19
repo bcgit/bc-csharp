@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Asn1.Nist
     /// KMACwithSHAKE128-params ::= SEQUENCE {
     ///     kMACOutputLength     INTEGER DEFAULT 256, -- Output length in bits
     ///     customizationString  OCTET STRING DEFAULT ''H
-    /// } 
+    /// }
     /// </summary>
     public class KMacWithShake128Params
         : Asn1Encodable
