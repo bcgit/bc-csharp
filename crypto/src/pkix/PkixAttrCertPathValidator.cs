@@ -7,14 +7,14 @@ namespace Org.BouncyCastle.Pkix
 {
     /**
      * CertPathValidatorSpi implementation for X.509 Attribute Certificates la RFC 3281.
-     * 
+     *
      * @see Org.BouncyCastle.X509.ExtendedPkixParameters
      */
     public class PkixAttrCertPathValidator
     {
         /**
          * Validates an attribute certificate with the given certificate path.
-         * 
+         *
          * <p>
          * <code>params</code> must be an instance of
          * <code>ExtendedPkixParameters</code>.
