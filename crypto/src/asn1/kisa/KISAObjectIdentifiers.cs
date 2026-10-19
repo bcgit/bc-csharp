@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Asn1.Kisa
 {
+    /// <summary>Object identifiers for KISA, the Korea Internet and Security Agency.</summary>
     // TODO[api] Make static
     public abstract class KisaObjectIdentifiers
     {
