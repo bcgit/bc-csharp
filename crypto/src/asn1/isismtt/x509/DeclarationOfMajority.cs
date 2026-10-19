@@ -27,8 +27,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         /// <summary>A choice type, holding the alternative that was selected.</summary>
         public enum Choice
         {
+            /// <summary>The holder is not younger than a given age.</summary>
             NotYoungerThan = 0,
+            /// <summary>The holder is of full age in a given country.</summary>
             FullAgeAtCountry = 1,
+            /// <summary>The date of birth of the holder.</summary>
             DateOfBirth = 2
         };
 

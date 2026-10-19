@@ -5,12 +5,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
     /// <summary>The values of the PKIStatus type of RFC 4210.</summary>
     public enum PkiStatus
     {
+        /// <summary>The request was granted exactly as asked for.</summary>
         Granted = 0,
+        /// <summary>The request was granted with modifications.</summary>
         GrantedWithMods = 1,
+        /// <summary>The request was rejected.</summary>
         Rejection = 2,
+        /// <summary>The request body has not yet been processed; poll to obtain the result.</summary>
         Waiting = 3,
+        /// <summary>The request message contained a warning that a revocation is imminent.</summary>
         RevocationWarning = 4,
+        /// <summary>A revocation has occurred.</summary>
         RevocationNotification = 5,
+        /// <summary>The key has already been updated for the old certificate of the request.</summary>
         KeyUpdateWarning = 6,
     }
 

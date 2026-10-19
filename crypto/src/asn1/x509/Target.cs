@@ -25,7 +25,9 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>A choice type, holding the alternative that was selected.</summary>
         public enum Choice
         {
+            /// <summary>The target is a name (targetName).</summary>
             Name = 0,
+            /// <summary>The target is a group (targetGroup).</summary>
             Group = 1
         };
 

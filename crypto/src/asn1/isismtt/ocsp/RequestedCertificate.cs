@@ -45,8 +45,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.Ocsp
         /// <summary>A choice type, holding the alternative that was selected.</summary>
         public enum Choice
         {
+            /// <summary>A certificate (the untagged choice).</summary>
             Certificate = -1,
+            /// <summary>A public key certificate (tagged choice 0).</summary>
             PublicKeyCertificate = 0,
+            /// <summary>An attribute certificate (tagged choice 1).</summary>
             AttributeCertificate = 1
         }
 
