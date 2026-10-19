@@ -263,6 +263,8 @@ namespace Org.BouncyCastle.Security
         //    get { return oids.Keys; }
         //}
 
+        /// <summary>Return whether the algorithm is a PKCS#12 password-based encryption scheme.</summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
         public static bool IsPkcs12(string algorithm)
         {
             if (!Algorithms.TryGetValue(algorithm, out var mechanism))
@@ -273,6 +275,8 @@ namespace Org.BouncyCastle.Security
             return Pkcs12.Equals(algorithmType);
         }
 
+        /// <summary>Return whether the algorithm is a PKCS#5 scheme 1 password-based encryption scheme.</summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
         public static bool IsPkcs5Scheme1(string algorithm)
         {
             if (!Algorithms.TryGetValue(algorithm, out var mechanism))
@@ -283,6 +287,10 @@ namespace Org.BouncyCastle.Security
             return Pkcs5S1.Equals(algorithmType);
         }
 
+        /// <summary>
+        /// Return whether the algorithm is a PKCS#5 scheme 2 (PBES2) password-based encryption scheme.
+        /// </summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
         public static bool IsPkcs5Scheme2(string algorithm)
         {
             if (!Algorithms.TryGetValue(algorithm, out var mechanism))
@@ -293,6 +301,8 @@ namespace Org.BouncyCastle.Security
             return Pkcs5S2.Equals(algorithmType);
         }
 
+        /// <summary>Return whether the algorithm is an OpenSSL style password-based encryption scheme.</summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
         public static bool IsOpenSsl(string algorithm)
         {
             if (!Algorithms.TryGetValue(algorithm, out var mechanism))
@@ -303,6 +313,8 @@ namespace Org.BouncyCastle.Security
             return OpenSsl.Equals(algorithmType);
         }
 
+        /// <summary>Return whether the algorithm is a recognised password-based encryption algorithm.</summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
         public static bool IsPbeAlgorithm(string algorithm)
         {
             if (!Algorithms.TryGetValue(algorithm, out var mechanism))
@@ -311,6 +323,10 @@ namespace Org.BouncyCastle.Security
             return AlgorithmType.ContainsKey(mechanism);
         }
 
+        /// <summary>Create the algorithm parameters structure for a password-based encryption algorithm.</summary>
+        /// <param name="algorithmOid">The algorithm's object identifier.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="iterationCount">The iteration count.</param>
         public static Asn1Encodable GenerateAlgorithmParameters(
             DerObjectIdentifier algorithmOid,
             byte[]              salt,
@@ -319,6 +335,10 @@ namespace Org.BouncyCastle.Security
             return GenerateAlgorithmParameters(algorithmOid.Id, salt, iterationCount);
         }
 
+        /// <summary>Create the algorithm parameters structure for a password-based encryption algorithm.</summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="iterationCount">The iteration count.</param>
         public static Asn1Encodable GenerateAlgorithmParameters(string algorithm, byte[] salt, int iterationCount)
         {
             if (IsPkcs12(algorithm))
@@ -335,6 +355,13 @@ namespace Org.BouncyCastle.Security
             }
         }
 
+        /// <summary>Create the PBES2 parameters structure for the given cipher and pseudo-random function.</summary>
+        /// <param name="cipherAlgorithm">The object identifier of the cipher (AES in CBC or CFB mode).</param>
+        /// <param name="hashAlgorithm">The object identifier of the PBKDF2 pseudo-random function.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="iterationCount">The iteration count.</param>
+        /// <param name="secureRandom">The source of randomness for the initialisation vector.</param>
+        /// <exception cref="ArgumentException">The cipher is not supported.</exception>
         public static Asn1Encodable GenerateAlgorithmParameters(
             DerObjectIdentifier cipherAlgorithm,
             DerObjectIdentifier hashAlgorithm,
@@ -364,6 +391,11 @@ namespace Org.BouncyCastle.Security
             return new PbeS2Parameters(func, encScheme);
         }
 
+        /// <summary>Derive the cipher parameters for a password-based encryption algorithm.</summary>
+        /// <param name="algorithmOid">The algorithm's object identifier.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="pbeParameters">The algorithm parameters, including salt and iteration count.</param>
+        /// <exception cref="SecurityUtilityException">The algorithm is not recognised.</exception>
         public static ICipherParameters GenerateCipherParameters(
             DerObjectIdentifier algorithmOid,
             char[]              password,
@@ -372,6 +404,14 @@ namespace Org.BouncyCastle.Security
             return GenerateCipherParameters(algorithmOid.Id, password, false, pbeParameters);
         }
 
+        /// <summary>Derive the cipher parameters for a password-based encryption algorithm.</summary>
+        /// <param name="algorithmOid">The algorithm's object identifier.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="wrongPkcs12Zero">
+        /// true to use the non-standard PKCS#12 zero-length password encoding some implementations produce.
+        /// </param>
+        /// <param name="pbeParameters">The algorithm parameters, including salt and iteration count.</param>
+        /// <exception cref="SecurityUtilityException">The algorithm is not recognised.</exception>
         public static ICipherParameters GenerateCipherParameters(
             DerObjectIdentifier algorithmOid,
             char[]              password,
@@ -381,6 +421,10 @@ namespace Org.BouncyCastle.Security
             return GenerateCipherParameters(algorithmOid.Id, password, wrongPkcs12Zero, pbeParameters);
         }
 
+        /// <summary>Derive the cipher parameters for a password-based encryption algorithm.</summary>
+        /// <param name="algID">The algorithm identifier, including its parameters.</param>
+        /// <param name="password">The password.</param>
+        /// <exception cref="SecurityUtilityException">The algorithm is not recognised.</exception>
         public static ICipherParameters GenerateCipherParameters(
             AlgorithmIdentifier algID,
             char[]              password)
@@ -388,6 +432,13 @@ namespace Org.BouncyCastle.Security
             return GenerateCipherParameters(algID.Algorithm.Id, password, false, algID.Parameters);
         }
 
+        /// <summary>Derive the cipher parameters for a password-based encryption algorithm.</summary>
+        /// <param name="algID">The algorithm identifier, including its parameters.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="wrongPkcs12Zero">
+        /// true to use the non-standard PKCS#12 zero-length password encoding some implementations produce.
+        /// </param>
+        /// <exception cref="SecurityUtilityException">The algorithm is not recognised.</exception>
         public static ICipherParameters GenerateCipherParameters(
             AlgorithmIdentifier algID,
             char[]              password,
@@ -396,6 +447,11 @@ namespace Org.BouncyCastle.Security
             return GenerateCipherParameters(algID.Algorithm.Id, password, wrongPkcs12Zero, algID.Parameters);
         }
 
+        /// <summary>Derive the cipher parameters for a password-based encryption algorithm.</summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="pbeParameters">The algorithm parameters, including salt and iteration count.</param>
+        /// <exception cref="SecurityUtilityException">The algorithm is not recognised.</exception>
         public static ICipherParameters GenerateCipherParameters(
             string          algorithm,
             char[]          password,
@@ -404,6 +460,15 @@ namespace Org.BouncyCastle.Security
             return GenerateCipherParameters(algorithm, password, false, pbeParameters);
         }
 
+        /// <summary>Derive the cipher parameters for a password-based encryption algorithm.</summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
+        /// <param name="password">The password.</param>
+        /// <param name="wrongPkcs12Zero">
+        /// true to use the non-standard PKCS#12 zero-length password encoding some implementations produce.
+        /// </param>
+        /// <param name="pbeParameters">The algorithm parameters, including salt and iteration count.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="algorithm"/> is null.</exception>
+        /// <exception cref="SecurityUtilityException">The algorithm is not recognised.</exception>
         public static ICipherParameters GenerateCipherParameters(
             string          algorithm,
             char[]          password,
@@ -617,12 +682,16 @@ namespace Org.BouncyCastle.Security
             return FixDesParity(mechanism, parameters);
         }
 
+        /// <summary>Create the cipher or MAC engine used by a password-based encryption algorithm.</summary>
+        /// <param name="algorithmOid">The algorithm's object identifier.</param>
         public static object CreateEngine(
             DerObjectIdentifier algorithmOid)
         {
             return CreateEngine(algorithmOid.Id);
         }
 
+        /// <summary>Create the cipher or MAC engine used by a password-based encryption algorithm.</summary>
+        /// <param name="algID">The algorithm identifier, including its parameters.</param>
         public static object CreateEngine(
             AlgorithmIdentifier algID)
         {
@@ -638,6 +707,8 @@ namespace Org.BouncyCastle.Security
             return CreateEngine(algorithm);
         }
 
+        /// <summary>Create the cipher or MAC engine used by a password-based encryption algorithm.</summary>
+        /// <param name="algorithm">The algorithm name or object identifier.</param>
         public static object CreateEngine(string algorithm)
         {
             string mechanism = CollectionUtilities.GetValueOrNull(Algorithms, algorithm);
@@ -683,6 +754,10 @@ namespace Org.BouncyCastle.Security
             return null;
         }
 
+        /// <summary>Return the canonical name for the password-based encryption algorithm with the given identifier.
+        /// </summary>
+        /// <param name="oid">The algorithm's object identifier.</param>
+        /// <returns>The name, or null if the identifier is not recognised.</returns>
         public static string GetEncodingName(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(Algorithms, oid.Id);

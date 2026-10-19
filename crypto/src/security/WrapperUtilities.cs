@@ -79,11 +79,20 @@ namespace Org.BouncyCastle.Security
             Algorithms[KisaObjectIdentifiers.IdNpkiAppCmsSeedWrap.Id] = "SEEDWRAP";
         }
 
+        /// <summary>Create the key wrapper for the algorithm with the given object identifier.</summary>
+        /// <param name="oid">The algorithm's object identifier.</param>
+        /// <exception cref="SecurityUtilityException">The wrapper is not recognised.</exception>
         public static IWrapper GetWrapper(DerObjectIdentifier oid)
         {
             return GetWrapper(oid.Id);
         }
 
+        /// <summary>Create the key wrapper for the given algorithm name.</summary>
+        /// <remarks>
+        /// If the name is not a dedicated wrapping algorithm, a cipher of that name is used for wrapping.
+        /// </remarks>
+        /// <param name="algorithm">The algorithm name, for example "AESWRAP".</param>
+        /// <exception cref="SecurityUtilityException">The wrapper is not recognised.</exception>
         public static IWrapper GetWrapper(string algorithm)
         {
             string mechanism = CollectionUtilities.GetValueOrKey(Algorithms, algorithm).ToUpperInvariant();
@@ -132,6 +141,9 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Wrapper " + algorithm + " not recognised.");
         }
 
+        /// <summary>Return the canonical name for the wrapping algorithm with the given object identifier.</summary>
+        /// <param name="oid">The algorithm's object identifier.</param>
+        /// <returns>The name, or null if the identifier is not recognised.</returns>
         public static string GetAlgorithmName(DerObjectIdentifier oid)
         {
             return CollectionUtilities.GetValueOrNull(Algorithms, oid.Id);

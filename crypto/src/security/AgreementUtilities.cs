@@ -92,9 +92,16 @@ namespace Org.BouncyCastle.Security
 #endif
         }
 
+        /// <summary>Return the canonical name for the agreement algorithm with the given object identifier.</summary>
+        /// <param name="oid">The algorithm's object identifier.</param>
+        /// <returns>The name, or null if the identifier is not recognised.</returns>
         public static string GetAlgorithmName(DerObjectIdentifier oid) =>
             CollectionUtilities.GetValueOrNull(AlgorithmOidMap, oid);
 
+        /// <summary>Create the basic agreement for the given algorithm object identifier.</summary>
+        /// <param name="oid">The algorithm's object identifier.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="oid"/> is null.</exception>
+        /// <exception cref="SecurityUtilityException">The agreement is not recognised.</exception>
         public static IBasicAgreement GetBasicAgreement(DerObjectIdentifier oid)
         {
             if (oid == null)
@@ -116,6 +123,10 @@ namespace Org.BouncyCastle.Security
         //    AlgorithmIdentifier wrapAlgID = AlgorithmIdentifier.GetInstance(algID.Parameters);
         //}
 
+        /// <summary>Create the basic agreement for the given algorithm name or object identifier.</summary>
+        /// <param name="algorithm">The algorithm name, for example "ECDH".</param>
+        /// <exception cref="ArgumentNullException"><paramref name="algorithm"/> is null.</exception>
+        /// <exception cref="SecurityUtilityException">The agreement is not recognised.</exception>
         public static IBasicAgreement GetBasicAgreement(string algorithm)
         {
             if (algorithm == null)
@@ -147,6 +158,10 @@ namespace Org.BouncyCastle.Security
             return null;
         }
 
+        /// <summary>Create a basic agreement that derives a key for the given wrap algorithm using a KDF.</summary>
+        /// <param name="agreeAlgOid">The agreement algorithm's object identifier.</param>
+        /// <param name="wrapAlgOid">The object identifier of the key wrap algorithm.</param>
+        /// <exception cref="SecurityUtilityException">The agreement is not recognised.</exception>
         public static IBasicAgreement GetBasicAgreementWithKdf(DerObjectIdentifier agreeAlgOid,
             AlgorithmIdentifier wrapAlgID)
         {
@@ -188,6 +203,10 @@ namespace Org.BouncyCastle.Security
             return GetBasicAgreementWithKdf(oid, DHKdfParameters.WithDefaultParameters(wrapAlgorithm));
         }
 
+        /// <summary>Create a basic agreement that derives a key for the given wrap algorithm using a KDF.</summary>
+        /// <param name="agreeAlgorithm">The agreement algorithm name.</param>
+        /// <param name="wrapAlgorithm">The name of the key wrap algorithm.</param>
+        /// <exception cref="ArgumentNullException">An argument is null.</exception>
         [Obsolete("Use '(DerObjectIdentifier, AlgorithmIdentifier)' instead")]
         public static IBasicAgreement GetBasicAgreementWithKdf(string agreeAlgorithm, string wrapAlgorithm)
         {
@@ -246,6 +265,10 @@ namespace Org.BouncyCastle.Security
             return null;
         }
 
+        /// <summary>Create the raw agreement for the given algorithm object identifier.</summary>
+        /// <param name="oid">The algorithm's object identifier.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="oid"/> is null.</exception>
+        /// <exception cref="SecurityUtilityException">The agreement is not recognised.</exception>
         public static IRawAgreement GetRawAgreement(DerObjectIdentifier oid)
         {
             if (oid == null)
@@ -261,6 +284,10 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("Raw Agreement OID not recognised.");
         }
 
+        /// <summary>Create the raw agreement for the given algorithm name or object identifier.</summary>
+        /// <param name="algorithm">The algorithm name, for example "X25519".</param>
+        /// <exception cref="ArgumentNullException"><paramref name="algorithm"/> is null.</exception>
+        /// <exception cref="SecurityUtilityException">The agreement is not recognised.</exception>
         public static IRawAgreement GetRawAgreement(string algorithm)
         {
             if (algorithm == null)

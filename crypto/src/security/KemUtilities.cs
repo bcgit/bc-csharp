@@ -8,6 +8,8 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Security
 {
+    /// <summary>Utility methods for creating key encapsulation mechanism (KEM) objects by name or object identifier.
+    /// </summary>
     public static class KemUtilities
     {
         private static readonly Dictionary<string, string> ByName =
@@ -79,6 +81,9 @@ namespace Org.BouncyCastle.Security
             return Tuple.Create(enc, sec);
         }
 
+        /// <summary>Create the decapsulator for the KEM with the given object identifier.</summary>
+        /// <param name="oid">The KEM's object identifier.</param>
+        /// <exception cref="SecurityUtilityException">The KEM is not recognised.</exception>
         public static IKemDecapsulator GetDecapsulator(DerObjectIdentifier oid)
         {
             if (TryGetDecapsulator(oid, out var decapsulator))
@@ -87,6 +92,9 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("KEM OID not recognised.");
         }
 
+        /// <summary>Create the decapsulator for the KEM with the given name.</summary>
+        /// <param name="name">The KEM's name.</param>
+        /// <exception cref="SecurityUtilityException">The KEM is not recognised.</exception>
         public static IKemDecapsulator GetDecapsulator(string name)
         {
             if (TryGetDecapsulator(name, out var decapsulator))
@@ -95,6 +103,9 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("KEM name not recognised.");
         }
 
+        /// <summary>Create the encapsulator for the KEM with the given object identifier.</summary>
+        /// <param name="oid">The KEM's object identifier.</param>
+        /// <exception cref="SecurityUtilityException">The KEM is not recognised.</exception>
         public static IKemEncapsulator GetEncapsulator(DerObjectIdentifier oid)
         {
             if (TryGetEncapsulator(oid, out var encapsulator))
@@ -103,6 +114,9 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("KEM OID not recognised.");
         }
 
+        /// <summary>Create the encapsulator for the KEM with the given name.</summary>
+        /// <param name="name">The KEM's name.</param>
+        /// <exception cref="SecurityUtilityException">The KEM is not recognised.</exception>
         public static IKemEncapsulator GetEncapsulator(string name)
         {
             if (TryGetEncapsulator(name, out var encapsulator))
@@ -111,6 +125,10 @@ namespace Org.BouncyCastle.Security
             throw new SecurityUtilityException("KEM name not recognised.");
         }
 
+        /// <summary>Try to create the decapsulator for the KEM with the given object identifier.</summary>
+        /// <param name="oid">The KEM's object identifier.</param>
+        /// <param name="decapsulator">The decapsulator, if the KEM is recognised.</param>
+        /// <returns>true if the KEM is recognised, false otherwise.</returns>
         public static bool TryGetDecapsulator(DerObjectIdentifier oid, out IKemDecapsulator decapsulator)
         {
             if (oid == null)
@@ -130,6 +148,10 @@ namespace Org.BouncyCastle.Security
             return false;
         }
 
+        /// <summary>Try to create the decapsulator for the KEM with the given name.</summary>
+        /// <param name="name">The KEM's name.</param>
+        /// <param name="decapsulator">The decapsulator, if the KEM is recognised.</param>
+        /// <returns>true if the KEM is recognised, false otherwise.</returns>
         public static bool TryGetDecapsulator(string name, out IKemDecapsulator decapsulator)
         {
             if (name == null)
@@ -149,6 +171,10 @@ namespace Org.BouncyCastle.Security
             return false;
         }
 
+        /// <summary>Try to create the encapsulator for the KEM with the given object identifier.</summary>
+        /// <param name="oid">The KEM's object identifier.</param>
+        /// <param name="encapsulator">The encapsulator, if the KEM is recognised.</param>
+        /// <returns>true if the KEM is recognised, false otherwise.</returns>
         public static bool TryGetEncapsulator(DerObjectIdentifier oid, out IKemEncapsulator encapsulator)
         {
             if (oid == null)
@@ -168,6 +194,10 @@ namespace Org.BouncyCastle.Security
             return false;
         }
 
+        /// <summary>Try to create the encapsulator for the KEM with the given name.</summary>
+        /// <param name="name">The KEM's name.</param>
+        /// <param name="encapsulator">The encapsulator, if the KEM is recognised.</param>
+        /// <returns>true if the KEM is recognised, false otherwise.</returns>
         public static bool TryGetEncapsulator(string name, out IKemEncapsulator encapsulator)
         {
             if (name == null)
