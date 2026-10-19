@@ -15,16 +15,24 @@ namespace Org.BouncyCastle.Ocsp
     {
         private readonly ResponderID m_id;
 
+        /// <summary>Create from an existing ASN.1 ResponderID structure.</summary>
+        /// <param name="id">The ASN.1 structure.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="id"/> is null.</exception>
         public RespID(ResponderID id)
         {
             m_id = id ?? throw new ArgumentNullException(nameof(id));
         }
 
+        /// <summary>Create an ID that identifies the responder by name.</summary>
+        /// <param name="name">The distinguished name of the responder.</param>
         public RespID(X509Name name)
         {
             m_id = new ResponderID(name);
         }
 
+        /// <summary>Create an ID that identifies the responder by the SHA-1 hash of its public key.</summary>
+        /// <param name="publicKey">The responder's public key.</param>
+        /// <exception cref="OcspException">The key hash could not be calculated.</exception>
         public RespID(AsymmetricKeyParameter publicKey)
         {
             try
@@ -41,6 +49,7 @@ namespace Org.BouncyCastle.Ocsp
             }
         }
 
+        /// <summary>Return the underlying ASN.1 structure.</summary>
         public ResponderID ToAsn1Object() => m_id;
 
         public bool Equals(RespID other) => this == other || m_id.Equals(other?.m_id);

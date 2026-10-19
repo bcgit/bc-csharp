@@ -6,6 +6,12 @@ using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace Org.BouncyCastle.Ocsp
 {
+    /// <summary>An OCSP response (RFC 6960): a status, plus response bytes when the status is successful.</summary>
+    /// <remarks>
+    /// Instances can be parsed from an encoding or produced by <see cref="OCSPRespGenerator"/>. Use
+    /// <see cref="Status"/> to check the outcome and <see cref="GetResponseObject"/> to obtain the
+    /// <see cref="BasicOcspResp"/> carrying the certificate statuses.
+    /// </remarks>
     public class OcspResp
     {
         private static OcspResponse ParseOcspResponse(byte[] encoding)
@@ -34,23 +40,38 @@ namespace Org.BouncyCastle.Ocsp
 
         private readonly OcspResponse m_ocspResponse;
 
+        /// <summary>Create from an existing ASN.1 OcspResponse structure.</summary>
+        /// <param name="resp">The ASN.1 structure.</param>
         public OcspResp(OcspResponse resp)
         {
             m_ocspResponse = resp;
         }
 
+        /// <summary>Parse a response from its encoding.</summary>
+        /// <param name="resp">The encoded OCSP response.</param>
+        /// <exception cref="IOException">The encoding is malformed.</exception>
         public OcspResp(byte[] resp)
             : this(ParseOcspResponse(resp))
         {
         }
 
+        /// <summary>Parse a response from a stream containing its encoding.</summary>
+        /// <param name="inStr">A stream positioned at the encoded OCSP response.</param>
+        /// <exception cref="IOException">The encoding is malformed.</exception>
         public OcspResp(Stream inStr)
             : this(ParseOcspResponse(inStr))
         {
         }
 
+        /// <summary>Gets the response status; see <see cref="OcspRespStatus"/> for the possible values.</summary>
         public int Status => m_ocspResponse.ResponseStatus.IntValueExact;
 
+        /// <summary>Return the response carried by this object.</summary>
+        /// <returns>
+        /// A <see cref="BasicOcspResp"/> for basic responses, the raw response octets for other response types, or
+        /// null if the response has no response bytes (typically because <see cref="Status"/> is not successful).
+        /// </returns>
+        /// <exception cref="OcspException">A basic response could not be decoded.</exception>
         public object GetResponseObject()
         {
             ResponseBytes rb = m_ocspResponse.ResponseBytes;
@@ -87,6 +108,7 @@ namespace Org.BouncyCastle.Ocsp
 
         public override int GetHashCode() => m_ocspResponse.GetHashCode();
 
+        /// <summary>Return the underlying ASN.1 structure.</summary>
         public OcspResponse ToAsn1Structure() => m_ocspResponse;
     }
 }
