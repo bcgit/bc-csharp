@@ -10,8 +10,8 @@ modification, are permitted provided that the following conditions are met:
   1. Redistributions of source code must retain the above copyright notice,
      this list of conditions and the following disclaimer.
 
-  2. Redistributions in binary form must reproduce the above copyright 
-     notice, this list of conditions and the following disclaimer in 
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in
      the documentation and/or other materials provided with the distribution.
 
   3. The names of the authors may not be used to endorse or promote products
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             internal int nice_length; // quit search above this match length
             internal int max_chain;
             internal int func;
-            internal Config(int good_length, int max_lazy, 
+            internal Config(int good_length, int max_lazy,
                 int nice_length, int max_chain, int func){
                 this.good_length=good_length;
                 this.max_lazy=max_lazy;
@@ -60,13 +60,13 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                 this.func=func;
             }
         }
-  
+
         private const int STORED=0;
         private const int FAST=1;
         private const int SLOW=2;
         private static readonly Config[] config_table;
 
-		static Deflate(){
+        static Deflate(){
             config_table=new Config[10];
             //                         good  lazy  nice  chain
             config_table[0]=new Config(0,    0,    0,    0, STORED);
@@ -96,10 +96,10 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                                            };
 
         // block not completed, need more input or more output
-        private const int NeedMore=0; 
+        private const int NeedMore=0;
 
         // block flush performed
-        private const int BlockDone=1; 
+        private const int BlockDone=1;
 
         // finish started, need only more output at next deflate
         private const int FinishStarted=2;
@@ -149,13 +149,13 @@ namespace Org.BouncyCastle.Utilities.Zlib {
         private const int Buf_size=8*2;
 
         // repeat previous bit length 3-6 times (2 bits of repeat count)
-        private const int REP_3_6=16; 
+        private const int REP_3_6=16;
 
         // repeat a zero length 3-10 times  (3 bits of repeat count)
-        private const int REPZ_3_10=17; 
+        private const int REPZ_3_10=17;
 
         // repeat a zero length 11-138 times  (7 bits of repeat count)
-        private const int REPZ_11_138=18; 
+        private const int REPZ_11_138=18;
 
         private const int MIN_MATCH=3;
         private const int MAX_MATCH=258;
@@ -527,11 +527,11 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                     if(curlen != prevlen){
                         send_code(curlen, bl_tree); count--;
                     }
-                    send_code(REP_3_6, bl_tree); 
+                    send_code(REP_3_6, bl_tree);
                     send_bits(count-3, 2);
                 }
                 else if(count <= 10){
-                    send_code(REPZ_3_10, bl_tree); 
+                    send_code(REPZ_3_10, bl_tree);
                     send_bits(count-3, 3);
                 }
                 else{
@@ -568,7 +568,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
         internal void putShortMSB(int b){
             pending_buf[pending++]=(byte)(b>>8);
             pending_buf[pending++]=(byte)(b/*&0xff*/);
-        }   
+        }
 
         internal void send_code(int c, short[] tree){
             int c2=c*2;
@@ -643,7 +643,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             if (dist == 0) {
                 // lc is the unmatched char
                 dyn_ltree[lc*2]++;
-            } 
+            }
             else {
                 matches++;
                 // Here, lc is the match length - MIN_MATCH
@@ -687,7 +687,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
 
                     if(dist == 0){
                         send_code(lc, ltree); // send a literal byte
-                    } 
+                    }
                     else{
                         // Here, lc is the match length - MIN_MATCH
                         code = Tree._length_code[lc];
@@ -771,7 +771,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             last_eob_len = 8; // enough lookahead for inflate
 
             if (header) {
-                put_short((short)len);   
+                put_short((short)len);
                 put_short((short)~len);
             }
 
@@ -822,7 +822,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                     // strstart == 0 is possible when wraparound on 16-bit machine
                     lookahead = (int)(strstart-max_start);
                     strstart = (int)max_start;
-      
+
                     flush_block_only(false);
                     if(strm.avail_out==0) return NeedMore;
 
@@ -936,7 +936,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                 // Deal with !@#$% 64K limit:
                 if(more==0 && strstart==0 && lookahead==0){
                     more = w_size;
-                } 
+                }
                 else if(more==-1) {
                     // Very unlikely, but possible on 16 bit machine if strstart == 0
                     // and lookahead == 1 (input done one byte at time)
@@ -1041,7 +1041,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                 // Find the longest match, discarding those <= prev_length.
                 // At this point we have always match_length < MIN_MATCH
 
-                if(hash_head!=0L && 
+                if(hash_head!=0L &&
                     ((strstart-hash_head)&0xffff) <= w_size-MIN_LOOKAHEAD
                     ){
                     // To simplify the code, we prevent matches with the string
@@ -1077,7 +1077,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                             // always MIN_MATCH bytes ahead.
                         }
                         while (--match_length != 0);
-                        strstart++; 
+                        strstart++;
                     }
                     else{
                         strstart += match_length;
@@ -1094,7 +1094,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
 
                     bflush=_tr_tally(0, window[strstart]&0xff);
                     lookahead--;
-                    strstart++; 
+                    strstart++;
                 }
                 if (bflush){
 
@@ -1321,7 +1321,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             if (best_len <= lookahead) return best_len;
             return lookahead;
         }
-    
+
         internal int deflateInit(ZStream strm, int level, int bits){
             return deflateInit2(strm, level, Z_DEFLATED, bits, DEF_MEM_LEVEL,
                 Z_DEFAULT_STRATEGY);
@@ -1349,7 +1349,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                 windowBits = -windowBits;
             }
 
-            if (memLevel < 1 || memLevel > MAX_MEM_LEVEL || 
+            if (memLevel < 1 || memLevel > MAX_MEM_LEVEL ||
                 method != Z_DEFLATED ||
                 windowBits < 9 || windowBits > 15 || level < 0 || level > 9 ||
                 strategy < 0 || strategy > Z_HUFFMAN_ONLY) {
@@ -1432,7 +1432,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
             if(_level == Z_DEFAULT_COMPRESSION){
                 _level = 6;
             }
-            if(_level < 0 || _level > 9 || 
+            if(_level < 0 || _level > 9 ||
                 _strategy < 0 || _strategy > Z_HUFFMAN_ONLY) {
                 return Z_STREAM_ERROR;
             }
@@ -1566,13 +1566,13 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                 (flush != Z_NO_FLUSH && status != FINISH_STATE)) {
                 int bstate=-1;
                 switch (config_table[level].func){
-                case STORED: 
+                case STORED:
                     bstate = deflate_stored(flush);
                     break;
-                case FAST: 
+                case FAST:
                     bstate = deflate_fast(flush);
                     break;
-                case SLOW: 
+                case SLOW:
                     bstate = deflate_slow(flush);
                     break;
                 default:
@@ -1598,7 +1598,7 @@ namespace Org.BouncyCastle.Utilities.Zlib {
                 if (bstate==BlockDone) {
                     if(flush == Z_PARTIAL_FLUSH) {
                         _tr_align();
-                    } 
+                    }
                     else { // FULL_FLUSH or SYNC_FLUSH
                         _tr_stored_block(0, 0, false);
                         // For a full flush, this empty block will be recognized
