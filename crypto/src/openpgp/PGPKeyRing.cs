@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>Base class for OpenPGP key rings.</summary>
     public abstract class PgpKeyRing
         : PgpObject
     {

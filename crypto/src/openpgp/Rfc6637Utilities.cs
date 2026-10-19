@@ -11,6 +11,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>Utility methods for ECDH key wrapping as defined in RFC 6637.</summary>
     public sealed class Rfc6637Utilities
     {
         private Rfc6637Utilities()
@@ -20,6 +21,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         // "Anonymous Sender    ", which is the octet sequence
         private static readonly byte[] ANONYMOUS_SENDER = Hex.Decode("416E6F6E796D6F75732053656E64657220202020");
 
+        /// <summary>Get the name of the key agreement algorithm for an ECDH key.</summary>
+        /// <param name="pubKeyData">The public key packet.</param>
+        /// <returns>The algorithm name.</returns>
         public static string GetAgreementAlgorithm(PublicKeyPacket pubKeyData)
         {
             ECDHPublicBcpgKey ecKey = (ECDHPublicBcpgKey)pubKeyData.Key;
@@ -37,6 +41,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Get the object identifier of the key wrap algorithm for a symmetric algorithm.</summary>
+        /// <param name="algID">The symmetric key algorithm.</param>
+        /// <returns>The object identifier.</returns>
         public static DerObjectIdentifier GetKeyEncryptionOID(SymmetricKeyAlgorithmTag algID)
         {
             switch (algID)
@@ -52,6 +59,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Get the key length for a symmetric algorithm in bytes.</summary>
+        /// <param name="algID">The symmetric key algorithm.</param>
+        /// <returns>The key length.</returns>
         public static int GetKeyLength(SymmetricKeyAlgorithmTag algID)
         {
             switch (algID)
@@ -67,11 +77,19 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Derive the key encryption key from the shared secret.</summary>
+        /// <param name="pubKeyData">The public key packet.</param>
+        /// <param name="s">The shared point.</param>
+        /// <returns>The key.</returns>
         public static byte[] CreateKey(PublicKeyPacket pubKeyData, ECPoint s)
         {
             return CreateKey(pubKeyData, s.AffineXCoord.GetEncoded());
         }
 
+        /// <summary>Derive the key encryption key from the shared secret.</summary>
+        /// <param name="pubKeyData">The public key packet.</param>
+        /// <param name="secret">The shared secret.</param>
+        /// <returns>The key.</returns>
         public static byte[] CreateKey(PublicKeyPacket pubKeyData, byte[] secret)
         {
             byte[] userKeyingMaterial = CreateUserKeyingMaterial(pubKeyData);
@@ -81,6 +99,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return Kdf(ecKey.HashAlgorithm, secret, GetKeyLength(ecKey.SymmetricKeyAlgorithm), userKeyingMaterial);
         }
 
+        /// <summary>Create the user keying material (the KDF parameters) for a key.</summary>
+        /// <param name="pubKeyData">The public key packet.</param>
+        /// <returns>The user keying material.</returns>
         // RFC 6637 - Section 8
         // curve_OID_len = (byte)len(curve_OID);
         // Param = curve_OID_len || curve_OID || public_key_alg_ID || 03

@@ -47,6 +47,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Gets the encrypted data object at the given index.</summary>
+        /// <param name="index">The index.</param>
         public PgpEncryptedData this[int index] => m_list[index];
 
         /// <summary>Gets the count.</summary>

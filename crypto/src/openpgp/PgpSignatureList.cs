@@ -24,6 +24,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             this.sigs = new PgpSignature[]{ sig };
         }
 
+        /// <summary>Gets the signature at the given index.</summary>
+        /// <param name="index">The index.</param>
         public PgpSignature this[int index]
         {
             get { return sigs[index]; }

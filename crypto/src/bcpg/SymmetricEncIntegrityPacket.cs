@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>A symmetrically encrypted and integrity protected data packet (SEIPD), version 1 or 2.</summary>
     public class SymmetricEncIntegrityPacket
         : InputStreamPacket
     {
@@ -17,6 +18,8 @@ namespace Org.BouncyCastle.Bcpg
         /// </remarks>
         public const int Version2 = 2;
 
+        /// <summary>Create a version 1 packet.</summary>
+        /// <returns>The new packet.</returns>
         public static SymmetricEncIntegrityPacket CreateV1Packet() => new SymmetricEncIntegrityPacket();
 
         private readonly int m_version;

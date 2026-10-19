@@ -56,6 +56,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return d;
         }
 
+        /// <summary>
+        /// Convert a DER encoded DSA or ECDSA signature to the pair of multiprecision integers used in OpenPGP.
+        /// </summary>
+        /// <param name="encoding">The DER encoding.</param>
+        /// <returns>The two integers r and s.</returns>
         public static MPInteger[] DsaSigToMpi(byte[] encoding)
         {
             try
@@ -73,9 +78,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Convert an RSA signature to the multiprecision integer used in OpenPGP.</summary>
+        /// <param name="encoding">The signature.</param>
+        /// <returns>The integer.</returns>
         public static MPInteger[] RsaSigToMpi(byte[] encoding) =>
             new MPInteger[]{ new MPInteger(new BigInteger(1, encoding)) };
 
+        /// <summary>
+        /// Get the name of a hash algorithm, as used with <see cref="DigestUtilities"/>.
+        /// </summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>The name.</returns>
         public static string GetDigestName(HashAlgorithmTag hashAlgorithm)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -115,6 +128,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Get the hash algorithm for a digest name.</summary>
+        /// <param name="name">The name.</param>
+        /// <returns>The hash algorithm value.</returns>
         public static int GetDigestIDForName(string name)
         {
             if (NameToHashID.TryGetValue(name, out var hashAlgorithmTag))
@@ -138,6 +154,12 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return ECNamedCurveTable.GetName(oid);
         }
 
+        /// <summary>
+        /// Get the name of a signature algorithm, as used with <see cref="SignerUtilities"/>.
+        /// </summary>
+        /// <param name="keyAlgorithm">The public key algorithm.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>The name.</returns>
         public static string GetSignatureName(PublicKeyAlgorithmTag keyAlgorithm, HashAlgorithmTag hashAlgorithm)
         {
             string encAlg;
@@ -170,6 +192,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return GetDigestName(hashAlgorithm) + "with" + encAlg;
         }
 
+        /// <summary>Get the name of a symmetric cipher.</summary>
+        /// <param name="algorithm">The symmetric key algorithm.</param>
+        /// <returns>The name.</returns>
         public static string GetSymmetricCipherName(SymmetricKeyAlgorithmTag algorithm)
         {
             switch (algorithm)
@@ -207,6 +232,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Get the key size of a symmetric key algorithm in bits.</summary>
+        /// <param name="algorithm">The symmetric key algorithm.</param>
+        /// <returns>The key size in bits.</returns>
         public static int GetKeySize(SymmetricKeyAlgorithmTag algorithm)
         {
             int keySize;
@@ -240,6 +268,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return keySize;
         }
 
+        /// <summary>Create a key for a symmetric key algorithm from key bytes.</summary>
+        /// <param name="algorithm">The symmetric key algorithm.</param>
+        /// <param name="keyBytes">The key bytes.</param>
+        /// <returns>The key.</returns>
         public static KeyParameter MakeKey(SymmetricKeyAlgorithmTag algorithm, byte[] keyBytes)
         {
             string algName = GetSymmetricCipherName(algorithm);
@@ -247,6 +279,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return ParameterUtilities.CreateKeyParameter(algName, keyBytes);
         }
 
+        /// <summary>Create a random key for a symmetric key algorithm.</summary>
+        /// <param name="algorithm">The symmetric key algorithm.</param>
+        /// <param name="random">The source of randomness.</param>
+        /// <returns>The key.</returns>
         public static KeyParameter MakeRandomKey(SymmetricKeyAlgorithmTag algorithm, SecureRandom random)
         {
             int keySize = GetKeySize(algorithm);

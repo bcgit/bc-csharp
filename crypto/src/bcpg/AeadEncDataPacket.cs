@@ -103,6 +103,12 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the AA data.</summary>
         public byte[] GetAAData() => CreateAAData(Version, Algorithm, AeadAlgorithm, ChunkSize);
 
+        /// <summary>Create the additional authenticated data for an AEAD encrypted data packet.</summary>
+        /// <param name="version">The packet version.</param>
+        /// <param name="symAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="aeadAlgorithm">The AEAD algorithm.</param>
+        /// <param name="chunkSize">The chunk size encoded as in the packet.</param>
+        /// <returns>The additional data.</returns>
         public static byte[] CreateAAData(byte version, SymmetricKeyAlgorithmTag symAlgorithm,
             AeadAlgorithmTag aeadAlgorithm, int chunkSize)
         {
@@ -115,6 +121,9 @@ namespace Org.BouncyCastle.Bcpg
             return aaData;
         }
 
+        /// <summary>Get the length of the initialization vector for an AEAD algorithm.</summary>
+        /// <param name="aeadAlgorithm">The AEAD algorithm.</param>
+        /// <returns>The length in bytes.</returns>
         [Obsolete("Use 'AeadUtilities.GetIVLength' instead")]
         public static int GetIVLength(AeadAlgorithmTag aeadAlgorithm) => AeadUtilities.GetIVLength(aeadAlgorithm);
     }

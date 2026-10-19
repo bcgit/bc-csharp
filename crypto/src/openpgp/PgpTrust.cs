@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>A trust packet, kept as raw data.</summary>
     public sealed class PgpTrust
         : PgpObject
     {

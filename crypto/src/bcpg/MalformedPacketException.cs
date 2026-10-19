@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>Exception thrown when a packet is malformed.</summary>
     [Serializable]
     public class MalformedPacketException
         : IOException

@@ -344,6 +344,8 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Write a packet.</summary>
+        /// <param name="p">The packet.</param>
         public void WritePacket(ContainedPacket p) => p.Encode(this);
 
         /// <summary>
@@ -392,8 +394,12 @@ namespace Org.BouncyCastle.Bcpg
             WriteHeader(tag, oldPacketFormat, false, bodyLength);
         }
 
+        /// <summary>Write an object.</summary>
+        /// <param name="bcpgObject">The object.</param>
         public void WriteObject(BcpgObject bcpgObject) => bcpgObject.Encode(this);
 
+        /// <summary>Write several objects, in order.</summary>
+        /// <param name="v">The objects.</param>
         public void WriteObjects(params BcpgObject[] v)
         {
             foreach (BcpgObject o in v)

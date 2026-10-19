@@ -20,6 +20,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_sigs = (PgpOnePassSignature[])sigs.Clone();
         }
 
+        /// <summary>Gets the one-pass signature at the given index.</summary>
+        /// <param name="index">The index.</param>
         public PgpOnePassSignature this[int index] => m_sigs[index];
 
         /// <summary>Gets the count.</summary>

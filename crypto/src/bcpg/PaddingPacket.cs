@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>A padding packet (RFC 9580 section 5.14).</summary>
     public class PaddingPacket
         : ContainedPacket
     {

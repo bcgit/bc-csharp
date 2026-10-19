@@ -27,6 +27,9 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded() => GetEncoded(PacketFormat.Roundtrip);
 
+        /// <summary>Get the encoding of the packet in the given packet format.</summary>
+        /// <param name="packetFormat">The format to use.</param>
+        /// <returns>The encoding.</returns>
         public byte[] GetEncoded(PacketFormat packetFormat)
         {
             MemoryStream bOut = new MemoryStream();
@@ -37,6 +40,8 @@ namespace Org.BouncyCastle.Bcpg
             return bOut.ToArray();
         }
 
+        /// <summary>Write the encoding of this packet.</summary>
+        /// <param name="bcpgOut">The stream to write to.</param>
         public abstract void Encode(BcpgOutputStream bcpgOut);
     }
 }

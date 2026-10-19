@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Bcpg
     /// <summary>Parser for user attribute subpackets</summary>
     public class UserAttributeSubpacketsParser
     {
+        /// <summary>The maximum length of a subpacket that is accepted.</summary>
         // Absolute upper bound on a single user attribute subpacket body. A crafted long-length
         // header could otherwise force a multi-gigabyte new byte[] (below) before any body bytes
         // are read, a pre-auth allocation DoS. 2 MiB matches SignaturePacket.MaxSubpacketLength;
@@ -33,6 +34,8 @@ namespace Org.BouncyCastle.Bcpg
             m_limit = limit;
         }
 
+        /// <summary>Read the next subpacket.</summary>
+        /// <returns>The subpacket, or null if there are no more.</returns>
         public virtual UserAttributeSubpacket ReadPacket()
         {
             uint bodyLen = StreamUtilities.ReadBodyLen(m_input, out var streamFlags);

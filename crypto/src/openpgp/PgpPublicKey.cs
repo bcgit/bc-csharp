@@ -31,6 +31,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private static readonly PgpKdfParameters DefaultKdfParameters = new PgpKdfParameters(HashAlgorithmTag.Sha256,
             SymmetricKeyAlgorithmTag.Aes128);
 
+        /// <summary>Calculate the fingerprint of a public key packet.</summary>
+        /// <param name="publicPk">The packet.</param>
+        /// <returns>The fingerprint.</returns>
         public static byte[] CalculateFingerprint(PublicKeyPacket publicPk)
         {
             IBcpgKey key = publicPk.Key;
@@ -623,6 +626,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return (byte[]) fingerprint.Clone();
         }
 
+        /// <summary>Determine whether the key has the given fingerprint.</summary>
+        /// <param name="fingerprint">The fingerprint.</param>
+        /// <returns>true if the fingerprint matches, false otherwise.</returns>
         public bool HasFingerprint(byte[] fingerprint)
         {
             return Arrays.AreEqual(this.fingerprint, fingerprint);

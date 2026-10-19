@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Bcpg
     {
         private readonly UserAttributeSubpacketTag m_type;
         private readonly bool m_longLength; // we preserve this as not everyone encodes length properly.
+        /// <summary>The data of the subpacket.</summary>
         // TODO[api] Make private
         protected readonly byte[] data;
 
@@ -39,6 +40,8 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the data.</summary>
         public virtual byte[] GetData() => Arrays.Clone(data);
 
+        /// <summary>Write the encoding of the subpacket.</summary>
+        /// <param name="os">The stream to write to.</param>
         public virtual void Encode(Stream os)
         {
             StreamUtilities.WriteNewPacketLength(os, 1 + data.Length, m_longLength);

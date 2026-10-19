@@ -16,6 +16,7 @@
     public sealed class X448SecretBcpgKey
         : OctetArrayBcpgKey
     {
+        /// <summary>The length in bytes of the key.</summary>
         public static readonly int Length = 56;
 
         /// <summary>Create a new <see cref="X448SecretBcpgKey"/>.</summary>

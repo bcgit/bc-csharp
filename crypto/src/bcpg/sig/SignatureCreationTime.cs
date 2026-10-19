@@ -16,6 +16,9 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class SignatureCreationTime
         : SignatureSubpacket
     {
+        /// <summary>Convert a time to its encoding, in seconds since the Unix epoch.</summary>
+        /// <param name="time">The time.</param>
+        /// <returns>The encoding.</returns>
         [Obsolete("Will be removed")]
         protected static byte[] TimeToBytes(DateTime time)
         {

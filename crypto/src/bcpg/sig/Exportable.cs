@@ -33,6 +33,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
+        /// <summary>Determine whether the signature is exportable.</summary>
+        /// <returns>true if it is exportable, false otherwise.</returns>
         public bool IsExportable() => Utilities.BooleanFromBytes(Data);
     }
 }

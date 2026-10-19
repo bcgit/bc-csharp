@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>The reasons for revoking a key or certification.</summary>
     public enum RevocationReasonTag
         : byte
     {

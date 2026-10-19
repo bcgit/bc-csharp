@@ -4,6 +4,7 @@ using Org.BouncyCastle.Math.EC;
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>The public key of an EdDSA key, as held in OpenPGP packets.</summary>
     public sealed class EdDsaPublicBcpgKey
         : ECPublicBcpgKey
     {

@@ -32,6 +32,8 @@ namespace Org.BouncyCastle.Bcpg
             m_limit = limit;
         }
 
+        /// <summary>Read the next subpacket.</summary>
+        /// <returns>The subpacket, or null if there are no more.</returns>
         // TODO[api] Make virtual?
         public SignatureSubpacket ReadPacket()
         {

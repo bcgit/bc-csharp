@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>A reserved packet, kept as raw data.</summary>
     public class PgpReserved
         : PgpObject
     {

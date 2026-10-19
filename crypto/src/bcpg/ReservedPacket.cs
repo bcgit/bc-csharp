@@ -1,5 +1,6 @@
 ﻿namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>A reserved packet (tag 0), which must not appear in valid data.</summary>
     public class ReservedPacket
         : InputStreamPacket
     {

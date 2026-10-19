@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>A packet with an unknown tag, kept as raw bytes.</summary>
     public sealed class UnknownPacket
         : ContainedPacket
     {

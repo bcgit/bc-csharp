@@ -16,6 +16,7 @@
     public sealed class Ed25519PublicBcpgKey
         : OctetArrayBcpgKey
     {
+        /// <summary>The length in bytes of the key.</summary>
         public static readonly int Length = 32;
 
         /// <summary>Create a new <see cref="Ed25519PublicBcpgKey"/>.</summary>

@@ -19,6 +19,9 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class KeyExpirationTime
         : SignatureSubpacket
     {
+        /// <summary>Convert a time in seconds to its encoding.</summary>
+        /// <param name="t">The time in seconds.</param>
+        /// <returns>The encoding.</returns>
         [Obsolete("Will be removed")]
         protected static byte[] TimeToBytes(long t) => Utilities.TimeToBytes((uint)t);
 

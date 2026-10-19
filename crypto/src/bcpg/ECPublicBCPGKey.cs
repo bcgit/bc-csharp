@@ -59,6 +59,10 @@ namespace Org.BouncyCastle.Bcpg
             MPInteger.Encode(bcpgOut, m_point);
         }
 
+        /// <summary>Read a length-prefixed encoded value, such as a curve OID.</summary>
+        /// <param name="bcpgIn">The stream to read from.</param>
+        /// <returns>The length byte followed by the bytes read.</returns>
+        /// <exception cref="IOException">The length is not valid or not supported.</exception>
         protected static byte[] ReadBytesOfEncodedLength(BcpgInputStream bcpgIn)
         {
             int length = bcpgIn.RequireByte();

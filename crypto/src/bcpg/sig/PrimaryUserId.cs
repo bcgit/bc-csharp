@@ -30,6 +30,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
+        /// <summary>Determine whether the user ID is marked as the primary user ID.</summary>
+        /// <returns>true if it is the primary user ID, false otherwise.</returns>
         public bool IsPrimaryUserId() => Utilities.BooleanFromBytes(Data);
     }
 }

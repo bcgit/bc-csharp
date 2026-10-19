@@ -129,6 +129,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
+        /// <summary>Write the encoding of this object.</summary>
+        /// <param name="outStr">The stream to write to.</param>
         public virtual void Encode(
             Stream outStr)
         {

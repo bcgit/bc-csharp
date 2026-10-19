@@ -10,8 +10,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpLiteralDataGenerator
         : IStreamGenerator
     {
+        /// <summary>The format value for binary data.</summary>
         public const char Binary = PgpLiteralData.Binary;
+        /// <summary>The format value for text data.</summary>
         public const char Text = PgpLiteralData.Text;
+        /// <summary>The format value for UTF-8 text data.</summary>
         public const char Utf8 = PgpLiteralData.Utf8;
 
         /// <summary>The special name indicating a "for your eyes only" packet.</summary>

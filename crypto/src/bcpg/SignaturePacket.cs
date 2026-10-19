@@ -540,6 +540,9 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Parse a signature packet from its encoding.</summary>
+        /// <param name="data">The encoding.</param>
+        /// <returns>The packet.</returns>
         public static SignaturePacket FromByteArray(byte[] data)
         {
             BcpgInputStream input = BcpgInputStream.Wrap(new MemoryStream(data, writable: false));

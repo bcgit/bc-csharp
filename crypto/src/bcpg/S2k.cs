@@ -11,12 +11,21 @@ namespace Org.BouncyCastle.Bcpg
     public class S2k
         : BcpgObject
     {
+        /// <summary>Generate a salted string-to-key specifier.</summary>
+        /// <param name="secureRandom">The source of randomness for the salt.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>The specifier.</returns>
         public static S2k GenerateSalted(SecureRandom secureRandom, HashAlgorithmTag hashAlgorithm)
         {
             var iv = GenerateIV(secureRandom);
             return new S2k(hashAlgorithm, iv);
         }
 
+        /// <summary>Generate an iterated and salted string-to-key specifier.</summary>
+        /// <param name="secureRandom">The source of randomness for the salt.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="itCount">The iteration count.</param>
+        /// <returns>The specifier.</returns>
         public static S2k GenerateSaltedAndIterated(SecureRandom secureRandom, HashAlgorithmTag hashAlgorithm,
             int itCount)
         {
@@ -151,6 +160,9 @@ namespace Org.BouncyCastle.Bcpg
             m_argon2Config = argon2Config ?? throw new ArgumentNullException(nameof(argon2Config));
         }
 
+        /// <summary>Create an Argon2 string-to-key specifier.</summary>
+        /// <param name="parameters">The Argon2 parameters.</param>
+        /// <returns>The specifier.</returns>
         public static S2k Argon2S2k(Argon2Params parameters) => new S2k(parameters);
 
         /// <summary>Gets the type.</summary>
@@ -226,13 +238,27 @@ namespace Org.BouncyCastle.Bcpg
             bcpgOut.WriteByte((byte)val);
         }
 
+        /// <summary>
+        /// The parameters of the Argon2 string-to-key specifier: passes, parallelism, memory size and salt.
+        /// </summary>
         public sealed class Argon2Params
         {
+            /// <summary>Get the default source of randomness.</summary>
+            /// <returns>The source of randomness.</returns>
             public static SecureRandom DefaultSecureRandom() => CryptoServicesRegistrar.GetSecureRandom();
 
+            /// <summary>
+            /// Get the recommended parameters for memory-constrained environments (RFC 9106 section 4, second
+            /// recommended option).
+            /// </summary>
+            /// <param name="secureRandom">The source of randomness for the salt.</param>
+            /// <returns>The parameters.</returns>
             public static Argon2Params MemoryConstrainedParameters(SecureRandom secureRandom) =>
                 new Argon2Params(3, 4, 16, secureRandom);
 
+            /// <summary>Get the recommended parameters (RFC 9106 section 4, first recommended option).</summary>
+            /// <param name="secureRandom">The source of randomness for the salt.</param>
+            /// <returns>The parameters.</returns>
             public static Argon2Params RecommendedParameters(SecureRandom secureRandom) =>
                 new Argon2Params(1, 4, 21, secureRandom);
 

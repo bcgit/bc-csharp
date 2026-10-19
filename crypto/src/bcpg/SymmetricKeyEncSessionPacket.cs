@@ -16,6 +16,11 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>The <c>Version6</c> constant, with the value <c>6</c>.</summary>
         public const byte Version6 = 6;
 
+        /// <summary>Create a version 4 packet.</summary>
+        /// <param name="encAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="s2k">The string-to-key specifier.</param>
+        /// <param name="secKeyData">The encrypted session key, or null.</param>
+        /// <returns>The new packet.</returns>
         public static SymmetricKeyEncSessionPacket CreateV4Packet(SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k,
             byte[] secKeyData)
         {
@@ -24,12 +29,28 @@ namespace Org.BouncyCastle.Bcpg
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Create a version 5 packet.</summary>
+        /// <param name="encAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="aeadAlgorithm">The AEAD algorithm.</param>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="s2k">The string-to-key specifier.</param>
+        /// <param name="secKeyData">The encrypted session key.</param>
+        /// <param name="authTag">The authentication tag.</param>
+        /// <returns>The new packet.</returns>
         public static SymmetricKeyEncSessionPacket CreateV5Packet(SymmetricKeyAlgorithmTag encAlgorithm,
             AeadAlgorithmTag aeadAlgorithm, byte[] iv, S2k s2k, byte[] secKeyData, byte[] authTag)
         {
             return new SymmetricKeyEncSessionPacket(Version5, encAlgorithm, aeadAlgorithm, iv, s2k, secKeyData, authTag);
         }
 
+        /// <summary>Create a version 6 packet.</summary>
+        /// <param name="encAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="aeadAlgorithm">The AEAD algorithm.</param>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="s2k">The string-to-key specifier.</param>
+        /// <param name="secKeyData">The encrypted session key.</param>
+        /// <param name="authTag">The authentication tag.</param>
+        /// <returns>The new packet.</returns>
         public static SymmetricKeyEncSessionPacket CreateV6Packet(SymmetricKeyAlgorithmTag encAlgorithm,
             AeadAlgorithmTag aeadAlgorithm, byte[] iv, S2k s2k, byte[] secKeyData, byte[] authTag)
         {
@@ -275,6 +296,11 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Gets the version byte.</summary>
         public byte VersionByte => m_version;
 
+        /// <summary>Create the additional authenticated data for a packet.</summary>
+        /// <param name="version">The packet version.</param>
+        /// <param name="encAlgorithm">The symmetric key algorithm.</param>
+        /// <param name="aeadAlgorithm">The AEAD algorithm.</param>
+        /// <returns>The additional data.</returns>
         public static byte[] CreateAAData(byte version, SymmetricKeyAlgorithmTag encAlgorithm,
             AeadAlgorithmTag aeadAlgorithm)
         {

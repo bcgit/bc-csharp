@@ -16,6 +16,9 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class IssuerKeyId
         : SignatureSubpacket
     {
+        /// <summary>Convert a key ID to its encoding.</summary>
+        /// <param name="keyId">The key ID.</param>
+        /// <returns>The encoding.</returns>
         [Obsolete("Will be removed")]
         protected static byte[] KeyIdToBytes(long keyId) => Pack.UInt64_To_BE((ulong)keyId);
 

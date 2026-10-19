@@ -2,8 +2,12 @@
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>Utility methods for symmetric key algorithms.</summary>
     public static class SymmetricKeyUtilities
     {
+        /// <summary>Get the key length of a symmetric key algorithm in bits.</summary>
+        /// <param name="symKeyAlgorithm">The algorithm.</param>
+        /// <returns>The key length in bits.</returns>
         public static int GetKeyLengthInBits(SymmetricKeyAlgorithmTag symKeyAlgorithm)
         {
             switch (symKeyAlgorithm)
@@ -37,6 +41,9 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Get the key length of a symmetric key algorithm in bytes.</summary>
+        /// <param name="symKeyAlgorithm">The algorithm.</param>
+        /// <returns>The key length in bytes.</returns>
         public static int GetKeyLengthInOctets(SymmetricKeyAlgorithmTag symKeyAlgorithm) =>
             (GetKeyLengthInBits(symKeyAlgorithm) + 7) / 8;
     }

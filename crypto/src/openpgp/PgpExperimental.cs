@@ -2,6 +2,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>An experimental packet, kept as raw data.</summary>
     public class PgpExperimental
         : PgpObject
     {

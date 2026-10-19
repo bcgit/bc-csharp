@@ -30,6 +30,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         {
         }
 
+        /// <summary>Determine whether the signature is revocable.</summary>
+        /// <returns>true if it is revocable, false otherwise.</returns>
         public bool IsRevocable() => Utilities.BooleanFromBytes(Data);
     }
 }

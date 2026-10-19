@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>An unknown packet, kept as raw data.</summary>
     public class PgpUnknown
         : PgpObject
     {

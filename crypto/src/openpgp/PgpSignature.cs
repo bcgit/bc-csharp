@@ -111,6 +111,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return IsCertification(SignatureType);
         }
 
+        /// <summary>Initialise the signature for verification.</summary>
+        /// <param name="pubKey">The public key to verify with.</param>
         public void InitVerify(PgpPublicKey pubKey)
         {
             lastb = 0;
@@ -131,6 +133,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             }
         }
 
+        /// <summary>Add a byte to the data being verified.</summary>
+        /// <param name="b">The byte.</param>
         public void Update(byte b)
         {
             if (signatureType == CanonicalTextDocument)
@@ -170,11 +174,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             sig.Update((byte)'\n');
         }
 
+        /// <summary>Add bytes to the data being verified.</summary>
+        /// <param name="bytes">The bytes.</param>
         public void Update(params byte[] bytes)
         {
             Update(bytes, 0, bytes.Length);
         }
 
+        /// <summary>Add a range of bytes to the data being verified.</summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="off">The offset into <paramref name="bytes"/> at which to start.</param>
+        /// <param name="length">The number of bytes.</param>
         public void Update(byte[] bytes, int off, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -197,6 +207,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add bytes to the data being verified.</summary>
+        /// <param name="input">The bytes.</param>
         public void Update(ReadOnlySpan<byte> input)
         {
             if (signatureType == CanonicalTextDocument)
@@ -213,6 +225,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 #endif
 
+        /// <summary>Verify the signature over the data that has been added.</summary>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public bool Verify()
         {
             byte[] trailer = GetSignatureTrailer();
@@ -519,11 +533,20 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         private static bool IsNotExportable(PgpSignatureSubpacketVector subPackets) =>
             subPackets != null && !subPackets.IsExportable();
 
+        /// <summary>Determine whether two signatures have the same signature value.</summary>
+        /// <param name="sig1">The first signature.</param>
+        /// <param name="sig2">The second signature.</param>
+        /// <returns>true if the encodings are equal, false otherwise.</returns>
         public static bool IsSignatureEncodingEqual(PgpSignature sig1, PgpSignature sig2)
         {
             return Arrays.AreEqual(sig1.sigPck.GetSignatureBytes(), sig2.sigPck.GetSignatureBytes());
         }
 
+        /// <summary>Merge the unhashed subpackets of two copies of the same signature.</summary>
+        /// <param name="sig1">The first signature.</param>
+        /// <param name="sig2">The second signature.</param>
+        /// <returns>A signature with the unhashed subpackets of both.</returns>
+        /// <exception cref="ArgumentException">The signatures are different.</exception>
         public static PgpSignature Join(PgpSignature sig1, PgpSignature sig2)
         {
             if (!IsSignatureEncodingEqual(sig1, sig2))

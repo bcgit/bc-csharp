@@ -6,6 +6,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
+    /// <summary>A padding packet.</summary>
     public sealed class PgpPadding
         : PgpObject
     {
@@ -60,6 +61,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         internal void Encode(BcpgOutputStream bcpgOutput) => m_packet.Encode(bcpgOutput);
 
+        /// <summary>Write the encoding of this object.</summary>
+        /// <param name="outStr">The stream to write to.</param>
         public void Encode(Stream outStr) => Encode(BcpgOutputStream.Wrap(outStr));
 
         /// <summary>Return the padding.</summary>

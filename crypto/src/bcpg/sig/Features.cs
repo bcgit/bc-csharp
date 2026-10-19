@@ -67,6 +67,8 @@ namespace Org.BouncyCastle.Bcpg.Sig
         /// <summary>Gets the supports modification detection.</summary>
         public bool SupportsModificationDetection => SupportsFeature(FEATURE_MODIFICATION_DETECTION);
 
+        /// <summary>Determine whether the features include the version 2 SEIPD packet.</summary>
+        /// <returns>true if it is supported, false otherwise.</returns>
         public bool SupportsSeipdV2() => SupportsFeature(FEATURE_SEIPD_V2);
 
         /// <returns><c>true</c> iff the particular feature is supported.</returns>

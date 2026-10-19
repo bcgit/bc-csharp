@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     /// <remarks>Container for a list of signature subpackets.</remarks>
     public class PgpSignatureSubpacketVector
     {
+        /// <summary>Create a vector from an array of subpackets.</summary>
+        /// <param name="packets">The subpackets.</param>
+        /// <returns>The vector.</returns>
         public static PgpSignatureSubpacketVector FromSubpackets(SignatureSubpacket[] packets) =>
             new PgpSignatureSubpacketVector(packets ?? Array.Empty<SignatureSubpacket>());
 
@@ -19,6 +22,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_packets = packets;
         }
 
+        /// <summary>Get the first subpacket of the given type.</summary>
+        /// <param name="type">The subpacket type.</param>
+        /// <returns>The subpacket, or null if there is none.</returns>
         public SignatureSubpacket GetSubpacket(SignatureSubpacketTag type)
         {
             for (int i = 0; i != m_packets.Length; i++)
@@ -106,6 +112,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return vals;
         }
 
+        /// <summary>Get the notation data subpackets with the given name.</summary>
+        /// <param name="notationName">The notation name.</param>
+        /// <returns>The matching notation data.</returns>
         public NotationData[] GetNotationDataOccurrences(string notationName)
         {
             NotationData[] notations = GetNotationDataOccurrences();
@@ -129,6 +138,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? 0 : ((IssuerKeyId)p).GetKeyID();
         }
 
+        /// <summary>Determine whether there is a signature creation time subpacket.</summary>
+        /// <returns>true if there is one, false otherwise.</returns>
         public bool HasSignatureCreationTime() => GetSubpacket(SignatureSubpacketTag.CreationTime) != null;
 
         /// <summary>Return the signature creation time.</summary>
@@ -140,6 +151,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return ((SignatureCreationTime)p).GetTime();
         }
 
+        /// <summary>Determine whether there is a signature expiration time subpacket.</summary>
+        /// <returns>true if there is one, false otherwise.</returns>
         public bool HasSignatureExpirationTime() => GetSubpacket(SignatureSubpacketTag.ExpireTime) != null;
 
         /// <summary>
@@ -154,6 +167,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? 0 : ((SignatureExpirationTime)p).Time;
         }
 
+        /// <summary>Determine whether there is a key expiration time subpacket.</summary>
+        /// <returns>true if there is one, false otherwise.</returns>
         public bool HasKeyExpirationTime() => GetSubpacket(SignatureSubpacketTag.KeyExpireTime) != null;
 
         /// <summary>
@@ -216,6 +231,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : ((SignerUserId)p).GetId();
         }
 
+        /// <summary>Determine whether the vector marks the user ID as the primary user ID.</summary>
+        /// <returns>true if it does, false otherwise.</returns>
         public bool IsPrimaryUserId()
         {
             PrimaryUserId primaryId = (PrimaryUserId)GetSubpacket(SignatureSubpacketTag.PrimaryUserId);
@@ -303,6 +320,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new Exportable(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Determine whether the vector marks the signature as exportable.</summary>
+        /// <returns>true if it is exportable (the default), false otherwise.</returns>
         public bool IsExportable()
         {
             Exportable exportable = GetExportable();
@@ -359,6 +378,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return p == null ? null : new Revocable(p.IsCritical(), p.IsLongLength(), p.Data);
         }
 
+        /// <summary>Determine whether the vector marks the signature as revocable.</summary>
+        /// <returns>true if it is revocable (the default), false otherwise.</returns>
         public bool IsRevocable()
         {
             Revocable revocable = GetRevocable();

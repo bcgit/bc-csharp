@@ -31,13 +31,19 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Gets the subpacket type.</summary>
         public SignatureSubpacketTag SubpacketType => m_type;
 
+        /// <summary>Determine whether the subpacket is marked critical.</summary>
+        /// <returns>true if it is critical, false otherwise.</returns>
         public bool IsCritical() => m_critical;
 
+        /// <summary>Determine whether the subpacket was encoded with a long length.</summary>
+        /// <returns>true if the long length form is used, false otherwise.</returns>
         public bool IsLongLength() => m_longLength;
 
         /// <summary>Return the generic data making up the packet.</summary>
         public byte[] GetData() => Arrays.Clone(m_data);
 
+        /// <summary>Write the encoding of the subpacket.</summary>
+        /// <param name="os">The stream to write to.</param>
         public void Encode(Stream os)
         {
             StreamUtilities.WriteNewPacketLength(os, 1 + m_data.Length, m_longLength);

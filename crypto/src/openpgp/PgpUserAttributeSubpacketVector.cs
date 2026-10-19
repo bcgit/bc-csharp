@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
     public class PgpUserAttributeSubpacketVector
         : IUserDataPacket
     {
+        /// <summary>Create a vector from an array of subpackets.</summary>
+        /// <param name="packets">The subpackets.</param>
+        /// <returns>The vector.</returns>
         public static PgpUserAttributeSubpacketVector FromSubpackets(UserAttributeSubpacket[] packets) =>
             new PgpUserAttributeSubpacketVector(packets ?? Array.Empty<UserAttributeSubpacket>());
 
@@ -19,6 +22,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_packets = packets;
         }
 
+        /// <summary>Get the first subpacket of the given type.</summary>
+        /// <param name="type">The subpacket type.</param>
+        /// <returns>The subpacket, or null if there is none.</returns>
         public UserAttributeSubpacket GetSubpacket(UserAttributeSubpacketTag type)
         {
             for (int i = 0; i != m_packets.Length; i++)

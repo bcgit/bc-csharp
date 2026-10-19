@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Bcpg.Attr
     public class ImageAttrib
         : UserAttributeSubpacket
     {
+        /// <summary>The image formats of an image attribute.</summary>
         public enum Format : byte
         {
             Jpeg = 1

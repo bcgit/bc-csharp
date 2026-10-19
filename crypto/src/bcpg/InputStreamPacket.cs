@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>Base class for packets that carry a data stream.</summary>
     public class InputStreamPacket
         : Packet
     {

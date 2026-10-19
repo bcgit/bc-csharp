@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Bcpg
     public class PublicKeyPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
+        /// <summary>The maximum length of a public key packet body that is accepted.</summary>
         public static readonly int MaxLength = 2 * 1024 * 1024; // 2MiB; e.g. McEliece keys can get ~1MiB in size
 
         /// <summary>OpenPGP v3 keys are deprecated. They can only be used with RSA.</summary>
@@ -220,6 +221,10 @@ namespace Org.BouncyCastle.Bcpg
         public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(HasNewPacketFormat, PacketTag, GetEncodedContents());
 
+        /// <summary>Calculate the key ID of a public key packet.</summary>
+        /// <param name="publicPk">The packet.</param>
+        /// <param name="fingerprint">The fingerprint of the key.</param>
+        /// <returns>The key ID.</returns>
         public static long GetKeyID(PublicKeyPacket publicPk, byte[] fingerprint)
         {
             byte version = publicPk.VersionByte;

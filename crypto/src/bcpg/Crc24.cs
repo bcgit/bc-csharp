@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>The CRC-24 checksum used by ASCII armor.</summary>
     public sealed class Crc24
     {
         private const int Crc24Init = 0x0b704ce;
@@ -47,12 +48,17 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Add a byte to the checksum.</summary>
+        /// <param name="b">The byte.</param>
         public void Update(byte b)
         {
             int index = (b ^ (m_crc >> 16)) & 255;
             m_crc = (m_crc << 8) ^ Table0[index];
         }
 
+        /// <summary>Add three bytes to the checksum.</summary>
+        /// <param name="buf">The buffer holding the bytes.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the three bytes start.</param>
         public void Update3(byte[] buf, int off)
         {
             m_crc = Table16[(buf[off + 0] ^ (m_crc >> 16)) & 255]
@@ -63,6 +69,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Gets the value.</summary>
         public int Value => m_crc & 0xFFFFFF;
 
+        /// <summary>Reset the checksum to its initial value.</summary>
         public void Reset()
         {
             m_crc = Crc24Init;

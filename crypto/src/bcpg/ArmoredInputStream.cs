@@ -608,8 +608,11 @@ namespace Org.BouncyCastle.Bcpg
             ArmoredOutputStream.HeaderMessageID,
         };
 
+        /// <summary>Start building an armored input stream.</summary>
+        /// <returns>A new builder.</returns>
         public static Builder Build() => new Builder();
 
+        /// <summary>A builder for <see cref="ArmoredInputStream"/>.</summary>
         public sealed class Builder
         {
             internal bool m_hasHeaders = true;
@@ -701,6 +704,9 @@ namespace Org.BouncyCastle.Bcpg
                 return this;
             }
 
+            /// <summary>Build an armored input stream over a stream.</summary>
+            /// <param name="input">The stream to read the armored data from.</param>
+            /// <returns>The new stream.</returns>
             public ArmoredInputStream Build(Stream input) => new ArmoredInputStream(input, this);
         }
     }

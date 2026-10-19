@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>The AEAD algorithms of OpenPGP.</summary>
     public enum AeadAlgorithmTag : byte
     {
         Eax = 1,    // EAX (IV len: 16 octets, Tag len: 16 octets)
