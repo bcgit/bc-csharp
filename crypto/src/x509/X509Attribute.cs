@@ -36,10 +36,13 @@ namespace Org.BouncyCastle.X509
             m_attr = new AttributeX509(new DerObjectIdentifier(oid), DerSet.FromVector(value));
         }
 
+        /// <summary>Gets the object identifier of the attribute type.</summary>
         public string Oid => m_attr.AttrType.GetID();
 
+        /// <summary>Return the values of the attribute.</summary>
         public Asn1Encodable[] GetValues() => m_attr.AttrValues.ToArray();
 
+        /// <summary>Return the ASN.1 representation of the attribute.</summary>
         public override Asn1Object ToAsn1Object() => m_attr.ToAsn1Object();
     }
 }
