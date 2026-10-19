@@ -17,6 +17,8 @@ namespace Org.BouncyCastle.Asn1.Smime
     public class SmimeEncryptionKeyPreferenceAttribute
         : AttributeX509
     {
+        /// <summary>Create a new <see cref="SmimeEncryptionKeyPreferenceAttribute"/>.</summary>
+        /// <param name="issAndSer">The iss and ser.</param>
         public SmimeEncryptionKeyPreferenceAttribute(
             IssuerAndSerialNumber issAndSer)
             : base(SmimeAttributes.EncrypKeyPref,
@@ -24,6 +26,8 @@ namespace Org.BouncyCastle.Asn1.Smime
         {
         }
 
+        /// <summary>Create a new <see cref="SmimeEncryptionKeyPreferenceAttribute"/>.</summary>
+        /// <param name="rKeyID">The r key ID.</param>
         public SmimeEncryptionKeyPreferenceAttribute(
             RecipientKeyIdentifier rKeyID)
             : base(SmimeAttributes.EncrypKeyPref,
