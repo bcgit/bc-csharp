@@ -3,23 +3,31 @@ using System.Security.Cryptography;
 
 namespace Org.BouncyCastle.Crypto.Prng
 {
+    /// <summary>
+    /// An entropy source provider that draws entropy from the platform's cryptographic random number generator.
+    /// </summary>
     public class CryptoApiEntropySourceProvider
         :   IEntropySourceProvider
     {
         private readonly RandomNumberGenerator mRng;
         private readonly bool mPredictionResistant;
 
+        /// <summary>Create a new <see cref="CryptoApiEntropySourceProvider"/>.</summary>
         public CryptoApiEntropySourceProvider()
             : this(RandomNumberGenerator.Create(), true)
         {
         }
 
+        /// <summary>Create a new <see cref="CryptoApiEntropySourceProvider"/>.</summary>
+        /// <param name="rng">The rng.</param>
+        /// <param name="isPredictionResistant">true if is prediction resistant, false otherwise.</param>
         public CryptoApiEntropySourceProvider(RandomNumberGenerator rng, bool isPredictionResistant)
         {
             mRng = rng ?? throw new ArgumentNullException(nameof(rng));
             mPredictionResistant = isPredictionResistant;
         }
 
+        /// <inheritdoc/>
         public IEntropySource Get(int bitsRequired)
         {
             return new CryptoApiEntropySource(mRng, mPredictionResistant, bitsRequired);

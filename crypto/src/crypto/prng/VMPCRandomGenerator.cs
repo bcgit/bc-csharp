@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Prng
 {
+    /// <summary>A random generator based on the VMPC stream cipher.</summary>
     public sealed class VmpcRandomGenerator
         : IRandomGenerator
     {
@@ -50,10 +51,12 @@ namespace Org.BouncyCastle.Crypto.Prng
         private byte s = 0xbe;
         private byte n = 0;
 
+        /// <summary>Create a new <see cref="VmpcRandomGenerator"/>.</summary>
         public VmpcRandomGenerator()
         {
         }
 
+        /// <inheritdoc/>
         public void AddSeedMaterial(byte[] seed)
         {
             if (seed == null)
@@ -77,6 +80,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void AddSeedMaterial(ReadOnlySpan<byte> seed)
         {
             lock (P)
@@ -93,6 +97,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 #endif
 
+        /// <inheritdoc/>
         public void AddSeedMaterial(long seed)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -104,11 +109,13 @@ namespace Org.BouncyCastle.Crypto.Prng
 #endif
         }
 
+        /// <inheritdoc/>
         public void NextBytes(byte[] bytes)
         {
             NextBytes(bytes, 0, bytes.Length);
         }
 
+        /// <inheritdoc/>
         public void NextBytes(byte[] bytes, int start, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -132,6 +139,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void NextBytes(Span<byte> bytes)
         {
             lock (P)

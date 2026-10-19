@@ -4,6 +4,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Prng
 {
+    /// <summary>Utility methods for working with entropy sources.</summary>
     public abstract class EntropyUtilities
     {
         /**

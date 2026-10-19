@@ -11,11 +11,14 @@ namespace Org.BouncyCastle.Crypto.Prng
     {
         private readonly RandomNumberGenerator m_randomNumberGenerator;
 
+        /// <summary>Create a new <see cref="CryptoApiRandomGenerator"/>.</summary>
         public CryptoApiRandomGenerator()
             : this(RandomNumberGenerator.Create())
         {
         }
 
+        /// <summary>Create a new <see cref="CryptoApiRandomGenerator"/>.</summary>
+        /// <param name="randomNumberGenerator">The random number generator.</param>
         public CryptoApiRandomGenerator(RandomNumberGenerator randomNumberGenerator)
         {
             m_randomNumberGenerator = randomNumberGenerator ??
@@ -24,28 +27,33 @@ namespace Org.BouncyCastle.Crypto.Prng
 
         #region IRandomGenerator Members
 
+        /// <inheritdoc/>
         public void AddSeedMaterial(byte[] seed)
         {
             // We don't care about the seed
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void AddSeedMaterial(ReadOnlySpan<byte> inSeed)
         {
             // We don't care about the seed
         }
 #endif
 
+        /// <inheritdoc/>
         public void AddSeedMaterial(long seed)
         {
             // We don't care about the seed
         }
 
+        /// <inheritdoc/>
         public void NextBytes(byte[] bytes)
         {
             m_randomNumberGenerator.GetBytes(bytes);
         }
 
+        /// <inheritdoc/>
         public void NextBytes(byte[] bytes, int start, int len)
         {
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_0_OR_GREATER
@@ -70,6 +78,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void NextBytes(Span<byte> bytes)
         {
             m_randomNumberGenerator.GetBytes(bytes);

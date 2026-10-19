@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities.Date;
 
 namespace Org.BouncyCastle.Crypto.Prng
 {
+    /// <summary>Builder for <see cref="X931SecureRandom"/> instances.</summary>
     public class X931SecureRandomBuilder
     {
         private readonly SecureRandom mRandom;          // JDK 1.1 complains on final.

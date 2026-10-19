@@ -23,6 +23,8 @@ namespace Org.BouncyCastle.Crypto.Prng
         private byte[] state;
         private byte[] seed;
 
+        /// <summary>Create a new <see cref="DigestRandomGenerator"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public DigestRandomGenerator(IDigest digest)
         {
             this.digest = digest;
@@ -34,6 +36,7 @@ namespace Org.BouncyCastle.Crypto.Prng
             this.stateCounter = 1;
         }
 
+        /// <inheritdoc/>
         public void AddSeedMaterial(byte[] inSeed)
         {
             lock (this)
@@ -48,6 +51,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void AddSeedMaterial(ReadOnlySpan<byte> inSeed)
         {
             lock (this)
@@ -62,6 +66,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 #endif
 
+        /// <inheritdoc/>
         public void AddSeedMaterial(long rSeed)
         {
             lock (this)
@@ -72,11 +77,13 @@ namespace Org.BouncyCastle.Crypto.Prng
             }
         }
 
+        /// <inheritdoc/>
         public void NextBytes(byte[] bytes)
         {
             NextBytes(bytes, 0, bytes.Length);
         }
 
+        /// <inheritdoc/>
         public void NextBytes(byte[] bytes, int start, int len)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -103,6 +110,7 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void NextBytes(Span<byte> bytes)
         {
             lock (this)
