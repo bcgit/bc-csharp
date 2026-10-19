@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Icao
 {
+    /// <summary>Object identifiers for ICAO machine readable travel documents.</summary>
     // TODO[api] Make static
     public abstract class IcaoObjectIdentifiers
     {

@@ -22,8 +22,14 @@ namespace Org.BouncyCastle.Asn1.Icao
     public class LdsSecurityObject
         : Asn1Encodable
     {
+        /// <summary>The <c>UBDataGroups</c> constant, with the value <c>16</c>.</summary>
         public const int UBDataGroups = 16;
 
+        /// <summary>Return an <see cref="LdsSecurityObject"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="LdsSecurityObject"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="LdsSecurityObject"/>, or null if <paramref name="obj"/> is null.</returns>
         public static LdsSecurityObject GetInstance(object obj)
         {
             if (obj == null)
@@ -33,9 +39,17 @@ namespace Org.BouncyCastle.Asn1.Icao
             return new LdsSecurityObject(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="LdsSecurityObject"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="LdsSecurityObject"/>.</returns>
         public static LdsSecurityObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new LdsSecurityObject(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="LdsSecurityObject"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="LdsSecurityObject"/>.</returns>
         public static LdsSecurityObject GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new LdsSecurityObject(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -62,6 +76,9 @@ namespace Org.BouncyCastle.Asn1.Icao
                 throw new ArgumentException("'ldsVersionInfo' is present, but 'version' is NOT 'v1'");
         }
 
+        /// <summary>Create a new <see cref="LdsSecurityObject"/>.</summary>
+        /// <param name="digestAlgorithmIdentifier">The digest algorithm identifier.</param>
+        /// <param name="datagroupHash">The datagroup hash.</param>
         public LdsSecurityObject(AlgorithmIdentifier digestAlgorithmIdentifier, DataGroupHash[] datagroupHash)
         {
             m_version = DerInteger.Zero;
@@ -72,6 +89,10 @@ namespace Org.BouncyCastle.Asn1.Icao
             CheckDatagroupHashCount(m_datagroupHashValues.Length);
         }
 
+        /// <summary>Create a new <see cref="LdsSecurityObject"/>.</summary>
+        /// <param name="digestAlgorithmIdentifier">The digest algorithm identifier.</param>
+        /// <param name="datagroupHash">The datagroup hash.</param>
+        /// <param name="versionInfo">The version info.</param>
         public LdsSecurityObject(AlgorithmIdentifier digestAlgorithmIdentifier, DataGroupHash[] datagroupHash,
             LdsVersionInfo versionInfo)
         {
@@ -83,14 +104,18 @@ namespace Org.BouncyCastle.Asn1.Icao
             CheckDatagroupHashCount(m_datagroupHashValues.Length);
         }
 
+        /// <summary>Gets the version.</summary>
         public BigInteger Version => m_version.Value;
 
+        /// <summary>Gets the digest algorithm identifier.</summary>
         public AlgorithmIdentifier DigestAlgorithmIdentifier => m_hashAlgorithm;
 
+        /// <summary>Return the datagroup hash.</summary>
         public DataGroupHash[] GetDatagroupHash() => m_datagroupHashValues;
 
         public LdsVersionInfo VersionInfo => m_ldsVersionInfo;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(4);
