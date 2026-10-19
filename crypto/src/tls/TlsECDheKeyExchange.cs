@@ -126,9 +126,13 @@ namespace Org.BouncyCastle.Tls
         /// <inheritdoc/>
         public override TlsSecret GeneratePreMasterSecret() => m_agreement.CalculateSecret();
 
+        /// <summary>Generate the ephemeral ECDH public value and write it to a stream.</summary>
+        /// <param name="output">The stream to write to.</param>
         protected virtual void GenerateEphemeral(Stream output) =>
             TlsUtilities.WriteOpaque8(m_agreement.GenerateEphemeral(), output);
 
+        /// <summary>Process the ephemeral ECDH public value received from the peer.</summary>
+        /// <param name="point">The encoded point.</param>
         protected virtual void ProcessEphemeral(byte[] point)
         {
             TlsEccUtilities.CheckPointEncoding(m_ecConfig.NamedGroup, point);
