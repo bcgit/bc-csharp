@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Tls
             if (maxFragmentLength >= 0)
             {
                 if (!MaxFragmentLength.IsValid(maxFragmentLength))
-                    throw new TlsFatalAlert(AlertDescription.internal_error); 
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
 
                 int plainTextLimit = 1 << (8 + maxFragmentLength);
                 recordLayer.SetPlaintextLimit(plainTextLimit);
