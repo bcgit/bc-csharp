@@ -22,6 +22,9 @@ namespace Org.BouncyCastle.Cmp
         public RevocationDetailsBuilder SetPublicKey(AsymmetricKeyParameter publicKey) =>
             SetSubjectPublicKeyInfo(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
 
+        /// <summary>Set the public key of the certificate to be revoked.</summary>
+        /// <param name="publicKey">The public key.</param>
+        /// <returns>This builder.</returns>
         [Obsolete("Use 'SetSubjectPublicKeyInfo' instead")]
         public RevocationDetailsBuilder SetPublicKey(SubjectPublicKeyInfo publicKey) =>
             SetSubjectPublicKeyInfo(spki: publicKey);
