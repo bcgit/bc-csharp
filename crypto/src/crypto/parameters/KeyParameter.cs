@@ -12,6 +12,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         : ICipherParameters
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a key parameter by filling a new key of the given length via a callback.</summary>
+        /// <param name="length">The length of the key in bytes.</param>
+        /// <param name="state">The state to pass to the callback.</param>
+        /// <param name="action">The callback that fills the key.</param>
+        /// <returns>The key parameter.</returns>
         public static KeyParameter Create<TState>(int length, TState state, SpanAction<byte, TState> action)
         {
             if (action == null)
@@ -60,8 +65,16 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_key = new byte[length];
         }
 
+        /// <summary>Copy the key to a buffer.</summary>
+        /// <param name="buf">The buffer to copy to.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which to start writing.</param>
+        /// <param name="len">The number of bytes expected, which must equal the key length.</param>
         public void CopyKeyTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_key, buf, off, len);
 
+        /// <summary>Copy the key to a buffer.</summary>
+        /// <param name="buf">The buffer to copy to.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which to start writing.</param>
+        /// <param name="len">The number of bytes expected, which must equal the key length.</param>
         [Obsolete("Use 'CopyKeyTo' instead")]
         public void CopyTo(byte[] buf, int off, int len)
         {
@@ -84,6 +97,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal ReadOnlySpan<byte> InternalKey => m_key;
 #endif
 
+        /// <summary>Create a key parameter holding the bytes of this key in reverse order.</summary>
+        /// <returns>The new key parameter.</returns>
         public KeyParameter Reverse()
         {
             var reversed = new KeyParameter(m_key.Length);

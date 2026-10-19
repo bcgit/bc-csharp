@@ -12,6 +12,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
     public class ECMqvBasicAgreement
         : IBasicAgreement
     {
+        /// <summary>The private parameters set by <c>Init</c>.</summary>
         // TODO[api] private
         protected internal MqvPrivateParameters privParams;
 

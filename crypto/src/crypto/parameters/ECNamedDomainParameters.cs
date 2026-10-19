@@ -12,6 +12,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public class ECNamedDomainParameters
         : ECDomainParameters
     {
+        /// <summary>Look up the named domain parameters for a curve object identifier.</summary>
+        /// <param name="oid">The object identifier of the curve.</param>
+        /// <returns>The domain parameters, or null if the object identifier is not known.</returns>
         public static ECNamedDomainParameters LookupOid(DerObjectIdentifier oid)
         {
             if (oid == null)

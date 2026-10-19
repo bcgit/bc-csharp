@@ -42,12 +42,23 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.useCounter = useCounter;
         }
 
+        /// <summary>Create parameters for the double-pipeline iteration mode of SP 800-108, with a counter.</summary>
+        /// <param name="ki">The key derivation key.</param>
+        /// <param name="fixedInputData">The fixed input data.</param>
+        /// <param name="r">The length of the counter in bits (8, 16, 24 or 32).</param>
+        /// <returns>The parameters.</returns>
         public static KdfDoublePipelineIterationParameters CreateWithCounter(
             byte[] ki, byte[] fixedInputData, int r)
         {
             return new KdfDoublePipelineIterationParameters(ki, fixedInputData, r, true);
         }
 
+        /// <summary>
+        /// Create parameters for the double-pipeline iteration mode of SP 800-108, without a counter.
+        /// </summary>
+        /// <param name="ki">The key derivation key.</param>
+        /// <param name="fixedInputData">The fixed input data.</param>
+        /// <returns>The parameters.</returns>
         public static KdfDoublePipelineIterationParameters CreateWithoutCounter(
             byte[] ki, byte[] fixedInputData)
         {

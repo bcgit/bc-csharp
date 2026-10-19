@@ -40,6 +40,11 @@ namespace Org.BouncyCastle.Crypto.Agreement
             this.mDigest = digest;
         }
 
+        /// <summary>Initialise the key exchange with the private parameters of this party.</summary>
+        /// <param name="privParam">
+        /// The <see cref="SM2KeyExchangePrivateParameters"/>, optionally wrapped in <see cref="ParametersWithID"/> to
+        /// supply the user ID.
+        /// </param>
         public virtual void Init(ICipherParameters privParam)
         {
             SM2KeyExchangePrivateParameters baseParam;
@@ -64,6 +69,13 @@ namespace Org.BouncyCastle.Crypto.Agreement
             mW = mECParams.Curve.FieldSize / 2 - 1;
         }
 
+        /// <summary>Calculate the shared key without key confirmation.</summary>
+        /// <param name="kLen">The length of the key to derive, in bits.</param>
+        /// <param name="pubParam">
+        /// The <see cref="SM2KeyExchangePublicParameters"/> of the other party, optionally wrapped in <see
+        /// cref="ParametersWithID"/> to supply the other party's user ID.
+        /// </param>
+        /// <returns>The derived key.</returns>
         public virtual byte[] CalculateKey(int kLen, ICipherParameters pubParam)
         {
             SM2KeyExchangePublicParameters otherPub;
@@ -98,6 +110,22 @@ namespace Org.BouncyCastle.Crypto.Agreement
             return rv;
         }
 
+        /// <summary>Calculate the shared key with key confirmation.</summary>
+        /// <param name="kLen">The length of the key to derive, in bits.</param>
+        /// <param name="confirmationTag">
+        /// The confirmation tag received from the other party; required when this party is the initiator.
+        /// </param>
+        /// <param name="pubParam">
+        /// The <see cref="SM2KeyExchangePublicParameters"/> of the other party, optionally wrapped in <see
+        /// cref="ParametersWithID"/> to supply the other party's user ID.
+        /// </param>
+        /// <returns>
+        /// An array holding the derived key followed by the confirmation tag(s) to send to the other party.
+        /// </returns>
+        /// <exception cref="ArgumentException">
+        /// This party is the initiator and <paramref name="confirmationTag"/> is null.
+        /// </exception>
+        /// <exception cref="InvalidOperationException">The confirmation tag does not match.</exception>
         public virtual byte[][] CalculateKeyWithConfirmation(int kLen, byte[] confirmationTag, ICipherParameters pubParam)
         {
             SM2KeyExchangePublicParameters otherPub;
@@ -146,6 +174,9 @@ namespace Org.BouncyCastle.Crypto.Agreement
             }
         }
 
+        /// <summary>Calculate the shared point U from the public parameters of the other party.</summary>
+        /// <param name="otherPub">The public parameters of the other party.</param>
+        /// <returns>The point U.</returns>
         protected virtual ECPoint CalculateU(SM2KeyExchangePublicParameters otherPub)
         {
             ECDomainParameters dp = mStaticKey.Parameters;
@@ -162,6 +193,14 @@ namespace Org.BouncyCastle.Crypto.Agreement
             return ECAlgorithms.SumOfTwoMultipliesSecret(p1, k1, p2, k2).Normalize();
         }
 
+        /// <summary>
+        /// Derive key material from the shared point using the key derivation function of the SM2 specification.
+        /// </summary>
+        /// <param name="u">The shared point.</param>
+        /// <param name="za">The Z value of the first party.</param>
+        /// <param name="zb">The Z value of the second party.</param>
+        /// <param name="klen">The length of the key to derive, in bits.</param>
+        /// <returns>The derived key.</returns>
         protected virtual byte[] Kdf(ECPoint u, byte[] za, byte[] zb, int klen)
         {
             int digestSize = mDigest.GetDigestSize();

@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
     /// <summary>Elliptic curve domain parameters: the curve, base point, order and cofactor.</summary>
     public class ECDomainParameters
     {
+        /// <summary>Create domain parameters from X9.62 parameters.</summary>
+        /// <param name="x962Parameters">The X9.62 parameters, which are either named, explicit or implicit.</param>
+        /// <returns>The domain parameters.</returns>
         public static ECDomainParameters FromX962Parameters(X962Parameters x962Parameters)
         {
             if (x962Parameters.IsImplicitlyCA)
@@ -24,9 +27,15 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return FromX9ECParameters(x9);
         }
 
+        /// <summary>Create domain parameters from X9.62 elliptic curve parameters.</summary>
+        /// <param name="x9ECParameters">The curve parameters.</param>
+        /// <returns>The domain parameters.</returns>
         public static ECDomainParameters FromX9ECParameters(X9ECParameters x9ECParameters) =>
             new ECDomainParameters(x9ECParameters);
 
+        /// <summary>Look up the domain parameters of a named curve.</summary>
+        /// <param name="name">The name of the curve.</param>
+        /// <returns>The domain parameters, or null if the name is not known.</returns>
         public static ECDomainParameters LookupName(string name)
         {
             if (name == null)
@@ -137,6 +146,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <inheritdoc/>
         public override bool Equals(object obj) => obj is ECDomainParameters other && Equals(other);
 
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
         protected virtual bool Equals(ECDomainParameters other)
         {
             if (this == other)
@@ -165,8 +177,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
 #endif
         }
 
+        /// <summary>Convert these domain parameters to X9.62 parameters.</summary>
+        /// <returns>The X9.62 parameters.</returns>
         public virtual X962Parameters ToX962Parameters() => new X962Parameters(ToX9ECParameters());
 
+        /// <summary>Convert these domain parameters to X9.62 elliptic curve parameters.</summary>
+        /// <returns>The curve parameters.</returns>
         public virtual X9ECParameters ToX9ECParameters()
         {
             // TODO Support for choosing compressed==true?
@@ -174,6 +190,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return new X9ECParameters(Curve, g, N, H, Seed);
         }
 
+        /// <summary>Check that a scalar is a valid private scalar for this curve.</summary>
+        /// <param name="d">The scalar to check.</param>
+        /// <returns>The scalar, if valid.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="d"/> is null.</exception>
+        /// <exception cref="ArgumentException">The scalar is not in the range <c>[1, n-1]</c>.</exception>
         public BigInteger ValidatePrivateScalar(BigInteger d)
         {
             if (d == null)
@@ -185,6 +206,13 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return d;
         }
 
+        /// <summary>Check that a point is a valid public point for this curve.</summary>
+        /// <param name="q">The point to check.</param>
+        /// <returns>The point, normalized, if valid.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="q"/> is null.</exception>
+        /// <exception cref="ArgumentException">
+        /// The point is at infinity, not on the curve or not in the correct subgroup.
+        /// </exception>
         public ECPoint ValidatePublicPoint(ECPoint q) => ValidatePublicPoint(Curve, q);
 
         internal static ECPoint ValidatePublicPoint(ECCurve c, ECPoint q)

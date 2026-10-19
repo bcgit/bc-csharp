@@ -94,9 +94,17 @@ namespace Org.BouncyCastle.Crypto.Parameters
 #endif
         }
 
+        /// <summary>Determine whether a key is one of the known weak or semi-weak DES keys.</summary>
+        /// <param name="key">The key material.</param>
+        /// <returns>true if the key is weak, false otherwise.</returns>
+        /// <exception cref="ArgumentException">The key material is too short.</exception>
         public static bool IsWeakKey(byte[] key) => IsWeakKey(key, 0);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Determine whether a key is one of the known weak or semi-weak DES keys.</summary>
+        /// <param name="key">The key material.</param>
+        /// <returns>true if the key is weak, false otherwise.</returns>
+        /// <exception cref="ArgumentException">The key material is too short.</exception>
         public static bool IsWeakKey(ReadOnlySpan<byte> key)
         {
             if (key.Length < DesKeyLength)
@@ -112,6 +120,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+        /// <summary>Adjust a byte so that it has odd parity, by flipping its lowest bit if necessary.</summary>
+        /// <param name="b">The byte to adjust.</param>
+        /// <returns>The byte with odd parity.</returns>
         public static byte SetOddParity(byte b)
         {
             uint parity = b ^ 1U;

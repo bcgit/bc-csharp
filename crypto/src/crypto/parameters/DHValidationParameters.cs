@@ -37,6 +37,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && Equals(that);
         }
 
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
         protected bool Equals(DHValidationParameters other) =>
             m_counter == other.m_counter && Arrays.AreEqual(this.m_seed, other.m_seed);
 

@@ -70,6 +70,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <inheritdoc/>
         public override bool Equals(object obj) => obj is ECKeyParameters other && Equals(other);
 
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
         // TODO[api] Should be virtual
         protected bool Equals(ECKeyParameters other) =>
             m_parameters.Equals(other.m_parameters) && base.Equals(other);

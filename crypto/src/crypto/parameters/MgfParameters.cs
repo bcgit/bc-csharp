@@ -12,6 +12,11 @@ namespace Org.BouncyCastle.Crypto.Parameters
         : IDerivationParameters
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create MGF parameters by filling a new seed of the given length via a callback.</summary>
+        /// <param name="length">The length of the seed in bytes.</param>
+        /// <param name="state">The state to pass to the callback.</param>
+        /// <param name="action">The callback that fills the seed.</param>
+        /// <returns>The parameters.</returns>
         public static MgfParameters Create<TState>(int length, TState state, SpanAction<byte, TState> action)
         {
             if (action == null)
@@ -53,6 +58,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 #endif
 
+        /// <summary>Copy the seed to a buffer.</summary>
+        /// <param name="buf">The buffer to copy to.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which to start writing.</param>
+        /// <param name="len">The number of bytes expected, which must equal the seed length.</param>
         public void CopySeedTo(byte[] buf, int off, int len) => Arrays.CopyBufferToSegment(m_seed, buf, off, len);
 
         /// <summary>Return the seed.</summary>

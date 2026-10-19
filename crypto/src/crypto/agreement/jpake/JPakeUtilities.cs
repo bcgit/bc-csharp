@@ -20,7 +20,9 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
     /// </summary>
     public abstract class JPakeUtilities
     {
+        /// <summary>The value zero.</summary>
         public static readonly BigInteger Zero = BigInteger.Zero;
+        /// <summary>The value one.</summary>
         public static readonly BigInteger One = BigInteger.One;
 
         /// <summary>

@@ -54,14 +54,22 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
     /// </summary>
     public class JPakeParticipant
     {
+        /// <summary>State value: the participant has been initialized.</summary>
         // Possible internal states.  Used for state checking.
         public static readonly int STATE_INITIALIZED = 0;
+        /// <summary>State value: round 1 payload has been created.</summary>
         public static readonly int STATE_ROUND_1_CREATED = 10;
+        /// <summary>State value: round 1 payload from the other participant has been validated.</summary>
         public static readonly int STATE_ROUND_1_VALIDATED = 20;
+        /// <summary>State value: round 2 payload has been created.</summary>
         public static readonly int STATE_ROUND_2_CREATED = 30;
+        /// <summary>State value: round 2 payload from the other participant has been validated.</summary>
         public static readonly int STATE_ROUND_2_VALIDATED = 40;
+        /// <summary>State value: the shared key has been calculated.</summary>
         public static readonly int STATE_KEY_CALCULATED = 50;
+        /// <summary>State value: round 3 payload has been created.</summary>
         public static readonly int STATE_ROUND_3_CREATED = 60;
+        /// <summary>State value: round 3 payload from the other participant has been validated.</summary>
         public static readonly int STATE_ROUND_3_VALIDATED = 70;
 
         // Unique identifier of this participant.

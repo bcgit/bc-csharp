@@ -86,12 +86,22 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return IsWeakKey(key, offset, key.Length - offset);
         }
 
+        /// <summary>
+        /// Determine whether a DES-EDE key (or a concatenation of DES keys) contains a weak or semi-weak DES key.
+        /// </summary>
+        /// <param name="key">The key material.</param>
+        /// <returns>true if any of the DES keys is weak, false otherwise.</returns>
         public static new bool IsWeakKey(byte[] key)
         {
             return IsWeakKey(key, 0, key.Length);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Determine whether a DES-EDE key (or a concatenation of DES keys) contains a weak or semi-weak DES key.
+        /// </summary>
+        /// <param name="key">The key material.</param>
+        /// <returns>true if any of the DES keys is weak, false otherwise.</returns>
         public static new bool IsWeakKey(ReadOnlySpan<byte> key)
         {
             for (int i = 0; i < key.Length; i += DesKeyLength)
@@ -150,11 +160,22 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Determine whether a key is a real 2-key or 3-key DES-EDE key, that is, not one that degenerates to single
+        /// DES.
+        /// </summary>
+        /// <param name="key">The key material, 16 or 24 bytes.</param>
+        /// <returns>true if the key is a real DES-EDE key, false otherwise.</returns>
         public static bool IsRealEdeKey(ReadOnlySpan<byte> key)
         {
             return key.Length == 16 ? IsReal2Key(key) : IsReal3Key(key);
         }
 
+        /// <summary>
+        /// Determine whether a key is a real 2-key DES-EDE key, that is, with the two 8-byte halves different.
+        /// </summary>
+        /// <param name="key">The key material.</param>
+        /// <returns>true if the key is a real 2-key DES-EDE key, false otherwise.</returns>
         public static bool IsReal2Key(ReadOnlySpan<byte> key)
         {
             bool isValid = false;
@@ -165,6 +186,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
             return isValid;
         }
 
+        /// <summary>
+        /// Determine whether a key is a real 3-key DES-EDE key, that is, with the three 8-byte parts pairwise
+        /// different.
+        /// </summary>
+        /// <param name="key">The key material.</param>
+        /// <returns>true if the key is a real 3-key DES-EDE key, false otherwise.</returns>
         public static bool IsReal3Key(ReadOnlySpan<byte> key)
         {
             bool diff12 = false, diff13 = false, diff23 = false;

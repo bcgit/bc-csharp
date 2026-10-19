@@ -10,8 +10,11 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
     /// <summary>Generates new SRP verifier for user.</summary>
     public class Srp6VerifierGenerator
     {
+        /// <summary>The safe prime modulus <c>N</c>.</summary>
         protected BigInteger N;
+        /// <summary>The generator <c>g</c> of the group.</summary>
         protected BigInteger g;
+        /// <summary>The digest used to calculate the verifier.</summary>
         protected IDigest digest;
         protected SecureRandom random;
 

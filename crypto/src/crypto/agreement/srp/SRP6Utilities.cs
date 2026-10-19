@@ -9,16 +9,34 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
     /// <summary>Utility methods for the SRP-6 protocol.</summary>
     public class Srp6Utilities
     {
+        /// <summary>Calculate the multiplier parameter <c>k = H(N | PAD(g))</c>.</summary>
+        /// <param name="digest">The digest to use.</param>
+        /// <param name="N">The safe prime modulus.</param>
+        /// <param name="g">The generator.</param>
+        /// <returns>The value <c>k</c>.</returns>
         public static BigInteger CalculateK(IDigest digest, BigInteger N, BigInteger g)
         {
             return HashPaddedPair(digest, N, N, g);
         }
 
+        /// <summary>Calculate the random scrambling parameter <c>u = H(PAD(A) | PAD(B))</c>.</summary>
+        /// <param name="digest">The digest to use.</param>
+        /// <param name="N">The safe prime modulus.</param>
+        /// <param name="A">The client's public value.</param>
+        /// <param name="B">The server's public value.</param>
+        /// <returns>The value <c>u</c>.</returns>
         public static BigInteger CalculateU(IDigest digest, BigInteger N, BigInteger A, BigInteger B)
         {
             return HashPaddedPair(digest, N, A, B);
         }
 
+        /// <summary>Calculate the private key <c>x = H(salt | H(identity | ":" | password))</c>.</summary>
+        /// <param name="digest">The digest to use.</param>
+        /// <param name="N">The safe prime modulus.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="identity">The user identity.</param>
+        /// <param name="password">The user password.</param>
+        /// <returns>The value <c>x</c>.</returns>
         public static BigInteger CalculateX(IDigest digest, BigInteger N, byte[] salt, byte[] identity, byte[] password)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -40,6 +58,13 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the private key <c>x = H(salt | H(identity | ":" | password))</c>.</summary>
+        /// <param name="digest">The digest to use.</param>
+        /// <param name="N">The safe prime modulus.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="identity">The user identity.</param>
+        /// <param name="password">The user password.</param>
+        /// <returns>The value <c>x</c>.</returns>
         public static BigInteger CalculateX(IDigest digest, BigInteger N, ReadOnlySpan<byte> salt,
             ReadOnlySpan<byte> identity, ReadOnlySpan<byte> password)
         {
@@ -61,6 +86,12 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         }
 #endif
 
+        /// <summary>Generate a random private value in the range allowed for the group.</summary>
+        /// <param name="digest">The digest to use.</param>
+        /// <param name="N">The safe prime modulus.</param>
+        /// <param name="g">The generator.</param>
+        /// <param name="random">The source of randomness.</param>
+        /// <returns>The private value.</returns>
         public static BigInteger GeneratePrivateValue(IDigest digest, BigInteger N, BigInteger g, SecureRandom random)
         {
             int minBits = System.Math.Min(256, N.BitLength / 2);
@@ -70,6 +101,11 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return BigIntegers.CreateRandomInRange(min, max, random);
         }
 
+        /// <summary>Validate a public value received from the other party.</summary>
+        /// <param name="N">The safe prime modulus.</param>
+        /// <param name="val">The public value.</param>
+        /// <returns>The public value reduced modulo <paramref name="N"/>.</returns>
+        /// <exception cref="CryptoException">The value is zero modulo <paramref name="N"/>.</exception>
         public static BigInteger ValidatePublicValue(BigInteger N, BigInteger val)
         {
             val = val.Mod(N);

@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
     public class ECDHBasicAgreement
         : IBasicAgreement
     {
+        /// <summary>The private key set by <c>Init</c>.</summary>
         // TODO[api] private
         protected internal ECPrivateKeyParameters privKey;
 

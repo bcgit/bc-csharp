@@ -15,22 +15,35 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
     /// </remarks>
     public class Srp6Server
     {
+        /// <summary>The safe prime modulus <c>N</c>.</summary>
         protected BigInteger N;
+        /// <summary>The generator <c>g</c> of the group.</summary>
         protected BigInteger g;
+        /// <summary>The password verifier <c>v</c>.</summary>
         protected BigInteger v;
 
+        /// <summary>The source of randomness.</summary>
         protected SecureRandom random;
+        /// <summary>The digest used by the protocol.</summary>
         protected IDigest digest;
 
+        /// <summary>The client's public value <c>A</c>.</summary>
         protected BigInteger A;
 
+        /// <summary>The server's private value <c>b</c>.</summary>
         protected BigInteger privB;
+        /// <summary>The server's public value <c>B</c>.</summary>
         protected BigInteger pubB;
 
+        /// <summary>The random scrambling parameter <c>u</c>.</summary>
         protected BigInteger u;
+        /// <summary>The shared session secret <c>S</c>.</summary>
         protected BigInteger S;
+        /// <summary>The client's evidence message <c>M1</c>.</summary>
         protected BigInteger M1;
+        /// <summary>The server's evidence message <c>M2</c>.</summary>
         protected BigInteger M2;
+        /// <summary>The session key derived from the shared secret.</summary>
         protected BigInteger Key;
 
         /// <summary>Create a new <see cref="Srp6Server"/>.</summary>
@@ -88,6 +101,8 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             return S;
         }
 
+        /// <summary>Select the server's private value.</summary>
+        /// <returns>The private value <c>b</c>.</returns>
         protected virtual BigInteger SelectPrivateValue()
         {
             return Srp6Utilities.GeneratePrivateValue(digest, N, g, random);

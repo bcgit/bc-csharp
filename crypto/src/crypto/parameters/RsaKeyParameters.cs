@@ -9,6 +9,12 @@ namespace Org.BouncyCastle.Crypto.Parameters
     public class RsaKeyParameters
         : AsymmetricKeyParameter
     {
+        /// <summary>
+        /// Check that an RSA modulus is acceptable: odd, within the configured size limits, and without small factors.
+        /// </summary>
+        /// <param name="modulus">The modulus to check.</param>
+        /// <returns>The modulus, if acceptable.</returns>
+        /// <exception cref="ArgumentException">The modulus is not acceptable.</exception>
         public static BigInteger ValidateModulus(BigInteger modulus) => Validate(modulus, isInternal: false);
 
         private readonly BigInteger m_modulus;

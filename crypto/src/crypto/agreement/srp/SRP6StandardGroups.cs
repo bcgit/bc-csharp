@@ -27,6 +27,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             + "8E495C1D6089DAD15DC7D7B46154D6B6CE8EF4AD69B15D4982559B29"
             + "7BCF1885C529F566660E57EC68EDBC3C05726CC02FD4CBF4976EAA9A" + "FD5138FE8376435B9FC61D2FC0EB06E3";
         private const string rfc5054_1024_g = "02";
+        /// <summary>The 1024-bit group from RFC 5054, appendix A.</summary>
         public static readonly Srp6GroupParameters rfc5054_1024 = FromNG(rfc5054_1024_N, rfc5054_1024_g);
 
         private const string rfc5054_1536_N = "9DEF3CAFB939277AB1F12A8617A47BBBDBA51DF499AC4C80BEEEA961"
@@ -37,6 +38,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             + "F7CCB7AE837C264AE3A9BEB87F8A2FE9B8B5292E5A021FFF5E91479E"
             + "8CE7A28C2442C6F315180F93499A234DCF76E3FED135F9BB";
         private const string rfc5054_1536_g = "02";
+        /// <summary>The 1536-bit group from RFC 5054, appendix A.</summary>
         public static readonly Srp6GroupParameters rfc5054_1536 = FromNG(rfc5054_1536_N, rfc5054_1536_g);
 
         private const string rfc5054_2048_N = "AC6BDB41324A9A9BF166DE5E1389582FAF72B6651987EE07FC319294"
@@ -49,6 +51,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             + "03CE53299CCC041C7BC308D82A5698F3A8D0C38271AE35F8E9DBFBB6"
             + "94B5C803D89F7AE435DE236D525F54759B65E372FCD68EF20FA7111F" + "9E4AFF73";
         private const string rfc5054_2048_g = "02";
+        /// <summary>The 2048-bit group from RFC 5054, appendix A.</summary>
         public static readonly Srp6GroupParameters rfc5054_2048 = FromNG(rfc5054_2048_N, rfc5054_2048_g);
 
         private const string rfc5054_3072_N = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08"
@@ -65,6 +68,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             + "1AD2EE6BF12FFA06D98A0864D87602733EC86A64521F2B18177B200C"
             + "BBE117577A615D6C770988C0BAD946E208E24FA074E5AB3143DB5BFC" + "E0FD108E4B82D120A93AD2CAFFFFFFFFFFFFFFFF";
         private const string rfc5054_3072_g = "05";
+        /// <summary>The 3072-bit group from RFC 5054, appendix A.</summary>
         public static readonly Srp6GroupParameters rfc5054_3072 = FromNG(rfc5054_3072_N, rfc5054_3072_g);
 
         private const string rfc5054_4096_N = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08"
@@ -86,6 +90,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             + "233BA186515BE7ED1F612970CEE2D7AFB81BDD762170481CD0069127"
             + "D5B05AA993B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199" + "FFFFFFFFFFFFFFFF";
         private const string rfc5054_4096_g = "05";
+        /// <summary>The 4096-bit group from RFC 5054, appendix A.</summary>
         public static readonly Srp6GroupParameters rfc5054_4096 = FromNG(rfc5054_4096_N, rfc5054_4096_g);
 
         private const string rfc5054_6144_N = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08"
@@ -116,6 +121,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             + "B7C5DA76F550AA3D8A1FBFF0EB19CCB1A313D55CDA56C9EC2EF29632"
             + "387FE8D76E3C0468043E8F663F4860EE12BF2D5B0B7474D6E694F91E" + "6DCC4024FFFFFFFFFFFFFFFF";
         private const string rfc5054_6144_g = "05";
+        /// <summary>The 6144-bit group from RFC 5054, appendix A.</summary>
         public static readonly Srp6GroupParameters rfc5054_6144 = FromNG(rfc5054_6144_N, rfc5054_6144_g);
 
         private const string rfc5054_8192_N = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08"
@@ -155,6 +161,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             + "359046F4EB879F924009438B481C6CD7889A002ED5EE382BC9190DA6"
             + "FC026E479558E4475677E9AA9E3050E2765694DFC81F56E880B96E71" + "60C980DD98EDD3DFFFFFFFFFFFFFFFFF";
         private const string rfc5054_8192_g = "13";
+        /// <summary>The 8192-bit group from RFC 5054, appendix A.</summary>
         public static readonly Srp6GroupParameters rfc5054_8192 = FromNG(rfc5054_8192_N, rfc5054_8192_g);
     }
 }

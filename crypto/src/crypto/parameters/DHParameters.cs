@@ -143,6 +143,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && Equals(that);
         }
 
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
         protected virtual bool Equals(DHParameters other)
         {
             return m_p.Equals(other.m_p)

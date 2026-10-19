@@ -85,6 +85,9 @@ namespace Org.BouncyCastle.Crypto.Parameters
                 && Equals(that);
         }
 
+        /// <summary>Determine whether these parameters are equal to another instance.</summary>
+        /// <param name="other">The instance to compare with.</param>
+        /// <returns>true if the parameters are equal, false otherwise.</returns>
         protected bool Equals(DHPublicKeyParameters other) => m_y.Equals(other.m_y) && base.Equals(other);
 
         /// <inheritdoc/>
