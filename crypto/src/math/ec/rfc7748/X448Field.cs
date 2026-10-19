@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
     [CLSCompliant(false)]
     public static class X448Field
     {
+        /// <summary>The <c>Size</c> constant, with the value <c>16</c>.</summary>
         public const int Size = 16;
 
         private const uint M28 = 0x0FFFFFFFU;

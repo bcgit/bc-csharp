@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     public static class X25519Field
     {
+        /// <summary>The <c>Size</c> constant, with the value <c>10</c>.</summary>
         public const int Size = 10;
 
         private const int M24 = 0x00FFFFFF;

@@ -9,9 +9,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     using F = X448Field;
 
+    /// <summary>Implementation of the X448 function (RFC 7748).</summary>
     public static class X448
     {
+        /// <summary>The <c>PointSize</c> constant, with the value <c>56</c>.</summary>
         public const int PointSize = 56;
+        /// <summary>The <c>ScalarSize</c> constant, with the value <c>56</c>.</summary>
         public const int ScalarSize = 56;
 
         private const uint C_A = 156326;

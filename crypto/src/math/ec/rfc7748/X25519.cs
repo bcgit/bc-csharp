@@ -9,9 +9,12 @@ namespace Org.BouncyCastle.Math.EC.Rfc7748
 {
     using F = X25519Field;
 
+    /// <summary>Implementation of the X25519 function (RFC 7748).</summary>
     public static class X25519
     {
+        /// <summary>The <c>PointSize</c> constant, with the value <c>32</c>.</summary>
         public const int PointSize = 32;
+        /// <summary>The <c>ScalarSize</c> constant, with the value <c>32</c>.</summary>
         public const int ScalarSize = 32;
 
         private const int C_A = 486662;
