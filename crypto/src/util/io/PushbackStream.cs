@@ -12,12 +12,15 @@ namespace Org.BouncyCastle.Utilities.IO
     {
         private int m_buf = -1;
 
+        /// <summary>Create a new <see cref="PushbackStream"/>.</summary>
+        /// <param name="s">The s.</param>
         public PushbackStream(Stream s)
             : base(s)
         {
         }
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void CopyTo(Stream destination, int bufferSize)
         {
             if (m_buf != -1)
@@ -31,6 +34,7 @@ namespace Org.BouncyCastle.Utilities.IO
 #endif
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        /// <inheritdoc/>
         public override async Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
         {
             if (m_buf != -1)
@@ -44,6 +48,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -62,6 +67,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             if (m_buf != -1)
@@ -77,6 +83,7 @@ namespace Org.BouncyCastle.Utilities.IO
             return s.Read(buffer);
         }
 
+        /// <inheritdoc/>
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             if (m_buf != -1)
@@ -93,6 +100,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (m_buf != -1)

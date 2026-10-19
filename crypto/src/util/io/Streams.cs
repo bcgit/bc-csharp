@@ -32,6 +32,7 @@ namespace Org.BouncyCastle.Utilities.IO
     {
         private static readonly int MaxStackAlloc = Platform.Is64BitProcess ? 4096 : 1024;
 
+        /// <summary>Gets the default buffer size.</summary>
         public static int DefaultBufferSize => MaxStackAlloc;
 
         public static void CopyTo(Stream source, Stream destination) => CopyTo(source, destination, DefaultBufferSize);

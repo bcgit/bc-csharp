@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Utilities.IO
     {
         private readonly Stream input, tee;
 
+        /// <summary>Create a new <see cref="TeeInputStream"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="tee">The tee.</param>
         public TeeInputStream(Stream input, Stream tee)
         {
             Debug.Assert(input.CanRead);
@@ -18,6 +21,7 @@ namespace Org.BouncyCastle.Utilities.IO
             this.tee = tee;
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
@@ -28,6 +32,7 @@ namespace Org.BouncyCastle.Utilities.IO
             base.Dispose(disposing);
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             int i = input.Read(buffer, offset, count);
@@ -41,6 +46,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             int i = input.Read(buffer);
@@ -54,6 +60,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             int i = input.ReadByte();

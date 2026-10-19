@@ -8,6 +8,8 @@ namespace Org.BouncyCastle.Utilities.IO
         private readonly byte[] m_buf;
         private int m_count;
 
+        /// <summary>Create a new <see cref="LimitedBuffer"/>.</summary>
+        /// <param name="limit">The limit.</param>
         public LimitedBuffer(int limit)
         {
             m_buf = new byte[limit];
@@ -28,8 +30,10 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <summary>Gets the count.</summary>
         public int Count => m_count;
 
+        /// <summary>Gets the limit.</summary>
         public int Limit => m_buf.Length;
 
         public void Reset()
@@ -37,6 +41,7 @@ namespace Org.BouncyCastle.Utilities.IO
             m_count = 0;
         }
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             Array.Copy(buffer, offset, m_buf, m_count, count);
@@ -44,6 +49,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             buffer.CopyTo(m_buf.AsSpan(m_count));
@@ -51,6 +57,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
             m_buf[m_count++] = value;

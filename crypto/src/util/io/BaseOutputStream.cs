@@ -10,16 +10,21 @@ namespace Org.BouncyCastle.Utilities.IO
     public abstract class BaseOutputStream
         : Stream
     {
+        /// <inheritdoc/>
         public sealed override bool CanRead { get { return false; } }
+        /// <inheritdoc/>
         public sealed override bool CanSeek { get { return false; } }
+        /// <inheritdoc/>
         public sealed override bool CanWrite { get { return true; } }
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         // TODO[api] sealed
         public override void CopyTo(Stream destination, int bufferSize) { throw new NotSupportedException(); }
 #endif
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        /// <inheritdoc/>
         // TODO[api] sealed
         public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
         {
@@ -27,26 +32,35 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override void Flush() {}
+        /// <inheritdoc/>
         public sealed override long Length { get { throw new NotSupportedException(); } }
+        /// <inheritdoc/>
         public sealed override long Position
         {
             get { throw new NotSupportedException(); }
             set { throw new NotSupportedException(); }
         }
+        /// <inheritdoc/>
         public sealed override int Read(byte[] buffer, int offset, int count) { throw new NotSupportedException(); }
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public sealed override int Read(Span<byte> buffer) { throw new NotSupportedException(); }
+        /// <inheritdoc/>
         // TODO[api] sealed
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             throw new NotSupportedException();
         }
 #endif
+        /// <inheritdoc/>
         // TODO[api] ReadByte
         public sealed override long Seek(long offset, SeekOrigin origin) { throw new NotSupportedException(); }
+        /// <inheritdoc/>
         public sealed override void SetLength(long value) { throw new NotSupportedException(); }
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -58,6 +72,7 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             int count = buffer.Length;
@@ -67,6 +82,7 @@ namespace Org.BouncyCastle.Utilities.IO
             }
         }
 
+        /// <inheritdoc/>
         public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
         {
             return Streams.WriteAsync(this, buffer, cancellationToken);
