@@ -11,7 +11,9 @@ namespace Org.BouncyCastle.Tls
     {
         protected readonly TlsContext m_context;
         protected readonly TlsCrypto m_crypto;
+        /// <summary>The md 5.</summary>
         protected readonly TlsHash m_md5;
+        /// <summary>The sha 1.</summary>
         protected readonly TlsHash m_sha1;
 
         internal CombinedHash(TlsContext context, TlsHash md5, TlsHash sha1)

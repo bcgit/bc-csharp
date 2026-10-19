@@ -11,24 +11,39 @@ namespace Org.BouncyCastle.Tls
         : AbstractTlsPeer, TlsServer
     {
         protected TlsServerContext m_context;
+        /// <summary>The protocol versions.</summary>
         protected ProtocolVersion[] m_protocolVersions;
+        /// <summary>The cipher suites.</summary>
         protected int[] m_cipherSuites;
 
+        /// <summary>The offered cipher suites.</summary>
         protected int[] m_offeredCipherSuites;
+        /// <summary>The client extensions.</summary>
         protected IDictionary<int, byte[]> m_clientExtensions;
 
+        /// <summary>The encrypt then MAC offered.</summary>
         protected bool m_encryptThenMACOffered;
+        /// <summary>The max fragment length offered.</summary>
         protected short m_maxFragmentLengthOffered;
+        /// <summary>The truncated h mac offered.</summary>
         protected bool m_truncatedHMacOffered;
+        /// <summary>The client sent EC point formats.</summary>
         protected bool m_clientSentECPointFormats;
+        /// <summary>The certificate status request.</summary>
         protected CertificateStatusRequest m_certificateStatusRequest;
+        /// <summary>The status request v 2.</summary>
         protected IList<CertificateStatusRequestItemV2> m_statusRequestV2;
+        /// <summary>The trusted CA keys.</summary>
         protected IList<TrustedAuthority> m_trustedCAKeys;
 
+        /// <summary>The selected cipher suite.</summary>
         protected int m_selectedCipherSuite;
+        /// <summary>The client protocol names.</summary>
         protected IList<ProtocolName> m_clientProtocolNames;
+        /// <summary>The selected protocol name.</summary>
         protected ProtocolName m_selectedProtocolName;
 
+        /// <summary>The server extensions.</summary>
         protected readonly IDictionary<int, byte[]> m_serverExtensions = new Dictionary<int, byte[]>();
 
         /// <summary>Create a new <see cref="AbstractTlsServer"/>.</summary>

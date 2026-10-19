@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         : TlsVerifier
     {
         protected readonly BcTlsCrypto m_crypto;
+        /// <summary>The public key.</summary>
         protected readonly AsymmetricKeyParameter m_publicKey;
 
         /// <summary>Create a new <see cref="BcTlsVerifier"/>.</summary>

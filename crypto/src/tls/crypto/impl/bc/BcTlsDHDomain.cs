@@ -49,6 +49,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly BcTlsCrypto m_crypto;
         // TODO[api] Store IsPadded instead
         protected readonly TlsDHConfig m_config;
+        /// <summary>The domain parameters.</summary>
         protected readonly DHParameters m_domainParameters;
 
         /// <summary>Create a new <see cref="BcTlsDHDomain"/>.</summary>

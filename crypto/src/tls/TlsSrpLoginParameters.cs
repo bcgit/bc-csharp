@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Tls
     public class TlsSrpLoginParameters
     {
         protected byte[] m_identity;
+        /// <summary>The srp config.</summary>
         protected TlsSrpConfig m_srpConfig;
         protected BigInteger m_verifier;
         protected byte[] m_salt;

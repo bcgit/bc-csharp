@@ -19,12 +19,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         : TlsCertificate
     {
         protected readonly BcTlsCrypto m_crypto;
+        /// <summary>The key info.</summary>
         protected readonly SubjectPublicKeyInfo m_keyInfo;
 
+        /// <summary>The pub key DH.</summary>
         protected DHPublicKeyParameters m_pubKeyDH = null;
+        /// <summary>The pub key EC.</summary>
         protected ECPublicKeyParameters m_pubKeyEC = null;
+        /// <summary>The pub key ed 25519.</summary>
         protected Ed25519PublicKeyParameters m_pubKeyEd25519 = null;
+        /// <summary>The pub key ed 448.</summary>
         protected Ed448PublicKeyParameters m_pubKeyEd448 = null;
+        /// <summary>The pub key rsa.</summary>
         protected RsaKeyParameters m_pubKeyRsa = null;
 
         /// <exception cref="IOException"/>

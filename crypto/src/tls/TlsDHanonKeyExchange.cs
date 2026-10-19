@@ -21,9 +21,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The dh group verifier.</summary>
         // TODO[api] Make readonly
         protected TlsDHGroupVerifier m_dhGroupVerifier;
 
+        /// <summary>The dh config.</summary>
         protected TlsDHConfig m_dhConfig;
         protected TlsAgreement m_agreement;
 

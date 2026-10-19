@@ -21,8 +21,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The server credentials.</summary>
         protected TlsCredentialedDecryptor m_serverCredentials = null;
+        /// <summary>The server encryptor.</summary>
         protected TlsEncryptor m_serverEncryptor;
+        /// <summary>The pre master secret.</summary>
         protected TlsSecret m_preMasterSecret;
 
         /// <summary>Create a new <see cref="TlsRsaKeyExchange"/>.</summary>

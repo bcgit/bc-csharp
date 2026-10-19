@@ -25,19 +25,28 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The psk identity.</summary>
         protected TlsPskIdentity m_pskIdentity;
+        /// <summary>The psk identity manager.</summary>
         protected TlsPskIdentityManager m_pskIdentityManager;
+        /// <summary>The dh group verifier.</summary>
         protected TlsDHGroupVerifier m_dhGroupVerifier;
 
+        /// <summary>The psk identity hint.</summary>
         protected byte[] m_psk_identity_hint = null;
         protected byte[] m_psk = null;
 
+        /// <summary>The dh config.</summary>
         protected TlsDHConfig m_dhConfig;
+        /// <summary>The ec config.</summary>
         protected TlsECConfig m_ecConfig;
         protected TlsAgreement m_agreement;
 
+        /// <summary>The server credentials.</summary>
         protected TlsCredentialedDecryptor m_serverCredentials = null;
+        /// <summary>The server encryptor.</summary>
         protected TlsEncryptor m_serverEncryptor;
+        /// <summary>The pre master secret.</summary>
         protected TlsSecret m_preMasterSecret;
 
         /// <summary>Create a new <see cref="TlsPskKeyExchange"/>.</summary>

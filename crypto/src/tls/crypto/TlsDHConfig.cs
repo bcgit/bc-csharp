@@ -5,7 +5,9 @@ namespace Org.BouncyCastle.Tls.Crypto
     /// <summary>Basic config for Diffie-Hellman.</summary>
     public class TlsDHConfig
     {
+        /// <summary>The explicit group.</summary>
         protected readonly DHGroup m_explicitGroup;
+        /// <summary>The named group.</summary>
         protected readonly int m_namedGroup;
         protected readonly bool m_padded;
 

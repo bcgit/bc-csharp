@@ -11,16 +11,22 @@ namespace Org.BouncyCastle.Tls
     public class TlsClientProtocol
         : TlsProtocol
     {
+        /// <summary>The tls client.</summary>
         protected TlsClient m_tlsClient = null;
         internal TlsClientContextImpl m_tlsClientContext = null;
 
+        /// <summary>The client agreements.</summary>
         protected IDictionary<int, TlsAgreement> m_clientAgreements = null;
         internal OfferedPsks.BindersConfig m_clientBinders = null;
+        /// <summary>The client hello.</summary>
         protected ClientHello m_clientHello = null;
+        /// <summary>The key exchange.</summary>
         protected TlsKeyExchange m_keyExchange = null;
         protected TlsAuthentication m_authentication = null;
 
+        /// <summary>The certificate status.</summary>
         protected CertificateStatus m_certificateStatus = null;
+        /// <summary>The certificate request.</summary>
         protected CertificateRequest m_certificateRequest = null;
 
         /// <summary>Constructor for non-blocking mode.</summary>

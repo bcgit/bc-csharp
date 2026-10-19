@@ -10,16 +10,26 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public class TlsBlockCipher
         : TlsCipher, TlsCipherExt
     {
+        /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
+        /// <summary>The random data.</summary>
         protected readonly byte[] m_randomData;
+        /// <summary>The encrypt then mac.</summary>
         protected readonly bool m_encryptThenMac;
+        /// <summary>The use explicit IV.</summary>
         protected readonly bool m_useExplicitIV;
+        /// <summary>The accept extra padding.</summary>
         protected readonly bool m_acceptExtraPadding;
+        /// <summary>The use extra padding.</summary>
         protected readonly bool m_useExtraPadding;
 
+        /// <summary>The encrypt cipher.</summary>
         protected readonly TlsBlockCipherImpl m_decryptCipher, m_encryptCipher;
+        /// <summary>The write mac.</summary>
         protected readonly TlsSuiteHmac m_readMac, m_writeMac;
+        /// <summary>The encrypt connection ID.</summary>
         protected readonly byte[] m_decryptConnectionID, m_encryptConnectionID;
+        /// <summary>The encrypt use inner plaintext.</summary>
         protected readonly bool m_decryptUseInnerPlaintext, m_encryptUseInnerPlaintext;
 
         /// <exception cref="IOException"/>

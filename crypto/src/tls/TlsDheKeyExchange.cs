@@ -23,11 +23,15 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The dh group verifier.</summary>
         // TODO[api] Make readonly
         protected TlsDHGroupVerifier m_dhGroupVerifier;
 
+        /// <summary>The dh config.</summary>
         protected TlsDHConfig m_dhConfig;
+        /// <summary>The server credentials.</summary>
         protected TlsCredentialedSigner m_serverCredentials = null;
+        /// <summary>The server certificate.</summary>
         protected TlsCertificate m_serverCertificate = null;
         protected TlsAgreement m_agreement;
 

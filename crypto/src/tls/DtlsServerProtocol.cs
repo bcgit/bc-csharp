@@ -12,6 +12,7 @@ namespace Org.BouncyCastle.Tls
     public class DtlsServerProtocol
         : DtlsProtocol
     {
+        /// <summary>The verify requests.</summary>
         protected bool m_verifyRequests = true;
 
         /// <summary>Create a new <see cref="DtlsServerProtocol"/>.</summary>

@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Tls
         }
 
         protected readonly Srp6Group m_group;
+        /// <summary>The verifier generator.</summary>
         protected readonly TlsSrp6VerifierGenerator m_verifierGenerator;
         protected readonly TlsMac m_mac;
 

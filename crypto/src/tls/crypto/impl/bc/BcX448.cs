@@ -10,7 +10,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         : TlsAgreement
     {
         protected readonly BcTlsCrypto m_crypto;
+        /// <summary>The private key.</summary>
         protected readonly byte[] m_privateKey = new byte[X448.ScalarSize];
+        /// <summary>The peer public key.</summary>
         protected readonly byte[] m_peerPublicKey = new byte[X448.PointSize];
 
         /// <summary>Create a new <see cref="BcX448"/>.</summary>

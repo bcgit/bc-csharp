@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Tls
     public abstract class AbstractTlsKeyExchange
         : TlsKeyExchange
     {
+        /// <summary>The key exchange.</summary>
         protected readonly int m_keyExchange;
 
         protected TlsContext m_context;

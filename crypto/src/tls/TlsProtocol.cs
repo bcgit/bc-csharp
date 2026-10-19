@@ -174,23 +174,36 @@ namespace Org.BouncyCastle.Tls
         private volatile bool m_resumableHandshake = false;
         private volatile int m_appDataSplitMode = ADS_MODE_1_Nsub1;
 
+        /// <summary>The tls session.</summary>
         protected TlsSession m_tlsSession = null;
+        /// <summary>The session parameters.</summary>
         protected SessionParameters m_sessionParameters = null;
+        /// <summary>The session master secret.</summary>
         protected TlsSecret m_sessionMasterSecret = null;
 
+        /// <summary>The retry cookie.</summary>
         protected byte[] m_retryCookie = null;
+        /// <summary>The retry group.</summary>
         // TODO[api] Remove and manage via SecurityParameters.m_negotiatedGroup
         protected int m_retryGroup = -1;
+        /// <summary>The client extensions.</summary>
         protected IDictionary<int, byte[]> m_clientExtensions = null;
+        /// <summary>The server extensions.</summary>
         protected IDictionary<int, byte[]> m_serverExtensions = null;
 
+        /// <summary>The connection state.</summary>
         protected short m_connectionState = CS_START;
+        /// <summary>The selected psk 13.</summary>
         protected bool m_selectedPsk13 = false;
+        /// <summary>The received change cipher spec.</summary>
         protected bool m_receivedChangeCipherSpec = false;
+        /// <summary>The expect session ticket.</summary>
         protected bool m_expectSessionTicket = false;
 
         protected readonly bool m_blocking;
+        /// <summary>The input buffers.</summary>
         protected readonly ByteQueueInputStream m_inputBuffers;
+        /// <summary>The output buffer.</summary>
         protected readonly ByteQueueOutputStream m_outputBuffer;
 
         /// <summary>Create a new <see cref="TlsProtocol"/>.</summary>

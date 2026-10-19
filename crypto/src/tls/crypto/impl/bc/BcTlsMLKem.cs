@@ -10,7 +10,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     {
         protected readonly BcTlsMLKemDomain m_domain;
 
+        /// <summary>The private key.</summary>
         protected MLKemPrivateKeyParameters m_privateKey;
+        /// <summary>The public key.</summary>
         protected MLKemPublicKeyParameters m_publicKey;
         protected TlsSecret m_secret;
 

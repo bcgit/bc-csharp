@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcDefaultTlsCredentialedAgreement
         : TlsCredentialedAgreement
     {
+        /// <summary>The agreement credentials.</summary>
         protected readonly TlsCredentialedAgreement m_agreementCredentials;
 
         /// <summary>Create a new <see cref="BcDefaultTlsCredentialedAgreement"/>.</summary>

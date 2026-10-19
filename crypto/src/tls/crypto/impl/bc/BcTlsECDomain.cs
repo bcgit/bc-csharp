@@ -52,6 +52,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly BcTlsCrypto m_crypto;
         // TODO[api] Remove
         protected readonly TlsECConfig m_config;
+        /// <summary>The domain parameters.</summary>
         protected readonly ECDomainParameters m_domainParameters;
 
         /// <summary>Create a new <see cref="BcTlsECDomain"/>.</summary>

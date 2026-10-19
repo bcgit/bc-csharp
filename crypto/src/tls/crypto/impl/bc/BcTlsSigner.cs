@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         : TlsSigner
     {
         protected readonly BcTlsCrypto m_crypto;
+        /// <summary>The private key.</summary>
         protected readonly AsymmetricKeyParameter m_privateKey;
 
         /// <summary>Create a new <see cref="BcTlsSigner"/>.</summary>

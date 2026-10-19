@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Tls
             CipherSuite.TLS_SRP_SHA_RSA_WITH_AES_128_CBC_SHA
         };
 
+        /// <summary>The srp identity.</summary>
         protected readonly TlsSrpIdentity m_srpIdentity;
 
         /// <summary>Create a new <see cref="SrpTlsClient"/>.</summary>

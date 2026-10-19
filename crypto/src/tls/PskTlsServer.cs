@@ -25,6 +25,7 @@ namespace Org.BouncyCastle.Tls
             CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA
         };
 
+        /// <summary>The psk identity manager.</summary>
         protected readonly TlsPskIdentityManager m_pskIdentityManager;
 
         /// <summary>Create a new <see cref="PskTlsServer"/>.</summary>

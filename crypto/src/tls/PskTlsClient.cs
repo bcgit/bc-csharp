@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Tls
             CipherSuite.TLS_DHE_PSK_WITH_AES_128_CBC_SHA
         };
 
+        /// <summary>The psk identity.</summary>
         protected readonly TlsPskIdentity m_pskIdentity;
 
         /// <summary>Create a new <see cref="PskTlsClient"/>.</summary>

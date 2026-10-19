@@ -10,8 +10,10 @@ namespace Org.BouncyCastle.Tls
     public class DefaultTlsCredentialedSigner
         : TlsCredentialedSigner
     {
+        /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
         protected readonly Certificate m_certificate;
+        /// <summary>The signature and hash algorithm.</summary>
         protected readonly SignatureAndHashAlgorithm m_signatureAndHashAlgorithm;
         protected readonly TlsSigner m_signer;
 

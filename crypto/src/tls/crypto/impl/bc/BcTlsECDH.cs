@@ -10,7 +10,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     {
         protected readonly BcTlsECDomain m_domain;
 
+        /// <summary>The local key pair.</summary>
         protected AsymmetricCipherKeyPair m_localKeyPair;
+        /// <summary>The peer public key.</summary>
         protected ECPublicKeyParameters m_peerPublicKey;
 
         /// <summary>Create a new <see cref="BcTlsECDH"/>.</summary>

@@ -22,7 +22,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The agreement credentials.</summary>
         protected TlsCredentialedAgreement m_agreementCredentials;
+        /// <summary>The ecdh peer certificate.</summary>
         protected TlsCertificate m_ecdhPeerCertificate;
 
         /// <summary>Create a new <see cref="TlsECDHKeyExchange"/>.</summary>

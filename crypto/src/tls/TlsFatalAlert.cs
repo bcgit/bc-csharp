@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Tls
             return msg;
         }
 
+        /// <summary>The alert description.</summary>
         protected readonly byte m_alertDescription;
 
         /// <summary>Create a new <see cref="TlsFatalAlert"/>.</summary>

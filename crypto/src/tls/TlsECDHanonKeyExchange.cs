@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The ec config.</summary>
         protected TlsECConfig m_ecConfig;
         protected TlsAgreement m_agreement;
 

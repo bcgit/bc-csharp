@@ -23,8 +23,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The ec config.</summary>
         protected TlsECConfig m_ecConfig;
+        /// <summary>The server credentials.</summary>
         protected TlsCredentialedSigner m_serverCredentials = null;
+        /// <summary>The server certificate.</summary>
         protected TlsCertificate m_serverCertificate = null;
         protected TlsAgreement m_agreement;
 

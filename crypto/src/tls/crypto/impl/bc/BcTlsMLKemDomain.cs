@@ -30,7 +30,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly BcTlsCrypto m_crypto;
         // TODO[api] Remove
         protected readonly TlsKemConfig m_config;
+        /// <summary>The domain parameters.</summary>
         protected readonly MLKemParameters m_domainParameters;
+        /// <summary>The is server.</summary>
         protected readonly bool m_isServer;
 
         /// <summary>Create a new <see cref="BcTlsMLKemDomain"/>.</summary>

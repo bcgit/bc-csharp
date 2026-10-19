@@ -26,16 +26,25 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>The srp identity.</summary>
         protected TlsSrpIdentity m_srpIdentity;
+        /// <summary>The srp config verifier.</summary>
         protected TlsSrpConfigVerifier m_srpConfigVerifier;
+        /// <summary>The server certificate.</summary>
         protected TlsCertificate m_serverCertificate = null;
+        /// <summary>The srp salt.</summary>
         protected byte[] m_srpSalt = null;
+        /// <summary>The srp client.</summary>
         protected TlsSrp6Client m_srpClient = null;
 
+        /// <summary>The srp login parameters.</summary>
         protected TlsSrpLoginParameters m_srpLoginParameters;
+        /// <summary>The server credentials.</summary>
         protected TlsCredentialedSigner m_serverCredentials = null;
+        /// <summary>The srp server.</summary>
         protected TlsSrp6Server m_srpServer = null;
 
+        /// <summary>The srp peer credentials.</summary>
         protected BigInteger m_srpPeerCredentials = null;
 
         /// <summary>Create a new <see cref="TlsSrpKeyExchange"/>.</summary>

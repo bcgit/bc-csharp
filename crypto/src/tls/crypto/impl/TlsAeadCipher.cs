@@ -20,18 +20,29 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         private const int NONCE_RFC7905 = 2;
         private const long SequenceNumberPlaceholder = -1L;
 
+        /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
+        /// <summary>The key size.</summary>
         protected readonly int m_keySize;
+        /// <summary>The mac size.</summary>
         protected readonly int m_macSize;
+        /// <summary>The fixed iv length.</summary>
         protected readonly int m_fixed_iv_length;
+        /// <summary>The record iv length.</summary>
         protected readonly int m_record_iv_length;
 
+        /// <summary>The encrypt cipher.</summary>
         protected readonly TlsAeadCipherImpl m_decryptCipher, m_encryptCipher;
+        /// <summary>The encrypt nonce.</summary>
         protected readonly byte[] m_decryptNonce, m_encryptNonce;
+        /// <summary>The encrypt connection ID.</summary>
         protected readonly byte[] m_decryptConnectionID, m_encryptConnectionID;
+        /// <summary>The encrypt use inner plaintext.</summary>
         protected readonly bool m_decryptUseInnerPlaintext, m_encryptUseInnerPlaintext;
 
+        /// <summary>The is tls v 13.</summary>
         protected readonly bool m_isTlsV13;
+        /// <summary>The nonce mode.</summary>
         protected readonly int m_nonceMode;
 
         /// <exception cref="IOException"/>

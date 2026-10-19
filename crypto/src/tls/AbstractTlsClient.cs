@@ -13,11 +13,16 @@ namespace Org.BouncyCastle.Tls
         : AbstractTlsPeer, TlsClient
     {
         protected TlsClientContext m_context;
+        /// <summary>The protocol versions.</summary>
         protected ProtocolVersion[] m_protocolVersions;
+        /// <summary>The cipher suites.</summary>
         protected int[] m_cipherSuites;
 
+        /// <summary>The supported groups.</summary>
         protected IList<int> m_supportedGroups;
+        /// <summary>The supported signature algorithms.</summary>
         protected IList<SignatureAndHashAlgorithm> m_supportedSignatureAlgorithms;
+        /// <summary>The supported signature algorithms cert.</summary>
         protected IList<SignatureAndHashAlgorithm> m_supportedSignatureAlgorithmsCert;
 
         /// <summary>Create a new <see cref="AbstractTlsClient"/>.</summary>

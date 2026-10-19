@@ -19,9 +19,12 @@ namespace Org.BouncyCastle.Tls
             CipherSuite.TLS_SRP_SHA_WITH_AES_128_CBC_SHA
         };
 
+        /// <summary>The srp identity manager.</summary>
         protected readonly TlsSrpIdentityManager m_srpIdentityManager;
 
+        /// <summary>The srp identity.</summary>
         protected byte[] m_srpIdentity = null;
+        /// <summary>The srp login parameters.</summary>
         protected TlsSrpLoginParameters m_srpLoginParameters = null;
 
         /// <summary>Create a new <see cref="SrpTlsServer"/>.</summary>

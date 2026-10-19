@@ -45,6 +45,7 @@ namespace Org.BouncyCastle.Tls
 
         // IList is (DHGroup)
         protected readonly IList<DHGroup> m_groups;
+        /// <summary>The minimum prime bits.</summary>
         protected readonly int m_minimumPrimeBits;
 
         /// <summary>Accept named groups and various standard DH groups with 'P' at least

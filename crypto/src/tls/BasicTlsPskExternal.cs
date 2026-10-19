@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Tls
     {
         protected readonly byte[] m_identity;
         protected readonly TlsSecret m_key;
+        /// <summary>The prf algorithm.</summary>
         protected readonly int m_prfAlgorithm;
 
         /// <summary>Create a new <see cref="BasicTlsPskExternal"/>.</summary>

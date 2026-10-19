@@ -10,6 +10,7 @@ namespace Org.BouncyCastle.Tls
     public class TlsFatalAlertReceived
         : TlsException
     {
+        /// <summary>The alert description.</summary>
         protected readonly byte m_alertDescription;
 
         /// <summary>Create a new <see cref="TlsFatalAlertReceived"/>.</summary>

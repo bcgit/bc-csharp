@@ -21,10 +21,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return macSize;
         }
 
+        /// <summary>The crypto params.</summary>
         protected readonly TlsCryptoParameters m_cryptoParams;
         protected readonly TlsHmac m_mac;
+        /// <summary>The digest block size.</summary>
         protected readonly int m_digestBlockSize;
+        /// <summary>The digest overhead.</summary>
         protected readonly int m_digestOverhead;
+        /// <summary>The mac size.</summary>
         protected readonly int m_macSize;
 
         /// <summary>Generate a new instance of a TlsMac.</summary>

@@ -3,7 +3,9 @@
     /// <summary>The configuration of a KEM used in a TLS key exchange.</summary>
     public class TlsKemConfig
     {
+        /// <summary>The named group.</summary>
         protected readonly int m_namedGroup;
+        /// <summary>The is server.</summary>
         protected readonly bool m_isServer;
 
         /// <summary>Create a new <see cref="TlsKemConfig"/>.</summary>
