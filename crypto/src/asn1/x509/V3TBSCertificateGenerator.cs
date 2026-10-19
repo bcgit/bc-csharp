@@ -33,25 +33,25 @@ namespace Org.BouncyCastle.Asn1.X509
         internal SubjectPublicKeyInfo    subjectPublicKeyInfo;
         internal X509Extensions          extensions;
 
-		private bool altNamePresentAndCritical;
-		private DerBitString issuerUniqueID;
-		private DerBitString subjectUniqueID;
+        private bool altNamePresentAndCritical;
+        private DerBitString issuerUniqueID;
+        private DerBitString subjectUniqueID;
 
-		public V3TbsCertificateGenerator()
+        public V3TbsCertificateGenerator()
         {
         }
 
-		public void SetSerialNumber(DerInteger serialNumber)
+        public void SetSerialNumber(DerInteger serialNumber)
         {
             this.serialNumber = serialNumber;
         }
 
-		public void SetSignature(AlgorithmIdentifier signature)
+        public void SetSignature(AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
-		public void SetIssuer(X509Name issuer)
+        public void SetIssuer(X509Name issuer)
         {
             this.issuer = issuer;
         }
@@ -90,35 +90,35 @@ namespace Org.BouncyCastle.Asn1.X509
             this.subject = subject;
         }
 
-		public void SetIssuerUniqueID(DerBitString uniqueID)
-		{
-			this.issuerUniqueID = uniqueID;
-		}
+        public void SetIssuerUniqueID(DerBitString uniqueID)
+        {
+            this.issuerUniqueID = uniqueID;
+        }
 
-		public void SetSubjectUniqueID(DerBitString uniqueID)
-		{
-			this.subjectUniqueID = uniqueID;
-		}
+        public void SetSubjectUniqueID(DerBitString uniqueID)
+        {
+            this.subjectUniqueID = uniqueID;
+        }
 
-		public void SetSubjectPublicKeyInfo(SubjectPublicKeyInfo pubKeyInfo)
+        public void SetSubjectPublicKeyInfo(SubjectPublicKeyInfo pubKeyInfo)
         {
             this.subjectPublicKeyInfo = pubKeyInfo;
         }
 
-		public void SetExtensions(X509Extensions extensions)
+        public void SetExtensions(X509Extensions extensions)
         {
             this.extensions = extensions;
 
-			if (extensions != null)
-			{
-				X509Extension altName = extensions.GetExtension(X509Extensions.SubjectAlternativeName);
+            if (extensions != null)
+            {
+                X509Extension altName = extensions.GetExtension(X509Extensions.SubjectAlternativeName);
 
-				if (altName != null && altName.IsCritical)
-				{
-					altNamePresentAndCritical = true;
-				}
-			}
-		}
+                if (altName != null && altName.IsCritical)
+                {
+                    altNamePresentAndCritical = true;
+                }
+            }
+        }
 
         public Asn1Sequence GeneratePreTbsCertificate()
         {

@@ -30,17 +30,17 @@ namespace Org.BouncyCastle.Asn1.X509
         public const int EncipherOnly     = (1 << 0);
         public const int DecipherOnly     = (1 << 15);
 
-		public static new KeyUsage GetInstance(object obj)
-		{
-			if (obj is KeyUsage keyUsage)
-				return keyUsage;
+        public static new KeyUsage GetInstance(object obj)
+        {
+            if (obj is KeyUsage keyUsage)
+                return keyUsage;
             // TODO[api] Remove this case
             if (obj is X509Extension x509Extension)
-				return GetInstance(X509Extension.ConvertValueToObject(x509Extension));
+                return GetInstance(X509Extension.ConvertValueToObject(x509Extension));
             if (obj == null)
                 return null;
-			return new KeyUsage(DerBitString.GetInstance(obj));
-		}
+            return new KeyUsage(DerBitString.GetInstance(obj));
+        }
 
         public static KeyUsage FromExtensions(X509Extensions extensions)
         {
@@ -55,25 +55,25 @@ namespace Org.BouncyCastle.Asn1.X509
          * e.g. (KeyUsage.keyEncipherment | KeyUsage.dataEncipherment)
          */
         public KeyUsage(int usage)
-			: base(usage)
+            : base(usage)
         {
         }
 
-		private KeyUsage(
-			DerBitString usage)
-			: base(usage.GetBytes(), usage.PadBits)
+        private KeyUsage(
+            DerBitString usage)
+            : base(usage.GetBytes(), usage.PadBits)
         {
         }
 
-		public override string ToString()
+        public override string ToString()
         {
-			byte[] data = GetBytes();
+            byte[] data = GetBytes();
             if (data.Length == 1)
             {
-				return "KeyUsage: 0x" + (data[0] & 0xff).ToString("X");
+                return "KeyUsage: 0x" + (data[0] & 0xff).ToString("X");
             }
 
-			return "KeyUsage: 0x" + ((data[1] & 0xff) << 8 | (data[0] & 0xff)).ToString("X");
+            return "KeyUsage: 0x" + ((data[1] & 0xff) << 8 | (data[0] & 0xff)).ToString("X");
         }
     }
 }

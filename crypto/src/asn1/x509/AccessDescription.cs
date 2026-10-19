@@ -3,16 +3,16 @@ using System;
 namespace Org.BouncyCastle.Asn1.X509
 {
     /**
-	 * The AccessDescription object.
-	 * <pre>
-	 * AccessDescription  ::=  SEQUENCE {
-	 *       accessMethod          OBJECT IDENTIFIER,
-	 *       accessLocation        GeneralName  }
-	 * </pre>
-	 */
+     * The AccessDescription object.
+     * <pre>
+     * AccessDescription  ::=  SEQUENCE {
+     *       accessMethod          OBJECT IDENTIFIER,
+     *       accessLocation        GeneralName  }
+     * </pre>
+     */
     public class AccessDescription
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public readonly static DerObjectIdentifier IdADCAIssuers = X509ObjectIdentifiers.IdADCAIssuers;
         public readonly static DerObjectIdentifier IdADOcsp = X509ObjectIdentifiers.IdADOcsp;
 
@@ -35,22 +35,22 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly GeneralName m_accessLocation;
 
         private AccessDescription(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_accessMethod = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
-			m_accessLocation = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
+            m_accessMethod = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_accessLocation = Asn1Utilities.Read(seq, ref pos, GeneralName.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         /**
-		 * create an AccessDescription with the oid and location provided.
-		 */
-		// TODO[api] Change parameter names
+         * create an AccessDescription with the oid and location provided.
+         */
+        // TODO[api] Change parameter names
         public AccessDescription(DerObjectIdentifier oid, GeneralName location)
         {
             m_accessMethod = oid ?? throw new ArgumentNullException(nameof(oid));
@@ -59,10 +59,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public DerObjectIdentifier AccessMethod => m_accessMethod;
 
-		public GeneralName AccessLocation => m_accessLocation;
+        public GeneralName AccessLocation => m_accessLocation;
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_accessMethod, m_accessLocation);
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_accessMethod, m_accessLocation);
 
-		public override string ToString() => "AccessDescription: Oid(" + m_accessMethod.Id + ")";
-	}
+        public override string ToString() => "AccessDescription: Oid(" + m_accessMethod.Id + ")";
+    }
 }

@@ -8,9 +8,9 @@ namespace Org.BouncyCastle.Asn1.X509
     public class IetfAttrSyntax
         : Asn1Encodable
     {
-        public const int ValueOctets	= 1;
-        public const int ValueOid		= 2;
-        public const int ValueUtf8		= 3;
+        public const int ValueOctets = 1;
+        public const int ValueOid = 2;
+        public const int ValueUtf8 = 3;
 
         public static IetfAttrSyntax GetInstance(object obj)
         {
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.X509
                     throw new ArgumentException("Bad value type encoding IetfAttrSyntax");
                 }
 
-				if (valueChoice < 0)
+                if (valueChoice < 0)
                 {
                     valueChoice = type;
                 }
@@ -95,7 +95,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public int ValueType => m_valueChoice;
 
-		public object[] GetValues()
+        public object[] GetValues()
         {
             switch (m_valueChoice)
             {
@@ -110,7 +110,7 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
-		/**
+        /**
          *
          * <pre>
          *

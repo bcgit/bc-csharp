@@ -29,8 +29,8 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_notBeforeTime = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
-			m_notAfterTime = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
+            m_notBeforeTime = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
+            m_notAfterTime = Asn1Utilities.Read(seq, ref pos, Asn1GeneralizedTime.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public Asn1GeneralizedTime NotAfterTime => m_notAfterTime;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *  AttCertValidityPeriod  ::= Sequence {

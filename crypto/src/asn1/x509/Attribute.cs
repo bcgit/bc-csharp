@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_attrType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
-			m_attrValues = Asn1Utilities.Read(seq, ref pos, Asn1Set.GetInstance);
+            m_attrValues = Asn1Utilities.Read(seq, ref pos, Asn1Set.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
@@ -48,7 +48,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public Asn1Set AttrValues => m_attrValues;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * Attr ::= Sequence {

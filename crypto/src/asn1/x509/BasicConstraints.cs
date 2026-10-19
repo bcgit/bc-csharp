@@ -46,13 +46,13 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public BasicConstraints(bool cA)
+        public BasicConstraints(bool cA)
         {
             m_cA = cA ? DerBoolean.True : DerBoolean.False;
             m_pathLenConstraint = null;
         }
 
-		/**
+        /**
          * create a cA=true object for the given path length constraint.
          *
          * @param pathLenConstraint
@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public DerInteger PathLenConstraintInteger => m_pathLenConstraint;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * BasicConstraints := Sequence {
@@ -89,12 +89,12 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
-		public override string ToString()
+        public override string ToString()
         {
             if (m_pathLenConstraint == null)
-				return "BasicConstraints: isCa(" + IsCA() + ")";
+                return "BasicConstraints: isCa(" + IsCA() + ")";
 
-			return "BasicConstraints: isCa(" + IsCA() + "), pathLenConstraint = " + m_pathLenConstraint.Value;
+            return "BasicConstraints: isCa(" + IsCA() + "), pathLenConstraint = " + m_pathLenConstraint.Value;
         }
     }
 }

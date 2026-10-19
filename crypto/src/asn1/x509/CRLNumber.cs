@@ -12,19 +12,19 @@ namespace Org.BouncyCastle.Asn1.X509
         : DerInteger
     {
         public CrlNumber(
-			BigInteger number)
-			: base(number)
+            BigInteger number)
+            : base(number)
         {
         }
 
-		public BigInteger Number
-		{
-			get { return PositiveValue; }
-		}
+        public BigInteger Number
+        {
+            get { return PositiveValue; }
+        }
 
-		public override string ToString()
-		{
-			return "CRLNumber: " + Number;
-		}
-	}
+        public override string ToString()
+        {
+            return "CRLNumber: " + Number;
+        }
+    }
 }

@@ -77,11 +77,11 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_algorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
-			m_publicKey = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
+            m_publicKey = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         public AlgorithmIdentifier Algorithm => m_algorithm;
 

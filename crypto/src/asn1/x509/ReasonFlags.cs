@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public const int PrivilegeWithdrawn     = (1 << 0);
         public const int AACompromise           = (1 << 15);
 
-		/**
+        /**
          * @param reasons - the bitwise OR of the Key Reason flags giving the
          * allowed uses for the key.
          */

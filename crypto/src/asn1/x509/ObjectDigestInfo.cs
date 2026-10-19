@@ -2,43 +2,43 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
-	/**
-	 * ObjectDigestInfo ASN.1 structure used in v2 attribute certificates.
-	 * 
-	 * <pre>
-	 *  
-	 *    ObjectDigestInfo ::= SEQUENCE {
-	 *         digestedObjectType  ENUMERATED {
-	 *                 publicKey            (0),
-	 *                 publicKeyCert        (1),
-	 *                 otherObjectTypes     (2) },
-	 *                         -- otherObjectTypes MUST NOT
-	 *                         -- be used in this profile
-	 *         otherObjectTypeID   OBJECT IDENTIFIER OPTIONAL,
-	 *         digestAlgorithm     AlgorithmIdentifier,
-	 *         objectDigest        BIT STRING
-	 *    }
-	 *   
-	 * </pre>
-	 * 
-	 */
-	public class ObjectDigestInfo
+    /**
+     * ObjectDigestInfo ASN.1 structure used in v2 attribute certificates.
+     *
+     * <pre>
+     *
+     *    ObjectDigestInfo ::= SEQUENCE {
+     *         digestedObjectType  ENUMERATED {
+     *                 publicKey            (0),
+     *                 publicKeyCert        (1),
+     *                 otherObjectTypes     (2) },
+     *                         -- otherObjectTypes MUST NOT
+     *                         -- be used in this profile
+     *         otherObjectTypeID   OBJECT IDENTIFIER OPTIONAL,
+     *         digestAlgorithm     AlgorithmIdentifier,
+     *         objectDigest        BIT STRING
+     *    }
+     *
+     * </pre>
+     *
+     */
+    public class ObjectDigestInfo
         : Asn1Encodable
     {
-		/**
-		 * The public key is hashed.
-		 */
-		public const int PublicKey = 0;
+        /**
+         * The public key is hashed.
+         */
+        public const int PublicKey = 0;
 
-		/**
-		 * The public key certificate is hashed.
-		 */
-		public const int PublicKeyCert = 1;
+        /**
+         * The public key certificate is hashed.
+         */
+        public const int PublicKeyCert = 1;
 
-		/**
-		 * An other object is hashed.
-		 */
-		public const int OtherObjectDigest = 2;
+        /**
+         * An other object is hashed.
+         */
+        public const int OtherObjectDigest = 2;
 
         public static ObjectDigestInfo GetInstance(object obj)
         {
@@ -67,73 +67,73 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_digestedObjectType = Asn1Utilities.Read(seq, ref pos, DerEnumerated.GetInstance);
-			m_otherObjectTypeID = Asn1Utilities.ReadOptional(seq, ref pos, DerObjectIdentifier.GetOptional);
-			m_digestAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
-			m_objectDigest = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
+            m_otherObjectTypeID = Asn1Utilities.ReadOptional(seq, ref pos, DerObjectIdentifier.GetOptional);
+            m_digestAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_objectDigest = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
         /**
-		 * Constructor from given details.
-		 * <p>
-		 * If <code>digestedObjectType</code> is not {@link #publicKeyCert} or
-		 * {@link #publicKey} <code>otherObjectTypeID</code> must be given,
-		 * otherwise it is ignored.</p>
-		 * 
-		 * @param digestedObjectType The digest object type.
-		 * @param otherObjectTypeID The object type ID for
-		 *            <code>otherObjectDigest</code>.
-		 * @param digestAlgorithm The algorithm identifier for the hash.
-		 * @param objectDigest The hash value.
-		 */
+         * Constructor from given details.
+         * <p>
+         * If <code>digestedObjectType</code> is not {@link #publicKeyCert} or
+         * {@link #publicKey} <code>otherObjectTypeID</code> must be given,
+         * otherwise it is ignored.</p>
+         *
+         * @param digestedObjectType The digest object type.
+         * @param otherObjectTypeID The object type ID for
+         *            <code>otherObjectDigest</code>.
+         * @param digestAlgorithm The algorithm identifier for the hash.
+         * @param objectDigest The hash value.
+         */
         public ObjectDigestInfo(int digestedObjectType, string otherObjectTypeID,
-			AlgorithmIdentifier digestAlgorithm, byte[] objectDigest)
+            AlgorithmIdentifier digestAlgorithm, byte[] objectDigest)
         {
             m_digestedObjectType = DerEnumerated.ValueOf(digestedObjectType);
 
-			if (digestedObjectType == OtherObjectDigest)
-			{
-				m_otherObjectTypeID = new DerObjectIdentifier(otherObjectTypeID);
-			}
+            if (digestedObjectType == OtherObjectDigest)
+            {
+                m_otherObjectTypeID = new DerObjectIdentifier(otherObjectTypeID);
+            }
 
-			m_digestAlgorithm = digestAlgorithm ?? throw new ArgumentNullException(nameof(digestAlgorithm));
-			m_objectDigest = new DerBitString(objectDigest);
-		}
+            m_digestAlgorithm = digestAlgorithm ?? throw new ArgumentNullException(nameof(digestAlgorithm));
+            m_objectDigest = new DerBitString(objectDigest);
+        }
 
-		public DerEnumerated DigestedObjectType => m_digestedObjectType;
+        public DerEnumerated DigestedObjectType => m_digestedObjectType;
 
-		public DerObjectIdentifier OtherObjectTypeID => m_otherObjectTypeID;
+        public DerObjectIdentifier OtherObjectTypeID => m_otherObjectTypeID;
 
-		public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
+        public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
-		public DerBitString ObjectDigest => m_objectDigest;
+        public DerBitString ObjectDigest => m_objectDigest;
 
-		/**
-		 * Produce an object suitable for an Asn1OutputStream.
-		 * 
-		 * <pre>
-		 *  
-		 *    ObjectDigestInfo ::= SEQUENCE {
-		 *         digestedObjectType  ENUMERATED {
-		 *                 publicKey            (0),
-		 *                 publicKeyCert        (1),
-		 *                 otherObjectTypes     (2) },
-		 *                         -- otherObjectTypes MUST NOT
-		 *                         -- be used in this profile
-		 *         otherObjectTypeID   OBJECT IDENTIFIER OPTIONAL,
-		 *         digestAlgorithm     AlgorithmIdentifier,
-		 *         objectDigest        BIT STRING
-		 *    }
-		 *   
-		 * </pre>
-		 */
+        /**
+         * Produce an object suitable for an Asn1OutputStream.
+         *
+         * <pre>
+         *
+         *    ObjectDigestInfo ::= SEQUENCE {
+         *         digestedObjectType  ENUMERATED {
+         *                 publicKey            (0),
+         *                 publicKeyCert        (1),
+         *                 otherObjectTypes     (2) },
+         *                         -- otherObjectTypes MUST NOT
+         *                         -- be used in this profile
+         *         otherObjectTypeID   OBJECT IDENTIFIER OPTIONAL,
+         *         digestAlgorithm     AlgorithmIdentifier,
+         *         objectDigest        BIT STRING
+         *    }
+         *
+         * </pre>
+         */
         public override Asn1Object ToAsn1Object()
         {
-			return m_otherObjectTypeID == null
-				?  new DerSequence(m_digestedObjectType, m_digestAlgorithm, m_objectDigest)
-				:  new DerSequence(m_digestedObjectType, m_otherObjectTypeID, m_digestAlgorithm, m_objectDigest);
+            return m_otherObjectTypeID == null
+                ?  new DerSequence(m_digestedObjectType, m_digestAlgorithm, m_objectDigest)
+                :  new DerSequence(m_digestedObjectType, m_otherObjectTypeID, m_digestAlgorithm, m_objectDigest);
         }
     }
 }

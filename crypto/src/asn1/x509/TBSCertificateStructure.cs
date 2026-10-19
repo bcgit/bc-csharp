@@ -25,8 +25,8 @@ namespace Org.BouncyCastle.Asn1.X509
      * will parse them, but you really shouldn't be creating new ones.</p>
      */
     public class TbsCertificateStructure
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static TbsCertificateStructure GetInstance(object obj)
         {
             if (obj == null)
@@ -56,7 +56,7 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly Asn1Sequence m_seq;
 
         private TbsCertificateStructure(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 6 || count > 10)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -131,9 +131,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public int Version => m_version.IntValueExact + 1;
 
-		public DerInteger VersionNumber => m_version;
+        public DerInteger VersionNumber => m_version;
 
-		public DerInteger SerialNumber => m_serialNumber;
+        public DerInteger SerialNumber => m_serialNumber;
 
         public AlgorithmIdentifier Signature => m_signature;
 
@@ -155,7 +155,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public X509Extensions Extensions => m_extensions;
 
-		public override Asn1Object ToAsn1Object()
+        public override Asn1Object ToAsn1Object()
         {
             if (m_seq != null)
             {
@@ -174,12 +174,12 @@ namespace Org.BouncyCastle.Asn1.X509
             v.Add(m_serialNumber, m_signature, m_issuer, m_validity, m_subject, m_subjectPublicKeyInfo);
 
             // Note: implicit tag
-			v.AddOptionalTagged(false, 1, m_issuerUniqueID);
+            v.AddOptionalTagged(false, 1, m_issuerUniqueID);
 
-			// Note: implicit tag
-			v.AddOptionalTagged(false, 2, m_subjectUniqueID);
+            // Note: implicit tag
+            v.AddOptionalTagged(false, 2, m_subjectUniqueID);
 
-			v.AddOptionalTagged(true, 3, m_extensions);
+            v.AddOptionalTagged(true, 3, m_extensions);
 
             return new DerSequence(v);
         }

@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>
         /// Return the OID in the Algorithm entry of this identifier.
         /// </summary>
-		public virtual DerObjectIdentifier Algorithm => m_algorithm;
+        public virtual DerObjectIdentifier Algorithm => m_algorithm;
 
         /// <summary>
         /// Return the parameters structure in the Parameters entry of this identifier.

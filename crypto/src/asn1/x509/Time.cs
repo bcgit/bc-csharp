@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Asn1.X509
     {
         public static Time GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
-        public static Time GetInstance(Asn1TaggedObject	taggedObject, bool declaredExplicit) =>
+        public static Time GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
         public static Time GetOptional(Asn1Encodable element)

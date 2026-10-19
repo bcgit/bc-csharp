@@ -59,9 +59,9 @@ namespace Org.BouncyCastle.Asn1.X509
             if (count != 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_tbsCertList = Asn1Utilities.Read(seq, ref pos, TbsCertificateList.GetInstance);
-			m_signatureAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
-			m_signatureValue = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
+            m_tbsCertList = Asn1Utilities.Read(seq, ref pos, TbsCertificateList.GetInstance);
+            m_signatureAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
+            m_signatureValue = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
@@ -69,12 +69,12 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public TbsCertificateList TbsCertList => m_tbsCertList;
 
-		public CrlEntry[] GetRevokedCertificates() => m_tbsCertList.GetRevokedCertificates();
+        public CrlEntry[] GetRevokedCertificates() => m_tbsCertList.GetRevokedCertificates();
 
-		public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration() =>
+        public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration() =>
             m_tbsCertList.GetRevokedCertificateEnumeration();
 
-		public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
+        public AlgorithmIdentifier SignatureAlgorithm => m_signatureAlgorithm;
 
         public DerBitString Signature => m_signatureValue;
 
@@ -82,11 +82,11 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public int Version => m_tbsCertList.Version;
 
-		public X509Name Issuer => m_tbsCertList.Issuer;
+        public X509Name Issuer => m_tbsCertList.Issuer;
 
-		public Time ThisUpdate => m_tbsCertList.ThisUpdate;
+        public Time ThisUpdate => m_tbsCertList.ThisUpdate;
 
-		public Time NextUpdate => m_tbsCertList.NextUpdate;
+        public Time NextUpdate => m_tbsCertList.NextUpdate;
 
         public X509Extensions Extensions => m_tbsCertList.Extensions;
 

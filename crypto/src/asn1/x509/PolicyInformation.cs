@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public Asn1Sequence PolicyQualifiers => m_policyQualifiers;
 
-		/*
+        /*
          * PolicyInformation ::= Sequence {
          *      policyIdentifier   CertPolicyId,
          *      policyQualifiers   Sequence SIZE (1..MAX) OF

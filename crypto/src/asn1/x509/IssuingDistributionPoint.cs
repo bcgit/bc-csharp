@@ -8,8 +8,8 @@ namespace Org.BouncyCastle.Asn1.X509
     /// <code>
     /// IssuingDistributionPoint ::= SEQUENCE {
     ///     distributionPoint[0] DistributionPointName OPTIONAL,
-    ///     onlyContainsUserCerts[1] BOOLEAN DEFAULT FALSE, 
-    ///     onlyContainsCACerts[2] BOOLEAN DEFAULT FALSE, 
+    ///     onlyContainsUserCerts[1] BOOLEAN DEFAULT FALSE,
+    ///     onlyContainsCACerts[2] BOOLEAN DEFAULT FALSE,
     ///     onlySomeReasons[3] ReasonFlags OPTIONAL,
     ///     indirectCRL[4] BOOLEAN DEFAULT FALSE,
     ///     onlyContainsAttributeCerts[5] BOOLEAN DEFAULT FALSE }

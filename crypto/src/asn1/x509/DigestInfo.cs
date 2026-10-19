@@ -15,14 +15,14 @@ namespace Org.BouncyCastle.Asn1.X509
     public class DigestInfo
         : Asn1Encodable
     {
-		public static DigestInfo GetInstance(object obj)
+        public static DigestInfo GetInstance(object obj)
         {
             if (obj == null)
                 return null;
             if (obj is DigestInfo digestInfo)
                 return digestInfo;
             return new DigestInfo(Asn1Sequence.GetInstance(obj));
-		}
+        }
 
         public static DigestInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new DigestInfo(Asn1Sequence.GetInstance(obj, explicitly));
@@ -69,6 +69,6 @@ namespace Org.BouncyCastle.Asn1.X509
         [Obsolete("Use 'Digest' property instead")]
         public byte[] GetDigest() => Arrays.Clone(m_digest.GetOctets());
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_digestAlgorithm, m_digest);
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_digestAlgorithm, m_digest);
     }
 }

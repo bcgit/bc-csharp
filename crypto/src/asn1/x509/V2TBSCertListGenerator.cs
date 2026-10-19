@@ -41,96 +41,96 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
-		public void SetSignature(AlgorithmIdentifier signature)
+        public void SetSignature(AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
-		public void SetIssuer(X509Name issuer)
+        public void SetIssuer(X509Name issuer)
         {
             this.issuer = issuer;
         }
 
-		public void SetThisUpdate(Asn1UtcTime thisUpdate)
+        public void SetThisUpdate(Asn1UtcTime thisUpdate)
         {
             this.thisUpdate = new Time(thisUpdate);
         }
 
-		public void SetNextUpdate(Asn1UtcTime nextUpdate)
+        public void SetNextUpdate(Asn1UtcTime nextUpdate)
         {
             this.nextUpdate = (nextUpdate != null)
-				?	new Time(nextUpdate)
-				:	null;
+                ? new Time(nextUpdate)
+                : null;
         }
 
-		public void SetThisUpdate(Time thisUpdate)
+        public void SetThisUpdate(Time thisUpdate)
         {
             this.thisUpdate = thisUpdate;
         }
 
-		public void SetNextUpdate(Time nextUpdate)
+        public void SetNextUpdate(Time nextUpdate)
         {
             this.nextUpdate = nextUpdate;
         }
 
-		public void AddCrlEntry(Asn1Sequence crlEntry)
-		{
-			if (crlEntries == null)
-			{
+        public void AddCrlEntry(Asn1Sequence crlEntry)
+        {
+            if (crlEntries == null)
+            {
                 crlEntries = new List<Asn1Sequence>();
-			}
+            }
 
-			crlEntries.Add(crlEntry);
-		}
+            crlEntries.Add(crlEntry);
+        }
 
-		public void AddCrlEntry(DerInteger userCertificate, Asn1UtcTime revocationDate, int reason)
-		{
-			AddCrlEntry(userCertificate, new Time(revocationDate), reason);
-		}
+        public void AddCrlEntry(DerInteger userCertificate, Asn1UtcTime revocationDate, int reason)
+        {
+            AddCrlEntry(userCertificate, new Time(revocationDate), reason);
+        }
 
-		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason)
-		{
-			AddCrlEntry(userCertificate, revocationDate, reason, null);
-		}
+        public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason)
+        {
+            AddCrlEntry(userCertificate, revocationDate, reason, null);
+        }
 
-		public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason,
+        public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason,
             Asn1GeneralizedTime invalidityDate)
-		{
+        {
             var extOids = new List<DerObjectIdentifier>();
             var extValues = new List<X509Extension>();
 
-			if (reason != 0)
-			{
-				CrlReason crlReason = new CrlReason(reason);
+            if (reason != 0)
+            {
+                CrlReason crlReason = new CrlReason(reason);
 
-				try
-				{
-					extOids.Add(X509Extensions.ReasonCode);
-					extValues.Add(new X509Extension(false, new DerOctetString(crlReason.GetEncoded())));
-				}
-				catch (IOException e)
-				{
-					throw new ArgumentException("error encoding reason: " + e);
-				}
-			}
+                try
+                {
+                    extOids.Add(X509Extensions.ReasonCode);
+                    extValues.Add(new X509Extension(false, new DerOctetString(crlReason.GetEncoded())));
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("error encoding reason: " + e);
+                }
+            }
 
-			if (invalidityDate != null)
-			{
-				try
-				{
-					extOids.Add(X509Extensions.InvalidityDate);
-					extValues.Add(new X509Extension(false, new DerOctetString(invalidityDate.GetEncoded())));
-				}
-				catch (IOException e)
-				{
-					throw new ArgumentException("error encoding invalidityDate: " + e);
-				}
-			}
+            if (invalidityDate != null)
+            {
+                try
+                {
+                    extOids.Add(X509Extensions.InvalidityDate);
+                    extValues.Add(new X509Extension(false, new DerOctetString(invalidityDate.GetEncoded())));
+                }
+                catch (IOException e)
+                {
+                    throw new ArgumentException("error encoding invalidityDate: " + e);
+                }
+            }
 
             var extensions = extOids.Count < 1 ? null : new X509Extensions(extOids, extValues);
 
             AddCrlEntry(userCertificate, revocationDate, extensions);
-		}
+        }
 
         public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, X509Extensions extensions)
         {

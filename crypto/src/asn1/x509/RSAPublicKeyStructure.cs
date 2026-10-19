@@ -42,13 +42,13 @@ namespace Org.BouncyCastle.Asn1.X509
         public RsaPublicKeyStructure(BigInteger modulus, BigInteger publicExponent)
         {
             if (modulus == null)
-				throw new ArgumentNullException("modulus");
-			if (publicExponent == null)
-				throw new ArgumentNullException("publicExponent");
-			if (modulus.SignValue <= 0)
-				throw new ArgumentException("Not a valid RSA modulus", "modulus");
-			if (publicExponent.SignValue <= 0)
-				throw new ArgumentException("Not a valid RSA public exponent", "publicExponent");
+                throw new ArgumentNullException("modulus");
+            if (publicExponent == null)
+                throw new ArgumentNullException("publicExponent");
+            if (modulus.SignValue <= 0)
+                throw new ArgumentException("Not a valid RSA modulus", "modulus");
+            if (publicExponent.SignValue <= 0)
+                throw new ArgumentException("Not a valid RSA public exponent", "publicExponent");
 
             m_modulus = modulus;
             m_publicExponent = publicExponent;
@@ -58,7 +58,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public BigInteger PublicExponent => m_publicExponent;
 
-		/**
+        /**
          * This outputs the key in Pkcs1v2 format.
          * <pre>
          *      RSAPublicKey ::= Sequence {

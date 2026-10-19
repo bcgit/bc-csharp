@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1.X509
     public class DistributionPoint
         : Asn1Encodable
     {
-		public static DistributionPoint GetInstance(object obj)
+        public static DistributionPoint GetInstance(object obj)
         {
             if (obj == null)
                 return null;
@@ -61,9 +61,9 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public DistributionPointName DistributionPointName => m_distributionPoint;
 
-		public ReasonFlags Reasons => m_reasons;
+        public ReasonFlags Reasons => m_reasons;
 
-		public GeneralNames CrlIssuer => m_crlIssuer;
+        public GeneralNames CrlIssuer => m_crlIssuer;
 
         public override Asn1Object ToAsn1Object()
         {
@@ -74,36 +74,36 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
-		public override string ToString()
-		{
-			StringBuilder buf = new StringBuilder();
-			buf.AppendLine("DistributionPoint: [");
-			if (m_distributionPoint != null)
-			{
+        public override string ToString()
+        {
+            StringBuilder buf = new StringBuilder();
+            buf.AppendLine("DistributionPoint: [");
+            if (m_distributionPoint != null)
+            {
                 AppendObject(buf, "distributionPoint", m_distributionPoint.ToString());
-			}
-			if (m_reasons != null)
-			{
+            }
+            if (m_reasons != null)
+            {
                 AppendObject(buf, "reasons", m_reasons.ToString());
-			}
-			if (m_crlIssuer != null)
-			{
+            }
+            if (m_crlIssuer != null)
+            {
                 AppendObject(buf, "cRLIssuer", m_crlIssuer.ToString());
-			}
-			buf.AppendLine("]");
-			return buf.ToString();
-		}
+            }
+            buf.AppendLine("]");
+            return buf.ToString();
+        }
 
-		private void AppendObject(StringBuilder buf, string name, string val)
-		{
-			string indent = "    ";
-			buf.Append(indent);
-			buf.Append(name);
-			buf.AppendLine(":");
-			buf.Append(indent);
-			buf.Append(indent);
-			buf.Append(val);
+        private void AppendObject(StringBuilder buf, string name, string val)
+        {
+            string indent = "    ";
+            buf.Append(indent);
+            buf.Append(name);
+            buf.AppendLine(":");
+            buf.Append(indent);
+            buf.Append(indent);
+            buf.Append(val);
             buf.AppendLine();
-		}
-	}
+        }
+    }
 }

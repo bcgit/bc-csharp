@@ -19,32 +19,32 @@ namespace Org.BouncyCastle.Asn1.X509
      */
     public class V1TbsCertificateGenerator
     {
-        internal DerTaggedObject		version = new DerTaggedObject(0, DerInteger.Zero);
-        internal DerInteger				serialNumber;
-        internal AlgorithmIdentifier	signature;
-        internal X509Name				issuer;
+        internal DerTaggedObject version = new DerTaggedObject(0, DerInteger.Zero);
+        internal DerInteger serialNumber;
+        internal AlgorithmIdentifier signature;
+        internal X509Name issuer;
         internal Validity               validity;
-        internal Time					startDate, endDate;
-        internal X509Name				subject;
-        internal SubjectPublicKeyInfo	subjectPublicKeyInfo;
+        internal Time startDate, endDate;
+        internal X509Name subject;
+        internal SubjectPublicKeyInfo subjectPublicKeyInfo;
 
-		public V1TbsCertificateGenerator()
+        public V1TbsCertificateGenerator()
         {
         }
 
-		public void SetSerialNumber(
+        public void SetSerialNumber(
             DerInteger serialNumber)
         {
             this.serialNumber = serialNumber;
         }
 
-		public void SetSignature(
+        public void SetSignature(
             AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
-		public void SetIssuer(
+        public void SetIssuer(
             X509Name issuer)
         {
             this.issuer = issuer;
@@ -85,13 +85,13 @@ namespace Org.BouncyCastle.Asn1.X509
             this.subject = subject;
         }
 
-		public void SetSubjectPublicKeyInfo(
+        public void SetSubjectPublicKeyInfo(
             SubjectPublicKeyInfo pubKeyInfo)
         {
             this.subjectPublicKeyInfo = pubKeyInfo;
         }
 
-		public TbsCertificateStructure GenerateTbsCertificate()
+        public TbsCertificateStructure GenerateTbsCertificate()
         {
             if ((serialNumber == null) || (signature == null) || (issuer == null) ||
                 (validity == null && (startDate == null || endDate == null)) ||

@@ -24,13 +24,13 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly AlgorithmIdentifier m_signatureAlgorithm;
         private readonly DerBitString m_signatureValue;
 
-		private AttributeCertificate(Asn1Sequence seq)
+        private AttributeCertificate(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
             if (count != 3)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_acinfo = Asn1Utilities.Read(seq, ref pos, AttributeCertificateInfo.GetInstance);
+            m_acinfo = Asn1Utilities.Read(seq, ref pos, AttributeCertificateInfo.GetInstance);
             m_signatureAlgorithm = Asn1Utilities.Read(seq, ref pos, AlgorithmIdentifier.GetInstance);
             m_signatureValue = Asn1Utilities.Read(seq, ref pos, DerBitString.GetInstance);
 
