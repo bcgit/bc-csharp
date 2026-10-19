@@ -7,6 +7,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private NtruPrimeEngine _primeEngine;
         private readonly SNtruPrimeKeyParameters _primeKey;
 
+        /// <summary>Create a new <see cref="SNtruPrimeKemExtractor"/>.</summary>
+        /// <param name="privParams">The priv params.</param>
         public SNtruPrimeKemExtractor(SNtruPrimeKeyParameters privParams)
         {
             this._primeKey = privParams;
@@ -18,6 +20,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             _primeEngine = param.PrimeEngine;
         }
 
+        /// <inheritdoc/>
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] session_key = new byte[_primeEngine.SessionKeySize];
@@ -25,6 +28,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return session_key;
         }
 
+        /// <inheritdoc/>
         public int EncapsulationLength => _primeEngine.CipherTextSize;
     }
 }

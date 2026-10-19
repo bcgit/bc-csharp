@@ -9,11 +9,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
     {
         private SecureRandom sr;
 
+        /// <summary>Create a new <see cref="NtruLPRimeKemGenerator"/>.</summary>
+        /// <param name="sr">The sr.</param>
         public NtruLPRimeKemGenerator(SecureRandom sr)
         {
             this.sr = sr;
         }
 
+        /// <inheritdoc/>
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
             NtruLPRimePublicKeyParameters key = (NtruLPRimePublicKeyParameters)recipientKey;
@@ -32,18 +35,23 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             private byte[] sessionKey;
             private byte[] cipherText;
 
+            /// <summary>Create a new <see cref="SecretWithEncapsulationImpl"/>.</summary>
+            /// <param name="sessionKey">The session key.</param>
+            /// <param name="cipherText">The cipher text.</param>
             public SecretWithEncapsulationImpl(byte[] sessionKey, byte[] cipherText)
             {
                 this.sessionKey = sessionKey;
                 this.cipherText = cipherText;
             }
 
+            /// <inheritdoc/>
             public byte[] GetSecret()
             {
                 CheckDestroyed();
                 return Arrays.Clone(sessionKey);
             }
 
+            /// <inheritdoc/>
             public byte[] GetEncapsulation()
             {
                 return Arrays.Clone(cipherText);

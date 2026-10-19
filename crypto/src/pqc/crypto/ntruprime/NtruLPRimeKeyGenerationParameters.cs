@@ -7,6 +7,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
     {
         private NtruLPRimeParameters _primeParameters;
 
+        /// <summary>Create a new <see cref="NtruLPRimeKeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="ntruPrimeParameters">The ntru prime parameters.</param>
         public NtruLPRimeKeyGenerationParameters(SecureRandom random, NtruLPRimeParameters ntruPrimeParameters) : base(random,256)
         {
             this._primeParameters = ntruPrimeParameters;

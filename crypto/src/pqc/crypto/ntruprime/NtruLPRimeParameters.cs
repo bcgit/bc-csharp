@@ -55,12 +55,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         public static NtruLPRimeParameters ntrulpr1013 = new NtruLPRimeParameters("NTRU_LPRime_1013", 1013, 7177, true, 392, 3367,73,3143,449,1773,1455,1583, 1423, -1, 256);
         public static NtruLPRimeParameters ntrulpr1277 = new NtruLPRimeParameters("NTRU_LPRime_1277", 1277, 7879, true, 429, 3724,66,3469,496,2231,1847,1975, 1815, -1, 256);
 
+        /// <summary>Gets the p.</summary>
         public int P => p;
 
+        /// <summary>Gets the LPR.</summary>
         public bool LPR => m_LPR;
 
+        /// <summary>Gets the q.</summary>
         public int Q => q;
 
+        /// <summary>Gets the default key size.</summary>
         public int DefaultKeySize => _defaultKeySize;
 
         internal NtruPrimeEngine PrimeEngine => _primeEngine;
