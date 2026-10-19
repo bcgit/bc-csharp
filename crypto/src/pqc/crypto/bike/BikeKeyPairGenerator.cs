@@ -33,6 +33,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         private BikeKeyGenerationParameters bikeKeyGenerationParameters;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             this.bikeKeyGenerationParameters = (BikeKeyGenerationParameters)param;
@@ -50,6 +51,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.R_BYTE = (r + 7) / 8;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             BikeParameters parameters = bikeKeyGenerationParameters.Parameters;

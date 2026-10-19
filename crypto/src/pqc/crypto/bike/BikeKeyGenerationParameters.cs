@@ -8,6 +8,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
     {
         private readonly BikeParameters m_parameters;
 
+        /// <summary>Create a new <see cref="BikeKeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="parameters">The parameters.</param>
         public BikeKeyGenerationParameters(SecureRandom random, BikeParameters parameters)
             : base(random, 256)
         {

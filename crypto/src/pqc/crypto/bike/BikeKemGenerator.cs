@@ -11,11 +11,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
     {
         private readonly SecureRandom sr;
 
+        /// <summary>Create a new <see cref="BikeKemGenerator"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
         public BikeKemGenerator(SecureRandom random)
         {
             this.sr = random;
         }
 
+        /// <inheritdoc/>
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
             BikePublicKeyParameters key = (BikePublicKeyParameters)recipientKey;
