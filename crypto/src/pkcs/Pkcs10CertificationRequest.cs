@@ -21,9 +21,10 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkcs
 {
+    /// <summary>A PKCS#10 certification request, with support for creating and verifying requests.</summary>
     /// <remarks>
-    /// A class for verifying and creating Pkcs10 Certification requests.
-    /// </remarks>
+    /// The ASN.1 structure is described in RFC 2986 and
+    /// <see href="http://www.rsasecurity.com/rsalabs/node.asp?id=2132"/>:
     /// <code>
     /// CertificationRequest ::= Sequence {
     ///   certificationRequestInfo  CertificationRequestInfo,
@@ -45,7 +46,7 @@ namespace Org.BouncyCastle.Pkcs
     ///    values  Set SIZE(1..MAX) OF ATTRIBUTE.&amp;Type({IOSet}{\@type})
     ///  }
     /// </code>
-    /// see <a href="http://www.rsasecurity.com/rsalabs/node.asp?id=2132"/>
+    /// </remarks>
     public class Pkcs10CertificationRequest
         : CertificationRequest
     {
@@ -298,20 +299,27 @@ namespace Org.BouncyCastle.Pkcs
                 RsassaPssParameters.DefaultTrailerField);
         }
 
+        /// <summary>Default constructor for subclasses.</summary>
         protected Pkcs10CertificationRequest()
         {
         }
 
+        /// <summary>Parse a request from its encoding.</summary>
+        /// <param name="encoded">The encoded request.</param>
         public Pkcs10CertificationRequest(byte[] encoded)
             : base(Asn1Sequence.GetInstance(encoded))
         {
         }
 
+        /// <summary>Create a request from an ASN.1 sequence.</summary>
+        /// <param name="seq">The CertificationRequest sequence.</param>
         public Pkcs10CertificationRequest(Asn1Sequence seq)
             : base(seq)
         {
         }
 
+        /// <summary>Parse a request from a stream containing its encoding.</summary>
+        /// <param name="input">The stream to read from.</param>
         public Pkcs10CertificationRequest(Stream input)
             : base((Asn1Sequence)Asn1Object.FromStream(input))
         {
@@ -324,7 +332,9 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
         /// <param name="publicKey">Public key to be included in cert request.</param>
         /// <param name="attributes">Asn1Set of Attributes.</param>
-        /// <param name="signingKey">Matching private key for nominated (above) public key to be used to sign the request.</param>
+        /// <param name="signingKey">
+        /// Matching private key for nominated (above) public key to be used to sign the request.
+        /// </param>
         public Pkcs10CertificationRequest(
             string signatureAlgorithm,
             X509Name subject,
@@ -342,7 +352,9 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
         /// <param name="pubInfo">SubjectPublicKeyInfo to be included in cert request.</param>
         /// <param name="attributes">Asn1Set of Attributes.</param>
-        /// <param name="signingKey">Matching private key for nominated (above) public key to be used to sign the request.</param>
+        /// <param name="signingKey">
+        /// Matching private key for nominated (above) public key to be used to sign the request.
+        /// </param>
         public Pkcs10CertificationRequest(
             string signatureAlgorithm,
             X509Name subject,
@@ -360,6 +372,10 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
         /// <param name="publicKey">Public key to be included in cert request.</param>
         /// <param name="attributes">Asn1Set of Attributes.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="signatureFactory"/>, <paramref name="subject"/> or <paramref name="publicKey"/> is null.
+        /// </exception>
+        /// <exception cref="ArgumentException"><paramref name="publicKey"/> is a private key.</exception>
         public Pkcs10CertificationRequest(
             ISignatureFactory signatureFactory,
             X509Name subject,
@@ -385,6 +401,9 @@ namespace Org.BouncyCastle.Pkcs
         /// <param name="subject">X509Name of subject eg OU="My unit." O="My Organisatioin" C="au" </param>
         /// <param name="pubInfo">SubjectPublicKeyInfo to be included in cert request.</param>
         /// <param name="attributes">Asn1Set of Attributes.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="signatureFactory"/>, <paramref name="subject"/> or <paramref name="pubInfo"/> is null.
+        /// </exception>
         public Pkcs10CertificationRequest(
             ISignatureFactory signatureFactory,
             X509Name subject,
@@ -444,27 +463,38 @@ namespace Org.BouncyCastle.Pkcs
             return PublicKeyFactory.CreateKey(reqInfo.SubjectPublicKeyInfo);
         }
 
-        /// <summary>
-        /// Verify Pkcs10 Cert Request is valid.
-        /// </summary>
-        /// <returns>true = valid.</returns>
+        /// <summary>Verify the request signature using the public key in the request.</summary>
+        /// <returns>true if the signature is valid.</returns>
+        /// <exception cref="SignatureException">The request could not be processed.</exception>
         public bool Verify()
         {
             return Verify(this.GetPublicKey());
         }
 
+        /// <summary>Verify the request signature using the given public key.</summary>
+        /// <param name="publicKey">The public key to verify with.</param>
+        /// <returns>true if the signature is valid.</returns>
+        /// <exception cref="SignatureException">The request could not be processed.</exception>
         public bool Verify(
             AsymmetricKeyParameter publicKey)
         {
             return Verify(new Asn1VerifierFactoryProvider(publicKey));
         }
 
+        /// <summary>Verify the request signature using a verifier created by the given provider.</summary>
+        /// <param name="verifierProvider">The provider of verifier factories.</param>
+        /// <returns>true if the signature is valid.</returns>
+        /// <exception cref="SignatureException">The request could not be processed.</exception>
         public bool Verify(
             IVerifierFactoryProvider verifierProvider)
         {
             return Verify(verifierProvider.CreateVerifierFactory(sigAlgId));
         }
 
+        /// <summary>Verify the request signature using the given verifier factory.</summary>
+        /// <param name="verifier">The verifier factory.</param>
+        /// <returns>true if the signature is valid.</returns>
+        /// <exception cref="SignatureException">The request could not be processed.</exception>
         public bool Verify(IVerifierFactory verifier)
         {
             try

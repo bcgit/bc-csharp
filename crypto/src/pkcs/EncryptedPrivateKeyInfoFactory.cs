@@ -8,12 +8,22 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pkcs
 {
+    /// <summary>Factory for the PKCS#8 EncryptedPrivateKeyInfo structure, protecting a private key with a password.
+    /// </summary>
     public sealed class EncryptedPrivateKeyInfoFactory
     {
         private EncryptedPrivateKeyInfoFactory()
         {
         }
 
+        /// <summary>Encrypt a private key using a password-based encryption (PBE) algorithm.</summary>
+        /// <param name="algorithm">The object identifier of the PBE algorithm.</param>
+        /// <param name="passPhrase">The password to derive the encryption key from.</param>
+        /// <param name="salt">The salt for the key derivation.</param>
+        /// <param name="iterationCount">The iteration count for the key derivation.</param>
+        /// <param name="key">The private key to encrypt.</param>
+        /// <returns>The EncryptedPrivateKeyInfo.</returns>
+        /// <exception cref="Exception">The encryption algorithm is unknown.</exception>
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
             DerObjectIdentifier algorithm,
             char[] passPhrase,
@@ -26,6 +36,14 @@ namespace Org.BouncyCastle.Pkcs
                 PrivateKeyInfoFactory.CreatePrivateKeyInfo(key));
         }
 
+        /// <summary>Encrypt a private key using a password-based encryption (PBE) algorithm.</summary>
+        /// <param name="algorithm">The name or object identifier (as a string) of the PBE algorithm.</param>
+        /// <param name="passPhrase">The password to derive the encryption key from.</param>
+        /// <param name="salt">The salt for the key derivation.</param>
+        /// <param name="iterationCount">The iteration count for the key derivation.</param>
+        /// <param name="key">The private key to encrypt.</param>
+        /// <returns>The EncryptedPrivateKeyInfo.</returns>
+        /// <exception cref="Exception">The encryption algorithm is unknown.</exception>
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
             string algorithm,
             char[] passPhrase,
@@ -38,6 +56,14 @@ namespace Org.BouncyCastle.Pkcs
                 PrivateKeyInfoFactory.CreatePrivateKeyInfo(key));
         }
 
+        /// <summary>Encrypt a PrivateKeyInfo using a password-based encryption (PBE) algorithm.</summary>
+        /// <param name="algorithm">The name or object identifier (as a string) of the PBE algorithm.</param>
+        /// <param name="passPhrase">The password to derive the encryption key from.</param>
+        /// <param name="salt">The salt for the key derivation.</param>
+        /// <param name="iterationCount">The iteration count for the key derivation.</param>
+        /// <param name="keyInfo">The private key info to encrypt.</param>
+        /// <returns>The EncryptedPrivateKeyInfo.</returns>
+        /// <exception cref="Exception">The encryption algorithm is unknown.</exception>
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
             string algorithm,
             char[] passPhrase,
@@ -61,6 +87,16 @@ namespace Org.BouncyCastle.Pkcs
             return new EncryptedPrivateKeyInfo(encryptionAlgorithm, encryptedData);
         }
 
+        /// <summary>Encrypt a private key using PBES2 with the given cipher and pseudo-random function.</summary>
+        /// <param name="cipherAlgorithm">The object identifier of the cipher.</param>
+        /// <param name="prfAlgorithm">The object identifier of the PBKDF2 pseudo-random function.</param>
+        /// <param name="passPhrase">The password to derive the encryption key from.</param>
+        /// <param name="salt">The salt for the key derivation.</param>
+        /// <param name="iterationCount">The iteration count for the key derivation.</param>
+        /// <param name="random">The source of randomness for the algorithm parameters.</param>
+        /// <param name="key">The private key to encrypt.</param>
+        /// <returns>The EncryptedPrivateKeyInfo.</returns>
+        /// <exception cref="Exception">The cipher algorithm is unknown.</exception>
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
             DerObjectIdentifier cipherAlgorithm,
             DerObjectIdentifier prfAlgorithm,
@@ -75,6 +111,16 @@ namespace Org.BouncyCastle.Pkcs
                 PrivateKeyInfoFactory.CreatePrivateKeyInfo(key));
         }
 
+        /// <summary>Encrypt a PrivateKeyInfo using PBES2 with the given cipher and pseudo-random function.</summary>
+        /// <param name="cipherAlgorithm">The object identifier of the cipher.</param>
+        /// <param name="prfAlgorithm">The object identifier of the PBKDF2 pseudo-random function.</param>
+        /// <param name="passPhrase">The password to derive the encryption key from.</param>
+        /// <param name="salt">The salt for the key derivation.</param>
+        /// <param name="iterationCount">The iteration count for the key derivation.</param>
+        /// <param name="random">The source of randomness for the algorithm parameters.</param>
+        /// <param name="keyInfo">The private key info to encrypt.</param>
+        /// <returns>The EncryptedPrivateKeyInfo.</returns>
+        /// <exception cref="Exception">The cipher algorithm is unknown.</exception>
         public static EncryptedPrivateKeyInfo CreateEncryptedPrivateKeyInfo(
             DerObjectIdentifier cipherAlgorithm,
             DerObjectIdentifier prfAlgorithm,
