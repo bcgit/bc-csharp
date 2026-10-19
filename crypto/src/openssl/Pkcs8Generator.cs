@@ -48,16 +48,22 @@ namespace Org.BouncyCastle.OpenSsl
         //public static readonly AlgorithmIdentifier PrfHmacSha3_512 = new AlgorithmIdentifier(NistObjectIdentifiers.IdHMacWithSha3_512, DerNull.Instance);
         //public static readonly AlgorithmIdentifier PrfHmacGost3411 = new AlgorithmIdentifier(CryptoProObjectIdentifiers.GostR3411Hmac, DerNull.Instance);
 
+        /// <summary>The PKCS#12 PBE algorithm with SHA-1 and 128 bit RC4.</summary>
         [Obsolete("Use 'PbeWithShaAnd128BitRC4' instead")]
         public static readonly string PbeSha1_RC4_128 = PkcsObjectIdentifiers.PbeWithShaAnd128BitRC4.Id;
+        /// <summary>The PKCS#12 PBE algorithm with SHA-1 and 40 bit RC4.</summary>
         [Obsolete("Use 'PbeWithShaAnd40BitRC4' instead")]
         public static readonly string PbeSha1_RC4_40 = PkcsObjectIdentifiers.PbeWithShaAnd40BitRC4.Id;
+        /// <summary>The PKCS#12 PBE algorithm with SHA-1 and three-key Triple DES.</summary>
         [Obsolete("Use 'PbeWithShaAnd3KeyTripleDesCbc' instead")]
         public static readonly string PbeSha1_3DES = PkcsObjectIdentifiers.PbeWithShaAnd3KeyTripleDesCbc.Id;
+        /// <summary>The PKCS#12 PBE algorithm with SHA-1 and two-key Triple DES.</summary>
         [Obsolete("Use 'PbeWithShaAnd2KeyTripleDesCbc' instead")]
         public static readonly string PbeSha1_2DES = PkcsObjectIdentifiers.PbeWithShaAnd2KeyTripleDesCbc.Id;
+        /// <summary>The PKCS#12 PBE algorithm with SHA-1 and 128 bit RC2.</summary>
         [Obsolete("Use 'PbeWithShaAnd128BitRC2Cbc' instead")]
         public static readonly string PbeSha1_RC2_128 = PkcsObjectIdentifiers.PbeWithShaAnd128BitRC2Cbc.Id;
+        /// <summary>The PKCS#12 PBE algorithm with SHA-1 and 40 bit RC2.</summary>
         [Obsolete("Use 'PbewithShaAnd40BitRC2Cbc' instead")]
         public static readonly string PbeSha1_RC2_40 = PkcsObjectIdentifiers.PbewithShaAnd40BitRC2Cbc.Id;
 
