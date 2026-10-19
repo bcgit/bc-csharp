@@ -13,6 +13,9 @@ namespace Org.BouncyCastle.Utilities
         /// <summary>The <c>NumBytes</c> constant, with the value <c>2</c>.</summary>
         public const int NumBytes = 2;
 
+        /// <summary>Reverse the order of the bytes of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bytes in reverse order.</returns>
         public static short ReverseBytes(short i)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -22,6 +25,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Reverse the order of the bytes of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bytes in reverse order.</returns>
         [CLSCompliant(false)]
         public static ushort ReverseBytes(ushort i)
         {
@@ -32,22 +38,38 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the left.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         public static short RotateLeft(short i, int distance)
         {
             return (short)RotateLeft((ushort)i, distance);
         }
 
+        /// <summary>Rotate the bits of a value to the left.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         [CLSCompliant(false)]
         public static ushort RotateLeft(ushort i, int distance)
         {
             return (ushort)((i << distance) | (i >> (16 - distance)));
         }
 
+        /// <summary>Rotate the bits of a value to the right.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         public static short RotateRight(short i, int distance)
         {
             return (short)RotateRight((ushort)i, distance);
         }
 
+        /// <summary>Rotate the bits of a value to the right.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         [CLSCompliant(false)]
         public static ushort RotateRight(ushort i, int distance)
         {

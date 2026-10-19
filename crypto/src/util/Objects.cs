@@ -6,6 +6,9 @@ namespace Org.BouncyCastle.Utilities
     /// <summary>Utility methods for working with objects.</summary>
     public static class Objects
     {
+        /// <summary>Get the hash code of an object, or zero if the object is null.</summary>
+        /// <param name="obj">The object, or null.</param>
+        /// <returns>The hash code.</returns>
         public static int GetHashCode(object obj)
         {
             return null == obj ? 0 : obj.GetHashCode();

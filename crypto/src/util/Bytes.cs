@@ -16,6 +16,15 @@ namespace Org.BouncyCastle.Utilities
         /// <summary>The <c>NumBytes</c> constant, with the value <c>1</c>.</summary>
         public const int NumBytes = 1;
 
+        /// <summary>
+        /// Conditionally copy bytes: if <paramref name="cond"/> is non-zero, copy <paramref name="len"/> bytes of
+        /// <paramref name="x"/> to <paramref name="z"/>, otherwise leave <paramref name="z"/> unchanged. Runs in
+        /// constant time with respect to <paramref name="cond"/>.
+        /// </summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="cond">Zero to leave the destination unchanged, non-zero to copy.</param>
+        /// <param name="x">The source.</param>
+        /// <param name="z">The destination.</param>
         public static void CMov(int len, int cond, byte[] x, byte[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -30,6 +39,17 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>
+        /// Conditionally copy bytes: if <paramref name="cond"/> is non-zero, copy <paramref name="len"/> bytes of
+        /// <paramref name="x"/> to <paramref name="z"/>, otherwise leave <paramref name="z"/> unchanged. Runs in
+        /// constant time with respect to <paramref name="cond"/>.
+        /// </summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="cond">Zero to leave the destination unchanged, non-zero to copy.</param>
+        /// <param name="x">The source.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which to start reading.</param>
+        /// <param name="z">The destination.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which to start writing.</param>
         public static void CMov(int len, int cond, byte[] x, int xOff, byte[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -45,6 +65,15 @@ namespace Org.BouncyCastle.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Conditionally copy bytes: if <paramref name="cond"/> is non-zero, copy <paramref name="len"/> bytes of
+        /// <paramref name="x"/> to <paramref name="z"/>, otherwise leave <paramref name="z"/> unchanged. Runs in
+        /// constant time with respect to <paramref name="cond"/>.
+        /// </summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="cond">Zero to leave the destination unchanged, non-zero to copy.</param>
+        /// <param name="x">The source.</param>
+        /// <param name="z">The destination.</param>
         public static void CMov(int len, int cond, ReadOnlySpan<byte> x, Span<byte> z)
         {
             uint m0 = Nat.CZero((uint)cond), m1 = ~m0;
@@ -56,6 +85,11 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
+        /// <summary>Calculate the bytewise exclusive-or of two byte sequences into a third.</summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="x">The first input.</param>
+        /// <param name="y">The second input.</param>
+        /// <param name="z">The output.</param>
         public static void Xor(int len, byte[] x, byte[] y, byte[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -68,6 +102,14 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Calculate the bytewise exclusive-or of two byte sequences into a third.</summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="x">The first input.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which to start reading.</param>
+        /// <param name="y">The second input.</param>
+        /// <param name="yOff">The offset into <paramref name="y"/> at which to start reading.</param>
+        /// <param name="z">The output.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which to start writing.</param>
         public static void Xor(int len, byte[] x, int xOff, byte[] y, int yOff, byte[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -81,6 +123,11 @@ namespace Org.BouncyCastle.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the bytewise exclusive-or of two byte sequences into a third.</summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="x">The first input.</param>
+        /// <param name="y">The second input.</param>
+        /// <param name="z">The output.</param>
         public static void Xor(int len, ReadOnlySpan<byte> x, ReadOnlySpan<byte> y, Span<byte> z)
         {
             int i = 0;
@@ -123,6 +170,13 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
+        /// <summary>
+        /// Exclusive-or one byte sequence into another: <c>z[i] ^= x[i]</c> for each of the first <paramref
+        /// name="len"/> bytes.
+        /// </summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="x">The input.</param>
+        /// <param name="z">The sequence to modify.</param>
         public static void XorTo(int len, byte[] x, byte[] z)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -135,6 +189,15 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>
+        /// Exclusive-or one byte sequence into another: <c>z[i] ^= x[i]</c> for each of the first <paramref
+        /// name="len"/> bytes.
+        /// </summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="x">The input.</param>
+        /// <param name="xOff">The offset into <paramref name="x"/> at which to start reading.</param>
+        /// <param name="z">The sequence to modify.</param>
+        /// <param name="zOff">The offset into <paramref name="z"/> at which to start modifying.</param>
         public static void XorTo(int len, byte[] x, int xOff, byte[] z, int zOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -148,6 +211,13 @@ namespace Org.BouncyCastle.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Exclusive-or one byte sequence into another: <c>z[i] ^= x[i]</c> for each of the first <paramref
+        /// name="len"/> bytes.
+        /// </summary>
+        /// <param name="len">The number of bytes to process.</param>
+        /// <param name="x">The input.</param>
+        /// <param name="z">The sequence to modify.</param>
         public static void XorTo(int len, ReadOnlySpan<byte> x, Span<byte> z)
         {
             int i = 0;

@@ -25,20 +25,57 @@ namespace Org.BouncyCastle.Utilities
             0x1E, 0x1A, 0x0C, 0x16, 0x14, 0x12, 0x0F, 0x06, 0x19, 0x0B, 0x11, 0x05, 0x0A, 0x04, 0x09, 0x08 };
 #endif
 
+        /// <summary>Get the number of bits required to represent a value, not including the sign bit.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The bit length of the value.</returns>
         public static int BitLength(int i) => NumBits - NumberOfLeadingZeros(i);
 
+        /// <summary>Get the number of bits required to represent a value, not including the sign bit.</summary>
+        /// <param name="u">The value.</param>
+        /// <returns>The bit length of the value.</returns>
         [CLSCompliant(false)]
         public static int BitLength(uint u) => BitLength((int)u);
 
+        /// <summary>Compare two values numerically (for <c>CompareUnsigned</c>, as unsigned numbers).</summary>
+        /// <param name="x">The first value.</param>
+        /// <param name="y">The second value.</param>
+        /// <returns>
+        /// A negative number if <paramref name="x"/> is smaller, zero if they are equal, a positive number if <paramref
+        /// name="x"/> is larger.
+        /// </returns>
         public static int Compare(int x, int y) => x.CompareTo(y);
 
+        /// <summary>Compare two values numerically (for <c>CompareUnsigned</c>, as unsigned numbers).</summary>
+        /// <param name="x">The first value.</param>
+        /// <param name="y">The second value.</param>
+        /// <returns>
+        /// A negative number if <paramref name="x"/> is smaller, zero if they are equal, a positive number if <paramref
+        /// name="x"/> is larger.
+        /// </returns>
         [CLSCompliant(false)]
         public static int Compare(uint x, uint y) => x.CompareTo(y);
 
+        /// <summary>Compare two values numerically (for <c>CompareUnsigned</c>, as unsigned numbers).</summary>
+        /// <param name="x">The first value.</param>
+        /// <param name="y">The second value.</param>
+        /// <returns>
+        /// A negative number if <paramref name="x"/> is smaller, zero if they are equal, a positive number if <paramref
+        /// name="x"/> is larger.
+        /// </returns>
         public static int CompareUnsigned(int x, int y) => Compare((uint)x, (uint)y);
 
+        /// <summary>
+        /// Get a value with a single set bit, at the position of the highest-order set bit of the argument.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with only its highest one-bit set, or zero if the argument is zero.</returns>
         public static int HighestOneBit(int i) => (int)HighestOneBit((uint)i);
 
+        /// <summary>
+        /// Get a value with a single set bit, at the position of the highest-order set bit of the argument.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with only its highest one-bit set, or zero if the argument is zero.</returns>
         [CLSCompliant(false)]
         public static uint HighestOneBit(uint i)
         {
@@ -50,11 +87,24 @@ namespace Org.BouncyCastle.Utilities
             return i - (i >> 1);
         }
 
+        /// <summary>
+        /// Get a value with a single set bit, at the position of the lowest-order set bit of the argument.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with only its lowest one-bit set, or zero if the argument is zero.</returns>
         public static int LowestOneBit(int i) => i & -i;
 
+        /// <summary>
+        /// Get a value with a single set bit, at the position of the lowest-order set bit of the argument.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with only its lowest one-bit set, or zero if the argument is zero.</returns>
         [CLSCompliant(false)]
         public static uint LowestOneBit(uint i) => (uint)LowestOneBit((int)i);
 
+        /// <summary>Count the zero bits above the highest-order set bit.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The number of leading zero bits, or the total bit count if the argument is zero.</returns>
         public static int NumberOfLeadingZeros(int i)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -74,9 +124,15 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Count the zero bits above the highest-order set bit.</summary>
+        /// <param name="u">The value.</param>
+        /// <returns>The number of leading zero bits, or the total bit count if the argument is zero.</returns>
         [CLSCompliant(false)]
         public static int NumberOfLeadingZeros(uint u) => NumberOfLeadingZeros((int)u);
 
+        /// <summary>Count the zero bits below the lowest-order set bit.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The number of trailing zero bits, or the total bit count if the argument is zero.</returns>
         public static int NumberOfTrailingZeros(int i)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -88,11 +144,20 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Count the zero bits below the lowest-order set bit.</summary>
+        /// <param name="u">The value.</param>
+        /// <returns>The number of trailing zero bits, or the total bit count if the argument is zero.</returns>
         [CLSCompliant(false)]
         public static int NumberOfTrailingZeros(uint u) => NumberOfTrailingZeros((int)u);
 
+        /// <summary>Count the bits that are set.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The number of one-bits.</returns>
         public static int PopCount(int i) => PopCount((uint)i);
 
+        /// <summary>Count the bits that are set.</summary>
+        /// <param name="u">The value.</param>
+        /// <returns>The number of one-bits.</returns>
         [CLSCompliant(false)]
         public static int PopCount(uint u)
         {
@@ -109,8 +174,14 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Reverse the order of the bits of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bits in reverse order.</returns>
         public static int Reverse(int i) => (int)Reverse((uint)i);
 
+        /// <summary>Reverse the order of the bits of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bits in reverse order.</returns>
         [CLSCompliant(false)]
         public static uint Reverse(uint i)
         {
@@ -120,6 +191,9 @@ namespace Org.BouncyCastle.Utilities
             return ReverseBytes(i);
         }
 
+        /// <summary>Reverse the order of the bytes of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bytes in reverse order.</returns>
         public static int ReverseBytes(int i)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -129,6 +203,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Reverse the order of the bytes of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bytes in reverse order.</returns>
         [CLSCompliant(false)]
         public static uint ReverseBytes(uint i)
         {
@@ -140,6 +217,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the left.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         public static int RotateLeft(int i, int distance)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -149,6 +230,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the left.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         [CLSCompliant(false)]
         public static uint RotateLeft(uint i, int distance)
         {
@@ -159,6 +244,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the right.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         public static int RotateRight(int i, int distance)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -168,6 +257,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the right.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         [CLSCompliant(false)]
         public static uint RotateRight(uint i, int distance)
         {

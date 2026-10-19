@@ -12,7 +12,9 @@ namespace Org.BouncyCastle.Utilities
      */
     public static class BigIntegers
     {
+        /// <summary>The value zero.</summary>
         public static readonly BigInteger Zero = BigInteger.Zero;
+        /// <summary>The value one.</summary>
         public static readonly BigInteger One = BigInteger.One;
 
         private const int MaxIterations = 1000;
@@ -26,6 +28,14 @@ namespace Org.BouncyCastle.Utilities
             16);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Write the magnitude of a non-negative BigInteger into a span of 32-bit words, least significant word first.
+        /// </summary>
+        /// <param name="n">The value to convert.</param>
+        /// <param name="buf">The span to receive the words; unused high words are set to zero.</param>
+        /// <exception cref="ArgumentException">
+        /// The value is negative or does not fit in <paramref name="buf"/>.
+        /// </exception>
         [CLSCompliant(false)]
         public static void AsUint32ArrayLittleEndian(BigInteger n, Span<uint> buf)
         {
@@ -117,6 +127,15 @@ namespace Org.BouncyCastle.Utilities
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Write the magnitude of a non-negative BigInteger into a span as a big-endian unsigned value, left-padded
+        /// with zeros.
+        /// </summary>
+        /// <param name="n">The value to convert.</param>
+        /// <param name="buf">The span to receive the bytes; its length determines the size of the encoding.</param>
+        /// <exception cref="ArgumentException">
+        /// The value is negative or does not fit in <paramref name="buf"/>.
+        /// </exception>
         public static void AsUnsignedByteArray(BigInteger n, Span<byte> buf)
         {
             int bytesLength = n.GetLengthofByteArrayUnsigned();
@@ -179,29 +198,59 @@ namespace Org.BouncyCastle.Utilities
             return new BigInteger(max.Subtract(min).BitLength - 1, random).Add(min);
         }
 
+        /// <summary>Generate a random prime number of a given bit length.</summary>
+        /// <param name="bitLength">The bit length of the prime.</param>
+        /// <param name="certainty">
+        /// A measure of the uncertainty that the caller is willing to tolerate that the number is prime.
+        /// </param>
+        /// <param name="random">The source of randomness.</param>
+        /// <returns>A probable prime of the requested bit length.</returns>
         public static BigInteger CreateRandomPrime(int bitLength, int certainty, SecureRandom random) =>
             new BigInteger(bitLength, certainty, random);
 
+        /// <summary>
+        /// Create a non-negative BigInteger from a big-endian unsigned byte array (or a segment of one).
+        /// </summary>
+        /// <param name="buf">The buffer holding the value.</param>
+        /// <returns>The non-negative value represented by the bytes.</returns>
         public static BigInteger FromUnsignedByteArray(byte[] buf)
         {
             return new BigInteger(1, buf);
         }
 
+        /// <summary>
+        /// Create a non-negative BigInteger from a big-endian unsigned byte array (or a segment of one).
+        /// </summary>
+        /// <param name="buf">The buffer holding the value.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the value starts.</param>
+        /// <param name="length">The number of bytes in the value.</param>
+        /// <returns>The non-negative value represented by the bytes.</returns>
         public static BigInteger FromUnsignedByteArray(byte[] buf, int off, int length)
         {
             return new BigInteger(1, buf, off, length);
         }
 
+        /// <summary>
+        /// Get the length in bytes of the two's complement encoding of a value, including a sign bit.
+        /// </summary>
+        /// <param name="n">The value.</param>
+        /// <returns>The number of bytes required.</returns>
         public static int GetByteLength(BigInteger n)
         {
             return n.GetLengthofByteArray();
         }
 
+        /// <summary>Get the length in bytes of the unsigned encoding of a value.</summary>
+        /// <param name="n">The value.</param>
+        /// <returns>The number of bytes required to hold the magnitude of the value.</returns>
         public static int GetUnsignedByteLength(BigInteger n)
         {
             return n.GetLengthofByteArrayUnsigned();
         }
 
+        /// <summary>Determine whether a value is even or has a small odd prime factor (up to 743).</summary>
+        /// <param name="x">The value to test.</param>
+        /// <returns>true if a small factor was found, false otherwise.</returns>
         public static bool HasAnySmallFactors(BigInteger x)
         {
             if (!x.TestBit(0))
@@ -217,6 +266,16 @@ namespace Org.BouncyCastle.Utilities
             return !ModOddIsCoprimeVar(x, y);
         }
 
+        /// <summary>
+        /// Calculate the modular inverse of a value modulo an odd modulus, in constant time with respect to the value.
+        /// </summary>
+        /// <param name="M">The odd, positive modulus.</param>
+        /// <param name="X">The value to invert.</param>
+        /// <returns>The inverse of <paramref name="X"/> modulo <paramref name="M"/>.</returns>
+        /// <exception cref="ArgumentException"><paramref name="M"/> is even.</exception>
+        /// <exception cref="ArithmeticException">
+        /// <paramref name="M"/> is not positive, or <paramref name="X"/> is not invertible.
+        /// </exception>
         public static BigInteger ModOddInverse(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
@@ -256,6 +315,14 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>Calculate the modular inverse of a value modulo an odd modulus, in variable time.</summary>
+        /// <param name="M">The odd, positive modulus.</param>
+        /// <param name="X">The value to invert.</param>
+        /// <returns>The inverse of <paramref name="X"/> modulo <paramref name="M"/>.</returns>
+        /// <exception cref="ArgumentException"><paramref name="M"/> is even.</exception>
+        /// <exception cref="ArithmeticException">
+        /// <paramref name="M"/> is not positive, or <paramref name="X"/> is not invertible.
+        /// </exception>
         public static BigInteger ModOddInverseVar(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
@@ -299,6 +366,16 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>
+        /// Determine whether a value is coprime to an odd modulus, in constant time with respect to the value.
+        /// </summary>
+        /// <param name="M">The odd, positive modulus.</param>
+        /// <param name="X">The value to test.</param>
+        /// <returns>
+        /// true if the greatest common divisor of <paramref name="M"/> and <paramref name="X"/> is 1, false otherwise.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="M"/> is even.</exception>
+        /// <exception cref="ArithmeticException"><paramref name="M"/> is not positive.</exception>
         public static bool ModOddIsCoprime(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
@@ -331,6 +408,14 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>Determine whether a value is coprime to an odd modulus, in variable time.</summary>
+        /// <param name="M">The odd, positive modulus.</param>
+        /// <param name="X">The value to test.</param>
+        /// <returns>
+        /// true if the greatest common divisor of <paramref name="M"/> and <paramref name="X"/> is 1, false otherwise.
+        /// </returns>
+        /// <exception cref="ArgumentException"><paramref name="M"/> is even.</exception>
+        /// <exception cref="ArithmeticException"><paramref name="M"/> is not positive.</exception>
         public static bool ModOddIsCoprimeVar(BigInteger M, BigInteger X)
         {
             if (!M.TestBit(0))
@@ -365,6 +450,11 @@ namespace Org.BouncyCastle.Utilities
             }
         }
 
+        /// <summary>
+        /// Write the unsigned big-endian encoding of a non-negative BigInteger to a stream, without leading zero bytes.
+        /// </summary>
+        /// <param name="outStr">The stream to write to.</param>
+        /// <param name="n">The value to write.</param>
         public static void WriteUnsignedByteArray(Stream outStr, BigInteger n)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER

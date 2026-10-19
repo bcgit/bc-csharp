@@ -27,20 +27,57 @@ namespace Org.BouncyCastle.Utilities
             0x32, 0x18, 0x23, 0x1F, 0x3B, 0x13, 0x38, 0x0F, 0x31, 0x1E, 0x12, 0x0E, 0x1D, 0x0D, 0x0C, 0x0B };
 #endif
 
+        /// <summary>Get the number of bits required to represent a value, not including the sign bit.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The bit length of the value.</returns>
         public static int BitLength(long i) => NumBits - NumberOfLeadingZeros(i);
 
+        /// <summary>Get the number of bits required to represent a value, not including the sign bit.</summary>
+        /// <param name="u">The value.</param>
+        /// <returns>The bit length of the value.</returns>
         [CLSCompliant(false)]
         public static int BitLength(ulong u) => BitLength((long)u);
 
+        /// <summary>Compare two values numerically (for <c>CompareUnsigned</c>, as unsigned numbers).</summary>
+        /// <param name="x">The first value.</param>
+        /// <param name="y">The second value.</param>
+        /// <returns>
+        /// A negative number if <paramref name="x"/> is smaller, zero if they are equal, a positive number if <paramref
+        /// name="x"/> is larger.
+        /// </returns>
         public static int Compare(long x, long y) => x.CompareTo(y);
 
+        /// <summary>Compare two values numerically (for <c>CompareUnsigned</c>, as unsigned numbers).</summary>
+        /// <param name="x">The first value.</param>
+        /// <param name="y">The second value.</param>
+        /// <returns>
+        /// A negative number if <paramref name="x"/> is smaller, zero if they are equal, a positive number if <paramref
+        /// name="x"/> is larger.
+        /// </returns>
         [CLSCompliant(false)]
         public static int Compare(ulong x, ulong y) => x.CompareTo(y);
 
+        /// <summary>Compare two values numerically (for <c>CompareUnsigned</c>, as unsigned numbers).</summary>
+        /// <param name="x">The first value.</param>
+        /// <param name="y">The second value.</param>
+        /// <returns>
+        /// A negative number if <paramref name="x"/> is smaller, zero if they are equal, a positive number if <paramref
+        /// name="x"/> is larger.
+        /// </returns>
         public static int CompareUnsigned(long x, long y) => Compare((ulong)x, (ulong)y);
 
+        /// <summary>
+        /// Get a value with a single set bit, at the position of the highest-order set bit of the argument.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with only its highest one-bit set, or zero if the argument is zero.</returns>
         public static long HighestOneBit(long i) => (long)HighestOneBit((ulong)i);
 
+        /// <summary>
+        /// Get a value with a single set bit, at the position of the highest-order set bit of the argument.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with only its highest one-bit set, or zero if the argument is zero.</returns>
         [CLSCompliant(false)]
         public static ulong HighestOneBit(ulong i)
         {
@@ -53,11 +90,24 @@ namespace Org.BouncyCastle.Utilities
             return i - (i >> 1);
         }
 
+        /// <summary>
+        /// Get a value with a single set bit, at the position of the lowest-order set bit of the argument.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with only its lowest one-bit set, or zero if the argument is zero.</returns>
         public static long LowestOneBit(long i) => i & -i;
 
+        /// <summary>
+        /// Get a value with a single set bit, at the position of the lowest-order set bit of the argument.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with only its lowest one-bit set, or zero if the argument is zero.</returns>
         [CLSCompliant(false)]
         public static ulong LowestOneBit(ulong i) => (ulong)LowestOneBit((long)i);
 
+        /// <summary>Count the zero bits above the highest-order set bit.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The number of leading zero bits, or the total bit count if the argument is zero.</returns>
         public static int NumberOfLeadingZeros(long i)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -73,9 +123,15 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Count the zero bits above the highest-order set bit.</summary>
+        /// <param name="u">The value.</param>
+        /// <returns>The number of leading zero bits, or the total bit count if the argument is zero.</returns>
         [CLSCompliant(false)]
         public static int NumberOfLeadingZeros(ulong u) => NumberOfLeadingZeros((long)u);
 
+        /// <summary>Count the zero bits below the lowest-order set bit.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The number of trailing zero bits, or the total bit count if the argument is zero.</returns>
         public static int NumberOfTrailingZeros(long i)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -87,11 +143,20 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Count the zero bits below the lowest-order set bit.</summary>
+        /// <param name="u">The value.</param>
+        /// <returns>The number of trailing zero bits, or the total bit count if the argument is zero.</returns>
         [CLSCompliant(false)]
         public static int NumberOfTrailingZeros(ulong u) => NumberOfTrailingZeros((long)u);
 
+        /// <summary>Count the bits that are set.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The number of one-bits.</returns>
         public static int PopCount(long i) => PopCount((ulong)i);
 
+        /// <summary>Count the bits that are set.</summary>
+        /// <param name="u">The value.</param>
+        /// <returns>The number of one-bits.</returns>
         [CLSCompliant(false)]
         public static int PopCount(ulong u)
         {
@@ -103,8 +168,14 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Reverse the order of the bits of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bits in reverse order.</returns>
         public static long Reverse(long i) => (long)Reverse((ulong)i);
 
+        /// <summary>Reverse the order of the bits of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bits in reverse order.</returns>
         [CLSCompliant(false)]
         public static ulong Reverse(ulong i)
         {
@@ -114,6 +185,9 @@ namespace Org.BouncyCastle.Utilities
             return ReverseBytes(i);
         }
 
+        /// <summary>Reverse the order of the bytes of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bytes in reverse order.</returns>
         public static long ReverseBytes(long i)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -123,6 +197,9 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Reverse the order of the bytes of a value.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>The value with its bytes in reverse order.</returns>
         [CLSCompliant(false)]
         public static ulong ReverseBytes(ulong i)
         {
@@ -136,6 +213,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the left.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         public static long RotateLeft(long i, int distance)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -145,6 +226,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the left.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         [CLSCompliant(false)]
         public static ulong RotateLeft(ulong i, int distance)
         {
@@ -155,6 +240,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the right.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         public static long RotateRight(long i, int distance)
         {
 #if NETCOREAPP3_0_OR_GREATER
@@ -164,6 +253,10 @@ namespace Org.BouncyCastle.Utilities
 #endif
         }
 
+        /// <summary>Rotate the bits of a value to the right.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="distance">The number of bit positions to rotate by.</param>
+        /// <returns>The rotated value.</returns>
         [CLSCompliant(false)]
         public static ulong RotateRight(ulong i, int distance)
         {
