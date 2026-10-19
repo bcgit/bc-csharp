@@ -15,6 +15,8 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
         private readonly int m_nlLength;
         private readonly char[] m_buf = new char[LineLength];
 
+        /// <summary>Create a new <see cref="PemWriter"/>.</summary>
+        /// <param name="writer">The writer.</param>
         public PemWriter(TextWriter writer)
         {
             m_writer = writer ?? throw new ArgumentNullException(nameof(writer));

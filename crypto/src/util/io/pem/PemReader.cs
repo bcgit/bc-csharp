@@ -16,6 +16,8 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
         private readonly StreamWriter m_textBuffer;
         private readonly Stack<int> m_pushback = new Stack<int>();
 
+        /// <summary>Create a new <see cref="PemReader"/>.</summary>
+        /// <param name="reader">The reader.</param>
         public PemReader(TextReader reader)
         {
             m_reader = reader ?? throw new ArgumentNullException(nameof(reader));
