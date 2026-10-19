@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         private readonly int m_signatureScheme;
         private readonly Tls13Verifier m_tls13Verifier;
 
+        /// <summary>Create a new <see cref="LegacyTls13Verifier"/>.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <param name="tls13Verifier">The tls 13 verifier.</param>
         public LegacyTls13Verifier(int signatureScheme, Tls13Verifier tls13Verifier)
         {
             if (!TlsUtilities.IsValidUint16(signatureScheme))
@@ -18,6 +21,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             m_tls13Verifier = tls13Verifier ?? throw new ArgumentNullException(nameof(tls13Verifier));
         }
 
+        /// <inheritdoc/>
         public TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned)
         {
             SignatureAndHashAlgorithm algorithm = digitallySigned.Algorithm;
@@ -27,6 +31,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsStreamVerifierImpl(m_tls13Verifier, digitallySigned.Signature);
         }
 
+        /// <inheritdoc/>
         public bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash) =>
             throw new NotSupportedException();
 

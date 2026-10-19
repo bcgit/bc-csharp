@@ -155,6 +155,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <inheritdoc/>
         public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
         {
             int blockSize = m_decryptCipher.GetBlockSize();
@@ -165,6 +166,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
+        /// <inheritdoc/>
         public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             plaintextLimit = System.Math.Min(plaintextLength, plaintextLimit);
@@ -177,12 +179,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return GetCiphertextLength(blockSize, macSize, maxPadding, innerPlaintextLimit);
         }
 
+        /// <inheritdoc/>
         // TODO[api] Remove
         public virtual int GetPlaintextLimit(int ciphertextLimit)
         {
             return GetPlaintextEncodeLimit(ciphertextLimit);
         }
 
+        /// <inheritdoc/>
         public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
         {
             int blockSize = m_decryptCipher.GetBlockSize();
@@ -193,6 +197,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_decryptUseInnerPlaintext ? 1 : 0);
         }
 
+        /// <inheritdoc/>
         public virtual int GetPlaintextEncodeLimit(int ciphertextLimit)
         {
             int blockSize = m_encryptCipher.GetBlockSize();
@@ -203,6 +208,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_encryptUseInnerPlaintext ? 1 : 0);
         }
 
+        /// <inheritdoc/>
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int offset, int len)
         {
@@ -291,6 +297,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
@@ -375,6 +382,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int offset, int len)
         {
@@ -479,16 +487,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, offset, plaintextLength, contentType);
         }
 
+        /// <inheritdoc/>
         public virtual void RekeyDecoder()
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public virtual void RekeyEncoder()
         {
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public virtual bool UsesOpaqueRecordType
         {
             get { return false; }

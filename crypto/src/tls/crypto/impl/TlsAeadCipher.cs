@@ -9,8 +9,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public class TlsAeadCipher
         : TlsCipher, TlsCipherExt
     {
+        /// <summary>The <c>AEAD_CCM</c> constant, with the value <c>1</c>.</summary>
         public const int AEAD_CCM = 1;
+        /// <summary>The <c>AEAD_CHACHA20_POLY1305</c> constant, with the value <c>2</c>.</summary>
         public const int AEAD_CHACHA20_POLY1305 = 2;
+        /// <summary>The <c>AEAD_GCM</c> constant, with the value <c>3</c>.</summary>
         public const int AEAD_GCM = 3;
 
         private const int NONCE_RFC5288 = 1;
@@ -135,6 +138,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
 #endif
         }
 
+        /// <inheritdoc/>
         public virtual int GetCiphertextDecodeLimit(int plaintextLimit)
         {
             int innerPlaintextLimit = plaintextLimit + (m_decryptUseInnerPlaintext ? 1 : 0);
@@ -142,6 +146,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit + m_macSize + m_record_iv_length;
         }
 
+        /// <inheritdoc/>
         public virtual int GetCiphertextEncodeLimit(int plaintextLength, int plaintextLimit)
         {
             plaintextLimit = System.Math.Min(plaintextLength, plaintextLimit);
@@ -151,9 +156,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit + m_macSize + m_record_iv_length;
         }
 
+        /// <inheritdoc/>
         // TODO[api] Remove
         public virtual int GetPlaintextLimit(int ciphertextLimit) => GetPlaintextEncodeLimit(ciphertextLimit);
 
+        /// <inheritdoc/>
         public virtual int GetPlaintextDecodeLimit(int ciphertextLimit)
         {
             int innerPlaintextLimit = ciphertextLimit - m_macSize - m_record_iv_length;
@@ -161,6 +168,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_decryptUseInnerPlaintext ? 1 : 0);
         }
 
+        /// <inheritdoc/>
         public virtual int GetPlaintextEncodeLimit(int ciphertextLimit)
         {
             int innerPlaintextLimit = ciphertextLimit - m_macSize - m_record_iv_length;
@@ -168,6 +176,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return innerPlaintextLimit - (m_encryptUseInnerPlaintext ? 1 : 0);
         }
 
+        /// <inheritdoc/>
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, byte[] plaintext, int plaintextOffset, int plaintextLength)
         {
@@ -252,6 +261,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext)
         {
@@ -331,6 +341,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual TlsDecodeResult DecodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion,
             byte[] ciphertext, int ciphertextOffset, int ciphertextLength)
         {
@@ -410,12 +421,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return new TlsDecodeResult(ciphertext, encryptionOffset, plaintextLength, contentType);
         }
 
+        /// <inheritdoc/>
         public virtual void RekeyDecoder() =>
             RekeyCipher(m_cryptoParams.SecurityParameters, m_decryptCipher, m_decryptNonce, !m_cryptoParams.IsServer);
 
+        /// <inheritdoc/>
         public virtual void RekeyEncoder() =>
             RekeyCipher(m_cryptoParams.SecurityParameters, m_encryptCipher, m_encryptNonce, m_cryptoParams.IsServer);
 
+        /// <inheritdoc/>
         public virtual bool UsesOpaqueRecordType => m_isTlsV13;
 
         protected virtual byte[] GetAdditionalData(long seqNo, short recordType, ProtocolVersion recordVersion,

@@ -51,11 +51,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <inheritdoc/>
         public virtual int Size
         {
             get { return m_macSize; }
         }
 
+        /// <inheritdoc/>
         public virtual byte[] CalculateMac(long seqNo, short type, byte[] msg, int msgOff, int msgLen)
         {
             return CalculateMac(seqNo, type, null, msg, msgOff, msgLen);
@@ -114,6 +116,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual byte[] CalculateMac(long seqNo, short type, ReadOnlySpan<byte> message)
         {
             return CalculateMac(seqNo, type, ReadOnlySpan<byte>.Empty, message);
@@ -166,6 +169,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual byte[] CalculateMacConstantTime(long seqNo, short type, byte[] msg, int msgOff, int msgLen,
             int fullLength, byte[] dummyData)
         {
