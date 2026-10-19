@@ -153,14 +153,14 @@ namespace Org.BouncyCastle.Crypto.Signers
 
             /*
              * If possible, avoid normalizing the point (to save a modular inversion in the curve field).
-             * 
+             *
              * There are ~cofactor elements of the curve field that reduce (modulo the group order) to 'r'.
              * If the cofactor is known and small, we generate those possible field values and project each
              * of them to the same "denominator" (depending on the particular projective coordinates in use)
              * as the calculated point.X. If any of the projected values matches point.X, then we have:
              *     (point.X / Denominator mod p) mod n == r
              * as required, and verification succeeds.
-             * 
+             *
              * Based on an original idea by Gregory Maxwell (https://github.com/gmaxwell), as implemented in
              * the libsecp256k1 project (https://github.com/bitcoin/secp256k1).
              */

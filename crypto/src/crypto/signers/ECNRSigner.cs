@@ -15,9 +15,9 @@ namespace Org.BouncyCastle.Crypto.Signers
     public class ECNRSigner
         : IDsa
     {
-        private bool			forSigning;
-        private ECKeyParameters	key;
-        private SecureRandom	random;
+        private bool forSigning;
+        private ECKeyParameters key;
+        private SecureRandom random;
 
         public virtual string AlgorithmName
         {
@@ -130,9 +130,9 @@ namespace Org.BouncyCastle.Crypto.Signers
          * @exception DataLengthException if the digest is longer than the key allows
          */
         public virtual bool VerifySignature(
-            byte[]		message,
-            BigInteger	r,
-            BigInteger	s)
+            byte[] message,
+            BigInteger r,
+            BigInteger s)
         {
             if (this.forSigning)
             {

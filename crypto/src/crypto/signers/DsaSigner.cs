@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Signers
             get { return "DSA"; }
         }
 
-        public virtual void Init(bool forSigning, ICipherParameters	parameters)
+        public virtual void Init(bool forSigning, ICipherParameters parameters)
         {
             if (forSigning)
             {

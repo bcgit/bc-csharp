@@ -39,9 +39,9 @@ namespace Org.BouncyCastle.Crypto.Signers
         /// <param name="digest">digest to use.</param>
         /// <param name="isImplicit">whether or not the trailer is implicit or gives the hash.</param>
         public Iso9796d2Signer(
-            IAsymmetricBlockCipher	cipher,
-            IDigest					digest,
-            bool					isImplicit)
+            IAsymmetricBlockCipher cipher,
+            IDigest digest,
+            bool isImplicit)
         {
             this.cipher = cipher;
             this.digest = digest;
@@ -450,7 +450,7 @@ namespace Org.BouncyCastle.Crypto.Signers
                 digest.DoFinal(hash, 0);
 
                 bool isOkay = true;
-                
+
                 for (int i = 0; i != hash.Length; i++)
                 {
                     block[off + i] ^= hash[i];
