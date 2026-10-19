@@ -123,6 +123,9 @@ namespace Org.BouncyCastle.Asn1.X509
             this.extensions = extensions;
         }
 
+        /// <summary>Generate the attribute certificate info from the state of the generator.</summary>
+        /// <returns>The attribute certificate info.</returns>
+        /// <exception cref="InvalidOperationException">A required field has not been set.</exception>
         public AttributeCertificateInfo GenerateAttributeCertificateInfo()
         {
             if ((serialNumber == null) || (signature == null)

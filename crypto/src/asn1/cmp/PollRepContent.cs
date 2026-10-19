@@ -84,10 +84,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /// <summary>Gets the count.</summary>
         public virtual int Count => m_certReqID.Length;
 
+        /// <summary>Get the certificate request ID of an entry.</summary>
+        /// <param name="index">The index of the entry.</param>
+        /// <returns>The certificate request ID.</returns>
         public virtual DerInteger GetCertReqID(int index) => m_certReqID[index];
 
+        /// <summary>Get the time in seconds after which to poll again, for an entry.</summary>
+        /// <param name="index">The index of the entry.</param>
+        /// <returns>The check-after time.</returns>
         public virtual DerInteger GetCheckAfter(int index) => m_checkAfter[index];
 
+        /// <summary>Get the reason of an entry.</summary>
+        /// <param name="index">The index of the entry.</param>
+        /// <returns>The reason, or null if there is none.</returns>
         public virtual PkiFreeText GetReason(int index) => m_reason[index];
 
         /**

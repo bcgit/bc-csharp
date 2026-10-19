@@ -27,6 +27,9 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the content type.</summary>
         public DerObjectIdentifier ContentType => m_contentType;
 
+        /// <summary>Get the content, parsed according to the tag.</summary>
+        /// <param name="tag">The tag of the content.</param>
+        /// <returns>The content, or null if there is none.</returns>
         public IAsn1Convertible GetContent(int tag)
         {
             if (null == m_content)

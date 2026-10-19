@@ -152,11 +152,17 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private static readonly string id_pkinit = IanaObjectIdentifiers.id_pkinit.GetID();
 
+        /// <summary>A Kerberos PKINIT key purpose identifier.</summary>
         public static readonly KeyPurposeID scSysNodeNumber = new KeyPurposeID(id_pkinit + ".0");
+        /// <summary>A Kerberos PKINIT key purpose identifier.</summary>
         public static readonly KeyPurposeID id_pkinit_authData = new KeyPurposeID(id_pkinit + ".1");
+        /// <summary>A Kerberos PKINIT key purpose identifier.</summary>
         public static readonly KeyPurposeID id_pkinit_DHKeyData = new KeyPurposeID(id_pkinit + ".2");
+        /// <summary>A Kerberos PKINIT key purpose identifier.</summary>
         public static readonly KeyPurposeID id_pkinit_rkeyData = new KeyPurposeID(id_pkinit + ".3");
+        /// <summary>A Kerberos PKINIT key purpose identifier.</summary>
         public static readonly KeyPurposeID id_kp_pkinitClientAuth = new KeyPurposeID(id_pkinit + ".4");
+        /// <summary>A Kerberos PKINIT key purpose identifier.</summary>
         public static readonly KeyPurposeID id_kp_pkinitKdc = new KeyPurposeID(id_pkinit + ".5");
 
         /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.1</c>.</summary>
@@ -195,8 +201,10 @@ namespace Org.BouncyCastle.Asn1.X509
         [Obsolete("Use 'id_kp_macAddress' instead")]
         public static readonly KeyPurposeID IdKPMacAddress = id_kp_macAddress;
 
+        /// <summary>A Kerberos PKINIT key purpose identifier.</summary>
         [Obsolete("Use 'id_kp_pkinitClientAuth' instead")]
         public static readonly KeyPurposeID keyPurposeClientAuth = id_kp_pkinitClientAuth;
+        /// <summary>A Kerberos PKINIT key purpose identifier.</summary>
         [Obsolete("Use 'id_kp_pkinitKdc' instead")]
         public static readonly KeyPurposeID keyPurposeKdc = id_kp_pkinitKdc;
     }

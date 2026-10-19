@@ -112,6 +112,9 @@ namespace Org.BouncyCastle.Asn1.X509
             this.subjectPublicKeyInfo = pubKeyInfo;
         }
 
+        /// <summary>Generate the TBSCertificate from the state of the generator.</summary>
+        /// <returns>The TBSCertificate.</returns>
+        /// <exception cref="InvalidOperationException">A required field has not been set.</exception>
         public TbsCertificateStructure GenerateTbsCertificate()
         {
             if ((serialNumber == null) || (signature == null) || (issuer == null) ||

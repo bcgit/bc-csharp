@@ -39,6 +39,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = seq;
         }
 
+        /// <summary>Return the certificate status entries as an array.</summary>
+        /// <returns>A new array holding the certificate status entries.</returns>
         public virtual CertStatus[] ToCertStatusArray() => m_content.MapElements(CertStatus.GetInstance);
 
         /**

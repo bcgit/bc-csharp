@@ -9,11 +9,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class RsassaPssParameters
         : Asn1Encodable
     {
+        /// <summary>The default hash algorithm, SHA-1.</summary>
         public readonly static AlgorithmIdentifier DefaultHashAlgorithm = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+        /// <summary>The default mask generation algorithm, MGF1 with SHA-1.</summary>
         public readonly static AlgorithmIdentifier DefaultMaskGenAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, DefaultHashAlgorithm);
+        /// <summary>The default mask generation function, MGF1 with SHA-1.</summary>
         [Obsolete("Use 'DefaultMaskGenAlgorithm' instead")]
         public readonly static AlgorithmIdentifier DefaultMaskGenFunction = DefaultMaskGenAlgorithm;
+        /// <summary>The default salt length, 20.</summary>
         public readonly static DerInteger DefaultSaltLength = DerInteger.ValueOf(20);
+        /// <summary>The default trailer field, 1.</summary>
         public readonly static DerInteger DefaultTrailerField = DerInteger.One;
 
         /// <summary>Return an <see cref="RsassaPssParameters"/> from the given object.</summary>

@@ -6,6 +6,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>Object identifiers used with the Certificate Management Protocol (CMP).</summary>
     public static class CmpObjectIdentifiers
     {
         // RFC 4210

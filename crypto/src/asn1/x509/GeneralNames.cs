@@ -55,6 +55,10 @@ namespace Org.BouncyCastle.Asn1.X509
         public static GeneralNames GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new GeneralNames(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the general names from the extension with the given type, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <param name="extOid">The extension type.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static GeneralNames FromExtensions(X509Extensions extensions, DerObjectIdentifier extOid) =>
             GetInstance(X509Extensions.GetExtensionParsedValue(extensions, extOid));
 

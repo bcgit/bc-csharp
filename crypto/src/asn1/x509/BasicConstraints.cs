@@ -39,6 +39,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public static BasicConstraints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new BasicConstraints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static BasicConstraints FromExtensions(X509Extensions extensions)
         {
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.BasicConstraints));
@@ -79,6 +82,8 @@ namespace Org.BouncyCastle.Asn1.X509
             m_pathLenConstraint = DerInteger.ValueOf(pathLenConstraint);
         }
 
+        /// <summary>Determine whether the subject is a CA.</summary>
+        /// <returns>true if the subject is a CA, false otherwise.</returns>
         public bool IsCA() => m_cA.IsTrue;
 
         /// <summary>Gets the path len constraint.</summary>

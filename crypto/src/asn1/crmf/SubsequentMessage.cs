@@ -6,7 +6,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
     public class SubsequentMessage
         : DerInteger
     {
+        /// <summary>The value indicating that the requester wishes to receive the certificate encrypted.</summary>
         public static readonly SubsequentMessage encrCert = new SubsequentMessage(0);
+        /// <summary>The value indicating that the requester wishes to respond to a challenge.</summary>
         public static readonly SubsequentMessage challengeResp = new SubsequentMessage(1);
 
         private SubsequentMessage(int value)

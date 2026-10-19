@@ -51,7 +51,9 @@ namespace Org.BouncyCastle.Asn1.Cms
         public static CmsAlgorithmProtection GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CmsAlgorithmProtection(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>The value indicating protection of a signature algorithm.</summary>
         public static readonly int Signature = 1;
+        /// <summary>The value indicating protection of a MAC algorithm.</summary>
         public static readonly int Mac = 2;
 
         private readonly AlgorithmIdentifier m_digestAlgorithm;

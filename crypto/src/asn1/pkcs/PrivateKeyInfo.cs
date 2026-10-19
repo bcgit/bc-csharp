@@ -44,6 +44,12 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class PrivateKeyInfo
         : Asn1Encodable
     {
+        /// <summary>Create a private key info.</summary>
+        /// <param name="privateKeyAlgorithm">The private key algorithm.</param>
+        /// <param name="privateKey">The encoded private key.</param>
+        /// <param name="attributes">The attributes, or null.</param>
+        /// <param name="publicKey">The public key, or null.</param>
+        /// <returns>The new private key info.</returns>
         public static PrivateKeyInfo Create(AlgorithmIdentifier privateKeyAlgorithm, Asn1OctetString privateKey,
             Asn1Set attributes, DerBitString publicKey)
         {
@@ -189,6 +195,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>Gets the private key length.</summary>
         public virtual int PrivateKeyLength => m_privateKey.GetOctetsLength();
 
+        /// <summary>Parse the encoded private key.</summary>
+        /// <returns>The ASN.1 object that the private key decodes to.</returns>
         public virtual Asn1Object ParsePrivateKey() => Asn1Object.FromByteArray(m_privateKey.GetOctets());
 
         /// <summary>For when the public key is an ASN.1 encoding.</summary>

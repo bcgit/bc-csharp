@@ -13,7 +13,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
          */
         public static readonly GeneralName NULL_NAME = new GeneralName(X509Name.GetInstance(DerSequence.Empty));
 
+        /// <summary>The value of the version field for CMP 1999 (RFC 2510).</summary>
         public static readonly int CMP_1999 = 1;
+        /// <summary>The value of the version field for CMP 2000 (RFC 4210).</summary>
         public static readonly int CMP_2000 = 2;
 
         /// <summary>Return an <see cref="PkiHeader"/> from the given object.</summary>

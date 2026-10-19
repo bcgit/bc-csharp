@@ -66,6 +66,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_content = new DerSequence(atvs);
         }
 
+        /// <summary>Return the controls as an array.</summary>
+        /// <returns>A new array holding the controls.</returns>
         public virtual AttributeTypeAndValue[] ToAttributeTypeAndValueArray() =>
             m_content.MapElements(AttributeTypeAndValue.GetInstance);
 

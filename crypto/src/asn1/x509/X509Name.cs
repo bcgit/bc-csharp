@@ -234,6 +234,9 @@ namespace Org.BouncyCastle.Asn1.X509
         */
         private static readonly IDictionary<DerObjectIdentifier, string> DefaultSymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        /// <summary>
+        /// A table translating object identifiers into their common symbols, following RFC 2253 with a few extras.
+        /// </summary>
         public static readonly IDictionary<DerObjectIdentifier, string> DefaultSymbols =
             CollectionUtilities.ReadOnly(DefaultSymbolsInternal);
 
@@ -242,6 +245,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         private static readonly IDictionary<DerObjectIdentifier, string> RFC2253SymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        /// <summary>A table translating object identifiers into their common symbols, following RFC 2253.</summary>
         public static readonly IDictionary<DerObjectIdentifier, string> RFC2253Symbols =
             CollectionUtilities.ReadOnly(RFC2253SymbolsInternal);
 
@@ -251,6 +255,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         private static readonly IDictionary<DerObjectIdentifier, string> RFC1779SymbolsInternal =
             new Dictionary<DerObjectIdentifier, string>();
+        /// <summary>A table translating object identifiers into their common symbols, following RFC 1779.</summary>
         public static readonly IDictionary<DerObjectIdentifier, string> RFC1779Symbols =
             CollectionUtilities.ReadOnly(RFC1779SymbolsInternal);
 
@@ -259,6 +264,7 @@ namespace Org.BouncyCastle.Asn1.X509
         */
         private static readonly IDictionary<string, DerObjectIdentifier> DefaultLookupInternal =
             new Dictionary<string, DerObjectIdentifier>(StringComparer.OrdinalIgnoreCase);
+        /// <summary>A table translating common symbols (case-insensitively) into object identifiers.</summary>
         public static readonly IDictionary<string, DerObjectIdentifier> DefaultLookup =
             CollectionUtilities.ReadOnly(DefaultLookupInternal);
 

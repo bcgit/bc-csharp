@@ -61,6 +61,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_timeStampAndCrls = seq.MapElements(TimeStampAndCrl.GetInstance);
         }
 
+        /// <summary>Return the time stamp and CRL entries as an array.</summary>
+        /// <returns>A new array holding the time stamp and CRL entries.</returns>
         public virtual TimeStampAndCrl[] ToTimeStampAndCrlArray() => (TimeStampAndCrl[])m_timeStampAndCrls.Clone();
 
         /// <remarks>

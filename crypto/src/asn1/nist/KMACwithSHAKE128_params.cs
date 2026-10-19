@@ -15,7 +15,9 @@ namespace Org.BouncyCastle.Asn1.Nist
     {
         private const int _DefaultOutputLength = 256;
 
+        /// <summary>The default output length, 256 bits.</summary>
         public static readonly DerInteger DefaultOutputLength = DerInteger.ValueOf(_DefaultOutputLength);
+        /// <summary>The default customization string, which is empty.</summary>
         public static readonly Asn1OctetString DefaultCustomizationString = DerOctetString.Empty;
 
         /// <summary>Return an <see cref="KMacWithShake128Params"/> from the given object.</summary>

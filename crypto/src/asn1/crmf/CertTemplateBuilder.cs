@@ -25,42 +25,67 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return this;
         }
 
+        /// <summary>Set the serial number.</summary>
+        /// <param name="ser">The serial number.</param>
+        /// <returns>This builder.</returns>
         public virtual CertTemplateBuilder SetSerialNumber(DerInteger ser)
         {
             serialNumber = ser;
             return this;
         }
 
+        /// <summary>Set the signing algorithm.</summary>
+        /// <param name="aid">The signing algorithm identifier.</param>
+        /// <returns>This builder.</returns>
         public virtual CertTemplateBuilder SetSigningAlg(AlgorithmIdentifier aid)
         {
             signingAlg = aid;
             return this;
         }
 
+        /// <summary>Set the issuer.</summary>
+        /// <param name="name">The issuer name.</param>
+        /// <returns>This builder.</returns>
         public virtual CertTemplateBuilder SetIssuer(X509Name name)
         {
             issuer = name;
             return this;
         }
 
+        /// <summary>Set the validity.</summary>
+        /// <param name="v">The validity.</param>
+        /// <returns>This builder.</returns>
         public virtual CertTemplateBuilder SetValidity(OptionalValidity v)
         {
             validity = v;
             return this;
         }
 
+        /// <summary>Set the validity from optional start and end times.</summary>
+        /// <param name="notBefore">The start of the validity period, or null.</param>
+        /// <param name="notAfter">The end of the validity period, or null.</param>
+        /// <returns>This builder.</returns>
         public virtual CertTemplateBuilder SetValidity(DateTime? notBefore, DateTime? notAfter) =>
             SetValidity(new OptionalValidity(CreateTime(notBefore), CreateTime(notAfter)));
 
+        /// <summary>Set the subject.</summary>
+        /// <param name="name">The subject name.</param>
+        /// <returns>This builder.</returns>
         public virtual CertTemplateBuilder SetSubject(X509Name name)
         {
             subject = name;
             return this;
         }
 
+        /// <summary>Set the subject public key info.</summary>
+        /// <param name="spki">The subject public key info.</param>
+        /// <returns>This builder.</returns>
         [Obsolete("Use 'SetSubjectPublicKeyInfo' instead")]
         public virtual CertTemplateBuilder SetPublicKey(SubjectPublicKeyInfo spki) => SetSubjectPublicKeyInfo(spki);
 
+        /// <summary>Set the subject public key info.</summary>
+        /// <param name="spki">The subject public key info.</param>
+        /// <returns>This builder.</returns>
         public virtual CertTemplateBuilder SetSubjectPublicKeyInfo(SubjectPublicKeyInfo spki)
         {
             publicKey = spki;
@@ -81,6 +106,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return this;
         }
 
+        /// <summary>Set the extensions.</summary>
+        /// <param name="extens">The extensions.</param>
+        /// <returns>This builder.</returns>
         public virtual CertTemplateBuilder SetExtensions(X509Extensions extens)
         {
             extensions = extens;

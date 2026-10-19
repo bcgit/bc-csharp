@@ -18,12 +18,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class PkiStatusEncodable
         : Asn1Encodable
     {
+        /// <summary>The status <c>granted</c>.</summary>
         public static readonly PkiStatusEncodable granted = new PkiStatusEncodable(PkiStatus.Granted);
+        /// <summary>The status <c>grantedWithMods</c>.</summary>
         public static readonly PkiStatusEncodable grantedWithMods = new PkiStatusEncodable(PkiStatus.GrantedWithMods);
+        /// <summary>The status <c>rejection</c>.</summary>
         public static readonly PkiStatusEncodable rejection = new PkiStatusEncodable(PkiStatus.Rejection);
+        /// <summary>The status <c>waiting</c>.</summary>
         public static readonly PkiStatusEncodable waiting = new PkiStatusEncodable(PkiStatus.Waiting);
+        /// <summary>The status <c>revocationWarning</c>.</summary>
         public static readonly PkiStatusEncodable revocationWarning = new PkiStatusEncodable(PkiStatus.RevocationWarning);
+        /// <summary>The status <c>revocationNotification</c>.</summary>
         public static readonly PkiStatusEncodable revocationNotification = new PkiStatusEncodable(PkiStatus.RevocationNotification);
+        /// <summary>The status for a key update warning.</summary>
         public static readonly PkiStatusEncodable keyUpdateWaiting = new PkiStatusEncodable(PkiStatus.KeyUpdateWarning);
 
         /// <summary>Return an <see cref="PkiStatusEncodable"/> from the given object.</summary>

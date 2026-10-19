@@ -39,6 +39,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = seq;
         }
 
+        /// <summary>Return the integers as an array.</summary>
+        /// <returns>A new array holding the integers.</returns>
         public virtual DerInteger[] ToIntegerArray() => m_content.MapElements(DerInteger.GetInstance);
 
         /**

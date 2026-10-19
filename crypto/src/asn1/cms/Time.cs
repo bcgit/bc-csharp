@@ -91,6 +91,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
+        /// <summary>Return the time as a <see cref="DateTime"/>.</summary>
+        /// <returns>The time value.</returns>
         public DateTime ToDateTime()
         {
             try

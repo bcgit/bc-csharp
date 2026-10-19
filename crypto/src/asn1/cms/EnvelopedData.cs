@@ -119,6 +119,11 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new BerSequence(v);
         }
 
+        /// <summary>Calculate the version number to use for enveloped data.</summary>
+        /// <param name="originatorInfo">The originator information, or null.</param>
+        /// <param name="recipientInfos">The recipient infos.</param>
+        /// <param name="unprotectedAttrs">The unprotected attributes, or null.</param>
+        /// <returns>The version number.</returns>
         public static int CalculateVersion(OriginatorInfo originatorInfo, Asn1Set recipientInfos,
             Asn1Set unprotectedAttrs)
         {

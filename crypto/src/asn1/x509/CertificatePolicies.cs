@@ -37,6 +37,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public static CertificatePolicies GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificatePolicies(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static CertificatePolicies FromExtensions(X509Extensions extensions) =>
             GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.CertificatePolicies));
 
@@ -73,6 +76,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public virtual PolicyInformation[] GetPolicyInformation() =>
             m_elements.MapElements(PolicyInformation.GetInstance);
 
+        /// <summary>Get the policy information for a policy.</summary>
+        /// <param name="policyIdentifier">The policy identifier.</param>
+        /// <returns>The policy information, or null if there is none.</returns>
         public virtual PolicyInformation GetPolicyInformation(DerObjectIdentifier policyIdentifier)
         {
             // Elements are known to be PolicyInformation by construction

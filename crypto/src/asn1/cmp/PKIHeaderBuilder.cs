@@ -36,89 +36,137 @@ namespace Org.BouncyCastle.Asn1.Cmp
             this.recipient = recipient ?? throw new ArgumentNullException(nameof(recipient));
         }
 
+        /// <summary>Set the message time.</summary>
+        /// <param name="time">The message time.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetMessageTime(Asn1GeneralizedTime time)
         {
             messageTime = time;
             return this;
         }
 
+        /// <summary>Set the protection algorithm.</summary>
+        /// <param name="aid">The protection algorithm identifier.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetProtectionAlg(AlgorithmIdentifier aid)
         {
             protectionAlg = aid;
             return this;
         }
 
+        /// <summary>Set the sender key identifier.</summary>
+        /// <param name="kid">The key identifier.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetSenderKID(byte[] kid)
         {
             return SetSenderKID(DerOctetString.FromContentsOptional(kid));
         }
 
+        /// <summary>Set the sender key identifier.</summary>
+        /// <param name="kid">The key identifier.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetSenderKID(Asn1OctetString kid)
         {
             senderKID = kid;
             return this;
         }
 
+        /// <summary>Set the recipient key identifier.</summary>
+        /// <param name="kid">The key identifier.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetRecipKID(byte[] kid)
         {
             return SetRecipKID(DerOctetString.FromContentsOptional(kid));
         }
 
+        /// <summary>Set the recipient key identifier.</summary>
+        /// <param name="kid">The key identifier.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetRecipKID(Asn1OctetString kid)
         {
             recipKID = kid;
             return this;
         }
 
+        /// <summary>Set the transaction ID.</summary>
+        /// <param name="tid">The transaction ID.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetTransactionID(byte[] tid)
         {
             return SetTransactionID(DerOctetString.FromContentsOptional(tid));
         }
 
+        /// <summary>Set the transaction ID.</summary>
+        /// <param name="tid">The transaction ID.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetTransactionID(Asn1OctetString tid)
         {
             transactionID = tid;
             return this;
         }
 
+        /// <summary>Set the sender nonce.</summary>
+        /// <param name="nonce">The nonce.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetSenderNonce(byte[] nonce)
         {
             return SetSenderNonce(DerOctetString.FromContentsOptional(nonce));
         }
 
+        /// <summary>Set the sender nonce.</summary>
+        /// <param name="nonce">The nonce.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetSenderNonce(Asn1OctetString nonce)
         {
             senderNonce = nonce;
             return this;
         }
 
+        /// <summary>Set the recipient nonce.</summary>
+        /// <param name="nonce">The nonce.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetRecipNonce(byte[] nonce)
         {
             return SetRecipNonce(DerOctetString.FromContentsOptional(nonce));
         }
 
+        /// <summary>Set the recipient nonce.</summary>
+        /// <param name="nonce">The nonce.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetRecipNonce(Asn1OctetString nonce)
         {
             recipNonce = nonce;
             return this;
         }
 
+        /// <summary>Set the free text.</summary>
+        /// <param name="text">The free text.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetFreeText(PkiFreeText text)
         {
             freeText = text;
             return this;
         }
 
+        /// <summary>Set the general info.</summary>
+        /// <param name="genInfo">A single info entry.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetGeneralInfo(InfoTypeAndValue genInfo)
         {
             return SetGeneralInfo(MakeGeneralInfoSeq(genInfo));
         }
 
+        /// <summary>Set the general info.</summary>
+        /// <param name="genInfos">The info entries.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetGeneralInfo(InfoTypeAndValue[] genInfos)
         {
             return SetGeneralInfo(MakeGeneralInfoSeq(genInfos));
         }
 
+        /// <summary>Set the general info.</summary>
+        /// <param name="seqOfInfoTypeAndValue">A sequence of info type and value entries.</param>
+        /// <returns>This builder.</returns>
         public virtual PkiHeaderBuilder SetGeneralInfo(Asn1Sequence seqOfInfoTypeAndValue)
         {
             generalInfo = seqOfInfoTypeAndValue;

@@ -53,6 +53,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = new DerSequence(revDetailsArray);
         }
 
+        /// <summary>Return the revocation details as an array.</summary>
+        /// <returns>A new array holding the revocation details.</returns>
         public virtual RevDetails[] ToRevDetailsArray() => m_content.MapElements(RevDetails.GetInstance);
 
         /**

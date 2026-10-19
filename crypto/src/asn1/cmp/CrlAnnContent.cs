@@ -48,6 +48,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = new DerSequence(crl);
         }
 
+        /// <summary>Return the CRLs as an array.</summary>
+        /// <returns>A new array holding the CRLs.</returns>
         public virtual CertificateList[] ToCertificateListArray() => m_content.MapElements(CertificateList.GetInstance);
 
         /**

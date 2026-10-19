@@ -88,14 +88,28 @@ namespace Org.BouncyCastle.Asn1.Cms
             throw new InvalidOperationException();
         }
 
+        /// <summary>Determine whether the table has an attribute of the given type.</summary>
+        /// <param name="oid">The attribute type.</param>
+        /// <returns>true if there is such an attribute, false otherwise.</returns>
         public bool HasAny(DerObjectIdentifier oid) => m_attributes.ContainsKey(oid);
 
+        /// <summary>
+        /// Return a dictionary mapping attribute types to the attributes (a single attribute or a list of them).
+        /// </summary>
+        /// <returns>A new dictionary.</returns>
         public IDictionary<DerObjectIdentifier, object> ToDictionary() => BuildAttributes(m_attributes, out var ignore);
 
+        /// <summary>Return the attributes as a vector.</summary>
+        /// <returns>A new vector.</returns>
         public Asn1EncodableVector ToAsn1EncodableVector() => Asn1EncodableVector.FromCollection(this);
 
+        /// <summary>Return the attributes as an <see cref="Attributes"/> object.</summary>
+        /// <returns>The attributes.</returns>
         public Attributes ToAttributes() => new Attributes(this);
 
+        /// <summary>Return a new table with the given attributes added.</summary>
+        /// <param name="attributes">The attributes to add.</param>
+        /// <returns>A new table, or this table if there is nothing to add.</returns>
         public AttributeTable Add(params Attribute[] attributes)
         {
             if (attributes == null || attributes.Length < 1)
@@ -115,6 +129,9 @@ namespace Org.BouncyCastle.Asn1.Cms
         public AttributeTable Add(DerObjectIdentifier attrType, Asn1Encodable attrValue) =>
             Add(new Attribute(attrType, new DerSet(attrValue)));
 
+        /// <summary>Return a new table with all the attributes of the given type removed.</summary>
+        /// <param name="attrType">The attribute type.</param>
+        /// <returns>A new table, or this table if it has no such attribute.</returns>
         public AttributeTable Remove(DerObjectIdentifier attrType)
         {
             int countOfType = CountAttributesOfType(m_attributes, attrType);
@@ -129,6 +146,10 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new AttributeTable(newAttributes, newCount);
         }
 
+        /// <summary>Try to get the first attribute of the given type.</summary>
+        /// <param name="oid">The attribute type.</param>
+        /// <param name="attribute">On success, the first such attribute.</param>
+        /// <returns>true if there is such an attribute, false otherwise.</returns>
         public bool TryGetFirst(DerObjectIdentifier oid, out Attribute attribute)
         {
             if (!m_attributes.TryGetValue(oid, out object existingValue))
@@ -253,11 +274,20 @@ namespace Org.BouncyCastle.Asn1.Cms
     /// <summary>Extension methods for <see cref="AttributeTable"/>.</summary>
     public static class AttributeTableExtensions
     {
+        /// <summary>Create an attribute table from a vector of attributes.</summary>
+        /// <param name="v">The vector.</param>
+        /// <returns>The new table.</returns>
         public static AttributeTable ToAttributeTable(this Asn1EncodableVector v) => new AttributeTable(v);
 
+        /// <summary>Create an attribute table from a collection of attributes.</summary>
+        /// <param name="attributes">The attributes.</param>
+        /// <returns>The new table.</returns>
         public static AttributeTable ToAttributeTable(this IReadOnlyCollection<Attribute> attributes) =>
             new AttributeTable(attributes);
 
+        /// <summary>Create an attribute table from a set of attributes.</summary>
+        /// <param name="s">The set.</param>
+        /// <returns>The new table.</returns>
         public static AttributeTable ToAttributeTable(this Asn1Set s) => new AttributeTable(s);
     }
 }

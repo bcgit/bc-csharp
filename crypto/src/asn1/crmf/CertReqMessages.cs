@@ -53,6 +53,8 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_content = new DerSequence(msgs);
         }
 
+        /// <summary>Return the certificate request messages as an array.</summary>
+        /// <returns>A new array holding the certificate request messages.</returns>
         public virtual CertReqMsg[] ToCertReqMsgArray() => m_content.MapElements(CertReqMsg.GetInstance);
 
         /**

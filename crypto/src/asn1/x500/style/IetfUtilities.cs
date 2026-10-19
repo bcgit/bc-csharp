@@ -152,6 +152,10 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             return c - 'A' + 10;
         }
 
+        /// <summary>Append a type and value to a buffer in the string form of RFC 4514 (RFC 2253).</summary>
+        /// <param name="buf">The buffer to append to.</param>
+        /// <param name="typeAndValue">The type and value.</param>
+        /// <param name="oidSymbols">A table of symbols for object identifiers.</param>
         public static void AppendTypeAndValue(StringBuilder buf, AttributeTypeAndValue typeAndValue,
             IDictionary<DerObjectIdentifier, string> oidSymbols)
         {
@@ -270,6 +274,9 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             }
         }
 
+        /// <summary>Convert a value to its string form.</summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The string form.</returns>
         public static string ValueToString(Asn1Encodable value)
         {
             StringBuilder buf = new StringBuilder(64);
@@ -277,6 +284,12 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             return buf.ToString();
         }
 
+        /// <summary>
+        /// Convert a string to the canonical form used for comparing names: lower case, with leading, trailing and
+        /// repeated spaces removed.
+        /// </summary>
+        /// <param name="s">The string.</param>
+        /// <returns>The canonical form.</returns>
         public static string Canonicalize(string s)
         {
             string value = s.ToLowerInvariant();
@@ -314,6 +327,9 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             return StripInternalSpaces(value);
         }
 
+        /// <summary>Convert a value to its canonical string form, used for comparing names.</summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The canonical form.</returns>
         public static string CanonicalString(Asn1Encodable value)
         {
             return Canonicalize(ValueToString(value));
@@ -331,6 +347,9 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             }
         }
 
+        /// <summary>Collapse runs of spaces within a string into single spaces.</summary>
+        /// <param name="str">The string.</param>
+        /// <returns>The string with repeated spaces collapsed.</returns>
         public static string StripInternalSpaces(string str)
         {
             if (str.IndexOf("  ") < 0)
@@ -354,6 +373,12 @@ namespace Org.BouncyCastle.Asn1.X500.Style
             return res.ToString();
         }
 
+        /// <summary>
+        /// Determine whether two relative distinguished names are equal, comparing the canonical forms of their values.
+        /// </summary>
+        /// <param name="rdn1">The first name.</param>
+        /// <param name="rdn2">The second name.</param>
+        /// <returns>true if they are equal, false otherwise.</returns>
         public static bool RdnAreEqual(Rdn rdn1, Rdn rdn2)
         {
             if (rdn1.Count != rdn2.Count)

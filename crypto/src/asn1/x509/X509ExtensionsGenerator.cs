@@ -90,6 +90,8 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <param name="extension">The extension.</param>
         public void AddExtension(Extension extension) => AddExtension(extension.ExtnID, extension.GetX509Extension());
 
+        /// <summary>Add all the extensions of a table of extensions.</summary>
+        /// <param name="extensions">The extensions to add.</param>
         public void AddExtensions(X509Extensions extensions)
         {
             foreach (var oid in extensions.GetExtensionOids())
@@ -103,15 +105,24 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <returns>An <c>X509Extensions</c> object</returns>
         public X509Extensions Generate() => new X509Extensions(m_ordering, m_extensions);
 
+        /// <summary>Get the extension of the given type.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <returns>The extension, or null if it is not present.</returns>
         public X509Extension GetExtension(DerObjectIdentifier oid) =>
             CollectionUtilities.GetValueOrNull(m_extensions, oid);
 
+        /// <summary>Determine whether an extension of the given type is present.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <returns>true if it is present, false otherwise.</returns>
         public bool HasExtension(DerObjectIdentifier oid) => m_extensions.ContainsKey(oid);
 
         /// <summary>Return true if there are no extension present in this generator.</summary>
         /// <returns>True if empty, false otherwise</returns>
         public bool IsEmpty => m_ordering.Count < 1;
 
+        /// <summary>Remove an extension.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <exception cref="InvalidOperationException">The extension is not present.</exception>
         public void RemoveExtension(DerObjectIdentifier oid)
         {
             if (!HasExtension(oid))
@@ -121,15 +132,34 @@ namespace Org.BouncyCastle.Asn1.X509
             m_extensions.Remove(oid);
         }
 
+        /// <summary>Replace an extension that is already present.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <param name="critical">true if the extension is critical, false otherwise.</param>
+        /// <param name="extValue">The new extension value.</param>
+        /// <exception cref="InvalidOperationException">The extension is not present.</exception>
         public void ReplaceExtension(DerObjectIdentifier oid, bool critical, IAsn1Convertible extValue) =>
             ReplaceExtension(oid, critical, extValue.ToAsn1Object());
 
+        /// <summary>Replace an extension that is already present.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <param name="critical">true if the extension is critical, false otherwise.</param>
+        /// <param name="extValue">The new extension value.</param>
+        /// <exception cref="InvalidOperationException">The extension is not present.</exception>
         public void ReplaceExtension(DerObjectIdentifier oid, bool critical, Asn1Encodable extValue) =>
             ReplaceExtension(oid, new X509Extension(critical, new DerOctetString(extValue)));
 
+        /// <summary>Replace an extension that is already present.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <param name="critical">true if the extension is critical, false otherwise.</param>
+        /// <param name="extValue">The new extension value.</param>
+        /// <exception cref="InvalidOperationException">The extension is not present.</exception>
         public void ReplaceExtension(DerObjectIdentifier oid, bool critical, byte[] extValue) =>
             ReplaceExtension(oid, new X509Extension(critical, DerOctetString.FromContents(extValue)));
 
+        /// <summary>Replace an extension that is already present.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <param name="x509Extension">The new extension.</param>
+        /// <exception cref="InvalidOperationException">The extension is not present.</exception>
         public void ReplaceExtension(DerObjectIdentifier oid, X509Extension x509Extension)
         {
             if (!HasExtension(oid))
@@ -138,6 +168,9 @@ namespace Org.BouncyCastle.Asn1.X509
             m_extensions[oid] = x509Extension;
         }
 
+        /// <summary>Replace an extension that is already present.</summary>
+        /// <param name="extension">The new extension.</param>
+        /// <exception cref="InvalidOperationException">The extension is not present.</exception>
         public void ReplaceExtension(Extension extension) =>
             ReplaceExtension(extension.ExtnID, extension.GetX509Extension());
 

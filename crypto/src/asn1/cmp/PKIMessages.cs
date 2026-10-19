@@ -58,6 +58,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = new DerSequence(msgs);
         }
 
+        /// <summary>Return the messages as an array.</summary>
+        /// <returns>A new array holding the messages.</returns>
         public virtual PkiMessage[] ToPkiMessageArray() => m_content.MapElements(PkiMessage.GetInstance);
 
         /**

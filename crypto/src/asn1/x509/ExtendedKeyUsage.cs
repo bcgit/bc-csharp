@@ -41,6 +41,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public static ExtendedKeyUsage GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ExtendedKeyUsage(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static ExtendedKeyUsage FromExtensions(X509Extensions extensions) =>
             GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.ExtendedKeyUsage));
 
@@ -101,6 +104,9 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.FromVector(v);
         }
 
+        /// <summary>Determine whether the extension contains a key purpose.</summary>
+        /// <param name="keyPurposeId">The key purpose.</param>
+        /// <returns>true if the key purpose is present, false otherwise.</returns>
         // TODO[api] Rename 'HasKeyPurposeID(KeyPurposeID keyPurposeID)'
         public bool HasKeyPurposeId(KeyPurposeID keyPurposeId) => m_usageTable.Contains(keyPurposeId);
 

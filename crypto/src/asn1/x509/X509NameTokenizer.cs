@@ -35,8 +35,12 @@ namespace Org.BouncyCastle.Asn1.X509
             m_index = oid.Length < 1 ? 0 : -1;
         }
 
+        /// <summary>Determine whether there are more tokens.</summary>
+        /// <returns>true if there are more tokens, false otherwise.</returns>
         public bool HasMoreTokens() => m_index < m_value.Length;
 
+        /// <summary>Get the next token.</summary>
+        /// <returns>The next token, or null if there are no more.</returns>
         public string NextToken()
         {
             int length = m_value.Length;
@@ -78,6 +82,8 @@ namespace Org.BouncyCastle.Asn1.X509
             return m_value.Substring(beginIndex, m_index - beginIndex);
         }
 
+        /// <summary>Get the remaining unparsed text.</summary>
+        /// <returns>The remaining text.</returns>
         public string Remaining()
         {
             int length = m_value.Length;

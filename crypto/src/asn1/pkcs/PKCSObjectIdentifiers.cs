@@ -210,6 +210,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>The object identifier <c>1.2.840.113549.1.9.21</c>.</summary>
         public static readonly DerObjectIdentifier Pkcs9AtLocalKeyID = pkcs_9.Branch("21");
 
+        /// <summary>The dotted-decimal string of the certificate types branch, <c>1.2.840.113549.1.9.22</c>.</summary>
         public const string CertTypes = Pkcs9 + ".22";
         private static readonly DerObjectIdentifier cert_types = pkcs_9.Branch("22");
 
@@ -218,6 +219,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>The object identifier <c>1.2.840.113549.1.9.22.2</c>.</summary>
         public static readonly DerObjectIdentifier SdsiCertificate = cert_types.Branch("2");
 
+        /// <summary>The dotted-decimal string of the CRL types branch, <c>1.2.840.113549.1.9.23</c>.</summary>
         public const string CrlTypes = Pkcs9 + ".23";
         private static readonly DerObjectIdentifier crl_types = pkcs_9.Branch("23");
 
@@ -500,6 +502,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         //       iso(1) member-body(2) us(840) rsadsi(113549) pkcs(1) 12 }
         //
         public const string Pkcs12 = "1.2.840.113549.1.12";
+        /// <summary>
+        /// The dotted-decimal string of the PKCS#12 bag types branch, <c>1.2.840.113549.1.12.10.1</c>.
+        /// </summary>
         public const string BagTypes = Pkcs12 + ".10.1";
 
         private static readonly DerObjectIdentifier pkcs_12_bag_types = new DerObjectIdentifier(BagTypes);
@@ -517,6 +522,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>The object identifier <c>1.2.840.113549.1.12.10.1.6</c>.</summary>
         public static readonly DerObjectIdentifier SafeContentsBag = pkcs_12_bag_types.Branch("6");
 
+        /// <summary>
+        /// The dotted-decimal string of the PKCS#12 password-based encryption branch, <c>1.2.840.113549.1.12.1</c>.
+        /// </summary>
         public const string Pkcs12PbeIds = Pkcs12 + ".1";
 
         private static readonly DerObjectIdentifier pkcs_12_pbe_ids = new DerObjectIdentifier(Pkcs12PbeIds);

@@ -19,7 +19,9 @@ namespace Org.BouncyCastle.Asn1.Crmf
     public class PkiPublicationInfo
         : Asn1Encodable
     {
+        /// <summary>The action value meaning that the certificate must not be published.</summary>
         public static readonly DerInteger DontPublish = DerInteger.Zero;
+        /// <summary>The action value meaning that the CA is requested to publish the certificate.</summary>
         public static readonly DerInteger PleasePublish = DerInteger.One;
 
         /// <summary>Return an <see cref="PkiPublicationInfo"/> from the given object.</summary>

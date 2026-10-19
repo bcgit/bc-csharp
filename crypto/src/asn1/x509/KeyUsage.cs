@@ -20,14 +20,23 @@ namespace Org.BouncyCastle.Asn1.X509
     public class KeyUsage
         : DerBitString
     {
+        /// <summary>The digitalSignature key usage bit.</summary>
         public const int DigitalSignature = (1 << 7);
+        /// <summary>The nonRepudiation (contentCommitment) key usage bit.</summary>
         public const int NonRepudiation   = (1 << 6);
+        /// <summary>The keyEncipherment key usage bit.</summary>
         public const int KeyEncipherment  = (1 << 5);
+        /// <summary>The dataEncipherment key usage bit.</summary>
         public const int DataEncipherment = (1 << 4);
+        /// <summary>The keyAgreement key usage bit.</summary>
         public const int KeyAgreement     = (1 << 3);
+        /// <summary>The keyCertSign key usage bit.</summary>
         public const int KeyCertSign      = (1 << 2);
+        /// <summary>The cRLSign key usage bit.</summary>
         public const int CrlSign          = (1 << 1);
+        /// <summary>The encipherOnly key usage bit.</summary>
         public const int EncipherOnly     = (1 << 0);
+        /// <summary>The decipherOnly key usage bit.</summary>
         public const int DecipherOnly     = (1 << 15);
 
         /// <summary>Return an <see cref="KeyUsage"/> from the given object.</summary>
@@ -45,6 +54,9 @@ namespace Org.BouncyCastle.Asn1.X509
             return new KeyUsage(DerBitString.GetInstance(obj));
         }
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static KeyUsage FromExtensions(X509Extensions extensions)
         {
             return GetInstance(X509Extensions.GetExtensionParsedValue(extensions, X509Extensions.KeyUsage));

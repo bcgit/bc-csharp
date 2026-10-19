@@ -27,6 +27,9 @@ namespace Org.BouncyCastle.Asn1.Ess
         private static readonly AlgorithmIdentifier V1HashAlgorithm =
             new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
 
+        /// <summary>Create a version 2 certificate ID from a version 1 certificate ID.</summary>
+        /// <param name="essCertID">The version 1 certificate ID.</param>
+        /// <returns>The new certificate ID.</returns>
         public static EssCertIDv2 From(EssCertID essCertID) =>
             new EssCertIDv2(V1HashAlgorithm, essCertID.CertHash, essCertID.IssuerSerial);
 

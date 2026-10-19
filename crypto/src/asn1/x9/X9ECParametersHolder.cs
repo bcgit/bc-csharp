@@ -16,8 +16,12 @@ namespace Org.BouncyCastle.Asn1.X9
         public X9ECParameters Parameters =>
             Objects.EnsureSingletonInitialized(ref m_parameters, this, self => self.CreateParameters());
 
+        /// <summary>Create the curve.</summary>
+        /// <returns>The curve.</returns>
         protected virtual ECCurve CreateCurve() => Parameters.Curve;
 
+        /// <summary>Create the parameters.</summary>
+        /// <returns>The parameters.</returns>
         protected abstract X9ECParameters CreateParameters();
     }
 }

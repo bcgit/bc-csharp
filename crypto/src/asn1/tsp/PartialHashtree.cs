@@ -74,6 +74,9 @@ namespace Org.BouncyCastle.Asn1.Tsp
         public virtual byte[][] GetValues() => m_values.MapElements(
             element => Arrays.Clone(Asn1OctetString.GetInstance(element).GetOctets()));
 
+        /// <summary>Determine whether the hash tree contains a hash.</summary>
+        /// <param name="hash">The hash.</param>
+        /// <returns>true if the hash is present, false otherwise.</returns>
         public virtual bool ContainsHash(byte[] hash)
         {
             foreach (Asn1OctetString octetString in m_values)

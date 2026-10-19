@@ -47,6 +47,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public static DeltaCertificateDescriptor GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new DeltaCertificateDescriptor(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Get the extension of this type from a table of extensions, if it is present.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static DeltaCertificateDescriptor FromExtensions(X509Extensions extensions)
         {
             return GetInstance(

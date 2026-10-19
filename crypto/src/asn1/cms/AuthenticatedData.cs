@@ -155,6 +155,9 @@ namespace Org.BouncyCastle.Asn1.Cms
             return new BerSequence(v);
         }
 
+        /// <summary>Calculate the version number to use for authenticated data.</summary>
+        /// <param name="origInfo">The originator information, or null.</param>
+        /// <returns>The version number.</returns>
         public static int CalculateVersion(OriginatorInfo origInfo) => CalculateVersionField(origInfo).IntValueExact;
 
         private static DerInteger CalculateVersionField(OriginatorInfo originatorInfo)

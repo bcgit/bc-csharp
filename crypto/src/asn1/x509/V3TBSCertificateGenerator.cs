@@ -147,6 +147,11 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>
+        /// Generate the TBSCertificate without the signature algorithm, as used when the signature is calculated before
+        /// the algorithm is known.
+        /// </summary>
+        /// <returns>The pre-TBSCertificate sequence.</returns>
         public Asn1Sequence GeneratePreTbsCertificate()
         {
             if (signature != null)
@@ -176,6 +181,9 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
+        /// <summary>Generate the TBSCertificate from the state of the generator.</summary>
+        /// <returns>The TBSCertificate.</returns>
+        /// <exception cref="InvalidOperationException">A required field has not been set.</exception>
         public TbsCertificateStructure GenerateTbsCertificate()
         {
             if ((serialNumber == null) || (signature == null) || (issuer == null) ||

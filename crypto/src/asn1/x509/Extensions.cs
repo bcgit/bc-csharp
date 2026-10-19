@@ -19,12 +19,24 @@ namespace Org.BouncyCastle.Asn1.X509
     public sealed class Extensions
         : Asn1Encodable
     {
+        /// <summary>Get an extension from a table of extensions.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <param name="oid">The extension type.</param>
+        /// <returns>The extension, or null if it is not present.</returns>
         public static Extension GetExtension(Extensions extensions, DerObjectIdentifier oid) =>
             extensions?.GetExtension(oid);
 
+        /// <summary>Get the parsed value of an extension from a table of extensions.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <param name="oid">The extension type.</param>
+        /// <returns>The parsed value, or null if the extension is not present.</returns>
         public static Asn1Object GetExtensionParsedValue(Extensions extensions, DerObjectIdentifier oid) =>
             extensions?.GetExtensionParsedValue(oid);
 
+        /// <summary>Get the value octets of an extension from a table of extensions.</summary>
+        /// <param name="extensions">The extensions, or null.</param>
+        /// <param name="oid">The extension type.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public static Asn1OctetString GetExtensionValue(Extensions extensions, DerObjectIdentifier oid) =>
             extensions?.GetExtensionValue(oid);
 
@@ -123,6 +135,12 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>
+        /// Determine whether these extensions are equivalent to another table, that is, hold equal extensions
+        /// regardless of order.
+        /// </summary>
+        /// <param name="other">The other extensions.</param>
+        /// <returns>true if they are equivalent, false otherwise.</returns>
         public bool Equivalent(Extensions other)
         {
             if (m_extensions.Count != other.m_extensions.Count)
@@ -140,18 +158,29 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Return the critical extension oids.</summary>
         public DerObjectIdentifier[] GetCriticalExtensionOids() => GetExtensionOids(true);
 
+        /// <summary>Get an extension.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <returns>The extension, or null if it is not present.</returns>
         public Extension GetExtension(DerObjectIdentifier oid) => CollectionUtilities.GetValueOrNull(m_extensions, oid);
 
         /// <summary>Return the extension oids.</summary>
         public DerObjectIdentifier[] GetExtensionOids() => m_ordering.ToArray();
 
+        /// <summary>Get the parsed value of an extension.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <returns>The parsed value, or null if the extension is not present.</returns>
         public Asn1Object GetExtensionParsedValue(DerObjectIdentifier oid) => GetExtension(oid)?.GetParsedValue();
 
+        /// <summary>Get the value octets of an extension.</summary>
+        /// <param name="oid">The extension type.</param>
+        /// <returns>The value, or null if the extension is not present.</returns>
         public Asn1OctetString GetExtensionValue(DerObjectIdentifier oid) => GetExtension(oid)?.ExtnValue;
 
         /// <summary>Return the non critical extension oids.</summary>
         public DerObjectIdentifier[] GetNonCriticalExtensionOids() => GetExtensionOids(false);
 
+        /// <summary>Determine whether any extension is marked critical.</summary>
+        /// <returns>true if there is a critical extension, false otherwise.</returns>
         public bool HasAnyCriticalExtensions()
         {
             foreach (var extension in m_extensions.Values)

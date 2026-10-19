@@ -41,6 +41,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = seq;
         }
 
+        /// <summary>Return the challenges as an array.</summary>
+        /// <returns>A new array holding the challenges.</returns>
         public virtual Challenge[] ToChallengeArray() => m_content.MapElements(Challenge.GetInstance);
 
         /**

@@ -19,13 +19,21 @@ namespace Org.BouncyCastle.Asn1.Misc
     public class NetscapeCertType
         : DerBitString
     {
+        /// <summary>The SSL client certificate type bit.</summary>
         public const int SslClient        = (1 << 7);
+        /// <summary>The SSL server certificate type bit.</summary>
         public const int SslServer        = (1 << 6);
+        /// <summary>The S/MIME certificate type bit.</summary>
         public const int Smime            = (1 << 5);
+        /// <summary>The object signing certificate type bit.</summary>
         public const int ObjectSigning    = (1 << 4);
+        /// <summary>The reserved certificate type bit.</summary>
         public const int Reserved         = (1 << 3);
+        /// <summary>The SSL CA certificate type bit.</summary>
         public const int SslCA            = (1 << 2);
+        /// <summary>The S/MIME CA certificate type bit.</summary>
         public const int SmimeCA          = (1 << 1);
+        /// <summary>The object signing CA certificate type bit.</summary>
         public const int ObjectSigningCA  = (1 << 0);
 
         /**

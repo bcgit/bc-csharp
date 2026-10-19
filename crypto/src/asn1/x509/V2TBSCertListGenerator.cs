@@ -86,6 +86,8 @@ namespace Org.BouncyCastle.Asn1.X509
             this.nextUpdate = nextUpdate;
         }
 
+        /// <summary>Add a CRL entry given as a ready-made sequence.</summary>
+        /// <param name="crlEntry">The CRL entry.</param>
         public void AddCrlEntry(Asn1Sequence crlEntry)
         {
             if (crlEntries == null)
@@ -96,16 +98,29 @@ namespace Org.BouncyCastle.Asn1.X509
             crlEntries.Add(crlEntry);
         }
 
+        /// <summary>Add a CRL entry with a revocation reason.</summary>
+        /// <param name="userCertificate">The serial number of the revoked certificate.</param>
+        /// <param name="revocationDate">The revocation date.</param>
+        /// <param name="reason">The reason code.</param>
         public void AddCrlEntry(DerInteger userCertificate, Asn1UtcTime revocationDate, int reason)
         {
             AddCrlEntry(userCertificate, new Time(revocationDate), reason);
         }
 
+        /// <summary>Add a CRL entry with a revocation reason.</summary>
+        /// <param name="userCertificate">The serial number of the revoked certificate.</param>
+        /// <param name="revocationDate">The revocation date.</param>
+        /// <param name="reason">The reason code.</param>
         public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason)
         {
             AddCrlEntry(userCertificate, revocationDate, reason, null);
         }
 
+        /// <summary>Add a CRL entry with a revocation reason and an invalidity date.</summary>
+        /// <param name="userCertificate">The serial number of the revoked certificate.</param>
+        /// <param name="revocationDate">The revocation date.</param>
+        /// <param name="reason">The reason code.</param>
+        /// <param name="invalidityDate">The date from which the certificate is considered invalid.</param>
         public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, int reason,
             Asn1GeneralizedTime invalidityDate)
         {
@@ -145,6 +160,10 @@ namespace Org.BouncyCastle.Asn1.X509
             AddCrlEntry(userCertificate, revocationDate, extensions);
         }
 
+        /// <summary>Add a CRL entry with extensions.</summary>
+        /// <param name="userCertificate">The serial number of the revoked certificate.</param>
+        /// <param name="revocationDate">The revocation date.</param>
+        /// <param name="extensions">The extensions of the entry.</param>
         public void AddCrlEntry(DerInteger userCertificate, Time revocationDate, X509Extensions extensions)
         {
             Asn1EncodableVector v = new Asn1EncodableVector(userCertificate, revocationDate);
@@ -167,6 +186,11 @@ namespace Org.BouncyCastle.Asn1.X509
             m_extensions = extensions;
         }
 
+        /// <summary>
+        /// Generate the TBSCertList without the signature algorithm, as used when the signature is calculated before
+        /// the algorithm is known.
+        /// </summary>
+        /// <returns>The pre-TBSCertList sequence.</returns>
         public Asn1Sequence GeneratePreTbsCertList()
         {
             if (signature != null)
@@ -179,6 +203,9 @@ namespace Org.BouncyCastle.Asn1.X509
             return GenerateTbsCertificateStructure();
         }
 
+        /// <summary>Generate the TBSCertList from the state of the generator.</summary>
+        /// <returns>The TBSCertList.</returns>
+        /// <exception cref="InvalidOperationException">A required field has not been set.</exception>
         public TbsCertificateList GenerateTbsCertList()
         {
             if ((signature == null) || (issuer == null) || (thisUpdate == null))

@@ -44,13 +44,22 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>Get the attribute of the given type.</summary>
+        /// <param name="oid">The attribute type.</param>
+        /// <returns>The attribute, or null if there is none.</returns>
         public AttributeX509 Get(DerObjectIdentifier oid) => CollectionUtilities.GetValueOrNull(m_attributes, oid);
 
+        /// <summary>Return a dictionary mapping attribute types to attributes.</summary>
+        /// <returns>A new dictionary.</returns>
         public IDictionary<DerObjectIdentifier, AttributeX509> ToDictionary()
         {
             return new Dictionary<DerObjectIdentifier, AttributeX509>(m_attributes);
         }
 
+        /// <summary>Get the attribute of the given type.</summary>
+        /// <param name="attributeType">The attribute type.</param>
+        /// <param name="attributeValue">The attribute value.</param>
+        /// <returns>The attribute, or null if there is none.</returns>
         public bool TryGet(DerObjectIdentifier attributeType, out AttributeX509 attributeValue) =>
             m_attributes.TryGetValue(attributeType, out attributeValue);
     }

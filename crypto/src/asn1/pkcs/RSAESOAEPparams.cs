@@ -9,10 +9,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class RsaesOaepParameters
         : Asn1Encodable
     {
+        /// <summary>The default hash algorithm, SHA-1.</summary>
         public static readonly AlgorithmIdentifier DefaultHashAlgorithm = new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1, DerNull.Instance);
+        /// <summary>The default mask generation algorithm, MGF1 with SHA-1.</summary>
         public static readonly AlgorithmIdentifier DefaultMaskGenAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdMgf1, DefaultHashAlgorithm);
+        /// <summary>The default mask generation function, MGF1 with SHA-1.</summary>
         [Obsolete("Use 'DefaultMaskGenAlgorithm' instead")]
         public static readonly AlgorithmIdentifier DefaultMaskGenFunction = DefaultMaskGenAlgorithm;
+        /// <summary>The default source of the encoding parameters, an empty string.</summary>
         public static readonly AlgorithmIdentifier DefaultPSourceAlgorithm = new AlgorithmIdentifier(PkcsObjectIdentifiers.IdPSpecified, DerOctetString.Empty);
 
         /// <summary>Return an <see cref="RsaesOaepParameters"/> from the given object.</summary>
@@ -119,6 +123,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>Gets the p source algorithm.</summary>
         public AlgorithmIdentifier PSourceAlgorithm => m_pSourceAlgorithm;
 
+        /// <summary>Return a copy of these parameters with the default source of the encoding parameters.</summary>
+        /// <returns>The new parameters.</returns>
         public RsaesOaepParameters WithDefaultPSource()
         {
             if (DefaultPSourceAlgorithm == m_pSourceAlgorithm)

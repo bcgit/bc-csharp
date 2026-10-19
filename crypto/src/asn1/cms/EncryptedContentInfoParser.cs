@@ -34,6 +34,9 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the content encryption algorithm.</summary>
         public AlgorithmIdentifier ContentEncryptionAlgorithm => m_contentEncryptionAlgorithm;
 
+        /// <summary>Get the encrypted content, parsed according to the tag.</summary>
+        /// <param name="tag">The tag of the content.</param>
+        /// <returns>The encrypted content, or null if there is none.</returns>
         public IAsn1Convertible GetEncryptedContent(int tag)
         {
             return Asn1Utilities.ParseContextBaseUniversal(m_encryptedContent, 0, false, tag);

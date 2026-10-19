@@ -53,6 +53,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_content = new DerSequence(itvs);
         }
 
+        /// <summary>Return the info type and value entries as an array.</summary>
+        /// <returns>A new array holding the info type and value entries.</returns>
         public virtual InfoTypeAndValue[] ToInfoTypeAndValueArray() =>
             m_content.MapElements(InfoTypeAndValue.GetInstance);
 

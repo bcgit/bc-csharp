@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class Pbkdf2Params
         : Asn1Encodable
     {
+        /// <summary>The default pseudo-random function, HMAC with SHA-1.</summary>
         public static readonly AlgorithmIdentifier DefaultPrf = new AlgorithmIdentifier(
             PkcsObjectIdentifiers.IdHmacWithSha1, DerNull.Instance);
 
