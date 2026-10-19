@@ -86,7 +86,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         }
 
         /// <summary>Create a new <see cref="CertStatus"/>.</summary>
-        /// <param name="tagNo">The tag no.</param>
+        /// <param name="tagNo">The tag number.</param>
         /// <param name="value">The value.</param>
         public CertStatus(int tagNo, Asn1Encodable value)
         {

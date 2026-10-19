@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Asn1
     {
         /// <summary>Create a new <see cref="DLBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public DLBitString(byte data, int padBits)
             : base(data, padBits)
         {
@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="DLBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public DLBitString(byte[] data, int padBits)
             : base(data, padBits)
         {
@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="DLBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public DLBitString(ReadOnlySpan<byte> data, int padBits)
             : base(data, padBits)
         {

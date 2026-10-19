@@ -49,8 +49,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly DerInteger m_p, m_g, m_l;
 
         /// <summary>Create a new <see cref="DHParameter"/>.</summary>
-        /// <param name="p">The p.</param>
-        /// <param name="g">The g.</param>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="g">The generator.</param>
         /// <param name="l">The l.</param>
         public DHParameter(BigInteger p, BigInteger g, int l)
         {

@@ -117,7 +117,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="DerBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public DerBitString(byte data, int padBits)
         {
             if (padBits > 7 || padBits < 0)
@@ -159,7 +159,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="DerBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public DerBitString(ReadOnlySpan<byte> data, int padBits)
         {
             if (padBits < 0 || padBits > 7)

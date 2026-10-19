@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="BerSequenceGenerator"/>.</summary>
         /// <param name="outStream">The output stream.</param>
-        /// <param name="tagNo">The tag no.</param>
+        /// <param name="tagNo">The tag number.</param>
         /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
         public BerSequenceGenerator(Stream outStream, int tagNo, bool isExplicit)
             : base(outStream, tagNo, isExplicit)

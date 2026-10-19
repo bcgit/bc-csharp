@@ -68,8 +68,8 @@ namespace Org.BouncyCastle.Asn1.Oiw
         }
 
         /// <summary>Create a new <see cref="ElGamalParameter"/>.</summary>
-        /// <param name="p">The p.</param>
-        /// <param name="g">The g.</param>
+        /// <param name="p">The prime modulus.</param>
+        /// <param name="g">The generator.</param>
         public ElGamalParameter(BigInteger p, BigInteger g)
         {
             m_p = new DerInteger(p);

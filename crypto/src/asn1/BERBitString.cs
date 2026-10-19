@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="BerBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public BerBitString(byte data, int padBits)
             : base(data, padBits)
         {
@@ -88,7 +88,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="BerBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public BerBitString(byte[] data, int padBits)
             : base(data, padBits)
         {
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="BerBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         /// <param name="segmentLimit">The segment limit.</param>
         [Obsolete("Use version without segmentLimit (which is ignored anyway)")]
         public BerBitString(byte[] data, int padBits, int segmentLimit)
@@ -115,7 +115,7 @@ namespace Org.BouncyCastle.Asn1
 
         /// <summary>Create a new <see cref="BerBitString"/>.</summary>
         /// <param name="data">The data.</param>
-        /// <param name="padBits">The pad bits.</param>
+        /// <param name="padBits">The number of unused bits in the last octet.</param>
         public BerBitString(ReadOnlySpan<byte> data, int padBits)
             : base(data, padBits)
         {

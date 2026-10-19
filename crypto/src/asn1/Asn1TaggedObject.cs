@@ -101,7 +101,7 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Return an <see cref="Asn1TaggedObject"/> from a tagged object.</summary>
         /// <param name="obj">The object.</param>
         /// <param name="tagClass">The tag class.</param>
-        /// <param name="tagNo">The tag no.</param>
+        /// <param name="tagNo">The tag number.</param>
         /// <returns>The <see cref="Asn1TaggedObject"/>.</returns>
         public static Asn1TaggedObject GetInstance(object obj, int tagClass, int tagNo) =>
             Asn1Utilities.CheckTag(CheckInstance(obj), tagClass, tagNo);
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Return an <see cref="Asn1TaggedObject"/> from a tagged object.</summary>
         /// <param name="taggedObject">The tagged object.</param>
         /// <param name="tagClass">The tag class.</param>
-        /// <param name="tagNo">The tag no.</param>
+        /// <param name="tagNo">The tag number.</param>
         /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
         /// <returns>The <see cref="Asn1TaggedObject"/>.</returns>
         public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
@@ -164,7 +164,7 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Return an <see cref="Asn1TaggedObject"/> from the given element, if it is one.</summary>
         /// <param name="element">The element.</param>
         /// <param name="tagClass">The tag class.</param>
-        /// <param name="tagNo">The tag no.</param>
+        /// <param name="tagNo">The tag number.</param>
         /// <returns>The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1TaggedObject GetOptional(Asn1Encodable element, int tagClass, int tagNo)
         {
@@ -212,7 +212,7 @@ namespace Org.BouncyCastle.Asn1
         /// <summary>Create a new <see cref="Asn1TaggedObject"/>.</summary>
         /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
         /// <param name="tagClass">The tag class.</param>
-        /// <param name="tagNo">The tag no.</param>
+        /// <param name="tagNo">The tag number.</param>
         /// <param name="obj">The object.</param>
         protected Asn1TaggedObject(bool isExplicit, int tagClass, int tagNo, Asn1Encodable obj)
             : this(isExplicit ? DeclaredExplicit : DeclaredImplicit, tagClass, tagNo, obj)
