@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Collect(Span<byte> output)
         {
             result.CopyTo(output);
@@ -50,6 +51,7 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <inheritdoc/>
         public int GetMaxResultLength() => result.Length;
     }
 }

@@ -89,6 +89,7 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             Check.OutputLength(output, input.Length, "output buffer too short");

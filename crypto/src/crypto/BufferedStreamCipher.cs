@@ -9,24 +9,33 @@ namespace Org.BouncyCastle.Crypto
     {
         private readonly IStreamCipher m_cipher;
 
+        /// <summary>Create a new <see cref="BufferedStreamCipher"/>.</summary>
+        /// <param name="cipher">The cipher.</param>
         public BufferedStreamCipher(IStreamCipher cipher)
         {
             m_cipher = cipher ?? throw new ArgumentNullException(nameof(cipher));
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName => m_cipher.AlgorithmName;
 
+        /// <inheritdoc/>
         public override void Init(bool forEncryption, ICipherParameters parameters) =>
             m_cipher.Init(forEncryption, ParameterUtilities.IgnoreRandom(parameters));
 
+        /// <inheritdoc/>
         public override int GetBlockSize() => 0;
 
+        /// <inheritdoc/>
         public override int GetOutputSize(int inputLen) => inputLen;
 
+        /// <inheritdoc/>
         public override int GetUpdateOutputSize(int inputLen) => inputLen;
 
+        /// <inheritdoc/>
         public override byte[] ProcessByte(byte input) => new byte[]{ m_cipher.ReturnByte(input) };
 
+        /// <inheritdoc/>
         public override int ProcessByte(byte input, byte[] output, int outOff)
         {
             if (outOff >= output.Length)
@@ -37,6 +46,7 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int ProcessByte(byte input, Span<byte> output)
         {
             output[0] = m_cipher.ReturnByte(input);
@@ -44,6 +54,7 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <inheritdoc/>
         public override byte[] ProcessBytes(byte[] input, int inOff, int length)
         {
             if (length < 1)
@@ -54,6 +65,7 @@ namespace Org.BouncyCastle.Crypto
             return output;
         }
 
+        /// <inheritdoc/>
         public override int ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             if (length < 1)
@@ -64,6 +76,7 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output)
         {
             m_cipher.ProcessBytes(input, output);
@@ -71,6 +84,7 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <inheritdoc/>
         public override byte[] DoFinal()
         {
             m_cipher.Reset();
@@ -78,6 +92,7 @@ namespace Org.BouncyCastle.Crypto
             return Array.Empty<byte>();
         }
 
+        /// <inheritdoc/>
         public override byte[] DoFinal(byte[] input, int inOff, int length)
         {
             if (length < 1)
@@ -90,12 +105,14 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             m_cipher.Reset();
             return 0;
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(ReadOnlySpan<byte> input, Span<byte> output)
         {
             m_cipher.ProcessBytes(input, output);
@@ -104,6 +121,7 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <inheritdoc/>
         public override void Reset()
         {
             m_cipher.Reset();

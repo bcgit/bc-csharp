@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Crypto
         private bool m_uninitialised = true;
         private int m_defaultStrength;
 
+        /// <summary>Create a new <see cref="CipherKeyGenerator"/>.</summary>
         public CipherKeyGenerator()
         {
         }
@@ -26,6 +27,7 @@ namespace Org.BouncyCastle.Crypto
             m_defaultStrength = defaultStrength;
         }
 
+        /// <summary>Gets the default strength.</summary>
         public int DefaultStrength => m_defaultStrength;
 
         /// <summary>Initialise the key generator.</summary>

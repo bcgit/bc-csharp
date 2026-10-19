@@ -50,8 +50,10 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <summary>Gets the password.</summary>
         public virtual byte[] Password => Arrays.Clone(mPassword);
 
+        /// <summary>Gets the salt.</summary>
         public virtual byte[] Salt => Arrays.Clone(mSalt);
 
         /**

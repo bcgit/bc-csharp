@@ -10,18 +10,25 @@ namespace Org.BouncyCastle.Crypto
         [Obsolete("Will be removed")]
         protected static readonly byte[] EmptyBuffer = new byte[0];
 
+        /// <inheritdoc/>
         public abstract string AlgorithmName { get; }
 
+        /// <inheritdoc/>
         public abstract void Init(bool forEncryption, ICipherParameters parameters);
 
+        /// <inheritdoc/>
         public abstract int GetBlockSize();
 
+        /// <inheritdoc/>
         public abstract int GetOutputSize(int inputLen);
 
+        /// <inheritdoc/>
         public abstract int GetUpdateOutputSize(int inputLen);
 
+        /// <inheritdoc/>
         public abstract byte[] ProcessByte(byte input);
 
+        /// <inheritdoc/>
         public virtual int ProcessByte(byte input, byte[] output, int outOff)
         {
             byte[] outBytes = ProcessByte(input);
@@ -34,16 +41,21 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public abstract int ProcessByte(byte input, Span<byte> output);
 #endif
 
+        /// <inheritdoc/>
         public virtual byte[] ProcessBytes(byte[] input) => ProcessBytes(input, 0, input.Length);
 
+        /// <inheritdoc/>
         public abstract byte[] ProcessBytes(byte[] input, int inOff, int length);
 
+        /// <inheritdoc/>
         public virtual int ProcessBytes(byte[] input, byte[] output, int outOff) =>
             ProcessBytes(input, 0, input.Length, output, outOff);
 
+        /// <inheritdoc/>
         public virtual int ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             byte[] outBytes = ProcessBytes(input, inOff, length);
@@ -56,15 +68,20 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public abstract int ProcessBytes(ReadOnlySpan<byte> input, Span<byte> output);
 #endif
 
+        /// <inheritdoc/>
         public abstract byte[] DoFinal();
 
+        /// <inheritdoc/>
         public virtual byte[] DoFinal(byte[] input) => DoFinal(input, 0, input.Length);
 
+        /// <inheritdoc/>
         public abstract byte[] DoFinal(byte[] input, int inOff, int length);
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
             byte[] outBytes = DoFinal();
@@ -74,9 +91,11 @@ namespace Org.BouncyCastle.Crypto
             return outBytes.Length;
         }
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] input, byte[] output, int outOff) =>
             DoFinal(input, 0, input.Length, output, outOff);
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             int len = ProcessBytes(input, inOff, length, output, outOff);
@@ -85,8 +104,10 @@ namespace Org.BouncyCastle.Crypto
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public abstract int DoFinal(Span<byte> output);
 
+        /// <inheritdoc/>
         public virtual int DoFinal(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int len = ProcessBytes(input, output);
@@ -95,6 +116,7 @@ namespace Org.BouncyCastle.Crypto
         }
 #endif
 
+        /// <inheritdoc/>
         public abstract void Reset();
 
         internal static int GetFullBlocksSize(int totalSize, int blockSize)
