@@ -10,6 +10,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.X509
 {
+    /// <summary>Parser for X.509 CRLs, in DER, PEM or PKCS#7 form.</summary>
     public class X509CrlParser
     {
         private static readonly PemParser PemCrlParser = new PemParser("CRL");
@@ -18,6 +19,7 @@ namespace Org.BouncyCastle.X509
         private int sCrlDataObjectCount;
         private Stream currentCrlStream;
 
+        /// <summary>Create a parser.</summary>
         public X509CrlParser()
         {
         }
@@ -167,6 +169,8 @@ namespace Org.BouncyCastle.X509
         /// </remarks>
         public IList<X509Crl> ReadCrls(Stream inStream) => new List<X509Crl>(ParseCrls(inStream));
 
+        /// <summary>Returns the CRLs read from <paramref name="inStream"/>, one at a time as they are read.</summary>
+        /// <param name="inStream">The stream to read from.</param>
         public IEnumerable<X509Crl> ParseCrls(Stream inStream)
         {
             X509Crl crl;

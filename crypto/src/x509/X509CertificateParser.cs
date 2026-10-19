@@ -164,6 +164,9 @@ namespace Org.BouncyCastle.X509
         public IList<X509Certificate> ReadCertificates(Stream inStream) =>
             new List<X509Certificate>(ParseCertificates(inStream));
 
+        /// <summary>Returns the certificates read from <paramref name="inStream"/>, one at a time as they are read.
+        /// </summary>
+        /// <param name="inStream">The stream to read from.</param>
         public IEnumerable<X509Certificate> ParseCertificates(Stream inStream)
         {
             X509Certificate cert;

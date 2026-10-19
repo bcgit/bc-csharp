@@ -394,6 +394,11 @@ namespace Org.BouncyCastle.X509
             return new X509Certificate(new X509CertificateStructure(tbsCertificate, sigAlgID, signature));
         }
 
+        /// <summary>Generate a certificate that has not been signed.</summary>
+        /// <remarks>
+        /// The signature algorithm is set to the unsigned marker algorithm and the signature is empty.
+        /// </remarks>
+        /// <returns>The unsigned certificate.</returns>
         public X509Certificate GenerateUnsigned()
         {
             var sigAlgID = new AlgorithmIdentifier(X509ObjectIdentifiers.id_alg_unsigned);
