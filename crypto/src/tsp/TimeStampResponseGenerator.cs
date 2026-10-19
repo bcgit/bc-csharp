@@ -11,9 +11,12 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Tsp
 {
-    /**
-     * Generator for RFC 3161 Time Stamp Responses.
-     */
+    /// <summary>Generator for RFC 3161 Time Stamp Responses.</summary>
+    /// <remarks>
+    /// The generator checks each request against the accepted algorithms, policies and extensions it was configured
+    /// with. A request that fails the checks, or a missing time source, produces a rejection response rather than an
+    /// exception.
+    /// </remarks>
     public class TimeStampResponseGenerator
     {
         private PkiStatus status;
@@ -26,6 +29,9 @@ namespace Org.BouncyCastle.Tsp
         private IList<string> acceptedPolicies;
         private IList<string> acceptedExtensions;
 
+        /// <summary>Create a generator that accepts any policy and extension.</summary>
+        /// <param name="tokenGenerator">The generator used to create the time-stamp tokens.</param>
+        /// <param name="acceptedAlgorithms">The object identifiers of the accepted digest algorithms.</param>
         public TimeStampResponseGenerator(
             TimeStampTokenGenerator tokenGenerator,
             IList<string> acceptedAlgorithms)
@@ -33,6 +39,12 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
+        /// <summary>Create a generator that accepts any extension.</summary>
+        /// <param name="tokenGenerator">The generator used to create the time-stamp tokens.</param>
+        /// <param name="acceptedAlgorithms">The object identifiers of the accepted digest algorithms.</param>
+        /// <param name="acceptedPolicy">
+        /// The object identifiers of the accepted policies, or null to accept any.
+        /// </param>
         public TimeStampResponseGenerator(
             TimeStampTokenGenerator tokenGenerator,
             IList<string> acceptedAlgorithms,
@@ -41,6 +53,15 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
+        /// <summary>Create a generator.</summary>
+        /// <param name="tokenGenerator">The generator used to create the time-stamp tokens.</param>
+        /// <param name="acceptedAlgorithms">The object identifiers of the accepted digest algorithms.</param>
+        /// <param name="acceptedPolicies">
+        /// The object identifiers of the accepted policies, or null to accept any.
+        /// </param>
+        /// <param name="acceptedExtensions">
+        /// The object identifiers of the accepted request extensions, or null to accept any.
+        /// </param>
         public TimeStampResponseGenerator(
             TimeStampTokenGenerator tokenGenerator,
             IList<string> acceptedAlgorithms,
@@ -83,21 +104,16 @@ namespace Org.BouncyCastle.Tsp
             return PkiStatusInfo.GetInstance(new DerSequence(v));
         }
 
-        /**
-         * Return an appropriate TimeStampResponse.
-         * <p>
-         * If genTime is null a timeNotAvailable error response will be returned.
-         *
-         * @param request the request this response is for.
-         * @param serialNumber serial number for the response token.
-         * @param genTime generation time for the response token.
-         * @param provider provider to use for signature calculation.
-         * @return
-         * @throws NoSuchAlgorithmException
-         * @throws NoSuchProviderException
-         * @throws TSPException
-         * </p>
-         */
+        /// <summary>Return an appropriate TimeStampResponse.</summary>
+        /// <remarks>
+        /// If genTime is null a timeNotAvailable error response will be returned. If the request is not acceptable a
+        /// rejection response carrying the failure information will be returned.
+        /// </remarks>
+        /// <param name="request">The request this response is for.</param>
+        /// <param name="serialNumber">The serial number for the response token.</param>
+        /// <param name="genTime">The generation time for the response token.</param>
+        /// <returns>The <see cref="TimeStampResponse"/>.</returns>
+        /// <exception cref="TspException">The token or response could not be created.</exception>
         public TimeStampResponse Generate(TimeStampRequest request, BigInteger serialNumber, DateTime? genTime)
         {
             TimeStampResp resp;
@@ -151,7 +167,17 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-        // TODO[api] Remove '?' from genTime?
+        /// <summary>Return a granted TimeStampResponse with a caller-supplied status string.</summary>
+        /// <remarks>
+        /// As for <see cref="Generate"/>, a null genTime or an unacceptable request results in a rejection response.
+        /// </remarks>
+        /// <param name="request">The request this response is for.</param>
+        /// <param name="serialNumber">The serial number for the response token.</param>
+        /// <param name="genTime">The generation time for the response token.</param>
+        /// <param name="statusString">The status string to include in a granted response.</param>
+        /// <param name="additionalExtensions">Extensions to add to the token, or null for none.</param>
+        /// <returns>The <see cref="TimeStampResponse"/>.</returns>
+        /// <exception cref="TspException">The token or response could not be created.</exception>
         public TimeStampResponse GenerateGrantedResponse(TimeStampRequest request, BigInteger serialNumber,
             DateTime? genTime, string statusString, X509Extensions additionalExtensions)
         {
@@ -225,15 +251,12 @@ namespace Org.BouncyCastle.Tsp
             return GenerateFailResponse(PkiStatus.Rejection, PkiFailureInfo.SystemFailure, exception.Message);
         }
 
-        /**
-         * Generate a TimeStampResponse with chosen status and FailInfoField.
-         *
-         * @param status the PKIStatus to set.
-         * @param failInfoField the FailInfoField to set.
-         * @param statusString an optional string describing the failure.
-         * @return a TimeStampResponse with a failInfoField and optional statusString
-         * @throws TSPException in case the response could not be created
-         */
+        /// <summary>Generate a TimeStampResponse with chosen status and FailInfoField.</summary>
+        /// <param name="status">The PKIStatus to set.</param>
+        /// <param name="failInfoField">The FailInfoField to set.</param>
+        /// <param name="statusString">An optional string describing the failure.</param>
+        /// <returns>A <see cref="TimeStampResponse"/> with a failInfoField and optional statusString.</returns>
+        /// <exception cref="TspException">The response could not be created.</exception>
         public TimeStampResponse GenerateFailResponse(PkiStatus status, int failInfoField, string statusString)
         {
             this.status = status;

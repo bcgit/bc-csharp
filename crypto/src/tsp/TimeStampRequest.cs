@@ -59,6 +59,9 @@ namespace Org.BouncyCastle.Tsp
 
         private readonly TimeStampReq m_req;
 
+        /// <summary>Create from an existing ASN.1 TimeStampReq structure.</summary>
+        /// <param name="req">The ASN.1 structure.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="req"/> is null.</exception>
         public TimeStampRequest(TimeStampReq req)
         {
             m_req = req ?? throw new ArgumentNullException(nameof(req));
@@ -82,38 +85,45 @@ namespace Org.BouncyCastle.Tsp
         {
         }
 
+        /// <summary>Return the underlying ASN.1 structure.</summary>
         public TimeStampReq TimeStampReq => m_req;
 
+        /// <summary>Gets the version of the request.</summary>
         public int Version => m_req.Version.IntValueExact;
 
+        /// <summary>Gets the message imprint (hash algorithm and digest) to be time-stamped.</summary>
         public MessageImprint MessageImprint => m_req.MessageImprint;
 
+        /// <summary>Gets the hash algorithm of the message imprint.</summary>
         public AlgorithmIdentifier MessageImprintAlgID => MessageImprint.HashAlgorithm;
 
         [Obsolete("Will be removed")]
         public string MessageImprintAlgOid => MessageImprintAlgID.Algorithm.Id;
 
+        /// <summary>Gets the digest of the message imprint.</summary>
         public Asn1OctetString MessageImprintDigest => MessageImprint.HashedMessage;
 
+        /// <summary>Return the digest of the message imprint.</summary>
         public byte[] GetMessageImprintDigest() => MessageImprint.GetHashedMessage();
 
         [Obsolete("Will be removed")]
         public string ReqPolicy => m_req.ReqPolicy?.Id;
 
         // TODO[api] Change this to return the DerInteger?
+        /// <summary>Gets the nonce included in the request, or null if there is none.</summary>
         public BigInteger Nonce => m_req.Nonce?.Value;
 
+        /// <summary>Gets whether the requestor asked for the TSA's certificate to be in the response.</summary>
         public bool CertReq => (m_req.CertReq ?? DerBoolean.False).IsTrue;
 
-        /**
-         * Validate the timestamp request, checking the digest to see if it is of an
-         * accepted type and whether it is of the correct length for the algorithm specified.
-         *
-         * @param algorithms a set of string OIDS giving accepted algorithms.
-         * @param policies if non-null a set of policies we are willing to sign under.
-         * @param extensions if non-null a set of extensions we are willing to accept.
-         * @throws TspException if the request is invalid, or processing fails.
-         */
+        /// <summary>
+        /// Validate the timestamp request, checking the digest to see if it is of an accepted type and whether it is
+        /// of the correct length for the algorithm specified.
+        /// </summary>
+        /// <param name="algorithms">A list of string OIDs giving accepted algorithms.</param>
+        /// <param name="policies">If non-null, a list of policies we are willing to sign under.</param>
+        /// <param name="extensions">If non-null, a list of extensions we are willing to accept.</param>
+        /// <exception cref="TspValidationException">The request is invalid.</exception>
         // TODO[api] These should all hold DerObjectIdentifier
         public void Validate(IList<string> algorithms, IList<string> policies, IList<string> extensions)
         {
@@ -154,8 +164,10 @@ namespace Org.BouncyCastle.Tsp
 
         internal X509Extensions Extensions => m_req.Extensions;
 
+        /// <summary>Gets whether the request carries any extensions.</summary>
         public virtual bool HasExtensions => Extensions != null;
 
+        /// <summary>Return the object identifiers of the extensions in the request.</summary>
         public virtual IList<DerObjectIdentifier> GetExtensionOids() => TspUtil.GetExtensionOids(Extensions);
 
         protected override X509Extensions GetX509Extensions() => Extensions;

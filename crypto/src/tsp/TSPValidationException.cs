@@ -17,13 +17,21 @@ namespace Org.BouncyCastle.Tsp
         : TspException
     {
         // TODO[api] Make private
+        /// <summary>The failure code associated with this exception, or -1 if none was set.</summary>
         protected readonly int m_failureCode;
 
+        /// <summary>Create an exception with no associated failure code.</summary>
+        /// <param name="message">The message describing the validation failure.</param>
         public TspValidationException(string message)
             : this(message, -1)
         {
         }
 
+        /// <summary>Create an exception with an associated failure code.</summary>
+        /// <param name="message">The message describing the validation failure.</param>
+        /// <param name="failureCode">
+        /// The failure code, as one of the constants in <see cref="PkiFailureInfo"/>.
+        /// </param>
         public TspValidationException(string message, int failureCode)
             : base(message)
         {

@@ -18,6 +18,11 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Tsp
 {
+    /// <summary>Generator for RFC 3161 time-stamp tokens.</summary>
+    /// <remarks>
+    /// Configure the generator with the TSA's key, certificate and policy, optionally set the accuracy, ordering, TSA
+    /// name and the certificates and CRLs to include, then call <c>Generate</c> for each request.
+    /// </remarks>
     public class TimeStampTokenGenerator
     {
         private int accuracySeconds = -1;
@@ -36,21 +41,34 @@ namespace Org.BouncyCastle.Tsp
 
         private Resolution resolution = Resolution.R_SECONDS;
 
+        /// <summary>Gets or sets the resolution to which the generation time is rounded down.</summary>
+        /// <remarks>The default is <see cref="Tsp.Resolution.R_SECONDS"/>.</remarks>
         public Resolution Resolution
         {
             get { return resolution; }
             set { resolution = value; }
         }
 
-        /**
-         * basic creation - only the default attributes will be included here.
-         */
+        /// <summary>Basic creation - only the default attributes will be included here.</summary>
+        /// <param name="key">The TSA's private key.</param>
+        /// <param name="cert">The TSA's certificate.</param>
+        /// <param name="digestOID">The object identifier of the digest algorithm used for signing.</param>
+        /// <param name="tsaPolicyOID">The object identifier of the default TSA policy, or null for none.</param>
+        /// <exception cref="TspValidationException">The certificate is not suitable for time stamping.</exception>
         public TimeStampTokenGenerator(AsymmetricKeyParameter key, X509Certificate cert, string digestOID,
             string tsaPolicyOID)
             : this(key, cert, digestOID, tsaPolicyOID, null, null)
         {
         }
 
+        /// <summary>Create from a signer info generator.</summary>
+        /// <param name="signerInfoGen">The generator for the TSA's signature; it must have a certificate.</param>
+        /// <param name="digestCalculator">The digest used to identify the TSA's certificate.</param>
+        /// <param name="tsaPolicy">The default TSA policy, or null for none.</param>
+        /// <param name="isIssuerSerialIncluded">Whether to include the certificate's issuer and serial number.</param>
+        /// <exception cref="ArgumentException">The signer info generator has no associated certificate.</exception>
+        /// <exception cref="TspValidationException">The certificate is not suitable for time stamping.</exception>
+        /// <exception cref="TspException">The certificate could not be processed.</exception>
         public TimeStampTokenGenerator(SignerInfoGenerator signerInfoGen, IDigestFactory digestCalculator,
             DerObjectIdentifier tsaPolicy, bool isIssuerSerialIncluded)
         {
@@ -95,9 +113,14 @@ namespace Org.BouncyCastle.Tsp
             }
         }
 
-        /**
-         * create with a signer with extra signed/unsigned attributes.
-         */
+        /// <summary>Create with a signer with extra signed/unsigned attributes.</summary>
+        /// <param name="key">The TSA's private key.</param>
+        /// <param name="cert">The TSA's certificate.</param>
+        /// <param name="digestOID">The object identifier of the digest algorithm used for signing.</param>
+        /// <param name="tsaPolicyOID">The object identifier of the default TSA policy, or null for none.</param>
+        /// <param name="signedAttr">Extra signed attributes, or null for none.</param>
+        /// <param name="unsignedAttr">Extra unsigned attributes, or null for none.</param>
+        /// <exception cref="TspValidationException">The certificate is not suitable for time stamping.</exception>
         public TimeStampTokenGenerator(AsymmetricKeyParameter key, X509Certificate cert, string digestOID,
             string tsaPolicyOID, Asn1.Cms.AttributeTable signedAttr, Asn1.Cms.AttributeTable unsignedAttr)
             : this(
@@ -140,60 +163,84 @@ namespace Org.BouncyCastle.Tsp
                 .Build(contentSigner, cert);
         }
 
+        /// <summary>Set the attribute certificates to include when the request asks for certificates.</summary>
         public void SetAttributeCertificates(IStore<X509V2AttributeCertificate> attributeCertificates)
         {
             this.x509AttrCerts = attributeCertificates;
         }
 
+        /// <summary>Set the certificates to include when the request asks for certificates.</summary>
         public void SetCertificates(IStore<X509Certificate> certificates)
         {
             this.x509Certs = certificates;
         }
 
+        /// <summary>Set the CRLs to include in every token.</summary>
         public void SetCrls(IStore<X509Crl> crls)
         {
             this.x509Crls = crls;
         }
 
+        /// <summary>Add other revocation information, in the given format, to include in every token.</summary>
         public void AddOtherRevocationInfos(DerObjectIdentifier otherRevInfoFormat,
             IStore<Asn1Encodable> otherRevInfoStore)
         {
             otherRevoc[otherRevInfoFormat] = otherRevInfoStore;
         }
 
+        /// <summary>Set the seconds component of the accuracy; a value of zero or less leaves it out.</summary>
         public void SetAccuracySeconds(
             int accuracySeconds)
         {
             this.accuracySeconds = accuracySeconds;
         }
 
+        /// <summary>Set the milliseconds component of the accuracy; a value of zero or less leaves it out.</summary>
         public void SetAccuracyMillis(
             int accuracyMillis)
         {
             this.accuracyMillis = accuracyMillis;
         }
 
+        /// <summary>Set the microseconds component of the accuracy; a value of zero or less leaves it out.</summary>
         public void SetAccuracyMicros(
             int accuracyMicros)
         {
             this.accuracyMicros = accuracyMicros;
         }
 
+        /// <summary>Set whether tokens from this TSA can be ordered by their generation time alone.</summary>
         public void SetOrdering(
             bool ordering)
         {
             this.ordering = ordering;
         }
 
+        /// <summary>Set the name of the TSA to be included in the tokens.</summary>
         public void SetTsa(
             GeneralName tsa)
         {
             this.tsa = tsa;
         }
 
+        /// <summary>Generate a time-stamp token for the given request.</summary>
+        /// <param name="request">The request to respond to.</param>
+        /// <param name="serialNumber">The serial number of the token.</param>
+        /// <param name="genTime">The generation time of the token.</param>
+        /// <returns>The <see cref="TimeStampToken"/>.</returns>
+        /// <exception cref="TspValidationException">No policy is specified by the request or generator.</exception>
+        /// <exception cref="TspException">The token could not be generated.</exception>
         public TimeStampToken Generate(TimeStampRequest request, BigInteger serialNumber, DateTime genTime) =>
             Generate(request, serialNumber, genTime, null);
 
+        /// <summary>Generate a time-stamp token for the given request, with additional extensions.</summary>
+        /// <param name="request">The request to respond to.</param>
+        /// <param name="serialNumber">The serial number of the token.</param>
+        /// <param name="genTime">The generation time of the token.</param>
+        /// <param name="additionalExtensions">Extensions to add to those in the request, or null for none.</param>
+        /// <returns>The <see cref="TimeStampToken"/>.</returns>
+        /// <exception cref="TspValidationException">No policy is specified by the request or generator.</exception>
+        /// <exception cref="TspException">The token could not be generated.</exception>
         public TimeStampToken Generate(TimeStampRequest request, BigInteger serialNumber, DateTime genTime,
             X509Extensions additionalExtensions)
         {
