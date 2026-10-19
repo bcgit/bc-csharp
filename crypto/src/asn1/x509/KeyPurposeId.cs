@@ -24,31 +24,56 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>The object identifier <c>2.5.29.37.0</c>.</summary>
         public static readonly KeyPurposeID AnyExtendedKeyUsage = new KeyPurposeID(X509Extensions.ExtendedKeyUsage.Id + ".0");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.1</c>.</summary>
         public static readonly KeyPurposeID id_kp_serverAuth = new KeyPurposeID(id_kp + ".1");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.2</c>.</summary>
         public static readonly KeyPurposeID id_kp_clientAuth = new KeyPurposeID(id_kp + ".2");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.3</c>.</summary>
         public static readonly KeyPurposeID id_kp_codeSigning = new KeyPurposeID(id_kp + ".3");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.4</c>.</summary>
         public static readonly KeyPurposeID id_kp_emailProtection = new KeyPurposeID(id_kp + ".4");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.5</c>.</summary>
         public static readonly KeyPurposeID id_kp_ipsecEndSystem = new KeyPurposeID(id_kp + ".5");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.6</c>.</summary>
         public static readonly KeyPurposeID id_kp_ipsecTunnel = new KeyPurposeID(id_kp + ".6");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.7</c>.</summary>
         public static readonly KeyPurposeID id_kp_ipsecUser = new KeyPurposeID(id_kp + ".7");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.8</c>.</summary>
         public static readonly KeyPurposeID id_kp_timeStamping = new KeyPurposeID(id_kp + ".8");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.9</c>.</summary>
         public static readonly KeyPurposeID id_kp_OCSPSigning = new KeyPurposeID(id_kp + ".9");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.10</c>.</summary>
         public static readonly KeyPurposeID id_kp_dvcs = new KeyPurposeID(id_kp + ".10");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.11</c>.</summary>
         public static readonly KeyPurposeID id_kp_sbgpCertAAServerAuth = new KeyPurposeID(id_kp + ".11");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.12</c>.</summary>
         public static readonly KeyPurposeID id_kp_scvp_responder = new KeyPurposeID(id_kp + ".12");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.13</c>.</summary>
         public static readonly KeyPurposeID id_kp_eapOverPPP = new KeyPurposeID(id_kp + ".13");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.14</c>.</summary>
         public static readonly KeyPurposeID id_kp_eapOverLAN = new KeyPurposeID(id_kp + ".14");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.15</c>.</summary>
         public static readonly KeyPurposeID id_kp_scvpServer = new KeyPurposeID(id_kp + ".15");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.16</c>.</summary>
         public static readonly KeyPurposeID id_kp_scvpClient = new KeyPurposeID(id_kp + ".16");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.17</c>.</summary>
         public static readonly KeyPurposeID id_kp_ipsecIKE = new KeyPurposeID(id_kp + ".17");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.18</c>.</summary>
         public static readonly KeyPurposeID id_kp_capwapAC = new KeyPurposeID(id_kp + ".18");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.19</c>.</summary>
         public static readonly KeyPurposeID id_kp_capwapWTP = new KeyPurposeID(id_kp + ".19");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.21</c>.</summary>
         public static readonly KeyPurposeID id_kp_secureShellClient = new KeyPurposeID(id_kp + ".21");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.22</c>.</summary>
         public static readonly KeyPurposeID id_kp_secureShellServer = new KeyPurposeID(id_kp + ".22");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.27</c>.</summary>
         public static readonly KeyPurposeID id_kp_cmcCA = new KeyPurposeID(id_kp + ".27");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.28</c>.</summary>
         public static readonly KeyPurposeID id_kp_cmcRA = new KeyPurposeID(id_kp + ".28");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.29</c>.</summary>
         public static readonly KeyPurposeID id_kp_cmcArchive = new KeyPurposeID(id_kp + ".29");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.32</c>.</summary>
         public static readonly KeyPurposeID id_kp_cmKGA = new KeyPurposeID(id_kp + ".32");
 
         /// <summary>RFC 9174 sec. 4.4.1 - Delay-Tolerant Networking bundle security (TCPCLv4).</summary>
@@ -134,22 +159,31 @@ namespace Org.BouncyCastle.Asn1.X509
         public static readonly KeyPurposeID id_kp_pkinitClientAuth = new KeyPurposeID(id_pkinit + ".4");
         public static readonly KeyPurposeID id_kp_pkinitKdc = new KeyPurposeID(id_pkinit + ".5");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.1</c>.</summary>
         [Obsolete("Use 'id_kp_serverAuth' instead")]
         public static readonly KeyPurposeID IdKPServerAuth = id_kp_serverAuth;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.2</c>.</summary>
         [Obsolete("Use 'id_kp_clientAuth' instead")]
         public static readonly KeyPurposeID IdKPClientAuth = id_kp_clientAuth;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.3</c>.</summary>
         [Obsolete("Use 'id_kp_codeSigning' instead")]
         public static readonly KeyPurposeID IdKPCodeSigning = id_kp_codeSigning;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.4</c>.</summary>
         [Obsolete("Use 'id_kp_emailProtection' instead")]
         public static readonly KeyPurposeID IdKPEmailProtection = id_kp_emailProtection;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.5</c>.</summary>
         [Obsolete("Use 'id_kp_ipsecEndSystem' instead")]
         public static readonly KeyPurposeID IdKPIpsecEndSystem = id_kp_ipsecEndSystem;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.6</c>.</summary>
         [Obsolete("Use 'id_kp_ipsecTunnel' instead")]
         public static readonly KeyPurposeID IdKPIpsecTunnel = id_kp_ipsecTunnel;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.7</c>.</summary>
         [Obsolete("Use 'id_kp_ipsecUser' instead")]
         public static readonly KeyPurposeID IdKPIpsecUser = id_kp_ipsecUser;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.8</c>.</summary>
         [Obsolete("Use 'id_kp_timeStamping' instead")]
         public static readonly KeyPurposeID IdKPTimeStamping = id_kp_timeStamping;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.3.9</c>.</summary>
         [Obsolete("Use 'id_kp_OCSPSigning' instead")]
         public static readonly KeyPurposeID IdKPOcspSigning = id_kp_OCSPSigning;
 

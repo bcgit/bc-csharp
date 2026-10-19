@@ -22,7 +22,9 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.2.1</c>.</summary>
         public static readonly PolicyQualifierID IdQtCps = new PolicyQualifierID(IdQt + ".1");
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.2.2</c>.</summary>
         public static readonly PolicyQualifierID IdQtUnotice = new PolicyQualifierID(IdQt + ".2");
     }
 }
