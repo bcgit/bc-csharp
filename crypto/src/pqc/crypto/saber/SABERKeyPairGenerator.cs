@@ -33,11 +33,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             this.Initialize(param);
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             return GenKeyPair();

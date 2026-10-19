@@ -8,6 +8,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
     {
         private SaberParameters parameters;
 
+        /// <summary>Create a new <see cref="SaberKeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="saberParameters">The saber parameters.</param>
         public SaberKeyGenerationParameters(SecureRandom random, SaberParameters saberParameters)
             : base(random, 256)
         {

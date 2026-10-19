@@ -10,11 +10,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         // the source of randomness
         private SecureRandom sr;
 
+        /// <summary>Create a new <see cref="SaberKemGenerator"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
         public SaberKemGenerator(SecureRandom random)
         {
             this.sr = CryptoServicesRegistrar.GetSecureRandom(random);
         }
 
+        /// <inheritdoc/>
         public ISecretWithEncapsulation GenerateEncapsulated(AsymmetricKeyParameter recipientKey)
         {
             SaberPublicKeyParameters key = (SaberPublicKeyParameters)recipientKey;

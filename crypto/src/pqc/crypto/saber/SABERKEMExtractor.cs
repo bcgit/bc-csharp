@@ -9,6 +9,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
 
         private SaberEngine engine;
 
+        /// <summary>Create a new <see cref="SaberKemExtractor"/>.</summary>
+        /// <param name="privParams">The priv params.</param>
         public SaberKemExtractor(SaberKeyParameters privParams)
         {
             this.key = privParams;
@@ -20,6 +22,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             engine = param.Engine;
         }
 
+        /// <inheritdoc/>
         public byte[] ExtractSecret(byte[] encapsulation)
         {
             byte[] session_key = new byte[engine.GetSessionKeySize()];
@@ -27,6 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             return session_key;
         }
 
+        /// <inheritdoc/>
         public int EncapsulationLength => engine.GetCipherTextSize();
     }
 }

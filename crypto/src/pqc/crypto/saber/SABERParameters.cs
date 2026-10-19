@@ -43,10 +43,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             this.engine = new SaberEngine(l, defaultKeySize, usingAes, usingEffectiveMasking);
         }
 
+        /// <summary>Gets the name.</summary>
         public string Name => name;
 
+        /// <summary>Gets the l.</summary>
         public int L => l;
 
+        /// <summary>Gets the default key size.</summary>
         public int DefaultKeySize => defaultKeySize;
 
         internal SaberEngine Engine => engine;
