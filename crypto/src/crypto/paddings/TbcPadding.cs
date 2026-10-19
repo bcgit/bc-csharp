@@ -9,13 +9,16 @@ namespace Org.BouncyCastle.Crypto.Paddings
     public class TbcPadding
         : IBlockCipherPadding
     {
+        /// <inheritdoc/>
         public virtual void Init(SecureRandom random)
         {
             // nothing to do.
         }
 
+        /// <inheritdoc/>
         public string PaddingName => "TBC";
 
+        /// <inheritdoc/>
         public virtual int AddPadding(byte[] input, int inOff)
         {
             int count = input.Length - inOff;
@@ -31,6 +34,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int AddPadding(Span<byte> block, int position)
         {
             byte lastByte = position > 0 ? block[position - 1] : block[block.Length - 1];
@@ -42,6 +46,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int PadCount(byte[] input)
         {
             int i = input.Length;
@@ -57,6 +62,7 @@ namespace Org.BouncyCastle.Crypto.Paddings
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int PadCount(ReadOnlySpan<byte> block)
         {
             int i = block.Length;
