@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Tls
     [Flags]
     public enum DtlsRecordFlags
     {
+        /// <summary>No flags are set.</summary>
         None = 0,
 
         /// <summary>The record is newer (by epoch and sequence number) than any record received previously.</summary>
