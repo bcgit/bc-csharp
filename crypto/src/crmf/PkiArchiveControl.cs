@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Crmf
         /// <summary>
         /// Return the underlying ASN.1 object.
         /// </summary>
-        /// <returns>a PKIArchiveOptions structure.</returns>    
+        /// <returns>a PKIArchiveOptions structure.</returns>
         public Asn1Encodable Value => m_pkiArchiveOptions;
 
         /// <summary>

@@ -5,9 +5,9 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Crmf
 {
-    public interface IPKMacPrimitivesProvider   
+    public interface IPKMacPrimitivesProvider
     {
-	    IDigest CreateDigest(AlgorithmIdentifier digestAlg);
+        IDigest CreateDigest(AlgorithmIdentifier digestAlg);
 
         IMac CreateMac(AlgorithmIdentifier macAlg);
     }

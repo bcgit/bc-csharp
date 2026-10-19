@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Crmf
         /// Build an EncryptedValue structure containing the passed in pass phrase.
         ///
         /// <param name="revocationPassphrase">a revocation pass phrase.</param>
-        ///<returns>an EncryptedValue containing the encrypted pass phrase.</returns>       
+        ///<returns>an EncryptedValue containing the encrypted pass phrase.</returns>
         ///
         public EncryptedValue Build(char[] revocationPassphrase)
         {
