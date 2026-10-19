@@ -12,6 +12,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
         private byte[] H;
         private GcmUtilities.FieldElement[][] T;
 
+        /// <inheritdoc/>
         public void Init(byte[] H)
         {
             if (T == null)
@@ -54,6 +55,7 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
             }
         }
 
+        /// <inheritdoc/>
         public void MultiplyH(byte[] x)
         {
             //GcmUtilities.FieldElement z = T[15][x[15]];

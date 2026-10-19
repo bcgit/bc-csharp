@@ -17,11 +17,13 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
 
         private GcmUtilities.FieldElement H;
 
+        /// <inheritdoc/>
         public void Init(byte[] H)
         {
             GcmUtilities.AsFieldElement(H, out this.H);
         }
 
+        /// <inheritdoc/>
         public void MultiplyH(byte[] x)
         {
             GcmUtilities.AsFieldElement(x, out var T);

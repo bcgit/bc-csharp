@@ -8,11 +8,13 @@ namespace Org.BouncyCastle.Crypto.Modes.Gcm
     {
         private GcmUtilities.FieldElement x;
 
+        /// <inheritdoc/>
         public void Init(byte[] x)
         {
             GcmUtilities.AsFieldElement(x, out this.x);
         }
 
+        /// <inheritdoc/>
         public void ExponentiateX(long pow, byte[] output)
         {
             GcmUtilities.FieldElement y;
