@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Ocsp
     {
         private readonly BasicOcspResponse resp;
         private readonly ResponseData data;
-        //private readonly X509Certificate[]	chain;
+        //private readonly X509Certificate[] chain;
 
         /// <summary>Create from an existing ASN.1 BasicOcspResponse structure.</summary>
         /// <param name="resp">The ASN.1 structure.</param>
