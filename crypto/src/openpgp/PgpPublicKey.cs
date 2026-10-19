@@ -881,6 +881,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return GetSignaturesForId(new UserIdPacket(id));
         }
 
+        /// <summary>Allows enumeration of any signatures associated with the passed in id.</summary>
+        /// <param name="rawId">The raw id.</param>
+        /// <returns>An <c>IEnumerable</c> of <c>PgpSignature</c> objects.</returns>
         public IEnumerable<PgpSignature> GetSignaturesForId(byte[] rawId)
         {
             if (rawId == null)
@@ -1010,6 +1013,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
+        /// <summary>Return the encoded.</summary>
+        /// <param name="outStr">The output stream.</param>
         public void Encode(Stream outStr)
         {
             Encode(outStr, false);

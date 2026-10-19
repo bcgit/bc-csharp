@@ -455,6 +455,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return bOut.ToArray();
         }
 
+        /// <summary>Return the encoded.</summary>
+        /// <param name="outStream">The output stream.</param>
         public void Encode(Stream outStream)
         {
             Encode(outStream, false);

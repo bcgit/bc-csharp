@@ -156,8 +156,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Gets the signature type.</summary>
         public int SignatureType => sigPack.SignatureType;
 
+        /// <summary>Gets the hash algorithm.</summary>
         public HashAlgorithmTag HashAlgorithm => sigPack.HashAlgorithm;
 
+        /// <summary>Gets the key algorithm.</summary>
         public PublicKeyAlgorithmTag KeyAlgorithm => sigPack.KeyAlgorithm;
 
         /// <summary>Return the encoded.</summary>

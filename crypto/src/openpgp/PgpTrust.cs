@@ -24,6 +24,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Return the level and trust.</summary>
         public byte[] GetLevelAndTrust() => m_packet.GetLevelAndTrustAmount();
 
+        /// <summary>Gets the packet.</summary>
         public TrustPacket Packet => m_packet;
     }
 }

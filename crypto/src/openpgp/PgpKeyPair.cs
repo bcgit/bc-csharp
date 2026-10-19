@@ -63,11 +63,13 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// </remarks>
         public long KeyId => pub.KeyId;
 
+        /// <summary>Gets the public key.</summary>
         public PgpPublicKey PublicKey
         {
             get { return pub; }
         }
 
+        /// <summary>Gets the private key.</summary>
         public PgpPrivateKey PrivateKey
         {
             get { return priv; }

@@ -408,6 +408,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Add a public key encrypted session key to the encrypted object.</summary>
         public void AddMethod(PgpPublicKey key) => AddMethod(key, sessionKeyObfuscation: true);
 
+        /// <summary>Add a public key encrypted session key to the encrypted object.</summary>
+        /// <param name="key">The key.</param>
+        /// <param name="sessionKeyObfuscation">true if session key obfuscation, false otherwise.</param>
         public void AddMethod(PgpPublicKey key, bool sessionKeyObfuscation)
         {
             if (!key.IsEncryptionKey)

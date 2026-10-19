@@ -20,6 +20,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_keyData = keyData;
         }
 
+        /// <summary>Gets the algorithm.</summary>
         public SymmetricKeyAlgorithmTag Algorithm => m_keyData.EncAlgorithm;
 
         /// <summary>Gets the version.</summary>
