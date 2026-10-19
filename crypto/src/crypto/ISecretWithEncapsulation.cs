@@ -3,9 +3,9 @@ using System;
 namespace Org.BouncyCastle.Crypto
 {
     public interface ISecretWithEncapsulation
-        : IDisposable 
+        : IDisposable
     {
-        
+
         ///<summary>
         /// Return the secret associated with the encapsulation.
         /// </summary>
