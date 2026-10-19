@@ -7,6 +7,8 @@ namespace Org.BouncyCastle.Tls.Crypto
     {
         protected readonly int m_namedGroup;
 
+        /// <summary>Create a new <see cref="TlsECConfig"/>.</summary>
+        /// <param name="namedGroup">The named group.</param>
         public TlsECConfig(int namedGroup)
         {
             this.m_namedGroup = namedGroup;
