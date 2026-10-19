@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
     {
         public static readonly SubsequentMessage encrCert = new SubsequentMessage(0);
         public static readonly SubsequentMessage challengeResp = new SubsequentMessage(1);
-    
+
         private SubsequentMessage(int value)
 #pragma warning disable CS0618 // Type or member is obsolete
             : base(value)
