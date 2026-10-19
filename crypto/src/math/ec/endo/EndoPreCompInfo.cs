@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
     {
         protected ECEndomorphism m_endomorphism;
 
+        /// <summary>The mapped point.</summary>
         protected ECPoint m_mappedPoint;
 
         /// <summary>Gets or sets the endomorphism.</summary>

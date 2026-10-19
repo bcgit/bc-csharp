@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
     {
         internal volatile int m_promotionCountdown = 4;
 
+        /// <summary>The conf width.</summary>
         protected int m_confWidth = -1;
 
         /**

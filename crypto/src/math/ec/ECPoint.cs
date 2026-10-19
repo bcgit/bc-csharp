@@ -48,6 +48,7 @@ namespace Org.BouncyCastle.Math.EC
         protected internal readonly ECFieldElement m_x, m_y;
         protected internal readonly ECFieldElement[] m_zs;
 
+        /// <summary>The pre comp table.</summary>
         protected internal IDictionary<string, PreCompInfo> m_preCompTable = null;
 
         /// <summary>Create a new <see cref="ECPoint"/>.</summary>

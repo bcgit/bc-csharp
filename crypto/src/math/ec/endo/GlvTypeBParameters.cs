@@ -5,6 +5,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
     public class GlvTypeBParameters
     {
         protected readonly BigInteger m_beta, m_lambda;
+        /// <summary>The split params.</summary>
         protected readonly ScalarSplitParameters m_splitParams;
 
         /// <summary>Create a new <see cref="GlvTypeBParameters"/>.</summary>

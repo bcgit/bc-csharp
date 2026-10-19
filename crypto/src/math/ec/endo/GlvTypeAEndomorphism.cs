@@ -6,6 +6,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
         :   GlvEndomorphism
     {
         protected readonly GlvTypeAParameters m_parameters;
+        /// <summary>The point map.</summary>
         protected readonly ECPointMap m_pointMap;
 
         /// <summary>Create a new <see cref="GlvTypeAEndomorphism"/>.</summary>

@@ -8,6 +8,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
         :   AbstractECMultiplier
     {
         protected readonly ECCurve curve;
+        /// <summary>The glv endomorphism.</summary>
         protected readonly GlvEndomorphism glvEndomorphism;
 
         /// <summary>Create a new <see cref="GlvMultiplier"/>.</summary>

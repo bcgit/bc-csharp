@@ -12,7 +12,9 @@ namespace Org.BouncyCastle.Math.EC.Endo
                 throw new ArgumentException("Must consist of exactly 2 (non-null) values", name);
         }
 
+        /// <summary>The v 2 b.</summary>
         protected readonly BigInteger m_v1A, m_v1B, m_v2A, m_v2B;
+        /// <summary>The g 2.</summary>
         protected readonly BigInteger m_g1, m_g2;
         protected readonly int m_bits;
 
