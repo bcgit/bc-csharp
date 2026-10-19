@@ -162,6 +162,9 @@ namespace Org.BouncyCastle.Tls
          */
         public const int renegotiation_info = 0xff01;
 
+        /// <summary>Get the name of the given extension type.</summary>
+        /// <param name="extensionType">The extension type.</param>
+        /// <returns>The name.</returns>
         public static string GetName(int extensionType)
         {
             switch (extensionType)
@@ -253,11 +256,19 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given extension type, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="extensionType">The extension type.</param>
+        /// <returns>The text.</returns>
         public static string GetText(int extensionType)
         {
             return GetName(extensionType) + "(" + extensionType + ")";
         }
 
+        /// <summary>Determine whether the given extension type is a recognized value.</summary>
+        /// <param name="extensionType">The extension type.</param>
+        /// <returns>true if the value is recognized, false otherwise.</returns>
         public static bool IsRecognized(int extensionType)
         {
             switch (extensionType)

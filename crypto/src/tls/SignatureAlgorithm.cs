@@ -87,6 +87,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the name of the given signature algorithm.</summary>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>The name.</returns>
         public static string GetName(short signatureAlgorithm)
         {
             switch (signatureAlgorithm)
@@ -130,11 +133,19 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given signature algorithm, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>The text.</returns>
         public static string GetText(short signatureAlgorithm)
         {
             return GetName(signatureAlgorithm) + "(" + signatureAlgorithm + ")";
         }
 
+        /// <summary>Determine whether the given signature algorithm is a recognized value.</summary>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>true if the value is recognized, false otherwise.</returns>
         public static bool IsRecognized(short signatureAlgorithm)
         {
             switch (signatureAlgorithm)

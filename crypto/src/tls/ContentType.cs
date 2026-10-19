@@ -18,6 +18,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The <c>tls12_cid</c> constant, with the value <c>25</c>.</summary>
         public const short tls12_cid = 25;
 
+        /// <summary>Get the name of the given content type.</summary>
+        /// <param name="contentType">The content type.</param>
+        /// <returns>The name.</returns>
         public static string GetName(short contentType)
         {
             switch (contentType)
@@ -39,6 +42,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given content type, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="contentType">The content type.</param>
+        /// <returns>The text.</returns>
         public static string GetText(short contentType)
         {
             return GetName(contentType) + "(" + contentType + ")";

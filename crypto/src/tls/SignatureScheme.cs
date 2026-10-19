@@ -183,6 +183,9 @@ namespace Org.BouncyCastle.Tls
             return GetCryptoHashAlgorithm(From(signatureAndHashAlgorithm));
         }
 
+        /// <summary>Get the name of the given signature scheme.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The name.</returns>
         public static string GetName(int signatureScheme)
         {
             switch (signatureScheme)
@@ -340,12 +343,20 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given signature scheme, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The text.</returns>
         public static string GetText(int signatureScheme)
         {
             string hex = Convert.ToString(signatureScheme, 16).ToUpperInvariant();
             return GetName(signatureScheme) + "(0x" + hex + ")";
         }
 
+        /// <summary>Determine whether the given signature scheme is in the range reserved for private use.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>true if the value is in the private-use range, false otherwise.</returns>
         public static bool IsPrivate(int signatureScheme)
         {
             return (signatureScheme >> 9) == 0xFE;

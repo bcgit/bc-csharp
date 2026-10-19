@@ -38,6 +38,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The <c>gost_sign512</c> constant, with the value <c>68</c>.</summary>
         public const short gost_sign512 = 68;
 
+        /// <summary>Get the name of the given client certificate type.</summary>
+        /// <param name="clientCertificateType">The client certificate type.</param>
+        /// <returns>The name.</returns>
         public static string GetName(short clientCertificateType)
         {
             switch (clientCertificateType)
@@ -71,6 +74,12 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given client certificate type, made up of its name and its numeric
+        /// value.
+        /// </summary>
+        /// <param name="clientCertificateType">The client certificate type.</param>
+        /// <returns>The text.</returns>
         public static string GetText(short clientCertificateType)
         {
             return GetName(clientCertificateType) + "(" + clientCertificateType + ")";

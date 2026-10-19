@@ -27,6 +27,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The <c>tls_prf_gostr3411_2012_256</c> constant, with the value <c>8</c>.</summary>
         public const int tls_prf_gostr3411_2012_256 = 8;
 
+        /// <summary>Get the name of the given prf algorithm.</summary>
+        /// <param name="prfAlgorithm">The prf algorithm.</param>
+        /// <returns>The name.</returns>
         public static string GetName(int prfAlgorithm)
         {
             switch (prfAlgorithm)
@@ -52,6 +55,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given prf algorithm, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="prfAlgorithm">The prf algorithm.</param>
+        /// <returns>The text.</returns>
         public static string GetText(int prfAlgorithm)
         {
             return GetName(prfAlgorithm) + "(" + prfAlgorithm + ")";

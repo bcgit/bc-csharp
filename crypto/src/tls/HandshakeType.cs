@@ -82,6 +82,9 @@ namespace Org.BouncyCastle.Tls
          */
         public const short client_certificate_request = 17;
 
+        /// <summary>Get the name of the given handshake type.</summary>
+        /// <param name="handshakeType">The handshake type.</param>
+        /// <returns>The name.</returns>
         public static string GetName(short handshakeType)
         {
             switch (handshakeType)
@@ -141,11 +144,19 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given handshake type, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="handshakeType">The handshake type.</param>
+        /// <returns>The text.</returns>
         public static string GetText(short handshakeType)
         {
             return GetName(handshakeType) + "(" + handshakeType + ")";
         }
 
+        /// <summary>Determine whether the given handshake type is a recognized value.</summary>
+        /// <param name="handshakeType">The handshake type.</param>
+        /// <returns>true if the value is recognized, false otherwise.</returns>
         public static bool IsRecognized(short handshakeType)
         {
             switch (handshakeType)

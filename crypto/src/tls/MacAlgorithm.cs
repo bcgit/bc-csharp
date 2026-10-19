@@ -29,6 +29,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The <c>hmac_sha512</c> constant, with the value <c>5</c>.</summary>
         public const int hmac_sha512 = 5;
 
+        /// <summary>Get the name of the given mac algorithm.</summary>
+        /// <param name="macAlgorithm">The mac algorithm.</param>
+        /// <returns>The name.</returns>
         public static string GetName(int macAlgorithm)
         {
             switch (macAlgorithm)
@@ -50,6 +53,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given mac algorithm, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="macAlgorithm">The mac algorithm.</param>
+        /// <returns>The text.</returns>
         public static string GetText(int macAlgorithm)
         {
             return GetName(macAlgorithm) + "(" + macAlgorithm + ")";

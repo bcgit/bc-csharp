@@ -25,6 +25,9 @@ namespace Org.BouncyCastle.Tls
          */
         public const short Intrinsic = 8;
 
+        /// <summary>Get the name of the given hash algorithm.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>The name.</returns>
         public static string GetName(short hashAlgorithm)
         {
             switch (hashAlgorithm)
@@ -71,16 +74,27 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given hash algorithm, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>The text.</returns>
         public static string GetText(short hashAlgorithm)
         {
             return GetName(hashAlgorithm) + "(" + hashAlgorithm + ")";
         }
 
+        /// <summary>Determine whether the given hash algorithm is in the range reserved for private use.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>true if the value is in the private-use range, false otherwise.</returns>
         public static bool IsPrivate(short hashAlgorithm)
         {
             return 224 <= hashAlgorithm && hashAlgorithm <= 255;
         }
 
+        /// <summary>Determine whether the given hash algorithm is a recognized value.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>true if the value is recognized, false otherwise.</returns>
         public static bool IsRecognized(short hashAlgorithm)
         {
             switch (hashAlgorithm)

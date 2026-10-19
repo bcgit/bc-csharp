@@ -444,6 +444,9 @@ namespace Org.BouncyCastle.Tls
             return 521;
         }
 
+        /// <summary>Get the name of the given named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The name.</returns>
         public static string GetName(int namedGroup)
         {
             if (IsPrivate(namedGroup))
@@ -525,6 +528,11 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>
+        /// Get a textual representation of the given named group, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The text.</returns>
         public static string GetText(int namedGroup)
         {
             return GetName(namedGroup) + "(" + namedGroup + ")";
@@ -544,11 +552,17 @@ namespace Org.BouncyCastle.Tls
                 || (namedGroup == arbitrary_explicit_prime_curves);
         }
 
+        /// <summary>Determine whether the given named group is in the range reserved for private use.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the value is in the private-use range, false otherwise.</returns>
         public static bool IsPrivate(int namedGroup)
         {
             return (namedGroup >> 2) == 0x7F || (namedGroup >> 8) == 0xFE;
         }
 
+        /// <summary>Determine whether the given named group is a valid value.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the value is valid, false otherwise.</returns>
         public static bool IsValid(int namedGroup)
         {
             return RefersToASpecificGroup(namedGroup)

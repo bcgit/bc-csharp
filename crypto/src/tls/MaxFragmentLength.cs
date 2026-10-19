@@ -16,6 +16,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The <c>pow2_12</c> constant, with the value <c>4</c>.</summary>
         public const short pow2_12 = 4;
 
+        /// <summary>Determine whether the given max fragment length is a valid value.</summary>
+        /// <param name="maxFragmentLength">The max fragment length.</param>
+        /// <returns>true if the value is valid, false otherwise.</returns>
         public static bool IsValid(short maxFragmentLength)
         {
             return maxFragmentLength >= pow2_9 && maxFragmentLength <= pow2_12;

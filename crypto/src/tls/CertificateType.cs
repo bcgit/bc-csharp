@@ -15,6 +15,9 @@ namespace Org.BouncyCastle.Tls
          */
         public const short RawPublicKey = 2;
 
+        /// <summary>Determine whether the given certificate type is a valid value.</summary>
+        /// <param name="certificateType">The certificate type.</param>
+        /// <returns>true if the value is valid, false otherwise.</returns>
         public static bool IsValid(short certificateType)
         {
             return certificateType >= X509 && certificateType <= RawPublicKey;

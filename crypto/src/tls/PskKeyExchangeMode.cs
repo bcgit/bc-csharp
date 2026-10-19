@@ -14,6 +14,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The <c>psk_dhe_ke</c> constant, with the value <c>1</c>.</summary>
         public const short psk_dhe_ke = 1;
 
+        /// <summary>Get the name of the given psk key exchange mode.</summary>
+        /// <param name="pskKeyExchangeMode">The psk key exchange mode.</param>
+        /// <returns>The name.</returns>
         public static string GetName(short pskKeyExchangeMode)
         {
             switch (pskKeyExchangeMode)
@@ -27,11 +30,19 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get a textual representation of the given psk key exchange mode, made up of its name and its numeric value.
+        /// </summary>
+        /// <param name="pskKeyExchangeMode">The psk key exchange mode.</param>
+        /// <returns>The text.</returns>
         public static string GetText(short pskKeyExchangeMode)
         {
             return GetName(pskKeyExchangeMode) + "(" + pskKeyExchangeMode + ")";
         }
 
+        /// <summary>Determine whether the given psk key exchange mode is a recognized value.</summary>
+        /// <param name="pskKeyExchangeMode">The psk key exchange mode.</param>
+        /// <returns>true if the value is recognized, false otherwise.</returns>
         public static bool IsRecognized(short pskKeyExchangeMode)
         {
             switch (pskKeyExchangeMode)
