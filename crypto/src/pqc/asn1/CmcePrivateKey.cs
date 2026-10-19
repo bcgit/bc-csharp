@@ -32,9 +32,17 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return new CmcePrivateKey(Asn1Sequence.GetInstance(o));
         }
 
+        /// <summary>Return an <see cref="CmcePrivateKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CmcePrivateKey"/>.</returns>
         public static CmcePrivateKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CmcePrivateKey(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CmcePrivateKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CmcePrivateKey"/>.</returns>
         public static CmcePrivateKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CmcePrivateKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -45,6 +53,14 @@ namespace Org.BouncyCastle.Pqc.Asn1
         private readonly Asn1OctetString m_s;
         private readonly CmcePublicKey m_publicKey;
 
+        /// <summary>Create a new <see cref="CmcePrivateKey"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="delta">The delta.</param>
+        /// <param name="c">The c.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="alpha">The alpha.</param>
+        /// <param name="s">The s.</param>
+        /// <param name="pubKey">The public key.</param>
         public CmcePrivateKey(int version, byte[] delta, byte[] c, byte[] g, byte[] alpha, byte[] s, CmcePublicKey pubKey = null)
         {
             if (version != 0)
@@ -79,16 +95,22 @@ namespace Org.BouncyCastle.Pqc.Asn1
                 throw new Exception("unrecognized version");
         }
 
+        /// <summary>Gets the version.</summary>
         public int Version => 0;
 
+        /// <summary>Gets the delta.</summary>
         public byte[] Delta => Arrays.Clone(m_delta.GetOctets());
 
+        /// <summary>Gets the c.</summary>
         public byte[] C => Arrays.Clone(m_c.GetOctets());
 
+        /// <summary>Gets the g.</summary>
         public byte[] G => Arrays.Clone(m_g.GetOctets());
 
+        /// <summary>Gets the alpha.</summary>
         public byte[] Alpha => Arrays.Clone(m_alpha.GetOctets());
 
+        /// <summary>Gets the s.</summary>
         public byte[] S => Arrays.Clone(m_s.GetOctets());
 
         public CmcePublicKey PublicKey => m_publicKey;
@@ -121,11 +143,13 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return ToAsn1Primitive().GetEncodingDerImplicit(tagClass, tagNo);
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             return ToAsn1Primitive().CallAsn1Equals(asn1Object);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return ToAsn1Primitive().CallAsn1GetHashCode();

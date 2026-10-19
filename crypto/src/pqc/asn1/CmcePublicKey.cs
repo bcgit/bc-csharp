@@ -20,6 +20,10 @@ namespace Org.BouncyCastle.Pqc.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CmcePublicKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CmcePublicKey"/>.</returns>
         public static CmcePublicKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -27,6 +31,9 @@ namespace Org.BouncyCastle.Pqc.Asn1
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CmcePublicKey"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="CmcePublicKey"/>, or null if <paramref name="element"/> is null.</returns>
         public static CmcePublicKey GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -44,6 +51,10 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="CmcePublicKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CmcePublicKey"/>.</returns>
         public static CmcePublicKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -53,11 +64,15 @@ namespace Org.BouncyCastle.Pqc.Asn1
 
         private readonly Asn1OctetString m_t;
 
+        /// <summary>Create a new <see cref="CmcePublicKey"/>.</summary>
+        /// <param name="t">The t.</param>
         public CmcePublicKey(byte[] t)
         {
             m_t = DerOctetString.FromContents(t);
         }
 
+        /// <summary>Create a new <see cref="CmcePublicKey"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public CmcePublicKey(Asn1Sequence seq)
         {
@@ -74,6 +89,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the t.</summary>
         public byte[] T => Arrays.Clone(m_t.GetOctets());
 
         public Asn1Object ToAsn1Primitive() => new DerSequence(m_t);
@@ -98,11 +114,13 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return ToAsn1Primitive().GetEncodingDerImplicit(tagClass, tagNo);
         }
 
+        /// <inheritdoc/>
         protected override bool Asn1Equals(Asn1Object asn1Object)
         {
             return ToAsn1Primitive().CallAsn1Equals(asn1Object);
         }
 
+        /// <inheritdoc/>
         protected override int Asn1GetHashCode()
         {
             return ToAsn1Primitive().CallAsn1GetHashCode();

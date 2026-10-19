@@ -22,6 +22,11 @@ namespace Org.BouncyCastle.Pqc.Asn1
     public sealed class SphincsPlusPrivateKey
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SphincsPlusPrivateKey"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SphincsPlusPrivateKey"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SphincsPlusPrivateKey"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SphincsPlusPrivateKey GetInstance(object obj)
         {
             if (obj == null)
@@ -31,12 +36,24 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return new SphincsPlusPrivateKey(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SphincsPlusPrivateKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SphincsPlusPrivateKey"/>.</returns>
         public static SphincsPlusPrivateKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SphincsPlusPrivateKey(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="SphincsPlusPrivateKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SphincsPlusPrivateKey"/>.</returns>
         public static SphincsPlusPrivateKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SphincsPlusPrivateKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
+        /// <summary>Create a new <see cref="SphincsPlusPrivateKey"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="skseed">The skseed.</param>
+        /// <param name="skprf">The skprf.</param>
         public SphincsPlusPrivateKey(int version, byte[] skseed, byte[] skprf)
             : this(version, skseed, skprf, null)
         {
@@ -47,6 +64,11 @@ namespace Org.BouncyCastle.Pqc.Asn1
         private readonly Asn1OctetString m_skprf;
         private readonly SphincsPlusPublicKey m_publicKey;
 
+        /// <summary>Create a new <see cref="SphincsPlusPrivateKey"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="skseed">The skseed.</param>
+        /// <param name="skprf">The skprf.</param>
+        /// <param name="publicKey">The public key.</param>
         public SphincsPlusPrivateKey(int version, byte[] skseed, byte[] skprf, SphincsPlusPublicKey publicKey)
         {
             m_version = DerInteger.ValueOf(version);
@@ -73,14 +95,18 @@ namespace Org.BouncyCastle.Pqc.Asn1
                 throw new Exception("unrecognized version");
         }
 
+        /// <summary>Return the skprf.</summary>
         public byte[] GetSkprf() => Arrays.Clone(m_skprf.GetOctets());
 
+        /// <summary>Return the skseed.</summary>
         public byte[] GetSkseed() => Arrays.Clone(m_skseed.GetOctets());
 
         public SphincsPlusPublicKey PublicKey => m_publicKey;
 
+        /// <summary>Gets the version.</summary>
         public int Version => m_version.IntValueExact;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(4);

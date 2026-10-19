@@ -20,6 +20,11 @@ namespace Org.BouncyCastle.Pqc.Asn1
     public sealed class SphincsPlusPublicKey
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SphincsPlusPublicKey"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SphincsPlusPublicKey"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SphincsPlusPublicKey"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SphincsPlusPublicKey GetInstance(object obj)
         {
             if (obj == null)
@@ -29,9 +34,16 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return new SphincsPlusPublicKey(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SphincsPlusPublicKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SphincsPlusPublicKey"/>.</returns>
         public static SphincsPlusPublicKey GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SphincsPlusPublicKey(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="SphincsPlusPublicKey"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="SphincsPlusPublicKey"/>, or null if <paramref name="element"/> is null.</returns>
         public static SphincsPlusPublicKey GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -47,12 +59,19 @@ namespace Org.BouncyCastle.Pqc.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="SphincsPlusPublicKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SphincsPlusPublicKey"/>.</returns>
         public static SphincsPlusPublicKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SphincsPlusPublicKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_pkseed;
         private readonly Asn1OctetString m_pkroot;
 
+        /// <summary>Create a new <see cref="SphincsPlusPublicKey"/>.</summary>
+        /// <param name="pkseed">The pkseed.</param>
+        /// <param name="pkroot">The pkroot.</param>
         public SphincsPlusPublicKey(byte[] pkseed, byte[] pkroot)
         {
             m_pkseed = DerOctetString.FromContents(pkseed);
@@ -72,10 +91,13 @@ namespace Org.BouncyCastle.Pqc.Asn1
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Return the pkroot.</summary>
         public byte[] GetPkroot() => Arrays.Clone(m_pkroot.GetOctets());
 
+        /// <summary>Return the pkseed.</summary>
         public byte[] GetPkseed() => Arrays.Clone(m_pkseed.GetOctets());
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_pkseed, m_pkroot);
     }
 }
