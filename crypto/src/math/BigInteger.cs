@@ -17,6 +17,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Math
 {
+    /// <summary>Arbitrary precision signed integer.</summary>
     [Serializable]
     public sealed class BigInteger
         : IComparable, IComparable<BigInteger>, IEquatable<BigInteger>
@@ -308,11 +309,16 @@ namespace Org.BouncyCastle.Math
             }
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="value">The value.</param>
         public BigInteger(string value)
             : this(value, 10)
         {
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="str">The str.</param>
+        /// <param name="radix">The radix.</param>
         public BigInteger(string str, int radix)
         {
             if (str.Length == 0)
@@ -492,11 +498,16 @@ namespace Org.BouncyCastle.Math
             magnitude = b.magnitude;
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="bytes">The bytes.</param>
         public BigInteger(byte[] bytes)
             : this(bytes, bigEndian: true)
         {
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="bigEndian">true if big endian, false otherwise.</param>
         public BigInteger(byte[] bytes, bool bigEndian)
         {
             Arrays.ValidateBuffer(bytes);
@@ -509,11 +520,20 @@ namespace Org.BouncyCastle.Math
                 : InitLE(bytes, 0, bytes.Length, out this.sign);
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="offset">The offset into the array.</param>
+        /// <param name="length">The length in bytes.</param>
         public BigInteger(byte[] bytes, int offset, int length)
             : this(bytes, offset, length, bigEndian: true)
         {
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="offset">The offset into the array.</param>
+        /// <param name="length">The length in bytes.</param>
+        /// <param name="bigEndian">true if big endian, false otherwise.</param>
         public BigInteger(byte[] bytes, int offset, int length, bool bigEndian)
         {
             Arrays.ValidateSegment(bytes, offset, length);
@@ -772,11 +792,18 @@ namespace Org.BouncyCastle.Math
         }
 #endif
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="sign">The sign.</param>
+        /// <param name="bytes">The bytes.</param>
         public BigInteger(int sign, byte[] bytes)
             : this(sign, bytes, bigEndian: true)
         {
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="sign">The sign.</param>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="bigEndian">true if big endian, false otherwise.</param>
         public BigInteger(int sign, byte[] bytes, bool bigEndian)
         {
             Arrays.ValidateBuffer(bytes);
@@ -802,11 +829,22 @@ namespace Org.BouncyCastle.Math
             }
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="sign">The sign.</param>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="offset">The offset into the array.</param>
+        /// <param name="length">The length in bytes.</param>
         public BigInteger(int sign, byte[] bytes, int offset, int length)
             : this(sign, bytes, offset, length, bigEndian: true)
         {
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="sign">The sign.</param>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="offset">The offset into the array.</param>
+        /// <param name="length">The length in bytes.</param>
+        /// <param name="bigEndian">true if big endian, false otherwise.</param>
         public BigInteger(int sign, byte[] bytes, int offset, int length, bool bigEndian)
         {
             Arrays.ValidateSegment(bytes, offset, length);
@@ -833,11 +871,18 @@ namespace Org.BouncyCastle.Math
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="sign">The sign.</param>
+        /// <param name="bytes">The bytes.</param>
         public BigInteger(int sign, ReadOnlySpan<byte> bytes)
             : this(sign, bytes, true)
         {
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="sign">The sign.</param>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="bigEndian">true if big endian, false otherwise.</param>
         public BigInteger(int sign, ReadOnlySpan<byte> bytes, bool bigEndian)
         {
             if (sign < -1 || sign > 1)
@@ -859,6 +904,9 @@ namespace Org.BouncyCastle.Math
         }
 #endif
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="sizeInBits">The size in bits.</param>
+        /// <param name="random">The source of randomness.</param>
         public BigInteger(int sizeInBits, Random random)
         {
             if (sizeInBits < 0)
@@ -893,6 +941,10 @@ namespace Org.BouncyCastle.Math
             this.sign = this.magnitude.Length < 1 ? 0 : 1;
         }
 
+        /// <summary>Create a new <see cref="BigInteger"/>.</summary>
+        /// <param name="bitLength">The bit length.</param>
+        /// <param name="certainty">The certainty.</param>
+        /// <param name="random">The source of randomness.</param>
         public BigInteger(int bitLength, int certainty, Random random)
         {
             if (bitLength < 2)
@@ -1096,6 +1148,7 @@ namespace Org.BouncyCastle.Math
             return And(val.Not());
         }
 
+        /// <summary>Gets the bit count.</summary>
         public int BitCount
         {
             get
@@ -1159,6 +1212,7 @@ namespace Org.BouncyCastle.Math
             return bitLength;
         }
 
+        /// <summary>Gets the bit length.</summary>
         public int BitLength
         {
             get
@@ -1456,6 +1510,7 @@ namespace Org.BouncyCastle.Math
             return biggies;
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (obj == this)
@@ -1510,6 +1565,7 @@ namespace Org.BouncyCastle.Math
             return u;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
 #if NET6_0_OR_GREATER
@@ -1545,6 +1601,7 @@ namespace Org.BouncyCastle.Math
             return AddToMagnitude(One.magnitude);
         }
 
+        /// <summary>Gets the int value.</summary>
         public int IntValue
         {
             get
@@ -1560,6 +1617,7 @@ namespace Org.BouncyCastle.Math
             }
         }
 
+        /// <summary>Gets the int value exact.</summary>
         public int IntValueExact
         {
             get
@@ -1721,6 +1779,7 @@ namespace Org.BouncyCastle.Math
             return true;
         }
 
+        /// <summary>Gets the long value.</summary>
         public long LongValue
         {
             get
@@ -1740,6 +1799,7 @@ namespace Org.BouncyCastle.Math
             }
         }
 
+        /// <summary>Gets the long value exact.</summary>
         public long LongValueExact
         {
             get
@@ -3145,6 +3205,7 @@ namespace Org.BouncyCastle.Math
             return new BigInteger(this.sign, res, false);
         }
 
+        /// <summary>Gets the sign value.</summary>
         public int SignValue
         {
             get { return sign; }
@@ -3219,22 +3280,26 @@ namespace Org.BouncyCastle.Math
             return Subtract(0, res, 0, lilMag);
         }
 
+        /// <summary>Return the lengthof byte array.</summary>
         public int GetLengthofByteArray()
         {
             return GetBytesLength(BitLength + 1);
         }
 
+        /// <summary>Return the lengthof byte array unsigned.</summary>
         public int GetLengthofByteArrayUnsigned()
         {
             return GetBytesLength(sign < 0 ? BitLength + 1 : BitLength);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Return the lengthof u int 32 array.</summary>
         public int GetLengthofUInt32Array()
         {
             return GetIntsLength(BitLength + 1);
         }
 
+        /// <summary>Return the lengthof u int 32 array unsigned.</summary>
         public int GetLengthofUInt32ArrayUnsigned()
         {
             return GetIntsLength(sign < 0 ? BitLength + 1 : BitLength);
@@ -3555,6 +3620,7 @@ namespace Org.BouncyCastle.Math
         }
 #endif
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return ToString(10);
@@ -3757,6 +3823,7 @@ namespace Org.BouncyCastle.Math
             return ValueOf(-value).Negate();
         }
 
+        /// <summary>Return the lowest set bit.</summary>
         public int GetLowestSetBit()
         {
             if (this.sign == 0)

@@ -45,10 +45,13 @@ namespace Org.BouncyCastle.Math
                 m_factor = factor;
             }
 
+            /// <summary>Gets the factor.</summary>
             public BigInteger Factor => m_factor;
 
+            /// <summary>Gets a value indicating whether this is provably composite.</summary>
             public bool IsProvablyComposite => m_provablyComposite;
 
+            /// <summary>Gets a value indicating whether this is not prime power.</summary>
             public bool IsNotPrimePower => m_provablyComposite && m_factor == null;
         }
 
@@ -67,10 +70,13 @@ namespace Org.BouncyCastle.Math
                 m_primeGenCounter = primeGenCounter;
             }
 
+            /// <summary>Gets the prime.</summary>
             public BigInteger Prime => m_prime;
 
+            /// <summary>Gets the prime seed.</summary>
             public byte[] PrimeSeed => m_primeSeed;
 
+            /// <summary>Gets the prime gen counter.</summary>
             public int PrimeGenCounter => m_primeGenCounter;
         }
 
