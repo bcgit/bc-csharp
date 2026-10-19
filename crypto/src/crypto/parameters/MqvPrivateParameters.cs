@@ -5,25 +5,25 @@ using Org.BouncyCastle.Math.EC.Multiplier;
 
 namespace Org.BouncyCastle.Crypto.Parameters
 {
-	public class MqvPrivateParameters
-		: ICipherParameters
-	{
-		private readonly ECPrivateKeyParameters staticPrivateKey;
-		private readonly ECPrivateKeyParameters ephemeralPrivateKey;
-		private readonly ECPublicKeyParameters ephemeralPublicKey;
-		
-		public MqvPrivateParameters(
-			ECPrivateKeyParameters	staticPrivateKey,
-			ECPrivateKeyParameters	ephemeralPrivateKey)
-			: this(staticPrivateKey, ephemeralPrivateKey, null)
-		{
-		}
+    public class MqvPrivateParameters
+        : ICipherParameters
+    {
+        private readonly ECPrivateKeyParameters staticPrivateKey;
+        private readonly ECPrivateKeyParameters ephemeralPrivateKey;
+        private readonly ECPublicKeyParameters ephemeralPublicKey;
 
-		public MqvPrivateParameters(
-			ECPrivateKeyParameters	staticPrivateKey,
-			ECPrivateKeyParameters	ephemeralPrivateKey,
-			ECPublicKeyParameters	ephemeralPublicKey)
-		{
+        public MqvPrivateParameters(
+            ECPrivateKeyParameters staticPrivateKey,
+            ECPrivateKeyParameters ephemeralPrivateKey)
+            : this(staticPrivateKey, ephemeralPrivateKey, null)
+        {
+        }
+
+        public MqvPrivateParameters(
+            ECPrivateKeyParameters staticPrivateKey,
+            ECPrivateKeyParameters ephemeralPrivateKey,
+            ECPublicKeyParameters ephemeralPublicKey)
+        {
             if (staticPrivateKey == null)
                 throw new ArgumentNullException("staticPrivateKey");
             if (ephemeralPrivateKey == null)
@@ -47,21 +47,21 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.staticPrivateKey = staticPrivateKey;
             this.ephemeralPrivateKey = ephemeralPrivateKey;
             this.ephemeralPublicKey = ephemeralPublicKey;
-		}
+        }
 
         public virtual ECPrivateKeyParameters StaticPrivateKey
-		{
-			get { return staticPrivateKey; }
-		}
+        {
+            get { return staticPrivateKey; }
+        }
 
         public virtual ECPrivateKeyParameters EphemeralPrivateKey
-		{
-			get { return ephemeralPrivateKey; }
-		}
+        {
+            get { return ephemeralPrivateKey; }
+        }
 
         public virtual ECPublicKeyParameters EphemeralPublicKey
-		{
-			get { return ephemeralPublicKey; }
-		}
-	}
+        {
+            get { return ephemeralPublicKey; }
+        }
+    }
 }

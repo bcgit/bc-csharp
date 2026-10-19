@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 {
     /// <summary>Digital Signature Algorithm (DSA) public key parameters.</summary>
     public class DsaPublicKeyParameters
-		: DsaKeyParameters
+        : DsaKeyParameters
     {
         private static BigInteger Validate(BigInteger y, DsaParameters parameters)
         {
@@ -36,42 +36,42 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Initializes a new instance of <see cref="DsaPublicKeyParameters"/>.</summary>
         /// <param name="y">The public value Y.</param>
         /// <param name="parameters">The DSA domain parameters.</param>
-		public DsaPublicKeyParameters(
-            BigInteger		y,
-            DsaParameters	parameters)
-			: base(false, parameters)
+        public DsaPublicKeyParameters(
+            BigInteger y,
+            DsaParameters parameters)
+            : base(false, parameters)
         {
-			if (y == null)
-				throw new ArgumentNullException("y");
+            if (y == null)
+                throw new ArgumentNullException("y");
 
-			this.y = Validate(y, parameters);
+            this.y = Validate(y, parameters);
         }
 
         /// <summary>Gets the public value Y.</summary>
-		public BigInteger Y => y;
+        public BigInteger Y => y;
 
-		public override bool Equals(object obj)
+        public override bool Equals(object obj)
         {
-			if (obj == this)
-				return true;
+            if (obj == this)
+                return true;
 
-			DsaPublicKeyParameters other = obj as DsaPublicKeyParameters;
+            DsaPublicKeyParameters other = obj as DsaPublicKeyParameters;
 
-			if (other == null)
-				return false;
+            if (other == null)
+                return false;
 
-			return Equals(other);
+            return Equals(other);
         }
 
-		protected bool Equals(
-			DsaPublicKeyParameters other)
-		{
-			return y.Equals(other.y) && base.Equals(other);
-		}
-
-		public override int GetHashCode()
+        protected bool Equals(
+            DsaPublicKeyParameters other)
         {
-			return y.GetHashCode() ^ base.GetHashCode();
+            return y.Equals(other.y) && base.Equals(other);
+        }
+
+        public override int GetHashCode()
+        {
+            return y.GetHashCode() ^ base.GetHashCode();
         }
     }
 }

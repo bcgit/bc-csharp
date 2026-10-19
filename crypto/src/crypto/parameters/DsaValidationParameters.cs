@@ -16,8 +16,8 @@ namespace Org.BouncyCastle.Crypto.Parameters
         }
 
         public DsaValidationParameters(
-            byte[]	seed,
-            int		counter,
+            byte[] seed,
+            int counter,
             int     usageIndex)
         {
             if (seed == null)

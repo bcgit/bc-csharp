@@ -6,82 +6,82 @@ using Org.BouncyCastle.Math;
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     // TODO[api] Don't implement ICipherParameters
-	public class Gost3410Parameters
-		: ICipherParameters
-	{
-		private readonly BigInteger p, q, a;
-		private readonly Gost3410ValidationParameters validation;
+    public class Gost3410Parameters
+        : ICipherParameters
+    {
+        private readonly BigInteger p, q, a;
+        private readonly Gost3410ValidationParameters validation;
 
-		public Gost3410Parameters(
-			BigInteger	p,
-			BigInteger	q,
-			BigInteger	a)
-			: this(p, q, a, null)
-		{
-		}
+        public Gost3410Parameters(
+            BigInteger p,
+            BigInteger q,
+            BigInteger a)
+            : this(p, q, a, null)
+        {
+        }
 
-		public Gost3410Parameters(
-			BigInteger						p,
-			BigInteger						q,
-			BigInteger						a,
-			Gost3410ValidationParameters	validation)
-		{
-			if (p == null)
-				throw new ArgumentNullException("p");
-			if (q == null)
-				throw new ArgumentNullException("q");
-			if (a == null)
-				throw new ArgumentNullException("a");
+        public Gost3410Parameters(
+            BigInteger p,
+            BigInteger q,
+            BigInteger a,
+            Gost3410ValidationParameters validation)
+        {
+            if (p == null)
+                throw new ArgumentNullException("p");
+            if (q == null)
+                throw new ArgumentNullException("q");
+            if (a == null)
+                throw new ArgumentNullException("a");
 
-			this.p = p;
-			this.q = q;
-			this.a = a;
-			this.validation = validation;
-		}
+            this.p = p;
+            this.q = q;
+            this.a = a;
+            this.validation = validation;
+        }
 
-		public BigInteger P
-		{
-			get { return p; }
-		}
+        public BigInteger P
+        {
+            get { return p; }
+        }
 
-		public BigInteger Q
-		{
-			get { return q; }
-		}
+        public BigInteger Q
+        {
+            get { return q; }
+        }
 
-		public BigInteger A
-		{
-			get { return a; }
-		}
+        public BigInteger A
+        {
+            get { return a; }
+        }
 
-		public Gost3410ValidationParameters ValidationParameters
-		{
-			get { return validation; }
-		}
+        public Gost3410ValidationParameters ValidationParameters
+        {
+            get { return validation; }
+        }
 
-		public override bool Equals(
-			object obj)
-		{
-			if (obj == this)
-				return true;
+        public override bool Equals(
+            object obj)
+        {
+            if (obj == this)
+                return true;
 
-			Gost3410Parameters other = obj as Gost3410Parameters;
+            Gost3410Parameters other = obj as Gost3410Parameters;
 
-			if (other == null)
-				return false;
+            if (other == null)
+                return false;
 
-			return Equals(other);
-		}
+            return Equals(other);
+        }
 
-		protected bool Equals(
-			Gost3410Parameters other)
-		{
-			return p.Equals(other.p) && q.Equals(other.q) && a.Equals(other.a);
-		}
+        protected bool Equals(
+            Gost3410Parameters other)
+        {
+            return p.Equals(other.p) && q.Equals(other.q) && a.Equals(other.a);
+        }
 
-		public override int GetHashCode()
-		{
-			return p.GetHashCode() ^ q.GetHashCode() ^ a.GetHashCode();
-		}
-	}
+        public override int GetHashCode()
+        {
+            return p.GetHashCode() ^ q.GetHashCode() ^ a.GetHashCode();
+        }
+    }
 }

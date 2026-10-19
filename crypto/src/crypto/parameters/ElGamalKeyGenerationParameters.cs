@@ -5,27 +5,27 @@ using Org.BouncyCastle.Security;
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class ElGamalKeyGenerationParameters
-		: KeyGenerationParameters
+        : KeyGenerationParameters
     {
         private readonly ElGamalParameters parameters;
 
-		public ElGamalKeyGenerationParameters(
-            SecureRandom		random,
-            ElGamalParameters	parameters)
-			: base(random, GetStrength(parameters))
+        public ElGamalKeyGenerationParameters(
+            SecureRandom random,
+            ElGamalParameters parameters)
+            : base(random, GetStrength(parameters))
         {
             this.parameters = parameters;
         }
 
-		public ElGamalParameters Parameters
+        public ElGamalParameters Parameters
         {
             get { return parameters; }
         }
 
-		internal static int GetStrength(
-			ElGamalParameters parameters)
-		{
-			return parameters.L != 0 ? parameters.L : parameters.P.BitLength;
-		}
+        internal static int GetStrength(
+            ElGamalParameters parameters)
+        {
+            return parameters.L != 0 ? parameters.L : parameters.P.BitLength;
+        }
     }
 }

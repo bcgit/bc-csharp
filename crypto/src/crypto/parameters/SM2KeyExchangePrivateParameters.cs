@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
 
             this.mInitiator = initiator;
             this.mStaticPrivateKey = staticPrivateKey;
-            this.mStaticPublicPoint = m.Multiply(parameters.G, staticPrivateKey.D).Normalize(); 
+            this.mStaticPublicPoint = m.Multiply(parameters.G, staticPrivateKey.D).Normalize();
             this.mEphemeralPrivateKey = ephemeralPrivateKey;
             this.mEphemeralPublicPoint = m.Multiply(parameters.G, ephemeralPrivateKey.D).Normalize();
         }

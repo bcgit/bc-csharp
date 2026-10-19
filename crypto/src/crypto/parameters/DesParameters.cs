@@ -5,27 +5,27 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Parameters
 {
     public class DesParameters
-		: KeyParameter
+        : KeyParameter
     {
         public DesParameters(
             byte[] key)
-			: base(key)
+            : base(key)
         {
             if (IsWeakKey(key))
-				throw new ArgumentException("attempt to create weak DES key");
+                throw new ArgumentException("attempt to create weak DES key");
         }
 
-		public DesParameters(
-			byte[]	key,
-			int		keyOff,
-			int		keyLen)
-			: base(key, keyOff, keyLen)
-		{
-			if (IsWeakKey(key, keyOff))
-				throw new ArgumentException("attempt to create weak DES key");
-		}
+        public DesParameters(
+            byte[] key,
+            int keyOff,
+            int keyLen)
+            : base(key, keyOff, keyLen)
+        {
+            if (IsWeakKey(key, keyOff))
+                throw new ArgumentException("attempt to create weak DES key");
+        }
 
-		/*
+        /*
         * DES Key Length in bytes.
         */
         public const int DesKeyLength = 8;

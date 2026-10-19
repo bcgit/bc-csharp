@@ -15,7 +15,7 @@ public sealed class FpeParameters
 
     public FpeParameters(KeyParameter key, int radix, byte[] tweak): this(key, radix, tweak, false)
     {
-        
+
     }
 
     public FpeParameters(KeyParameter key, int radix, byte[] tweak, bool useInverse)
