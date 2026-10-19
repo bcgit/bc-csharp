@@ -187,6 +187,7 @@ namespace Org.BouncyCastle.Pkix
             nc = NameConstraints.GetInstance(bytes);
         }
 
+        /// <summary>Returns a copy of the DER encoding of the name constraints, or null if there are none.</summary>
         public byte[] GetNameConstraints => Arrays.Clone(ncBytes);
 
         /// <summary>

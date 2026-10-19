@@ -13,68 +13,18 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Pkix
 {
-    /**
-     * An immutable sequence of certificates (a certification path).<br />
-     * <br />
-     * This is an abstract class that defines the methods common to all CertPaths.
-     * Subclasses can handle different kinds of certificates (X.509, PGP, etc.).<br />
-     * <br />
-     * All CertPath objects have a type, a list of Certificates, and one or more
-     * supported encodings. Because the CertPath class is immutable, a CertPath
-     * cannot change in any externally visible way after being constructed. This
-     * stipulation applies to all public fields and methods of this class and any
-     * added or overridden by subclasses.<br />
-     * <br />
-     * The type is a string that identifies the type of Certificates in the
-     * certification path. For each certificate cert in a certification path
-     * certPath, cert.getType().equals(certPath.getType()) must be true.<br />
-     * <br />
-     * The list of Certificates is an ordered List of zero or more Certificates.
-     * This List and all of the Certificates contained in it must be immutable.<br />
-     * <br />
-     * Each CertPath object must support one or more encodings so that the object
-     * can be translated into a byte array for storage or transmission to other
-     * parties. Preferably, these encodings should be well-documented standards
-     * (such as PKCS#7). One of the encodings supported by a CertPath is considered
-     * the default encoding. This encoding is used if no encoding is explicitly
-     * requested (for the {@link #getEncoded()} method, for instance).<br />
-     * <br />
-     * All CertPath objects are also Serializable. CertPath objects are resolved
-     * into an alternate {@link CertPathRep} object during serialization. This
-     * allows a CertPath object to be serialized into an equivalent representation
-     * regardless of its underlying implementation.<br />
-     * <br />
-     * CertPath objects can be created with a CertificateFactory or they can be
-     * returned by other classes, such as a CertPathBuilder.<br />
-     * <br />
-     * By convention, X.509 CertPaths (consisting of X509Certificates), are ordered
-     * starting with the target certificate and ending with a certificate issued by
-     * the trust anchor. That is, the issuer of one certificate is the subject of
-     * the following one. The certificate representing the
-     * {@link TrustAnchor TrustAnchor} should not be included in the certification
-     * path. Unvalidated X.509 CertPaths may not follow these conventions. PKIX
-     * CertPathValidators will detect any departure from these conventions that
-     * cause the certification path to be invalid and throw a
-     * CertPathValidatorException.<br />
-     * <br />
-     * <strong>Concurrent Access</strong><br />
-     * <br />
-     * All CertPath objects must be thread-safe. That is, multiple threads may
-     * concurrently invoke the methods defined in this class on a single CertPath
-     * object (or more than one) with no ill effects. This is also true for the List
-     * returned by CertPath.getCertificates.<br />
-     * <br />
-     * Requiring CertPath objects to be immutable and thread-safe allows them to be
-     * passed around to various pieces of code without worrying about coordinating
-     * access. Providing this thread-safety is generally not difficult, since the
-     * CertPath and List objects in question are immutable.
-     *
-     * @see CertificateFactory
-     * @see CertPathBuilder
-     */
-    /// <summary>
-    /// CertPath implementation for X.509 certificates.
-    /// </summary>
+    /// <summary>An immutable sequence of X.509 certificates (a certification path).</summary>
+    /// <remarks>
+    /// By convention, X.509 certification paths are ordered starting with the target certificate and ending with a
+    /// certificate issued by the trust anchor. That is, the issuer of one certificate is the subject of the following
+    /// one. The certificate representing the <see cref="TrustAnchor"/> should not be included in the path.
+    /// Unvalidated paths may not follow these conventions; <see cref="PkixCertPathValidator"/> will detect any
+    /// departure from them that makes the path invalid and throw a <see cref="PkixCertPathValidatorException"/>.
+    /// <para>
+    /// A path can be encoded as "PkiPath" (the default), "PEM" or "PKCS7", see <see cref="Encodings"/>. Because the
+    /// path is immutable it can safely be shared between threads.
+    /// </para>
+    /// </remarks>
     public class PkixCertPath
     {
         private static readonly List<string> EncodingNames = new List<string> { "PkiPath", "PEM", "PKCS7" };
@@ -161,29 +111,27 @@ namespace Org.BouncyCastle.Pkix
             return retList;
         }
 
-        /**
-         * Creates a CertPath of the specified type.
-         * This constructor is protected because most users should use
-         * a CertificateFactory to create CertPaths.
-         * @param type the standard name of the type of Certificatesin this path
-         */
+        /// <summary>Creates a certification path from the given certificates.</summary>
+        /// <remarks>The certificates are copied and then put into path order (target certificate first).</remarks>
+        /// <param name="certificates">The certificates of the path.</param>
         public PkixCertPath(IList<X509Certificate> certificates)
         {
             m_certificates = SortCerts(new List<X509Certificate>(certificates));
         }
 
+        /// <summary>Reads a certification path from a stream containing a PkiPath encoding.</summary>
+        /// <param name="inStream">The stream to read from.</param>
+        /// <exception cref="CertificateException">The data cannot be decoded.</exception>
         public PkixCertPath(Stream inStream)
             : this(inStream, "PkiPath")
         {
         }
 
-        /**
-         * Creates a CertPath of the specified type.
-         * This constructor is protected because most users should use
-         * a CertificateFactory to create CertPaths.
-         *
-         * @param type the standard name of the type of Certificatesin this path
-         */
+        /// <summary>Reads a certification path from a stream in the given encoding.</summary>
+        /// <param name="inStream">The stream to read from.</param>
+        /// <param name="encoding">The name of the encoding: "PkiPath", "PEM" or "PKCS7" (case-insensitive).</param>
+        /// <exception cref="CertificateException">The encoding is not supported or the data cannot be decoded.
+        /// </exception>
         public PkixCertPath(Stream inStream, string encoding)
         {
             IList<X509Certificate> certs;
@@ -225,36 +173,20 @@ namespace Org.BouncyCastle.Pkix
             m_certificates = SortCerts(certs);
         }
 
-        /**
-         * Returns an iteration of the encodings supported by this
-         * certification path, with the default encoding
-         * first. Attempts to modify the returned Iterator via its
-         * remove method result in an UnsupportedOperationException.
-         *
-         * @return an Iterator over the names of the supported encodings (as Strings)
-         */
+        /// <summary>Gets the names of the encodings supported by this path, with the default encoding first.
+        /// </summary>
         public virtual IEnumerable<string> Encodings
         {
             get { return CollectionUtilities.Proxy(EncodingNames); }
         }
 
-        /**
-         * Compares this certification path for equality with the specified object.
-         * Two CertPaths are equal if and only if their types are equal and their
-         * certificate Lists (and by implication the Certificates in those Lists)
-         * are equal. A CertPath is never equal to an object that is not a CertPath.<br />
-         * <br />
-         * This algorithm is implemented by this method. If it is overridden, the
-         * behavior specified here must be maintained.
-         *
-         * @param other
-         *            the object to test for equality with this certification path
-         *
-         * @return true if the specified object is equal to this certification path,
-         *         false otherwise
-         *
-         * @see Object#hashCode() Object.hashCode()
-         */
+        /// <summary>Compares this certification path for equality with the specified object.</summary>
+        /// <remarks>
+        /// Two paths are equal if and only if their certificate lists (and by implication the certificates in those
+        /// lists) are equal. A path is never equal to an object that is not a <see cref="PkixCertPath"/>.
+        /// </remarks>
+        /// <param name="obj">The object to test for equality with this certification path.</param>
+        /// <returns>true if the specified object is equal to this certification path, false otherwise.</returns>
         public override bool Equals(object obj)
         {
             if (this == obj)
@@ -283,30 +215,25 @@ namespace Org.BouncyCastle.Pkix
             return true;
         }
 
+        /// <summary>Returns a hash code for this certification path.</summary>
         public override int GetHashCode()
         {
             return m_certificates.GetHashCode();
         }
 
-        /**
-         * Returns the encoded form of this certification path, using
-         * the default encoding.
-         *
-         * @return the encoded bytes
-         * @exception CertificateEncodingException if an encoding error occurs
-         */
+        /// <summary>Returns the encoded form of this certification path, using the default encoding (PkiPath).
+        /// </summary>
+        /// <returns>The encoded bytes.</returns>
+        /// <exception cref="CertificateEncodingException">An encoding error occurs.</exception>
         public virtual byte[] GetEncoded() => GetEncoded(EncodingNames[0]);
 
-        /**
-         * Returns the encoded form of this certification path, using
-         * the specified encoding.
-         *
-         * @param encoding the name of the encoding to use
-         * @return the encoded bytes
-         * @exception CertificateEncodingException if an encoding error
-         * occurs or the encoding requested is not supported
-         *
-         */
+        /// <summary>Returns the encoded form of this certification path, using the specified encoding.</summary>
+        /// <param name="encoding">The name of the encoding to use: "PkiPath", "PEM" or "PKCS7" (case-insensitive).
+        /// </param>
+        /// <returns>The encoded bytes.</returns>
+        /// <exception cref="CertificateEncodingException">
+        /// An encoding error occurs or the encoding requested is not supported.
+        /// </exception>
         public virtual byte[] GetEncoded(string encoding)
         {
             if (Platform.EqualsIgnoreCase(encoding, "PkiPath"))
@@ -366,10 +293,7 @@ namespace Org.BouncyCastle.Pkix
             }
         }
 
-        /// <summary>
-        /// Returns the list of certificates in this certification
-        /// path.
-        /// </summary>
+        /// <summary>Gets the read-only list of certificates in this certification path.</summary>
         public virtual IList<X509Certificate> Certificates => CollectionUtilities.ReadOnly(m_certificates);
 
         /**
