@@ -13,46 +13,73 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
+    /// <summary>A key wrapper for the algorithm given by an algorithm identifier.</summary>
     public class Asn1KeyWrapper
         : IKeyWrapper
     {
         private readonly IKeyWrapper m_wrapper;
 
+        /// <summary>Create a new <see cref="Asn1KeyWrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="cert">The cert.</param>
         public Asn1KeyWrapper(string algorithm, X509Certificate cert)
              : this(algorithm, cert.GetPublicKey())
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyWrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="key">The key.</param>
         public Asn1KeyWrapper(string algorithm, ICipherParameters key)
         {
             m_wrapper = KeyWrapperUtil.WrapperForName(algorithm, key);
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyWrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="cert">The cert.</param>
         public Asn1KeyWrapper(DerObjectIdentifier algorithm, X509Certificate cert)
              : this(algorithm, null, cert.GetPublicKey())
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyWrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="key">The key.</param>
         public Asn1KeyWrapper(DerObjectIdentifier algorithm, ICipherParameters key)
             : this(algorithm, null, key)
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyWrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="cert">The cert.</param>
         public Asn1KeyWrapper(AlgorithmIdentifier algorithm, X509Certificate cert)
             : this(algorithm.Algorithm, algorithm.Parameters, cert.GetPublicKey())
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyWrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="cert">The cert.</param>
         public Asn1KeyWrapper(DerObjectIdentifier algorithm, Asn1Encodable parameters, X509Certificate cert)
             : this(algorithm, parameters, cert.GetPublicKey())
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyWrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="key">The key.</param>
         public Asn1KeyWrapper(AlgorithmIdentifier algorithm, ICipherParameters key)
             : this(algorithm.Algorithm, algorithm.Parameters, key)
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyWrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="key">The key.</param>
         public Asn1KeyWrapper(DerObjectIdentifier algorithm, Asn1Encodable parameters, ICipherParameters key)
         {
             if (PkcsObjectIdentifiers.IdRsaesOaep.Equals(algorithm))
@@ -78,26 +105,39 @@ namespace Org.BouncyCastle.Crypto.Operators
             }
         }
 
+        /// <inheritdoc/>
         public object AlgorithmDetails => m_wrapper.AlgorithmDetails;
 
+        /// <inheritdoc/>
         public IBlockResult Wrap(byte[] keyData) => m_wrapper.Wrap(keyData);
     }
 
+    /// <summary>A key unwrapper for the algorithm given by an algorithm identifier.</summary>
     public class Asn1KeyUnwrapper
         : IKeyUnwrapper
     {
         private readonly IKeyUnwrapper m_unwrapper;
 
+        /// <summary>Create a new <see cref="Asn1KeyUnwrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="key">The key.</param>
         public Asn1KeyUnwrapper(string algorithm, ICipherParameters key)
         {
             m_unwrapper = KeyWrapperUtil.UnwrapperForName(algorithm, key);
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyUnwrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="key">The key.</param>
         public Asn1KeyUnwrapper(DerObjectIdentifier algorithm, ICipherParameters key)
             : this(algorithm, parameters: null, key)
         {
         }
 
+        /// <summary>Create a new <see cref="Asn1KeyUnwrapper"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="key">The key.</param>
         public Asn1KeyUnwrapper(DerObjectIdentifier algorithm, Asn1Encodable parameters, ICipherParameters key)
         {
             if (PkcsObjectIdentifiers.IdRsaesOaep.Equals(algorithm))
@@ -123,8 +163,10 @@ namespace Org.BouncyCastle.Crypto.Operators
             }
         }
 
+        /// <inheritdoc/>
         public object AlgorithmDetails => m_unwrapper.AlgorithmDetails;
 
+        /// <inheritdoc/>
         public IBlockResult Unwrap(byte[] keyData, int offSet, int length) =>
             m_unwrapper.Unwrap(keyData, offSet, length);
     }

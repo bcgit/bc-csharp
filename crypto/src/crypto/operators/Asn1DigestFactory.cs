@@ -4,6 +4,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Operators
 {
+    /// <summary>A factory for digests identified by an algorithm object identifier.</summary>
     public class Asn1DigestFactory
         : IDigestFactory
     {
@@ -15,16 +16,22 @@ namespace Org.BouncyCastle.Crypto.Operators
         private readonly IDigest m_digest;
         private readonly DerObjectIdentifier m_oid;
 
+        /// <summary>Create a new <see cref="Asn1DigestFactory"/>.</summary>
+        /// <param name="digest">The digest.</param>
+        /// <param name="oid">The object identifier.</param>
         public Asn1DigestFactory(IDigest digest, DerObjectIdentifier oid)
         {
             m_digest = digest;
             m_oid = oid;
         }
 
+        /// <inheritdoc/>
         public virtual object AlgorithmDetails => new AlgorithmIdentifier(m_oid);
 
+        /// <inheritdoc/>
         public virtual int DigestLength => m_digest.GetDigestSize();
 
+        /// <inheritdoc/>
         public virtual IStreamCalculator<IBlockResult> CreateCalculator() => new DefaultDigestCalculator(m_digest);
     }
 }
