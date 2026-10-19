@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1Set Crls => m_crls;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * OriginatorInfo ::= Sequence {
@@ -74,7 +74,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.AddOptionalTagged(false, 0, m_certs);
             v.AddOptionalTagged(false, 1, m_crls);
-			return new DerSequence(v);
+            return new DerSequence(v);
         }
     }
 }

@@ -68,7 +68,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1OctetString EncryptedContent => m_encryptedContent;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * EncryptedContentInfo ::= Sequence {
@@ -83,12 +83,12 @@ namespace Org.BouncyCastle.Asn1.Cms
             Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.Add(m_contentType, m_contentEncryptionAlgorithm);
 
-			if (m_encryptedContent != null)
+            if (m_encryptedContent != null)
             {
                 v.Add(new BerTaggedObject(false, 0, m_encryptedContent));
             }
 
-			return new BerSequence(v);
+            return new BerSequence(v);
         }
     }
 }

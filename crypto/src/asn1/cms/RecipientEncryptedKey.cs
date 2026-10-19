@@ -3,8 +3,8 @@ using System;
 namespace Org.BouncyCastle.Asn1.Cms
 {
     public class RecipientEncryptedKey
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static RecipientEncryptedKey GetInstance(object obj)
         {
             if (obj == null)
@@ -21,20 +21,20 @@ namespace Org.BouncyCastle.Asn1.Cms
             new RecipientEncryptedKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly KeyAgreeRecipientIdentifier m_identifier;
-		private readonly Asn1OctetString m_encryptedKey;
+        private readonly Asn1OctetString m_encryptedKey;
 
-		private RecipientEncryptedKey(Asn1Sequence seq)
-		{
+        private RecipientEncryptedKey(Asn1Sequence seq)
+        {
             int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_identifier = Asn1Utilities.Read(seq, ref pos, KeyAgreeRecipientIdentifier.GetInstance);
-			m_encryptedKey = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_encryptedKey = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         public RecipientEncryptedKey(KeyAgreeRecipientIdentifier id, Asn1OctetString encryptedKey)
         {
@@ -44,17 +44,17 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public KeyAgreeRecipientIdentifier Identifier => m_identifier;
 
-		public Asn1OctetString EncryptedKey => m_encryptedKey;
+        public Asn1OctetString EncryptedKey => m_encryptedKey;
 
-		/** 
-		 * Produce an object suitable for an Asn1OutputStream.
-		 * <pre>
-		 * RecipientEncryptedKey ::= SEQUENCE {
-		 *     rid KeyAgreeRecipientIdentifier,
-		 *     encryptedKey EncryptedKey
-		 * }
-		 * </pre>
-		 */
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_identifier, m_encryptedKey);
-	}
+        /**
+         * Produce an object suitable for an Asn1OutputStream.
+         * <pre>
+         * RecipientEncryptedKey ::= SEQUENCE {
+         *     rid KeyAgreeRecipientIdentifier,
+         *     encryptedKey EncryptedKey
+         * }
+         * </pre>
+         */
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_identifier, m_encryptedKey);
+    }
 }

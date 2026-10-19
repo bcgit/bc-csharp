@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public OtherKeyAttribute Other => m_other;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * KekIdentifier ::= Sequence {
@@ -79,8 +79,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.Add(m_keyIdentifier);
-			v.AddOptional(m_date, m_other);
-			return new DerSequence(v);
+            v.AddOptional(m_date, m_other);
+            return new DerSequence(v);
         }
     }
 }

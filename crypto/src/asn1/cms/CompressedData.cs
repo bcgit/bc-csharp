@@ -77,7 +77,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public ContentInfo EncapContentInfo => m_encapContentInfo;
 
-		public override Asn1Object ToAsn1Object() =>
+        public override Asn1Object ToAsn1Object() =>
             new BerSequence(m_version, m_compressionAlgorithm, m_encapContentInfo);
     }
 }

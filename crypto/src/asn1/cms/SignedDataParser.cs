@@ -5,17 +5,17 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Asn1.Cms
 {
     /**
-	* <pre>
-	* SignedData ::= SEQUENCE {
-	*     version CMSVersion,
-	*     digestAlgorithms DigestAlgorithmIdentifiers,
-	*     encapContentInfo EncapsulatedContentInfo,
-	*     certificates [0] IMPLICIT CertificateSet OPTIONAL,
-	*     crls [1] IMPLICIT CertificateRevocationLists OPTIONAL,
-	*     signerInfos SignerInfos
-	*   }
-	* </pre>
-	*/
+    * <pre>
+    * SignedData ::= SEQUENCE {
+    *     version CMSVersion,
+    *     digestAlgorithms DigestAlgorithmIdentifiers,
+    *     encapContentInfo EncapsulatedContentInfo,
+    *     certificates [0] IMPLICIT CertificateSet OPTIONAL,
+    *     crls [1] IMPLICIT CertificateRevocationLists OPTIONAL,
+    *     signerInfos SignerInfos
+    *   }
+    * </pre>
+    */
     public class SignedDataParser
     {
         private readonly Asn1SequenceParser m_seq;

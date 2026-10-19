@@ -17,8 +17,8 @@ namespace Org.BouncyCastle.Asn1.Cms
      * </pre>
      */
     public class Evidence
-		: Asn1Encodable, IAsn1Choice
-	{
+        : Asn1Encodable, IAsn1Choice
+    {
         public static Evidence GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static Evidence GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
@@ -56,9 +56,9 @@ namespace Org.BouncyCastle.Asn1.Cms
         private readonly Asn1Sequence m_otherEvidence;
 
         public Evidence(TimeStampTokenEvidence tstEvidence)
-		{
-			m_tstEvidence = tstEvidence ?? throw new ArgumentNullException(nameof(tstEvidence));
-		}
+        {
+            m_tstEvidence = tstEvidence ?? throw new ArgumentNullException(nameof(tstEvidence));
+        }
 
         public Evidence(EvidenceRecord ersEvidence)
         {

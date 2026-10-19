@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public DerBitString PublicKey => m_publicKey;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * OriginatorPublicKey ::= Sequence {

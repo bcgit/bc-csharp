@@ -45,16 +45,16 @@ namespace Org.BouncyCastle.Asn1.Cms
         }
 
         public RecipientKeyIdentifier(byte[] subjectKeyIdentifier)
-			: this(subjectKeyIdentifier, null, null)
-		{
-		}
+            : this(subjectKeyIdentifier, null, null)
+        {
+        }
 
-		public RecipientKeyIdentifier(byte[] subjectKeyIdentifier, Asn1GeneralizedTime date, OtherKeyAttribute other)
-		{
-			m_subjectKeyIdentifier = DerOctetString.FromContents(subjectKeyIdentifier);
-			m_date = date;
-			m_other = other;
-		}
+        public RecipientKeyIdentifier(byte[] subjectKeyIdentifier, Asn1GeneralizedTime date, OtherKeyAttribute other)
+        {
+            m_subjectKeyIdentifier = DerOctetString.FromContents(subjectKeyIdentifier);
+            m_date = date;
+            m_other = other;
+        }
 
         [Obsolete("Use 'GetInstance' instead")]
         public RecipientKeyIdentifier(Asn1Sequence seq)
@@ -76,11 +76,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1OctetString SubjectKeyIdentifier => m_subjectKeyIdentifier;
 
-		public Asn1GeneralizedTime Date => m_date;
+        public Asn1GeneralizedTime Date => m_date;
 
         public OtherKeyAttribute OtherKeyAttribute => m_other;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * RecipientKeyIdentifier ::= Sequence {
@@ -96,8 +96,8 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
             v.Add(m_subjectKeyIdentifier);
-			v.AddOptional(m_date, m_other);
-			return new DerSequence(v);
+            v.AddOptional(m_date, m_other);
+            return new DerSequence(v);
         }
     }
 }

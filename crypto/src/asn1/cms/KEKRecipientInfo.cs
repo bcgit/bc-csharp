@@ -69,11 +69,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public KekIdentifier KekID => m_kekID;
 
-		public AlgorithmIdentifier KeyEncryptionAlgorithm => m_keyEncryptionAlgorithm;
+        public AlgorithmIdentifier KeyEncryptionAlgorithm => m_keyEncryptionAlgorithm;
 
         public Asn1OctetString EncryptedKey => m_encryptedKey;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * KekRecipientInfo ::= Sequence {

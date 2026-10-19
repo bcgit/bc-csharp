@@ -3,17 +3,17 @@ using System;
 namespace Org.BouncyCastle.Asn1.Cms
 {
     /**
-	* Produce an object suitable for an Asn1OutputStream.
-	* <pre>
-	* EnvelopedData ::= SEQUENCE {
-	*     version CMSVersion,
-	*     originatorInfo [0] IMPLICIT OriginatorInfo OPTIONAL,
-	*     recipientInfos RecipientInfos,
-	*     encryptedContentInfo EncryptedContentInfo,
-	*     unprotectedAttrs [1] IMPLICIT UnprotectedAttributes OPTIONAL
-	* }
-	* </pre>
-	*/
+    * Produce an object suitable for an Asn1OutputStream.
+    * <pre>
+    * EnvelopedData ::= SEQUENCE {
+    *     version CMSVersion,
+    *     originatorInfo [0] IMPLICIT OriginatorInfo OPTIONAL,
+    *     recipientInfos RecipientInfos,
+    *     encryptedContentInfo EncryptedContentInfo,
+    *     unprotectedAttrs [1] IMPLICIT UnprotectedAttributes OPTIONAL
+    * }
+    * </pre>
+    */
     public class EnvelopedDataParser
     {
         private Asn1SequenceParser _seq;

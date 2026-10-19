@@ -49,7 +49,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         private readonly Asn1Encodable m_id;
 
-		public RecipientIdentifier(IssuerAndSerialNumber id)
+        public RecipientIdentifier(IssuerAndSerialNumber id)
         {
             m_id = id ?? throw new ArgumentNullException(nameof(id));
         }

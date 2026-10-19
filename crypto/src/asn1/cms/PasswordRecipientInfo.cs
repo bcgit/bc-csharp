@@ -42,14 +42,14 @@ namespace Org.BouncyCastle.Asn1.Cms
         {
         }
 
-		public PasswordRecipientInfo(AlgorithmIdentifier keyDerivationAlgorithm,
+        public PasswordRecipientInfo(AlgorithmIdentifier keyDerivationAlgorithm,
             AlgorithmIdentifier keyEncryptionAlgorithm, Asn1OctetString encryptedKey)
-		{
+        {
             m_version = DerInteger.Zero;
             m_keyDerivationAlgorithm = keyDerivationAlgorithm;
             m_keyEncryptionAlgorithm = keyEncryptionAlgorithm ?? throw new ArgumentNullException(nameof(keyEncryptionAlgorithm));
             m_encryptedKey = encryptedKey ?? throw new ArgumentNullException(nameof(encryptedKey));
-		}
+        }
 
         [Obsolete("Use 'GetInstance' instead")]
         public PasswordRecipientInfo(Asn1Sequence seq)
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1OctetString EncryptedKey => m_encryptedKey;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * PasswordRecipientInfo ::= Sequence {

@@ -92,7 +92,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1OctetString EncryptedKey => m_encryptedKey;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * KeyTransRecipientInfo ::= Sequence {
@@ -104,6 +104,6 @@ namespace Org.BouncyCastle.Asn1.Cms
          * </pre>
          */
         public override Asn1Object ToAsn1Object() =>
-			new DerSequence(m_version, m_rid, m_keyEncryptionAlgorithm, m_encryptedKey);
+            new DerSequence(m_version, m_rid, m_keyEncryptionAlgorithm, m_encryptedKey);
     }
 }

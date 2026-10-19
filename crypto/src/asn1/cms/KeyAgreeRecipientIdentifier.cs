@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public RecipientKeyIdentifier RKeyID => m_rKeyID;
 
-        /** 
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * KeyAgreeRecipientIdentifier ::= CHOICE {

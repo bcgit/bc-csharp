@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1Encodable KeyAttr => m_keyAttr;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * OtherKeyAttribute ::= Sequence {

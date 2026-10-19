@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public virtual Asn1Encodable Info => m_otherRevInfo;
 
-        /** 
+        /**
          * Produce an object suitable for an ASN1OutputStream.
          * <pre>
          * OtherRevocationInfoFormat ::= SEQUENCE {

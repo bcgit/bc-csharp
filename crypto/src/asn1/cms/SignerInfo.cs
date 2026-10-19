@@ -18,21 +18,21 @@ namespace Org.BouncyCastle.Asn1.Cms
     ///   signatureAlgorithm SignatureAlgorithmIdentifier,
     ///   signature SignatureValue,
     ///   unsignedAttrs [1] IMPLICIT UnsignedAttributes OPTIONAL }
-    /// 
+    ///
     /// SignerIdentifier ::= CHOICE {
     ///   issuerAndSerialNumber IssuerAndSerialNumber,
     ///   subjectKeyIdentifier [0] SubjectKeyIdentifier }
-    /// 
+    ///
     /// SignedAttributes ::= SET SIZE (1..MAX) OF Attribute
-    /// 
+    ///
     /// UnsignedAttributes ::= SET SIZE (1..MAX) OF Attribute
-    /// 
+    ///
     /// Attribute ::= SEQUENCE {
     ///   attrType OBJECT IDENTIFIER,
     ///   attrValues SET OF AttributeValue }
-    /// 
+    ///
     /// AttributeValue ::= ANY
-    /// 
+    ///
     /// SignatureValue ::= OCTET STRING
     /// </code>
     /// </remarks>

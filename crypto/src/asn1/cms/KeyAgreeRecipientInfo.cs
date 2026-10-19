@@ -74,11 +74,11 @@ namespace Org.BouncyCastle.Asn1.Cms
 
         public Asn1OctetString UserKeyingMaterial => m_ukm;
 
-		public AlgorithmIdentifier KeyEncryptionAlgorithm => m_keyEncryptionAlgorithm;
+        public AlgorithmIdentifier KeyEncryptionAlgorithm => m_keyEncryptionAlgorithm;
 
         public Asn1Sequence RecipientEncryptedKeys => m_recipientEncryptedKeys;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * KeyAgreeRecipientInfo ::= Sequence {
@@ -88,8 +88,8 @@ namespace Org.BouncyCastle.Asn1.Cms
          *     keyEncryptionAlgorithm KeyEncryptionAlgorithmIdentifier,
          *     recipientEncryptedKeys RecipientEncryptedKeys
          * }
-		 *
-		 * UserKeyingMaterial ::= OCTET STRING
+         *
+         * UserKeyingMaterial ::= OCTET STRING
          * </pre>
          */
         public override Asn1Object ToAsn1Object()
@@ -97,8 +97,8 @@ namespace Org.BouncyCastle.Asn1.Cms
             Asn1EncodableVector v = new Asn1EncodableVector(5);
             v.Add(m_version, new DerTaggedObject(true, 0, m_originator));
             v.AddOptionalTagged(true, 1, m_ukm);
-			v.Add(m_keyEncryptionAlgorithm, m_recipientEncryptedKeys);
-			return new DerSequence(v);
+            v.Add(m_keyEncryptionAlgorithm, m_recipientEncryptedKeys);
+            return new DerSequence(v);
         }
     }
 }
