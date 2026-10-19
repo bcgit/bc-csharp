@@ -39,6 +39,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
             }
         }
 
+        /// <summary>Create a new <see cref="Base64Encoder"/>.</summary>
         public Base64Encoder()
         {
             InitialiseDecodingTable();
@@ -95,6 +96,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Encode(ReadOnlySpan<byte> input, Span<byte> output)
         {
             int inPos = 0;
@@ -170,6 +172,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Encode(ReadOnlySpan<byte> data, Stream outStream)
         {
             Span<byte> tmp = stackalloc byte[72];
@@ -269,6 +272,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Decode(ReadOnlySpan<byte> data, Stream outStream)
         {
             byte b1, b2, b3, b4;

@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Utilities.Encoders
     public class UrlBase64Encoder
         : Base64Encoder
     {
+        /// <summary>Create a new <see cref="UrlBase64Encoder"/>.</summary>
         public UrlBase64Encoder()
         {
             encodingTable[encodingTable.Length - 2] = (byte) '-';
