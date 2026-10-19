@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
     public class Gost3410ParamSetParameters
         : Asn1Encodable
     {
-		public static Gost3410ParamSetParameters GetInstance(object obj)
+        public static Gost3410ParamSetParameters GetInstance(object obj)
         {
             if (obj == null)
                 return null;
@@ -25,16 +25,16 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         private readonly int m_keySize;
         private readonly DerInteger m_p, m_q, m_a;
 
-		private Gost3410ParamSetParameters(Asn1Sequence seq)
+        private Gost3410ParamSetParameters(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
             if (count != 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_keySize = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance).IntValueExact;
-			m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_p = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_q = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
-			m_a = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_a = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
@@ -50,12 +50,12 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 
         public int KeySize => m_keySize;
 
-		public BigInteger P => m_p.PositiveValue;
+        public BigInteger P => m_p.PositiveValue;
 
-		public BigInteger Q => m_q.PositiveValue;
+        public BigInteger Q => m_q.PositiveValue;
 
-		public BigInteger A => m_a.PositiveValue;
+        public BigInteger A => m_a.PositiveValue;
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(DerInteger.ValueOf(m_keySize), m_p, m_q, m_a);
+        public override Asn1Object ToAsn1Object() => new DerSequence(DerInteger.ValueOf(m_keySize), m_p, m_q, m_a);
     }
 }

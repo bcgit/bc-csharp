@@ -72,7 +72,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 
         public BigInteger P => m_p.PositiveValue;
 
-		public BigInteger Q => m_q.PositiveValue;
+        public BigInteger Q => m_q.PositiveValue;
 
         int X => m_x.IntPositiveValueExact;
 

@@ -5,7 +5,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
     public class Gost28147Parameters
         : Asn1Encodable
     {
-		public static Gost28147Parameters GetInstance(object obj)
+        public static Gost28147Parameters GetInstance(object obj)
         {
             if (obj == null)
                 return null;
@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             // TODO Validate length of 8?
-			m_iv = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
+            m_iv = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
             m_encryptionParamSet = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
 
             if (pos != count)
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
 
         public DerObjectIdentifier EncryptionParamSet => m_encryptionParamSet;
 
-		/**
+        /**
          * <pre>
          * Gost28147-89-Parameters ::=
          *               SEQUENCE {

@@ -33,27 +33,27 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         public static readonly DerObjectIdentifier GostR3411x94WithGostR3410x94 = GOST_id.Branch("4");
         public static readonly DerObjectIdentifier GostR3411x94WithGostR3410x2001 = GOST_id.Branch("3");
 
-		// { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) hashes(30) }
+        // { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) hashes(30) }
         public static readonly DerObjectIdentifier GostR3411x94TestParamSet = GOST_id.Branch("30.0");
         public static readonly DerObjectIdentifier GostR3411x94CryptoProParamSet = GOST_id.Branch("30.1");
 
-		// { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) signs(32) }
+        // { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) signs(32) }
         public static readonly DerObjectIdentifier GostR3410x94CryptoProA = GOST_id.Branch("32.2");
         public static readonly DerObjectIdentifier GostR3410x94CryptoProB = GOST_id.Branch("32.3");
         public static readonly DerObjectIdentifier GostR3410x94CryptoProC = GOST_id.Branch("32.4");
         public static readonly DerObjectIdentifier GostR3410x94CryptoProD = GOST_id.Branch("32.5");
 
-		// { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) exchanges(33) }
+        // { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) exchanges(33) }
         public static readonly DerObjectIdentifier GostR3410x94CryptoProXchA = GOST_id.Branch("33.1");
         public static readonly DerObjectIdentifier GostR3410x94CryptoProXchB = GOST_id.Branch("33.2");
         public static readonly DerObjectIdentifier GostR3410x94CryptoProXchC = GOST_id.Branch("33.3");
 
-		//{ iso(1) member-body(2)ru(643) rans(2) cryptopro(2) ecc-signs(35) }
+        //{ iso(1) member-body(2)ru(643) rans(2) cryptopro(2) ecc-signs(35) }
         public static readonly DerObjectIdentifier GostR3410x2001CryptoProA = GOST_id.Branch("35.1");
         public static readonly DerObjectIdentifier GostR3410x2001CryptoProB = GOST_id.Branch("35.2");
         public static readonly DerObjectIdentifier GostR3410x2001CryptoProC = GOST_id.Branch("35.3");
 
-		// { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) ecc-exchanges(36) }
+        // { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) ecc-exchanges(36) }
         public static readonly DerObjectIdentifier GostR3410x2001CryptoProXchA = GOST_id.Branch("36.0");
         public static readonly DerObjectIdentifier GostR3410x2001CryptoProXchB = GOST_id.Branch("36.1");
 
