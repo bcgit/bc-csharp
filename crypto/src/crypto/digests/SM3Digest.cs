@@ -76,21 +76,25 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = t.xOff;
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "SM3"; }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return DIGEST_LENGTH;
         }
 
+        /// <inheritdoc/>
         public override IMemoable Copy()
         {
             return new SM3Digest(this);
         }
 
+        /// <inheritdoc/>
         public override void Reset(IMemoable other)
         {
             SM3Digest d = (SM3Digest)other;
@@ -118,6 +122,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.xOff = 0;
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
             Finish();
@@ -130,6 +135,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();

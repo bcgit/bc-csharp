@@ -38,16 +38,21 @@ namespace Org.BouncyCastle.Crypto.Digests
         protected internal int fixedOutputLength;
         protected bool squeezing;
 
+        /// <summary>Create a new <see cref="KeccakDigest"/>.</summary>
         public KeccakDigest()
             : this(288)
         {
         }
 
+        /// <summary>Create a new <see cref="KeccakDigest"/>.</summary>
+        /// <param name="bitLength">The bit length.</param>
         public KeccakDigest(int bitLength)
         {
             Init(bitLength);
         }
 
+        /// <summary>Create a copy of the given <see cref="KeccakDigest"/>.</summary>
+        /// <param name="source">The instance to copy.</param>
         public KeccakDigest(KeccakDigest source)
         {
             CopyIn(source);
@@ -63,33 +68,39 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.squeezing = source.squeezing;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "Keccak-" + fixedOutputLength; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetDigestSize()
         {
             return fixedOutputLength >> 3;
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input)
         {
             Absorb(input);
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int len)
         {
             Absorb(input, inOff, len);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             Absorb(input);
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
             Squeeze(output, outOff, fixedOutputLength);
@@ -100,6 +111,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             int digestSize = GetDigestSize();
@@ -132,6 +144,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return GetDigestSize();
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             Init(fixedOutputLength);
@@ -623,11 +636,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             A[20] = a20; A[21] = a21; A[22] = a22; A[23] = a23; A[24] = a24;
         }
 
+        /// <inheritdoc/>
         public virtual IMemoable Copy()
         {
             return new KeccakDigest(this);
         }
 
+        /// <inheritdoc/>
         public virtual void Reset(IMemoable other)
         {
             CopyIn((KeccakDigest)other);

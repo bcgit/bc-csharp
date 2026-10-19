@@ -576,16 +576,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             Reset(t);
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Tiger"; }
         }
 
+        /// <inheritdoc/>
         public int GetDigestSize()
         {
             return DigestLength;
         }
 
+        /// <inheritdoc/>
         public int GetByteLength()
         {
             return MyByteLength;
@@ -617,6 +620,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Update(
             byte input)
         {
@@ -630,6 +634,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             byteCount++;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(
             byte[]  input,
             int     inOff,
@@ -671,6 +676,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int inOff = 0, length = input.Length;
@@ -849,6 +855,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             ProcessBlock();
         }
 
+        /// <inheritdoc/>
         public int DoFinal(
             byte[]  output,
             int     outOff)
@@ -865,6 +872,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             Finish();
@@ -903,11 +911,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             byteCount = 0;
         }
 
+        /// <inheritdoc/>
         public IMemoable Copy()
         {
             return new TigerDigest(this);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable other)
         {
             TigerDigest t = (TigerDigest)other;

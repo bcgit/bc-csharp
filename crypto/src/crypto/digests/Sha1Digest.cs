@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         private uint[] X = new uint[80];
         private int xOff;
 
+        /// <summary>Create a new <see cref="Sha1Digest"/>.</summary>
         public Sha1Digest()
         {
             Reset();
@@ -51,11 +52,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = t.xOff;
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "SHA-1"; }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return DigestLength;
@@ -94,6 +97,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             X[15] = (uint)((ulong)bitLength);
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(
             byte[]  output,
             int     outOff)
@@ -112,6 +116,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -295,11 +300,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             Array.Clear(X, 0, 16);
         }
 
+        /// <inheritdoc/>
         public override IMemoable Copy()
         {
             return new Sha1Digest(this);
         }
 
+        /// <inheritdoc/>
         public override void Reset(IMemoable other)
         {
             Sha1Digest d = (Sha1Digest)other;

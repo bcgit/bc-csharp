@@ -29,11 +29,14 @@ namespace Org.BouncyCastle.Crypto.Digests
         private byte[]   C = new byte[16];
         private int COff;
 
+        /// <summary>Create a new <see cref="MD2Digest"/>.</summary>
         public MD2Digest()
         {
             Reset();
         }
 
+        /// <summary>Create a copy of the given <see cref="MD2Digest"/>.</summary>
+        /// <param name="t">The instance to copy.</param>
         public MD2Digest(MD2Digest t)
         {
             CopyIn(t);
@@ -59,11 +62,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             get { return "MD2"; }
         }
 
+        /// <inheritdoc/>
         public int GetDigestSize()
         {
             return DigestLength;
         }
 
+        /// <inheritdoc/>
         public int GetByteLength()
         {
             return BYTE_LENGTH;
@@ -99,6 +104,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             // add padding
@@ -203,6 +209,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             //
@@ -309,11 +316,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         (byte)159,(byte)17,(byte)131,(byte)20
         };
 
+        /// <inheritdoc/>
         public IMemoable Copy()
         {
             return new MD2Digest(this);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable other)
         {
             MD2Digest d = (MD2Digest)other;

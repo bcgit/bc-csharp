@@ -41,6 +41,11 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         }
 
+        /// <summary>Create a new <see cref="ParallelHash"/>.</summary>
+        /// <param name="bitLength">The bit length.</param>
+        /// <param name="S">The s.</param>
+        /// <param name="B">The b.</param>
+        /// <param name="outputSize">The output size.</param>
         public ParallelHash(int bitLength, byte[] S, int B, int outputSize)
         {
             if (B <= 0)
@@ -57,6 +62,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             Reset();
         }
 
+        /// <summary>Create a copy of the given <see cref="ParallelHash"/>.</summary>
+        /// <param name="source">The instance to copy.</param>
         public ParallelHash(ParallelHash source)
         {
             this.cshake = new CShakeDigest(source.cshake);
@@ -72,21 +79,25 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.bufOff = source.bufOff;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "ParallelHash" + cshake.AlgorithmName.Substring(6); }
         }
 
+        /// <inheritdoc/>
         public virtual int GetByteLength()
         {
             return cshake.GetByteLength();
         }
 
+        /// <inheritdoc/>
         public virtual int GetDigestSize()
         {
             return outputLength;
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte b)
         {
             buffer[bufOff++] = b;
@@ -96,6 +107,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] inBuf, int inOff, int len)
         {
             len = System.Math.Max(0, len);
@@ -133,6 +145,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             //
@@ -211,6 +224,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             firstOutput = false;
         }
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] outBuf, int outOff)
         {
             if (firstOutput)
@@ -226,6 +240,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             if (firstOutput)
@@ -241,6 +256,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int OutputFinal(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
@@ -256,6 +272,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int OutputFinal(Span<byte> output)
         {
             if (firstOutput)
@@ -271,6 +288,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int Output(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
@@ -282,6 +300,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int Output(Span<byte> output)
         {
             if (firstOutput)
@@ -293,6 +312,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             cshake.Reset();

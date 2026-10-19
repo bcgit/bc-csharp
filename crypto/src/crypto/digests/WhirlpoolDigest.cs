@@ -100,6 +100,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private readonly ulong[] _rc = new ulong[ROUNDS + 1];
 
+        /// <summary>Create a new <see cref="WhirlpoolDigest"/>.</summary>
         public WhirlpoolDigest()
         {
             _rc[0] = 0UL;
@@ -140,16 +141,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             Reset(originalDigest);
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Whirlpool"; }
         }
 
+        /// <inheritdoc/>
         public int GetDigestSize()
         {
             return DIGEST_LENGTH_BYTES;
         }
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             // sets output[outOff] .. output[outOff+DIGEST_LENGTH_BYTES]
@@ -163,6 +167,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             // sets output[0..DIGEST_LENGTH_BYTES]
@@ -257,6 +262,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             _buffer[_bufferPos] = input;
@@ -280,6 +286,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int length)
         {
             while (length > 0)
@@ -291,6 +298,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             for (int i = 0; i < input.Length; ++i)
@@ -350,16 +358,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             return rv;
         }
 
+        /// <inheritdoc/>
         public int GetByteLength()
         {
             return BYTE_LENGTH;
         }
 
+        /// <inheritdoc/>
         public IMemoable Copy()
         {
             return new WhirlpoolDigest(this);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable other)
         {
             WhirlpoolDigest originalDigest = (WhirlpoolDigest)other;

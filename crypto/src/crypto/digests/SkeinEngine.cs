@@ -86,22 +86,28 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         }
 
+        /// <summary>A typed parameter for configuring a Skein hash.</summary>
         public class Parameter
         {
             private int type;
             private byte[] value;
 
+            /// <summary>Create a new <see cref="Parameter"/>.</summary>
+            /// <param name="type">The type.</param>
+            /// <param name="value">The value.</param>
             public Parameter(int type, byte[] value)
             {
                 this.type = type;
                 this.value = value;
             }
 
+            /// <summary>Gets the type.</summary>
             public int Type
             {
                 get { return type; }
             }
 
+            /// <summary>Gets the value.</summary>
             public byte[] Value
             {
                 get { return value; }
@@ -589,11 +595,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             return existing;
         }
 
+        /// <inheritdoc/>
         public IMemoable Copy()
         {
             return new SkeinEngine(this);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable other)
         {
             SkeinEngine s = (SkeinEngine)other;
@@ -604,11 +612,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             CopyIn(s);
         }
 
+        /// <summary>Gets the output size.</summary>
         public int OutputSize
         {
             get { return outputSizeBytes; }
         }
 
+        /// <summary>Gets the block size.</summary>
         public int BlockSize
         {
             get { return threefish.GetBlockSize (); }
@@ -618,7 +628,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// Initialises the Skein engine with the provided parameters. See <see cref="Org.BouncyCastle.Crypto.Parameters.SkeinParameters"/> for
         /// details on the parameterisation of the Skein hash function.
         /// </summary>
-        /// <param name="parameters">the parameters to apply to this engine, or <code>null</code> to use no parameters.</param>
+        /// <param name="parameters">
+        /// the parameters to apply to this engine, or <code>null</code> to use no parameters.
+        /// </param>
         public void Init(SkeinParameters parameters)
         {
             this.chain = null;

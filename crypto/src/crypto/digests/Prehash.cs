@@ -4,6 +4,10 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    /// <summary>
+    /// A stand-in digest for data that has already been hashed: the digest value is written to it and returned
+    /// unchanged by <c>DoFinal</c>.
+    /// </summary>
     public sealed class Prehash
         : IDigest
     {
@@ -20,20 +24,27 @@ namespace Org.BouncyCastle.Crypto.Digests
             m_buf = new LimitedBuffer(digestSize);
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => m_algorithmName;
 
+        /// <inheritdoc/>
         public int GetByteLength() => throw new NotSupportedException();
 
+        /// <inheritdoc/>
         public int GetDigestSize() => m_buf.Limit;
 
+        /// <inheritdoc/>
         public void Update(byte input) => m_buf.WriteByte(input);
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int inLen) => m_buf.Write(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input) => m_buf.Write(input);
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             try
@@ -50,6 +61,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             try
@@ -66,6 +78,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset() => m_buf.Reset();
     }
 }

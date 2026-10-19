@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     {
         private const int DigestLength = 48;
 
+        /// <summary>Create a new <see cref="Sha384Digest"/>.</summary>
         public Sha384Digest()
         {
         }
@@ -36,16 +37,19 @@ namespace Org.BouncyCastle.Crypto.Digests
         {
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "SHA-384"; }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return DigestLength;
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(
             byte[]  output,
             int     outOff)
@@ -65,6 +69,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -103,11 +108,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             H8 = 0x47b5481dbefa4fa4;
         }
 
+        /// <inheritdoc/>
         public override IMemoable Copy()
         {
             return new Sha384Digest(this);
         }
 
+        /// <inheritdoc/>
         public override void Reset(IMemoable other)
         {
             Sha384Digest d = (Sha384Digest)other;

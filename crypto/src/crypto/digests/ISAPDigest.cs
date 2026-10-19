@@ -8,6 +8,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    /// <summary>
+    /// Implementation of the ISAP hash function, the hash used by the ISAP lightweight authenticated encryption family.
+    /// </summary>
     public sealed class IsapDigest
         : IDigest
     {
@@ -20,16 +23,21 @@ namespace Org.BouncyCastle.Crypto.Digests
         private ulong x3 = 4834782570098516968UL;
         private ulong x4 = 3787428097924915520UL;
 
+        /// <summary>Create a new <see cref="IsapDigest"/>.</summary>
         public IsapDigest()
         {
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => "ISAP Hash";
 
+        /// <inheritdoc/>
         public int GetDigestSize() => 32;
 
+        /// <inheritdoc/>
         public int GetByteLength() => 8;
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             m_buf[m_bufPos] = input;
@@ -41,6 +49,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -82,6 +91,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int available = 8 - m_bufPos;
@@ -112,6 +122,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -133,6 +144,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             Check.OutputLength(output, 32, "output buffer too short");
@@ -150,6 +162,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             Array.Clear(m_buf, 0, m_buf.Length);

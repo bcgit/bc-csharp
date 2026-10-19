@@ -170,26 +170,33 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <summary>Create a new <see cref="Sha3Digest"/>.</summary>
         public Sha3Digest()
             : this(256)
         {
         }
 
+        /// <summary>Create a new <see cref="Sha3Digest"/>.</summary>
+        /// <param name="bitLength">The bit length.</param>
         public Sha3Digest(int bitLength)
             : base(CheckBitLength(bitLength))
         {
         }
 
+        /// <summary>Create a copy of the given <see cref="Sha3Digest"/>.</summary>
+        /// <param name="source">The instance to copy.</param>
         public Sha3Digest(Sha3Digest source)
             : base(source)
         {
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "SHA3-" + fixedOutputLength; }
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
             AbsorbBits(0x02, 2);
@@ -198,6 +205,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             AbsorbBits(0x02, 2);
@@ -228,6 +236,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return base.DoFinal(output, outOff, (byte)finalInput, finalBits);
         }
 
+        /// <inheritdoc/>
         public override IMemoable Copy()
         {
             return new Sha3Digest(this);

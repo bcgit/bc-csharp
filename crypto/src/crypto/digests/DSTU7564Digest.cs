@@ -32,6 +32,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         private int bufOff;
         private byte[] buf;
 
+        /// <summary>Create a copy of the given <see cref="Dstu7564Digest"/>.</summary>
+        /// <param name="digest">The instance to copy.</param>
         public Dstu7564Digest(Dstu7564Digest digest)
         {
             CopyIn(digest);
@@ -61,6 +63,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.bufOff = digest.bufOff;
         }
 
+        /// <summary>Create a new <see cref="Dstu7564Digest"/>.</summary>
+        /// <param name="hashSizeBits">The hash size bits.</param>
         public Dstu7564Digest(int hashSizeBits)
         {
             if (hashSizeBits == 256 || hashSizeBits == 384 || hashSizeBits == 512)
@@ -94,21 +98,25 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.buf = new byte[blockSize];
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "DSTU7564"; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetDigestSize()
         {
             return hashSize;
         }
 
+        /// <inheritdoc/>
         public virtual int GetByteLength()
         {
             return blockSize;
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input)
         {
             buf[bufOff++] = input;
@@ -120,6 +128,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int length)
         {
             while (bufOff != 0 && length > 0)
@@ -144,6 +153,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             while (bufOff != 0 && input.Length > 0)
@@ -167,6 +177,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
             // Apply padding: terminator byte and 96-bit length field
@@ -224,6 +235,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             // Apply padding: terminator byte and 96-bit length field
@@ -281,6 +293,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             Array.Clear(state, 0, state.Length);
@@ -612,11 +625,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             0x64, 0x6d, 0xdc, 0xf0, 0x59, 0xa9, 0x4c, 0x17, 0x7f, 0x91, 0xb8, 0xc9, 0x57, 0x1b, 0xe0, 0x61
         };
 
+        /// <inheritdoc/>
         public virtual IMemoable Copy()
         {
             return new Dstu7564Digest(this);
         }
 
+        /// <inheritdoc/>
         public virtual void Reset(IMemoable other)
         {
             Dstu7564Digest d = (Dstu7564Digest)other;

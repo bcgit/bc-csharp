@@ -48,11 +48,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = t.xOff;
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "RIPEMD128"; }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return DigestLength;
@@ -92,6 +94,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             X[15] = (int)((ulong) bitLength >> 32);
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
             Finish();
@@ -107,6 +110,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -480,11 +484,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public override IMemoable Copy()
         {
             return new RipeMD128Digest(this);
         }
 
+        /// <inheritdoc/>
         public override void Reset(IMemoable other)
         {
             RipeMD128Digest d = (RipeMD128Digest)other;

@@ -64,11 +64,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = t.xOff;
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "SHA-224"; }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return DigestLength;
@@ -108,6 +110,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             X[15] = (uint)((ulong)bitLength);
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
             Finish();
@@ -126,6 +129,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             Finish();
@@ -313,8 +317,10 @@ namespace Org.BouncyCastle.Crypto.Digests
             0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
         };
 
+        /// <inheritdoc/>
         public override IMemoable Copy() => new Sha224Digest(this);
 
+        /// <inheritdoc/>
         public override void Reset(IMemoable other) => CopyIn((Sha224Digest)other);
     }
 }

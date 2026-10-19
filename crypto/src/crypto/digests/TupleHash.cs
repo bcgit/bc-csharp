@@ -34,6 +34,10 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         }
 
+        /// <summary>Create a new <see cref="TupleHash"/>.</summary>
+        /// <param name="bitLength">The bit length.</param>
+        /// <param name="S">The s.</param>
+        /// <param name="outputSize">The output size.</param>
         public TupleHash(int bitLength, byte[] S, int outputSize)
         {
             this.cshake = new CShakeDigest(bitLength, N_TUPLE_HASH, S);
@@ -43,6 +47,8 @@ namespace Org.BouncyCastle.Crypto.Digests
             Reset();
         }
 
+        /// <summary>Create a copy of the given <see cref="TupleHash"/>.</summary>
+        /// <param name="original">The instance to copy.</param>
         public TupleHash(TupleHash original)
         {
             this.cshake = new CShakeDigest(original.cshake);
@@ -51,27 +57,32 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.firstOutput = original.firstOutput;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "TupleHash" + cshake.AlgorithmName.Substring(6); }
         }
 
+        /// <inheritdoc/>
         public virtual int GetByteLength()
         {
             return cshake.GetByteLength();
         }
 
+        /// <inheritdoc/>
         public virtual int GetDigestSize()
         {
             return outputLength;
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte b)
         {
             byte[] bytes = XofUtilities.Encode(b);
             cshake.BlockUpdate(bytes, 0, bytes.Length);
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] inBuf, int inOff, int len)
         {
             byte[] bytes = XofUtilities.Encode(inBuf, inOff, len);
@@ -87,11 +98,13 @@ namespace Org.BouncyCastle.Crypto.Digests
             firstOutput = false;
         }
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] outBuf, int outOff)
         {
             return OutputFinal(outBuf, outOff, GetDigestSize());
         }
 
+        /// <inheritdoc/>
         public virtual int OutputFinal(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
@@ -106,6 +119,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return rv;
         }
 
+        /// <inheritdoc/>
         public virtual int Output(byte[] outBuf, int outOff, int outLen)
         {
             if (firstOutput)
@@ -116,6 +130,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return cshake.Output(outBuf, outOff, outLen);
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             cshake.Reset();
@@ -123,16 +138,19 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             XofUtilities.EncodeTo(cshake, input);
         }
 
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             return OutputFinal(output[..GetDigestSize()]);
         }
 
+        /// <inheritdoc/>
         public virtual int OutputFinal(Span<byte> output)
         {
             if (firstOutput)
@@ -147,6 +165,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return rv;
         }
 
+        /// <inheritdoc/>
         public virtual int Output(Span<byte> output)
         {
             if (firstOutput)

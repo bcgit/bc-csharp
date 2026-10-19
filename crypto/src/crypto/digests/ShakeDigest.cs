@@ -26,36 +26,45 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <summary>Create a new <see cref="ShakeDigest"/>.</summary>
         public ShakeDigest()
             : this(128)
         {
         }
 
+        /// <summary>Create a new <see cref="ShakeDigest"/>.</summary>
+        /// <param name="bitLength">The bit length.</param>
         public ShakeDigest(int bitLength)
             : base(CheckBitLength(bitLength))
         {
         }
 
+        /// <summary>Create a copy of the given <see cref="ShakeDigest"/>.</summary>
+        /// <param name="source">The instance to copy.</param>
         public ShakeDigest(ShakeDigest source)
             : base(source)
         {
         }
 
+        /// <inheritdoc/>
         public override string AlgorithmName
         {
             get { return "SHAKE" + fixedOutputLength; }
         }
 
+        /// <inheritdoc/>
         public override int GetDigestSize()
         {
             return fixedOutputLength >> 2;
         }
 
+        /// <inheritdoc/>
         public override int DoFinal(byte[] output, int outOff)
         {
             return OutputFinal(output, outOff, GetDigestSize());
         }
 
+        /// <inheritdoc/>
         public virtual int OutputFinal(byte[] output, int outOff, int outLen)
         {
             Check.OutputLength(output, outOff, outLen, "output buffer is too short");
@@ -71,6 +80,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 #endif
         }
 
+        /// <inheritdoc/>
         public virtual int Output(byte[] output, int outOff, int outLen)
         {
             Check.OutputLength(output, outOff, outLen, "output buffer is too short");
@@ -90,11 +100,13 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int DoFinal(Span<byte> output)
         {
             return OutputFinal(output[..GetDigestSize()]);
         }
 
+        /// <inheritdoc/>
         public virtual int OutputFinal(Span<byte> output)
         {
             int length = Output(output);
@@ -104,6 +116,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return length;
         }
 
+        /// <inheritdoc/>
         public virtual int Output(Span<byte> output)
         {
             if (!squeezing)
@@ -160,6 +173,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             return outLen;
         }
 
+        /// <inheritdoc/>
         public override IMemoable Copy()
         {
             return new ShakeDigest(this);

@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     public sealed class SparkleDigest
         : IDigest
     {
+        /// <summary>The variants of Sparkle supported by this class.</summary>
         public enum SparkleParameters
         {
             ESCH256,
@@ -37,6 +38,8 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private int m_bufPos = 0;
 
+        /// <summary>Create a new <see cref="SparkleDigest"/>.</summary>
+        /// <param name="sparkleParameters">The sparkle parameters.</param>
         public SparkleDigest(SparkleParameters sparkleParameters)
         {
             switch (sparkleParameters)
@@ -62,12 +65,16 @@ namespace Org.BouncyCastle.Crypto.Digests
             state = new uint[STATE_WORDS];
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName => algorithmName;
 
+        /// <inheritdoc/>
         public int GetDigestSize() => DIGEST_BYTES;
 
+        /// <inheritdoc/>
         public int GetByteLength() => RATE_BYTES;
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             if (m_bufPos == RATE_BYTES)
@@ -83,6 +90,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             m_buf[m_bufPos++] = input;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -122,6 +130,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int available = RATE_BYTES - m_bufPos;
@@ -151,6 +160,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             Check.OutputLength(output, outOff, DIGEST_BYTES, "output buffer too short");
@@ -198,6 +208,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             // addition of constant M1 or M2 to the state
@@ -241,6 +252,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             Arrays.Fill(state, 0U);

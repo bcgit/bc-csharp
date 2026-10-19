@@ -10,8 +10,10 @@ namespace Org.BouncyCastle.Crypto.Digests
     using Aes = System.Runtime.Intrinsics.X86.Aes;
     using Sse2 = System.Runtime.Intrinsics.X86.Sse2;
 
+    /// <summary>Implementation of the Haraka v2 256-bit permutation hash using the x86 AES instructions.</summary>
     public static class Haraka256_X86
     {
+        /// <summary>Gets a value indicating whether this is supported.</summary>
         public static bool IsSupported => Org.BouncyCastle.Runtime.Intrinsics.X86.Aes.IsEnabled;
 
         public static void Hash(ReadOnlySpan<byte> input, Span<byte> output)

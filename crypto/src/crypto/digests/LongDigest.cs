@@ -68,6 +68,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             wOff = t.wOff;
         }
 
+        /// <inheritdoc/>
         public void Update(
             byte input)
         {
@@ -82,6 +83,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             byteCount1++;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(
             byte[] input,
             int inOff,
@@ -123,6 +125,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int inOff = 0;
@@ -186,6 +189,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             ProcessBlock();
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             byteCount1 = 0;
@@ -413,18 +417,25 @@ namespace Org.BouncyCastle.Crypto.Digests
             0x4cc5d4becb3e42b6, 0x597f299cfc657e2a, 0x5fcb6fab3ad6faec, 0x6c44198c4a475817
         };
 
+        /// <inheritdoc/>
         public int GetByteLength()
         {
             return MyByteLength;
         }
 
+        /// <inheritdoc/>
         public abstract string AlgorithmName { get; }
+        /// <inheritdoc/>
         public abstract int GetDigestSize();
+        /// <inheritdoc/>
         public abstract int DoFinal(byte[] output, int outOff);
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public abstract int DoFinal(Span<byte> output);
 #endif
+        /// <inheritdoc/>
         public abstract IMemoable Copy();
+        /// <inheritdoc/>
         public abstract void Reset(IMemoable t);
     }
 }

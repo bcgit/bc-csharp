@@ -49,32 +49,39 @@ namespace Org.BouncyCastle.Crypto.Digests
             Init(null);
         }
 
+        /// <summary>Create a copy of the given <see cref="SkeinDigest"/>.</summary>
+        /// <param name="digest">The instance to copy.</param>
         public SkeinDigest(SkeinDigest digest)
         {
             this.engine = new SkeinEngine(digest.engine);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable other)
         {
             SkeinDigest d = (SkeinDigest)other;
             engine.Reset(d.engine);
         }
 
+        /// <inheritdoc/>
         public IMemoable Copy()
         {
             return new SkeinDigest(this);
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Skein-" + (engine.BlockSize * 8) + "-" + (engine.OutputSize * 8); }
         }
 
+        /// <inheritdoc/>
         public int GetDigestSize()
         {
             return engine.OutputSize;
         }
 
+        /// <inheritdoc/>
         public int GetByteLength()
         {
             return engine.BlockSize;
@@ -84,38 +91,46 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// Optionally initialises the Skein digest with the provided parameters.
         /// </summary>
         /// See <see cref="Org.BouncyCastle.Crypto.Parameters.SkeinParameters"></see> for details on the parameterisation of the Skein hash function.
-        /// <param name="parameters">the parameters to apply to this engine, or <code>null</code> to use no parameters.</param>
+        /// <param name="parameters">
+        /// the parameters to apply to this engine, or <code>null</code> to use no parameters.
+        /// </param>
         public void Init(SkeinParameters parameters)
         {
             engine.Init(parameters);
         }
 
+        /// <inheritdoc/>
         public void Reset()
         {
             engine.Reset();
         }
 
+        /// <inheritdoc/>
         public void Update(byte inByte)
         {
             engine.Update(inByte);
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] inBytes, int inOff, int len)
         {
             engine.BlockUpdate(inBytes, inOff, len);
         }
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] outBytes, int outOff)
         {
             return engine.DoFinal(outBytes, outOff);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             engine.BlockUpdate(input);
         }
 
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             return engine.DoFinal(output);

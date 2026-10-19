@@ -68,16 +68,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             Reset(t);
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Gost3411"; }
         }
 
+        /// <inheritdoc/>
         public int GetDigestSize()
         {
             return DIGEST_LENGTH;
         }
 
+        /// <inheritdoc/>
         public void Update(
             byte input)
         {
@@ -91,6 +94,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             byteCount++;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int length)
         {
             while ((xBufOff != 0) && (length > 0))
@@ -121,6 +125,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             while ((xBufOff != 0) && (input.Length > 0))
@@ -273,6 +278,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             processBlock(Sum, 0);
         }
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             Finish();
@@ -285,6 +291,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             Finish();
@@ -307,6 +314,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             (byte)0xFF,0x00,0x00,0x00,(byte)0xFF,(byte)0xFF,0x00,(byte)0xFF
         };
 
+        /// <inheritdoc/>
         public void Reset()
         {
             byteCount = 0;
@@ -356,16 +364,19 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public int GetByteLength()
         {
             return 32;
         }
 
+        /// <inheritdoc/>
         public IMemoable Copy()
         {
             return new Gost3411Digest(this);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable other)
         {
             Gost3411Digest t = (Gost3411Digest)other;

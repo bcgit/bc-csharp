@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Digests
 {
+    /// <summary>Base class for the GOST R 34.11-2012 (Streebog) hash function.</summary>
     public abstract class Gost3411_2012Digest
         : IDigest, IMemoable
     {
@@ -20,16 +21,21 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         private int bOff = 64;
 
+        /// <summary>Create a new <see cref="Gost3411_2012Digest"/>.</summary>
+        /// <param name="IV">The IV.</param>
         protected Gost3411_2012Digest(byte[] IV)
         {
             Array.Copy(IV,this.IV,64);
             Array.Copy(IV, h, 64);
         }
 
+        /// <inheritdoc/>
         public abstract string AlgorithmName { get; }
 
+        /// <inheritdoc/>
         public abstract IMemoable Copy();
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
             int lenM = 64 - bOff;
@@ -62,6 +68,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             int lenM = 64 - bOff;
@@ -94,14 +101,17 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 #endif
 
+        /// <inheritdoc/>
         public int GetByteLength()
         {
             return 64;
         }
 
+        /// <inheritdoc/>
         public abstract int GetDigestSize();
 
 
+        /// <inheritdoc/>
         public void Reset()
         {
             bOff = 64;
@@ -111,6 +121,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             Arrays.Fill(block, (byte)0);
         }
 
+        /// <inheritdoc/>
         public void Reset(IMemoable other)
         {
             Gost3411_2012Digest o = (Gost3411_2012Digest)other;
@@ -126,6 +137,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             this.bOff = o.bOff;
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             block[--bOff] = input;
@@ -138,6 +150,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             }
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             while (bOff != 64 && len > 0)
@@ -164,6 +177,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             while (bOff != 64 && input.Length > 0)
