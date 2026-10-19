@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1.Ess
     ///     certHash        Hash,
     ///     issuerSerial    IssuerSerial OPTIONAL
     /// }
-    /// 
+    ///
     /// Hash ::= OCTET STRING
     /// </code>
     /// </remarks>

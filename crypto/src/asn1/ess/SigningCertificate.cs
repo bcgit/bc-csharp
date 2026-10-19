@@ -5,8 +5,8 @@ using Org.BouncyCastle.Asn1.X509;
 namespace Org.BouncyCastle.Asn1.Ess
 {
     public class SigningCertificate
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static SigningCertificate GetInstance(object o)
         {
             if (o == null)
@@ -37,7 +37,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 
         [Obsolete("Use 'GetInstance' instead")]
         public SigningCertificate(Asn1Sequence seq)
-		{
+        {
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
@@ -50,29 +50,29 @@ namespace Org.BouncyCastle.Asn1.Ess
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
-		public SigningCertificate(EssCertID essCertID)
-		{
-			m_certs = new DerSequence(essCertID);
-		}
+        public SigningCertificate(EssCertID essCertID)
+        {
+            m_certs = new DerSequence(essCertID);
+        }
 
         public EssCertID[] GetCerts() => m_certs.MapElements(EssCertID.GetInstance);
 
         public PolicyInformation[] GetPolicies() => m_policies?.MapElements(PolicyInformation.GetInstance);
 
         /**
-		 * The definition of SigningCertificate is
-		 * <pre>
-		 * SigningCertificate ::=  SEQUENCE {
-		 *      certs        SEQUENCE OF EssCertID,
-		 *      policies     SEQUENCE OF PolicyInformation OPTIONAL
-		 * }
-		 * </pre>
-		 * id-aa-signingCertificate OBJECT IDENTIFIER ::= { iso(1)
-		 *  member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
-		 *  smime(16) id-aa(2) 12 }
-		 */
+         * The definition of SigningCertificate is
+         * <pre>
+         * SigningCertificate ::=  SEQUENCE {
+         *      certs        SEQUENCE OF EssCertID,
+         *      policies     SEQUENCE OF PolicyInformation OPTIONAL
+         * }
+         * </pre>
+         * id-aa-signingCertificate OBJECT IDENTIFIER ::= { iso(1)
+         *  member-body(2) us(840) rsadsi(113549) pkcs(1) pkcs9(9)
+         *  smime(16) id-aa(2) 12 }
+         */
         public override Asn1Object ToAsn1Object()
         {
             return m_policies == null

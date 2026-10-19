@@ -3,8 +3,8 @@ using System;
 namespace Org.BouncyCastle.Asn1.Ess
 {
     public class ContentHints
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static ContentHints GetInstance(object o)
         {
             if (o == null)
@@ -34,7 +34,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         public ContentHints(DerObjectIdentifier contentType)
             : this(contentType, null)
@@ -49,20 +49,20 @@ namespace Org.BouncyCastle.Asn1.Ess
 
         public DerObjectIdentifier ContentType => m_contentType;
 
-		public DerUtf8String ContentDescription => m_contentDescription;
+        public DerUtf8String ContentDescription => m_contentDescription;
 
-		/**
-		 * <pre>
-		 * ContentHints ::= SEQUENCE {
-		 *   contentDescription UTF8String (SIZE (1..MAX)) OPTIONAL,
-		 *   contentType ContentType }
-		 * </pre>
-		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_contentDescription == null
-				?  new DerSequence(m_contentType)
+        /**
+         * <pre>
+         * ContentHints ::= SEQUENCE {
+         *   contentDescription UTF8String (SIZE (1..MAX)) OPTIONAL,
+         *   contentType ContentType }
+         * </pre>
+         */
+        public override Asn1Object ToAsn1Object()
+        {
+            return m_contentDescription == null
+                ?  new DerSequence(m_contentType)
                 :  new DerSequence(m_contentDescription, m_contentType);
-		}
-	}
+        }
+    }
 }

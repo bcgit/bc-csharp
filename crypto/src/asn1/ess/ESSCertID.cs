@@ -6,8 +6,8 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Asn1.Ess
 {
     public class EssCertID
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static EssCertID GetInstance(object o)
         {
             if (o == null)
@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 
         [Obsolete("Use 'GetInstance' instead")]
         public EssCertID(Asn1Sequence seq)
-		{
+        {
             if (seq == null)
                 throw new ArgumentNullException(nameof(seq));
 
@@ -51,7 +51,7 @@ namespace Org.BouncyCastle.Asn1.Ess
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         public EssCertID(byte[] hash)
             : this(hash, null)
@@ -76,18 +76,18 @@ namespace Org.BouncyCastle.Asn1.Ess
 
         public IssuerSerial IssuerSerial => m_issuerSerial;
 
-		/**
-		 * <pre>
-		 * EssCertID ::= SEQUENCE {
-		 *     certHash Hash,
-		 *     issuerSerial IssuerSerial OPTIONAL }
-		 * </pre>
-		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_issuerSerial == null
-				?  new DerSequence(m_certHash)
-				:  new DerSequence(m_certHash, m_issuerSerial);
-		}
-	}
+        /**
+         * <pre>
+         * EssCertID ::= SEQUENCE {
+         *     certHash Hash,
+         *     issuerSerial IssuerSerial OPTIONAL }
+         * </pre>
+         */
+        public override Asn1Object ToAsn1Object()
+        {
+            return m_issuerSerial == null
+                ?  new DerSequence(m_certHash)
+                :  new DerSequence(m_certHash, m_issuerSerial);
+        }
+    }
 }
