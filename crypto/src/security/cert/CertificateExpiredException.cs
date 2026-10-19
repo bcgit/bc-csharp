@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security.Certificates
 {
+    /// <summary>Exception thrown when a certificate has expired.</summary>
     [Serializable]
     public class CertificateExpiredException
         : CertificateException

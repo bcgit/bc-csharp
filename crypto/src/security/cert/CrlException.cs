@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security.Certificates
 {
+    /// <summary>Exception thrown for errors relating to a CRL.</summary>
     [Serializable]
     public class CrlException
         : GeneralSecurityException

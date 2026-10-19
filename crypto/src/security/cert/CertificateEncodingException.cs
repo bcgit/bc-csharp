@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Security.Certificates
 {
+    /// <summary>Exception thrown when a certificate cannot be encoded.</summary>
     [Serializable]
     public class CertificateEncodingException
         : CertificateException
