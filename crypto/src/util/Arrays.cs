@@ -54,6 +54,10 @@ namespace Org.BouncyCastle.Utilities
         }
 #endif
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(bool[] a, bool[] b)
         {
             if (a == b)
@@ -65,6 +69,10 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(char[] a, char[] b)
         {
             if (a == b)
@@ -93,6 +101,14 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="aFromIndex">The a from index.</param>
+        /// <param name="aToIndex">The a to index.</param>
+        /// <param name="b">Right side.</param>
+        /// <param name="bFromIndex">The b from index.</param>
+        /// <param name="bToIndex">The b to index.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(byte[] a, int aFromIndex, int aToIndex, byte[] b, int bFromIndex, int bToIndex)
         {
             int aLength = aToIndex - aFromIndex;
@@ -110,6 +126,14 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="aFromIndex">The a from index.</param>
+        /// <param name="aToIndex">The a to index.</param>
+        /// <param name="b">Right side.</param>
+        /// <param name="bFromIndex">The b from index.</param>
+        /// <param name="bToIndex">The b to index.</param>
+        /// <returns>True if equal.</returns>
         [CLSCompliant(false)]
         public static bool AreEqual(ulong[] a, int aFromIndex, int aToIndex, ulong[] b, int bFromIndex, int bToIndex)
         {
@@ -128,6 +152,10 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(object[] a, object[] b)
         {
             if (a == b)
@@ -149,6 +177,14 @@ namespace Org.BouncyCastle.Utilities
             return true;
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="aFromIndex">The a from index.</param>
+        /// <param name="aToIndex">The a to index.</param>
+        /// <param name="b">Right side.</param>
+        /// <param name="bFromIndex">The b from index.</param>
+        /// <param name="bToIndex">The b to index.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(object[] a, int aFromIndex, int aToIndex, object[] b, int bFromIndex, int bToIndex)
         {
             int aLength = aToIndex - aFromIndex;
@@ -242,6 +278,10 @@ namespace Org.BouncyCastle.Utilities
             return InternalFixedTimeEquals(len, a, aOff, b, bOff);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(int[] a, int[] b)
         {
             if (a == b)
@@ -253,6 +293,10 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         [CLSCompliant(false)]
         public static bool AreEqual(uint[] a, uint[] b)
         {
@@ -265,6 +309,10 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         public static bool AreEqual(long[] a, long[] b)
         {
             if (a == b)
@@ -276,6 +324,10 @@ namespace Org.BouncyCastle.Utilities
             return HaveSameContents(a, b);
         }
 
+        /// <summary> Are two arrays equal. </summary>
+        /// <param name="a">Left side.</param>
+        /// <param name="b">Right side.</param>
+        /// <returns>True if equal.</returns>
         [CLSCompliant(false)]
         public static bool AreEqual(ulong[] a, ulong[] b)
         {
@@ -1098,6 +1150,13 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="from">The from.</param>
+        /// <param name="to">The to.</param>
+        /// <returns>The new array.</returns>
         public static int[] CopyOfRange(int[] data, int from, int to)
         {
             int newLength = GetLength(from, to);
@@ -1106,6 +1165,13 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="from">The from.</param>
+        /// <param name="to">The to.</param>
+        /// <returns>The new array.</returns>
         public static long[] CopyOfRange(long[] data, int from, int to)
         {
             int newLength = GetLength(from, to);
@@ -1114,6 +1180,13 @@ namespace Org.BouncyCastle.Utilities
             return tmp;
         }
 
+        /// <summary>
+        /// Create a copy of an array with a new length, truncating or padding with default values as needed.
+        /// </summary>
+        /// <param name="data">The array to copy.</param>
+        /// <param name="from">The from.</param>
+        /// <param name="to">The to.</param>
+        /// <returns>The new array.</returns>
         public static BigInteger[] CopyOfRange(BigInteger[] data, int from, int to)
         {
             int newLength = GetLength(from, to);
@@ -1788,6 +1861,9 @@ namespace Org.BouncyCastle.Utilities
         [Obsolete("Use 'FixedTimeEquals' instead")]
         public static bool ConstantTimeAreEqual(Span<byte> a, Span<byte> b) => FixedTimeEquals(a, b);
 
+        /// <summary>Fill an array (or a range of it) with a given value.</summary>
+        /// <param name="ts">The array to fill.</param>
+        /// <param name="t">The value to store.</param>
         public static void Fill<T>(Span<T> ts, T t) => ts.Fill(t);
 
         /// <summary>

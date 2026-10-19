@@ -36,8 +36,15 @@ namespace Org.BouncyCastle.Utilities.IO
         /// <summary>Gets the default buffer size.</summary>
         public static int DefaultBufferSize => MaxStackAlloc;
 
+        /// <summary>Read a stream to its end, discarding the data.</summary>
+        /// <param name="source">The source.</param>
+        /// <param name="destination">The destination.</param>
         public static void CopyTo(Stream source, Stream destination) => CopyTo(source, destination, DefaultBufferSize);
 
+        /// <summary>Read a stream to its end, discarding the data.</summary>
+        /// <param name="source">The source.</param>
+        /// <param name="destination">The destination.</param>
+        /// <param name="bufferSize">The size of the buffer used for reading.</param>
         public static void CopyTo(Stream source, Stream destination, int bufferSize)
         {
             int bytesRead;
@@ -150,6 +157,16 @@ namespace Org.BouncyCastle.Utilities.IO
         public static long PipeAllLimited(Stream inStr, long limit, Stream outStr) =>
             PipeAllLimited(inStr, limit, outStr, DefaultBufferSize);
 
+        /// <summary>
+        /// Pipe all bytes from <c>inStr</c> to <c>outStr</c>, throwing <c>StreamFlowException</c> if greater than
+        /// <c>limit</c> bytes in <c>inStr</c>.
+        /// </summary>
+        /// <param name="inStr"> A <see cref="Stream"/> </param>
+        /// <param name="limit"> A <see cref="System.Int64"/> </param>
+        /// <param name="outStr"> A <see cref="Stream"/> </param>
+        /// <param name="bufferSize">The buffer size.</param>
+        /// <returns>The number of bytes actually transferred, if not greater than <c>limit</c></returns>
+        /// <exception cref="IOException"></exception>
         public static long PipeAllLimited(Stream inStr, long limit, Stream outStr, int bufferSize)
         {
             using (var limited = new LimitedInputStream(limit, inStr, leaveOpen: true))
