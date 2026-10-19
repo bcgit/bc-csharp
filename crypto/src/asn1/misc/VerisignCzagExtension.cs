@@ -6,7 +6,7 @@ namespace Org.BouncyCastle.Asn1.Misc
         : DerIA5String
     {
         public VerisignCzagExtension(DerIA5String str)
-			: base(str.GetString())
+            : base(str.GetString())
         {
         }
 

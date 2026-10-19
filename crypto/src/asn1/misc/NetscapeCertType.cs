@@ -28,7 +28,7 @@ namespace Org.BouncyCastle.Asn1.Misc
         public const int SmimeCA          = (1 << 1);
         public const int ObjectSigningCA  = (1 << 0);
 
-		/**
+        /**
          * Basic constructor.
          *
          * @param usage - the bitwise OR of the Key Usage flags giving the
@@ -36,19 +36,19 @@ namespace Org.BouncyCastle.Asn1.Misc
          * e.g. (X509NetscapeCertType.sslCA | X509NetscapeCertType.smimeCA)
          */
         public NetscapeCertType(int usage)
-			: base(usage)
+            : base(usage)
         {
         }
 
-		public NetscapeCertType(DerBitString usage)
-			: base(usage.GetBytes(), usage.PadBits)
+        public NetscapeCertType(DerBitString usage)
+            : base(usage.GetBytes(), usage.PadBits)
         {
         }
 
-		public override string ToString()
+        public override string ToString()
         {
-			byte[] data = GetBytes();
-			return "NetscapeCertType: 0x" + (data[0] & 0xff).ToString("X");
+            byte[] data = GetBytes();
+            return "NetscapeCertType: 0x" + (data[0] & 0xff).ToString("X");
         }
     }
 }

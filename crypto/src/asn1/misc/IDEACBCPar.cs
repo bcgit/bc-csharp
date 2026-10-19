@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Asn1.Misc
     public class IdeaCbcPar
         : Asn1Encodable
     {
-		public static IdeaCbcPar GetInstance(object o)
+        public static IdeaCbcPar GetInstance(object o)
         {
             if (o == null)
                 return null;
@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Asn1.Misc
 
         public byte[] GetIV() => Arrays.Clone(m_iv?.GetOctets());
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * IDEA-CBCPar ::= Sequence {
