@@ -50,6 +50,7 @@ namespace Org.BouncyCastle.Asn1.Bsi
         /** 0.4.0.127.0.7.1 */
         public static readonly DerObjectIdentifier algorithm = bsi_de.Branch("1");
 
+        /// <summary>The object identifier <c>0.4.0.127.0.7.1.1.5.1</c>.</summary>
         public static readonly DerObjectIdentifier ecka_eg = id_ecc.Branch("5.1");
 
         /** ElGamal Elliptic Curve Key Agreement and Key Derivation according to X963 OID: 0.4.0.127.0.7.1.1.5.1.1 */
@@ -90,9 +91,13 @@ namespace Org.BouncyCastle.Asn1.Bsi
          */
         public static readonly DerObjectIdentifier ecka_eg_SessionKDF = ecka_eg.Branch("2");
 
+        /// <summary>The object identifier <c>0.4.0.127.0.7.1.1.5.1.2.1</c>.</summary>
         public static readonly DerObjectIdentifier ecka_eg_SessionKDF_3DES    = ecka_eg_SessionKDF.Branch("1");
+        /// <summary>The object identifier <c>0.4.0.127.0.7.1.1.5.1.2.2</c>.</summary>
         public static readonly DerObjectIdentifier ecka_eg_SessionKDF_AES128  = ecka_eg_SessionKDF.Branch("2");
+        /// <summary>The object identifier <c>0.4.0.127.0.7.1.1.5.1.2.3</c>.</summary>
         public static readonly DerObjectIdentifier ecka_eg_SessionKDF_AES192  = ecka_eg_SessionKDF.Branch("3");
+        /// <summary>The object identifier <c>0.4.0.127.0.7.1.1.5.1.2.4</c>.</summary>
         public static readonly DerObjectIdentifier ecka_eg_SessionKDF_AES256  = ecka_eg_SessionKDF.Branch("4");
 
         /* AES encryption (CBC) and authentication (CMAC)
