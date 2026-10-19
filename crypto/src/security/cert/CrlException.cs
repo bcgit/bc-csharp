@@ -32,8 +32,8 @@ namespace Org.BouncyCastle.Security.Certificates
         }
 
         /// <summary>Create a new <see cref="CrlException"/>.</summary>
-        /// <param name="info">The info.</param>
-        /// <param name="context">The context.</param>
+        /// <param name="info">The serialization information.</param>
+        /// <param name="context">The streaming context.</param>
 #if NET8_0_OR_GREATER
         [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
 #endif
