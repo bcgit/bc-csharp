@@ -2,7 +2,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
 {
     // TODO[api] Make static
     public abstract class EtsiQCObjectIdentifiers
-	{
+    {
         //
         // base id
         //

@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
     * </pre>
     */
     public class SemanticsInformation
-		: Asn1Encodable
+        : Asn1Encodable
     {
         public static SemanticsInformation GetInstance(object obj)
         {
@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             m_nameRegistrationAuthorities = generalNames;
         }
 
-		public DerObjectIdentifier SemanticsIdentifier  => m_semanticsIdentifier;
+        public DerObjectIdentifier SemanticsIdentifier  => m_semanticsIdentifier;
 
         public GeneralName[] GetNameRegistrationAuthorities() => m_nameRegistrationAuthorities;
 

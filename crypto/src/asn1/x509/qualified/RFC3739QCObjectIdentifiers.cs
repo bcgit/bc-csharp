@@ -7,11 +7,11 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
     // TODO[api] Make static
     public sealed class Rfc3739QCObjectIdentifiers
     {
-		private Rfc3739QCObjectIdentifiers()
-		{
-		}
+        private Rfc3739QCObjectIdentifiers()
+        {
+        }
 
-		//
+        //
         // base id
         //
         public static readonly DerObjectIdentifier IdQcs = X509ObjectIdentifiers.IdPkix.Branch("11");

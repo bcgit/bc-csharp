@@ -57,12 +57,12 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             m_exponent = DerInteger.ValueOf(exponent);
         }
 
-		public Iso4217CurrencyCode Currency => m_currency;
+        public Iso4217CurrencyCode Currency => m_currency;
 
         public BigInteger Amount => m_amount.Value;
 
         public BigInteger Exponent => m_exponent.Value;
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_currency, m_amount, m_exponent);
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_currency, m_amount, m_exponent);
     }
 }
