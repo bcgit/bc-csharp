@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Kems
 {
+    /// <summary>Encapsulator for the ML-KEM key encapsulation mechanism.</summary>
     public sealed class MLKemEncapsulator
         : IKemEncapsulator
     {
@@ -16,11 +17,14 @@ namespace Org.BouncyCastle.Crypto.Kems
         private SecureRandom m_random;
         private MLKemEngine m_engine;
 
+        /// <summary>Create a new <see cref="MLKemEncapsulator"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
         public MLKemEncapsulator(MLKemParameters parameters)
         {
             m_parameters = parameters;
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             parameters = ParameterUtilities.GetRandom(parameters, out var providedRandom);
@@ -33,10 +37,13 @@ namespace Org.BouncyCastle.Crypto.Kems
             m_engine = GetEngine(m_publicKey.Parameters);
         }
 
+        /// <inheritdoc/>
         public int EncapsulationLength => m_engine.CipherTextBytes;
 
+        /// <inheritdoc/>
         public int SecretLength => MLKemEngine.SharedSecretBytes;
 
+        /// <inheritdoc/>
         public void Encapsulate(byte[] encBuf, int encOff, int encLen, byte[] secBuf, int secOff, int secLen)
         {
             Arrays.ValidateSegment(encBuf, encOff, encLen);
@@ -58,6 +65,7 @@ namespace Org.BouncyCastle.Crypto.Kems
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void Encapsulate(Span<byte> encapsulation, Span<byte> secret)
         {
             if (EncapsulationLength != encapsulation.Length)
