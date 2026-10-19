@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         {
             return Arrays.Clone(privKey);
         }
-        
+
         public byte[] GetEncoded()
         {
             return GetPrivateKey();

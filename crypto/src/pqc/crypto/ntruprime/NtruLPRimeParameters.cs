@@ -23,7 +23,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
         private int _ctBytes;
         private int _defaultKeySize;
         private NtruPrimeEngine _primeEngine;
-        
+
         private NtruLPRimeParameters(string name, int p, int q, bool LPR, int w, int tau0,
             int tau1, int tau2, int tau3, int skBytes, int pkBytes, int ctBytes, int roundedBytes, int rqBytes, int defaultKeySize)
         {
@@ -36,7 +36,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             this._tau1 = tau1;
             this._tau2 = tau2;
             this._tau3 = tau3;
-            
+
             // KEM Parameters
             this._roundedBytes = roundedBytes;
             this._rqBytes = rqBytes;
