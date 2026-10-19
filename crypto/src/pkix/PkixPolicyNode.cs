@@ -14,12 +14,19 @@ namespace Org.BouncyCastle.Pkix
     /// </remarks>
     public class PkixPolicyNode
     {
+        /// <summary>The m children.</summary>
         protected IList<PkixPolicyNode> mChildren;
+        /// <summary>The m depth.</summary>
         protected int mDepth;
+        /// <summary>The m expected policies.</summary>
         protected ISet<string> mExpectedPolicies;
+        /// <summary>The m parent.</summary>
         protected PkixPolicyNode mParent;
+        /// <summary>The m policy qualifiers.</summary>
         protected ISet<PolicyQualifierInfo> mPolicyQualifiers;
+        /// <summary>The m valid policy.</summary>
         protected string mValidPolicy;
+        /// <summary>The m critical.</summary>
         protected bool mCritical;
 
         /// <summary>Gets the depth of this node in the tree; the root has depth 0.</summary>
