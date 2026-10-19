@@ -40,7 +40,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             list.Add(new Revocable(isCritical, isRevocable));
         }
 
-		public void SetExportable(bool isCritical, bool isExportable)
+        public void SetExportable(bool isCritical, bool isExportable)
         {
             list.Add(new Exportable(isCritical, isExportable));
         }
@@ -51,61 +51,61 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         /// <summary>
-		/// Add a TrustSignature packet to the signature. The values for depth and trust are largely
-		/// installation dependent but there are some guidelines in RFC 4880 - 5.2.3.13.
-		/// </summary>
-		/// <param name="isCritical">true if the packet is critical.</param>
-		/// <param name="depth">depth level.</param>
-		/// <param name="trustAmount">trust amount.</param>
-		public void SetTrust(bool isCritical, int depth, int trustAmount)
+        /// Add a TrustSignature packet to the signature. The values for depth and trust are largely
+        /// installation dependent but there are some guidelines in RFC 4880 - 5.2.3.13.
+        /// </summary>
+        /// <param name="isCritical">true if the packet is critical.</param>
+        /// <param name="depth">depth level.</param>
+        /// <param name="trustAmount">trust amount.</param>
+        public void SetTrust(bool isCritical, int depth, int trustAmount)
         {
             list.Add(new TrustSignature(isCritical, depth, trustAmount));
         }
 
-		/// <summary>
-		/// Set the number of seconds a key is valid for after the time of its creation.
-		/// A value of zero means the key never expires.
-		/// </summary>
-		/// <param name="isCritical">True, if should be treated as critical, false otherwise.</param>
-		/// <param name="seconds">The number of seconds the key is valid, or zero if no expiry.</param>
+        /// <summary>
+        /// Set the number of seconds a key is valid for after the time of its creation.
+        /// A value of zero means the key never expires.
+        /// </summary>
+        /// <param name="isCritical">True, if should be treated as critical, false otherwise.</param>
+        /// <param name="seconds">The number of seconds the key is valid, or zero if no expiry.</param>
         public void SetKeyExpirationTime(bool isCritical, long seconds)
         {
             list.Add(new KeyExpirationTime(isCritical, seconds));
         }
 
-		/// <summary>
-		/// Set the number of seconds a signature is valid for after the time of its creation.
-		/// A value of zero means the signature never expires.
-		/// </summary>
-		/// <param name="isCritical">True, if should be treated as critical, false otherwise.</param>
-		/// <param name="seconds">The number of seconds the signature is valid, or zero if no expiry.</param>
+        /// <summary>
+        /// Set the number of seconds a signature is valid for after the time of its creation.
+        /// A value of zero means the signature never expires.
+        /// </summary>
+        /// <param name="isCritical">True, if should be treated as critical, false otherwise.</param>
+        /// <param name="seconds">The number of seconds the signature is valid, or zero if no expiry.</param>
         public void SetSignatureExpirationTime(bool isCritical, long seconds)
         {
             list.Add(new SignatureExpirationTime(isCritical, seconds));
         }
 
-		/// <summary>
-		/// Set the creation time for the signature.
-		/// <p>
-		/// Note: this overrides the generation of a creation time when the signature
-		/// is generated.</p>
-		/// </summary>
-		public void SetSignatureCreationTime(bool isCritical, DateTime date)
-		{
-			list.Add(new SignatureCreationTime(isCritical, date));
-		}
+        /// <summary>
+        /// Set the creation time for the signature.
+        /// <p>
+        /// Note: this overrides the generation of a creation time when the signature
+        /// is generated.</p>
+        /// </summary>
+        public void SetSignatureCreationTime(bool isCritical, DateTime date)
+        {
+            list.Add(new SignatureCreationTime(isCritical, date));
+        }
 
-		public void SetPreferredHashAlgorithms(bool	isCritical, int[] algorithms)
+        public void SetPreferredHashAlgorithms(bool isCritical, int[] algorithms)
         {
             list.Add(new PreferredAlgorithms(SignatureSubpacketTag.PreferredHashAlgorithms, isCritical, algorithms));
         }
 
-		public void SetPreferredSymmetricAlgorithms(bool isCritical, int[] algorithms)
+        public void SetPreferredSymmetricAlgorithms(bool isCritical, int[] algorithms)
         {
             list.Add(new PreferredAlgorithms(SignatureSubpacketTag.PreferredSymmetricAlgorithms, isCritical, algorithms));
         }
 
-		public void SetPreferredCompressionAlgorithms(bool isCritical, int[] algorithms)
+        public void SetPreferredCompressionAlgorithms(bool isCritical, int[] algorithms)
         {
             list.Add(new PreferredAlgorithms(SignatureSubpacketTag.PreferredCompressionAlgorithms, isCritical, algorithms));
         }
@@ -126,7 +126,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         [Obsolete("Use 'AddSignerUserId' instead")]
-		public void SetSignerUserId(bool isCritical, string userId)
+        public void SetSignerUserId(bool isCritical, string userId)
         {
             AddSignerUserId(isCritical, userId);
         }
@@ -149,9 +149,9 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         [Obsolete("Use 'AddEmbeddedSignature' instead")]
         public void SetEmbeddedSignature(bool isCritical, PgpSignature pgpSignature)
-		{
+        {
             AddEmbeddedSignature(isCritical, pgpSignature);
-		}
+        }
 
         public void AddEmbeddedSignature(bool isCritical, PgpSignature pgpSignature)
         {
@@ -179,10 +179,10 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         }
 
         [Obsolete("Use 'AddNotationData' instead")]
-		public void SetNotationData(bool isCritical, bool isHumanReadable, string notationName, string notationValue)
-		{
+        public void SetNotationData(bool isCritical, bool isHumanReadable, string notationName, string notationValue)
+        {
             AddNotationData(isCritical, isHumanReadable, notationName, notationValue);
-		}
+        }
 
         public void AddNotationData(bool isCritical, bool isHumanReadable, string notationName, string notationValue)
         {
@@ -191,17 +191,17 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         /// <summary>
         /// Sets revocation reason subpacket
-        /// </summary>	    
+        /// </summary>
         public void SetRevocationReason(bool isCritical, RevocationReasonTag reason, string description)
-		{
-			list.Add(new RevocationReason(isCritical, reason, description));
-		}
+        {
+            list.Add(new RevocationReason(isCritical, reason, description));
+        }
 
         [Obsolete("Use 'AddRevocationKey' instead")]
-		public void SetRevocationKey(bool isCritical, PublicKeyAlgorithmTag keyAlgorithm, byte[] fingerprint)
-		{
+        public void SetRevocationKey(bool isCritical, PublicKeyAlgorithmTag keyAlgorithm, byte[] fingerprint)
+        {
             AddRevocationKey(isCritical, keyAlgorithm, fingerprint);
-		}
+        }
 
         public void AddRevocationKey(bool isCritical, PublicKeyAlgorithmTag keyAlgorithm, byte[] fingerprint)
         {
