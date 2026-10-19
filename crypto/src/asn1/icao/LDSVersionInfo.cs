@@ -3,8 +3,8 @@ using System;
 namespace Org.BouncyCastle.Asn1.Icao
 {
     public class LdsVersionInfo
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static LdsVersionInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -39,17 +39,17 @@ namespace Org.BouncyCastle.Asn1.Icao
         private DerPrintableString m_unicodeVersion;
 
         private LdsVersionInfo(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_ldsVersion = Asn1Utilities.Read(seq, ref pos, DerPrintableString.GetInstance);
-			m_unicodeVersion = Asn1Utilities.Read(seq, ref pos, DerPrintableString.GetInstance);
+            m_ldsVersion = Asn1Utilities.Read(seq, ref pos, DerPrintableString.GetInstance);
+            m_unicodeVersion = Asn1Utilities.Read(seq, ref pos, DerPrintableString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         public LdsVersionInfo(string ldsVersion, string unicodeVersion)
         {
@@ -57,19 +57,19 @@ namespace Org.BouncyCastle.Asn1.Icao
             m_unicodeVersion = new DerPrintableString(unicodeVersion);
         }
 
-		public virtual string GetLdsVersion() => m_ldsVersion.GetString();
+        public virtual string GetLdsVersion() => m_ldsVersion.GetString();
 
-		public virtual string GetUnicodeVersion() => m_unicodeVersion.GetString();
+        public virtual string GetUnicodeVersion() => m_unicodeVersion.GetString();
 
-		/**
-		 * <pre>
-		 * LDSVersionInfo ::= SEQUENCE {
-		 *    ldsVersion PRINTABLE STRING
-		 *    unicodeVersion PRINTABLE STRING
-		 *  }
-		 * </pre>
-		 * @return
-		 */
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_ldsVersion, m_unicodeVersion);
-	}
+        /**
+         * <pre>
+         * LDSVersionInfo ::= SEQUENCE {
+         *    ldsVersion PRINTABLE STRING
+         *    unicodeVersion PRINTABLE STRING
+         *  }
+         * </pre>
+         * @return
+         */
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_ldsVersion, m_unicodeVersion);
+    }
 }

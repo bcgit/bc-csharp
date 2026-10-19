@@ -56,23 +56,23 @@ namespace Org.BouncyCastle.Asn1.Icao
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_dataGroupNumber = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
+            m_dataGroupNumber = Asn1Utilities.Read(seq, ref pos, DerInteger.GetInstance);
             m_dataGroupHashValue = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public DataGroupHash(int dataGroupNumber, Asn1OctetString dataGroupHashValue)
+        public DataGroupHash(int dataGroupNumber, Asn1OctetString dataGroupHashValue)
         {
             m_dataGroupNumber = DerInteger.ValueOf(dataGroupNumber);
             m_dataGroupHashValue = dataGroupHashValue ?? throw new ArgumentNullException(nameof(dataGroupHashValue));
         }
 
-		public int DataGroupNumber => m_dataGroupNumber.IntValueExact;
+        public int DataGroupNumber => m_dataGroupNumber.IntValueExact;
 
-		public Asn1OctetString DataGroupHashValue => m_dataGroupHashValue;
+        public Asn1OctetString DataGroupHashValue => m_dataGroupHashValue;
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_dataGroupNumber, m_dataGroupHashValue);
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_dataGroupNumber, m_dataGroupHashValue);
     }
 }
