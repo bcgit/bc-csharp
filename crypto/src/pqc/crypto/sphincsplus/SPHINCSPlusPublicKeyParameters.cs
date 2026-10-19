@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
     {
         private readonly PK m_pk;
 
+        /// <summary>Create a new <see cref="SphincsPlusPublicKeyParameters"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="pkEncoded">The pk encoded.</param>
         public SphincsPlusPublicKeyParameters(SphincsPlusParameters parameters, byte[] pkEncoded)
             : base(false, parameters)
         {
@@ -26,16 +29,19 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             m_pk = pk;
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             return Arrays.ConcatenateAll(m_pk.seed, m_pk.root);
         }
 
+        /// <summary>Return the root.</summary>
         public byte[] GetRoot()
         {
             return Arrays.Clone(m_pk.root);
         }
 
+        /// <summary>Return the seed.</summary>
         public byte[] GetSeed()
         {
             return Arrays.Clone(m_pk.seed);

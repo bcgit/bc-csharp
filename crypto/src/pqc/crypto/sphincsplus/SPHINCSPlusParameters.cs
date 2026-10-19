@@ -173,8 +173,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             m_engineProvider = engineProvider;
         }
 
+        /// <summary>Gets the ID.</summary>
         public int ID => m_id;
 
+        /// <summary>Gets the name.</summary>
         public string Name => m_name;
 
         internal int N => m_engineProvider.N;
@@ -198,6 +200,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         [Obsolete("Use 'ID' property instead")]
         public static int GetID(SphincsPlusParameters parameters) => parameters.ID;
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded() => Pack.UInt32_To_BE((uint)ID);
     }
 

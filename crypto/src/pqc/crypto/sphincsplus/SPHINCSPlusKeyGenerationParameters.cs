@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
     {
         private readonly SphincsPlusParameters m_parameters;
 
+        /// <summary>Create a new <see cref="SphincsPlusKeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="parameters">The parameters.</param>
         public SphincsPlusKeyGenerationParameters(SecureRandom random, SphincsPlusParameters parameters)
             : base(random, 256)
         {

@@ -13,12 +13,14 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
         private SecureRandom random;
         private SphincsPlusParameters parameters;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             random = param.Random;
             parameters = ((SphincsPlusKeyGenerationParameters)param).Parameters;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             SphincsPlusEngine engine = parameters.GetEngine();
