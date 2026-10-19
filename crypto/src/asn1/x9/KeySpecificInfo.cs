@@ -64,7 +64,7 @@ namespace Org.BouncyCastle.Asn1.X9
 
         public Asn1OctetString Counter => m_counter;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *  KeySpecificInfo ::= Sequence {

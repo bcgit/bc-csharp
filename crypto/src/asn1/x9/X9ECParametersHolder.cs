@@ -3,8 +3,8 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X9
 {
-	public abstract class X9ECParametersHolder
-	{
+    public abstract class X9ECParametersHolder
+    {
         private ECCurve m_curve;
         private X9ECParameters m_parameters;
 
@@ -16,5 +16,5 @@ namespace Org.BouncyCastle.Asn1.X9
         protected virtual ECCurve CreateCurve() => Parameters.Curve;
 
         protected abstract X9ECParameters CreateParameters();
-	}
+    }
 }

@@ -3,8 +3,8 @@ using System;
 namespace Org.BouncyCastle.Asn1.X9
 {
     public class DHPublicKey
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static DHPublicKey GetInstance(object obj)
         {
             if (obj == null)
@@ -23,12 +23,12 @@ namespace Org.BouncyCastle.Asn1.X9
         private readonly DerInteger m_y;
 
         public DHPublicKey(DerInteger y)
-		{
-			m_y = y ?? throw new ArgumentNullException(nameof(y));
+        {
+            m_y = y ?? throw new ArgumentNullException(nameof(y));
         }
 
         public DerInteger Y => m_y;
 
         public override Asn1Object ToAsn1Object() => m_y;
-	}
+    }
 }
