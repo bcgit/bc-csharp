@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
+    /// <summary>The PBES2-params structure of PKCS#5 v2.1.</summary>
     public class PbeS2Parameters
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PbeS2Parameters"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PbeS2Parameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PbeS2Parameters"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PbeS2Parameters GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +22,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new PbeS2Parameters(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PbeS2Parameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PbeS2Parameters"/>.</returns>
         public static PbeS2Parameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PbeS2Parameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PbeS2Parameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PbeS2Parameters"/>.</returns>
         public static PbeS2Parameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PbeS2Parameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -40,6 +54,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="PbeS2Parameters"/>.</summary>
+        /// <param name="keyDevFunc">The key dev func.</param>
+        /// <param name="encScheme">The enc scheme.</param>
         public PbeS2Parameters(KeyDerivationFunc keyDevFunc, EncryptionScheme encScheme)
         {
             m_func = keyDevFunc ?? throw new ArgumentNullException(nameof(keyDevFunc));
@@ -50,6 +67,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public EncryptionScheme EncryptionScheme => m_scheme;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_func, m_scheme);
     }
 }

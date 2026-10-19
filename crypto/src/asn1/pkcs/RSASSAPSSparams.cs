@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
+    /// <summary>The RSASSA-PSS-params structure of PKCS#1.</summary>
     public class RsassaPssParameters
         : Asn1Encodable
     {
@@ -15,6 +16,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         public readonly static DerInteger DefaultSaltLength = DerInteger.ValueOf(20);
         public readonly static DerInteger DefaultTrailerField = DerInteger.One;
 
+        /// <summary>Return an <see cref="RsassaPssParameters"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RsassaPssParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RsassaPssParameters"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RsassaPssParameters GetInstance(object obj)
         {
             if (obj == null)
@@ -26,6 +32,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="RsassaPssParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RsassaPssParameters"/>.</returns>
         public static RsassaPssParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -33,6 +43,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="RsassaPssParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RsassaPssParameters"/>.</returns>
         public static RsassaPssParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -45,6 +59,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly DerInteger m_saltLength;
         private readonly DerInteger m_trailerField;
 
+        /// <summary>Create a new <see cref="RsassaPssParameters"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public RsassaPssParameters(Asn1Sequence seq)
         {
@@ -82,6 +98,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_trailerField = DefaultTrailerField;
         }
 
+        /// <summary>Create a new <see cref="RsassaPssParameters"/>.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="maskGenAlgorithm">The mask gen algorithm.</param>
+        /// <param name="saltLength">The salt length.</param>
+        /// <param name="trailerField">The trailer field.</param>
         public RsassaPssParameters(AlgorithmIdentifier hashAlgorithm, AlgorithmIdentifier maskGenAlgorithm,
             DerInteger saltLength, DerInteger trailerField)
         {
@@ -91,12 +112,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_trailerField = trailerField ?? DefaultTrailerField;
         }
 
+        /// <summary>Gets the hash algorithm.</summary>
         public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
+        /// <summary>Gets the mask gen algorithm.</summary>
         public AlgorithmIdentifier MaskGenAlgorithm => m_maskGenAlgorithm;
 
+        /// <summary>Gets the salt length.</summary>
         public DerInteger SaltLength => m_saltLength;
 
+        /// <summary>Gets the trailer field.</summary>
         public DerInteger TrailerField => m_trailerField;
 
         /**

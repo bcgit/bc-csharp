@@ -25,6 +25,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class CertificationRequestInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertificationRequestInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CertificationRequestInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CertificationRequestInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertificationRequestInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -34,9 +39,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new CertificationRequestInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertificationRequestInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertificationRequestInfo"/>.</returns>
         public static CertificationRequestInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificationRequestInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CertificationRequestInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertificationRequestInfo"/>.</returns>
         public static CertificationRequestInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificationRequestInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -45,6 +58,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly SubjectPublicKeyInfo m_subjectPKInfo;
         private readonly Asn1Set m_attributes;
 
+        /// <summary>Create a new <see cref="CertificationRequestInfo"/>.</summary>
+        /// <param name="subject">The subject.</param>
+        /// <param name="pkInfo">The pk info.</param>
+        /// <param name="attributes">The attributes.</param>
         public CertificationRequestInfo(X509Name subject, SubjectPublicKeyInfo pkInfo, Asn1Set attributes)
         {
             m_version = DerInteger.Zero;
@@ -72,14 +89,18 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             ValidateAttributes(m_attributes);
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the subject.</summary>
         public X509Name Subject => m_subject;
 
         public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_subjectPKInfo;
 
+        /// <summary>Gets the attributes.</summary>
         public Asn1Set Attributes => m_attributes;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(4);

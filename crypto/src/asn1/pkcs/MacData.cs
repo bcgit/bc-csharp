@@ -5,9 +5,13 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Pkcs
 {
+    /// <summary>The MacData structure of PKCS#12.</summary>
     public class MacData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="MacData"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="MacData"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="MacData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static MacData GetInstance(object obj)
         {
             if (obj == null)
@@ -17,9 +21,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new MacData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="MacData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="MacData"/>.</returns>
         public static MacData GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new MacData(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="MacData"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="MacData"/>, or null if <paramref name="element"/> is null.</returns>
         public static MacData GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -35,6 +46,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return null;
         }
 
+        /// <summary>Return an <see cref="MacData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="MacData"/>.</returns>
         public static MacData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new MacData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -56,6 +71,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="MacData"/>.</summary>
+        /// <param name="digInfo">The dig info.</param>
+        /// <param name="salt">The salt.</param>
+        /// <param name="iterationCount">The iteration count.</param>
         // TODO[api] Fix parameter names
         public MacData(DigestInfo digInfo, byte[] salt, int iterationCount)
         {
@@ -64,6 +83,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_iterations = DerInteger.ValueOf(iterationCount);
         }
 
+        /// <summary>Create a new <see cref="MacData"/>.</summary>
+        /// <param name="mac">The MAC.</param>
+        /// <param name="macSalt">The mac salt.</param>
+        /// <param name="iterations">The iterations.</param>
         public MacData(DigestInfo mac, Asn1OctetString macSalt, DerInteger iterations)
         {
             m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
@@ -71,14 +94,19 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_iterations = iterations ?? throw new ArgumentNullException(nameof(iterations));
         }
 
+        /// <summary>Gets the mac.</summary>
         public DigestInfo Mac => m_mac;
 
+        /// <summary>Return the salt.</summary>
         public byte[] GetSalt() => (byte[])m_macSalt.GetOctets().Clone();
 
+        /// <summary>Gets the iteration count.</summary>
         public BigInteger IterationCount => m_iterations.Value;
 
+        /// <summary>Gets the iterations.</summary>
         public DerInteger Iterations => m_iterations;
 
+        /// <summary>Gets the mac salt.</summary>
         public Asn1OctetString MacSalt => m_macSalt;
 
         /**

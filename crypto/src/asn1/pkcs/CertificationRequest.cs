@@ -18,6 +18,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class CertificationRequest
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertificationRequest"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CertificationRequest"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CertificationRequest"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertificationRequest GetInstance(object obj)
         {
             if (obj == null)
@@ -27,9 +32,17 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new CertificationRequest(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertificationRequest"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertificationRequest"/>.</returns>
         public static CertificationRequest GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificationRequest(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CertificationRequest"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertificationRequest"/>.</returns>
         public static CertificationRequest GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificationRequest(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -38,11 +51,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         protected AlgorithmIdentifier sigAlgId;
         protected DerBitString sigBits;
 
+        /// <summary>Create a new <see cref="CertificationRequest"/>.</summary>
         // TODO[api] Remove
         protected CertificationRequest()
         {
         }
 
+        /// <summary>Create a new <see cref="CertificationRequest"/>.</summary>
+        /// <param name="requestInfo">The request info.</param>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="signature">The signature.</param>
         // TODO[api] Fix parameter names to match ASN.1 fields
         public CertificationRequest(CertificationRequestInfo requestInfo, AlgorithmIdentifier algorithm,
             DerBitString signature)
@@ -69,15 +87,20 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Return the certification request info.</summary>
         // TODO[api] Rename as a property
         public CertificationRequestInfo GetCertificationRequestInfo() => reqInfo;
 
+        /// <summary>Gets the signature algorithm.</summary>
         public AlgorithmIdentifier SignatureAlgorithm => sigAlgId;
 
+        /// <summary>Gets the signature.</summary>
         public DerBitString Signature => sigBits;
 
+        /// <summary>Return the signature octets.</summary>
         public byte[] GetSignatureOctets() => sigBits.GetOctets();
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(reqInfo, sigAlgId, sigBits);
     }
 }

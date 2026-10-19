@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class SignerInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SignerInfo"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="SignerInfo"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="SignerInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SignerInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -21,6 +24,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="SignerInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignerInfo"/>.</returns>
         public static SignerInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -28,6 +35,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="SignerInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignerInfo"/>.</returns>
         public static SignerInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -43,6 +54,8 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly Asn1OctetString m_encryptedDigest;
         private readonly Asn1Set m_unauthenticatedAttributes;
 
+        /// <summary>Create a new <see cref="SignerInfo"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public SignerInfo(Asn1Sequence seq)
         {
@@ -67,6 +80,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="SignerInfo"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="issuerAndSerialNumber">The issuer and serial number.</param>
+        /// <param name="digAlgorithm">The dig algorithm.</param>
+        /// <param name="authenticatedAttributes">The authenticated attributes.</param>
+        /// <param name="digEncryptionAlgorithm">The dig encryption algorithm.</param>
+        /// <param name="encryptedDigest">The encrypted digest.</param>
+        /// <param name="unauthenticatedAttributes">The unauthenticated attributes.</param>
         // TODO[api] 'digAlgorithm' => 'digestAlgorithm', digEncryptionAlgorithm => 'digestEncryptionAlgorithm'
         public SignerInfo(DerInteger version, IssuerAndSerialNumber issuerAndSerialNumber,
             AlgorithmIdentifier digAlgorithm, Asn1Set authenticatedAttributes,
@@ -84,18 +105,24 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_unauthenticatedAttributes = unauthenticatedAttributes;
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public IssuerAndSerialNumber IssuerAndSerialNumber => m_issuerAndSerialNumber;
 
+        /// <summary>Gets the authenticated attributes.</summary>
         public Asn1Set AuthenticatedAttributes => m_authenticatedAttributes;
 
+        /// <summary>Gets the digest algorithm.</summary>
         public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
+        /// <summary>Gets the encrypted digest.</summary>
         public Asn1OctetString EncryptedDigest => m_encryptedDigest;
 
+        /// <summary>Gets the digest encryption algorithm.</summary>
         public AlgorithmIdentifier DigestEncryptionAlgorithm => m_digestEncryptionAlgorithm;
 
+        /// <summary>Gets the unauthenticated attributes.</summary>
         public Asn1Set UnauthenticatedAttributes => m_unauthenticatedAttributes;
 
         /**

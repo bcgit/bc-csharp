@@ -52,6 +52,11 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new PrivateKeyInfo(version, privateKeyAlgorithm, privateKey, attributes, publicKey);
         }
 
+        /// <summary>Return an <see cref="PrivateKeyInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PrivateKeyInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PrivateKeyInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PrivateKeyInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -61,9 +66,16 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return new PrivateKeyInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PrivateKeyInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PrivateKeyInfo"/>.</returns>
         public static PrivateKeyInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new PrivateKeyInfo(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="PrivateKeyInfo"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="PrivateKeyInfo"/>, or null if <paramref name="element"/> is null.</returns>
         public static PrivateKeyInfo GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -79,6 +91,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return null;
         }
 
+        /// <summary>Return an <see cref="PrivateKeyInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PrivateKeyInfo"/>.</returns>
         public static PrivateKeyInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PrivateKeyInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -109,16 +125,28 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("'publicKey' requires version v2(1) or later", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="PrivateKeyInfo"/>.</summary>
+        /// <param name="privateKeyAlgorithm">The private key algorithm.</param>
+        /// <param name="privateKey">The private key.</param>
         public PrivateKeyInfo(AlgorithmIdentifier privateKeyAlgorithm, Asn1Encodable privateKey)
             : this(privateKeyAlgorithm, privateKey, null, null)
         {
         }
 
+        /// <summary>Create a new <see cref="PrivateKeyInfo"/>.</summary>
+        /// <param name="privateKeyAlgorithm">The private key algorithm.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="attributes">The attributes.</param>
         public PrivateKeyInfo(AlgorithmIdentifier privateKeyAlgorithm, Asn1Encodable privateKey, Asn1Set attributes)
             : this(privateKeyAlgorithm, privateKey, attributes, null)
         {
         }
 
+        /// <summary>Create a new <see cref="PrivateKeyInfo"/>.</summary>
+        /// <param name="privateKeyAlgorithm">The private key algorithm.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="publicKey">The public key.</param>
         public PrivateKeyInfo(AlgorithmIdentifier privateKeyAlgorithm, Asn1Encodable privateKey, Asn1Set attributes,
             byte[] publicKey)
         {
@@ -139,20 +167,26 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_publicKey = publicKey;
         }
 
+        /// <summary>Gets the version.</summary>
         public virtual DerInteger Version => m_version;
 
+        /// <summary>Gets the attributes.</summary>
         public virtual Asn1Set Attributes => m_attributes;
 
         /// <summary>Return true if a public key is present, false otherwise.</summary>
         public virtual bool HasPublicKey => m_publicKey != null;
 
+        /// <summary>Gets the private key algorithm.</summary>
         public virtual AlgorithmIdentifier PrivateKeyAlgorithm => m_privateKeyAlgorithm;
 
+        /// <summary>Gets the private key.</summary>
         public virtual Asn1OctetString PrivateKey => m_privateKey;
 
+        /// <summary>Gets the private key data.</summary>
         [Obsolete("Use 'PrivateKey' instead")]
         public virtual Asn1OctetString PrivateKeyData => m_privateKey;
 
+        /// <summary>Gets the private key length.</summary>
         public virtual int PrivateKeyLength => m_privateKey.GetOctetsLength();
 
         public virtual Asn1Object ParsePrivateKey() => Asn1Object.FromByteArray(m_privateKey.GetOctets());
@@ -163,12 +197,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             return m_publicKey == null ? null : Asn1Object.FromMemoryStream(m_publicKey.GetOctetMemoryStream());
         }
 
+        /// <summary>Gets the public key.</summary>
         public virtual DerBitString PublicKey => m_publicKey;
 
         /// <summary>Return the public key as a raw bit string.</summary>
         [Obsolete("Use 'PublicKey' instead")]
         public virtual DerBitString PublicKeyData => m_publicKey;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(5);
