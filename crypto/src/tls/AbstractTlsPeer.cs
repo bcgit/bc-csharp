@@ -79,6 +79,11 @@ namespace Org.BouncyCastle.Tls
         /// <inheritdoc/>
         public virtual bool RequiresExtendedMasterSecret() => false;
 
+        /// <summary>
+        /// Determine whether the signature algorithms of the certificates of the peer are checked against those
+        /// offered.
+        /// </summary>
+        /// <returns>true if the signature algorithms of the peer's certificates are checked, false otherwise.</returns>
         public virtual bool ShouldCheckSigAlgOfPeerCerts() => true;
 
         /// <inheritdoc/>

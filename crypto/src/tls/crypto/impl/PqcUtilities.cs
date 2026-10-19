@@ -12,6 +12,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     /// </summary>
     public static class PqcUtilities
     {
+        /// <summary>Get the object identifier of the ML-DSA parameter set for a signature scheme.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The object identifier.</returns>
+        /// <exception cref="ArgumentException">The signature scheme is not an ML-DSA scheme.</exception>
         public static DerObjectIdentifier GetMLDsaObjectidentifier(int signatureScheme)
         {
             switch (signatureScheme)
@@ -27,6 +31,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <summary>Get the signature scheme for an ML-DSA parameter set.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>The signature scheme.</returns>
+        /// <exception cref="ArgumentException">The parameters have no corresponding signature scheme.</exception>
         public static int GetMLDsaSignatureScheme(MLDsaParameters parameters)
         {
             if (MLDsaParameters.ml_dsa_44 == parameters)
@@ -38,6 +46,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             throw new ArgumentException();
         }
 
+        /// <summary>Get the object identifier of the SLH-DSA parameter set for a signature scheme.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The object identifier.</returns>
+        /// <exception cref="ArgumentException">The signature scheme is not an SLH-DSA scheme.</exception>
         public static DerObjectIdentifier GetSlhDsaObjectidentifier(int signatureScheme)
         {
             switch (signatureScheme)
@@ -71,6 +83,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <summary>Get the signature scheme for an SLH-DSA parameter set.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <returns>The signature scheme.</returns>
+        /// <exception cref="ArgumentException">The parameters have no corresponding signature scheme.</exception>
         public static int GetSlhDsaSignatureScheme(SlhDsaParameters parameters)
         {
             if (SlhDsaParameters.slh_dsa_sha2_128s == parameters)
@@ -100,9 +116,17 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             throw new ArgumentException();
         }
 
+        /// <summary>Determine whether a public key algorithm can be used with a given ML-DSA algorithm.</summary>
+        /// <param name="pubKeyAlgID">The public key algorithm identifier.</param>
+        /// <param name="mlDsaAlgOid">The ML-DSA algorithm object identifier.</param>
+        /// <returns>true if it is supported, false otherwise.</returns>
         public static bool SupportsMLDsa(AlgorithmIdentifier pubKeyAlgID, DerObjectIdentifier mlDsaAlgOid) =>
             HasOidWithNullParameters(pubKeyAlgID, mlDsaAlgOid);
 
+        /// <summary>Determine whether a public key algorithm can be used with a given SLH-DSA algorithm.</summary>
+        /// <param name="pubKeyAlgID">The public key algorithm identifier.</param>
+        /// <param name="slhDsaAlgOid">The SLH-DSA algorithm object identifier.</param>
+        /// <returns>true if it is supported, false otherwise.</returns>
         public static bool SupportsSlhDsa(AlgorithmIdentifier pubKeyAlgID, DerObjectIdentifier slhDsaAlgOid) =>
             HasOidWithNullParameters(pubKeyAlgID, slhDsaAlgOid);
 

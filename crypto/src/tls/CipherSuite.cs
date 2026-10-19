@@ -5,6 +5,12 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 2246 A.5</summary>
     public abstract class CipherSuite
     {
+        /// <summary>
+        /// Determine whether a cipher suite value is a signalling cipher suite value (SCSV) rather than a real cipher
+        /// suite.
+        /// </summary>
+        /// <param name="cipherSuite">The cipher suite value.</param>
+        /// <returns>true if the value is an SCSV, false otherwise.</returns>
         public static bool IsScsv(int cipherSuite)
         {
             switch (cipherSuite)

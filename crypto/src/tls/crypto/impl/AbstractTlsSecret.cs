@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
     public abstract class AbstractTlsSecret
         : TlsSecret
     {
+        /// <summary>Copy the data of another secret.</summary>
+        /// <param name="other">The secret to copy from.</param>
+        /// <returns>A copy of the data.</returns>
         protected static byte[] CopyData(AbstractTlsSecret other)
         {
             return other.CopyData();
@@ -24,6 +27,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             m_data = data;
         }
 
+        /// <summary>Check that the secret has not been destroyed.</summary>
+        /// <exception cref="InvalidOperationException">The secret has been destroyed.</exception>
         protected virtual void CheckAlive()
         {
             if (m_data == null)

@@ -74,6 +74,8 @@ namespace Org.BouncyCastle.Tls
             get { return m_version; }
         }
 
+        /// <summary>Determine whether this message is a HelloRetryRequest.</summary>
+        /// <returns>true if this is a HelloRetryRequest, false otherwise.</returns>
         public bool IsHelloRetryRequest()
         {
             return Arrays.AreEqual(HelloRetryRequestMagic, m_random);

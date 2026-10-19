@@ -88,6 +88,8 @@ namespace Org.BouncyCastle.Tls
             m_certificateRequest = null;
         }
 
+        /// <summary>Determine whether a CertificateVerify message is expected from the client.</summary>
+        /// <returns>true if the message is expected, false otherwise.</returns>
         protected virtual bool ExpectCertificateVerifyMessage()
         {
             if (null == m_certificateRequest)

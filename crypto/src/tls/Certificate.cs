@@ -20,7 +20,9 @@ namespace Org.BouncyCastle.Tls
         private static readonly TlsCertificate[] EmptyCerts = Array.Empty<TlsCertificate>();
         private static readonly CertificateEntry[] EmptyCertEntries = Array.Empty<CertificateEntry>();
 
+        /// <summary>An empty certificate chain, for use before TLS 1.3.</summary>
         public static readonly Certificate EmptyChain = new Certificate(EmptyCerts);
+        /// <summary>An empty certificate chain, for use with TLS 1.3.</summary>
         public static readonly Certificate EmptyChainTls13 = new Certificate(TlsUtilities.EmptyBytes, EmptyCertEntries);
 
         /// <summary>Options controlling how a certificate message is parsed.</summary>
@@ -94,11 +96,17 @@ namespace Org.BouncyCastle.Tls
             return CloneCertificateList();
         }
 
+        /// <summary>Get the certificate at an index of the chain.</summary>
+        /// <param name="index">The index.</param>
+        /// <returns>The certificate.</returns>
         public TlsCertificate GetCertificateAt(int index)
         {
             return m_certificateEntryList[index].Certificate;
         }
 
+        /// <summary>Get the certificate entry at an index of the chain.</summary>
+        /// <param name="index">The index.</param>
+        /// <returns>The certificate entry.</returns>
         public CertificateEntry GetCertificateEntryAt(int index)
         {
             return m_certificateEntryList[index];

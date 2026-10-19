@@ -16,16 +16,25 @@ namespace Org.BouncyCastle.Tls
             this.m_buffer = new ByteQueue();
         }
 
+        /// <summary>Add data to the end of the stream.</summary>
+        /// <param name="buf">The data.</param>
         public void AddBytes(byte[] buf)
         {
             m_buffer.AddData(buf, 0, buf.Length);
         }
 
+        /// <summary>Add data to the end of the stream.</summary>
+        /// <param name="buf">The data.</param>
+        /// <param name="bufOff">The offset into <paramref name="buf"/> at which the data starts.</param>
+        /// <param name="bufLen">The number of bytes to add.</param>
         public void AddBytes(byte[] buf, int bufOff, int bufLen)
         {
             m_buffer.AddData(buf, bufOff, bufLen);
         }
 
+        /// <summary>Copy data from the start of the stream without consuming it.</summary>
+        /// <param name="buf">The buffer to copy to.</param>
+        /// <returns>The number of bytes copied.</returns>
         public int Peek(byte[] buf)
         {
             int bytesToRead = System.Math.Min(m_buffer.Available, buf.Length);
@@ -62,6 +71,9 @@ namespace Org.BouncyCastle.Tls
             return m_buffer.RemoveData(1, 0)[0];
         }
 
+        /// <summary>Skip over data in the stream.</summary>
+        /// <param name="n">The number of bytes to skip.</param>
+        /// <returns>The number of bytes actually skipped.</returns>
         public long Skip(long n)
         {
             int bytesToRemove = System.Math.Min((int)n, m_buffer.Available);

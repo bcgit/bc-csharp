@@ -114,6 +114,9 @@ namespace Org.BouncyCastle.Tls
         /// <returns>an <see cref="IList{T}"/> of <see cref="X509Name"/>.</returns>
         public IList<X509Name> CertificateAuthorities => m_certificateAuthorities;
 
+        /// <summary>Determine whether this request has the given certificate request context.</summary>
+        /// <param name="certificateRequestContext">The context to compare with.</param>
+        /// <returns>true if the contexts are equal, false otherwise.</returns>
         public bool HasCertificateRequestContext(byte[] certificateRequestContext) =>
             Arrays.AreEqual(m_certificateRequestContext, certificateRequestContext);
 

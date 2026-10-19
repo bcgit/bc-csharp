@@ -5,8 +5,11 @@ namespace Org.BouncyCastle.Tls.Crypto
     /// <summary>The result of encoding a record: a buffer region together with the record type.</summary>
     public sealed class TlsEncodeResult
     {
+        /// <summary>The buffer holding the encoded record.</summary>
         public readonly byte[] buf;
+        /// <summary>The offset into the buffer at which the record starts, and its length.</summary>
         public readonly int off, len;
+        /// <summary>The record type of the encoded record.</summary>
         public readonly short recordType;
 
         /// <summary>Create a new <see cref="TlsEncodeResult"/>.</summary>

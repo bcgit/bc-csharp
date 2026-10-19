@@ -33,6 +33,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_request; }
         }
 
+        /// <summary>Gets the OCSP status request, if this is a request of type OCSP.</summary>
         public OcspStatusRequest OcspStatusRequest
         {
             get

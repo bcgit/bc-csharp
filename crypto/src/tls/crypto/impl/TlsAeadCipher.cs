@@ -443,6 +443,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <inheritdoc/>
         public virtual bool UsesOpaqueRecordType => m_isTlsV13;
 
+        /// <summary>Calculate the additional authenticated data for a record.</summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="recordType">The record type.</param>
+        /// <param name="recordVersion">The record version.</param>
+        /// <param name="ciphertextLength">The length of the ciphertext.</param>
+        /// <param name="plaintextLength">The length of the plaintext.</param>
+        /// <returns>The additional data.</returns>
         protected virtual byte[] GetAdditionalData(long seqNo, short recordType, ProtocolVersion recordVersion,
             int ciphertextLength, int plaintextLength)
         {
@@ -471,6 +478,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <summary>Calculate the additional authenticated data for a record.</summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="recordType">The record type.</param>
+        /// <param name="recordVersion">The record version.</param>
+        /// <param name="ciphertextLength">The length of the ciphertext.</param>
+        /// <param name="plaintextLength">The length of the plaintext.</param>
+        /// <param name="connectionID">The connection ID, or null.</param>
+        /// <returns>The additional data.</returns>
         protected virtual byte[] GetAdditionalData(long seqNo, short recordType, ProtocolVersion recordVersion,
             int ciphertextLength, int plaintextLength, byte[] connectionID)
         {
@@ -494,6 +509,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return additional_data;
         }
 
+        /// <summary>Re-key a cipher using new traffic secrets.</summary>
+        /// <param name="securityParameters">The security parameters.</param>
+        /// <param name="cipher">The cipher to re-key.</param>
+        /// <param name="nonce">The nonce.</param>
+        /// <param name="serverSecret">true to use the server secret, false to use the client secret.</param>
         protected virtual void RekeyCipher(SecurityParameters securityParameters, TlsAeadCipherImpl cipher,
             byte[] nonce, bool serverSecret)
         {
@@ -511,6 +531,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             Setup13Cipher(cipher, nonce, secret, securityParameters.PrfCryptoHashAlgorithm);
         }
 
+        /// <summary>Set up a cipher for TLS 1.3 from a traffic secret.</summary>
+        /// <param name="cipher">The cipher.</param>
+        /// <param name="nonce">The nonce.</param>
+        /// <param name="secret">The traffic secret.</param>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
         protected virtual void Setup13Cipher(TlsAeadCipherImpl cipher, byte[] nonce, TlsSecret secret,
             int cryptoHashAlgorithm)
         {

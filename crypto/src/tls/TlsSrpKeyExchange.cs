@@ -194,6 +194,11 @@ namespace Org.BouncyCastle.Tls
             return m_context.Crypto.CreateSecret(BigIntegers.AsUnsignedByteArray(S));
         }
 
+        /// <summary>Validate a public value received from the peer.</summary>
+        /// <param name="N">The modulus.</param>
+        /// <param name="val">The public value.</param>
+        /// <returns>The public value reduced modulo N.</returns>
+        /// <exception cref="TlsFatalAlert">The value is not valid.</exception>
         protected static BigInteger ValidatePublicValue(BigInteger N, BigInteger val)
         {
             val = val.Mod(N);

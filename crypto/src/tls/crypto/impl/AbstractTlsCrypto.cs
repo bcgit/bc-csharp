@@ -68,6 +68,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         /// <inheritdoc/>
         public abstract TlsSecret GenerateRsaPreMasterSecret(ProtocolVersion clientVersion);
 
+        /// <summary>Gets the source of randomness used by this crypto.</summary>
         public abstract SecureRandom SecureRandom { get; }
 
         /// <inheritdoc/>

@@ -72,6 +72,8 @@ namespace Org.BouncyCastle.Tls
         /// <returns><c>true</c> (the default) to echo "status_request" when the client offered it.</returns>
         protected virtual bool AllowCertificateStatus() => true;
 
+        /// <summary>Determine whether the encrypt_then_mac extension may be negotiated.</summary>
+        /// <returns>true if the extension may be negotiated, false otherwise.</returns>
         protected virtual bool AllowEncryptThenMac() => true;
 
         /// <summary>
@@ -87,8 +89,12 @@ namespace Org.BouncyCastle.Tls
         /// <returns><c>false</c> (the default) to leave "status_request_v2" unanswered.</returns>
         protected virtual bool AllowMultiCertStatus() => false;
 
+        /// <summary>Determine whether the truncated_hmac extension may be negotiated.</summary>
+        /// <returns>true if the extension may be negotiated, false otherwise.</returns>
         protected virtual bool AllowTruncatedHmac() => false;
 
+        /// <summary>Determine whether the trusted_ca_keys extension may be acknowledged.</summary>
+        /// <returns>true if the extension may be acknowledged, false otherwise.</returns>
         protected virtual bool AllowTrustedCAIndication() => false;
 
         /// <summary>Return the detail message no cipher suite.</summary>
@@ -153,6 +159,16 @@ namespace Org.BouncyCastle.Tls
         /// <summary>Return the protocol names.</summary>
         protected virtual IList<ProtocolName> GetProtocolNames() => null;
 
+        /// <summary>Determine whether a cipher suite can be selected, given what the client supports.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <param name="availCurveBits">
+        /// The size in bits of the largest elliptic curve that can be used, or 0 if none.
+        /// </param>
+        /// <param name="availFiniteFieldBits">
+        /// The size in bits of the largest finite field group that can be used, or 0 if none.
+        /// </param>
+        /// <param name="sigAlgs">The signature algorithms that can be used.</param>
+        /// <returns>true if the cipher suite can be selected, false otherwise.</returns>
         protected virtual bool IsSelectableCipherSuite(int cipherSuite, int availCurveBits, int availFiniteFieldBits,
             IList<short> sigAlgs)
         {
@@ -162,8 +178,16 @@ namespace Org.BouncyCastle.Tls
                 && TlsUtilities.IsValidCipherSuiteForSignatureAlgorithms(cipherSuite, sigAlgs);
         }
 
+        /// <summary>
+        /// Determine whether the server's order of preference for cipher suites takes precedence over the client's.
+        /// </summary>
+        /// <returns>true if the server's preference is used, false if the client's is.</returns>
         protected virtual bool PreferLocalCipherSuites() => false;
 
+        /// <summary>
+        /// Determine whether the server's order of preference for supported groups takes precedence over the client's.
+        /// </summary>
+        /// <returns>true if the server's preference is used, false if the client's is.</returns>
         public virtual bool PreferLocalSupportedGroups() => false;
 
         /// <exception cref="IOException"/>
@@ -173,6 +197,9 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        /// <summary>Select a finite field Diffie-Hellman group.</summary>
+        /// <param name="minimumFiniteFieldBits">The minimum size in bits of the group.</param>
+        /// <returns>The named group selected, or -1 if no suitable group is available.</returns>
         // TODO[api] Preferably return TlsDHConfig from here to support custom DH groups more easily
         protected virtual int SelectDH(int minimumFiniteFieldBits)
         {
@@ -205,6 +232,9 @@ namespace Org.BouncyCastle.Tls
             return -1;
         }
 
+        /// <summary>Select a finite field Diffie-Hellman group.</summary>
+        /// <param name="minimumFiniteFieldBits">The minimum size in bits of the group.</param>
+        /// <returns>The named group selected, or -1 if no suitable group is available.</returns>
         // TODO[api] Preferably return TlsDHConfig from here to support custom DH groups more easily
         protected virtual int SelectDHDefault(int minimumFiniteFieldBits)
         {
@@ -216,6 +246,9 @@ namespace Org.BouncyCastle.Tls
                 :  -1;
         }
 
+        /// <summary>Select an elliptic curve group.</summary>
+        /// <param name="minimumCurveBits">The minimum size in bits of the curve.</param>
+        /// <returns>The named group selected, or -1 if no suitable group is available.</returns>
         protected virtual int SelectECDH(int minimumCurveBits)
         {
             int[] clientSupportedGroups = m_context.SecurityParameters.ClientSupportedGroups;
@@ -243,6 +276,9 @@ namespace Org.BouncyCastle.Tls
             return -1;
         }
 
+        /// <summary>Select an elliptic curve group.</summary>
+        /// <param name="minimumCurveBits">The minimum size in bits of the curve.</param>
+        /// <returns>The named group selected, or -1 if no suitable group is available.</returns>
         protected virtual int SelectECDHDefault(int minimumCurveBits)
         {
             return minimumCurveBits <= 256 ? NamedGroup.secp256r1
@@ -275,8 +311,15 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>Determine whether the application protocol should be selected before the cipher suite.</summary>
+        /// <returns>true if the protocol name is selected early, false otherwise.</returns>
         protected virtual bool ShouldSelectProtocolNameEarly() => true;
 
+        /// <summary>
+        /// Determine whether the server's order of preference for client certificate types takes precedence over the
+        /// client's.
+        /// </summary>
+        /// <returns>true if the server's preference is used, false if the client's is.</returns>
         protected virtual bool PreferLocalClientCertificateTypes() => false;
 
         /// <summary>Return the allowed client certificate types.</summary>

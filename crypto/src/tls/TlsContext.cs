@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Tls
         /// <summary>Gets the nonce generator.</summary>
         TlsNonceGenerator NonceGenerator { get; }
 
+        /// <summary>Gets the security parameters of the connection.</summary>
         SecurityParameters SecurityParameters { get; }
 
         /// <summary>Return true if this context is for a server, false otherwise.</summary>

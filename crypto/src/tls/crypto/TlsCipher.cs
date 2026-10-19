@@ -42,6 +42,13 @@ namespace Org.BouncyCastle.Tls.Crypto
             int headerAllocation, byte[] plaintext, int offset, int len);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Encode a plaintext record.</summary>
+        /// <param name="seqNo">The record sequence number.</param>
+        /// <param name="contentType">The content type of the plaintext.</param>
+        /// <param name="recordVersion">The version to use for the record.</param>
+        /// <param name="headerAllocation">The number of bytes to reserve for the record header.</param>
+        /// <param name="plaintext">The plaintext.</param>
+        /// <returns>The encoded record.</returns>
         // TODO[api] Add a parameter for how much (D)TLSInnerPlaintext padding to add
         TlsEncodeResult EncodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion,
             int headerAllocation, ReadOnlySpan<byte> plaintext);

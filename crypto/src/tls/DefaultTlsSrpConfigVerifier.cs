@@ -53,12 +53,20 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>Determine whether an SRP configuration and a group are equal.</summary>
+        /// <param name="a">The SRP configuration.</param>
+        /// <param name="b">The group.</param>
+        /// <returns>true if they are equal, false otherwise.</returns>
         protected virtual bool AreGroupsEqual(TlsSrpConfig a, Srp6Group b)
         {
             BigInteger[] ng = a.GetExplicitNG();
             return AreParametersEqual(ng[0], b.N) && AreParametersEqual(ng[1], b.G);
         }
 
+        /// <summary>Determine whether two group parameters are equal.</summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         protected virtual bool AreParametersEqual(BigInteger a, BigInteger b)
         {
             return a == b || a.Equals(b);

@@ -62,6 +62,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             }
         }
 
+        /// <summary>Determine whether a public key algorithm can be used with RSASSA-PKCS1-v1_5.</summary>
+        /// <param name="pubKeyAlgID">The public key algorithm identifier.</param>
+        /// <returns>true if it is supported, false otherwise.</returns>
         public static bool SupportsPkcs1(AlgorithmIdentifier pubKeyAlgID)
         {
             DerObjectIdentifier oid = pubKeyAlgID.Algorithm;
@@ -69,6 +72,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 || X509ObjectIdentifiers.IdEARsa.Equals(oid);
         }
 
+        /// <summary>
+        /// Determine whether a public key algorithm can be used with RSASSA-PSS where the key is restricted to PSS.
+        /// </summary>
+        /// <param name="signatureAlgorithm">The signature algorithm (rsa_pss_pss_*).</param>
+        /// <param name="pubKeyAlgID">The public key algorithm identifier.</param>
+        /// <returns>true if it is supported, false otherwise.</returns>
         public static bool SupportsPss_Pss(short signatureAlgorithm, AlgorithmIdentifier pubKeyAlgID)
         {
             DerObjectIdentifier oid = pubKeyAlgID.Algorithm;
@@ -128,6 +137,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 || Arrays.AreEqual(expected_B, encoded);
         }
 
+        /// <summary>
+        /// Determine whether a public key algorithm can be used with RSASSA-PSS where the key is a general RSA key.
+        /// </summary>
+        /// <param name="pubKeyAlgID">The public key algorithm identifier.</param>
+        /// <returns>true if it is supported, false otherwise.</returns>
         public static bool SupportsPss_Rsae(AlgorithmIdentifier pubKeyAlgID)
         {
             DerObjectIdentifier oid = pubKeyAlgID.Algorithm;

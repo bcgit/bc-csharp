@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Tls
     public class DefaultTlsDHGroupVerifier
         : TlsDHGroupVerifier
     {
+        /// <summary>The default minimum size in bits of the prime of an acceptable group.</summary>
         public static readonly int DefaultMinimumPrimeBits = 2048;
 
         private static readonly List<DHGroup> DefaultGroups = new List<DHGroup>();
@@ -86,16 +87,27 @@ namespace Org.BouncyCastle.Tls
             get { return m_minimumPrimeBits; }
         }
 
+        /// <summary>Determine whether two groups are equal.</summary>
+        /// <param name="a">The first group.</param>
+        /// <param name="b">The second group.</param>
+        /// <returns>true if the groups are equal, false otherwise.</returns>
         protected virtual bool AreGroupsEqual(DHGroup a, DHGroup b)
         {
             return a == b || (AreParametersEqual(a.P, b.P) && AreParametersEqual(a.G, b.G));
         }
 
+        /// <summary>Determine whether two group parameters are equal.</summary>
+        /// <param name="a">The first value.</param>
+        /// <param name="b">The second value.</param>
+        /// <returns>true if the values are equal, false otherwise.</returns>
         protected virtual bool AreParametersEqual(BigInteger a, BigInteger b)
         {
             return a == b || a.Equals(b);
         }
 
+        /// <summary>Check whether a group is one of the accepted groups.</summary>
+        /// <param name="dhGroup">The group.</param>
+        /// <returns>true if the group is accepted, false otherwise.</returns>
         protected virtual bool CheckGroup(DHGroup dhGroup)
         {
             foreach (DHGroup group in m_groups)
@@ -106,6 +118,9 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>Check whether the prime of a group is large enough.</summary>
+        /// <param name="dhGroup">The group.</param>
+        /// <returns>true if the prime has at least the minimum number of bits, false otherwise.</returns>
         protected virtual bool CheckMinimumPrimeBits(DHGroup dhGroup)
         {
             return dhGroup.P.BitLength >= MinimumPrimeBits;

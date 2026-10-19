@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Tls
          * RFC 5246
          */
         public const int hmac_md5 = md5;
+        /// <summary>The <c>hmac_sha1</c> constant, with the value <c>2</c>.</summary>
         public const int hmac_sha1 = sha;
         /// <summary>The <c>hmac_sha256</c> constant, with the value <c>3</c>.</summary>
         public const int hmac_sha256 = 3;
@@ -63,6 +64,9 @@ namespace Org.BouncyCastle.Tls
             return GetName(macAlgorithm) + "(" + macAlgorithm + ")";
         }
 
+        /// <summary>Determine whether a MAC algorithm is an HMAC.</summary>
+        /// <param name="macAlgorithm">The MAC algorithm.</param>
+        /// <returns>true if the algorithm is an HMAC, false otherwise.</returns>
         public static bool IsHmac(int macAlgorithm)
         {
             switch (macAlgorithm)

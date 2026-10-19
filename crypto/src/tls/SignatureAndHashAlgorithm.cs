@@ -6,47 +6,80 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 5246 7.4.1.4.1</summary>
     public sealed class SignatureAndHashAlgorithm
     {
+        /// <summary>The <c>ecdsa_brainpoolP256r1tls13_sha256</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm ecdsa_brainpoolP256r1tls13_sha256 =
             Create(SignatureScheme.ecdsa_brainpoolP256r1tls13_sha256);
+        /// <summary>The <c>ecdsa_brainpoolP384r1tls13_sha384</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm ecdsa_brainpoolP384r1tls13_sha384 =
             Create(SignatureScheme.ecdsa_brainpoolP384r1tls13_sha384);
+        /// <summary>The <c>ecdsa_brainpoolP512r1tls13_sha512</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm ecdsa_brainpoolP512r1tls13_sha512 =
             Create(SignatureScheme.ecdsa_brainpoolP512r1tls13_sha512);
+        /// <summary>The <c>ed25519</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm ed25519 = Create(SignatureScheme.ed25519);
+        /// <summary>The <c>ed448</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm ed448 = Create(SignatureScheme.ed448);
+        /// <summary>The <c>gostr34102012_256</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm gostr34102012_256 =
             Create(HashAlgorithm.Intrinsic, SignatureAlgorithm.gostr34102012_256);
+        /// <summary>The <c>gostr34102012_512</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm gostr34102012_512 =
             Create(HashAlgorithm.Intrinsic, SignatureAlgorithm.gostr34102012_512);
+        /// <summary>The <c>mldsa44</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm mldsa44 = Create(SignatureScheme.mldsa44);
+        /// <summary>The <c>mldsa65</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm mldsa65 = Create(SignatureScheme.mldsa65);
+        /// <summary>The <c>mldsa87</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm mldsa87 = Create(SignatureScheme.mldsa87);
+        /// <summary>The <c>rsa_pss_rsae_sha256</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm rsa_pss_rsae_sha256 =
             Create(SignatureScheme.rsa_pss_rsae_sha256);
+        /// <summary>The <c>rsa_pss_rsae_sha384</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm rsa_pss_rsae_sha384 =
             Create(SignatureScheme.rsa_pss_rsae_sha384);
+        /// <summary>The <c>rsa_pss_rsae_sha512</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm rsa_pss_rsae_sha512 =
             Create(SignatureScheme.rsa_pss_rsae_sha512);
+        /// <summary>The <c>rsa_pss_pss_sha256</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm rsa_pss_pss_sha256 =
             Create(SignatureScheme.rsa_pss_pss_sha256);
+        /// <summary>The <c>rsa_pss_pss_sha384</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm rsa_pss_pss_sha384 =
             Create(SignatureScheme.rsa_pss_pss_sha384);
+        /// <summary>The <c>rsa_pss_pss_sha512</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm rsa_pss_pss_sha512 =
             Create(SignatureScheme.rsa_pss_pss_sha512);
+        /// <summary>The <c>slhdsa_sha2_128s</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_sha2_128s = Create(SignatureScheme.slhdsa_sha2_128s);
+        /// <summary>The <c>slhdsa_sha2_128f</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_sha2_128f = Create(SignatureScheme.slhdsa_sha2_128f);
+        /// <summary>The <c>slhdsa_sha2_192s</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_sha2_192s = Create(SignatureScheme.slhdsa_sha2_192s);
+        /// <summary>The <c>slhdsa_sha2_192f</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_sha2_192f = Create(SignatureScheme.slhdsa_sha2_192f);
+        /// <summary>The <c>slhdsa_sha2_256s</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_sha2_256s = Create(SignatureScheme.slhdsa_sha2_256s);
+        /// <summary>The <c>slhdsa_sha2_256f</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_sha2_256f = Create(SignatureScheme.slhdsa_sha2_256f);
+        /// <summary>The <c>slhdsa_shake_128s</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_128s = Create(SignatureScheme.slhdsa_shake_128s);
+        /// <summary>The <c>slhdsa_shake_128f</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_128f = Create(SignatureScheme.slhdsa_shake_128f);
+        /// <summary>The <c>slhdsa_shake_192s</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_192s = Create(SignatureScheme.slhdsa_shake_192s);
+        /// <summary>The <c>slhdsa_shake_192f</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_192f = Create(SignatureScheme.slhdsa_shake_192f);
+        /// <summary>The <c>slhdsa_shake_256s</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_256s = Create(SignatureScheme.slhdsa_shake_256s);
+        /// <summary>The <c>slhdsa_shake_256f</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm slhdsa_shake_256f = Create(SignatureScheme.slhdsa_shake_256f);
+        /// <summary>The <c>sm2sig_sm3</c> signature and hash algorithm.</summary>
         public static readonly SignatureAndHashAlgorithm sm2sig_sm3 = Create(SignatureScheme.sm2sig_sm3);
 
+        /// <summary>Get the signature and hash algorithm for a given pair of algorithms.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>The signature and hash algorithm.</returns>
         public static SignatureAndHashAlgorithm GetInstance(short hashAlgorithm, short signatureAlgorithm)
         {
             switch (hashAlgorithm)

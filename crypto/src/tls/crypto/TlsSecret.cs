@@ -24,6 +24,12 @@ namespace Org.BouncyCastle.Tls.Crypto
         TlsSecret DeriveUsingPrf(int prfAlgorithm, string label, byte[] seed, int length);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Derive a new secret using a pseudo-random function.</summary>
+        /// <param name="prfAlgorithm">The PRF algorithm.</param>
+        /// <param name="label">The label.</param>
+        /// <param name="seed">The seed.</param>
+        /// <param name="length">The length in bytes of the secret to derive.</param>
+        /// <returns>The derived secret.</returns>
         TlsSecret DeriveUsingPrf(int prfAlgorithm, ReadOnlySpan<char> label, ReadOnlySpan<byte> seed, int length);
 #endif
 
@@ -49,6 +55,8 @@ namespace Org.BouncyCastle.Tls.Crypto
         byte[] Extract();
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Extract the secret data to a span, and destroy the secret.</summary>
+        /// <param name="output">The span to receive the data.</param>
         void ExtractTo(Span<byte> output);
 #endif
 
@@ -61,6 +69,11 @@ namespace Org.BouncyCastle.Tls.Crypto
         TlsSecret HkdfExpand(int cryptoHashAlgorithm, byte[] info, int length);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Derive a new secret using HKDF-Expand.</summary>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
+        /// <param name="info">The context information.</param>
+        /// <param name="length">The length in bytes of the secret to derive.</param>
+        /// <returns>The derived secret.</returns>
         TlsSecret HkdfExpand(int cryptoHashAlgorithm, ReadOnlySpan<byte> info, int length);
 #endif
 
@@ -75,6 +88,10 @@ namespace Org.BouncyCastle.Tls.Crypto
         /// <returns>a pseudo-random key (of HashLen octets).</returns>
         TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm);
 
+        /// <summary>
+        /// Determine whether the secret can still be used, that is, whether it has not been destroyed.
+        /// </summary>
+        /// <returns>true if the secret is still usable, false otherwise.</returns>
         bool IsAlive();
 
         /// <summary>Gets the length.</summary>

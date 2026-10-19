@@ -273,12 +273,19 @@ namespace Org.BouncyCastle.Tls
             return m_context.Crypto.CreateSecret(buf.ToArray());
         }
 
+        /// <summary>Generate the ephemeral DH public value and write it to a stream.</summary>
+        /// <param name="output">The stream to write to.</param>
         protected virtual void GenerateEphemeralDH(Stream output) =>
             TlsUtilities.WriteOpaque16(m_agreement.GenerateEphemeral(), output);
 
+        /// <summary>Generate the ephemeral ECDH public value and write it to a stream.</summary>
+        /// <param name="output">The stream to write to.</param>
         protected virtual void GenerateEphemeralECDH(Stream output) =>
             TlsUtilities.WriteOpaque8(m_agreement.GenerateEphemeral(), output);
 
+        /// <summary>Generate the other secret for the pre-master secret.</summary>
+        /// <param name="pskLength">The length in bytes of the pre-shared key.</param>
+        /// <returns>The other secret.</returns>
         protected virtual byte[] GenerateOtherSecret(int pskLength)
         {
             if (m_keyExchange == KeyExchangeAlgorithm.PSK)
@@ -300,8 +307,12 @@ namespace Org.BouncyCastle.Tls
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Process the ephemeral DH public value received from the peer.</summary>
+        /// <param name="y">The public value.</param>
         protected virtual void ProcessEphemeralDH(byte[] y) => m_agreement.ReceivePeerValue(y);
 
+        /// <summary>Process the ephemeral ECDH public value received from the peer.</summary>
+        /// <param name="point">The encoded point.</param>
         protected virtual void ProcessEphemeralECDH(byte[] point)
         {
             TlsEccUtilities.CheckPointEncoding(m_ecConfig.NamedGroup, point);

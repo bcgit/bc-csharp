@@ -10,6 +10,10 @@ namespace Org.BouncyCastle.Tls
     /// <summary>Utility methods for Diffie-Hellman in TLS.</summary>
     public abstract class TlsDHUtilities
     {
+        /// <summary>Create a Diffie-Hellman configuration for a named group.</summary>
+        /// <param name="context">The TLS context.</param>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The configuration.</returns>
         public static TlsDHConfig CreateNamedDHConfig(TlsContext context, int namedGroup)
         {
             if (namedGroup < 0 || NamedGroup.GetFiniteFieldBits(namedGroup) < 1)
@@ -19,6 +23,9 @@ namespace Org.BouncyCastle.Tls
             return new TlsDHConfig(namedGroup, padded);
         }
 
+        /// <summary>Get the group that a Diffie-Hellman configuration refers to.</summary>
+        /// <param name="dhConfig">The configuration.</param>
+        /// <returns>The group.</returns>
         public static DHGroup GetDHGroup(TlsDHConfig dhConfig)
         {
             int namedGroup = dhConfig.NamedGroup;
@@ -28,6 +35,9 @@ namespace Org.BouncyCastle.Tls
             return dhConfig.ExplicitGroup;
         }
 
+        /// <summary>Get the standard group for a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The group, or null if the named group is not a finite field group.</returns>
         public static DHGroup GetNamedDHGroup(int namedGroup)
         {
             switch (namedGroup)
@@ -47,6 +57,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the minimum size in bits of a finite field group for a cipher suite.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>The minimum size in bits.</returns>
         public static int GetMinimumFiniteFieldBits(int cipherSuite)
         {
             /*
@@ -57,6 +70,9 @@ namespace Org.BouncyCastle.Tls
             return IsDHCipherSuite(cipherSuite) ? 1 : 0;
         }
 
+        /// <summary>Determine whether a cipher suite uses Diffie-Hellman key exchange.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>true if the cipher suite uses Diffie-Hellman, false otherwise.</returns>
         public static bool IsDHCipherSuite(int cipherSuite)
         {
             switch (TlsUtilities.GetKeyExchangeAlgorithm(cipherSuite))
@@ -74,6 +90,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Find the named group that has the given Diffie-Hellman parameters.</summary>
+        /// <param name="p">The prime.</param>
+        /// <param name="g">The generator.</param>
+        /// <returns>The named group, or -1 if the parameters do not match a known group.</returns>
         public static int GetNamedGroupForDHParameters(BigInteger p, BigInteger g)
         {
             int[] namedGroups = new int[]{ NamedGroup.ffdhe2048, NamedGroup.ffdhe3072, NamedGroup.ffdhe4096,
@@ -90,6 +110,10 @@ namespace Org.BouncyCastle.Tls
             return -1;
         }
 
+        /// <summary>Find the standard group that has the given Diffie-Hellman parameters.</summary>
+        /// <param name="p">The prime.</param>
+        /// <param name="g">The generator.</param>
+        /// <returns>The group, or null if the parameters do not match a known group.</returns>
         public static DHGroup GetStandardGroupForDHParameters(BigInteger p, BigInteger g)
         {
             DHGroup[] standardGroups = new DHGroup[] { DHStandardGroups.rfc7919_ffdhe2048,

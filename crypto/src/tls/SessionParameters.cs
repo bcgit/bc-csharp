@@ -28,6 +28,8 @@ namespace Org.BouncyCastle.Tls
             {
             }
 
+            /// <summary>Build the session parameters.</summary>
+            /// <returns>The session parameters.</returns>
             public SessionParameters Build()
             {
                 Validate(m_cipherSuite >= 0, "cipherSuite");
@@ -36,48 +38,72 @@ namespace Org.BouncyCastle.Tls
                     m_peerCertificate, m_pskIdentity, m_srpIdentity, m_encodedServerExtensions, m_extendedMasterSecret);
             }
 
+            /// <summary>Set the cipher suite.</summary>
+            /// <param name="cipherSuite">The cipher suite.</param>
+            /// <returns>This builder.</returns>
             public Builder SetCipherSuite(int cipherSuite)
             {
                 this.m_cipherSuite = cipherSuite;
                 return this;
             }
 
+            /// <summary>Set whether the extended master secret was used.</summary>
+            /// <param name="extendedMasterSecret">true if the extended master secret was used, false otherwise.</param>
+            /// <returns>This builder.</returns>
             public Builder SetExtendedMasterSecret(bool extendedMasterSecret)
             {
                 this.m_extendedMasterSecret = extendedMasterSecret;
                 return this;
             }
 
+            /// <summary>Set the local certificate.</summary>
+            /// <param name="localCertificate">The local certificate.</param>
+            /// <returns>This builder.</returns>
             public Builder SetLocalCertificate(Certificate localCertificate)
             {
                 this.m_localCertificate = localCertificate;
                 return this;
             }
 
+            /// <summary>Set the master secret.</summary>
+            /// <param name="masterSecret">The master secret.</param>
+            /// <returns>This builder.</returns>
             public Builder SetMasterSecret(TlsSecret masterSecret)
             {
                 this.m_masterSecret = masterSecret;
                 return this;
             }
 
+            /// <summary>Set the negotiated version.</summary>
+            /// <param name="negotiatedVersion">The negotiated version.</param>
+            /// <returns>This builder.</returns>
             public Builder SetNegotiatedVersion(ProtocolVersion negotiatedVersion)
             {
                 this.m_negotiatedVersion = negotiatedVersion;
                 return this;
             }
 
+            /// <summary>Set the peer certificate.</summary>
+            /// <param name="peerCertificate">The peer certificate.</param>
+            /// <returns>This builder.</returns>
             public Builder SetPeerCertificate(Certificate peerCertificate)
             {
                 this.m_peerCertificate = peerCertificate;
                 return this;
             }
 
+            /// <summary>Set the PSK identity.</summary>
+            /// <param name="pskIdentity">The PSK identity.</param>
+            /// <returns>This builder.</returns>
             public Builder SetPskIdentity(byte[] pskIdentity)
             {
                 this.m_pskIdentity = pskIdentity;
                 return this;
             }
 
+            /// <summary>Set the SRP identity.</summary>
+            /// <param name="srpIdentity">The SRP identity.</param>
+            /// <returns>This builder.</returns>
             public Builder SetSrpIdentity(byte[] srpIdentity)
             {
                 this.m_srpIdentity = srpIdentity;
@@ -138,6 +164,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_cipherSuite; }
         }
 
+        /// <summary>Clear the secret data of the session parameters.</summary>
         public void Clear()
         {
             if (m_masterSecret != null)
@@ -146,6 +173,8 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Create a copy of the session parameters.</summary>
+        /// <returns>The copy.</returns>
         public SessionParameters Copy()
         {
             return new SessionParameters(m_cipherSuite, m_localCertificate, m_masterSecret, m_negotiatedVersion,

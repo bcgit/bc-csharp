@@ -67,6 +67,8 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The <c>CS_END</c> constant, with the value <c>21</c>.</summary>
         protected const short CS_END = 21;
 
+        /// <summary>Determine whether the connection state is that of a protocol version before TLS 1.3.</summary>
+        /// <returns>true if the connection uses a legacy version, false otherwise.</returns>
         protected bool IsLegacyConnectionState()
         {
             switch (m_connectionState)
@@ -100,6 +102,8 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether the connection state is that of TLS 1.3.</summary>
+        /// <returns>true if the connection uses TLS 1.3, false otherwise.</returns>
         protected bool IsTlsV13ConnectionState()
         {
             switch (m_connectionState)
@@ -456,6 +460,7 @@ namespace Org.BouncyCastle.Tls
             securityParameters.m_extendedPadding = peer.ShouldUseExtendedPadding();
         }
 
+        /// <summary>Clean up the state kept for the handshake once it has finished.</summary>
         protected virtual void CleanupHandshake()
         {
             TlsContext context = Context;
@@ -1326,6 +1331,9 @@ namespace Org.BouncyCastle.Tls
             return SafePreviewRecordHeader(recordHeader);
         }
 
+        /// <summary>Preview the size of the next complete record waiting in the output buffer.</summary>
+        /// <returns>The size in bytes of the next record, or 0 if there is no complete record to send.</returns>
+        /// <exception cref="InvalidOperationException">The connection is in blocking mode.</exception>
         public virtual int PreviewOutputRecord()
         {
             if (m_blocking)
@@ -1555,6 +1563,9 @@ namespace Org.BouncyCastle.Tls
             return bytesToRead;
         }
 
+        /// <summary>Establish the session of the handshake as resumable, if appropriate.</summary>
+        /// <param name="sessionToResume">The session that was resumed, if any.</param>
+        /// <returns>true if the session was established, false otherwise.</returns>
         protected virtual bool EstablishSession(TlsSession sessionToResume)
         {
             this.m_tlsSession = null;
@@ -1590,6 +1601,7 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        /// <summary>Cancel the session of the handshake, so that it cannot be resumed.</summary>
         protected virtual void CancelSession()
         {
             if (m_sessionMasterSecret != null)
@@ -1607,6 +1619,7 @@ namespace Org.BouncyCastle.Tls
             this.m_tlsSession = null;
         }
 
+        /// <summary>Invalidate the session of the handshake after an error.</summary>
         protected virtual void InvalidateSession()
         {
             if (m_tlsSession != null)
@@ -1894,6 +1907,7 @@ namespace Org.BouncyCastle.Tls
             HandleClose(true);
         }
 
+        /// <summary>Flush any buffered output to the transport.</summary>
         public virtual void Flush()
         {
         }

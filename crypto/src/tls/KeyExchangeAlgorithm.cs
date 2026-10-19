@@ -85,6 +85,9 @@ namespace Org.BouncyCastle.Tls
          */
         public const int GOSTR341112_256 = 26;
 
+        /// <summary>Determine whether a key exchange algorithm is an anonymous one.</summary>
+        /// <param name="keyExchangeAlgorithm">The key exchange algorithm.</param>
+        /// <returns>true if the key exchange is anonymous, false otherwise.</returns>
         public static bool IsAnonymous(int keyExchangeAlgorithm)
         {
             switch (keyExchangeAlgorithm)

@@ -8,6 +8,8 @@ namespace Org.BouncyCastle.Tls
     /// <summary>A generic interface for key exchange implementations in (D)TLS.</summary>
     public interface TlsKeyExchange
     {
+        /// <summary>Initialise the key exchange with its context.</summary>
+        /// <param name="context">The TLS context.</param>
         void Init(TlsContext context);
 
         /// <exception cref="IOException"/>

@@ -447,6 +447,11 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.VectorOfOne(m_supportedGroups[0]);
         }
 
+        /// <summary>
+        /// Determine whether to use the TLS 1.3 compatibility mode, in which a TLS 1.3 handshake imitates a TLS 1.2
+        /// one.
+        /// </summary>
+        /// <returns>true to use the compatibility mode, false otherwise.</returns>
         public virtual bool ShouldUseCompatibilityMode()
         {
             return true;

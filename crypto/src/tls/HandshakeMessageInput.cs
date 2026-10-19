@@ -20,6 +20,8 @@ namespace Org.BouncyCastle.Tls
             m_offset = offset;
         }
 
+        /// <summary>Update a hash with the data of the message.</summary>
+        /// <param name="hash">The hash to update.</param>
         public void UpdateHash(TlsHash hash)
         {
             WriteTo(new TlsHashSink(hash));

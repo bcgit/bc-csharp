@@ -515,6 +515,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             get { return false; }
         }
 
+        /// <summary>Check the padding of a record in constant time.</summary>
+        /// <param name="buf">The buffer holding the record.</param>
+        /// <param name="off">The offset into <paramref name="buf"/> at which the record starts.</param>
+        /// <param name="len">The length of the record.</param>
+        /// <param name="blockSize">The block size.</param>
+        /// <param name="macSize">The MAC size.</param>
+        /// <returns>The padding length, or a negative value if the padding is invalid.</returns>
         protected virtual int CheckPaddingConstantTime(byte[] buf, int off, int len, int blockSize, int macSize)
         {
             int end = off + len;
@@ -562,6 +569,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return totalPad;
         }
 
+        /// <summary>Choose the number of extra blocks of padding to add.</summary>
+        /// <param name="max">The maximum number of extra blocks.</param>
+        /// <returns>The number of extra blocks.</returns>
         protected virtual int ChooseExtraPadBlocks(int max)
         {
             byte[] random = m_cryptoParams.NonceGenerator.GenerateNonce(4);
@@ -570,6 +580,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return System.Math.Min(n, max);
         }
 
+        /// <summary>Calculate the length of the ciphertext for a plaintext.</summary>
+        /// <param name="blockSize">The block size.</param>
+        /// <param name="macSize">The MAC size.</param>
+        /// <param name="maxPadding">The maximum length of padding.</param>
+        /// <param name="plaintextLength">The plaintext length.</param>
+        /// <returns>The ciphertext length.</returns>
         protected virtual int GetCiphertextLength(int blockSize, int macSize, int maxPadding, int plaintextLength)
         {
             int ciphertextLength = plaintextLength;
@@ -598,6 +614,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
             return ciphertextLength;
         }
 
+        /// <summary>Calculate the maximum length of the plaintext for a ciphertext.</summary>
+        /// <param name="blockSize">The block size.</param>
+        /// <param name="macSize">The MAC size.</param>
+        /// <param name="ciphertextLength">The ciphertext length.</param>
+        /// <returns>The maximum plaintext length.</returns>
         protected virtual int GetPlaintextLength(int blockSize, int macSize, int ciphertextLength)
         {
             int plaintextLength = ciphertextLength;

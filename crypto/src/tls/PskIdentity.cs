@@ -36,12 +36,17 @@ namespace Org.BouncyCastle.Tls
         /// <summary>Gets the obfuscated ticket age.</summary>
         public long ObfuscatedTicketAge => m_obfuscatedTicketAge;
 
+        /// <summary>Encode this identity to a stream.</summary>
+        /// <param name="output">The stream to write to.</param>
         public void Encode(Stream output)
         {
             TlsUtilities.WriteOpaque16(Identity, output);
             TlsUtilities.WriteUint32(ObfuscatedTicketAge, output);
         }
 
+        /// <summary>Parse an identity from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The identity.</returns>
         public static PskIdentity Parse(Stream input)
         {
             byte[] identity = TlsUtilities.ReadOpaque16(input, 1);

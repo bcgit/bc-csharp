@@ -11,6 +11,9 @@ namespace Org.BouncyCastle.Tls
     /// <summary>Utility methods for creating and parsing the data of TLS extensions.</summary>
     public static class TlsExtensionsUtilities
     {
+        /// <summary>Ensure that an extensions table exists.</summary>
+        /// <param name="extensions">The table, or null.</param>
+        /// <returns><paramref name="extensions"/> if it is not null, otherwise a new table.</returns>
         public static IDictionary<int, byte[]> EnsureExtensionsInitialised(IDictionary<int, byte[]> extensions)
         {
             return extensions == null ? new Dictionary<int, byte[]>() : extensions;
@@ -73,6 +76,8 @@ namespace Org.BouncyCastle.Tls
             extensions[ExtensionType.client_certificate_type] = CreateCertificateTypeExtensionServer(certificateType);
         }
 
+        /// <summary>Add an empty client_certificate_url extension to a table.</summary>
+        /// <param name="extensions">The table to add to.</param>
         public static void AddClientCertificateUrlExtension(IDictionary<int, byte[]> extensions)
         {
             extensions[ExtensionType.client_certificate_url] = CreateClientCertificateUrlExtension();
@@ -96,6 +101,8 @@ namespace Org.BouncyCastle.Tls
             extensions[ExtensionType.cookie] = CreateCookieExtension(cookie);
         }
 
+        /// <summary>Add an empty early_data extension to a table.</summary>
+        /// <param name="extensions">The table to add to.</param>
         public static void AddEarlyDataIndication(IDictionary<int, byte[]> extensions)
         {
             extensions[ExtensionType.early_data] = CreateEarlyDataIndication();
@@ -107,16 +114,23 @@ namespace Org.BouncyCastle.Tls
             extensions[ExtensionType.early_data] = CreateEarlyDataMaxSize(maxSize);
         }
 
+        /// <summary>Add an extension with empty data to a table.</summary>
+        /// <param name="extensions">The table to add to.</param>
+        /// <param name="extType">The extension type.</param>
         public static void AddEmptyExtensionData(IDictionary<int, byte[]> extensions, int extType)
         {
             extensions[extType] = CreateEmptyExtensionData();
         }
 
+        /// <summary>Add an empty encrypt_then_mac extension to a table.</summary>
+        /// <param name="extensions">The table to add to.</param>
         public static void AddEncryptThenMacExtension(IDictionary<int, byte[]> extensions)
         {
             extensions[ExtensionType.encrypt_then_mac] = CreateEncryptThenMacExtension();
         }
 
+        /// <summary>Add an empty extended_master_secret extension to a table.</summary>
+        /// <param name="extensions">The table to add to.</param>
         public static void AddExtendedMasterSecretExtension(IDictionary<int, byte[]> extensions)
         {
             extensions[ExtensionType.extended_master_secret] = CreateExtendedMasterSecretExtension();
@@ -167,6 +181,8 @@ namespace Org.BouncyCastle.Tls
             extensions[ExtensionType.padding] = CreatePaddingExtension(dataLength);
         }
 
+        /// <summary>Add an empty post_handshake_auth extension to a table.</summary>
+        /// <param name="extensions">The table to add to.</param>
         public static void AddPostHandshakeAuthExtension(IDictionary<int, byte[]> extensions)
         {
             extensions[ExtensionType.post_handshake_auth] = CreatePostHandshakeAuthExtension();
@@ -286,6 +302,8 @@ namespace Org.BouncyCastle.Tls
             extensions[ExtensionType.supported_versions] = CreateSupportedVersionsExtensionServer(selectedVersion);
         }
 
+        /// <summary>Add an empty truncated_hmac extension to a table.</summary>
+        /// <param name="extensions">The table to add to.</param>
         public static void AddTruncatedHmacExtension(IDictionary<int, byte[]> extensions)
         {
             extensions[ExtensionType.truncated_hmac] = CreateTruncatedHmacExtension();
@@ -298,6 +316,8 @@ namespace Org.BouncyCastle.Tls
             extensions[ExtensionType.trusted_ca_keys] = CreateTrustedCAKeysExtensionClient(trustedAuthoritiesList);
         }
 
+        /// <summary>Add an empty trusted_ca_keys extension to a table, as sent by a server.</summary>
+        /// <param name="extensions">The table to add to.</param>
         public static void AddTrustedCAKeysExtensionServer(IDictionary<int, byte[]> extensions)
         {
             extensions[ExtensionType.trusted_ca_keys] = CreateTrustedCAKeysExtensionServer();
@@ -669,6 +689,8 @@ namespace Org.BouncyCastle.Tls
         public static byte[] CreateCertificateTypeExtensionServer(short certificateType) =>
             TlsUtilities.EncodeUint8(certificateType);
 
+        /// <summary>Create the data of a client_certificate_url extension.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreateClientCertificateUrlExtension() => CreateEmptyExtensionData();
 
         /// <exception cref="IOException"/>
@@ -698,15 +720,23 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.EncodeOpaque16(cookie);
         }
 
+        /// <summary>Create the data of an early_data extension.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreateEarlyDataIndication() => CreateEmptyExtensionData();
 
         /// <exception cref="IOException"/>
         public static byte[] CreateEarlyDataMaxSize(long maxSize) => TlsUtilities.EncodeUint32(maxSize);
 
+        /// <summary>Create empty extension data.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreateEmptyExtensionData() => TlsUtilities.EmptyBytes;
 
+        /// <summary>Create the data of an encrypt_then_mac extension.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreateEncryptThenMacExtension() => CreateEmptyExtensionData();
 
+        /// <summary>Create the data of an extended_master_secret extension.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreateExtendedMasterSecretExtension() => CreateEmptyExtensionData();
 
         /// <exception cref="IOException"/>
@@ -796,6 +826,8 @@ namespace Org.BouncyCastle.Tls
             return new byte[dataLength];
         }
 
+        /// <summary>Create the data of a post_handshake_auth extension.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreatePostHandshakeAuthExtension() => CreateEmptyExtensionData();
 
         /// <exception cref="IOException"/>
@@ -846,6 +878,8 @@ namespace Org.BouncyCastle.Tls
             return buf.ToArray();
         }
 
+        /// <summary>Create the data of a server_name extension, as sent by a server.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreateServerNameExtensionServer() => CreateEmptyExtensionData();
 
         /// <exception cref="IOException"/>
@@ -988,6 +1022,8 @@ namespace Org.BouncyCastle.Tls
         public static byte[] CreateSupportedVersionsExtensionServer(ProtocolVersion selectedVersion) =>
             TlsUtilities.EncodeVersion(selectedVersion);
 
+        /// <summary>Create the data of a truncated_hmac extension.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreateTruncatedHmacExtension() => CreateEmptyExtensionData();
 
         /// <exception cref="IOException"/>
@@ -1009,6 +1045,8 @@ namespace Org.BouncyCastle.Tls
             return PatchOpaque16(buf);
         }
 
+        /// <summary>Create the data of a trusted_ca_keys extension, as sent by a server.</summary>
+        /// <returns>The extension data.</returns>
         public static byte[] CreateTrustedCAKeysExtensionServer() => CreateEmptyExtensionData();
 
         /// <exception cref="IOException"/>

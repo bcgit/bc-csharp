@@ -27,6 +27,18 @@ namespace Org.BouncyCastle.Tls
             m_macKey = SecureRandom.GetNextBytes(crypto.SecureRandom, 32);
         }
 
+        /// <summary>
+        /// Verify a ClientHello request, using a cookie to check the return routability of the client address.
+        /// </summary>
+        /// <param name="clientID">An identifier for the client, such as its address.</param>
+        /// <param name="data">The buffer holding the received datagram.</param>
+        /// <param name="dataOff">The offset into <paramref name="data"/> at which the datagram starts.</param>
+        /// <param name="dataLen">The length of the datagram.</param>
+        /// <param name="sender">The sender used to reply to the client.</param>
+        /// <returns>
+        /// A <see cref="DtlsRequest"/> if the request carries a valid cookie, or null if a reply was sent or the
+        /// datagram was ignored.
+        /// </returns>
         public virtual DtlsRequest VerifyRequest(byte[] clientID, byte[] data, int dataOff, int dataLen,
             DatagramSender sender)
         {

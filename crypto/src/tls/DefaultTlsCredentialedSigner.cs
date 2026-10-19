@@ -40,6 +40,7 @@ namespace Org.BouncyCastle.Tls
             this.m_signer = signer;
         }
 
+        /// <summary>Gets the certificate chain.</summary>
         public virtual Certificate Certificate
         {
             get { return m_certificate; }
@@ -51,6 +52,7 @@ namespace Org.BouncyCastle.Tls
             return m_signer.GenerateRawSignature(GetEffectiveAlgorithm(), hash);
         }
 
+        /// <summary>Gets the signature and hash algorithm used for signing, if any.</summary>
         public virtual SignatureAndHashAlgorithm SignatureAndHashAlgorithm
         {
             get { return m_signatureAndHashAlgorithm; }

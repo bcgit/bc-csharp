@@ -13,6 +13,7 @@
             m_context = context;
         }
 
+        /// <summary>Gets the security parameters of the connection.</summary>
         public SecurityParameters SecurityParameters => m_context.SecurityParameters;
 
         /// <summary>Gets the client version.</summary>

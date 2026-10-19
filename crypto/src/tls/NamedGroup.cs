@@ -179,6 +179,10 @@ namespace Org.BouncyCastle.Tls
         private static readonly string[] FiniteFieldNames = new string[]{ "ffdhe2048", "ffdhe3072", "ffdhe4096",
             "ffdhe6144", "ffdhe8192" };
 
+        /// <summary>Determine whether a named group can be negotiated with a protocol version.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <param name="version">The protocol version.</param>
+        /// <returns>true if the group can be negotiated, false otherwise.</returns>
         public static bool CanBeNegotiated(int namedGroup, ProtocolVersion version)
         {
             switch (namedGroup)
@@ -220,6 +224,9 @@ namespace Org.BouncyCastle.Tls
             return IsPrivate(namedGroup);
         }
 
+        /// <summary>Get the size in bits of a named elliptic curve group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The size in bits, or -1 if the group is not a specific curve.</returns>
         public static int GetCurveBits(int namedGroup)
         {
             switch (namedGroup)
@@ -302,6 +309,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the name of the elliptic curve of a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The curve name, or null if the group is not a specific curve.</returns>
         public static string GetCurveName(int namedGroup)
         {
             if (RefersToASpecificCurve(namedGroup))
@@ -310,6 +320,9 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>Get the size in bits of a named finite field group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The size in bits, or -1 if the group is not a specific finite field.</returns>
         public static int GetFiniteFieldBits(int namedGroup)
         {
             switch (namedGroup)
@@ -329,6 +342,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the name of the finite field group of a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The group name, or null if the group is not a specific finite field.</returns>
         public static string GetFiniteFieldName(int namedGroup)
         {
             if (RefersToASpecificFiniteField(namedGroup))
@@ -339,6 +355,9 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>Get the first component group of a hybrid named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The component group, or -1 if the group is not a hybrid.</returns>
         public static int GetHybridFirst(int namedGroup)
         {
             switch (namedGroup)
@@ -356,6 +375,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the second component group of a hybrid named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The component group, or -1 if the group is not a hybrid.</returns>
         public static int GetHybridSecond(int namedGroup)
         {
             switch (namedGroup)
@@ -405,6 +427,9 @@ namespace Org.BouncyCastle.Tls
             return -1;
         }
 
+        /// <summary>Get the name of the key encapsulation mechanism of a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The KEM name, or null if the group is not a specific KEM.</returns>
         public static string GetKemName(int namedGroup)
         {
             switch (namedGroup)
@@ -511,6 +536,9 @@ namespace Org.BouncyCastle.Tls
             return "UNKNOWN";
         }
 
+        /// <summary>Get the standard name of a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The standard name, or null if the group has none.</returns>
         public static string GetStandardName(int namedGroup)
         {
             string curveName = GetCurveName(namedGroup);
@@ -538,14 +566,23 @@ namespace Org.BouncyCastle.Tls
             return GetName(namedGroup) + "(" + namedGroup + ")";
         }
 
+        /// <summary>Determine whether a named group is a binary-field (characteristic 2) elliptic curve.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a binary-field curve, false otherwise.</returns>
         public static bool IsChar2Curve(int namedGroup)
         {
             return (namedGroup >= sect163k1 && namedGroup <= sect571r1)
                 || (namedGroup == arbitrary_explicit_char2_curves);
         }
 
+        /// <summary>Determine whether a named group is a finite field Diffie-Hellman group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a finite field group, false otherwise.</returns>
         public static bool IsFiniteField(int namedGroup) => (namedGroup & 0xFFFFFF00) == 0x00000100;
 
+        /// <summary>Determine whether a named group is a prime-field elliptic curve.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a prime-field curve, false otherwise.</returns>
         public static bool IsPrimeCurve(int namedGroup)
         {
             return (namedGroup >= secp160k1 && namedGroup <= curveSM2)
@@ -570,11 +607,17 @@ namespace Org.BouncyCastle.Tls
                 || (namedGroup >= arbitrary_explicit_prime_curves && namedGroup <= arbitrary_explicit_char2_curves);
         }
 
+        /// <summary>Determine whether a named group refers to a curve used with ECDH.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is an ECDH curve, false otherwise.</returns>
         public static bool RefersToAnECDHCurve(int namedGroup)
         {
             return RefersToASpecificCurve(namedGroup);
         }
 
+        /// <summary>Determine whether a named group refers to a curve used with ECDSA.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is an ECDSA curve, false otherwise.</returns>
         public static bool RefersToAnECDSACurve(int namedGroup)
         {
             /*
@@ -586,21 +629,33 @@ namespace Org.BouncyCastle.Tls
                 && !RefersToAnXDHCurve(namedGroup);
         }
 
+        /// <summary>Determine whether a named group refers to an XDH curve (X25519 or X448).</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is an XDH curve, false otherwise.</returns>
         public static bool RefersToAnXDHCurve(int namedGroup)
         {
             return namedGroup >= x25519 && namedGroup <= x448;
         }
 
+        /// <summary>Determine whether a named group refers to a specific elliptic curve.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific curve, false otherwise.</returns>
         public static bool RefersToASpecificCurve(int namedGroup)
         {
             return namedGroup >= sect163k1 && namedGroup <= curveSM2;
         }
 
+        /// <summary>Determine whether a named group refers to a specific finite field group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific finite field group, false otherwise.</returns>
         public static bool RefersToASpecificFiniteField(int namedGroup)
         {
             return namedGroup >= ffdhe2048 && namedGroup <= ffdhe8192;
         }
 
+        /// <summary>Determine whether a named group refers to a specific group of any kind.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific group, false otherwise.</returns>
         public static bool RefersToASpecificGroup(int namedGroup)
         {
             return RefersToASpecificCurve(namedGroup)
@@ -609,6 +664,9 @@ namespace Org.BouncyCastle.Tls
                 || RefersToASpecificKem(namedGroup);
         }
 
+        /// <summary>Determine whether a named group refers to a specific hybrid of two groups.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific hybrid, false otherwise.</returns>
         public static bool RefersToASpecificHybrid(int namedGroup)
         {
             switch (namedGroup)
@@ -623,6 +681,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether a named group refers to a specific key encapsulation mechanism.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the group is a specific KEM, false otherwise.</returns>
         public static bool RefersToASpecificKem(int namedGroup)
         {
             switch (namedGroup)

@@ -10,6 +10,8 @@ namespace Org.BouncyCastle.Tls
     public interface TlsClient
         : TlsPeer
     {
+        /// <summary>Initialise the client with its context.</summary>
+        /// <param name="context">The client context.</param>
         void Init(TlsClientContext context);
 
         /// <summary>Return the session this client wants to resume, if any.</summary>
@@ -27,6 +29,10 @@ namespace Org.BouncyCastle.Tls
         /// offered.</returns>
         IList<TlsPskExternal> GetExternalPsks();
 
+        /// <summary>
+        /// Determine whether this connection is a fallback to a lower protocol version after a failed attempt.
+        /// </summary>
+        /// <returns>true if this is a fallback connection, false otherwise.</returns>
         bool IsFallback();
 
         /// <returns>(Int32 -> byte[])</returns>
@@ -66,6 +72,8 @@ namespace Org.BouncyCastle.Tls
         /// <seealso cref="TlsContext.Session"/>
         void NotifySessionID(byte[] sessionID);
 
+        /// <summary>Notify the client of the cipher suite selected by the server.</summary>
+        /// <param name="selectedCipherSuite">The cipher suite.</param>
         void NotifySelectedCipherSuite(int selectedCipherSuite);
 
         /// <exception cref="IOException"/>

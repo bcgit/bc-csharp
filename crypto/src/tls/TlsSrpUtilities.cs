@@ -53,6 +53,9 @@ namespace Org.BouncyCastle.Tls
             TlsUtilities.WriteOpaque16(BigIntegers.AsUnsignedByteArray(x), output);
         }
 
+        /// <summary>Determine whether a cipher suite uses SRP.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>true if the cipher suite uses SRP, false otherwise.</returns>
         public static bool IsSrpCipherSuite(int cipherSuite)
         {
             switch (TlsUtilities.GetKeyExchangeAlgorithm(cipherSuite))

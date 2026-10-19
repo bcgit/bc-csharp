@@ -27,6 +27,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         void Init(byte[] iv, int ivOff, int ivLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Initialise the cipher with a new initialization vector.</summary>
+        /// <param name="iv">The initialization vector.</param>
         void Init(ReadOnlySpan<byte> iv);
 #endif
 

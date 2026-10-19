@@ -55,6 +55,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>The <c>gostr34102012_512</c> constant, with the value <c>65</c>.</summary>
         public const short gostr34102012_512 = 65;
 
+        /// <summary>Get the client certificate type that corresponds to a signature algorithm.</summary>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>The client certificate type, or -1 if there is none.</returns>
         public static short GetClientCertificateType(short signatureAlgorithm)
         {
             switch (signatureAlgorithm)

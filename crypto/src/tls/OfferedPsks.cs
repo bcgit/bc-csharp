@@ -78,6 +78,9 @@ namespace Org.BouncyCastle.Tls
         /// <summary>Gets the identities.</summary>
         public IList<PskIdentity> Identities => m_identities;
 
+        /// <summary>Find the index of a PSK identity among the offered identities.</summary>
+        /// <param name="pskIdentity">The identity.</param>
+        /// <returns>The index, or -1 if the identity was not offered.</returns>
         public int GetIndexOfIdentity(PskIdentity pskIdentity)
         {
             for (int i = 0, count = m_identities.Count; i < count; ++i)

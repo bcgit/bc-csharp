@@ -16,6 +16,9 @@ namespace Org.BouncyCastle.Tls.Crypto
         // "tls13 "
         private static readonly byte[] Tls13Prefix = new byte[] { 0x74, 0x6c, 0x73, 0x31, 0x33, 0x20 };
 
+        /// <summary>Get the crypto hash algorithm for a TLS hash algorithm.</summary>
+        /// <param name="hashAlgorithm">The TLS hash algorithm.</param>
+        /// <returns>The crypto hash algorithm.</returns>
         public static int GetHash(short hashAlgorithm)
         {
             switch (hashAlgorithm)
@@ -37,6 +40,9 @@ namespace Org.BouncyCastle.Tls.Crypto
             }
         }
 
+        /// <summary>Get the crypto hash algorithm used by an HMAC algorithm.</summary>
+        /// <param name="macAlgorithm">The MAC algorithm.</param>
+        /// <returns>The crypto hash algorithm.</returns>
         public static int GetHashForHmac(int macAlgorithm)
         {
             switch (macAlgorithm)
@@ -56,6 +62,9 @@ namespace Org.BouncyCastle.Tls.Crypto
             }
         }
 
+        /// <summary>Get the crypto hash algorithm used by a PRF algorithm.</summary>
+        /// <param name="prfAlgorithm">The PRF algorithm.</param>
+        /// <returns>The crypto hash algorithm.</returns>
         public static int GetHashForPrf(int prfAlgorithm)
         {
             switch (prfAlgorithm)
@@ -78,6 +87,9 @@ namespace Org.BouncyCastle.Tls.Crypto
             }
         }
 
+        /// <summary>Get the internal block size in bytes of a hash algorithm.</summary>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
+        /// <returns>The internal size in bytes.</returns>
         public static int GetHashInternalSize(int cryptoHashAlgorithm)
         {
             switch (cryptoHashAlgorithm)
@@ -97,6 +109,9 @@ namespace Org.BouncyCastle.Tls.Crypto
             }
         }
 
+        /// <summary>Get the output size in bytes of a hash algorithm.</summary>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
+        /// <returns>The output size in bytes.</returns>
         public static int GetHashOutputSize(int cryptoHashAlgorithm)
         {
             switch (cryptoHashAlgorithm)
@@ -120,6 +135,9 @@ namespace Org.BouncyCastle.Tls.Crypto
             }
         }
 
+        /// <summary>Get the object identifier of a hash algorithm.</summary>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
+        /// <returns>The object identifier.</returns>
         public static DerObjectIdentifier GetOidForHash(int cryptoHashAlgorithm)
         {
             switch (cryptoHashAlgorithm)
@@ -145,6 +163,9 @@ namespace Org.BouncyCastle.Tls.Crypto
             }
         }
 
+        /// <summary>Get the crypto signature algorithm for a TLS signature algorithm.</summary>
+        /// <param name="signatureAlgorithm">The TLS signature algorithm.</param>
+        /// <returns>The crypto signature algorithm.</returns>
         public static int GetSignature(short signatureAlgorithm)
         {
             switch (signatureAlgorithm)

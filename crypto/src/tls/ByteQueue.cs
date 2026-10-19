@@ -197,6 +197,8 @@ namespace Org.BouncyCastle.Tls
             return new HandshakeMessageInput(m_databuf, position, length);
         }
 
+        /// <summary>Read a 32-bit integer from the start of the queue without removing it.</summary>
+        /// <returns>The value read.</returns>
         public int ReadInt32()
         {
             if (m_available < 4)
@@ -205,6 +207,9 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.ReadInt32(m_databuf, m_skipped);
         }
 
+        /// <summary>Read an unsigned 8-bit value from the queue without removing it.</summary>
+        /// <param name="skip">The number of bytes at the start of the queue to skip before reading.</param>
+        /// <returns>The value read.</returns>
         public short ReadUint8(int skip)
         {
             if (m_available < skip + 1)
@@ -213,6 +218,9 @@ namespace Org.BouncyCastle.Tls
             return TlsUtilities.ReadUint8(m_databuf, m_skipped + skip);
         }
 
+        /// <summary>Read an unsigned 16-bit value from the queue without removing it.</summary>
+        /// <param name="skip">The number of bytes at the start of the queue to skip before reading.</param>
+        /// <returns>The value read.</returns>
         public int ReadUint16(int skip)
         {
             if (m_available < skip + 2)
@@ -257,6 +265,10 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Remove data from the queue and return it.</summary>
+        /// <param name="len">The number of bytes to return.</param>
+        /// <param name="skip">The number of bytes at the start of the queue to discard first.</param>
+        /// <returns>The data.</returns>
         public byte[] RemoveData(int len, int skip)
         {
             byte[] buf = new byte[len];
@@ -264,6 +276,7 @@ namespace Org.BouncyCastle.Tls
             return buf;
         }
 
+        /// <summary>Release any excess storage.</summary>
         public void Shrink()
         {
             if (m_available == 0)

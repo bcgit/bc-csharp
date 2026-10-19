@@ -11,6 +11,8 @@ namespace Org.BouncyCastle.Tls
         /// <summary>Gets the crypto.</summary>
         TlsCrypto Crypto { get; }
 
+        /// <summary>Notify the peer of an object that must be closed when the connection is closed.</summary>
+        /// <param name="closehandle">The object to close.</param>
         void NotifyCloseHandle(TlsCloseable closehandle);
 
         /// <exception cref="IOException"/>
@@ -47,6 +49,11 @@ namespace Org.BouncyCastle.Tls
         int GetHandshakeResendTimeMillis();
         */
 
+        /// <summary>
+        /// Determine whether a session established without the extended master secret may be resumed where the extended
+        /// master secret would otherwise be used (see RFC 7627).
+        /// </summary>
+        /// <returns>true if such a legacy session may be resumed, false otherwise.</returns>
         bool AllowLegacyResumption();
 
         /// <summary>Return the max certificate chain length.</summary>
@@ -74,6 +81,8 @@ namespace Org.BouncyCastle.Tls
         /// extended_master_secret extension, or <c>false</c> to support legacy interoperability.</returns>
         bool RequiresExtendedMasterSecret();
 
+        /// <summary>Determine whether the extended master secret should be used (see RFC 7627).</summary>
+        /// <returns>true if the extended master secret should be used, false otherwise.</returns>
         bool ShouldUseExtendedMasterSecret();
 
         /// <summary>See RFC 5246 6.2.3.2. Controls whether block cipher encryption may randomly add extra padding

@@ -53,6 +53,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the output size in bytes of a hash algorithm.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>The output size, or -1 if the algorithm has no fixed output size or is not recognized.</returns>
         public static int GetOutputSize(short hashAlgorithm)
         {
             switch (hashAlgorithm)

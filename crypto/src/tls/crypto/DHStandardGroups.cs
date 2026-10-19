@@ -38,12 +38,14 @@ namespace Org.BouncyCastle.Tls.Crypto
         private static readonly string rfc2409_768_p = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
             + "29024E088A67CC74020BBEA63B139B22514A08798E3404DD" + "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245"
             + "E485B576625E7EC6F44C42E9A63A3620FFFFFFFFFFFFFFFF";
+        /// <summary>The RFC 2409 768-bit group.</summary>
         public static readonly DHGroup rfc2409_768 = SafePrimeGen2(rfc2409_768_p);
 
         private static readonly string rfc2409_1024_p = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
             + "29024E088A67CC74020BBEA63B139B22514A08798E3404DD" + "EF9519B3CD3A431B302B0A6DF25F14374FE1356D6D51C245"
             + "E485B576625E7EC6F44C42E9A637ED6B0BFF5CB6F406B7ED" + "EE386BFB5A899FA5AE9F24117C4B1FE649286651ECE65381"
             + "FFFFFFFFFFFFFFFF";
+        /// <summary>The RFC 2409 1024-bit group.</summary>
         public static readonly DHGroup rfc2409_1024 = SafePrimeGen2(rfc2409_1024_p);
 
         /*
@@ -55,6 +57,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "C2007CB8A163BF0598DA48361C55D39A69163FA8FD24CF5F" + "83655D23DCA3AD961C62F356208552BB9ED529077096966D"
             + "670C354E4ABC9804F1746C08CA237327FFFFFFFFFFFFFFFF";
         private static readonly int rfc3526_1536_l = 200; // RFC3526/RFC7919
+        /// <summary>The RFC 3526 1536-bit group.</summary>
         public static readonly DHGroup rfc3526_1536 = SafePrimeGen2(rfc3526_1536_p, rfc3526_1536_l);
 
         private static readonly string rfc3526_2048_p = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
@@ -64,6 +67,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "670C354E4ABC9804F1746C08CA18217C32905E462E36CE3B" + "E39E772C180E86039B2783A2EC07A28FB5C55DF06F4C52C9"
             + "DE2BCBF6955817183995497CEA956AE515D2261898FA0510" + "15728E5A8AACAA68FFFFFFFFFFFFFFFF";
         private static readonly int rfc3526_2048_l = System.Math.Max(225, 112 * 2); // MAX(RFC3526/RFC7919,FIPS)
+        /// <summary>The RFC 3526 2048-bit group.</summary>
         public static readonly DHGroup rfc3526_2048 = SafePrimeGen2(rfc3526_2048_p, rfc3526_2048_l);
 
         private static readonly string rfc3526_3072_p = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
@@ -76,6 +80,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "F12FFA06D98A0864D87602733EC86A64521F2B18177B200C" + "BBE117577A615D6C770988C0BAD946E208E24FA074E5AB31"
             + "43DB5BFCE0FD108E4B82D120A93AD2CAFFFFFFFFFFFFFFFF";
         private static readonly int rfc3526_3072_l = System.Math.Max(275, 128 * 2); // MAX(RFC3526/RFC7919,FIPS)
+        /// <summary>The RFC 3526 3072-bit group.</summary>
         public static readonly DHGroup rfc3526_3072 = SafePrimeGen2(rfc3526_3072_p, rfc3526_3072_l);
 
         private static readonly string rfc3526_4096_p = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
@@ -91,6 +96,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "1F612970CEE2D7AFB81BDD762170481CD0069127D5B05AA9" + "93B4EA988D8FDDC186FFB7DC90A6C08F4DF435C934063199"
             + "FFFFFFFFFFFFFFFF";
         private static readonly int rfc3526_4096_l = System.Math.Max(325, 152 * 2); // MAX(RFC3526/RFC7919,FIPS)
+        /// <summary>The RFC 3526 4096-bit group.</summary>
         public static readonly DHGroup rfc3526_4096 = SafePrimeGen2(rfc3526_4096_p, rfc3526_4096_l);
 
         private static readonly string rfc3526_6144_p = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD129024E08"
@@ -122,6 +128,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "387FE8D76E3C0468043E8F663F4860EE12BF2D5B0B7474D6E694F91E"
             + "6DCC4024FFFFFFFFFFFFFFFF";
         private static readonly int rfc3526_6144_l = System.Math.Max(375, 176 * 2); // MAX(RFC3526/RFC7919,FIPS)
+        /// <summary>The RFC 3526 6144-bit group.</summary>
         public static readonly DHGroup rfc3526_6144 = SafePrimeGen2(rfc3526_6144_p, rfc3526_6144_l);
 
         private static readonly string rfc3526_8192_p = "FFFFFFFFFFFFFFFFC90FDAA22168C234C4C6628B80DC1CD1"
@@ -147,18 +154,21 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "B1D510BD7EE74D73FAF36BC31ECFA268359046F4EB879F92" + "4009438B481C6CD7889A002ED5EE382BC9190DA6FC026E47"
             + "9558E4475677E9AA9E3050E2765694DFC81F56E880B96E71" + "60C980DD98EDD3DFFFFFFFFFFFFFFFFF";
         private static readonly int rfc3526_8192_l = System.Math.Max(400, 200 * 2); // MAX(RFC3526/RFC7919,FIPS)
+        /// <summary>The RFC 3526 8192-bit group.</summary>
         public static readonly DHGroup rfc3526_8192 = SafePrimeGen2(rfc3526_8192_p, rfc3526_8192_l);
 
         /*
          * RFC 4306
          */
         public static readonly DHGroup rfc4306_768 = rfc2409_768;
+        /// <summary>The RFC 4306 1024-bit group.</summary>
         public static readonly DHGroup rfc4306_1024 = rfc2409_1024;
 
         /*
          * RFC 5996
          */
         public static readonly DHGroup rfc5996_768 = rfc4306_768;
+        /// <summary>The RFC 5996 1024-bit group.</summary>
         public static readonly DHGroup rfc5996_1024 = rfc4306_1024;
 
         /*
@@ -171,6 +181,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "0B07A7C8EE0A6D709E02FCE1CDF7E2ECC03404CD28342F61" + "9172FE9CE98583FF8E4F1232EEF28183C3FE3B1B4C6FAD73"
             + "3BB5FCBC2EC22005C58EF1837D1683B2C6F34A26C1B2EFFA" + "886B423861285C97FFFFFFFFFFFFFFFF";
         private static readonly int rfc7919_ffdhe2048_l = System.Math.Max(225, 112 * 2); // MAX(RFC7919,FIPS)
+        /// <summary>The RFC 7919 <c>ffdhe2048</c> group.</summary>
         public static readonly DHGroup rfc7919_ffdhe2048 = SafePrimeGen2(rfc7919_ffdhe2048_p, rfc7919_ffdhe2048_l);
 
         private static readonly string rfc7919_ffdhe3072_p = "FFFFFFFFFFFFFFFFADF85458A2BB4A9AAFDC5620273D3CF1"
@@ -183,6 +194,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "64F2E21E71F54BFF5CAE82AB9C9DF69EE86D2BC522363A0D" + "ABC521979B0DEADA1DBF9A42D5C4484E0ABCD06BFA53DDEF"
             + "3C1B20EE3FD59D7C25E41D2B66C62E37FFFFFFFFFFFFFFFF";
         private static readonly int rfc7919_ffdhe3072_l = System.Math.Max(275, 128 * 2); // MAX(RFC7919,FIPS)
+        /// <summary>The RFC 7919 <c>ffdhe3072</c> group.</summary>
         public static readonly DHGroup rfc7919_ffdhe3072 = SafePrimeGen2(rfc7919_ffdhe3072_p, rfc7919_ffdhe3072_l);
 
         private static readonly string rfc7919_ffdhe4096_p = "FFFFFFFFFFFFFFFFADF85458A2BB4A9AAFDC5620273D3CF1"
@@ -198,6 +210,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "1A1DB93D7140003C2A4ECEA9F98D0ACC0A8291CDCEC97DCF" + "8EC9B55A7F88A46B4DB5A851F44182E1C68A007E5E655F6A"
             + "FFFFFFFFFFFFFFFF";
         private static readonly int rfc7919_ffdhe4096_l = System.Math.Max(325, 152 * 2); // MAX(RFC7919,FIPS)
+        /// <summary>The RFC 7919 <c>ffdhe4096</c> group.</summary>
         public static readonly DHGroup rfc7919_ffdhe4096 = SafePrimeGen2(rfc7919_ffdhe4096_p, rfc7919_ffdhe4096_l);
 
         private static readonly string rfc7919_ffdhe6144_p = "FFFFFFFFFFFFFFFFADF85458A2BB4A9AAFDC5620273D3CF1"
@@ -218,6 +231,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "E49F5235C95B91178CCF2DD5CACEF403EC9D1810C6272B04" + "5B3B71F9DC6B80D63FDD4A8E9ADB1E6962A69526D43161C1"
             + "A41D570D7938DAD4A40E329CD0E40E65FFFFFFFFFFFFFFFF";
         private static readonly int rfc7919_ffdhe6144_l = System.Math.Max(375, 176 * 2); // MAX(RFC7919,FIPS)
+        /// <summary>The RFC 7919 <c>ffdhe6144</c> group.</summary>
         public static readonly DHGroup rfc7919_ffdhe6144 = SafePrimeGen2(rfc7919_ffdhe6144_p, rfc7919_ffdhe6144_l);
 
         private static readonly string rfc7919_ffdhe8192_p = "FFFFFFFFFFFFFFFFADF85458A2BB4A9AAFDC5620273D3CF1"
@@ -243,6 +257,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             + "1EFC8CE0BA8A4FE8B6855DFE72B0A66EDED2FBABFBE58A30" + "FAFABE1C5D71A87E2F741EF8C1FE86FEA6BBFDE530677F0D"
             + "97D11D49F7A8443D0822E506A9F4614E011E2A94838FF88C" + "D68C8BB7C5C6424CFFFFFFFFFFFFFFFF";
         private static readonly int rfc7919_ffdhe8192_l = System.Math.Max(400, 200 * 2); // MAX(RFC7919,FIPS)
+        /// <summary>The RFC 7919 <c>ffdhe8192</c> group.</summary>
         public static readonly DHGroup rfc7919_ffdhe8192 = SafePrimeGen2(rfc7919_ffdhe8192_p, rfc7919_ffdhe8192_l);
     }
 }

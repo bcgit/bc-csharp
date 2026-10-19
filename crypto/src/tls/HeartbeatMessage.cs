@@ -9,11 +9,22 @@ namespace Org.BouncyCastle.Tls
     /// <summary>A heartbeat message of RFC 6520.</summary>
     public sealed class HeartbeatMessage
     {
+        /// <summary>Create a heartbeat message, with random padding.</summary>
+        /// <param name="context">The TLS context.</param>
+        /// <param name="type">The message type (see <see cref="HeartbeatMessageType"/>).</param>
+        /// <param name="payload">The payload.</param>
+        /// <returns>The new message.</returns>
         public static HeartbeatMessage Create(TlsContext context, short type, byte[] payload)
         {
             return Create(context, type, payload, 16);
         }
 
+        /// <summary>Create a heartbeat message, with random padding.</summary>
+        /// <param name="context">The TLS context.</param>
+        /// <param name="type">The message type (see <see cref="HeartbeatMessageType"/>).</param>
+        /// <param name="payload">The payload.</param>
+        /// <param name="paddingLength">The length of the padding.</param>
+        /// <returns>The new message.</returns>
         public static HeartbeatMessage Create(TlsContext context, short type, byte[] payload, int paddingLength)
         {
             byte[] padding = context.NonceGenerator.GenerateNonce(paddingLength);

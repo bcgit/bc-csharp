@@ -37,6 +37,7 @@ namespace Org.BouncyCastle.Tls
         /// <summary>Return the key sha 1 hash.</summary>
         public byte[] GetKeySha1Hash() => Arrays.Clone((byte[])m_identifier);
 
+        /// <summary>Gets the X.509 name of the authority, if the identifier type is X.509 name.</summary>
         public X509Name X509Name
         {
             get
