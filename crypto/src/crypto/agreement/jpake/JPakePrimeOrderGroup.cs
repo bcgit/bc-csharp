@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
         /// However, due to the small uncertainties if p and q are not prime,
         /// advanced attacks are not prevented.
         /// Use it at your own risk.
-        /// 
+        ///
         /// Throws NullReferenceException if any argument is null. Throws
         /// InvalidOperationException is any of the above validations fail.
         /// </summary>

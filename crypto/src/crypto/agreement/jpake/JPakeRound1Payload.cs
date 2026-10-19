@@ -5,13 +5,13 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
 {
     /// <summary>
     /// The payload sent/received during the first round of a J-PAKE exchange.
-    /// 
+    ///
     /// Each JPAKEParticipant creates and sends an instance of this payload to
-    /// the other. The payload to send should be created via 
+    /// the other. The payload to send should be created via
     /// JPAKEParticipant.CreateRound1PayloadToSend().
-    /// 
+    ///
     /// Each participant must also validate the payload received from the other.
-    /// The received payload should be validated via 
+    /// The received payload should be validated via
     /// JPAKEParticipant.ValidateRound1PayloadReceived(JPakeRound1Payload).
     /// </summary>
     public class JPakeRound1Payload
@@ -33,14 +33,14 @@ namespace Org.BouncyCastle.Crypto.Agreement.JPake
 
         /// <summary>
         /// The zero knowledge proof for x1.
-        /// 
+        ///
         /// This is a two element array, containing {g^v, r} for x1.
         /// </summary>
         private readonly BigInteger[] knowledgeProofForX1;
 
         /// <summary>
         /// The zero knowledge proof for x2.
-        /// 
+        ///
         /// This is a two element array, containing {g^v, r} for x2.
         /// </summary>
         private readonly BigInteger[] knowledgeProofForX2;
