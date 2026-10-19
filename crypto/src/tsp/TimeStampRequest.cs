@@ -97,6 +97,7 @@ namespace Org.BouncyCastle.Tsp
         /// <summary>Gets the hash algorithm of the message imprint.</summary>
         public AlgorithmIdentifier MessageImprintAlgID => MessageImprint.HashAlgorithm;
 
+        /// <summary>Gets the message imprint alg oid.</summary>
         [Obsolete("Will be removed")]
         public string MessageImprintAlgOid => MessageImprintAlgID.Algorithm.Id;
 
@@ -106,6 +107,7 @@ namespace Org.BouncyCastle.Tsp
         /// <summary>Return the digest of the message imprint.</summary>
         public byte[] GetMessageImprintDigest() => MessageImprint.GetHashedMessage();
 
+        /// <summary>Gets the req policy.</summary>
         [Obsolete("Will be removed")]
         public string ReqPolicy => m_req.ReqPolicy?.Id;
 
@@ -170,6 +172,7 @@ namespace Org.BouncyCastle.Tsp
         /// <summary>Return the object identifiers of the extensions in the request.</summary>
         public virtual IList<DerObjectIdentifier> GetExtensionOids() => TspUtil.GetExtensionOids(Extensions);
 
+        /// <inheritdoc/>
         protected override X509Extensions GetX509Extensions() => Extensions;
     }
 }

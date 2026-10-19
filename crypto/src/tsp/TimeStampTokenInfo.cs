@@ -81,6 +81,7 @@ namespace Org.BouncyCastle.Tsp
         /// <summary>Gets the hash algorithm of the message imprint.</summary>
         public AlgorithmIdentifier HashAlgorithm => MessageImprint.HashAlgorithm;
 
+        /// <summary>Gets the message imprint alg oid.</summary>
         [Obsolete("Will be removed")]
         public string MessageImprintAlgOid => HashAlgorithm.Algorithm.GetID();
 

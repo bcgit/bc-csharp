@@ -38,6 +38,9 @@ namespace Org.BouncyCastle.Tsp
             m_failureCode = failureCode;
         }
 
+        /// <summary>Create a new <see cref="TspValidationException"/>.</summary>
+        /// <param name="info">The info.</param>
+        /// <param name="context">The context.</param>
 #if NET8_0_OR_GREATER
         [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
 #endif
@@ -47,6 +50,7 @@ namespace Org.BouncyCastle.Tsp
             m_failureCode = info.GetInt32("failureCode");
         }
 
+        /// <inheritdoc/>
 #if NET8_0_OR_GREATER
         [Obsolete(Exceptions.SYSLIB0051_Message, DiagnosticId="SYSLIB0051", UrlFormat="https://aka.ms/dotnet-warnings/{0}")]
 #endif

@@ -44,6 +44,8 @@ namespace Org.BouncyCastle.Tsp
             m_reqPolicy = reqPolicy;
         }
 
+        /// <summary>Set the req policy.</summary>
+        /// <param name="reqPolicy">The req policy.</param>
         [Obsolete("Use overload taking DerObjectIdentifier instead")]
         public void SetReqPolicy(string reqPolicy)
         {
