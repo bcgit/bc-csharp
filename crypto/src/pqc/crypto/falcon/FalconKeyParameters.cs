@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             m_parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         }
 
+        /// <summary>Gets the parameters.</summary>
         public FalconParameters Parameters => m_parameters;
     }
 }

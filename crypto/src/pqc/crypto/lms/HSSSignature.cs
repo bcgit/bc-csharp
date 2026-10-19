@@ -107,6 +107,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         internal LmsSignedPubKey[] SignedPubKeys => m_signedPubKeys;
 
+        /// <summary>Gets the signature.</summary>
         public LmsSignature Signature => m_signature;
 
         /// <inheritdoc/>

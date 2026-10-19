@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             m_parameters = frodoParameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public FrodoParameters Parameters => m_parameters;
     }
 }

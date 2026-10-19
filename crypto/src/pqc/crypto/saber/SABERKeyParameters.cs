@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             m_parameters = parameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public SaberParameters Parameters => m_parameters;
     }
 }

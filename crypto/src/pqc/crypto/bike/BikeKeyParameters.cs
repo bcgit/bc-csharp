@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             this.m_parameters = parameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public BikeParameters Parameters => m_parameters;
     }
 }

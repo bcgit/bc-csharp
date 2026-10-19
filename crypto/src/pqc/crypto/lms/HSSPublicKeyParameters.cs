@@ -68,6 +68,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <summary>Gets the level.</summary>
         public int Level => m_level;
 
+        /// <summary>Gets the lms public key.</summary>
         public LmsPublicKeyParameters LmsPublicKey => m_lmsPublicKey;
 
         /// <inheritdoc/>

@@ -13,6 +13,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             m_parameters = parameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public PicnicParameters Parameters => m_parameters;
     }
 }

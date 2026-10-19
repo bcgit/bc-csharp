@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
             m_parameters = parameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public SphincsPlusParameters Parameters => m_parameters;
     }
 }

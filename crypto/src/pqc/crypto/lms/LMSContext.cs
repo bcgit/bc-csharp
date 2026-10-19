@@ -149,6 +149,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         // The digest is finalized by OutputQ and released, so every later use is a caller error.
         private IDigest Digest => m_digest ?? throw new InvalidOperationException("context already used");
 
+        /// <summary>Gets the public key.</summary>
         // TODO[api] Make internal
         public LMOtsPublicKey PublicKey => m_publicKey;
 

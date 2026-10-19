@@ -101,6 +101,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
         /// <summary>Return the skseed.</summary>
         public byte[] GetSkseed() => Arrays.Clone(m_skseed.GetOctets());
 
+        /// <summary>Gets the public key.</summary>
         public SphincsPlusPublicKey PublicKey => m_publicKey;
 
         /// <summary>Gets the version.</summary>

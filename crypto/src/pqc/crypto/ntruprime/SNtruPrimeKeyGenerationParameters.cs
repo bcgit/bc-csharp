@@ -15,6 +15,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             this._primeParameters = ntruPrimeParameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public SNtruPrimeParameters Parameters => _primeParameters;
 
     }

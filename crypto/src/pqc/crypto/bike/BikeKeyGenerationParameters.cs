@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
             m_parameters = parameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public BikeParameters Parameters => m_parameters;
     }
 }

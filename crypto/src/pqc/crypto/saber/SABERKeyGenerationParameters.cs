@@ -17,6 +17,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
             this.parameters = saberParameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public SaberParameters Parameters => parameters;
     }
 }

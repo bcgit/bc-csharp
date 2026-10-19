@@ -23,6 +23,9 @@ namespace Org.BouncyCastle.Pqc.Asn1
     public class CmcePrivateKey
         : Asn1Object
     {
+        /// <summary>Return an <see cref="CmcePrivateKey"/> from a tagged object.</summary>
+        /// <param name="o">The object.</param>
+        /// <returns>The <see cref="CmcePrivateKey"/>.</returns>
         public static CmcePrivateKey GetInstance(Object o)
         {
             if (o == null)
@@ -113,6 +116,7 @@ namespace Org.BouncyCastle.Pqc.Asn1
         /// <summary>Gets the s.</summary>
         public byte[] S => Arrays.Clone(m_s.GetOctets());
 
+        /// <summary>Gets the public key.</summary>
         public CmcePublicKey PublicKey => m_publicKey;
 
         public Asn1Object ToAsn1Primitive()

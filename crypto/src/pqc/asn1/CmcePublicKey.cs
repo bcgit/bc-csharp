@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Pqc.Asn1
     public class CmcePublicKey
         : Asn1Object
     {
+        /// <summary>Return an <see cref="CmcePublicKey"/> from a tagged object.</summary>
+        /// <param name="o">The object.</param>
+        /// <returns>The <see cref="CmcePublicKey"/>.</returns>
         public static CmcePublicKey GetInstance(Object o)
         {
             if (o == null)

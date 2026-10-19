@@ -102,11 +102,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Build();
         }
 
+        /// <summary>Gets the ots signature.</summary>
         public LMOtsSignature OtsSignature => m_otsSignature;
 
         /// <summary>Gets the q.</summary>
         public int Q => m_q;
 
+        /// <summary>Gets the sig parameters.</summary>
         public LMSigParameters SigParameters => m_parameters;
 
         /// <summary>Gets the y.</summary>

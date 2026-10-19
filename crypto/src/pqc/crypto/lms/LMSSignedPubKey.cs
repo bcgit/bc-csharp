@@ -28,8 +28,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         [Obsolete("Use 'Signature' instead")]
         public LmsSignature GetSignature() => m_signature;
 
+        /// <summary>Gets the public key.</summary>
         public LmsPublicKeyParameters PublicKey => m_publicKey;
 
+        /// <summary>Gets the signature.</summary>
         public LmsSignature Signature => m_signature;
 
         /// <inheritdoc/>

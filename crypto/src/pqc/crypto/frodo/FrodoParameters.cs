@@ -67,6 +67,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         /// <summary>Gets the default key size.</summary>
         public int DefaultKeySize => defaultKeySize;
 
+        /// <summary>Gets the engine.</summary>
         [Obsolete("Will be removed")]
         public FrodoEngine Engine => engine;
 
@@ -86,6 +87,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         [Obsolete("Will be removed")]
         public short[] CdfTable => Arrays.Clone(cdf_table);
 
+        /// <summary>Gets the digest.</summary>
         [Obsolete("Will be removed")]
         public IDigest Digest => new ShakeDigest(digest);
 
