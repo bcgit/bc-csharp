@@ -38,7 +38,7 @@ namespace Org.BouncyCastle.Asn1
         {
             if (disposing)
             {
-                if (m_outStream != null) 
+                if (m_outStream != null)
                 {
                     Finish();
                     m_outStream = null;

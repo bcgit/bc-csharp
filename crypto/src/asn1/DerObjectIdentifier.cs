@@ -69,7 +69,7 @@ namespace Org.BouncyCastle.Asn1
         {
             /*
              * TODO[api] This block is for backward compatibility, but should be removed.
-             * 
+             *
              * - see https://github.com/bcgit/bc-java/issues/1015
              */
             if (!declaredExplicit && !taggedObject.IsParsed() && taggedObject.HasContextTag())

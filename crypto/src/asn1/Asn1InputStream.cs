@@ -341,7 +341,7 @@ namespace Org.BouncyCastle.Asn1
             int length = s.ReadByte();
             if (0U == ((uint)length >> 7))
             {
-                // definite-length short form 
+                // definite-length short form
                 return length;
             }
             if (0x80 == length)

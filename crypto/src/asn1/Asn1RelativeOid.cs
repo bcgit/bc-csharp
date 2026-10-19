@@ -470,7 +470,7 @@ namespace Org.BouncyCastle.Asn1
 
             return buf.ToArray();
         }
- 
+
         internal static void WriteField(MemoryStream buf, string identifier, int from, int to)
         {
             string token = identifier.Substring(from, to - from);
