@@ -4,7 +4,7 @@ namespace Org.BouncyCastle.Asn1.BC
 {
     // TODO[api] Make static
     public abstract class BCObjectIdentifiers
-	{
+    {
         /**
          * iso.org.dod.internet.private.enterprise.legion-of-the-bouncy-castle
          * <p>1.3.6.1.4.1.22554</p>
@@ -282,7 +282,7 @@ namespace Org.BouncyCastle.Asn1.BC
         public static readonly DerObjectIdentifier picnicl5full = picnic_key.Branch("12");
 
         public static readonly DerObjectIdentifier picnic_signature = picnic.Branch("2");
-    
+
         public static readonly DerObjectIdentifier picnic_with_sha512 = picnic_signature.Branch("1");
         public static readonly DerObjectIdentifier picnic_with_shake256 = picnic_signature.Branch("2");
         public static readonly DerObjectIdentifier picnic_with_sha3_512 = picnic_signature.Branch("3");
