@@ -7,11 +7,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     {
         private HssKeyGenerationParameters m_parameters;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters parameters)
         {
             m_parameters = (HssKeyGenerationParameters)parameters;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             var privateKey = HssPrivateKeyParameters.Generate(m_parameters);

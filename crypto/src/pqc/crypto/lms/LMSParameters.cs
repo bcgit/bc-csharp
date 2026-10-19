@@ -17,7 +17,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly LMSigParameters m_sigParameters;
         private readonly LMOtsParameters m_otsParameters;
 
-        // TODO[api] Make internal, rename parameters like fields
+        /// <summary>Create a new <see cref="LmsParameters"/>.</summary>
+        /// <param name="lmSigParameters">The lm sig parameters.</param>
+        /// <param name="lmOtsParameters">The lm ots parameters.</param>
         public LmsParameters(LMSigParameters lmSigParameters, LMOtsParameters lmOtsParameters)
         {
             m_sigParameters = lmSigParameters ?? throw new ArgumentNullException(nameof(lmSigParameters));

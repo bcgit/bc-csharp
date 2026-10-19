@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private ILmsContextBasedSigner m_privateKey;
         private LmsPublicKeyParameters m_publicKey;
 
+        /// <inheritdoc/>
         public void Init(bool forSigning, ICipherParameters param)
         {
             param = ParameterUtilities.IgnoreRandom(param);
@@ -55,6 +56,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <inheritdoc/>
         public byte[] GenerateSignature(byte[] message)
         {
             if (m_privateKey == null)
@@ -70,6 +72,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return LmsEngine.GenerateSign(context).GetEncoded();
         }
 
+        /// <inheritdoc/>
         public bool VerifySignature(byte[] message, byte[] signature)
         {
             // Checked before the catch below, so a missing init is reported rather than folded into

@@ -113,22 +113,25 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public override int GetHashCode() => m_id;
 
+        /// <summary>Gets the ID.</summary>
         public int ID => m_id;
 
+        /// <summary>Gets the n.</summary>
         public int N => m_n;
 
+        /// <summary>Gets the w.</summary>
         public int W => m_w;
 
+        /// <summary>Gets the p.</summary>
         public int P => m_p;
 
+        /// <summary>Gets the ls.</summary>
         public int Ls => m_ls;
 
+        /// <summary>Gets the sig len.</summary>
         public int SigLen => m_sigLen;
 
-        // TODO[api] Expand to an AlgorithmIdentifier at promotion. A digest OID alone identifies the hash
-        // function only where the parameters are absent; id_shake256_len carries its output length in bits as a
-        // mandatory parameter (RFC 8702), so the OID here is the same for the n=24 and n=32 sets and N has to be
-        // compared alongside it to tell one hash function from another.
+        /// <summary>Gets the digest oid.</summary>
         public DerObjectIdentifier DigestOid => m_digestOid;
     }
 }

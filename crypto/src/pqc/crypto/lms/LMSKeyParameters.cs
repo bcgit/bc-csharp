@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         {
         }
 
+        /// <inheritdoc/>
         public abstract byte[] GetEncoded();
     }
 }

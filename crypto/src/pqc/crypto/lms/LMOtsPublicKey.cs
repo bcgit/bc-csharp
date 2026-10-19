@@ -15,6 +15,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly int m_q;
         private readonly byte[] m_K;
 
+        /// <summary>Create a new <see cref="LMOtsPublicKey"/>.</summary>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="i">The i.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="k">The k.</param>
         public LMOtsPublicKey(LMOtsParameters parameters, byte[] i, int q, byte[] k)
         {
             m_parameters = parameters;
@@ -23,6 +28,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_K = k;
         }
 
+        /// <summary>Return an <see cref="LMOtsPublicKey"/> from the given object.</summary>
+        /// <param name="src">
+        /// An <see cref="LMOtsPublicKey"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="LMOtsPublicKey"/>, or null if <paramref name="src"/> is null.</returns>
         public static LMOtsPublicKey GetInstance(object src)
         {
             if (src is LMOtsPublicKey lmOtsPublicKey)
@@ -53,18 +63,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LMOtsPublicKey(parameter, I, q, K);
         }
 
+        /// <summary>Return the i.</summary>
         public byte[] GetI() => Arrays.Clone(m_I);
 
         internal byte[] InternalI => m_I;
 
+        /// <summary>Return the k.</summary>
         public byte[] GetK() => Arrays.Clone(m_K);
 
         internal byte[] InternalK => m_K;
 
         public LMOtsParameters Parameters => m_parameters;
 
+        /// <summary>Gets the q.</summary>
         public int Q => m_q;
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (this == obj)
@@ -77,6 +91,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 && Arrays.AreEqual(m_K, that.m_K);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             int result = m_q;
@@ -86,6 +101,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return result;
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded()
         {
             return Composer.Compose()
@@ -120,9 +136,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return new LmsContext(this, signature, ctx);
         }
 
+        /// <summary>Gets the i.</summary>
         [Obsolete("Use 'GetI' instead")]
         public byte[] I => m_I;
 
+        /// <summary>Gets the k.</summary>
         [Obsolete("Use 'GetK' instead")]
         public byte[] K => m_K;
     }

@@ -7,11 +7,13 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
     {
         private LmsKeyGenerationParameters m_parameters;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters parameters)
         {
             m_parameters = (LmsKeyGenerationParameters)parameters;
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             var privateKey = LmsPrivateKeyParameters.Generate(m_parameters.LmsParameters, m_parameters.Random);

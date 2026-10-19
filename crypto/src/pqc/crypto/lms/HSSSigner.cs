@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private HssPrivateKeyParameters m_privateKey;
         private HssPublicKeyParameters m_publicKey;
 
+        /// <inheritdoc/>
         public void Init(bool forSigning, ICipherParameters param)
         {
             param = ParameterUtilities.IgnoreRandom(param);
@@ -27,6 +28,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <inheritdoc/>
         public byte[] GenerateSignature(byte[] message)
         {
             if (m_privateKey == null)
@@ -39,6 +41,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return m_privateKey.GenerateSignature(context);
         }
 
+        /// <inheritdoc/>
         public bool VerifySignature(byte[] message, byte[] signature)
         {
             // Checked before the catch below, so a missing init is reported rather than folded into

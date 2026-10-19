@@ -14,7 +14,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private byte[] I;
         private byte[] T1;
 
-        // TODO[api] Rename parameters
+        /// <summary>Create a new <see cref="LmsPublicKeyParameters"/>.</summary>
+        /// <param name="parameterSet">The parameter set.</param>
+        /// <param name="lmOtsType">The lm ots type.</param>
+        /// <param name="T1">The t 1.</param>
+        /// <param name="I">The i.</param>
         public LmsPublicKeyParameters(LMSigParameters parameterSet, LMOtsParameters lmOtsType, byte[] T1, byte[] I)
             : this(LmsParameters.Create(parameterSet, lmOtsType), Arrays.Clone(T1), Arrays.Clone(I))
         {
@@ -35,6 +39,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
 
         public LMOtsParameters OtsParameters => m_lmsParameters.LMOtsParameters;
 
+        /// <summary>Return an <see cref="LmsPublicKeyParameters"/> from the given object.</summary>
+        /// <param name="src">
+        /// An <see cref="LmsPublicKeyParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="LmsPublicKeyParameters"/>, or null if <paramref name="src"/> is null.</returns>
         public static LmsPublicKeyParameters GetInstance(object src)
         {
             if (src is LmsPublicKeyParameters lmsPublicKeyParameters)
@@ -72,25 +81,29 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         internal static LmsPublicKeyParameters Parse(byte[] buf, int off, int len) =>
             BinaryReaders.Parse(Parse, buf, off, len, "LMS public key");
 
+        /// <inheritdoc/>
         public override byte[] GetEncoded() => ToByteArray();
 
-        // TODO[api] Remove at promotion
+        /// <summary>Return the sig parameters.</summary>
         public LMSigParameters GetSigParameters() => SigParameters;
 
-        // TODO[api] Remove at promotion
+        /// <summary>Return the ots parameters.</summary>
         public LMOtsParameters GetOtsParameters() => OtsParameters;
 
-        // TODO[api] Remove at promotion
+        /// <summary>Return the lms parameters.</summary>
         public LmsParameters GetLmsParameters() => m_lmsParameters;
 
+        /// <summary>Return the t 1.</summary>
         public byte[] GetT1() => Arrays.Clone(T1);
 
         internal bool MatchesT1(byte[] sig) => Arrays.FixedTimeEquals(T1, sig);
 
+        /// <summary>Return the i.</summary>
         public byte[] GetI() => Arrays.Clone(I);
 
         internal byte[] InternalI => I;
 
+        /// <inheritdoc/>
         // TODO[api] Fix parameter name
         public override bool Equals(object o)
         {
@@ -103,6 +116,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 && Arrays.AreEqual(this.T1, that.T1);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             int result = m_lmsParameters.GetHashCode();
@@ -123,6 +137,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 .Bytes(I)
                 .Bytes(T1);
 
+        /// <inheritdoc/>
         public LmsContext GenerateLmsContext(byte[] signature) =>
             GenerateOtsContext(LmsSignature.GetInstance(signature));
 
@@ -149,6 +164,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return otsPublicKey.CreateOtsContext(signature);
         }
 
+        /// <inheritdoc/>
         public bool Verify(LmsContext context) => LmsEngine.VerifySignature(this, context);
     }
 }

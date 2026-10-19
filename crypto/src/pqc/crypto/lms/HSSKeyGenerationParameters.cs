@@ -61,6 +61,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_lmsParameters = lmsParameters;
         }
 
+        /// <summary>Gets the depth.</summary>
         public int Depth => m_lmsParameters.Length;
 
         /// <sumamry>

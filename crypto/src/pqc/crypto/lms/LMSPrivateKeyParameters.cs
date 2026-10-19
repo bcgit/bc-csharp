@@ -224,6 +224,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         public static LmsPrivateKeyParameters GetInstance(byte[] privEnc, byte[] pubEnc) =>
             Parse(privEnc, 0, privEnc.Length, LmsPublicKeyParameters.Parse(pubEnc));
 
+        /// <summary>Return an <see cref="LmsPrivateKeyParameters"/> from the given object.</summary>
+        /// <param name="src">
+        /// An <see cref="LmsPrivateKeyParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="LmsPrivateKeyParameters"/>, or null if <paramref name="src"/> is null.</returns>
         public static LmsPrivateKeyParameters GetInstance(object src)
         {
             if (src is LmsPrivateKeyParameters lmsPrivateKeyParameters)
@@ -534,6 +539,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <inheritdoc/>
         public LmsContext GenerateLmsContext()
         {
             int q;
@@ -558,6 +564,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return LmsEngine.GenerateSignContext(SigParameters, OtsParameters, I, q, masterSecret, path);
         }
 
+        /// <inheritdoc/>
         public byte[] GenerateSignature(LmsContext context)
         {
             try
@@ -601,20 +608,22 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <summary>The pair of parameter sets this key was built with, which travel together.</summary>
         public LmsParameters LmsParameters => m_lmsParameters;
 
+        /// <summary>Return the sig parameters.</summary>
         [Obsolete("Use 'SigParameters' instead")]
         public LMSigParameters GetSigParameters() => SigParameters;
 
         public LMSigParameters SigParameters => m_lmsParameters.LMSigParameters;
 
+        /// <summary>Return the ots parameters.</summary>
         [Obsolete("Use 'OtsParameters' instead")]
         public LMOtsParameters GetOtsParameters() => OtsParameters;
 
         public LMOtsParameters OtsParameters => m_lmsParameters.LMOtsParameters;
 
+        /// <summary>Return the i.</summary>
         public byte[] GetI() => Arrays.Clone(I);
 
-        // TODO[api] Remove. A seed handed out alone is a second copy of the key with no index attached - the state
-        // duplication SP 800-208 rules out - and GetEncoded carries the index, usage limit and tree cache with it.
+        /// <summary>Return the master secret.</summary>
         [Obsolete("Use 'GetEncoded' instead")]
         public byte[] GetMasterSecret()
         {
@@ -627,8 +636,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return rv;
         }
 
+        /// <summary>Gets the index limit.</summary>
         public int IndexLimit => maxQ;
 
+        /// <inheritdoc/>
         // TODO[api] Only needs 'int'
         public long GetUsagesRemaining() => IndexLimit - GetIndex();
 
@@ -888,6 +899,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return path;
         }
 
+        /// <inheritdoc/>
         // TODO[api] Fix parameter name
         public override bool Equals(object o)
         {
@@ -902,6 +914,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 && Arrays.FixedTimeEquals(this.masterSecret, that.masterSecret);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             //
@@ -918,6 +931,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return hc;
         }
 
+        /// <inheritdoc/>
         public override byte[] GetEncoded()
         {
             CheckUsable();

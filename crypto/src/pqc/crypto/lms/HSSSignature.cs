@@ -14,6 +14,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         private readonly LmsSignedPubKey[] m_signedPubKeys;
         private readonly LmsSignature m_signature;
 
+        /// <summary>Create a new <see cref="HssSignature"/>.</summary>
+        /// <param name="lMinus1">The l minus 1.</param>
+        /// <param name="signedPubKey">The signed pub key.</param>
+        /// <param name="signature">The signature.</param>
         // TODO[api] signedPubKeys
         public HssSignature(int lMinus1, LmsSignedPubKey[] signedPubKey, LmsSignature signature)
         {
@@ -88,20 +92,24 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
+        /// <summary>Return the l minus 1.</summary>
         [Obsolete("Use 'LMinus1' instead")]
         public int GetLMinus1()
         {
             return m_lMinus1;
         }
 
+        /// <summary>Gets the l minus 1.</summary>
         public int LMinus1 => m_lMinus1;
 
+        /// <summary>Return the signed pub keys.</summary>
         public LmsSignedPubKey[] GetSignedPubKeys() => (LmsSignedPubKey[])m_signedPubKeys?.Clone();
 
         internal LmsSignedPubKey[] SignedPubKeys => m_signedPubKeys;
 
         public LmsSignature Signature => m_signature;
 
+        /// <inheritdoc/>
         // TODO[api] Fix parameter name
         public override bool Equals(object other)
         {
@@ -114,6 +122,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
                 && Objects.Equals(this.m_signature, that.m_signature);
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             int result = m_lMinus1;
@@ -122,6 +131,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             return result;
         }
 
+        /// <inheritdoc/>
         public byte[] GetEncoded()
         {
             Composer composer = Composer.Compose();
