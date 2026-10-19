@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Crypto.Tls
             return RsaPkcs1Utilities.DecryptToFixedLength(PreMasterSecretLength, buf, off, len, privateKey,
                 secureRandom, protocolVersionCheck);
         }
- 
+
         public static int GetInputLimit(RsaKeyParameters privateKey) => RsaPkcs1Utilities.GetInputLimit(privateKey);
     }
 }
