@@ -3,6 +3,7 @@ using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
+    /// <summary>Exception thrown when a PEM object cannot be generated.</summary>
     [Serializable]
     public class PemGenerationException
         : Exception

@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>A write-only buffer that holds at most a fixed number of bytes.</summary>
     public sealed class LimitedBuffer
         : BaseOutputStream
     {
@@ -16,6 +17,10 @@ namespace Org.BouncyCastle.Utilities.IO
             m_count = 0;
         }
 
+        /// <summary>Copy the buffered bytes to a destination.</summary>
+        /// <param name="buffer">The destination.</param>
+        /// <param name="offset">The offset into <paramref name="buffer"/> at which to start writing.</param>
+        /// <returns>The number of bytes copied.</returns>
         public int CopyTo(byte[] buffer, int offset)
         {
             Array.Copy(m_buf, 0, buffer, offset, m_count);
@@ -23,6 +28,9 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Copy the buffered bytes to a destination.</summary>
+        /// <param name="buffer">The destination.</param>
+        /// <returns>The number of bytes copied.</returns>
         public int CopyTo(Span<byte> buffer)
         {
             m_buf.AsSpan(0, m_count).CopyTo(buffer);
@@ -36,6 +44,7 @@ namespace Org.BouncyCastle.Utilities.IO
         /// <summary>Gets the limit.</summary>
         public int Limit => m_buf.Length;
 
+        /// <summary>Discard the buffered bytes.</summary>
         public void Reset()
         {
             m_count = 0;

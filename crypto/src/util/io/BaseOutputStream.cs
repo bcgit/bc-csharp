@@ -7,6 +7,10 @@ using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>
+    /// Base class for output streams that need only implement <c>WriteByte</c>: the stream is write-only and
+    /// non-seekable.
+    /// </summary>
     public abstract class BaseOutputStream
         : Stream
     {
@@ -89,6 +93,8 @@ namespace Org.BouncyCastle.Utilities.IO
         }
 #endif
 
+        /// <summary>Write all the bytes of an array to the stream.</summary>
+        /// <param name="buffer">The bytes to write.</param>
         public virtual void Write(params byte[] buffer)
         {
             Write(buffer, 0, buffer.Length);

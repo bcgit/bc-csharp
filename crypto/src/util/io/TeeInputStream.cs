@@ -4,6 +4,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>An input stream that copies everything read from it to a second stream.</summary>
     public class TeeInputStream
         : BaseInputStream
     {

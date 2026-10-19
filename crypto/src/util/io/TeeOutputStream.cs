@@ -4,6 +4,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>An output stream that writes everything to two underlying streams.</summary>
     public class TeeOutputStream
         : BaseOutputStream
     {

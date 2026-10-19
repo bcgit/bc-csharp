@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>A stream that allows a single byte to be pushed back so that it is returned by the next read.</summary>
     public class PushbackStream
         : FilterStream
     {
@@ -113,6 +114,11 @@ namespace Org.BouncyCastle.Utilities.IO
             return s.ReadByte();
         }
 
+        /// <summary>Push a byte back onto the stream, to be returned by the next read.</summary>
+        /// <param name="b">The byte to push back; only the low 8 bits are used.</param>
+        /// <exception cref="InvalidOperationException">
+        /// A byte has already been pushed back and not yet read.
+        /// </exception>
         public virtual void Unread(int b)
         {
             if (m_buf != -1)

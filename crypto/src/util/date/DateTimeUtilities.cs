@@ -2,16 +2,25 @@ using System;
 
 namespace Org.BouncyCastle.Utilities.Date
 {
+    /// <summary>Utility methods for converting between DateTime values and Unix time.</summary>
     public static class DateTimeUtilities
     {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>The Unix epoch, 1 January 1970 00:00:00 UTC.</summary>
         public static readonly DateTime UnixEpoch = DateTime.UnixEpoch;
 #else
+        /// <summary>The Unix epoch, 1 January 1970 00:00:00 UTC.</summary>
         public static readonly DateTime UnixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 #endif
 
+        /// <summary>
+        /// The largest number of milliseconds since the Unix epoch that can be represented as a DateTime.
+        /// </summary>
         public static readonly long MaxUnixMs =
             (DateTime.MaxValue.Ticks - UnixEpoch.Ticks) / TimeSpan.TicksPerMillisecond;
+        /// <summary>
+        /// The smallest number of milliseconds since the Unix epoch that is supported, which is the epoch itself.
+        /// </summary>
         public static readonly long MinUnixMs = 0L;
 
         /// <summary>
@@ -51,15 +60,27 @@ namespace Org.BouncyCastle.Utilities.Date
         /// </summary>
         public static long CurrentUnixMs() => DateTimeToUnixMs(DateTime.UtcNow);
 
+        /// <summary>Truncate a DateTime value to a whole number of centiseconds.</summary>
+        /// <param name="dateTime">The value to truncate.</param>
+        /// <returns>The truncated value.</returns>
         public static DateTime WithPrecisionCentisecond(DateTime dateTime) =>
             dateTime.AddTicks(-(dateTime.Ticks % (TimeSpan.TicksPerMillisecond * 10L)));
 
+        /// <summary>Truncate a DateTime value to a whole number of deciseconds.</summary>
+        /// <param name="dateTime">The value to truncate.</param>
+        /// <returns>The truncated value.</returns>
         public static DateTime WithPrecisionDecisecond(DateTime dateTime) =>
             dateTime.AddTicks(-(dateTime.Ticks % (TimeSpan.TicksPerMillisecond * 100L)));
 
+        /// <summary>Truncate a DateTime value to a whole number of milliseconds.</summary>
+        /// <param name="dateTime">The value to truncate.</param>
+        /// <returns>The truncated value.</returns>
         public static DateTime WithPrecisionMillisecond(DateTime dateTime) =>
             dateTime.AddTicks(-(dateTime.Ticks % TimeSpan.TicksPerMillisecond));
 
+        /// <summary>Truncate a DateTime value to a whole number of seconds.</summary>
+        /// <param name="dateTime">The value to truncate.</param>
+        /// <returns>The truncated value.</returns>
         public static DateTime WithPrecisionSecond(DateTime dateTime) =>
             dateTime.AddTicks(-(dateTime.Ticks % TimeSpan.TicksPerSecond));
     }

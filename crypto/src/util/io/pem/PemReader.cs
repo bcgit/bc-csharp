@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
+    /// <summary>Reads PEM objects from a text reader.</summary>
     public class PemReader
         : IDisposable
     {
@@ -27,12 +28,15 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 
         #region IDisposable
 
+        /// <summary>Dispose of this reader and the underlying reader.</summary>
         public void Dispose()
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>Dispose of this reader.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -43,6 +47,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
 
         #endregion
 
+        /// <summary>Gets the underlying text reader.</summary>
         public TextReader Reader => m_reader;
 
         /// <returns>

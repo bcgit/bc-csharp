@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
+    /// <summary>A PEM object: a type, optional headers and binary content.</summary>
     public class PemObject
         : PemObjectGenerator
     {

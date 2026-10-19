@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Utilities.Net
 {
+    /// <summary>Utility methods for validating textual IPv4 and IPv6 addresses.</summary>
     // TODO[api] Make static
     public class IPAddress
     {
@@ -54,6 +55,12 @@ namespace Org.BouncyCastle.Utilities.Net
             return IsParseableIPv4Octet(address, pos, length);
         }
 
+        /// <summary>
+        /// Determine whether a string is a valid IPv4 address followed by a netmask, in either dotted-quad or
+        /// prefix-length form.
+        /// </summary>
+        /// <param name="address">The string to examine.</param>
+        /// <returns>true if the string is a valid IPv4 address with netmask, false otherwise.</returns>
         public static bool IsValidIPv4WithNetmask(string address)
         {
             int index = Platform.IndexOf(address, '/');
@@ -124,6 +131,12 @@ namespace Org.BouncyCastle.Utilities.Net
             return segmentCount == 8 || doubleColonFound;
         }
 
+        /// <summary>
+        /// Determine whether a string is a valid IPv6 address followed by a netmask, in either address or prefix-length
+        /// form.
+        /// </summary>
+        /// <param name="address">The string to examine.</param>
+        /// <returns>true if the string is a valid IPv6 address with netmask, false otherwise.</returns>
         public static bool IsValidIPv6WithNetmask(string address)
         {
             int index = Platform.IndexOf(address, '/');

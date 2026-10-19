@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>
+    /// Base class for input streams that need only implement <c>ReadByte</c>: the stream is read-only and non-seekable.
+    /// </summary>
     public abstract class BaseInputStream
         : Stream
     {

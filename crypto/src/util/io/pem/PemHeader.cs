@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Utilities.IO.Pem
 {
+    /// <summary>A header (a name and value pair) of a PEM object.</summary>
     public class PemHeader
     {
         private readonly string m_name;

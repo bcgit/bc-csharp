@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>Exception thrown when a stream holds more data than a configured limit allows.</summary>
     [Serializable]
     public class StreamOverflowException
         : IOException

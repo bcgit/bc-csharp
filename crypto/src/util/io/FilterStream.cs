@@ -7,9 +7,13 @@ using System.Threading.Tasks;
 
 namespace Org.BouncyCastle.Utilities.IO
 {
+    /// <summary>
+    /// A stream that forwards all operations to an underlying stream; subclasses override the operations they change.
+    /// </summary>
     public class FilterStream
         : Stream
     {
+        /// <summary>The underlying stream.</summary>
         protected readonly Stream s;
 
         /// <summary>Create a new <see cref="FilterStream"/>.</summary>
@@ -117,6 +121,8 @@ namespace Org.BouncyCastle.Utilities.IO
         {
             s.WriteByte(value);
         }
+        /// <summary>Dispose of this stream without disposing of the underlying stream.</summary>
+        /// <param name="disposing">true when called from <c>Dispose</c>, false when called from a finalizer.</param>
         protected void Detach(bool disposing)
         {
             base.Dispose(disposing);
