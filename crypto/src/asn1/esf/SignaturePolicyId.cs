@@ -19,6 +19,11 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class SignaturePolicyId
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SignaturePolicyId"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SignaturePolicyId"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SignaturePolicyId"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SignaturePolicyId GetInstance(object obj)
         {
             if (obj == null)
@@ -28,9 +33,16 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new SignaturePolicyId(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SignaturePolicyId"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignaturePolicyId"/>.</returns>
         public static SignaturePolicyId GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SignaturePolicyId(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="SignaturePolicyId"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="SignaturePolicyId"/>, or null if <paramref name="element"/> is null.</returns>
         public static SignaturePolicyId GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -46,6 +58,10 @@ namespace Org.BouncyCastle.Asn1.Esf
             return null;
         }
 
+        /// <summary>Return an <see cref="SignaturePolicyId"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignaturePolicyId"/>.</returns>
         public static SignaturePolicyId GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SignaturePolicyId(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -67,11 +83,18 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="SignaturePolicyId"/>.</summary>
+        /// <param name="sigPolicyIdentifier">The sig policy identifier.</param>
+        /// <param name="sigPolicyHash">The sig policy hash.</param>
         public SignaturePolicyId(DerObjectIdentifier sigPolicyIdentifier, OtherHashAlgAndValue sigPolicyHash)
             : this(sigPolicyIdentifier, sigPolicyHash, null)
         {
         }
 
+        /// <summary>Create a new <see cref="SignaturePolicyId"/>.</summary>
+        /// <param name="sigPolicyIdentifier">The sig policy identifier.</param>
+        /// <param name="sigPolicyHash">The sig policy hash.</param>
+        /// <param name="sigPolicyQualifiers">The sig policy qualifiers.</param>
         public SignaturePolicyId(DerObjectIdentifier sigPolicyIdentifier, OtherHashAlgAndValue sigPolicyHash,
             params SigPolicyQualifierInfo[] sigPolicyQualifiers)
         {
@@ -80,6 +103,10 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_sigPolicyQualifiers = DerSequence.FromElementsOptional(sigPolicyQualifiers);
         }
 
+        /// <summary>Create a new <see cref="SignaturePolicyId"/>.</summary>
+        /// <param name="sigPolicyIdentifier">The sig policy identifier.</param>
+        /// <param name="sigPolicyHash">The sig policy hash.</param>
+        /// <param name="sigPolicyQualifiers">The sig policy qualifiers.</param>
         public SignaturePolicyId(DerObjectIdentifier sigPolicyIdentifier, OtherHashAlgAndValue sigPolicyHash,
             IEnumerable<SigPolicyQualifierInfo> sigPolicyQualifiers)
         {
@@ -92,6 +119,10 @@ namespace Org.BouncyCastle.Asn1.Esf
             }
         }
 
+        /// <summary>Create a new <see cref="SignaturePolicyId"/>.</summary>
+        /// <param name="sigPolicyIdentifier">The sig policy identifier.</param>
+        /// <param name="sigPolicyHash">The sig policy hash.</param>
+        /// <param name="sigPolicyQualifiers">The sig policy qualifiers.</param>
         public SignaturePolicyId(DerObjectIdentifier sigPolicyIdentifier, OtherHashAlgAndValue sigPolicyHash,
             IReadOnlyCollection<SigPolicyQualifierInfo> sigPolicyQualifiers)
         {
@@ -104,13 +135,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             }
         }
 
+        /// <summary>Gets the sig policy identifier.</summary>
         public DerObjectIdentifier SigPolicyIdentifier => m_sigPolicyIdentifier;
 
+        /// <summary>Gets the sig policy hash.</summary>
         public OtherHashAlgAndValue SigPolicyHash => m_sigPolicyHash;
 
+        /// <summary>Return the sig policy qualifiers.</summary>
         public SigPolicyQualifierInfo[] GetSigPolicyQualifiers() =>
             m_sigPolicyQualifiers?.MapElements(SigPolicyQualifierInfo.GetInstance);
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);

@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
+    /// <summary>The SignerAttribute structure of ETSI TS 101 733.</summary>
     public class SignerAttribute
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SignerAttribute"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SignerAttribute"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SignerAttribute"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SignerAttribute GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +22,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new SignerAttribute(Asn1Sequence.GetInstance(obj), dummy: true);
         }
 
+        /// <summary>Return an <see cref="SignerAttribute"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignerAttribute"/>.</returns>
         public static SignerAttribute GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SignerAttribute(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="SignerAttribute"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SignerAttribute"/>.</returns>
         public static SignerAttribute GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SignerAttribute(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -42,18 +56,24 @@ namespace Org.BouncyCastle.Asn1.Esf
             }
         }
 
+        /// <summary>Create a new <see cref="SignerAttribute"/>.</summary>
+        /// <param name="claimedAttributes">The claimed attributes.</param>
         public SignerAttribute(Asn1Sequence claimedAttributes)
         {
             m_claimedAttributes = claimedAttributes ?? throw new ArgumentNullException(nameof(claimedAttributes));
         }
 
+        /// <summary>Create a new <see cref="SignerAttribute"/>.</summary>
+        /// <param name="certifiedAttributes">The certified attributes.</param>
         public SignerAttribute(AttributeCertificate certifiedAttributes)
         {
             m_certifiedAttributes = certifiedAttributes ?? throw new ArgumentNullException(nameof(certifiedAttributes));
         }
 
+        /// <summary>Gets the claimed attributes.</summary>
         public virtual Asn1Sequence ClaimedAttributes => m_claimedAttributes;
 
+        /// <summary>Gets the certified attributes.</summary>
         public virtual AttributeCertificate CertifiedAttributes => m_certifiedAttributes;
 
         /**

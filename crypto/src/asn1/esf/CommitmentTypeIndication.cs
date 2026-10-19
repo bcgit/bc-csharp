@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
+    /// <summary>The CommitmentTypeIndication structure of ETSI TS 101 733.</summary>
     public class CommitmentTypeIndication
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CommitmentTypeIndication"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CommitmentTypeIndication"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CommitmentTypeIndication"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CommitmentTypeIndication GetInstance(object obj)
         {
             if (obj == null)
@@ -16,6 +22,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CommitmentTypeIndication"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CommitmentTypeIndication"/>.</returns>
         public static CommitmentTypeIndication GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -23,6 +33,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="CommitmentTypeIndication"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CommitmentTypeIndication"/>.</returns>
         public static CommitmentTypeIndication GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -33,6 +47,8 @@ namespace Org.BouncyCastle.Asn1.Esf
         private readonly DerObjectIdentifier m_commitmentTypeId;
         private readonly Asn1Sequence m_commitmentTypeQualifier;
 
+        /// <summary>Create a new <see cref="CommitmentTypeIndication"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public CommitmentTypeIndication(Asn1Sequence seq)
         {
@@ -50,19 +66,26 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="CommitmentTypeIndication"/>.</summary>
+        /// <param name="commitmentTypeId">The commitment type id.</param>
         public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId)
             : this(commitmentTypeId, null)
         {
         }
 
+        /// <summary>Create a new <see cref="CommitmentTypeIndication"/>.</summary>
+        /// <param name="commitmentTypeId">The commitment type id.</param>
+        /// <param name="commitmentTypeQualifier">The commitment type qualifier.</param>
         public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId, Asn1Sequence commitmentTypeQualifier)
         {
             m_commitmentTypeId = commitmentTypeId ?? throw new ArgumentNullException(nameof(commitmentTypeId));
             m_commitmentTypeQualifier = commitmentTypeQualifier;
         }
 
+        /// <summary>Gets the commitment type ID.</summary>
         public DerObjectIdentifier CommitmentTypeID => m_commitmentTypeId;
 
+        /// <summary>Gets the commitment type qualifier.</summary>
         public Asn1Sequence CommitmentTypeQualifier => m_commitmentTypeQualifier;
 
         /**

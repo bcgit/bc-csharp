@@ -17,6 +17,11 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class SigPolicyQualifierInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SigPolicyQualifierInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SigPolicyQualifierInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SigPolicyQualifierInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SigPolicyQualifierInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -26,9 +31,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new SigPolicyQualifierInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SigPolicyQualifierInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SigPolicyQualifierInfo"/>.</returns>
         public static SigPolicyQualifierInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SigPolicyQualifierInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="SigPolicyQualifierInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SigPolicyQualifierInfo"/>.</returns>
         public static SigPolicyQualifierInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SigPolicyQualifierInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -49,19 +62,26 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="SigPolicyQualifierInfo"/>.</summary>
+        /// <param name="sigPolicyQualifierId">The sig policy qualifier id.</param>
+        /// <param name="sigQualifier">The sig qualifier.</param>
         public SigPolicyQualifierInfo(DerObjectIdentifier sigPolicyQualifierId, Asn1Encodable sigQualifier)
         {
             m_sigPolicyQualifierId = sigPolicyQualifierId ?? throw new ArgumentNullException(nameof(sigPolicyQualifierId));
             m_sigQualifier = sigQualifier ?? throw new ArgumentNullException(nameof(sigQualifier));
         }
 
+        /// <summary>Gets the sig policy qualifier id.</summary>
         public DerObjectIdentifier SigPolicyQualifierId => m_sigPolicyQualifierId;
 
+        /// <summary>Gets the sig qualifier data.</summary>
         public Asn1Encodable SigQualifierData => m_sigQualifier;
 
+        /// <summary>Gets the sig qualifier.</summary>
         [Obsolete("Use 'SigQualifierData' instead")]
         public Asn1Object SigQualifier => m_sigQualifier.ToAsn1Object();
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_sigPolicyQualifierId, m_sigQualifier);
     }
 }

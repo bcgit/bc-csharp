@@ -14,6 +14,11 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class OcspResponsesID
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="OcspResponsesID"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="OcspResponsesID"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="OcspResponsesID"/>, or null if <paramref name="obj"/> is null.</returns>
         public static OcspResponsesID GetInstance(object obj)
         {
             if (obj == null)
@@ -23,9 +28,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new OcspResponsesID(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="OcspResponsesID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OcspResponsesID"/>.</returns>
         public static OcspResponsesID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OcspResponsesID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="OcspResponsesID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OcspResponsesID"/>.</returns>
         public static OcspResponsesID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OcspResponsesID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -45,11 +58,16 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="OcspResponsesID"/>.</summary>
+        /// <param name="ocspIdentifier">The ocsp identifier.</param>
         public OcspResponsesID(OcspIdentifier ocspIdentifier)
             : this(ocspIdentifier, null)
         {
         }
 
+        /// <summary>Create a new <see cref="OcspResponsesID"/>.</summary>
+        /// <param name="ocspIdentifier">The ocsp identifier.</param>
+        /// <param name="ocspRepHash">The ocsp rep hash.</param>
         public OcspResponsesID(OcspIdentifier ocspIdentifier, OtherHash ocspRepHash)
         {
             m_ocspIdentifier = ocspIdentifier ?? throw new ArgumentNullException(nameof(ocspIdentifier));
@@ -58,8 +76,10 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public OcspIdentifier OcspIdentifier => m_ocspIdentifier;
 
+        /// <summary>Gets the ocsp rep hash.</summary>
         public OtherHash OcspRepHash => m_ocspRepHash;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);

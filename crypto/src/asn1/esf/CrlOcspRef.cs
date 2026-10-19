@@ -15,6 +15,9 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class CrlOcspRef
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CrlOcspRef"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CrlOcspRef"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CrlOcspRef"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CrlOcspRef GetInstance(object obj)
         {
             if (obj == null)
@@ -24,9 +27,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new CrlOcspRef(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CrlOcspRef"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlOcspRef"/>.</returns>
         public static CrlOcspRef GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlOcspRef(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CrlOcspRef"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlOcspRef"/>.</returns>
         public static CrlOcspRef GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlOcspRef(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -50,6 +61,10 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="CrlOcspRef"/>.</summary>
+        /// <param name="crlids">The crlids.</param>
+        /// <param name="ocspids">The ocspids.</param>
+        /// <param name="otherRev">The other rev.</param>
         public CrlOcspRef(CrlListID crlids, OcspListID ocspids, OtherRevRefs otherRev)
         {
             m_crlids = crlids;
@@ -57,12 +72,15 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_otherRev = otherRev;
         }
 
+        /// <summary>Gets the crl i ds.</summary>
         public CrlListID CrlIDs => m_crlids;
 
+        /// <summary>Gets the ocsp i ds.</summary>
         public OcspListID OcspIDs => m_ocspids;
 
         public OtherRevRefs OtherRev => m_otherRev;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);

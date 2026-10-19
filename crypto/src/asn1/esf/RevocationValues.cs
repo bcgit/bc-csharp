@@ -19,6 +19,11 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class RevocationValues
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="RevocationValues"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RevocationValues"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RevocationValues"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RevocationValues GetInstance(object obj)
         {
             if (obj == null)
@@ -28,9 +33,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new RevocationValues(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="RevocationValues"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RevocationValues"/>.</returns>
         public static RevocationValues GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new RevocationValues(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="RevocationValues"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RevocationValues"/>.</returns>
         public static RevocationValues GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RevocationValues(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -58,6 +71,10 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="RevocationValues"/>.</summary>
+        /// <param name="crlVals">The crl vals.</param>
+        /// <param name="ocspVals">The ocsp vals.</param>
+        /// <param name="otherRevVals">The other rev vals.</param>
         public RevocationValues(CertificateList[] crlVals, BasicOcspResponse[] ocspVals, OtherRevVals otherRevVals)
         {
             m_crlVals = DerSequence.FromElementsOptional(crlVals);
@@ -65,6 +82,10 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_otherRevVals = otherRevVals;
         }
 
+        /// <summary>Create a new <see cref="RevocationValues"/>.</summary>
+        /// <param name="crlVals">The crl vals.</param>
+        /// <param name="ocspVals">The ocsp vals.</param>
+        /// <param name="otherRevVals">The other rev vals.</param>
         public RevocationValues(IEnumerable<CertificateList> crlVals, IEnumerable<BasicOcspResponse> ocspVals,
             OtherRevVals otherRevVals)
         {
@@ -81,6 +102,10 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_otherRevVals = otherRevVals;
         }
 
+        /// <summary>Create a new <see cref="RevocationValues"/>.</summary>
+        /// <param name="crlVals">The crl vals.</param>
+        /// <param name="ocspVals">The ocsp vals.</param>
+        /// <param name="otherRevVals">The other rev vals.</param>
         public RevocationValues(IReadOnlyCollection<CertificateList> crlVals,
             IReadOnlyCollection<BasicOcspResponse> ocspVals, OtherRevVals otherRevVals)
         {
@@ -97,12 +122,15 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_otherRevVals = otherRevVals;
         }
 
+        /// <summary>Return the crl vals.</summary>
         public CertificateList[] GetCrlVals() => m_crlVals?.MapElements(CertificateList.GetInstance);
 
+        /// <summary>Return the ocsp vals.</summary>
         public BasicOcspResponse[] GetOcspVals() => m_ocspVals?.MapElements(BasicOcspResponse.GetInstance);
 
         public OtherRevVals OtherRevVals => m_otherRevVals;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);

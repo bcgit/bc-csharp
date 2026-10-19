@@ -14,6 +14,9 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class CrlListID
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CrlListID"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CrlListID"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CrlListID"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CrlListID GetInstance(object obj)
         {
             if (obj == null)
@@ -23,9 +26,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new CrlListID(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CrlListID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlListID"/>.</returns>
         public static CrlListID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlListID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CrlListID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlListID"/>.</returns>
         public static CrlListID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlListID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -44,11 +55,15 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="CrlListID"/>.</summary>
+        /// <param name="crls">The crls.</param>
         public CrlListID(params CrlValidatedID[] crls)
         {
             m_crls = DerSequence.FromElements(crls);
         }
 
+        /// <summary>Create a new <see cref="CrlListID"/>.</summary>
+        /// <param name="crls">The crls.</param>
         public CrlListID(IEnumerable<CrlValidatedID> crls)
         {
             if (crls == null)
@@ -57,6 +72,8 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_crls = DerSequence.FromVector(Asn1EncodableVector.FromEnumerable(crls));
         }
 
+        /// <summary>Create a new <see cref="CrlListID"/>.</summary>
+        /// <param name="crls">The crls.</param>
         public CrlListID(IReadOnlyCollection<CrlValidatedID> crls)
         {
             if (crls == null)
@@ -65,8 +82,10 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_crls = DerSequence.FromCollection(crls);
         }
 
+        /// <summary>Return the crls.</summary>
         public CrlValidatedID[] GetCrls() => m_crls.MapElements(CrlValidatedID.GetInstance);
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => DerSequence.FromElement(m_crls);
     }
 }

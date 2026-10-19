@@ -19,6 +19,11 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class OcspIdentifier
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="OcspIdentifier"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="OcspIdentifier"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="OcspIdentifier"/>, or null if <paramref name="obj"/> is null.</returns>
         public static OcspIdentifier GetInstance(object obj)
         {
             if (obj == null)
@@ -28,9 +33,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new OcspIdentifier(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="OcspIdentifier"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OcspIdentifier"/>.</returns>
         public static OcspIdentifier GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OcspIdentifier(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="OcspIdentifier"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OcspIdentifier"/>.</returns>
         public static OcspIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OcspIdentifier(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -50,23 +63,33 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="OcspIdentifier"/>.</summary>
+        /// <param name="ocspResponderID">The ocsp responder ID.</param>
+        /// <param name="producedAt">The produced at.</param>
         public OcspIdentifier(ResponderID ocspResponderID, DateTime producedAt)
             : this(ocspResponderID, Rfc5280Asn1Utilities.CreateGeneralizedTime(producedAt))
         {
         }
 
+        /// <summary>Create a new <see cref="OcspIdentifier"/>.</summary>
+        /// <param name="ocspResponderID">The ocsp responder ID.</param>
+        /// <param name="producedAt">The produced at.</param>
         public OcspIdentifier(ResponderID ocspResponderID, Asn1GeneralizedTime producedAt)
         {
             m_ocspResponderID = ocspResponderID ?? throw new ArgumentNullException(nameof(ocspResponderID));
             m_producedAt = producedAt ?? throw new ArgumentNullException(nameof(producedAt));
         }
 
+        /// <summary>Gets the ocsp responder ID.</summary>
         public ResponderID OcspResponderID => m_ocspResponderID;
 
+        /// <summary>Gets the produced at data.</summary>
         public Asn1GeneralizedTime ProducedAtData => m_producedAt;
 
+        /// <summary>Gets the produced at.</summary>
         public DateTime ProducedAt => m_producedAt.ToDateTime();
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_ocspResponderID, m_producedAt);
     }
 }

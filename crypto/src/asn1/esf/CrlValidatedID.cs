@@ -13,6 +13,11 @@ namespace Org.BouncyCastle.Asn1.Esf
     public class CrlValidatedID
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CrlValidatedID"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CrlValidatedID"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CrlValidatedID"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CrlValidatedID GetInstance(object obj)
         {
             if (obj == null)
@@ -22,9 +27,17 @@ namespace Org.BouncyCastle.Asn1.Esf
             return new CrlValidatedID(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CrlValidatedID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlValidatedID"/>.</returns>
         public static CrlValidatedID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlValidatedID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CrlValidatedID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlValidatedID"/>.</returns>
         public static CrlValidatedID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlValidatedID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -44,21 +57,28 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="CrlValidatedID"/>.</summary>
+        /// <param name="crlHash">The crl hash.</param>
         public CrlValidatedID(OtherHash crlHash)
             : this(crlHash, null)
         {
         }
 
+        /// <summary>Create a new <see cref="CrlValidatedID"/>.</summary>
+        /// <param name="crlHash">The crl hash.</param>
+        /// <param name="crlIdentifier">The crl identifier.</param>
         public CrlValidatedID(OtherHash crlHash, CrlIdentifier crlIdentifier)
         {
             m_crlHash = crlHash ?? throw new ArgumentNullException(nameof(crlHash));
             m_crlIdentifier = crlIdentifier;
         }
 
+        /// <summary>Gets the crl hash.</summary>
         public OtherHash CrlHash => m_crlHash;
 
         public CrlIdentifier CrlIdentifier => m_crlIdentifier;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
