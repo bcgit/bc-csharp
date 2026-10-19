@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Bike
 
         public int R => r;
         public int RByte => (r + 7) / 8;
-        public int LByte => l / 8; 
+        public int LByte => l / 8;
         public int W => w;
         public int T => t;
         public int L => l;
