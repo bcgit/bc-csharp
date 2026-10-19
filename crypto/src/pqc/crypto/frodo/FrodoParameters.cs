@@ -86,4 +86,4 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         [Obsolete("Will be removed")]
         public FrodoMatrixGenerator MGen => mGen;
     }
-} 
+}
