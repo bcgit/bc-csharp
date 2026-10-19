@@ -16,11 +16,19 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class IssuerFingerprint
         : SignatureSubpacket
     {
+        /// <summary>Create a new <see cref="IssuerFingerprint"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public IssuerFingerprint(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.IssuerFingerprint, critical, isLongLength, VerifyData(data))
         {
         }
 
+        /// <summary>Create a new <see cref="IssuerFingerprint"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="keyVersion">The key version.</param>
+        /// <param name="fingerprint">The fingerprint.</param>
         public IssuerFingerprint(bool critical, int keyVersion, byte[] fingerprint)
             : base(SignatureSubpacketTag.IssuerFingerprint, critical, isLongLength: false,
                 Arrays.Prepend(fingerprint, (byte)keyVersion))
@@ -35,10 +43,13 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return data;
         }
 
+        /// <summary>Gets the key version.</summary>
         public int KeyVersion => Data[0];
 
+        /// <summary>Return the fingerprint.</summary>
         public byte[] GetFingerprint() => Arrays.CopyOfRange(Data, 1, Data.Length);
 
+        /// <summary>Return the key ID.</summary>
         public long GetKeyID() => FingerprintUtilities.KeyIDFromFingerprint(KeyVersion, GetFingerprint());
     }
 }

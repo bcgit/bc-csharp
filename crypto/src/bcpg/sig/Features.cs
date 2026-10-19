@@ -26,16 +26,26 @@ namespace Org.BouncyCastle.Bcpg.Sig
 
         private static byte[] FeatureToByteArray(byte feature) => new byte[1]{ feature };
 
+        /// <summary>Create a new <see cref="Features"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public Features(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.Features, critical, isLongLength, VerifyData(data))
         {
         }
 
+        /// <summary>Create a new <see cref="Features"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="features">The features.</param>
         public Features(bool critical, byte features)
             : this(critical, false, FeatureToByteArray(features))
         {
         }
 
+        /// <summary>Create a new <see cref="Features"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="features">The features.</param>
         public Features(bool critical, int features)
             : this(critical, false, FeatureToByteArray((byte)features))
         {
@@ -51,8 +61,10 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return data;
         }
 
+        /// <summary>Return the features.</summary>
         public byte GetFeatures() => Data[0];
 
+        /// <summary>Gets the supports modification detection.</summary>
         public bool SupportsModificationDetection => SupportsFeature(FEATURE_MODIFICATION_DETECTION);
 
         public bool SupportsSeipdV2() => SupportsFeature(FEATURE_SEIPD_V2);

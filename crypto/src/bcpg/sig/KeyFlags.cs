@@ -10,12 +10,19 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class KeyFlags
         : SignatureSubpacket
     {
+        /// <summary>The <c>CertifyOther</c> constant, with the value <c>0x01</c>.</summary>
         public const int CertifyOther = 0x01;
+        /// <summary>The <c>SignData</c> constant, with the value <c>0x02</c>.</summary>
         public const int SignData = 0x02;
+        /// <summary>The <c>EncryptComms</c> constant, with the value <c>0x04</c>.</summary>
         public const int EncryptComms = 0x04;
+        /// <summary>The <c>EncryptStorage</c> constant, with the value <c>0x08</c>.</summary>
         public const int EncryptStorage = 0x08;
+        /// <summary>The <c>Split</c> constant, with the value <c>0x10</c>.</summary>
         public const int Split = 0x10;
+        /// <summary>The <c>Authentication</c> constant, with the value <c>0x20</c>.</summary>
         public const int Authentication = 0x20;
+        /// <summary>The <c>Shared</c> constant, with the value <c>0x80</c>.</summary>
         public const int Shared = 0x80;
 
         private static int DataToFlags(byte[] data)
@@ -41,11 +48,18 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return data;
         }
 
+        /// <summary>Create a new <see cref="KeyFlags"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public KeyFlags(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.KeyFlags, critical, isLongLength, data)
         {
         }
 
+        /// <summary>Create a new <see cref="KeyFlags"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="flags">The flags.</param>
         public KeyFlags(bool critical, int flags)
             : base(SignatureSubpacketTag.KeyFlags, critical, isLongLength: false, FlagsToData(flags))
         {

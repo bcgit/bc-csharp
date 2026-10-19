@@ -19,18 +19,27 @@ namespace Org.BouncyCastle.Bcpg.Sig
         [Obsolete("Will be removed")]
         protected static byte[] KeyIdToBytes(long keyId) => Pack.UInt64_To_BE((ulong)keyId);
 
+        /// <summary>Create a new <see cref="IssuerKeyId"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public IssuerKeyId(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.IssuerKeyId, critical, isLongLength, data)
         {
         }
 
+        /// <summary>Create a new <see cref="IssuerKeyId"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="keyId">The key id.</param>
         public IssuerKeyId(bool critical, long keyId)
             : base(SignatureSubpacketTag.IssuerKeyId, critical, isLongLength: false, Pack.UInt64_To_BE((ulong)keyId))
         {
         }
 
+        /// <summary>Return the key ID.</summary>
         public long GetKeyID() => FingerprintUtilities.ReadKeyID(Data, 0);
 
+        /// <summary>Gets the key id.</summary>
         [Obsolete("Use 'GetKeyID' instead")]
         public long KeyId => GetKeyID();
     }

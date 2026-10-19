@@ -23,18 +23,26 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return Utilities.TimeToBytes((uint)t);
         }
 
+        /// <summary>Create a new <see cref="SignatureCreationTime"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public SignatureCreationTime(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.CreationTime, critical, isLongLength, data)
         {
         }
 
 #pragma warning disable CS0618 // Type or member is obsolete
+        /// <summary>Create a new <see cref="SignatureCreationTime"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="date">The date.</param>
         public SignatureCreationTime(bool critical, DateTime date)
             : base(SignatureSubpacketTag.CreationTime, critical, isLongLength: false, TimeToBytes(date))
         {
         }
 #pragma warning restore CS0618 // Type or member is obsolete
 
+        /// <summary>Return the time.</summary>
         public DateTime GetTime()
         {
             long time = Utilities.TimeFromBytes(Data);

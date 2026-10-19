@@ -16,18 +16,27 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class SignerUserId
         : SignatureSubpacket
     {
+        /// <summary>Create a new <see cref="SignerUserId"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public SignerUserId(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.SignerUserId, critical, isLongLength, data)
         {
         }
 
+        /// <summary>Create a new <see cref="SignerUserId"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="userId">The user id.</param>
         public SignerUserId(bool critical, string userId)
             : base(SignatureSubpacketTag.SignerUserId, critical, isLongLength: false, Strings.ToUtf8ByteArray(userId))
         {
         }
 
+        /// <summary>Return the id.</summary>
         public string GetId() => Strings.FromUtf8ByteArray(Data);
 
+        /// <summary>Return the raw id.</summary>
         public byte[] GetRawId() => GetData();
     }
 }

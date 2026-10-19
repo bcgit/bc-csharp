@@ -14,15 +14,27 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class NotationData
         : SignatureSubpacket
     {
+        /// <summary>The <c>HeaderFlagLength</c> constant, with the value <c>4</c>.</summary>
         public const int HeaderFlagLength = 4;
+        /// <summary>The <c>HeaderNameLength</c> constant, with the value <c>2</c>.</summary>
         public const int HeaderNameLength = 2;
+        /// <summary>The <c>HeaderValueLength</c> constant, with the value <c>2</c>.</summary>
         public const int HeaderValueLength = 2;
 
+        /// <summary>Create a new <see cref="NotationData"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public NotationData(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.NotationData, critical, isLongLength, VerifyData(data))
         {
         }
 
+        /// <summary>Create a new <see cref="NotationData"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="humanReadable">true if human readable, false otherwise.</param>
+        /// <param name="notationName">The notation name.</param>
+        /// <param name="notationValue">The notation value.</param>
         public NotationData(bool critical, bool humanReadable, string notationName, string notationValue)
             : base(SignatureSubpacketTag.NotationData, critical, isLongLength: false,
                 CreateData(humanReadable, notationName, notationValue))
@@ -90,8 +102,10 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return data;
         }
 
+        /// <summary>Gets a value indicating whether this is human readable.</summary>
         public bool IsHumanReadable => (Data[0] & 0x80) != 0;
 
+        /// <summary>Return the notation name.</summary>
         public string GetNotationName()
         {
             var data = Data;
@@ -101,6 +115,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return Strings.FromByteArray(data, namePos, nameLength);
         }
 
+        /// <summary>Return the notation value.</summary>
         public string GetNotationValue()
         {
             var data = Data;
@@ -111,6 +126,7 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return Strings.FromByteArray(data, valuePos, valueLength);
         }
 
+        /// <summary>Return the notation value bytes.</summary>
         public byte[] GetNotationValueBytes()
         {
             var data = Data;

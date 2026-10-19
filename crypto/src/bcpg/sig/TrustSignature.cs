@@ -14,11 +14,19 @@ namespace Org.BouncyCastle.Bcpg.Sig
     {
         private static byte[] IntToByteArray(int v1, int v2) => new byte[2]{ (byte)v1, (byte)v2 };
 
+        /// <summary>Create a new <see cref="TrustSignature"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public TrustSignature(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.TrustSig, critical, isLongLength, VerifyData(data))
         {
         }
 
+        /// <summary>Create a new <see cref="TrustSignature"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="depth">The depth.</param>
+        /// <param name="trustAmount">The trust amount.</param>
         public TrustSignature(bool critical, int depth, int trustAmount)
             : base(SignatureSubpacketTag.TrustSig, critical, isLongLength: false, IntToByteArray(depth, trustAmount))
         {
@@ -34,8 +42,10 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return data;
         }
 
+        /// <summary>Gets the depth.</summary>
         public int Depth => Data[0];
 
+        /// <summary>Gets the trust amount.</summary>
         public int TrustAmount => Data[1];
     }
 }

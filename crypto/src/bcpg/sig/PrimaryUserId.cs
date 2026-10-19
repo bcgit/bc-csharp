@@ -12,11 +12,18 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class PrimaryUserId
         : SignatureSubpacket
     {
+        /// <summary>Create a new <see cref="PrimaryUserId"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public PrimaryUserId(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.PrimaryUserId, critical, isLongLength, data)
         {
         }
 
+        /// <summary>Create a new <see cref="PrimaryUserId"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isPrimaryUserId">true if is primary user id, false otherwise.</param>
         public PrimaryUserId(bool critical, bool isPrimaryUserId)
             : base(SignatureSubpacketTag.PrimaryUserId, critical, isLongLength: false,
                 Utilities.BooleanToBytes(isPrimaryUserId))

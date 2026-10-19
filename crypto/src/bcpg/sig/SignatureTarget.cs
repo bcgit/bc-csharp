@@ -14,11 +14,20 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class SignatureTarget
         : SignatureSubpacket
     {
+        /// <summary>Create a new <see cref="SignatureTarget"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public SignatureTarget(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.SignatureTarget, critical, isLongLength, VerifyData(data))
         {
         }
 
+        /// <summary>Create a new <see cref="SignatureTarget"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="publicKeyAlgorithm">The public key algorithm.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="hashData">The hash data.</param>
         public SignatureTarget(bool critical, int publicKeyAlgorithm, int hashAlgorithm, byte[] hashData)
             : base(SignatureSubpacketTag.SignatureTarget, critical, isLongLength: false,
                   Arrays.Concatenate(new byte[]{ (byte)publicKeyAlgorithm, (byte)hashAlgorithm }, hashData))
@@ -35,10 +44,13 @@ namespace Org.BouncyCastle.Bcpg.Sig
             return data;
         }
 
+        /// <summary>Gets the public key algorithm.</summary>
         public int PublicKeyAlgorithm => Data[0];
 
+        /// <summary>Gets the hash algorithm.</summary>
         public int HashAlgorithm => Data[1];
 
+        /// <summary>Return the hash data.</summary>
         public byte[] GetHashData() => Arrays.CopyOfRange(Data, 2, Data.Length);
     }
 }

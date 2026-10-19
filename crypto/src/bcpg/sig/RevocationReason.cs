@@ -16,11 +16,19 @@ namespace Org.BouncyCastle.Bcpg
     public class RevocationReason
         : SignatureSubpacket
     {
+        /// <summary>Create a new <see cref="RevocationReason"/>.</summary>
+        /// <param name="isCritical">true if is critical, false otherwise.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public RevocationReason(bool isCritical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.RevocationReason, isCritical, isLongLength, VerifyData(data))
         {
         }
 
+        /// <summary>Create a new <see cref="RevocationReason"/>.</summary>
+        /// <param name="isCritical">true if is critical, false otherwise.</param>
+        /// <param name="reason">The reason.</param>
+        /// <param name="description">The description.</param>
         public RevocationReason(bool isCritical, RevocationReasonTag reason, string description)
             : base(SignatureSubpacketTag.RevocationReason, isCritical, isLongLength: false,
                 CreateData(reason, description))
@@ -44,8 +52,10 @@ namespace Org.BouncyCastle.Bcpg
             return data;
         }
 
+        /// <summary>Return the revocation reason.</summary>
         public virtual RevocationReasonTag GetRevocationReason() => (RevocationReasonTag)Data[0];
 
+        /// <summary>Return the revocation description.</summary>
         public virtual string GetRevocationDescription()
         {
             var data = Data;

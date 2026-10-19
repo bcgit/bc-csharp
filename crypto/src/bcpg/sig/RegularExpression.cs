@@ -21,6 +21,10 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class RegularExpression
         : SignatureSubpacket
     {
+        /// <summary>Create a new <see cref="RegularExpression"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public RegularExpression(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.RegExp, critical, isLongLength, data)
         {
@@ -28,16 +32,22 @@ namespace Org.BouncyCastle.Bcpg.Sig
                 throw new ArgumentException("data in regex missing null termination");
         }
 
+        /// <summary>Create a new <see cref="RegularExpression"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="regex">The regex.</param>
         public RegularExpression(bool critical, string regex)
             : base(SignatureSubpacketTag.RegExp, critical, isLongLength: false, ToNullTerminatedUtf8ByteArray(regex))
         {
         }
 
+        /// <summary>Gets the regex.</summary>
         [Obsolete("Use 'GetRegex()' instead")]
         public string Regex => Strings.FromUtf8ByteArray(Data, 0, Data.Length - 1);
 
+        /// <summary>Return the raw regex.</summary>
         public byte[] GetRawRegex() => GetData();
 
+        /// <summary>Return the regex.</summary>
         // last byte is null terminator
         public string GetRegex() => Strings.FromUtf8ByteArray(Data, 0, Data.Length - 1);
 

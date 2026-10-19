@@ -13,18 +13,27 @@ namespace Org.BouncyCastle.Bcpg.Sig
     public class PolicyUrl
         : SignatureSubpacket
     {
+        /// <summary>Create a new <see cref="PolicyUrl"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="url">The url.</param>
         public PolicyUrl(bool critical, string url)
             : this(critical, isLongLength: false, Strings.ToUtf8ByteArray(url))
         {
         }
 
+        /// <summary>Create a new <see cref="PolicyUrl"/>.</summary>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public PolicyUrl(bool critical, bool isLongLength, byte[] data)
             : base(SignatureSubpacketTag.PolicyUrl, critical, isLongLength, data)
         {
         }
 
+        /// <summary>Gets the url.</summary>
         public string Url => Strings.FromUtf8ByteArray(Data);
 
+        /// <summary>Return the raw url.</summary>
         public byte[] GetRawUrl() => GetData();
     }
 }

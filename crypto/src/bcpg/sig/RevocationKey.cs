@@ -16,6 +16,10 @@ namespace Org.BouncyCastle.Bcpg
     public class RevocationKey
         : SignatureSubpacket
     {
+        /// <summary>Create a new <see cref="RevocationKey"/>.</summary>
+        /// <param name="isCritical">true if is critical, false otherwise.</param>
+        /// <param name="isLongLength">true if is long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         // 1 octet of class,
         // 1 octet of public-key algorithm ID,
         // 20 octets of fingerprint
@@ -24,6 +28,11 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Create a new <see cref="RevocationKey"/>.</summary>
+        /// <param name="isCritical">true if is critical, false otherwise.</param>
+        /// <param name="signatureClass">The signature class.</param>
+        /// <param name="keyAlgorithm">The key algorithm.</param>
+        /// <param name="fingerprint">The fingerprint.</param>
         public RevocationKey(bool isCritical, RevocationKeyTag signatureClass, PublicKeyAlgorithmTag keyAlgorithm,
             byte[] fingerprint)
             : base(SignatureSubpacketTag.RevocationKey, isCritical, isLongLength: false,
@@ -52,10 +61,12 @@ namespace Org.BouncyCastle.Bcpg
             return data;
         }
 
+        /// <summary>Gets the signature class.</summary>
         public virtual RevocationKeyTag SignatureClass => (RevocationKeyTag)Data[0];
 
         public virtual PublicKeyAlgorithmTag Algorithm => (PublicKeyAlgorithmTag)Data[1];
 
+        /// <summary>Return the fingerprint.</summary>
         public virtual byte[] GetFingerprint() => Arrays.CopyOfRange(Data, 2, Data.Length);
     }
 }
