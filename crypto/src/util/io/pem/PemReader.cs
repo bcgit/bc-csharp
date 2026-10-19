@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Utilities.IO.Pem
         /// <returns>
         /// A <see cref="PemObject"/>
         /// </returns>
-        /// <exception cref="IOException"></exception>	
+        /// <exception cref="IOException"></exception>
         public PemObject ReadPemObject()
         {
             //
