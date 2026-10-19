@@ -247,13 +247,13 @@ namespace Org.BouncyCastle.Cms
                     /*
                      * Countersignature values have the same meaning as SignerInfo values
                      * for ordinary signatures, except that:
-                     * 
+                     *
                      *   1. The signedAttributes field MUST NOT contain a content-type
                      *      attribute; there is no content type for countersignatures.
-                     * 
+                     *
                      *   2. The signedAttributes field MUST contain a message-digest
                      *      attribute if it contains any other attributes.
-                     * 
+                     *
                      *   3. The input to the message-digesting process is the contents
                      *      octets of the DER encoding of the signatureValue field of the
                      *      SignerInfo value with which the attribute is associated.
@@ -382,7 +382,7 @@ namespace Org.BouncyCastle.Cms
 
                 /*
                  * TODO[cms] Note somewhat of a contradiction here for signed-attributes-present behaviour
-                 * 
+                 *
                  * draft-ietf-lamps-cms-sphincs-plus-19 4.
                  *
                  * When signed attributes are absent, the SLH-DSA (pure mode) signature is computed over the content.

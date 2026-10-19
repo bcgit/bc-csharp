@@ -89,17 +89,17 @@ namespace Org.BouncyCastle.Cms
 
                 // RFC 5084 ASN.1 Module
                 // -- Parameters for AlgorithmIdentifier
-                // 
+                //
                 // CCMParameters ::= SEQUENCE {
                 //   aes-nonce         OCTET STRING (SIZE(7..13)),
                 //   aes-ICVlen        AES-CCM-ICVlen DEFAULT 12 }
-                // 
+                //
                 // AES-CCM-ICVlen ::= INTEGER (4 | 6 | 8 | 10 | 12 | 14 | 16)
-                // 
+                //
                 // GCMParameters ::= SEQUENCE {
                 //   aes-nonce        OCTET STRING, -- recommended size is 12 octets
                 //   aes-ICVlen       AES-GCM-ICVlen DEFAULT 12 }
-                // 
+                //
                 // AES-GCM-ICVlen ::= INTEGER (12 | 13 | 14 | 15 | 16)
             }
         }
