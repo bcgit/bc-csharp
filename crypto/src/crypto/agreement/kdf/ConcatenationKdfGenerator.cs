@@ -42,7 +42,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 
         /// <summary>Fill <c>len</c> bytes of the output buffer with bytes generated from the derivation function.
         /// </summary>
-        public int GenerateBytes(byte[]	output, int outOff, int length)
+        public int GenerateBytes(byte[] output, int outOff, int length)
         {
             if (length <= 0)
                 throw new ArgumentException("must be > 0", nameof(length));

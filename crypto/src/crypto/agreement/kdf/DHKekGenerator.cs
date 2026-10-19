@@ -30,7 +30,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 
         public IDigest Digest => m_digest;
 
-        public int GenerateBytes(byte[]	outBytes, int outOff, int length)
+        public int GenerateBytes(byte[] outBytes, int outOff, int length)
         {
             Check.OutputLength(outBytes, outOff, length, "output buffer too short");
 
