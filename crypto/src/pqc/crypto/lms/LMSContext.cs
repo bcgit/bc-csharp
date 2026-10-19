@@ -4,9 +4,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
-    // TODO[api] Don't implement IDigest on promotion. The context absorbs a fixed prefix at construction and
-    // must be finalized exactly once, by OutputQ; only the update methods are meaningful, and the rest of
-    // IDigest exists here solely to let callers stream a message in.
+    /// <summary>The state for incrementally signing or verifying a message with LMS.</summary>
     public sealed class LmsContext
         : IDigest
     {

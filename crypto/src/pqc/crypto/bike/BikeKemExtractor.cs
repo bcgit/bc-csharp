@@ -3,6 +3,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>Extracts the shared secret from an encapsulation, for BIKE.</summary>
     public sealed class BikeKemExtractor
         : IEncapsulatedSecretExtractor
     {

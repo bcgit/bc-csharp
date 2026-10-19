@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>An LM-OTS private key.</summary>
     // TODO[api] Make internal
     public sealed class LMOtsPrivateKey
     {
@@ -26,6 +27,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             m_masterSecret = masterSecret;
         }
 
+        /// <summary>Create the context for signing a message with this key.</summary>
+        /// <param name="sigParams">The LMS signature parameters.</param>
+        /// <param name="path">The authentication path.</param>
+        /// <returns>The context.</returns>
         public LmsContext GetSignatureContext(LMSigParameters sigParams, byte[][] path)
         {
             byte[] C = new byte[m_parameters.N];

@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
+    /// <summary>A generator of Picnic key pairs.</summary>
     public class PicnicKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {

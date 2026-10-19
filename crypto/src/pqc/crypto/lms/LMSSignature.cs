@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>An LMS signature.</summary>
     // TODO[api] Make internal
     public class LmsSignature
         : IEncodable

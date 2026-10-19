@@ -19,6 +19,7 @@ using Org.BouncyCastle.Utilities;
 // </pre>
 namespace Org.BouncyCastle.Pqc.Asn1
 {
+    /// <summary>The ASN.1 structure of a Classic McEliece private key.</summary>
     // TODO[api] Should only be Asn1Encodable
     public class CmcePrivateKey
         : Asn1Object
@@ -119,6 +120,8 @@ namespace Org.BouncyCastle.Pqc.Asn1
         /// <summary>Gets the public key.</summary>
         public CmcePublicKey PublicKey => m_publicKey;
 
+        /// <summary>Convert this object to an ASN.1 primitive.</summary>
+        /// <returns>The ASN.1 object.</returns>
         public Asn1Object ToAsn1Primitive()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(7);

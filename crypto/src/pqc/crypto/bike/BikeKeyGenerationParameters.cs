@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>The parameters for generating BIKE keys.</summary>
     public sealed class BikeKeyGenerationParameters
         : KeyGenerationParameters
     {

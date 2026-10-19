@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>A BIKE private key.</summary>
     public sealed class BikePrivateKeyParameters
         : BikeKeyParameters
     {

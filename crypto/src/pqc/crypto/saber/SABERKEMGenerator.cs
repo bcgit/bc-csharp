@@ -4,6 +4,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
+    /// <summary>Generates a shared secret and its encapsulation for a public key, for SABER.</summary>
     public sealed class SaberKemGenerator
         : IEncapsulatedSecretGenerator
     {

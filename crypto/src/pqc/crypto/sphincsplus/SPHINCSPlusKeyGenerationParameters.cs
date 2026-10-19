@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
+    /// <summary>The parameters for generating SPHINCS+ keys.</summary>
     [Obsolete("Use SLH-DSA instead")]
     public sealed class SphincsPlusKeyGenerationParameters
         : KeyGenerationParameters

@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
+    /// <summary>A Picnic signer.</summary>
     public sealed class PicnicSigner
         : IMessageSigner
     {

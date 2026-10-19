@@ -2,6 +2,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
+    /// <summary>A SABER private key.</summary>
     public sealed class SaberPrivateKeyParameters
         : SaberKeyParameters
     {

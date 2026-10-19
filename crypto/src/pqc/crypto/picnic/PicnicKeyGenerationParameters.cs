@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
+    /// <summary>The parameters for generating Picnic keys.</summary>
     public class PicnicKeyGenerationParameters
         : KeyGenerationParameters
     {

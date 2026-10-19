@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>The derivation of the one-time signature seeds of an LMS tree from the root seed.</summary>
     // TODO[api] Make internal
     public sealed class SeedDerive
     {
@@ -36,7 +37,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
         /// <summary>Gets or sets the q.</summary>
         public int Q { get; set; }
 
-        // TODO[api] Refactor (at promotion) to match the bc-java param order (and overloads)
+        /// <summary>Derive a seed.</summary>
+        /// <param name="incJ">true to increment the counter j afterwards.</param>
+        /// <param name="target">The buffer to receive the seed.</param>
+        /// <param name="offset">The offset into <paramref name="target"/> at which to start writing.</param>
+        /// <returns>The target buffer.</returns>
         public byte[] DeriveSeed(bool incJ, byte[] target, int offset)
         {
             if (target.Length - offset < m_digest.GetDigestSize())

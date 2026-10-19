@@ -4,6 +4,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>Generates a shared secret and its encapsulation for a public key, for FrodoKEM.</summary>
     // TODO[api] FrodoKemGenerator
     public class FrodoKEMGenerator
         : IEncapsulatedSecretGenerator

@@ -8,6 +8,7 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>Base class for the generators of the public matrix A used by FrodoKEM.</summary>
     public abstract class FrodoMatrixGenerator
     {
         internal readonly int m_n;

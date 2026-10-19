@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
+    /// <summary>A generator of SABER key pairs.</summary>
     public class SaberKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {

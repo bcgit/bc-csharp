@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>An LMS public key together with the signature of its parent in an HSS hierarchy.</summary>
     // TODO[api] Make internal
     public class LmsSignedPubKey
         : IEncodable

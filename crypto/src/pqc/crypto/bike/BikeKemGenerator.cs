@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>Generates a shared secret and its encapsulation for a public key, for BIKE.</summary>
     public sealed class BikeKemGenerator
         : IEncapsulatedSecretGenerator
     {

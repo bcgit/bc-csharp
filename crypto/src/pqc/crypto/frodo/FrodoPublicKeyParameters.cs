@@ -2,6 +2,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>A FrodoKEM public key.</summary>
     public sealed class FrodoPublicKeyParameters
         : FrodoKeyParameters
     {

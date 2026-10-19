@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>Base class for BIKE keys.</summary>
     public abstract class BikeKeyParameters
         : AsymmetricKeyParameter
     {

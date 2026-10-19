@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
+    /// <summary>A generator of NTRU LPRime key pairs.</summary>
     public class NtruLPRimeKeyPairGenerator
     {
         private NtruLPRimeKeyGenerationParameters _ntruPrimeParams;
@@ -36,11 +37,15 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return new AsymmetricCipherKeyPair(pubKey, privKey);
         }
 
+        /// <summary>Initialise the generator.</summary>
+        /// <param name="param">The key generation parameters.</param>
         public void Init(KeyGenerationParameters param)
         {
             this.Initialize(param);
         }
 
+        /// <summary>Generate a key pair.</summary>
+        /// <returns>The key pair.</returns>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             return GenKeyPair();

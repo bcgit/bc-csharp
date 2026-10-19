@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Bike
 {
+    /// <summary>A generator of BIKE key pairs.</summary>
     public sealed class BikeKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {

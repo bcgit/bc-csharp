@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1.BC;
 
 namespace Org.BouncyCastle.Pqc.Asn1
 {
+    /// <summary>Object identifiers of post-quantum algorithms.</summary>
     public static class PqcObjectIdentifiers
     {
         /** 1.3.6.1.4.1.8301.3.1.3.5.3.2 */

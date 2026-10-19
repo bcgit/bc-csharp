@@ -3,6 +3,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>Base class for LMS keys.</summary>
     public abstract class LmsKeyParameters
         : AsymmetricKeyParameter, IEncodable
     {

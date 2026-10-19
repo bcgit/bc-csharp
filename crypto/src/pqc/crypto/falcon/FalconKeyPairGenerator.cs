@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
+    /// <summary>A generator of Falcon key pairs.</summary>
     public class FalconKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {

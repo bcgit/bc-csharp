@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>An HSS public key.</summary>
     public sealed class HssPublicKeyParameters
         : LmsKeyParameters, ILmsContextBasedVerifier
     {

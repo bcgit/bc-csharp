@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
+    /// <summary>Generates a shared secret and its encapsulation for a public key, for NTRU LPRime.</summary>
     public class NtruLPRimeKemGenerator : IEncapsulatedSecretGenerator
     {
         private SecureRandom sr;
@@ -27,6 +28,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
             return new NtruLPRimeKemGenerator.SecretWithEncapsulationImpl(sessionKey, cipherText);
         }
 
+        /// <summary>A shared secret together with its encapsulation.</summary>
         // TODO[api] private sealed
         public class SecretWithEncapsulationImpl : ISecretWithEncapsulation
         {
@@ -57,12 +59,17 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 return Arrays.Clone(cipherText);
             }
 
+            /// <summary>Destroy the secret.</summary>
             public void Dispose()
             {
                 Dispose(disposing: true);
                 GC.SuppressFinalize(this);
             }
 
+            /// <summary>Destroy the secret.</summary>
+            /// <param name="disposing">
+            /// true when called from <c>Dispose</c>, false when called from a finalizer.
+            /// </param>
             protected virtual void Dispose(bool disposing)
             {
                 if (disposing)
@@ -76,6 +83,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
                 }
             }
 
+            /// <summary>Determine whether the secret has been destroyed.</summary>
+            /// <returns>true if it has been destroyed, false otherwise.</returns>
             public bool IsDestroyed()
             {
                 return hasBeenDestroyed;

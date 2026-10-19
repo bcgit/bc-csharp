@@ -10,6 +10,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>An LMS private key.</summary>
     public sealed class LmsPrivateKeyParameters
         : LmsKeyParameters, ILmsContextBasedSigner
     {
@@ -221,7 +222,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             }
         }
 
-        /// <summary>Parse a <see cref="LmsPrivateKeyParameters"/> from its encoded private key and public key.</summary>
+        /// <summary>
+        /// Parse a <see cref="LmsPrivateKeyParameters"/> from its encoded private key and public key.
+        /// </summary>
         /// <param name="privEnc">The encoded private key.</param>
         /// <param name="pubEnc">The encoded public key.</param>
         /// <returns>The parsed <see cref="LmsPrivateKeyParameters"/>.</returns>

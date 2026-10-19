@@ -24,6 +24,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Utilities
 {
+    /// <summary>Factory for creating post-quantum public key objects from X.509 structures.</summary>
     public static class PqcPublicKeyFactory
     {
         private delegate AsymmetricKeyParameter Converter(SubjectPublicKeyInfo keyInfo, object defaultParams);

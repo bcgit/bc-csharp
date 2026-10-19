@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>Extracts the shared secret from an encapsulation, for FrodoKEM.</summary>
     // TODO[api] FrodoKemExtractor
     public class FrodoKEMExtractor
             : IEncapsulatedSecretExtractor

@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 {
+    /// <summary>A SPHINCS+ private key.</summary>
     [Obsolete("Use SLH-DSA instead")]
     public sealed class SphincsPlusPrivateKeyParameters
         : SphincsPlusKeyParameters

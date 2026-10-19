@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>The parameter sets of FrodoKEM.</summary>
     public sealed class FrodoParameters
         : ICipherParameters
     {
@@ -13,27 +14,39 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
         private static readonly short[] cdf_table976  = {5638, 15915, 23689, 28571, 31116, 32217, 32613, 32731, 32760, 32766, 32767};
         private static readonly short[] cdf_table1344 = {9142, 23462, 30338, 32361, 32725, 32765, 32767};
 
+        /// <summary>The FrodoKEM-640 parameter set with AES matrix generation.</summary>
         public static readonly FrodoParameters frodokem640aes = new FrodoParameters("frodokem19888", 640, 15, 2, cdf_table640, new ShakeDigest(128), new FrodoMatrixGenerator.Aes128MatrixGenerator(640, (1 << 15)));
+        /// <summary>The FrodoKEM-640 parameter set with SHAKE matrix generation.</summary>
         public static readonly FrodoParameters frodokem640shake = new FrodoParameters("frodokem19888shake", 640, 15, 2, cdf_table640, new ShakeDigest(128), new FrodoMatrixGenerator.Shake128MatrixGenerator(640, (1 << 15)));
 
+        /// <summary>The FrodoKEM-976 parameter set with AES matrix generation.</summary>
         public static readonly FrodoParameters frodokem976aes = new FrodoParameters("frodokem31296", 976, 16, 3, cdf_table976, new ShakeDigest(256), new FrodoMatrixGenerator.Aes128MatrixGenerator(976, (1 << 16)));
+        /// <summary>The FrodoKEM-976 parameter set with SHAKE matrix generation.</summary>
         public static readonly FrodoParameters frodokem976shake = new FrodoParameters("frodokem31296shake", 976, 16, 3, cdf_table976, new ShakeDigest(256), new FrodoMatrixGenerator.Shake128MatrixGenerator(976, (1 << 16)));
 
+        /// <summary>The FrodoKEM-1344 parameter set with AES matrix generation.</summary>
         public static readonly FrodoParameters frodokem1344aes = new FrodoParameters("frodokem43088", 1344, 16, 4, cdf_table1344, new ShakeDigest(256), new FrodoMatrixGenerator.Aes128MatrixGenerator(1344, (1 << 16)));
+        /// <summary>The FrodoKEM-1344 parameter set with SHAKE matrix generation.</summary>
         public static readonly FrodoParameters frodokem1344shake = new FrodoParameters("frodokem43088shake", 1344, 16, 4, cdf_table1344, new ShakeDigest(256), new FrodoMatrixGenerator.Shake128MatrixGenerator(1344, (1 << 16)));
 
+        /// <summary>The <c>frodokem19888r3</c> parameter set.</summary>
         [Obsolete("Use 'frodokem640aes' instead")]
         public static FrodoParameters frodokem19888r3 = frodokem640aes;
+        /// <summary>The <c>frodokem19888shaker3</c> parameter set.</summary>
         [Obsolete("Use 'frodokem640shake' instead")]
         public static FrodoParameters frodokem19888shaker3 = frodokem640shake;
 
+        /// <summary>The <c>frodokem31296r3</c> parameter set.</summary>
         [Obsolete("Use 'frodokem976aes' instead")]
         public static FrodoParameters frodokem31296r3 = frodokem976aes;
+        /// <summary>The <c>frodokem31296shaker3</c> parameter set.</summary>
         [Obsolete("Use 'frodokem976shake' instead")]
         public static FrodoParameters frodokem31296shaker3 = frodokem976shake;
 
+        /// <summary>The <c>frodokem43088r3</c> parameter set.</summary>
         [Obsolete("Use 'frodokem1344aes' instead")]
         public static FrodoParameters frodokem43088r3 = frodokem1344aes;
+        /// <summary>The <c>frodokem43088shaker3</c> parameter set.</summary>
         [Obsolete("Use 'frodokem1344shake' instead")]
         public static FrodoParameters frodokem43088shaker3 = frodokem1344shake;
 

@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
+    /// <summary>Base class for Picnic keys.</summary>
     public abstract class PicnicKeyParameters
         : AsymmetricKeyParameter
     {

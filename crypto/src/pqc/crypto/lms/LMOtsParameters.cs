@@ -10,26 +10,43 @@ using NistOids = Org.BouncyCastle.Asn1.Nist.NistObjectIdentifiers;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>The LM-OTS (Leighton-Micali one-time signature) parameter sets.</summary>
     public sealed class LMOtsParameters
     {
+        /// <summary>The LM-OTS parameter set using SHA-256 with n = 32 and Winternitz parameter w = 1.</summary>
         public static readonly LMOtsParameters sha256_n32_w1 = Create(1, 32, 1, NistOids.IdSha256);
+        /// <summary>The LM-OTS parameter set using SHA-256 with n = 32 and Winternitz parameter w = 2.</summary>
         public static readonly LMOtsParameters sha256_n32_w2 = Create(2, 32, 2, NistOids.IdSha256);
+        /// <summary>The LM-OTS parameter set using SHA-256 with n = 32 and Winternitz parameter w = 4.</summary>
         public static readonly LMOtsParameters sha256_n32_w4 = Create(3, 32, 4, NistOids.IdSha256);
+        /// <summary>The LM-OTS parameter set using SHA-256 with n = 32 and Winternitz parameter w = 8.</summary>
         public static readonly LMOtsParameters sha256_n32_w8 = Create(4, 32, 8, NistOids.IdSha256);
 
+        /// <summary>The LM-OTS parameter set using SHA-256 with n = 24 and Winternitz parameter w = 1.</summary>
         public static readonly LMOtsParameters sha256_n24_w1 = Create(5, 24, 1, NistOids.IdSha256);
+        /// <summary>The LM-OTS parameter set using SHA-256 with n = 24 and Winternitz parameter w = 2.</summary>
         public static readonly LMOtsParameters sha256_n24_w2 = Create(6, 24, 2, NistOids.IdSha256);
+        /// <summary>The LM-OTS parameter set using SHA-256 with n = 24 and Winternitz parameter w = 4.</summary>
         public static readonly LMOtsParameters sha256_n24_w4 = Create(7, 24, 4, NistOids.IdSha256);
+        /// <summary>The LM-OTS parameter set using SHA-256 with n = 24 and Winternitz parameter w = 8.</summary>
         public static readonly LMOtsParameters sha256_n24_w8 = Create(8, 24, 8, NistOids.IdSha256);
 
+        /// <summary>The LM-OTS parameter set using SHAKE256 with n = 32 and Winternitz parameter w = 1.</summary>
         public static readonly LMOtsParameters shake256_n32_w1 = Create(9, 32, 1, NistOids.IdShake256Len);
+        /// <summary>The LM-OTS parameter set using SHAKE256 with n = 32 and Winternitz parameter w = 2.</summary>
         public static readonly LMOtsParameters shake256_n32_w2 = Create(10, 32, 2, NistOids.IdShake256Len);
+        /// <summary>The LM-OTS parameter set using SHAKE256 with n = 32 and Winternitz parameter w = 4.</summary>
         public static readonly LMOtsParameters shake256_n32_w4 = Create(11, 32, 4, NistOids.IdShake256Len);
+        /// <summary>The LM-OTS parameter set using SHAKE256 with n = 32 and Winternitz parameter w = 8.</summary>
         public static readonly LMOtsParameters shake256_n32_w8 = Create(12, 32, 8, NistOids.IdShake256Len);
 
+        /// <summary>The LM-OTS parameter set using SHAKE256 with n = 24 and Winternitz parameter w = 1.</summary>
         public static readonly LMOtsParameters shake256_n24_w1 = Create(13, 24, 1, NistOids.IdShake256Len);
+        /// <summary>The LM-OTS parameter set using SHAKE256 with n = 24 and Winternitz parameter w = 2.</summary>
         public static readonly LMOtsParameters shake256_n24_w2 = Create(14, 24, 2, NistOids.IdShake256Len);
+        /// <summary>The LM-OTS parameter set using SHAKE256 with n = 24 and Winternitz parameter w = 4.</summary>
         public static readonly LMOtsParameters shake256_n24_w4 = Create(15, 24, 4, NistOids.IdShake256Len);
+        /// <summary>The LM-OTS parameter set using SHAKE256 with n = 24 and Winternitz parameter w = 8.</summary>
         public static readonly LMOtsParameters shake256_n24_w8 = Create(16, 24, 8, NistOids.IdShake256Len);
 
         private static Dictionary<int, LMOtsParameters> ParametersByID = new Dictionary<int, LMOtsParameters>
@@ -55,6 +72,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Lms
             { shake256_n24_w8.ID, shake256_n24_w8 },
         };
 
+        /// <summary>Get a parameter set by its identifier.</summary>
+        /// <param name="id">The identifier.</param>
+        /// <returns>The parameter set, or null if the identifier is not known.</returns>
         public static LMOtsParameters GetParametersByID(int id) =>
             CollectionUtilities.GetValueOrNull(ParametersByID, id);
 

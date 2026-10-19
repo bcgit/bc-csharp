@@ -2,6 +2,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Picnic
 {
+    /// <summary>A Picnic private key.</summary>
     public sealed class PicnicPrivateKeyParameters
         : PicnicKeyParameters
     {

@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>A generator of HSS key pairs.</summary>
     public sealed class HssKeyPairGenerator
         : IAsymmetricCipherKeyPairGenerator
     {

@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
+    /// <summary>Extracts the shared secret from an encapsulation, for SABER.</summary>
     public sealed class SaberKemExtractor
         : IEncapsulatedSecretExtractor
     {

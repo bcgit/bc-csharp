@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
+    /// <summary>A Falcon private key.</summary>
     public sealed class FalconPrivateKeyParameters
         : FalconKeyParameters
     {

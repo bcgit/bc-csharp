@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>The parameters for generating HSS keys.</summary>
     public sealed class HssKeyGenerationParameters
         : KeyGenerationParameters
     {

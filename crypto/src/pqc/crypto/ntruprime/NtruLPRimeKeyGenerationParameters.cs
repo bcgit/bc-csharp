@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
+    /// <summary>The parameters for generating NTRU LPRime keys.</summary>
     public class NtruLPRimeKeyGenerationParameters : KeyGenerationParameters
     {
         private NtruLPRimeParameters _primeParameters;

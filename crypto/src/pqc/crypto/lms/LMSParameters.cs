@@ -2,6 +2,7 @@ using System;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>The LMS and LM-OTS parameter set pair of an LMS key.</summary>
     public sealed class LmsParameters
     {
         /// <summary>

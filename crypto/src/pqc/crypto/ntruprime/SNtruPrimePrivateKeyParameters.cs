@@ -2,6 +2,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
+    /// <summary>A Streamlined NTRU Prime private key.</summary>
     public sealed class SNtruPrimePrivateKeyParameters
         : SNtruPrimeKeyParameters
     {

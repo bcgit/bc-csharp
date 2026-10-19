@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>The parameters for generating FrodoKEM keys.</summary>
     public class FrodoKeyGenerationParameters
         : KeyGenerationParameters
     {

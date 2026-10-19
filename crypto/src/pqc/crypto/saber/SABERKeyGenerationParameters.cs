@@ -3,6 +3,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
+    /// <summary>The parameters for generating SABER keys.</summary>
     public sealed class SaberKeyGenerationParameters
         : KeyGenerationParameters
     {

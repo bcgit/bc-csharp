@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Frodo
 {
+    /// <summary>The FrodoKEM engine.</summary>
     public class FrodoEngine
     {
         // constant parameters
@@ -198,6 +199,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return output;
         }
 
+        /// <summary>Generate a key pair.</summary>
+        /// <param name="pk">The buffer to receive the public key.</param>
+        /// <param name="sk">The buffer to receive the private key.</param>
+        /// <param name="random">The source of randomness.</param>
         public void kem_keypair(byte[] pk, byte[] sk, SecureRandom random)
         {
             // 1. Choose uniformly random seeds s || seedSE || z
@@ -334,6 +339,11 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return K;
         }
 
+        /// <summary>Encapsulate a shared secret.</summary>
+        /// <param name="ct">The buffer to receive the ciphertext.</param>
+        /// <param name="ss">The buffer to receive the shared secret.</param>
+        /// <param name="pk">The public key.</param>
+        /// <param name="random">The source of randomness.</param>
         public void kem_enc(byte[] ct, byte[] ss, byte[] pk, SecureRandom random)
         {
             // Parse pk = seedA || b
@@ -446,6 +456,10 @@ namespace Org.BouncyCastle.Pqc.Crypto.Frodo
             return output;
         }
 
+        /// <summary>Decapsulate a shared secret.</summary>
+        /// <param name="ss">The buffer to receive the shared secret.</param>
+        /// <param name="ct">The ciphertext.</param>
+        /// <param name="sk">The private key.</param>
         public void kem_dec(byte[] ss, byte[] ct, byte[] sk)
         {
             // Parse ct = c1 || c2

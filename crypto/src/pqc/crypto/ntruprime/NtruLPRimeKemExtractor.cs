@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
+    /// <summary>Extracts the shared secret from an encapsulation, for NTRU LPRime.</summary>
     public class NtruLPRimeKemExtractor : IEncapsulatedSecretExtractor
     {
         private NtruPrimeEngine _primeEngine;

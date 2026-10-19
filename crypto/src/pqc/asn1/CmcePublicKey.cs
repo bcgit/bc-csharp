@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Asn1
 {
+    /// <summary>The ASN.1 structure of a Classic McEliece public key.</summary>
     // TODO[api] Should only be Asn1Encodable
     public class CmcePublicKey
         : Asn1Object
@@ -95,6 +96,8 @@ namespace Org.BouncyCastle.Pqc.Asn1
         /// <summary>Gets the t.</summary>
         public byte[] T => Arrays.Clone(m_t.GetOctets());
 
+        /// <summary>Convert this object to an ASN.1 primitive.</summary>
+        /// <returns>The ASN.1 object.</returns>
         public Asn1Object ToAsn1Primitive() => new DerSequence(m_t);
 
         internal override IAsn1Encoding GetEncoding(int encoding)

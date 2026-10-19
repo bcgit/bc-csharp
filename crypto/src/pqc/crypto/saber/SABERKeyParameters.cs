@@ -2,6 +2,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Saber
 {
+    /// <summary>Base class for SABER keys.</summary>
     public abstract class SaberKeyParameters
         : AsymmetricKeyParameter
     {

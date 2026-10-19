@@ -2,10 +2,13 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
+    /// <summary>The parameter sets of Falcon.</summary>
     public sealed class FalconParameters
         : ICipherParameters
     {
+        /// <summary>The Falcon parameter set with degree 512.</summary>
         public static readonly FalconParameters falcon_512 = new FalconParameters("falcon512", 9, 40);
+        /// <summary>The Falcon parameter set with degree 1024.</summary>
         public static readonly FalconParameters falcon_1024 = new FalconParameters("falcon1024", 10, 40);
 
         private readonly string m_name;

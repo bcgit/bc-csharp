@@ -103,6 +103,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return GetEncoded(m_aKp.Public);
             }
 
+            /// <summary>Generate the OtherInfo structure of the responder, completing the exchange.</summary>
+            /// <param name="suppPrivInfoPartB">The private information supplied by the responder.</param>
+            /// <returns>The OtherInfo.</returns>
             public DerOtherInfo Generate(byte[] suppPrivInfoPartB)
             {
                 m_otherInfoBuilder.WithSuppPrivInfo(m_encSE.ExtractSecret(suppPrivInfoPartB));
@@ -159,6 +162,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return this;
             }
 
+            /// <summary>Get the private information (part B) that the responder sends back to the initiator.</summary>
+            /// <param name="suppPrivInfoPartA">The private information (part A) from the initiator.</param>
+            /// <returns>The part B information.</returns>
             public byte[] GetSuppPrivInfoPartB(byte[] suppPrivInfoPartA)
             {
                 m_used = false;
@@ -177,6 +183,8 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 }
             }
 
+            /// <summary>Generate the OtherInfo structure.</summary>
+            /// <returns>The OtherInfo.</returns>
             public DerOtherInfo Generate()
             {
                 if (m_used)

@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
+    /// <summary>A signer for Falcon.</summary>
     public class FalconSigner
         : IMessageSigner
     {

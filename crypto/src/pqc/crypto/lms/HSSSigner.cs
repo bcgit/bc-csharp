@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>A signer for HSS.</summary>
     public sealed class HssSigner
         : IMessageSigner
     {

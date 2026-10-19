@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Falcon
 {
+    /// <summary>The parameters for generating Falcon keys.</summary>
     public class FalconKeyGenerationParameters
         : KeyGenerationParameters
     {

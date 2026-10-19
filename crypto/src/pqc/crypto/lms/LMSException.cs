@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.Lms
 {
+    /// <summary>Exception thrown on errors in LMS and HSS operations.</summary>
     // TODO[api] Make internal
     [Serializable]
     public class LmsException

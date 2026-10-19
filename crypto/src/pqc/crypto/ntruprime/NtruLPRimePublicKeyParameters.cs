@@ -2,6 +2,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pqc.Crypto.NtruPrime
 {
+    /// <summary>An NTRU LPRime public key.</summary>
     public sealed class NtruLPRimePublicKeyParameters
         : NtruLPRimeKeyParameters
     {
