@@ -29,6 +29,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AltSignatureValue
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="AltSignatureValue"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AltSignatureValue"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AltSignatureValue"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AltSignatureValue GetInstance(object obj)
         {
             if (obj == null)
@@ -38,9 +43,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AltSignatureValue(DerBitString.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="AltSignatureValue"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AltSignatureValue"/>.</returns>
         public static AltSignatureValue GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AltSignatureValue(DerBitString.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="AltSignatureValue"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AltSignatureValue"/>.</returns>
         public static AltSignatureValue GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AltSignatureValue(DerBitString.GetTagged(taggedObject, declaredExplicit));
 
@@ -51,25 +64,33 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private readonly DerBitString m_signature;
 
+        /// <summary>Create a new <see cref="AltSignatureValue"/>.</summary>
+        /// <param name="signature">The signature.</param>
         public AltSignatureValue(DerBitString signature)
         {
             m_signature = signature ?? throw new ArgumentNullException(nameof(signature));
         }
 
+        /// <summary>Create a new <see cref="AltSignatureValue"/>.</summary>
+        /// <param name="signature">The signature.</param>
         public AltSignatureValue(byte[] signature)
         {
             m_signature = new DerBitString(signature);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a new <see cref="AltSignatureValue"/>.</summary>
+        /// <param name="signature">The signature.</param>
         public AltSignatureValue(ReadOnlySpan<byte> signature)
         {
             m_signature = new DerBitString(signature);
         }
 #endif
 
+        /// <summary>Gets the signature.</summary>
         public DerBitString Signature => m_signature;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_signature;
     }
 }

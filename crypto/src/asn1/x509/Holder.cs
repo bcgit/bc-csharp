@@ -35,6 +35,9 @@ namespace Org.BouncyCastle.Asn1.X509
     public class Holder
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="Holder"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="Holder"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="Holder"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Holder GetInstance(object obj)
         {
             if (obj == null)
@@ -47,9 +50,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new Holder(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Holder"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Holder"/>.</returns>
         public static Holder GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Holder(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Holder"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Holder"/>.</returns>
         public static Holder GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Holder(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -102,6 +113,8 @@ namespace Org.BouncyCastle.Asn1.X509
             m_version = 1;
         }
 
+        /// <summary>Create a new <see cref="Holder"/>.</summary>
+        /// <param name="baseCertificateID">The base certificate ID.</param>
         public Holder(IssuerSerial baseCertificateID)
             : this(baseCertificateID, 1)
         {
@@ -160,6 +173,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_version = 1;
         }
 
+        /// <summary>Gets the base certificate ID.</summary>
         public IssuerSerial BaseCertificateID => m_baseCertificateID;
 
         /**

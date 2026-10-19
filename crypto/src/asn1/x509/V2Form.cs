@@ -2,9 +2,13 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>The V2Form structure of RFC 5755.</summary>
     public class V2Form
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="V2Form"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="V2Form"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="V2Form"/>, or null if <paramref name="obj"/> is null.</returns>
         public static V2Form GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +18,16 @@ namespace Org.BouncyCastle.Asn1.X509
             return new V2Form(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="V2Form"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="V2Form"/>.</returns>
         public static V2Form GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new V2Form(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="V2Form"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="V2Form"/>, or null if <paramref name="element"/> is null.</returns>
         public static V2Form GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -32,6 +43,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="V2Form"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="V2Form"/>.</returns>
         public static V2Form GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new V2Form(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -53,21 +68,33 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="V2Form"/>.</summary>
+        /// <param name="issuerName">The issuer name.</param>
         public V2Form(GeneralNames issuerName)
             : this(issuerName, null, null)
         {
         }
 
+        /// <summary>Create a new <see cref="V2Form"/>.</summary>
+        /// <param name="issuerName">The issuer name.</param>
+        /// <param name="baseCertificateID">The base certificate ID.</param>
         public V2Form(GeneralNames issuerName, IssuerSerial baseCertificateID)
             : this(issuerName, baseCertificateID, null)
         {
         }
 
+        /// <summary>Create a new <see cref="V2Form"/>.</summary>
+        /// <param name="issuerName">The issuer name.</param>
+        /// <param name="objectDigestInfo">The object digest info.</param>
         public V2Form(GeneralNames issuerName, ObjectDigestInfo objectDigestInfo)
             : this(issuerName, null, objectDigestInfo)
         {
         }
 
+        /// <summary>Create a new <see cref="V2Form"/>.</summary>
+        /// <param name="issuerName">The issuer name.</param>
+        /// <param name="baseCertificateID">The base certificate ID.</param>
+        /// <param name="objectDigestInfo">The object digest info.</param>
         public V2Form(GeneralNames issuerName, IssuerSerial baseCertificateID, ObjectDigestInfo objectDigestInfo)
         {
             m_issuerName = issuerName;
@@ -75,8 +102,10 @@ namespace Org.BouncyCastle.Asn1.X509
             m_objectDigestInfo = objectDigestInfo;
         }
 
+        /// <summary>Gets the issuer name.</summary>
         public GeneralNames IssuerName => m_issuerName;
 
+        /// <summary>Gets the base certificate ID.</summary>
         public IssuerSerial BaseCertificateID => m_baseCertificateID;
 
         public ObjectDigestInfo ObjectDigestInfo => m_objectDigestInfo;

@@ -19,6 +19,9 @@ namespace Org.BouncyCastle.Asn1.X509
     public class UserNotice
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="UserNotice"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="UserNotice"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="UserNotice"/>, or null if <paramref name="obj"/> is null.</returns>
         public static UserNotice GetInstance(object obj)
         {
             if (obj == null)
@@ -28,9 +31,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new UserNotice(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="UserNotice"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="UserNotice"/>.</returns>
         public static UserNotice GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new UserNotice(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="UserNotice"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="UserNotice"/>.</returns>
         public static UserNotice GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new UserNotice(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -75,8 +86,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public virtual NoticeReference NoticeRef => m_noticeRef;
 
+        /// <summary>Gets the explicit text.</summary>
         public virtual DisplayText ExplicitText => m_explicitText;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);

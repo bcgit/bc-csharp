@@ -11,6 +11,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class SubjectPublicKeyInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SubjectPublicKeyInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SubjectPublicKeyInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SubjectPublicKeyInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SubjectPublicKeyInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -20,9 +25,16 @@ namespace Org.BouncyCastle.Asn1.X509
             return new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SubjectPublicKeyInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SubjectPublicKeyInfo"/>.</returns>
         public static SubjectPublicKeyInfo GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new SubjectPublicKeyInfo(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="SubjectPublicKeyInfo"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="SubjectPublicKeyInfo"/>, or null if <paramref name="element"/> is null.</returns>
         public static SubjectPublicKeyInfo GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -38,24 +50,37 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="SubjectPublicKeyInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SubjectPublicKeyInfo"/>.</returns>
         public static SubjectPublicKeyInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SubjectPublicKeyInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly AlgorithmIdentifier m_algorithm;
         private readonly DerBitString m_publicKey;
 
+        /// <summary>Create a new <see cref="SubjectPublicKeyInfo"/>.</summary>
+        /// <param name="algID">The alg ID.</param>
+        /// <param name="publicKey">The public key.</param>
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, DerBitString publicKey)
         {
             m_algorithm = algID;
             m_publicKey = publicKey;
         }
 
+        /// <summary>Create a new <see cref="SubjectPublicKeyInfo"/>.</summary>
+        /// <param name="algID">The alg ID.</param>
+        /// <param name="publicKey">The public key.</param>
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, Asn1Encodable publicKey)
         {
             m_algorithm = algID;
             m_publicKey = new DerBitString(publicKey);
         }
 
+        /// <summary>Create a new <see cref="SubjectPublicKeyInfo"/>.</summary>
+        /// <param name="algID">The alg ID.</param>
+        /// <param name="publicKey">The public key.</param>
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, byte[] publicKey)
         {
             m_algorithm = algID;
@@ -63,6 +88,9 @@ namespace Org.BouncyCastle.Asn1.X509
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Create a new <see cref="SubjectPublicKeyInfo"/>.</summary>
+        /// <param name="algID">The alg ID.</param>
+        /// <param name="publicKey">The public key.</param>
         public SubjectPublicKeyInfo(AlgorithmIdentifier algID, ReadOnlySpan<byte> publicKey)
         {
             m_algorithm = algID;
@@ -85,6 +113,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public AlgorithmIdentifier Algorithm => m_algorithm;
 
+        /// <summary>Gets the algorithm ID.</summary>
         [Obsolete("Use 'Algorithm' instead")]
         public AlgorithmIdentifier AlgorithmID => m_algorithm;
 

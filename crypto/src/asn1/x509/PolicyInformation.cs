@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>The PolicyInformation structure of RFC 5280.</summary>
     public class PolicyInformation
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PolicyInformation"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PolicyInformation"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PolicyInformation"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PolicyInformation GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new PolicyInformation(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PolicyInformation"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PolicyInformation"/>.</returns>
         public static PolicyInformation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PolicyInformation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PolicyInformation"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PolicyInformation"/>.</returns>
         public static PolicyInformation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PolicyInformation(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -36,19 +50,26 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="PolicyInformation"/>.</summary>
+        /// <param name="policyIdentifier">The policy identifier.</param>
         public PolicyInformation(DerObjectIdentifier policyIdentifier)
             : this(policyIdentifier, null)
         {
         }
 
+        /// <summary>Create a new <see cref="PolicyInformation"/>.</summary>
+        /// <param name="policyIdentifier">The policy identifier.</param>
+        /// <param name="policyQualifiers">The policy qualifiers.</param>
         public PolicyInformation(DerObjectIdentifier policyIdentifier, Asn1Sequence policyQualifiers)
         {
             m_policyIdentifier = policyIdentifier ?? throw new ArgumentNullException(nameof(policyIdentifier));
             m_policyQualifiers = policyQualifiers;
         }
 
+        /// <summary>Gets the policy identifier.</summary>
         public DerObjectIdentifier PolicyIdentifier => m_policyIdentifier;
 
+        /// <summary>Gets the policy qualifiers.</summary>
         public Asn1Sequence PolicyQualifiers => m_policyQualifiers;
 
         /*

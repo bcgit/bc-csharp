@@ -37,25 +37,34 @@ namespace Org.BouncyCastle.Asn1.X509
         private DerBitString issuerUniqueID;
         private DerBitString subjectUniqueID;
 
+        /// <summary>Create a new <see cref="V3TbsCertificateGenerator"/>.</summary>
         public V3TbsCertificateGenerator()
         {
         }
 
+        /// <summary>Set the serial number.</summary>
+        /// <param name="serialNumber">The serial number.</param>
         public void SetSerialNumber(DerInteger serialNumber)
         {
             this.serialNumber = serialNumber;
         }
 
+        /// <summary>Set the signature.</summary>
+        /// <param name="signature">The signature.</param>
         public void SetSignature(AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
+        /// <summary>Set the issuer.</summary>
+        /// <param name="issuer">The issuer.</param>
         public void SetIssuer(X509Name issuer)
         {
             this.issuer = issuer;
         }
 
+        /// <summary>Set the validity.</summary>
+        /// <param name="validity">The validity.</param>
         public void SetValidity(Validity validity)
         {
             this.validity = validity;
@@ -63,48 +72,66 @@ namespace Org.BouncyCastle.Asn1.X509
             this.endDate = null;
         }
 
+        /// <summary>Set the start date.</summary>
+        /// <param name="startDate">The start date.</param>
         public void SetStartDate(Time startDate)
         {
             this.validity = null;
             this.startDate = startDate;
         }
 
+        /// <summary>Set the start date.</summary>
+        /// <param name="startDate">The start date.</param>
         public void SetStartDate(Asn1UtcTime startDate)
         {
             SetStartDate(new Time(startDate));
         }
 
+        /// <summary>Set the end date.</summary>
+        /// <param name="endDate">The end date.</param>
         public void SetEndDate(Time endDate)
         {
             this.validity = null;
             this.endDate = endDate;
         }
 
+        /// <summary>Set the end date.</summary>
+        /// <param name="endDate">The end date.</param>
         public void SetEndDate(Asn1UtcTime endDate)
         {
             SetEndDate(new Time(endDate));
         }
 
+        /// <summary>Set the subject.</summary>
+        /// <param name="subject">The subject.</param>
         public void SetSubject(X509Name subject)
         {
             this.subject = subject;
         }
 
+        /// <summary>Set the issuer unique ID.</summary>
+        /// <param name="uniqueID">The unique ID.</param>
         public void SetIssuerUniqueID(DerBitString uniqueID)
         {
             this.issuerUniqueID = uniqueID;
         }
 
+        /// <summary>Set the subject unique ID.</summary>
+        /// <param name="uniqueID">The unique ID.</param>
         public void SetSubjectUniqueID(DerBitString uniqueID)
         {
             this.subjectUniqueID = uniqueID;
         }
 
+        /// <summary>Set the subject public key info.</summary>
+        /// <param name="pubKeyInfo">The pub key info.</param>
         public void SetSubjectPublicKeyInfo(SubjectPublicKeyInfo pubKeyInfo)
         {
             this.subjectPublicKeyInfo = pubKeyInfo;
         }
 
+        /// <summary>Set the extensions.</summary>
+        /// <param name="extensions">The extensions.</param>
         public void SetExtensions(X509Extensions extensions)
         {
             this.extensions = extensions;

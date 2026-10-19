@@ -18,9 +18,15 @@ namespace Org.BouncyCastle.Asn1.X509
     public class PolicyMappings
         : Asn1Encodable
     {
+        /// <summary>A mapping between an issuer domain policy and a subject domain policy.</summary>
         public class Element
             : Asn1Encodable
         {
+            /// <summary>Return an <see cref="Element"/> from the given object.</summary>
+            /// <param name="obj">
+            /// An <see cref="Element"/>, an object from which one can be constructed, or null.
+            /// </param>
+            /// <returns>The <see cref="Element"/>, or null if <paramref name="obj"/> is null.</returns>
             public static Element GetInstance(object obj)
             {
                 if (obj == null)
@@ -30,9 +36,17 @@ namespace Org.BouncyCastle.Asn1.X509
                 return new Element(Asn1Sequence.GetInstance(obj));
             }
 
+            /// <summary>Return an <see cref="Element"/> from a tagged object.</summary>
+            /// <param name="taggedObject">The tagged object.</param>
+            /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+            /// <returns>The <see cref="Element"/>.</returns>
             public static Element GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
                 new Element(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+            /// <summary>Return an <see cref="Element"/> from a tagged object.</summary>
+            /// <param name="taggedObject">The tagged object.</param>
+            /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+            /// <returns>The <see cref="Element"/>.</returns>
             public static Element GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
                 new Element(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -52,19 +66,30 @@ namespace Org.BouncyCastle.Asn1.X509
                     throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
             }
 
+            /// <summary>Create a new <see cref="Element"/>.</summary>
+            /// <param name="issuerDomainPolicy">The issuer domain policy.</param>
+            /// <param name="subjectDomainPolicy">The subject domain policy.</param>
             public Element(DerObjectIdentifier issuerDomainPolicy, DerObjectIdentifier subjectDomainPolicy)
             {
                 m_issuerDomainPolicy = issuerDomainPolicy ?? throw new ArgumentNullException(nameof(issuerDomainPolicy));
                 m_subjectDomainPolicy = subjectDomainPolicy ?? throw new ArgumentNullException(nameof(subjectDomainPolicy));
             }
 
+            /// <summary>Gets the issuer domain policy.</summary>
             public DerObjectIdentifier IssuerDomainPolicy => m_issuerDomainPolicy;
 
+            /// <summary>Gets the subject domain policy.</summary>
             public DerObjectIdentifier SubjectDomainPolicy => m_subjectDomainPolicy;
 
+            /// <inheritdoc/>
             public override Asn1Object ToAsn1Object() => new DLSequence(m_issuerDomainPolicy, m_subjectDomainPolicy);
         }
 
+        /// <summary>Return an <see cref="PolicyMappings"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PolicyMappings"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PolicyMappings"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PolicyMappings GetInstance(object obj)
         {
             if (obj == null)
@@ -76,6 +101,10 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="PolicyMappings"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PolicyMappings"/>.</returns>
         public static PolicyMappings GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -104,6 +133,8 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.Map(seq, Element.GetInstance);
         }
 
+        /// <summary>Create a new <see cref="PolicyMappings"/>.</summary>
+        /// <param name="mappings">The mappings.</param>
         public PolicyMappings(IDictionary<string, string> mappings)
         {
             if (mappings == null)
@@ -124,6 +155,8 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.FromVector(v);
         }
 
+        /// <summary>Create a new <see cref="PolicyMappings"/>.</summary>
+        /// <param name="mappings">The mappings.</param>
         public PolicyMappings(IDictionary<DerObjectIdentifier, DerObjectIdentifier> mappings)
         {
             if (mappings == null)
@@ -141,10 +174,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_elements = DerSequence.FromVector(v);
         }
 
+        /// <summary>Gets the elements.</summary>
         public Asn1Sequence Elements => m_elements;
 
+        /// <summary>Return the elements.</summary>
         public Element[] GetElements() => m_elements.MapElements(Element.GetInstance);
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_elements;
     }
 }

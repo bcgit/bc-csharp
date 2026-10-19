@@ -12,11 +12,16 @@ namespace Org.BouncyCastle.Asn1.X509
 
         private int m_index;
 
+        /// <summary>Create a new <see cref="X509NameTokenizer"/>.</summary>
+        /// <param name="oid">The object identifier.</param>
         public X509NameTokenizer(string oid)
             : this(oid, ',')
         {
         }
 
+        /// <summary>Create a new <see cref="X509NameTokenizer"/>.</summary>
+        /// <param name="oid">The object identifier.</param>
+        /// <param name="separator">The separator.</param>
         public X509NameTokenizer(string oid, char separator)
         {
             if (oid == null)

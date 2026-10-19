@@ -4,15 +4,20 @@ using Org.BouncyCastle.Utilities.Collections;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>A table of CMS attributes, keyed by attribute object identifier.</summary>
     public class AttributeTable
     {
         private readonly Dictionary<DerObjectIdentifier, AttributeX509> m_attributes;
 
+        /// <summary>Create a new <see cref="AttributeTable"/>.</summary>
+        /// <param name="attrs">The attrs.</param>
         public AttributeTable(IDictionary<DerObjectIdentifier, AttributeX509> attrs)
         {
             m_attributes = new Dictionary<DerObjectIdentifier, AttributeX509>(attrs);
         }
 
+        /// <summary>Create a new <see cref="AttributeTable"/>.</summary>
+        /// <param name="v">The v.</param>
         public AttributeTable(Asn1EncodableVector v)
         {
             m_attributes = new Dictionary<DerObjectIdentifier, AttributeX509>(v.Count);
@@ -25,6 +30,8 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>Create a new <see cref="AttributeTable"/>.</summary>
+        /// <param name="s">The s.</param>
         public AttributeTable(Asn1Set s)
         {
             m_attributes = new Dictionary<DerObjectIdentifier, AttributeX509>(s.Count);

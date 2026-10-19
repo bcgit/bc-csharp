@@ -40,6 +40,11 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public const int OtherObjectDigest = 2;
 
+        /// <summary>Return an <see cref="ObjectDigestInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ObjectDigestInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ObjectDigestInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ObjectDigestInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -49,9 +54,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new ObjectDigestInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ObjectDigestInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ObjectDigestInfo"/>.</returns>
         public static ObjectDigestInfo GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new ObjectDigestInfo(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="ObjectDigestInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ObjectDigestInfo"/>.</returns>
         public static ObjectDigestInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ObjectDigestInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -102,12 +115,16 @@ namespace Org.BouncyCastle.Asn1.X509
             m_objectDigest = new DerBitString(objectDigest);
         }
 
+        /// <summary>Gets the digested object type.</summary>
         public DerEnumerated DigestedObjectType => m_digestedObjectType;
 
+        /// <summary>Gets the other object type ID.</summary>
         public DerObjectIdentifier OtherObjectTypeID => m_otherObjectTypeID;
 
+        /// <summary>Gets the digest algorithm.</summary>
         public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
+        /// <summary>Gets the object digest.</summary>
         public DerBitString ObjectDigest => m_objectDigest;
 
         /**

@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
+        /// <summary>The object identifier <c>2.5.29.37.0</c>.</summary>
         public static readonly KeyPurposeID AnyExtendedKeyUsage = new KeyPurposeID(X509Extensions.ExtendedKeyUsage.Id + ".0");
 
         public static readonly KeyPurposeID id_kp_serverAuth = new KeyPurposeID(id_kp + ".1");
@@ -106,8 +107,10 @@ namespace Org.BouncyCastle.Asn1.X509
         // microsoft key purpose ids
         //
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.311.20.2.2</c>.</summary>
         public static readonly KeyPurposeID id_kp_smartcardlogon = new KeyPurposeID("1.3.6.1.4.1.311.20.2.2");
 
+        /// <summary>The object identifier <c>1.3.6.1.1.1.1.22</c>.</summary>
         public static readonly KeyPurposeID id_kp_macAddress = new KeyPurposeID("1.3.6.1.1.1.1.22");
 
         /// <summary>Microsoft Server Gated Crypto (msSGC).</summary>
@@ -150,9 +153,11 @@ namespace Org.BouncyCastle.Asn1.X509
         [Obsolete("Use 'id_kp_OCSPSigning' instead")]
         public static readonly KeyPurposeID IdKPOcspSigning = id_kp_OCSPSigning;
 
+        /// <summary>The object identifier <c>1.3.6.1.4.1.311.20.2.2</c>.</summary>
         [Obsolete("Use 'id_kp_smartcardlogon' instead")]
         public static readonly KeyPurposeID IdKPSmartCardLogon = id_kp_smartcardlogon;
 
+        /// <summary>The object identifier <c>1.3.6.1.1.1.1.22</c>.</summary>
         [Obsolete("Use 'id_kp_macAddress' instead")]
         public static readonly KeyPurposeID IdKPMacAddress = id_kp_macAddress;
 

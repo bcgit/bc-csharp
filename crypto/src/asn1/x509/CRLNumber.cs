@@ -11,17 +11,21 @@ namespace Org.BouncyCastle.Asn1.X509
     public class CrlNumber
         : DerInteger
     {
+        /// <summary>Create a new <see cref="CrlNumber"/>.</summary>
+        /// <param name="number">The number.</param>
         public CrlNumber(
             BigInteger number)
             : base(number)
         {
         }
 
+        /// <summary>Gets the number.</summary>
         public BigInteger Number
         {
             get { return PositiveValue; }
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return "CRLNumber: " + Number;

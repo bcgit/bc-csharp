@@ -9,6 +9,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class ExtendedKeyUsage
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ExtendedKeyUsage"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ExtendedKeyUsage"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ExtendedKeyUsage"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ExtendedKeyUsage GetInstance(object obj)
         {
             if (obj == null)
@@ -21,10 +26,18 @@ namespace Org.BouncyCastle.Asn1.X509
             return new ExtendedKeyUsage(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ExtendedKeyUsage"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ExtendedKeyUsage"/>.</returns>
         // TODO[api] Standardize parameter names
         public static ExtendedKeyUsage GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new ExtendedKeyUsage(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="ExtendedKeyUsage"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ExtendedKeyUsage"/>.</returns>
         public static ExtendedKeyUsage GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ExtendedKeyUsage(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -49,6 +62,8 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>Create a new <see cref="ExtendedKeyUsage"/>.</summary>
+        /// <param name="usages">The usages.</param>
         public ExtendedKeyUsage(params KeyPurposeID[] usages)
         {
             if (Arrays.IsNullOrContainsNull(usages))
@@ -64,6 +79,8 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>Create a new <see cref="ExtendedKeyUsage"/>.</summary>
+        /// <param name="usages">The usages.</param>
         public ExtendedKeyUsage(IEnumerable<DerObjectIdentifier> usages)
         {
             if (usages == null)
@@ -90,10 +107,13 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Returns all extended key usages.</summary>
         public IList<DerObjectIdentifier> GetAllUsages() => new List<DerObjectIdentifier>(m_usageTable);
 
+        /// <summary>Return the all usages array.</summary>
         public DerObjectIdentifier[] GetAllUsagesArray() => m_elements.MapElements(DerObjectIdentifier.GetInstance);
 
+        /// <summary>Gets the count.</summary>
         public int Count => m_usageTable.Count;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_elements;
     }
 }

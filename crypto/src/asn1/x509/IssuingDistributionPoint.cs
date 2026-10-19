@@ -18,6 +18,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class IssuingDistributionPoint
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="IssuingDistributionPoint"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="IssuingDistributionPoint"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="IssuingDistributionPoint"/>, or null if <paramref name="obj"/> is null.</returns>
         public static IssuingDistributionPoint GetInstance(object obj)
         {
             if (obj == null)
@@ -27,9 +32,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new IssuingDistributionPoint(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="IssuingDistributionPoint"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="IssuingDistributionPoint"/>.</returns>
         public static IssuingDistributionPoint GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new IssuingDistributionPoint(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="IssuingDistributionPoint"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="IssuingDistributionPoint"/>.</returns>
         public static IssuingDistributionPoint GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new IssuingDistributionPoint(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -137,20 +150,27 @@ namespace Org.BouncyCastle.Asn1.X509
             m_seq = seq;
         }
 
+        /// <summary>Gets the only contains user certs.</summary>
         public bool OnlyContainsUserCerts => m_onlyContainsUserCerts.IsTrue;
 
+        /// <summary>Gets the only contains CA certs.</summary>
         public bool OnlyContainsCACerts => m_onlyContainsCACerts.IsTrue;
 
+        /// <summary>Gets a value indicating whether this is indirect crl.</summary>
         public bool IsIndirectCrl => m_indirectCRL.IsTrue;
 
+        /// <summary>Gets the only contains attribute certs.</summary>
         public bool OnlyContainsAttributeCerts => m_onlyContainsAttributeCerts.IsTrue;
 
         public DistributionPointName DistributionPoint => m_distributionPoint;
 
+        /// <summary>Gets the only some reasons.</summary>
         public ReasonFlags OnlySomeReasons => m_onlySomeReasons;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_seq;
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             StringBuilder buf = new StringBuilder();

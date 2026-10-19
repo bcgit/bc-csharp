@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>The AttributeCertificateInfo structure of RFC 5755.</summary>
     public class AttributeCertificateInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="AttributeCertificateInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AttributeCertificateInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AttributeCertificateInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AttributeCertificateInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AttributeCertificateInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="AttributeCertificateInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AttributeCertificateInfo"/>.</returns>
         public static AttributeCertificateInfo GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new AttributeCertificateInfo(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="AttributeCertificateInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AttributeCertificateInfo"/>.</returns>
         public static AttributeCertificateInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AttributeCertificateInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -55,20 +69,26 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("attribute certificate issuer is empty");
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public Holder Holder => m_holder;
 
         public AttCertIssuer Issuer => m_issuer;
 
+        /// <summary>Gets the signature.</summary>
         public AlgorithmIdentifier Signature => m_signature;
 
+        /// <summary>Gets the serial number.</summary>
         public DerInteger SerialNumber => m_serialNumber;
 
+        /// <summary>Gets the attr cert validity period.</summary>
         public AttCertValidityPeriod AttrCertValidityPeriod => m_attrCertValidityPeriod;
 
+        /// <summary>Gets the attributes.</summary>
         public Asn1Sequence Attributes => m_attributes;
 
+        /// <summary>Gets the issuer unique ID.</summary>
         public DerBitString IssuerUniqueID => m_issuerUniqueID;
 
         public X509Extensions Extensions => m_extensions;

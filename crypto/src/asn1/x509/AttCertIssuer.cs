@@ -2,14 +2,27 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>The AttCertIssuer choice of RFC 5755.</summary>
     public class AttCertIssuer
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>Return an <see cref="AttCertIssuer"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AttCertIssuer"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AttCertIssuer"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AttCertIssuer GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="AttCertIssuer"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AttCertIssuer"/>.</returns>
         public static AttCertIssuer GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             Asn1Utilities.GetInstanceChoice(obj, isExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="AttCertIssuer"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="AttCertIssuer"/>, or null if <paramref name="element"/> is null.</returns>
         public static AttCertIssuer GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -37,6 +50,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="AttCertIssuer"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AttCertIssuer"/>.</returns>
         public static AttCertIssuer GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -55,6 +72,8 @@ namespace Org.BouncyCastle.Asn1.X509
             choiceObj = obj.ToAsn1Object();
         }
 
+        /// <summary>Create a new <see cref="AttCertIssuer"/>.</summary>
+        /// <param name="v2Form">The v 2 form.</param>
         public AttCertIssuer(
             V2Form v2Form)
         {
@@ -62,6 +81,7 @@ namespace Org.BouncyCastle.Asn1.X509
             choiceObj = new DerTaggedObject(false, 0, obj);
         }
 
+        /// <summary>Gets the issuer.</summary>
         public Asn1Encodable Issuer
         {
             get { return obj; }

@@ -26,6 +26,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AuthorityKeyIdentifier
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="AuthorityKeyIdentifier"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AuthorityKeyIdentifier"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AuthorityKeyIdentifier"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AuthorityKeyIdentifier GetInstance(object obj)
         {
             if (obj == null)
@@ -40,6 +45,10 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="AuthorityKeyIdentifier"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AuthorityKeyIdentifier"/>.</returns>
         public static AuthorityKeyIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -47,6 +56,10 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="AuthorityKeyIdentifier"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AuthorityKeyIdentifier"/>.</returns>
         public static AuthorityKeyIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -61,6 +74,8 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly GeneralNames m_authorityCertIssuer;
         private readonly DerInteger m_authorityCertSerialNumber;
 
+        /// <summary>Create a new <see cref="AuthorityKeyIdentifier"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         protected internal AuthorityKeyIdentifier(Asn1Sequence seq)
         {
@@ -142,11 +157,17 @@ namespace Org.BouncyCastle.Asn1.X509
             m_authorityCertSerialNumber = authorityCertSerialNumber;
         }
 
+        /// <summary>Create a new <see cref="AuthorityKeyIdentifier"/>.</summary>
+        /// <param name="keyIdentifier">The key identifier.</param>
         public AuthorityKeyIdentifier(Asn1OctetString keyIdentifier)
             : this(keyIdentifier, authorityCertIssuer: null, authorityCertSerialNumber: null)
         {
         }
 
+        /// <summary>Create a new <see cref="AuthorityKeyIdentifier"/>.</summary>
+        /// <param name="keyIdentifier">The key identifier.</param>
+        /// <param name="authorityCertIssuer">The authority cert issuer.</param>
+        /// <param name="authorityCertSerialNumber">The authority cert serial number.</param>
         public AuthorityKeyIdentifier(Asn1OctetString keyIdentifier, GeneralNames authorityCertIssuer,
             DerInteger authorityCertSerialNumber)
         {
@@ -157,13 +178,17 @@ namespace Org.BouncyCastle.Asn1.X509
             m_authorityCertSerialNumber = authorityCertSerialNumber;
         }
 
+        /// <summary>Return the key identifier.</summary>
         [Obsolete("Use 'KeyIdentifier' instead")]
         public byte[] GetKeyIdentifier() => m_keyIdentifier?.GetOctets();
 
+        /// <summary>Gets the authority cert issuer.</summary>
         public GeneralNames AuthorityCertIssuer => m_authorityCertIssuer;
 
+        /// <summary>Gets the authority cert serial number.</summary>
         public BigInteger AuthorityCertSerialNumber => m_authorityCertSerialNumber?.Value;
 
+        /// <summary>Gets the key identifier.</summary>
         public Asn1OctetString KeyIdentifier => m_keyIdentifier;
 
         /**
@@ -178,6 +203,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             string keyID = m_keyIdentifier == null

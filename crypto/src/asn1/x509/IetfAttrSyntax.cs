@@ -8,10 +8,18 @@ namespace Org.BouncyCastle.Asn1.X509
     public class IetfAttrSyntax
         : Asn1Encodable
     {
+        /// <summary>The <c>ValueOctets</c> constant, with the value <c>1</c>.</summary>
         public const int ValueOctets = 1;
+        /// <summary>The <c>ValueOid</c> constant, with the value <c>2</c>.</summary>
         public const int ValueOid = 2;
+        /// <summary>The <c>ValueUtf8</c> constant, with the value <c>3</c>.</summary>
         public const int ValueUtf8 = 3;
 
+        /// <summary>Return an <see cref="IetfAttrSyntax"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="IetfAttrSyntax"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="IetfAttrSyntax"/>, or null if <paramref name="obj"/> is null.</returns>
         public static IetfAttrSyntax GetInstance(object obj)
         {
             if (obj == null)
@@ -23,6 +31,10 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="IetfAttrSyntax"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="IetfAttrSyntax"/>.</returns>
         public static IetfAttrSyntax GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -30,6 +42,10 @@ namespace Org.BouncyCastle.Asn1.X509
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="IetfAttrSyntax"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="IetfAttrSyntax"/>.</returns>
         public static IetfAttrSyntax GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -41,6 +57,8 @@ namespace Org.BouncyCastle.Asn1.X509
         private readonly Asn1Sequence m_values;
         private readonly int m_valueChoice = -1;
 
+        /// <summary>Create a new <see cref="IetfAttrSyntax"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public IetfAttrSyntax(Asn1Sequence seq)
         {
@@ -91,10 +109,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_valueChoice = valueChoice;
         }
 
+        /// <summary>Gets the policy authority.</summary>
         public GeneralNames PolicyAuthority => m_policyAuthority;
 
+        /// <summary>Gets the value type.</summary>
         public int ValueType => m_valueChoice;
 
+        /// <summary>Return the values.</summary>
         public object[] GetValues()
         {
             switch (m_valueChoice)

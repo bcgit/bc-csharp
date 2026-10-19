@@ -30,6 +30,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public const int EncipherOnly     = (1 << 0);
         public const int DecipherOnly     = (1 << 15);
 
+        /// <summary>Return an <see cref="KeyUsage"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="KeyUsage"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="KeyUsage"/>, or null if <paramref name="obj"/> is null.</returns>
         public static new KeyUsage GetInstance(object obj)
         {
             if (obj is KeyUsage keyUsage)
@@ -65,6 +68,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             byte[] data = GetBytes();

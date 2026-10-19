@@ -3,14 +3,25 @@ using System.Globalization;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>The Time choice of RFC 5280: a UTCTime or a GeneralizedTime.</summary>
     public class Time
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>Return an <see cref="Time"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="Time"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="Time"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Time GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="Time"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Time"/>.</returns>
         public static Time GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="Time"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Time"/>, or null if <paramref name="element"/> is null.</returns>
         public static Time GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -30,16 +41,24 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="Time"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Time"/>.</returns>
         public static Time GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
         private readonly Asn1Object m_timeObject;
 
+        /// <summary>Create a new <see cref="Time"/>.</summary>
+        /// <param name="generalizedTime">The generalized time.</param>
         public Time(Asn1GeneralizedTime generalizedTime)
         {
             m_timeObject = generalizedTime ?? throw new ArgumentNullException(nameof(generalizedTime));
         }
 
+        /// <summary>Create a new <see cref="Time"/>.</summary>
+        /// <param name="utcTime">The utc time.</param>
         public Time(Asn1UtcTime utcTime)
         {
             if (utcTime == null)
@@ -103,6 +122,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return m_timeObject;
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             if (m_timeObject is Asn1UtcTime utcTime)

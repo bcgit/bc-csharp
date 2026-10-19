@@ -38,6 +38,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class CertificatePair
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertificatePair"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CertificatePair"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CertificatePair"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertificatePair GetInstance(object obj)
         {
             if (obj == null)
@@ -47,9 +52,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new CertificatePair(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertificatePair"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertificatePair"/>.</returns>
         public static CertificatePair GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificatePair(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CertificatePair"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertificatePair"/>.</returns>
         public static CertificatePair GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificatePair(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 

@@ -36,9 +36,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new RoleSyntax(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="RoleSyntax"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RoleSyntax"/>.</returns>
         public static RoleSyntax GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RoleSyntax(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="RoleSyntax"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RoleSyntax"/>.</returns>
         public static RoleSyntax GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RoleSyntax(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -174,6 +182,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             StringBuilder buff = new StringBuilder("Name: " + this.GetRoleNameAsString() +

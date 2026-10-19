@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Asn1.X509
     public class CertPolicyID
         : DerObjectIdentifier
     {
+        /// <summary>Create a new <see cref="CertPolicyID"/>.</summary>
+        /// <param name="id">The id.</param>
         public CertPolicyID(string id)
             : base(id)
         {

@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Asn1.X509
     public class Target
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>A choice type, holding the alternative that was selected.</summary>
         public enum Choice
         {
             Name = 0,
@@ -40,9 +41,16 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public static Target GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="Target"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Target"/>.</returns>
         public static Target GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="Target"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Target"/>, or null if <paramref name="element"/> is null.</returns>
         public static Target GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -64,6 +72,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="Target"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Target"/>.</returns>
         public static Target GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 

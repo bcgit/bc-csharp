@@ -30,9 +30,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new TargetInformation(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="TargetInformation"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TargetInformation"/>.</returns>
         public static TargetInformation GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TargetInformation(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="TargetInformation"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TargetInformation"/>.</returns>
         public static TargetInformation GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TargetInformation(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 

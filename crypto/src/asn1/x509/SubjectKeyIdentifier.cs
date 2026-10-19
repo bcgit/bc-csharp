@@ -15,6 +15,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class SubjectKeyIdentifier
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="SubjectKeyIdentifier"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="SubjectKeyIdentifier"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="SubjectKeyIdentifier"/>, or null if <paramref name="obj"/> is null.</returns>
         public static SubjectKeyIdentifier GetInstance(object obj)
         {
             if (obj == null)
@@ -32,9 +37,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new SubjectKeyIdentifier(Asn1OctetString.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="SubjectKeyIdentifier"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SubjectKeyIdentifier"/>.</returns>
         public static SubjectKeyIdentifier GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new SubjectKeyIdentifier(Asn1OctetString.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="SubjectKeyIdentifier"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="SubjectKeyIdentifier"/>.</returns>
         public static SubjectKeyIdentifier GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new SubjectKeyIdentifier(Asn1OctetString.GetTagged(taggedObject, declaredExplicit));
 
@@ -44,12 +57,16 @@ namespace Org.BouncyCastle.Asn1.X509
         // TODO[api] Change to Asn1OctetString (careful because currently we always encode with DerOctetString)
         private readonly byte[] m_keyIdentifier;
 
+        /// <summary>Create a new <see cref="SubjectKeyIdentifier"/>.</summary>
+        /// <param name="keyID">The key ID.</param>
         // TODO[api] Rename parameter
         public SubjectKeyIdentifier(byte[] keyID)
         {
             m_keyIdentifier = Arrays.Clone(keyID ?? throw new ArgumentNullException(nameof(keyID)));
         }
 
+        /// <summary>Create a new <see cref="SubjectKeyIdentifier"/>.</summary>
+        /// <param name="keyID">The key ID.</param>
         // TODO[api] Rename parameter
         public SubjectKeyIdentifier(Asn1OctetString keyID)
             : this(keyID.GetOctets())
@@ -68,11 +85,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_keyIdentifier = GetDigest(spki);
         }
 
+        /// <summary>Return the key identifier.</summary>
         public byte[] GetKeyIdentifier() => Arrays.Clone(m_keyIdentifier);
 
         // TODO[api] Add once m_keyIdentifier is an Asn1OctetString
         //public Asn1OctetString KeyIdentifier => m_keyIdentifier;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => DerOctetString.FromContents(m_keyIdentifier);
 
         /**

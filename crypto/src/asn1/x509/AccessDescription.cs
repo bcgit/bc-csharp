@@ -13,9 +13,16 @@ namespace Org.BouncyCastle.Asn1.X509
     public class AccessDescription
         : Asn1Encodable
     {
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.48.2</c>.</summary>
         public readonly static DerObjectIdentifier IdADCAIssuers = X509ObjectIdentifiers.IdADCAIssuers;
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.48.1</c>.</summary>
         public readonly static DerObjectIdentifier IdADOcsp = X509ObjectIdentifiers.IdADOcsp;
 
+        /// <summary>Return an <see cref="AccessDescription"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AccessDescription"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AccessDescription"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AccessDescription GetInstance(object obj)
         {
             if (obj == null)
@@ -25,9 +32,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new AccessDescription(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="AccessDescription"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AccessDescription"/>.</returns>
         public static AccessDescription GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AccessDescription(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="AccessDescription"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AccessDescription"/>.</returns>
         public static AccessDescription GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AccessDescription(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -57,12 +72,16 @@ namespace Org.BouncyCastle.Asn1.X509
             m_accessLocation = location ?? throw new ArgumentNullException(nameof(location));
         }
 
+        /// <summary>Gets the access method.</summary>
         public DerObjectIdentifier AccessMethod => m_accessMethod;
 
+        /// <summary>Gets the access location.</summary>
         public GeneralName AccessLocation => m_accessLocation;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => new DerSequence(m_accessMethod, m_accessLocation);
 
+        /// <inheritdoc/>
         public override string ToString() => "AccessDescription: Oid(" + m_accessMethod.Id + ")";
     }
 }

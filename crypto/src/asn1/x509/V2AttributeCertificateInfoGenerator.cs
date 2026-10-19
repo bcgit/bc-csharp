@@ -34,12 +34,15 @@ namespace Org.BouncyCastle.Asn1.X509
         //internal AttCertValidityPeriod attrCertValidityPeriod;
         internal Asn1GeneralizedTime startDate, endDate;
 
+        /// <summary>Create a new <see cref="V2AttributeCertificateInfoGenerator"/>.</summary>
         public V2AttributeCertificateInfoGenerator()
         {
             this.version = DerInteger.One;
             attributes = new Asn1EncodableVector();
         }
 
+        /// <summary>Set the holder.</summary>
+        /// <param name="holder">The holder.</param>
         public void SetHolder(
             Holder holder)
         {
@@ -61,42 +64,56 @@ namespace Org.BouncyCastle.Asn1.X509
             attributes.Add(attribute);
         }
 
+        /// <summary>Set the serial number.</summary>
+        /// <param name="serialNumber">The serial number.</param>
         public void SetSerialNumber(
             DerInteger serialNumber)
         {
             this.serialNumber = serialNumber;
         }
 
+        /// <summary>Set the signature.</summary>
+        /// <param name="signature">The signature.</param>
         public void SetSignature(
             AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
+        /// <summary>Set the issuer.</summary>
+        /// <param name="issuer">The issuer.</param>
         public void SetIssuer(
             AttCertIssuer issuer)
         {
             this.issuer = issuer;
         }
 
+        /// <summary>Set the start date.</summary>
+        /// <param name="startDate">The start date.</param>
         public void SetStartDate(
             Asn1GeneralizedTime startDate)
         {
             this.startDate = startDate;
         }
 
+        /// <summary>Set the end date.</summary>
+        /// <param name="endDate">The end date.</param>
         public void SetEndDate(
             Asn1GeneralizedTime endDate)
         {
             this.endDate = endDate;
         }
 
+        /// <summary>Set the issuer unique ID.</summary>
+        /// <param name="issuerUniqueID">The issuer unique ID.</param>
         public void SetIssuerUniqueID(
             DerBitString issuerUniqueID)
         {
             this.issuerUniqueID = issuerUniqueID;
         }
 
+        /// <summary>Set the extensions.</summary>
+        /// <param name="extensions">The extensions.</param>
         public void SetExtensions(
             X509Extensions extensions)
         {

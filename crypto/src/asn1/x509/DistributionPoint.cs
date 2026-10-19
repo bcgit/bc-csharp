@@ -16,6 +16,11 @@ namespace Org.BouncyCastle.Asn1.X509
     public class DistributionPoint
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="DistributionPoint"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DistributionPoint"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DistributionPoint"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DistributionPoint GetInstance(object obj)
         {
             if (obj == null)
@@ -25,9 +30,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DistributionPoint(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="DistributionPoint"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DistributionPoint"/>.</returns>
         public static DistributionPoint GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new DistributionPoint(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="DistributionPoint"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DistributionPoint"/>.</returns>
         public static DistributionPoint GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new DistributionPoint(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -51,6 +64,10 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="DistributionPoint"/>.</summary>
+        /// <param name="distributionPointName">The distribution point name.</param>
+        /// <param name="reasons">The reasons.</param>
+        /// <param name="crlIssuer">The crl issuer.</param>
         public DistributionPoint(DistributionPointName distributionPointName, ReasonFlags reasons,
             GeneralNames crlIssuer)
         {
@@ -61,10 +78,13 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public DistributionPointName DistributionPointName => m_distributionPoint;
 
+        /// <summary>Gets the reasons.</summary>
         public ReasonFlags Reasons => m_reasons;
 
+        /// <summary>Gets the crl issuer.</summary>
         public GeneralNames CrlIssuer => m_crlIssuer;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
@@ -74,6 +94,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             StringBuilder buf = new StringBuilder();

@@ -4,9 +4,15 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>The BasicConstraints extension of RFC 5280.</summary>
     public class BasicConstraints
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="BasicConstraints"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="BasicConstraints"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="BasicConstraints"/>, or null if <paramref name="obj"/> is null.</returns>
         public static BasicConstraints GetInstance(object obj)
         {
             if (obj == null)
@@ -19,9 +25,17 @@ namespace Org.BouncyCastle.Asn1.X509
             return new BasicConstraints(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="BasicConstraints"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="BasicConstraints"/>.</returns>
         public static BasicConstraints GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new BasicConstraints(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="BasicConstraints"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="BasicConstraints"/>.</returns>
         public static BasicConstraints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new BasicConstraints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -46,6 +60,8 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="BasicConstraints"/>.</summary>
+        /// <param name="cA">true if c a, false otherwise.</param>
         public BasicConstraints(bool cA)
         {
             m_cA = cA ? DerBoolean.True : DerBoolean.False;
@@ -65,8 +81,10 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public bool IsCA() => m_cA.IsTrue;
 
+        /// <summary>Gets the path len constraint.</summary>
         public BigInteger PathLenConstraint => m_pathLenConstraint?.Value;
 
+        /// <summary>Gets the path len constraint integer.</summary>
         public DerInteger PathLenConstraintInteger => m_pathLenConstraint;
 
         /**
@@ -89,6 +107,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return new DerSequence(v);
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             if (m_pathLenConstraint == null)

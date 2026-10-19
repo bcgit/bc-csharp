@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.X509
 {
+    /// <summary>The IssuerSerial structure of RFC 5755.</summary>
     public class IssuerSerial
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="IssuerSerial"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="IssuerSerial"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="IssuerSerial"/>, or null if <paramref name="obj"/> is null.</returns>
         public static IssuerSerial GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,16 @@ namespace Org.BouncyCastle.Asn1.X509
             return new IssuerSerial(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="IssuerSerial"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="IssuerSerial"/>.</returns>
         public static IssuerSerial GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new IssuerSerial(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="IssuerSerial"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="IssuerSerial"/>, or null if <paramref name="element"/> is null.</returns>
         public static IssuerSerial GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -32,6 +45,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="IssuerSerial"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="IssuerSerial"/>.</returns>
         public static IssuerSerial GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new IssuerSerial(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -53,16 +70,26 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="IssuerSerial"/>.</summary>
+        /// <param name="issuer">The issuer.</param>
+        /// <param name="serial">The serial.</param>
         public IssuerSerial(X509Name issuer, DerInteger serial)
             : this(new GeneralNames(new GeneralName(issuer)), serial)
         {
         }
 
+        /// <summary>Create a new <see cref="IssuerSerial"/>.</summary>
+        /// <param name="issuer">The issuer.</param>
+        /// <param name="serial">The serial.</param>
         public IssuerSerial(GeneralNames issuer, DerInteger serial)
             : this(issuer, serial, issuerUid: null)
         {
         }
 
+        /// <summary>Create a new <see cref="IssuerSerial"/>.</summary>
+        /// <param name="issuer">The issuer.</param>
+        /// <param name="serial">The serial.</param>
+        /// <param name="issuerUid">The issuer uid.</param>
         public IssuerSerial(GeneralNames issuer, DerInteger serial, DerBitString issuerUid)
         {
             m_issuer = issuer ?? throw new ArgumentNullException(nameof(issuer));
@@ -70,10 +97,13 @@ namespace Org.BouncyCastle.Asn1.X509
             m_issuerUid = issuerUid;
         }
 
+        /// <summary>Gets the issuer.</summary>
         public GeneralNames Issuer => m_issuer;
 
+        /// <summary>Gets the serial.</summary>
         public DerInteger Serial => m_serial;
 
+        /// <summary>Gets the issuer uid.</summary>
         public DerBitString IssuerUid => m_issuerUid;
 
         /// <summary>Produce an object suitable for an <see cref="Asn1OutputStream"/>.</summary>

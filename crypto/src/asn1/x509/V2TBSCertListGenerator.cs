@@ -37,25 +37,34 @@ namespace Org.BouncyCastle.Asn1.X509
         private Asn1Encodable m_extensions;
         private List<Asn1Sequence> crlEntries;
 
+        /// <summary>Create a new <see cref="V2TbsCertListGenerator"/>.</summary>
         public V2TbsCertListGenerator()
         {
         }
 
+        /// <summary>Set the signature.</summary>
+        /// <param name="signature">The signature.</param>
         public void SetSignature(AlgorithmIdentifier signature)
         {
             this.signature = signature;
         }
 
+        /// <summary>Set the issuer.</summary>
+        /// <param name="issuer">The issuer.</param>
         public void SetIssuer(X509Name issuer)
         {
             this.issuer = issuer;
         }
 
+        /// <summary>Set the this update.</summary>
+        /// <param name="thisUpdate">The this update.</param>
         public void SetThisUpdate(Asn1UtcTime thisUpdate)
         {
             this.thisUpdate = new Time(thisUpdate);
         }
 
+        /// <summary>Set the next update.</summary>
+        /// <param name="nextUpdate">The next update.</param>
         public void SetNextUpdate(Asn1UtcTime nextUpdate)
         {
             this.nextUpdate = (nextUpdate != null)
@@ -63,11 +72,15 @@ namespace Org.BouncyCastle.Asn1.X509
                 : null;
         }
 
+        /// <summary>Set the this update.</summary>
+        /// <param name="thisUpdate">The this update.</param>
         public void SetThisUpdate(Time thisUpdate)
         {
             this.thisUpdate = thisUpdate;
         }
 
+        /// <summary>Set the next update.</summary>
+        /// <param name="nextUpdate">The next update.</param>
         public void SetNextUpdate(Time nextUpdate)
         {
             this.nextUpdate = nextUpdate;
@@ -139,12 +152,16 @@ namespace Org.BouncyCastle.Asn1.X509
             AddCrlEntry(new DerSequence(v));
         }
 
+        /// <summary>Set the extensions.</summary>
+        /// <param name="extensions">The extensions.</param>
         public void SetExtensions(X509Extensions extensions)
         {
             //SetExtensions(Extensions.GetInstance(extensions));
             m_extensions = extensions;
         }
 
+        /// <summary>Set the extensions.</summary>
+        /// <param name="extensions">The extensions.</param>
         public void SetExtensions(Extensions extensions)
         {
             m_extensions = extensions;

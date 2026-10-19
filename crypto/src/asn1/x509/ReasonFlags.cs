@@ -36,6 +36,8 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
+        /// <summary>Create a new <see cref="ReasonFlags"/>.</summary>
+        /// <param name="reasons">The reasons.</param>
         public ReasonFlags(
             DerBitString reasons)
              : base(reasons.GetBytes(), reasons.PadBits)

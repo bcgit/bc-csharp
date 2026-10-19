@@ -28,6 +28,9 @@ namespace Org.BouncyCastle.Asn1.X509
         public static Asn1OctetString GetExtensionValue(Extensions extensions, DerObjectIdentifier oid) =>
             extensions?.GetExtensionValue(oid);
 
+        /// <summary>Return an <see cref="Extensions"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="Extensions"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="Extensions"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Extensions GetInstance(object obj)
         {
             if (obj == null)
@@ -37,9 +40,16 @@ namespace Org.BouncyCastle.Asn1.X509
             return new Extensions(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Extensions"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Extensions"/>.</returns>
         public static Extensions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Extensions(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Extensions"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Extensions"/>, or null if <paramref name="element"/> is null.</returns>
         public static Extensions GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -55,6 +65,10 @@ namespace Org.BouncyCastle.Asn1.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="Extensions"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Extensions"/>.</returns>
         public static Extensions GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Extensions(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -80,6 +94,8 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>Create a new <see cref="Extensions"/>.</summary>
+        /// <param name="extension">The extension.</param>
         public Extensions(Extension extension)
         {
             var extnID = extension.ExtnID;
@@ -88,6 +104,8 @@ namespace Org.BouncyCastle.Asn1.X509
             m_ordering = new List<DerObjectIdentifier>{ extnID };
         }
 
+        /// <summary>Create a new <see cref="Extensions"/>.</summary>
+        /// <param name="extensions">The extensions.</param>
         public Extensions(Extension[] extensions)
         {
             if (Arrays.IsNullOrEmpty(extensions))
@@ -119,16 +137,19 @@ namespace Org.BouncyCastle.Asn1.X509
             return true;
         }
 
+        /// <summary>Return the critical extension oids.</summary>
         public DerObjectIdentifier[] GetCriticalExtensionOids() => GetExtensionOids(true);
 
         public Extension GetExtension(DerObjectIdentifier oid) => CollectionUtilities.GetValueOrNull(m_extensions, oid);
 
+        /// <summary>Return the extension oids.</summary>
         public DerObjectIdentifier[] GetExtensionOids() => m_ordering.ToArray();
 
         public Asn1Object GetExtensionParsedValue(DerObjectIdentifier oid) => GetExtension(oid)?.GetParsedValue();
 
         public Asn1OctetString GetExtensionValue(DerObjectIdentifier oid) => GetExtension(oid)?.ExtnValue;
 
+        /// <summary>Return the non critical extension oids.</summary>
         public DerObjectIdentifier[] GetNonCriticalExtensionOids() => GetExtensionOids(false);
 
         public bool HasAnyCriticalExtensions()
@@ -141,6 +162,7 @@ namespace Org.BouncyCastle.Asn1.X509
             return false;
         }
 
+        /// <summary>Gets the extension oids.</summary>
         public IEnumerable<DerObjectIdentifier> ExtensionOids => CollectionUtilities.Proxy(m_ordering);
 
         /**
