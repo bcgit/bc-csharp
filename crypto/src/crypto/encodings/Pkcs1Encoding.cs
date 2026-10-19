@@ -83,7 +83,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
         /**
          * Constructor for decryption with a fixed plaintext length.
-         * 
+         *
          * @param cipher The cipher to use for cryptographic operation.
          * @param pLen Length of the expected plaintext.
          */
@@ -97,7 +97,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
         /**
          * Constructor for decryption with a fixed plaintext length and a fallback
          * value that is returned, if the padding is incorrect.
-         * 
+         *
          * @param cipher
          *            The cipher to use for cryptographic operation.
          * @param fallback
@@ -150,8 +150,8 @@ namespace Org.BouncyCastle.Crypto.Encodings
         public byte[] ProcessBlock(byte[] input, int inOff, int length)
         {
             return forEncryption
-                ?	EncodeBlock(input, inOff, length)
-                :	DecodeBlock(input, inOff, length);
+                ? EncodeBlock(input, inOff, length)
+                : DecodeBlock(input, inOff, length);
         }
 
         private byte[] EncodeBlock(byte[] input, int inOff, int inLen)
@@ -279,7 +279,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
 
         /**
          * Decode PKCS#1.5 encoding, and return a random value if the padding is not correct.
-         * 
+         *
          * @param in The encrypted block.
          * @param inOff Offset in the encrypted block.
          * @param inLen Length of the encrypted block.
@@ -319,7 +319,7 @@ namespace Org.BouncyCastle.Crypto.Encodings
              * Now, to a constant time constant memory copy of the decrypted value
              * or the random value, depending on the validity of the padding.
              */
-            int dataOff = data.Length - plaintextLength; 
+            int dataOff = data.Length - plaintextLength;
             byte[] result = new byte[plaintextLength];
             for (int i = 0; i < plaintextLength; ++i)
             {

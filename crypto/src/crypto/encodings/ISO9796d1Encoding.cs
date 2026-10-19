@@ -6,33 +6,33 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Encodings
 {
-	/**
-	* ISO 9796-1 padding. Note in the light of recent results you should
-	* only use this with RSA (rather than the "simpler" Rabin keys) and you
-	* should never use it with anything other than a hash (ie. even if the
-	* message is small don't sign the message, sign it's hash) or some "random"
-	* value. See your favorite search engine for details.
-	*/
-	public class ISO9796d1Encoding
-		: IAsymmetricBlockCipher
-	{
+    /**
+    * ISO 9796-1 padding. Note in the light of recent results you should
+    * only use this with RSA (rather than the "simpler" Rabin keys) and you
+    * should never use it with anything other than a hash (ie. even if the
+    * message is small don't sign the message, sign it's hash) or some "random"
+    * value. See your favorite search engine for details.
+    */
+    public class ISO9796d1Encoding
+        : IAsymmetricBlockCipher
+    {
         private static readonly byte[] Shadows = { 14, 3, 5, 8, 9, 4, 2, 15, 0, 13, 11, 6, 7, 10, 12, 1 };
         private static readonly byte[] Inverse = { 8, 15, 6, 1, 5, 2, 11, 12, 3, 4, 13, 10, 14, 9, 0, 7 };
 
-		private readonly IAsymmetricBlockCipher m_cipher;
-		private bool forEncryption;
-		private int bitSize;
-		private int padBits = 0;
-		private BigInteger modulus;
+        private readonly IAsymmetricBlockCipher m_cipher;
+        private bool forEncryption;
+        private int bitSize;
+        private int padBits = 0;
+        private BigInteger modulus;
 
-		public ISO9796d1Encoding(IAsymmetricBlockCipher cipher)
-		{
-			m_cipher = cipher;
-		}
+        public ISO9796d1Encoding(IAsymmetricBlockCipher cipher)
+        {
+            m_cipher = cipher;
+        }
 
-		public string AlgorithmName => m_cipher.AlgorithmName + "/ISO9796-1Padding";
+        public string AlgorithmName => m_cipher.AlgorithmName + "/ISO9796-1Padding";
 
-		public IAsymmetricBlockCipher UnderlyingCipher => m_cipher;
+        public IAsymmetricBlockCipher UnderlyingCipher => m_cipher;
 
         public void Init(bool forEncryption, ICipherParameters parameters)
         {
@@ -49,10 +49,10 @@ namespace Org.BouncyCastle.Crypto.Encodings
         }
 
         /**
-		* return the input block size. The largest message we can process
-		* is (key_size_in_bits + 3)/16, which in our world comes to
-		* key_size_in_bytes / 2.
-		*/
+        * return the input block size. The largest message we can process
+        * is (key_size_in_bits + 3)/16, which in our world comes to
+        * key_size_in_bytes / 2.
+        */
         public int GetInputBlockSize()
         {
             int baseBlockSize = m_cipher.GetInputBlockSize();
@@ -68,8 +68,8 @@ namespace Org.BouncyCastle.Crypto.Encodings
         }
 
         /**
-		* return the maximum possible size for the output.
-		*/
+        * return the maximum possible size for the output.
+        */
         public int GetOutputBlockSize()
         {
             int baseBlockSize = m_cipher.GetOutputBlockSize();
@@ -85,27 +85,27 @@ namespace Org.BouncyCastle.Crypto.Encodings
         }
 
         /**
-		* set the number of bits in the next message to be treated as
-		* pad bits.
-		*/
+        * set the number of bits in the next message to be treated as
+        * pad bits.
+        */
         public void SetPadBits(int padBits)
-		{
-			if ((uint)padBits > 7U)
-				throw new ArgumentOutOfRangeException(nameof(padBits));
+        {
+            if ((uint)padBits > 7U)
+                throw new ArgumentOutOfRangeException(nameof(padBits));
 
-			this.padBits = padBits;
-		}
+            this.padBits = padBits;
+        }
 
-		/**
-		* retrieve the number of pad bits in the last decoded message.
-		*/
-		public int GetPadBits() => padBits;
+        /**
+        * retrieve the number of pad bits in the last decoded message.
+        */
+        public int GetPadBits() => padBits;
 
         public byte[] ProcessBlock(byte[] input, int inOff, int length)
         {
-			return forEncryption
-				?	EncodeBlock(input, inOff, length)
-				:	DecodeBlock(input, inOff, length);
+            return forEncryption
+                ? EncodeBlock(input, inOff, length)
+                : DecodeBlock(input, inOff, length);
         }
 
         private byte[] EncodeBlock(byte[] input, int inOff, int inLen)
@@ -157,8 +157,8 @@ namespace Org.BouncyCastle.Crypto.Encodings
         }
 
         /**
-		* @exception InvalidCipherTextException if the decrypted block is not a valid ISO 9796 bit string
-		*/
+        * @exception InvalidCipherTextException if the decrypted block is not a valid ISO 9796 bit string
+        */
         private byte[] DecodeBlock(byte[] input, int inOff, int inLen)
         {
             byte[] block = m_cipher.ProcessBlock(input, inOff, inLen);
