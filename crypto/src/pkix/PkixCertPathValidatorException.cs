@@ -20,31 +20,38 @@ namespace Org.BouncyCastle.Pkix
     public class PkixCertPathValidatorException
         : GeneralSecurityException
     {
+        /// <summary>The index of the offending certificate in the path, or -1 if none has been set.</summary>
         protected readonly int m_index = -1;
         private readonly PkixCertPathValidatorReason m_reason = PkixCertPathValidatorReason.Unspecified;
 
+        /// <summary>Create an exception with no detail message.</summary>
         public PkixCertPathValidatorException()
             : base()
         {
         }
 
+        /// <summary>Create an exception with the specified detail message.</summary>
+        /// <param name="message">The detail message.</param>
         public PkixCertPathValidatorException(string message)
             : base(message)
         {
         }
 
+        /// <summary>Create an exception with the specified detail message and cause.</summary>
+        /// <param name="message">The detail message.</param>
+        /// <param name="innerException">The cause.</param>
         public PkixCertPathValidatorException(string message, Exception innerException)
             : base(message, innerException)
         {
         }
 
         /// <summary>
-        /// Creates a <code>PkixCertPathValidatorException</code> with the specified
-        /// detail message, cause, certification path, and index.
+        /// Creates a <c>PkixCertPathValidatorException</c> with the specified detail message, cause and index.
         /// </summary>
-        /// <param name="message">the detail message (or <code>null</code> if none)</param>
-        /// <param name="innerException">the cause (or <code>null</code> if none)</param>
-        /// <param name="index">the index of the certificate in the certification path that</param>
+        /// <param name="message">The detail message (or null if none).</param>
+        /// <param name="innerException">The cause (or null if none).</param>
+        /// <param name="index">The index of the certificate in the path that caused the exception.</param>
+        /// <exception cref="ArgumentException"><paramref name="index"/> is less than -1.</exception>
         public PkixCertPathValidatorException(string message, Exception innerException, int index)
             : this(message, innerException, index, PkixCertPathValidatorReason.Unspecified)
         {

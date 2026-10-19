@@ -5,37 +5,25 @@ using Org.BouncyCastle.X509.Store;
 
 namespace Org.BouncyCastle.Pkix
 {
-    /**
-     * CertPathValidatorSpi implementation for X.509 Attribute Certificates la RFC 3281.
-     *
-     * @see Org.BouncyCastle.X509.ExtendedPkixParameters
-     */
+    /// <summary>Validates X.509 attribute certificates according to RFC 3281.</summary>
     public class PkixAttrCertPathValidator
     {
-        /**
-         * Validates an attribute certificate with the given certificate path.
-         *
-         * <p>
-         * <code>params</code> must be an instance of
-         * <code>ExtendedPkixParameters</code>.
-         * </p><p>
-         * The target constraints in the <code>params</code> must be an
-         * <code>X509AttrCertStoreSelector</code> with at least the attribute
-         * certificate criterion set. Obey that also target informations may be
-         * necessary to correctly validate this attribute certificate.
-         * </p><p>
-         * The attribute certificate issuer must be added to the trusted attribute
-         * issuers with {@link ExtendedPkixParameters#setTrustedACIssuers(Set)}.
-         * </p>
-         * @param certPath The certificate path which belongs to the attribute
-         *            certificate issuer public key certificate.
-         * @param params The PKIX parameters.
-         * @return A <code>PKIXCertPathValidatorResult</code> of the result of
-         *         validating the <code>certPath</code>.
-         * @throws InvalidAlgorithmParameterException if <code>params</code> is
-         *             inappropriate for this validator.
-         * @throws CertPathValidatorException if the verification fails.
-         */
+        /// <summary>Validates an attribute certificate with the given certificate path.</summary>
+        /// <remarks>
+        /// The target constraints in <paramref name="pkixParams"/> must be an <see cref="X509AttrCertStoreSelector"/>
+        /// with at least the attribute certificate criterion set. Note that target information may also be necessary
+        /// to correctly validate the attribute certificate. The attribute certificate issuer must be added to the
+        /// trusted attribute issuers of the parameters.
+        /// </remarks>
+        /// <param name="certPath">
+        /// The certificate path which belongs to the attribute certificate issuer public key certificate.
+        /// </param>
+        /// <param name="pkixParams">The PKIX parameters.</param>
+        /// <returns>The result of validating <paramref name="certPath"/>.</returns>
+        /// <exception cref="ArgumentException">
+        /// The target constraints of <paramref name="pkixParams"/> are not an <see cref="X509AttrCertStoreSelector"/>.
+        /// </exception>
+        /// <exception cref="PkixCertPathValidatorException">The verification fails.</exception>
         public virtual PkixCertPathValidatorResult Validate(PkixCertPath certPath, PkixParameters pkixParams)
         {
             if (!(pkixParams.GetTargetConstraintsAttrCert() is X509AttrCertStoreSelector attrCertSelector))

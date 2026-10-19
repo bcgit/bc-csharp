@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkix
 {
+    /// <summary>Exception thrown when a certification path cannot be built.</summary>
     [Serializable]
     public class PkixCertPathBuilderException
         : GeneralSecurityException

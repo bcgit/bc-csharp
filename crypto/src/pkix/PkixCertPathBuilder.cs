@@ -8,6 +8,12 @@ using Org.BouncyCastle.X509;
 namespace Org.BouncyCastle.Pkix
 {
     /// <summary>Implements the PKIX CertPathBuilding algorithm for BouncyCastle.</summary>
+    /// <remarks>
+    /// The builder searches the certificate stores in the supplied <see cref="PkixBuilderParameters"/> for a chain
+    /// from the target certificate to one of the trust anchors, and validates each candidate chain with
+    /// <see cref="PkixCertPathValidator"/>. The search is bounded by the number of candidate certificates examined,
+    /// which is controlled by the property named by <see cref="Properties.X509MaxCertPathBuildNodes"/>.
+    /// </remarks>
     public class PkixCertPathBuilder
     {
         private readonly bool m_isForCrlCheck;
@@ -16,6 +22,7 @@ namespace Org.BouncyCastle.Pkix
         private int m_maxNodes;
         private int m_nodesVisited;
 
+        /// <summary>Create a builder.</summary>
         public PkixCertPathBuilder()
             : this(isForCrlCheck: false)
         {
@@ -28,6 +35,10 @@ namespace Org.BouncyCastle.Pkix
 
         /// <summary>Build and validate a CertPath using the given parameter.</summary>
         /// <param name="pkixParams">Object containing all information to build the CertPath.</param>
+        /// <returns>The result for the first valid path found, including the path and its trust anchor.</returns>
+        /// <exception cref="PkixCertPathBuilderException">
+        /// No valid path could be found, or the search exceeded its node limit.
+        /// </exception>
         public virtual PkixCertPathBuilderResult Build(PkixBuilderParameters pkixParams)
         {
             m_certPathException = null;

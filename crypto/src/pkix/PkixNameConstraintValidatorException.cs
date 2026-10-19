@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Pkix
 {
+    /// <summary>Exception thrown when a name does not satisfy the name constraints being checked.</summary>
     [Serializable]
     public class PkixNameConstraintValidatorException
         : Exception
