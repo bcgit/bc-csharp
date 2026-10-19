@@ -54,6 +54,11 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
             this.digest = digest;
         }
 
+        /// <summary>Create a new <see cref="Srp6Server"/>.</summary>
+        /// <param name="group">The group.</param>
+        /// <param name="v">The v.</param>
+        /// <param name="digest">The digest.</param>
+        /// <param name="random">The source of randomness.</param>
         public virtual void Init(Srp6GroupParameters group, BigInteger v, IDigest digest, SecureRandom random)
         {
             Init(group.N, group.G, v, digest, random);

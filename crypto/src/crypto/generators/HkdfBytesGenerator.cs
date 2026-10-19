@@ -109,6 +109,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             hMacHash.DoFinal(currentT, 0);
         }
 
+        /// <inheritdoc/>
         public IDigest Digest => hMacHash.GetUnderlyingDigest();
 
         /// <inheritdoc/>

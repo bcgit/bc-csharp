@@ -113,6 +113,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             m_seed = Arrays.Clone(seed);
         }
 
+        /// <summary>Gets the curve.</summary>
         public ECCurve Curve => m_curve;
 
         /// <summary>Gets the g.</summary>

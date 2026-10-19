@@ -36,6 +36,7 @@ public sealed class FpeParameters
         this.useInverse = useInverse;
     }
 
+    /// <summary>Gets the key.</summary>
     public KeyParameter Key
     {
         get { return key; }

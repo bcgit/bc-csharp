@@ -31,6 +31,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
             m_parameters = (DHKdfParameters)param ?? throw new ArgumentNullException(nameof(param));
         }
 
+        /// <inheritdoc/>
         public IDigest Digest => m_digest;
 
         /// <inheritdoc/>

@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.IO
             m_signer = signer ?? throw new ArgumentNullException(nameof(signer));
         }
 
+        /// <summary>Gets the signer.</summary>
         public ISigner Signer => m_signer;
 
         /// <inheritdoc/>

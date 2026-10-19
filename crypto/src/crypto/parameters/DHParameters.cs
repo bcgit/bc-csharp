@@ -130,6 +130,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>The bitlength of the private value.</summary>
         public int L => m_l;
 
+        /// <summary>Gets the validation parameters.</summary>
         public DHValidationParameters ValidationParameters => m_validation;
 
         /// <inheritdoc/>

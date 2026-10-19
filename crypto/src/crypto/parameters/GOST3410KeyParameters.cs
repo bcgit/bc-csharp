@@ -36,6 +36,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.publicKeyParamSet = publicKeyParamSet;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public Gost3410Parameters Parameters
         {
             get { return parameters; }

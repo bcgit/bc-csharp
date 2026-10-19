@@ -101,6 +101,13 @@ namespace Org.BouncyCastle.Crypto.Generators
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Modifies an existing 32 byte key value to comply with the requirements of the Poly1305 key by clearing
+        /// required bits in the <code>r</code> (second 16 bytes) portion of the key.<br/> Specifically: <ul> <li>r[3],
+        /// r[7], r[11], r[15] have top four bits clear (i.e., are {0, 1, . . . , 15})</li> <li>r[4], r[8], r[12] have
+        /// bottom two bits clear (i.e., are in {0, 4, 8, . . . , 252})</li> </ul>
+        /// </summary>
+        /// <param name="key">a 32 byte key value <code>k[0] ... k[15], r[0] ... r[15]</code></param>
         public static void Clamp(Span<byte> key)
         {
             /*

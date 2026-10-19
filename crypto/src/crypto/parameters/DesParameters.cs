@@ -137,6 +137,10 @@ namespace Org.BouncyCastle.Crypto.Parameters
             }
         }
 
+        /// <summary>Create a new <see cref="DesParameters"/>.</summary>
+        /// <param name="bytes">The bytes.</param>
+        /// <param name="off">The offset into the array.</param>
+        /// <param name="len">The number of bytes.</param>
         public static void SetOddParity(byte[] bytes, int off, int len)
         {
             for (int i = 0; i < len; i++)

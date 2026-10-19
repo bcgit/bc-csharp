@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         {
         }
 
+        /// <summary>Gets the domain parameters.</summary>
         public ECDomainParameters DomainParameters => m_domainParameters;
 
         /// <summary>Gets the public key param set.</summary>

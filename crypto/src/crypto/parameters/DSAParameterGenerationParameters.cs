@@ -73,6 +73,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return certainty; }
         }
 
+        /// <summary>Gets the random.</summary>
         public virtual SecureRandom Random
         {
             get { return random; }

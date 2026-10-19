@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.IO
             m_digest = digest ?? throw new ArgumentNullException(nameof(digest));
         }
 
+        /// <summary>Gets the digest.</summary>
         public IDigest Digest => m_digest;
 
         /// <inheritdoc/>

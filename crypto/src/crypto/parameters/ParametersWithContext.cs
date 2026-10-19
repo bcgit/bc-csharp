@@ -79,6 +79,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
         internal ReadOnlySpan<byte> InternalContext => m_context;
 #endif
 
+        /// <summary>Gets the parameters.</summary>
         public ICipherParameters Parameters => m_parameters;
     }
 }

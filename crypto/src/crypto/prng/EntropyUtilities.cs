@@ -35,6 +35,9 @@ namespace Org.BouncyCastle.Crypto.Prng
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Utility methods for working with entropy sources.</summary>
+        /// <param name="entropySource">The entropy source.</param>
+        /// <param name="seed">The seed.</param>
         public static void GenerateSeed(IEntropySource entropySource, Span<byte> seed)
         {
             while (!seed.IsEmpty)

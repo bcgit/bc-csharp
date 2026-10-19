@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.parameters = parameters;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public DsaParameters Parameters
         {
             get { return parameters; }

@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.IO
             m_mac = mac ?? throw new ArgumentNullException(nameof(mac));
         }
 
+        /// <summary>Gets the mac.</summary>
         public IMac Mac => m_mac;
 
         /// <inheritdoc/>

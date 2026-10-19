@@ -38,6 +38,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.algorithmOid = algorithmOid;
         }
 
+        /// <summary>Gets the parameters.</summary>
         public DHParameters Parameters
         {
             get { return parameters; }

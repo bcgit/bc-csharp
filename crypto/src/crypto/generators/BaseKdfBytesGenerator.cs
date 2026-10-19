@@ -53,6 +53,7 @@ namespace Org.BouncyCastle.Crypto.Generators
             }
         }
 
+        /// <inheritdoc/>
         public IDigest Digest => m_digest;
 
         /**

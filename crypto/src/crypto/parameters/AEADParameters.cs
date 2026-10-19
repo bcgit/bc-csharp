@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             this.associatedText = associatedText;
         }
 
+        /// <summary>Gets the key.</summary>
         public virtual KeyParameter Key
         {
             get { return key; }

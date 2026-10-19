@@ -67,6 +67,7 @@ namespace Org.BouncyCastle.Crypto.Parameters
             get { return a; }
         }
 
+        /// <summary>Gets the validation parameters.</summary>
         public Gost3410ValidationParameters ValidationParameters
         {
             get { return validation; }

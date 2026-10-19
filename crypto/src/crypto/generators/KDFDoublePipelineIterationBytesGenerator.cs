@@ -74,8 +74,10 @@ namespace Org.BouncyCastle.Crypto.Generators
             generatedBytes = 0;
         }
 
+        /// <inheritdoc/>
         public IMac Mac => prf;
 
+        /// <inheritdoc/>
         public IDigest Digest
         {
             get { return (prf as HMac)?.GetUnderlyingDigest(); }

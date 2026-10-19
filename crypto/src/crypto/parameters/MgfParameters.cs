@@ -58,10 +58,15 @@ namespace Org.BouncyCastle.Crypto.Parameters
         /// <summary>Return the seed.</summary>
         public byte[] GetSeed() => Arrays.InternalCopyBuffer(m_seed);
 
+        /// <summary>Return the seed.</summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="offset">The offset into the array.</param>
         [Obsolete("Use 'CopySeedTo' instead")]
         public void GetSeed(byte[] buffer, int offset) => m_seed.CopyTo(buffer, offset);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Return the seed.</summary>
+        /// <param name="output">The buffer to write the output to.</param>
         public void GetSeed(Span<byte> output)
         {
             m_seed.CopyTo(output);
