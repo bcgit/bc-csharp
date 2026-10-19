@@ -52,6 +52,9 @@ namespace Org.BouncyCastle.Ocsp
         /// <summary>Return the underlying ASN.1 structure.</summary>
         public ResponderID ToAsn1Object() => m_id;
 
+        /// <summary>Determine whether this object is equal to another.</summary>
+        /// <param name="other">The object to compare with.</param>
+        /// <returns>true if they are equal, false otherwise.</returns>
         public bool Equals(RespID other) => this == other || m_id.Equals(other?.m_id);
 
         /// <inheritdoc/>
