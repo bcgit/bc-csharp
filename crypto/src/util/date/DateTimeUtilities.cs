@@ -2,8 +2,8 @@ using System;
 
 namespace Org.BouncyCastle.Utilities.Date
 {
-	public static class DateTimeUtilities
-	{
+    public static class DateTimeUtilities
+    {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
         public static readonly DateTime UnixEpoch = DateTime.UnixEpoch;
 #else
@@ -23,13 +23,13 @@ namespace Org.BouncyCastle.Utilities.Date
         /// <returns>Number of whole milliseconds after epoch.</returns>
         /// <exception cref="ArgumentOutOfRangeException">'dateTime' is before the epoch.</exception>
         public static long DateTimeToUnixMs(DateTime dateTime)
-		{
+        {
             DateTime utc = dateTime.ToUniversalTime();
             if (utc.CompareTo(UnixEpoch) < 0)
-				throw new ArgumentOutOfRangeException(nameof(dateTime), "DateTime value may not be before the epoch");
+                throw new ArgumentOutOfRangeException(nameof(dateTime), "DateTime value may not be before the epoch");
 
-			return (utc.Ticks - UnixEpoch.Ticks) / TimeSpan.TicksPerMillisecond;
-		}
+            return (utc.Ticks - UnixEpoch.Ticks) / TimeSpan.TicksPerMillisecond;
+        }
 
         /// <summary>
         /// Create a UTC DateTime value from the number of milliseconds since the Unix epoch (1 Jan., 1970 UTC).
@@ -39,17 +39,17 @@ namespace Org.BouncyCastle.Utilities.Date
         /// <exception cref="ArgumentOutOfRangeException">'unixMs' is before 'MinUnixMs' or after 'MaxUnixMs'.
         /// </exception>
         public static DateTime UnixMsToDateTime(long unixMs)
-		{
-			if (unixMs < MinUnixMs || unixMs > MaxUnixMs)
-				throw new ArgumentOutOfRangeException(nameof(unixMs));
+        {
+            if (unixMs < MinUnixMs || unixMs > MaxUnixMs)
+                throw new ArgumentOutOfRangeException(nameof(unixMs));
 
             return new DateTime(unixMs * TimeSpan.TicksPerMillisecond + UnixEpoch.Ticks, DateTimeKind.Utc);
-		}
+        }
 
-		/// <summary>
-		/// Return the current number of milliseconds since the Unix epoch (1 Jan., 1970 UTC).
-		/// </summary>
-		public static long CurrentUnixMs() => DateTimeToUnixMs(DateTime.UtcNow);
+        /// <summary>
+        /// Return the current number of milliseconds since the Unix epoch (1 Jan., 1970 UTC).
+        /// </summary>
+        public static long CurrentUnixMs() => DateTimeToUnixMs(DateTime.UtcNow);
 
         public static DateTime WithPrecisionCentisecond(DateTime dateTime) =>
             dateTime.AddTicks(-(dateTime.Ticks % (TimeSpan.TicksPerMillisecond * 10L)));

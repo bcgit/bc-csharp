@@ -2,40 +2,40 @@ namespace Org.BouncyCastle.Utilities.Net
 {
     // TODO[api] Make static
     public class IPAddress
-	{
-		/**
-		 * Validate the given IPv4 or IPv6 address.
-		 *
-		 * @param address the IP address as a string.
-		 *
-		 * @return true if a valid address, false otherwise
-		 */
-		public static bool IsValid(string address)
-		{
-			return IsValidIPv4(address) || IsValidIPv6(address);
-		}
+    {
+        /**
+         * Validate the given IPv4 or IPv6 address.
+         *
+         * @param address the IP address as a string.
+         *
+         * @return true if a valid address, false otherwise
+         */
+        public static bool IsValid(string address)
+        {
+            return IsValidIPv4(address) || IsValidIPv6(address);
+        }
 
-		/**
-		 * Validate the given IPv4 or IPv6 address and netmask.
-		 *
-		 * @param address the IP address as a string.
-		 *
-		 * @return true if a valid address with netmask, false otherwise
-		 */
-		public static bool IsValidWithNetMask(string address)
-		{
-			return IsValidIPv4WithNetmask(address) || IsValidIPv6WithNetmask(address);
-		}
+        /**
+         * Validate the given IPv4 or IPv6 address and netmask.
+         *
+         * @param address the IP address as a string.
+         *
+         * @return true if a valid address with netmask, false otherwise
+         */
+        public static bool IsValidWithNetMask(string address)
+        {
+            return IsValidIPv4WithNetmask(address) || IsValidIPv6WithNetmask(address);
+        }
 
-		/**
-		 * Validate the given IPv4 address.
-		 * 
-		 * @param address the IP address as a string.
-		 *
-		 * @return true if a valid IPv4 address, false otherwise
-		 */
-		public static bool IsValidIPv4(string address)
-		{
+        /**
+         * Validate the given IPv4 address.
+         *
+         * @param address the IP address as a string.
+         *
+         * @return true if a valid IPv4 address, false otherwise
+         */
+        public static bool IsValidIPv4(string address)
+        {
             int length = address.Length;
             if (length < 7 || length > 15)
                 return false;
@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Utilities.Net
             int pos = 0;
             for (int octetIndex = 0; octetIndex < 3; ++octetIndex)
             {
-				int end = Platform.IndexOf(address, '.', pos);
+                int end = Platform.IndexOf(address, '.', pos);
 
                 if (!IsParseableIPv4Octet(address, pos, end))
                     return false;
@@ -52,11 +52,11 @@ namespace Org.BouncyCastle.Utilities.Net
             }
 
             return IsParseableIPv4Octet(address, pos, length);
-		}
+        }
 
-		public static bool IsValidIPv4WithNetmask(string address)
-		{
-			int index = Platform.IndexOf(address, '/');
+        public static bool IsValidIPv4WithNetmask(string address)
+        {
+            int index = Platform.IndexOf(address, '/');
             if (index < 1)
                 return false;
 
@@ -64,17 +64,17 @@ namespace Org.BouncyCastle.Utilities.Net
             string after = address.Substring(index + 1);
 
             return IsValidIPv4(before) && (IsValidIPv4(after) || IsParseableIPv4Mask(after));
-		}
+        }
 
-		/**
-		 * Validate the given IPv6 address.
-		 *
-		 * @param address the IP address as a string.
-		 *
-		 * @return true if a valid IPv4 address, false otherwise
-		 */
-		public static bool IsValidIPv6(string address)
-		{
+        /**
+         * Validate the given IPv6 address.
+         *
+         * @param address the IP address as a string.
+         *
+         * @return true if a valid IPv4 address, false otherwise
+         */
+        public static bool IsValidIPv6(string address)
+        {
             if (address.Length == 0)
                 return false;
 
@@ -163,7 +163,7 @@ namespace Org.BouncyCastle.Utilities.Net
             if (length < 1 | length > maxLength)
                 return false;
 
-            bool checkLeadingZero = length > 1 & !allowLeadingZero; 
+            bool checkLeadingZero = length > 1 & !allowLeadingZero;
             if (checkLeadingZero && s[pos] == '0')
                 return false;
 
