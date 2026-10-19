@@ -87,8 +87,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
         {
         }
 
+        /// <summary>Gets the header.</summary>
         public virtual PkiHeader Header => m_header;
 
+        /// <summary>Gets the body.</summary>
         public virtual PkiBody Body => m_body;
 
         /// <summary>Gets the protection.</summary>

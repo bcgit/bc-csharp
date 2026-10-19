@@ -91,6 +91,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         {
         }
 
+        /// <summary>Gets the private key.</summary>
         public virtual PrivateKeyInfo PrivateKey => m_privKeyInfo;
 
         /// <summary>Gets a value indicating whether this has identifier.</summary>

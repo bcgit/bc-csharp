@@ -50,6 +50,7 @@ namespace Org.BouncyCastle.Asn1.X9
         /// <summary>Gets the point encoding.</summary>
         public Asn1OctetString PointEncoding => m_encoding;
 
+        /// <summary>Gets the point.</summary>
         public ECPoint Point => Objects.EnsureSingletonInitialized(ref m_p, this, self => self.CreatePoint());
 
         /// <summary>Gets a value indicating whether this is point compressed.</summary>

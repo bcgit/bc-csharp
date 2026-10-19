@@ -187,6 +187,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the subject unique ID.</summary>
         public DerBitString SubjectUniqueID => m_subjectUniqueID;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_extensions;
 
         /// <inheritdoc/>

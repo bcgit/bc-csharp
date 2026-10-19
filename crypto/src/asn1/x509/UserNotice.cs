@@ -84,6 +84,7 @@ namespace Org.BouncyCastle.Asn1.X509
         {
         }
 
+        /// <summary>Gets the notice ref.</summary>
         public virtual NoticeReference NoticeRef => m_noticeRef;
 
         /// <summary>Gets the explicit text.</summary>

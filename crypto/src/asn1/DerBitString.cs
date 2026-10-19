@@ -433,6 +433,7 @@ namespace Org.BouncyCastle.Asn1
 
         private MemoryStream GetMemoryStream() => new MemoryStream(m_contents, 1, m_contents.Length - 1, false);
 
+        /// <summary>Gets the parser.</summary>
         public Asn1BitStringParser Parser => this;
 
         /// <inheritdoc/>

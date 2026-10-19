@@ -96,6 +96,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the tbs certificate.</summary>
         public TbsCertificateStructure TbsCertificate => m_tbsCert;
 
         /// <summary>Gets the version.</summary>
@@ -126,6 +127,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the subject unique ID.</summary>
         public DerBitString SubjectUniqueID => m_tbsCert.SubjectUniqueID;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_tbsCert.Extensions;
 
         /// <summary>Gets the signature algorithm.</summary>

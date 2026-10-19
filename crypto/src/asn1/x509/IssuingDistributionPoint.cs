@@ -162,6 +162,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the only contains attribute certs.</summary>
         public bool OnlyContainsAttributeCerts => m_onlyContainsAttributeCerts.IsTrue;
 
+        /// <summary>Gets the distribution point.</summary>
         public DistributionPointName DistributionPoint => m_distributionPoint;
 
         /// <summary>Gets the only some reasons.</summary>

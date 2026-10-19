@@ -104,6 +104,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_signatureValue = signatureValue ?? throw new ArgumentNullException(nameof(signatureValue));
         }
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_extensions;
 
         /// <summary>Gets the issuer.</summary>

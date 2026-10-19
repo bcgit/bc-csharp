@@ -94,6 +94,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         /// <summary>Gets the cert req.</summary>
         public DerBoolean CertReq => m_certReq;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_extensions;
 
         /**

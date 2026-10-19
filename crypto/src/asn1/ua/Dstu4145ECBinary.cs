@@ -112,6 +112,7 @@ namespace Org.BouncyCastle.Asn1.UA
             m_bp = Asn1Utilities.Read(seq, ref pos, Asn1OctetString.GetInstance);
         }
 
+        /// <summary>Gets the field.</summary>
         public Dstu4145BinaryField Field => m_f;
 
         /// <summary>Gets the a.</summary>

@@ -107,6 +107,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             }
         }
 
+        /// <summary>Gets the date.</summary>
         [Obsolete("Use 'ToDateTime' instead")]
         public DateTime Date => ToDateTime();
 

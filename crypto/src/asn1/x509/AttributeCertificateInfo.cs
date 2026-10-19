@@ -74,6 +74,7 @@ namespace Org.BouncyCastle.Asn1.X509
 
         public Holder Holder => m_holder;
 
+        /// <summary>Gets the issuer.</summary>
         public AttCertIssuer Issuer => m_issuer;
 
         /// <summary>Gets the signature.</summary>
@@ -91,6 +92,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the issuer unique ID.</summary>
         public DerBitString IssuerUniqueID => m_issuerUniqueID;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_extensions;
 
         /// <summary>

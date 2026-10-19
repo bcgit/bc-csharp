@@ -113,6 +113,7 @@ namespace Org.BouncyCastle.Asn1.Icao
         /// <summary>Return the datagroup hash.</summary>
         public DataGroupHash[] GetDatagroupHash() => m_datagroupHashValues;
 
+        /// <summary>Gets the version info.</summary>
         public LdsVersionInfo VersionInfo => m_ldsVersionInfo;
 
         /// <inheritdoc/>

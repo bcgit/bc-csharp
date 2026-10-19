@@ -111,6 +111,7 @@ namespace Org.BouncyCastle.Asn1.X509
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the algorithm.</summary>
         public AlgorithmIdentifier Algorithm => m_algorithm;
 
         /// <summary>Gets the algorithm ID.</summary>

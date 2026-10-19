@@ -81,6 +81,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         /// <summary>Return the key hash.</summary>
         public virtual byte[] GetKeyHash() => (m_id as Asn1OctetString)?.GetOctets();
 
+        /// <summary>Gets the name.</summary>
         public virtual X509Name Name
         {
             get

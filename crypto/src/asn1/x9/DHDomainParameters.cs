@@ -101,6 +101,7 @@ namespace Org.BouncyCastle.Asn1.X9
         /// <summary>Gets the j.</summary>
         public DerInteger J => m_j;
 
+        /// <summary>Gets the validation parms.</summary>
         [Obsolete("Use 'ValidationParams' instead")]
         public DHValidationParms ValidationParms =>
             new DHValidationParms(m_validationParams.Seed, m_validationParams.PgenCounter);

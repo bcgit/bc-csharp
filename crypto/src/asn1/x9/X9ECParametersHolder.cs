@@ -9,8 +9,10 @@ namespace Org.BouncyCastle.Asn1.X9
         private ECCurve m_curve;
         private X9ECParameters m_parameters;
 
+        /// <summary>Gets the curve.</summary>
         public ECCurve Curve => Objects.EnsureSingletonInitialized(ref m_curve, this, self => self.CreateCurve());
 
+        /// <summary>Gets the parameters.</summary>
         public X9ECParameters Parameters =>
             Objects.EnsureSingletonInitialized(ref m_parameters, this, self => self.CreateParameters());
 

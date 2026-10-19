@@ -79,6 +79,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /// <summary>Gets the cert req ID.</summary>
         public virtual DerInteger CertReqID => m_certReqId;
 
+        /// <summary>Gets the status.</summary>
         public virtual PkiStatusInfo Status => m_status;
 
         public virtual CertifiedKeyPair CertifiedKeyPair => m_certifiedKeyPair;

@@ -138,6 +138,7 @@ namespace Org.BouncyCastle.Asn1.UA
         /// <summary>Gets a value indicating whether this is named curve.</summary>
         public bool IsNamedCurve => m_namedCurve != null;
 
+        /// <summary>Gets the EC binary.</summary>
         public Dstu4145ECBinary ECBinary => m_ecBinary;
 
         /// <summary>Gets the dke.</summary>

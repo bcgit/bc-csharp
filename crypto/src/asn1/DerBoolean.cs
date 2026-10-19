@@ -60,8 +60,14 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="DerBoolean"/> from a tagged object.</summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The <see cref="DerBoolean"/>.</returns>
         public static DerBoolean GetInstance(bool value) => value ? True : False;
 
+        /// <summary>Return an <see cref="DerBoolean"/> from a tagged object.</summary>
+        /// <param name="value">The value.</param>
+        /// <returns>The <see cref="DerBoolean"/>.</returns>
         public static DerBoolean GetInstance(int value) => value != 0 ? True : False;
 
         /// <summary>Return an <see cref="DerBoolean"/> from a tagged object.</summary>

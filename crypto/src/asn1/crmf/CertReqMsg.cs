@@ -68,6 +68,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_regInfo = regInfo == null ? null : new DerSequence(regInfo);
         }
 
+        /// <summary>Gets the cert req.</summary>
         public virtual CertRequest CertReq => m_certReq;
 
         /// <summary>Gets the pop.</summary>

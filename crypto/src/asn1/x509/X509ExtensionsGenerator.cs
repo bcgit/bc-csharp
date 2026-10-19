@@ -21,6 +21,13 @@ namespace Org.BouncyCastle.Asn1.X509
             X509Extensions.CertificateIssuer
         };
 
+        /// <summary>
+        /// Add an extension with the given oid and the passed in value to be included in the OCTET STRING associated
+        /// with the extension.
+        /// </summary>
+        /// <param name="oid">OID for the extension.</param>
+        /// <param name="critical">True if critical, false otherwise.</param>
+        /// <param name="extValue">The ASN.1 object to be included in the extension.</param>
         public void AddExtension(DerObjectIdentifier oid, bool critical, IAsn1Convertible extValue) =>
             AddExtension(oid, critical, extValue.ToAsn1Object());
 
@@ -62,6 +69,12 @@ namespace Org.BouncyCastle.Asn1.X509
             }
         }
 
+        /// <summary>
+        /// Add an extension with the given oid and the passed in byte array to be wrapped in the OCTET STRING
+        /// associated with the extension.
+        /// </summary>
+        /// <param name="oid">OID for the extension.</param>
+        /// <param name="x509Extension">The x 509 extension.</param>
         public void AddExtension(DerObjectIdentifier oid, X509Extension x509Extension)
         {
             if (HasExtension(oid))
@@ -70,6 +83,11 @@ namespace Org.BouncyCastle.Asn1.X509
             ImplAddExtension(oid, x509Extension);
         }
 
+        /// <summary>
+        /// Add an extension with the given oid and the passed in byte array to be wrapped in the OCTET STRING
+        /// associated with the extension.
+        /// </summary>
+        /// <param name="extension">The extension.</param>
         public void AddExtension(Extension extension) => AddExtension(extension.ExtnID, extension.GetX509Extension());
 
         public void AddExtensions(X509Extensions extensions)

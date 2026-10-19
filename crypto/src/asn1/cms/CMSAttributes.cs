@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         public static readonly DerObjectIdentifier SigningTime = PkcsObjectIdentifiers.Pkcs9AtSigningTime;
         /// <summary>The object identifier <c>1.2.840.113549.1.9.6</c>.</summary>
         public static readonly DerObjectIdentifier CounterSignature = PkcsObjectIdentifiers.Pkcs9AtCounterSignature;
+        /// <summary>The object identifier <c>1.2.840.113549.1.9.16.2.4</c>.</summary>
         public static readonly DerObjectIdentifier ContentHint = PkcsObjectIdentifiers.IdAAContentHint;
         /// <summary>The object identifier <c>1.2.840.113549.1.9.52</c>.</summary>
         public static readonly DerObjectIdentifier CmsAlgorithmProtect = PkcsObjectIdentifiers.id_aa_cmsAlgorithmProtect;

@@ -92,6 +92,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the originator.</summary>
         public OriginatorIdentifierOrKey Originator => m_originator;
 
         /// <summary>Gets the user keying material.</summary>

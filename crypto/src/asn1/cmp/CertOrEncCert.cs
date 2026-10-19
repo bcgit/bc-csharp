@@ -79,6 +79,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_encryptedCert = encryptedKey ?? throw new ArgumentNullException(nameof(encryptedKey));
         }
 
+        /// <summary>Gets the certificate.</summary>
         public virtual CmpCertificate Certificate => m_certificate;
 
         /// <summary>Gets the encrypted cert.</summary>

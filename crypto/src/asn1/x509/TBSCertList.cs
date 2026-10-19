@@ -81,6 +81,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the revocation date.</summary>
         public Time RevocationDate => m_revocationDate;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_crlEntryExtensions;
 
         /// <inheritdoc/>
@@ -201,6 +202,7 @@ namespace Org.BouncyCastle.Asn1.X509
         public IEnumerable<CrlEntry> GetRevokedCertificateEnumeration() =>
             CollectionUtilities.Select(m_revokedCertificates ?? DerSequence.Empty, CrlEntry.GetInstance);
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_crlExtensions;
 
         /// <inheritdoc/>

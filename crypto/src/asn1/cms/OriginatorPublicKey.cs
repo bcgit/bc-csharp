@@ -69,6 +69,7 @@ namespace Org.BouncyCastle.Asn1.Cms
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the algorithm.</summary>
         public AlgorithmIdentifier Algorithm => m_algorithm;
 
         /// <summary>Gets the public key.</summary>

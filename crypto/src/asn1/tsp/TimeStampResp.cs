@@ -62,6 +62,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             m_timeStampToken = timeStampToken;
         }
 
+        /// <summary>Gets the status.</summary>
         public PkiStatusInfo Status => m_pkiStatusInfo;
 
         /// <summary>Gets the time stamp token.</summary>

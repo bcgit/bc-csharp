@@ -118,6 +118,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         /// <summary>Gets the tsa.</summary>
         public GeneralName Tsa => m_tsa;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_extensions;
 
         /**

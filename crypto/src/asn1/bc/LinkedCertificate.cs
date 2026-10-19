@@ -88,6 +88,7 @@ namespace Org.BouncyCastle.Asn1.BC
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the digest.</summary>
         public virtual DigestInfo Digest => m_digest;
 
         /// <summary>Gets the cert location.</summary>

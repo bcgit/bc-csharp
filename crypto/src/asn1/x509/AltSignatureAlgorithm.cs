@@ -86,6 +86,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_algorithm = new AlgorithmIdentifier(algorithm, parameters);
         }
 
+        /// <summary>Gets the algorithm.</summary>
         public AlgorithmIdentifier Algorithm => m_algorithm;
 
         /// <inheritdoc/>

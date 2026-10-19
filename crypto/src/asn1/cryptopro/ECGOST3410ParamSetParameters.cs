@@ -94,6 +94,7 @@ namespace Org.BouncyCastle.Asn1.CryptoPro
         /// <summary>Gets the a.</summary>
         public BigInteger A => m_a.PositiveValue;
 
+        /// <summary>Gets the b.</summary>
         public BigInteger B => m_b.PositiveValue;
 
         /// <summary>Gets the p.</summary>

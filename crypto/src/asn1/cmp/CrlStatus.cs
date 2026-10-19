@@ -63,6 +63,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_thisUpdate = thisUpdate;
         }
 
+        /// <summary>Gets the source.</summary>
         public virtual CrlSource Source => m_source;
 
         /// <summary>Gets the this update.</summary>

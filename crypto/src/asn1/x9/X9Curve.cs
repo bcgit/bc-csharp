@@ -126,6 +126,7 @@ namespace Org.BouncyCastle.Asn1.X9
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the curve.</summary>
         public ECCurve Curve => m_curve;
 
         /// <summary>Return the seed.</summary>

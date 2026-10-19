@@ -399,6 +399,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /** PKCS#9: 1.2.840.113549.1.9.16.2.1 -- smime attribute receiptRequest */
         public static readonly DerObjectIdentifier IdAAReceiptRequest = id_aa.Branch("1");
 
+        /// <summary>The object identifier <c>1.2.840.113549.1.9.16.2.4</c>.</summary>
         public static readonly DerObjectIdentifier IdAAContentHint = id_aa.Branch("4"); // See RFC 2634
         /// <summary>The object identifier <c>1.2.840.113549.1.9.16.2.5</c>.</summary>
         public static readonly DerObjectIdentifier IdAAMsgSigDigest = id_aa.Branch("5");
@@ -414,6 +415,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>The object identifier <c>1.2.840.113549.1.9.16.2.47</c>.</summary>
         public static readonly DerObjectIdentifier IdAASigningCertificateV2 = id_aa.Branch("47");
 
+        /// <summary>The object identifier <c>1.2.840.113549.1.9.16.2.7</c>.</summary>
         public static readonly DerObjectIdentifier IdAAContentIdentifier = id_aa.Branch("7"); // See RFC 2634
 
         /*

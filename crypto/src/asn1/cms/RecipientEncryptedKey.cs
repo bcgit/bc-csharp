@@ -59,6 +59,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_encryptedKey = encryptedKey ?? throw new ArgumentNullException(nameof(encryptedKey));
         }
 
+        /// <summary>Gets the identifier.</summary>
         public KeyAgreeRecipientIdentifier Identifier => m_identifier;
 
         /// <summary>Gets the encrypted key.</summary>

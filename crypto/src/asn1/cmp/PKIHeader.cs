@@ -124,6 +124,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /// <summary>Gets the recip nonce.</summary>
         public virtual Asn1OctetString RecipNonce => m_recipNonce;
 
+        /// <summary>Gets the free text.</summary>
         public virtual PkiFreeText FreeText => m_freeText;
 
         /// <summary>Return the general info.</summary>

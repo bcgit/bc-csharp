@@ -119,11 +119,13 @@ namespace Org.BouncyCastle.Asn1.Crmf
         /// <summary>Gets the issuer.</summary>
         public virtual X509Name Issuer => m_issuer;
 
+        /// <summary>Gets the validity.</summary>
         public virtual OptionalValidity Validity => m_validity;
 
         /// <summary>Gets the subject.</summary>
         public virtual X509Name Subject => m_subject;
 
+        /// <summary>Gets the public key.</summary>
         public virtual SubjectPublicKeyInfo PublicKey => m_publicKey;
 
         /// <summary>Gets the issuer UID.</summary>
@@ -132,6 +134,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         /// <summary>Gets the subject UID.</summary>
         public virtual DerBitString SubjectUID => m_subjectUID;
 
+        /// <summary>Gets the extensions.</summary>
         public virtual X509Extensions Extensions => m_extensions;
 
         /**

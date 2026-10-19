@@ -98,6 +98,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_subjectAltPublicKey = subjectPublicKeyInfo.PublicKey;
         }
 
+        /// <summary>Gets the algorithm.</summary>
         public AlgorithmIdentifier Algorithm => m_algorithm;
 
         /// <summary>Gets the subject alt public key.</summary>

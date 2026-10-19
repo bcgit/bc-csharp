@@ -257,6 +257,7 @@ namespace Org.BouncyCastle.Asn1
             public virtual Asn1Object ToAsn1Object() => m_outer;
         }
 
+        /// <summary>Gets the parser.</summary>
         public Asn1SetParser Parser => new Asn1SetParserImpl(this);
 
         /// <inheritdoc/>

@@ -79,6 +79,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the response status.</summary>
         public OcspResponseStatus ResponseStatus => m_responseStatus;
 
         public ResponseBytes ResponseBytes => m_responseBytes;

@@ -61,8 +61,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_body = body ?? throw new ArgumentNullException(nameof(body));
         }
 
+        /// <summary>Gets the header.</summary>
         public virtual PkiHeader Header => m_header;
 
+        /// <summary>Gets the body.</summary>
         public virtual PkiBody Body => m_body;
 
         /**

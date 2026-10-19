@@ -145,6 +145,7 @@ namespace Org.BouncyCastle.Asn1.X9
         /// <summary>Gets the field type.</summary>
         public DerObjectIdentifier FieldType => m_fieldType;
 
+        /// <summary>Gets the identifier.</summary>
         [Obsolete("Use 'FieldType' instead")]
         public DerObjectIdentifier Identifier => m_fieldType;
 

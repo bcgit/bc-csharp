@@ -78,6 +78,7 @@ namespace Org.BouncyCastle.Asn1.Esf
         /// <summary>Gets the ocsp i ds.</summary>
         public OcspListID OcspIDs => m_ocspids;
 
+        /// <summary>Gets the other rev.</summary>
         public OtherRevRefs OtherRev => m_otherRev;
 
         /// <inheritdoc/>

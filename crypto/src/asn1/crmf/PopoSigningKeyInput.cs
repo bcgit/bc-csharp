@@ -84,6 +84,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         /** Returns the publicKeyMac field, or null if authInfo is sender */
         public virtual PKMacValue PublicKeyMac => m_authInfo.PublicKeyMac;
 
+        /// <summary>Gets the public key.</summary>
         public virtual SubjectPublicKeyInfo PublicKey => m_publicKey;
 
         /**

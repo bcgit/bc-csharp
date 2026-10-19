@@ -114,6 +114,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the next update.</summary>
         public Time NextUpdate => m_tbsCertList.NextUpdate;
 
+        /// <summary>Gets the extensions.</summary>
         public X509Extensions Extensions => m_tbsCertList.Extensions;
 
         /// <inheritdoc/>

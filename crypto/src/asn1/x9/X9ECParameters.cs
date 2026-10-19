@@ -187,6 +187,7 @@ namespace Org.BouncyCastle.Asn1.X9
             }
         }
 
+        /// <summary>Gets the curve.</summary>
         public ECCurve Curve => m_curve.Curve;
 
         /// <summary>Gets the g.</summary>

@@ -49,6 +49,9 @@ namespace Org.BouncyCastle.Asn1.X509
             this.holder = holder;
         }
 
+        /// <summary>Set the holder.</summary>
+        /// <param name="oid">The object identifier.</param>
+        /// <param name="value">The value.</param>
         public void AddAttribute(
             string oid,
             Asn1Encodable value)

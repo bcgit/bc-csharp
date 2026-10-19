@@ -234,6 +234,7 @@ namespace Org.BouncyCastle.Asn1
             public Asn1Object ToAsn1Object() => m_outer;
         }
 
+        /// <summary>Gets the parser.</summary>
         public virtual Asn1SequenceParser Parser => new Asn1SequenceParserImpl(this);
 
         /**

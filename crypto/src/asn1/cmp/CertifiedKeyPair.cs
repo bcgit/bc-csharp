@@ -110,6 +110,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /// <summary>Gets the private key.</summary>
         public virtual EncryptedKey PrivateKey => m_privateKey;
 
+        /// <summary>Gets the publication info.</summary>
         public virtual PkiPublicationInfo PublicationInfo => m_publicationInfo;
 
         /**

@@ -74,9 +74,18 @@ namespace Org.BouncyCastle.Asn1
             throw new ArgumentException("illegal object in GetInstance: " + Platform.GetTypeName(obj), nameof(obj));
         }
 
+        /// <summary>Return an <see cref="Asn1TaggedObject"/> from a tagged object.</summary>
+        /// <param name="obj">The object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>The <see cref="Asn1TaggedObject"/>.</returns>
         public static Asn1TaggedObject GetInstance(object obj, int tagClass) =>
             Asn1Utilities.CheckTagClass(CheckInstance(obj), tagClass);
 
+        /// <summary>Return an <see cref="Asn1TaggedObject"/> from a tagged object.</summary>
+        /// <param name="obj">The object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag no.</param>
+        /// <returns>The <see cref="Asn1TaggedObject"/>.</returns>
         public static Asn1TaggedObject GetInstance(object obj, int tagClass, int tagNo) =>
             Asn1Utilities.CheckTag(CheckInstance(obj), tagClass, tagNo);
 
@@ -87,11 +96,22 @@ namespace Org.BouncyCastle.Asn1
         public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetExplicitContextBaseTagged(CheckInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Asn1TaggedObject"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1TaggedObject"/>.</returns>
         public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, int tagClass, bool declaredExplicit)
         {
             return Asn1Utilities.GetExplicitBaseTagged(CheckInstance(taggedObject, declaredExplicit), tagClass);
         }
 
+        /// <summary>Return an <see cref="Asn1TaggedObject"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag no.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Asn1TaggedObject"/>.</returns>
         public static Asn1TaggedObject GetInstance(Asn1TaggedObject taggedObject, int tagClass, int tagNo,
             bool declaredExplicit)
         {
@@ -112,6 +132,10 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1TaggedObject"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <returns>The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1TaggedObject GetOptional(Asn1Encodable element, int tagClass)
         {
             var taggedObject = GetOptional(element);
@@ -120,6 +144,11 @@ namespace Org.BouncyCastle.Asn1
             return null;
         }
 
+        /// <summary>Return an <see cref="Asn1TaggedObject"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <param name="tagClass">The tag class.</param>
+        /// <param name="tagNo">The tag no.</param>
+        /// <returns>The <see cref="Asn1TaggedObject"/>, or null if <paramref name="element"/> is null.</returns>
         public static Asn1TaggedObject GetOptional(Asn1Encodable element, int tagClass, int tagNo)
         {
             var taggedObject = GetOptional(element);

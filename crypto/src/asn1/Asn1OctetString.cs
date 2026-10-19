@@ -121,6 +121,7 @@ namespace Org.BouncyCastle.Asn1
             return new MemoryStream(contents, false);
         }
 
+        /// <summary>Gets the parser.</summary>
         public Asn1OctetStringParser Parser
         {
             get { return this; }

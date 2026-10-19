@@ -107,6 +107,7 @@ namespace Org.BouncyCastle.Asn1.Microsoft
 
         public Attributes Attributes => m_attributes;
 
+        /// <summary>Gets the content.</summary>
         public ContentInfo Content => m_content;
 
         /// <inheritdoc/>

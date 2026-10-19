@@ -74,6 +74,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             m_exponent = DerInteger.ValueOf(exponent);
         }
 
+        /// <summary>Gets the currency.</summary>
         public Iso4217CurrencyCode Currency => m_currency;
 
         /// <summary>Gets the amount.</summary>

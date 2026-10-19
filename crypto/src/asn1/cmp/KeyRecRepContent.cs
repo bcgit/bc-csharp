@@ -54,6 +54,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the status.</summary>
         public virtual PkiStatusInfo Status => m_status;
 
         /// <summary>Gets the new sig cert.</summary>

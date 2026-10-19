@@ -86,6 +86,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>Gets the issuer.</summary>
         public X509Name Issuer => m_issuer;
 
+        /// <summary>Gets the name.</summary>
         [Obsolete("Use 'Issuer' property instead")]
         public X509Name Name => m_issuer;
 
