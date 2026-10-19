@@ -445,7 +445,7 @@ namespace Org.BouncyCastle.Math
                     /*
                      * This is an optimization of the original algorithm, using trial division to screen out
                      * many non-primes quickly.
-                     * 
+                     *
                      * NOTE: 'primeSeed' is still incremented as if we performed the full check!
                      */
                     if (ImplHasAnySmallFactors(c))

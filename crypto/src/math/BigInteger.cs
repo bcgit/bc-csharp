@@ -241,7 +241,7 @@ namespace Org.BouncyCastle.Math
 
         private readonly uint[] magnitude; // array of uints with [0] being the most significant
         private readonly int sign; // -1 means -ve; +1 means +ve; 0 means 0;
- 
+
         [NonSerialized]
         private int nBits = -1; // cache BitCount() value
         [NonSerialized]
@@ -451,7 +451,7 @@ namespace Org.BouncyCastle.Math
                         Debug.Assert(false);
 
                         // TODO Parse all bits at once
-//						b = b.ShiftLeft(s.Length);
+// b = b.ShiftLeft(s.Length);
                     }
                     else if (radix == 8)
                     {
@@ -459,7 +459,7 @@ namespace Org.BouncyCastle.Math
                         Debug.Assert(false);
 
                         // TODO Parse all bits at once
-//						b = b.ShiftLeft(s.Length * 3);
+// b = b.ShiftLeft(s.Length * 3);
                     }
                     else if (radix == 16)
                     {
@@ -479,11 +479,11 @@ namespace Org.BouncyCastle.Math
             }
 
             // Note: This is the previous (slower) algorithm
-//			while (index < value.Length)
+// while (index < value.Length)
 //            {
-//				char c = value[index];
-//				string s = c.ToString();
-//				int i = int.Parse(s, style);
+// char c = value[index];
+// string s = c.ToString();
+// int i = int.Parse(s, style);
 //
 //                b = b.Multiply(r).Add(ValueOf(i));
 //                index++;
@@ -904,11 +904,11 @@ namespace Org.BouncyCastle.Math
             if (bitLength == 2)
             {
                 this.magnitude = random.Next(2) == 0
-                    ?	Two.magnitude
-                    :	Three.magnitude;
+                    ? Two.magnitude
+                    : Three.magnitude;
                 return;
             }
-             
+
             int nBytes = GetBytesLength(bitLength);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -1122,7 +1122,7 @@ namespace Org.BouncyCastle.Math
             }
         }
 
-        private static int CalcBitLength(int sign, int indx, uint[]	mag)
+        private static int CalcBitLength(int sign, int indx, uint[] mag)
         {
             for (;;)
             {
@@ -1626,22 +1626,22 @@ namespace Org.BouncyCastle.Math
 
 
             // TODO Special case for < 10^16 (RabinMiller fixed list)
-//			if (BitLength < 30)
-//			{
-//				RabinMiller against 2, 3, 5, 7, 11, 13, 23 is sufficient
-//			}
+// if (BitLength < 30)
+// {
+// RabinMiller against 2, 3, 5, 7, 11, 13, 23 is sufficient
+// }
 
 
             // TODO Is it worth trying to create a hybrid of these two?
             return RabinMillerTest(certainty, random, randomlySelected);
-//			return SolovayStrassenTest(certainty, random);
+// return SolovayStrassenTest(certainty, random);
 
-//			bool rbTest = RabinMillerTest(certainty, random);
-//			bool ssTest = SolovayStrassenTest(certainty, random);
+// bool rbTest = RabinMillerTest(certainty, random);
+// bool ssTest = SolovayStrassenTest(certainty, random);
 //
-//			Debug.Assert(rbTest == ssTest);
+// Debug.Assert(rbTest == ssTest);
 //
-//			return rbTest;
+// return rbTest;
         }
 
         public bool RabinMillerTest(int certainty, Random random)
@@ -1783,42 +1783,42 @@ namespace Org.BouncyCastle.Math
                 throw new ArithmeticException("Modulus must be positive");
 
             // TODO Too slow at the moment
-//			// "Fast Key Exchange with Elliptic Curve Systems" R.Schoeppel
-//			if (m.TestBit(0))
-//			{
-//				//The Almost Inverse Algorithm
-//				int k = 0;
-//				BigInteger B = One, C = Zero, F = this, G = m, tmp;
+// // "Fast Key Exchange with Elliptic Curve Systems" R.Schoeppel
+// if (m.TestBit(0))
+// {
+// //The Almost Inverse Algorithm
+// int k = 0;
+// BigInteger B = One, C = Zero, F = this, G = m, tmp;
 //
-//				for (;;)
-//				{
-//					// While F is even, do F=F/u, C=C*u, k=k+1.
-//					int zeros = F.GetLowestSetBit();
-//					if (zeros > 0)
-//					{
-//						F = F.ShiftRight(zeros);
-//						C = C.ShiftLeft(zeros);
-//						k += zeros;
-//					}
+// for (;;)
+// {
+// // While F is even, do F=F/u, C=C*u, k=k+1.
+// int zeros = F.GetLowestSetBit();
+// if (zeros > 0)
+// {
+// F = F.ShiftRight(zeros);
+// C = C.ShiftLeft(zeros);
+// k += zeros;
+// }
 //
-//					// If F = 1, then return B,k.
-//					if (F.Equals(One))
-//					{
-//						BigInteger half = m.Add(One).ShiftRight(1);
-//						BigInteger halfK = half.ModPow(ValueOf(k), m);
-//						return B.Multiply(halfK).Mod(m);
-//					}
+// // If F = 1, then return B,k.
+// if (F.Equals(One))
+// {
+// BigInteger half = m.Add(One).ShiftRight(1);
+// BigInteger halfK = half.ModPow(ValueOf(k), m);
+// return B.Multiply(halfK).Mod(m);
+// }
 //
-//					if (F.CompareTo(G) < 0)
-//					{
-//						tmp = G; G = F; F = tmp;
-//						tmp = B; B = C; C = tmp;
-//					}
+// if (F.CompareTo(G) < 0)
+// {
+// tmp = G; G = F; F = tmp;
+// tmp = B; B = C; C = tmp;
+// }
 //
-//					F = F.Add(G);
-//					B = B.Add(C);
-//				}
-//			}
+// F = F.Add(G);
+// B = B.Add(C);
+// }
+// }
 
             if (m.QuickPow2Check())
             {
@@ -2279,8 +2279,8 @@ namespace Org.BouncyCastle.Math
         private static uint[] Square(uint[] w, uint[] x)
         {
             // Note: this method allows w to be only (2 * x.Length - 1) words if result will fit
-//			if (w.Length != 2 * x.Length)
-//				throw new ArgumentException("no I don't think so...");
+// if (w.Length != 2 * x.Length)
+// throw new ArgumentException("no I don't think so...");
 
             ulong c;
 
@@ -2723,7 +2723,7 @@ namespace Org.BouncyCastle.Math
                 {
                     throw new ArithmeticException("Result too large");
                 }
-                return One.ShiftLeft((int)powOf2); 
+                return One.ShiftLeft((int)powOf2);
             }
 
             BigInteger y = One;
@@ -2893,8 +2893,8 @@ namespace Org.BouncyCastle.Math
                     int rem = Remainder(val);
 
                     return rem == 0
-                        ?	Zero
-                        :	new BigInteger(sign, new uint[1]{ (uint)rem }, false);
+                        ? Zero
+                        : new BigInteger(sign, new uint[1]{ (uint)rem }, false);
                 }
             }
 
@@ -3033,8 +3033,8 @@ namespace Org.BouncyCastle.Math
             if (this.nBits != -1)
             {
                 result.nBits = sign > 0
-                    ?	this.nBits
-                    :	this.nBits + n;
+                    ? this.nBits
+                    : this.nBits + n;
             }
 
             if (this.nBitLength != -1)
@@ -3295,8 +3295,8 @@ namespace Org.BouncyCastle.Math
                 return unsigned ? ZeroEncoding : new byte[1];
 
             int nBits = (unsigned && sign > 0)
-                ?	BitLength
-                :	BitLength + 1;
+                ? BitLength
+                : BitLength + 1;
 
             int nBytes = GetBytesLength(nBits);
             byte[] bytes = new byte[nBytes];
