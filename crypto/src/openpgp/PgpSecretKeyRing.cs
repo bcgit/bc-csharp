@@ -283,11 +283,11 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="newEncAlgorithm">The algorithm to be used for the encryption.</param>
         /// <param name="rand">Source of randomness.</param>
         public static PgpSecretKeyRing CopyWithNewPassword(
-            PgpSecretKeyRing			ring,
-            char[]						oldPassPhrase,
-            char[]						newPassPhrase,
-            SymmetricKeyAlgorithmTag	newEncAlgorithm,
-            SecureRandom				rand)
+            PgpSecretKeyRing ring,
+            char[] oldPassPhrase,
+            char[] newPassPhrase,
+            SymmetricKeyAlgorithmTag newEncAlgorithm,
+            SecureRandom rand)
         {
             var newKeys = new List<PgpSecretKey>(ring.keys.Count);
 

@@ -1,6 +1,6 @@
 namespace Org.BouncyCastle.Bcpg.OpenPgp
 {
-	/// <remarks>Key flag values for the KeyFlags subpacket.</remarks>
+    /// <remarks>Key flag values for the KeyFlags subpacket.</remarks>
     public abstract class PgpKeyFlags
     {
         public const int CanCertify = 0x01; // This key may be used to certify other keys.

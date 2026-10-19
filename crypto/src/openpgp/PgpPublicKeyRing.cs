@@ -144,8 +144,8 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <param name="pubKey">The public key to be inserted.</param>
         /// <returns>A new <c>PgpPublicKeyRing</c></returns>
         public static PgpPublicKeyRing InsertPublicKey(
-            PgpPublicKeyRing	pubRing,
-            PgpPublicKey		pubKey)
+            PgpPublicKeyRing pubRing,
+            PgpPublicKey pubKey)
         {
             var keys = new List<PgpPublicKey>(pubRing.keys);
             bool found = false;
@@ -221,7 +221,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
 
         internal static PgpPublicKey ReadSubkey(BcpgInputStream bcpgInput)
         {
-            PublicKeyPacket	pk = ReadPublicKeyPacket(bcpgInput);
+            PublicKeyPacket pk = ReadPublicKeyPacket(bcpgInput);
             TrustPacket kTrust = ReadOptionalTrustPacket(bcpgInput);
 
             // PGP 8 actually leaves out the signature.

@@ -642,7 +642,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
                             new AlgorithmIdentifier(curveOid),
                             new DerOctetString(BigIntegers.AsUnsignedByteArray(Ed448.SecretKeySize, ecdsaPriv.X))));
                     }
-                    else 
+                    else
                     {
                         throw new InvalidOperationException();
                     }
