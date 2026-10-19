@@ -10,16 +10,22 @@ namespace Org.BouncyCastle.Cms
     public class CmsVerifierCertificateNotValidException
         : CmsException
     {
+        /// <summary>Create an exception with no detail message.</summary>
         public CmsVerifierCertificateNotValidException()
             : base()
         {
         }
 
+        /// <summary>Create an exception with the specified detail message.</summary>
+        /// <param name="message">The detail message.</param>
         public CmsVerifierCertificateNotValidException(string message)
             : base(message)
         {
         }
 
+        /// <summary>Create an exception with the specified detail message and cause.</summary>
+        /// <param name="message">The detail message.</param>
+        /// <param name="innerException">The cause.</param>
         public CmsVerifierCertificateNotValidException(string message, Exception innerException)
             : base(message, innerException)
         {

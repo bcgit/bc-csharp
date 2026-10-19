@@ -28,6 +28,7 @@ namespace Org.BouncyCastle.Cms
     public class CmsAuthenticatedDataGenerator
         : CmsAuthenticatedGenerator
     {
+        /// <summary>Create a generator using the default source of randomness.</summary>
         public CmsAuthenticatedDataGenerator()
         {
         }

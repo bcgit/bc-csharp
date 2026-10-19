@@ -7,12 +7,19 @@ using Org.BouncyCastle.Asn1.Cms;
 namespace Org.BouncyCastle.Cms
 {
     // TODO[api] Make abstract
+    /// <summary>Base class for parsers that read a CMS ContentInfo from a stream.</summary>
     public class CmsContentInfoParser
         : IDisposable
     {
+        /// <summary>The parser for the ContentInfo.</summary>
         protected ContentInfoParser contentInfo;
+        /// <summary>The stream being parsed.</summary>
         protected Stream data;
 
+        /// <summary>Start parsing a ContentInfo from the stream.</summary>
+        /// <param name="data">The stream to read from.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="data"/> is null.</exception>
+        /// <exception cref="CmsException">The ContentInfo cannot be read.</exception>
         protected CmsContentInfoParser(Stream data)
         {
             this.data = data ?? throw new ArgumentNullException(nameof(data));
@@ -34,6 +41,7 @@ namespace Org.BouncyCastle.Cms
         }
 
         [Obsolete("Dispose instead")]
+        /// <summary>Dispose of the parser and its stream.</summary>
         public void Close()
         {
             Dispose();
@@ -41,12 +49,15 @@ namespace Org.BouncyCastle.Cms
 
         #region IDisposable
 
+        /// <summary>Dispose of the parser and its stream.</summary>
         public void Dispose()
         {
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
 
+        /// <summary>Dispose of the stream.</summary>
+        /// <param name="disposing">true when called from <see cref="Dispose()"/>.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)

@@ -12,8 +12,14 @@ namespace Org.BouncyCastle.Cms
         ContentType, Digest, Signature, DigestAlgorithmIdentifier, SignatureAlgorithmIdentifier, MacAlgorithmIdentifier,
     }
 
+    /// <summary>Generator for the signed or unsigned attributes of a CMS signer or authenticated data.</summary>
     public interface CmsAttributeTableGenerator
     {
+        /// <summary>Return the attributes to include.</summary>
+        /// <param name="parameters">
+        /// Values available to the generator, keyed by <see cref="CmsAttributeTableParameter"/>.
+        /// </param>
+        /// <returns>The attribute table.</returns>
         AttributeTable GetAttributes(IDictionary<CmsAttributeTableParameter, object> parameters);
     }
 }

@@ -15,16 +15,22 @@ namespace Org.BouncyCastle.Cms
         private readonly OriginatorInformation m_originatorInformation;
         private readonly RecipientInformationStore m_recipientInfoStore;
 
+        /// <summary>Parse an AuthEnvelopedData message from its encoding.</summary>
+        /// <param name="authEnvData">The encoded ContentInfo.</param>
         public CmsAuthEnvelopedData(byte[] authEnvData)
             : this(CmsUtilities.ReadContentInfo(authEnvData))
         {
         }
 
+        /// <summary>Parse an AuthEnvelopedData message from a stream.</summary>
+        /// <param name="authEnvData">A stream containing the encoded ContentInfo.</param>
         public CmsAuthEnvelopedData(Stream authEnvData)
             : this(CmsUtilities.ReadContentInfo(authEnvData))
         {
         }
 
+        /// <summary>Create from a ContentInfo structure.</summary>
+        /// <param name="contentInfo">The ContentInfo wrapping an AuthEnvelopedData.</param>
         public CmsAuthEnvelopedData(ContentInfo contentInfo)
         {
             m_contentInfo = contentInfo;
@@ -57,15 +63,20 @@ namespace Org.BouncyCastle.Cms
             //unauthAttrs = authEnvData.UnauthAttrs;
         }
 
+        /// <summary>Gets the underlying AuthEnvelopedData structure.</summary>
         public AuthEnvelopedData AuthEnvelopedData => m_authEnvelopedData;
 
+        /// <summary>Gets the originator information, or null if absent.</summary>
         public OriginatorInformation OriginatorInformation => m_originatorInformation;
 
+        /// <summary>Gets the content encryption algorithm.</summary>
         public AlgorithmIdentifier ContentEncryptionAlgorithm =>
             AuthEnvelopedData.AuthEncryptedContentInfo.ContentEncryptionAlgorithm;
 
+        /// <summary>Return the authenticated attributes, or null if there are none.</summary>
         public Asn1.Cms.AttributeTable GetAuthAttrs() => AuthEnvelopedData.AuthAttrs?.ToAttributeTable();
 
+        /// <summary>Return the unauthenticated attributes, or null if there are none.</summary>
         public Asn1.Cms.AttributeTable GetUnauthAttrs() => AuthEnvelopedData.UnauthAttrs?.ToAttributeTable();
 
         private class AuthEnvelopedSecureReadable

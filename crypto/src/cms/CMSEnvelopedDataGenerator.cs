@@ -28,6 +28,7 @@ namespace Org.BouncyCastle.Cms
     public class CmsEnvelopedDataGenerator
         : CmsEnvelopedGenerator
     {
+        /// <summary>Create a generator using the default source of randomness.</summary>
         public CmsEnvelopedDataGenerator()
         {
         }
