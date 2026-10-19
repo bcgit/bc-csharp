@@ -8,6 +8,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Asn1.X500.Style
 {
+    /// <summary>Utility methods for the IETF string representations of X.500 names.</summary>
     // TODO[api] Make static
     public abstract class IetfUtilities
     {
