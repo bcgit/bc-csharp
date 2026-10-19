@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             this.m_mac = mac;
         }
 
+        /// <summary>Gets the mac.</summary>
         public virtual TlsMac Mac
         {
             get { return m_mac; }

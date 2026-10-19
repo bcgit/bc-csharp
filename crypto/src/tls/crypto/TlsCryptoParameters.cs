@@ -28,6 +28,7 @@
         /// <summary>Gets a value indicating whether this is server.</summary>
         public bool IsServer => m_context.IsServer;
 
+        /// <summary>Gets the nonce generator.</summary>
         public TlsNonceGenerator NonceGenerator => m_context.NonceGenerator;
     }
 }

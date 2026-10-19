@@ -29,6 +29,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
                 throw new InvalidOperationException("Secret has already been extracted or destroyed");
         }
 
+        /// <summary>Gets the crypto.</summary>
         protected abstract AbstractTlsCrypto Crypto { get; }
 
         /// <inheritdoc/>

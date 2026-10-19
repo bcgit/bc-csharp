@@ -73,6 +73,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_sessionID; }
         }
 
+        /// <summary>Gets the version.</summary>
         public ProtocolVersion Version
         {
             get { return m_version; }

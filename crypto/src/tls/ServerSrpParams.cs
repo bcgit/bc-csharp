@@ -24,6 +24,7 @@ namespace Org.BouncyCastle.Tls
             this.m_B = B;
         }
 
+        /// <summary>Gets the b.</summary>
         public BigInteger B
         {
             get { return m_B; }

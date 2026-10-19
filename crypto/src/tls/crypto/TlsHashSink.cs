@@ -16,6 +16,7 @@ namespace Org.BouncyCastle.Tls.Crypto
             this.m_hash = hash;
         }
 
+        /// <summary>Gets the hash.</summary>
         public virtual TlsHash Hash
         {
             get { return m_hash; }

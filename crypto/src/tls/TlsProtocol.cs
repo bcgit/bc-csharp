@@ -236,10 +236,12 @@ namespace Org.BouncyCastle.Tls
             m_recordStream.Close();
         }
 
+        /// <summary>Gets the context.</summary>
         protected abstract TlsContext Context { get; }
 
         internal abstract AbstractTlsContext ContextAdmin { get; }
 
+        /// <summary>Gets the peer.</summary>
         protected abstract TlsPeer Peer { get; }
 
         /// <exception cref="IOException"/>
@@ -807,6 +809,10 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Read data from the network.</summary>
+        /// <param name="buffer">The buffer where the data will be copied to.</param>
+        /// <returns>The number of bytes read.</returns>
+        /// <exception cref="IOException">If something goes wrong during reading data.</exception>
         public virtual int ReadApplicationData(Span<byte> buffer)
         {
             if (!m_appDataReady)
@@ -1090,6 +1096,14 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Write some application data.</summary>
+        /// <param name="buffer">The buffer containing application data to send.</param>
+        /// <exception cref="InvalidOperationException">
+        /// If called before the initial handshake has completed.
+        /// </exception>
+        /// <exception cref="IOException">
+        /// If connection is already closed, or for encryption or transport errors.
+        /// </exception>
         public virtual void WriteApplicationData(ReadOnlySpan<byte> buffer)
         {
             if (!m_appDataReady)

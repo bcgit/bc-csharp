@@ -19,6 +19,7 @@ namespace Org.BouncyCastle.Tls
             m_extensions = extensions;
         }
 
+        /// <summary>Gets the certificate.</summary>
         public TlsCertificate Certificate => m_certificate;
 
         /// <summary>Gets the extensions.</summary>

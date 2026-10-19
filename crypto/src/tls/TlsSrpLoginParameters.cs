@@ -26,6 +26,7 @@ namespace Org.BouncyCastle.Tls
             this.m_salt = Arrays.Clone(salt);
         }
 
+        /// <summary>Gets the config.</summary>
         public virtual TlsSrpConfig Config
         {
             get { return m_srpConfig; }

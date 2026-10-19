@@ -218,6 +218,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return m_crypto.AdoptLocalSecret(prk);
         }
 
+        /// <inheritdoc/>
         protected override AbstractTlsCrypto Crypto => m_crypto;
 
         protected virtual void HmacHash(int cryptoHashAlgorithm, byte[] secret, int secretOff, int secretLen,

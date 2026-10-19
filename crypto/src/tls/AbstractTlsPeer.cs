@@ -35,6 +35,7 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual void Cancel() => m_closeHandle?.Close();
 
+        /// <inheritdoc/>
         public virtual TlsCrypto Crypto => m_crypto;
 
         /// <inheritdoc/>

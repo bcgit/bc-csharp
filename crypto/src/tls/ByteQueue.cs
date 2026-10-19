@@ -93,6 +93,8 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Add some data to our buffer.</summary>
+        /// <param name="buffer">The buffer.</param>
         public void AddData(ReadOnlySpan<byte> buffer)
         {
             if (m_readOnlyBuf)
@@ -166,6 +168,9 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Read data from the buffer.</summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="skip">How many bytes from our data to skip.</param>
         public void Read(Span<byte> buffer, int skip)
         {
             if ((m_available - skip) < buffer.Length)
@@ -242,6 +247,9 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Remove data from the buffer.</summary>
+        /// <param name="buffer">The buffer.</param>
+        /// <param name="skip">How many bytes from our data to skip.</param>
         public void RemoveData(Span<byte> buffer, int skip)
         {
             Read(buffer, skip);

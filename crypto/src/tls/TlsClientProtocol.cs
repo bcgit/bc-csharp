@@ -102,6 +102,7 @@ namespace Org.BouncyCastle.Tls
             m_certificateRequest = null;
         }
 
+        /// <inheritdoc/>
         protected override TlsContext Context
         {
             get { return m_tlsClientContext; }
@@ -112,6 +113,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_tlsClientContext; }
         }
 
+        /// <inheritdoc/>
         protected override TlsPeer Peer
         {
             get { return m_tlsClient; }
