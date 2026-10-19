@@ -2860,8 +2860,8 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
             public static readonly int ExpandedKeySize = Ed25519.DigestSize;
 
             /// <summary>Expand a private key (seed) into the expanded form.</summary>
-            /// <param name="sk">The sk.</param>
-            /// <param name="skOff">The sk off.</param>
+            /// <param name="sk">The private key (seed).</param>
+            /// <param name="skOff">The offset into <paramref name="sk"/> at which the private key starts.</param>
             /// <param name="xk">The buffer to receive the expanded private key.</param>
             /// <param name="xkOff">The offset into <paramref name="xk"/> at which to start writing.</param>
             public static void ExpandPrivateKey(byte[] sk, int skOff, byte[] xk, int xkOff)
@@ -2878,7 +2878,7 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             /// <summary>Expand a private key (seed) into the expanded form.</summary>
-            /// <param name="sk">The sk.</param>
+            /// <param name="sk">The private key (seed).</param>
             /// <param name="xk">The buffer to receive the expanded private key.</param>
             public static void ExpandPrivateKey(ReadOnlySpan<byte> sk, Span<byte> xk)
             {
