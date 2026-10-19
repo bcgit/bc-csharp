@@ -39,6 +39,11 @@ namespace Org.BouncyCastle.Asn1.Microsoft
         private readonly Attributes m_attributes;
         private readonly ContentInfo m_content;
 
+        /// <summary>Return an <see cref="TimeStampRequest"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="TimeStampRequest"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="TimeStampRequest"/>, or null if <paramref name="obj"/> is null.</returns>
         public static TimeStampRequest GetInstance(object obj)
         {
             if (obj == null)
@@ -48,9 +53,17 @@ namespace Org.BouncyCastle.Asn1.Microsoft
             return new TimeStampRequest(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="TimeStampRequest"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TimeStampRequest"/>.</returns>
         public static TimeStampRequest GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampRequest(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="TimeStampRequest"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="TimeStampRequest"/>.</returns>
         public static TimeStampRequest GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampRequest(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -78,6 +91,10 @@ namespace Org.BouncyCastle.Asn1.Microsoft
         {
         }
 
+        /// <summary>Create a new <see cref="TimeStampRequest"/>.</summary>
+        /// <param name="countersignatureType">The countersignature type.</param>
+        /// <param name="attributes">The attributes.</param>
+        /// <param name="content">The content.</param>
         public TimeStampRequest(DerObjectIdentifier countersignatureType, Attributes attributes, ContentInfo content)
         {
             m_countersignatureType = countersignatureType ?? throw new ArgumentNullException(nameof(countersignatureType));
@@ -85,12 +102,14 @@ namespace Org.BouncyCastle.Asn1.Microsoft
             m_content = content ?? throw new ArgumentNullException(nameof(content));
         }
 
+        /// <summary>Gets the countersignature type.</summary>
         public DerObjectIdentifier CountersignatureType => m_countersignatureType;
 
         public Attributes Attributes => m_attributes;
 
         public ContentInfo Content => m_content;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
