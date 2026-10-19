@@ -5,21 +5,21 @@ using Org.BouncyCastle.Asn1.X500;
 namespace Org.BouncyCastle.Asn1.X509.SigI
 {
     /**
-	* Structure for a name or pseudonym.
-	* 
-	* <pre>
-	*       NameOrPseudonym ::= CHOICE {
-	*     	   surAndGivenName SEQUENCE {
-	*     	     surName DirectoryString,
-	*     	     givenName SEQUENCE OF DirectoryString 
-	*         },
-	*     	   pseudonym DirectoryString 
-	*       }
-	* </pre>
-	* 
-	* @see Org.BouncyCastle.Asn1.X509.sigi.PersonalData
-	* 
-	*/
+    * Structure for a name or pseudonym.
+    *
+    * <pre>
+    *       NameOrPseudonym ::= CHOICE {
+    *     	   surAndGivenName SEQUENCE {
+    *     	     surName DirectoryString,
+    *     	     givenName SEQUENCE OF DirectoryString
+    *         },
+    *     	   pseudonym DirectoryString
+    *       }
+    * </pre>
+    *
+    * @see Org.BouncyCastle.Asn1.X509.sigi.PersonalData
+    *
+    */
     public class NameOrPseudonym
         : Asn1Encodable, IAsn1Choice
     {
