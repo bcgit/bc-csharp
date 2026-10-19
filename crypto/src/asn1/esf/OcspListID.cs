@@ -7,7 +7,7 @@ namespace Org.BouncyCastle.Asn1.Esf
     /// RFC 3126: 4.2.2 Complete Revocation Refs Attribute Definition
     /// <code>
     /// OcspListID ::=  SEQUENCE {
-    ///		ocspResponses	SEQUENCE OF OcspResponsesID
+    /// ocspResponses SEQUENCE OF OcspResponsesID
     /// }
     /// </code>
     /// </remarks>

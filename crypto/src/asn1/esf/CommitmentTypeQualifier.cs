@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Asn1.Esf
          */
         public CommitmentTypeQualifier(DerObjectIdentifier commitmentTypeIdentifier, Asn1Encodable qualifier)
         {
-			m_commitmentTypeIdentifier = commitmentTypeIdentifier
+            m_commitmentTypeIdentifier = commitmentTypeIdentifier
                 ?? throw new ArgumentNullException(nameof(commitmentTypeIdentifier));
             m_qualifier = qualifier;
         }
@@ -96,17 +96,17 @@ namespace Org.BouncyCastle.Asn1.Esf
         [Obsolete("Use 'QualifierData' instead")]
         public Asn1Object Qualifier => m_qualifier?.ToAsn1Object();
 
-		/**
+        /**
         * Returns a DER-encodable representation of this instance.
         *
         * @return a <code>Asn1Object</code> value
         */
-		public override Asn1Object ToAsn1Object()
-		{
+        public override Asn1Object ToAsn1Object()
+        {
             Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.Add(m_commitmentTypeIdentifier);
             v.AddOptional(m_qualifier);
-			return new DerSequence(v);
-		}
+            return new DerSequence(v);
+        }
     }
 }

@@ -4,19 +4,19 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Esf
 {
-	/// <remarks>
-	/// <code>
-	/// SigPolicyQualifierInfo ::= SEQUENCE {
-    ///		sigPolicyQualifierId  SigPolicyQualifierId,
-	///		sigQualifier          ANY DEFINED BY sigPolicyQualifierId
-	/// }
-	/// 
-	/// SigPolicyQualifierId ::= OBJECT IDENTIFIER
-	/// </code>
-	/// </remarks>
-	public class SigPolicyQualifierInfo
-		: Asn1Encodable
-	{
+    /// <remarks>
+    /// <code>
+    /// SigPolicyQualifierInfo ::= SEQUENCE {
+    /// sigPolicyQualifierId  SigPolicyQualifierId,
+    /// sigQualifier          ANY DEFINED BY sigPolicyQualifierId
+    /// }
+    ///
+    /// SigPolicyQualifierId ::= OBJECT IDENTIFIER
+    /// </code>
+    /// </remarks>
+    public class SigPolicyQualifierInfo
+        : Asn1Encodable
+    {
         public static SigPolicyQualifierInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -36,32 +36,32 @@ namespace Org.BouncyCastle.Asn1.Esf
         private readonly Asn1Encodable m_sigQualifier;
 
         private SigPolicyQualifierInfo(Asn1Sequence seq)
-		{
-			int count = seq.Count, pos = 0;
-			if (count != 2)
-				throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
+        {
+            int count = seq.Count, pos = 0;
+            if (count != 2)
+                throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_sigPolicyQualifierId = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_sigPolicyQualifierId = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
             // TODO[asn1] Asn1Utilities helper method for this type of situation
-			m_sigQualifier = Asn1Utilities.Read(seq, ref pos, element => element);
+            m_sigQualifier = Asn1Utilities.Read(seq, ref pos, element => element);
 
-			if (pos != count)
-				throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+            if (pos != count)
+                throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
+        }
 
         public SigPolicyQualifierInfo(DerObjectIdentifier sigPolicyQualifierId, Asn1Encodable sigQualifier)
         {
             m_sigPolicyQualifierId = sigPolicyQualifierId ?? throw new ArgumentNullException(nameof(sigPolicyQualifierId));
-			m_sigQualifier = sigQualifier ?? throw new ArgumentNullException(nameof(sigQualifier));
-		}
+            m_sigQualifier = sigQualifier ?? throw new ArgumentNullException(nameof(sigQualifier));
+        }
 
-		public DerObjectIdentifier SigPolicyQualifierId => m_sigPolicyQualifierId;
+        public DerObjectIdentifier SigPolicyQualifierId => m_sigPolicyQualifierId;
 
         public Asn1Encodable SigQualifierData => m_sigQualifier;
 
-		[Obsolete("Use 'SigQualifierData' instead")]
+        [Obsolete("Use 'SigQualifierData' instead")]
         public Asn1Object SigQualifier => m_sigQualifier.ToAsn1Object();
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_sigPolicyQualifierId, m_sigQualifier);
-	}
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_sigPolicyQualifierId, m_sigQualifier);
+    }
 }

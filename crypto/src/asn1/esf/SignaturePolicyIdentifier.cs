@@ -5,10 +5,10 @@ namespace Org.BouncyCastle.Asn1.Esf
     /// <remarks>
     /// <code>
     /// SignaturePolicyIdentifier ::= CHOICE {
-    ///		SignaturePolicyId		SignaturePolicyId,
-    ///		SignaturePolicyImplied	SignaturePolicyImplied
+    /// SignaturePolicyId SignaturePolicyId,
+    /// SignaturePolicyImplied SignaturePolicyImplied
     /// }
-    /// 
+    ///
     /// SignaturePolicyImplied ::= NULL
     /// </code>
     /// </remarks>

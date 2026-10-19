@@ -6,13 +6,13 @@ namespace Org.BouncyCastle.Asn1.Esf
     /// <remarks>
     /// <code>
     /// SignaturePolicyId ::= SEQUENCE {
-    /// 	sigPolicyIdentifier		SigPolicyId,
-    /// 	sigPolicyHash			SigPolicyHash,
-    /// 	sigPolicyQualifiers		SEQUENCE SIZE (1..MAX) OF SigPolicyQualifierInfo OPTIONAL
+    /// 	sigPolicyIdentifier SigPolicyId,
+    /// 	sigPolicyHash SigPolicyHash,
+    /// 	sigPolicyQualifiers SEQUENCE SIZE (1..MAX) OF SigPolicyQualifierInfo OPTIONAL
     /// }
-    /// 
+    ///
     /// SigPolicyId ::= OBJECT IDENTIFIER
-    /// 
+    ///
     /// SigPolicyHash ::= OtherHashAlgAndValue
     /// </code>
     /// </remarks>

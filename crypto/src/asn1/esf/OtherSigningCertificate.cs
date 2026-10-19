@@ -8,8 +8,8 @@ namespace Org.BouncyCastle.Asn1.Esf
     /// <remarks>
     /// <code>
     /// OtherSigningCertificate ::= SEQUENCE {
-    /// 	certs		SEQUENCE OF OtherCertID,
-    /// 	policies	SEQUENCE OF PolicyInformation OPTIONAL
+    /// 	certs SEQUENCE OF OtherCertID,
+    /// 	policies SEQUENCE OF PolicyInformation OPTIONAL
     /// }
     /// </code>
     /// </remarks>

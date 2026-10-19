@@ -5,26 +5,26 @@ namespace Org.BouncyCastle.Asn1.Esf
     /// <remarks>
     /// RFC 3126: 4.2.2 Complete Revocation Refs Attribute Definition
     /// <code>
-    /// OtherRevRefs ::= SEQUENCE 
+    /// OtherRevRefs ::= SEQUENCE
     /// {
-    ///		otherRevRefType      OtherRevRefType,
-    ///		otherRevRefs         ANY DEFINED BY otherRevRefType
+    /// otherRevRefType      OtherRevRefType,
+    /// otherRevRefs         ANY DEFINED BY otherRevRefType
     /// }
     ///
     /// OtherRevRefType ::= OBJECT IDENTIFIER
     /// </code>
     /// </remarks>
     public class OtherRevRefs
-		: Asn1Encodable
-	{
-		public static OtherRevRefs GetInstance(object obj)
-		{
-			if (obj == null)
-				return null;
-			if (obj is OtherRevRefs otherRevRefs)
-				return otherRevRefs;
-			return new OtherRevRefs(Asn1Sequence.GetInstance(obj));
-		}
+        : Asn1Encodable
+    {
+        public static OtherRevRefs GetInstance(object obj)
+        {
+            if (obj == null)
+                return null;
+            if (obj is OtherRevRefs otherRevRefs)
+                return otherRevRefs;
+            return new OtherRevRefs(Asn1Sequence.GetInstance(obj));
+        }
 
         public static OtherRevRefs GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OtherRevRefs(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
@@ -36,32 +36,32 @@ namespace Org.BouncyCastle.Asn1.Esf
         private readonly Asn1Encodable m_otherRevRefs;
 
         private OtherRevRefs(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_otherRevRefType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_otherRevRefType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
             // TODO[asn1] Asn1Utilities helper method for this type of situation
-			m_otherRevRefs = Asn1Utilities.Read(seq, ref pos, element => element);
+            m_otherRevRefs = Asn1Utilities.Read(seq, ref pos, element => element);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
         public OtherRevRefs(DerObjectIdentifier otherRevRefType, Asn1Encodable otherRevRefs)
         {
-			m_otherRevRefType = otherRevRefType ?? throw new ArgumentNullException(nameof(otherRevRefType));
+            m_otherRevRefType = otherRevRefType ?? throw new ArgumentNullException(nameof(otherRevRefType));
             m_otherRevRefs = otherRevRefs ?? throw new ArgumentNullException(nameof(otherRevRefs));
         }
 
         public DerObjectIdentifier OtherRevRefType => m_otherRevRefType;
 
-		public Asn1Encodable OtherRevRefsData => m_otherRevRefs;
+        public Asn1Encodable OtherRevRefsData => m_otherRevRefs;
 
-		[Obsolete("Use 'OtherRevRefsData' instead")]
-		public Asn1Object OtherRevRefsObject => m_otherRevRefs.ToAsn1Object();
+        [Obsolete("Use 'OtherRevRefsData' instead")]
+        public Asn1Object OtherRevRefsObject => m_otherRevRefs.ToAsn1Object();
 
-		public override Asn1Object ToAsn1Object() => new DerSequence(m_otherRevRefType, m_otherRevRefs);
-	}
+        public override Asn1Object ToAsn1Object() => new DerSequence(m_otherRevRefType, m_otherRevRefs);
+    }
 }

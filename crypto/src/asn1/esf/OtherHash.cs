@@ -8,16 +8,16 @@ namespace Org.BouncyCastle.Asn1.Esf
     /// <remarks>
     /// <code>
     /// OtherHash ::= CHOICE {
-    ///		sha1Hash	OtherHashValue, -- This contains a SHA-1 hash
-    /// 	otherHash	OtherHashAlgAndValue
-    ///	}
-    ///	
-    ///	OtherHashValue ::= OCTET STRING
+    /// sha1Hash OtherHashValue, -- This contains a SHA-1 hash
+    /// 	otherHash OtherHashAlgAndValue
+    /// }
+    ///
+    /// OtherHashValue ::= OCTET STRING
     /// </code>
     /// </remarks>
     public class OtherHash
-		: Asn1Encodable, IAsn1Choice
-	{
+        : Asn1Encodable, IAsn1Choice
+    {
         public static OtherHash GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
         public static OtherHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
@@ -49,25 +49,25 @@ namespace Org.BouncyCastle.Asn1.Esf
         private readonly OtherHashAlgAndValue m_otherHash;
 
         public OtherHash(byte[] sha1Hash)
-		{
-			m_sha1Hash = DerOctetString.FromContents(sha1Hash);
-		}
-
-		public OtherHash(Asn1OctetString sha1Hash)
-		{
-			m_sha1Hash = sha1Hash ?? throw new ArgumentNullException(nameof(sha1Hash));
-		}
-
-		public OtherHash(OtherHashAlgAndValue otherHash)
-		{
-			m_otherHash = otherHash ?? throw new ArgumentNullException(nameof(otherHash));
+        {
+            m_sha1Hash = DerOctetString.FromContents(sha1Hash);
         }
 
-		public AlgorithmIdentifier HashAlgorithm =>
-			m_otherHash?.HashAlgorithm ?? new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
+        public OtherHash(Asn1OctetString sha1Hash)
+        {
+            m_sha1Hash = sha1Hash ?? throw new ArgumentNullException(nameof(sha1Hash));
+        }
 
-		public byte[] GetHashValue() => m_otherHash?.GetHashValue() ?? m_sha1Hash.GetOctets();
+        public OtherHash(OtherHashAlgAndValue otherHash)
+        {
+            m_otherHash = otherHash ?? throw new ArgumentNullException(nameof(otherHash));
+        }
 
-		public override Asn1Object ToAsn1Object() => m_otherHash?.ToAsn1Object() ?? m_sha1Hash;
-	}
+        public AlgorithmIdentifier HashAlgorithm =>
+            m_otherHash?.HashAlgorithm ?? new AlgorithmIdentifier(OiwObjectIdentifiers.IdSha1);
+
+        public byte[] GetHashValue() => m_otherHash?.GetHashValue() ?? m_sha1Hash.GetOctets();
+
+        public override Asn1Object ToAsn1Object() => m_otherHash?.ToAsn1Object() ?? m_sha1Hash;
+    }
 }

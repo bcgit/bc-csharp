@@ -10,9 +10,9 @@ namespace Org.BouncyCastle.Asn1.Esf
     /// RFC 5126: 6.3.4.  revocation-values Attribute Definition
     /// <code>
     /// RevocationValues ::=  SEQUENCE {
-    ///		crlVals			[0] SEQUENCE OF CertificateList     OPTIONAL,
-    ///		ocspVals		[1] SEQUENCE OF BasicOCSPResponse   OPTIONAL,
-    ///		otherRevVals	[2] OtherRevVals OPTIONAL
+    /// crlVals [0] SEQUENCE OF CertificateList     OPTIONAL,
+    /// ocspVals [1] SEQUENCE OF BasicOCSPResponse   OPTIONAL,
+    /// otherRevVals [2] OtherRevVals OPTIONAL
     /// }
     /// </code>
     /// </remarks>

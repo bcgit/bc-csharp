@@ -50,14 +50,14 @@ namespace Org.BouncyCastle.Asn1.Esf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId)
-			: this(commitmentTypeId, null)
+        public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId)
+            : this(commitmentTypeId, null)
         {
         }
 
-		public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId, Asn1Sequence commitmentTypeQualifier)
+        public CommitmentTypeIndication(DerObjectIdentifier commitmentTypeId, Asn1Sequence commitmentTypeQualifier)
         {
-			m_commitmentTypeId = commitmentTypeId ?? throw new ArgumentNullException(nameof(commitmentTypeId));
+            m_commitmentTypeId = commitmentTypeId ?? throw new ArgumentNullException(nameof(commitmentTypeId));
             m_commitmentTypeQualifier = commitmentTypeQualifier;
         }
 
@@ -65,7 +65,7 @@ namespace Org.BouncyCastle.Asn1.Esf
 
         public Asn1Sequence CommitmentTypeQualifier => m_commitmentTypeQualifier;
 
-		/**
+        /**
         * <pre>
         * CommitmentTypeIndication ::= SEQUENCE {
         *      commitmentTypeId   CommitmentTypeIdentifier,
@@ -78,7 +78,7 @@ namespace Org.BouncyCastle.Asn1.Esf
             Asn1EncodableVector v = new Asn1EncodableVector(2);
             v.Add(m_commitmentTypeId);
             v.AddOptional(m_commitmentTypeQualifier);
-			return new DerSequence(v);
+            return new DerSequence(v);
         }
     }
 }

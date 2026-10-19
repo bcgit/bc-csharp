@@ -5,8 +5,8 @@ using Org.BouncyCastle.Asn1.X509;
 namespace Org.BouncyCastle.Asn1.Esf
 {
     public class SignerAttribute
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static SignerAttribute GetInstance(object obj)
         {
             if (obj == null)
@@ -42,36 +42,36 @@ namespace Org.BouncyCastle.Asn1.Esf
             }
         }
 
-		public SignerAttribute(Asn1Sequence claimedAttributes)
-		{
-			m_claimedAttributes = claimedAttributes ?? throw new ArgumentNullException(nameof(claimedAttributes));
-		}
+        public SignerAttribute(Asn1Sequence claimedAttributes)
+        {
+            m_claimedAttributes = claimedAttributes ?? throw new ArgumentNullException(nameof(claimedAttributes));
+        }
 
-		public SignerAttribute(AttributeCertificate certifiedAttributes)
-		{
-			m_certifiedAttributes = certifiedAttributes ?? throw new ArgumentNullException(nameof(certifiedAttributes));
-		}
+        public SignerAttribute(AttributeCertificate certifiedAttributes)
+        {
+            m_certifiedAttributes = certifiedAttributes ?? throw new ArgumentNullException(nameof(certifiedAttributes));
+        }
 
-		public virtual Asn1Sequence ClaimedAttributes => m_claimedAttributes;
+        public virtual Asn1Sequence ClaimedAttributes => m_claimedAttributes;
 
-		public virtual AttributeCertificate CertifiedAttributes => m_certifiedAttributes;
+        public virtual AttributeCertificate CertifiedAttributes => m_certifiedAttributes;
 
-		/**
-		*
-		* <pre>
-		*  SignerAttribute ::= SEQUENCE OF CHOICE {
-		*      claimedAttributes   [0] ClaimedAttributes,
-		*      certifiedAttributes [1] CertifiedAttributes }
-		*
-		*  ClaimedAttributes ::= SEQUENCE OF Attribute
-		*  CertifiedAttributes ::= AttributeCertificate -- as defined in RFC 3281: see clause 4.1.
-		* </pre>
-		*/
-		public override Asn1Object ToAsn1Object()
-		{
-			return m_claimedAttributes != null
-				?	new DerSequence(new DerTaggedObject(0, m_claimedAttributes))
-				:	new DerSequence(new DerTaggedObject(1, m_certifiedAttributes));
-		}
-	}
+        /**
+        *
+        * <pre>
+        *  SignerAttribute ::= SEQUENCE OF CHOICE {
+        *      claimedAttributes   [0] ClaimedAttributes,
+        *      certifiedAttributes [1] CertifiedAttributes }
+        *
+        *  ClaimedAttributes ::= SEQUENCE OF Attribute
+        *  CertifiedAttributes ::= AttributeCertificate -- as defined in RFC 3281: see clause 4.1.
+        * </pre>
+        */
+        public override Asn1Object ToAsn1Object()
+        {
+            return m_claimedAttributes != null
+                ? new DerSequence(new DerTaggedObject(0, m_claimedAttributes))
+                : new DerSequence(new DerTaggedObject(1, m_certifiedAttributes));
+        }
+    }
 }
