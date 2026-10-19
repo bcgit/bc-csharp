@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.UA
 {
+    /// <summary>The domain parameters of DSTU 4145-2002.</summary>
     public class Dstu4145Params
         : Asn1Encodable
     {
@@ -19,8 +20,14 @@ namespace Org.BouncyCastle.Asn1.UA
             0x12, 0x3e, 0x6d, 0xb8, 0xfa, 0xc5, 0x79, 0x04,
         };
 
+        /// <summary>Return the default dke.</summary>
         public static Asn1OctetString GetDefaultDke() => DerOctetString.FromContents(DefaultDke);
 
+        /// <summary>Return an <see cref="Dstu4145Params"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="Dstu4145Params"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="Dstu4145Params"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Dstu4145Params GetInstance(object obj)
         {
             if (obj == null)
@@ -30,9 +37,16 @@ namespace Org.BouncyCastle.Asn1.UA
             return new Dstu4145Params(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Dstu4145Params"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Dstu4145Params"/>.</returns>
         public static Dstu4145Params GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Dstu4145Params(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Dstu4145Params"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Dstu4145Params"/>, or null if <paramref name="element"/> is null.</returns>
         public static Dstu4145Params GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -48,6 +62,10 @@ namespace Org.BouncyCastle.Asn1.UA
             return null;
         }
 
+        /// <summary>Return an <see cref="Dstu4145Params"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Dstu4145Params"/>.</returns>
         public static Dstu4145Params GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Dstu4145Params(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -55,11 +73,16 @@ namespace Org.BouncyCastle.Asn1.UA
         private readonly Dstu4145ECBinary m_ecBinary;
         private readonly Asn1OctetString m_dke;
 
+        /// <summary>Create a new <see cref="Dstu4145Params"/>.</summary>
+        /// <param name="namedCurve">The named curve.</param>
         public Dstu4145Params(DerObjectIdentifier namedCurve)
             : this(namedCurve, GetDefaultDke())
         {
         }
 
+        /// <summary>Create a new <see cref="Dstu4145Params"/>.</summary>
+        /// <param name="namedCurve">The named curve.</param>
+        /// <param name="dke">The dke.</param>
         public Dstu4145Params(DerObjectIdentifier namedCurve, Asn1OctetString dke)
         {
             if (dke.GetOctetsLength() != DefaultDke.Length)
@@ -70,6 +93,8 @@ namespace Org.BouncyCastle.Asn1.UA
             m_dke = dke;
         }
 
+        /// <summary>Create a new <see cref="Dstu4145Params"/>.</summary>
+        /// <param name="ecBinary">The ec binary.</param>
         public Dstu4145Params(Dstu4145ECBinary ecBinary)
         {
             m_namedCurve = null;
@@ -110,14 +135,18 @@ namespace Org.BouncyCastle.Asn1.UA
             m_dke = dke;
         }
 
+        /// <summary>Gets a value indicating whether this is named curve.</summary>
         public bool IsNamedCurve => m_namedCurve != null;
 
         public Dstu4145ECBinary ECBinary => m_ecBinary;
 
+        /// <summary>Gets the dke.</summary>
         public Asn1OctetString Dke => m_dke;
 
+        /// <summary>Gets the named curve.</summary>
         public DerObjectIdentifier NamedCurve => m_namedCurve;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(2);

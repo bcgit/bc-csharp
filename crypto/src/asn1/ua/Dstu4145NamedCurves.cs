@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.UA
 {
+    /// <summary>The named curves of DSTU 4145-2002.</summary>
     // TODO Do these curves have names; can we make this class look more like a "normal" NamedCurves registry?
     public class Dstu4145NamedCurves
     {

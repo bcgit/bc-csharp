@@ -2,9 +2,15 @@
 
 namespace Org.BouncyCastle.Asn1.UA
 {
+    /// <summary>The binary field parameters of DSTU 4145-2002.</summary>
     public class Dstu4145BinaryField
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="Dstu4145BinaryField"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="Dstu4145BinaryField"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="Dstu4145BinaryField"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Dstu4145BinaryField GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,16 @@ namespace Org.BouncyCastle.Asn1.UA
             return new Dstu4145BinaryField(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Dstu4145BinaryField"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Dstu4145BinaryField"/>.</returns>
         public static Dstu4145BinaryField GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Dstu4145BinaryField(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Dstu4145BinaryField"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Dstu4145BinaryField"/>, or null if <paramref name="element"/> is null.</returns>
         public static Dstu4145BinaryField GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -32,6 +45,10 @@ namespace Org.BouncyCastle.Asn1.UA
             return null;
         }
 
+        /// <summary>Return an <see cref="Dstu4145BinaryField"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Dstu4145BinaryField"/>.</returns>
         public static Dstu4145BinaryField GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Dstu4145BinaryField(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -72,11 +89,19 @@ namespace Org.BouncyCastle.Asn1.UA
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="Dstu4145BinaryField"/>.</summary>
+        /// <param name="m">The m.</param>
+        /// <param name="k">The k.</param>
         public Dstu4145BinaryField(int m, int k)
             : this(m, k, 0, 0)
         {
         }
 
+        /// <summary>Create a new <see cref="Dstu4145BinaryField"/>.</summary>
+        /// <param name="m">The m.</param>
+        /// <param name="k">The k.</param>
+        /// <param name="j">The j.</param>
+        /// <param name="l">The l.</param>
         public Dstu4145BinaryField(int m, int k, int j, int l)
         {
             m_m = m;
@@ -85,12 +110,16 @@ namespace Org.BouncyCastle.Asn1.UA
             m_l = l;
         }
 
+        /// <summary>Gets the m.</summary>
         public int M => m_m;
 
+        /// <summary>Gets the k.</summary>
         public int K => m_k;
 
+        /// <summary>Gets the j.</summary>
         public int J => m_j;
 
+        /// <summary>Gets the l.</summary>
         public int L => m_l;
 
         /**

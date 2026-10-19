@@ -6,11 +6,17 @@ using Org.BouncyCastle.Math.Field;
 
 namespace Org.BouncyCastle.Asn1.UA
 {
+    /// <summary>The elliptic curve parameters over a binary field of DSTU 4145-2002.</summary>
     public class Dstu4145ECBinary
         : Asn1Encodable
     {
         private static DerInteger DefaultVersion = DerInteger.Zero;
 
+        /// <summary>Return an <see cref="Dstu4145ECBinary"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="Dstu4145ECBinary"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="Dstu4145ECBinary"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Dstu4145ECBinary GetInstance(object obj)
         {
             if (obj == null)
@@ -20,9 +26,16 @@ namespace Org.BouncyCastle.Asn1.UA
             return new Dstu4145ECBinary(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Dstu4145ECBinary"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Dstu4145ECBinary"/>.</returns>
         public static Dstu4145ECBinary GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Dstu4145ECBinary(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Dstu4145ECBinary"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="Dstu4145ECBinary"/>, or null if <paramref name="element"/> is null.</returns>
         public static Dstu4145ECBinary GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -38,6 +51,10 @@ namespace Org.BouncyCastle.Asn1.UA
             return null;
         }
 
+        /// <summary>Return an <see cref="Dstu4145ECBinary"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Dstu4145ECBinary"/>.</returns>
         public static Dstu4145ECBinary GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Dstu4145ECBinary(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -48,6 +65,8 @@ namespace Org.BouncyCastle.Asn1.UA
         private readonly DerInteger m_n;
         private readonly Asn1OctetString m_bp;
 
+        /// <summary>Create a new <see cref="Dstu4145ECBinary"/>.</summary>
+        /// <param name="domainParameters">The domain parameters.</param>
         public Dstu4145ECBinary(ECDomainParameters domainParameters)
         {
             ECCurve curve = domainParameters.Curve;
@@ -95,12 +114,16 @@ namespace Org.BouncyCastle.Asn1.UA
 
         public Dstu4145BinaryField Field => m_f;
 
+        /// <summary>Gets the a.</summary>
         public DerInteger A => m_a;
 
+        /// <summary>Gets the b.</summary>
         public Asn1OctetString B => m_b;
 
+        /// <summary>Gets the n.</summary>
         public DerInteger N => m_n;
 
+        /// <summary>Gets the BP.</summary>
         public Asn1OctetString BP => m_bp;
 
         /**
