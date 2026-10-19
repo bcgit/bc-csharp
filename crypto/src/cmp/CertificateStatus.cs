@@ -16,6 +16,9 @@ namespace Org.BouncyCastle.Cmp
         private readonly IDigestAlgorithmFinder m_digestAlgorithmFinder;
         private readonly CertStatus m_certStatus;
 
+        /// <summary>Create a new <see cref="CertificateStatus"/>.</summary>
+        /// <param name="digestAlgFinder">The digest alg finder.</param>
+        /// <param name="certStatus">The cert status.</param>
         [Obsolete("Use constructor taking 'IDigestAlgorithmFinder' instead")]
         public CertificateStatus(Cms.DefaultDigestAlgorithmIdentifierFinder digestAlgFinder,
             CertStatus certStatus)
@@ -38,6 +41,7 @@ namespace Org.BouncyCastle.Cmp
         /// <summary>Gets the identifier of the certificate request this status relates to.</summary>
         public virtual DerInteger CertReqID => m_certStatus.CertReqID;
 
+        /// <summary>Gets the cert request ID.</summary>
         [Obsolete("Use 'CertReqID' instead")]
         public virtual BigInteger CertRequestID => m_certStatus.CertReqID.Value;
 

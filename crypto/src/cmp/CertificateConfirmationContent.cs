@@ -45,6 +45,9 @@ namespace Org.BouncyCastle.Cmp
         {
         }
 
+        /// <summary>Create a new <see cref="CertificateConfirmationContent"/>.</summary>
+        /// <param name="content">The content.</param>
+        /// <param name="digestAlgFinder">The digest alg finder.</param>
         [Obsolete("Use constructor taking 'IDigestAlgorithmFinder' instead")]
         public CertificateConfirmationContent(CertConfirmContent content,
             Cms.DefaultDigestAlgorithmIdentifierFinder digestAlgFinder)
