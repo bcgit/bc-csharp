@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Agreement.Srp
 {
+    /// <summary>Utility methods for the SRP-6 protocol.</summary>
     public class Srp6Utilities
     {
         public static BigInteger CalculateK(IDigest digest, BigInteger N, BigInteger g)

@@ -33,6 +33,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         protected BigInteger M2;
         protected BigInteger Key;
 
+        /// <summary>Create a new <see cref="Srp6Server"/>.</summary>
         public Srp6Server()
         {
         }

@@ -34,6 +34,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Srp
         protected IDigest digest;
         protected SecureRandom random;
 
+        /// <summary>Create a new <see cref="Srp6Client"/>.</summary>
         public Srp6Client()
         {
         }

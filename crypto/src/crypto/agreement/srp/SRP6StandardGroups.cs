@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.Encoders;
 
 namespace Org.BouncyCastle.Crypto.Agreement.Srp
 {
+    /// <summary>The standard SRP-6 groups defined in RFC 5054.</summary>
     public class Srp6StandardGroups
     {
         private static BigInteger FromHex(string hex)
