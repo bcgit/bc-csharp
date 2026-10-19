@@ -64,11 +64,7 @@ namespace Org.BouncyCastle.Cmp
         public virtual bool HasPasswordBasedMacProtected =>
             CmpObjectIdentifiers.passwordBasedMac.Equals(ProtectionAlgorithm.Algorithm);
 
-        /**
-         * Return the message's protection algorithm.
-         *
-         * @return the algorithm ID for the message's protection algorithm.
-         */
+        /// <summary>Gets the algorithm ID for the message's protection algorithm.</summary>
         public virtual AlgorithmIdentifier ProtectionAlgorithm => m_pkiMessage.Header.ProtectionAlg;
 
         /// <summary>
@@ -84,9 +80,15 @@ namespace Org.BouncyCastle.Cmp
             return Array.ConvertAll(certs, cmpCertificate => new X509Certificate(cmpCertificate.X509v3PKCert));
         }
 
+        /// <summary>Verify a message with a public key based signature attached.</summary>
+        /// <param name="publicKey">The public key to verify with.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public virtual bool Verify(AsymmetricKeyParameter publicKey) =>
             Verify(new Asn1VerifierFactory(ProtectionAlgorithm, publicKey));
 
+        /// <summary>Verify a message with a public key based signature attached.</summary>
+        /// <param name="verifierProvider">A provider of signature verifier factories.</param>
+        /// <returns>true if the signature is valid, false otherwise.</returns>
         public virtual bool Verify(IVerifierFactoryProvider verifierProvider) =>
             Verify(verifierProvider.CreateVerifierFactory(ProtectionAlgorithm));
 
@@ -94,7 +96,9 @@ namespace Org.BouncyCastle.Cmp
         /// Verify a message with a public key based signature attached.
         /// </summary>
         /// <param name="verifierFactory">a factory of signature verifiers.</param>
-        /// <returns>true if the provider is able to create a verifier that validates the signature, false otherwise.</returns>
+        /// <returns>
+        /// true if the provider is able to create a verifier that validates the signature, false otherwise.
+        /// </returns>
         public virtual bool Verify(IVerifierFactory verifierFactory) =>
             X509.X509Utilities.VerifySignature(verifierFactory, CreateProtected(), m_pkiMessage.Protection);
 
@@ -104,7 +108,9 @@ namespace Org.BouncyCastle.Cmp
         /// <param name="pkMacBuilder">MAC builder that can be used to construct the appropriate MacCalculator</param>
         /// <param name="password">the MAC password</param>
         /// <returns>true if the passed in password and MAC builder verify the message, false otherwise.</returns>
-        /// <exception cref="InvalidOperationException">if algorithm not MAC based, or an exception is thrown verifying the MAC.</exception>
+        /// <exception cref="InvalidOperationException">
+        /// if algorithm not MAC based, or an exception is thrown verifying the MAC.
+        /// </exception>
         public virtual bool Verify(PKMacBuilder pkMacBuilder, char[] password)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -125,6 +131,11 @@ namespace Org.BouncyCastle.Cmp
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Verify a message with password based MAC protection.</summary>
+        /// <param name="pkMacBuilder">MAC builder that can be used to construct the appropriate MacCalculator.</param>
+        /// <param name="password">The MAC password.</param>
+        /// <returns>true if the passed in password and MAC builder verify the message, false otherwise.</returns>
+        /// <exception cref="InvalidOperationException">The protection algorithm is not MAC based.</exception>
         public virtual bool Verify(PKMacBuilder pkMacBuilder, ReadOnlySpan<char> password)
         {
             var protectionAlgorithm = ProtectionAlgorithm;

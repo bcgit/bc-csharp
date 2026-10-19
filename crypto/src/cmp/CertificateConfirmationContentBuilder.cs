@@ -10,6 +10,10 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Cmp
 {
+    /// <summary>Builder for <see cref="CertificateConfirmationContent"/>.</summary>
+    /// <remarks>
+    /// Add each accepted certificate with <c>AddAcceptedCertificate</c>, then call <see cref="Build"/>.
+    /// </remarks>
     public sealed class CertificateConfirmationContentBuilder
     {
         private readonly IDigestAlgorithmFinder m_digestAlgorithmFinder;
@@ -17,6 +21,7 @@ namespace Org.BouncyCastle.Cmp
         private readonly List<AlgorithmIdentifier> m_acceptedSignatureAlgorithms = new List<AlgorithmIdentifier>();
         private readonly List<DerInteger> m_acceptedReqIDs = new List<DerInteger>();
 
+        /// <summary>Create a builder using the default digest algorithm finder.</summary>
         public CertificateConfirmationContentBuilder()
             : this(DefaultDigestAlgorithmFinder.Instance)
         {
@@ -28,11 +33,17 @@ namespace Org.BouncyCastle.Cmp
         {
         }
 
+        /// <summary>Create a builder.</summary>
+        /// <param name="digestAlgorithmFinder">Finds the digest algorithm matching a signature algorithm.</param>
         public CertificateConfirmationContentBuilder(IDigestAlgorithmFinder digestAlgorithmFinder)
         {
             m_digestAlgorithmFinder = digestAlgorithmFinder;
         }
 
+        /// <summary>Add an accepted certificate.</summary>
+        /// <param name="certHolder">The accepted certificate.</param>
+        /// <param name="certReqId">The identifier of the certificate request that led to the certificate.</param>
+        /// <returns>This builder.</returns>
         // TODO[api] Rename parameters to 'cert', 'certReqID'
         public CertificateConfirmationContentBuilder AddAcceptedCertificate(X509Certificate certHolder,
             BigInteger certReqId)
@@ -40,12 +51,21 @@ namespace Org.BouncyCastle.Cmp
             return AddAcceptedCertificate(certHolder, new DerInteger(certReqId));
         }
 
+        /// <summary>Add an accepted certificate.</summary>
+        /// <param name="cert">The accepted certificate.</param>
+        /// <param name="certReqID">The identifier of the certificate request that led to the certificate.</param>
+        /// <returns>This builder.</returns>
         public CertificateConfirmationContentBuilder AddAcceptedCertificate(X509Certificate cert, DerInteger certReqID)
         {
             return AddAcceptedCertificate(
                 new CmpCertificate(cert.CertificateStructure), cert.SignatureAlgorithm, certReqID);
         }
 
+        /// <summary>Add an accepted certificate.</summary>
+        /// <param name="cmpCertificate">The accepted certificate.</param>
+        /// <param name="signatureAlgorithm">The algorithm the certificate was signed with.</param>
+        /// <param name="certReqID">The identifier of the certificate request that led to the certificate.</param>
+        /// <returns>This builder.</returns>
         public CertificateConfirmationContentBuilder AddAcceptedCertificate(CmpCertificate cmpCertificate,
             AlgorithmIdentifier signatureAlgorithm, DerInteger certReqID)
         {
@@ -56,6 +76,9 @@ namespace Org.BouncyCastle.Cmp
             return this;
         }
 
+        /// <summary>Build the content, hashing each accepted certificate.</summary>
+        /// <exception cref="CmpException">No digest algorithm can be found for a certificate's signature algorithm.
+        /// </exception>
         public CertificateConfirmationContent Build()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(m_acceptedCerts.Count);
