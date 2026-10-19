@@ -13,6 +13,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
     public class AdditionalInformationSyntax
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="AdditionalInformationSyntax"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="AdditionalInformationSyntax"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="AdditionalInformationSyntax"/>, or null if <paramref name="obj"/> is null.</returns>
         public static AdditionalInformationSyntax GetInstance(object obj)
         {
             if (obj == null)
@@ -22,9 +27,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             return new AdditionalInformationSyntax(DirectoryString.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="AdditionalInformationSyntax"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AdditionalInformationSyntax"/>.</returns>
         public static AdditionalInformationSyntax GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AdditionalInformationSyntax(DirectoryString.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="AdditionalInformationSyntax"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="AdditionalInformationSyntax"/>.</returns>
         public static AdditionalInformationSyntax GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AdditionalInformationSyntax(DirectoryString.GetTagged(taggedObject, declaredExplicit));
 
@@ -47,6 +60,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             m_information = new DirectoryString(information);
         }
 
+        /// <summary>Gets the information.</summary>
         public virtual DirectoryString Information => m_information;
 
         /**

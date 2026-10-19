@@ -137,6 +137,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         public static readonly DerObjectIdentifier Patentanwalt =
             NamingAuthority.IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern.Branch("19");
 
+        /// <summary>Return an <see cref="ProfessionInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ProfessionInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ProfessionInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ProfessionInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -146,9 +151,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             return new ProfessionInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ProfessionInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ProfessionInfo"/>.</returns>
         public static ProfessionInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ProfessionInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="ProfessionInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ProfessionInfo"/>.</returns>
         public static ProfessionInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ProfessionInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 

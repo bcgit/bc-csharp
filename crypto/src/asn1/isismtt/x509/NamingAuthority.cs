@@ -31,6 +31,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         public static readonly DerObjectIdentifier IdIsisMttATNamingAuthoritiesRechtWirtschaftSteuern =
             IsisMttObjectIdentifiers.IdIsisMttATNamingAuthorities.Branch("1");
 
+        /// <summary>Return an <see cref="NamingAuthority"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="NamingAuthority"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="NamingAuthority"/>, or null if <paramref name="obj"/> is null.</returns>
         public static NamingAuthority GetInstance(object obj)
         {
             if (obj == null)
@@ -40,9 +45,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             return new NamingAuthority(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="NamingAuthority"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="NamingAuthority"/>.</returns>
         public static NamingAuthority GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new NamingAuthority(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="NamingAuthority"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="NamingAuthority"/>.</returns>
         public static NamingAuthority GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new NamingAuthority(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -94,6 +107,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         */
         public virtual string NamingAuthorityUrl => m_namingAuthorityUrl?.GetString();
 
+        /// <summary>Gets the naming authority url data.</summary>
         public virtual DerIA5String NamingAuthorityUrlData => m_namingAuthorityUrl;
 
         /**

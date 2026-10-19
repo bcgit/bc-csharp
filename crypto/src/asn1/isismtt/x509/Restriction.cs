@@ -12,6 +12,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
     public class Restriction
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="Restriction"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="Restriction"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="Restriction"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Restriction GetInstance(object obj)
         {
             if (obj == null)
@@ -21,9 +26,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             return new Restriction(DirectoryString.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Restriction"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Restriction"/>.</returns>
         public static Restriction GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Restriction(DirectoryString.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Restriction"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Restriction"/>.</returns>
         public static Restriction GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Restriction(DirectoryString.GetTagged(taggedObject, declaredExplicit));
 
@@ -55,6 +68,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             m_restriction = new DirectoryString(restriction);
         }
 
+        /// <summary>Gets the restriction string.</summary>
         public virtual DirectoryString RestrictionString => m_restriction;
 
         /**

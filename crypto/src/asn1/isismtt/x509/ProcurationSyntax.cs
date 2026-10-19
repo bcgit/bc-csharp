@@ -44,6 +44,11 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
     public class ProcurationSyntax
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ProcurationSyntax"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ProcurationSyntax"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ProcurationSyntax"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ProcurationSyntax GetInstance(object obj)
         {
             if (obj == null)
@@ -53,9 +58,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             return new ProcurationSyntax(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ProcurationSyntax"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ProcurationSyntax"/>.</returns>
         public static ProcurationSyntax GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ProcurationSyntax(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="ProcurationSyntax"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ProcurationSyntax"/>.</returns>
         public static ProcurationSyntax GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ProcurationSyntax(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -134,12 +147,16 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             m_signingFor = thirdPerson ?? throw new ArgumentNullException(nameof(thirdPerson));
         }
 
+        /// <summary>Gets the country.</summary>
         public virtual string Country => m_country?.GetString();
 
+        /// <summary>Gets the type of substitution.</summary>
         public virtual DirectoryString TypeOfSubstitution => m_typeOfSubstitution;
 
+        /// <summary>Gets the third person.</summary>
         public virtual GeneralName ThirdPerson => m_signingFor as GeneralName;
 
+        /// <summary>Gets the cert ref.</summary>
         public virtual IssuerSerial CertRef => m_signingFor as IssuerSerial;
 
         /**

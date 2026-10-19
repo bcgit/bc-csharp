@@ -24,6 +24,9 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
     public class Admissions
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="Admissions"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="Admissions"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="Admissions"/>, or null if <paramref name="obj"/> is null.</returns>
         public static Admissions GetInstance(object obj)
         {
             if (obj == null)
@@ -33,9 +36,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             return new Admissions(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="Admissions"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Admissions"/>.</returns>
         public static Admissions GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Admissions(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Admissions"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Admissions"/>.</returns>
         public static Admissions GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Admissions(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -90,10 +101,12 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             m_professionInfos = DerSequence.FromElements(professionInfos);
         }
 
+        /// <summary>Gets the admission authority.</summary>
         public virtual GeneralName AdmissionAuthority => m_admissionAuthority;
 
         public virtual NamingAuthority NamingAuthority => m_namingAuthority;
 
+        /// <summary>Return the profession infos.</summary>
         public ProfessionInfo[] GetProfessionInfos() => m_professionInfos.MapElements(ProfessionInfo.GetInstance);
 
         /**

@@ -24,6 +24,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
     public class DeclarationOfMajority
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>A choice type, holding the alternative that was selected.</summary>
         public enum Choice
         {
             NotYoungerThan = 0,
@@ -31,12 +32,24 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             DateOfBirth = 2
         };
 
+        /// <summary>Return an <see cref="DeclarationOfMajority"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DeclarationOfMajority"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DeclarationOfMajority"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DeclarationOfMajority GetInstance(object obj) =>
             Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="DeclarationOfMajority"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DeclarationOfMajority"/>.</returns>
         public static DeclarationOfMajority GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="DeclarationOfMajority"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DeclarationOfMajority"/>, or null if <paramref name="element"/> is null.</returns>
         public static DeclarationOfMajority GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -56,6 +69,10 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             return null;
         }
 
+        /// <summary>Return an <see cref="DeclarationOfMajority"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DeclarationOfMajority"/>.</returns>
         public static DeclarationOfMajority GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -87,12 +104,17 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             m_baseObject = baseObject;
         }
 
+        /// <summary>Create a new <see cref="DeclarationOfMajority"/>.</summary>
+        /// <param name="notYoungerThan">The not younger than.</param>
         public DeclarationOfMajority(int notYoungerThan)
         {
             m_tag = (int)Choice.NotYoungerThan;
             m_baseObject = DerInteger.ValueOf(notYoungerThan);
         }
 
+        /// <summary>Create a new <see cref="DeclarationOfMajority"/>.</summary>
+        /// <param name="fullAge">true if full age, false otherwise.</param>
+        /// <param name="country">The country.</param>
         public DeclarationOfMajority(bool fullAge, string country)
         {
             if (country.Length != 2)
@@ -114,12 +136,15 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             m_baseObject = seq;
         }
 
+        /// <summary>Create a new <see cref="DeclarationOfMajority"/>.</summary>
+        /// <param name="dateOfBirth">The date of birth.</param>
         public DeclarationOfMajority(Asn1GeneralizedTime dateOfBirth)
         {
             m_tag = (int)Choice.DateOfBirth;
             m_baseObject = dateOfBirth ?? throw new ArgumentNullException(nameof(dateOfBirth));
         }
 
+        /// <summary>Gets the type.</summary>
         public Choice Type => (Choice)m_tag;
 
         /**
@@ -139,6 +164,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             }
         }
 
+        /// <summary>Gets the full age at country.</summary>
         public virtual Asn1Sequence FullAgeAtCountry
         {
             get
@@ -153,6 +179,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
             }
         }
 
+        /// <summary>Gets the date of birth.</summary>
         public virtual Asn1GeneralizedTime DateOfBirth
         {
             get
