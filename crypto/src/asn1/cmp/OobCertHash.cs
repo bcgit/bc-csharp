@@ -20,6 +20,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class OobCertHash
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="OobCertHash"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="OobCertHash"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="OobCertHash"/>, or null if <paramref name="obj"/> is null.</returns>
         public static OobCertHash GetInstance(object obj)
         {
             if (obj == null)
@@ -29,9 +34,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new OobCertHash(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="OobCertHash"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OobCertHash"/>.</returns>
         public static OobCertHash GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OobCertHash(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="OobCertHash"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="OobCertHash"/>.</returns>
         public static OobCertHash GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new OobCertHash(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -53,6 +66,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="OobCertHash"/>.</summary>
+        /// <param name="hashAlg">The hash alg.</param>
+        /// <param name="certId">The cert id.</param>
+        /// <param name="hashVal">The hash val.</param>
         public OobCertHash(AlgorithmIdentifier hashAlg, CertId certId, DerBitString hashVal)
         {
             m_hashAlg = hashAlg;
@@ -60,10 +77,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_hashVal = hashVal ?? throw new ArgumentNullException(nameof(hashVal));
         }
 
+        /// <summary>Gets the cert ID.</summary>
         public virtual CertId CertID => m_certId;
 
+        /// <summary>Gets the hash alg.</summary>
         public virtual AlgorithmIdentifier HashAlg => m_hashAlg;
 
+        /// <summary>Gets the hash val.</summary>
         public virtual DerBitString HashVal => m_hashVal;
 
         /**

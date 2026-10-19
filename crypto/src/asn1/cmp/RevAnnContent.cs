@@ -5,9 +5,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>The RevAnnContent structure of RFC 4210, the body of a revocation announcement.</summary>
     public class RevAnnContent
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="RevAnnContent"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RevAnnContent"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RevAnnContent"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RevAnnContent GetInstance(object obj)
         {
             if (obj == null)
@@ -17,9 +23,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new RevAnnContent(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="RevAnnContent"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RevAnnContent"/>.</returns>
         public static RevAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RevAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="RevAnnContent"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RevAnnContent"/>.</returns>
         public static RevAnnContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RevAnnContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -29,12 +43,23 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private readonly Asn1GeneralizedTime m_badSinceDate;
         private readonly X509Extensions m_crlDetails;
 
+        /// <summary>Create a new <see cref="RevAnnContent"/>.</summary>
+        /// <param name="status">The status.</param>
+        /// <param name="certID">The cert ID.</param>
+        /// <param name="willBeRevokedAt">The will be revoked at.</param>
+        /// <param name="badSinceDate">The bad since date.</param>
         public RevAnnContent(PkiStatusEncodable status, CertId certID, Asn1GeneralizedTime willBeRevokedAt,
             Asn1GeneralizedTime badSinceDate)
             : this(status, certID, willBeRevokedAt, badSinceDate, null)
         {
         }
 
+        /// <summary>Create a new <see cref="RevAnnContent"/>.</summary>
+        /// <param name="status">The status.</param>
+        /// <param name="certID">The cert ID.</param>
+        /// <param name="willBeRevokedAt">The will be revoked at.</param>
+        /// <param name="badSinceDate">The bad since date.</param>
+        /// <param name="crlDetails">The crl details.</param>
         public RevAnnContent(PkiStatusEncodable status, CertId certID, Asn1GeneralizedTime willBeRevokedAt,
             Asn1GeneralizedTime badSinceDate, X509Extensions crlDetails)
         {
@@ -63,12 +88,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual PkiStatusEncodable Status => m_status;
 
+        /// <summary>Gets the cert ID.</summary>
         public virtual CertId CertID => m_certID;
 
+        /// <summary>Gets the will be revoked at.</summary>
         public virtual Asn1GeneralizedTime WillBeRevokedAt => m_willBeRevokedAt;
 
+        /// <summary>Gets the bad since date.</summary>
         public virtual Asn1GeneralizedTime BadSinceDate => m_badSinceDate;
 
+        /// <summary>Gets the crl details.</summary>
         public virtual X509Extensions CrlDetails => m_crlDetails;
 
         /**

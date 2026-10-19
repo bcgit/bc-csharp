@@ -39,39 +39,76 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class PkiBody
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>The <c>TYPE_INIT_REQ</c> constant, with the value <c>0</c>.</summary>
         public const int TYPE_INIT_REQ = 0;
+        /// <summary>The <c>TYPE_INIT_REP</c> constant, with the value <c>1</c>.</summary>
         public const int TYPE_INIT_REP = 1;
+        /// <summary>The <c>TYPE_CERT_REQ</c> constant, with the value <c>2</c>.</summary>
         public const int TYPE_CERT_REQ = 2;
+        /// <summary>The <c>TYPE_CERT_REP</c> constant, with the value <c>3</c>.</summary>
         public const int TYPE_CERT_REP = 3;
+        /// <summary>The <c>TYPE_P10_CERT_REQ</c> constant, with the value <c>4</c>.</summary>
         public const int TYPE_P10_CERT_REQ = 4;
+        /// <summary>The <c>TYPE_POPO_CHALL</c> constant, with the value <c>5</c>.</summary>
         public const int TYPE_POPO_CHALL = 5;
+        /// <summary>The <c>TYPE_POPO_REP</c> constant, with the value <c>6</c>.</summary>
         public const int TYPE_POPO_REP = 6;
+        /// <summary>The <c>TYPE_KEY_UPDATE_REQ</c> constant, with the value <c>7</c>.</summary>
         public const int TYPE_KEY_UPDATE_REQ = 7;
+        /// <summary>The <c>TYPE_KEY_UPDATE_REP</c> constant, with the value <c>8</c>.</summary>
         public const int TYPE_KEY_UPDATE_REP = 8;
+        /// <summary>The <c>TYPE_KEY_RECOVERY_REQ</c> constant, with the value <c>9</c>.</summary>
         public const int TYPE_KEY_RECOVERY_REQ = 9;
+        /// <summary>The <c>TYPE_KEY_RECOVERY_REP</c> constant, with the value <c>10</c>.</summary>
         public const int TYPE_KEY_RECOVERY_REP = 10;
+        /// <summary>The <c>TYPE_REVOCATION_REQ</c> constant, with the value <c>11</c>.</summary>
         public const int TYPE_REVOCATION_REQ = 11;
+        /// <summary>The <c>TYPE_REVOCATION_REP</c> constant, with the value <c>12</c>.</summary>
         public const int TYPE_REVOCATION_REP = 12;
+        /// <summary>The <c>TYPE_CROSS_CERT_REQ</c> constant, with the value <c>13</c>.</summary>
         public const int TYPE_CROSS_CERT_REQ = 13;
+        /// <summary>The <c>TYPE_CROSS_CERT_REP</c> constant, with the value <c>14</c>.</summary>
         public const int TYPE_CROSS_CERT_REP = 14;
+        /// <summary>The <c>TYPE_CA_KEY_UPDATE_ANN</c> constant, with the value <c>15</c>.</summary>
         public const int TYPE_CA_KEY_UPDATE_ANN = 15;
+        /// <summary>The <c>TYPE_CERT_ANN</c> constant, with the value <c>16</c>.</summary>
         public const int TYPE_CERT_ANN = 16;
+        /// <summary>The <c>TYPE_REVOCATION_ANN</c> constant, with the value <c>17</c>.</summary>
         public const int TYPE_REVOCATION_ANN = 17;
+        /// <summary>The <c>TYPE_CRL_ANN</c> constant, with the value <c>18</c>.</summary>
         public const int TYPE_CRL_ANN = 18;
+        /// <summary>The <c>TYPE_CONFIRM</c> constant, with the value <c>19</c>.</summary>
         public const int TYPE_CONFIRM = 19;
+        /// <summary>The <c>TYPE_NESTED</c> constant, with the value <c>20</c>.</summary>
         public const int TYPE_NESTED = 20;
+        /// <summary>The <c>TYPE_GEN_MSG</c> constant, with the value <c>21</c>.</summary>
         public const int TYPE_GEN_MSG = 21;
+        /// <summary>The <c>TYPE_GEN_REP</c> constant, with the value <c>22</c>.</summary>
         public const int TYPE_GEN_REP = 22;
+        /// <summary>The <c>TYPE_ERROR</c> constant, with the value <c>23</c>.</summary>
         public const int TYPE_ERROR = 23;
+        /// <summary>The <c>TYPE_CERT_CONFIRM</c> constant, with the value <c>24</c>.</summary>
         public const int TYPE_CERT_CONFIRM = 24;
+        /// <summary>The <c>TYPE_POLL_REQ</c> constant, with the value <c>25</c>.</summary>
         public const int TYPE_POLL_REQ = 25;
+        /// <summary>The <c>TYPE_POLL_REP</c> constant, with the value <c>26</c>.</summary>
         public const int TYPE_POLL_REP = 26;
 
+        /// <summary>Return an <see cref="PkiBody"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="PkiBody"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="PkiBody"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PkiBody GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="PkiBody"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiBody"/>.</returns>
         public static PkiBody GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="PkiBody"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="PkiBody"/>, or null if <paramref name="element"/> is null.</returns>
         public static PkiBody GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -91,6 +128,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return null;
         }
 
+        /// <summary>Return an <see cref="PkiBody"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiBody"/>.</returns>
         public static PkiBody GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -242,8 +283,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             }
         }
 
+        /// <summary>Gets the content.</summary>
         public virtual Asn1Encodable Content => m_baseObject;
 
+        /// <summary>Gets the type.</summary>
         public virtual int Type => m_tagNo;
 
         /**

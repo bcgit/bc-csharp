@@ -53,6 +53,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public const int BadCertId            = (1 << 3); // no certificate could be found matching the provided criteria
         public const int BadDataFormat        = (1 << 2);
         public const int WrongAuthority       = (1 << 1); // the authority indicated in the request is different from the one creating the response token
+        /// <summary>The <c>IncorrectData</c> constant, with the value <c>1</c>.</summary>
         public const int IncorrectData        = 1;        // the requester's data is incorrect (for notary services)
         public const int MissingTimeStamp     = (1 << 15); // when the timestamp is missing but should be there (by policy)
         public const int BadPop               = (1 << 14); // the proof-of-possession failed
@@ -82,12 +83,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
         {
         }
 
+        /// <summary>Create a new <see cref="PkiFailureInfo"/>.</summary>
+        /// <param name="info">The info.</param>
         public PkiFailureInfo(
             DerBitString info)
             : base(info.GetBytes(), info.PadBits)
         {
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return "PkiFailureInfo: 0x" + this.IntValue.ToString("X");

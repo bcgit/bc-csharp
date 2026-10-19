@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>The CertRepMessage structure of RFC 4210, the body of the certificate response messages.</summary>
     public class CertRepMessage
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertRepMessage"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CertRepMessage"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CertRepMessage"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertRepMessage GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertRepMessage(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertRepMessage"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertRepMessage"/>.</returns>
         public static CertRepMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertRepMessage(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CertRepMessage"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertRepMessage"/>.</returns>
         public static CertRepMessage GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertRepMessage(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -36,6 +50,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="CertRepMessage"/>.</summary>
+        /// <param name="caPubs">The ca pubs.</param>
+        /// <param name="response">The response.</param>
         public CertRepMessage(CmpCertificate[] caPubs, CertResponse[] response)
         {
             if (response == null)
@@ -49,8 +66,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_response = new DerSequence(response);
         }
 
+        /// <summary>Return the CA pubs.</summary>
         public virtual CmpCertificate[] GetCAPubs() => m_caPubs?.MapElements(CmpCertificate.GetInstance);
 
+        /// <summary>Return the response.</summary>
         public virtual CertResponse[] GetResponse() => m_response.MapElements(CertResponse.GetInstance);
 
         /**

@@ -12,6 +12,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class CrlStatus
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CrlStatus"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CrlStatus"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CrlStatus"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CrlStatus GetInstance(object obj)
         {
             if (obj == null)
@@ -21,9 +24,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CrlStatus(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CrlStatus"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlStatus"/>.</returns>
         public static CrlStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CrlStatus"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CrlStatus"/>.</returns>
         public static CrlStatus GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CrlStatus(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -43,6 +54,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="CrlStatus"/>.</summary>
+        /// <param name="source">The source.</param>
+        /// <param name="thisUpdate">The this update.</param>
         public CrlStatus(CrlSource source, Time thisUpdate)
         {
             m_source = source ?? throw new ArgumentNullException(nameof(source));
@@ -51,8 +65,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual CrlSource Source => m_source;
 
+        /// <summary>Gets the this update.</summary>
         public virtual Time ThisUpdate => m_thisUpdate;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             return m_thisUpdate == null

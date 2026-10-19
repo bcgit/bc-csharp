@@ -4,9 +4,18 @@ using Org.BouncyCastle.Asn1.Crmf;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>
+    /// The CertifiedKeyPair structure of RFC 4210: a certificate and optionally its private key and publication
+    /// information.
+    /// </summary>
     public class CertifiedKeyPair
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertifiedKeyPair"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CertifiedKeyPair"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CertifiedKeyPair"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertifiedKeyPair GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +25,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertifiedKeyPair(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertifiedKeyPair"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertifiedKeyPair"/>.</returns>
         public static CertifiedKeyPair GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertifiedKeyPair(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CertifiedKeyPair"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="CertifiedKeyPair"/>, or null if <paramref name="element"/> is null.</returns>
         public static CertifiedKeyPair GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -34,6 +50,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return null;
         }
 
+        /// <summary>Return an <see cref="CertifiedKeyPair"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertifiedKeyPair"/>.</returns>
         public static CertifiedKeyPair GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertifiedKeyPair(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -55,11 +75,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="CertifiedKeyPair"/>.</summary>
+        /// <param name="certOrEncCert">The cert or enc cert.</param>
         public CertifiedKeyPair(CertOrEncCert certOrEncCert)
             : this(certOrEncCert, (EncryptedKey)null, null)
         {
         }
 
+        /// <summary>Create a new <see cref="CertifiedKeyPair"/>.</summary>
+        /// <param name="certOrEncCert">The cert or enc cert.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="publicationInfo">The publication info.</param>
         [Obsolete("Use constructor with EncryptedKey instead")]
         public CertifiedKeyPair(CertOrEncCert certOrEncCert, EncryptedValue privateKey,
             PkiPublicationInfo publicationInfo)
@@ -67,6 +93,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
         {
         }
 
+        /// <summary>Create a new <see cref="CertifiedKeyPair"/>.</summary>
+        /// <param name="certOrEncCert">The cert or enc cert.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="publicationInfo">The publication info.</param>
         public CertifiedKeyPair(CertOrEncCert certOrEncCert, EncryptedKey privateKey,
             PkiPublicationInfo publicationInfo)
         {
@@ -77,6 +107,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual CertOrEncCert CertOrEncCert => m_certOrEncCert;
 
+        /// <summary>Gets the private key.</summary>
         public virtual EncryptedKey PrivateKey => m_privateKey;
 
         public virtual PkiPublicationInfo PublicationInfo => m_publicationInfo;

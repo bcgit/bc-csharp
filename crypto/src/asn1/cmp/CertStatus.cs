@@ -5,9 +5,13 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>The CertStatus structure of RFC 4210: the confirmation of a single certificate.</summary>
     public class CertStatus
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertStatus"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CertStatus"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CertStatus"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertStatus GetInstance(object obj)
         {
             if (obj == null)
@@ -17,9 +21,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CertStatus(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertStatus"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertStatus"/>.</returns>
         public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertStatus(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CertStatus"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertStatus"/>.</returns>
         public static CertStatus GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertStatus(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -43,11 +55,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="CertStatus"/>.</summary>
+        /// <param name="certHash">The cert hash.</param>
+        /// <param name="certReqID">The cert req ID.</param>
         public CertStatus(byte[] certHash, BigInteger certReqID)
             : this(certHash, certReqID, null, null)
         {
         }
 
+        /// <summary>Create a new <see cref="CertStatus"/>.</summary>
+        /// <param name="certHash">The cert hash.</param>
+        /// <param name="certReqID">The cert req ID.</param>
         public CertStatus(byte[] certHash, DerInteger certReqID)
         {
             m_certHash = DerOctetString.FromContents(certHash);
@@ -56,6 +74,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_hashAlg = null;
         }
 
+        /// <summary>Create a new <see cref="CertStatus"/>.</summary>
+        /// <param name="certHash">The cert hash.</param>
+        /// <param name="certReqID">The cert req ID.</param>
+        /// <param name="statusInfo">The status info.</param>
         public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo)
         {
             m_certHash = DerOctetString.FromContents(certHash);
@@ -64,6 +86,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_hashAlg = null;
         }
 
+        /// <summary>Create a new <see cref="CertStatus"/>.</summary>
+        /// <param name="certHash">The cert hash.</param>
+        /// <param name="certReqID">The cert req ID.</param>
+        /// <param name="statusInfo">The status info.</param>
+        /// <param name="hashAlg">The hash alg.</param>
         public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo, AlgorithmIdentifier hashAlg)
         {
             m_certHash = DerOctetString.FromContents(certHash);
@@ -72,12 +99,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_hashAlg = hashAlg;
         }
 
+        /// <summary>Gets the cert hash.</summary>
         public virtual Asn1OctetString CertHash => m_certHash;
 
+        /// <summary>Gets the cert req ID.</summary>
         public virtual DerInteger CertReqID => m_certReqID;
 
         public virtual PkiStatusInfo StatusInfo => m_statusInfo;
 
+        /// <summary>Gets the hash alg.</summary>
         public virtual AlgorithmIdentifier HashAlg => m_hashAlg;
 
         /**

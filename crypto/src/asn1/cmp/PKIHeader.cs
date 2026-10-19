@@ -4,6 +4,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>The PKIHeader structure of RFC 4210, the header of a CMP message.</summary>
     public class PkiHeader
         : Asn1Encodable
     {
@@ -15,6 +16,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public static readonly int CMP_1999 = 1;
         public static readonly int CMP_2000 = 2;
 
+        /// <summary>Return an <see cref="PkiHeader"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="PkiHeader"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="PkiHeader"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PkiHeader GetInstance(object obj)
         {
             if (obj == null)
@@ -24,9 +28,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiHeader(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PkiHeader"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiHeader"/>.</returns>
         public static PkiHeader GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiHeader(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PkiHeader"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiHeader"/>.</returns>
         public static PkiHeader GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiHeader(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -66,6 +78,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="PkiHeader"/>.</summary>
+        /// <param name="pvno">The pvno.</param>
+        /// <param name="sender">The sender.</param>
+        /// <param name="recipient">The recipient.</param>
         public PkiHeader(int pvno, GeneralName sender, GeneralName recipient)
             : this(DerInteger.ValueOf(pvno), sender, recipient)
         {
@@ -78,28 +94,39 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_recipient = recipient ?? throw new ArgumentNullException(nameof(recipient));
         }
 
+        /// <summary>Gets the pvno.</summary>
         public virtual DerInteger Pvno => m_pvno;
 
+        /// <summary>Gets the sender.</summary>
         public virtual GeneralName Sender => m_sender;
 
+        /// <summary>Gets the recipient.</summary>
         public virtual GeneralName Recipient => m_recipient;
 
+        /// <summary>Gets the message time.</summary>
         public virtual Asn1GeneralizedTime MessageTime => m_messageTime;
 
+        /// <summary>Gets the protection alg.</summary>
         public virtual AlgorithmIdentifier ProtectionAlg => m_protectionAlg;
 
+        /// <summary>Gets the sender KID.</summary>
         public virtual Asn1OctetString SenderKID => m_senderKID;
 
+        /// <summary>Gets the recip KID.</summary>
         public virtual Asn1OctetString RecipKID => m_recipKID;
 
+        /// <summary>Gets the transaction ID.</summary>
         public virtual Asn1OctetString TransactionID => m_transactionID;
 
+        /// <summary>Gets the sender nonce.</summary>
         public virtual Asn1OctetString SenderNonce => m_senderNonce;
 
+        /// <summary>Gets the recip nonce.</summary>
         public virtual Asn1OctetString RecipNonce => m_recipNonce;
 
         public virtual PkiFreeText FreeText => m_freeText;
 
+        /// <summary>Return the general info.</summary>
         public virtual InfoTypeAndValue[] GetGeneralInfo() => m_generalInfo?.MapElements(InfoTypeAndValue.GetInstance);
 
         /**

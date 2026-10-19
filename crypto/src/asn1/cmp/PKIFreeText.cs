@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>The PKIFreeText structure of RFC 4210: a sequence of UTF-8 strings.</summary>
     public class PkiFreeText
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PkiFreeText"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PkiFreeText"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PkiFreeText"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PkiFreeText GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiFreeText(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PkiFreeText"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiFreeText"/>.</returns>
         public static PkiFreeText GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiFreeText(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PkiFreeText"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="PkiFreeText"/>, or null if <paramref name="element"/> is null.</returns>
         public static PkiFreeText GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -32,6 +45,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return null;
         }
 
+        /// <summary>Return an <see cref="PkiFreeText"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiFreeText"/>.</returns>
         public static PkiFreeText GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiFreeText(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -51,26 +68,35 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_strings = seq;
         }
 
+        /// <summary>Create a new <see cref="PkiFreeText"/>.</summary>
+        /// <param name="p">The p.</param>
         public PkiFreeText(DerUtf8String p)
         {
             m_strings = new DerSequence(p);
         }
 
+        /// <summary>Create a new <see cref="PkiFreeText"/>.</summary>
+        /// <param name="p">The p.</param>
         public PkiFreeText(string p)
             : this(new DerUtf8String(p))
         {
         }
 
+        /// <summary>Create a new <see cref="PkiFreeText"/>.</summary>
+        /// <param name="strs">The strs.</param>
         public PkiFreeText(DerUtf8String[] strs)
         {
             m_strings = new DerSequence(strs);
         }
 
+        /// <summary>Create a new <see cref="PkiFreeText"/>.</summary>
+        /// <param name="strs">The strs.</param>
         public PkiFreeText(string[] strs)
         {
             m_strings = DerSequence.Map(strs, str => new DerUtf8String(str));
         }
 
+        /// <summary>Gets the count.</summary>
         public virtual int Count => m_strings.Count;
 
         /**

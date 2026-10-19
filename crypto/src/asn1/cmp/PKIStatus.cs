@@ -2,6 +2,7 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>The values of the PKIStatus type of RFC 4210.</summary>
     public enum PkiStatus
     {
         Granted = 0,
@@ -13,6 +14,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         KeyUpdateWarning = 6,
     }
 
+    /// <summary>An encodable PKIStatus value.</summary>
     public class PkiStatusEncodable
         : Asn1Encodable
     {
@@ -24,6 +26,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public static readonly PkiStatusEncodable revocationNotification = new PkiStatusEncodable(PkiStatus.RevocationNotification);
         public static readonly PkiStatusEncodable keyUpdateWaiting = new PkiStatusEncodable(PkiStatus.KeyUpdateWarning);
 
+        /// <summary>Return an <see cref="PkiStatusEncodable"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PkiStatusEncodable"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PkiStatusEncodable"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PkiStatusEncodable GetInstance(object obj)
         {
             if (obj == null)
@@ -33,9 +40,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiStatusEncodable(DerInteger.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PkiStatusEncodable"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiStatusEncodable"/>.</returns>
         public static PkiStatusEncodable GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiStatusEncodable(DerInteger.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PkiStatusEncodable"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiStatusEncodable"/>.</returns>
         public static PkiStatusEncodable GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiStatusEncodable(DerInteger.GetTagged(taggedObject, declaredExplicit));
 
@@ -51,10 +66,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_status = status;
         }
 
+        /// <summary>Gets the status.</summary>
         public virtual DerInteger Status => m_status;
 
+        /// <summary>Gets the value.</summary>
         public virtual BigInteger Value => m_status.Value;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object() => m_status;
     }
 }

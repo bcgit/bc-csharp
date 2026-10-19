@@ -4,6 +4,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>Builder for <see cref="PkiHeader"/> instances.</summary>
     public class PkiHeaderBuilder
     {
         private readonly DerInteger pvno;
@@ -19,6 +20,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private PkiFreeText     freeText;
         private Asn1Sequence    generalInfo;
 
+        /// <summary>Create a new <see cref="PkiHeaderBuilder"/>.</summary>
+        /// <param name="pvno">The pvno.</param>
+        /// <param name="sender">The sender.</param>
+        /// <param name="recipient">The recipient.</param>
         public PkiHeaderBuilder(int pvno, GeneralName sender, GeneralName recipient)
             : this(DerInteger.ValueOf(pvno), sender, recipient)
         {

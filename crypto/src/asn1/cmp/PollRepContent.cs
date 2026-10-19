@@ -9,6 +9,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class PollRepContent
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PollRepContent"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PollRepContent"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PollRepContent"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PollRepContent GetInstance(object obj)
         {
             if (obj == null)
@@ -18,9 +23,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PollRepContent(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PollRepContent"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PollRepContent"/>.</returns>
         public static PollRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PollRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PollRepContent"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PollRepContent"/>.</returns>
         public static PollRepContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PollRepContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -49,11 +62,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
             }
         }
 
+        /// <summary>Create a new <see cref="PollRepContent"/>.</summary>
+        /// <param name="certReqID">The cert req ID.</param>
+        /// <param name="checkAfter">The check after.</param>
         public PollRepContent(DerInteger certReqID, DerInteger checkAfter)
             : this(certReqID, checkAfter, null)
         {
         }
 
+        /// <summary>Create a new <see cref="PollRepContent"/>.</summary>
+        /// <param name="certReqID">The cert req ID.</param>
+        /// <param name="checkAfter">The check after.</param>
+        /// <param name="reason">The reason.</param>
         public PollRepContent(DerInteger certReqID, DerInteger checkAfter, PkiFreeText reason)
         {
             m_certReqID = new DerInteger[1]{ certReqID };
@@ -61,6 +81,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_reason = new PkiFreeText[1]{ reason };
         }
 
+        /// <summary>Gets the count.</summary>
         public virtual int Count => m_certReqID.Length;
 
         public virtual DerInteger GetCertReqID(int index) => m_certReqID[index];

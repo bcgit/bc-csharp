@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>The CAKeyUpdAnnContent structure of RFC 4210, the body of a CA key update announcement.</summary>
     public class CAKeyUpdAnnContent
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CAKeyUpdAnnContent"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CAKeyUpdAnnContent"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CAKeyUpdAnnContent"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CAKeyUpdAnnContent GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new CAKeyUpdAnnContent(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CAKeyUpdAnnContent"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CAKeyUpdAnnContent"/>.</returns>
         public static CAKeyUpdAnnContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CAKeyUpdAnnContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CAKeyUpdAnnContent"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CAKeyUpdAnnContent"/>.</returns>
         public static CAKeyUpdAnnContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CAKeyUpdAnnContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -38,10 +52,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the old with new.</summary>
         public virtual CmpCertificate OldWithNew => m_oldWithNew;
 
+        /// <summary>Gets the new with old.</summary>
         public virtual CmpCertificate NewWithOld => m_newWithOld;
 
+        /// <summary>Gets the new with new.</summary>
         public virtual CmpCertificate NewWithNew => m_newWithNew;
 
         /**

@@ -4,9 +4,17 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>
+    /// The PKIStatusInfo structure of RFC 4210: a status, optional free text and optional failure information.
+    /// </summary>
     public class PkiStatusInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PkiStatusInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PkiStatusInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PkiStatusInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PkiStatusInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -18,6 +26,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="PkiStatusInfo"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiStatusInfo"/>.</returns>
         public static PkiStatusInfo GetInstance(Asn1TaggedObject obj, bool isExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -25,6 +37,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="PkiStatusInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiStatusInfo"/>.</returns>
         public static PkiStatusInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -32,6 +48,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="PkiStatusInfo"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="PkiStatusInfo"/>, or null if <paramref name="element"/> is null.</returns>
         public static PkiStatusInfo GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -53,6 +72,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
         private readonly PkiFreeText m_statusString;
         private readonly DerBitString m_failInfo;
 
+        /// <summary>Create a new <see cref="PkiStatusInfo"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public PkiStatusInfo(Asn1Sequence seq)
         {
@@ -71,11 +92,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="PkiStatusInfo"/>.</summary>
+        /// <param name="status">The status.</param>
         public PkiStatusInfo(PkiStatusEncodable status)
         {
             m_status = DerInteger.GetInstance(status.ToAsn1Object());
         }
 
+        /// <summary>Create a new <see cref="PkiStatusInfo"/>.</summary>
+        /// <param name="status">The status.</param>
         public PkiStatusInfo(int status)
         {
             m_status = DerInteger.ValueOf(status);
@@ -83,6 +108,9 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_failInfo = null;
         }
 
+        /// <summary>Create a new <see cref="PkiStatusInfo"/>.</summary>
+        /// <param name="status">The status.</param>
+        /// <param name="statusString">The status string.</param>
         public PkiStatusInfo(int status, PkiFreeText statusString)
         {
             m_status = DerInteger.ValueOf(status);
@@ -90,6 +118,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_failInfo = null;
         }
 
+        /// <summary>Create a new <see cref="PkiStatusInfo"/>.</summary>
+        /// <param name="status">The status.</param>
+        /// <param name="statusString">The status string.</param>
+        /// <param name="failInfo">The fail info.</param>
         public PkiStatusInfo(int status, PkiFreeText statusString, PkiFailureInfo failInfo)
         {
             m_status = DerInteger.ValueOf(status);
@@ -97,12 +129,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_failInfo = failInfo;
         }
 
+        /// <summary>Gets the status.</summary>
         public BigInteger Status => m_status.Value;
 
+        /// <summary>Gets the status object.</summary>
         public DerInteger StatusObject => m_status;
 
+        /// <summary>Gets the status string.</summary>
         public PkiFreeText StatusString => m_statusString;
 
+        /// <summary>Gets the fail info.</summary>
         public DerBitString FailInfo => m_failInfo;
 
         /**

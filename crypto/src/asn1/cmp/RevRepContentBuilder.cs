@@ -5,6 +5,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>Builder for the RevRepContent structure of RFC 4210, the body of a revocation response.</summary>
     public class RevRepContentBuilder
     {
         private readonly Asn1EncodableVector m_status = new Asn1EncodableVector();

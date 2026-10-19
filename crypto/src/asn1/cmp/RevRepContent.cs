@@ -22,6 +22,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
     public class RevRepContent
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="RevRepContent"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="RevRepContent"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="RevRepContent"/>, or null if <paramref name="obj"/> is null.</returns>
         public static RevRepContent GetInstance(object obj)
         {
             if (obj == null)
@@ -31,9 +36,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new RevRepContent(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="RevRepContent"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RevRepContent"/>.</returns>
         public static RevRepContent GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RevRepContent(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="RevRepContent"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="RevRepContent"/>.</returns>
         public static RevRepContent GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new RevRepContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -55,10 +68,13 @@ namespace Org.BouncyCastle.Asn1.Cmp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Return the status.</summary>
         public virtual PkiStatusInfo[] GetStatus() => m_status.MapElements(PkiStatusInfo.GetInstance);
 
+        /// <summary>Return the rev certs.</summary>
         public virtual CertId[] GetRevCerts() => m_revCerts?.MapElements(CertId.GetInstance);
 
+        /// <summary>Return the crls.</summary>
         public virtual CertificateList[] GetCrls() => m_crls?.MapElements(CertificateList.GetInstance);
 
         /**

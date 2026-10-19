@@ -2,9 +2,15 @@
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
+    /// <summary>
+    /// The PKIMessage structure of RFC 4210: a header, a body, and optionally protection and extra certificates.
+    /// </summary>
     public class PkiMessage
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PkiMessage"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="PkiMessage"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="PkiMessage"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PkiMessage GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Cmp
             return new PkiMessage(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PkiMessage"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiMessage"/>.</returns>
         public static PkiMessage GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiMessage(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PkiMessage"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiMessage"/>.</returns>
         public static PkiMessage GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiMessage(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -56,11 +70,18 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_extraCerts = DerSequence.FromElementsOptional(extraCerts);
         }
 
+        /// <summary>Create a new <see cref="PkiMessage"/>.</summary>
+        /// <param name="header">The header.</param>
+        /// <param name="body">The body.</param>
+        /// <param name="protection">The protection.</param>
         public PkiMessage(PkiHeader header, PkiBody body, DerBitString protection)
             : this(header, body, protection, null)
         {
         }
 
+        /// <summary>Create a new <see cref="PkiMessage"/>.</summary>
+        /// <param name="header">The header.</param>
+        /// <param name="body">The body.</param>
         public PkiMessage(PkiHeader header, PkiBody body)
             : this(header, body, null, null)
         {
@@ -70,8 +91,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual PkiBody Body => m_body;
 
+        /// <summary>Gets the protection.</summary>
         public virtual DerBitString Protection => m_protection;
 
+        /// <summary>Return the extra certs.</summary>
         public virtual CmpCertificate[] GetExtraCerts() => m_extraCerts?.MapElements(CmpCertificate.GetInstance);
 
         /**
