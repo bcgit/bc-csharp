@@ -52,6 +52,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_certificate = certificate;
         }
 
+        /// <summary>Gets the underlying X.509 certificate structure.</summary>
         public virtual X509CertificateStructure X509CertificateStructure => m_certificate;
 
         /// <exception cref="IOException"/>

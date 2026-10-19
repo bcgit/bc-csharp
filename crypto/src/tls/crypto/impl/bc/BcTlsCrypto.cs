@@ -48,6 +48,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsSecret(this, data);
         }
 
+        /// <summary>Gets the source of randomness used by this crypto.</summary>
         public override SecureRandom SecureRandom
         {
             get { return m_entropySource; }
@@ -534,6 +535,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return AdoptLocalSecret(data);
         }
 
+        /// <summary>Create a copy of a digest with its current state.</summary>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
+        /// <param name="digest">The digest to copy.</param>
+        /// <returns>The copy.</returns>
         public virtual IDigest CloneDigest(int cryptoHashAlgorithm, IDigest digest)
         {
             switch (cryptoHashAlgorithm)
@@ -559,6 +564,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Create a digest for a hash algorithm.</summary>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
+        /// <returns>The digest.</returns>
         public virtual IDigest CreateDigest(int cryptoHashAlgorithm)
         {
             switch (cryptoHashAlgorithm)
@@ -590,6 +598,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsHash(this, cryptoHashAlgorithm);
         }
 
+        /// <summary>Create a block cipher engine for an encryption algorithm.</summary>
+        /// <param name="encryptionAlgorithm">The encryption algorithm.</param>
+        /// <returns>The engine.</returns>
         protected virtual IBlockCipher CreateBlockCipher(int encryptionAlgorithm)
         {
             switch (encryptionAlgorithm)
@@ -614,16 +625,25 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Create a CBC block cipher around an engine, or for an encryption algorithm.</summary>
+        /// <param name="blockCipher">The engine.</param>
+        /// <returns>The CBC block cipher.</returns>
         protected virtual IBlockCipher CreateCbcBlockCipher(IBlockCipher blockCipher)
         {
             return new CbcBlockCipher(blockCipher);
         }
 
+        /// <summary>Create a CBC block cipher around an engine, or for an encryption algorithm.</summary>
+        /// <param name="encryptionAlgorithm">The encryption algorithm.</param>
+        /// <returns>The CBC block cipher.</returns>
         protected virtual IBlockCipher CreateCbcBlockCipher(int encryptionAlgorithm)
         {
             return CreateCbcBlockCipher(CreateBlockCipher(encryptionAlgorithm));
         }
 
+        /// <summary>Create a ChaCha20-Poly1305 cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsCipher CreateChaCha20Poly1305(TlsCryptoParameters cryptoParams)
         {
             BcChaCha20Poly1305 encrypt = new BcChaCha20Poly1305(true);
@@ -632,6 +652,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, 32, 16, TlsAeadCipher.AEAD_CHACHA20_POLY1305);
         }
 
+        /// <summary>Create an AEAD cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="cipherKeySize">The size of the key in bytes.</param>
+        /// <param name="macSize">The size of the MAC in bytes.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsAeadCipher CreateCipher_Aes_Ccm(TlsCryptoParameters cryptoParams, int cipherKeySize,
             int macSize)
         {
@@ -641,6 +666,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, cipherKeySize, macSize, TlsAeadCipher.AEAD_CCM);
         }
 
+        /// <summary>Create an AEAD cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="cipherKeySize">The size of the key in bytes.</param>
+        /// <param name="macSize">The size of the MAC in bytes.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsAeadCipher CreateCipher_Aes_Gcm(TlsCryptoParameters cryptoParams, int cipherKeySize,
             int macSize)
         {
@@ -650,6 +680,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, cipherKeySize, macSize, TlsAeadCipher.AEAD_GCM);
         }
 
+        /// <summary>Create an AEAD cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="cipherKeySize">The size of the key in bytes.</param>
+        /// <param name="macSize">The size of the MAC in bytes.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsAeadCipher CreateCipher_Aria_Gcm(TlsCryptoParameters cryptoParams, int cipherKeySize,
             int macSize)
         {
@@ -659,6 +694,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, cipherKeySize, macSize, TlsAeadCipher.AEAD_GCM);
         }
 
+        /// <summary>Create an AEAD cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="cipherKeySize">The size of the key in bytes.</param>
+        /// <param name="macSize">The size of the MAC in bytes.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsAeadCipher CreateCipher_Camellia_Gcm(TlsCryptoParameters cryptoParams, int cipherKeySize,
             int macSize)
         {
@@ -668,6 +708,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, cipherKeySize, macSize, TlsAeadCipher.AEAD_GCM);
         }
 
+        /// <summary>Create a CBC cipher with a MAC.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="encryptionAlgorithm">The encryption algorithm.</param>
+        /// <param name="cipherKeySize">The size of the key in bytes.</param>
+        /// <param name="macAlgorithm">The MAC algorithm.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsCipher CreateCipher_Cbc(TlsCryptoParameters cryptoParams, int encryptionAlgorithm,
             int cipherKeySize, int macAlgorithm)
         {
@@ -680,6 +726,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new TlsBlockCipher(cryptoParams, encrypt, decrypt, clientMac, serverMac, cipherKeySize);
         }
 
+        /// <summary>Create an SM4 AEAD cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsAeadCipher CreateCipher_SM4_Ccm(TlsCryptoParameters cryptoParams)
         {
             var encrypt = new BcTlsCcmImpl(CreateAeadCipher_SM4_Ccm(), true);
@@ -688,6 +737,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, 16, 16, TlsAeadCipher.AEAD_CCM);
         }
 
+        /// <summary>Create an SM4 AEAD cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsAeadCipher CreateCipher_SM4_Gcm(TlsCryptoParameters cryptoParams)
         {
             BcTlsAeadCipherImpl encrypt = new BcTlsAeadCipherImpl(CreateAeadCipher_SM4_Gcm(), true);
@@ -696,80 +748,118 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new TlsAeadCipher(cryptoParams, encrypt, decrypt, 16, 16, TlsAeadCipher.AEAD_GCM);
         }
 
+        /// <summary>Create a TLS 1.3 null cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="macAlgorithm">The MAC algorithm.</param>
+        /// <returns>The cipher.</returns>
         protected virtual Tls13NullCipher Create13NullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm) =>
             new Tls13NullCipher(cryptoParams, CreateHmac(macAlgorithm), CreateHmac(macAlgorithm));
 
+        /// <summary>Create a null cipher.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="macAlgorithm">The MAC algorithm.</param>
+        /// <returns>The cipher.</returns>
         protected virtual TlsNullCipher CreateNullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm)
         {
             return new TlsNullCipher(cryptoParams, CreateMac(cryptoParams, macAlgorithm),
                 CreateMac(cryptoParams, macAlgorithm));
         }
 
+        /// <summary>Create an AES engine.</summary>
+        /// <returns>The engine.</returns>
         protected virtual IBlockCipher CreateAesEngine()
         {
             return AesUtilities.CreateEngine();
         }
 
+        /// <summary>Create an ARIA engine.</summary>
+        /// <returns>The engine.</returns>
         protected virtual IBlockCipher CreateAriaEngine()
         {
             return new AriaEngine();
         }
 
+        /// <summary>Create a Camellia engine.</summary>
+        /// <returns>The engine.</returns>
         protected virtual IBlockCipher CreateCamelliaEngine()
         {
             return new CamelliaEngine();
         }
 
+        /// <summary>Create a Triple DES (DESede) engine.</summary>
+        /// <returns>The engine.</returns>
         protected virtual IBlockCipher CreateDesEdeEngine()
         {
             return new DesEdeEngine();
         }
 
+        /// <summary>Create a SEED engine.</summary>
+        /// <returns>The engine.</returns>
         protected virtual IBlockCipher CreateSeedEngine()
         {
             return new SeedEngine();
         }
 
+        /// <summary>Create an SM4 engine.</summary>
+        /// <returns>The engine.</returns>
         protected virtual IBlockCipher CreateSM4Engine()
         {
             return new SM4Engine();
         }
 
+        /// <summary>Create a CCM mode cipher around an engine.</summary>
+        /// <param name="engine">The engine.</param>
+        /// <returns>The cipher.</returns>
         protected virtual CcmBlockCipher CreateCcmMode(IBlockCipher engine)
         {
             return new CcmBlockCipher(engine);
         }
 
+        /// <summary>Create a GCM mode cipher around an engine.</summary>
+        /// <param name="engine">The engine.</param>
+        /// <returns>The cipher.</returns>
         protected virtual IAeadCipher CreateGcmMode(IBlockCipher engine)
         {
             return new GcmBlockCipher(engine);
         }
 
+        /// <summary>Create an AES-CCM AEAD cipher.</summary>
+        /// <returns>The cipher.</returns>
         protected virtual CcmBlockCipher CreateAeadCipher_Aes_Ccm()
         {
             return CreateCcmMode(CreateAesEngine());
         }
 
+        /// <summary>Create an AES-GCM AEAD cipher.</summary>
+        /// <returns>The cipher.</returns>
         protected virtual IAeadCipher CreateAeadCipher_Aes_Gcm()
         {
             return CreateGcmMode(CreateAesEngine());
         }
 
+        /// <summary>Create an ARIA-GCM AEAD cipher.</summary>
+        /// <returns>The cipher.</returns>
         protected virtual IAeadCipher CreateAeadCipher_Aria_Gcm()
         {
             return CreateGcmMode(CreateAriaEngine());
         }
 
+        /// <summary>Create a Camellia-GCM AEAD cipher.</summary>
+        /// <returns>The cipher.</returns>
         protected virtual IAeadCipher CreateAeadCipher_Camellia_Gcm()
         {
             return CreateGcmMode(CreateCamelliaEngine());
         }
 
+        /// <summary>Create an SM4-CCM AEAD cipher.</summary>
+        /// <returns>The cipher.</returns>
         protected virtual CcmBlockCipher CreateAeadCipher_SM4_Ccm()
         {
             return CreateCcmMode(CreateSM4Engine());
         }
 
+        /// <summary>Create an SM4-GCM AEAD cipher.</summary>
+        /// <returns>The cipher.</returns>
         protected virtual IAeadCipher CreateAeadCipher_SM4_Gcm()
         {
             return CreateGcmMode(CreateSM4Engine());
@@ -798,6 +888,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsHmac(new HMac(CreateDigest(cryptoHashAlgorithm)));
         }
 
+        /// <summary>Create an HMAC for the SSL 3.0 MAC construction.</summary>
+        /// <param name="macAlgorithm">The MAC algorithm.</param>
+        /// <returns>The HMAC.</returns>
         protected virtual TlsHmac CreateHmac_Ssl(int macAlgorithm)
         {
             switch (macAlgorithm)
@@ -817,6 +910,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Create the HMAC for a MAC algorithm.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="macAlgorithm">The MAC algorithm.</param>
+        /// <returns>The HMAC.</returns>
         protected virtual TlsHmac CreateMac(TlsCryptoParameters cryptoParams, int macAlgorithm)
         {
             if (TlsImplUtilities.IsSsl(cryptoParams))

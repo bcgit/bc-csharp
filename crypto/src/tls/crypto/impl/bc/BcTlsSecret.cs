@@ -12,6 +12,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsSecret
         : AbstractTlsSecret
     {
+        /// <summary>Convert a secret to a <see cref="BcTlsSecret"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="secret">The secret.</param>
+        /// <returns>The converted secret.</returns>
         public static BcTlsSecret Convert(BcTlsCrypto crypto, TlsSecret secret)
         {
             if (secret is BcTlsSecret bcTlsSecret)
@@ -222,6 +226,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         /// <inheritdoc/>
         protected override AbstractTlsCrypto Crypto => m_crypto;
 
+        /// <summary>Calculate <c>P_hash</c>, the HMAC-based data expansion function used by the TLS PRF.</summary>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
+        /// <param name="secret">The buffer holding the secret.</param>
+        /// <param name="secretOff">The offset into <paramref name="secret"/> at which the secret starts.</param>
+        /// <param name="secretLen">The length of the secret.</param>
+        /// <param name="seed">The seed.</param>
+        /// <param name="output">The buffer to receive the output.</param>
         protected virtual void HmacHash(int cryptoHashAlgorithm, byte[] secret, int secretOff, int secretLen,
             byte[] seed, byte[] output)
         {
@@ -250,6 +261,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Calculate the output of the PRF.</summary>
+        /// <param name="prfAlgorithm">The PRF algorithm.</param>
+        /// <param name="label">The label.</param>
+        /// <param name="seed">The seed.</param>
+        /// <param name="length">The number of bytes to produce.</param>
+        /// <returns>The output.</returns>
         protected virtual byte[] Prf(int prfAlgorithm, string label, byte[] seed, int length)
         {
             if (PrfAlgorithm.ssl_prf_legacy == prfAlgorithm)
@@ -264,6 +281,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the output of the PRF.</summary>
+        /// <param name="prfAlgorithm">The PRF algorithm.</param>
+        /// <param name="label">The label.</param>
+        /// <param name="seed">The seed.</param>
+        /// <param name="length">The number of bytes to produce.</param>
+        /// <returns>The output.</returns>
         protected virtual byte[] Prf(int prfAlgorithm, ReadOnlySpan<char> label, ReadOnlySpan<byte> seed, int length)
         {
             if (PrfAlgorithm.ssl_prf_legacy == prfAlgorithm)
@@ -285,6 +308,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 #endif
 
+        /// <summary>Calculate the output of the SSL 3.0 PRF.</summary>
+        /// <param name="seed">The seed.</param>
+        /// <param name="length">The number of bytes to produce.</param>
+        /// <returns>The output.</returns>
         protected virtual byte[] Prf_Ssl(byte[] seed, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -331,6 +358,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the output of the SSL 3.0 PRF.</summary>
+        /// <param name="seed">The seed.</param>
+        /// <param name="length">The number of bytes to produce.</param>
+        /// <returns>The output.</returns>
         protected virtual byte[] Prf_Ssl(ReadOnlySpan<byte> seed, int length)
         {
             IDigest md5 = m_crypto.CreateDigest(CryptoHashAlgorithm.md5);
@@ -373,6 +404,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 #endif
 
+        /// <summary>Calculate the output of the TLS 1.0 and 1.1 PRF.</summary>
+        /// <param name="labelSeed">The label followed by the seed.</param>
+        /// <param name="length">The number of bytes to produce.</param>
+        /// <returns>The output.</returns>
         protected virtual byte[] Prf_1_0(byte[] labelSeed, int length)
         {
             int s_half = (m_data.Length + 1) / 2;
@@ -390,6 +425,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return b1;
         }
 
+        /// <summary>Calculate the output of the TLS 1.2 PRF.</summary>
+        /// <param name="prfAlgorithm">The PRF algorithm.</param>
+        /// <param name="labelSeed">The label followed by the seed.</param>
+        /// <param name="length">The number of bytes to produce.</param>
+        /// <returns>The output.</returns>
         protected virtual byte[] Prf_1_2(int prfAlgorithm, byte[] labelSeed, int length)
         {
             int cryptoHashAlgorithm = TlsCryptoUtilities.GetHashForPrf(prfAlgorithm);
@@ -398,6 +438,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return result;
         }
 
+        /// <summary>Update a MAC with the secret data.</summary>
+        /// <param name="mac">The MAC.</param>
         protected virtual void UpdateMac(IMac mac)
         {
             lock (this)

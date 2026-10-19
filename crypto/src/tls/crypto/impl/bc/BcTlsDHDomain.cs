@@ -28,6 +28,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return BigIntegers.GetUnsignedByteLength(dh.P);
         }
 
+        /// <summary>Calculate the Diffie-Hellman agreement value.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="publicKey">The public key of the peer.</param>
+        /// <param name="padded">true if the result is padded to the size of the prime.</param>
+        /// <returns>The agreement value as a secret.</returns>
         public static BcTlsSecret CalculateDHAgreement(BcTlsCrypto crypto, DHPrivateKeyParameters privateKey,
             DHPublicKeyParameters publicKey, bool padded)
         {
@@ -38,6 +44,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return crypto.AdoptLocalSecret(secret);
         }
 
+        /// <summary>Get the Diffie-Hellman domain parameters for a configuration.</summary>
+        /// <param name="dhConfig">The configuration.</param>
+        /// <returns>The parameters.</returns>
         public static DHParameters GetDomainParameters(TlsDHConfig dhConfig)
         {
             DHGroup dhGroup = TlsDHUtilities.GetDHGroup(dhConfig) ??
@@ -64,6 +73,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_domainParameters = GetDomainParameters(dhConfig);
         }
 
+        /// <summary>Calculate the Diffie-Hellman agreement value.</summary>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="publicKey">The public key of the peer.</param>
+        /// <returns>The agreement value as a secret.</returns>
         public virtual BcTlsSecret CalculateDHAgreement(DHPrivateKeyParameters privateKey,
             DHPublicKeyParameters publicKey)
         {
@@ -105,16 +118,26 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>
+        /// Encode a Diffie-Hellman value, padded to the size of the prime if the configuration requires it.
+        /// </summary>
+        /// <param name="x">The value.</param>
+        /// <returns>The encoding.</returns>
         public virtual byte[] EncodeParameter(BigInteger x)
         {
             return EncodeValue(m_domainParameters, m_config.IsPadded, x);
         }
 
+        /// <summary>Encode a Diffie-Hellman public key.</summary>
+        /// <param name="publicKey">The public key.</param>
+        /// <returns>The encoding.</returns>
         public virtual byte[] EncodePublicKey(DHPublicKeyParameters publicKey)
         {
             return EncodeValue(m_domainParameters, true, publicKey.Y);
         }
 
+        /// <summary>Generate a Diffie-Hellman key pair.</summary>
+        /// <returns>The key pair.</returns>
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
             DHKeyPairGenerator keyPairGenerator = new DHKeyPairGenerator();

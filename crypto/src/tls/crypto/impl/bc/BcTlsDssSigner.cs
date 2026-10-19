@@ -20,6 +20,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
+        /// <summary>Create the DSA implementation to use with a hash.</summary>
+        /// <param name="cryptoHashAlgorithm">The crypto hash algorithm.</param>
+        /// <returns>The DSA implementation.</returns>
         protected abstract IDsa CreateDsaImpl(int cryptoHashAlgorithm);
 
         /// <summary>Gets the signature algorithm.</summary>

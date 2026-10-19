@@ -48,6 +48,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_privateKey = privateKey;
         }
 
+        /// <summary>Gets the certificate chain.</summary>
         public virtual Certificate Certificate => m_certificate;
 
         /// <inheritdoc/>

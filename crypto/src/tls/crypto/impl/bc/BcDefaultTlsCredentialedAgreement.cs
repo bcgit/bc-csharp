@@ -48,6 +48,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Gets the certificate chain.</summary>
         public virtual Certificate Certificate
         {
             get { return m_agreementCredentials.Certificate; }

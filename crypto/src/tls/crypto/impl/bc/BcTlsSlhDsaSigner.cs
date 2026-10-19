@@ -9,6 +9,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsSlhDsaSigner
         : BcTlsSigner
     {
+        /// <summary>Create an SLH-DSA signer for a signature scheme.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <returns>The signer.</returns>
         public static BcTlsSlhDsaSigner Create(BcTlsCrypto crypto, SlhDsaPrivateKeyParameters privateKey, int signatureScheme)
         {
             if (signatureScheme != PqcUtilities.GetSlhDsaSignatureScheme(privateKey.Parameters))

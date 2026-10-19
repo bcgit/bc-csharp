@@ -287,6 +287,8 @@ namespace Org.BouncyCastle.Tls
                 :  -1;
         }
 
+        /// <summary>Select the application protocol to use from those offered by the client.</summary>
+        /// <returns>The selected protocol name, or null if none is selected.</returns>
         protected virtual ProtocolName SelectProtocolName()
         {
             IList<ProtocolName> serverProtocolNames = GetProtocolNames();
@@ -300,6 +302,14 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>
+        /// Select the application protocol to use, given the protocol names of the client and server.
+        /// </summary>
+        /// <param name="clientProtocolNames">The protocol names offered by the client.</param>
+        /// <param name="serverProtocolNames">
+        /// The protocol names supported by the server, in order of preference.
+        /// </param>
+        /// <returns>The selected protocol name, or null if none is selected.</returns>
         protected virtual ProtocolName SelectProtocolName(IList<ProtocolName> clientProtocolNames,
             IList<ProtocolName> serverProtocolNames)
         {

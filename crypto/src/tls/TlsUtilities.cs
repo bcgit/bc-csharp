@@ -147,202 +147,344 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>An empty byte array.</summary>
         public static readonly byte[] EmptyBytes = Array.Empty<byte>();
+        /// <summary>An empty array of <see cref="short"/> values.</summary>
         public static readonly short[] EmptyShorts = Array.Empty<short>();
+        /// <summary>An empty array of <see cref="int"/> values.</summary>
         public static readonly int[] EmptyInts = Array.Empty<int>();
+        /// <summary>An empty array of <see cref="long"/> values.</summary>
         public static readonly long[] EmptyLongs = Array.Empty<long>();
+        /// <summary>An empty array of strings.</summary>
         public static readonly string[] EmptyStrings = Array.Empty<string>();
 
         internal static short MinimumHashStrict = HashAlgorithm.sha1;
         internal static short MinimumHashPreferred = HashAlgorithm.sha256;
 
+        /// <summary>Check that a value fits in an unsigned 8-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint8(short i)
         {
             if (!IsValidUint8(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 8-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint8(int i)
         {
             if (!IsValidUint8(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 8-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint8(long i)
         {
             if (!IsValidUint8(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 16-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint16(int i)
         {
             if (!IsValidUint16(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 16-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint16(long i)
         {
             if (!IsValidUint16(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 24-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint24(int i)
         {
             if (!IsValidUint24(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 24-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint24(long i)
         {
             if (!IsValidUint24(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 32-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint32(long i)
         {
             if (!IsValidUint32(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 48-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is out of range.</exception>
         public static void CheckUint48(long i)
         {
             if (!IsValidUint48(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Check that a value fits in an unsigned 64-bit integer, that is, that it is not negative.</summary>
+        /// <param name="i">The value.</param>
+        /// <exception cref="TlsFatalAlert">The value is negative.</exception>
         public static void CheckUint64(long i)
         {
             if (!IsValidUint64(i))
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 8-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint8(short i)
         {
             return (i & 0xFF) == i;
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 8-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint8(int i)
         {
             return (i & 0xFF) == i;
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 8-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint8(long i)
         {
             return (i & 0xFFL) == i;
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 16-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint16(int i)
         {
             return (i & 0xFFFF) == i;
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 16-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint16(long i)
         {
             return (i & 0xFFFFL) == i;
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 24-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint24(int i)
         {
             return (i & 0xFFFFFF) == i;
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 24-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint24(long i)
         {
             return (i & 0xFFFFFFL) == i;
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 32-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint32(long i)
         {
             return (i & 0xFFFFFFFFL) == i;
         }
 
+        /// <summary>Determine whether a value fits in an unsigned 48-bit integer.</summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint48(long i)
         {
             return (i & 0xFFFFFFFFFFFFL) == i;
         }
 
 #pragma warning disable IDE0060 // Remove unused parameter
+        /// <summary>
+        /// Determine whether a value fits in an unsigned 64-bit integer, that is, that it is not negative.
+        /// </summary>
+        /// <param name="i">The value.</param>
+        /// <returns>true if the value is in range, false otherwise.</returns>
         public static bool IsValidUint64(long i) => true;
 #pragma warning restore IDE0060
 
+        /// <summary>Determine whether the connection uses SSL 3.0.</summary>
+        /// <param name="context">The TLS context.</param>
+        /// <returns>true if SSL 3.0 is in use, false otherwise.</returns>
         public static bool IsSsl(TlsContext context)
         {
             return context.ServerVersion.IsSsl;
         }
 
+        /// <summary>
+        /// Determine whether a version (or the negotiated version of a connection) is TLS 1.0 or the equivalent DTLS
+        /// version.
+        /// </summary>
+        /// <param name="version">The version.</param>
+        /// <returns>true if it is that version, false otherwise.</returns>
         public static bool IsTlsV10(ProtocolVersion version)
         {
             return ProtocolVersion.TLSv10.IsEqualOrEarlierVersionOf(version.GetEquivalentTlsVersion());
         }
 
+        /// <summary>
+        /// Determine whether a version (or the negotiated version of a connection) is TLS 1.0 or the equivalent DTLS
+        /// version.
+        /// </summary>
+        /// <param name="context">The TLS context.</param>
+        /// <returns>true if it is that version, false otherwise.</returns>
         public static bool IsTlsV10(TlsContext context)
         {
             return IsTlsV10(context.ServerVersion);
         }
 
+        /// <summary>
+        /// Determine whether a version (or the negotiated version of a connection) is TLS 1.1 or the equivalent DTLS
+        /// version.
+        /// </summary>
+        /// <param name="version">The version.</param>
+        /// <returns>true if it is that version, false otherwise.</returns>
         public static bool IsTlsV11(ProtocolVersion version)
         {
             return ProtocolVersion.TLSv11.IsEqualOrEarlierVersionOf(version.GetEquivalentTlsVersion());
         }
 
+        /// <summary>
+        /// Determine whether a version (or the negotiated version of a connection) is TLS 1.1 or the equivalent DTLS
+        /// version.
+        /// </summary>
+        /// <param name="context">The TLS context.</param>
+        /// <returns>true if it is that version, false otherwise.</returns>
         public static bool IsTlsV11(TlsContext context)
         {
             return IsTlsV11(context.ServerVersion);
         }
 
+        /// <summary>
+        /// Determine whether a version (or the negotiated version of a connection) is TLS 1.2 or the equivalent DTLS
+        /// version.
+        /// </summary>
+        /// <param name="version">The version.</param>
+        /// <returns>true if it is that version, false otherwise.</returns>
         public static bool IsTlsV12(ProtocolVersion version)
         {
             return ProtocolVersion.TLSv12.IsEqualOrEarlierVersionOf(version.GetEquivalentTlsVersion());
         }
 
+        /// <summary>
+        /// Determine whether a version (or the negotiated version of a connection) is TLS 1.2 or the equivalent DTLS
+        /// version.
+        /// </summary>
+        /// <param name="context">The TLS context.</param>
+        /// <returns>true if it is that version, false otherwise.</returns>
         public static bool IsTlsV12(TlsContext context)
         {
             return IsTlsV12(context.ServerVersion);
         }
 
+        /// <summary>
+        /// Determine whether a version (or the negotiated version of a connection) is TLS 1.3 or the equivalent DTLS
+        /// version.
+        /// </summary>
+        /// <param name="version">The version.</param>
+        /// <returns>true if it is that version, false otherwise.</returns>
         public static bool IsTlsV13(ProtocolVersion version)
         {
             return ProtocolVersion.TLSv13.IsEqualOrEarlierVersionOf(version.GetEquivalentTlsVersion());
         }
 
+        /// <summary>
+        /// Determine whether a version (or the negotiated version of a connection) is TLS 1.3 or the equivalent DTLS
+        /// version.
+        /// </summary>
+        /// <param name="context">The TLS context.</param>
+        /// <returns>true if it is that version, false otherwise.</returns>
         public static bool IsTlsV13(TlsContext context)
         {
             return IsTlsV13(context.ServerVersion);
         }
 
+        /// <summary>Write an unsigned 8-bit value to a stream, a buffer or a span.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint8(short i, Stream output)
         {
             output.WriteByte((byte)i);
         }
 
+        /// <summary>Write an unsigned 8-bit value to a stream, a buffer or a span.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint8(int i, Stream output)
         {
             output.WriteByte((byte)i);
         }
 
+        /// <summary>Write an unsigned 8-bit value to a stream, a buffer or a span.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint8(short i, byte[] buf, int offset)
         {
             buf[offset] = (byte)i;
         }
 
+        /// <summary>Write an unsigned 8-bit value to a stream, a buffer or a span.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint8(int i, byte[] buf, int offset)
         {
             buf[offset] = (byte)i;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Write an unsigned 8-bit value to a stream, a buffer or a span.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
         public static void WriteUint8(int i, Span<byte> buf)
         {
             buf[0] = (byte)i;
         }
 #endif
 
+        /// <summary>Write an unsigned 16-bit value in network byte order to a stream, a buffer or a span.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint16(int i, Stream output)
         {
             output.WriteByte((byte)(i >> 8));
             output.WriteByte((byte)i);
         }
 
+        /// <summary>Write an unsigned 16-bit value in network byte order to a stream, a buffer or a span.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint16(int i, byte[] buf, int offset)
         {
             buf[offset    ] = (byte)(i >> 8);
@@ -350,6 +492,9 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Write an unsigned 16-bit value in network byte order to a stream, a buffer or a span.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
         public static void WriteUint16(int i, Span<byte> buf)
         {
             buf[0] = (byte)(i >> 8);
@@ -357,6 +502,9 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Write an unsigned 24-bit value in network byte order to a stream or a buffer.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint24(int i, Stream output)
         {
             output.WriteByte((byte)(i >> 16));
@@ -364,6 +512,10 @@ namespace Org.BouncyCastle.Tls
             output.WriteByte((byte)i);
         }
 
+        /// <summary>Write an unsigned 24-bit value in network byte order to a stream or a buffer.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint24(int i, byte[] buf, int offset)
         {
             buf[offset    ] = (byte)(i >> 16);
@@ -371,6 +523,9 @@ namespace Org.BouncyCastle.Tls
             buf[offset + 2] = (byte)i;
         }
 
+        /// <summary>Write an unsigned 32-bit value in network byte order to a stream or a buffer.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint32(long i, Stream output)
         {
             output.WriteByte((byte)(i >> 24));
@@ -379,6 +534,10 @@ namespace Org.BouncyCastle.Tls
             output.WriteByte((byte)i);
         }
 
+        /// <summary>Write an unsigned 32-bit value in network byte order to a stream or a buffer.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint32(long i, byte[] buf, int offset)
         {
             buf[offset    ] = (byte)(i >> 24);
@@ -387,6 +546,9 @@ namespace Org.BouncyCastle.Tls
             buf[offset + 3] = (byte)i;
         }
 
+        /// <summary>Write an unsigned 48-bit value in network byte order to a stream or a buffer.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint48(long i, Stream output)
         {
             output.WriteByte((byte)(i >> 40));
@@ -397,6 +559,10 @@ namespace Org.BouncyCastle.Tls
             output.WriteByte((byte)i);
         }
 
+        /// <summary>Write an unsigned 48-bit value in network byte order to a stream or a buffer.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint48(long i, byte[] buf, int offset)
         {
             buf[offset    ] = (byte)(i >> 40);
@@ -407,6 +573,9 @@ namespace Org.BouncyCastle.Tls
             buf[offset + 5] = (byte)i;
         }
 
+        /// <summary>Write an unsigned 64-bit value in network byte order to a stream or a buffer.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint64(long i, Stream output)
         {
             output.WriteByte((byte)(i >> 56));
@@ -419,6 +588,10 @@ namespace Org.BouncyCastle.Tls
             output.WriteByte((byte) i);
         }
 
+        /// <summary>Write an unsigned 64-bit value in network byte order to a stream or a buffer.</summary>
+        /// <param name="i">The value.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint64(long i, byte[] buf, int offset)
         {
             buf[offset    ] = (byte)(i >> 56);
@@ -431,6 +604,9 @@ namespace Org.BouncyCastle.Tls
             buf[offset + 7] = (byte)i;
         }
 
+        /// <summary>Write data to a stream or buffer, prefixed with an 8-bit length.</summary>
+        /// <param name="buf">The data to write when the destination is a stream.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteOpaque8(byte[] buf, Stream output)
         {
             CheckUint8(buf.Length);
@@ -438,6 +614,10 @@ namespace Org.BouncyCastle.Tls
             output.Write(buf, 0, buf.Length);
         }
 
+        /// <summary>Write data to a stream or buffer, prefixed with an 8-bit length.</summary>
+        /// <param name="data">The data to write when the destination is a buffer.</param>
+        /// <param name="buf">The data to write when the destination is a stream.</param>
+        /// <param name="off">The offset into the destination buffer at which to write.</param>
         public static void WriteOpaque8(byte[] data, byte[] buf, int off)
         {
             CheckUint8(data.Length);
@@ -446,6 +626,9 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Write data to a stream or buffer, prefixed with an 8-bit length.</summary>
+        /// <param name="data">The data to write when the destination is a buffer.</param>
+        /// <param name="buf">The data to write when the destination is a stream.</param>
         public static void WriteOpaque8(ReadOnlySpan<byte> data, Span<byte> buf)
         {
             CheckUint8(data.Length);
@@ -454,6 +637,9 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Write data to a stream or buffer, prefixed with a 16-bit length.</summary>
+        /// <param name="buf">The data to write when the destination is a stream.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteOpaque16(byte[] buf, Stream output)
         {
             CheckUint16(buf.Length);
@@ -461,6 +647,10 @@ namespace Org.BouncyCastle.Tls
             output.Write(buf, 0, buf.Length);
         }
 
+        /// <summary>Write data to a stream or buffer, prefixed with a 16-bit length.</summary>
+        /// <param name="data">The data to write when the destination is a buffer.</param>
+        /// <param name="buf">The data to write when the destination is a stream.</param>
+        /// <param name="off">The offset into the destination buffer at which to write.</param>
         public static void WriteOpaque16(byte[] data, byte[] buf, int off)
         {
             CheckUint16(data.Length);
@@ -468,6 +658,9 @@ namespace Org.BouncyCastle.Tls
             Array.Copy(data, 0, buf, off + 2, data.Length);
         }
 
+        /// <summary>Write data to a stream or buffer, prefixed with a 24-bit length.</summary>
+        /// <param name="buf">The data to write when the destination is a stream.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteOpaque24(byte[] buf, Stream output)
         {
             CheckUint24(buf.Length);
@@ -475,6 +668,10 @@ namespace Org.BouncyCastle.Tls
             output.Write(buf, 0, buf.Length);
         }
 
+        /// <summary>Write data to a stream or buffer, prefixed with a 24-bit length.</summary>
+        /// <param name="data">The data to write when the destination is a buffer.</param>
+        /// <param name="buf">The data to write when the destination is a stream.</param>
+        /// <param name="off">The offset into the destination buffer at which to write.</param>
         public static void WriteOpaque24(byte[] data, byte[] buf, int off)
         {
             CheckUint24(data.Length);
@@ -482,6 +679,9 @@ namespace Org.BouncyCastle.Tls
             Array.Copy(data, 0, buf, off + 3, data.Length);
         }
 
+        /// <summary>Write an array of unsigned 8-bit values, without a length, to a stream or a buffer.</summary>
+        /// <param name="u8s">The values.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint8Array(short[] u8s, Stream output)
         {
             for (int i = 0; i < u8s.Length; ++i)
@@ -490,6 +690,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Write an array of unsigned 8-bit values, without a length, to a stream or a buffer.</summary>
+        /// <param name="u8s">The values.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint8Array(short[] u8s, byte[] buf, int offset)
         {
             for (int i = 0; i < u8s.Length; ++i)
@@ -499,6 +703,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Write an array of unsigned 8-bit values, prefixed with an 8-bit length, to a stream or a buffer.
+        /// </summary>
+        /// <param name="u8s">The values.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint8ArrayWithUint8Length(short[] u8s, Stream output)
         {
             CheckUint8(u8s.Length);
@@ -506,6 +715,12 @@ namespace Org.BouncyCastle.Tls
             WriteUint8Array(u8s, output);
         }
 
+        /// <summary>
+        /// Write an array of unsigned 8-bit values, prefixed with an 8-bit length, to a stream or a buffer.
+        /// </summary>
+        /// <param name="u8s">The values.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint8ArrayWithUint8Length(short[] u8s, byte[] buf, int offset)
         {
             CheckUint8(u8s.Length);
@@ -513,6 +728,9 @@ namespace Org.BouncyCastle.Tls
             WriteUint8Array(u8s, buf, offset + 1);
         }
 
+        /// <summary>Write an array of unsigned 16-bit values, without a length, to a stream or a buffer.</summary>
+        /// <param name="u16s">The values.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint16Array(int[] u16s, Stream output)
         {
             for (int i = 0; i < u16s.Length; ++i)
@@ -521,6 +739,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Write an array of unsigned 16-bit values, without a length, to a stream or a buffer.</summary>
+        /// <param name="u16s">The values.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint16Array(int[] u16s, byte[] buf, int offset)
         {
             for (int i = 0; i < u16s.Length; ++i)
@@ -530,6 +752,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Write an array of unsigned 16-bit values, prefixed with an 8-bit length, to a buffer.</summary>
+        /// <param name="u16s">The values.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint16ArrayWithUint8Length(int[] u16s, byte[] buf, int offset)
         {
             int length = 2 * u16s.Length;
@@ -538,6 +764,11 @@ namespace Org.BouncyCastle.Tls
             WriteUint16Array(u16s, buf, offset + 1);
         }
 
+        /// <summary>
+        /// Write an array of unsigned 16-bit values, prefixed with a 16-bit length, to a stream or a buffer.
+        /// </summary>
+        /// <param name="u16s">The values.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteUint16ArrayWithUint16Length(int[] u16s, Stream output)
         {
             int length = 2 * u16s.Length;
@@ -546,6 +777,12 @@ namespace Org.BouncyCastle.Tls
             WriteUint16Array(u16s, output);
         }
 
+        /// <summary>
+        /// Write an array of unsigned 16-bit values, prefixed with a 16-bit length, to a stream or a buffer.
+        /// </summary>
+        /// <param name="u16s">The values.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteUint16ArrayWithUint16Length(int[] u16s, byte[] buf, int offset)
         {
             int length = 2 * u16s.Length;
@@ -554,8 +791,17 @@ namespace Org.BouncyCastle.Tls
             WriteUint16Array(u16s, buf, offset + 2);
         }
 
+        /// <summary>Decode a buffer that consists of data prefixed with an 8-bit length.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static byte[] DecodeOpaque8(byte[] buf) => DecodeOpaque8(buf, 0);
 
+        /// <summary>Decode a buffer that consists of data prefixed with an 8-bit length.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <param name="minLength">The minimum acceptable length of the data.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static byte[] DecodeOpaque8(byte[] buf, int minLength)
         {
             if (buf == null)
@@ -570,8 +816,17 @@ namespace Org.BouncyCastle.Tls
             return CopyOfRangeExact(buf, 1, buf.Length);
         }
 
+        /// <summary>Decode a buffer that consists of data prefixed with a 16-bit length.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static byte[] DecodeOpaque16(byte[] buf) => DecodeOpaque16(buf, 0);
 
+        /// <summary>Decode a buffer that consists of data prefixed with a 16-bit length.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <param name="minLength">The minimum acceptable length of the data.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static byte[] DecodeOpaque16(byte[] buf, int minLength)
         {
             if (buf == null)
@@ -586,6 +841,10 @@ namespace Org.BouncyCastle.Tls
             return CopyOfRangeExact(buf, 2, buf.Length);
         }
 
+        /// <summary>Decode a buffer holding a single unsigned 8-bit value.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static short DecodeUint8(byte[] buf)
         {
             if (buf == null)
@@ -596,6 +855,10 @@ namespace Org.BouncyCastle.Tls
             return ReadUint8(buf, 0);
         }
 
+        /// <summary>Decode a buffer holding an array of unsigned 8-bit values prefixed with an 8-bit length.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <returns>The values.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static short[] DecodeUint8ArrayWithUint8Length(byte[] buf)
         {
             if (buf == null)
@@ -615,6 +878,10 @@ namespace Org.BouncyCastle.Tls
             return uints;
         }
 
+        /// <summary>Decode a buffer holding a single unsigned 16-bit value.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static int DecodeUint16(byte[] buf)
         {
             if (buf == null)
@@ -625,6 +892,10 @@ namespace Org.BouncyCastle.Tls
             return ReadUint16(buf, 0);
         }
 
+        /// <summary>Decode a buffer holding an array of unsigned 16-bit values prefixed with an 8-bit length.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <returns>The values.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static int[] DecodeUint16ArrayWithUint8Length(byte[] buf)
         {
             if (buf == null)
@@ -644,6 +915,10 @@ namespace Org.BouncyCastle.Tls
             return u16s;
         }
 
+        /// <summary>Decode a buffer holding a single unsigned 32-bit value.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="TlsFatalAlert">The buffer is not a valid encoding.</exception>
         public static long DecodeUint32(byte[] buf)
         {
             if (buf == null)
@@ -654,12 +929,18 @@ namespace Org.BouncyCastle.Tls
             return ReadUint32(buf, 0);
         }
 
+        /// <summary>Encode data prefixed with an 8-bit length.</summary>
+        /// <param name="buf">The data.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeOpaque8(byte[] buf)
         {
             CheckUint8(buf.Length);
             return Arrays.Prepend(buf, (byte)buf.Length);
         }
 
+        /// <summary>Encode data prefixed with a 16-bit length.</summary>
+        /// <param name="buf">The data.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeOpaque16(byte[] buf)
         {
             CheckUint16(buf.Length);
@@ -669,6 +950,9 @@ namespace Org.BouncyCastle.Tls
             return r;
         }
 
+        /// <summary>Encode data prefixed with a 24-bit length.</summary>
+        /// <param name="buf">The data.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeOpaque24(byte[] buf)
         {
             CheckUint24(buf.Length);
@@ -678,6 +962,9 @@ namespace Org.BouncyCastle.Tls
             return r;
         }
 
+        /// <summary>Encode an unsigned 8-bit value.</summary>
+        /// <param name="u8">The value.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeUint8(short u8)
         {
             CheckUint8(u8);
@@ -687,6 +974,9 @@ namespace Org.BouncyCastle.Tls
             return encoding;
         }
 
+        /// <summary>Encode an array of unsigned 8-bit values prefixed with an 8-bit length.</summary>
+        /// <param name="u8s">The values.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeUint8ArrayWithUint8Length(short[] u8s)
         {
             byte[] result = new byte[1 + u8s.Length];
@@ -694,6 +984,9 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>Encode an unsigned 16-bit value.</summary>
+        /// <param name="u16">The value.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeUint16(int u16)
         {
             CheckUint16(u16);
@@ -703,6 +996,9 @@ namespace Org.BouncyCastle.Tls
             return encoding;
         }
 
+        /// <summary>Encode an array of unsigned 16-bit values prefixed with an 8-bit length.</summary>
+        /// <param name="u16s">The values.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeUint16ArrayWithUint8Length(int[] u16s)
         {
             int length = 2 * u16s.Length;
@@ -711,6 +1007,9 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>Encode an array of unsigned 16-bit values prefixed with a 16-bit length.</summary>
+        /// <param name="u16s">The values.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeUint16ArrayWithUint16Length(int[] u16s)
         {
             int length = 2 * u16s.Length;
@@ -719,6 +1018,9 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>Encode an unsigned 24-bit value.</summary>
+        /// <param name="u24">The value.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeUint24(int u24)
         {
             CheckUint24(u24);
@@ -728,6 +1030,9 @@ namespace Org.BouncyCastle.Tls
             return encoding;
         }
 
+        /// <summary>Encode an unsigned 32-bit value.</summary>
+        /// <param name="u32">The value.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeUint32(long u32)
         {
             CheckUint32(u32);
@@ -737,6 +1042,9 @@ namespace Org.BouncyCastle.Tls
             return encoding;
         }
 
+        /// <summary>Encode a protocol version.</summary>
+        /// <param name="version">The version.</param>
+        /// <returns>The encoding.</returns>
         public static byte[] EncodeVersion(ProtocolVersion version)
         {
             return new byte[]{
@@ -745,6 +1053,10 @@ namespace Org.BouncyCastle.Tls
             };
         }
 
+        /// <summary>Read a signed 32-bit value in network byte order from a buffer.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to read.</param>
+        /// <returns>The value.</returns>
         public static int ReadInt32(byte[] buf, int offset)
         {
             int n = buf[offset] << 24;
@@ -754,6 +1066,10 @@ namespace Org.BouncyCastle.Tls
             return n;
         }
 
+        /// <summary>Read an unsigned 8-bit value from a stream, a buffer or a span.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static short ReadUint8(Stream input)
         {
             int i = input.ReadByte();
@@ -762,18 +1078,31 @@ namespace Org.BouncyCastle.Tls
             return (short)i;
         }
 
+        /// <summary>Read an unsigned 8-bit value from a stream, a buffer or a span.</summary>
+        /// <param name="buf">The buffer to read from.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to read.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static short ReadUint8(byte[] buf, int offset)
         {
             return (short)buf[offset];
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Read an unsigned 8-bit value from a stream, a buffer or a span.</summary>
+        /// <param name="buffer">The span to read from.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static short ReadUint8(ReadOnlySpan<byte> buffer)
         {
             return (short)buffer[0];
         }
 #endif
 
+        /// <summary>Read an unsigned 16-bit value in network byte order from a stream, a buffer or a span.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static int ReadUint16(Stream input)
         {
             int i1 = input.ReadByte();
@@ -783,6 +1112,11 @@ namespace Org.BouncyCastle.Tls
             return (i1 << 8) | i2;
         }
 
+        /// <summary>Read an unsigned 16-bit value in network byte order from a stream, a buffer or a span.</summary>
+        /// <param name="buf">The buffer to read from.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to read.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static int ReadUint16(byte[] buf, int offset)
         {
             int n = buf[offset] << 8;
@@ -791,6 +1125,10 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Read an unsigned 16-bit value in network byte order from a stream, a buffer or a span.</summary>
+        /// <param name="buffer">The span to read from.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static int ReadUint16(ReadOnlySpan<byte> buffer)
         {
             int n = buffer[0] << 8;
@@ -799,6 +1137,10 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Read an unsigned 24-bit value in network byte order from a stream or a buffer.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static int ReadUint24(Stream input)
         {
             int i1 = input.ReadByte();
@@ -810,6 +1152,11 @@ namespace Org.BouncyCastle.Tls
             return (i1 << 16) | (i2 << 8) | i3;
         }
 
+        /// <summary>Read an unsigned 24-bit value in network byte order from a stream or a buffer.</summary>
+        /// <param name="buf">The buffer to read from.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to read.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static int ReadUint24(byte[] buf, int offset)
         {
             int n = (buf[offset] & 0xff) << 16;
@@ -818,6 +1165,10 @@ namespace Org.BouncyCastle.Tls
             return n;
         }
 
+        /// <summary>Read an unsigned 32-bit value in network byte order from a stream or a buffer.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static long ReadUint32(Stream input)
         {
             int i1 = input.ReadByte();
@@ -830,6 +1181,11 @@ namespace Org.BouncyCastle.Tls
             return ((i1 << 24) | (i2 << 16) | (i3 << 8) | i4) & 0xFFFFFFFFL;
         }
 
+        /// <summary>Read an unsigned 32-bit value in network byte order from a stream or a buffer.</summary>
+        /// <param name="buf">The buffer to read from.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to read.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static long ReadUint32(byte[] buf, int offset)
         {
             int n = (buf[offset] & 0xff) << 24;
@@ -839,6 +1195,10 @@ namespace Org.BouncyCastle.Tls
             return n & 0xFFFFFFFFL;
         }
 
+        /// <summary>Read an unsigned 48-bit value in network byte order from a stream or a buffer.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static long ReadUint48(Stream input)
         {
             int hi = ReadUint24(input);
@@ -846,6 +1206,11 @@ namespace Org.BouncyCastle.Tls
             return ((long)(hi & 0xffffffffL) << 24) | (long)(lo & 0xffffffffL);
         }
 
+        /// <summary>Read an unsigned 48-bit value in network byte order from a stream or a buffer.</summary>
+        /// <param name="buf">The buffer to read from.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to read.</param>
+        /// <returns>The value.</returns>
+        /// <exception cref="EndOfStreamException">The end of the stream was reached.</exception>
         public static long ReadUint48(byte[] buf, int offset)
         {
             int hi = ReadUint24(buf, offset);
@@ -853,6 +1218,11 @@ namespace Org.BouncyCastle.Tls
             return ((long)(hi & 0xffffffffL) << 24) | (long)(lo & 0xffffffffL);
         }
 
+        /// <summary>Read a number of bytes from a stream, or nothing if the stream is already at its end.</summary>
+        /// <param name="length">The number of bytes to read.</param>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The bytes read, or null if the stream was at its end.</returns>
+        /// <exception cref="EndOfStreamException">The stream ended part way through.</exception>
         [Obsolete("Will be removed")]
         public static byte[] ReadAllOrNothing(int length, Stream input)
         {
@@ -867,6 +1237,13 @@ namespace Org.BouncyCastle.Tls
             return buf;
         }
 
+        /// <summary>Read exactly the given number of bytes from a stream.</summary>
+        /// <param name="length">The number of bytes to read.</param>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The bytes read.</returns>
+        /// <exception cref="EndOfStreamException">
+        /// The stream ended before the requested number of bytes was read.
+        /// </exception>
         public static byte[] ReadFully(int length, Stream input)
         {
             if (length < 1)
@@ -878,6 +1255,10 @@ namespace Org.BouncyCastle.Tls
             throw new EndOfStreamException();
         }
 
+        /// <summary>Fill a buffer completely from a stream.</summary>
+        /// <param name="buf">The buffer to fill.</param>
+        /// <param name="input">The stream to read from.</param>
+        /// <exception cref="EndOfStreamException">The stream ended before the buffer was filled.</exception>
         public static void ReadFully(byte[] buf, Stream input)
         {
             int length = buf.Length;
@@ -886,6 +1267,10 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Fill a buffer completely from a stream.</summary>
+        /// <param name="buf">The buffer to fill.</param>
+        /// <param name="input">The stream to read from.</param>
+        /// <exception cref="EndOfStreamException">The stream ended before the buffer was filled.</exception>
         public static void ReadFully(Span<byte> buf, Stream input)
         {
             int length = buf.Length;
@@ -894,12 +1279,21 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Read data prefixed with an 8-bit length from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The length is outside the acceptable range.</exception>
         public static byte[] ReadOpaque8(Stream input)
         {
             short length = ReadUint8(input);
             return ReadFully(length, input);
         }
 
+        /// <summary>Read data prefixed with an 8-bit length from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <param name="minLength">The minimum acceptable length of the data.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The length is outside the acceptable range.</exception>
         public static byte[] ReadOpaque8(Stream input, int minLength)
         {
             short length = ReadUint8(input);
@@ -909,6 +1303,12 @@ namespace Org.BouncyCastle.Tls
             return ReadFully(length, input);
         }
 
+        /// <summary>Read data prefixed with an 8-bit length from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <param name="minLength">The minimum acceptable length of the data.</param>
+        /// <param name="maxLength">The maximum acceptable length of the data.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The length is outside the acceptable range.</exception>
         public static byte[] ReadOpaque8(Stream input, int minLength, int maxLength)
         {
             short length = ReadUint8(input);
@@ -918,12 +1318,21 @@ namespace Org.BouncyCastle.Tls
             return ReadFully(length, input);
         }
 
+        /// <summary>Read data prefixed with a 16-bit length from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The length is below the minimum.</exception>
         public static byte[] ReadOpaque16(Stream input)
         {
             int length = ReadUint16(input);
             return ReadFully(length, input);
         }
 
+        /// <summary>Read data prefixed with a 16-bit length from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <param name="minLength">The minimum acceptable length of the data.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The length is below the minimum.</exception>
         public static byte[] ReadOpaque16(Stream input, int minLength)
         {
             int length = ReadUint16(input);
@@ -933,12 +1342,21 @@ namespace Org.BouncyCastle.Tls
             return ReadFully(length, input);
         }
 
+        /// <summary>Read data prefixed with a 24-bit length from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The length is below the minimum.</exception>
         public static byte[] ReadOpaque24(Stream input)
         {
             int length = ReadUint24(input);
             return ReadFully(length, input);
         }
 
+        /// <summary>Read data prefixed with a 24-bit length from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <param name="minLength">The minimum acceptable length of the data.</param>
+        /// <returns>The data.</returns>
+        /// <exception cref="TlsFatalAlert">The length is below the minimum.</exception>
         public static byte[] ReadOpaque24(Stream input, int minLength)
         {
             int length = ReadUint24(input);
@@ -948,6 +1366,10 @@ namespace Org.BouncyCastle.Tls
             return ReadFully(length, input);
         }
 
+        /// <summary>Read an array of unsigned 8-bit values from a stream.</summary>
+        /// <param name="count">The number of values.</param>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The values.</returns>
         public static short[] ReadUint8Array(int count, Stream input)
         {
             short[] uints = new short[count];
@@ -958,6 +1380,11 @@ namespace Org.BouncyCastle.Tls
             return uints;
         }
 
+        /// <summary>Read an array of unsigned 8-bit values, prefixed with an 8-bit length, from a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <param name="minLength">The minimum acceptable number of values.</param>
+        /// <returns>The values.</returns>
+        /// <exception cref="TlsFatalAlert">The number of values is below the minimum.</exception>
         public static short[] ReadUint8ArrayWithUint8Length(Stream input, int minLength)
         {
             int length = ReadUint8(input);
@@ -967,6 +1394,10 @@ namespace Org.BouncyCastle.Tls
             return ReadUint8Array(length, input);
         }
 
+        /// <summary>Read an array of unsigned 16-bit values from a stream.</summary>
+        /// <param name="count">The number of values.</param>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The values.</returns>
         public static int[] ReadUint16Array(int count, Stream input)
         {
             int[] uints = new int[count];
@@ -977,9 +1408,16 @@ namespace Org.BouncyCastle.Tls
             return uints;
         }
 
+        /// <summary>Read a protocol version from a buffer or a stream.</summary>
+        /// <param name="buf">The buffer to read from.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to read.</param>
+        /// <returns>The protocol version.</returns>
         public static ProtocolVersion ReadVersion(byte[] buf, int offset) =>
             ProtocolVersion.Get(buf[offset], buf[offset + 1]);
 
+        /// <summary>Read a protocol version from a buffer or a stream.</summary>
+        /// <param name="input">The stream to read from.</param>
+        /// <returns>The protocol version.</returns>
         public static ProtocolVersion ReadVersion(Stream input)
         {
             int i1 = input.ReadByte();
@@ -990,6 +1428,10 @@ namespace Org.BouncyCastle.Tls
             return ProtocolVersion.Get(i1, i2);
         }
 
+        /// <summary>Read an ASN.1 object from an encoding, which must consist of that object alone.</summary>
+        /// <param name="encoding">The encoding.</param>
+        /// <returns>The object.</returns>
+        /// <exception cref="TlsFatalAlert">The encoding is not valid.</exception>
         public static Asn1Object ReadAsn1Object(byte[] encoding)
         {
             using (var asn1In = new Asn1InputStream(encoding))
@@ -1003,6 +1445,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Read an object from a BER encoding.</summary>
+        /// <param name="berEncoding">The BER encoding.</param>
+        /// <param name="optionalConstructor">A function to construct the object from the ASN.1 element.</param>
+        /// <returns>The object.</returns>
+        /// <exception cref="TlsFatalAlert">The encoding is not valid.</exception>
         public static T ReadBerEncoding<T>(byte[] berEncoding, Func<Asn1Encodable, T> optionalConstructor)
             where T : Asn1Encodable
         {
@@ -1010,6 +1457,11 @@ namespace Org.BouncyCastle.Tls
             return optionalConstructor(asn1Object) ?? throw new TlsFatalAlert(AlertDescription.decode_error);
         }
 
+        /// <summary>Read an object from a DER encoding, checking that it re-encodes to the same bytes.</summary>
+        /// <param name="derEncoding">The DER encoding.</param>
+        /// <param name="optionalConstructor">A function to construct the object from the ASN.1 element.</param>
+        /// <returns>The object.</returns>
+        /// <exception cref="TlsFatalAlert">The encoding is not a valid DER encoding.</exception>
         public static T ReadDerEncoding<T>(byte[] derEncoding, Func<Asn1Encodable, T> optionalConstructor)
             where T : Asn1Encodable
         {
@@ -1030,6 +1482,9 @@ namespace Org.BouncyCastle.Tls
                 throw new TlsFatalAlert(AlertDescription.decode_error);
         }
 
+        /// <summary>Write the current time as four bytes, in seconds since the Unix epoch, to a buffer.</summary>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteGmtUnixTime(byte[] buf, int offset)
         {
             int t = (int)(DateTimeUtilities.CurrentUnixMs() / 1000L);
@@ -1039,18 +1494,29 @@ namespace Org.BouncyCastle.Tls
             buf[offset + 3] = (byte)t;
         }
 
+        /// <summary>Write a protocol version to a stream or a buffer.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="output">The stream to write to.</param>
         public static void WriteVersion(ProtocolVersion version, Stream output)
         {
             output.WriteByte((byte)version.MajorVersion);
             output.WriteByte((byte)version.MinorVersion);
         }
 
+        /// <summary>Write a protocol version to a stream or a buffer.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="buf">The buffer to write to.</param>
+        /// <param name="offset">The offset into <paramref name="buf"/> at which to write.</param>
         public static void WriteVersion(ProtocolVersion version, byte[] buf, int offset)
         {
             buf[offset] = (byte)version.MajorVersion;
             buf[offset + 1] = (byte)version.MinorVersion;
         }
 
+        /// <summary>Add a signature and hash algorithm to a list if the crypto supports it.</summary>
+        /// <param name="supportedAlgs">The list to add to.</param>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="alg">The algorithm.</param>
         public static void AddIfSupported(IList<SignatureAndHashAlgorithm> supportedAlgs, TlsCrypto crypto,
             SignatureAndHashAlgorithm alg)
         {
@@ -1060,6 +1526,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Add a named group (or several) to a list if the crypto supports it.</summary>
+        /// <param name="supportedGroups">The list to add to.</param>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="namedGroup">The named group.</param>
         public static void AddIfSupported(IList<int> supportedGroups, TlsCrypto crypto, int namedGroup)
         {
             if (IsSupportedNamedGroup(crypto, namedGroup))
@@ -1068,6 +1538,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Add a named group (or several) to a list if the crypto supports it.</summary>
+        /// <param name="supportedGroups">The list to add to.</param>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="namedGroups">The named groups.</param>
         public static void AddIfSupported(IList<int> supportedGroups, TlsCrypto crypto, int[] namedGroups)
         {
             for (int i = 0; i < namedGroups.Length; ++i)
@@ -1076,6 +1550,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Add an item to a list that is treated as a set, if it is not already present.</summary>
+        /// <param name="s">The list.</param>
+        /// <param name="i">The item.</param>
+        /// <returns>true if the item was added, false if it was already present.</returns>
         public static bool AddToSet<T>(IList<T> s, T i)
         {
             bool result = !s.Contains(i);
@@ -1098,6 +1576,9 @@ namespace Org.BouncyCastle.Tls
         public static IList<SignatureAndHashAlgorithm> GetDefaultRsaSignatureAlgorithms() =>
             GetDefaultSignatureAlgorithms(SignatureAlgorithm.rsa);
 
+        /// <summary>Get the default signature and hash algorithm for a signature algorithm.</summary>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>The default algorithm.</returns>
         public static SignatureAndHashAlgorithm GetDefaultSignatureAlgorithm(short signatureAlgorithm)
         {
             /*
@@ -1125,6 +1606,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the default signature and hash algorithms for a signature algorithm.</summary>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>The default algorithms.</returns>
         public static IList<SignatureAndHashAlgorithm> GetDefaultSignatureAlgorithms(short signatureAlgorithm)
         {
             SignatureAndHashAlgorithm sigAndHashAlg = GetDefaultSignatureAlgorithm(signatureAlgorithm);
@@ -1132,9 +1616,16 @@ namespace Org.BouncyCastle.Tls
             return null == sigAndHashAlg ? new List<SignatureAndHashAlgorithm>() : VectorOfOne(sigAndHashAlg);
         }
 
+        /// <summary>Get the default signature and hash algorithms that are supported for a connection.</summary>
+        /// <param name="context">The TLS context.</param>
+        /// <returns>The algorithms.</returns>
         public static IList<SignatureAndHashAlgorithm> GetDefaultSupportedSignatureAlgorithms(TlsContext context) =>
             GetSupportedSignatureAlgorithms(context, DefaultSupportedSigAlgs);
 
+        /// <summary>Filter a list of signature and hash algorithms down to those supported for a connection.</summary>
+        /// <param name="context">The TLS context.</param>
+        /// <param name="candidates">The candidate algorithms.</param>
+        /// <returns>The supported algorithms.</returns>
         public static IList<SignatureAndHashAlgorithm> GetSupportedSignatureAlgorithms(TlsContext context,
             IList<SignatureAndHashAlgorithm> candidates)
         {
@@ -1163,6 +1654,10 @@ namespace Org.BouncyCastle.Tls
             return signatureAndHashAlgorithm;
         }
 
+        /// <summary>Get the data of an extension from a table of extensions.</summary>
+        /// <param name="extensions">The table, or null.</param>
+        /// <param name="extensionType">The extension type.</param>
+        /// <returns>The extension data, or null if the extension is not present.</returns>
         public static byte[] GetExtensionData(IDictionary<int, byte[]> extensions, int extensionType)
         {
             if (extensions == null || !extensions.TryGetValue(extensionType, out var extensionData))
@@ -1174,6 +1669,12 @@ namespace Org.BouncyCastle.Tls
         public static bool HasExtension(IDictionary<int, byte[]> extensions, int extensionType) =>
              extensions != null && extensions.ContainsKey(extensionType);
 
+        /// <summary>Check that an extension, if present, has empty data.</summary>
+        /// <param name="extensions">The table, or null.</param>
+        /// <param name="extensionType">The extension type.</param>
+        /// <param name="alertDescription">The alert to raise if the data is not empty.</param>
+        /// <returns>true if the extension is present with empty data, false if it is absent.</returns>
+        /// <exception cref="TlsFatalAlert">The extension is present with data.</exception>
         public static bool HasExpectedEmptyExtensionData(IDictionary<int, byte[]> extensions, int extensionType,
             short alertDescription)
         {
@@ -1187,6 +1688,10 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        /// <summary>Import a session from a session ID and the parameters of the session.</summary>
+        /// <param name="sessionID">The session ID.</param>
+        /// <param name="sessionParameters">The session parameters.</param>
+        /// <returns>The session.</returns>
         public static TlsSession ImportSession(byte[] sessionID, SessionParameters sessionParameters) =>
             new TlsSessionImpl(sessionID, sessionParameters);
 
@@ -1212,6 +1717,9 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>Determine whether an array is null or has a null element.</summary>
+        /// <param name="array">The array.</param>
+        /// <returns>true if the array is null or any element is null, false otherwise.</returns>
         public static bool IsNullOrContainsNull(object[] array)
         {
             if (null == array)
@@ -1226,18 +1734,33 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>Determine whether an array, string or list is null or empty.</summary>
+        /// <param name="array">The array.</param>
+        /// <returns>true if it is null or empty, false otherwise.</returns>
         public static bool IsNullOrEmpty<T>(T[] array) => null == array || array.Length < 1;
 
+        /// <summary>Determine whether an array, string or list is null or empty.</summary>
+        /// <param name="s">The string.</param>
+        /// <returns>true if it is null or empty, false otherwise.</returns>
         public static bool IsNullOrEmpty(string s) => null == s || s.Length < 1;
 
+        /// <summary>Determine whether an array, string or list is null or empty.</summary>
+        /// <param name="v">The list.</param>
+        /// <returns>true if it is null or empty, false otherwise.</returns>
         public static bool IsNullOrEmpty<T>(IList<T> v) => null == v || v.Count < 1;
 
+        /// <summary>Determine whether the signature_algorithms extension may be used with a protocol version.</summary>
+        /// <param name="version">The protocol version.</param>
+        /// <returns>true if the extension is allowed, false otherwise.</returns>
         public static bool IsSignatureAlgorithmsExtensionAllowed(ProtocolVersion version)
         {
             return null != version
                 && ProtocolVersion.TLSv12.IsEqualOrEarlierVersionOf(version.GetEquivalentTlsVersion());
         }
 
+        /// <summary>Get the client certificate type that was used with a signature algorithm before TLS 1.2.</summary>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>The client certificate type, or -1 if there is none.</returns>
         public static short GetLegacyClientCertType(short signatureAlgorithm)
         {
             switch (signatureAlgorithm)
@@ -1253,6 +1776,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the signature algorithm that was used for a client certificate type before TLS 1.2.</summary>
+        /// <param name="clientCertificateType">The client certificate type.</param>
+        /// <returns>The signature algorithm, or -1 if there is none.</returns>
         public static short GetLegacySignatureAlgorithmClient(short clientCertificateType)
         {
             switch (clientCertificateType)
@@ -1268,6 +1794,12 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get the signature algorithm that was used to sign client certificates of a client certificate type before
+        /// TLS 1.2.
+        /// </summary>
+        /// <param name="clientCertificateType">The client certificate type.</param>
+        /// <returns>The signature algorithm, or -1 if there is none.</returns>
         public static short GetLegacySignatureAlgorithmClientCert(short clientCertificateType)
         {
             switch (clientCertificateType)
@@ -1289,6 +1821,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the signature algorithm that was used by a server for a key exchange before TLS 1.2.</summary>
+        /// <param name="keyExchangeAlgorithm">The key exchange algorithm.</param>
+        /// <returns>The signature algorithm, or -1 if there is none.</returns>
         public static short GetLegacySignatureAlgorithmServer(int keyExchangeAlgorithm)
         {
             switch (keyExchangeAlgorithm)
@@ -1310,6 +1845,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get the signature algorithm that was used to sign the server certificate for a key exchange before TLS 1.2.
+        /// </summary>
+        /// <param name="keyExchangeAlgorithm">The key exchange algorithm.</param>
+        /// <returns>The signature algorithm, or -1 if there is none.</returns>
         public static short GetLegacySignatureAlgorithmServerCert(int keyExchangeAlgorithm)
         {
             switch (keyExchangeAlgorithm)
@@ -1457,6 +1997,13 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>
+        /// Determine whether a list of signature and hash algorithms contains one that uses a given signature
+        /// algorithm.
+        /// </summary>
+        /// <param name="supportedSignatureAlgorithms">The list.</param>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>true if the list contains such an algorithm, false otherwise.</returns>
         public static bool ContainsAnySignatureAlgorithm(IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms,
             short signatureAlgorithm)
         {
@@ -1469,6 +2016,15 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>
+        /// Calculate the output of the pseudo-random function (PRF) for the negotiated protocol version.
+        /// </summary>
+        /// <param name="securityParameters">The security parameters.</param>
+        /// <param name="secret">The secret.</param>
+        /// <param name="asciiLabel">The label, in ASCII.</param>
+        /// <param name="seed">The seed.</param>
+        /// <param name="length">The number of bytes to produce.</param>
+        /// <returns>The result.</returns>
         public static TlsSecret Prf(SecurityParameters securityParameters, TlsSecret secret, string asciiLabel,
             byte[] seed, int length)
         {
@@ -1476,6 +2032,15 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Calculate the output of the pseudo-random function (PRF) for the negotiated protocol version.
+        /// </summary>
+        /// <param name="securityParameters">The security parameters.</param>
+        /// <param name="secret">The secret.</param>
+        /// <param name="asciiLabel">The label, in ASCII.</param>
+        /// <param name="seed">The seed.</param>
+        /// <param name="length">The number of bytes to produce.</param>
+        /// <returns>The result.</returns>
         public static TlsSecret Prf(SecurityParameters securityParameters, TlsSecret secret,
             ReadOnlySpan<char> asciiLabel, ReadOnlySpan<byte> seed, int length)
         {
@@ -1483,16 +2048,34 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Create a copy of an array, or null if the argument is null.</summary>
+        /// <param name="data">The array.</param>
+        /// <returns>The copy.</returns>
         public static byte[] Clone(byte[] data) =>
             null == data ? null : data.Length == 0 ? EmptyBytes : (byte[])data.Clone();
 
+        /// <summary>Create a copy of an array, or null if the argument is null.</summary>
+        /// <param name="s">The array.</param>
+        /// <returns>The copy.</returns>
         public static string[] Clone(string[] s) =>
             null == s ? null : s.Length < 1 ? EmptyStrings : (string[])s.Clone();
 
+        /// <summary>Compare two segments of arrays in constant time.</summary>
+        /// <param name="len">The number of bytes to compare.</param>
+        /// <param name="a">The first array.</param>
+        /// <param name="aOff">The offset into <paramref name="a"/> at which to start.</param>
+        /// <param name="b">The second array.</param>
+        /// <param name="bOff">The offset into <paramref name="b"/> at which to start.</param>
+        /// <returns>true if the segments are equal, false otherwise.</returns>
         [Obsolete("Use 'Arrays.FixedTimeEquals' instead")]
         public static bool ConstantTimeAreEqual(int len, byte[] a, int aOff, byte[] b, int bOff) =>
             Arrays.FixedTimeEquals(len, a, aOff, b, bOff);
 
+        /// <summary>Copy a range of an array, failing if the range does not lie within it.</summary>
+        /// <param name="original">The array.</param>
+        /// <param name="from">The start of the range (inclusive).</param>
+        /// <param name="to">The end of the range (exclusive).</param>
+        /// <returns>The copy.</returns>
         public static byte[] CopyOfRangeExact(byte[] original, int from, int to)
         {
             int newLength = to - from;
@@ -1575,6 +2158,10 @@ namespace Org.BouncyCastle.Tls
             return EmptyBytes;
         }
 
+        /// <summary>Calculate the seed for a keying material exporter.</summary>
+        /// <param name="securityParameters">The security parameters.</param>
+        /// <param name="context">The context value, or null.</param>
+        /// <returns>The seed.</returns>
         public static byte[] CalculateExporterSeed(SecurityParameters securityParameters, byte[] context)
         {
             byte[] cr = securityParameters.ClientRandom, sr = securityParameters.ServerRandom;
@@ -1816,6 +2403,9 @@ namespace Org.BouncyCastle.Tls
                 EmptyBytes, securityParameters.PrfHashLength);
         }
 
+        /// <summary>Get the object identifier of a hash algorithm.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <returns>The object identifier.</returns>
         public static DerObjectIdentifier GetOidForHashAlgorithm(short hashAlgorithm)
         {
             switch (hashAlgorithm)
@@ -2537,6 +3127,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether a client certificate type can be used for signing.</summary>
+        /// <param name="clientCertificateType">The client certificate type.</param>
+        /// <returns>true if the type has signing capability, false otherwise.</returns>
         public static bool HasSigningCapability(short clientCertificateType)
         {
             switch (clientCertificateType)
@@ -2550,8 +3143,14 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Create a list containing a single element.</summary>
+        /// <param name="obj">The element.</param>
+        /// <returns>The list.</returns>
         public static IList<T> VectorOfOne<T>(T obj) => new List<T>{ obj };
 
+        /// <summary>Get the cipher type of a cipher suite.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>The cipher type (see <see cref="CipherType"/>).</returns>
         public static int GetCipherType(int cipherSuite)
         {
             int encryptionAlgorithm = GetEncryptionAlgorithm(cipherSuite);
@@ -2559,6 +3158,9 @@ namespace Org.BouncyCastle.Tls
             return GetEncryptionAlgorithmType(encryptionAlgorithm);
         }
 
+        /// <summary>Get the encryption algorithm of a cipher suite.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>The encryption algorithm (see <see cref="EncryptionAlgorithm"/>).</returns>
         public static int GetEncryptionAlgorithm(int cipherSuite)
         {
             switch (cipherSuite)
@@ -2926,6 +3528,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the type of an encryption algorithm.</summary>
+        /// <param name="encryptionAlgorithm">The encryption algorithm.</param>
+        /// <returns>The cipher type (see <see cref="CipherType"/>).</returns>
         public static int GetEncryptionAlgorithmType(int encryptionAlgorithm)
         {
             switch (encryptionAlgorithm)
@@ -2975,6 +3580,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the key exchange algorithm of a cipher suite.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>The key exchange algorithm (see <see cref="KeyExchangeAlgorithm"/>).</returns>
         public static int GetKeyExchangeAlgorithm(int cipherSuite)
         {
             switch (cipherSuite)
@@ -3322,6 +3930,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the set of key exchange algorithms used by an array of cipher suites.</summary>
+        /// <param name="cipherSuites">The cipher suites.</param>
+        /// <returns>The key exchange algorithms.</returns>
         public static IList<int> GetKeyExchangeAlgorithms(int[] cipherSuites)
         {
             var result = new List<int>();
@@ -3336,6 +3947,9 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>Get the MAC algorithm of a cipher suite.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>The MAC algorithm (see <see cref="MacAlgorithm"/>).</returns>
         public static int GetMacAlgorithm(int cipherSuite)
         {
             switch (cipherSuite)
@@ -3650,6 +4264,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the minimum protocol version that a cipher suite can be used with.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>The minimum version.</returns>
         public static ProtocolVersion GetMinimumVersion(int cipherSuite)
         {
             switch (cipherSuite)
@@ -3853,9 +4470,21 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>
+        /// Get the roles that named groups play in the key exchanges of the given cipher suites or key exchange
+        /// algorithms.
+        /// </summary>
+        /// <param name="cipherSuites">The cipher suites.</param>
+        /// <returns>The named group roles.</returns>
         public static IList<int> GetNamedGroupRoles(int[] cipherSuites) =>
             GetNamedGroupRoles(GetKeyExchangeAlgorithms(cipherSuites));
 
+        /// <summary>
+        /// Get the roles that named groups play in the key exchanges of the given cipher suites or key exchange
+        /// algorithms.
+        /// </summary>
+        /// <param name="keyExchangeAlgorithms">The key exchange algorithms.</param>
+        /// <returns>The named group roles.</returns>
         public static IList<int> GetNamedGroupRoles(IList<int> keyExchangeAlgorithms)
         {
             var result = new List<int>();
@@ -4006,6 +4635,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether a signature scheme is valid for signing a server key exchange.</summary>
+        /// <param name="signatureScheme">The signature scheme.</param>
+        /// <param name="keyExchangeAlgorithm">The key exchange algorithm.</param>
+        /// <returns>true if the scheme is valid, false otherwise.</returns>
         public static bool IsValidSignatureSchemeForServerKeyExchange(int signatureScheme, int keyExchangeAlgorithm)
         {
             short signatureAlgorithm = SignatureScheme.GetSignatureAlgorithm(signatureScheme);
@@ -4013,6 +4646,10 @@ namespace Org.BouncyCastle.Tls
             return IsValidSignatureAlgorithmForServerKeyExchange(signatureAlgorithm, keyExchangeAlgorithm);
         }
 
+        /// <summary>Determine whether a cipher suite may be used with a protocol version.</summary>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <param name="version">The protocol version.</param>
+        /// <returns>true if the combination is valid, false otherwise.</returns>
         public static bool IsValidVersionForCipherSuite(int cipherSuite, ProtocolVersion version)
         {
             version = version.GetEquivalentTlsVersion();
@@ -4090,6 +4727,11 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>
+        /// Get the signature algorithms that are usable with a list of signature and hash algorithms.
+        /// </summary>
+        /// <param name="sigHashAlgs">The signature and hash algorithms.</param>
+        /// <returns>The signature algorithms.</returns>
         public static IList<short> GetUsableSignatureAlgorithms(IList<SignatureAndHashAlgorithm> sigHashAlgs)
         {
             if (sigHashAlgs == null)
@@ -4111,6 +4753,12 @@ namespace Org.BouncyCastle.Tls
             return v;
         }
 
+        /// <summary>Choose the cipher suite for TLS 1.3 from the suites of the peer and the local suites.</summary>
+        /// <param name="negotiatedVersion">The negotiated protocol version.</param>
+        /// <param name="peerCipherSuites">The cipher suites offered by the peer.</param>
+        /// <param name="localCipherSuites">The local cipher suites.</param>
+        /// <param name="useLocalOrder">true to use the local order of preference, false to use the peer's.</param>
+        /// <returns>The cipher suite chosen, or -1 if there is none in common.</returns>
         public static int GetCommonCipherSuite13(ProtocolVersion negotiatedVersion, int[] peerCipherSuites,
             int[] localCipherSuites, bool useLocalOrder)
         {
@@ -4134,6 +4782,11 @@ namespace Org.BouncyCastle.Tls
             return -1;
         }
 
+        /// <summary>Get the cipher suites that the peer and the local side have in common.</summary>
+        /// <param name="peerCipherSuites">The cipher suites offered by the peer.</param>
+        /// <param name="localCipherSuites">The local cipher suites.</param>
+        /// <param name="useLocalOrder">true to use the local order of preference, false to use the peer's.</param>
+        /// <returns>The common cipher suites.</returns>
         public static int[] GetCommonCipherSuites(int[] peerCipherSuites, int[] localCipherSuites, bool useLocalOrder)
         {
             int[] ordered = peerCipherSuites, unordered = localCipherSuites;
@@ -4163,9 +4816,19 @@ namespace Org.BouncyCastle.Tls
             return candidates;
         }
 
+        /// <summary>Filter an array of cipher suites down to those that the crypto supports.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="suites">The cipher suites.</param>
+        /// <returns>The supported cipher suites.</returns>
         public static int[] GetSupportedCipherSuites(TlsCrypto crypto, int[] suites) =>
             GetSupportedCipherSuites(crypto, suites, 0, suites.Length);
 
+        /// <summary>Filter an array of cipher suites down to those that the crypto supports.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="suites">The cipher suites.</param>
+        /// <param name="suitesOff">The offset into <paramref name="suites"/> at which to start.</param>
+        /// <param name="suitesCount">The number of cipher suites to consider.</param>
+        /// <returns>The supported cipher suites.</returns>
         public static int[] GetSupportedCipherSuites(TlsCrypto crypto, int[] suites, int suitesOff, int suitesCount)
         {
             int[] supported = new int[suitesCount];
@@ -4188,6 +4851,10 @@ namespace Org.BouncyCastle.Tls
             return supported;
         }
 
+        /// <summary>Determine whether the crypto supports a cipher suite.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="cipherSuite">The cipher suite.</param>
+        /// <returns>true if the cipher suite is supported, false otherwise.</returns>
         public static bool IsSupportedCipherSuite(TlsCrypto crypto, int cipherSuite)
         {
             int keyExchangeAlgorithm = GetKeyExchangeAlgorithm(cipherSuite);
@@ -4208,6 +4875,10 @@ namespace Org.BouncyCastle.Tls
             return true;
         }
 
+        /// <summary>Determine whether the crypto supports a key exchange algorithm.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="keyExchangeAlgorithm">The key exchange algorithm.</param>
+        /// <returns>true if the key exchange algorithm is supported, false otherwise.</returns>
         public static bool IsSupportedKeyExchange(TlsCrypto crypto, int keyExchangeAlgorithm)
         {
             switch (keyExchangeAlgorithm)
@@ -4269,6 +4940,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Determine whether the crypto supports a named group.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>true if the named group is supported, false otherwise.</returns>
         public static bool IsSupportedNamedGroup(TlsCrypto crypto, int namedGroup)
         {
             if (!NamedGroup.RefersToASpecificHybrid(namedGroup))
@@ -5067,6 +5742,9 @@ namespace Org.BouncyCastle.Tls
             return null;
         }
 
+        /// <summary>Determine whether data contains any character outside the ASCII range.</summary>
+        /// <param name="bs">The bytes.</param>
+        /// <returns>true if there is a non-ASCII character, false otherwise.</returns>
         public static bool ContainsNonAscii(byte[] bs)
         {
             for (int i = 0; i < bs.Length; ++i)
@@ -5078,6 +5756,9 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>Determine whether data contains any character outside the ASCII range.</summary>
+        /// <param name="s">The string.</param>
+        /// <returns>true if there is a non-ASCII character, false otherwise.</returns>
         public static bool ContainsNonAscii(string s)
         {
             for (int i = 0; i < s.Length; ++i)
@@ -5979,6 +6660,9 @@ namespace Org.BouncyCastle.Tls
             return preMasterSecret;
         }
 
+        /// <summary>Determine whether a socket exception was caused by a timeout.</summary>
+        /// <param name="e">The exception.</param>
+        /// <returns>true if the exception indicates a timeout, false otherwise.</returns>
         public static bool IsTimeout(SocketException e) => SocketError.TimedOut == e.SocketErrorCode;
 
         /// <exception cref="IOException"/>
@@ -6344,6 +7028,10 @@ namespace Org.BouncyCastle.Tls
             return false;
         }
 
+        /// <summary>Get the status of the certificate at an index of the certificate chain of a server.</summary>
+        /// <param name="tlsServerCertificate">The server certificate.</param>
+        /// <param name="index">The index in the chain.</param>
+        /// <returns>The status, or null if there is none.</returns>
         // TODO[api] Not needed once GetCertificateStatusAt() has been added to TlsServerCertificate
         public static CertificateStatus GetCertificateStatusAt(TlsServerCertificate tlsServerCertificate, int index)
         {

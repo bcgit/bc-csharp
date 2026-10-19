@@ -49,6 +49,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_keyInfo = keyInfo;
         }
 
+        /// <summary>Gets the SubjectPublicKeyInfo of the raw public key.</summary>
         public virtual SubjectPublicKeyInfo SubjectPublicKeyInfo => m_keyInfo;
 
         /// <exception cref="IOException"/>
@@ -487,36 +488,52 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Determine whether the key supports the given key usage bits.</summary>
+        /// <param name="keyUsageBits">The key usage bits.</param>
+        /// <returns>true if supported, false otherwise.</returns>
         // TODO[api] Rename parameter to 'keyUsageBit'
         protected virtual bool SupportsKeyUsage(int keyUsageBits)
         {
             return true;
         }
 
+        /// <summary>Determine whether the key can be used with an ML-DSA algorithm.</summary>
+        /// <param name="mlDsaAlgOid">The ML-DSA algorithm object identifier.</param>
+        /// <returns>true if supported, false otherwise.</returns>
         protected virtual bool SupportsMLDsa(DerObjectIdentifier mlDsaAlgOid)
         {
             AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
             return PqcUtilities.SupportsMLDsa(pubKeyAlgID, mlDsaAlgOid);
         }
 
+        /// <summary>Determine whether the key can be used with RSASSA-PKCS1-v1_5.</summary>
+        /// <returns>true if supported, false otherwise.</returns>
         protected virtual bool SupportsRsa_Pkcs1()
         {
             AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
             return RsaUtilities.SupportsPkcs1(pubKeyAlgID);
         }
 
+        /// <summary>Determine whether the key can be used with RSASSA-PSS where the key is restricted to PSS.</summary>
+        /// <param name="signatureAlgorithm">The signature algorithm.</param>
+        /// <returns>true if supported, false otherwise.</returns>
         protected virtual bool SupportsRsa_Pss_Pss(short signatureAlgorithm)
         {
             AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
             return RsaUtilities.SupportsPss_Pss(signatureAlgorithm, pubKeyAlgID);
         }
 
+        /// <summary>Determine whether the key can be used with RSASSA-PSS where the key is a general RSA key.</summary>
+        /// <returns>true if supported, false otherwise.</returns>
         protected virtual bool SupportsRsa_Pss_Rsae()
         {
             AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;
             return RsaUtilities.SupportsPss_Rsae(pubKeyAlgID);
         }
 
+        /// <summary>Determine whether the key can be used with an SLH-DSA algorithm.</summary>
+        /// <param name="slhDsaAlgOid">The SLH-DSA algorithm object identifier.</param>
+        /// <returns>true if supported, false otherwise.</returns>
         protected virtual bool SupportsSlhDsa(DerObjectIdentifier slhDsaAlgOid)
         {
             AlgorithmIdentifier pubKeyAlgID = m_keyInfo.Algorithm;

@@ -16,6 +16,11 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsECDomain
         : TlsECDomain
     {
+        /// <summary>Calculate the ECDH agreement value.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="publicKey">The public key of the peer.</param>
+        /// <returns>The agreement value as a secret.</returns>
         public static BcTlsSecret CalculateECDHAgreement(BcTlsCrypto crypto, ECPrivateKeyParameters privateKey,
             ECPublicKeyParameters publicKey)
         {
@@ -31,12 +36,18 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return crypto.AdoptLocalSecret(secret);
         }
 
+        /// <summary>Get the elliptic curve domain parameters for a configuration or a named group.</summary>
+        /// <param name="ecConfig">The configuration.</param>
+        /// <returns>The parameters.</returns>
         public static ECDomainParameters GetDomainParameters(TlsECConfig ecConfig)
         {
             return GetDomainParameters(ecConfig.NamedGroup) ??
                 throw new ArgumentException("No EC configuration provided", nameof(ecConfig));
         }
 
+        /// <summary>Get the elliptic curve domain parameters for a configuration or a named group.</summary>
+        /// <param name="namedGroup">The named group.</param>
+        /// <returns>The parameters.</returns>
         public static ECDomainParameters GetDomainParameters(int namedGroup)
         {
             if (!NamedGroup.RefersToASpecificCurve(namedGroup))
@@ -67,6 +78,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_domainParameters = GetDomainParameters(ecConfig);
         }
 
+        /// <summary>Calculate the ECDH agreement value.</summary>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="publicKey">The public key of the peer.</param>
+        /// <returns>The agreement value as a secret.</returns>
         public virtual BcTlsSecret CalculateECDHAgreement(ECPrivateKeyParameters privateKey,
             ECPublicKeyParameters publicKey)
         {
@@ -79,6 +94,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsECDH(this);
         }
 
+        /// <summary>Decode a point.</summary>
+        /// <param name="encoding">The encoding.</param>
+        /// <returns>The point.</returns>
         public virtual ECPoint DecodePoint(byte[] encoding)
         {
             return m_domainParameters.Curve.DecodePoint(encoding);
@@ -103,16 +121,24 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Encode a point in uncompressed form.</summary>
+        /// <param name="point">The point.</param>
+        /// <returns>The encoding.</returns>
         public virtual byte[] EncodePoint(ECPoint point)
         {
             return point.GetEncoded(false);
         }
 
+        /// <summary>Encode an EC public key.</summary>
+        /// <param name="publicKey">The public key.</param>
+        /// <returns>The encoding.</returns>
         public virtual byte[] EncodePublicKey(ECPublicKeyParameters publicKey)
         {
             return EncodePoint(publicKey.Q);
         }
 
+        /// <summary>Generate an EC key pair.</summary>
+        /// <returns>The key pair.</returns>
         public virtual AsymmetricCipherKeyPair GenerateKeyPair()
         {
             ECKeyPairGenerator keyPairGenerator = new ECKeyPairGenerator();

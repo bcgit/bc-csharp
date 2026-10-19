@@ -8,8 +8,14 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 7301 Represents a protocol name for use with ALPN.</summary>
     public sealed class ProtocolName
     {
+        /// <summary>Create a protocol name from raw bytes.</summary>
+        /// <param name="bytes">The bytes of the name.</param>
+        /// <returns>The protocol name.</returns>
         public static ProtocolName AsRawBytes(byte[] bytes) => new ProtocolName(Arrays.Clone(bytes));
 
+        /// <summary>Create a protocol name from a string, using its UTF-8 encoding.</summary>
+        /// <param name="name">The name.</param>
+        /// <returns>The protocol name.</returns>
         public static ProtocolName AsUtf8Encoding(string name) => new ProtocolName(Strings.ToUtf8ByteArray(name));
 
         /// <summary>The protocol name <c>http/1.1</c>.</summary>

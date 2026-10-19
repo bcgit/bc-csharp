@@ -19,6 +19,8 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
+        /// <summary>Create the DSA implementation to use for verification.</summary>
+        /// <returns>The DSA implementation.</returns>
         protected abstract IDsa CreateDsaImpl();
 
         /// <summary>Gets the signature algorithm.</summary>
