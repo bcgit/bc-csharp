@@ -338,6 +338,7 @@ namespace Org.BouncyCastle.Math.EC
         /// <summary>Gets the infinity.</summary>
         public abstract ECPoint Infinity { get; }
 
+        /// <summary>Gets the field.</summary>
         public virtual IFiniteField Field => m_field;
         /// <summary>Gets the a.</summary>
         public virtual ECFieldElement A => m_a;

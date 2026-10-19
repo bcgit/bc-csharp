@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
             this.m_splitParams = splitParams;
         }
 
+        /// <summary>Gets the i.</summary>
         public virtual BigInteger I
         {
             get { return m_i; }

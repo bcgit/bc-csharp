@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
 
         protected ECPoint m_mappedPoint;
 
+        /// <summary>Gets or sets the endomorphism.</summary>
         public virtual ECEndomorphism Endomorphism
         {
             get { return m_endomorphism; }

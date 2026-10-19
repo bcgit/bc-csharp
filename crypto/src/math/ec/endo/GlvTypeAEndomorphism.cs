@@ -29,6 +29,7 @@ namespace Org.BouncyCastle.Math.EC.Endo
             return EndoUtilities.DecomposeScalar(m_parameters.SplitParams, k);
         }
 
+        /// <inheritdoc/>
         public virtual ECPointMap PointMap
         {
             get { return m_pointMap; }

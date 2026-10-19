@@ -87,6 +87,7 @@ namespace Org.BouncyCastle.Math.EC
         [Obsolete("Will be removed")]
         public ECPoint GetDetachedPoint() => Normalize().Detach();
 
+        /// <summary>Gets the curve.</summary>
         public virtual ECCurve Curve => m_curve;
 
         [Obsolete("Will be removed")]

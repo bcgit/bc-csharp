@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Math.EC.Multiplier
          */
         protected int m_width = -1;
 
+        /// <summary>Gets or sets the lookup table.</summary>
         public virtual ECLookupTable LookupTable
         {
             get { return m_lookupTable; }
