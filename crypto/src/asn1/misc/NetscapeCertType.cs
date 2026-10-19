@@ -40,11 +40,14 @@ namespace Org.BouncyCastle.Asn1.Misc
         {
         }
 
+        /// <summary>Create a new <see cref="NetscapeCertType"/>.</summary>
+        /// <param name="usage">The usage.</param>
         public NetscapeCertType(DerBitString usage)
             : base(usage.GetBytes(), usage.PadBits)
         {
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             byte[] data = GetBytes();

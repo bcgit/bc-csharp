@@ -4,9 +4,15 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.Misc
 {
+    /// <summary>The parameters of CAST5 in CBC mode: an initialization vector and a key length.</summary>
     public class Cast5CbcParameters
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="Cast5CbcParameters"/> from the given object.</summary>
+        /// <param name="o">
+        /// An <see cref="Cast5CbcParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="Cast5CbcParameters"/>, or null if <paramref name="o"/> is null.</returns>
         public static Cast5CbcParameters GetInstance(object o)
         {
             if (o == null)
@@ -16,9 +22,17 @@ namespace Org.BouncyCastle.Asn1.Misc
             return new Cast5CbcParameters(Asn1Sequence.GetInstance(o));
         }
 
+        /// <summary>Return an <see cref="Cast5CbcParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Cast5CbcParameters"/>.</returns>
         public static Cast5CbcParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Cast5CbcParameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="Cast5CbcParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="Cast5CbcParameters"/>.</returns>
         public static Cast5CbcParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new Cast5CbcParameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -39,16 +53,22 @@ namespace Org.BouncyCastle.Asn1.Misc
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="Cast5CbcParameters"/>.</summary>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="keyLength">The key length.</param>
         public Cast5CbcParameters(byte[] iv, int keyLength)
         {
             m_iv = new DerOctetString(iv ?? new byte[8]);
             m_keyLength = DerInteger.ValueOf(keyLength);
         }
 
+        /// <summary>Gets the IV.</summary>
         public Asn1OctetString IV => m_iv;
 
+        /// <summary>Return the IV.</summary>
         public byte[] GetIV() => Arrays.Clone(m_iv.GetOctets());
 
+        /// <summary>Gets the key length.</summary>
         public int KeyLength => m_keyLength.IntValueExact;
 
         /**
