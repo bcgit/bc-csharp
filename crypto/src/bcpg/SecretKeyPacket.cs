@@ -250,6 +250,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Gets the enc algorithm.</summary>
         public SymmetricKeyAlgorithmTag EncAlgorithm => encAlgorithm;
 
+        /// <summary>Gets the aead algorithm.</summary>
         public AeadAlgorithmTag AeadAlgorithm => aeadAlgorithm;
 
         /// <summary>Gets the s 2 k usage.</summary>

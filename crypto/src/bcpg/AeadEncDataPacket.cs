@@ -86,8 +86,10 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Gets the version.</summary>
         public byte Version => m_version;
 
+        /// <summary>Gets the algorithm.</summary>
         public SymmetricKeyAlgorithmTag Algorithm => m_algorithm;
 
+        /// <summary>Gets the aead algorithm.</summary>
         public AeadAlgorithmTag AeadAlgorithm => m_aeadAlgorithm;
 
         /// <summary>Gets the chunk size.</summary>

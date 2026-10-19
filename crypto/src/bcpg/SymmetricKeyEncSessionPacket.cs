@@ -186,6 +186,7 @@ namespace Org.BouncyCastle.Bcpg
             m_authTag = authTag;
         }
 
+        /// <summary>Gets the aead algorithm.</summary>
         public AeadAlgorithmTag AeadAlgorithm => m_aeadAlgorithm;
 
         /// <summary>Gets the enc algorithm.</summary>

@@ -282,6 +282,8 @@ namespace Org.BouncyCastle.Bcpg
         public void BeginClearText(HashAlgorithmTag hashAlgorithm) =>
             BeginClearText(new HashAlgorithmTag[]{ hashAlgorithm });
 
+        /// <summary>Start a clear text signed message - backwards compatibility.</summary>
+        /// <param name="hashAlgorithms">The hash algorithms.</param>
         public void BeginClearText(params HashAlgorithmTag[] hashAlgorithms)
         {
             StringBuilder sb = new StringBuilder("-----BEGIN PGP SIGNED MESSAGE-----");

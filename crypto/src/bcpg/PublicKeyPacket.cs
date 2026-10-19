@@ -174,6 +174,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Gets the version byte.</summary>
         public virtual byte VersionByte => m_version;
 
+        /// <summary>Gets the algorithm.</summary>
         public virtual PublicKeyAlgorithmTag Algorithm => m_algorithm;
 
         /// <summary>Gets the valid days.</summary>
@@ -182,6 +183,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the time.</summary>
         public virtual DateTime GetTime() => DateTimeUtilities.UnixMsToDateTime(m_time * 1000L);
 
+        /// <summary>Gets the key.</summary>
         public virtual IBcpgKey Key => m_key;
 
         /// <summary>Return the encoded contents.</summary>

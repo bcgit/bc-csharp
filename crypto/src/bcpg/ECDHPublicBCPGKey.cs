@@ -83,11 +83,13 @@ namespace Org.BouncyCastle.Bcpg
             get { return reserved; }
         }
 
+        /// <summary>Gets the hash algorithm.</summary>
         public virtual HashAlgorithmTag HashAlgorithm
         {
             get { return hashFunctionId; }
         }
 
+        /// <summary>Gets the symmetric key algorithm.</summary>
         public virtual SymmetricKeyAlgorithmTag SymmetricKeyAlgorithm
         {
             get { return symAlgorithmId; }

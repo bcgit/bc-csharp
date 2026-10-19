@@ -296,8 +296,10 @@ namespace Org.BouncyCastle.Bcpg
             return sOut.ToArray();
         }
 
+        /// <summary>Gets the key algorithm.</summary>
         public PublicKeyAlgorithmTag KeyAlgorithm => keyAlgorithm;
 
+        /// <summary>Gets the hash algorithm.</summary>
         public HashAlgorithmTag HashAlgorithm => hashAlgorithm;
 
         /**

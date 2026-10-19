@@ -89,6 +89,7 @@ namespace Org.BouncyCastle.Bcpg
         /// </remarks>
         public long KeyId => (long)m_keyID;
 
+        /// <summary>Gets the algorithm.</summary>
         public PublicKeyAlgorithmTag Algorithm => m_algorithm;
 
         /// <summary>Return the enc session key.</summary>

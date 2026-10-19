@@ -64,6 +64,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Gets the signature class.</summary>
         public virtual RevocationKeyTag SignatureClass => (RevocationKeyTag)Data[0];
 
+        /// <summary>Gets the algorithm.</summary>
         public virtual PublicKeyAlgorithmTag Algorithm => (PublicKeyAlgorithmTag)Data[1];
 
         /// <summary>Return the fingerprint.</summary>

@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Bcpg
             m_contents = bcpgIn.ReadAll();
         }
 
+        /// <summary>Gets the tag.</summary>
         [Obsolete("Use 'PacketTag' instead")]
         public PacketTag Tag => PacketTag;
 
