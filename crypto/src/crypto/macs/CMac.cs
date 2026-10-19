@@ -11,17 +11,17 @@ namespace Org.BouncyCastle.Crypto.Macs
     * <p>
     * CMAC is analogous to OMAC1 - see also en.wikipedia.org/wiki/CMAC
     * </p><p>
-    * CMAC is a NIST recomendation - see 
+    * CMAC is a NIST recomendation - see
     * csrc.nist.gov/CryptoToolkit/modes/800-38_Series_Publications/SP800-38B.pdf
     * </p><p>
     * CMAC/OMAC1 is a blockcipher-based message authentication code designed and
     * analyzed by Tetsu Iwata and Kaoru Kurosawa.
     * </p><p>
-    * CMAC/OMAC1 is a simple variant of the CBC MAC (Cipher Block Chaining Message 
+    * CMAC/OMAC1 is a simple variant of the CBC MAC (Cipher Block Chaining Message
     * Authentication Code). OMAC stands for One-Key CBC MAC.
     * </p><p>
     * It supports 128- or 64-bits block ciphers, with any key size, and returns
-    * a MAC with dimension less or equal to the block size of the underlying 
+    * a MAC with dimension less or equal to the block size of the underlying
     * cipher.
     * </p>
     */
@@ -69,8 +69,8 @@ namespace Org.BouncyCastle.Crypto.Macs
         * @param macSizeInBits the size of the MAC in bits, must be a multiple of 8 and @lt;= 128.
         */
         public CMac(
-            IBlockCipher	cipher,
-            int				macSizeInBits)
+            IBlockCipher cipher,
+            int macSizeInBits)
         {
             if ((macSizeInBits % 8) != 0)
                 throw new ArgumentException("MAC size must be multiple of 8");

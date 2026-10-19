@@ -10,27 +10,27 @@ namespace Org.BouncyCastle.Crypto.Macs
     * pad of zeroes is used.
     */
     public class CbcBlockCipherMac
-		: IMac
+        : IMac
     {
         private byte[] buf;
         private int bufOff;
         private IBlockCipherMode m_cipherMode;
         private IBlockCipherPadding padding;
-		private int macSize;
+        private int macSize;
 
-		/**
+        /**
         * create a standard MAC based on a CBC block cipher. This will produce an
         * authentication code half the length of the block size of the cipher.
         *
         * @param cipher the cipher to be used as the basis of the MAC generation.
         */
         public CbcBlockCipherMac(
-			IBlockCipher cipher)
-			: this(cipher, (cipher.GetBlockSize() * 8) / 2, null)
-		{
-		}
+            IBlockCipher cipher)
+            : this(cipher, (cipher.GetBlockSize() * 8) / 2, null)
+        {
+        }
 
-		/**
+        /**
         * create a standard MAC based on a CBC block cipher. This will produce an
         * authentication code half the length of the block size of the cipher.
         *
@@ -38,13 +38,13 @@ namespace Org.BouncyCastle.Crypto.Macs
         * @param padding the padding to be used to complete the last block.
         */
         public CbcBlockCipherMac(
-            IBlockCipher		cipher,
-            IBlockCipherPadding	padding)
+            IBlockCipher cipher,
+            IBlockCipherPadding padding)
         : this(cipher, (cipher.GetBlockSize() * 8) / 2, padding)
-		{
-		}
+        {
+        }
 
-		/**
+        /**
         * create a standard MAC based on a block cipher with the size of the
         * MAC been given in bits. This class uses CBC mode as the basis for the
         * MAC generation.
@@ -58,13 +58,13 @@ namespace Org.BouncyCastle.Crypto.Macs
         * @param macSizeInBits the size of the MAC in bits, must be a multiple of 8.
         */
         public CbcBlockCipherMac(
-            IBlockCipher	cipher,
-            int				macSizeInBits)
-			: this(cipher, macSizeInBits, null)
-		{
-		}
+            IBlockCipher cipher,
+            int macSizeInBits)
+            : this(cipher, macSizeInBits, null)
+        {
+        }
 
-		/**
+        /**
         * create a standard MAC based on a block cipher with the size of the
         * MAC been given in bits. This class uses CBC mode as the basis for the
         * MAC generation.
@@ -79,47 +79,47 @@ namespace Org.BouncyCastle.Crypto.Macs
         * @param padding the padding to be used to complete the last block.
         */
         public CbcBlockCipherMac(
-            IBlockCipher		cipher,
-            int					macSizeInBits,
-            IBlockCipherPadding	padding)
+            IBlockCipher cipher,
+            int macSizeInBits,
+            IBlockCipherPadding padding)
         {
             if ((macSizeInBits % 8) != 0)
                 throw new ArgumentException("MAC size must be multiple of 8");
 
-			this.m_cipherMode = new CbcBlockCipher(cipher);
+            this.m_cipherMode = new CbcBlockCipher(cipher);
             this.padding = padding;
             this.macSize = macSizeInBits / 8;
 
-			buf = new byte[cipher.GetBlockSize()];
+            buf = new byte[cipher.GetBlockSize()];
             bufOff = 0;
         }
 
-		public string AlgorithmName
+        public string AlgorithmName
         {
             get { return m_cipherMode.AlgorithmName; }
         }
 
-		public void Init(ICipherParameters parameters)
+        public void Init(ICipherParameters parameters)
         {
             Reset();
 
             m_cipherMode.Init(true, parameters);
         }
 
-		public int GetMacSize()
+        public int GetMacSize()
         {
             return macSize;
         }
 
-		public void Update(byte input)
+        public void Update(byte input)
         {
-			if (bufOff == buf.Length)
+            if (bufOff == buf.Length)
             {
                 m_cipherMode.ProcessBlock(buf, 0, buf, 0);
                 bufOff = 0;
             }
 
-			buf[bufOff++] = input;
+            buf[bufOff++] = input;
         }
 
         public void BlockUpdate(byte[] input, int inOff, int len)
@@ -209,16 +209,16 @@ namespace Org.BouncyCastle.Crypto.Macs
                     bufOff = 0;
                 }
 
-				padding.AddPadding(buf, bufOff);
+                padding.AddPadding(buf, bufOff);
             }
 
-			m_cipherMode.ProcessBlock(buf, 0, buf, 0);
+            m_cipherMode.ProcessBlock(buf, 0, buf, 0);
 
-			Array.Copy(buf, 0, output, outOff, macSize);
+            Array.Copy(buf, 0, output, outOff, macSize);
 
-			Reset();
+            Reset();
 
-			return macSize;
+            return macSize;
 #endif
         }
 
@@ -243,16 +243,16 @@ namespace Org.BouncyCastle.Crypto.Macs
                     bufOff = 0;
                 }
 
-				padding.AddPadding(buf, bufOff);
+                padding.AddPadding(buf, bufOff);
             }
 
             m_cipherMode.ProcessBlock(buf, buf);
 
             buf.AsSpan(0, macSize).CopyTo(output);
 
-			Reset();
+            Reset();
 
-			return macSize;
+            return macSize;
         }
 #endif
 
@@ -262,8 +262,8 @@ namespace Org.BouncyCastle.Crypto.Macs
         public void Reset()
         {
             // Clear the buffer.
-			Array.Clear(buf, 0, buf.Length);
-			bufOff = 0;
+            Array.Clear(buf, 0, buf.Length);
+            bufOff = 0;
 
             // Reset the underlying cipher.
             m_cipherMode.Reset();

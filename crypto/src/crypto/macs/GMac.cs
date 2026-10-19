@@ -13,7 +13,7 @@ namespace Org.BouncyCastle.Crypto.Macs
     /// GMac is an invocation of the GCM mode where no data is encrypted (i.e. all input data to the Mac
     /// is processed as additional authenticated data with the underlying GCM block cipher).
     /// </remarks>
-    public class GMac 
+    public class GMac
         : IMac
     {
         private readonly GcmBlockCipher cipher;
@@ -47,7 +47,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
         /// <summary>
-        /// Initialises the GMAC - requires a <see cref="Org.BouncyCastle.Crypto.Parameters.ParametersWithIV"/> 
+        /// Initialises the GMAC - requires a <see cref="Org.BouncyCastle.Crypto.Parameters.ParametersWithIV"/>
         /// providing a <see cref="Org.BouncyCastle.Crypto.Parameters.KeyParameter"/> and a nonce.
         /// </summary>
         public void Init(ICipherParameters parameters)
@@ -76,7 +76,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             return macSizeBits / 8;
         }
 
-        public void Update(byte input) 
+        public void Update(byte input)
         {
             cipher.ProcessAadByte(input);
         }
