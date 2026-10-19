@@ -308,7 +308,7 @@ namespace Org.BouncyCastle.Security
 
                         return new AeadParameters(keyParameter, gcmParameters.IcvLen * 8, gcmParameters.GetNonce());
                     }
- 
+
                     if (NistObjectIdentifiers.IdAes128Ccm.Equals(algOid) ||
                         NistObjectIdentifiers.IdAes192Ccm.Equals(algOid) ||
                         NistObjectIdentifiers.IdAes256Ccm.Equals(algOid))
