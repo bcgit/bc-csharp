@@ -198,6 +198,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Generate(Span<byte> output, bool predictionResistant)
         {
             int numberOfBits = output.Length * 8;
@@ -223,6 +224,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
             return numberOfBits;
         }
 
+        /// <inheritdoc/>
         public int GenerateWithInput(Span<byte> output, ReadOnlySpan<byte> additionalInput, bool predictionResistant)
         {
             int numberOfBits = output.Length * 8;
@@ -306,6 +308,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void Reseed(ReadOnlySpan<byte> additionalInput)
         {
             int entropyLength = GetEntropyLength();

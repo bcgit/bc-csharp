@@ -179,6 +179,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Generate(Span<byte> output, bool predictionResistant)
         {
             // 1. If reseed_counter > reseed_interval, then return an indication that a
@@ -210,6 +211,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
             return ImplGenerate(output);
         }
 
+        /// <inheritdoc/>
         public int GenerateWithInput(Span<byte> output, ReadOnlySpan<byte> additionalInput, bool predictionResistant)
         {
             // 1. If reseed_counter > reseed_interval, then return an indication that a
@@ -375,6 +377,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void Reseed(ReadOnlySpan<byte> additionalInput)
         {
             // 1. seed_material = 0x01 || V || entropy_input || additional_input.

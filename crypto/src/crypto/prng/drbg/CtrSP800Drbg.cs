@@ -541,6 +541,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int Generate(Span<byte> output, bool predictionResistant)
         {
             int outputLen = output.Length;
@@ -571,6 +572,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
             return ImplGenerate(seed, output);
         }
 
+        /// <inheritdoc/>
         public int GenerateWithInput(Span<byte> output, ReadOnlySpan<byte> additionalInput, bool predictionResistant)
         {
             int outputLen = output.Length;
@@ -653,6 +655,7 @@ namespace Org.BouncyCastle.Crypto.Prng.Drbg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void Reseed(ReadOnlySpan<byte> additionalInput)
         {
             CTR_DRBG_Reseed_algorithm(additionalInput);
