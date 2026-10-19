@@ -294,7 +294,7 @@ namespace Org.BouncyCastle.Asn1.Utilities
         {
             for (int i = off; i != off + len; i++)
             {
-                char c = (char)bytes[i]; 
+                char c = (char)bytes[i];
                 if (c >= ' ' && c <= '~')
                 {
                     buf.Append(c);
