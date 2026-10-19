@@ -1110,10 +1110,10 @@ namespace Org.BouncyCastle.Math.EC
          */
         [Obsolete("Use constructor taking order/cofactor")]
         public F2mCurve(
-            int			m,
-            int			k,
-            BigInteger	a,
-            BigInteger	b)
+            int m,
+            int k,
+            BigInteger a,
+            BigInteger b)
             : this(m, k, 0, 0, a, b, null, null)
         {
         }
@@ -1136,12 +1136,12 @@ namespace Org.BouncyCastle.Math.EC
          * <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
          */
         public F2mCurve(
-            int			m,
-            int			k,
-            BigInteger	a,
-            BigInteger	b,
-            BigInteger	order,
-            BigInteger	cofactor)
+            int m,
+            int k,
+            BigInteger a,
+            BigInteger b,
+            BigInteger order,
+            BigInteger cofactor)
             : this(m, k, 0, 0, a, b, order, cofactor)
         {
         }
@@ -1168,12 +1168,12 @@ namespace Org.BouncyCastle.Math.EC
          */
         [Obsolete("Use constructor taking order/cofactor")]
         public F2mCurve(
-            int			m,
-            int			k1,
-            int			k2,
-            int			k3,
-            BigInteger	a,
-            BigInteger	b)
+            int m,
+            int k1,
+            int k2,
+            int k3,
+            BigInteger a,
+            BigInteger b)
             : this(m, k1, k2, k3, a, b, null, null)
         {
         }

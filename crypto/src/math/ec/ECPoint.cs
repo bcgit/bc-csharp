@@ -50,7 +50,7 @@ namespace Org.BouncyCastle.Math.EC
 
         protected internal IDictionary<string, PreCompInfo> m_preCompTable = null;
 
-        protected ECPoint(ECCurve curve, ECFieldElement	x, ECFieldElement y)
+        protected ECPoint(ECCurve curve, ECFieldElement x, ECFieldElement y)
             : this(curve, x, y, GetInitialZCoords(curve))
         {
         }
@@ -864,7 +864,7 @@ namespace Org.BouncyCastle.Math.EC
             ECCurve curve = Curve;
 
             ECFieldElement Y1 = RawYCoord;
-            if (Y1.IsZero) 
+            if (Y1.IsZero)
                 return curve.Infinity;
 
             int coord = curve.CoordinateSystem;
@@ -1111,7 +1111,7 @@ namespace Org.BouncyCastle.Math.EC
             ECCurve curve = Curve;
 
             ECFieldElement Y1 = RawYCoord;
-            if (Y1.IsZero) 
+            if (Y1.IsZero)
                 return curve.Infinity;
 
             int coord = curve.CoordinateSystem;
@@ -1141,7 +1141,7 @@ namespace Org.BouncyCastle.Math.EC
 
             for (int i = 0; i < e; ++i)
             {
-                if (Y1.IsZero) 
+                if (Y1.IsZero)
                     return curve.Infinity;
 
                 ECFieldElement X1Squared = X1.Square();
@@ -1269,7 +1269,7 @@ namespace Org.BouncyCastle.Math.EC
         }
     }
 
-    public abstract class AbstractF2mPoint 
+    public abstract class AbstractF2mPoint
         : ECPointBase
     {
         protected AbstractF2mPoint(ECCurve curve, ECFieldElement x, ECFieldElement y)
@@ -1296,7 +1296,7 @@ namespace Org.BouncyCastle.Math.EC
 
                 if (X.IsZero)
                 {
-                    // NOTE: For x == 0, we expect the affine-y instead of the lambda-y 
+                    // NOTE: For x == 0, we expect the affine-y instead of the lambda-y
                     lhs = Y.Square();
                     rhs = B;
                     if (!ZIsOne)
@@ -1362,7 +1362,7 @@ namespace Org.BouncyCastle.Math.EC
                 /*
                  * Check that 0 == Tr(X + A); then there exists a solution to L^2 + L = X + A, and
                  * so a halving is possible, so this point is the double of another.
-                 * 
+                 *
                  * Note: Tr(A) == 1 for cofactor 2 curves.
                  */
                 ECPoint N = Normalize();
@@ -1373,7 +1373,7 @@ namespace Org.BouncyCastle.Math.EC
             {
                 /*
                  * Solve L^2 + L = X + A to find the half of this point, if it exists (fail if not).
-                 * 
+                 *
                  * Note: Tr(A) == 0 for cofactor 4 curves.
                  */
                 ECPoint N = Normalize();
@@ -1391,7 +1391,7 @@ namespace Org.BouncyCastle.Math.EC
                 /*
                  * Either T or (T + X) is the square of a half-point's x coordinate (hx). In either
                  * case, the half-point can be halved again when 0 == Tr(hx + A).
-                 * 
+                 *
                  * Note: Tr(hx + A) == Tr(hx) == Tr(hx^2) == Tr(T) == Tr(T + X)
                  *
                  * Check that 0 == Tr(T); then there exists a solution to L^2 + L = hx + A, and so a
