@@ -183,7 +183,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.SphincsPlus
 
         /**
          * Return the SPHINCS+ parameters that map to the passed in parameter ID.
-         * 
+         *
          * @param id the oid of interest.
          * @return the parameter set.
          */
