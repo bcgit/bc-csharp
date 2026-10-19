@@ -3,6 +3,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Asn1.X9
 {
+    /// <summary>Holder that creates the <see cref="X9ECParameters"/> of a named curve on first use.</summary>
     public abstract class X9ECParametersHolder
     {
         private ECCurve m_curve;

@@ -16,16 +16,24 @@ namespace Org.BouncyCastle.Asn1.X9
         private readonly DerBitString m_seed;
         private readonly DerObjectIdentifier m_fieldType;
 
+        /// <summary>Create a new <see cref="X9Curve"/>.</summary>
+        /// <param name="curve">The curve.</param>
         public X9Curve(ECCurve curve)
             : this(curve, (DerBitString)null)
         {
         }
 
+        /// <summary>Create a new <see cref="X9Curve"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="seed">The seed.</param>
         public X9Curve(ECCurve curve, byte[] seed)
             : this(curve, DerBitString.FromContentsOptional(seed))
         {
         }
 
+        /// <summary>Create a new <see cref="X9Curve"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="seed">The seed.</param>
         public X9Curve(ECCurve curve, DerBitString seed)
         {
             m_curve = curve ?? throw new ArgumentNullException(nameof(curve));
@@ -46,6 +54,11 @@ namespace Org.BouncyCastle.Asn1.X9
             }
         }
 
+        /// <summary>Create a new <see cref="X9Curve"/>.</summary>
+        /// <param name="fieldID">The field ID.</param>
+        /// <param name="order">The order.</param>
+        /// <param name="cofactor">The cofactor.</param>
+        /// <param name="seq">The ASN.1 sequence.</param>
         public X9Curve(X9FieldID fieldID, BigInteger order, BigInteger cofactor, Asn1Sequence seq)
         {
             if (fieldID == null)
@@ -115,8 +128,10 @@ namespace Org.BouncyCastle.Asn1.X9
 
         public ECCurve Curve => m_curve;
 
+        /// <summary>Return the seed.</summary>
         public byte[] GetSeed() => m_seed?.GetBytes();
 
+        /// <summary>Gets the seed.</summary>
         public DerBitString Seed => m_seed;
 
         /**

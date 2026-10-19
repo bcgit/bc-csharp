@@ -9,6 +9,11 @@ namespace Org.BouncyCastle.Asn1.X9
     public class KeySpecificInfo
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="KeySpecificInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="KeySpecificInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="KeySpecificInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static KeySpecificInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -20,6 +25,10 @@ namespace Org.BouncyCastle.Asn1.X9
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="KeySpecificInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KeySpecificInfo"/>.</returns>
         public static KeySpecificInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -27,6 +36,10 @@ namespace Org.BouncyCastle.Asn1.X9
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="KeySpecificInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="KeySpecificInfo"/>.</returns>
         public static KeySpecificInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -37,6 +50,8 @@ namespace Org.BouncyCastle.Asn1.X9
         private readonly DerObjectIdentifier m_algorithm;
         private readonly Asn1OctetString m_counter;
 
+        /// <summary>Create a new <see cref="KeySpecificInfo"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public KeySpecificInfo(Asn1Sequence seq)
         {
@@ -54,14 +69,19 @@ namespace Org.BouncyCastle.Asn1.X9
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="KeySpecificInfo"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="counter">The counter.</param>
         public KeySpecificInfo(DerObjectIdentifier algorithm, Asn1OctetString counter)
         {
             m_algorithm = algorithm ?? throw new ArgumentNullException(nameof(algorithm));
             m_counter = counter ?? throw new ArgumentNullException(nameof(counter));
         }
 
+        /// <summary>Gets the algorithm.</summary>
         public DerObjectIdentifier Algorithm => m_algorithm;
 
+        /// <summary>Gets the counter.</summary>
         public Asn1OctetString Counter => m_counter;
 
         /**

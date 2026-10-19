@@ -17,6 +17,11 @@ namespace Org.BouncyCastle.Asn1.X9
     public sealed class DomainParameters
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="DomainParameters"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="DomainParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="DomainParameters"/>, or null if <paramref name="obj"/> is null.</returns>
         public static DomainParameters GetInstance(object obj)
         {
             if (obj == null)
@@ -26,9 +31,16 @@ namespace Org.BouncyCastle.Asn1.X9
             return new DomainParameters(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="DomainParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DomainParameters"/>.</returns>
         public static DomainParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new DomainParameters(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="DomainParameters"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="DomainParameters"/>, or null if <paramref name="element"/> is null.</returns>
         public static DomainParameters GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -44,6 +56,10 @@ namespace Org.BouncyCastle.Asn1.X9
             return null;
         }
 
+        /// <summary>Return an <see cref="DomainParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="DomainParameters"/>.</returns>
         public static DomainParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new DomainParameters(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -66,6 +82,12 @@ namespace Org.BouncyCastle.Asn1.X9
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="DomainParameters"/>.</summary>
+        /// <param name="p">The p.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="q">The q.</param>
+        /// <param name="j">The j.</param>
+        /// <param name="validationParams">The validation params.</param>
         public DomainParameters(DerInteger p, DerInteger g, DerInteger q, DerInteger j,
             ValidationParams validationParams)
         {
@@ -76,16 +98,21 @@ namespace Org.BouncyCastle.Asn1.X9
             m_validationParams = validationParams;
         }
 
+        /// <summary>Gets the p.</summary>
         public DerInteger P => m_p;
 
+        /// <summary>Gets the g.</summary>
         public DerInteger G => m_g;
 
+        /// <summary>Gets the q.</summary>
         public DerInteger Q => m_q;
 
+        /// <summary>Gets the j.</summary>
         public DerInteger J => m_j;
 
         public ValidationParams ValidationParams => m_validationParams;
 
+        /// <inheritdoc/>
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(5);

@@ -5,6 +5,7 @@ using Org.BouncyCastle.Math.EC;
 
 namespace Org.BouncyCastle.Asn1.X9
 {
+    /// <summary>Utility methods for converting between integers and octet strings, as defined in ANSI X9.62.</summary>
     // TODO[api] Make static
     public abstract class X9IntegerConverter
     {

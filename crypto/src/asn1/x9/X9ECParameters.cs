@@ -12,6 +12,11 @@ namespace Org.BouncyCastle.Asn1.X9
     public class X9ECParameters
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="X9ECParameters"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="X9ECParameters"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="X9ECParameters"/>, or null if <paramref name="obj"/> is null.</returns>
         public static X9ECParameters GetInstance(object obj)
         {
             if (obj == null)
@@ -23,6 +28,10 @@ namespace Org.BouncyCastle.Asn1.X9
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="X9ECParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="X9ECParameters"/>.</returns>
         public static X9ECParameters GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -30,6 +39,9 @@ namespace Org.BouncyCastle.Asn1.X9
 #pragma warning restore CS0618 // Type or member is obsolete
         }
 
+        /// <summary>Return an <see cref="X9ECParameters"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="X9ECParameters"/>, or null if <paramref name="element"/> is null.</returns>
         public static X9ECParameters GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -49,6 +61,10 @@ namespace Org.BouncyCastle.Asn1.X9
             return null;
         }
 
+        /// <summary>Return an <see cref="X9ECParameters"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="X9ECParameters"/>.</returns>
         public static X9ECParameters GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit)
         {
 #pragma warning disable CS0618 // Type or member is obsolete
@@ -62,6 +78,8 @@ namespace Org.BouncyCastle.Asn1.X9
         private readonly BigInteger m_n;
         private readonly BigInteger m_h;
 
+        /// <summary>Create a new <see cref="X9ECParameters"/>.</summary>
+        /// <param name="seq">The ASN.1 sequence.</param>
         [Obsolete("Use 'GetInstance' instead")]
         public X9ECParameters(Asn1Sequence seq)
         {
@@ -98,21 +116,42 @@ namespace Org.BouncyCastle.Asn1.X9
             }
         }
 
+        /// <summary>Create a new <see cref="X9ECParameters"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="n">The n.</param>
         public X9ECParameters(ECCurve curve, X9ECPoint g, BigInteger n)
             : this(curve, g, n, (BigInteger)null, (DerBitString)null)
         {
         }
 
+        /// <summary>Create a new <see cref="X9ECParameters"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="n">The n.</param>
+        /// <param name="h">The h.</param>
         public X9ECParameters(ECCurve curve, X9ECPoint g, BigInteger n, BigInteger h)
             : this(curve, g, n, h, (DerBitString)null)
         {
         }
 
+        /// <summary>Create a new <see cref="X9ECParameters"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="n">The n.</param>
+        /// <param name="h">The h.</param>
+        /// <param name="seed">The seed.</param>
         public X9ECParameters(ECCurve curve, X9ECPoint g, BigInteger n, BigInteger h, byte[] seed)
             : this(curve, g, n, h, DerBitString.FromContentsOptional(seed))
         {
         }
 
+        /// <summary>Create a new <see cref="X9ECParameters"/>.</summary>
+        /// <param name="curve">The curve.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="n">The n.</param>
+        /// <param name="h">The h.</param>
+        /// <param name="seed">The seed.</param>
         public X9ECParameters(ECCurve curve, X9ECPoint g, BigInteger n, BigInteger h, DerBitString seed)
         {
             m_curve = new X9Curve(curve, seed);
@@ -150,14 +189,19 @@ namespace Org.BouncyCastle.Asn1.X9
 
         public ECCurve Curve => m_curve.Curve;
 
+        /// <summary>Gets the g.</summary>
         public ECPoint G => m_g.Point;
 
+        /// <summary>Gets the n.</summary>
         public BigInteger N => m_n;
 
+        /// <summary>Gets the h.</summary>
         public BigInteger H => m_h;
 
+        /// <summary>Return the seed.</summary>
         public byte[] GetSeed() => m_curve.GetSeed();
 
+        /// <summary>Gets the seed.</summary>
         public DerBitString Seed => m_curve.Seed;
 
         /**

@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Asn1.X9
     public class X9FieldID
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="X9FieldID"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="X9FieldID"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="X9FieldID"/>, or null if <paramref name="obj"/> is null.</returns>
         public static X9FieldID GetInstance(object obj)
         {
             if (obj == null)
@@ -19,9 +22,16 @@ namespace Org.BouncyCastle.Asn1.X9
             return new X9FieldID(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="X9FieldID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="X9FieldID"/>.</returns>
         public static X9FieldID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new X9FieldID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="X9FieldID"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="X9FieldID"/>, or null if <paramref name="element"/> is null.</returns>
         public static X9FieldID GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -37,6 +47,10 @@ namespace Org.BouncyCastle.Asn1.X9
             return null;
         }
 
+        /// <summary>Return an <see cref="X9FieldID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="X9FieldID"/>.</returns>
         public static X9FieldID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new X9FieldID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -128,11 +142,13 @@ namespace Org.BouncyCastle.Asn1.X9
             m_parameters = new DerSequence(fieldIdParams);
         }
 
+        /// <summary>Gets the field type.</summary>
         public DerObjectIdentifier FieldType => m_fieldType;
 
         [Obsolete("Use 'FieldType' instead")]
         public DerObjectIdentifier Identifier => m_fieldType;
 
+        /// <summary>Gets the parameters.</summary>
         // TODO[api] Return 'Asn1Encodable'
         public Asn1Object Parameters => m_parameters;
 
