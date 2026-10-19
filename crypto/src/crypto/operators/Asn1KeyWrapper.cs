@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Crypto.Operators
     internal class KeyWrapperUtil
     {
         //
-        // Provider 
+        // Provider
         //
         private static readonly Dictionary<string, WrapperProvider> m_providerMap =
             new Dictionary<string, WrapperProvider>(StringComparer.OrdinalIgnoreCase);
