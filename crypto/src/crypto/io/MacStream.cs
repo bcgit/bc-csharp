@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
+    /// <summary>A stream that feeds the data read or written through it into a MAC.</summary>
     public sealed class MacStream
         : Stream
     {
@@ -16,6 +17,10 @@ namespace Org.BouncyCastle.Crypto.IO
         private readonly IMac m_readMac;
         private readonly IMac m_writeMac;
 
+        /// <summary>Create a new <see cref="MacStream"/>.</summary>
+        /// <param name="stream">The stream.</param>
+        /// <param name="readMac">The read mac.</param>
+        /// <param name="writeMac">The write mac.</param>
         public MacStream(Stream stream, IMac readMac, IMac writeMac)
         {
             m_stream = stream;
@@ -25,17 +30,23 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public Stream Stream => m_stream;
 
+        /// <summary>Gets the read mac.</summary>
         public IMac ReadMac => m_readMac;
 
+        /// <summary>Gets the write mac.</summary>
         public IMac WriteMac => m_writeMac;
 
+        /// <inheritdoc/>
         public override bool CanRead => m_stream.CanRead;
 
+        /// <inheritdoc/>
         public override bool CanSeek => false;
 
+        /// <inheritdoc/>
         public override bool CanWrite => m_stream.CanWrite;
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void CopyTo(Stream destination, int bufferSize)
         {
             Streams.CopyTo(ReadSource, destination, bufferSize);
@@ -43,28 +54,33 @@ namespace Org.BouncyCastle.Crypto.IO
 #endif
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        /// <inheritdoc/>
         public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
         {
             return Streams.CopyToAsync(ReadSource, destination, bufferSize, cancellationToken);
         }
 #endif
 
+        /// <inheritdoc/>
         public override void Flush()
         {
             m_stream.Flush();
         }
 
+        /// <inheritdoc/>
         public override long Length
         {
             get { throw new NotSupportedException(); }
         }
 
+        /// <inheritdoc/>
         public override long Position
         {
             get { throw new NotSupportedException(); }
             set { throw new NotSupportedException(); }
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             int n = m_stream.Read(buffer, offset, count);
@@ -78,6 +94,7 @@ namespace Org.BouncyCastle.Crypto.IO
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             int n = m_stream.Read(buffer);
@@ -90,12 +107,14 @@ namespace Org.BouncyCastle.Crypto.IO
             return n;
         }
 
+        /// <inheritdoc/>
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             return Streams.ReadAsync(ReadSource, buffer, cancellationToken);
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             int b = m_stream.ReadByte();
@@ -108,10 +127,13 @@ namespace Org.BouncyCastle.Crypto.IO
             return b;
         }
 
+        /// <inheritdoc/>
         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
 
+        /// <inheritdoc/>
         public override void SetLength(long length) => throw new NotSupportedException();
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (m_writeMac != null)
@@ -128,6 +150,7 @@ namespace Org.BouncyCastle.Crypto.IO
         }
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        /// <inheritdoc/>
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             if (m_writeMac != null)
@@ -148,6 +171,7 @@ namespace Org.BouncyCastle.Crypto.IO
 #endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             if (m_writeMac != null)
@@ -161,6 +185,7 @@ namespace Org.BouncyCastle.Crypto.IO
             m_stream.Write(buffer);
         }
 
+        /// <inheritdoc/>
         public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
         {
             if (m_writeMac != null)
@@ -178,6 +203,7 @@ namespace Org.BouncyCastle.Crypto.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
             if (m_writeMac != null)
@@ -188,6 +214,7 @@ namespace Org.BouncyCastle.Crypto.IO
             m_stream.WriteByte(value);
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

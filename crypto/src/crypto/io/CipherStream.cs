@@ -10,6 +10,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Crypto.IO
 {
+    /// <summary>A stream that passes data through a cipher as it is read or written.</summary>
     public sealed class CipherStream
         : Stream
     {
@@ -20,6 +21,10 @@ namespace Org.BouncyCastle.Crypto.IO
         private int m_readBufPos;
         private bool m_readEnded;
 
+        /// <summary>Create a new <see cref="CipherStream"/>.</summary>
+        /// <param name="stream">The stream.</param>
+        /// <param name="readCipher">The read cipher.</param>
+        /// <param name="writeCipher">The write cipher.</param>
         public CipherStream(Stream stream, IBufferedCipher readCipher, IBufferedCipher writeCipher)
         {
             m_stream = stream;
@@ -38,17 +43,23 @@ namespace Org.BouncyCastle.Crypto.IO
 
         public Stream Stream => m_stream;
 
+        /// <summary>Gets the read cipher.</summary>
         public IBufferedCipher ReadCipher => m_readCipher;
 
+        /// <summary>Gets the write cipher.</summary>
         public IBufferedCipher WriteCipher => m_writeCipher;
 
+        /// <inheritdoc/>
         public override bool CanRead => m_stream.CanRead;
 
+        /// <inheritdoc/>
         public override bool CanSeek => false;
 
+        /// <inheritdoc/>
         public override bool CanWrite => m_stream.CanWrite;
 
 #if NETCOREAPP2_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void CopyTo(Stream destination, int bufferSize)
         {
             Streams.CopyTo(ReadSource, destination, bufferSize);
@@ -56,28 +67,33 @@ namespace Org.BouncyCastle.Crypto.IO
 #endif
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        /// <inheritdoc/>
         public override Task CopyToAsync(Stream destination, int bufferSize, CancellationToken cancellationToken)
         {
             return Streams.CopyToAsync(ReadSource, destination, bufferSize, cancellationToken);
         }
 #endif
 
+        /// <inheritdoc/>
         public override void Flush()
         {
             m_stream.Flush();
         }
 
+        /// <inheritdoc/>
         public override long Length
         {
             get { throw new NotSupportedException(); }
         }
 
+        /// <inheritdoc/>
         public override long Position
         {
             get { throw new NotSupportedException(); }
             set { throw new NotSupportedException(); }
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             if (m_readCipher == null)
@@ -104,6 +120,7 @@ namespace Org.BouncyCastle.Crypto.IO
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             if (m_readCipher == null)
@@ -131,12 +148,14 @@ namespace Org.BouncyCastle.Crypto.IO
             return num;
         }
 
+        /// <inheritdoc/>
         public override ValueTask<int> ReadAsync(Memory<byte> buffer, CancellationToken cancellationToken = default)
         {
             return Streams.ReadAsync(ReadSource, buffer, cancellationToken);
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (m_readCipher == null)
@@ -151,10 +170,13 @@ namespace Org.BouncyCastle.Crypto.IO
             return m_readBuf[m_readBufPos++];
         }
 
+        /// <inheritdoc/>
         public override long Seek(long offset, SeekOrigin origin) => throw new NotSupportedException();
 
+        /// <inheritdoc/>
         public override void SetLength(long length) => throw new NotSupportedException();
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (m_writeCipher == null)
@@ -187,6 +209,7 @@ namespace Org.BouncyCastle.Crypto.IO
         }
 
 #if NETCOREAPP1_0_OR_GREATER || NET45_OR_GREATER || NETSTANDARD1_0_OR_GREATER
+        /// <inheritdoc/>
         public override Task WriteAsync(byte[] buffer, int offset, int count, CancellationToken cancellationToken)
         {
             if (m_writeCipher == null)
@@ -216,6 +239,7 @@ namespace Org.BouncyCastle.Crypto.IO
 #endif
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             if (m_writeCipher == null)
@@ -247,6 +271,7 @@ namespace Org.BouncyCastle.Crypto.IO
             }
         }
 
+        /// <inheritdoc/>
         public override ValueTask WriteAsync(ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default)
         {
             if (m_writeCipher == null)
@@ -273,6 +298,7 @@ namespace Org.BouncyCastle.Crypto.IO
         }
 #endif
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
             if (m_writeCipher == null)
@@ -295,6 +321,7 @@ namespace Org.BouncyCastle.Crypto.IO
             }
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)
