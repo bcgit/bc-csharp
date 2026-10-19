@@ -25,14 +25,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class CertificationRequestInfo
         : Asn1Encodable
     {
-		public static CertificationRequestInfo GetInstance(object obj)
+        public static CertificationRequestInfo GetInstance(object obj)
         {
             if (obj == null)
                 return null;
             if (obj is CertificationRequestInfo certificationRequestInfo)
                 return certificationRequestInfo;
             return new CertificationRequestInfo(Asn1Sequence.GetInstance(obj));
-		}
+        }
 
         public static CertificationRequestInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertificationRequestInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_attributes = ValidateAttributes(attributes);
         }
 
-		private CertificationRequestInfo(Asn1Sequence seq)
+        private CertificationRequestInfo(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
             if (count < 3 || count > 4)

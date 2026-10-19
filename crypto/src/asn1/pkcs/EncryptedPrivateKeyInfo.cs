@@ -25,7 +25,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly AlgorithmIdentifier m_encryptionAlgorithm;
         private readonly Asn1OctetString m_encryptedData;
 
-		private EncryptedPrivateKeyInfo(Asn1Sequence seq)
+        private EncryptedPrivateKeyInfo(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
             if (count != 2)
@@ -57,7 +57,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public byte[] GetEncryptedData() => m_encryptedData.GetOctets();
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * EncryptedPrivateKeyInfo ::= Sequence {

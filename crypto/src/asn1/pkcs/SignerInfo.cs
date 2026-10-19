@@ -86,19 +86,19 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public DerInteger Version => m_version;
 
-		public IssuerAndSerialNumber IssuerAndSerialNumber => m_issuerAndSerialNumber;
+        public IssuerAndSerialNumber IssuerAndSerialNumber => m_issuerAndSerialNumber;
 
         public Asn1Set AuthenticatedAttributes => m_authenticatedAttributes;
 
         public AlgorithmIdentifier DigestAlgorithm => m_digestAlgorithm;
 
-		public Asn1OctetString EncryptedDigest => m_encryptedDigest;
+        public Asn1OctetString EncryptedDigest => m_encryptedDigest;
 
-		public AlgorithmIdentifier DigestEncryptionAlgorithm => m_digestEncryptionAlgorithm;
+        public AlgorithmIdentifier DigestEncryptionAlgorithm => m_digestEncryptionAlgorithm;
 
-		public Asn1Set UnauthenticatedAttributes => m_unauthenticatedAttributes;
+        public Asn1Set UnauthenticatedAttributes => m_unauthenticatedAttributes;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          *  SignerInfo ::= Sequence {

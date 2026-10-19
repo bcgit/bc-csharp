@@ -26,7 +26,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly ContentInfo m_contentInfo;
         private readonly MacData m_macData;
 
-		private Pfx(Asn1Sequence seq)
+        private Pfx(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
             if (count < 2 || count > 3)
@@ -43,7 +43,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public Pfx(ContentInfo contentInfo, MacData macData)
+        public Pfx(ContentInfo contentInfo, MacData macData)
         {
             m_contentInfo = contentInfo ?? throw new ArgumentNullException(nameof(contentInfo));
             m_macData = macData;

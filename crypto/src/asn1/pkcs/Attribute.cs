@@ -12,7 +12,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             if (obj is AttributePkcs attributePkcs)
                 return attributePkcs;
             return new AttributePkcs(Asn1Sequence.GetInstance(obj));
-		}
+        }
 
         public static AttributePkcs GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new AttributePkcs(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
@@ -29,14 +29,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
-			m_attrType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
+            m_attrType = Asn1Utilities.Read(seq, ref pos, DerObjectIdentifier.GetInstance);
             m_attrValues = Asn1Utilities.Read(seq, ref pos, Asn1Set.GetInstance);
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
-		public AttributePkcs(DerObjectIdentifier attrType, Asn1Set attrValues)
+        public AttributePkcs(DerObjectIdentifier attrType, Asn1Set attrValues)
         {
             m_attrType = attrType ?? throw new ArgumentNullException(nameof(attrType));
             m_attrValues = attrValues ?? throw new ArgumentNullException(nameof(attrValues));
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public Asn1Set AttrValues => m_attrValues;
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * Attr ::= Sequence {

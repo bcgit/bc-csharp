@@ -39,7 +39,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_p = new DerInteger(p);
             m_g = new DerInteger(g);
 
-			if (l != 0)
+            if (l != 0)
             {
                 m_l = DerInteger.ValueOf(l);
             }

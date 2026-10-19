@@ -22,30 +22,30 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             new EncryptionScheme(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         public EncryptionScheme(
-            DerObjectIdentifier	objectID)
+            DerObjectIdentifier objectID)
             : base(objectID)
         {
         }
 
         public EncryptionScheme(
-            DerObjectIdentifier	objectID,
-            Asn1Encodable		parameters)
-			: base(objectID, parameters)
-		{
-		}
-
-		internal EncryptionScheme(
-			Asn1Sequence seq)
-			: this((DerObjectIdentifier)seq[0], seq[1])
+            DerObjectIdentifier objectID,
+            Asn1Encodable parameters)
+            : base(objectID, parameters)
         {
         }
 
-		public Asn1Object Asn1Object
-		{
-			get { return Parameters.ToAsn1Object(); }
-		}
+        internal EncryptionScheme(
+            Asn1Sequence seq)
+            : this((DerObjectIdentifier)seq[0], seq[1])
+        {
+        }
 
-		public override Asn1Object ToAsn1Object()
+        public Asn1Object Asn1Object
+        {
+            get { return Parameters.ToAsn1Object(); }
+        }
+
+        public override Asn1Object ToAsn1Object()
         {
             return new DerSequence(Algorithm, Parameters);
         }

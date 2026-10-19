@@ -81,18 +81,18 @@ namespace Org.BouncyCastle.Asn1.Pkcs
 
         public Asn1OctetString MacSalt => m_macSalt;
 
-		/**
-		 * <pre>
-		 * MacData ::= SEQUENCE {
-		 *     mac      DigestInfo,
-		 *     macSalt  OCTET STRING,
-		 *     iterations INTEGER DEFAULT 1
-		 *     -- Note: The default is for historic reasons and its use is deprecated. A
-		 *     -- higher value, like 1024 is recommended.
-		 * </pre>
-		 * @return the basic DERObject construction.
-		 */
-		public override Asn1Object ToAsn1Object()
+        /**
+         * <pre>
+         * MacData ::= SEQUENCE {
+         *     mac      DigestInfo,
+         *     macSalt  OCTET STRING,
+         *     iterations INTEGER DEFAULT 1
+         *     -- Note: The default is for historic reasons and its use is deprecated. A
+         *     -- higher value, like 1024 is recommended.
+         * </pre>
+         * @return the basic DERObject construction.
+         */
+        public override Asn1Object ToAsn1Object()
         {
             return m_iterations.HasValue(1)
                 ?  new DerSequence(m_mac, m_macSalt)

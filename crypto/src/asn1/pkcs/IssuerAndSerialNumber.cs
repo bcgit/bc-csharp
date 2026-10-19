@@ -8,14 +8,14 @@ namespace Org.BouncyCastle.Asn1.Pkcs
     public class IssuerAndSerialNumber
         : Asn1Encodable
     {
-		public static IssuerAndSerialNumber GetInstance(object obj)
+        public static IssuerAndSerialNumber GetInstance(object obj)
         {
             if (obj == null)
                 return null;
             if (obj is IssuerAndSerialNumber issuerAndSerialNumber)
                 return issuerAndSerialNumber;
             return new IssuerAndSerialNumber(Asn1Sequence.GetInstance(obj));
-		}
+        }
 
         public static IssuerAndSerialNumber GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new IssuerAndSerialNumber(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
@@ -29,7 +29,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private IssuerAndSerialNumber(Asn1Sequence seq)
         {
             int count = seq.Count, pos = 0;
-			if (count != 2)
+            if (count != 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
 
             m_issuer = Asn1Utilities.Read(seq, ref pos, X509Name.GetInstance);

@@ -21,13 +21,13 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         private readonly ContentInfo[] m_info;
         private readonly bool m_isBer;
 
-		private AuthenticatedSafe(Asn1Sequence seq)
+        private AuthenticatedSafe(Asn1Sequence seq)
         {
             m_info = seq.MapElements(ContentInfo.GetInstance);
             m_isBer = seq is BerSequence;
         }
 
-		public AuthenticatedSafe(ContentInfo[] info)
+        public AuthenticatedSafe(ContentInfo[] info)
         {
             m_info = Copy(info);
             m_isBer = true;
