@@ -33,6 +33,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         {
         }
 
+        /// <summary>Create a new <see cref="BcTlsRawKeyCertificate"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="keyInfo">The key info.</param>
         public BcTlsRawKeyCertificate(BcTlsCrypto crypto, SubjectPublicKeyInfo keyInfo)
         {
             m_crypto = crypto;
@@ -274,10 +277,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return null;
         }
 
+        /// <inheritdoc/>
         public virtual BigInteger SerialNumber => null;
 
+        /// <inheritdoc/>
         public virtual string SigAlgOid => null;
 
+        /// <inheritdoc/>
         public virtual Asn1Encodable GetSigAlgParams() => null;
 
         /// <exception cref="IOException"/>

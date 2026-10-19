@@ -27,11 +27,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     {
         private readonly SecureRandom m_entropySource;
 
+        /// <summary>Create a new <see cref="BcTlsCrypto"/>.</summary>
         public BcTlsCrypto()
             : this(CryptoServicesRegistrar.GetSecureRandom())
         {
         }
 
+        /// <summary>Create a new <see cref="BcTlsCrypto"/>.</summary>
+        /// <param name="entropySource">The entropy source.</param>
         public BcTlsCrypto(SecureRandom entropySource)
         {
             if (entropySource == null)
@@ -50,6 +53,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             get { return m_entropySource; }
         }
 
+        /// <inheritdoc/>
         public override TlsCertificate CreateCertificate(short type, byte[] encoding)
         {
             switch (type)
@@ -63,6 +67,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override TlsCipher CreateCipher(TlsCryptoParameters cryptoParams, int encryptionAlgorithm,
             int macAlgorithm)
         {
@@ -145,11 +150,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override TlsDHDomain CreateDHDomain(TlsDHConfig dhConfig)
         {
             return new BcTlsDHDomain(this, dhConfig);
         }
 
+        /// <inheritdoc/>
         public override TlsECDomain CreateECDomain(TlsECConfig ecConfig)
         {
             switch (ecConfig.NamedGroup)
@@ -163,11 +170,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override TlsKemDomain CreateKemDomain(TlsKemConfig kemConfig)
         {
             return new BcTlsMLKemDomain(this, kemConfig);
         }
 
+        /// <inheritdoc/>
         public override TlsNonceGenerator CreateNonceGenerator(byte[] additionalSeedMaterial)
         {
             // TODO[api] Require non-null additionalSeedMaterial
@@ -195,6 +204,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override TlsNonceGenerator CreateNonceGenerator(ReadOnlySpan<byte> additionalSeedMaterial)
         {
             int cryptoHashAlgorithm = CryptoHashAlgorithm.sha256;
@@ -214,6 +224,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 #endif
 
+        /// <inheritdoc/>
         public override bool HasAnyStreamVerifiers(IList<SignatureAndHashAlgorithm> signatureAndHashAlgorithms)
         {
             foreach (SignatureAndHashAlgorithm algorithm in signatureAndHashAlgorithms)
@@ -228,11 +239,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return false;
         }
 
+        /// <inheritdoc/>
         public override bool HasAnyStreamVerifiersLegacy(short[] clientCertificateTypes)
         {
             return false;
         }
 
+        /// <inheritdoc/>
         public override bool HasCryptoHashAlgorithm(int cryptoHashAlgorithm)
         {
             switch (cryptoHashAlgorithm)
@@ -252,6 +265,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override bool HasCryptoSignatureAlgorithm(int cryptoSignatureAlgorithm)
         {
             switch (cryptoSignatureAlgorithm)
@@ -279,16 +293,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override bool HasDHAgreement()
         {
             return true;
         }
 
+        /// <inheritdoc/>
         public override bool HasECDHAgreement()
         {
             return true;
         }
 
+        /// <inheritdoc/>
         public override bool HasEncryptionAlgorithm(int encryptionAlgorithm)
         {
             switch (encryptionAlgorithm)
@@ -338,6 +355,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override bool HasHkdfAlgorithm(int cryptoHashAlgorithm)
         {
             switch (cryptoHashAlgorithm)
@@ -353,11 +371,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override bool HasKemAgreement()
         {
             return true;
         }
 
+        /// <inheritdoc/>
         public override bool HasMacAlgorithm(int macAlgorithm)
         {
             switch (macAlgorithm)
@@ -374,6 +394,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override bool HasNamedGroup(int namedGroup)
         {
             return NamedGroup.RefersToASpecificCurve(namedGroup)
@@ -381,11 +402,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
                 || NamedGroup.RefersToASpecificKem(namedGroup);
         }
 
+        /// <inheritdoc/>
         public override bool HasRsaEncryption()
         {
             return true;
         }
 
+        /// <inheritdoc/>
         public override bool HasSignatureAlgorithm(short signatureAlgorithm)
         {
             switch (signatureAlgorithm)
@@ -415,6 +438,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override bool HasSignatureAndHashAlgorithm(SignatureAndHashAlgorithm sigAndHashAlgorithm)
         {
             int signatureScheme = SignatureScheme.From(sigAndHashAlgorithm);
@@ -435,6 +459,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override bool HasSignatureScheme(int signatureScheme)
         {
             switch (signatureScheme)
@@ -471,16 +496,19 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override bool HasSrpAuthentication()
         {
             return true;
         }
 
+        /// <inheritdoc/>
         public override TlsSecret CreateHybridSecret(TlsSecret s1, TlsSecret s2)
         {
             return AdoptLocalSecret(Arrays.Concatenate(s1.Extract(), s2.Extract()));
         }
 
+        /// <inheritdoc/>
         public override TlsSecret CreateSecret(byte[] data)
         {
             try
@@ -497,6 +525,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override TlsSecret GenerateRsaPreMasterSecret(ProtocolVersion version)
         {
             byte[] data = new byte[48];
@@ -555,6 +584,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override TlsHash CreateHash(int cryptoHashAlgorithm)
         {
             return new BcTlsHash(this, cryptoHashAlgorithm);
@@ -745,6 +775,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return CreateGcmMode(CreateSM4Engine());
         }
 
+        /// <inheritdoc/>
         public override TlsHmac CreateHmac(int macAlgorithm)
         {
             switch (macAlgorithm)
@@ -761,6 +792,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override TlsHmac CreateHmacForHash(int cryptoHashAlgorithm)
         {
             return new BcTlsHmac(new HMac(CreateDigest(cryptoHashAlgorithm)));
@@ -797,6 +829,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public override TlsSrp6Client CreateSrp6Client(TlsSrpConfig srpConfig)
         {
             BigInteger[] ng = srpConfig.GetExplicitNG();
@@ -808,6 +841,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsSrp6Client(srp6Client);
         }
 
+        /// <inheritdoc/>
         public override TlsSrp6Server CreateSrp6Server(TlsSrpConfig srpConfig, BigInteger srpVerifier)
         {
             BigInteger[] ng = srpConfig.GetExplicitNG();
@@ -819,6 +853,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsSrp6Server(srp6Server);
         }
 
+        /// <inheritdoc/>
         public override TlsSrp6VerifierGenerator CreateSrp6VerifierGenerator(TlsSrpConfig srpConfig)
         {
             BigInteger[] ng = srpConfig.GetExplicitNG();
@@ -829,6 +864,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return new BcTlsSrp6VerifierGenerator(srp6VerifierGenerator);
         }
 
+        /// <inheritdoc/>
         public override TlsSecret HkdfInit(int cryptoHashAlgorithm)
         {
             return AdoptLocalSecret(new byte[TlsCryptoUtilities.GetHashOutputSize(cryptoHashAlgorithm)]);

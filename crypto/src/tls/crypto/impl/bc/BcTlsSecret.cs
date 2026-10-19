@@ -44,12 +44,16 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected readonly BcTlsCrypto m_crypto;
 
+        /// <summary>Create a new <see cref="BcTlsSecret"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="data">The data.</param>
         public BcTlsSecret(BcTlsCrypto crypto, byte[] data)
             : base(data)
         {
             this.m_crypto = crypto;
         }
 
+        /// <inheritdoc/>
         public override TlsSecret DeriveUsingPrf(int prfAlgorithm, string label, byte[] seed, int length)
         {
             lock (this)
@@ -71,6 +75,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override TlsSecret DeriveUsingPrf(int prfAlgorithm, ReadOnlySpan<char> label, ReadOnlySpan<byte> seed,
             int length)
         {
@@ -93,6 +98,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 #endif
 
+        /// <inheritdoc/>
         public override TlsSecret HkdfExpand(int cryptoHashAlgorithm, byte[] info, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -145,6 +151,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override TlsSecret HkdfExpand(int cryptoHashAlgorithm, ReadOnlySpan<byte> info, int length)
         {
             if (length < 1)
@@ -195,6 +202,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 #endif
 
+        /// <inheritdoc/>
         public override TlsSecret HkdfExtract(int cryptoHashAlgorithm, TlsSecret ikm)
         {
             byte[] salt = Extract();

@@ -6,11 +6,14 @@
     {
         protected readonly BcTlsCrypto m_crypto;
 
+        /// <summary>Create a new <see cref="BcX448Domain"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         public BcX448Domain(BcTlsCrypto crypto)
         {
             m_crypto = crypto;
         }
 
+        /// <inheritdoc/>
         public virtual TlsAgreement CreateECDH()
         {
             return new BcX448(m_crypto);

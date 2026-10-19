@@ -54,6 +54,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly TlsECConfig m_config;
         protected readonly ECDomainParameters m_domainParameters;
 
+        /// <summary>Create a new <see cref="BcTlsECDomain"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="ecConfig">The ec config.</param>
         public BcTlsECDomain(BcTlsCrypto crypto, TlsECConfig ecConfig)
         {
             m_crypto = crypto;
@@ -67,6 +70,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return CalculateECDHAgreement(m_crypto, privateKey, publicKey);
         }
 
+        /// <inheritdoc/>
         public virtual TlsAgreement CreateECDH()
         {
             return new BcTlsECDH(this);

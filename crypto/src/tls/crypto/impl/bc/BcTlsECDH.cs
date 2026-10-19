@@ -13,11 +13,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected AsymmetricCipherKeyPair m_localKeyPair;
         protected ECPublicKeyParameters m_peerPublicKey;
 
+        /// <summary>Create a new <see cref="BcTlsECDH"/>.</summary>
+        /// <param name="domain">The domain.</param>
         public BcTlsECDH(BcTlsECDomain domain)
         {
             m_domain = domain;
         }
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateEphemeral()
         {
             m_localKeyPair = m_domain.GenerateKeyPair();
@@ -25,11 +28,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return m_domain.EncodePublicKey((ECPublicKeyParameters)m_localKeyPair.Public);
         }
 
+        /// <inheritdoc/>
         public virtual void ReceivePeerValue(byte[] peerValue)
         {
             m_peerPublicKey = m_domain.DecodePublicKey(peerValue);
         }
 
+        /// <inheritdoc/>
         public virtual TlsSecret CalculateSecret()
         {
             return m_domain.CalculateECDHAgreement((ECPrivateKeyParameters)m_localKeyPair.Private, m_peerPublicKey);

@@ -14,6 +14,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly Certificate m_certificate;
         protected readonly AsymmetricKeyParameter m_privateKey;
 
+        /// <summary>Create a new <see cref="BcDefaultTlsCredentialedDecryptor"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="certificate">The certificate.</param>
+        /// <param name="privateKey">The private key.</param>
         public BcDefaultTlsCredentialedDecryptor(BcTlsCrypto crypto, Certificate certificate,
             AsymmetricKeyParameter privateKey)
         {
@@ -43,6 +47,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         public virtual Certificate Certificate => m_certificate;
 
+        /// <inheritdoc/>
         public virtual TlsSecret Decrypt(TlsCryptoParameters cryptoParams, byte[] ciphertext)
         {
             return SafeDecryptPreMasterSecret(cryptoParams, (RsaKeyParameters)m_privateKey, ciphertext);

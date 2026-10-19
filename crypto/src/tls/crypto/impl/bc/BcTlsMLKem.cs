@@ -13,11 +13,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected MLKemPublicKeyParameters m_publicKey;
         protected TlsSecret m_secret;
 
+        /// <summary>Create a new <see cref="BcTlsMLKem"/>.</summary>
+        /// <param name="domain">The domain.</param>
         public BcTlsMLKem(BcTlsMLKemDomain domain)
         {
             m_domain = domain;
         }
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateEphemeral()
         {
             if (m_domain.IsServer)
@@ -34,6 +37,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public virtual void ReceivePeerValue(byte[] peerValue)
         {
             if (m_domain.IsServer)
@@ -47,6 +51,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public virtual TlsSecret CalculateSecret()
         {
             TlsSecret secret = m_secret;

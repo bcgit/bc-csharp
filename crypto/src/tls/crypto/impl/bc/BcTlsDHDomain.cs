@@ -51,6 +51,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly TlsDHConfig m_config;
         protected readonly DHParameters m_domainParameters;
 
+        /// <summary>Create a new <see cref="BcTlsDHDomain"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="dhConfig">The dh config.</param>
         public BcTlsDHDomain(BcTlsCrypto crypto, TlsDHConfig dhConfig)
         {
             m_crypto = crypto;
@@ -64,6 +67,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return CalculateDHAgreement(m_crypto, privateKey, publicKey, m_config.IsPadded);
         }
 
+        /// <inheritdoc/>
         public virtual TlsAgreement CreateDH()
         {
             return new BcTlsDH(this);

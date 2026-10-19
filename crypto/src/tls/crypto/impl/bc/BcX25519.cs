@@ -13,11 +13,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly byte[] m_privateKey = new byte[X25519.ScalarSize];
         protected readonly byte[] m_peerPublicKey = new byte[X25519.PointSize];
 
+        /// <summary>Create a new <see cref="BcX25519"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         public BcX25519(BcTlsCrypto crypto)
         {
             m_crypto = crypto;
         }
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateEphemeral()
         {
             X25519.GeneratePrivateKey(m_crypto.SecureRandom, m_privateKey);
@@ -27,6 +30,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return publicKey;
         }
 
+        /// <inheritdoc/>
         public virtual void ReceivePeerValue(byte[] peerValue)
         {
             if (peerValue == null || peerValue.Length != X25519.PointSize)
@@ -35,6 +39,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             Array.Copy(peerValue, 0, m_peerPublicKey, 0, X25519.PointSize);
         }
 
+        /// <inheritdoc/>
         public virtual TlsSecret CalculateSecret()
         {
             try

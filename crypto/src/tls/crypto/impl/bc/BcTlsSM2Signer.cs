@@ -11,6 +11,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     {
         private readonly byte[] m_identifier;
 
+        /// <summary>Create a new <see cref="BcTlsSM2Signer"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="identifier">The identifier.</param>
         [Obsolete("Will be removed")]
         public BcTlsSM2Signer(BcTlsCrypto crypto, ECPrivateKeyParameters privateKey, byte[] identifier)
             : base(crypto, privateKey)
@@ -18,6 +22,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_identifier = Arrays.Clone(identifier);
         }
 
+        /// <summary>Create a new <see cref="BcTlsSM2Signer"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="signatureScheme">The signature scheme.</param>
         public BcTlsSM2Signer(BcTlsCrypto crypto, ECPrivateKeyParameters privateKey, int signatureScheme)
             : base(crypto, privateKey)
         {
@@ -28,6 +36,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_identifier = Strings.ToByteArray("TLSv1.3+GM+Cipher+Suite");
         }
 
+        /// <inheritdoc/>
         public override TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)
         {
             if (algorithm == null || SignatureScheme.From(algorithm) != SignatureScheme.sm2sig_sm3)

@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly BcTlsCrypto m_crypto;
         protected readonly AsymmetricKeyParameter m_publicKey;
 
+        /// <summary>Create a new <see cref="BcTlsVerifier"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="publicKey">The public key.</param>
         protected BcTlsVerifier(BcTlsCrypto crypto, AsymmetricKeyParameter publicKey)
         {
             if (crypto == null)
@@ -23,8 +26,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_publicKey = publicKey;
         }
 
+        /// <inheritdoc/>
         public virtual TlsStreamVerifier GetStreamVerifier(DigitallySigned digitallySigned) => null;
 
+        /// <inheritdoc/>
         public virtual bool VerifyRawSignature(DigitallySigned digitallySigned, byte[] hash) =>
             throw new NotSupportedException();
     }

@@ -32,6 +32,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         protected readonly MLKemParameters m_domainParameters;
         protected readonly bool m_isServer;
 
+        /// <summary>Create a new <see cref="BcTlsMLKemDomain"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="kemConfig">The kem config.</param>
         public BcTlsMLKemDomain(BcTlsCrypto crypto, TlsKemConfig kemConfig)
         {
             m_crypto = crypto;
@@ -40,6 +43,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_isServer = kemConfig.IsServer;
         }
 
+        /// <inheritdoc/>
         public virtual TlsAgreement CreateKem()
         {
             return new BcTlsMLKem(this);
@@ -77,6 +81,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return keyPairGenerator.GenerateKeyPair();
         }
 
+        /// <summary>Gets a value indicating whether this is server.</summary>
         public virtual bool IsServer => m_isServer;
     }
 }

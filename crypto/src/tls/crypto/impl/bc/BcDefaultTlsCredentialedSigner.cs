@@ -5,7 +5,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
-    /// <summary>Credentialed class for generating signatures based on the use of primitives from the BC light-weight API.</summary>
+    /// <summary>
+    /// Credentialed class for generating signatures based on the use of primitives from the BC light-weight API.
+    /// </summary>
     public class BcDefaultTlsCredentialedSigner
         : DefaultTlsCredentialedSigner
     {
@@ -81,6 +83,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <summary>Create a new <see cref="BcDefaultTlsCredentialedSigner"/>.</summary>
+        /// <param name="cryptoParams">The crypto params.</param>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="certificate">The certificate.</param>
+        /// <param name="signatureAndHashAlgorithm">The signature and hash algorithm.</param>
         public BcDefaultTlsCredentialedSigner(TlsCryptoParameters cryptoParams, BcTlsCrypto crypto,
             AsymmetricKeyParameter privateKey, Certificate certificate,
             SignatureAndHashAlgorithm signatureAndHashAlgorithm)

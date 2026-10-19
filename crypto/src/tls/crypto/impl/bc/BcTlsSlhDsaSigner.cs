@@ -28,6 +28,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             m_signatureScheme = signatureScheme;
         }
 
+        /// <inheritdoc/>
         public override TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)
         {
             if (algorithm == null || SignatureScheme.From(algorithm) != m_signatureScheme)

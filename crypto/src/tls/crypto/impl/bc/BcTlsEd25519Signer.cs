@@ -8,11 +8,15 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public class BcTlsEd25519Signer
         : BcTlsSigner
     {
+        /// <summary>Create a new <see cref="BcTlsEd25519Signer"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
         public BcTlsEd25519Signer(BcTlsCrypto crypto, Ed25519PrivateKeyParameters privateKey)
             : base(crypto, privateKey)
         {
         }
 
+        /// <inheritdoc/>
         public override TlsStreamSigner GetStreamSigner(SignatureAndHashAlgorithm algorithm)
         {
             if (algorithm == null || SignatureScheme.From(algorithm) != SignatureScheme.ed25519)

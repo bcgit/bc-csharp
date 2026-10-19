@@ -20,11 +20,14 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         private int m_additionalDataLength;
 
+        /// <summary>Create a new <see cref="BcChaCha20Poly1305"/>.</summary>
+        /// <param name="isEncrypting">true if is encrypting, false otherwise.</param>
         public BcChaCha20Poly1305(bool isEncrypting)
         {
             this.m_isEncrypting = isEncrypting;
         }
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] input, int inputOffset, int inputLength, byte[] output, int outputOffset)
         {
             if (m_isEncrypting)
@@ -74,6 +77,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] additionalData, byte[] input, int inputOffset, int inputLength, byte[] output,
             int outputOffset)
         {
@@ -89,11 +93,13 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             return DoFinal(input, inputOffset, inputLength, output, outputOffset);
         }
 
+        /// <inheritdoc/>
         public int GetOutputSize(int inputLength)
         {
             return m_isEncrypting ? inputLength + 16 : inputLength - 16;
         }
 
+        /// <inheritdoc/>
         public void Init(byte[] nonce, int macSize, byte[] additionalData)
         {
             if (nonce == null || nonce.Length != 12 || macSize != 16)
@@ -112,10 +118,12 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
             }
         }
 
+        /// <inheritdoc/>
         public void Reset()
         {
         }
 
+        /// <inheritdoc/>
         public void SetKey(byte[] key, int keyOff, int keyLen)
         {
             KeyParameter cipherKey = new KeyParameter(key, keyOff, keyLen);
@@ -123,6 +131,7 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void SetKey(ReadOnlySpan<byte> key)
         {
             KeyParameter cipherKey = new KeyParameter(key);

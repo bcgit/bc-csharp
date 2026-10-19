@@ -12,6 +12,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
     public abstract class BcTlsDssSigner
         : BcTlsSigner
     {
+        /// <summary>Create a new <see cref="BcTlsDssSigner"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="privateKey">The private key.</param>
         protected BcTlsDssSigner(BcTlsCrypto crypto, AsymmetricKeyParameter privateKey)
             : base(crypto, privateKey)
         {
@@ -19,8 +22,10 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 
         protected abstract IDsa CreateDsaImpl(int cryptoHashAlgorithm);
 
+        /// <summary>Gets the signature algorithm.</summary>
         protected abstract short SignatureAlgorithm { get; }
 
+        /// <inheritdoc/>
         public override byte[] GenerateRawSignature(SignatureAndHashAlgorithm algorithm, byte[] hash)
         {
             if (algorithm != null && algorithm.Signature != SignatureAlgorithm)
