@@ -18,11 +18,14 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 
         private DHKdfParameters m_parameters;
 
+        /// <summary>Create a new <see cref="DHKekGenerator"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public DHKekGenerator(IDigest digest)
         {
             m_digest = digest ?? throw new ArgumentNullException(nameof(digest));
         }
 
+        /// <inheritdoc/>
         public void Init(IDerivationParameters param)
         {
             m_parameters = (DHKdfParameters)param ?? throw new ArgumentNullException(nameof(param));
@@ -30,6 +33,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
 
         public IDigest Digest => m_digest;
 
+        /// <inheritdoc/>
         public int GenerateBytes(byte[] outBytes, int outOff, int length)
         {
             Check.OutputLength(outBytes, outOff, length, "output buffer too short");
@@ -84,6 +88,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int GenerateBytes(Span<byte> output)
         {
             m_digest.Reset();

@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
             m_hLen = digest.GetDigestSize();
         }
 
+        /// <inheritdoc/>
         public void Init(IDerivationParameters param)
         {
             if (!(param is KdfParameters kdfParameters))
@@ -85,6 +86,7 @@ namespace Org.BouncyCastle.Crypto.Agreement.Kdf
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int GenerateBytes(Span<byte> output)
         {
             if (output.Length <= 0)
