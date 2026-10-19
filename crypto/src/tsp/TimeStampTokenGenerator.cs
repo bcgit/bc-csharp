@@ -35,7 +35,7 @@ namespace Org.BouncyCastle.Tsp
         private SignerInfoGenerator signerInfoGenerator;
 
         private Resolution resolution = Resolution.R_SECONDS;
-      
+
         public Resolution Resolution
         {
             get { return resolution; }
@@ -246,7 +246,7 @@ namespace Org.BouncyCastle.Tsp
                     foreach(var oid in respExtensions.ExtensionOids)
                     {
                         extGen.AddExtension(oid, respExtensions.GetExtension(oid));
-                    }                   
+                    }
                 }
 
                 foreach (var oid in additionalExtensions.ExtensionOids)
