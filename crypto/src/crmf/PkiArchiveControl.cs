@@ -7,11 +7,15 @@ using Org.BouncyCastle.Cms;
 
 namespace Org.BouncyCastle.Crmf
 {
+    /// <summary>A registration control (PKIArchiveOptions) asking for a private key to be archived.</summary>
     public class PkiArchiveControl
         : IControl
     {
+        /// <summary>Archive type: the private key is supplied encrypted.</summary>
         public static readonly int encryptedPrivKey = PkiArchiveOptions.encryptedPrivKey;
+        /// <summary>Archive type: parameters for generating the key.</summary>
         public static readonly int keyGenParameters = PkiArchiveOptions.keyGenParameters;
+        /// <summary>Archive type: whether to archive a remotely generated private key.</summary>
         public static readonly int archiveRemGenPrivKey = PkiArchiveOptions.archiveRemGenPrivKey;
 
         private readonly PkiArchiveOptions m_pkiArchiveOptions;

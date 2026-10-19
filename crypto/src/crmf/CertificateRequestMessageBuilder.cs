@@ -10,6 +10,11 @@ using Org.BouncyCastle.X509;
 
 namespace Org.BouncyCastle.Crmf
 {
+    /// <summary>Builder for <see cref="CertificateRequestMessage"/> objects.</summary>
+    /// <remarks>
+    /// Set the fields of the certificate template, add any controls and choose one proof of possession, then call
+    /// <see cref="Build"/>.
+    /// </remarks>
     public class CertificateRequestMessageBuilder
     {
         private readonly List<IControl> m_controls = new List<IControl>();
@@ -28,17 +33,25 @@ namespace Org.BouncyCastle.Crmf
         private PKMacValue m_agreeMac = null;
         private AttributeTypeAndValue[] m_regInfo = null;
 
+        /// <summary>Create a builder.</summary>
+        /// <param name="certReqId">The identifier for the certificate request.</param>
         public CertificateRequestMessageBuilder(BigInteger certReqId)
         {
             m_certReqID = certReqId;
         }
 
+        /// <summary>Set the registration information (regInfo) of the request.</summary>
+        /// <param name="regInfo">The registration information.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetRegInfo(AttributeTypeAndValue[] regInfo)
         {
             m_regInfo = regInfo;
             return this;
         }
 
+        /// <summary>Set the public key of the certificate template.</summary>
+        /// <param name="publicKey">The public key.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetPublicKey(AsymmetricKeyParameter publicKey) =>
             SetSubjectPublicKeyInfo(SubjectPublicKeyInfoFactory.CreateSubjectPublicKeyInfo(publicKey));
 
@@ -46,6 +59,9 @@ namespace Org.BouncyCastle.Crmf
         public CertificateRequestMessageBuilder SetPublicKey(SubjectPublicKeyInfo publicKeyInfo) =>
             SetSubjectPublicKeyInfo(spki: publicKeyInfo);
 
+        /// <summary>Set the public key info of the certificate template; null is ignored.</summary>
+        /// <param name="spki">The public key info.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetSubjectPublicKeyInfo(SubjectPublicKeyInfo spki)
         {
             if (spki != null)
@@ -56,6 +72,9 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Set the issuer of the certificate template; null is ignored.</summary>
+        /// <param name="issuer">The issuer name.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetIssuer(X509Name issuer)
         {
             if (issuer != null)
@@ -66,6 +85,9 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Set the subject of the certificate template; null is ignored.</summary>
+        /// <param name="subject">The subject name.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetSubject(X509Name subject)
         {
             if (subject != null)
@@ -76,6 +98,9 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Set the serial number of the certificate template; null is ignored.</summary>
+        /// <param name="serialNumber">The serial number.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetSerialNumber(BigInteger serialNumber)
         {
             if (serialNumber != null)
@@ -86,6 +111,9 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Set the serial number of the certificate template; null is ignored.</summary>
+        /// <param name="serialNumber">The serial number.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetSerialNumber(DerInteger serialNumber)
         {
             if (serialNumber != null)
@@ -96,18 +124,30 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Set the validity of the certificate template.</summary>
+        /// <param name="validity">The validity.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetValidity(OptionalValidity validity)
         {
             m_templateBuilder.SetValidity(validity);
             return this;
         }
 
+        /// <summary>Set the validity of the certificate template.</summary>
+        /// <param name="notBefore">The start of the validity, or null.</param>
+        /// <param name="notAfter">The end of the validity, or null.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetValidity(DateTime? notBefore, DateTime? notAfter)
         {
             m_templateBuilder.SetValidity(notBefore, notAfter);
             return this;
         }
 
+        /// <summary>Add an extension to the certificate template.</summary>
+        /// <param name="oid">The extension's object identifier.</param>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="value">The extension value.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder AddExtension(DerObjectIdentifier oid, bool critical,
             Asn1Encodable value)
         {
@@ -115,6 +155,11 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Add an extension to the certificate template.</summary>
+        /// <param name="oid">The extension's object identifier.</param>
+        /// <param name="critical">Whether the extension is critical.</param>
+        /// <param name="value">The extension value, as the contents of the extension's octet string.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder AddExtension(DerObjectIdentifier oid, bool critical,
             byte[] value)
         {
@@ -122,12 +167,19 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Add a control to the request.</summary>
+        /// <param name="control">The control.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder AddControl(IControl control)
         {
             m_controls.Add(control);
             return this;
         }
 
+        /// <summary>Use a signature made with the private key as the proof of possession.</summary>
+        /// <param name="popoSignatureFactory">The factory for the signature calculator.</param>
+        /// <returns>This builder.</returns>
+        /// <exception cref="InvalidOperationException">A proof of possession has already been set.</exception>
         public CertificateRequestMessageBuilder SetProofOfPossessionSignKeySigner(
             ISignatureFactory popoSignatureFactory)
         {
@@ -138,6 +190,10 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Use a subsequent message with key encipherment as the proof of possession.</summary>
+        /// <param name="msg">The subsequent message option.</param>
+        /// <returns>This builder.</returns>
+        /// <exception cref="InvalidOperationException">A proof of possession has already been set.</exception>
         public CertificateRequestMessageBuilder SetProofOfPossessionSubsequentMessage(SubsequentMessage msg)
         {
             if (m_popoPrivKey != null || m_popRaVerified != null || m_agreeMac != null)
@@ -148,6 +204,14 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Use a subsequent message as the proof of possession.</summary>
+        /// <param name="type">The proof-of-possession type: key encipherment or key agreement.</param>
+        /// <param name="msg">The subsequent message option.</param>
+        /// <returns>This builder.</returns>
+        /// <exception cref="InvalidOperationException">A proof of possession has already been set.</exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="type"/> is neither key encipherment nor key agreement.
+        /// </exception>
         public CertificateRequestMessageBuilder SetProofOfPossessionSubsequentMessage(int type, SubsequentMessage msg)
         {
             if (m_popoPrivKey != null || m_popRaVerified != null || m_agreeMac != null)
@@ -160,6 +224,10 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>Use a MAC from key agreement as the proof of possession.</summary>
+        /// <param name="macValue">The MAC value.</param>
+        /// <returns>This builder.</returns>
+        /// <exception cref="InvalidOperationException">A proof of possession has already been set.</exception>
         public CertificateRequestMessageBuilder SetProofOfPossessionAgreeMac(PKMacValue macValue)
         {
             if (m_popSigner != null || m_popRaVerified != null || m_popoPrivKey != null)
@@ -169,6 +237,11 @@ namespace Org.BouncyCastle.Crmf
             return this;
         }
 
+        /// <summary>
+        /// Indicate that the registration authority has already verified possession of the private key.
+        /// </summary>
+        /// <returns>This builder.</returns>
+        /// <exception cref="InvalidOperationException">Another proof of possession has already been set.</exception>
         public CertificateRequestMessageBuilder SetProofOfPossessionRaVerified()
         {
             if (m_popSigner != null || m_popoPrivKey != null)
@@ -184,6 +257,12 @@ namespace Org.BouncyCastle.Crmf
             return SetAuthInfoPKMacBuilder(pkmacFactory, password);
         }
 
+        /// <summary>
+        /// Set the PKMAC builder and password used to authenticate a signing key proof of possession.
+        /// </summary>
+        /// <param name="pkmacFactory">The PKMAC builder.</param>
+        /// <param name="password">The password for the MAC.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetAuthInfoPKMacBuilder(PKMacBuilder pkmacFactory, char[] password)
         {
             m_pkMacBuilder = pkmacFactory;
@@ -192,6 +271,12 @@ namespace Org.BouncyCastle.Crmf
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>
+        /// Set the PKMAC builder and password used to authenticate a signing key proof of possession.
+        /// </summary>
+        /// <param name="pkmacFactory">The PKMAC builder.</param>
+        /// <param name="password">The password for the MAC.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetAuthInfoPKMacBuilder(PKMacBuilder pkmacFactory,
             ReadOnlySpan<char> password)
         {
@@ -201,15 +286,22 @@ namespace Org.BouncyCastle.Crmf
         }
 #endif
 
+        /// <summary>Set the sender name used to authenticate a signing key proof of possession.</summary>
+        /// <param name="sender">The sender name.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetAuthInfoSender(X509Name sender) =>
             SetAuthInfoSender(new GeneralName(sender));
 
+        /// <summary>Set the sender name used to authenticate a signing key proof of possession.</summary>
+        /// <param name="sender">The sender name.</param>
+        /// <returns>This builder.</returns>
         public CertificateRequestMessageBuilder SetAuthInfoSender(GeneralName sender)
         {
             m_sender = sender;
             return this;
         }
 
+        /// <summary>Build the certificate request message.</summary>
         public CertificateRequestMessage Build()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);

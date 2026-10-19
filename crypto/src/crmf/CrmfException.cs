@@ -5,20 +5,27 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crmf
 {
+    /// <summary>Exception thrown when a CRMF structure cannot be created or processed.</summary>
     [Serializable]
     public class CrmfException
         : Exception
     {
+        /// <summary>Create an exception with no detail message.</summary>
         public CrmfException()
             : base()
         {
         }
 
+        /// <summary>Create an exception with the specified detail message.</summary>
+        /// <param name="message">The detail message.</param>
         public CrmfException(string message)
             : base(message)
         {
         }
 
+        /// <summary>Create an exception with the specified detail message and cause.</summary>
+        /// <param name="message">The detail message.</param>
+        /// <param name="innerException">The cause.</param>
         public CrmfException(string message, Exception innerException)
             : base(message, innerException)
         {

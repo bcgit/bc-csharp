@@ -12,22 +12,25 @@ namespace Org.BouncyCastle.Crmf
         private readonly List<CertResponse> m_responses = new List<CertResponse>();
         private readonly CmpCertificate[] m_caCerts;
 
-        /**
-         * Base constructor which can accept 0 or more certificates representing the CA plus its chain.
-         *
-         * @param caCerts the CA public key and it's support certificates (optional)
-         */
+        /// <summary>
+        /// Base constructor which can accept 0 or more certificates representing the CA plus its chain.
+        /// </summary>
+        /// <param name="caCerts">The CA public key and its support certificates (optional).</param>
         public CertificateRepMessageBuilder(params X509Certificate[] caCerts)
         {
             m_caCerts = Array.ConvertAll(caCerts, caCert => new CmpCertificate(caCert.CertificateStructure));
         }
 
+        /// <summary>Add a certificate response.</summary>
+        /// <param name="response">The response to add.</param>
+        /// <returns>This builder.</returns>
         public virtual CertificateRepMessageBuilder AddCertificateResponse(CertificateResponse response)
         {
             m_responses.Add(response.ToAsn1Structure());
             return this;
         }
 
+        /// <summary>Build the message from the responses added so far, then clear the responses.</summary>
         public virtual CertificateRepMessage Build()
         {
             var caPubs = m_caCerts;
