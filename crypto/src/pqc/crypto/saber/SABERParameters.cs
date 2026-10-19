@@ -16,7 +16,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Saber
         public static SaberParameters lightsaberkem256r3 = new SaberParameters("lightsaberkem256r3", 2, 256, false, false);
         public static SaberParameters saberkem256r3 = new SaberParameters("saberkem256r3", 3, 256, false, false);
         public static SaberParameters firesaberkem256r3 = new SaberParameters("firesaberkem256r3", 4, 256, false, false);
-        
+
         public static SaberParameters lightsaberkem90sr3 = new SaberParameters("lightsaberkem90sr3", 2, 256, true, false);
         public static SaberParameters saberkem90sr3 = new SaberParameters("saberkem90sr3", 3, 256, true, false);
         public static SaberParameters firesaberkem90sr3 = new SaberParameters("firesaberkem90sr3", 4, 256, true, false);
