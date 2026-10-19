@@ -19,12 +19,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             m_nonceLength = nonceLength;
         }
 
+        /// <summary>Gets the log n.</summary>
         public int LogN => m_logN;
 
+        /// <summary>Gets the nonce length.</summary>
         public int NonceLength => m_nonceLength;
 
+        /// <summary>Gets the name.</summary>
         public string Name => m_name;
 
+        /// <inheritdoc/>
         public override string ToString() => Name;
     }
 }

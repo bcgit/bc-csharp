@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
     {
         private readonly FalconParameters m_parameters;
 
+        /// <summary>Create a new <see cref="FalconKeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="parameters">The parameters.</param>
         public FalconKeyGenerationParameters(SecureRandom random, FalconParameters parameters)
             : base(random, 320)
         {

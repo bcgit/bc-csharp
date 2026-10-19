@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         private FalconNist m_nist;
         //private int m_pkSize;
 
+        /// <inheritdoc/>
         public void Init(KeyGenerationParameters param)
         {
             m_parameters = (FalconKeyGenerationParameters)param;
@@ -37,6 +38,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             //m_pkSize = 1 + (14 * n / 8);
         }
 
+        /// <inheritdoc/>
         public AsymmetricCipherKeyPair GenerateKeyPair()
         {
             m_nist.CryptoSignKeyPair(out byte[] pk, out byte[] f, out byte[] g, out byte[] F);

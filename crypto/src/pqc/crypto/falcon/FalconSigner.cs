@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
         private byte[] encodedkey;
         private FalconNist nist;
 
+        /// <inheritdoc/>
         public void Init(bool forSigning, ICipherParameters param)
         {
             param = ParameterUtilities.GetRandom(param, out var providedRandom);
@@ -36,6 +37,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             nist = new FalconNist(random, parameters.LogN, parameters.NonceLength);
         }
 
+        /// <inheritdoc/>
         public byte[] GenerateSignature(byte[] message)
         {
             byte[] sm = new byte[nist.CryptoBytes];
@@ -43,6 +45,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Falcon
             return nist.CryptoSign(false, sm, message, 0, message.Length, encodedkey, 0);
         }
 
+        /// <inheritdoc/>
         public bool VerifySignature(byte[] message, byte[] signature)
         {
             if (signature[0] != (byte)(0x30 + nist.LogN))
