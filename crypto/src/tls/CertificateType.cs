@@ -5,7 +5,9 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 6091</summary>
     public abstract class CertificateType
     {
+        /// <summary>The <c>X509</c> constant, with the value <c>0</c>.</summary>
         public const short X509 = 0;
+        /// <summary>The <c>OpenPGP</c> constant, with the value <c>1</c>.</summary>
         public const short OpenPGP = 1;
 
         /*

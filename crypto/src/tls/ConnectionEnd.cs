@@ -9,7 +9,9 @@ namespace Org.BouncyCastle.Tls
     /// </remarks>
     public abstract class ConnectionEnd
     {
+        /// <summary>The <c>server</c> constant, with the value <c>0</c>.</summary>
         public const int server = 0;
+        /// <summary>The <c>client</c> constant, with the value <c>1</c>.</summary>
         public const int client = 1;
     }
 }

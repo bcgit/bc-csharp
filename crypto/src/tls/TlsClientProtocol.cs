@@ -78,6 +78,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         protected override void BeginHandshake()
         {
             base.BeginHandshake();
@@ -86,6 +87,7 @@ namespace Org.BouncyCastle.Tls
             this.m_connectionState = CS_CLIENT_HELLO;
         }
 
+        /// <inheritdoc/>
         protected override void CleanupHandshake()
         {
             base.CleanupHandshake();
@@ -328,6 +330,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         protected override void HandleHandshakeMessage(short type, HandshakeMessageInput buf)
         {
             SecurityParameters securityParameters = m_tlsClientContext.SecurityParameters;

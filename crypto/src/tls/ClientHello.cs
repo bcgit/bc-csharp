@@ -17,6 +17,14 @@ namespace Org.BouncyCastle.Tls
         private readonly IDictionary<int, byte[]> m_extensions;
         private readonly int m_bindersSize;
 
+        /// <summary>Create a new <see cref="ClientHello"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="sessionID">The session ID.</param>
+        /// <param name="cookie">The cookie.</param>
+        /// <param name="cipherSuites">The cipher suites.</param>
+        /// <param name="extensions">The extensions.</param>
+        /// <param name="bindersSize">The binders size.</param>
         public ClientHello(ProtocolVersion version, byte[] random, byte[] sessionID, byte[] cookie,
             int[] cipherSuites, IDictionary<int, byte[]> extensions, int bindersSize)
         {
@@ -29,31 +37,37 @@ namespace Org.BouncyCastle.Tls
             this.m_bindersSize = bindersSize;
         }
 
+        /// <summary>Gets the binders size.</summary>
         public int BindersSize
         {
             get { return m_bindersSize; }
         }
 
+        /// <summary>Gets the cipher suites.</summary>
         public int[] CipherSuites
         {
             get { return m_cipherSuites; }
         }
 
+        /// <summary>Gets the cookie.</summary>
         public byte[] Cookie
         {
             get { return m_cookie; }
         }
 
+        /// <summary>Gets the extensions.</summary>
         public IDictionary<int, byte[]> Extensions
         {
             get { return m_extensions; }
         }
 
+        /// <summary>Gets the random.</summary>
         public byte[] Random
         {
             get { return m_random; }
         }
 
+        /// <summary>Gets the session ID.</summary>
         public byte[] SessionID
         {
             get { return m_sessionID; }

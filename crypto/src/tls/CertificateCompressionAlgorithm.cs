@@ -7,8 +7,11 @@ namespace Org.BouncyCastle.Tls
      */
     public abstract class CertificateCompressionAlgorithm
     {
+        /// <summary>The <c>zlib</c> constant, with the value <c>1</c>.</summary>
         public const int zlib = 1;
+        /// <summary>The <c>brotli</c> constant, with the value <c>2</c>.</summary>
         public const int brotli = 2;
+        /// <summary>The <c>zstd</c> constant, with the value <c>3</c>.</summary>
         public const int zstd = 3;
 
         public static string GetName(int certificateCompressionAlgorithm)

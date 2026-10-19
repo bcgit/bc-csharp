@@ -5,7 +5,9 @@ namespace Org.BouncyCastle.Tls
     /// <summary>Implementation of the RFC 3546 3.3. CertChainType.</summary>
     public abstract class CertChainType
     {
+        /// <summary>The <c>individual_certs</c> constant, with the value <c>0</c>.</summary>
         public const short individual_certs = 0;
+        /// <summary>The <c>pkipath</c> constant, with the value <c>1</c>.</summary>
         public const short pkipath = 1;
 
         public static string GetName(short certChainType)

@@ -38,6 +38,7 @@ namespace Org.BouncyCastle.Tls
             this.m_groups = new List<Srp6Group>(groups);
         }
 
+        /// <inheritdoc/>
         public virtual bool Accept(TlsSrpConfig srpConfig)
         {
             foreach (Srp6Group group in m_groups)

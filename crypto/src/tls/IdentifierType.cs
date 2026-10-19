@@ -5,9 +5,13 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 6066</summary>
     public abstract class IdentifierType
     {
+        /// <summary>The <c>pre_agreed</c> constant, with the value <c>0</c>.</summary>
         public const short pre_agreed = 0;
+        /// <summary>The <c>key_sha1_hash</c> constant, with the value <c>1</c>.</summary>
         public const short key_sha1_hash = 1;
+        /// <summary>The <c>x509_name</c> constant, with the value <c>2</c>.</summary>
         public const short x509_name = 2;
+        /// <summary>The <c>cert_sha1_hash</c> constant, with the value <c>3</c>.</summary>
         public const short cert_sha1_hash = 3;
 
         public static string GetName(short identifierType)

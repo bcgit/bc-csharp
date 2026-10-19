@@ -13,6 +13,11 @@ namespace Org.BouncyCastle.Tls
         protected BigInteger m_verifier;
         protected byte[] m_salt;
 
+        /// <summary>Create a new <see cref="TlsSrpLoginParameters"/>.</summary>
+        /// <param name="identity">The identity.</param>
+        /// <param name="srpConfig">The srp config.</param>
+        /// <param name="verifier">The verifier.</param>
+        /// <param name="salt">The salt.</param>
         public TlsSrpLoginParameters(byte[] identity, TlsSrpConfig srpConfig, BigInteger verifier, byte[] salt)
         {
             this.m_identity = Arrays.Clone(identity);
@@ -26,16 +31,19 @@ namespace Org.BouncyCastle.Tls
             get { return m_srpConfig; }
         }
 
+        /// <summary>Gets the identity.</summary>
         public virtual byte[] Identity
         {
             get { return m_identity; }
         }
 
+        /// <summary>Gets the salt.</summary>
         public virtual byte[] Salt
         {
             get { return m_salt; }
         }
 
+        /// <summary>Gets the verifier.</summary>
         public virtual BigInteger Verifier
         {
             get { return m_verifier; }

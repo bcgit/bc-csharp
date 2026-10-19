@@ -38,6 +38,10 @@ namespace Org.BouncyCastle.Tls
 
         protected BigInteger m_srpPeerCredentials = null;
 
+        /// <summary>Create a new <see cref="TlsSrpKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
+        /// <param name="srpIdentity">The srp identity.</param>
+        /// <param name="srpConfigVerifier">The srp config verifier.</param>
         public TlsSrpKeyExchange(int keyExchange, TlsSrpIdentity srpIdentity, TlsSrpConfigVerifier srpConfigVerifier)
             : base(CheckKeyExchange(keyExchange))
         {
@@ -45,18 +49,23 @@ namespace Org.BouncyCastle.Tls
             m_srpConfigVerifier = srpConfigVerifier;
         }
 
+        /// <summary>Create a new <see cref="TlsSrpKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
+        /// <param name="srpLoginParameters">The srp login parameters.</param>
         public TlsSrpKeyExchange(int keyExchange, TlsSrpLoginParameters srpLoginParameters)
             : base(CheckKeyExchange(keyExchange))
         {
             m_srpLoginParameters = srpLoginParameters;
         }
 
+        /// <inheritdoc/>
         public override void SkipServerCredentials()
         {
             if (m_keyExchange != KeyExchangeAlgorithm.SRP)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerCredentials(TlsCredentials serverCredentials)
         {
             if (m_keyExchange == KeyExchangeAlgorithm.SRP)
@@ -65,6 +74,7 @@ namespace Org.BouncyCastle.Tls
             m_serverCredentials = TlsUtilities.RequireSignerCredentials(serverCredentials);
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
             if (m_keyExchange == KeyExchangeAlgorithm.SRP)
@@ -73,8 +83,10 @@ namespace Org.BouncyCastle.Tls
             m_serverCertificate = serverCertificate.GetCertificateAt(0);
         }
 
+        /// <inheritdoc/>
         public override bool RequiresServerKeyExchange => true;
 
+        /// <inheritdoc/>
         public override byte[] GenerateServerKeyExchange()
         {
             TlsSrpConfig config = m_srpLoginParameters.Config;
@@ -98,6 +110,7 @@ namespace Org.BouncyCastle.Tls
             return digestBuffer.ToArray();
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerKeyExchange(Stream input)
         {
             DigestInputBuffer digestBuffer = null;
@@ -132,9 +145,11 @@ namespace Org.BouncyCastle.Tls
             m_srpClient = m_context.Crypto.CreateSrp6Client(config);
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientCredentials(TlsCredentials clientCredentials) =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
 
+        /// <inheritdoc/>
         public override void GenerateClientKeyExchange(Stream output)
         {
             byte[] identity = m_srpIdentity.GetSrpIdentity();
@@ -146,6 +161,7 @@ namespace Org.BouncyCastle.Tls
             m_context.SecurityParameters.m_srpIdentity = Arrays.Clone(identity);
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientKeyExchange(Stream input)
         {
             /*
@@ -158,6 +174,7 @@ namespace Org.BouncyCastle.Tls
             m_context.SecurityParameters.m_srpIdentity = Arrays.Clone(m_srpLoginParameters.Identity);
         }
 
+        /// <inheritdoc/>
         public override TlsSecret GeneratePreMasterSecret()
         {
             BigInteger S = m_srpServer != null

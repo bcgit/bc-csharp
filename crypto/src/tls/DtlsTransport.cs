@@ -317,6 +317,7 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void Send(ReadOnlySpan<byte> buffer)
         {
             try

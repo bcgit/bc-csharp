@@ -23,11 +23,13 @@ namespace Org.BouncyCastle.Tls
             this.contentLimit = contentLimit;
         }
 
+        /// <summary>Gets the content limit.</summary>
         public int ContentLimit
         {
             get { return contentLimit; }
         }
 
+        /// <summary>Gets the record size.</summary>
         public int RecordSize
         {
             get { return recordSize; }

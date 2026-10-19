@@ -23,26 +23,47 @@ namespace Org.BouncyCastle.Tls
          * are lower than any of the other values.
          */
         protected const short CS_START = 0;
+        /// <summary>The <c>CS_CLIENT_HELLO</c> constant, with the value <c>1</c>.</summary>
         protected const short CS_CLIENT_HELLO = 1;
+        /// <summary>The <c>CS_SERVER_HELLO_RETRY_REQUEST</c> constant, with the value <c>2</c>.</summary>
         protected const short CS_SERVER_HELLO_RETRY_REQUEST = 2;
+        /// <summary>The <c>CS_CLIENT_HELLO_RETRY</c> constant, with the value <c>3</c>.</summary>
         protected const short CS_CLIENT_HELLO_RETRY = 3;
+        /// <summary>The <c>CS_SERVER_HELLO</c> constant, with the value <c>4</c>.</summary>
         protected const short CS_SERVER_HELLO = 4;
+        /// <summary>The <c>CS_SERVER_ENCRYPTED_EXTENSIONS</c> constant, with the value <c>5</c>.</summary>
         protected const short CS_SERVER_ENCRYPTED_EXTENSIONS = 5;
+        /// <summary>The <c>CS_SERVER_SUPPLEMENTAL_DATA</c> constant, with the value <c>6</c>.</summary>
         protected const short CS_SERVER_SUPPLEMENTAL_DATA = 6;
+        /// <summary>The <c>CS_SERVER_CERTIFICATE</c> constant, with the value <c>7</c>.</summary>
         protected const short CS_SERVER_CERTIFICATE = 7;
+        /// <summary>The <c>CS_SERVER_CERTIFICATE_STATUS</c> constant, with the value <c>8</c>.</summary>
         protected const short CS_SERVER_CERTIFICATE_STATUS = 8;
+        /// <summary>The <c>CS_SERVER_CERTIFICATE_VERIFY</c> constant, with the value <c>9</c>.</summary>
         protected const short CS_SERVER_CERTIFICATE_VERIFY = 9;
+        /// <summary>The <c>CS_SERVER_KEY_EXCHANGE</c> constant, with the value <c>10</c>.</summary>
         protected const short CS_SERVER_KEY_EXCHANGE = 10;
+        /// <summary>The <c>CS_SERVER_CERTIFICATE_REQUEST</c> constant, with the value <c>11</c>.</summary>
         protected const short CS_SERVER_CERTIFICATE_REQUEST = 11;
+        /// <summary>The <c>CS_SERVER_HELLO_DONE</c> constant, with the value <c>12</c>.</summary>
         protected const short CS_SERVER_HELLO_DONE = 12;
+        /// <summary>The <c>CS_CLIENT_END_OF_EARLY_DATA</c> constant, with the value <c>13</c>.</summary>
         protected const short CS_CLIENT_END_OF_EARLY_DATA = 13;
+        /// <summary>The <c>CS_CLIENT_SUPPLEMENTAL_DATA</c> constant, with the value <c>14</c>.</summary>
         protected const short CS_CLIENT_SUPPLEMENTAL_DATA = 14;
+        /// <summary>The <c>CS_CLIENT_CERTIFICATE</c> constant, with the value <c>15</c>.</summary>
         protected const short CS_CLIENT_CERTIFICATE = 15;
+        /// <summary>The <c>CS_CLIENT_KEY_EXCHANGE</c> constant, with the value <c>16</c>.</summary>
         protected const short CS_CLIENT_KEY_EXCHANGE = 16;
+        /// <summary>The <c>CS_CLIENT_CERTIFICATE_VERIFY</c> constant, with the value <c>17</c>.</summary>
         protected const short CS_CLIENT_CERTIFICATE_VERIFY = 17;
+        /// <summary>The <c>CS_CLIENT_FINISHED</c> constant, with the value <c>18</c>.</summary>
         protected const short CS_CLIENT_FINISHED = 18;
+        /// <summary>The <c>CS_SERVER_SESSION_TICKET</c> constant, with the value <c>19</c>.</summary>
         protected const short CS_SERVER_SESSION_TICKET = 19;
+        /// <summary>The <c>CS_SERVER_FINISHED</c> constant, with the value <c>20</c>.</summary>
         protected const short CS_SERVER_FINISHED = 20;
+        /// <summary>The <c>CS_END</c> constant, with the value <c>21</c>.</summary>
         protected const short CS_END = 21;
 
         protected bool IsLegacyConnectionState()
@@ -115,7 +136,9 @@ namespace Org.BouncyCastle.Tls
          * Different modes to handle the known IV weakness
          */
         protected const short ADS_MODE_1_Nsub1 = 0; // 1/n-1 record splitting
+        /// <summary>The <c>ADS_MODE_0_N</c> constant, with the value <c>1</c>.</summary>
         protected const short ADS_MODE_0_N = 1; // 0/n record splitting
+        /// <summary>The <c>ADS_MODE_0_N_FIRSTONLY</c> constant, with the value <c>2</c>.</summary>
         protected const short ADS_MODE_0_N_FIRSTONLY = 2; // 0/n record splitting on first data fragment only
 
         /*
@@ -169,6 +192,7 @@ namespace Org.BouncyCastle.Tls
         protected readonly ByteQueueInputStream m_inputBuffers;
         protected readonly ByteQueueOutputStream m_outputBuffer;
 
+        /// <summary>Create a new <see cref="TlsProtocol"/>.</summary>
         protected TlsProtocol()
         {
             this.m_blocking = false;
@@ -177,11 +201,16 @@ namespace Org.BouncyCastle.Tls
             this.m_recordStream = new RecordStream(this, m_inputBuffers, m_outputBuffer);
         }
 
+        /// <summary>Create a new <see cref="TlsProtocol"/>.</summary>
+        /// <param name="stream">The stream.</param>
         public TlsProtocol(Stream stream)
             : this(stream, stream)
         {
         }
 
+        /// <summary>Create a new <see cref="TlsProtocol"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="output">The buffer to write the output to.</param>
         public TlsProtocol(Stream input, Stream output)
         {
             this.m_blocking = true;
@@ -725,6 +754,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets the application data available.</summary>
         public virtual int ApplicationDataAvailable
         {
             get { return m_applicationDataQueue.Available; }
@@ -1132,6 +1162,7 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <summary>Gets or sets the app data split mode.</summary>
         public virtual int AppDataSplitMode
         {
             get { return m_appDataSplitMode; }
@@ -1144,6 +1175,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets or sets a value indicating whether this is resumable handshake.</summary>
         public virtual bool IsResumableHandshake
         {
             get { return m_resumableHandshake; }
@@ -1414,6 +1446,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets the application data limit.</summary>
         public virtual int ApplicationDataLimit
         {
             get { return m_recordStream.PlaintextLimit; }
@@ -1826,6 +1859,7 @@ namespace Org.BouncyCastle.Tls
             message.Send(this);
         }
 
+        /// <inheritdoc/>
         public virtual void Close()
         {
             HandleClose(true);
@@ -1840,8 +1874,10 @@ namespace Org.BouncyCastle.Tls
             get { return m_appDataReady; }
         }
 
+        /// <summary>Gets a value indicating whether this is closed.</summary>
         public virtual bool IsClosed => m_closed;
 
+        /// <summary>Gets a value indicating whether this is connected.</summary>
         public virtual bool IsConnected
         {
             get
@@ -1855,8 +1891,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets a value indicating whether this is failed.</summary>
         public virtual bool IsFailed => m_failed;
 
+        /// <summary>Gets a value indicating whether this is handshaking.</summary>
         public virtual bool IsHandshaking
         {
             get

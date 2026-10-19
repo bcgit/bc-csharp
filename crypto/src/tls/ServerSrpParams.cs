@@ -11,6 +11,11 @@ namespace Org.BouncyCastle.Tls
         private BigInteger m_N, m_g, m_B;
         private byte[] m_s;
 
+        /// <summary>Create a new <see cref="ServerSrpParams"/>.</summary>
+        /// <param name="N">The n.</param>
+        /// <param name="g">The g.</param>
+        /// <param name="s">The s.</param>
+        /// <param name="B">The b.</param>
         public ServerSrpParams(BigInteger N, BigInteger g, byte[] s, BigInteger B)
         {
             this.m_N = N;
@@ -24,16 +29,19 @@ namespace Org.BouncyCastle.Tls
             get { return m_B; }
         }
 
+        /// <summary>Gets the g.</summary>
         public BigInteger G
         {
             get { return m_g; }
         }
 
+        /// <summary>Gets the n.</summary>
         public BigInteger N
         {
             get { return m_N; }
         }
 
+        /// <summary>Gets the s.</summary>
         public byte[] S
         {
             get { return m_s; }

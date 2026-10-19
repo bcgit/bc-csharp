@@ -7,6 +7,8 @@ namespace Org.BouncyCastle.Tls
     {
         private readonly short m_mode;
 
+        /// <summary>Create a new <see cref="HeartbeatExtension"/>.</summary>
+        /// <param name="mode">The mode.</param>
         public HeartbeatExtension(short mode)
         {
             if (!HeartbeatMode.IsValid(mode))
@@ -15,6 +17,7 @@ namespace Org.BouncyCastle.Tls
             this.m_mode = mode;
         }
 
+        /// <summary>Gets the mode.</summary>
         public short Mode
         {
             get { return m_mode; }

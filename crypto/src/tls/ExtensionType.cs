@@ -8,10 +8,15 @@ namespace Org.BouncyCastle.Tls
          * RFC 2546 2.3.
          */
         public const int server_name = 0;
+        /// <summary>The <c>max_fragment_length</c> constant, with the value <c>1</c>.</summary>
         public const int max_fragment_length = 1;
+        /// <summary>The <c>client_certificate_url</c> constant, with the value <c>2</c>.</summary>
         public const int client_certificate_url = 2;
+        /// <summary>The <c>trusted_ca_keys</c> constant, with the value <c>3</c>.</summary>
         public const int trusted_ca_keys = 3;
+        /// <summary>The <c>truncated_hmac</c> constant, with the value <c>4</c>.</summary>
         public const int truncated_hmac = 4;
+        /// <summary>The <c>status_request</c> constant, with the value <c>5</c>.</summary>
         public const int status_request = 5;
 
         /*
@@ -23,6 +28,7 @@ namespace Org.BouncyCastle.Tls
          * RFC 5878
          */
         public const int client_authz = 7;
+        /// <summary>The <c>server_authz</c> constant, with the value <c>8</c>.</summary>
         public const int server_authz = 8;
 
         /*
@@ -79,6 +85,7 @@ namespace Org.BouncyCastle.Tls
          * RFC 7250
          */
         public const int client_certificate_type = 19;
+        /// <summary>The <c>server_certificate_type</c> constant, with the value <c>20</c>.</summary>
         public const int server_certificate_type = 20;
 
         /*
@@ -125,14 +132,23 @@ namespace Org.BouncyCastle.Tls
          * RFC 8446
          */
         public const int pre_shared_key = 41;
+        /// <summary>The <c>early_data</c> constant, with the value <c>42</c>.</summary>
         public const int early_data = 42;
+        /// <summary>The <c>supported_versions</c> constant, with the value <c>43</c>.</summary>
         public const int supported_versions = 43;
+        /// <summary>The <c>cookie</c> constant, with the value <c>44</c>.</summary>
         public const int cookie = 44;
+        /// <summary>The <c>psk_key_exchange_modes</c> constant, with the value <c>45</c>.</summary>
         public const int psk_key_exchange_modes = 45;
+        /// <summary>The <c>certificate_authorities</c> constant, with the value <c>47</c>.</summary>
         public const int certificate_authorities = 47;
+        /// <summary>The <c>oid_filters</c> constant, with the value <c>48</c>.</summary>
         public const int oid_filters = 48;
+        /// <summary>The <c>post_handshake_auth</c> constant, with the value <c>49</c>.</summary>
         public const int post_handshake_auth = 49;
+        /// <summary>The <c>signature_algorithms_cert</c> constant, with the value <c>50</c>.</summary>
         public const int signature_algorithms_cert = 50;
+        /// <summary>The <c>key_share</c> constant, with the value <c>51</c>.</summary>
         public const int key_share = 51;
 
         /*

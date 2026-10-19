@@ -25,33 +25,42 @@ namespace Org.BouncyCastle.Tls
         protected TlsCredentialedAgreement m_agreementCredentials;
         protected TlsCertificate m_dhPeerCertificate;
 
+        /// <summary>Create a new <see cref="TlsDHKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
         public TlsDHKeyExchange(int keyExchange)
             : base(CheckKeyExchange(keyExchange))
         {
         }
 
+        /// <inheritdoc/>
         public override void SkipServerCredentials() => throw new TlsFatalAlert(AlertDescription.internal_error);
 
+        /// <inheritdoc/>
         public override void ProcessServerCredentials(TlsCredentials serverCredentials)
         {
             m_agreementCredentials = TlsUtilities.RequireAgreementCredentials(serverCredentials);
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
             m_dhPeerCertificate = serverCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
         }
 
+        /// <inheritdoc/>
         public override short[] GetClientCertificateTypes() =>
             new short[]{ ClientCertificateType.dss_fixed_dh, ClientCertificateType.rsa_fixed_dh };
 
+        /// <inheritdoc/>
         public override void SkipClientCredentials() => new TlsFatalAlert(AlertDescription.unexpected_message);
 
+        /// <inheritdoc/>
         public override void ProcessClientCredentials(TlsCredentials clientCredentials)
         {
             m_agreementCredentials = TlsUtilities.RequireAgreementCredentials(clientCredentials);
         }
 
+        /// <inheritdoc/>
         public override void GenerateClientKeyExchange(Stream output)
         {
             /*
@@ -61,18 +70,22 @@ namespace Org.BouncyCastle.Tls
              */
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientCertificate(Certificate clientCertificate)
         {
             m_dhPeerCertificate = clientCertificate.GetCertificateAt(0).CheckUsageInRole(TlsCertificateRole.DH);
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientKeyExchange(Stream input)
         {
             // For dss_fixed_dh and rsa_fixed_dh, the key arrived in the client certificate
         }
 
+        /// <inheritdoc/>
         public override bool RequiresCertificateVerify => false;
 
+        /// <inheritdoc/>
         public override TlsSecret GeneratePreMasterSecret() =>
             m_agreementCredentials.GenerateAgreement(m_dhPeerCertificate);
     }

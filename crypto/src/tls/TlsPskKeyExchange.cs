@@ -40,11 +40,20 @@ namespace Org.BouncyCastle.Tls
         protected TlsEncryptor m_serverEncryptor;
         protected TlsSecret m_preMasterSecret;
 
+        /// <summary>Create a new <see cref="TlsPskKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
+        /// <param name="pskIdentity">The psk identity.</param>
+        /// <param name="dhGroupVerifier">The dh group verifier.</param>
         public TlsPskKeyExchange(int keyExchange, TlsPskIdentity pskIdentity, TlsDHGroupVerifier dhGroupVerifier)
             : this(keyExchange, pskIdentity, null, dhGroupVerifier, null, null)
         {
         }
 
+        /// <summary>Create a new <see cref="TlsPskKeyExchange"/>.</summary>
+        /// <param name="keyExchange">The key exchange.</param>
+        /// <param name="pskIdentityManager">The psk identity manager.</param>
+        /// <param name="dhConfig">The dh config.</param>
+        /// <param name="ecConfig">The ec config.</param>
         public TlsPskKeyExchange(int keyExchange, TlsPskIdentityManager pskIdentityManager,
             TlsDHConfig dhConfig, TlsECConfig ecConfig)
             : this(keyExchange, null, pskIdentityManager, null, dhConfig, ecConfig)
@@ -62,12 +71,14 @@ namespace Org.BouncyCastle.Tls
             m_ecConfig = ecConfig;
         }
 
+        /// <inheritdoc/>
         public override void SkipServerCredentials()
         {
             if (m_keyExchange == KeyExchangeAlgorithm.RSA_PSK)
                 throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerCredentials(TlsCredentials serverCredentials)
         {
             if (m_keyExchange != KeyExchangeAlgorithm.RSA_PSK)
@@ -76,6 +87,7 @@ namespace Org.BouncyCastle.Tls
             m_serverCredentials = TlsUtilities.RequireDecryptorCredentials(serverCredentials);
         }
 
+        /// <inheritdoc/>
         public override void ProcessServerCertificate(Certificate serverCertificate)
         {
             if (m_keyExchange != KeyExchangeAlgorithm.RSA_PSK)
@@ -84,6 +96,7 @@ namespace Org.BouncyCastle.Tls
             m_serverEncryptor = serverCertificate.GetCertificateAt(0).CreateEncryptor(TlsCertificateRole.RsaEncryption);
         }
 
+        /// <inheritdoc/>
         public override byte[] GenerateServerKeyExchange()
         {
             m_psk_identity_hint = m_pskIdentityManager.GetHint();
@@ -128,10 +141,12 @@ namespace Org.BouncyCastle.Tls
             return buf.ToArray();
         }
 
+        /// <inheritdoc/>
         public override bool RequiresServerKeyExchange =>
             m_keyExchange == KeyExchangeAlgorithm.DHE_PSK ||
             m_keyExchange == KeyExchangeAlgorithm.ECDHE_PSK;
 
+        /// <inheritdoc/>
         public override void ProcessServerKeyExchange(Stream input)
         {
             m_psk_identity_hint = TlsUtilities.ReadOpaque16(input);
@@ -158,9 +173,11 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientCredentials(TlsCredentials clientCredentials) =>
             throw new TlsFatalAlert(AlertDescription.internal_error);
 
+        /// <inheritdoc/>
         public override void GenerateClientKeyExchange(Stream output)
         {
             if (m_psk_identity_hint == null)
@@ -198,6 +215,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public override void ProcessClientKeyExchange(Stream input)
         {
             byte[] psk_identity = TlsUtilities.ReadOpaque16(input);
@@ -229,6 +247,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public override TlsSecret GeneratePreMasterSecret()
         {
             byte[] other_secret = GenerateOtherSecret(m_psk.Length);

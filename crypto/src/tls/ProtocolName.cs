@@ -53,8 +53,10 @@ namespace Org.BouncyCastle.Tls
             m_bytes = bytes;
         }
 
+        /// <summary>Return the bytes.</summary>
         public byte[] GetBytes() => Arrays.Clone(m_bytes);
 
+        /// <summary>Return the utf 8 decoding.</summary>
         public string GetUtf8Decoding() => Strings.FromUtf8ByteArray(m_bytes);
 
         /// <summary>Encode this <see cref="ProtocolName"/> to a <see cref="Stream"/>.</summary>
@@ -68,9 +70,11 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public static ProtocolName Parse(Stream input) => new ProtocolName(TlsUtilities.ReadOpaque8(input, 1));
 
+        /// <inheritdoc/>
         public override bool Equals(object obj) =>
             obj is ProtocolName that && Arrays.AreEqual(m_bytes, that.m_bytes);
 
+        /// <inheritdoc/>
         public override int GetHashCode() => Arrays.GetHashCode(m_bytes);
     }
 }

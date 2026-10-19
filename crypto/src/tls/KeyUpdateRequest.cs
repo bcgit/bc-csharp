@@ -5,7 +5,9 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 8446 4.6.3</summary>
     public abstract class KeyUpdateRequest
     {
+        /// <summary>The <c>update_not_requested</c> constant, with the value <c>0</c>.</summary>
         public const short update_not_requested = 0;
+        /// <summary>The <c>update_requested</c> constant, with the value <c>1</c>.</summary>
         public const short update_requested = 1;
 
         public static string GetName(short keyUpdateRequest)

@@ -1085,12 +1085,15 @@ namespace Org.BouncyCastle.Tls
             return result;
         }
 
+        /// <summary>Return the default dss signature algorithms.</summary>
         public static IList<SignatureAndHashAlgorithm> GetDefaultDssSignatureAlgorithms() =>
             GetDefaultSignatureAlgorithms(SignatureAlgorithm.dsa);
 
+        /// <summary>Return the default EC dsa signature algorithms.</summary>
         public static IList<SignatureAndHashAlgorithm> GetDefaultECDsaSignatureAlgorithms() =>
             GetDefaultSignatureAlgorithms(SignatureAlgorithm.ecdsa);
 
+        /// <summary>Return the default rsa signature algorithms.</summary>
         public static IList<SignatureAndHashAlgorithm> GetDefaultRsaSignatureAlgorithms() =>
             GetDefaultSignatureAlgorithms(SignatureAlgorithm.rsa);
 
@@ -1333,6 +1336,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Return the legacy supported signature algorithms.</summary>
         public static IList<SignatureAndHashAlgorithm> GetLegacySupportedSignatureAlgorithms()
         {
             var result = new List<SignatureAndHashAlgorithm>(3);

@@ -39,6 +39,10 @@ namespace Org.BouncyCastle.Tls
         protected readonly TlsSrp6VerifierGenerator m_verifierGenerator;
         protected readonly TlsMac m_mac;
 
+        /// <summary>Create a new <see cref="SimulatedTlsSrpIdentityManager"/>.</summary>
+        /// <param name="group">The group.</param>
+        /// <param name="verifierGenerator">The verifier generator.</param>
+        /// <param name="mac">The MAC.</param>
         public SimulatedTlsSrpIdentityManager(Srp6Group group, TlsSrp6VerifierGenerator verifierGenerator, TlsMac mac)
         {
             this.m_group = group;
@@ -46,6 +50,7 @@ namespace Org.BouncyCastle.Tls
             this.m_mac = mac;
         }
 
+        /// <inheritdoc/>
         public virtual TlsSrpLoginParameters GetLoginParameters(byte[] identity)
         {
             m_mac.Update(PrefixSalt, 0, PrefixSalt.Length);

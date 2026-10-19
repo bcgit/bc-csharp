@@ -24,6 +24,10 @@ namespace Org.BouncyCastle.Tls
         private readonly byte[] m_payload;
         private readonly byte[] m_padding;
 
+        /// <summary>Create a new <see cref="HeartbeatMessage"/>.</summary>
+        /// <param name="type">The type.</param>
+        /// <param name="payload">The payload.</param>
+        /// <param name="padding">The padding.</param>
         public HeartbeatMessage(short type, byte[] payload, byte[] padding)
         {
             if (!HeartbeatMessageType.IsValid(type))
@@ -38,6 +42,7 @@ namespace Org.BouncyCastle.Tls
             this.m_padding = padding;
         }
 
+        /// <summary>Gets the padding length.</summary>
         public int PaddingLength
         {
             /*
@@ -46,11 +51,13 @@ namespace Org.BouncyCastle.Tls
             get { return m_padding.Length; }
         }
 
+        /// <summary>Gets the payload.</summary>
         public byte[] Payload
         {
             get { return m_payload; }
         }
 
+        /// <summary>Gets the type.</summary>
         public short Type
         {
             get { return m_type; }

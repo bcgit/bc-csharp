@@ -28,6 +28,7 @@ namespace Org.BouncyCastle.Tls
         /// <returns><see cref="NamedGroup"/></returns>
         public int NamedGroup => m_namedGroup;
 
+        /// <summary>Gets the key exchange.</summary>
         public byte[] KeyExchange => m_keyExchange;
 
         /// <summary>Encode this <see cref="KeyShareEntry"/> to a <see cref="Stream"/>.</summary>

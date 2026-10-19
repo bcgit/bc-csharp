@@ -7,7 +7,9 @@ namespace Org.BouncyCastle.Tls
      */
     public abstract class HeartbeatMode
     {
+        /// <summary>The <c>peer_allowed_to_send</c> constant, with the value <c>1</c>.</summary>
         public const short peer_allowed_to_send = 1;
+        /// <summary>The <c>peer_not_allowed_to_send</c> constant, with the value <c>2</c>.</summary>
         public const short peer_not_allowed_to_send = 2;
 
         public static string GetName(short heartbeatMode)

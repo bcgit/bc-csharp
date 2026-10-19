@@ -8,7 +8,9 @@ namespace Org.BouncyCastle.Tls
          * RFC 8446
          */
 
+        /// <summary>The <c>psk_ke</c> constant, with the value <c>0</c>.</summary>
         public const short psk_ke = 0;
+        /// <summary>The <c>psk_dhe_ke</c> constant, with the value <c>1</c>.</summary>
         public const short psk_dhe_ke = 1;
 
         public static string GetName(short pskKeyExchangeMode)

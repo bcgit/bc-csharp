@@ -45,6 +45,8 @@ namespace Org.BouncyCastle.Tls
         private readonly IList<byte[]> m_binders;
         private readonly int m_bindersSize;
 
+        /// <summary>Create a new <see cref="OfferedPsks"/>.</summary>
+        /// <param name="identities">The identities.</param>
         public OfferedPsks(IList<PskIdentity> identities)
             : this(identities, null, -1)
         {
@@ -64,10 +66,13 @@ namespace Org.BouncyCastle.Tls
             m_bindersSize = bindersSize;
         }
 
+        /// <summary>Gets the binders.</summary>
         public IList<byte[]> Binders => m_binders;
 
+        /// <summary>Gets the binders size.</summary>
         public int BindersSize => m_bindersSize;
 
+        /// <summary>Gets the identities.</summary>
         public IList<PskIdentity> Identities => m_identities;
 
         public int GetIndexOfIdentity(PskIdentity pskIdentity)

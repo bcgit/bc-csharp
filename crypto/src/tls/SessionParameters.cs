@@ -21,6 +21,7 @@ namespace Org.BouncyCastle.Tls
             private byte[] m_encodedServerExtensions = null;
             private bool m_extendedMasterSecret = false;
 
+            /// <summary>Create a new <see cref="Builder"/>.</summary>
             public Builder()
             {
             }
@@ -129,6 +130,7 @@ namespace Org.BouncyCastle.Tls
             this.m_extendedMasterSecret = extendedMasterSecret;
         }
 
+        /// <summary>Gets the cipher suite.</summary>
         public int CipherSuite
         {
             get { return m_cipherSuite; }
@@ -148,31 +150,37 @@ namespace Org.BouncyCastle.Tls
                 m_peerCertificate, m_pskIdentity, m_srpIdentity, m_encodedServerExtensions, m_extendedMasterSecret);
         }
 
+        /// <summary>Gets a value indicating whether this is extended master secret.</summary>
         public bool IsExtendedMasterSecret
         {
             get { return m_extendedMasterSecret; }
         }
 
+        /// <summary>Gets the local certificate.</summary>
         public Certificate LocalCertificate
         {
             get { return m_localCertificate; }
         }
 
+        /// <summary>Gets the master secret.</summary>
         public TlsSecret MasterSecret
         {
             get { return m_masterSecret; }
         }
 
+        /// <summary>Gets the negotiated version.</summary>
         public ProtocolVersion NegotiatedVersion
         {
             get { return m_negotiatedVersion; }
         }
 
+        /// <summary>Gets the peer certificate.</summary>
         public Certificate PeerCertificate
         {
             get { return m_peerCertificate; }
         }
 
+        /// <summary>Gets the psk identity.</summary>
         public byte[] PskIdentity
         {
             get { return m_pskIdentity; }
@@ -187,6 +195,7 @@ namespace Org.BouncyCastle.Tls
             return TlsProtocol.ReadExtensions(new MemoryStream(m_encodedServerExtensions, false));
         }
 
+        /// <summary>Gets the srp identity.</summary>
         public byte[] SrpIdentity
         {
             get { return m_srpIdentity; }

@@ -26,6 +26,9 @@ namespace Org.BouncyCastle.Tls
 
         protected readonly TlsPskIdentityManager m_pskIdentityManager;
 
+        /// <summary>Create a new <see cref="PskTlsServer"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="pskIdentityManager">The psk identity manager.</param>
         public PskTlsServer(TlsCrypto crypto, TlsPskIdentityManager pskIdentityManager)
             : base(crypto)
         {
@@ -38,16 +41,19 @@ namespace Org.BouncyCastle.Tls
             throw new TlsFatalAlert(AlertDescription.internal_error);
         }
 
+        /// <inheritdoc/>
         protected override ProtocolVersion[] GetSupportedVersions()
         {
             return ProtocolVersion.TLSv12.Only();
         }
 
+        /// <inheritdoc/>
         protected override int[] GetSupportedCipherSuites()
         {
             return TlsUtilities.GetSupportedCipherSuites(Crypto, DefaultCipherSuites);
         }
 
+        /// <inheritdoc/>
         public override TlsCredentials GetCredentials()
         {
             int keyExchangeAlgorithm = m_context.SecurityParameters.KeyExchangeAlgorithm;
@@ -68,6 +74,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <inheritdoc/>
         public override TlsPskIdentityManager GetPskIdentityManager()
         {
             return m_pskIdentityManager;

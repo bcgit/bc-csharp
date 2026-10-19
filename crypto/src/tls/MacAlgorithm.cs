@@ -10,8 +10,11 @@ namespace Org.BouncyCastle.Tls
     // TODO[api] Make static
     public abstract class MacAlgorithm
     {
+        /// <summary>The <c>cls_null</c> constant, with the value <c>0</c>.</summary>
         public const int cls_null = 0;
+        /// <summary>The <c>md5</c> constant, with the value <c>1</c>.</summary>
         public const int md5 = 1;
+        /// <summary>The <c>sha</c> constant, with the value <c>2</c>.</summary>
         public const int sha = 2;
 
         /*
@@ -19,8 +22,11 @@ namespace Org.BouncyCastle.Tls
          */
         public const int hmac_md5 = md5;
         public const int hmac_sha1 = sha;
+        /// <summary>The <c>hmac_sha256</c> constant, with the value <c>3</c>.</summary>
         public const int hmac_sha256 = 3;
+        /// <summary>The <c>hmac_sha384</c> constant, with the value <c>4</c>.</summary>
         public const int hmac_sha384 = 4;
+        /// <summary>The <c>hmac_sha512</c> constant, with the value <c>5</c>.</summary>
         public const int hmac_sha512 = 5;
 
         public static string GetName(int macAlgorithm)

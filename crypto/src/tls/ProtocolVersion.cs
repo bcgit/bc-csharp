@@ -182,41 +182,49 @@ namespace Org.BouncyCastle.Tls
             return result.ToArray();
         }
 
+        /// <summary>Gets the full version.</summary>
         public int FullVersion
         {
             get { return version; }
         }
 
+        /// <summary>Gets the major version.</summary>
         public int MajorVersion
         {
             get { return version >> 8; }
         }
 
+        /// <summary>Gets the minor version.</summary>
         public int MinorVersion
         {
             get { return version & 0xFF; }
         }
 
+        /// <summary>Gets the name.</summary>
         public string Name
         {
             get { return name; }
         }
 
+        /// <summary>Gets a value indicating whether this is dtls.</summary>
         public bool IsDtls
         {
             get { return MajorVersion == 0xFE; }
         }
 
+        /// <summary>Gets a value indicating whether this is ssl.</summary>
         public bool IsSsl
         {
             get { return this == SSLv3; }
         }
 
+        /// <summary>Gets a value indicating whether this is tls.</summary>
         public bool IsTls
         {
             get { return MajorVersion == 0x03; }
         }
 
+        /// <summary>Return the equivalent tls version.</summary>
         public ProtocolVersion GetEquivalentTlsVersion()
         {
             switch (MajorVersion)
@@ -240,6 +248,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Return the next version.</summary>
         public ProtocolVersion GetNextVersion()
         {
             int major = MajorVersion, minor = MinorVersion;
@@ -268,6 +277,7 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Return the previous version.</summary>
         public ProtocolVersion GetPreviousVersion()
         {
             int major = MajorVersion, minor = MinorVersion;
@@ -332,6 +342,7 @@ namespace Org.BouncyCastle.Tls
             return IsDtls ? diffMinorVersion < 0 : diffMinorVersion > 0;
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object other)
         {
             return this == other || (other is ProtocolVersion && Equals((ProtocolVersion)other));
@@ -342,6 +353,7 @@ namespace Org.BouncyCastle.Tls
             return other != null && this.version == other.version;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return version;
@@ -395,6 +407,7 @@ namespace Org.BouncyCastle.Tls
             return new ProtocolVersion[]{ this };
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return name;

@@ -25,16 +25,23 @@ namespace Org.BouncyCastle.Tls
 
         private bool m_readOnlyBuf = false;
 
+        /// <summary>Create a new <see cref="ByteQueue"/>.</summary>
         public ByteQueue()
             : this(0)
         {
         }
 
+        /// <summary>Create a new <see cref="ByteQueue"/>.</summary>
+        /// <param name="capacity">The capacity.</param>
         public ByteQueue(int capacity)
         {
             this.m_databuf = capacity == 0 ? TlsUtilities.EmptyBytes : new byte[capacity];
         }
 
+        /// <summary>Create a new <see cref="ByteQueue"/>.</summary>
+        /// <param name="buf">The buffer.</param>
+        /// <param name="off">The offset into the array.</param>
+        /// <param name="len">The number of bytes.</param>
         public ByteQueue(byte[] buf, int off, int len)
         {
             this.m_databuf = buf;

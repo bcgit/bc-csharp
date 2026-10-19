@@ -16,60 +16,95 @@ namespace Org.BouncyCastle.Tls
          * in ECParameters).
          */
         public const int sect163k1 = 1;
+        /// <summary>The <c>sect163r1</c> constant, with the value <c>2</c>.</summary>
         public const int sect163r1 = 2;
+        /// <summary>The <c>sect163r2</c> constant, with the value <c>3</c>.</summary>
         public const int sect163r2 = 3;
+        /// <summary>The <c>sect193r1</c> constant, with the value <c>4</c>.</summary>
         public const int sect193r1 = 4;
+        /// <summary>The <c>sect193r2</c> constant, with the value <c>5</c>.</summary>
         public const int sect193r2 = 5;
+        /// <summary>The <c>sect233k1</c> constant, with the value <c>6</c>.</summary>
         public const int sect233k1 = 6;
+        /// <summary>The <c>sect233r1</c> constant, with the value <c>7</c>.</summary>
         public const int sect233r1 = 7;
+        /// <summary>The <c>sect239k1</c> constant, with the value <c>8</c>.</summary>
         public const int sect239k1 = 8;
+        /// <summary>The <c>sect283k1</c> constant, with the value <c>9</c>.</summary>
         public const int sect283k1 = 9;
+        /// <summary>The <c>sect283r1</c> constant, with the value <c>10</c>.</summary>
         public const int sect283r1 = 10;
+        /// <summary>The <c>sect409k1</c> constant, with the value <c>11</c>.</summary>
         public const int sect409k1 = 11;
+        /// <summary>The <c>sect409r1</c> constant, with the value <c>12</c>.</summary>
         public const int sect409r1 = 12;
+        /// <summary>The <c>sect571k1</c> constant, with the value <c>13</c>.</summary>
         public const int sect571k1 = 13;
+        /// <summary>The <c>sect571r1</c> constant, with the value <c>14</c>.</summary>
         public const int sect571r1 = 14;
+        /// <summary>The <c>secp160k1</c> constant, with the value <c>15</c>.</summary>
         public const int secp160k1 = 15;
+        /// <summary>The <c>secp160r1</c> constant, with the value <c>16</c>.</summary>
         public const int secp160r1 = 16;
+        /// <summary>The <c>secp160r2</c> constant, with the value <c>17</c>.</summary>
         public const int secp160r2 = 17;
+        /// <summary>The <c>secp192k1</c> constant, with the value <c>18</c>.</summary>
         public const int secp192k1 = 18;
+        /// <summary>The <c>secp192r1</c> constant, with the value <c>19</c>.</summary>
         public const int secp192r1 = 19;
+        /// <summary>The <c>secp224k1</c> constant, with the value <c>20</c>.</summary>
         public const int secp224k1 = 20;
+        /// <summary>The <c>secp224r1</c> constant, with the value <c>21</c>.</summary>
         public const int secp224r1 = 21;
+        /// <summary>The <c>secp256k1</c> constant, with the value <c>22</c>.</summary>
         public const int secp256k1 = 22;
+        /// <summary>The <c>secp256r1</c> constant, with the value <c>23</c>.</summary>
         public const int secp256r1 = 23;
+        /// <summary>The <c>secp384r1</c> constant, with the value <c>24</c>.</summary>
         public const int secp384r1 = 24;
+        /// <summary>The <c>secp521r1</c> constant, with the value <c>25</c>.</summary>
         public const int secp521r1 = 25;
 
         /*
          * RFC 7027
          */
         public const int brainpoolP256r1 = 26;
+        /// <summary>The <c>brainpoolP384r1</c> constant, with the value <c>27</c>.</summary>
         public const int brainpoolP384r1 = 27;
+        /// <summary>The <c>brainpoolP512r1</c> constant, with the value <c>28</c>.</summary>
         public const int brainpoolP512r1 = 28;
 
         /*
          * RFC 8422
          */
         public const int x25519 = 29;
+        /// <summary>The <c>x448</c> constant, with the value <c>30</c>.</summary>
         public const int x448 = 30;
 
         /*
          * RFC 8734
          */
         public const int brainpoolP256r1tls13 = 31;
+        /// <summary>The <c>brainpoolP384r1tls13</c> constant, with the value <c>32</c>.</summary>
         public const int brainpoolP384r1tls13 = 32;
+        /// <summary>The <c>brainpoolP512r1tls13</c> constant, with the value <c>33</c>.</summary>
         public const int brainpoolP512r1tls13 = 33;
 
         /*
          * RFC 9189
          */
         public const int GC256A = 34;
+        /// <summary>The <c>GC256B</c> constant, with the value <c>35</c>.</summary>
         public const int GC256B = 35;
+        /// <summary>The <c>GC256C</c> constant, with the value <c>36</c>.</summary>
         public const int GC256C = 36;
+        /// <summary>The <c>GC256D</c> constant, with the value <c>37</c>.</summary>
         public const int GC256D = 37;
+        /// <summary>The <c>GC512A</c> constant, with the value <c>38</c>.</summary>
         public const int GC512A = 38;
+        /// <summary>The <c>GC512B</c> constant, with the value <c>39</c>.</summary>
         public const int GC512B = 39;
+        /// <summary>The <c>GC512C</c> constant, with the value <c>40</c>.</summary>
         public const int GC512C = 40;
 
         /*
@@ -84,9 +119,13 @@ namespace Org.BouncyCastle.Tls
          * range. No codepoints outside of this range will be allocated to FFDHE groups.
          */
         public const int ffdhe2048 = 256;
+        /// <summary>The <c>ffdhe3072</c> constant, with the value <c>257</c>.</summary>
         public const int ffdhe3072 = 257;
+        /// <summary>The <c>ffdhe4096</c> constant, with the value <c>258</c>.</summary>
         public const int ffdhe4096 = 258;
+        /// <summary>The <c>ffdhe6144</c> constant, with the value <c>259</c>.</summary>
         public const int ffdhe6144 = 259;
+        /// <summary>The <c>ffdhe8192</c> constant, with the value <c>260</c>.</summary>
         public const int ffdhe8192 = 260;
 
         /*
@@ -101,20 +140,25 @@ namespace Org.BouncyCastle.Tls
          * RFC 4492
          */
         public const int arbitrary_explicit_prime_curves = 0xFF01;
+        /// <summary>The <c>arbitrary_explicit_char2_curves</c> constant, with the value <c>0xFF02</c>.</summary>
         public const int arbitrary_explicit_char2_curves = 0xFF02;
 
         /*
          * draft-connolly-tls-mlkem-key-agreement-05
          */
         public const int MLKEM512 = 0x0200;
+        /// <summary>The <c>MLKEM768</c> constant, with the value <c>0x0201</c>.</summary>
         public const int MLKEM768 = 0x0201;
+        /// <summary>The <c>MLKEM1024</c> constant, with the value <c>0x0202</c>.</summary>
         public const int MLKEM1024 = 0x0202;
 
         /*
          * draft-ietf-tls-ecdhe-mlkem-00
          */
         public const int SecP256r1MLKEM768 = 0x11EB;
+        /// <summary>The <c>X25519MLKEM768</c> constant, with the value <c>0x11EC</c>.</summary>
         public const int X25519MLKEM768 = 0x11EC;
+        /// <summary>The <c>SecP384r1MLKEM1024</c> constant, with the value <c>0x11ED</c>.</summary>
         public const int SecP384r1MLKEM1024 = 0x11ED;
 
         /*
@@ -376,21 +420,25 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Return the maximum char 2 curve bits.</summary>
         public static int GetMaximumChar2CurveBits()
         {
             return 571;
         }
 
+        /// <summary>Return the maximum curve bits.</summary>
         public static int GetMaximumCurveBits()
         {
             return 571;
         }
 
+        /// <summary>Return the maximum finite field bits.</summary>
         public static int GetMaximumFiniteFieldBits()
         {
             return 8192;
         }
 
+        /// <summary>Return the maximum prime curve bits.</summary>
         public static int GetMaximumPrimeCurveBits()
         {
             return 521;

@@ -5,12 +5,19 @@ namespace Org.BouncyCastle.Tls
     /// <summary>RFC 5246 7.4.1.4.1</summary>
     public abstract class HashAlgorithm
     {
+        /// <summary>The <c>none</c> constant, with the value <c>0</c>.</summary>
         public const short none = 0;
+        /// <summary>The <c>md5</c> constant, with the value <c>1</c>.</summary>
         public const short md5 = 1;
+        /// <summary>The <c>sha1</c> constant, with the value <c>2</c>.</summary>
         public const short sha1 = 2;
+        /// <summary>The <c>sha224</c> constant, with the value <c>3</c>.</summary>
         public const short sha224 = 3;
+        /// <summary>The <c>sha256</c> constant, with the value <c>4</c>.</summary>
         public const short sha256 = 4;
+        /// <summary>The <c>sha384</c> constant, with the value <c>5</c>.</summary>
         public const short sha384 = 5;
+        /// <summary>The <c>sha512</c> constant, with the value <c>6</c>.</summary>
         public const short sha512 = 6;
 
         /*

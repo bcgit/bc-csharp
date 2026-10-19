@@ -68,11 +68,13 @@ namespace Org.BouncyCastle.Tls
             this.m_minimumPrimeBits = minimumPrimeBits;
         }
 
+        /// <inheritdoc/>
         public virtual bool Accept(DHGroup dhGroup)
         {
             return CheckMinimumPrimeBits(dhGroup) && CheckGroup(dhGroup);
         }
 
+        /// <summary>Gets the minimum prime bits.</summary>
         public virtual int MinimumPrimeBits
         {
             get { return m_minimumPrimeBits; }

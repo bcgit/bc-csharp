@@ -13,11 +13,13 @@ namespace Org.BouncyCastle.Tls
     {
         protected bool m_verifyRequests = true;
 
+        /// <summary>Create a new <see cref="DtlsServerProtocol"/>.</summary>
         public DtlsServerProtocol()
             : base()
         {
         }
 
+        /// <summary>Gets or sets the verify requests.</summary>
         public virtual bool VerifyRequests
         {
             get { return m_verifyRequests; }

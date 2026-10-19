@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Tls
 
         private volatile TlsCloseable m_closeHandle;
 
+        /// <summary>Create a new <see cref="AbstractTlsPeer"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         protected AbstractTlsPeer(TlsCrypto crypto)
         {
             m_crypto = crypto;
@@ -27,6 +29,7 @@ namespace Org.BouncyCastle.Tls
         protected virtual ProtocolVersion[] GetSupportedVersions() =>
             ProtocolVersion.TLSv13.DownTo(ProtocolVersion.TLSv12);
 
+        /// <summary>Return the supported cipher suites.</summary>
         protected abstract int[] GetSupportedCipherSuites();
 
         /// <exception cref="IOException"/>
@@ -34,13 +37,16 @@ namespace Org.BouncyCastle.Tls
 
         public virtual TlsCrypto Crypto => m_crypto;
 
+        /// <inheritdoc/>
         public virtual void NotifyCloseHandle(TlsCloseable closeHandle)
         {
             m_closeHandle = closeHandle;
         }
 
+        /// <inheritdoc/>
         public abstract ProtocolVersion[] GetProtocolVersions();
 
+        /// <inheritdoc/>
         public abstract int[] GetCipherSuites();
 
         /// <exception cref="IOException"/>
@@ -48,26 +54,36 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
+        /// <inheritdoc/>
         public virtual int GetHandshakeTimeoutMillis() => 0;
 
+        /// <inheritdoc/>
         public virtual int GetHandshakeResendTimeMillis() => 1000;
 
+        /// <inheritdoc/>
         public virtual bool AllowLegacyResumption() => false;
 
+        /// <inheritdoc/>
         public virtual int GetMaxCertificateChainLength() => 10;
 
+        /// <inheritdoc/>
         public virtual int GetMaxHandshakeMessageSize() => 32768;
 
+        /// <inheritdoc/>
         public virtual short[] GetPskKeyExchangeModes() => new short[]{ PskKeyExchangeMode.psk_dhe_ke };
 
+        /// <inheritdoc/>
         public virtual bool RequiresCloseNotify() => true;
 
+        /// <inheritdoc/>
         public virtual bool RequiresExtendedMasterSecret() => false;
 
         public virtual bool ShouldCheckSigAlgOfPeerCerts() => true;
 
+        /// <inheritdoc/>
         public virtual bool ShouldUseExtendedMasterSecret() => true;
 
+        /// <inheritdoc/>
         public virtual bool ShouldUseExtendedPadding() => false;
 
         /*
@@ -87,14 +103,17 @@ namespace Org.BouncyCastle.Tls
         /// <exception cref="IOException"/>
         public virtual TlsKeyExchangeFactory GetKeyExchangeFactory() => new DefaultTlsKeyExchangeFactory();
 
+        /// <inheritdoc/>
         public virtual void NotifyAlertRaised(short alertLevel, short alertDescription, string message, Exception cause)
         {
         }
 
+        /// <inheritdoc/>
         public virtual void NotifyAlertReceived(short alertLevel, short alertDescription)
         {
         }
 
+        /// <inheritdoc/>
         public virtual void NotifyConnectionClosed()
         {
         }
@@ -104,8 +123,10 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
+        /// <inheritdoc/>
         public virtual TlsHeartbeat GetHeartbeat() => null;
 
+        /// <inheritdoc/>
         public virtual short GetHeartbeatPolicy() => HeartbeatMode.peer_not_allowed_to_send;
 
         /// <inheritdoc/>

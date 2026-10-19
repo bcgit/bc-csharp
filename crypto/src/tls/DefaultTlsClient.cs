@@ -37,11 +37,14 @@ namespace Org.BouncyCastle.Tls
             CipherSuite.TLS_RSA_WITH_AES_128_CBC_SHA,
         };
 
+        /// <summary>Create a new <see cref="DefaultTlsClient"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         public DefaultTlsClient(TlsCrypto crypto)
             : base(crypto)
         {
         }
 
+        /// <inheritdoc/>
         protected override int[] GetSupportedCipherSuites()
         {
             return TlsUtilities.GetSupportedCipherSuites(Crypto, DefaultCipherSuites);

@@ -12,6 +12,9 @@ namespace Org.BouncyCastle.Tls
         private readonly short m_statusType;
         private readonly object m_response;
 
+        /// <summary>Create a new <see cref="CertificateStatus"/>.</summary>
+        /// <param name="statusType">The status type.</param>
+        /// <param name="response">The response.</param>
         public CertificateStatus(short statusType, object response)
         {
             if (!IsCorrectType(statusType, response))
@@ -39,8 +42,10 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Gets the status type.</summary>
         public short StatusType => m_statusType;
 
+        /// <summary>Gets the response.</summary>
         public object Response => m_response;
 
         public OcspResponse OcspResponse

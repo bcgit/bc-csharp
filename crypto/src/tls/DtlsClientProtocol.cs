@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Tls
     public class DtlsClientProtocol
         : DtlsProtocol
     {
+        /// <summary>Create a new <see cref="DtlsClientProtocol"/>.</summary>
         public DtlsClientProtocol()
             : base()
         {

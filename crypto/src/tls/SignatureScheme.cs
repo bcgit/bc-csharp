@@ -12,47 +12,69 @@ namespace Org.BouncyCastle.Tls
          * RFC 8446
          */
 
+        /// <summary>The <c>rsa_pkcs1_sha1</c> constant, with the value <c>0x0201</c>.</summary>
         public const int rsa_pkcs1_sha1 = 0x0201;
+        /// <summary>The <c>ecdsa_sha1</c> constant, with the value <c>0x0203</c>.</summary>
         public const int ecdsa_sha1 = 0x0203;
 
+        /// <summary>The <c>rsa_pkcs1_sha256</c> constant, with the value <c>0x0401</c>.</summary>
         public const int rsa_pkcs1_sha256 = 0x0401;
+        /// <summary>The <c>rsa_pkcs1_sha384</c> constant, with the value <c>0x0501</c>.</summary>
         public const int rsa_pkcs1_sha384 = 0x0501;
+        /// <summary>The <c>rsa_pkcs1_sha512</c> constant, with the value <c>0x0601</c>.</summary>
         public const int rsa_pkcs1_sha512 = 0x0601;
 
+        /// <summary>The <c>ecdsa_secp256r1_sha256</c> constant, with the value <c>0x0403</c>.</summary>
         public const int ecdsa_secp256r1_sha256 = 0x0403;
+        /// <summary>The <c>ecdsa_secp384r1_sha384</c> constant, with the value <c>0x0503</c>.</summary>
         public const int ecdsa_secp384r1_sha384 = 0x0503;
+        /// <summary>The <c>ecdsa_secp521r1_sha512</c> constant, with the value <c>0x0603</c>.</summary>
         public const int ecdsa_secp521r1_sha512 = 0x0603;
 
+        /// <summary>The <c>rsa_pss_rsae_sha256</c> constant, with the value <c>0x0804</c>.</summary>
         public const int rsa_pss_rsae_sha256 = 0x0804;
+        /// <summary>The <c>rsa_pss_rsae_sha384</c> constant, with the value <c>0x0805</c>.</summary>
         public const int rsa_pss_rsae_sha384 = 0x0805;
+        /// <summary>The <c>rsa_pss_rsae_sha512</c> constant, with the value <c>0x0806</c>.</summary>
         public const int rsa_pss_rsae_sha512 = 0x0806;
 
+        /// <summary>The <c>ed25519</c> constant, with the value <c>0x0807</c>.</summary>
         public const int ed25519 = 0x0807;
+        /// <summary>The <c>ed448</c> constant, with the value <c>0x0808</c>.</summary>
         public const int ed448 = 0x0808;
 
+        /// <summary>The <c>rsa_pss_pss_sha256</c> constant, with the value <c>0x0809</c>.</summary>
         public const int rsa_pss_pss_sha256 = 0x0809;
+        /// <summary>The <c>rsa_pss_pss_sha384</c> constant, with the value <c>0x080A</c>.</summary>
         public const int rsa_pss_pss_sha384 = 0x080A;
+        /// <summary>The <c>rsa_pss_pss_sha512</c> constant, with the value <c>0x080B</c>.</summary>
         public const int rsa_pss_pss_sha512 = 0x080B;
 
         /*
          * RFC 8734
          */
 
+        /// <summary>The <c>ecdsa_brainpoolP256r1tls13_sha256</c> constant, with the value <c>0x081A</c>.</summary>
         public const int ecdsa_brainpoolP256r1tls13_sha256 = 0x081A;
+        /// <summary>The <c>ecdsa_brainpoolP384r1tls13_sha384</c> constant, with the value <c>0x081B</c>.</summary>
         public const int ecdsa_brainpoolP384r1tls13_sha384 = 0x081B;
+        /// <summary>The <c>ecdsa_brainpoolP512r1tls13_sha512</c> constant, with the value <c>0x081C</c>.</summary>
         public const int ecdsa_brainpoolP512r1tls13_sha512 = 0x081C;
 
         /*
          * RFC 8998
          */
 
+        /// <summary>The <c>sm2sig_sm3</c> constant, with the value <c>0x0708</c>.</summary>
         public const int sm2sig_sm3 = 0x0708;
 
         /*
          * draft-ietf-tls-mldsa-00
          */
         public const int mldsa44 = 0x0904;
+        /// <summary>The <c>mldsa65</c> constant, with the value <c>0x0905</c>.</summary>
         public const int mldsa65 = 0x0905;
+        /// <summary>The <c>mldsa87</c> constant, with the value <c>0x0906</c>.</summary>
         public const int mldsa87 = 0x0906;
 
         [Obsolete("Use 'mldsa44' instead")]

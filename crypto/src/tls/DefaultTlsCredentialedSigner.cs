@@ -15,6 +15,11 @@ namespace Org.BouncyCastle.Tls
         protected readonly SignatureAndHashAlgorithm m_signatureAndHashAlgorithm;
         protected readonly TlsSigner m_signer;
 
+        /// <summary>Create a new <see cref="DefaultTlsCredentialedSigner"/>.</summary>
+        /// <param name="cryptoParams">The crypto params.</param>
+        /// <param name="signer">The signer.</param>
+        /// <param name="certificate">The certificate.</param>
+        /// <param name="signatureAndHashAlgorithm">The signature and hash algorithm.</param>
         public DefaultTlsCredentialedSigner(TlsCryptoParameters cryptoParams, TlsSigner signer,
             Certificate certificate, SignatureAndHashAlgorithm signatureAndHashAlgorithm)
         {
@@ -36,6 +41,7 @@ namespace Org.BouncyCastle.Tls
             get { return m_certificate; }
         }
 
+        /// <inheritdoc/>
         public virtual byte[] GenerateRawSignature(byte[] hash)
         {
             return m_signer.GenerateRawSignature(GetEffectiveAlgorithm(), hash);
@@ -46,11 +52,13 @@ namespace Org.BouncyCastle.Tls
             get { return m_signatureAndHashAlgorithm; }
         }
 
+        /// <inheritdoc/>
         public virtual TlsStreamSigner GetStreamSigner()
         {
             return m_signer.GetStreamSigner(GetEffectiveAlgorithm());
         }
 
+        /// <summary>Return the effective algorithm.</summary>
         protected virtual SignatureAndHashAlgorithm GetEffectiveAlgorithm()
         {
             SignatureAndHashAlgorithm algorithm = null;

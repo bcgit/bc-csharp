@@ -96,6 +96,7 @@ namespace Org.BouncyCastle.Tls
             m_certificateAuthorities = certificateAuthorities;
         }
 
+        /// <summary>Return the certificate request context.</summary>
         public byte[] GetCertificateRequestContext() => TlsUtilities.Clone(m_certificateRequestContext);
 
         /// <returns>an array of certificate types</returns>

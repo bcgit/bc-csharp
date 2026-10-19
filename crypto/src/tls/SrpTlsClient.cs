@@ -16,27 +16,37 @@ namespace Org.BouncyCastle.Tls
 
         protected readonly TlsSrpIdentity m_srpIdentity;
 
+        /// <summary>Create a new <see cref="SrpTlsClient"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="identity">The identity.</param>
+        /// <param name="password">The password.</param>
         public SrpTlsClient(TlsCrypto crypto, byte[] identity, byte[] password)
             : this(crypto, new BasicTlsSrpIdentity(identity, password))
         {
         }
 
+        /// <summary>Create a new <see cref="SrpTlsClient"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
+        /// <param name="srpIdentity">The srp identity.</param>
         public SrpTlsClient(TlsCrypto crypto, TlsSrpIdentity srpIdentity)
             : base(crypto)
         {
             this.m_srpIdentity = srpIdentity;
         }
 
+        /// <inheritdoc/>
         protected override int[] GetSupportedCipherSuites()
         {
             return TlsUtilities.GetSupportedCipherSuites(Crypto, DefaultCipherSuites);
         }
 
+        /// <inheritdoc/>
         protected override ProtocolVersion[] GetSupportedVersions()
         {
             return ProtocolVersion.TLSv12.Only();
         }
 
+        /// <summary>Gets the require srp server extension.</summary>
         protected virtual bool RequireSrpServerExtension
         {
             // No explicit guidance in RFC 5054; by default an (empty) extension from server is optional
@@ -65,6 +75,7 @@ namespace Org.BouncyCastle.Tls
             base.ProcessServerExtensions(serverExtensions);
         }
 
+        /// <inheritdoc/>
         public override TlsSrpIdentity GetSrpIdentity()
         {
             return m_srpIdentity;

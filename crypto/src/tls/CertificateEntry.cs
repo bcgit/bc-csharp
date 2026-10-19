@@ -10,6 +10,9 @@ namespace Org.BouncyCastle.Tls
         private readonly TlsCertificate m_certificate;
         private readonly IDictionary<int, byte[]> m_extensions;
 
+        /// <summary>Create a new <see cref="CertificateEntry"/>.</summary>
+        /// <param name="certificate">The certificate.</param>
+        /// <param name="extensions">The extensions.</param>
         public CertificateEntry(TlsCertificate certificate, IDictionary<int, byte[]> extensions)
         {
             m_certificate = certificate ?? throw new ArgumentNullException(nameof(certificate));
@@ -18,6 +21,7 @@ namespace Org.BouncyCastle.Tls
 
         public TlsCertificate Certificate => m_certificate;
 
+        /// <summary>Gets the extensions.</summary>
         public IDictionary<int, byte[]> Extensions => m_extensions;
     }
 }

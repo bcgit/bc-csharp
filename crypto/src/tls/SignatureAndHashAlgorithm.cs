@@ -163,6 +163,7 @@ namespace Org.BouncyCastle.Tls
             return GetInstance(hash, signature);
         }
 
+        /// <inheritdoc/>
         public override bool Equals(object obj)
         {
             if (!(obj is SignatureAndHashAlgorithm))
@@ -172,11 +173,13 @@ namespace Org.BouncyCastle.Tls
             return other.Hash == Hash && other.Signature == Signature;
         }
 
+        /// <inheritdoc/>
         public override int GetHashCode()
         {
             return ((int)Hash << 16) | (int)Signature;
         }
 
+        /// <inheritdoc/>
         public override string ToString()
         {
             return "{" + HashAlgorithm.GetText(Hash) + "," + SignatureAlgorithm.GetText(Signature) + "}";

@@ -19,6 +19,8 @@ namespace Org.BouncyCastle.Tls
         private readonly TlsCrypto m_crypto;
         private readonly byte[] m_macKey;
 
+        /// <summary>Create a new <see cref="DtlsVerifier"/>.</summary>
+        /// <param name="crypto">The crypto.</param>
         public DtlsVerifier(TlsCrypto crypto)
         {
             m_crypto = crypto;

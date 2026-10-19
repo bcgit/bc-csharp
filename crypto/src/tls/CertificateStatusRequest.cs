@@ -9,6 +9,9 @@ namespace Org.BouncyCastle.Tls
         private short m_statusType;
         private object m_request;
 
+        /// <summary>Create a new <see cref="CertificateStatusRequest"/>.</summary>
+        /// <param name="statusType">The status type.</param>
+        /// <param name="request">The request.</param>
         public CertificateStatusRequest(short statusType, object request)
         {
             if (!IsCorrectType(statusType, request))
@@ -18,11 +21,13 @@ namespace Org.BouncyCastle.Tls
             this.m_request = request;
         }
 
+        /// <summary>Gets the status type.</summary>
         public short StatusType
         {
             get { return m_statusType; }
         }
 
+        /// <summary>Gets the request.</summary>
         public object Request
         {
             get { return m_request; }

@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Tls
     {
         private readonly ByteQueue m_buffer;
 
+        /// <summary>Create a new <see cref="ByteQueueInputStream"/>.</summary>
         public ByteQueueInputStream()
         {
             this.m_buffer = new ByteQueue();
@@ -31,6 +32,7 @@ namespace Org.BouncyCastle.Tls
             return bytesToRead;
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -41,6 +43,7 @@ namespace Org.BouncyCastle.Tls
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             int bytesToRead = System.Math.Min(m_buffer.Available, buffer.Length);
@@ -49,6 +52,7 @@ namespace Org.BouncyCastle.Tls
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (m_buffer.Available == 0)
@@ -64,6 +68,7 @@ namespace Org.BouncyCastle.Tls
             return bytesToRemove;
         }
 
+        /// <summary>Gets the available.</summary>
         public int Available
         {
             get { return m_buffer.Available; }
