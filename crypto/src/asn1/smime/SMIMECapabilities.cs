@@ -22,7 +22,7 @@ namespace Org.BouncyCastle.Asn1.Smime
         public static readonly DerObjectIdentifier CannotDecryptAny = PkcsObjectIdentifiers.CannotDecryptAny;
         public static readonly DerObjectIdentifier SmimeCapabilitesVersions = PkcsObjectIdentifiers.SmimeCapabilitiesVersions;
 
-		/**
+        /**
          * encryption algorithms preferences
          */
         public static readonly DerObjectIdentifier Aes256Cbc = NistObjectIdentifiers.IdAes256Cbc;
@@ -70,7 +70,7 @@ namespace Org.BouncyCastle.Asn1.Smime
         {
             var list = new List<SmimeCapability>();
             DoGetCapabilitiesForOid(capability, list);
-			return list;
+            return list;
         }
 
         private void DoGetCapabilitiesForOid(DerObjectIdentifier capability, List<SmimeCapability> list)

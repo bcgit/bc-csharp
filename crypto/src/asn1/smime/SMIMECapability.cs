@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Asn1.Smime
         public static readonly DerObjectIdentifier CannotDecryptAny = PkcsObjectIdentifiers.CannotDecryptAny;
         public static readonly DerObjectIdentifier SmimeCapabilitiesVersions = PkcsObjectIdentifiers.SmimeCapabilitiesVersions;
 
-		/**
+        /**
          * encryption algorithms preferences
          */
         public static readonly DerObjectIdentifier DesCbc = OiwObjectIdentifiers.DesCbc;
@@ -79,7 +79,7 @@ namespace Org.BouncyCastle.Asn1.Smime
         // TODO[api] return Asn1Encodable
         public Asn1Object Parameters => m_parameters?.ToAsn1Object();
 
-		/**
+        /**
          * Produce an object suitable for an Asn1OutputStream.
          * <pre>
          * SMIMECapability ::= Sequence {
