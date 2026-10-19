@@ -31,7 +31,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         public void BlockUpdate(byte[] input, int inOff, int inLen) => m_buf.Write(input, inOff, inLen);
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
-		public void BlockUpdate(ReadOnlySpan<byte> input) => m_buf.Write(input);
+        public void BlockUpdate(ReadOnlySpan<byte> input) => m_buf.Write(input);
 #endif
 
         public int DoFinal(byte[] output, int outOff)

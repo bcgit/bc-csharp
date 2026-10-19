@@ -9,7 +9,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     * implementation of RipeMD128
     */
     public class RipeMD128Digest
-		: GeneralDigest
+        : GeneralDigest
     {
         private const int DigestLength = 16;
 
@@ -31,15 +31,15 @@ namespace Org.BouncyCastle.Crypto.Digests
         * message digest.
         */
         public RipeMD128Digest(RipeMD128Digest t) : base(t)
-		{
-			CopyIn(t);
-		}
+        {
+            CopyIn(t);
+        }
 
-		private void CopyIn(RipeMD128Digest t)
-		{
-			base.CopyIn(t);
+        private void CopyIn(RipeMD128Digest t)
+        {
+            base.CopyIn(t);
 
-			H0 = t.H0;
+            H0 = t.H0;
             H1 = t.H1;
             H2 = t.H2;
             H3 = t.H3;
@@ -48,17 +48,17 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = t.xOff;
         }
 
-		public override string AlgorithmName
-		{
-			get { return "RIPEMD128"; }
-		}
+        public override string AlgorithmName
+        {
+            get { return "RIPEMD128"; }
+        }
 
-		public override int GetDigestSize()
-		{
-			return DigestLength;
-		}
+        public override int GetDigestSize()
+        {
+            return DigestLength;
+        }
 
-		internal override void ProcessWord(byte[] input, int inOff)
+        internal override void ProcessWord(byte[] input, int inOff)
         {
             X[xOff++] = (int)Pack.LE_To_UInt32(input, inOff);
 
@@ -479,17 +479,17 @@ namespace Org.BouncyCastle.Crypto.Digests
                 X[i] = 0;
             }
         }
-		
-		public override IMemoable Copy()
-		{
-			return new RipeMD128Digest(this);
-		}
 
-		public override void Reset(IMemoable other)
-		{
-			RipeMD128Digest d = (RipeMD128Digest)other;
+        public override IMemoable Copy()
+        {
+            return new RipeMD128Digest(this);
+        }
 
-			CopyIn(d);
-		}
+        public override void Reset(IMemoable other)
+        {
+            RipeMD128Digest d = (RipeMD128Digest)other;
+
+            CopyIn(d);
+        }
     }
 }

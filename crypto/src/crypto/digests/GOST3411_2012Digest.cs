@@ -54,7 +54,7 @@ namespace Org.BouncyCastle.Crypto.Digests
             g_N(h, Zero, Sigma);
 
             reverse(h, tmp);
-            
+
             Array.Copy(tmp, 0, output, outOff, 64);
 
             Reset();
@@ -100,7 +100,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         public abstract int GetDigestSize();
-       
+
 
         public void Reset()
         {
@@ -440,7 +440,7 @@ namespace Org.BouncyCastle.Crypto.Digests
         (byte)0xa2, (byte)0x42, (byte)0x2a, (byte)0x08, (byte)0xa4, (byte)0x60, (byte)0xd3, (byte)0x15,
         (byte)0x05, (byte)0x76, (byte)0x74, (byte)0x36, (byte)0xcc, (byte)0x74, (byte)0x4d, (byte)0x23,
         (byte)0xdd, (byte)0x80, (byte)0x65, (byte)0x59, (byte)0xf2, (byte)0xa6, (byte)0x45, (byte)0x07},
-            
+
         new byte[]{
             (byte)0x6f, (byte)0xa3, (byte)0xb5, (byte)0x8a, (byte)0xa9, (byte)0x9d, (byte)0x2f, (byte)0x1a,
             (byte)0x4f, (byte)0xe3, (byte)0x9d, (byte)0x46, (byte)0x0f, (byte)0x70, (byte)0xb5, (byte)0xd7,

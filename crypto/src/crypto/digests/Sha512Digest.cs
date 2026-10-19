@@ -104,17 +104,17 @@ namespace Org.BouncyCastle.Crypto.Digests
             H7 = 0x1f83d9abfb41bd6b;
             H8 = 0x5be0cd19137e2179;
         }
-		
-		public override IMemoable Copy()
-		{
-			return new Sha512Digest(this);
-		}
 
-		public override void Reset(IMemoable other)
-		{
-			Sha512Digest d = (Sha512Digest)other;
+        public override IMemoable Copy()
+        {
+            return new Sha512Digest(this);
+        }
 
-			CopyIn(d);
-		}
+        public override void Reset(IMemoable other)
+        {
+            Sha512Digest d = (Sha512Digest)other;
+
+            CopyIn(d);
+        }
     }
 }

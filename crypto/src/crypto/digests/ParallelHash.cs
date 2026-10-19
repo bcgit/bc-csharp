@@ -29,12 +29,12 @@ namespace Org.BouncyCastle.Crypto.Digests
         private int bufOff;
 
         /**
-	     * Base constructor.
-	     *
-	     * @param bitLength bit length of the underlying SHAKE function, 128 or 256.
-	     * @param S the customization string - available for local use.
-	     * @param B the blocksize (in bytes) for hashing.
-	     */
+         * Base constructor.
+         *
+         * @param bitLength bit length of the underlying SHAKE function, 128 or 256.
+         * @param S the customization string - available for local use.
+         * @param B the blocksize (in bytes) for hashing.
+         */
         public ParallelHash(int bitLength, byte[] S, int B)
             : this(bitLength, S, B, bitLength * 2)
         {

@@ -23,11 +23,11 @@ namespace Org.BouncyCastle.Crypto.Digests
         private bool firstOutput;
 
         /**
-	     * Base constructor.
-	     *
-	     * @param bitLength bit length of the underlying SHAKE function, 128 or 256.
-	     * @param S         the customization string - available for local use.
-	     */
+         * Base constructor.
+         *
+         * @param bitLength bit length of the underlying SHAKE function, 128 or 256.
+         * @param S         the customization string - available for local use.
+         */
         public TupleHash(int bitLength, byte[] S)
             : this(bitLength, S, bitLength * 2)
         {

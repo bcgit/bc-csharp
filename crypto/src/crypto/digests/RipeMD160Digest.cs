@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     * http://www.esat.kuleuven.ac.be/~bosselae/ripemd160.html
     */
     public class RipeMD160Digest
-		: GeneralDigest
+        : GeneralDigest
     {
         private const int DigestLength = 20;
 
@@ -33,12 +33,12 @@ namespace Org.BouncyCastle.Crypto.Digests
         */
         public RipeMD160Digest(RipeMD160Digest t) : base(t)
         {
-			CopyIn(t);
-		}
+            CopyIn(t);
+        }
 
-		private void CopyIn(RipeMD160Digest t)
-		{
-			base.CopyIn(t);
+        private void CopyIn(RipeMD160Digest t)
+        {
+            base.CopyIn(t);
 
             H0 = t.H0;
             H1 = t.H1;
@@ -51,16 +51,16 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         public override string AlgorithmName
-		{
-			get { return "RIPEMD160"; }
-		}
+        {
+            get { return "RIPEMD160"; }
+        }
 
-		public override int GetDigestSize()
-		{
-			return DigestLength;
-		}
+        public override int GetDigestSize()
+        {
+            return DigestLength;
+        }
 
-		internal override void ProcessWord(byte[] input, int inOff)
+        internal override void ProcessWord(byte[] input, int inOff)
         {
             X[xOff++] = (int)Pack.LE_To_UInt32(input, inOff);
 
@@ -441,17 +441,17 @@ namespace Org.BouncyCastle.Crypto.Digests
                 X[i] = 0;
             }
         }
-		
-		public override IMemoable Copy()
-		{
-			return new RipeMD160Digest(this);
-		}
 
-		public override void Reset(IMemoable other)
-		{
-			RipeMD160Digest d = (RipeMD160Digest)other;
+        public override IMemoable Copy()
+        {
+            return new RipeMD160Digest(this);
+        }
 
-			CopyIn(d);
-		}
+        public override void Reset(IMemoable other)
+        {
+            RipeMD160Digest d = (RipeMD160Digest)other;
+
+            CopyIn(d);
+        }
     }
 }

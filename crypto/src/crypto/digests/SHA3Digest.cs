@@ -229,8 +229,8 @@ namespace Org.BouncyCastle.Crypto.Digests
         }
 
         public override IMemoable Copy()
-		{
-			return new Sha3Digest(this);
-		}
+        {
+            return new Sha3Digest(this);
+        }
     }
 }

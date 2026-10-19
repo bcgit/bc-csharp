@@ -11,7 +11,7 @@ namespace Org.BouncyCastle.Crypto.Digests
     *  http://www.cs.technion.ac.il/~biham/Reports/Tiger</a>
     */
     public class TigerDigest
-		: IDigest, IMemoable
+        : IDigest, IMemoable
     {
         private const int MyByteLength = 64;
 
@@ -573,25 +573,25 @@ namespace Org.BouncyCastle.Crypto.Digests
         */
         public TigerDigest(TigerDigest t)
         {
-			Reset(t);
+            Reset(t);
         }
 
-		public string AlgorithmName
-		{
-			get { return "Tiger"; }
-		}
+        public string AlgorithmName
+        {
+            get { return "Tiger"; }
+        }
 
-		public int GetDigestSize()
-		{
-			return DigestLength;
-		}
+        public int GetDigestSize()
+        {
+            return DigestLength;
+        }
 
-		public int GetByteLength()
-		{
-			return MyByteLength;
-		}
+        public int GetByteLength()
+        {
+            return MyByteLength;
+        }
 
-		private void ProcessWord(byte[] b, int off)
+        private void ProcessWord(byte[] b, int off)
         {
             x[xOff++] = (long)Pack.LE_To_UInt64(b, off);
 
@@ -903,26 +903,26 @@ namespace Org.BouncyCastle.Crypto.Digests
             byteCount = 0;
         }
 
-		public IMemoable Copy()
-		{
-			return new TigerDigest(this);
-		}
+        public IMemoable Copy()
+        {
+            return new TigerDigest(this);
+        }
 
-		public void Reset(IMemoable other)
-		{
-			TigerDigest t = (TigerDigest)other;
+        public void Reset(IMemoable other)
+        {
+            TigerDigest t = (TigerDigest)other;
 
-			a = t.a;
-			b = t.b;
-			c = t.c;
+            a = t.a;
+            b = t.b;
+            c = t.c;
 
-			Array.Copy(t.x, 0, x, 0, t.x.Length);
-			xOff = t.xOff;
+            Array.Copy(t.x, 0, x, 0, t.x.Length);
+            xOff = t.xOff;
 
-			Array.Copy(t.m_buffer, 0, m_buffer, 0, t.m_buffer.Length);
-			bOff = t.bOff;
+            Array.Copy(t.m_buffer, 0, m_buffer, 0, t.m_buffer.Length);
+            bOff = t.bOff;
 
-			byteCount = t.byteCount;
-		}    
-	}
+            byteCount = t.byteCount;
+        }
+    }
 }

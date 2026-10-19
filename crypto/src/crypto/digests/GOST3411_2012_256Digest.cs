@@ -38,12 +38,12 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public override int DoFinal(byte[] output, int outOff)
         {
-			byte[] result = new byte[64];
-			base.DoFinal(result, 0);
+            byte[] result = new byte[64];
+            base.DoFinal(result, 0);
 
-			Array.Copy(result, 32, output, outOff, 32);
+            Array.Copy(result, 32, output, outOff, 32);
 
-			return 32;
+            return 32;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Digests
 
         public override IMemoable Copy()
         {
-			return new Gost3411_2012_256Digest(this);
+            return new Gost3411_2012_256Digest(this);
         }
     }
 }

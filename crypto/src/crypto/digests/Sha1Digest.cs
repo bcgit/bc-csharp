@@ -34,12 +34,12 @@ namespace Org.BouncyCastle.Crypto.Digests
         public Sha1Digest(Sha1Digest t)
             : base(t)
         {
-			CopyIn(t);
-		}
+            CopyIn(t);
+        }
 
-		private void CopyIn(Sha1Digest t)
-		{
-			base.CopyIn(t);
+        private void CopyIn(Sha1Digest t)
+        {
+            base.CopyIn(t);
 
             H1 = t.H1;
             H2 = t.H2;
@@ -294,17 +294,17 @@ namespace Org.BouncyCastle.Crypto.Digests
             xOff = 0;
             Array.Clear(X, 0, 16);
         }
-		
-		public override IMemoable Copy()
-		{
-			return new Sha1Digest(this);
-		}
 
-		public override void Reset(IMemoable other)
-		{
-			Sha1Digest d = (Sha1Digest)other;
+        public override IMemoable Copy()
+        {
+            return new Sha1Digest(this);
+        }
 
-			CopyIn(d);
-		}
+        public override void Reset(IMemoable other)
+        {
+            Sha1Digest d = (Sha1Digest)other;
+
+            CopyIn(d);
+        }
     }
 }
