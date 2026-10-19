@@ -40,6 +40,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
             this.param = param;
         }
 
+        /// <summary>Gets the name.</summary>
         public string Name => name;
 
         internal PicnicEngine GetEngine()

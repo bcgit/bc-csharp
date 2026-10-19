@@ -8,6 +8,9 @@ namespace Org.BouncyCastle.Pqc.Crypto.Picnic
     {
         private readonly PicnicParameters m_parameters;
 
+        /// <summary>Create a new <see cref="PicnicKeyGenerationParameters"/>.</summary>
+        /// <param name="random">The source of randomness.</param>
+        /// <param name="parameters">The parameters.</param>
         public PicnicKeyGenerationParameters(SecureRandom random, PicnicParameters parameters)
             : base(random, 255)
         {
