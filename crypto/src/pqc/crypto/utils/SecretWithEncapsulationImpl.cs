@@ -13,12 +13,16 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
         private byte[] sessionKey;
         private byte[] cipher_text;
 
+        /// <summary>Create a new <see cref="SecretWithEncapsulationImpl"/>.</summary>
+        /// <param name="sessionKey">The session key.</param>
+        /// <param name="cipher_text">The cipher text.</param>
         public SecretWithEncapsulationImpl(byte[] sessionKey, byte[] cipher_text)
         {
             this.sessionKey = sessionKey;
             this.cipher_text = cipher_text;
         }
 
+        /// <inheritdoc/>
         public byte[] GetSecret()
         {
             CheckDestroyed();
@@ -26,6 +30,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
             return Arrays.Clone(sessionKey);
         }
 
+        /// <inheritdoc/>
         public byte[] GetEncapsulation()
         {
             CheckDestroyed();

@@ -94,6 +94,7 @@ namespace Org.BouncyCastle.Pqc.Crypto.Utilities
                 return this;
             }
 
+            /// <summary>Return the supp priv info part a.</summary>
             public byte[] GetSuppPrivInfoPartA()
             {
                 return GetEncoded(m_aKp.Public);
