@@ -69,6 +69,14 @@ namespace Org.BouncyCastle.Pkix
             throw new PkixCertPathBuilderException(m_certPathException.Message, m_certPathException.InnerException);
         }
 
+        /// <summary>Build and validate a CertPath using the given parameter.</summary>
+        /// <param name="tbvCert">The tbv cert.</param>
+        /// <param name="pkixParams">Object containing all information to build the CertPath.</param>
+        /// <param name="tbvPath">The tbv path.</param>
+        /// <returns>The result for the first valid path found, including the path and its trust anchor.</returns>
+        /// <exception cref="PkixCertPathBuilderException">
+        /// No valid path could be found, or the search exceeded its node limit.
+        /// </exception>
         // TODO[api] Make private
         protected virtual PkixCertPathBuilderResult Build(X509Certificate tbvCert, PkixBuilderParameters pkixParams,
             IList<X509Certificate> tbvPath)
