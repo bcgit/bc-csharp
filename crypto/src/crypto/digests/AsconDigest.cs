@@ -20,7 +20,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// <summary>The variants of Ascon supported by this class.</summary>
         public enum AsconParameters
         {
+            /// <summary>Ascon-Hash.</summary>
             AsconHash,
+            /// <summary>Ascon-HashA.</summary>
             AsconHashA,
         }
 

@@ -29,9 +29,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         /// <summary>The variants of Sparkle supported by this class.</summary>
         public enum SparkleParameters
         {
+            /// <summary>Schwaemm128-128.</summary>
             SCHWAEMM128_128,
+            /// <summary>Schwaemm256-128.</summary>
             SCHWAEMM256_128,
+            /// <summary>Schwaemm192-192.</summary>
             SCHWAEMM192_192,
+            /// <summary>Schwaemm256-256.</summary>
             SCHWAEMM256_256
         }
 

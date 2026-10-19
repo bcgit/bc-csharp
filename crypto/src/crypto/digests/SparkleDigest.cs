@@ -21,7 +21,9 @@ namespace Org.BouncyCastle.Crypto.Digests
         /// <summary>The variants of Sparkle supported by this class.</summary>
         public enum SparkleParameters
         {
+            /// <summary>Esch256.</summary>
             ESCH256,
+            /// <summary>Esch384.</summary>
             ESCH384
         }
 

@@ -23,8 +23,11 @@ namespace Org.BouncyCastle.Crypto.Engines
         /// <summary>The variants of Ascon supported by this class.</summary>
         public enum AsconParameters
         {
+            /// <summary>Ascon-80pq.</summary>
             ascon80pq,
+            /// <summary>Ascon-128a.</summary>
             ascon128a,
+            /// <summary>Ascon-128.</summary>
             ascon128,
         }
 
