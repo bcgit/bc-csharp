@@ -18,8 +18,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
      * </pre>
      */
     public class RevDetails
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static RevDetails GetInstance(object obj)
         {
             if (obj == null)
@@ -36,10 +36,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
             new RevDetails(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly CertTemplate m_certDetails;
-		private readonly X509Extensions m_crlEntryDetails;
+        private readonly X509Extensions m_crlEntryDetails;
 
         private RevDetails(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -49,41 +49,41 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
-		public RevDetails(CertTemplate certDetails)
+        public RevDetails(CertTemplate certDetails)
             : this(certDetails, null)
-		{
-		}
+        {
+        }
 
         public RevDetails(CertTemplate certDetails, X509Extensions crlEntryDetails)
-		{
+        {
             m_certDetails = certDetails ?? throw new ArgumentNullException(nameof(certDetails));
             m_crlEntryDetails = crlEntryDetails;
-		}
+        }
 
-		public virtual CertTemplate CertDetails => m_certDetails;
+        public virtual CertTemplate CertDetails => m_certDetails;
 
         public virtual X509Extensions CrlEntryDetails => m_crlEntryDetails;
 
-		/**
-		* <pre>
-		* RevDetails ::= SEQUENCE {
-		*                  certDetails         CertTemplate,
-		*                   -- allows requester to specify as much as they can about
-		*                   -- the cert. for which revocation is requested
-		*                   -- (e.g., for cases in which serialNumber is not available)
-		*                   crlEntryDetails     Extensions       OPTIONAL
-		*                   -- requested crlEntryExtensions
-		*             }
-		* </pre>
-		* @return a basic ASN.1 object representation.
-		*/
-		public override Asn1Object ToAsn1Object()
-		{
+        /**
+        * <pre>
+        * RevDetails ::= SEQUENCE {
+        *                  certDetails         CertTemplate,
+        *                   -- allows requester to specify as much as they can about
+        *                   -- the cert. for which revocation is requested
+        *                   -- (e.g., for cases in which serialNumber is not available)
+        *                   crlEntryDetails     Extensions       OPTIONAL
+        *                   -- requested crlEntryExtensions
+        *             }
+        * </pre>
+        * @return a basic ASN.1 object representation.
+        */
+        public override Asn1Object ToAsn1Object()
+        {
             return m_crlEntryDetails == null
                 ?  new DerSequence(m_certDetails)
                 :  new DerSequence(m_certDetails, m_crlEntryDetails);
-		}
-	}
+        }
+    }
 }

@@ -2,27 +2,27 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public enum PkiStatus
-	{
-		Granted					= 0,
-		GrantedWithMods			= 1,
-		Rejection				= 2,
-		Waiting					= 3,
-		RevocationWarning		= 4,
-		RevocationNotification	= 5,
-    	KeyUpdateWarning		= 6,
-	}
+    public enum PkiStatus
+    {
+        Granted = 0,
+        GrantedWithMods = 1,
+        Rejection = 2,
+        Waiting = 3,
+        RevocationWarning = 4,
+        RevocationNotification = 5,
+        KeyUpdateWarning = 6,
+    }
 
-	public class PkiStatusEncodable
-		: Asn1Encodable
-	{
-		public static readonly PkiStatusEncodable granted = new PkiStatusEncodable(PkiStatus.Granted);
-		public static readonly PkiStatusEncodable grantedWithMods = new PkiStatusEncodable(PkiStatus.GrantedWithMods);
-		public static readonly PkiStatusEncodable rejection = new PkiStatusEncodable(PkiStatus.Rejection);
-		public static readonly PkiStatusEncodable waiting = new PkiStatusEncodable(PkiStatus.Waiting);
-		public static readonly PkiStatusEncodable revocationWarning = new PkiStatusEncodable(PkiStatus.RevocationWarning);
-		public static readonly PkiStatusEncodable revocationNotification = new PkiStatusEncodable(PkiStatus.RevocationNotification);
-		public static readonly PkiStatusEncodable keyUpdateWaiting = new PkiStatusEncodable(PkiStatus.KeyUpdateWarning);
+    public class PkiStatusEncodable
+        : Asn1Encodable
+    {
+        public static readonly PkiStatusEncodable granted = new PkiStatusEncodable(PkiStatus.Granted);
+        public static readonly PkiStatusEncodable grantedWithMods = new PkiStatusEncodable(PkiStatus.GrantedWithMods);
+        public static readonly PkiStatusEncodable rejection = new PkiStatusEncodable(PkiStatus.Rejection);
+        public static readonly PkiStatusEncodable waiting = new PkiStatusEncodable(PkiStatus.Waiting);
+        public static readonly PkiStatusEncodable revocationWarning = new PkiStatusEncodable(PkiStatus.RevocationWarning);
+        public static readonly PkiStatusEncodable revocationNotification = new PkiStatusEncodable(PkiStatus.RevocationNotification);
+        public static readonly PkiStatusEncodable keyUpdateWaiting = new PkiStatusEncodable(PkiStatus.KeyUpdateWarning);
 
         public static PkiStatusEncodable GetInstance(object obj)
         {
@@ -41,20 +41,20 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private readonly DerInteger m_status;
 
-		private PkiStatusEncodable(PkiStatus status)
-			: this(DerInteger.ValueOf((int)status))
-		{
-		}
+        private PkiStatusEncodable(PkiStatus status)
+            : this(DerInteger.ValueOf((int)status))
+        {
+        }
 
-		private PkiStatusEncodable(DerInteger status)
-		{
-			m_status = status;
-		}
+        private PkiStatusEncodable(DerInteger status)
+        {
+            m_status = status;
+        }
 
-		public virtual DerInteger Status => m_status;
+        public virtual DerInteger Status => m_status;
 
-		public virtual BigInteger Value => m_status.Value;
+        public virtual BigInteger Value => m_status.Value;
 
-		public override Asn1Object ToAsn1Object() => m_status;
-	}
+        public override Asn1Object ToAsn1Object() => m_status;
+    }
 }

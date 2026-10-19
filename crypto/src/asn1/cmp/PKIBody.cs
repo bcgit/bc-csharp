@@ -238,7 +238,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             case TYPE_POLL_REP:
                 return PollRepContent.GetInstance(o);
             default:
-	            throw new ArgumentException("unknown tag number: " + type, nameof(type));
+                throw new ArgumentException("unknown tag number: " + type, nameof(type));
             }
         }
 

@@ -6,8 +6,8 @@ using Org.BouncyCastle.Asn1.X509;
 namespace Org.BouncyCastle.Asn1.Cmp
 {
     public class RevAnnContent
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static RevAnnContent GetInstance(object obj)
         {
             if (obj == null)
@@ -24,16 +24,16 @@ namespace Org.BouncyCastle.Asn1.Cmp
             new RevAnnContent(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly PkiStatusEncodable m_status;
-		private readonly CertId m_certID;
-		private readonly Asn1GeneralizedTime m_willBeRevokedAt;
-		private readonly Asn1GeneralizedTime m_badSinceDate;
-		private readonly X509Extensions m_crlDetails;
+        private readonly CertId m_certID;
+        private readonly Asn1GeneralizedTime m_willBeRevokedAt;
+        private readonly Asn1GeneralizedTime m_badSinceDate;
+        private readonly X509Extensions m_crlDetails;
 
         public RevAnnContent(PkiStatusEncodable status, CertId certID, Asn1GeneralizedTime willBeRevokedAt,
             Asn1GeneralizedTime badSinceDate)
             : this(status, certID, willBeRevokedAt, badSinceDate, null)
         {
-		}
+        }
 
         public RevAnnContent(PkiStatusEncodable status, CertId certID, Asn1GeneralizedTime willBeRevokedAt,
             Asn1GeneralizedTime badSinceDate, X509Extensions crlDetails)
@@ -46,7 +46,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         }
 
         private RevAnnContent(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 4 || count > 5)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -59,37 +59,37 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
-		public virtual PkiStatusEncodable Status => m_status;
+        public virtual PkiStatusEncodable Status => m_status;
 
-		public virtual CertId CertID => m_certID;
+        public virtual CertId CertID => m_certID;
 
-		public virtual Asn1GeneralizedTime WillBeRevokedAt => m_willBeRevokedAt;
+        public virtual Asn1GeneralizedTime WillBeRevokedAt => m_willBeRevokedAt;
 
-		public virtual Asn1GeneralizedTime BadSinceDate => m_badSinceDate;
+        public virtual Asn1GeneralizedTime BadSinceDate => m_badSinceDate;
 
-		public virtual X509Extensions CrlDetails => m_crlDetails;
+        public virtual X509Extensions CrlDetails => m_crlDetails;
 
-		/**
-		 * <pre>
-		 * RevAnnContent ::= SEQUENCE {
-		 *       status              PKIStatus,
-		 *       certId              CertId,
-		 *       willBeRevokedAt     GeneralizedTime,
-		 *       badSinceDate        GeneralizedTime,
-		 *       crlDetails          Extensions  OPTIONAL
-		 *        -- extra CRL details (e.g., crl number, reason, location, etc.)
-		 * }
-		 * </pre>
-		 * @return a basic ASN.1 object representation.
-		 */
-		public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(5);
-			v.Add(m_status, m_certID, m_willBeRevokedAt, m_badSinceDate);
-			v.AddOptional(m_crlDetails);
-			return new DerSequence(v);
-		}
-	}
+        /**
+         * <pre>
+         * RevAnnContent ::= SEQUENCE {
+         *       status              PKIStatus,
+         *       certId              CertId,
+         *       willBeRevokedAt     GeneralizedTime,
+         *       badSinceDate        GeneralizedTime,
+         *       crlDetails          Extensions  OPTIONAL
+         *        -- extra CRL details (e.g., crl number, reason, location, etc.)
+         * }
+         * </pre>
+         * @return a basic ASN.1 object representation.
+         */
+        public override Asn1Object ToAsn1Object()
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(5);
+            v.Add(m_status, m_certID, m_willBeRevokedAt, m_badSinceDate);
+            v.AddOptional(m_crlDetails);
+            return new DerSequence(v);
+        }
+    }
 }

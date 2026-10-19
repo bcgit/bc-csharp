@@ -5,9 +5,9 @@ using Org.BouncyCastle.Math;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class CertStatus
-		: Asn1Encodable
-	{
+    public class CertStatus
+        : Asn1Encodable
+    {
         public static CertStatus GetInstance(object obj)
         {
             if (obj == null)
@@ -24,12 +24,12 @@ namespace Org.BouncyCastle.Asn1.Cmp
             new CertStatus(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly Asn1OctetString m_certHash;
-		private readonly DerInteger m_certReqID;
-		private readonly PkiStatusInfo m_statusInfo;
+        private readonly DerInteger m_certReqID;
+        private readonly PkiStatusInfo m_statusInfo;
         private readonly AlgorithmIdentifier m_hashAlg;
 
         private CertStatus(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 2 || count > 4)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -49,15 +49,15 @@ namespace Org.BouncyCastle.Asn1.Cmp
         }
 
         public CertStatus(byte[] certHash, DerInteger certReqID)
-		{
-			m_certHash = DerOctetString.FromContents(certHash);
-			m_certReqID = certReqID;
+        {
+            m_certHash = DerOctetString.FromContents(certHash);
+            m_certReqID = certReqID;
             m_statusInfo = null;
             m_hashAlg = null;
         }
 
         public CertStatus(byte[] certHash, BigInteger certReqID, PkiStatusInfo statusInfo)
-		{
+        {
             m_certHash = DerOctetString.FromContents(certHash);
             m_certReqID = new DerInteger(certReqID);
             m_statusInfo = statusInfo;
@@ -74,11 +74,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual Asn1OctetString CertHash => m_certHash;
 
-		public virtual DerInteger CertReqID => m_certReqID;
+        public virtual DerInteger CertReqID => m_certReqID;
 
-		public virtual PkiStatusInfo StatusInfo => m_statusInfo;
+        public virtual PkiStatusInfo StatusInfo => m_statusInfo;
 
-		public virtual AlgorithmIdentifier HashAlg => m_hashAlg;
+        public virtual AlgorithmIdentifier HashAlg => m_hashAlg;
 
         /**
          * <pre>
@@ -95,12 +95,12 @@ namespace Org.BouncyCastle.Asn1.Cmp
          * @return a basic ASN.1 object representation.
          */
         public override Asn1Object ToAsn1Object()
-		{
-			Asn1EncodableVector v = new Asn1EncodableVector(4);
-			v.Add(m_certHash, m_certReqID);
-			v.AddOptional(m_statusInfo);
-			v.AddOptionalTagged(true, 0, m_hashAlg);
-			return new DerSequence(v);
-		}
-	}
+        {
+            Asn1EncodableVector v = new Asn1EncodableVector(4);
+            v.Add(m_certHash, m_certReqID);
+            v.AddOptional(m_statusInfo);
+            v.AddOptionalTagged(true, 0, m_hashAlg);
+            return new DerSequence(v);
+        }
+    }
 }

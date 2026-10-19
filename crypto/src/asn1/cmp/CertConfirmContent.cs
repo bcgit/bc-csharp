@@ -1,8 +1,8 @@
 namespace Org.BouncyCastle.Asn1.Cmp
 {
     public class CertConfirmContent
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static CertConfirmContent GetInstance(object obj)
         {
             if (obj == null)
@@ -28,11 +28,11 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public virtual CertStatus[] ToCertStatusArray() => m_content.MapElements(CertStatus.GetInstance);
 
         /**
-		 * <pre>
-		 * CertConfirmContent ::= SEQUENCE OF CertStatus
-		 * </pre>
-		 * @return a basic ASN.1 object representation.
-		 */
+         * <pre>
+         * CertConfirmContent ::= SEQUENCE OF CertStatus
+         * </pre>
+         * @return a basic ASN.1 object representation.
+         */
         public override Asn1Object ToAsn1Object() => m_content;
-	}
+    }
 }

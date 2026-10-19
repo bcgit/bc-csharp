@@ -2,9 +2,9 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class CrlAnnContent
-		: Asn1Encodable
-	{
+    public class CrlAnnContent
+        : Asn1Encodable
+    {
         public static CrlAnnContent GetInstance(object obj)
         {
             if (obj == null)
@@ -22,10 +22,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private readonly Asn1Sequence m_content;
 
-		private CrlAnnContent(Asn1Sequence seq)
-		{
-			m_content = seq;
-		}
+        private CrlAnnContent(Asn1Sequence seq)
+        {
+            m_content = seq;
+        }
 
         public CrlAnnContent(CertificateList crl)
         {
@@ -34,12 +34,12 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         public virtual CertificateList[] ToCertificateListArray() => m_content.MapElements(CertificateList.GetInstance);
 
-		/**
-		 * <pre>
-		 * CrlAnnContent ::= SEQUENCE OF CertificateList
-		 * </pre>
-		 * @return a basic ASN.1 object representation.
-		 */
-		public override Asn1Object ToAsn1Object() => m_content;
-	}
+        /**
+         * <pre>
+         * CrlAnnContent ::= SEQUENCE OF CertificateList
+         * </pre>
+         * @return a basic ASN.1 object representation.
+         */
+        public override Asn1Object ToAsn1Object() => m_content;
+    }
 }

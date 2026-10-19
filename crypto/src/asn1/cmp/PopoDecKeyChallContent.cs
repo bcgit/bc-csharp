@@ -2,9 +2,9 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class PopoDecKeyChallContent
-	    : Asn1Encodable
-	{
+    public class PopoDecKeyChallContent
+        : Asn1Encodable
+    {
         public static PopoDecKeyChallContent GetInstance(object obj)
         {
             if (obj == null)
@@ -22,19 +22,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private readonly Asn1Sequence m_content;
 
-	    private PopoDecKeyChallContent(Asn1Sequence seq)
-	    {
-	        m_content = seq;
-	    }
+        private PopoDecKeyChallContent(Asn1Sequence seq)
+        {
+            m_content = seq;
+        }
 
-	    public virtual Challenge[] ToChallengeArray() => m_content.MapElements(Challenge.GetInstance);
+        public virtual Challenge[] ToChallengeArray() => m_content.MapElements(Challenge.GetInstance);
 
-	    /**
-	     * <pre>
-	     * PopoDecKeyChallContent ::= SEQUENCE OF Challenge
-	     * </pre>
-	     * @return a basic ASN.1 object representation.
-	     */
-	    public override Asn1Object ToAsn1Object() => m_content;
-	}
+        /**
+         * <pre>
+         * PopoDecKeyChallContent ::= SEQUENCE OF Challenge
+         * </pre>
+         * @return a basic ASN.1 object representation.
+         */
+        public override Asn1Object ToAsn1Object() => m_content;
+    }
 }

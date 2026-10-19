@@ -1,8 +1,8 @@
 namespace Org.BouncyCastle.Asn1.Cmp
 {
-	public class GenRepContent
-		: Asn1Encodable
-	{
+    public class GenRepContent
+        : Asn1Encodable
+    {
         public static GenRepContent GetInstance(object obj)
         {
             if (obj == null)
@@ -20,10 +20,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
 
         private readonly Asn1Sequence m_content;
 
-		private GenRepContent(Asn1Sequence seq)
-		{
-			m_content = seq;
-		}
+        private GenRepContent(Asn1Sequence seq)
+        {
+            m_content = seq;
+        }
 
         public GenRepContent(InfoTypeAndValue itv)
         {
@@ -31,19 +31,19 @@ namespace Org.BouncyCastle.Asn1.Cmp
         }
 
         public GenRepContent(params InfoTypeAndValue[] itvs)
-		{
-			m_content = new DerSequence(itvs);
-		}
+        {
+            m_content = new DerSequence(itvs);
+        }
 
-		public virtual InfoTypeAndValue[] ToInfoTypeAndValueArray() =>
-			m_content.MapElements(InfoTypeAndValue.GetInstance);
+        public virtual InfoTypeAndValue[] ToInfoTypeAndValueArray() =>
+            m_content.MapElements(InfoTypeAndValue.GetInstance);
 
-		/**
-		 * <pre>
-		 * GenRepContent ::= SEQUENCE OF InfoTypeAndValue
-		 * </pre>
-		 * @return a basic ASN.1 object representation.
-		 */
-		public override Asn1Object ToAsn1Object() => m_content;
-	}
+        /**
+         * <pre>
+         * GenRepContent ::= SEQUENCE OF InfoTypeAndValue
+         * </pre>
+         * @return a basic ASN.1 object representation.
+         */
+        public override Asn1Object ToAsn1Object() => m_content;
+    }
 }

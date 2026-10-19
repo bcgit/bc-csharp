@@ -44,8 +44,8 @@ namespace Org.BouncyCastle.Asn1.Cmp
      * </pre>
      */
     public class PkiFailureInfo
-		: DerBitString
-	{
+        : DerBitString
+    {
         public const int BadAlg               = (1 << 7); // unrecognized or unsupported Algorithm Identifier
         public const int BadMessageCheck      = (1 << 6); // integrity check failed (e.g., signature did not verify)
         public const int BadRequest           = (1 << 5);
@@ -75,22 +75,22 @@ namespace Org.BouncyCastle.Asn1.Cmp
         public const int DuplicateCertReq     = (1 << 29);
 
         /**
-		 * Basic constructor.
-		 */
-		public PkiFailureInfo(int info)
-			: base(info)
-		{
-		}
+         * Basic constructor.
+         */
+        public PkiFailureInfo(int info)
+            : base(info)
+        {
+        }
 
-		public PkiFailureInfo(
-			DerBitString info)
-			: base(info.GetBytes(), info.PadBits)
-		{
-		}
+        public PkiFailureInfo(
+            DerBitString info)
+            : base(info.GetBytes(), info.PadBits)
+        {
+        }
 
-		public override string ToString()
-		{
-			return "PkiFailureInfo: 0x" + this.IntValue.ToString("X");
-		}
-	}
+        public override string ToString()
+        {
+            return "PkiFailureInfo: 0x" + this.IntValue.ToString("X");
+        }
+    }
 }
