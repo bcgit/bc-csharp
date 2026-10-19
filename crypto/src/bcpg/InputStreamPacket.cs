@@ -7,6 +7,8 @@ namespace Org.BouncyCastle.Bcpg
     {
         private readonly BcpgInputStream m_bcpgIn;
 
+        /// <summary>Create a new <see cref="InputStreamPacket"/>.</summary>
+        /// <param name="bcpgIn">The bcpg in.</param>
         [Obsolete("WIll be removed")]
         public InputStreamPacket(BcpgInputStream bcpgIn)
         {

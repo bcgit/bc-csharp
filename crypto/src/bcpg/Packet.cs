@@ -2,11 +2,13 @@ using System;
 
 namespace Org.BouncyCastle.Bcpg
 {
+    /// <summary>Base class for OpenPGP packets.</summary>
     public class Packet
     {
         private readonly PacketTag m_packetTag;
         private readonly bool m_newPacketFormat;
 
+        /// <summary>Create a new <see cref="Packet"/>.</summary>
         [Obsolete("Will be removed")]
         public Packet()
             : this(PacketTag.Reserved)
@@ -24,6 +26,7 @@ namespace Org.BouncyCastle.Bcpg
             m_newPacketFormat = newPacketFormat;
         }
 
+        /// <summary>Gets a value indicating whether this has new packet format.</summary>
         public bool HasNewPacketFormat => m_newPacketFormat;
 
         /// <summary>Returns whether the packet is to be considered critical for v6 implementations.</summary>

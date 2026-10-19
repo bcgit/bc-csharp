@@ -29,10 +29,13 @@ namespace Org.BouncyCastle.Bcpg
             Array.Copy(key, 0, m_key, 0, length);
         }
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) => bcpgOut.Write(m_key);
 
+        /// <inheritdoc/>
         public virtual string Format => "PGP";
 
+        /// <inheritdoc/>
         public override byte[] GetEncoded()
         {
             try
@@ -45,6 +48,7 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Return the key.</summary>
         public virtual byte[] GetKey() => Arrays.Clone(m_key);
 
         internal virtual byte[] Key => m_key;

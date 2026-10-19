@@ -157,11 +157,16 @@ namespace Org.BouncyCastle.Bcpg
         private string type;
         private readonly Dictionary<string, List<string>> m_headers;
 
+        /// <summary>Create a new <see cref="ArmoredOutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
         public ArmoredOutputStream(Stream outStream)
             : this(outStream, true)
         {
         }
 
+        /// <summary>Create a new <see cref="ArmoredOutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="addVersionHeader">true if add version header, false otherwise.</param>
         public ArmoredOutputStream(Stream outStream, bool addVersionHeader)
         {
             m_outStream = outStream;
@@ -175,11 +180,18 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Create a new <see cref="ArmoredOutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="headers">The headers.</param>
         public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers)
             : this(outStream, headers, true)
         {
         }
 
+        /// <summary>Create a new <see cref="ArmoredOutputStream"/>.</summary>
+        /// <param name="outStream">The output stream.</param>
+        /// <param name="headers">The headers.</param>
+        /// <param name="addVersionHeader">true if add version header, false otherwise.</param>
         public ArmoredOutputStream(Stream outStream, IDictionary<string, string> headers, bool addVersionHeader)
             : this(outStream, addVersionHeader && !headers.ContainsKey(HeaderVersion))
         {
@@ -358,6 +370,7 @@ namespace Org.BouncyCastle.Bcpg
             return s != null && (s.IndexOf('\r') >= 0 || s.IndexOf('\n') >= 0);
         }
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
             if (clearText)

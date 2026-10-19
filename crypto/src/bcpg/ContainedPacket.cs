@@ -7,6 +7,7 @@ namespace Org.BouncyCastle.Bcpg
     public abstract class ContainedPacket
         : Packet
     {
+        /// <summary>Create a new <see cref="ContainedPacket"/>.</summary>
         [Obsolete("Will be removed")]
         public ContainedPacket()
             : base()
@@ -23,6 +24,7 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Return the encoded.</summary>
         public byte[] GetEncoded() => GetEncoded(PacketFormat.Roundtrip);
 
         public byte[] GetEncoded(PacketFormat packetFormat)

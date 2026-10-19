@@ -52,9 +52,13 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Memory-hard, salted key generation using Argon2 hash algorithm.</summary>
         public const int Argon2 = 4;
 
+        /// <summary>The <c>GnuDummyS2K</c> constant, with the value <c>101</c>.</summary>
         public const int GnuDummyS2K = 101;
+        /// <summary>The <c>GnuProtectionModeNoPrivateKey</c> constant, with the value <c>1</c>.</summary>
         public const int GnuProtectionModeNoPrivateKey = 1;
+        /// <summary>The <c>GnuProtectionModeDivertToCard</c> constant, with the value <c>2</c>.</summary>
         public const int GnuProtectionModeDivertToCard = 2;
+        /// <summary>The <c>GnuProtectionModeInternal</c> constant, with the value <c>3</c>.</summary>
         public const int GnuProtectionModeInternal = 3;
 
         internal int m_type;
@@ -109,12 +113,17 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Create a new <see cref="S2k"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
         public S2k(HashAlgorithmTag algorithm)
         {
             m_type = Simple;
             m_algorithm = algorithm;
         }
 
+        /// <summary>Create a new <see cref="S2k"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="iv">The initialization vector.</param>
         public S2k(HashAlgorithmTag algorithm, byte[] iv)
         {
             m_type = Salted;
@@ -122,6 +131,10 @@ namespace Org.BouncyCastle.Bcpg
             m_iv = iv;
         }
 
+        /// <summary>Create a new <see cref="S2k"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="itCount">The it count.</param>
         public S2k(HashAlgorithmTag algorithm, byte[] iv, int itCount)
         {
             m_type = SaltedAndIterated;
@@ -130,6 +143,8 @@ namespace Org.BouncyCastle.Bcpg
             m_itCount = itCount;
         }
 
+        /// <summary>Create a new <see cref="S2k"/>.</summary>
+        /// <param name="argon2Config">The argon 2 config.</param>
         public S2k(Argon2Params argon2Config)
         {
             m_type = Argon2;
@@ -138,6 +153,7 @@ namespace Org.BouncyCastle.Bcpg
 
         public static S2k Argon2S2k(Argon2Params parameters) => new S2k(parameters);
 
+        /// <summary>Gets the type.</summary>
         public virtual int Type => m_type;
 
         /// <summary>The hash algorithm.</summary>
@@ -152,8 +168,10 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>The protection mode - only if GnuDummyS2K</summary>
         public virtual int ProtectionMode => m_protectionMode;
 
+        /// <summary>Gets the argon 2 config.</summary>
         public virtual Argon2Params Argon2Config => m_argon2Config;
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut)
         {
             bcpgOut.WriteByte((byte)m_type);
@@ -223,11 +241,21 @@ namespace Org.BouncyCastle.Bcpg
             private readonly int m_parallelism;
             private readonly int m_memorySizeExponent;
 
+            /// <summary>Create a new <see cref="Argon2Params"/>.</summary>
+            /// <param name="passes">The passes.</param>
+            /// <param name="parallelism">The parallelism.</param>
+            /// <param name="memorySizeExponent">The memory size exponent.</param>
+            /// <param name="secureRandom">The source of randomness.</param>
             public Argon2Params(int passes, int parallelism, int memorySizeExponent, SecureRandom secureRandom)
                 : this(salt: GenerateSalt(secureRandom), passes, parallelism, memorySizeExponent)
             {
             }
 
+            /// <summary>Create a new <see cref="Argon2Params"/>.</summary>
+            /// <param name="salt">The salt.</param>
+            /// <param name="passes">The passes.</param>
+            /// <param name="parallelism">The parallelism.</param>
+            /// <param name="memorySizeExponent">The memory size exponent.</param>
             public Argon2Params(byte[] salt, int passes, int parallelism, int memorySizeExponent)
             {
                 // See RFC 9580 3.7.1.4
@@ -257,12 +285,16 @@ namespace Org.BouncyCastle.Bcpg
                 m_memorySizeExponent = memorySizeExponent;
             }
 
+            /// <summary>Return the salt.</summary>
             public byte[] GetSalt() => Arrays.Clone(m_salt);
 
+            /// <summary>Gets the memory size exponent.</summary>
             public int MemorySizeExponent => m_memorySizeExponent;
 
+            /// <summary>Gets the parallelism.</summary>
             public int Parallelism => m_parallelism;
 
+            /// <summary>Gets the passes.</summary>
             public int Passes => m_passes;
 
             private static byte[] GenerateSalt(SecureRandom secureRandom) =>

@@ -37,6 +37,11 @@ namespace Org.BouncyCastle.Bcpg
             VerifySymmetricKeyAlgorithm();
         }
 
+        /// <summary>Create a new <see cref="ECDHPublicBcpgKey"/>.</summary>
+        /// <param name="oid">The object identifier.</param>
+        /// <param name="point">The point.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="symmetricKeyAlgorithm">The symmetric key algorithm.</param>
         public ECDHPublicBcpgKey(
             DerObjectIdentifier oid,
             ECPoint point,
@@ -52,6 +57,11 @@ namespace Org.BouncyCastle.Bcpg
             VerifySymmetricKeyAlgorithm();
         }
 
+        /// <summary>Create a new <see cref="ECDHPublicBcpgKey"/>.</summary>
+        /// <param name="oid">The object identifier.</param>
+        /// <param name="point">The point.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="symmetricKeyAlgorithm">The symmetric key algorithm.</param>
         public ECDHPublicBcpgKey(
             DerObjectIdentifier oid,
             BigInteger point,
@@ -67,6 +77,7 @@ namespace Org.BouncyCastle.Bcpg
             VerifySymmetricKeyAlgorithm();
         }
 
+        /// <summary>Gets the reserved.</summary>
         public virtual byte Reserved
         {
             get { return reserved; }
@@ -82,6 +93,7 @@ namespace Org.BouncyCastle.Bcpg
             get { return symAlgorithmId; }
         }
 
+        /// <inheritdoc/>
         public override void Encode(
             BcpgOutputStream bcpgOut)
         {

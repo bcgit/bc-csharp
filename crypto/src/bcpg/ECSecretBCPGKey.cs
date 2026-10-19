@@ -8,16 +8,21 @@ namespace Org.BouncyCastle.Bcpg
     {
         private readonly MPInteger m_x;
 
+        /// <summary>Create a new <see cref="ECSecretBcpgKey"/>.</summary>
+        /// <param name="bcpgIn">The bcpg in.</param>
         public ECSecretBcpgKey(BcpgInputStream bcpgIn)
         {
             m_x = new MPInteger(bcpgIn);
         }
 
+        /// <summary>Create a new <see cref="ECSecretBcpgKey"/>.</summary>
+        /// <param name="x">The first operand.</param>
         public ECSecretBcpgKey(BigInteger x)
         {
             m_x = new MPInteger(x);
         }
 
+        /// <summary>Gets the x.</summary>
         public virtual BigInteger X => m_x.Value;
 
         /// <summary>The format, as a string, always "PGP".</summary>
@@ -26,6 +31,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the standard PGP encoding of the key.</summary>
         public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(m_x);
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) => m_x.Encode(bcpgOut);
     }
 }

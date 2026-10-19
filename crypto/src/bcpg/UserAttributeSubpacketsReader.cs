@@ -17,11 +17,16 @@ namespace Org.BouncyCastle.Bcpg
         private readonly Stream m_input;
         private readonly int m_limit;
 
+        /// <summary>Create a new <see cref="UserAttributeSubpacketsParser"/>.</summary>
+        /// <param name="input">The input data.</param>
         public UserAttributeSubpacketsParser(Stream input)
             : this(input, StreamUtilities.FindLimit(input))
         {
         }
 
+        /// <summary>Create a new <see cref="UserAttributeSubpacketsParser"/>.</summary>
+        /// <param name="input">The input data.</param>
+        /// <param name="limit">The limit.</param>
         public UserAttributeSubpacketsParser(Stream input, int limit)
         {
             m_input = input;

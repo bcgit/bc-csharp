@@ -18,11 +18,15 @@
     {
         public static readonly int Length = 57;
 
+        /// <summary>Create a new <see cref="Ed448PublicBcpgKey"/>.</summary>
+        /// <param name="bcpgIn">The bcpg in.</param>
         public Ed448PublicBcpgKey(BcpgInputStream bcpgIn)
             : base(Length, bcpgIn)
         {
         }
 
+        /// <summary>Create a new <see cref="Ed448PublicBcpgKey"/>.</summary>
+        /// <param name="key">The key.</param>
         public Ed448PublicBcpgKey(byte[] key)
             : base(Length, key)
         {

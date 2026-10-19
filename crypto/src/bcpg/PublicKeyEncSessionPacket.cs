@@ -64,6 +64,10 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Create a new <see cref="PublicKeyEncSessionPacket"/>.</summary>
+        /// <param name="keyId">The key id.</param>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="data">The data.</param>
         public PublicKeyEncSessionPacket(long keyId, PublicKeyAlgorithmTag algorithm, byte[][] data)
             : base(PacketTag.PublicKeyEncryptedSession)
         {
@@ -77,6 +81,7 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Gets the version.</summary>
         public int Version => m_version;
 
         /// <remarks>
@@ -86,8 +91,10 @@ namespace Org.BouncyCastle.Bcpg
 
         public PublicKeyAlgorithmTag Algorithm => m_algorithm;
 
+        /// <summary>Return the enc session key.</summary>
         public byte[][] GetEncSessionKey() => m_data;
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut)
         {
             uint bodyLength = 1U + 8U + 1U;

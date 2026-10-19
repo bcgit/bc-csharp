@@ -147,6 +147,11 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Create a new <see cref="PublicKeyPacket"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="time">The time.</param>
+        /// <param name="key">The key.</param>
         public PublicKeyPacket(byte version, PublicKeyAlgorithmTag algorithm, DateTime time,
             IBcpgKey key)
             : this(PacketTag.PublicKey, version, algorithm, time, key)
@@ -163,18 +168,23 @@ namespace Org.BouncyCastle.Bcpg
             m_key = key;
         }
 
+        /// <summary>Gets the version.</summary>
         public virtual int Version => m_version;
 
+        /// <summary>Gets the version byte.</summary>
         public virtual byte VersionByte => m_version;
 
         public virtual PublicKeyAlgorithmTag Algorithm => m_algorithm;
 
+        /// <summary>Gets the valid days.</summary>
         public virtual int ValidDays => m_validDays;
 
+        /// <summary>Return the time.</summary>
         public virtual DateTime GetTime() => DateTimeUtilities.UnixMsToDateTime(m_time * 1000L);
 
         public virtual IBcpgKey Key => m_key;
 
+        /// <summary>Return the encoded contents.</summary>
         public virtual byte[] GetEncodedContents()
         {
             MemoryStream bOut = new MemoryStream();
@@ -204,6 +214,7 @@ namespace Org.BouncyCastle.Bcpg
             return bOut.ToArray();
         }
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(HasNewPacketFormat, PacketTag, GetEncodedContents());
 

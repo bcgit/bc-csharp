@@ -19,11 +19,16 @@ namespace Org.BouncyCastle.Bcpg.Attr
         private readonly int m_encoding;
         private readonly byte[] m_imageData;
 
+        /// <summary>Create a new <see cref="ImageAttrib"/>.</summary>
+        /// <param name="data">The data.</param>
         public ImageAttrib(byte[] data)
             : this(forceLongLength: false, data)
         {
         }
 
+        /// <summary>Create a new <see cref="ImageAttrib"/>.</summary>
+        /// <param name="forceLongLength">true if force long length, false otherwise.</param>
+        /// <param name="data">The data.</param>
         public ImageAttrib(bool forceLongLength, byte[] data)
             : base(UserAttributeSubpacketTag.ImageAttribute, forceLongLength, data)
         {
@@ -45,6 +50,9 @@ namespace Org.BouncyCastle.Bcpg.Attr
             m_imageData = Arrays.CopyOfRange(data, m_hdrLength, data.Length);
         }
 
+        /// <summary>Create a new <see cref="ImageAttrib"/>.</summary>
+        /// <param name="imageType">The image type.</param>
+        /// <param name="imageData">The image data.</param>
         public ImageAttrib(Format imageType, byte[] imageData)
             : this(ToByteArray(imageType, imageData))
         {
@@ -62,10 +70,13 @@ namespace Org.BouncyCastle.Bcpg.Attr
             return data;
         }
 
+        /// <summary>Gets the version.</summary>
         public virtual int Version => m_version;
 
+        /// <summary>Gets the encoding.</summary>
         public virtual int Encoding => m_encoding;
 
+        /// <summary>Return the image data.</summary>
         public virtual byte[] GetImageData() => m_imageData;
     }
 }

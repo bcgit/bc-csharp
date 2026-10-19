@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Bcpg
     public class AeadEncDataPacket
         : InputStreamPacket
     {
+        /// <summary>The <c>Version1</c> constant, with the value <c>1</c>.</summary>
         public const byte Version1 = 1;
 
         private readonly byte m_version;
@@ -26,11 +27,16 @@ namespace Org.BouncyCastle.Bcpg
         private readonly byte m_chunkSize;
         private readonly byte[] m_iv;
 
+        /// <summary>Create a new <see cref="AeadEncDataPacket"/>.</summary>
+        /// <param name="bcpgIn">The bcpg in.</param>
         public AeadEncDataPacket(BcpgInputStream bcpgIn)
             : this(bcpgIn, newPacketFormat: false)
         {
         }
 
+        /// <summary>Create a new <see cref="AeadEncDataPacket"/>.</summary>
+        /// <param name="bcpgIn">The bcpg in.</param>
+        /// <param name="newPacketFormat">true if new packet format, false otherwise.</param>
         public AeadEncDataPacket(BcpgInputStream bcpgIn, bool newPacketFormat)
             : base(bcpgIn, PacketTag.AeadEncData, newPacketFormat)
         {
@@ -57,6 +63,11 @@ namespace Org.BouncyCastle.Bcpg
             bcpgIn.ReadFully(m_iv);
         }
 
+        /// <summary>Create a new <see cref="AeadEncDataPacket"/>.</summary>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="aeadAlgorithm">The aead algorithm.</param>
+        /// <param name="chunkSize">The chunk size.</param>
+        /// <param name="iv">The initialization vector.</param>
         public AeadEncDataPacket(SymmetricKeyAlgorithmTag algorithm, AeadAlgorithmTag aeadAlgorithm, int chunkSize,
             byte[] iv)
             : base(bcpgIn: null, PacketTag.AeadEncData)
@@ -72,18 +83,22 @@ namespace Org.BouncyCastle.Bcpg
             m_iv = Arrays.Clone(iv);
         }
 
+        /// <summary>Gets the version.</summary>
         public byte Version => m_version;
 
         public SymmetricKeyAlgorithmTag Algorithm => m_algorithm;
 
         public AeadAlgorithmTag AeadAlgorithm => m_aeadAlgorithm;
 
+        /// <summary>Gets the chunk size.</summary>
         public int ChunkSize => m_chunkSize;
 
         internal byte[] IV => m_iv;
 
+        /// <summary>Return the IV.</summary>
         public byte[] GetIV() => m_iv;
 
+        /// <summary>Return the AA data.</summary>
         public byte[] GetAAData() => CreateAAData(Version, Algorithm, AeadAlgorithm, ChunkSize);
 
         public static byte[] CreateAAData(byte version, SymmetricKeyAlgorithmTag symAlgorithm,

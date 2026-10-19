@@ -23,11 +23,17 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Create a new <see cref="PublicSubkeyPacket"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="algorithm">The algorithm.</param>
+        /// <param name="time">The time.</param>
+        /// <param name="key">The key.</param>
         public PublicSubkeyPacket(byte version, PublicKeyAlgorithmTag algorithm, DateTime time, IBcpgKey key)
             : base(PacketTag.PublicSubkey, version, algorithm, time, key)
         {
         }
 
+        /// <inheritdoc/>
         // TODO[api] Remove this redundant override
         public override void Encode(BcpgOutputStream bcpgOut) => base.Encode(bcpgOut);
     }

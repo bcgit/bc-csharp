@@ -23,11 +23,14 @@ namespace Org.BouncyCastle.Bcpg
             return new BcpgInputStream(inStr);
         }
 
+        /// <summary>Create a new <see cref="BcpgInputStream"/>.</summary>
+        /// <param name="inputStream">The input stream.</param>
         public BcpgInputStream(Stream inputStream)
         {
             m_in = inputStream;
         }
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (next)
@@ -39,6 +42,7 @@ namespace Org.BouncyCastle.Bcpg
             return m_in.ReadByte();
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             if (!next)
@@ -55,6 +59,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             if (!next)
@@ -232,6 +237,7 @@ namespace Org.BouncyCastle.Bcpg
             return tag;
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

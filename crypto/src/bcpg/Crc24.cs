@@ -42,6 +42,7 @@ namespace Org.BouncyCastle.Bcpg
 
         private int m_crc = Crc24Init;
 
+        /// <summary>Create a new <see cref="Crc24"/>.</summary>
         public Crc24()
         {
         }
@@ -59,6 +60,7 @@ namespace Org.BouncyCastle.Bcpg
                   ^ Table0[(buf[off + 2] ^ m_crc) & 255];
         }
 
+        /// <summary>Gets the value.</summary>
         public int Value => m_crc & 0xFFFFFF;
 
         public void Reset()

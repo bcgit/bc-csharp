@@ -9,9 +9,13 @@ namespace Org.BouncyCastle.Bcpg
     public class SecretKeyPacket
         : ContainedPacket //, PublicKeyAlgorithmTag
     {
+        /// <summary>The <c>UsageNone</c> constant, with the value <c>0x00</c>.</summary>
         public const int UsageNone = 0x00;
+        /// <summary>The <c>UsageChecksum</c> constant, with the value <c>0xff</c>.</summary>
         public const int UsageChecksum = 0xff;
+        /// <summary>The <c>UsageSha1</c> constant, with the value <c>0xfe</c>.</summary>
         public const int UsageSha1 = 0xfe;
+        /// <summary>The <c>UsageAead</c> constant, with the value <c>0xfd</c>.</summary>
         public const int UsageAead = 0xfd;
 
         private PublicKeyPacket pubKeyPacket;
@@ -147,6 +151,12 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Create a new <see cref="SecretKeyPacket"/>.</summary>
+        /// <param name="pubKeyPacket">The pub key packet.</param>
+        /// <param name="encAlgorithm">The enc algorithm.</param>
+        /// <param name="s2k">The s 2 k.</param>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="secKeyData">The sec key data.</param>
         public SecretKeyPacket(PublicKeyPacket pubKeyPacket, SymmetricKeyAlgorithmTag encAlgorithm, S2k s2k, byte[] iv,
             byte[] secKeyData)
             : this(PacketTag.SecretKey, pubKeyPacket, encAlgorithm, s2k, iv, secKeyData)
@@ -171,6 +181,13 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Create a new <see cref="SecretKeyPacket"/>.</summary>
+        /// <param name="pubKeyPacket">The pub key packet.</param>
+        /// <param name="encAlgorithm">The enc algorithm.</param>
+        /// <param name="s2kUsage">The s 2 k usage.</param>
+        /// <param name="s2k">The s 2 k.</param>
+        /// <param name="iv">The initialization vector.</param>
+        /// <param name="secKeyData">The sec key data.</param>
         public SecretKeyPacket(PublicKeyPacket pubKeyPacket, SymmetricKeyAlgorithmTag encAlgorithm, int s2kUsage,
             S2k s2k, byte[] iv, byte[] secKeyData)
             : this(PacketTag.SecretKey, pubKeyPacket, encAlgorithm, 0, s2kUsage, s2k, iv, secKeyData)
@@ -230,20 +247,25 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Gets the enc algorithm.</summary>
         public SymmetricKeyAlgorithmTag EncAlgorithm => encAlgorithm;
 
         public AeadAlgorithmTag AeadAlgorithm => aeadAlgorithm;
 
+        /// <summary>Gets the s 2 k usage.</summary>
         public int S2kUsage => s2kUsage;
 
+        /// <summary>Return the IV.</summary>
         public byte[] GetIV() => Arrays.Clone(iv);
 
         public S2k S2k => s2k;
 
         public PublicKeyPacket PublicKeyPacket => pubKeyPacket;
 
+        /// <summary>Return the secret key data.</summary>
         public byte[] GetSecretKeyData() => secKeyData;
 
+        /// <summary>Return the encoded contents.</summary>
         public byte[] GetEncodedContents()
         {
             MemoryStream bOut = new MemoryStream();
@@ -308,6 +330,7 @@ namespace Org.BouncyCastle.Bcpg
             return conditionalParameters.ToArray();
         }
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) =>
             bcpgOut.WritePacket(HasNewPacketFormat, PacketTag, GetEncodedContents());
     }

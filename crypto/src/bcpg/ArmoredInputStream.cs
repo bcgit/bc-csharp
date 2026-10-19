@@ -363,6 +363,7 @@ namespace Org.BouncyCastle.Bcpg
             return c;
         }
 
+        /// <inheritdoc/>
         public override int Read(byte[] buffer, int offset, int count)
         {
             Streams.ValidateBufferArguments(buffer, offset, count);
@@ -384,6 +385,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override int Read(Span<byte> buffer)
         {
             /*
@@ -403,6 +405,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 #endif
 
+        /// <inheritdoc/>
         public override int ReadByte()
         {
             if (m_start)
@@ -575,6 +578,7 @@ namespace Org.BouncyCastle.Bcpg
             return (int)m_outBuf[m_bufPtr++];
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

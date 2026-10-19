@@ -14,10 +14,15 @@ namespace Org.BouncyCastle.Bcpg
     public class SignaturePacket
         : ContainedPacket
     {
+        /// <summary>The <c>Version2</c> constant, with the value <c>2</c>.</summary>
         public const int Version2 = 2;
+        /// <summary>The <c>Version3</c> constant, with the value <c>3</c>.</summary>
         public const int Version3 = 3;
+        /// <summary>The <c>Version4</c> constant, with the value <c>4</c>.</summary>
         public const int Version4 = 4;  // https://datatracker.ietf.org/doc/rfc4880/
+        /// <summary>The <c>Version5</c> constant, with the value <c>5</c>.</summary>
         public const int Version5 = 5;  // https://datatracker.ietf.org/doc/draft-koch-librepgp/
+        /// <summary>The <c>Version6</c> constant, with the value <c>6</c>.</summary>
         public const int Version6 = 6;  // https://www.rfc-editor.org/rfc/rfc9580.html
 
         private int version;
@@ -165,6 +170,16 @@ namespace Org.BouncyCastle.Bcpg
             m_creationTime = creationTime;
         }
 
+        /// <summary>Create a new <see cref="SignaturePacket"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="signatureType">The signature type.</param>
+        /// <param name="keyId">The key id.</param>
+        /// <param name="keyAlgorithm">The key algorithm.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="hashedData">The hashed data.</param>
+        /// <param name="unhashedData">The unhashed data.</param>
+        /// <param name="fingerprint">The fingerprint.</param>
+        /// <param name="signature">The signature.</param>
         public SignaturePacket(int version, int signatureType, long keyId, PublicKeyAlgorithmTag keyAlgorithm,
             HashAlgorithmTag hashAlgorithm, SignatureSubpacket[] hashedData, SignatureSubpacket[] unhashedData,
             byte[] fingerprint, MPInteger[] signature)
@@ -173,6 +188,17 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Create a new <see cref="SignaturePacket"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="newPacketFormat">true if new packet format, false otherwise.</param>
+        /// <param name="signatureType">The signature type.</param>
+        /// <param name="keyId">The key id.</param>
+        /// <param name="keyAlgorithm">The key algorithm.</param>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="hashedData">The hashed data.</param>
+        /// <param name="unhashedData">The unhashed data.</param>
+        /// <param name="fingerprint">The fingerprint.</param>
+        /// <param name="signature">The signature.</param>
         public SignaturePacket(int version, bool newPacketFormat, int signatureType, long keyId,
             PublicKeyAlgorithmTag keyAlgorithm, HashAlgorithmTag hashAlgorithm, SignatureSubpacket[] hashedData,
             SignatureSubpacket[] unhashedData, byte[] fingerprint, MPInteger[] signature)
@@ -194,8 +220,10 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <summary>Gets the version.</summary>
         public int Version => version;
 
+        /// <summary>Gets the signature type.</summary>
         public int SignatureType => signatureType;
 
         /// <summary>Returns the key ID that created the signature.</summary>
@@ -307,15 +335,18 @@ namespace Org.BouncyCastle.Bcpg
             return bOut.ToArray();
         }
 
+        /// <summary>Return the hashed sub packets.</summary>
         // TODO[api] Ideally '..Subpackets'
         public SignatureSubpacket[] GetHashedSubPackets() => hashedData;
 
+        /// <summary>Return the unhashed sub packets.</summary>
         // TODO[api] Ideally '..Subpackets'
         public SignatureSubpacket[] GetUnhashedSubPackets() => unhashedData;
 
         /// <summary>Return the creation time in milliseconds since 1 Jan., 1970 UTC.</summary>
         public long CreationTime => m_creationTime;
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut)
         {
             MemoryStream bOut = new MemoryStream();

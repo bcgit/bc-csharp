@@ -12,6 +12,8 @@ namespace Org.BouncyCastle.Bcpg
         private readonly MPInteger m_d, m_p, m_q, m_u;
         private readonly BigInteger m_expP, m_expQ, m_crt;
 
+        /// <summary>Create a new <see cref="RsaSecretBcpgKey"/>.</summary>
+        /// <param name="bcpgIn">The bcpg in.</param>
         public RsaSecretBcpgKey(BcpgInputStream bcpgIn)
         {
             m_d = new MPInteger(bcpgIn);
@@ -24,6 +26,10 @@ namespace Org.BouncyCastle.Bcpg
             m_crt = BigIntegers.ModOddInverse(m_p.Value, m_q.Value);
         }
 
+        /// <summary>Create a new <see cref="RsaSecretBcpgKey"/>.</summary>
+        /// <param name="d">The d.</param>
+        /// <param name="p">The p.</param>
+        /// <param name="q">The q.</param>
         public RsaSecretBcpgKey(BigInteger d, BigInteger p, BigInteger q)
         {
             // PGP requires (p < q)
@@ -48,18 +54,25 @@ namespace Org.BouncyCastle.Bcpg
             m_crt = BigIntegers.ModOddInverse(p, q);
         }
 
+        /// <summary>Gets the modulus.</summary>
         public BigInteger Modulus => m_p.Value.Multiply(m_q.Value);
 
+        /// <summary>Gets the private exponent.</summary>
         public BigInteger PrivateExponent => m_d.Value;
 
+        /// <summary>Gets the prime p.</summary>
         public BigInteger PrimeP => m_p.Value;
 
+        /// <summary>Gets the prime q.</summary>
         public BigInteger PrimeQ => m_q.Value;
 
+        /// <summary>Gets the prime exponent p.</summary>
         public BigInteger PrimeExponentP => m_expP;
 
+        /// <summary>Gets the prime exponent q.</summary>
         public BigInteger PrimeExponentQ => m_expQ;
 
+        /// <summary>Gets the crt coefficient.</summary>
         public BigInteger CrtCoefficient => m_crt;
 
         /// <summary>The format, as a string, always "PGP".</summary>
@@ -68,6 +81,7 @@ namespace Org.BouncyCastle.Bcpg
         /// <summary>Return the standard PGP encoding of the key.</summary>
         public override byte[] GetEncoded() => BcpgOutputStream.GetEncodedOrNull(this);
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) => bcpgOut.WriteObjects(m_d, m_p, m_q, m_u);
     }
 }

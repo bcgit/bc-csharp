@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Bcpg
     {
         private readonly BigInteger m_value;
 
+        /// <summary>Create a new <see cref="MPInteger"/>.</summary>
+        /// <param name="bcpgIn">The bcpg in.</param>
         public MPInteger(BcpgInputStream bcpgIn)
         {
             if (bcpgIn == null)
@@ -29,6 +31,8 @@ namespace Org.BouncyCastle.Bcpg
             m_value = ReadMpi(bcpgIn, validateLength);
         }
 
+        /// <summary>Create a new <see cref="MPInteger"/>.</summary>
+        /// <param name="val">The val.</param>
         public MPInteger(BigInteger val)
         {
             if (val == null)
@@ -39,8 +43,10 @@ namespace Org.BouncyCastle.Bcpg
             m_value = val;
         }
 
+        /// <summary>Gets the value.</summary>
         public BigInteger Value => m_value;
 
+        /// <inheritdoc/>
         public override void Encode(BcpgOutputStream bcpgOut) => Encode(bcpgOut, m_value);
 
         internal static void Encode(BcpgOutputStream bcpgOut, BigInteger n)

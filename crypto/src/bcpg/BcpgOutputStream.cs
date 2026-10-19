@@ -46,6 +46,9 @@ namespace Org.BouncyCastle.Bcpg
         {
         }
 
+        /// <summary>Create a new <see cref="BcpgOutputStream"/>.</summary>
+        /// <param name="outStr">The output stream.</param>
+        /// <param name="packetFormat">The packet format.</param>
         public BcpgOutputStream(Stream outStr, PacketFormat packetFormat)
         {
             m_outStr = outStr ?? throw new ArgumentNullException(nameof(outStr));
@@ -300,6 +303,7 @@ namespace Org.BouncyCastle.Bcpg
             partialBuffer[partialOffset++] = value;
         }
 
+        /// <inheritdoc/>
         public override void Write(byte[] buffer, int offset, int count)
         {
             if (partialBuffer != null)
@@ -313,6 +317,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public override void Write(ReadOnlySpan<byte> buffer)
         {
             if (partialBuffer != null)
@@ -326,6 +331,7 @@ namespace Org.BouncyCastle.Bcpg
         }
 #endif
 
+        /// <inheritdoc/>
         public override void WriteByte(byte value)
         {
             if (partialBuffer != null)
@@ -410,6 +416,7 @@ namespace Org.BouncyCastle.Bcpg
             }
         }
 
+        /// <inheritdoc/>
         protected override void Dispose(bool disposing)
         {
             if (disposing)

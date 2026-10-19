@@ -38,6 +38,7 @@ namespace Org.BouncyCastle.Bcpg
             m_version = Version1;
         }
 
+        /// <summary>Gets the version.</summary>
         public int Version => m_version;
     }
 }
