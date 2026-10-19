@@ -1000,6 +1000,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             return CollectionUtilities.Proxy(result);
         }
 
+        /// <summary>Gets the public key packet.</summary>
         public PublicKeyPacket PublicKeyPacket
         {
             get { return publicPk; }

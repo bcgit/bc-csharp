@@ -22,6 +22,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
         /// <summary>Gets a value indicating whether this is critical.</summary>
         public bool IsCritical => m_packet.IsCritical;
 
+        /// <summary>Gets the packet tag.</summary>
         public PacketTag PacketTag => m_packet.PacketTag;
     }
 }

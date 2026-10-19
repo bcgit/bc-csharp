@@ -18,6 +18,7 @@ namespace Org.BouncyCastle.Bcpg.OpenPgp
             m_packet = experimentalPacket;
         }
 
+        /// <summary>Gets the packet tag.</summary>
         public PacketTag PacketTag => m_packet.PacketTag;
     }
 }
