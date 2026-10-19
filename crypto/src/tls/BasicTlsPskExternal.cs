@@ -8,7 +8,7 @@ namespace Org.BouncyCastle.Tls
     {
         protected readonly byte[] m_identity;
         protected readonly TlsSecret m_key;
-        protected readonly int m_prfAlgorithm; 
+        protected readonly int m_prfAlgorithm;
 
         public BasicTlsPskExternal(byte[] identity, TlsSecret key)
             : this(identity, key, Tls.PrfAlgorithm.tls13_hkdf_sha256)

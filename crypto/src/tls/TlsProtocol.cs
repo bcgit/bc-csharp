@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Tls
     {
         /*
          * Connection States.
-         * 
+         *
          * NOTE: Redirection of handshake messages to TLS 1.3 handlers assumes CS_START, CS_CLIENT_HELLO
          * are lower than any of the other values.
          */
@@ -660,7 +660,7 @@ namespace Org.BouncyCastle.Tls
                     break;
 
                 /*
-                 * For all others we automatically update the transcript immediately. 
+                 * For all others we automatically update the transcript immediately.
                  */
                 default:
                 {
@@ -1001,14 +1001,14 @@ namespace Org.BouncyCastle.Tls
                     /*
                      * RFC 5246 6.2.1. Zero-length fragments of Application data MAY be sent as they are
                      * potentially useful as a traffic analysis countermeasure.
-                     * 
+                     *
                      * NOTE: Actually, implementations appear to have settled on 1/n-1 record splitting.
                      */
                     if (m_appDataSplitEnabled)
                     {
                         /*
                          * Protect against known IV attack!
-                         * 
+                         *
                          * DO NOT REMOVE THIS CODE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
                          */
                         switch (m_appDataSplitMode)
@@ -1076,14 +1076,14 @@ namespace Org.BouncyCastle.Tls
                     /*
                      * RFC 5246 6.2.1. Zero-length fragments of Application data MAY be sent as they are
                      * potentially useful as a traffic analysis countermeasure.
-                     * 
+                     *
                      * NOTE: Actually, implementations appear to have settled on 1/n-1 record splitting.
                      */
                     if (m_appDataSplitEnabled)
                     {
                         /*
                          * Protect against known IV attack!
-                         * 
+                         *
                          * DO NOT REMOVE THIS CODE, EXCEPT YOU KNOW EXACTLY WHAT YOU ARE DOING HERE.
                          */
                         switch (m_appDataSplitMode)
@@ -1187,7 +1187,7 @@ namespace Org.BouncyCastle.Tls
                 break;
 
             /*
-             * For all others we automatically update the transcript. 
+             * For all others we automatically update the transcript.
              */
             default:
             {

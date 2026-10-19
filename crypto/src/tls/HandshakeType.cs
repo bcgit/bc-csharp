@@ -45,7 +45,7 @@ namespace Org.BouncyCastle.Tls
         public const short message_hash = 254;
 
         /*
-         * RFC 8870 
+         * RFC 8870
          */
         public const short ekt_key = 26;
 
@@ -55,13 +55,13 @@ namespace Org.BouncyCastle.Tls
         public const short compressed_certificate = 25;
 
         /*
-         * RFC 9147 
+         * RFC 9147
          */
         public const short request_connection_id = 9;
         public const short new_connection_id = 10;
 
         /*
-         * RFC 9261 
+         * RFC 9261
          */
         public const short client_certificate_request = 17;
 

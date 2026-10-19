@@ -430,7 +430,7 @@ namespace Org.BouncyCastle.Tls
 
         /*
          * TLS 1.3 Section
-         * 
+         *
          * Although TLS 1.3 uses the same cipher suite space as previous versions of TLS, TLS 1.3 cipher
          * suites are defined differently, only specifying the symmetric ciphers, and cannot be used for
          * TLS 1.2. Similarly, cipher suites for TLS 1.2 and lower cannot be used with TLS 1.3.

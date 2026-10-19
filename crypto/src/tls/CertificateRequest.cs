@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Tls
         {
         }
 
-        // TODO[tls13] Prefer to manage the certificateRequestContext internally only? 
+        // TODO[tls13] Prefer to manage the certificateRequestContext internally only?
         /// <exception cref="IOException"/>
         public CertificateRequest(byte[] certificateRequestContext,
             IList<SignatureAndHashAlgorithm> supportedSignatureAlgorithms,
