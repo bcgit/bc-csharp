@@ -6,8 +6,10 @@ namespace Org.BouncyCastle.Asn1
     public interface Asn1TaggedObjectParser
         : IAsn1Convertible
     {
+        /// <summary>Gets the tag class.</summary>
         int TagClass { get; }
 
+        /// <summary>Gets the tag no.</summary>
         int TagNo { get; }
 
         // TODO[api]
