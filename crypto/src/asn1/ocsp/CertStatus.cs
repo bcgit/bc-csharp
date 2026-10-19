@@ -2,14 +2,25 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
+    /// <summary>The CertStatus choice of RFC 6960: good, revoked or unknown.</summary>
     public class CertStatus
         : Asn1Encodable, IAsn1Choice
     {
+        /// <summary>Return an <see cref="CertStatus"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CertStatus"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CertStatus"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertStatus GetInstance(object obj) => Asn1Utilities.GetInstanceChoice(obj, GetOptional);
 
+        /// <summary>Return an <see cref="CertStatus"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertStatus"/>.</returns>
         public static CertStatus GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetInstanceChoice(taggedObject, declaredExplicit, GetInstance);
 
+        /// <summary>Return an <see cref="CertStatus"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="CertStatus"/>, or null if <paramref name="element"/> is null.</returns>
         public static CertStatus GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -29,6 +40,10 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return null;
         }
 
+        /// <summary>Return an <see cref="CertStatus"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertStatus"/>.</returns>
         public static CertStatus GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             Asn1Utilities.GetTaggedChoice(taggedObject, declaredExplicit, GetInstance);
 
@@ -62,18 +77,25 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             m_value = DerNull.Instance;
         }
 
+        /// <summary>Create a new <see cref="CertStatus"/>.</summary>
+        /// <param name="info">The info.</param>
         public CertStatus(RevokedInfo info)
         {
             m_tagNo = 1;
             m_value = info ?? throw new ArgumentNullException(nameof(info));
         }
 
+        /// <summary>Create a new <see cref="CertStatus"/>.</summary>
+        /// <param name="tagNo">The tag no.</param>
+        /// <param name="value">The value.</param>
         public CertStatus(int tagNo, Asn1Encodable value)
         {
             m_tagNo = tagNo;
             m_value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
+        /// <summary>Create a new <see cref="CertStatus"/>.</summary>
+        /// <param name="choice">The choice.</param>
         public CertStatus(Asn1TaggedObject choice)
         {
             m_tagNo = choice.TagNo;
@@ -81,8 +103,10 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 throw new ArgumentException("unknown tag: " + Asn1Utilities.GetTagText(choice), nameof(choice));
         }
 
+        /// <summary>Gets the tag no.</summary>
         public int TagNo => m_tagNo;
 
+        /// <summary>Gets the status.</summary>
         public Asn1Encodable Status => m_value;
 
         /**

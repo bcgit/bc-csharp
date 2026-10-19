@@ -4,9 +4,13 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
+    /// <summary>The CertID structure of RFC 6960, identifying a certificate in an OCSP request or response.</summary>
     public class CertID
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertID"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CertID"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CertID"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertID GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +20,17 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new CertID(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertID"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertID"/>.</returns>
         public static CertID GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new CertID(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="CertID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertID"/>.</returns>
         public static CertID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -27,6 +39,11 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         private readonly Asn1OctetString m_issuerKeyHash;
         private readonly DerInteger m_serialNumber;
 
+        /// <summary>Create a new <see cref="CertID"/>.</summary>
+        /// <param name="hashAlgorithm">The hash algorithm.</param>
+        /// <param name="issuerNameHash">The issuer name hash.</param>
+        /// <param name="issuerKeyHash">The issuer key hash.</param>
+        /// <param name="serialNumber">The serial number.</param>
         public CertID(AlgorithmIdentifier hashAlgorithm, Asn1OctetString issuerNameHash, Asn1OctetString issuerKeyHash,
             DerInteger serialNumber)
         {
@@ -51,12 +68,16 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the hash algorithm.</summary>
         public AlgorithmIdentifier HashAlgorithm => m_hashAlgorithm;
 
+        /// <summary>Gets the issuer name hash.</summary>
         public Asn1OctetString IssuerNameHash => m_issuerNameHash;
 
+        /// <summary>Gets the issuer key hash.</summary>
         public Asn1OctetString IssuerKeyHash => m_issuerKeyHash;
 
+        /// <summary>Gets the serial number.</summary>
         public DerInteger SerialNumber => m_serialNumber;
 
         /**

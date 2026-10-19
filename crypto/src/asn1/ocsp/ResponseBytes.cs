@@ -2,9 +2,15 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
+    /// <summary>The ResponseBytes structure of RFC 6960.</summary>
     public class ResponseBytes
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ResponseBytes"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ResponseBytes"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ResponseBytes"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ResponseBytes GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +20,16 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new ResponseBytes(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ResponseBytes"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ResponseBytes"/>.</returns>
         public static ResponseBytes GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new ResponseBytes(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="ResponseBytes"/> from the given element, if it is one.</summary>
+        /// <param name="element">The element.</param>
+        /// <returns>The <see cref="ResponseBytes"/>, or null if <paramref name="element"/> is null.</returns>
         public static ResponseBytes GetOptional(Asn1Encodable element)
         {
             if (element == null)
@@ -32,12 +45,19 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return null;
         }
 
+        /// <summary>Return an <see cref="ResponseBytes"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ResponseBytes"/>.</returns>
         public static ResponseBytes GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ResponseBytes(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerObjectIdentifier m_responseType;
         private readonly Asn1OctetString m_response;
 
+        /// <summary>Create a new <see cref="ResponseBytes"/>.</summary>
+        /// <param name="responseType">The response type.</param>
+        /// <param name="response">The response.</param>
         public ResponseBytes(DerObjectIdentifier responseType, Asn1OctetString response)
         {
             m_responseType = responseType ?? throw new ArgumentNullException(nameof(responseType));
@@ -57,8 +77,10 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the response type.</summary>
         public DerObjectIdentifier ResponseType => m_responseType;
 
+        /// <summary>Gets the response.</summary>
         public Asn1OctetString Response => m_response;
 
         /**

@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Ocsp
 {
+    /// <summary>The ResponseData structure of RFC 6960.</summary>
     public class ResponseData
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ResponseData"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ResponseData"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ResponseData"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ResponseData GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +22,17 @@ namespace Org.BouncyCastle.Asn1.Ocsp
             return new ResponseData(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ResponseData"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="explicitly">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ResponseData"/>.</returns>
         public static ResponseData GetInstance(Asn1TaggedObject obj, bool explicitly) =>
             new ResponseData(Asn1Sequence.GetInstance(obj, explicitly));
 
+        /// <summary>Return an <see cref="ResponseData"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ResponseData"/>.</returns>
         public static ResponseData GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ResponseData(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -31,12 +45,23 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         private readonly Asn1Sequence m_responses;
         private readonly X509Extensions m_responseExtensions;
 
+        /// <summary>Create a new <see cref="ResponseData"/>.</summary>
+        /// <param name="responderID">The responder ID.</param>
+        /// <param name="producedAt">The produced at.</param>
+        /// <param name="responses">The responses.</param>
+        /// <param name="responseExtensions">The response extensions.</param>
         public ResponseData(ResponderID responderID, Asn1GeneralizedTime producedAt, Asn1Sequence responses,
             X509Extensions responseExtensions)
             : this(V1, responderID, producedAt, responses, responseExtensions)
         {
         }
 
+        /// <summary>Create a new <see cref="ResponseData"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="responderID">The responder ID.</param>
+        /// <param name="producedAt">The produced at.</param>
+        /// <param name="responses">The responses.</param>
+        /// <param name="responseExtensions">The response extensions.</param>
         public ResponseData(DerInteger version, ResponderID responderID, Asn1GeneralizedTime producedAt,
             Asn1Sequence responses, X509Extensions responseExtensions)
         {
@@ -72,14 +97,18 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
         public ResponderID ResponderID => m_responderID;
 
+        /// <summary>Gets the produced at.</summary>
         public Asn1GeneralizedTime ProducedAt => m_producedAt;
 
+        /// <summary>Gets the responses.</summary>
         public Asn1Sequence Responses => m_responses;
 
+        /// <summary>Gets the response extensions.</summary>
         public X509Extensions ResponseExtensions => m_responseExtensions;
 
         /**
