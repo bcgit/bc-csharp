@@ -21,6 +21,8 @@ namespace Org.BouncyCastle.Tls
         UsesConnectionID = 2,
     }
 
+    /// <summary>A callback that is notified of the properties of a DTLS record.</summary>
+    /// <param name="flags">The flags describing the record.</param>
     public delegate void DtlsRecordCallback(DtlsRecordFlags flags);
 
     /// <summary>
