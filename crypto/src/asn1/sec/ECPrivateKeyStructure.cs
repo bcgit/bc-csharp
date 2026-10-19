@@ -11,6 +11,11 @@ namespace Org.BouncyCastle.Asn1.Sec
     public class ECPrivateKeyStructure
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ECPrivateKeyStructure"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="ECPrivateKeyStructure"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="ECPrivateKeyStructure"/>, or null if <paramref name="obj"/> is null.</returns>
         public static ECPrivateKeyStructure GetInstance(object obj)
         {
             if (obj == null)
@@ -20,9 +25,17 @@ namespace Org.BouncyCastle.Asn1.Sec
             return new ECPrivateKeyStructure(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="ECPrivateKeyStructure"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ECPrivateKeyStructure"/>.</returns>
         public static ECPrivateKeyStructure GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ECPrivateKeyStructure(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="ECPrivateKeyStructure"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ECPrivateKeyStructure"/>.</returns>
         public static ECPrivateKeyStructure GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ECPrivateKeyStructure(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -47,16 +60,28 @@ namespace Org.BouncyCastle.Asn1.Sec
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="ECPrivateKeyStructure"/>.</summary>
+        /// <param name="orderBitLength">The order bit length.</param>
+        /// <param name="key">The key.</param>
         public ECPrivateKeyStructure(int orderBitLength, BigInteger key)
             : this(orderBitLength, key, null)
         {
         }
 
+        /// <summary>Create a new <see cref="ECPrivateKeyStructure"/>.</summary>
+        /// <param name="orderBitLength">The order bit length.</param>
+        /// <param name="key">The key.</param>
+        /// <param name="parameters">The parameters.</param>
         public ECPrivateKeyStructure(int orderBitLength, BigInteger key, Asn1Encodable parameters)
             : this(orderBitLength, key, null, parameters)
         {
         }
 
+        /// <summary>Create a new <see cref="ECPrivateKeyStructure"/>.</summary>
+        /// <param name="orderBitLength">The order bit length.</param>
+        /// <param name="key">The key.</param>
+        /// <param name="publicKey">The public key.</param>
+        /// <param name="parameters">The parameters.</param>
         public ECPrivateKeyStructure(int orderBitLength, BigInteger key, DerBitString publicKey,
             Asn1Encodable parameters)
         {
@@ -73,6 +98,10 @@ namespace Org.BouncyCastle.Asn1.Sec
             m_publicKey = publicKey;
         }
 
+        /// <summary>Create a new <see cref="ECPrivateKeyStructure"/>.</summary>
+        /// <param name="privateKey">The private key.</param>
+        /// <param name="parameters">The parameters.</param>
+        /// <param name="publicKey">The public key.</param>
         public ECPrivateKeyStructure(Asn1OctetString privateKey, Asn1Encodable parameters, DerBitString publicKey)
         {
             m_version = DerInteger.One;
@@ -81,19 +110,26 @@ namespace Org.BouncyCastle.Asn1.Sec
             m_publicKey = publicKey;
         }
 
+        /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the private key.</summary>
         public Asn1OctetString PrivateKey => m_privateKey;
 
+        /// <summary>Gets the parameters.</summary>
         public Asn1Encodable Parameters => m_parameters;
 
+        /// <summary>Gets the public key.</summary>
         public DerBitString PublicKey => m_publicKey;
 
+        /// <summary>Return the key.</summary>
         public virtual BigInteger GetKey() => BigIntegers.FromUnsignedByteArray(m_privateKey.GetOctets());
 
+        /// <summary>Return the public key.</summary>
         [Obsolete("Use 'PublicKey' instead")]
         public virtual DerBitString GetPublicKey() => m_publicKey;
 
+        /// <summary>Return the parameters.</summary>
         [Obsolete("Use 'Parameters' instead")]
         public virtual Asn1Object GetParameters() => m_parameters?.ToAsn1Object();
 
