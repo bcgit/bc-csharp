@@ -12,6 +12,7 @@ namespace Org.BouncyCastle.Bcpg.Attr
         /// <summary>The image formats of an image attribute.</summary>
         public enum Format : byte
         {
+            /// <summary>The JPEG image format.</summary>
             Jpeg = 1
         }
 
