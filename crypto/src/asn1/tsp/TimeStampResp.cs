@@ -6,8 +6,8 @@ using Org.BouncyCastle.Asn1.Cms;
 namespace Org.BouncyCastle.Asn1.Tsp
 {
     public class TimeStampResp
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static TimeStampResp GetInstance(object obj)
         {
             if (obj == null)
@@ -17,7 +17,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
             return new TimeStampResp(Asn1Sequence.GetInstance(obj));
         }
 
-		public static TimeStampResp GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
+        public static TimeStampResp GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new TimeStampResp(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
         public static TimeStampResp GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
@@ -27,7 +27,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         private readonly ContentInfo m_timeStampToken;
 
         private TimeStampResp(Asn1Sequence seq)
-		{
+        {
             int count = seq.Count, pos = 0;
             if (count < 1 || count > 2)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -37,30 +37,30 @@ namespace Org.BouncyCastle.Asn1.Tsp
 
             if (pos != count)
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
-		}
+        }
 
-		public TimeStampResp(PkiStatusInfo pkiStatusInfo, ContentInfo timeStampToken)
-		{
-			m_pkiStatusInfo = pkiStatusInfo ?? throw new ArgumentNullException(nameof(pkiStatusInfo));
-			m_timeStampToken = timeStampToken;
-		}
+        public TimeStampResp(PkiStatusInfo pkiStatusInfo, ContentInfo timeStampToken)
+        {
+            m_pkiStatusInfo = pkiStatusInfo ?? throw new ArgumentNullException(nameof(pkiStatusInfo));
+            m_timeStampToken = timeStampToken;
+        }
 
-		public PkiStatusInfo Status => m_pkiStatusInfo;
+        public PkiStatusInfo Status => m_pkiStatusInfo;
 
-		public ContentInfo TimeStampToken => m_timeStampToken;
+        public ContentInfo TimeStampToken => m_timeStampToken;
 
-		/**
-		 * <pre>
-		 * TimeStampResp ::= SEQUENCE  {
-		 *   status                  PkiStatusInfo,
-		 *   timeStampToken          TimeStampToken     OPTIONAL  }
-		 * </pre>
-		 */
+        /**
+         * <pre>
+         * TimeStampResp ::= SEQUENCE  {
+         *   status                  PkiStatusInfo,
+         *   timeStampToken          TimeStampToken     OPTIONAL  }
+         * </pre>
+         */
         public override Asn1Object ToAsn1Object()
         {
             return m_timeStampToken == null
                 ?  new DerSequence(m_pkiStatusInfo)
                 :  new DerSequence(m_pkiStatusInfo, m_timeStampToken);
         }
-	}
+    }
 }

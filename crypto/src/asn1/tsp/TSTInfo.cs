@@ -5,8 +5,8 @@ using Org.BouncyCastle.Asn1.X509;
 namespace Org.BouncyCastle.Asn1.Tsp
 {
     public class TstInfo
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         public static TstInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -23,18 +23,18 @@ namespace Org.BouncyCastle.Asn1.Tsp
             new TstInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
         private readonly DerInteger m_version;
-		private readonly DerObjectIdentifier m_policy;
-		private readonly MessageImprint m_messageImprint;
-		private readonly DerInteger m_serialNumber;
-		private readonly Asn1GeneralizedTime m_genTime;
-		private readonly Accuracy m_accuracy;
-		private readonly DerBoolean m_ordering;
-		private readonly DerInteger m_nonce;
-		private readonly GeneralName m_tsa;
-		private readonly X509Extensions m_extensions;
+        private readonly DerObjectIdentifier m_policy;
+        private readonly MessageImprint m_messageImprint;
+        private readonly DerInteger m_serialNumber;
+        private readonly Asn1GeneralizedTime m_genTime;
+        private readonly Accuracy m_accuracy;
+        private readonly DerBoolean m_ordering;
+        private readonly DerInteger m_nonce;
+        private readonly GeneralName m_tsa;
+        private readonly X509Extensions m_extensions;
 
-		private TstInfo(Asn1Sequence seq)
-		{
+        private TstInfo(Asn1Sequence seq)
+        {
             int count = seq.Count, pos = 0;
             if (count < 5 || count > 10)
                 throw new ArgumentException("Bad sequence size: " + count, nameof(seq));
@@ -92,28 +92,28 @@ namespace Org.BouncyCastle.Asn1.Tsp
         public X509Extensions Extensions => m_extensions;
 
         /**
-		 * <pre>
-		 *
-		 *     TstInfo ::= SEQUENCE  {
-		 *        version                      INTEGER  { v1(1) },
-		 *        policy                       TSAPolicyId,
-		 *        messageImprint               MessageImprint,
-		 *          -- MUST have the same value as the similar field in
-		 *          -- TimeStampReq
-		 *        serialNumber                 INTEGER,
-		 *         -- Time-Stamping users MUST be ready to accommodate integers
-		 *         -- up to 160 bits.
-		 *        genTime                      GeneralizedTime,
-		 *        accuracy                     Accuracy                 OPTIONAL,
-		 *        ordering                     BOOLEAN             DEFAULT FALSE,
-		 *        nonce                        INTEGER                  OPTIONAL,
-		 *          -- MUST be present if the similar field was present
-		 *          -- in TimeStampReq.  In that case it MUST have the same value.
-		 *        tsa                          [0] GeneralName          OPTIONAL,
-		 *        extensions                   [1] IMPLICIT Extensions   OPTIONAL  }
-		 *
-		 * </pre>
-		 */
+         * <pre>
+         *
+         *     TstInfo ::= SEQUENCE  {
+         *        version                      INTEGER  { v1(1) },
+         *        policy                       TSAPolicyId,
+         *        messageImprint               MessageImprint,
+         *          -- MUST have the same value as the similar field in
+         *          -- TimeStampReq
+         *        serialNumber                 INTEGER,
+         *         -- Time-Stamping users MUST be ready to accommodate integers
+         *         -- up to 160 bits.
+         *        genTime                      GeneralizedTime,
+         *        accuracy                     Accuracy                 OPTIONAL,
+         *        ordering                     BOOLEAN             DEFAULT FALSE,
+         *        nonce                        INTEGER                  OPTIONAL,
+         *          -- MUST be present if the similar field was present
+         *          -- in TimeStampReq.  In that case it MUST have the same value.
+         *        tsa                          [0] GeneralName          OPTIONAL,
+         *        extensions                   [1] IMPLICIT Extensions   OPTIONAL  }
+         *
+         * </pre>
+         */
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(10);

@@ -105,7 +105,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         /**
          * Build a basic evidence record from an initial
          * ArchiveTimeStamp.
-         * 
+         *
          * @param cryptoInfos
          * @param encryptionInfo
          * @param archiveTimeStamp

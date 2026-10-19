@@ -3,8 +3,8 @@ using System;
 namespace Org.BouncyCastle.Asn1.Tsp
 {
     public class Accuracy
-		: Asn1Encodable
-	{
+        : Asn1Encodable
+    {
         protected const int MinMillis = 1;
         protected const int MaxMillis = 999;
         protected const int MinMicros = 1;
@@ -76,14 +76,14 @@ namespace Org.BouncyCastle.Asn1.Tsp
         public DerInteger Micros => m_micros;
 
         /**
-		 * <pre>
-		 * Accuracy ::= SEQUENCE {
-		 *             seconds        INTEGER              OPTIONAL,
-		 *             millis     [0] INTEGER  (1..999)    OPTIONAL,
-		 *             micros     [1] INTEGER  (1..999)    OPTIONAL
-		 *             }
-		 * </pre>
-		 */
+         * <pre>
+         * Accuracy ::= SEQUENCE {
+         *             seconds        INTEGER              OPTIONAL,
+         *             millis     [0] INTEGER  (1..999)    OPTIONAL,
+         *             micros     [1] INTEGER  (1..999)    OPTIONAL
+         *             }
+         * </pre>
+         */
         public override Asn1Object ToAsn1Object()
         {
             Asn1EncodableVector v = new Asn1EncodableVector(3);
