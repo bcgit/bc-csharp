@@ -6,14 +6,18 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Fpe
 {
+    /// <summary>Implementation of the FF1 format-preserving encryption method (NIST SP 800-38G).</summary>
     public class FpeFf1Engine
         : FpeEngine
     {
+        /// <summary>Create a new <see cref="FpeFf1Engine"/>.</summary>
         public FpeFf1Engine()
             : this(AesUtilities.CreateEngine())
         {
         }
 
+        /// <summary>Create a new <see cref="FpeFf1Engine"/>.</summary>
+        /// <param name="baseCipher">The base cipher.</param>
         public FpeFf1Engine(IBlockCipher baseCipher)
             : base(baseCipher)
         {
@@ -27,6 +31,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             }
         }
 
+        /// <inheritdoc/>
         public override void Init(bool forEncryption, ICipherParameters parameters)
         {
             this.forEncryption = forEncryption;
@@ -35,6 +40,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             baseCipher.Init(!fpeParameters.UseInverseFunction, fpeParameters.Key);
         }
 
+        /// <inheritdoc/>
         protected override int EncryptBlock(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff)
         {
             byte[] enc;
@@ -59,6 +65,7 @@ namespace Org.BouncyCastle.Crypto.Fpe
             return length;
         }
 
+        /// <inheritdoc/>
         protected override int DecryptBlock(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff)
         {
             byte[] dec;

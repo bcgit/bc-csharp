@@ -13,6 +13,8 @@ namespace Org.BouncyCastle.Crypto.Fpe
         protected bool forEncryption;
         protected FpeParameters fpeParameters;
 
+        /// <summary>Create a new <see cref="FpeEngine"/>.</summary>
+        /// <param name="baseCipher">The base cipher.</param>
         protected FpeEngine(IBlockCipher baseCipher)
         {
             this.baseCipher = baseCipher;
