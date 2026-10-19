@@ -2,9 +2,13 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Ess
 {
+    /// <summary>The ContentHints structure of RFC 2634.</summary>
     public class ContentHints
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="ContentHints"/> from the given object.</summary>
+        /// <param name="o">An <see cref="ContentHints"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="ContentHints"/>, or null if <paramref name="o"/> is null.</returns>
         public static ContentHints GetInstance(object o)
         {
             if (o == null)
@@ -14,9 +18,17 @@ namespace Org.BouncyCastle.Asn1.Ess
             return new ContentHints(Asn1Sequence.GetInstance(o));
         }
 
+        /// <summary>Return an <see cref="ContentHints"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ContentHints"/>.</returns>
         public static ContentHints GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ContentHints(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="ContentHints"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="ContentHints"/>.</returns>
         public static ContentHints GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new ContentHints(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -36,19 +48,26 @@ namespace Org.BouncyCastle.Asn1.Ess
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="ContentHints"/>.</summary>
+        /// <param name="contentType">The content type.</param>
         public ContentHints(DerObjectIdentifier contentType)
             : this(contentType, null)
         {
         }
 
+        /// <summary>Create a new <see cref="ContentHints"/>.</summary>
+        /// <param name="contentType">The content type.</param>
+        /// <param name="contentDescription">The content description.</param>
         public ContentHints(DerObjectIdentifier contentType, DerUtf8String contentDescription)
         {
             m_contentType = contentType ?? throw new ArgumentNullException(nameof(contentType));
             m_contentDescription = contentDescription;
         }
 
+        /// <summary>Gets the content type.</summary>
         public DerObjectIdentifier ContentType => m_contentType;
 
+        /// <summary>Gets the content description.</summary>
         public DerUtf8String ContentDescription => m_contentDescription;
 
         /**
