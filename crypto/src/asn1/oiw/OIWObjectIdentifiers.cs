@@ -1,5 +1,6 @@
 namespace Org.BouncyCastle.Asn1.Oiw
 {
+    /// <summary>Object identifiers for the OIW (OSI Implementors' Workshop) algorithms.</summary>
     // TODO[api] Make static
     public abstract class OiwObjectIdentifiers
     {
