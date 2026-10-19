@@ -72,6 +72,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the version.</summary>
         public virtual DerInteger Version => m_version;
 
+        /// <summary>Gets the encrypted content info.</summary>
         public virtual EncryptedContentInfo EncryptedContentInfo => m_encryptedContentInfo;
 
         /// <summary>Gets the unprotected attrs.</summary>

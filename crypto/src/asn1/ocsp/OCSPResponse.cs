@@ -82,6 +82,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         /// <summary>Gets the response status.</summary>
         public OcspResponseStatus ResponseStatus => m_responseStatus;
 
+        /// <summary>Gets the response bytes.</summary>
         public ResponseBytes ResponseBytes => m_responseBytes;
 
         /**

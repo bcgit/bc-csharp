@@ -63,8 +63,10 @@ namespace Org.BouncyCastle.Asn1.Pkcs
             m_scheme = encScheme ?? throw new ArgumentNullException(nameof(encScheme));
         }
 
+        /// <summary>Gets the key derivation func.</summary>
         public KeyDerivationFunc KeyDerivationFunc => m_func;
 
+        /// <summary>Gets the encryption scheme.</summary>
         public EncryptionScheme EncryptionScheme => m_scheme;
 
         /// <inheritdoc/>

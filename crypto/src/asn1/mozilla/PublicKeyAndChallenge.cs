@@ -94,6 +94,7 @@ namespace Org.BouncyCastle.Asn1.Mozilla
         /// <summary>Gets the spki.</summary>
         public SubjectPublicKeyInfo Spki => m_spki;
 
+        /// <summary>Gets the subject public key info.</summary>
         [Obsolete("Use 'Spki' instead")]
         public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_spki;
 

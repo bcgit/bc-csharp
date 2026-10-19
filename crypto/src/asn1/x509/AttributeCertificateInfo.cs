@@ -72,6 +72,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the holder.</summary>
         public Holder Holder => m_holder;
 
         /// <summary>Gets the issuer.</summary>

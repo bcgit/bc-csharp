@@ -73,6 +73,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_keySpec = Controls.GetInstance(keySpec);
         }
 
+        /// <summary>Gets the cert template.</summary>
         public virtual CertTemplate CertTemplate => m_certTemplate;
 
         /// <summary>Gets the key spec.</summary>

@@ -106,6 +106,7 @@ namespace Org.BouncyCastle.Asn1.X9
         public DHValidationParms ValidationParms =>
             new DHValidationParms(m_validationParams.Seed, m_validationParams.PgenCounter);
 
+        /// <summary>Gets the validation params.</summary>
         public ValidationParams ValidationParams => m_validationParams;
 
         /// <inheritdoc/>

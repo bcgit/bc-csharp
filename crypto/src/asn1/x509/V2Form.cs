@@ -108,6 +108,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the base certificate ID.</summary>
         public IssuerSerial BaseCertificateID => m_baseCertificateID;
 
+        /// <summary>Gets the object digest info.</summary>
         public ObjectDigestInfo ObjectDigestInfo => m_objectDigestInfo;
 
         /**

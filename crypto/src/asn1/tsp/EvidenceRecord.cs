@@ -168,10 +168,13 @@ namespace Org.BouncyCastle.Asn1.Tsp
         public virtual AlgorithmIdentifier[] GetDigestAlgorithms() =>
             m_digestAlgorithms.MapElements(AlgorithmIdentifier.GetInstance);
 
+        /// <summary>Gets the crypto infos.</summary>
         public virtual CryptoInfos CryptoInfos => m_cryptoInfos;
 
+        /// <summary>Gets the encryption info.</summary>
         public virtual EncryptionInfo EncryptionInfo => m_encryptionInfo;
 
+        /// <summary>Gets the archive time stamp sequence.</summary>
         public virtual ArchiveTimeStampSequence ArchiveTimeStampSequence => m_archiveTimeStampSequence;
 
         /**

@@ -106,6 +106,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the date.</summary>
         public Asn1GeneralizedTime Date => m_date;
 
+        /// <summary>Gets the other key attribute.</summary>
         public OtherKeyAttribute OtherKeyAttribute => m_other;
 
         /**

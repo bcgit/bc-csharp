@@ -108,6 +108,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the issuer and serial number.</summary>
         public IssuerAndSerialNumber IssuerAndSerialNumber => m_issuerAndSerialNumber;
 
         /// <summary>Gets the authenticated attributes.</summary>

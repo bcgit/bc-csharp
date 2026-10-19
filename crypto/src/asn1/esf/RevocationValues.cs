@@ -128,6 +128,7 @@ namespace Org.BouncyCastle.Asn1.Esf
         /// <summary>Return the ocsp vals.</summary>
         public BasicOcspResponse[] GetOcspVals() => m_ocspVals?.MapElements(BasicOcspResponse.GetInstance);
 
+        /// <summary>Gets the other rev vals.</summary>
         public OtherRevVals OtherRevVals => m_otherRevVals;
 
         /// <inheritdoc/>

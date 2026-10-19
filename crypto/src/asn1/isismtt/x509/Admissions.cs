@@ -104,6 +104,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt.X509
         /// <summary>Gets the admission authority.</summary>
         public virtual GeneralName AdmissionAuthority => m_admissionAuthority;
 
+        /// <summary>Gets the naming authority.</summary>
         public virtual NamingAuthority NamingAuthority => m_namingAuthority;
 
         /// <summary>Return the profession infos.</summary>

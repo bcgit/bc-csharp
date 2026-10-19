@@ -95,6 +95,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>Gets the subject.</summary>
         public X509Name Subject => m_subject;
 
+        /// <summary>Gets the subject public key info.</summary>
         public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_subjectPKInfo;
 
         /// <summary>Gets the attributes.</summary>

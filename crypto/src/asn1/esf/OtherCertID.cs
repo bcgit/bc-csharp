@@ -78,6 +78,7 @@ namespace Org.BouncyCastle.Asn1.Esf
         /// <summary>Gets the other cert hash.</summary>
         public OtherHash OtherCertHash => m_otherCertHash;
 
+        /// <summary>Gets the issuer serial.</summary>
         public IssuerSerial IssuerSerial => m_issuerSerial;
 
         /// <inheritdoc/>

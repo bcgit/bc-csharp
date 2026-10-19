@@ -82,6 +82,7 @@ namespace Org.BouncyCastle.Asn1.Mozilla
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the public key and challenge.</summary>
         public PublicKeyAndChallenge PublicKeyAndChallenge => m_publicKeyAndChallenge;
 
         /// <summary>Gets the signature.</summary>

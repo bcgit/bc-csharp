@@ -82,6 +82,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
         /// <summary>Gets the status.</summary>
         public virtual PkiStatusInfo Status => m_status;
 
+        /// <summary>Gets the certified key pair.</summary>
         public virtual CertifiedKeyPair CertifiedKeyPair => m_certifiedKeyPair;
 
         /// <summary>Gets the rsp info.</summary>

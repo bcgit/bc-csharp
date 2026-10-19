@@ -90,15 +90,18 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the ID.</summary>
         public Asn1Encodable ID => m_id;
 
+        /// <summary>Gets the issuer and serial number.</summary>
         public IssuerAndSerialNumber IssuerAndSerialNumber => IssuerAndSerialNumber.GetOptional(m_id);
 
         /// <summary>Gets the originator key.</summary>
         public OriginatorPublicKey OriginatorKey =>
             Asn1Utilities.GetOptionalContextTagged(m_id, 1, false, OriginatorPublicKey.GetTagged);
 
+        /// <summary>Gets the subject key identifier.</summary>
         public SubjectKeyIdentifier SubjectKeyIdentifier =>
             Asn1Utilities.GetOptionalContextTagged(m_id, 0, false, SubjectKeyIdentifier.GetTagged);
 
+        /// <summary>Gets the originator public key.</summary>
         [Obsolete("Use 'OriginatorKey' instead")]
         public OriginatorPublicKey OriginatorPublicKey => OriginatorKey;
 

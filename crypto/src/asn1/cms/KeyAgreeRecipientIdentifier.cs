@@ -72,6 +72,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_rKeyID = rKeyID ?? throw new ArgumentNullException(nameof(rKeyID));
         }
 
+        /// <summary>Gets the issuer and serial number.</summary>
         public IssuerAndSerialNumber IssuerAndSerialNumber => m_issuerSerial;
 
         /// <summary>Gets the r key ID.</summary>

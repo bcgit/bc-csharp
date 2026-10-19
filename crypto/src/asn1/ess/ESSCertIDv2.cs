@@ -131,6 +131,7 @@ namespace Org.BouncyCastle.Asn1.Ess
         /// <summary>Return the cert hash.</summary>
         public byte[] GetCertHash() => Arrays.Clone(m_certHash.GetOctets());
 
+        /// <summary>Gets the issuer serial.</summary>
         public IssuerSerial IssuerSerial => m_issuerSerial;
 
         /// <inheritdoc/>

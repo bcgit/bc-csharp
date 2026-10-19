@@ -74,6 +74,7 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_ocspRepHash = ocspRepHash;
         }
 
+        /// <summary>Gets the ocsp identifier.</summary>
         public OcspIdentifier OcspIdentifier => m_ocspIdentifier;
 
         /// <summary>Gets the ocsp rep hash.</summary>

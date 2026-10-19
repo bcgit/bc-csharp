@@ -85,11 +85,13 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the originator info.</summary>
         public OriginatorInfo OriginatorInfo => m_originatorInfo;
 
         /// <summary>Gets the recipient infos.</summary>
         public Asn1Set RecipientInfos => m_recipientInfos;
 
+        /// <summary>Gets the encrypted content info.</summary>
         public EncryptedContentInfo EncryptedContentInfo => m_encryptedContentInfo;
 
         /// <summary>Gets the unprotected attrs.</summary>

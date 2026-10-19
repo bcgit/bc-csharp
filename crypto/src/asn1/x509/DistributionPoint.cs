@@ -76,6 +76,7 @@ namespace Org.BouncyCastle.Asn1.X509
             m_crlIssuer = crlIssuer;
         }
 
+        /// <summary>Gets the distribution point name.</summary>
         public DistributionPointName DistributionPointName => m_distributionPoint;
 
         /// <summary>Gets the reasons.</summary>

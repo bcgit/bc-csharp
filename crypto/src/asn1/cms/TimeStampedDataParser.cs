@@ -57,6 +57,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the data uri.</summary>
         public virtual DerIA5String DataUri => m_dataUri;
 
+        /// <summary>Gets the meta data.</summary>
         public virtual MetaData MetaData => m_metaData;
 
         /// <summary>Gets the content.</summary>

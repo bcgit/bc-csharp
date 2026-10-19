@@ -118,6 +118,7 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
             m_postalAddress = postalAddress;
         }
 
+        /// <summary>Gets the name or pseudonym.</summary>
         public NameOrPseudonym NameOrPseudonym => m_nameOrPseudonym;
 
         /// <summary>Gets the name distinguisher.</summary>

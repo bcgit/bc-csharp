@@ -110,6 +110,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the recipient identifier.</summary>
         public RecipientIdentifier RecipientIdentifier => m_rid;
 
         /// <summary>Gets the key encryption algorithm.</summary>

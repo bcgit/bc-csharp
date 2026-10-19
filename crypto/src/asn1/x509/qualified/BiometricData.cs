@@ -89,6 +89,7 @@ namespace Org.BouncyCastle.Asn1.X509.Qualified
             m_sourceDataUri = sourceDataUri;
         }
 
+        /// <summary>Gets the type of biometric data.</summary>
         public TypeOfBiometricData TypeOfBiometricData => m_typeOfBiometricData;
 
         /// <summary>Gets the hash algorithm.</summary>

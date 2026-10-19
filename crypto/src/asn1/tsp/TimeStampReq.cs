@@ -83,6 +83,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the message imprint.</summary>
         public MessageImprint MessageImprint => m_messageImprint;
 
         /// <summary>Gets the req policy.</summary>

@@ -95,6 +95,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         /// <summary>Gets the cert id.</summary>
         public CertID CertId => m_certID;
 
+        /// <summary>Gets the cert status.</summary>
         public CertStatus CertStatus => m_certStatus;
 
         /// <summary>Gets the this update.</summary>

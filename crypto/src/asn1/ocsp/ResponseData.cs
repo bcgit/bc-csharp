@@ -100,6 +100,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the responder ID.</summary>
         public ResponderID ResponderID => m_responderID;
 
         /// <summary>Gets the produced at.</summary>

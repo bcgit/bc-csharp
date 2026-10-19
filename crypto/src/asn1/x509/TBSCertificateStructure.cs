@@ -168,6 +168,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the issuer.</summary>
         public X509Name Issuer => m_issuer;
 
+        /// <summary>Gets the validity.</summary>
         public Validity Validity => m_validity;
 
         /// <summary>Gets the start date.</summary>
@@ -179,6 +180,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the subject.</summary>
         public X509Name Subject => m_subject;
 
+        /// <summary>Gets the subject public key info.</summary>
         public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_subjectPublicKeyInfo;
 
         /// <summary>Gets the issuer unique ID.</summary>

@@ -184,6 +184,7 @@ namespace Org.BouncyCastle.Asn1.X509
          */
         public GeneralNames EntityName => m_entityName;
 
+        /// <summary>Gets the object digest info.</summary>
         public ObjectDigestInfo ObjectDigestInfo => m_objectDigestInfo;
 
         /**

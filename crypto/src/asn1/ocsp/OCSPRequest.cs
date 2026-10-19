@@ -61,6 +61,7 @@ namespace Org.BouncyCastle.Asn1.Ocsp
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Gets the tbs request.</summary>
         public TbsRequest TbsRequest => m_tbsRequest;
 
         /// <summary>Gets the optional signature.</summary>

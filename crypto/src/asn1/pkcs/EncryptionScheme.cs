@@ -59,6 +59,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         {
         }
 
+        /// <summary>Gets the asn 1 object.</summary>
         public Asn1Object Asn1Object
         {
             get { return Parameters.ToAsn1Object(); }

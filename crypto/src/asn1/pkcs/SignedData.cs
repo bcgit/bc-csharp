@@ -88,6 +88,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>Gets the digest algorithms.</summary>
         public Asn1Set DigestAlgorithms => m_digestAlgorithms;
 
+        /// <summary>Gets the content info.</summary>
         public ContentInfo ContentInfo => m_contentInfo;
 
         /// <summary>Gets the certificates.</summary>

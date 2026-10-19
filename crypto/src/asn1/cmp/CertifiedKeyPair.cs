@@ -105,6 +105,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_publicationInfo = publicationInfo;
         }
 
+        /// <summary>Gets the cert or enc cert.</summary>
         public virtual CertOrEncCert CertOrEncCert => m_certOrEncCert;
 
         /// <summary>Gets the private key.</summary>

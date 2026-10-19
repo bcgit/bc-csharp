@@ -74,6 +74,7 @@ namespace Org.BouncyCastle.Asn1.Crmf
         /// <summary>Gets the poposk input.</summary>
         public virtual PopoSigningKeyInput PoposkInput => m_poposkInput;
 
+        /// <summary>Gets the algorithm identifier.</summary>
         public virtual AlgorithmIdentifier AlgorithmIdentifier => m_algorithmIdentifier;
 
         /// <summary>Gets the signature.</summary>

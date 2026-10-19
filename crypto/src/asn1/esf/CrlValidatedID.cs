@@ -76,6 +76,7 @@ namespace Org.BouncyCastle.Asn1.Esf
         /// <summary>Gets the crl hash.</summary>
         public OtherHash CrlHash => m_crlHash;
 
+        /// <summary>Gets the crl identifier.</summary>
         public CrlIdentifier CrlIdentifier => m_crlIdentifier;
 
         /// <inheritdoc/>

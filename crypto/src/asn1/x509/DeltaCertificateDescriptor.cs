@@ -122,8 +122,10 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the subject.</summary>
         public X509Name Subject => m_subject;
 
+        /// <summary>Gets the subject public key info.</summary>
         public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_subjectPublicKeyInfo;
 
+        /// <summary>Gets the validity.</summary>
         public Validity Validity => m_validity;
 
         /// <inheritdoc/>

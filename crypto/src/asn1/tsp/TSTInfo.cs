@@ -96,6 +96,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the message imprint.</summary>
         public MessageImprint MessageImprint => m_messageImprint;
 
         /// <summary>Gets the policy.</summary>
@@ -104,6 +105,7 @@ namespace Org.BouncyCastle.Asn1.Tsp
         /// <summary>Gets the serial number.</summary>
         public DerInteger SerialNumber => m_serialNumber;
 
+        /// <summary>Gets the accuracy.</summary>
         public Accuracy Accuracy => m_accuracy;
 
         /// <summary>Gets the gen time.</summary>

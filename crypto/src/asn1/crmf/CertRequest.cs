@@ -79,8 +79,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
         /// <summary>Gets the cert req ID.</summary>
         public virtual DerInteger CertReqID => m_certReqId;
 
+        /// <summary>Gets the cert template.</summary>
         public virtual CertTemplate CertTemplate => m_certTemplate;
 
+        /// <summary>Gets the controls.</summary>
         public virtual Controls Controls => m_controls;
 
         /**

@@ -110,6 +110,7 @@ namespace Org.BouncyCastle.Asn1.X9
         /// <summary>Gets the j.</summary>
         public DerInteger J => m_j;
 
+        /// <summary>Gets the validation params.</summary>
         public ValidationParams ValidationParams => m_validationParams;
 
         /// <inheritdoc/>

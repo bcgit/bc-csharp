@@ -76,6 +76,7 @@ namespace Org.BouncyCastle.Asn1.Esf
             m_sigPolicy = signaturePolicyId ?? throw new ArgumentNullException(nameof(signaturePolicyId));
         }
 
+        /// <summary>Gets the signature policy id.</summary>
         public SignaturePolicyId SignaturePolicyId => m_sigPolicy;
 
         /// <inheritdoc/>

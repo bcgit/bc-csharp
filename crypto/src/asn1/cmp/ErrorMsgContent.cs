@@ -80,6 +80,7 @@ namespace Org.BouncyCastle.Asn1.Cmp
             m_errorDetails = errorDetails;
         }
 
+        /// <summary>Gets the pki status info.</summary>
         public virtual PkiStatusInfo PkiStatusInfo => m_pkiStatusInfo;
 
         /// <summary>Gets the error code.</summary>

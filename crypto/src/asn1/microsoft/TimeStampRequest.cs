@@ -105,6 +105,7 @@ namespace Org.BouncyCastle.Asn1.Microsoft
         /// <summary>Gets the countersignature type.</summary>
         public DerObjectIdentifier CountersignatureType => m_countersignatureType;
 
+        /// <summary>Gets the attributes.</summary>
         public Attributes Attributes => m_attributes;
 
         /// <summary>Gets the content.</summary>

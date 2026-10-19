@@ -66,6 +66,7 @@ namespace Org.BouncyCastle.Asn1.Pkcs
         /// <summary>Gets the auth safe.</summary>
         public ContentInfo AuthSafe => m_contentInfo;
 
+        /// <summary>Gets the mac data.</summary>
         public MacData MacData => m_macData;
 
         /// <inheritdoc/>

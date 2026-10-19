@@ -110,6 +110,7 @@ namespace Org.BouncyCastle.Asn1.Cms
             m_kekLength = ValidateKekLength(kekLength);
         }
 
+        /// <summary>Gets the recipient identifier.</summary>
         public RecipientIdentifier RecipientIdentifier => m_rid;
 
         /// <summary>Gets the kem.</summary>

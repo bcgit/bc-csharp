@@ -108,6 +108,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the issuer.</summary>
         public X509Name Issuer => m_tbsCert.Issuer;
 
+        /// <summary>Gets the validity.</summary>
         public Validity Validity => m_tbsCert.Validity;
 
         /// <summary>Gets the start date.</summary>
@@ -119,6 +120,7 @@ namespace Org.BouncyCastle.Asn1.X509
         /// <summary>Gets the subject.</summary>
         public X509Name Subject => m_tbsCert.Subject;
 
+        /// <summary>Gets the subject public key info.</summary>
         public SubjectPublicKeyInfo SubjectPublicKeyInfo => m_tbsCert.SubjectPublicKeyInfo;
 
         /// <summary>Gets the issuer unique ID.</summary>

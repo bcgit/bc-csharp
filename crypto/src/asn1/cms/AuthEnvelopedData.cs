@@ -105,6 +105,7 @@ namespace Org.BouncyCastle.Asn1.Cms
         /// <summary>Gets the version.</summary>
         public DerInteger Version => m_version;
 
+        /// <summary>Gets the originator info.</summary>
         public OriginatorInfo OriginatorInfo => m_originatorInfo;
 
         /// <summary>Gets the recipient infos.</summary>
