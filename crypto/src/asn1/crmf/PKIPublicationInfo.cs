@@ -22,6 +22,11 @@ namespace Org.BouncyCastle.Asn1.Crmf
         public static readonly DerInteger DontPublish = DerInteger.Zero;
         public static readonly DerInteger PleasePublish = DerInteger.One;
 
+        /// <summary>Return an <see cref="PkiPublicationInfo"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PkiPublicationInfo"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PkiPublicationInfo"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PkiPublicationInfo GetInstance(object obj)
         {
             if (obj == null)
@@ -31,9 +36,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new PkiPublicationInfo(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PkiPublicationInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiPublicationInfo"/>.</returns>
         public static PkiPublicationInfo GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiPublicationInfo(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="PkiPublicationInfo"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PkiPublicationInfo"/>.</returns>
         public static PkiPublicationInfo GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PkiPublicationInfo(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -55,11 +68,15 @@ namespace Org.BouncyCastle.Asn1.Crmf
                 throw new ArgumentException("Unexpected elements in sequence", nameof(seq));
         }
 
+        /// <summary>Create a new <see cref="PkiPublicationInfo"/>.</summary>
+        /// <param name="action">The action.</param>
         public PkiPublicationInfo(BigInteger action)
             : this(new DerInteger(action))
         {
         }
 
+        /// <summary>Create a new <see cref="PkiPublicationInfo"/>.</summary>
+        /// <param name="action">The action.</param>
         public PkiPublicationInfo(DerInteger action)
         {
             m_action = action ?? throw new ArgumentNullException(nameof(action));
@@ -90,8 +107,10 @@ namespace Org.BouncyCastle.Asn1.Crmf
             }
         }
 
+        /// <summary>Gets the action.</summary>
         public virtual DerInteger Action => m_action;
 
+        /// <summary>Return the pub infos.</summary>
         public virtual SinglePubInfo[] GetPubInfos() => m_pubInfos?.MapElements(SinglePubInfo.GetInstance);
 
         /**

@@ -5,9 +5,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    /// <summary>The EncKeyWithID structure of RFC 4211: a private key and an identifier.</summary>
     public class EncKeyWithID
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="EncKeyWithID"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="EncKeyWithID"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="EncKeyWithID"/>, or null if <paramref name="obj"/> is null.</returns>
         public static EncKeyWithID GetInstance(object obj)
         {
             if (obj == null)
@@ -17,9 +23,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new EncKeyWithID(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="EncKeyWithID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncKeyWithID"/>.</returns>
         public static EncKeyWithID GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncKeyWithID(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="EncKeyWithID"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="EncKeyWithID"/>.</returns>
         public static EncKeyWithID GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new EncKeyWithID(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -54,16 +68,24 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_identifier = identifier;
         }
 
+        /// <summary>Create a new <see cref="EncKeyWithID"/>.</summary>
+        /// <param name="privKeyInfo">The priv key info.</param>
         public EncKeyWithID(PrivateKeyInfo privKeyInfo)
             : this(privKeyInfo, (Asn1Encodable)null)
         {
         }
 
+        /// <summary>Create a new <see cref="EncKeyWithID"/>.</summary>
+        /// <param name="privKeyInfo">The priv key info.</param>
+        /// <param name="str">The str.</param>
         public EncKeyWithID(PrivateKeyInfo privKeyInfo, DerUtf8String str)
             : this(privKeyInfo, (Asn1Encodable)str)
         {
         }
 
+        /// <summary>Create a new <see cref="EncKeyWithID"/>.</summary>
+        /// <param name="privKeyInfo">The priv key info.</param>
+        /// <param name="generalName">The general name.</param>
         public EncKeyWithID(PrivateKeyInfo privKeyInfo, GeneralName generalName)
             : this(privKeyInfo, (Asn1Encodable)generalName)
         {
@@ -71,10 +93,13 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public virtual PrivateKeyInfo PrivateKey => m_privKeyInfo;
 
+        /// <summary>Gets a value indicating whether this has identifier.</summary>
         public virtual bool HasIdentifier => m_identifier != null;
 
+        /// <summary>Gets a value indicating whether this is identifier utf 8 string.</summary>
         public virtual bool IsIdentifierUtf8String => m_identifier is DerUtf8String;
 
+        /// <summary>Gets the identifier.</summary>
         public virtual Asn1Encodable Identifier => m_identifier;
 
         /**

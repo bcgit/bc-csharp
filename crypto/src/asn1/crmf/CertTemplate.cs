@@ -4,9 +4,17 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    /// <summary>
+    /// The CertTemplate structure of RFC 4211: the fields that the requestor wants in the certificate.
+    /// </summary>
     public class CertTemplate
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertTemplate"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="CertTemplate"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="CertTemplate"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertTemplate GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +24,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new CertTemplate(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertTemplate"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertTemplate"/>.</returns>
         public static CertTemplate GetInstance(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertTemplate(Asn1Sequence.GetInstance(taggedObject, declaredExplicit));
 
+        /// <summary>Return an <see cref="CertTemplate"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertTemplate"/>.</returns>
         public static CertTemplate GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertTemplate(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -62,6 +78,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_seq = seq;
         }
 
+        /// <summary>Create a new <see cref="CertTemplate"/>.</summary>
+        /// <param name="version">The version.</param>
+        /// <param name="serialNumber">The serial number.</param>
+        /// <param name="signingAlg">The signing alg.</param>
+        /// <param name="issuer">The issuer.</param>
+        /// <param name="validity">The validity.</param>
+        /// <param name="subject">The subject.</param>
+        /// <param name="publicKey">The public key.</param>
+        /// <param name="issuerUID">The issuer UID.</param>
+        /// <param name="subjectUID">The subject UID.</param>
+        /// <param name="extensions">The extensions.</param>
         public CertTemplate(DerInteger version, DerInteger serialNumber, AlgorithmIdentifier signingAlg,
             X509Name issuer, OptionalValidity validity, X509Name subject, SubjectPublicKeyInfo publicKey,
             DerBitString issuerUID, DerBitString subjectUID, X509Extensions extensions)
@@ -80,22 +107,29 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_seq = CreateSequence();
         }
 
+        /// <summary>Gets the version.</summary>
         public virtual int Version => m_version.IntValueExact;
 
+        /// <summary>Gets the serial number.</summary>
         public virtual DerInteger SerialNumber => m_serialNumber;
 
+        /// <summary>Gets the signing alg.</summary>
         public virtual AlgorithmIdentifier SigningAlg => m_signingAlg;
 
+        /// <summary>Gets the issuer.</summary>
         public virtual X509Name Issuer => m_issuer;
 
         public virtual OptionalValidity Validity => m_validity;
 
+        /// <summary>Gets the subject.</summary>
         public virtual X509Name Subject => m_subject;
 
         public virtual SubjectPublicKeyInfo PublicKey => m_publicKey;
 
+        /// <summary>Gets the issuer UID.</summary>
         public virtual DerBitString IssuerUID => m_issuerUID;
 
+        /// <summary>Gets the subject UID.</summary>
         public virtual DerBitString SubjectUID => m_subjectUID;
 
         public virtual X509Extensions Extensions => m_extensions;

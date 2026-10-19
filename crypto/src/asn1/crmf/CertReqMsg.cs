@@ -2,9 +2,16 @@ using System;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    /// <summary>
+    /// The CertReqMsg structure of RFC 4211: a certificate request with optional proof of possession and registration
+    /// info.
+    /// </summary>
     public class CertReqMsg
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="CertReqMsg"/> from the given object.</summary>
+        /// <param name="obj">An <see cref="CertReqMsg"/>, an object from which one can be constructed, or null.</param>
+        /// <returns>The <see cref="CertReqMsg"/>, or null if <paramref name="obj"/> is null.</returns>
         public static CertReqMsg GetInstance(object obj)
         {
             if (obj == null)
@@ -14,9 +21,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new CertReqMsg(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="CertReqMsg"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertReqMsg"/>.</returns>
         public static CertReqMsg GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new CertReqMsg(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="CertReqMsg"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="CertReqMsg"/>.</returns>
         public static CertReqMsg GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new CertReqMsg(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -55,11 +70,14 @@ namespace Org.BouncyCastle.Asn1.Crmf
 
         public virtual CertRequest CertReq => m_certReq;
 
+        /// <summary>Gets the pop.</summary>
         public virtual ProofOfPossession Pop => m_pop;
 
+        /// <summary>Gets the popo.</summary>
         [Obsolete("Use 'Pop' instead")]
         public virtual ProofOfPossession Popo => m_pop;
 
+        /// <summary>Return the reg info.</summary>
         public virtual AttributeTypeAndValue[] GetRegInfo() =>
             m_regInfo?.MapElements(AttributeTypeAndValue.GetInstance);
 

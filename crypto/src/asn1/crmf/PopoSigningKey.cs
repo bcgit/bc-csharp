@@ -4,9 +4,15 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    /// <summary>The POPOSigningKey structure of RFC 4211: proof of possession by signature.</summary>
     public class PopoSigningKey
         : Asn1Encodable
     {
+        /// <summary>Return an <see cref="PopoSigningKey"/> from the given object.</summary>
+        /// <param name="obj">
+        /// An <see cref="PopoSigningKey"/>, an object from which one can be constructed, or null.
+        /// </param>
+        /// <returns>The <see cref="PopoSigningKey"/>, or null if <paramref name="obj"/> is null.</returns>
         public static PopoSigningKey GetInstance(object obj)
         {
             if (obj == null)
@@ -16,9 +22,17 @@ namespace Org.BouncyCastle.Asn1.Crmf
             return new PopoSigningKey(Asn1Sequence.GetInstance(obj));
         }
 
+        /// <summary>Return an <see cref="PopoSigningKey"/> from a tagged object.</summary>
+        /// <param name="obj">The tagged object.</param>
+        /// <param name="isExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PopoSigningKey"/>.</returns>
         public static PopoSigningKey GetInstance(Asn1TaggedObject obj, bool isExplicit) =>
             new PopoSigningKey(Asn1Sequence.GetInstance(obj, isExplicit));
 
+        /// <summary>Return an <see cref="PopoSigningKey"/> from a tagged object.</summary>
+        /// <param name="taggedObject">The tagged object.</param>
+        /// <param name="declaredExplicit">true if the tagging is explicit, false if implicit.</param>
+        /// <returns>The <see cref="PopoSigningKey"/>.</returns>
         public static PopoSigningKey GetTagged(Asn1TaggedObject taggedObject, bool declaredExplicit) =>
             new PopoSigningKey(Asn1Sequence.GetTagged(taggedObject, declaredExplicit));
 
@@ -57,10 +71,12 @@ namespace Org.BouncyCastle.Asn1.Crmf
             m_signature = signature ?? throw new ArgumentNullException(nameof(signature));
         }
 
+        /// <summary>Gets the poposk input.</summary>
         public virtual PopoSigningKeyInput PoposkInput => m_poposkInput;
 
         public virtual AlgorithmIdentifier AlgorithmIdentifier => m_algorithmIdentifier;
 
+        /// <summary>Gets the signature.</summary>
         public virtual DerBitString Signature => m_signature;
 
         /**

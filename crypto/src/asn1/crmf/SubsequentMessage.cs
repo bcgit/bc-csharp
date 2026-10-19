@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Asn1.Crmf
 {
+    /// <summary>The SubsequentMessage values of RFC 4211.</summary>
     public class SubsequentMessage
         : DerInteger
     {
