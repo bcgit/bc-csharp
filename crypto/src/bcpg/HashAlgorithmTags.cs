@@ -32,6 +32,6 @@ namespace Org.BouncyCastle.Bcpg
         Sha3_512_Old = 315, // SHA3-512
 
         [Obsolete("Non-standard")]
-        SM3 = 326,			// SM3
+        SM3 = 326, // SM3
     }
 }
