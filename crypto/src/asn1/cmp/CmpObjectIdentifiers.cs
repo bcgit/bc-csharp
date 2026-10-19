@@ -160,8 +160,10 @@ namespace Org.BouncyCastle.Asn1.Cmp
          */
         public static readonly DerObjectIdentifier id_it_certProfile = id_it.Branch("21");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.4.22</c>.</summary>
         public static readonly DerObjectIdentifier id_it_crlStatusList = id_it.Branch("22");
 
+        /// <summary>The object identifier <c>1.3.6.1.5.5.7.4.23</c>.</summary>
         public static readonly DerObjectIdentifier id_it_crls = id_it.Branch("23");
 
         // TODO Update once OID allocated.

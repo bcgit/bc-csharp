@@ -11,6 +11,7 @@ namespace Org.BouncyCastle.Asn1.X509.SigI
         {
         }
 
+        /// <summary>The object identifier <c>1.3.36.8</c>.</summary>
         public readonly static DerObjectIdentifier IdSigI = new DerObjectIdentifier("1.3.36.8");
 
         /**
