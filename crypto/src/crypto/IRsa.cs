@@ -15,7 +15,9 @@ namespace Org.BouncyCastle.Crypto
         /// </param>
         /// <param name="parameters">The RSA key parameters.</param>
         void Init(bool forEncryption, ICipherParameters parameters);
+        /// <summary>Return the input block size.</summary>
         int GetInputBlockSize();
+        /// <summary>Return the output block size.</summary>
         int GetOutputBlockSize();
         /// <summary>
         /// Convert an input block to an integer, checking that it is in the range accepted by the core.

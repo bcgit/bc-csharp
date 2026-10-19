@@ -9,6 +9,7 @@ namespace Org.BouncyCastle.Crypto
         /// <param name="parameters">The private key parameters.</param>
         void Init(ICipherParameters parameters);
 
+        /// <summary>Gets the agreement size.</summary>
         int AgreementSize { get; }
 
         /// <summary>Calculate the agreement value with the public key of the other party.</summary>

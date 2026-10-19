@@ -9,8 +9,10 @@ namespace Org.BouncyCastle.Crypto
         /// <param name="parameters">The private key (and optionally other parameters).</param>
         void Init(ICipherParameters parameters);
 
+        /// <summary>Gets the encapsulation length.</summary>
         int EncapsulationLength { get; }
 
+        /// <summary>Gets the secret length.</summary>
         int SecretLength { get; }
 
         /// <summary>Recover the shared secret from an encapsulation.</summary>

@@ -14,6 +14,7 @@ namespace Org.BouncyCastle.Crypto
         /// <param name="parameters">The key and other data required by the cipher.</param>
         void Init(bool forEncryption, ICipherParameters parameters);
 
+        /// <summary>Return the block size.</summary>
         int GetBlockSize();
 
         int GetOutputSize(int inputLen);

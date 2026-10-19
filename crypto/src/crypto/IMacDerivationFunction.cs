@@ -4,6 +4,7 @@
     public interface IMacDerivationFunction
         : IDerivationFunction
     {
+        /// <summary>Gets the mac.</summary>
         IMac Mac { get; }
     }
 }
