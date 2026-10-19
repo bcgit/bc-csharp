@@ -38,7 +38,9 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         /// </summary>
         public enum Algorithm
         {
+            /// <summary>Pure Ed448.</summary>
             Ed448 = 0,
+            /// <summary>Pre-hashed Ed448 (Ed448ph).</summary>
             Ed448ph = 1,
         }
 

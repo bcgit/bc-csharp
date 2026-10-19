@@ -40,8 +40,11 @@ namespace Org.BouncyCastle.Math.EC.Rfc8032
         /// </summary>
         public enum Algorithm
         {
+            /// <summary>Pure Ed25519.</summary>
             Ed25519 = 0,
+            /// <summary>Ed25519 with a context (Ed25519ctx).</summary>
             Ed25519ctx = 1,
+            /// <summary>Pre-hashed Ed25519 (Ed25519ph).</summary>
             Ed25519ph = 2,
         }
 
