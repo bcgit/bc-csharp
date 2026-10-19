@@ -5,6 +5,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Crypto.Macs
 {
+    /// <summary>Implementation of the VMPC message authentication code.</summary>
     public class VmpcMac
         : IMac
     {
@@ -21,6 +22,7 @@ namespace Org.BouncyCastle.Crypto.Macs
 
         private byte x1, x2, x3, x4;
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -76,6 +78,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual int DoFinal(Span<byte> output)
         {
             // Execute the Post-Processing Phase
@@ -127,10 +130,13 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName => "VMPC-MAC";
 
+        /// <inheritdoc/>
         public virtual int GetMacSize() => 20;
 
+        /// <inheritdoc/>
         public virtual void Init(ICipherParameters parameters)
         {
             if (!(parameters is ParametersWithIV ivParams))
@@ -165,6 +171,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             VmpcEngine.KsaRound(P, ref s, ivBytes);
         }
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             InitKey(this.workingKey, this.workingIV);
@@ -172,6 +179,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             Array.Clear(T, 0, T.Length);
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input)
         {
             byte pn = P[n];
@@ -194,6 +202,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             n = (byte)(n + 1);
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int inOff, int inLen)
         {
             Check.DataLength(input, inOff, inLen, "input buffer too short");
@@ -226,6 +235,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             for (int i = 0; i < input.Length; i++)

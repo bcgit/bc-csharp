@@ -35,6 +35,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             0xB,0xA,0xF,0x5,0x0,0xC,0xE,0x8,0x6,0x2,0x3,0x9,0x1,0x7,0xD,0x4
         };
 
+        /// <summary>Create a new <see cref="Gost28147Mac"/>.</summary>
         public Gost28147Mac()
         {
             mac = new byte[BlockSize];
@@ -57,6 +58,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             return key;
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             Reset();
@@ -94,11 +96,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Gost28147Mac"; }
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return MacSize;
@@ -151,6 +155,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             Pack.UInt32_To_LE((uint)N2, output, outOff + 4);
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             if (bufOff == buf.Length)
@@ -180,6 +185,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             buf[bufOff++] = input;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (len < 0)
@@ -235,6 +241,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int gapLen = BlockSize - bufOff;
@@ -281,6 +288,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -314,6 +322,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             //padding with zero
@@ -343,6 +352,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             // Clear the buffer.

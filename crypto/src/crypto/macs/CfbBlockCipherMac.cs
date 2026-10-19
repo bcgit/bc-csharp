@@ -164,6 +164,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
     }
 
+    /// <summary>A MAC based on a block cipher used in CFB mode.</summary>
     public class CfbBlockCipherMac
         : IMac
     {
@@ -258,11 +259,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             bufOff = 0;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return cipher.AlgorithmName; }
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             Reset();
@@ -270,11 +273,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             cipher.Init(true, parameters);
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return macSize;
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             if (bufOff == Buffer.Length)
@@ -286,6 +291,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             Buffer[bufOff++] = input;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             if (len < 0)
@@ -324,6 +330,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int blockSize = cipher.GetBlockSize();
@@ -352,6 +359,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -385,6 +393,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             int blockSize = cipher.GetBlockSize();

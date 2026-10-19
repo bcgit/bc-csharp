@@ -42,16 +42,19 @@ namespace Org.BouncyCastle.Crypto.Macs
             this.d = d;
         }
 
+        /// <inheritdoc/>
         public virtual string AlgorithmName
         {
             get { return "SipHash-" + c + "-" + d; }
         }
 
+        /// <inheritdoc/>
         public virtual int GetMacSize()
         {
             return 8;
         }
 
+        /// <inheritdoc/>
         public virtual void Init(ICipherParameters parameters)
         {
             KeyParameter keyParameter = parameters as KeyParameter;
@@ -67,6 +70,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             Reset();
         }
 
+        /// <inheritdoc/>
         public virtual void Update(byte input)
         {
             m = (long)(((ulong)m >> 8) | ((ulong)input << 56));
@@ -78,6 +82,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
+        /// <inheritdoc/>
         public virtual void BlockUpdate(byte[] input, int offset, int length)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -122,6 +127,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public virtual void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int length = input.Length;
@@ -183,6 +189,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             return result;
         }
 
+        /// <inheritdoc/>
         public virtual int DoFinal(byte[] output, int outOff)
         {
             long result = DoFinal();
@@ -191,6 +198,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             long result = DoFinal();
@@ -199,6 +207,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public virtual void Reset()
         {
             v0 = k0 ^ 0x736f6d6570736575L;

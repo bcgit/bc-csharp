@@ -66,33 +66,39 @@ namespace Org.BouncyCastle.Crypto.Macs
             }
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return cipher.UnderlyingCipher.AlgorithmName + "-GMAC"; }
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return macSizeBits / 8;
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             cipher.ProcessAadByte(input);
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             cipher.ProcessAadBytes(input, inOff, len);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             cipher.ProcessAadBytes(input);
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             try
@@ -107,6 +113,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             try
@@ -121,6 +128,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public void Reset()
         {
             cipher.Reset();

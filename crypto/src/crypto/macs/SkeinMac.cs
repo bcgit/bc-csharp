@@ -51,11 +51,14 @@ namespace Org.BouncyCastle.Crypto.Macs
             this.engine = new SkeinEngine(stateSizeBits, digestSizeBits);
         }
 
+        /// <summary>Create a copy of the given <see cref="SkeinMac"/>.</summary>
+        /// <param name="mac">The instance to copy.</param>
         public SkeinMac(SkeinMac mac)
         {
             this.engine = new SkeinEngine(mac.engine);
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return "Skein-MAC-" + (engine.BlockSize * 8) + "-" + (engine.OutputSize * 8); }
@@ -65,7 +68,9 @@ namespace Org.BouncyCastle.Crypto.Macs
         /// Optionally initialises the Skein digest with the provided parameters.
         /// </summary>
         /// See <see cref="Org.BouncyCastle.Crypto.Parameters.SkeinParameters"></see> for details on the parameterisation of the Skein hash function.
-        /// <param name="parameters">the parameters to apply to this engine, or <code>null</code> to use no parameters.</param>
+        /// <param name="parameters">
+        /// the parameters to apply to this engine, or <code>null</code> to use no parameters.
+        /// </param>
         public void Init(ICipherParameters parameters)
         {
             SkeinParameters skeinParameters;
@@ -89,39 +94,46 @@ namespace Org.BouncyCastle.Crypto.Macs
             engine.Init(skeinParameters);
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return engine.OutputSize;
         }
 
+        /// <inheritdoc/>
         public void Reset()
         {
             engine.Reset();
         }
 
+        /// <inheritdoc/>
         public void Update(byte inByte)
         {
             engine.Update(inByte);
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] input, int inOff, int len)
         {
             engine.BlockUpdate(input, inOff, len);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             engine.BlockUpdate(input);
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] output, int outOff)
         {
             return engine.DoFinal(output, outOff);
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             return engine.DoFinal(output);

@@ -100,6 +100,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             bufOff = 0;
         }
 
+        /// <inheritdoc/>
         public string AlgorithmName
         {
             get { return m_cipherMode.AlgorithmName; }
@@ -132,6 +133,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             return ret;
         }
 
+        /// <inheritdoc/>
         public void Init(ICipherParameters parameters)
         {
             if (parameters is KeyParameter)
@@ -153,11 +155,13 @@ namespace Org.BouncyCastle.Crypto.Macs
             Reset();
         }
 
+        /// <inheritdoc/>
         public int GetMacSize()
         {
             return macSize;
         }
 
+        /// <inheritdoc/>
         public void Update(byte input)
         {
             if (bufOff == buf.Length)
@@ -169,6 +173,7 @@ namespace Org.BouncyCastle.Crypto.Macs
             buf[bufOff++] = input;
         }
 
+        /// <inheritdoc/>
         public void BlockUpdate(byte[] inBytes, int inOff, int len)
         {
             if (len < 0)
@@ -206,6 +211,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public void BlockUpdate(ReadOnlySpan<byte> input)
         {
             int blockSize = m_cipherMode.GetBlockSize();
@@ -233,6 +239,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 #endif
 
+        /// <inheritdoc/>
         public int DoFinal(byte[] outBytes, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -267,6 +274,7 @@ namespace Org.BouncyCastle.Crypto.Macs
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <inheritdoc/>
         public int DoFinal(Span<byte> output)
         {
             int blockSize = m_cipherMode.GetBlockSize();
