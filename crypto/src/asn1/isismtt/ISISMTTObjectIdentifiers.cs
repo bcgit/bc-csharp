@@ -4,8 +4,10 @@ namespace Org.BouncyCastle.Asn1.IsisMtt
     // TODO[api] Make static
     public abstract class IsisMttObjectIdentifiers
     {
+        /// <summary>The object identifier <c>1.3.36.8</c>.</summary>
         public static readonly DerObjectIdentifier IdIsisMtt = new DerObjectIdentifier("1.3.36.8");
 
+        /// <summary>The object identifier <c>1.3.36.8.1</c>.</summary>
         public static readonly DerObjectIdentifier IdIsisMttCP = new DerObjectIdentifier(IdIsisMtt + ".1");
 
         /**
@@ -17,6 +19,7 @@ namespace Org.BouncyCastle.Asn1.IsisMtt
          */
         public static readonly DerObjectIdentifier IdIsisMttCPAccredited = new DerObjectIdentifier(IdIsisMttCP + ".1");
 
+        /// <summary>The object identifier <c>1.3.36.8.3</c>.</summary>
         public static readonly DerObjectIdentifier IdIsisMttAT = new DerObjectIdentifier(IdIsisMtt + ".3");
 
         /**
