@@ -6,20 +6,20 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Crypto.Engines
 {
-	/// <remarks>A class that provides a basic DES engine.</remarks>
+    /// <remarks>A class that provides a basic DES engine.</remarks>
     public class DesEngine
-		: IBlockCipher
+        : IBlockCipher
     {
         internal const int BLOCK_SIZE = 8;
 
-		private int[] workingKey;
+        private int[] workingKey;
 
         public virtual int[] GetWorkingKey()
-		{
-			return workingKey;
-		}
+        {
+            return workingKey;
+        }
 
-		/**
+        /**
         * initialise a DES cipher.
         *
         * @param forEncryption whether or not we are for encryption.
@@ -28,26 +28,26 @@ namespace Org.BouncyCastle.Crypto.Engines
         * inappropriate.
         */
         public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+            bool forEncryption,
+            ICipherParameters parameters)
         {
             if (!(parameters is KeyParameter keyParameter))
-				throw new ArgumentException("invalid parameter passed to DES init - " + Platform.GetTypeName(parameters));
+                throw new ArgumentException("invalid parameter passed to DES init - " + Platform.GetTypeName(parameters));
 
-			workingKey = GenerateWorkingKey(forEncryption, keyParameter.GetKey());
+            workingKey = GenerateWorkingKey(forEncryption, keyParameter.GetKey());
         }
 
-		public virtual string AlgorithmName
+        public virtual string AlgorithmName
         {
             get { return "DES"; }
         }
 
-		public virtual int GetBlockSize()
+        public virtual int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-        public virtual int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
             if (workingKey == null)
                 throw new InvalidOperationException("DES engine not initialised");
@@ -63,7 +63,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Pack.UInt32_To_BE(hi32, output, outOff);
             Pack.UInt32_To_BE(lo32, output, outOff + 4);
 
-			return BLOCK_SIZE;
+            return BLOCK_SIZE;
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
@@ -100,22 +100,22 @@ namespace Org.BouncyCastle.Crypto.Engines
 //            0x89,0xab,0xcd,0xef,0x01,0x23,0x45,0x67
 //        };
 
-		private static readonly short[] bytebit =
+        private static readonly short[] bytebit =
         {
             128, 64, 32, 16, 8, 4, 2, 1
         };
 
-		private static readonly int[] bigbyte =
+        private static readonly int[] bigbyte =
         {
-            0x800000,	0x400000,	0x200000,	0x100000,
-            0x80000,	0x40000,	0x20000,	0x10000,
-            0x8000,		0x4000,		0x2000,		0x1000,
-            0x800,		0x400,		0x200,		0x100,
-            0x80,		0x40,		0x20,		0x10,
-            0x8,		0x4,		0x2,		0x1
+            0x800000, 0x400000, 0x200000, 0x100000,
+            0x80000, 0x40000, 0x20000, 0x10000,
+            0x8000, 0x4000, 0x2000, 0x1000,
+            0x800, 0x400, 0x200, 0x100,
+            0x80, 0x40, 0x20, 0x10,
+            0x8, 0x4, 0x2, 0x1
         };
 
-		/*
+        /*
         * Use the key schedule specified in the Standard (ANSI X3.92-1981).
         */
         private static readonly byte[] pc1 =
@@ -132,7 +132,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             15, 17, 19, 21, 23, 25, 27, 28
         };
 
-		private static readonly byte[] pc2 =
+        private static readonly byte[] pc2 =
         {
             13, 16, 10, 23,  0,  4,  2, 27, 14,  5, 20,  9,
             22, 18, 11,  3, 25,  7, 15,  6, 26, 19, 12,  1,
@@ -140,8 +140,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             43, 48, 38, 55, 33, 52, 45, 41, 49, 35, 28, 31
         };
 
-		private static readonly uint[] SP1 =
-		{
+        private static readonly uint[] SP1 =
+        {
             0x01010400, 0x00000000, 0x00010000, 0x01010404,
             0x01010004, 0x00010404, 0x00000004, 0x00010000,
             0x00000400, 0x01010400, 0x01010404, 0x00000400,
@@ -160,8 +160,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x00010004, 0x00010400, 0x00000000, 0x01010004
         };
 
-		private static readonly uint[] SP2 =
-		{
+        private static readonly uint[] SP2 =
+        {
             0x80108020, 0x80008000, 0x00008000, 0x00108020,
             0x00100000, 0x00000020, 0x80100020, 0x80008020,
             0x80000020, 0x80108020, 0x80108000, 0x80000000,
@@ -180,8 +180,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x80000000, 0x80100020, 0x80108020, 0x00108000
         };
 
-		private static readonly uint[] SP3 =
-		{
+        private static readonly uint[] SP3 =
+        {
             0x00000208, 0x08020200, 0x00000000, 0x08020008,
             0x08000200, 0x00000000, 0x00020208, 0x08000200,
             0x00020008, 0x08000008, 0x08000008, 0x00020000,
@@ -200,8 +200,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x00020208, 0x00000008, 0x08020008, 0x00020200
         };
 
-		private static readonly uint[] SP4 =
-		{
+        private static readonly uint[] SP4 =
+        {
             0x00802001, 0x00002081, 0x00002081, 0x00000080,
             0x00802080, 0x00800081, 0x00800001, 0x00002001,
             0x00000000, 0x00802000, 0x00802000, 0x00802081,
@@ -220,8 +220,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x00000080, 0x00800000, 0x00002000, 0x00802080
         };
 
-		private static readonly uint[] SP5 =
-		{
+        private static readonly uint[] SP5 =
+        {
             0x00000100, 0x02080100, 0x02080000, 0x42000100,
             0x00080000, 0x00000100, 0x40000000, 0x02080000,
             0x40080100, 0x00080000, 0x02000100, 0x40080100,
@@ -240,8 +240,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x00000000, 0x40080000, 0x02080100, 0x40000100
         };
 
-		private static readonly uint[] SP6 =
-		{
+        private static readonly uint[] SP6 =
+        {
             0x20000010, 0x20400000, 0x00004000, 0x20404010,
             0x20400000, 0x00000010, 0x20404010, 0x00400000,
             0x20004000, 0x00404010, 0x00400000, 0x20000010,
@@ -260,8 +260,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x20404000, 0x20000000, 0x00400010, 0x20004010
         };
 
-		private static readonly uint[] SP7 =
-		{
+        private static readonly uint[] SP7 =
+        {
             0x00200000, 0x04200002, 0x04000802, 0x00000000,
             0x00000800, 0x04000802, 0x00200802, 0x04200800,
             0x04200802, 0x00200000, 0x00000000, 0x04000002,
@@ -280,8 +280,8 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x04000002, 0x04000800, 0x00000800, 0x00200002
         };
 
-		private static readonly uint[] SP8 =
-		{
+        private static readonly uint[] SP8 =
+        {
             0x10001040, 0x00001000, 0x00040000, 0x10041040,
             0x10000000, 0x10001040, 0x00000040, 0x10000000,
             0x00040040, 0x10040000, 0x10041040, 0x00041000,
@@ -300,7 +300,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             0x00001040, 0x00040040, 0x10000000, 0x10041000
         };
 
-		/**
+        /**
         * Generate an integer based working key based on our secret key
         * and what we processing we are planning to do.
         *
@@ -308,18 +308,18 @@ namespace Org.BouncyCastle.Crypto.Engines
         *         (whoever, and wherever they are!).
         */
         protected static int[] GenerateWorkingKey(
-            bool	encrypting,
-            byte[]	key)
+            bool encrypting,
+            byte[] key)
         {
             int[] newKey = new int[32];
             bool[] pc1m = new bool[56];
-			bool[] pcr = new bool[56];
+            bool[] pcr = new bool[56];
 
-			for (int j = 0; j < 56; j++ )
+            for (int j = 0; j < 56; j++ )
             {
                 int l = pc1[j];
 
-				pc1m[j] = ((key[(uint) l >> 3] & bytebit[l & 07]) != 0);
+                pc1m[j] = ((key[(uint) l >> 3] & bytebit[l & 07]) != 0);
             }
 
             for (int i = 0; i < 16; i++)

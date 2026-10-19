@@ -82,8 +82,8 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public virtual void Init(bool forEncryption, ICipherParameters parameters)
         {
-            /* 
-             * Salsa20 encryption and decryption is completely symmetrical, so the 'forEncryption' is 
+            /*
+             * Salsa20 encryption and decryption is completely symmetrical, so the 'forEncryption' is
              * irrelevant. (Like 90% of stream ciphers)
              */
 

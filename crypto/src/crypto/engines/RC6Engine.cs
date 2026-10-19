@@ -10,7 +10,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     * An RC6 engine.
     */
     public class RC6Engine
-		: IBlockCipher
+        : IBlockCipher
     {
         /*
         * the number of rounds to perform
@@ -71,13 +71,13 @@ namespace Org.BouncyCastle.Crypto.Engines
 
             this.forEncryption = forEncryption;
 
-			SetKey(keyParameter.GetKey());
+            SetKey(keyParameter.GetKey());
         }
 
         public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
-			if (_S == null)
-				throw new InvalidOperationException("RC6 engine not initialised");
+            if (_S == null)
+                throw new InvalidOperationException("RC6 engine not initialised");
 
             int blockSize = GetBlockSize();
             Check.DataLength(input, inOff, blockSize, "input buffer too short");
@@ -89,8 +89,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 : DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
 #else
             return forEncryption
-				? EncryptBlock(input, inOff, output, outOff)
-				: DecryptBlock(input, inOff, output, outOff);
+                ? EncryptBlock(input, inOff, output, outOff)
+                : DecryptBlock(input, inOff, output, outOff);
 #endif
         }
 

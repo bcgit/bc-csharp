@@ -154,7 +154,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             Array.Copy(extractedAIV, 0, extractedHighOrderAIV, 0, 4);
             int mli = (int)Pack.BE_To_UInt32(extractedAIV, 4);
 
-            // Even if a check fails we still continue and check everything 
+            // Even if a check fails we still continue and check everything
             // else in order to avoid certain timing based side-channel attacks.
 
             // Check the fixed portion of the AIV

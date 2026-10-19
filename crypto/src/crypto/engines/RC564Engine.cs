@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     * This implementation is set to work with a 64 bit word size.</p>
     */
     public class RC564Engine
-		: IBlockCipher
+        : IBlockCipher
     {
         /*
         * the number of rounds to perform

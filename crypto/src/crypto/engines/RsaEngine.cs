@@ -8,9 +8,9 @@ namespace Org.BouncyCastle.Crypto.Engines
     * this does your basic RSA algorithm.
     */
     public class RsaEngine
-		: IAsymmetricBlockCipher
+        : IAsymmetricBlockCipher
     {
-		private readonly IRsa core;
+        private readonly IRsa core;
 
         public RsaEngine()
             : this(new RsaCoreEngine())
@@ -27,20 +27,20 @@ namespace Org.BouncyCastle.Crypto.Engines
             get { return "RSA"; }
         }
 
-		/**
+        /**
         * initialise the RSA engine.
         *
         * @param forEncryption true if we are encrypting, false otherwise.
         * @param param the necessary RSA key parameters.
         */
         public virtual void Init(
-            bool				forEncryption,
-            ICipherParameters	parameters)
+            bool forEncryption,
+            ICipherParameters parameters)
         {
-			core.Init(forEncryption, parameters);
-		}
+            core.Init(forEncryption, parameters);
+        }
 
-		/**
+        /**
         * Return the maximum size for an input block to this engine.
         * For RSA this is always one byte less than the key size on
         * encryption, and the same length as the key size on decryption.
@@ -49,10 +49,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         */
         public virtual int GetInputBlockSize()
         {
-			return core.GetInputBlockSize();
+            return core.GetInputBlockSize();
         }
 
-		/**
+        /**
         * Return the maximum size for an output block to this engine.
         * For RSA this is always one byte less than the key size on
         * decryption, and the same length as the key size on encryption.
@@ -61,10 +61,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         */
         public virtual int GetOutputBlockSize()
         {
-			return core.GetOutputBlockSize();
+            return core.GetOutputBlockSize();
         }
 
-		/**
+        /**
         * Process a single block using the basic RSA algorithm.
         *
         * @param inBuf the input array.
@@ -74,13 +74,13 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @exception DataLengthException the input block is too large.
         */
         public virtual byte[] ProcessBlock(
-            byte[]	inBuf,
-            int		inOff,
-            int		inLen)
+            byte[] inBuf,
+            int inOff,
+            int inLen)
         {
             BigInteger input = core.ConvertInput(inBuf, inOff, inLen);
             BigInteger output = core.ProcessBlock(input);
-			return core.ConvertOutput(output);
+            return core.ConvertOutput(output);
         }
     }
 }

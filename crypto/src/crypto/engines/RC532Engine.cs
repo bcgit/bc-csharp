@@ -14,7 +14,7 @@ namespace Org.BouncyCastle.Crypto.Engines
     * This implementation has a word size of 32 bits.</p>
     */
     public class RC532Engine
-		: IBlockCipher
+        : IBlockCipher
     {
         /*
         * the number of rounds to perform
@@ -59,7 +59,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return 2 * 4;
         }
 
-		/**
+        /**
         * initialise a RC5-32 cipher.
         *
         * @param forEncryption whether or not we are for encryption.
@@ -87,7 +87,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             this.forEncryption = forEncryption;
         }
 
-        public virtual int ProcessBlock(byte[] input, int inOff, byte[]	output, int outOff)
+        public virtual int ProcessBlock(byte[] input, int inOff, byte[] output, int outOff)
         {
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
             return forEncryption
@@ -95,8 +95,8 @@ namespace Org.BouncyCastle.Crypto.Engines
                 : DecryptBlock(input.AsSpan(inOff), output.AsSpan(outOff));
 #else
             return forEncryption
-				? EncryptBlock(input, inOff, output, outOff)
-				: DecryptBlock(input, inOff, output, outOff);
+                ? EncryptBlock(input, inOff, output, outOff)
+                : DecryptBlock(input, inOff, output, outOff);
 #endif
         }
 

@@ -15,7 +15,7 @@ namespace Org.BouncyCastle.Crypto.Engines
      * and implement a simplified cryptography interface.
      */
     public sealed class Cast6Engine
-		: Cast5Engine
+        : Cast5Engine
     {
         //====================================
         // Useful constants
@@ -23,35 +23,35 @@ namespace Org.BouncyCastle.Crypto.Engines
         private const int ROUNDS = 12;
         private const int BLOCK_SIZE = 16;  // bytes = 128 bits
 
-		/*
+        /*
         * Put the round and mask keys into an array.
         * Kr0[i] => _Kr[i*4 + 0]
         */
         private int []_Kr = new int[ROUNDS*4]; // the rotating round key(s)
         private uint []_Km = new uint[ROUNDS*4]; // the masking round key(s)
 
-		/*
+        /*
         * Key setup
         */
         private int []_Tr = new int[24 * 8];
         private uint []_Tm = new uint[24 * 8];
         private uint[] _workingKey = new uint[8];
 
-		public Cast6Engine()
+        public Cast6Engine()
         {
         }
 
-		public override string AlgorithmName
+        public override string AlgorithmName
         {
             get { return "CAST6"; }
         }
 
-		public override int GetBlockSize()
+        public override int GetBlockSize()
         {
             return BLOCK_SIZE;
         }
 
-		//==================================
+        //==================================
         // Private Implementation
         //==================================
         /*
@@ -61,7 +61,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         * See section 2.4
         */
         internal override void SetKey(
-			byte[] key)
+            byte[] key)
         {
             uint Cm = 0x5a827999;
             uint Mm = 0x6ed9eba1;
@@ -85,16 +85,16 @@ namespace Org.BouncyCastle.Crypto.Engines
                 }
             }
 
-			byte[] tmpKey = new byte[64];
-			key.CopyTo(tmpKey, 0);
+            byte[] tmpKey = new byte[64];
+            key.CopyTo(tmpKey, 0);
 
-			// now create ABCDEFGH
+            // now create ABCDEFGH
             for (int i = 0; i < 8; i++)
             {
                 _workingKey[i] = Pack.BE_To_UInt32(tmpKey, i*4);
             }
 
-			// Generate the key schedule
+            // Generate the key schedule
             for (int i = 0; i < 12; i++)
             {
                 // KAPPA <- W2i(KAPPA)
@@ -214,11 +214,11 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @param result the resulting ciphertext
         */
         private void CAST_Encipher(
-			uint	A,
-			uint	B,
-			uint	C,
-			uint	D,
-			uint[]	result)
+            uint A,
+            uint B,
+            uint C,
+            uint D,
+            uint[] result)
         {
             for (int i = 0; i < 6; i++)
             {
@@ -244,7 +244,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             result[3] = D;
         }
 
-		/**
+        /**
         * Does the 12 quad rounds rounds to decrypt the block.
         *
         * @param A    the 00-31  bits of the ciphertext block
@@ -254,11 +254,11 @@ namespace Org.BouncyCastle.Crypto.Engines
         * @param result the resulting plaintext
         */
         private void CAST_Decipher(
-			uint	A,
-			uint	B,
-			uint	C,
-			uint	D,
-			uint[]	result)
+            uint A,
+            uint B,
+            uint C,
+            uint D,
+            uint[] result)
         {
             for (int i = 0; i < 6; i++)
             {

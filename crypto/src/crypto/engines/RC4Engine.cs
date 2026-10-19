@@ -6,7 +6,7 @@ using Org.BouncyCastle.Utilities;
 namespace Org.BouncyCastle.Crypto.Engines
 {
     public class RC4Engine
-		: IStreamCipher
+        : IStreamCipher
     {
         private readonly static int STATE_LENGTH = 256;
 
@@ -15,10 +15,10 @@ namespace Org.BouncyCastle.Crypto.Engines
         * during encryption and decryption
         */
 
-        private byte[]	engineState;
-        private int		x;
-        private int		y;
-        private byte[]	workingKey;
+        private byte[] engineState;
+        private int x;
+        private int y;
+        private byte[] workingKey;
 
         /**
         * initialise a RC4 cipher.
@@ -52,7 +52,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         }
 
         public virtual byte ReturnByte(
-			byte input)
+            byte input)
         {
             x = (x + 1) & 0xff;
             y = (engineState[x] + y) & 0xff;
@@ -66,7 +66,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             return (byte)(input ^ engineState[(engineState[x] + engineState[y]) & 0xff]);
         }
 
-        public virtual void ProcessBytes(byte[]	input, int inOff, int length, byte[] output, int outOff)
+        public virtual void ProcessBytes(byte[] input, int inOff, int length, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, length, "input buffer too short");
             Check.OutputLength(output, outOff, length, "output buffer too short");
@@ -119,7 +119,7 @@ namespace Org.BouncyCastle.Crypto.Engines
         // Private implementation
 
         private void SetKey(
-			byte[] keyBytes)
+            byte[] keyBytes)
         {
             workingKey = keyBytes;
 

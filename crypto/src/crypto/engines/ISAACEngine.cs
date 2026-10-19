@@ -53,7 +53,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         public virtual byte ReturnByte(byte input)
         {
-            if (m_keyStreamPos == 0) 
+            if (m_keyStreamPos == 0)
             {
                 Isaac();
             }

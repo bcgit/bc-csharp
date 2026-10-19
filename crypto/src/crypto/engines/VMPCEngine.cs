@@ -18,7 +18,7 @@ namespace Org.BouncyCastle.Crypto.Engines
 
         /**
         * initialise a VMPC cipher.
-        * 
+        *
         * @param forEncryption
         *    whether or not we are for encryption.
         * @param params
@@ -60,7 +60,7 @@ namespace Org.BouncyCastle.Crypto.Engines
             KsaRound(P, ref s, ivBytes);
         }
 
-        public virtual void ProcessBytes(byte[]	input, int inOff, int len, byte[] output, int outOff)
+        public virtual void ProcessBytes(byte[] input, int inOff, int len, byte[] output, int outOff)
         {
             Check.DataLength(input, inOff, len, "input buffer too short");
             Check.OutputLength(output, outOff, len, "output buffer too short");
