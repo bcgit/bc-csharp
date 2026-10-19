@@ -31,7 +31,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Utilities.Bzip2
 {
-	/**
+    /**
     * An output stream that compresses into the BZip2 format (with the file
     * header chars) into another stream.
     *
@@ -42,8 +42,8 @@ namespace Org.BouncyCastle.Utilities.Bzip2
     * start of the BZIP2 stream to make it compatible with other PGP programs.
     */
     public class CBZip2OutputStream
-        : BaseOutputStream 
-	{
+        : BaseOutputStream
+    {
         protected const int SETMASK = 1 << 21;
         protected const int CLEARMASK = ~SETMASK;
         protected const int GREATER_ICOST = 15;
@@ -135,7 +135,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
                     {
                         int zz = 1;
                         int tmp = heap[zz];
-                        while (true) 
+                        while (true)
                         {
                             int yy = zz << 1;
                             if (yy > nHeap)
@@ -469,7 +469,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
             finished = true;
             Flush();
         }
-        
+
         public override void Flush()
         {
             bsStream.Flush();
@@ -845,7 +845,7 @@ namespace Org.BouncyCastle.Utilities.Bzip2
                     }
                 }
 
-				for (i = 0; i < 16; i++)
+                for (i = 0; i < 16; i++)
                 {
                     BsPutBit(inUse16[i] ? 1 : 0);
                 }
