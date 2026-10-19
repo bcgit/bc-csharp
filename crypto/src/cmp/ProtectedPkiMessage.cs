@@ -94,7 +94,7 @@ namespace Org.BouncyCastle.Cmp
         /// Verify a message with a public key based signature attached.
         /// </summary>
         /// <param name="verifierFactory">a factory of signature verifiers.</param>
-        /// <returns>true if the provider is able to create a verifier that validates the signature, false otherwise.</returns>      
+        /// <returns>true if the provider is able to create a verifier that validates the signature, false otherwise.</returns>
         public virtual bool Verify(IVerifierFactory verifierFactory) =>
             X509.X509Utilities.VerifySignature(verifierFactory, CreateProtected(), m_pkiMessage.Protection);
 
