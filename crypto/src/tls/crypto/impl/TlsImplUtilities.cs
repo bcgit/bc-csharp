@@ -93,6 +93,9 @@ namespace Org.BouncyCastle.Tls.Crypto.Impl
         }
 
 #if NETCOREAPP2_1_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+        /// <summary>Calculate the key block for a connection.</summary>
+        /// <param name="cryptoParams">The crypto parameters.</param>
+        /// <param name="keyBlock">The key block.</param>
         public static void CalculateKeyBlock(TlsCryptoParameters cryptoParams, Span<byte> keyBlock)
         {
             SecurityParameters securityParameters = cryptoParams.SecurityParameters;

@@ -133,6 +133,9 @@ namespace Org.BouncyCastle.Tls
          * RFC 8446 reserved for private use (0xFE00..0xFFFF)
          */
 
+        /// <summary>Combine a hash algorithm and a signature algorithm into a signature scheme value.</summary>
+        /// <param name="sigAndHashAlg">The sig and hash alg.</param>
+        /// <returns>The signature scheme.</returns>
         public static int From(SignatureAndHashAlgorithm sigAndHashAlg)
         {
             if (null == sigAndHashAlg)
@@ -200,6 +203,9 @@ namespace Org.BouncyCastle.Tls
             }
         }
 
+        /// <summary>Get the crypto hash algorithm that a signature scheme uses.</summary>
+        /// <param name="signatureAndHashAlgorithm">The signature and hash algorithm.</param>
+        /// <returns>The crypto hash algorithm, or -1 if there is none.</returns>
         public static int GetCryptoHashAlgorithm(SignatureAndHashAlgorithm signatureAndHashAlgorithm)
         {
             return GetCryptoHashAlgorithm(From(signatureAndHashAlgorithm));
