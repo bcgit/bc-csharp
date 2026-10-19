@@ -27,11 +27,14 @@ namespace Org.BouncyCastle.Crypto.Agreement
         private ECPrivateKeyParameters mEphemeralKey;
         private bool mInitiator;
 
+        /// <summary>Create a new <see cref="SM2KeyExchange"/>.</summary>
         public SM2KeyExchange()
             : this(new SM3Digest())
         {
         }
 
+        /// <summary>Create a new <see cref="SM2KeyExchange"/>.</summary>
+        /// <param name="digest">The digest.</param>
         public SM2KeyExchange(IDigest digest)
         {
             this.mDigest = digest;

@@ -7,6 +7,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Crypto.Agreement
 {
+    /// <summary>EC MQV key agreement.</summary>
     // TODO[api] sealed
     public class ECMqvBasicAgreement
         : IBasicAgreement
@@ -14,6 +15,7 @@ namespace Org.BouncyCastle.Crypto.Agreement
         // TODO[api] private
         protected internal MqvPrivateParameters privParams;
 
+        /// <inheritdoc/>
         public virtual void Init(ICipherParameters parameters)
         {
             var kParam = ParameterUtilities.IgnoreRandom(parameters);
@@ -24,8 +26,10 @@ namespace Org.BouncyCastle.Crypto.Agreement
             this.privParams = mqvPrivateParameters;
         }
 
+        /// <inheritdoc/>
         public virtual int GetFieldSize() => privParams.StaticPrivateKey.Parameters.Curve.FieldElementEncodingLength;
 
+        /// <inheritdoc/>
         public virtual BigInteger CalculateAgreement(ICipherParameters pubKey) =>
             CalculateAgreementFieldElement(privParams, (MqvPublicParameters)pubKey).ToBigInteger();
 
