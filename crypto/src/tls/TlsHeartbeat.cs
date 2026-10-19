@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Interface for the heartbeat configuration of a TLS connection.</summary>
     public interface TlsHeartbeat
     {
         byte[] GeneratePayload();

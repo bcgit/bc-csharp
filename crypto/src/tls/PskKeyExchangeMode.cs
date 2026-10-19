@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the PSK key exchange modes of TLS 1.3.</summary>
     public abstract class PskKeyExchangeMode
     {
         /*

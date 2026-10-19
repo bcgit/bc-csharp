@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>Constants for the hash algorithms known to the TLS crypto layer.</summary>
     public abstract class CryptoHashAlgorithm
     {
         /// <summary>The <c>md5</c> constant, with the value <c>1</c>.</summary>

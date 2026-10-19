@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>An entry of the trusted_ca_keys extension of RFC 6066.</summary>
     public sealed class TrustedAuthority
     {
         private readonly short m_identifierType;

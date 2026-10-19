@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A NewSessionTicket message.</summary>
     public sealed class NewSessionTicket
     {
         private readonly long m_ticketLifetimeHint;

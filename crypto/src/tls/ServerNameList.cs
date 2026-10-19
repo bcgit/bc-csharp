@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The value of the server_name extension: a list of server names.</summary>
     public sealed class ServerNameList
     {
         private readonly IList<ServerName> m_serverNameList;

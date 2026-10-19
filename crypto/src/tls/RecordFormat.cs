@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants describing the layout of TLS and DTLS records.</summary>
     public abstract class RecordFormat
     {
         /// <summary>The <c>TypeOffset</c> constant, with the value <c>0</c>.</summary>

@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>Constants for the signature algorithms known to the TLS crypto layer.</summary>
     public abstract class CryptoSignatureAlgorithm
     {
         /// <summary>The <c>rsa</c> constant, with the value <c>1</c>.</summary>

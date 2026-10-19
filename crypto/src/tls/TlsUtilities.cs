@@ -24,6 +24,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Utility methods for the TLS and DTLS protocol implementations.</summary>
     // TODO[api] Make static
     public abstract class TlsUtilities
     {

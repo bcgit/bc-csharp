@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the handshake message types.</summary>
     public abstract class HandshakeType
     {
         /*

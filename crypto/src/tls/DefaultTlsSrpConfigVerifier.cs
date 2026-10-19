@@ -6,6 +6,9 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// The default verifier for SRP configurations received from a server, accepting a known set of groups.
+    /// </summary>
     public class DefaultTlsSrpConfigVerifier
         : TlsSrpConfigVerifier
     {

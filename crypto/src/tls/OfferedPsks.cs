@@ -6,6 +6,9 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// The pre_shared_key extension of a TLS 1.3 ClientHello: the offered identities and their binders.
+    /// </summary>
     public sealed class OfferedPsks
     {
         internal class BindersConfig

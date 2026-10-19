@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Flags describing the properties of a DTLS record.</summary>
     [Flags]
     public enum DtlsRecordFlags
     {
@@ -21,6 +22,9 @@ namespace Org.BouncyCastle.Tls
 
     public delegate void DtlsRecordCallback(DtlsRecordFlags flags);
 
+    /// <summary>
+    /// A DTLS connection established by <see cref="DtlsClientProtocol"/> or <see cref="DtlsServerProtocol"/>.
+    /// </summary>
     public class DtlsTransport
         : DatagramTransport
     {

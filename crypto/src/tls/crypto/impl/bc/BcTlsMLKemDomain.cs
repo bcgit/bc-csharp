@@ -7,6 +7,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>The ML-KEM domain for TLS, using the Bouncy Castle implementation.</summary>
     // TODO[api] Make sealed
     public class BcTlsMLKemDomain
         : TlsKemDomain

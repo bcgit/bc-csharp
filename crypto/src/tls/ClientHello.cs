@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A ClientHello message.</summary>
     public sealed class ClientHello
     {
         private readonly ProtocolVersion m_version;

@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>An entry of a SupplementalData message: a data type and its data.</summary>
     public sealed class SupplementalDataEntry
     {
         private readonly int m_dataType;

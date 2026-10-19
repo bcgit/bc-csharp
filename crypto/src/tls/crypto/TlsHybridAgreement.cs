@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>A key agreement combining two component agreements, for hybrid key exchange.</summary>
     public sealed class TlsHybridAgreement
         : TlsAgreement
     {

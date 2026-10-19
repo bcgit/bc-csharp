@@ -8,6 +8,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The DTLS server protocol: runs a DTLS handshake as the server.</summary>
     public class DtlsServerProtocol
         : DtlsProtocol
     {
@@ -996,6 +997,7 @@ namespace Org.BouncyCastle.Tls
                 && (null == state.keyExchange || state.keyExchange.RequiresCertificateVerify);
         }
 
+        /// <summary>The state of a server-side DTLS handshake.</summary>
         protected internal class ServerHandshakeState
         {
             internal TlsServer server = null;

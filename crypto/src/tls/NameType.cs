@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the name types of the server_name extension of RFC 6066.</summary>
     public abstract class NameType
     {
         /*

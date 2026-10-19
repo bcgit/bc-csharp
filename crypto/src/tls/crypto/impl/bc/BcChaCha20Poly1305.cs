@@ -8,6 +8,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>
+    /// A ChaCha20-Poly1305 AEAD cipher built from the Bouncy Castle ChaCha20 and Poly1305 implementations.
+    /// </summary>
     public sealed class BcChaCha20Poly1305
         : TlsAeadCipherImpl
     {

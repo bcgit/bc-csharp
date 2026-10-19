@@ -4,6 +4,10 @@ using Org.BouncyCastle.Crypto.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// A default <see cref="TlsHeartbeat"/> implementation with fixed idle and timeout periods and counter-based
+    /// payloads.
+    /// </summary>
     public class DefaultTlsHeartbeat
         : TlsHeartbeat
     {

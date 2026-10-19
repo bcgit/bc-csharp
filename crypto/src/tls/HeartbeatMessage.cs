@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A heartbeat message of RFC 6520.</summary>
     public sealed class HeartbeatMessage
     {
         public static HeartbeatMessage Create(TlsContext context, short type, byte[] payload)

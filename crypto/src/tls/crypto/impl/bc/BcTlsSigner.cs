@@ -4,6 +4,7 @@ using Org.BouncyCastle.Crypto;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>Base class for TLS signers using the Bouncy Castle implementation.</summary>
     public abstract class BcTlsSigner
         : TlsSigner
     {

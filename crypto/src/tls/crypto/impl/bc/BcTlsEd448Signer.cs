@@ -5,6 +5,7 @@ using Org.BouncyCastle.Crypto.Signers;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>An Ed448 signer for TLS, using the Bouncy Castle implementation.</summary>
     public class BcTlsEd448Signer
         : BcTlsSigner
     {

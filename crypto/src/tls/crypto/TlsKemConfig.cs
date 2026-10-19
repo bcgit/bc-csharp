@@ -1,5 +1,6 @@
 ﻿namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>The configuration of a KEM used in a TLS key exchange.</summary>
     public class TlsKemConfig
     {
         protected readonly int m_namedGroup;

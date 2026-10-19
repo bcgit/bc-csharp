@@ -9,6 +9,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
+    /// <summary>Utility methods for RSA in TLS.</summary>
     public abstract class RsaUtilities
     {
         private static readonly byte[] RSAPSSParams_256_A, RSAPSSParams_384_A, RSAPSSParams_512_A;

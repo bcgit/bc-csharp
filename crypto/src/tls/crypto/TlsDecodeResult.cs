@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>The result of decoding a record: a buffer region together with the content type.</summary>
     public sealed class TlsDecodeResult
     {
         public readonly byte[] buf;

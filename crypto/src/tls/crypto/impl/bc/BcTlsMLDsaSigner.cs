@@ -5,6 +5,7 @@ using Org.BouncyCastle.Security;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>An ML-DSA signer for TLS, using the Bouncy Castle implementation.</summary>
     public class BcTlsMLDsaSigner
         : BcTlsSigner
     {

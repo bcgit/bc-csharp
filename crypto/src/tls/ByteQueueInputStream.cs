@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>An input stream that reads from a byte queue.</summary>
     public sealed class ByteQueueInputStream
         : BaseInputStream
     {

@@ -4,6 +4,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The default factory for TLS key exchange objects.</summary>
     public class DefaultTlsKeyExchangeFactory
         : AbstractTlsKeyExchangeFactory
     {

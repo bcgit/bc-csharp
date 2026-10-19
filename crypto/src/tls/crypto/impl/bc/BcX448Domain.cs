@@ -1,5 +1,6 @@
 ﻿namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>The X448 domain for TLS, using the Bouncy Castle implementation.</summary>
     // TODO[api] Make sealed
     public class BcX448Domain
         : TlsECDomain

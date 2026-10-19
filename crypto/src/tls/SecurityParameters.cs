@@ -4,6 +4,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The security parameters of a TLS connection, negotiated during the handshake.</summary>
     public sealed class SecurityParameters
     {
         internal int m_entity = -1;

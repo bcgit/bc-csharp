@@ -4,6 +4,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Interface for a pre-shared key and its associated identity.</summary>
     public interface TlsPsk
     {
         /// <summary>Gets the identity.</summary>

@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the values of the max_fragment_length extension of RFC 6066.</summary>
     public abstract class MaxFragmentLength
     {
         /*

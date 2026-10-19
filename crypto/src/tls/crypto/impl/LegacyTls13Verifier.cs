@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
+    /// <summary>A <see cref="Tls13Verifier"/> that adapts a <see cref="TlsVerifier"/> for use with TLS 1.3.</summary>
     public sealed class LegacyTls13Verifier
         : TlsVerifier
     {

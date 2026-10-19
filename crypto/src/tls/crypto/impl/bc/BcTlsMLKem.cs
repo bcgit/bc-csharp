@@ -3,6 +3,7 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>An ML-KEM key agreement for TLS, using the Bouncy Castle implementation.</summary>
     // TODO[api] Make sealed
     public class BcTlsMLKem
         : TlsAgreement

@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the TLS extension types.</summary>
     public abstract class ExtensionType
     {
         /*

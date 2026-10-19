@@ -23,6 +23,7 @@ namespace Org.BouncyCastle.Tls
         public static readonly Certificate EmptyChain = new Certificate(EmptyCerts);
         public static readonly Certificate EmptyChainTls13 = new Certificate(TlsUtilities.EmptyBytes, EmptyCertEntries);
 
+        /// <summary>Options controlling how a certificate message is parsed.</summary>
         public sealed class ParseOptions
         {
             /// <summary>Gets or sets the certificate type.</summary>

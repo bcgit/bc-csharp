@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the TLS 1.3 signature schemes.</summary>
     public abstract class SignatureScheme
     {
         /*

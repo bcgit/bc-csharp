@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>An SM2 signer for TLS, using the Bouncy Castle implementation.</summary>
     public class BcTlsSM2Signer
         : BcTlsSigner
     {

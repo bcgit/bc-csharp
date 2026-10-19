@@ -7,8 +7,10 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The parameters of a TLS session, stored so that the session can be resumed.</summary>
     public sealed class SessionParameters
     {
+        /// <summary>A builder for <see cref="SessionParameters"/>.</summary>
         public sealed class Builder
         {
             private int m_cipherSuite = -1;

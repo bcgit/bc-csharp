@@ -5,6 +5,9 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// A stream over the body of a handshake message that also keeps track of the data for the handshake hash.
+    /// </summary>
     // TODO Rewrite without MemoryStream
     public sealed class HandshakeMessageInput
         : MemoryStream

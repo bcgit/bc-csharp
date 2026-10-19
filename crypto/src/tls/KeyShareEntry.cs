@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>An entry of the TLS 1.3 key_share extension: a named group and a key exchange value.</summary>
     public sealed class KeyShareEntry
     {
         private static bool CheckKeyExchangeLength(int length) => 0 < length && length < (1 << 16);

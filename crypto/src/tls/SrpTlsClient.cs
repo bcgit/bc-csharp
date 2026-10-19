@@ -6,6 +6,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A TLS client that uses SRP.</summary>
     public class SrpTlsClient
         : AbstractTlsClient
     {

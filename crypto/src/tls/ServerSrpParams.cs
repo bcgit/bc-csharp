@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The SRP parameters sent by a server in a ServerKeyExchange message.</summary>
     public sealed class ServerSrpParams
     {
         private BigInteger m_N, m_g, m_B;

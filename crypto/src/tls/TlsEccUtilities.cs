@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Utility methods for elliptic curve cryptography in TLS.</summary>
     public abstract class TlsEccUtilities
     {
         /// <exception cref="IOException"/>

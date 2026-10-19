@@ -13,6 +13,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Base class for the TLS client and server protocols.</summary>
     public abstract class TlsProtocol
         : TlsCloseable
     {

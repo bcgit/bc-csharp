@@ -5,6 +5,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A TLS client that uses a pre-shared key.</summary>
     public class PskTlsClient
         : AbstractTlsClient
     {

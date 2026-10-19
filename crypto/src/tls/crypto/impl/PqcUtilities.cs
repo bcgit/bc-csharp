@@ -7,6 +7,9 @@ using Org.BouncyCastle.Crypto.Parameters;
 
 namespace Org.BouncyCastle.Tls.Crypto.Impl
 {
+    /// <summary>
+    /// Utility methods relating post-quantum signature schemes to their parameters and object identifiers.
+    /// </summary>
     public static class PqcUtilities
     {
         public static DerObjectIdentifier GetMLDsaObjectidentifier(int signatureScheme)

@@ -7,6 +7,7 @@ using Org.BouncyCastle.Asn1.Ocsp;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A certificate status message, carrying for example an OCSP response.</summary>
     public sealed class CertificateStatus
     {
         private readonly short m_statusType;

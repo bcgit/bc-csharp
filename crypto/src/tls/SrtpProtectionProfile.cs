@@ -1,5 +1,6 @@
 ﻿namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the SRTP protection profiles of RFC 5764.</summary>
     // TODO[api] Make static
     public abstract class SrtpProtectionProfile
     {

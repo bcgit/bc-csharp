@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Base class for the DTLS client and server protocols.</summary>
     public abstract class DtlsProtocol
     {
         internal DtlsProtocol()

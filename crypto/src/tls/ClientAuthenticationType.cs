@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the client authentication types of RFC 5077 section 4.</summary>
     public abstract class ClientAuthenticationType
     {
         /*

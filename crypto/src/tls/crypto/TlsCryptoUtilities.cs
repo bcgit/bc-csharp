@@ -10,6 +10,7 @@ using Org.BouncyCastle.Asn1.X509;
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>Utility methods for the TLS crypto layer.</summary>
     public abstract class TlsCryptoUtilities
     {
         // "tls13 "

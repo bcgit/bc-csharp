@@ -5,6 +5,9 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// Base class for a TLS server that selects its own defaults for the cipher suites and key exchange.
+    /// </summary>
     public abstract class DefaultTlsServer
         : AbstractTlsServer
     {

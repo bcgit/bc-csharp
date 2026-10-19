@@ -5,6 +5,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A pre-shared key identity together with its obfuscated ticket age, as used in TLS 1.3.</summary>
     public sealed class PskIdentity
     {
         private readonly byte[] m_identity;

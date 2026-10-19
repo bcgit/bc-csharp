@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the client certificate types of a CertificateRequest message.</summary>
     public abstract class ClientCertificateType
     {
         /*

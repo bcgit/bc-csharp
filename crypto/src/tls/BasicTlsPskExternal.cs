@@ -3,6 +3,9 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// A basic implementation of <see cref="TlsPskExternal"/>, an externally established pre-shared key.
+    /// </summary>
     public class BasicTlsPskExternal
         : TlsPskExternal
     {

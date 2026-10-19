@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Utility methods for SRP in TLS.</summary>
     public abstract class TlsSrpUtilities
     {
         /// <exception cref="IOException"/>

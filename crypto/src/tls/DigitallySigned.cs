@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A digitally-signed element: a signature together with the signature and hash algorithm used.</summary>
     public sealed class DigitallySigned
     {
         private readonly SignatureAndHashAlgorithm m_algorithm;

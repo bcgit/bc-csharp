@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>Constants for the roles a certificate can play in a TLS connection.</summary>
     public abstract class TlsCertificateRole
     {
         /// <summary>The <c>DH</c> constant, with the value <c>1</c>.</summary>

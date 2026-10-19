@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The SRP login parameters of a user, as returned by a server's identity manager.</summary>
     public class TlsSrpLoginParameters
     {
         protected byte[] m_identity;

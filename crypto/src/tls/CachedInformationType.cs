@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Constants for the cached information types of RFC 7924.</summary>
     public abstract class CachedInformationType
     {
         /// <summary>The <c>cert</c> constant, with the value <c>1</c>.</summary>

@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The heartbeat extension of RFC 6520.</summary>
     public sealed class HeartbeatExtension
     {
         private readonly short m_mode;

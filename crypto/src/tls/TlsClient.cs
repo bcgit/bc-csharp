@@ -4,6 +4,9 @@ using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// Interface for a TLS client: the callbacks used by the protocol to configure and drive a client handshake.
+    /// </summary>
     public interface TlsClient
         : TlsPeer
     {

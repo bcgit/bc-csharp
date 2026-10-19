@@ -2,6 +2,7 @@
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A preview of a record: the size of the record and the limit on the content it can carry.</summary>
     public sealed class RecordPreview
     {
         private readonly int recordSize;

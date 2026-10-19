@@ -8,6 +8,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Utility methods for creating and parsing the data of TLS extensions.</summary>
     public static class TlsExtensionsUtilities
     {
         public static IDictionary<int, byte[]> EnsureExtensionsInitialised(IDictionary<int, byte[]> extensions)

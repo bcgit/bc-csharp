@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>Utility methods for Diffie-Hellman in TLS.</summary>
     public abstract class TlsDHUtilities
     {
         public static TlsDHConfig CreateNamedDHConfig(TlsContext context, int namedGroup)

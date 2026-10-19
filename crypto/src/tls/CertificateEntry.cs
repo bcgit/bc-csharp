@@ -5,6 +5,7 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>An entry of a TLS 1.3 certificate message: a certificate together with its extensions.</summary>
     public sealed class CertificateEntry
     {
         private readonly TlsCertificate m_certificate;

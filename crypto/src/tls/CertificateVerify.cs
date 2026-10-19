@@ -3,6 +3,7 @@ using System.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>A TLS 1.3 CertificateVerify message.</summary>
     public sealed class CertificateVerify
     {
         private readonly int m_algorithm;

@@ -7,6 +7,7 @@ using Org.BouncyCastle.Utilities;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>The TLS client protocol: runs a TLS handshake as the client and provides the secured streams.</summary>
     public class TlsClientProtocol
         : TlsProtocol
     {

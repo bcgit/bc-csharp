@@ -1,5 +1,6 @@
 ﻿namespace Org.BouncyCastle.Tls.Crypto.Impl.BC
 {
+    /// <summary>The X25519 domain for TLS, using the Bouncy Castle implementation.</summary>
     // TODO[api] Make sealed
     public class BcX25519Domain
         : TlsECDomain

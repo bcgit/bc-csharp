@@ -6,6 +6,10 @@ using Org.BouncyCastle.Tls.Crypto;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>
+    /// The default verifier for Diffie-Hellman groups sent by a server: accepts only known groups whose prime is at
+    /// least a minimum size.
+    /// </summary>
     public class DefaultTlsDHGroupVerifier
         : TlsDHGroupVerifier
     {

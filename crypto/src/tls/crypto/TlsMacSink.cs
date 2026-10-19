@@ -4,6 +4,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls.Crypto
 {
+    /// <summary>A stream that writes everything to a TLS MAC.</summary>
     public class TlsMacSink
         : BaseOutputStream
     {

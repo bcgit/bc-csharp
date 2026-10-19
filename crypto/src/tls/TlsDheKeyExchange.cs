@@ -6,6 +6,7 @@ using Org.BouncyCastle.Utilities.IO;
 
 namespace Org.BouncyCastle.Tls
 {
+    /// <summary>(D)TLS DHE key exchange (RFC 4346 section 6.3.2).</summary>
     // TODO[api] Make sealed
     public class TlsDheKeyExchange
         : AbstractTlsKeyExchange
