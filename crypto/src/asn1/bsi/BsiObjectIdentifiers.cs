@@ -3,9 +3,12 @@
 namespace Org.BouncyCastle.Asn1.Bsi
 {
     // TODO[api] Make static
-    /// <remarks>See https://www.bsi.bund.de/cae/servlet/contentblob/471398/publicationFile/30615/BSI-TR-03111_pdf.pdf</remarks>
+    /// <remarks>
+    /// See https://www.bsi.bund.de/cae/servlet/contentblob/471398/publicationFile/30615/BSI-TR-03111_pdf.pdf
+    /// </remarks>
     public abstract class BsiObjectIdentifiers
     {
+        /// <summary>The object identifier <c>0.4.0.127.0.7</c>.</summary>
         public static readonly DerObjectIdentifier bsi_de = new DerObjectIdentifier("0.4.0.127.0.7");
 
         /* 0.4.0.127.0.7.1.1 */
